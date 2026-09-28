@@ -2,7 +2,7 @@
 id: 011
 title: Pop eats food at upkeep; shortfall starves pop
 type: feature
-status: review
+status: done
 branch: feat/011-food-upkeep
 ---
 
