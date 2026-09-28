@@ -2,7 +2,7 @@
 id: 013
 title: Growth cards (grow op, Granary, Harvest Festival)
 type: feature
-status: review
+status: done
 branch: feat/013-growth-cards
 ---
 

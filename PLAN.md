@@ -144,7 +144,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
 
-## Population (Milestone 3 — in progress)
+## Population (Milestone 3 — built, playtesting next)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
 010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
