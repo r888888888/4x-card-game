@@ -2,7 +2,7 @@
 id: 024
 title: Keep unplayed cards and discard down to a hand limit
 type: feature
-status: red-review
+status: in-progress
 branch: feat/024-hand-limit
 ---
 

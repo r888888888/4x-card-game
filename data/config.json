@@ -6,6 +6,7 @@
   ],
   "turn_limit": 20,
   "hand_size": 5,
+  "hand_limit": 7,
   "deck_model": "fixed",
   "population": { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 },
   "starting": {
