@@ -2,7 +2,7 @@
 id: 029
 title: Unlock tech eras by reaching a pop or wealth threshold
 type: feature
-status: ready
+status: red-review
 branch: feat/029-era-thresholds
 ---
 
@@ -68,7 +68,13 @@ Fixtures: the 027 era cards (era-2 techs Optics and Astronomy waiting in `future
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_eras::test_…` |
+| AC1 | `test_tech_eras::test_era_unlocks_is_normalized`, `test_era_unlocks_defaults_to_empty`, `test_era_unlocks_bad_era_keys_are_errors`, `test_era_unlocks_bad_values_are_errors`, `test_era_unlocks_unknown_field_is_a_warning`, `test_era_unlocks_query_returns_the_config` |
+| AC2 | `test_reaching_the_pop_threshold_adds_the_era`, `test_below_the_pop_threshold_nothing_happens` (passes now: guard) |
+| AC3 | `test_reaching_the_wealth_threshold_adds_the_era_without_spending`, `test_below_the_wealth_threshold_nothing_happens` (guard) |
+| AC4 | `test_either_threshold_is_enough` |
+| AC5 | `test_the_threshold_is_checked_at_the_start_of_turn_1`, `test_reaching_the_threshold_mid_turn_waits_for_the_next_turn`, `test_upkeep_gains_count_toward_the_threshold`, `test_pop_that_starves_does_not_count` (guard) |
+| AC6 | `test_an_era_added_by_a_tech_is_not_added_again`, `test_an_era_added_by_an_empty_deck_is_not_added_again` (both guards) |
+| AC7 | `test_content::test_real_config_sets_an_era_2_threshold`, `test_real_data_loads_without_warnings` (existing) |
 
 ## Manual check
 - [ ] The Research button tooltip shows the next era's condition, and it disappears once the era is added.
