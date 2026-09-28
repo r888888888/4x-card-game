@@ -173,3 +173,30 @@ func test_grow_text() -> void:
 	eq(cards.granary.rules_tooltip(cards), "Each upkeep: +1 pop here", "Granary")
 	eq(cards.festival.rules_tooltip(cards), "+1 pop in each territory", "Festival")
 	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")
+
+
+func test_city_slots_loads() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [{"id": "hub", "name": "Hub", "type": "city", "slots": 4}]},
+		resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	eq(cards.hub.slots, 4, "slots")
+
+
+func test_city_slots_must_be_a_non_negative_integer() -> void:
+	for bad in [-1, 1.5, "four"]:
+		var errors: Array[String] = []
+		var warnings: Array[String] = []
+		DataLoader.parse_cards({"cards": [{"id": "hub", "name": "Hub", "type": "city", "slots": bad}]},
+			resources(), "t", errors, warnings)
+		check(has_message(errors, "card 'hub'") and has_message(errors, "slots"), "slots %s: %s" % [bad, errors])
+
+
+func test_slots_on_a_building_still_warns() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "building", "slots": 2}]},
+		resources(), "t", errors, warnings)
+	check(has_message(warnings, "'slots' only applies to territories (ignored)"), str(warnings))

@@ -11,6 +11,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep"}]},
 	{"id": "city", "name": "City", "type": "city", "vp": 2, "tags": ["city"],
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "citadel", "name": "Citadel", "type": "city", "vp": 2, "tags": ["city"], "slots": 4},
 	{"id": "village", "name": "Village", "type": "city", "vp": 1, "tags": ["city"]},
 	{"id": "farm", "name": "Farm", "type": "building", "cost": {"food": 2}, "tags": ["farm"],
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
