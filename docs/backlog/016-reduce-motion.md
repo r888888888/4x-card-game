@@ -2,7 +2,7 @@
 id: 016
 title: Reduce motion setting, saved between launches
 type: feature
-status: ready
+status: red-review
 branch: feat/016-reduce-motion
 ---
 
@@ -39,7 +39,9 @@ currently always runs.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1–AC3 | `test_settings::…` (filled in at the red checkpoint) |
+| AC1 | `test_settings::test_missing_file_means_reduce_motion_off` |
+| AC2 | `test_settings::test_reduce_motion_survives_save_and_load` |
+| AC3 | `test_settings::test_corrupt_file_falls_back_to_off_with_warning`, `test_settings::test_non_bool_reduce_motion_falls_back_to_off_with_warning` |
 | AC4–AC5 | Manual |
 
 ## Manual check
