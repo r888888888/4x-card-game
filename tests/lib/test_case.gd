@@ -21,6 +21,8 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "gain_per_tag", "resource": "food", "amount": 2, "tag": "city"}]},
 	{"id": "temple", "name": "Temple", "type": "building", "cost": {"food": 1}, "vp": 1,
 	 "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "shrine", "name": "Shrine", "type": "action",
+	 "effects": [{"op": "score", "amount": 1}]},
 ]}
 
 var test_name := ""  # "file::method", set by the runner
