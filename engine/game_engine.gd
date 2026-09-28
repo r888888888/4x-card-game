@@ -8,6 +8,9 @@ extends RefCounted
 signal changed
 signal logged(message: String)
 signal game_over(final_score: int)
+## Emitted by play_card, before changed. outcome: {uid, to_zone, paid, gained, vp, drawn, created};
+## paid and gained map resource -> amount, drawn and created are card uids.
+signal card_played(outcome: Dictionary)
 
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau"]
 
@@ -22,6 +25,7 @@ var bonus_score := 0  # VP from effects, on top of VP printed on tableau cards
 var is_over := false
 var log_lines: Array[String] = []
 var _next_uid := 1
+var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
 
 
 func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:
@@ -104,14 +108,23 @@ func play_card(uid: int) -> bool:
 	var hand := zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
+	var drawn: Array[int] = []
+	var created: Array[int] = []
+	_outcome = {"uid": uid, "to_zone": "", "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
 	for r in card.def.cost:
 		resources[r] -= card.def.cost[r]
+		if card.def.cost[r] > 0:
+			_outcome.paid[r] = card.def.cost[r]
 	_log("Played %s." % card.def.name)
 	if card.def.is_permanent():
 		zone("tableau").add(card)
 	_resolve(card, "play")
 	if not card.def.is_permanent():
 		zone("discard").add(card)
+	_outcome.to_zone = "tableau" if card.def.is_permanent() else "discard"
+	var outcome := _outcome
+	_outcome = {}
+	card_played.emit(outcome)
 	changed.emit()
 	return true
 
@@ -138,6 +151,8 @@ func end_turn() -> void:
 
 func gain(resource: String, amount: int, source: CardInstance) -> void:
 	resources[resource] = resources.get(resource, 0) + amount
+	if not _outcome.is_empty() and amount != 0:
+		_outcome.gained[resource] = _outcome.gained.get(resource, 0) + amount
 	_log("  %s: +%d %s" % [source.def.name, amount, resource])
 
 
@@ -154,7 +169,10 @@ func draw(n: int) -> int:
 				deck.add(card)
 			rng.shuffle(deck.cards)
 			_log("  Reshuffled discard pile into deck (%d cards)." % deck.size())
-		zone("hand").add(deck.take_top())
+		var card := deck.take_top()
+		zone("hand").add(card)
+		if not _outcome.is_empty():
+			_outcome.drawn.append(card.uid)
 		drawn += 1
 	return drawn
 
@@ -162,12 +180,16 @@ func draw(n: int) -> int:
 func create_card(card_id: String, zone_name: String, source: CardInstance) -> CardInstance:
 	var card := _make_card(card_id)
 	zone(zone_name).add(card)
+	if not _outcome.is_empty():
+		_outcome.created.append(card.uid)
 	_log("  %s: created %s." % [source.def.name, card.def.name])
 	return card
 
 
 func add_score(amount: int, source: CardInstance) -> void:
 	bonus_score += amount
+	if not _outcome.is_empty():
+		_outcome.vp += amount
 	_log("  %s: +%d VP" % [source.def.name, amount])
 
 

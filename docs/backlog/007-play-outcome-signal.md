@@ -2,7 +2,7 @@
 id: 007
 title: Report what each card play did
 type: feature
-status: red-review
+status: in-progress
 branch: feat/007-play-outcome-signal
 ---
 
