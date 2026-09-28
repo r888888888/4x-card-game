@@ -12,7 +12,7 @@ var _score_label: Label
 var _piles_label: Label
 var _seed_edit: LineEdit
 var _tableau: HFlowContainer  # holds one group per territory, then the ghost
-var _groups := {}  # territory uid (-1 for cards with no territory) -> HBoxContainer of slots
+var _groups := {}  # territory uid (-1 for cards with no territory) -> TerritoryGroup
 var _tableau_scroll: ScrollContainer
 var _hand: HBoxContainer
 var _frontier: HBoxContainer  # discovered, unsettled territories
@@ -31,9 +31,22 @@ var _targeting: CardView  # hand card waiting for a target click (double-click w
 var _lit: Array[int] = []  # uids of the target views lit up for the dragged or targeting card
 var _drop_highlight: Panel  # lights up the tableau (the drop zone) during a drag
 var _drop_style: StyleBoxFlat
-var _ghost: Panel  # outline of the tableau slot a dragged building or city will land in
+var _ghost: Panel  # outline of the tableau slot a dragged building or city will land in (in its group)
+var _show_ghost := false  # the dragged card is a targeted permanent: the ghost follows its target group
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
+
+
+## The framed box for one territory in the tableau: a slot count, then a row of card slots.
+class TerritoryGroup:
+	var frame: PanelContainer
+	var style: StyleBoxFlat
+	var label: Label
+	var row: HBoxContainer
+
+	func set_lit(on: bool) -> void:
+		style.border_color = CardView.HIGHLIGHT_COLOR if on else Color(1, 1, 1, 0.12)
+		style.set_border_width_all(3 if on else 1)
 
 
 func _ready() -> void:
@@ -155,6 +168,8 @@ func _end_targeting() -> void:
 func _light_targets(uid: int, clickable: bool) -> void:
 	_lit = Game.engine.valid_targets(uid)
 	for target in _lit:
+		if _groups.has(target):
+			_groups[target].set_lit(true)
 		var view: CardView = _views.get(target)
 		if view != null:
 			view.set_highlight(true)
@@ -164,6 +179,8 @@ func _light_targets(uid: int, clickable: bool) -> void:
 
 func _unlight_targets() -> void:
 	for target in _lit:
+		if _groups.has(target):
+			_groups[target].set_lit(false)
 		var view: CardView = _views.get(target)
 		if view != null:
 			view.set_highlight(false)
@@ -186,6 +203,7 @@ func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
 	if _hand_error(view.uid) == "":
 		if e.needs_target(view.uid):
 			_light_targets(view.uid, false)
+			_show_ghost = card.def.is_permanent()
 		else:
 			_drop_highlight.global_position = _tableau_scroll.global_position
 			_drop_highlight.size = _tableau_scroll.size
@@ -207,6 +225,19 @@ func _update_drag_feedback() -> void:
 		error = e.play_error(_dragging.uid, target)
 	_dragging.set_warning(over and error != "")
 	_drop_style.bg_color.a = 0.10 if over else 0.03
+	if _show_ghost:
+		# In the lit group under the cursor, or in the only lit group.
+		var group_key := target if _lit.has(target) else (_lit[0] if _lit.size() == 1 else -1)
+		_move_ghost(_groups[group_key].row if _groups.has(group_key) else null)
+
+
+## Shows the ghost at the end of row, or hides it back in the tableau when row is null.
+func _move_ghost(row: HBoxContainer) -> void:
+	var parent: Control = row if row != null else _tableau
+	if _ghost.get_parent() != parent:
+		_ghost.reparent(parent, false)
+	parent.move_child(_ghost, -1)
+	_ghost.visible = row != null
 
 
 ## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there).
@@ -216,9 +247,13 @@ func _over_drop_zone() -> bool:
 		or (_frontier.visible and _frontier.get_global_rect().has_point(mouse))
 
 
-## The uid of the tableau or frontier card under the mouse, or -1.
+## What the mouse is over as a target: a territory group's territory uid, else the uid of the
+## tableau or frontier card under it, else -1.
 func _target_under_mouse() -> int:
 	var mouse := get_global_mouse_position()
+	for key in _groups:
+		if key != -1 and _groups[key].frame.get_global_rect().has_point(mouse):
+			return key
 	for uid in _views:
 		var view: CardView = _views[uid]
 		if view.in_hand or view == _dragging or view.state != CardView.State.REST:
@@ -249,7 +284,8 @@ func _end_drag() -> void:
 	_dragging.set_warning(false)
 	_dragging = null
 	_drop_highlight.hide()
-	_ghost.hide()
+	_move_ghost(null)
+	_show_ghost = false
 	_unlight_targets()
 
 
@@ -326,35 +362,44 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 		var key := order[i]
 		if not _groups.has(key):
 			_groups[key] = _new_group()
-		var group: HBoxContainer = _groups[key]
-		_tableau.move_child(group.get_parent(), i)
+		var group: TerritoryGroup = _groups[key]
+		_tableau.move_child(group.frame, i)
 		for j in members[key].size():
-			_place(members[key][j], false, group, j, 0.0)
+			_place(members[key][j], false, group.row, j, 0.0)
+		group.label.visible = key != -1
+		if key != -1:
+			var slots: int = e.zone("tableau").find(key).def.slots
+			_set_stat(group.label, "%d / %d slots used" % [slots - e.free_slots(key), slots])
 	for key in _groups.keys():
 		if not members.has(key):
-			_groups[key].get_parent().queue_free()
-			_tableau.remove_child(_groups[key].get_parent())
+			_groups[key].frame.queue_free()
+			_tableau.remove_child(_groups[key].frame)
 			_groups.erase(key)
 	_tableau.move_child(_ghost, -1)
 
 
-## A framed row for one territory's cards, added to the tableau.
-func _new_group() -> HBoxContainer:
-	var frame := PanelContainer.new()
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(1, 1, 1, 0.03)
-	style.border_color = Color(1, 1, 1, 0.12)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(10)
-	style.set_content_margin_all(6)
-	frame.add_theme_stylebox_override("panel", style)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 10)
-	frame.add_child(row)
-	_tableau.add_child(frame)
-	return row
+## A framed group for one territory's cards, added to the tableau.
+func _new_group() -> TerritoryGroup:
+	var group := TerritoryGroup.new()
+	group.frame = PanelContainer.new()
+	group.frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.style = StyleBoxFlat.new()
+	group.style.bg_color = Color(1, 1, 1, 0.03)
+	group.style.set_corner_radius_all(10)
+	group.style.set_content_margin_all(6)
+	group.set_lit(false)
+	group.frame.add_theme_stylebox_override("panel", group.style)
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.frame.add_child(box)
+	group.label = _heading("")
+	box.add_child(group.label)
+	group.row = HBoxContainer.new()
+	group.row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.row.add_theme_constant_override("separation", 10)
+	box.add_child(group.row)
+	_tableau.add_child(group.frame)
+	return group
 
 
 ## Makes sure card has a view resting in (or flying to) a slot at index in container.
