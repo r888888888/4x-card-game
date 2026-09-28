@@ -97,6 +97,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.keycode == KEY_E and not event.echo:
 		if not e.is_over and e.pending_choice.is_empty():
 			e.end_turn()
+	elif event.keycode == KEY_D and not event.echo:
+		if _focused != null and is_instance_valid(_focused) and _focused.in_hand:
+			_on_discard_requested(_focused)
 	elif event.is_action_pressed("ui_right", true):
 		_move_card_focus(1)
 	elif event.is_action_pressed("ui_left", true):
@@ -231,10 +234,19 @@ func _on_double_clicked(view: CardView) -> void:
 	if _dragging != null or not Game.engine.pending_choice.is_empty():
 		return
 	var e := Game.engine
+	if e.discard_needed() > 0:
+		_on_discard_requested(view)
+		return
 	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and _hand_error(view.uid) == "":
 		_begin_targeting(view)
 	else:
 		_try_play(view)
+
+
+## Discards a hand card (right-click, D, or double-click while over the hand limit).
+func _on_discard_requested(view: CardView) -> void:
+	if _dragging == null and _targeting == null:
+		Game.engine.discard_card(view.uid)
 
 
 func _on_picked(view: CardView) -> void:
@@ -537,7 +549,9 @@ func _refresh() -> void:
 	_animate_outcome()
 	_sync_card_focus()
 
-	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty()
+	var discarding := e.discard_needed() > 0
+	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty() or discarding
+	_end_turn_button.text = "Discard %d (hand limit %d)" % [e.discard_needed(), e.config.hand_limit] if discarding else "End turn  (E)"
 	if e.is_over and not _game_over_overlay.visible:
 		_replay_button.grab_focus()  # so Enter replays from the keyboard
 	_game_over_overlay.visible = e.is_over
@@ -640,6 +654,7 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 		view.set_pickable(container == _reveal, "Click to keep this territory.")
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(_on_double_clicked)
+		view.discard_requested.connect(_on_discard_requested)
 		view.picked.connect(_on_picked)
 		_views[card.uid] = view
 		var slot := _new_slot(in_hand, container, index)
@@ -933,7 +948,7 @@ func _build_layout() -> void:
 	_tableau.add_theme_constant_override("v_separation", GROUP_GAP)
 	_tableau_scroll.add_child(_tableau)
 
-	var hand_section := _section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter")
+	var hand_section := _section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	_hand_scroll = ScrollContainer.new()
 	_hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	_hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

@@ -103,10 +103,10 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then pop eats food (starving on a shortfall).
-2. Draw up to hand size.
-3. Play: play or buy cards while resources allow, and buy growth for territories.
+2. Draw up to hand size (unplayed cards stay in hand).
+3. Play: play or buy cards while resources allow, and buy growth for territories. A hand card can be discarded for free at any time.
 4. Event: stub for now (threat design deferred).
-5. Cleanup: discard hand; unspent food carries over. After turn 20, show final score.
+5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building

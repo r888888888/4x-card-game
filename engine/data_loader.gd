@@ -8,7 +8,7 @@ const CARD_TYPES: Array[String] = ["action", "building", "city", "territory"]
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "deck_model", "starting", "deck", "keywords", "territory_deck", "population"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "population"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -202,7 +202,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	return def
 
 
-## Returns a normalized config: {resources, keywords, turn_limit, hand_size, deck_model,
+## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
 ## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
@@ -215,12 +215,15 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"keywords": parse_keywords(raw, src, errors),
 		"turn_limit": Effect.read_int(raw, "turn_limit", errs, 1, 20),
 		"hand_size": Effect.read_int(raw, "hand_size", errs, 1, 5),
+		"hand_limit": 0,
 		"deck_model": Effect.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
 		"starting": {"resources": {}, "tableau": [], "territory": ""},
 		"deck": {},
 		"territory_deck": {},
 		"population": {},
 	}
+
+	config.hand_limit = Effect.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
 
 	var starting: Variant = raw.get("starting", {})
 	if starting is Dictionary:

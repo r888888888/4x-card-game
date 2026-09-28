@@ -27,6 +27,7 @@ var is_over := false
 var log_lines: Array[String] = []
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var pending_choice: Dictionary = {}  # {options: Array[int], source: CardInstance}; empty = none
+var _discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
 
@@ -86,6 +87,8 @@ func grow_error(territory_uid: int) -> String:
 		return "This game has no population."
 	if not pending_choice.is_empty():
 		return "Choose a territory first."
+	if _discard_left > 0:
+		return _discard_error()
 	var territory := _settled_territory(territory_uid)
 	if territory == null:
 		return "Only a settled territory can grow."
@@ -131,6 +134,8 @@ func play_error(uid: int, target_uid := -1) -> String:
 		return "The game is over."
 	if not pending_choice.is_empty():
 		return "Choose a territory first."
+	if _discard_left > 0:
+		return _discard_error()
 	var card := zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
@@ -224,6 +229,7 @@ func new_game(p_seed: int) -> void:
 	bonus_score = 0
 	is_over = false
 	pending_choice = {}
+	_discard_left = 0
 	_next_uid = 1
 	log_lines.clear()
 
@@ -306,22 +312,44 @@ func choose(uid: int) -> bool:
 	return true
 
 
-func end_turn() -> void:
+## Cards that must still be discarded before the turn can end (0 when none is pending).
+func discard_needed() -> int:
+	return _discard_left
+
+
+## Discards one card from the hand for free, any time in the turn. If an end-of-turn discard is
+## pending this counts toward it, and the turn ends once the hand is down to the limit. False (and no
+## change) if the game is over, a choice is pending, or the card isn't in hand.
+func discard_card(uid: int) -> bool:
 	if is_over or not pending_choice.is_empty():
+		return false
+	var card := zone("hand").find(uid)
+	if card == null:
+		return false
+	zone("hand").remove(card)
+	zone("discard").add(card)
+	_log("Discarded %s." % card.def.name)
+	if _discard_left > 0:
+		_discard_left -= 1
+		if _discard_left == 0:
+			_finish_turn()
+	changed.emit()
+	return true
+
+
+## Ends the turn. Over the hand limit, waits for discard_card calls instead (not on the last turn).
+func end_turn() -> void:
+	if is_over or not pending_choice.is_empty() or _discard_left > 0:
 		return
 	_event_phase()
-	var discard := zone("discard")
-	for card in zone("hand").take_all():
-		discard.add(card)
-	if turn >= turn_limit():
-		is_over = true
-		var final_score := score()
-		_log("Game over after %d turns. Final score: %d." % [turn, final_score])
-		changed.emit()
-		game_over.emit(final_score)
-		return
-	_start_turn()
-	changed.emit()
+	if turn < turn_limit():
+		var over: int = zone("hand").size() - config.hand_limit
+		if over > 0:
+			_discard_left = over
+			_log("Hand limit is %d: discard %d." % [config.hand_limit, over])
+			changed.emit()
+			return
+	_finish_turn()
 
 
 # --- Helpers called by effects ---
@@ -422,6 +450,26 @@ func add_score(amount: int, source: CardInstance) -> void:
 
 # --- Internals ---
 
+func _finish_turn() -> void:
+	if turn >= turn_limit():
+		is_over = true
+		var discard := zone("discard")
+		for card in zone("hand").take_all():
+			discard.add(card)
+		var final_score := score()
+		_log("Game over after %d turns. Final score: %d." % [turn, final_score])
+		changed.emit()
+		game_over.emit(final_score)
+		return
+	_start_turn()
+	changed.emit()
+
+
+func _discard_error() -> String:
+	return "Discard down to %d cards first." % config.hand_limit
+
+
+
 func _start_turn() -> void:
 	turn += 1
 	_log("— Turn %d —" % turn)
@@ -430,7 +478,7 @@ func _start_turn() -> void:
 		_resolve(card, "upkeep")
 	if population_on():
 		_feed_pop()
-	draw(config.hand_size)
+	draw(maxi(0, config.hand_size - zone("hand").size()))
 
 
 ## Pop eats food_upkeep food each. Each food that can't be paid starves 1 pop from the territory with
