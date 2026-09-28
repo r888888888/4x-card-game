@@ -8,8 +8,9 @@ extends RefCounted
 signal changed
 signal logged(message: String)
 signal game_over(final_score: int)
-## Emitted by play_card, before changed. outcome: {uid, to_zone, paid, gained, vp, drawn, created};
-## paid and gained map resource -> amount, drawn and created are card uids.
+## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, vp, drawn, created};
+## target is the uid the card was played on (-1 if none), paid and gained map resource -> amount,
+## drawn and created are card uids.
 signal card_played(outcome: Dictionary)
 
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal"]
@@ -24,6 +25,7 @@ var turn := 0
 var bonus_score := 0  # VP from effects, on top of VP printed on tableau cards
 var is_over := false
 var log_lines: Array[String] = []
+var play_target := -1  # target uid of the card being played; -1 outside play_card
 var pending_choice: Dictionary = {}  # {options: Array[int], source: CardInstance}; empty = none
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
@@ -56,7 +58,7 @@ func count_tag(tag: String, zone_name: String) -> int:
 
 
 ## Why the card can't be played right now, or "" if it can.
-func play_error(uid: int, _target_uid := -1) -> String:
+func play_error(uid: int, target_uid := -1) -> String:
 	if is_over:
 		return "The game is over."
 	if not pending_choice.is_empty():
@@ -69,16 +71,33 @@ func play_error(uid: int, _target_uid := -1) -> String:
 		var have: int = resources.get(r, 0)
 		if have < need:
 			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
+	var effect := _target_effect(card)
+	if effect == null:
+		return ""
+	var targets := valid_targets(uid)
+	if target_uid != -1:
+		return "" if targets.has(target_uid) else "That target isn't valid."
+	if targets.is_empty():
+		return effect.no_target_error()
+	if targets.size() > 1:
+		return effect.choose_target_error()
 	return ""
 
 
-## The uids card uid can be played on; [] if it needs no target.
-func valid_targets(_uid: int) -> Array[int]:
-	return []
+## The uids hand card uid can be played on; [] if it needs no target.
+func valid_targets(uid: int) -> Array[int]:
+	var out: Array[int] = []
+	var card := zone("hand").find(uid)
+	var effect := _target_effect(card) if card != null else null
+	if effect != null:
+		for target in zone(effect.target_zone()).cards:
+			out.append(target.uid)
+	return out
 
 
-func needs_target(_uid: int) -> bool:
-	return false
+func needs_target(uid: int) -> bool:
+	var card := zone("hand").find(uid)
+	return card != null and _target_effect(card) != null
 
 
 ## The settled territory card sits on, or null.
@@ -133,16 +152,21 @@ func new_game(p_seed: int) -> void:
 	changed.emit()
 
 
-## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects,
-## then emits card_played with what happened.
-func play_card(uid: int, _target_uid := -1) -> bool:
-	if play_error(uid) != "":
+## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects on
+## target_uid, then emits card_played with what happened. A card that needs a target and has only
+## one valid target uses it when target_uid is -1; a card that needs none ignores target_uid.
+func play_card(uid: int, target_uid := -1) -> bool:
+	if play_error(uid, target_uid) != "":
 		return false
+	var target := -1
+	if needs_target(uid):
+		target = target_uid if target_uid != -1 else valid_targets(uid)[0]
 	var hand := zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
 	var permanent := card.def.is_permanent()
-	_outcome = _new_outcome(uid, "tableau" if permanent else "discard")
+	_outcome = _new_outcome(uid, "tableau" if permanent else "discard", target)
+	play_target = target
 	for r in card.def.cost:
 		resources[r] -= card.def.cost[r]
 		if card.def.cost[r] > 0:
@@ -155,6 +179,7 @@ func play_card(uid: int, _target_uid := -1) -> bool:
 		zone("discard").add(card)
 	var outcome := _outcome
 	_outcome = {}
+	play_target = -1
 	card_played.emit(outcome)
 	changed.emit()
 	return true
@@ -258,6 +283,16 @@ func explore(n: int, source: CardInstance) -> void:
 		_log("  %s: choose a territory to keep." % source.def.name)
 
 
+## Moves frontier territory territory_uid to the tableau and founds a new city_id on it.
+func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:
+	var territory := zone("frontier").find(territory_uid)
+	zone("frontier").remove(territory)
+	zone("tableau").add(territory)
+	var city := create_card(city_id, "tableau", source)
+	city.territory_uid = territory.uid
+	_log("  %s: settled %s." % [source.def.name, territory.def.name])
+
+
 func add_score(amount: int, source: CardInstance) -> void:
 	bonus_score += amount
 	if not _outcome.is_empty():
@@ -284,10 +319,18 @@ func _resolve(card: CardInstance, trigger: String) -> void:
 		e.apply(self, card)
 
 
-func _new_outcome(uid: int, to_zone: String) -> Dictionary:
+func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
 	var drawn: Array[int] = []
 	var created: Array[int] = []
-	return {"uid": uid, "to_zone": to_zone, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
+	return {"uid": uid, "to_zone": to_zone, "target": target, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
+
+
+## The card's first "play" effect that needs a target, or null.
+func _target_effect(card: CardInstance) -> Effect:
+	for e in card.def.effects_for("play"):
+		if e.target_zone() != "":
+			return e
+	return null
 
 
 func _make_card(card_id: String) -> CardInstance:

@@ -110,6 +110,10 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			for ref in e.referenced_cards():
 				if not db.has(ref):
 					errors.append("%s: card '%s': '%s' effect refers to unknown card '%s'" % [src, id, e.op, ref])
+			var ref_errors: Array[String] = []
+			e.check_references(db, ref_errors)
+			for m in ref_errors:
+				errors.append("%s: card '%s': '%s' effect: %s" % [src, id, e.op, m])
 	return db
 
 

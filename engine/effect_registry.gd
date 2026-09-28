@@ -10,6 +10,7 @@ const OPS := {
 	"create": preload("res://engine/effects/create_effect.gd"),
 	"score": preload("res://engine/effects/score_effect.gd"),
 	"explore": preload("res://engine/effects/explore_effect.gd"),
+	"settle": preload("res://engine/effects/settle_effect.gd"),
 }
 
 

@@ -2,7 +2,7 @@
 id: 003
 title: Settle a discovered territory
 type: feature
-status: red-review
+status: in-progress
 branch: feat/003-settle
 ---
 
