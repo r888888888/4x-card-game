@@ -24,6 +24,7 @@ var turn := 0
 var bonus_score := 0  # VP from effects, on top of VP printed on tableau cards
 var is_over := false
 var log_lines: Array[String] = []
+var pending_choice: Dictionary = {}  # {options: Array[int], source: CardInstance}; empty = none
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
 
@@ -145,6 +146,11 @@ func play_card(uid: int) -> bool:
 	card_played.emit(outcome)
 	changed.emit()
 	return true
+
+
+## Resolves the pending choice by keeping the territory uid. False if uid isn't an option.
+func choose(_uid: int) -> bool:
+	return false
 
 
 func end_turn() -> void:

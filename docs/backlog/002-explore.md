@@ -2,7 +2,7 @@
 id: 002
 title: Explore reveals 2 territories, keep 1
 type: feature
-status: ready
+status: red-review
 branch: feat/002-explore
 ---
 
@@ -71,6 +71,12 @@ arranged so the top (last element) is listed first.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_explore::test_explore_reveals_top_two_as_a_choice` |
+| AC2 | `test_explore::test_choose_keeps_pick_in_frontier_and_buries_the_rest`, `test_explore::test_choose_emits_changed_but_not_card_played` (design note) |
+| AC3 | `test_explore::test_pending_choice_blocks_play`, `test_explore::test_pending_choice_blocks_end_turn` |
+| AC4 | `test_explore::test_choose_non_option_is_refused`, `test_explore::test_choose_with_nothing_pending_is_refused` |
+| AC5 | `test_explore::test_explore_last_territory_goes_straight_to_frontier`, `test_explore::test_explore_empty_territory_deck_does_nothing` |
+| AC6 | `test_data_loader::test_explore_defaults_to_reveal_2`, `test_data_loader::test_explore_reveal_0_is_error` |
 
 ## Manual check
 - [ ] Playing Scout shows 2 territories to pick from. Picking one flies it into the frontier row, and
@@ -78,3 +84,6 @@ arranged so the top (last element) is listed first.
 - [ ] While the choice is open, trying to drag a hand card does nothing, and its tooltip says why.
 
 ## Log
+- 2026-09-28: red. Added `jungle` (territory, 1 slot) and `explorer` (action, `explore`) to `TEST_CARDS`.
+  Interface-only declarations committed with the tests so they parse: `pending_choice` and a
+  `choose` that returns false.
