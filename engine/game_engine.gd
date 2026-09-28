@@ -13,7 +13,7 @@ signal game_over(final_score: int)
 ## drawn and created are card uids.
 signal card_played(outcome: Dictionary)
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -27,6 +27,7 @@ var is_over := false
 var log_lines: Array[String] = []
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var pending_choice: Dictionary = {}  # {options: Array[int], source: CardInstance}; empty = none
+var _research_left := 0  # research actions left this turn
 var _discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
@@ -51,6 +52,8 @@ func turn_limit() -> int:
 func score() -> int:
 	var total := bonus_score
 	for card in zone("tableau").cards:
+		total += card.def.vp
+	for card in zone("researched").cards:
 		total += card.def.vp
 	if population_on():
 		total += total_pop() * config.population.vp_per_pop
@@ -87,6 +90,8 @@ func grow_error(territory_uid: int) -> String:
 		return "This game has no population."
 	if not pending_choice.is_empty():
 		return "Choose a territory first."
+	if not research_options().is_empty():
+		return _research_open_error()
 	if _discard_left > 0:
 		return _discard_error()
 	var territory := _settled_territory(territory_uid)
@@ -124,6 +129,55 @@ func total_pop() -> int:
 	return total
 
 
+## Research actions left this turn.
+func research_left() -> int:
+	return _research_left
+
+
+## The uids of the revealed techs waiting to be bought or declined, top first; [] when none is open.
+func research_options() -> Array[int]:
+	var out: Array[int] = []
+	for card in zone("research_reveal").cards:
+		out.append(card.uid)
+	return out
+
+
+## Why research can't start right now, or "" if it can.
+func research_error() -> String:
+	if is_over:
+		return "The game is over."
+	if not pending_choice.is_empty():
+		return "Choose a territory first."
+	if not research_options().is_empty():
+		return _research_open_error()
+	if _discard_left > 0:
+		return _discard_error()
+	if _research_left <= 0:
+		return "No research left this turn."
+	if zone("research_deck").is_empty():
+		return "The research deck is empty."
+	return ""
+
+
+## What tech uid costs in wealth right now (0 if it isn't a tech in the research deck, the revealed
+## techs or the researched row).
+func tech_cost(uid: int) -> int:
+	var tech := _find_tech(uid)
+	return tech.def.cost.get("wealth", 0) if tech != null else 0
+
+
+## Why revealed tech uid can't be bought right now, or "" if it can.
+func buy_tech_error(uid: int) -> String:
+	var tech := zone("research_reveal").find(uid)
+	if tech == null:
+		return "That tech isn't up for research."
+	var cost := tech_cost(uid)
+	var have: int = resources.get("wealth", 0)
+	if have < cost:
+		return "%s needs %d wealth (you have %d)." % [tech.def.name, cost, have]
+	return ""
+
+
 func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
 
@@ -134,6 +188,8 @@ func play_error(uid: int, target_uid := -1) -> String:
 		return "The game is over."
 	if not pending_choice.is_empty():
 		return "Choose a territory first."
+	if not research_options().is_empty():
+		return _research_open_error()
 	if _discard_left > 0:
 		return _discard_error()
 	var card := zone("hand").find(uid)
@@ -230,6 +286,7 @@ func new_game(p_seed: int) -> void:
 	is_over = false
 	pending_choice = {}
 	_discard_left = 0
+	_research_left = 0
 	_next_uid = 1
 	log_lines.clear()
 
@@ -243,6 +300,12 @@ func new_game(p_seed: int) -> void:
 		for i in config.territory_deck[id]:
 			territory_deck.add(_make_card(id))
 	rng.shuffle(territory_deck.cards)
+	var research_deck := zone("research_deck")
+	for id in config.research_deck:
+		for i in config.research_deck[id]:
+			research_deck.add(_make_card(id))
+	if not research_deck.is_empty():
+		rng.shuffle(research_deck.cards)
 	var home: CardInstance = null
 	if config.starting.territory != "":
 		home = _make_card(config.starting.territory)
@@ -312,6 +375,50 @@ func choose(uid: int) -> bool:
 	return true
 
 
+## Spends a research action to reveal the top 2 techs (or the last one) of the research deck. The
+## player then calls buy_tech or decline_research. False (and no change) if research_error says no.
+func research() -> bool:
+	if research_error() != "":
+		return false
+	_research_left -= 1
+	var deck := zone("research_deck")
+	for i in 2:
+		if deck.is_empty():
+			break
+		zone("research_reveal").add(deck.take_top())
+	_log("Researching: %s." % ", ".join(PackedStringArray(zone("research_reveal").cards.map(func(c): return c.def.name))))
+	changed.emit()
+	return true
+
+
+## Pays for revealed tech uid, moves it to the researched row and resolves its play effects. The other
+## revealed tech goes back into the research deck. False (and no change) if buy_tech_error says no.
+func buy_tech(uid: int) -> bool:
+	if buy_tech_error(uid) != "":
+		return false
+	var tech := zone("research_reveal").find(uid)
+	var cost := tech_cost(uid)
+	zone("research_reveal").remove(tech)
+	resources.wealth -= cost
+	zone("researched").add(tech)
+	_log("Researched %s (%d wealth)." % [tech.def.name, cost])
+	_resolve(tech, "play")
+	_return_revealed_techs()
+	changed.emit()
+	return true
+
+
+## Puts the revealed techs back into the research deck without buying. The action stays spent.
+## False (and no change) if nothing is revealed.
+func decline_research() -> bool:
+	if zone("research_reveal").is_empty():
+		return false
+	_log("Declined to research.")
+	_return_revealed_techs()
+	changed.emit()
+	return true
+
+
 ## Cards that must still be discarded before the turn can end (0 when none is pending).
 func discard_needed() -> int:
 	return _discard_left
@@ -321,7 +428,7 @@ func discard_needed() -> int:
 ## pending this counts toward it, and the turn ends once the hand is down to the limit. False (and no
 ## change) if the game is over, a choice is pending, or the card isn't in hand.
 func discard_card(uid: int) -> bool:
-	if is_over or not pending_choice.is_empty():
+	if is_over or not pending_choice.is_empty() or not research_options().is_empty():
 		return false
 	var card := zone("hand").find(uid)
 	if card == null:
@@ -339,7 +446,7 @@ func discard_card(uid: int) -> bool:
 
 ## Ends the turn. Over the hand limit, waits for discard_card calls instead (not on the last turn).
 func end_turn() -> void:
-	if is_over or not pending_choice.is_empty() or _discard_left > 0:
+	if is_over or not pending_choice.is_empty() or not research_options().is_empty() or _discard_left > 0:
 		return
 	_event_phase()
 	if turn < turn_limit():
@@ -465,6 +572,27 @@ func _finish_turn() -> void:
 	changed.emit()
 
 
+func _research_open_error() -> String:
+	return "Buy a tech or decline first."
+
+
+## The tech uid in the research deck, the revealed techs or the researched row, or null.
+func _find_tech(uid: int) -> CardInstance:
+	for name in ["research_reveal", "research_deck", "researched"]:
+		var tech := zone(name).find(uid)
+		if tech != null:
+			return tech
+	return null
+
+
+## Shuffles every revealed tech back into the research deck.
+func _return_revealed_techs() -> void:
+	var deck := zone("research_deck")
+	for card in zone("research_reveal").take_all():
+		deck.add(card)
+	rng.shuffle(deck.cards)
+
+
 func _discard_error() -> String:
 	return "Discard down to %d cards first." % config.hand_limit
 
@@ -473,7 +601,8 @@ func _discard_error() -> String:
 func _start_turn() -> void:
 	turn += 1
 	_log("— Turn %d —" % turn)
-	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid))
+	_research_left = 1
+	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid)) + zone("researched").cards
 	for card in working:
 		_resolve(card, "upkeep")
 	if population_on():

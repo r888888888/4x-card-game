@@ -2,7 +2,7 @@
 id: 025
 title: Research techs from a research deck (reveal 2, buy one or decline)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/025-research-deck
 ---
 

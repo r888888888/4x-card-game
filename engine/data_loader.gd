@@ -4,11 +4,12 @@ extends RefCounted
 ## the first) with file, card and field, so a bad data edit is easy to fix.
 ## Unknown fields are warnings, not errors.
 
-const CARD_TYPES: Array[String] = ["action", "building", "city", "territory"]
+const CARD_TYPES: Array[String] = ["action", "building", "city", "territory", "tech"]
+const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the main deck
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "population"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "population"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -140,6 +141,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	else:
 		errs.append("'cost' must be an object like {\"food\": 2}")
 
+	if def.type == "tech" and not (def.cost.size() == 1 and def.cost.get("wealth", 0) >= 1):
+		errs.append("cost: a tech must cost wealth only, at least 1 (like {\"wealth\": 2})")
+
 	var tags: Variant = c.get("tags", [])
 	if tags is Array:
 		for t in tags:
@@ -160,6 +164,11 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("effects[%d]: %s" % [j, m])
 			for m in e_warns:
 				warns.append("effects[%d]: %s" % [j, m])
+			if effect != null and e_errs.is_empty() and def.type == "tech":
+				var problem := _tech_effect_problem(effect)
+				if problem != "":
+					errs.append("effects[%d]: %s" % [j, problem])
+					continue
 			if effect != null and e_errs.is_empty():
 				def.effects.append(effect)
 	else:
@@ -202,8 +211,17 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	return def
 
 
+## Why effect can't be on a tech, or "" if it can (a tech has no territory to aim at).
+static func _tech_effect_problem(effect: Effect) -> String:
+	if effect.keyword != "":
+		return "a tech effect can't use 'keyword' (a tech has no territory)"
+	if effect.target_zone() != "":
+		return "a tech effect can't need a target"
+	return ""
+
+
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
-## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count},
+## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
@@ -220,6 +238,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"starting": {"resources": {}, "tableau": [], "territory": ""},
 		"deck": {},
 		"territory_deck": {},
+		"research_deck": {},
 		"population": {},
 	}
 
@@ -261,15 +280,21 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	var deck: Variant = raw.get("deck")
 	if deck is Dictionary and not deck.is_empty():
-		config.deck = _parse_counts(deck, "deck", cards, false, errs)
+		config.deck = _parse_counts(deck, "deck", cards, "", errs)
 	else:
 		errs.append("'deck' must be a non-empty object like {\"farm\": 4}")
 
 	var territory_deck: Variant = raw.get("territory_deck", {})
 	if territory_deck is Dictionary:
-		config.territory_deck = _parse_counts(territory_deck, "territory_deck", cards, true, errs)
+		config.territory_deck = _parse_counts(territory_deck, "territory_deck", cards, "territory", errs)
 	else:
 		errs.append("'territory_deck' must be an object like {\"hills\": 2}")
+
+	var research_deck: Variant = raw.get("research_deck", {})
+	if research_deck is Dictionary:
+		config.research_deck = _parse_counts(research_deck, "research_deck", cards, "tech", errs)
+	else:
+		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
 
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
@@ -303,18 +328,18 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 	return out
 
 
-## Normalizes a {card_id: count} deck. territories: whether the deck must hold only
-## territory cards (true) or none (false).
-static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, territories: bool, errs: Array[String]) -> Dictionary:
+## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory" or
+## "tech"), or "" for the main deck, which holds neither.
+static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, required: String, errs: Array[String]) -> Dictionary:
 	var out := {}
 	for id in deck:
 		var n: Variant = as_int(deck[id])
 		if not cards.has(id):
 			errs.append("%s: unknown card '%s'" % [field, id])
-		elif territories and cards[id].type != "territory":
-			errs.append("%s: '%s' is not a territory" % [field, id])
-		elif not territories and cards[id].type == "territory":
-			errs.append("%s: '%s' is a territory" % [field, id])
+		elif required != "" and cards[id].type != required:
+			errs.append("%s: '%s' is not a %s" % [field, id, required])
+		elif required == "" and SEPARATE_DECK_TYPES.has(cards[id].type):
+			errs.append("%s: '%s' is a %s" % [field, id, cards[id].type])
 		elif typeof(n) != TYPE_INT or n < 1:
 			errs.append("%s: count for '%s' must be an integer >= 1" % [field, id])
 		else:

@@ -38,7 +38,8 @@ func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) 
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var e := GameEngine.new(cards, parsed)
 	e.new_game(1)
-	arrange(e.zone("research_deck"), order_top_first)
+	if not order_top_first.is_empty():  # otherwise keep the config's shuffled deck
+		arrange(e.zone("research_deck"), order_top_first)
 	return e
 
 
