@@ -2,7 +2,7 @@
 id: 028
 title: First tech content (era 1 and 2 techs, Library)
 type: feature
-status: review
+status: done
 branch: feat/028-tech-content
 ---
 
