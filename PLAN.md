@@ -37,7 +37,7 @@ res://
     effects/             # gain, gain_per_tag, draw, create, score
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
-  ui/                    # main.tscn/main.gd (layout built in code), card_view.gd
+  ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning)
   tests/
     run_tests.gd         # dependency-free runner: finds tests/**/test_*.gd (use scripts/test.sh)
     lib/test_case.gd     # assertions, TEST_CARDS fixture, make_engine and helpers
@@ -132,10 +132,10 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
 - [x] UI: hand, tableau, stats bar, game log; click to play, Enter ends turn (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
+- [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
 
 ## Later
 - Headless bot + balance stats (random, then greedy)
-- Drag-and-drop, animations
 - Save/load, undo (snapshot GameState)
 - More eras, wonders, techs, automated rival
