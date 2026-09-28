@@ -2,7 +2,7 @@
 id: 001
 title: Territory cards and the Capital's starting territory
 type: feature
-status: in-progress
+status: review
 branch: feat/001-territory-cards
 ---
 
@@ -12,25 +12,25 @@ and the Capital starts on a territory. This is the foundation for explore (002),
 slots (004), and keywords (005). See PLAN.md › Territories.
 
 ## Acceptance criteria
-- [ ] AC1: Given a card `{"id": "hills", "type": "territory", "slots": 3, "keywords": ["mountain"]}` and
+- [x] AC1: Given a card `{"id": "hills", "type": "territory", "slots": 3, "keywords": ["mountain"]}` and
   config `keywords: ["mountain", "fresh_water"]`, when the data loads, then there are no errors and the
   CardDef has `slots == 3`, `keywords == ["mountain"]`, and `is_permanent()` is true.
-- [ ] AC2: Given a territory with `slots` missing or `-1`, or with keyword `"lava"` that isn't in config
+- [x] AC2: Given a territory with `slots` missing or `-1`, or with keyword `"lava"` that isn't in config
   `keywords`, when the data loads, then there is one error per problem, each naming the card id and the
   field (`slots` / `unknown keyword 'lava'`).
-- [ ] AC3: Given a non-territory card with `slots` or `keywords`, when the data loads, then there is a warning
+- [x] AC3: Given a non-territory card with `slots` or `keywords`, when the data loads, then there is a warning
   naming the card and field, and no error.
-- [ ] AC4: Given config `territory_deck: {"hills": 2, "grassland": 1}`, when the data loads, then it is
+- [x] AC4: Given config `territory_deck: {"hills": 2, "grassland": 1}`, when the data loads, then it is
   normalized like `deck`. An unknown id is an error. A non-territory id there, or a territory id in `deck`,
   is an error that names the id. `starting.territory` must name a territory card, or it is an error.
-- [ ] AC5: Given `territory_deck: {"hills": 2, "grassland": 1}` and `starting.territory: "grassland"`, when a
+- [x] AC5: Given `territory_deck: {"hills": 2, "grassland": 1}` and `starting.territory: "grassland"`, when a
   new game starts, then:
   - the `territory_deck` zone holds 3 territories, shuffled by the seed (same seed ⇒ same order)
   - the `frontier` zone is empty
   - the tableau is `[grassland, capital]`
   - `territory_of(capital)` is the Grassland instance
   - the score is unchanged (territories have 0 VP by default).
-- [ ] AC6: Given a config with none of `keywords`, `territory_deck`, or `starting.territory`, when the data
+- [x] AC6: Given a config with none of `keywords`, `territory_deck`, or `starting.territory`, when the data
   loads and a game starts, then there are no errors or warnings, the territory deck is empty, and the
   tableau is `[capital]` (existing games are unaffected).
 
@@ -74,11 +74,18 @@ All in `tests/test_territories.gd`.
 | AC6 | `test_config_without_territories_loads_cleanly`, `test_game_without_territories_is_unchanged` |
 
 ## Manual check
-- [ ] The tableau shows a Grassland group: the Grassland card (with its slots and keywords), then the Capital.
-- [ ] Dragging a Farm into the tableau still works, and the Farm lands in the Grassland group.
+- [ ] Any seed: the tableau shows one framed group holding the Grassland card (purple, "2 slots"),
+  then the Capital.
+- [ ] Dragging a Farm into the tableau still works. The Farm lands in a separate, unframed-territory
+  group after the Grassland group (placing buildings on territories is 004).
 
 ## Log
 - 2026-09-28: red. Added `grassland` and `hills` territories to `TEST_CARDS` and a `keywords()` helper;
   `parse_cards` takes the keyword list as an optional last argument. Interface-only declarations
   (`CardDef.slots/keywords`, `CardInstance.territory_uid`, `territory_of` returning null, the unused
   `parse_cards` parameter) went in with the red tests so the typed test files parse.
+- 2026-09-28: green. Manual check reworded (user approved at the red checkpoint): under 001 a played
+  Farm has no territory, so it goes in the last group; 004 places it on Grassland.
+- UI grouping in `main.gd::_place_tableau` uses `territory_of`; it holds no rule beyond display order.
+- Known look: the Capital's card content is taller than `TABLEAU_SIZE`, so it overhangs the group
+  frame slightly (pre-existing overflow, now visible against the frame).

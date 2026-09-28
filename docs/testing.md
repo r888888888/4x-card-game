@@ -30,6 +30,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
+| `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern
 (e.g. `test_effects.gd`, `test_market.gd`).
@@ -60,7 +61,8 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 | `check(cond, message)` | Boolean assertion |
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys |
-| `TEST_CARDS` | Small, stable card set. Add cards here when a test needs a new shape |
+| `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
+| `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `card_ids(zone)` / `first_in_hand(engine)` | Inspection helpers |
 

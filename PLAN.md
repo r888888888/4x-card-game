@@ -25,13 +25,13 @@ through signals. This keeps rules testable and allows headless simulation later
 res://
   data/
     cards.json           # player card definitions
-    config.json          # resources, turn limit, hand size, deck model, starting state, deck list
+    config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
     game_engine.gd       # GameState + actions + turn loop (play_card, end_turn, play_error, score)
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; rules text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def)
-    zone.gd              # named ordered pile: deck, hand, discard, tableau
+    card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
+    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
     effects/             # gain, gain_per_tag, draw, create, score
@@ -82,6 +82,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
   errors with file, card id and field. Unknown fields are warnings, not errors.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
+- Territory cards (`"type": "territory"`) need `slots` (int ≥ 0) and may list `keywords` from config
+  `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
 
 ## Keeping the deck model open
 Every deck model is expressed through **zones + a `move_card` effect**:
@@ -99,7 +101,8 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
-into a placement decision, without a map. Backlog items 001–006 build it in slices.
+into a placement decision, without a map. Backlog items 001–006 build it in slices
+(001 done: territory cards, territory deck, starting territory, tableau groups).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
   (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.
