@@ -83,4 +83,6 @@ Fixtures: the 027 era cards (era-2 techs Optics and Astronomy waiting in `future
 ## Log
 - Suite: 296 → 314 tests. Five tests were guards that passed before the change (below-threshold, starvation, once per era).
 - UI: the Research button tooltip lists "Era 2 at 8 pop or 15 wealth (checked at the start of a turn)" until era 2 arrives.
+- The first tooltip commit had a parse error in `main.gd` (`PackedStringArray.filter` doesn't exist); the test
+  suite doesn't load UI scripts, so only the headless drive caught it. Fixed in the next commit.
 - The 028 bot numbers already reached era 2 in 20/20 seeds via Philosophy, so the thresholds mostly matter for players who skip it.
