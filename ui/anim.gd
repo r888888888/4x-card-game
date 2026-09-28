@@ -36,3 +36,5 @@ const PULSE_SCALE := 1.18
 const PULSE_TIME := 0.25
 const ERROR_SHOW_TIME := 1.8
 const HIGHLIGHT_PULSE_TIME := 0.7
+# Reduce motion: cards and tokens jump to where they are going and fade in over this time instead.
+const CALM_FADE_TIME := 0.15

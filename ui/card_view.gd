@@ -225,6 +225,9 @@ func attach(p_slot: Control) -> void:
 ## Starts at rest in slot, growing in from nothing (a card created on the tableau).
 func pop_in(p_slot: Control) -> void:
 	attach(p_slot)
+	if _calm():
+		_fade_in()
+		return
 	fx_scale = Vector2.ZERO
 	_play_fx().tween_property(self, "fx_scale", Vector2.ONE, Anim.POP_IN_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -234,7 +237,7 @@ func pop_in(p_slot: Control) -> void:
 func deal(p_slot: Control, layer: Control, from_point: Vector2, delay: float) -> void:
 	layer.add_child(self)
 	global_position = from_point - size / 2
-	fx_scale = Vector2(0.5, 0.5)
+	fx_scale = Vector2.ONE if _calm() else Vector2(0.5, 0.5)
 	modulate.a = 0.0
 	fly_to_slot(p_slot, layer)
 	_delay = delay
@@ -283,6 +286,10 @@ func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null) -> vo
 	state = State.LEAVING
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var t := _play_fx()
+	if _calm():  # fade out where it is
+		t.tween_property(self, "modulate:a", 0.0, Anim.CALM_FADE_TIME)
+		t.tween_callback(queue_free)
+		return
 	if via is Vector2:
 		t.tween_property(self, "global_position", via - size / 2, Anim.TARGET_FLY_TIME) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -302,11 +309,11 @@ func _process(delta: float) -> void:
 	pivot_offset = size / 2
 	match state:
 		State.REST:
-			var w := _weight(Anim.REST_SHARPNESS, delta)
+			var w := 1.0 if _calm() else _weight(Anim.REST_SHARPNESS, delta)
 			_rest_offset = _rest_offset.lerp(Vector2.ZERO, w)
 			# Only hand cards lift and grow: the hand row has room for it; the scrolling frontier and
 			# tableau would clip a lifted target, so those show hover by border and shadow alone.
-			var lifted := _hover and in_hand
+			var lifted := _hover and in_hand and not _calm()
 			_lift = lerpf(_lift, -Anim.HOVER_LIFT if lifted else 0.0, w)
 			_base_scale = lerpf(_base_scale, Anim.HOVER_SCALE if lifted else 1.0, w)
 			rotation = lerp_angle(rotation, 0.0, w)
@@ -318,7 +325,7 @@ func _process(delta: float) -> void:
 			elif not is_instance_valid(slot):
 				state = State.REST
 			else:
-				var w := _weight(Anim.FLY_SHARPNESS, delta)
+				var w := 1.0 if _calm() else _weight(Anim.FLY_SHARPNESS, delta)
 				var target := slot.global_position + _rest_pos()
 				var target_size := _fit_size()
 				global_position = global_position.lerp(target, w)
@@ -330,19 +337,25 @@ func _process(delta: float) -> void:
 					_land()
 		State.DRAGGING:
 			var mouse := get_global_mouse_position()
-			var w := _weight(Anim.FOLLOW_SHARPNESS, delta)
+			var calm := _calm()
+			var w := 1.0 if calm else _weight(Anim.FOLLOW_SHARPNESS, delta)
 			global_position = global_position.lerp(mouse - _grab_offset, w)
 			var speed := (mouse.x - _last_mouse_x) / maxf(delta, 0.001)
 			_last_mouse_x = mouse.x
-			var tilt := clampf(speed * Anim.TILT_PER_SPEED, -Anim.MAX_TILT, Anim.MAX_TILT)
-			rotation = lerp_angle(rotation, tilt, _weight(Anim.REST_SHARPNESS, delta))
-			_base_scale = lerpf(_base_scale, Anim.DRAG_SCALE, w)
+			var tilt := 0.0 if calm else clampf(speed * Anim.TILT_PER_SPEED, -Anim.MAX_TILT, Anim.MAX_TILT)
+			rotation = lerp_angle(rotation, tilt, w if calm else _weight(Anim.REST_SHARPNESS, delta))
+			_base_scale = lerpf(_base_scale, 1.0 if calm else Anim.DRAG_SCALE, w)
 	scale = _base_scale * fx_scale
 
 
 func _land() -> void:
 	reparent(slot)
 	_come_to_rest()
+	if _calm():
+		_shake_on_land = false
+		if modulate.a >= 1.0:  # not mid deal, which fades itself in
+			_fade_in()
+		return
 	fx_scale = Anim.LAND_SQUASH
 	_play_fx().tween_property(self, "fx_scale", Vector2.ONE, Anim.LAND_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -363,6 +376,8 @@ func _come_to_rest() -> void:
 
 
 func _shake() -> void:
+	if _calm():
+		return
 	# Its own tween, so it can run on top of the landing squash.
 	create_tween().tween_method(func(t: float):
 		_shake_x = sin(t * PI * 6.0) * Anim.SHAKE_PX * (1.0 - t), 0.0, 1.0, Anim.SHAKE_TIME)
@@ -417,6 +432,16 @@ func _play_fx() -> Tween:
 		_fx_tween.kill()
 	_fx_tween = create_tween()
 	return _fx_tween
+
+
+## Reduce motion is on: no lift, tilt, squash or shake, and cards jump to their place and fade in.
+func _calm() -> bool:
+	return Settings.reduce_motion
+
+
+func _fade_in() -> void:
+	modulate.a = 0.3
+	_play_fx().tween_property(self, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
 
 
 static func _weight(sharpness: float, delta: float) -> float:

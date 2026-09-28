@@ -45,6 +45,8 @@ var _drag_hint: PanelContainer  # the engine's reason, under the dragged card wh
 var _drag_hint_label: Label
 var _ghost: Panel  # outline of the tableau slot a dragged building or city will land in (in its group)
 var _show_ghost := false  # the dragged card is a targeted permanent: the ghost follows its target group
+var _drop_pulse: Tween  # the drop highlight's looping pulse; paused with reduce motion
+var _motion_toggle: Button  # "Reduce motion: on/off"
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
 
@@ -342,7 +344,7 @@ func _refresh() -> void:
 			_remove_view(uid)
 	var dealt := 0
 	for i in hand.size():
-		if _place(hand[i], true, _hand, i, dealt * Anim.DEAL_STAGGER):
+		if _place(hand[i], true, _hand, i, 0.0 if _calm() else dealt * Anim.DEAL_STAGGER):
 			dealt += 1
 	_place_tableau(tableau)
 	for i in frontier.size():
@@ -547,6 +549,13 @@ func _fly_token(text: String, from: Vector2, to: Vector2, color: Color, pulse_on
 	token.global_position = from - token.size / 2
 	var t := token.create_tween()
 	t.tween_interval(delay)
+	if _calm():  # appear at the counter, hold, fade
+		token.global_position = to - token.size / 2
+		t.tween_property(token, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
+		t.tween_interval(Anim.TOKEN_FLY_TIME)
+		t.tween_property(token, "modulate:a", 0.0, Anim.CALM_FADE_TIME)
+		t.tween_callback(token.queue_free)
+		return
 	t.tween_property(token, "modulate:a", 1.0, 0.1)
 	t.tween_property(token, "global_position", to - token.size / 2, Anim.TOKEN_FLY_TIME) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
@@ -575,7 +584,8 @@ func _show_error(view: CardView, text: String) -> void:
 	var x := clampf(home.get_center().x - panel.size.x / 2, 8.0, size.x - panel.size.x - 8.0)
 	panel.global_position = Vector2(x, home.position.y + home.size.y * 0.35)
 	var t := panel.create_tween()
-	t.tween_property(panel, "global_position:y", panel.global_position.y - 30, Anim.ERROR_SHOW_TIME) \
+	var drift := 0.0 if _calm() else 30.0
+	t.tween_property(panel, "global_position:y", panel.global_position.y - drift, Anim.ERROR_SHOW_TIME) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(panel, "modulate:a", 0.0, Anim.ERROR_SHOW_TIME) \
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
@@ -590,6 +600,8 @@ func _set_stat(label: Label, text: String) -> void:
 
 
 func _pulse(node: Control) -> void:
+	if _calm():
+		return
 	node.pivot_offset = node.size / 2
 	node.scale = Vector2.ONE * Anim.PULSE_SCALE
 	node.create_tween().tween_property(node, "scale", Vector2.ONE, Anim.PULSE_TIME) \
@@ -689,6 +701,12 @@ func _build_layout() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
+	# A toggle that says its state in words (a checkbox's box is hard to read on this background).
+	_motion_toggle = _button("", func(): pass)
+	_motion_toggle.toggle_mode = true
+	_motion_toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
+	_motion_toggle.toggled.connect(Settings.set_reduce_motion)
+	bar.add_child(_motion_toggle)
 	var seed_label := Label.new()
 	seed_label.text = "Seed"
 	bar.add_child(seed_label)
@@ -796,9 +814,11 @@ func _build_layout() -> void:
 	_drag_hint.add_child(_drag_hint_label)
 	_drag_hint.hide()
 	_fx.add_child(_drag_hint)
-	var pulse := _drop_highlight.create_tween().set_loops()
-	pulse.tween_property(_drop_highlight, "modulate:a", 0.45, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
-	pulse.tween_property(_drop_highlight, "modulate:a", 1.0, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
+	_drop_pulse = _drop_highlight.create_tween().set_loops()
+	_drop_pulse.tween_property(_drop_highlight, "modulate:a", 0.45, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
+	_drop_pulse.tween_property(_drop_highlight, "modulate:a", 1.0, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
+	_apply_motion_setting()
+	Settings.changed.connect(_apply_motion_setting)
 
 	var ghost_style := StyleBoxFlat.new()
 	ghost_style.bg_color = Color(1, 1, 1, 0.04)
@@ -933,6 +953,22 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	button.focus_mode = Control.FOCUS_NONE  # so Enter always means "end turn"
 	button.pressed.connect(on_pressed)
 	return button
+
+
+## Reduce motion is on: no pulses, drifts or flying tokens.
+func _calm() -> bool:
+	return Settings.reduce_motion
+
+
+## Matches the checkbox and the looping drop-zone pulse to the reduce motion setting.
+func _apply_motion_setting() -> void:
+	_motion_toggle.set_pressed_no_signal(_calm())
+	_motion_toggle.text = "Reduce motion: %s" % ("on" if _calm() else "off")
+	if _calm():
+		_drop_pulse.pause()
+		_drop_highlight.modulate.a = 1.0
+	else:
+		_drop_pulse.play()
 
 
 func _fx_label(text: String, font_size: int, color: Color) -> Label:
