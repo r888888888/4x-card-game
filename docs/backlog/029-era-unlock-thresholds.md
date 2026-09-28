@@ -2,7 +2,7 @@
 id: 029
 title: Unlock tech eras by reaching a pop or wealth threshold
 type: feature
-status: red-review
+status: review
 branch: feat/029-era-thresholds
 ---
 
@@ -16,7 +16,7 @@ wealth is only checked, not spent. Depends on 027.
 Fixtures: the 027 era cards (era-2 techs Optics and Astronomy waiting in `future_techs`), population on
 (`start: 2`), Capital ⟳ +2 food (no wealth), starting wealth set per test.
 
-- [ ] AC1 (config): `era_unlocks` is optional (default {}), shaped like
+- [x] AC1 (config): `era_unlocks` is optional (default {}), shaped like
   `{"2": {"pop": 8, "wealth": 15}}`. Each key is an era as an integer string ≥ 2. Each value is an
   object with `pop` and/or `wealth`, integers ≥ 1. These are load errors that name config.json and
   `era_unlocks`:
@@ -25,24 +25,24 @@ Fixtures: the 027 era cards (era-2 techs Optics and Astronomy waiting in `future
   - a threshold below 1 or not an integer
 
   An unknown field inside a value (e.g. `"food"`) is a warning.
-- [ ] AC2 (pop threshold): With `era_unlocks: {"2": {"pop": 4}}`, total pop 4 and enough food so no pop
+- [x] AC2 (pop threshold): With `era_unlocks: {"2": {"pop": 4}}`, total pop 4 and enough food so no pop
   starves, ending the turn starts turn 2 with `era()` 2, and Optics and Astronomy in the research deck
   (`future_techs` empty). With total pop 3, `era()` stays 1.
-- [ ] AC3 (wealth threshold, not spent): With `era_unlocks: {"2": {"wealth": 15}}` and 15 wealth at the
+- [x] AC3 (wealth threshold, not spent): With `era_unlocks: {"2": {"wealth": 15}}` and 15 wealth at the
   start of a turn, era 2 is added and wealth is still 15. With 14 wealth, `era()` stays 1.
-- [ ] AC4 (either is enough): With `era_unlocks: {"2": {"pop": 99, "wealth": 15}}` and 15 wealth, era 2
+- [x] AC4 (either is enough): With `era_unlocks: {"2": {"pop": 99, "wealth": 15}}` and 15 wealth, era 2
   is added.
-- [ ] AC5 (checked at the start of the turn only):
+- [x] AC5 (checked at the start of the turn only):
   - The check runs at the start of every turn, turn 1 included: a game starting with 20 wealth and
     `{"2": {"wealth": 15}}` begins turn 1 in era 2.
   - Reaching the threshold during a turn (for example wealth raised to 15 mid-turn) doesn't add the era
     until the next turn starts.
   - The check comes after upkeep and pop eating. Food and wealth gained at upkeep count; pop that
     starves doesn't.
-- [ ] AC6 (once per era): An era already added by `add_era` (e.g. Philosophy bought) or by an empty
+- [x] AC6 (once per era): An era already added by `add_era` (e.g. Philosophy bought) or by an empty
   research deck isn't added again when its threshold is met: the research deck size is unchanged.
   Meeting the threshold on later turns changes nothing.
-- [ ] AC7 (real data): `data/config.json` sets `era_unlocks` for era 2 (first numbers: 8 pop or 15
+- [x] AC7 (real data): `data/config.json` sets `era_unlocks` for era 2 (first numbers: 8 pop or 15
   wealth, for playtesting). The real data still loads with no errors or warnings.
 
 ## Out of scope
@@ -81,3 +81,6 @@ Fixtures: the 027 era cards (era-2 techs Optics and Astronomy waiting in `future
 - [ ] Growing to 8 pop (or saving 15 wealth) adds era 2 at the start of the next turn; the log says so.
 
 ## Log
+- Suite: 296 → 314 tests. Five tests were guards that passed before the change (below-threshold, starvation, once per era).
+- UI: the Research button tooltip lists "Era 2 at 8 pop or 15 wealth (checked at the start of a turn)" until era 2 arrives.
+- The 028 bot numbers already reached era 2 in 20/20 seeds via Philosophy, so the thresholds mostly matter for players who skip it.

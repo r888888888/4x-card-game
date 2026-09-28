@@ -581,7 +581,7 @@ func _refresh() -> void:
 	if not e.zone("lost_techs").is_empty():
 		_research_button.text += " · lost %d" % e.zone("lost_techs").size()
 	_research_button.disabled = research_error != ""
-	_research_button.tooltip_text = research_error
+	_research_button.tooltip_text = "\n".join(PackedStringArray([research_error] + _era_unlock_lines()).filter(func(t): return t != ""))
 	_research_button.visible = e.config.research_deck.size() > 0
 	_animate_outcome()
 	_sync_card_focus()
@@ -715,6 +715,25 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 	else:
 		view.set_idle(e.is_idle(card.uid))
 	return false
+
+
+## "Era 2 at 8 pop or 15 wealth" for each era above the current one that has a threshold.
+func _era_unlock_lines() -> Array[String]:
+	var e := Game.engine
+	var out: Array[String] = []
+	var eras := e.era_unlocks().keys()
+	eras.sort()
+	for n in eras:
+		if n <= e.era():
+			continue
+		var need: Dictionary = e.era_unlocks()[n]
+		var parts: PackedStringArray = []
+		if need.has("pop"):
+			parts.append("%d pop" % need.pop)
+		if need.has("wealth"):
+			parts.append("%d wealth" % need.wealth)
+		out.append("Era %d at %s (checked at the start of a turn)" % [n, " or ".join(parts)])
+	return out
 
 
 ## Whether container holds cards to click on while an explore or research choice is open.
