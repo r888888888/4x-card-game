@@ -43,6 +43,11 @@ const TEST_CARDS := {"cards": [
 	{"id": "explorer", "name": "Explorer", "type": "action", "effects": [{"op": "explore"}]},
 	{"id": "pioneer", "name": "Pioneer", "type": "action", "cost": {"food": 3},
 	 "effects": [{"op": "settle", "card": "city"}]},
+	{"id": "guildhall", "name": "Guildhall", "type": "building", "cost": {"food": 2, "wealth": 2}},
+	{"id": "stall", "name": "Stall", "type": "building",
+	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "bazaar", "name": "Bazaar", "type": "action",
+	 "effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}]},
 ]}
 
 var test_name := ""  # "file::method", set by the runner
@@ -79,7 +84,7 @@ func has_message(messages: Array[String], fragment: String) -> bool:
 
 
 func resources() -> Array[String]:
-	var r: Array[String] = ["food"]
+	var r: Array[String] = ["food", "wealth"]
 	return r
 
 
@@ -91,7 +96,7 @@ func keywords() -> Array[String]:
 
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
-		"resources": ["food"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
+		"resources": ["food", "wealth"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
 		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"},
 		"deck": deck,
 	}
