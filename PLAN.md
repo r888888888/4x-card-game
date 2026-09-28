@@ -108,7 +108,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
 (001 done: territory cards, territory deck, starting territory, tableau groups;
-002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI; 004 done: building slots; 005 done: keyword requires and bonuses).
+002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI; 004 done: building slots; 005 done: keyword requires and bonuses; 006: content in, playtesting next).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
   (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.
