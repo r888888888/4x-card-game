@@ -141,7 +141,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Engine: state, zones, seeded RNG, actions, turn loop, 5 effect ops
 - [x] JSON data loader with validation
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
-- [x] UI: hand, tableau, stats bar, game log; click to play, Enter ends turn (event panel waits on threat design)
+- [x] UI: hand, tableau, stats bar, game log; drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
