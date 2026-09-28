@@ -2,7 +2,7 @@
 id: 026
 title: Passed techs get cheaper, prerequisites discount, third pass removes
 type: feature
-status: review
+status: done
 branch: feat/026-tech-passes
 ---
 
