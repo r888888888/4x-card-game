@@ -19,9 +19,9 @@ const TYPE_COLORS := {
 	"territory": Color("8a6fb5"),
 	"tech": Color("3fa7a0"),
 }
-const HAND_SIZE := Vector2(232, 280)
-const TABLEAU_SIZE := Vector2(215, 150)
-const COMPACT_SIZE := Vector2(215, 90)  # a frontier territory: name and info only
+const HAND_SIZE := Vector2(264, 320)
+const TABLEAU_SIZE := Vector2(245, 175)
+const COMPACT_SIZE := Vector2(245, 95)  # a frontier territory: name and info only
 # A shape per type, so types can be told apart without colour. Drawn as icons (see Icons).
 const TYPE_MARKS := {
 	"action": "◆",
