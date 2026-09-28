@@ -2,7 +2,7 @@
 id: 010
 title: Buy growth with food
 type: feature
-status: ready
+status: red-review
 branch: feat/010-buy-growth
 ---
 
@@ -29,12 +29,18 @@ more than the last, so growing tall gets expensive. Depends on 009.
 
 ## Design notes
 - Engine API: `grow_error(territory_uid) -> String` and `grow(territory_uid) -> bool`, modelled on
-  `play_error` / `play_card`. This is a player action, not a card, so it emits no `card_played`.
+  `play_error` / `play_card`, plus `grow_cost(territory_uid) -> int` (pop + 1) so the UI can show the price
+  without computing it. This is a player action, not a card, so it emits no `card_played`.
 - UI: a "Grow (N food)" button on each settled territory, disabled with `grow_error` as its tooltip.
 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_growth::test_grow_adds_1_pop_for_pop_plus_1_food`, `test_grow_emits_no_card_played` |
+| AC2 | `test_growth::test_grow_rejected_when_food_is_short`, `test_grow_has_no_per_turn_limit` |
+| AC3 | `test_growth::test_grow_rejected_at_housing` |
+| AC4 | `test_growth::test_grow_refused_on_non_settled_targets`, `test_grow_refused_while_a_choice_is_pending`, `test_grow_refused_when_game_is_over`, `test_grow_refused_without_population` |
+| AC5 | `test_growth::test_grow_error_is_empty_when_legal` |
 
 ## Manual check
 - [ ] The Grow button on a territory shows the current cost, and clicking it adds 1 pop and spends the food.
@@ -42,3 +48,5 @@ more than the last, so growing tall gets expensive. Depends on 009.
 
 ## Log
 - 2026-09-28: spec'd with the user. Cost = current pop + 1 food, no limit per turn.
+- 2026-09-28: red. 10 failing tests in the new `tests/test_growth.gd`, all on missing `grow` / `grow_error` /
+  `grow_cost`. Added `grow_cost` to the API so the Grow button's label comes from the engine.
