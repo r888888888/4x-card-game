@@ -13,7 +13,10 @@ signal game_over(final_score: int)
 ## drawn and created are card uids.
 signal card_played(outcome: Dictionary)
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched"]
+## A tech passed over this many times is removed from the game.
+const MAX_PASSES := 3
+
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -159,11 +162,22 @@ func research_error() -> String:
 	return ""
 
 
-## What tech uid costs in wealth right now (0 if it isn't a tech in the research deck, the revealed
-## techs or the researched row).
+## What tech uid costs in wealth right now: its printed cost, less 1 per pass and less its prereq
+## discount when the prereq is researched, but never under 1 (0 if uid isn't a tech).
 func tech_cost(uid: int) -> int:
 	var tech := _find_tech(uid)
-	return tech.def.cost.get("wealth", 0) if tech != null else 0
+	if tech == null:
+		return 0
+	var cost: int = tech.def.cost.get("wealth", 0) - tech.passes
+	if tech.def.prereq != "" and zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
+		cost -= tech.def.prereq_discount
+	return maxi(cost, 1)
+
+
+## Times another tech was bought over tech uid (0 if uid isn't a tech).
+func tech_passes(uid: int) -> int:
+	var tech := _find_tech(uid)
+	return tech.passes if tech != null else 0
 
 
 ## Why revealed tech uid can't be bought right now, or "" if it can.
@@ -403,7 +417,7 @@ func buy_tech(uid: int) -> bool:
 	zone("researched").add(tech)
 	_log("Researched %s (%d wealth)." % [tech.def.name, cost])
 	_resolve(tech, "play")
-	_return_revealed_techs()
+	_return_revealed_techs(true)
 	changed.emit()
 	return true
 
@@ -414,7 +428,7 @@ func decline_research() -> bool:
 	if zone("research_reveal").is_empty():
 		return false
 	_log("Declined to research.")
-	_return_revealed_techs()
+	_return_revealed_techs(false)
 	changed.emit()
 	return true
 
@@ -578,18 +592,25 @@ func _research_open_error() -> String:
 
 ## The tech uid in the research deck, the revealed techs or the researched row, or null.
 func _find_tech(uid: int) -> CardInstance:
-	for name in ["research_reveal", "research_deck", "researched"]:
+	for name in ["research_reveal", "research_deck", "researched", "lost_techs"]:
 		var tech := zone(name).find(uid)
 		if tech != null:
 			return tech
 	return null
 
 
-## Shuffles every revealed tech back into the research deck.
-func _return_revealed_techs() -> void:
+## Shuffles every revealed tech back into the research deck. With passed, each was passed over by a
+## purchase: it gets a pass, and a third pass loses it for good.
+func _return_revealed_techs(passed: bool) -> void:
 	var deck := zone("research_deck")
 	for card in zone("research_reveal").take_all():
-		deck.add(card)
+		if passed:
+			card.passes += 1
+		if card.passes >= MAX_PASSES:
+			zone("lost_techs").add(card)
+			_log("  %s was passed over too often and is lost." % card.def.name)
+		else:
+			deck.add(card)
 	rng.shuffle(deck.cards)
 
 

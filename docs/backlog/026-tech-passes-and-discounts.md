@@ -2,7 +2,7 @@
 id: 026
 title: Passed techs get cheaper, prerequisites discount, third pass removes
 type: feature
-status: ready
+status: review
 branch: feat/026-tech-passes
 ---
 
@@ -20,26 +20,26 @@ Fixtures from 025 (Pottery 2, Writing 3, Bronze Working 5), plus:
 
 Starting wealth is 20. Tests set the research deck order directly.
 
-- [ ] AC1 (loader): `prereq` on a tech must be the id of another tech. An unknown id, a card that isn't
+- [x] AC1 (loader): `prereq` on a tech must be the id of another tech. An unknown id, a card that isn't
   a tech, or the tech's own id is a load error that names the card and `prereq`. `prereq_discount` is
   an integer ≥ 1 and defaults to 2; any other value is a load error that names the card and
   `prereq_discount`. `prereq_discount` without `prereq` is a warning (ignored). `prereq` or
   `prereq_discount` on a card that isn't a tech is a warning (ignored).
-- [ ] AC2 (buying passes the other tech): Given open options [pottery, bronze], when I buy Pottery,
+- [x] AC2 (buying passes the other tech): Given open options [pottery, bronze], when I buy Pottery,
   then Bronze Working has `tech_passes(uid)` 1 and `tech_cost(uid)` 4, and it is back in the research
   deck. Pottery's passes stay 0.
-- [ ] AC3 (declining passes nothing): Given open options [pottery, bronze], when I decline, then both
+- [x] AC3 (declining passes nothing): Given open options [pottery, bronze], when I decline, then both
   still have 0 passes and their costs are unchanged (2 and 5).
-- [ ] AC4 (discount stacks): When Bronze Working is passed a second time, it has 2 passes and costs 3.
+- [x] AC4 (discount stacks): When Bronze Working is passed a second time, it has 2 passes and costs 3.
   Buying it then pays 3 wealth.
-- [ ] AC5 (third pass removes): When Bronze Working is passed a third time, it goes to the `lost_techs`
+- [x] AC5 (third pass removes): When Bronze Working is passed a third time, it goes to the `lost_techs`
   zone, not the research deck. It can't be revealed again: the research deck no longer contains it.
-- [ ] AC6 (prerequisite discount): Iron Working costs 6 without Bronze Working in `researched` and 4
+- [x] AC6 (prerequisite discount): Iron Working costs 6 without Bronze Working in `researched` and 4
   with it. Iron Working with 1 pass and Bronze Working researched costs 3. Iron Working can be bought
   without Bronze Working (at 6).
-- [ ] AC7 (minimum cost 1): With Iron Working researched, Steel costs 1 (3 − 5, raised to 1). Pottery
+- [x] AC7 (minimum cost 1): With Iron Working researched, Steel costs 1 (3 − 5, raised to 1). Pottery
   with 2 passes costs 1 (2 − 2 = 0, raised to 1). `buy_tech` pays `tech_cost`.
-- [ ] AC8 (card text): Iron Working's short text is "-2 wealth with Bronze Working" and its tooltip
+- [x] AC8 (card text): Iron Working's short text is "-2 wealth with Bronze Working" and its tooltip
   has the line "Costs 2 less wealth if you have Bronze Working."
 
 ## Out of scope
@@ -67,11 +67,25 @@ Starting wealth is 20. Tests set the research deck order directly.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_passes::test_…` |
+| AC1 | `test_tech_passes::test_prereq_and_default_discount_load`, `test_prereq_discount_loads`, `test_prereq_unknown_card_is_an_error`, `test_prereq_that_is_not_a_tech_is_an_error`, `test_prereq_on_itself_is_an_error`, `test_prereq_discount_below_1_is_an_error`, `test_prereq_discount_must_be_an_integer`, `test_prereq_discount_without_prereq_is_a_warning`, `test_prereq_on_a_card_that_is_not_a_tech_is_a_warning` |
+| AC2 | `test_buying_passes_the_other_tech` |
+| AC3 | `test_declining_passes_nothing` |
+| AC4 | `test_the_discount_stacks_and_is_paid` |
+| AC5 | `test_the_third_pass_sends_the_tech_to_lost_techs` |
+| AC6 | `test_prerequisite_discounts_only_when_owned`, `test_prerequisite_and_passes_stack`, `test_a_tech_can_be_bought_without_its_prerequisite` (already passes: guards 025 behavior) |
+| AC7 | `test_a_big_prerequisite_discount_stops_at_1`, `test_passes_cannot_take_a_tech_below_1` |
+| AC8 | `test_prerequisite_card_text` |
 
 ## Manual check
-- [ ] A passed tech shows its pass markers and lower cost when it comes up again. At ●● it says "last
-  chance".
-- [ ] A tech with its prerequisite researched shows the discount in its cost breakdown.
+Add techs to `data/cards.json` and a `research_deck` to `data/config.json` first, including one with `"prereq"`; revert afterwards.
+- [ ] A revealed tech shows "Cost N wealth" and pass markers (○○○). After a purchase passes it, it shows one filled
+  marker and "(was N)" when it next comes up. At ●●○ it says "last chance".
+- [ ] A tech with its prerequisite researched shows the lower cost (and "(was N)").
+- [ ] After a tech is lost, the Research button reads "· lost 1".
 
 ## Log
+- The 025 UI showed no cost on revealed techs (only in error messages). Added a cost/pass line to revealed tech
+  cards (`CardView.set_tech_info`); the numbers all come from the engine. Checked headless with temporary data.
+- `test_research.gd` still has its own fixture and helpers; making it use `tests/lib/tech_case.gd` is a follow-up
+  (its Writing has an effect that the shared one lacks).
+- The cost line shows "(was N)" when the price differs from printed; it doesn't split passes from the prerequisite discount.

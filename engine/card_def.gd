@@ -13,6 +13,8 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
+var prereq: String = ""  # techs: id of the tech that makes this one cheaper when researched
+var prereq_discount := 2  # techs: wealth off when prereq is researched
 var text: String = ""  # optional override; otherwise generated from effects
 
 
@@ -52,6 +54,8 @@ func rules_text(card_db: Dictionary) -> String:
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
 		prev = e
+	if prereq != "":
+		parts.append("-%d wealth with %s" % [prereq_discount, card_db[prereq].name])
 	return "\n".join(parts)
 
 
@@ -75,6 +79,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
+	if prereq != "":
+		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
 	return "\n".join(parts)
 
 

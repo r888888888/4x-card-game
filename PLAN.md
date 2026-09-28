@@ -171,7 +171,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
-stacking discount, prerequisite discount, removal), 027 (eras, `add_era`, Library), 028 (first content).
+stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library), 028 (first content).
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Once per turn (`research_left()`), a free action: `research()` reveals the top 2 techs. `buy_tech(uid)` pays
@@ -179,8 +179,12 @@ stacking discount, prerequisite discount, removal), 027 (eras, `add_era`, Librar
   `decline_research()` shuffles both back (the charge stays spent). Open options block play, grow, discard and end turn.
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
+- Passes (026): buying one revealed tech gives the other a pass (`tech_passes(uid)`); declining passes nothing.
+  Each pass is -1 wealth, and a third pass sends the tech to `lost_techs`. A tech's optional `prereq` (another
+  tech) with `prereq_discount` (default 2) lowers its cost while the prereq is in `researched`; it never blocks a
+  purchase. `tech_cost` = max(1, printed - passes - prereq discount).
 - Engine API: `research_error()`, `research()`, `research_options()`, `research_left()`, `buy_tech_error(uid)`,
-  `buy_tech(uid)`, `tech_cost(uid)`, `decline_research()`.
+  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`.
 - UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
   with the revealed techs (click one to buy) and Decline, and a Researched row.
 

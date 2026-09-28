@@ -164,6 +164,25 @@ func set_play_error(play_error: String) -> void:
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
 
+## Shows a revealed tech's price and passes: "Cost 4 wealth (was 5)", pass markers (●○○), and
+## "last chance" on its final appearance. The numbers come from the engine.
+func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> void:
+	var old := _box.get_node_or_null("TechInfo")
+	if old != null:
+		_box.remove_child(old)
+		old.queue_free()
+	var markers := "●".repeat(passes) + "○".repeat(max_passes - passes)
+	var text := "Cost %d wealth" % cost
+	if cost != printed:
+		text += " (was %d)" % printed
+	text += "\nPassed %s" % markers
+	if passes == max_passes - 1:
+		text += " · last chance"
+	var info := _label(text, 19, HIGHLIGHT_COLOR)
+	info.name = "TechInfo"
+	_box.add_child(info)
+
+
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
