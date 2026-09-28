@@ -16,7 +16,7 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -31,6 +31,8 @@ var log_lines: Array[String] = []
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var pending_choice: Dictionary = {}  # {options: Array[int], source: CardInstance}; empty = none
 var _research_left := 0  # research actions left this turn
+var _era := 1  # the highest era of techs added to the research deck
+var _eras_added: Array[int] = []  # eras add_era has already shuffled in
 var _discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
@@ -145,6 +147,11 @@ func research_options() -> Array[int]:
 	return out
 
 
+## The highest era of techs added to the research deck so far (1 at the start).
+func era() -> int:
+	return _era
+
+
 ## Why research can't start right now, or "" if it can.
 func research_error() -> String:
 	if is_over:
@@ -157,7 +164,7 @@ func research_error() -> String:
 		return _discard_error()
 	if _research_left <= 0:
 		return "No research left this turn."
-	if zone("research_deck").is_empty():
+	if zone("research_deck").is_empty() and zone("future_techs").is_empty():
 		return "The research deck is empty."
 	return ""
 
@@ -301,6 +308,8 @@ func new_game(p_seed: int) -> void:
 	pending_choice = {}
 	_discard_left = 0
 	_research_left = 0
+	_era = 1
+	_eras_added = []
 	_next_uid = 1
 	log_lines.clear()
 
@@ -317,7 +326,8 @@ func new_game(p_seed: int) -> void:
 	var research_deck := zone("research_deck")
 	for id in config.research_deck:
 		for i in config.research_deck[id]:
-			research_deck.add(_make_card(id))
+			var tech := _make_card(id)
+			zone("research_deck" if tech.def.era == 1 else "future_techs").add(tech)
 	if not research_deck.is_empty():
 		rng.shuffle(research_deck.cards)
 	var home: CardInstance = null
@@ -396,6 +406,8 @@ func research() -> bool:
 		return false
 	_research_left -= 1
 	var deck := zone("research_deck")
+	if deck.is_empty():
+		add_era(_lowest_future_era())
 	for i in 2:
 		if deck.is_empty():
 			break
@@ -562,6 +574,27 @@ func add_pop(territory_uid: int, amount: int, source: CardInstance) -> void:
 	_log("  %s: +%d pop on %s" % [source.def.name, added, territory.def.name])
 
 
+## Adds amount research actions to this turn.
+func add_research(amount: int, source: CardInstance) -> void:
+	_research_left += amount
+	_log("  %s: +%d research" % [source.def.name, amount])
+
+
+## Shuffles the era-n techs waiting in future_techs into the research deck. Does nothing if era n was
+## already added. source is the card that added it (null when the empty research deck did).
+func add_era(n: int, source: CardInstance = null) -> void:
+	if _eras_added.has(n):
+		return
+	_eras_added.append(n)
+	_era = maxi(_era, n)
+	var deck := zone("research_deck")
+	for tech in zone("future_techs").cards.filter(func(c): return c.def.era == n):
+		zone("future_techs").remove(tech)
+		deck.add(tech)
+	rng.shuffle(deck.cards)
+	_log("  %sEra %d techs added to the research deck." % [source.def.name + ": " if source != null else "", n])
+
+
 func add_score(amount: int, source: CardInstance) -> void:
 	bonus_score += amount
 	if not _outcome.is_empty():
@@ -586,6 +619,14 @@ func _finish_turn() -> void:
 	changed.emit()
 
 
+## The lowest era among the techs waiting in future_techs.
+func _lowest_future_era() -> int:
+	var lowest: int = zone("future_techs").cards[0].def.era
+	for tech in zone("future_techs").cards:
+		lowest = mini(lowest, tech.def.era)
+	return lowest
+
+
 func _research_open_error() -> String:
 	return "Buy a tech or decline first."
 
@@ -606,6 +647,8 @@ func _return_revealed_techs(passed: bool) -> void:
 	for card in zone("research_reveal").take_all():
 		if passed:
 			card.passes += 1
+		if card.def.adds_era():
+			card.passes = mini(card.passes, MAX_PASSES - 1)
 		if card.passes >= MAX_PASSES:
 			zone("lost_techs").add(card)
 			_log("  %s was passed over too often and is lost." % card.def.name)
