@@ -365,7 +365,29 @@ func _start_turn() -> void:
 	_log("— Turn %d —" % turn)
 	for card in zone("tableau").cards.duplicate():
 		_resolve(card, "upkeep")
+	if population_on():
+		_feed_pop()
 	draw(config.hand_size)
+
+
+## Pop eats food_upkeep food each. Each food that can't be paid starves 1 pop from the territory with
+## the most pop (ties: the one settled first).
+func _feed_pop() -> void:
+	var need: int = total_pop() * config.population.food_upkeep
+	if need == 0:
+		return
+	var eaten: int = mini(need, resources.food)
+	resources.food -= eaten
+	_log("Pop eats %d food." % eaten)
+	for i in need - eaten:
+		var biggest: CardInstance = null
+		for card in zone("tableau").cards:
+			if card.def.type == "territory" and card.pop > 0 and (biggest == null or card.pop > biggest.pop):
+				biggest = card
+		if biggest == null:
+			break
+		biggest.pop -= 1
+		_log("%s: 1 pop starved." % biggest.def.name)
 
 
 func _event_phase() -> void:
