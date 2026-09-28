@@ -40,11 +40,13 @@ var _outcome := {}  # the last card_played outcome, animated by the next _refres
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
 
 
-## The framed box for one territory in the tableau: a slot count, then a row of card slots.
+## The framed box for one territory in the tableau: a slot count and Grow button, then a row of card slots.
 class TerritoryGroup:
+	var uid := -1  # the territory's uid (-1: cards on no territory)
 	var frame: PanelContainer
 	var style: StyleBoxFlat
 	var label: Label
+	var grow_button: Button
 	var row: HBoxContainer
 
 	func set_lit(on: bool) -> void:
@@ -379,7 +381,14 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 		_tableau.move_child(group.frame, i)
 		for j in members[key].size():
 			_place(members[key][j], false, group.row, j, 0.0)
+		group.uid = key
 		group.label.visible = key != -1
+		group.grow_button.visible = key != -1 and e.population_on()
+		if group.grow_button.visible:
+			var error := e.grow_error(key)
+			group.grow_button.text = "Grow (%d food)" % e.grow_cost(key)
+			group.grow_button.disabled = error != ""
+			group.grow_button.tooltip_text = error
 		if key != -1:
 			var slots: int = e.zone("tableau").find(key).def.slots
 			var text := "%d / %d slots used" % [slots - e.free_slots(key), slots]
@@ -408,8 +417,14 @@ func _new_group() -> TerritoryGroup:
 	var box := VBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	group.frame.add_child(box)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 12)
+	box.add_child(header)
 	group.label = _heading("")
-	box.add_child(group.label)
+	header.add_child(group.label)
+	group.grow_button = _button("", func(): Game.engine.grow(group.uid))
+	group.grow_button.add_theme_font_size_override("font_size", 16)
+	header.add_child(group.grow_button)
 	group.row = HBoxContainer.new()
 	group.row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	group.row.add_theme_constant_override("separation", 10)
