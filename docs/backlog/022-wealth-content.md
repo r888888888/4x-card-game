@@ -2,7 +2,7 @@
 id: 022
 title: Move premium buildings and trade cards to wealth
 type: feature
-status: ready
+status: red-review
 branch: feat/022-wealth-content
 ---
 
@@ -46,7 +46,9 @@ economy is now too tight.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_data_loader::test_real_data_loads` (existing guard), `test_content::test_real_deck_has_wealth_costs_and_capital_makes_wealth` |
+| AC2 | `test_content::test_every_wealth_cost_has_a_wealth_source` (passes now: no card costs wealth yet) |
+| AC3 | `test_content::test_scripted_games_spend_wealth_and_never_go_negative` (seeds 1–3) |
 
 ## Manual check
 Run `godot --path .`.
