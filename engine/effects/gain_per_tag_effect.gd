@@ -24,5 +24,12 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 
 func describe(_card_db: Dictionary) -> String:
-	var where := "" if zone == "tableau" else " in %s" % zone
-	return "+%d %s per %s card%s" % [amount, resource, tag, where]
+	return "+%d %s per %s%s" % [amount, resource, tag, _where()]
+
+
+func describe_long(_card_db: Dictionary) -> String:
+	return "+%d %s per %s card%s" % [amount, resource, tag, _where()]
+
+
+func _where() -> String:
+	return "" if zone == "tableau" else " in %s" % zone

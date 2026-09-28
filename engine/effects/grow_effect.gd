@@ -28,4 +28,8 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 
 func describe(_card_db: Dictionary) -> String:
+	return "+%d pop %s" % [amount, "here" if where == "here" else "everywhere"]
+
+
+func describe_long(_card_db: Dictionary) -> String:
 	return "+%d pop %s" % [amount, "here" if where == "here" else "in each territory"]
