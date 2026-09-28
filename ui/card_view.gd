@@ -28,7 +28,6 @@ var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies th
 var _style: StyleBoxFlat
 var _color: Color
 var _box: VBoxContainer
-var _playable := true
 var _warning := false
 var _hover := false
 var _pressed := false
@@ -106,7 +105,6 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	if in_hand:
 		set_play_error(play_error)
 	else:
-		_playable = true
 		modulate = Color.WHITE
 		tooltip_text = ""
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
@@ -114,14 +112,14 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 
 ## Updates the playable look of a hand card: cost colour, tooltip, cursor, greying.
 func set_play_error(play_error: String) -> void:
-	_playable = play_error == ""
+	var playable := play_error == ""
 	var cost := _box.get_node_or_null("Cost") as Label
 	if cost != null:
-		cost.add_theme_color_override("font_color", Color("ffd966") if _playable else Color("ff8a80"))
-	tooltip_text = "Drag into the tableau (or double-click) to play." if _playable else play_error
-	mouse_default_cursor_shape = Control.CURSOR_DRAG if _playable else Control.CURSOR_FORBIDDEN
+		cost.add_theme_color_override("font_color", Color("ffd966") if playable else Color("ff8a80"))
+	tooltip_text = "Drag into the tableau (or double-click) to play." if playable else play_error
+	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	# Greyed but still readable; the red cost shows why.
-	modulate = Color.WHITE if _playable else Color(0.68, 0.68, 0.68)
+	modulate = Color.WHITE if playable else Color(0.68, 0.68, 0.68)
 
 
 ## Tints the card red while it is held over the play area but can't be played there.
