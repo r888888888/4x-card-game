@@ -2,7 +2,7 @@
 id: 008
 title: Drag cards from hand to play them, with animations
 type: feature
-status: review
+status: done
 branch: feat/008-drag-to-play
 ---
 
@@ -17,21 +17,21 @@ Depends on 007 (`card_played` outcome).
 ## Acceptance criteria
 <!-- UI-only item. Each criterion is checked in the running game (see Manual check). If any
      rule or derived value is needed, it goes into the engine under TDD first. -->
-- [ ] AC1: Given a playable card in hand, when I drag it and release it anywhere above the hand
+- [x] AC1: Given a playable card in hand, when I drag it and release it anywhere above the hand
   area, then it is played (same result as `play_card`). Buildings and cities animate into their
   tableau slot; actions animate to the discard pile.
-- [ ] AC2: Given a card being dragged, when I release it over the hand area, or press Esc or
+- [x] AC2: Given a card being dragged, when I release it over the hand area, or press Esc or
   right-click during the drag, then nothing is played and the card animates back to its slot.
-- [ ] AC3: Given an unplayable card (can't afford it), when I drop it above the hand area, then
+- [x] AC3: Given an unplayable card (can't afford it), when I drop it above the hand area, then
   nothing is played, the card animates back with a short shake, and the `play_error` reason is
   shown next to it.
-- [ ] AC4: Given a playable card, when I double-click it, then it is played with the same
+- [x] AC4: Given a playable card, when I double-click it, then it is played with the same
   animation as a drop. A single click plays nothing.
-- [ ] AC5: Given a play that pays, gains, draws or creates (per the 007 outcome), when it
+- [x] AC5: Given a play that pays, gains, draws or creates (per the 007 outcome), when it
   resolves, then paid resources fly from the counter to the card, gains fly from the card to the
   counter (the counter pulses), drawn cards slide from the Deck counter into the hand, and
   created cards appear on the tableau.
-- [ ] AC6: Given an animation is running, when I press Enter, click End turn or start another
+- [x] AC6: Given an animation is running, when I press Enter, click End turn or start another
   drag, then the game stays consistent: the action waits until the animation finishes, or the
   animation jumps to its end state. No card is duplicated, lost or left stuck mid-flight.
 
