@@ -2,7 +2,7 @@
 id: 001
 title: Territory cards and the Capital's starting territory
 type: feature
-status: red-review
+status: in-progress
 branch: feat/001-territory-cards
 ---
 
