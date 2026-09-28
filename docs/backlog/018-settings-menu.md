@@ -2,7 +2,7 @@
 id: 018
 title: Move New game, Restart, seed and Reduce motion into a settings menu
 type: feature
-status: review
+status: done
 branch: feat/018-settings-menu
 ---
 
