@@ -11,6 +11,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep"}]},
 	{"id": "city", "name": "City", "type": "city", "vp": 2, "tags": ["city"],
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "village", "name": "Village", "type": "city", "vp": 1, "tags": ["city"]},
 	{"id": "farm", "name": "Farm", "type": "building", "cost": {"food": 2}, "tags": ["farm"],
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "scout", "name": "Scout", "type": "action",
@@ -110,6 +111,14 @@ func card_ids(zone: Zone) -> Array[String]:
 	for c in zone.cards:
 		ids.append(c.def.id)
 	return ids
+
+
+## The uid of the starting territory (homeland) on the tableau, or -1.
+func home_uid(engine: GameEngine) -> int:
+	for c in engine.zone("tableau").cards:
+		if c.def.id == "homeland":
+			return c.uid
+	return -1
 
 
 func first_in_hand(engine: GameEngine) -> int:

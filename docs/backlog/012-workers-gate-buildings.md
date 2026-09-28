@@ -45,3 +45,5 @@ pop, so slots limit space and pop limits labor. Depends on 009.
 
 ## Log
 - 2026-09-28: spec'd with the user. Extra buildings go idle (newest first) instead of being destroyed.
+- 2026-09-28 (from 011): "oldest (lowest uid)" doesn't mean placed first, because deck cards get uids at game
+  start. Use tableau order (placed first) for which buildings stay working; update AC3 wording at the red checkpoint.
