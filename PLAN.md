@@ -98,7 +98,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 `config.json` selects the model, so all three can be playtested without code changes.
 
 ## Turn loop (initial)
-1. Upkeep: cities and buildings trigger `@upkeep` (produce food).
+1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then pop eats food (starving on a shortfall).
 2. Draw up to hand size.
 3. Play: play or buy cards while resources allow.
 4. Event: stub for now (threat design deferred).
@@ -146,10 +146,12 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 
 ## Population (Milestone 3 — in progress)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
-010 (buy growth with food), 011 (food upkeep and starvation), 012 (workers gate buildings), 013 (growth cards).
+010 (buy growth with food), 011 (food upkeep and starvation; done), 012 (workers gate buildings), 013 (growth cards).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
   block the game has no pop (the test fixtures leave it out).
 - The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`.
+- Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Each food that can't be paid
+  starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Engine API: `population_on()`, `pop(territory_uid)`, `housing(territory_uid)`, `total_pop()`.
 
