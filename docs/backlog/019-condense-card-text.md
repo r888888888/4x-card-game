@@ -2,7 +2,7 @@
 id: 019
 title: Condense card text and move the full wording to a hover tooltip
 type: feature
-status: in-progress
+status: review
 branch: feat/019-condense-card-text
 ---
 
@@ -14,26 +14,26 @@ losing anything for a new player.
 
 ## Acceptance criteria
 <!-- Card names below are TEST_CARDS-style fixtures built in the test, not data/cards.json. -->
-- [ ] AC1: Given a building with effects `gain 1 food (upkeep)` and `gain 1 food (upkeep, keyword
+- [x] AC1: Given a building with effects `gain 1 food (upkeep)` and `gain 1 food (upkeep, keyword
   flood_plain)`, when I read `rules_text`, then it is `⟳ +1 food (+1 Flood Plain)`: upkeep lines
   start with `⟳ `, and a keyword effect that follows an effect with the same op, trigger and fields
   (other than amount) and no keyword is merged onto that line as ` (+N Keyword Name)`.
   Same for `score 1 (upkeep)` + `score 1 (upkeep, mountain)` → `⟳ +1 VP (+1 Mountain)`.
-- [ ] AC2: Given a keyword effect that can't be merged (first effect, or the previous one differs),
+- [x] AC2: Given a keyword effect that can't be merged (first effect, or the previous one differs),
   then it is its own line `Keyword Name: <short text>`: `score 3 (play, desert)` alone →
   `Desert: +3 VP`; an upkeep one → `Mountain: ⟳ +1 VP`.
-- [ ] AC3: Short forms: explore 2 → `Explore 2`; settle with City → `Settle: City`;
+- [x] AC3: Short forms: explore 2 → `Explore 2`; settle with City → `Settle: City`;
   gain_per_tag 2 food per `city` in tableau → `+2 food per city` (other zones keep ` in <zone>`,
   e.g. `+1 food per farm in hand`); grow 1 each → `+1 pop everywhere` (grow here stays `+1 pop here`);
   requires `[fresh_water]` → first line `Needs Fresh Water`, requires `[forest, jungle]` →
   `Needs Forest/Jungle`. Gain, score, draw and create keep their current text.
-- [ ] AC4: Given any non-territory card, when I read the new `rules_tooltip(card_db)`, then it is
+- [x] AC4: Given any non-territory card, when I read the new `rules_tooltip(card_db)`, then it is
   the full wording, one line per effect: `Each upkeep: ` prefix, keyword effects end with
   ` (on Keyword Name)`, never merged, `Requires A or B` first, and explore reads
   `Explore: reveal 2 territories, keep 1`. For the AC1 building:
   `Each upkeep: +1 food\nEach upkeep: +1 food (on Flood Plain)`. The `text` override, when set,
   is returned by both `rules_text` and `rules_tooltip`.
-- [ ] AC5: Given a territory with 2 slots, 4 housing and keywords `[fresh_water, flood_plain]`, then
+- [x] AC5: Given a territory with 2 slots, 4 housing and keywords `[fresh_water, flood_plain]`, then
   `rules_text` is still `""` and `rules_tooltip` is
   `2 building slots, holds up to 4 pop\nKeywords: Fresh Water, Flood Plain`
   (1 slot → `1 building slot`; no keywords → no second line).
@@ -83,3 +83,11 @@ Run `godot --path .`.
 - [ ] `⟳ ▢ ⌂` render (no tofu boxes).
 
 ## Log
+- Merge rule: a keyword effect merges only onto the line directly above, and only if that line has
+  no keyword of its own. Other-zone per-tag reads `+1 food per farm in hand` (no "card").
+- The "Needs" line uses `/` between keywords; the engine's play error still says "Forest or Jungle".
+- Glyphs: all render via system fallback, but `⟳` is small at 19px (only ~60% of cap height).
+  `↻` renders noticeably larger in the same fallback; swapping would change the approved AC1/AC2
+  test strings, so it is left for the user to decide.
+- Test count 159 → 174.
+
