@@ -9,6 +9,7 @@ extends Control
 var _turn_label: Label
 var _food_label: Label
 var _score_label: Label
+var _pop_label: Label
 var _piles_label: Label
 var _seed_edit: LineEdit
 var _tableau: HFlowContainer  # holds one group per territory, then the ghost
@@ -314,6 +315,8 @@ func _refresh() -> void:
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	_set_stat(_food_label, "Food: %d" % e.resources.get("food", 0))
 	_set_stat(_score_label, "Score: %d" % e.score())
+	_pop_label.visible = e.population_on()
+	_set_stat(_pop_label, "Pop: %d" % e.total_pop())
 	_set_stat(_piles_label, "Deck %d  ·  Discard %d" % [e.zone("deck").size(), e.zone("discard").size()])
 
 	var hand := e.zone("hand").cards
@@ -379,7 +382,10 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 		group.label.visible = key != -1
 		if key != -1:
 			var slots: int = e.zone("tableau").find(key).def.slots
-			_set_stat(group.label, "%d / %d slots used" % [slots - e.free_slots(key), slots])
+			var text := "%d / %d slots used" % [slots - e.free_slots(key), slots]
+			if e.population_on():
+				text += "  ·  Pop %d / %d" % [e.pop(key), e.housing(key)]
+			_set_stat(group.label, text)
 	for key in _groups.keys():
 		if not members.has(key):
 			_groups[key].frame.queue_free()
@@ -651,6 +657,7 @@ func _build_layout() -> void:
 	_turn_label = _stat(bar)
 	_food_label = _stat(bar, Color("ffd966"))
 	_score_label = _stat(bar, Color("ffd966"))
+	_pop_label = _stat(bar, Color("9fd89f"))
 	_piles_label = _stat(bar, Color("c3cad3"))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
