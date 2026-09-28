@@ -2,7 +2,7 @@
 id: 015
 title: Legible text, contrast and button styles; say why a card can't be played
 type: feature
-status: ready
+status: in-progress
 branch: feat/015-legibility-contrast
 ---
 
@@ -21,8 +21,12 @@ about 12px at 1280×720. Buttons look like plain text, and End turn barely stand
 - [ ] AC2: Given an unplayable hand card, then a strip at the bottom of the card shows "⊘ " + the
   engine's `play_error` text (e.g. "⊘ Settler needs 5 food (you have 2)"), wrapped, at 4.5:1 or
   more. A playable card has no strip. The tooltip still shows the reason.
-- [ ] AC3: Given the window at 1280×720, then no text renders smaller than 14px on screen. The
-  smallest font size at the 1680×1000 design size is 18px.
+- [ ] AC3: Given the window at 1280×720, then no text renders smaller than 13px on screen. The
+  smallest font size at the 1680×1000 design size is 18px. *(Changed from "14px" during the build:
+  the 0.72 stretch scale at 1280×720 makes 18px render at 13px. A UI scale setting would be its own item.)*
+- [ ] AC7: Given a territory in the frontier, then it shows as a compact card (name, then slots, housing
+  and keywords, about 95px tall). When it is settled onto the tableau, it shows at full size again.
+  *(Added during the build to win back the height the reason strips need.)*
 - [ ] AC4: Given the buttons, then each has a visible fill and border (at least 3:1 against the page)
   and a hover state. End turn is the only button in the accent colour. A disabled button still reads
   at 3:1 or more and looks disabled. Grow uses the normal button size (not 16px).

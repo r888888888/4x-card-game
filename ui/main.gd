@@ -12,6 +12,7 @@ const CARD_GAP := 10  # between cards in a row
 const GROUP_GAP := 16  # between territory groups in the tableau
 const GROUP_PADDING := 11  # inside a territory group's frame
 const PANEL_COLOR := Color("171a1e")  # log panel background
+const ACCENT := Color("e8c547")  # the main action's button (End turn)
 
 var _turn_label: Label
 var _food_label: Label
@@ -431,7 +432,6 @@ func _new_group() -> TerritoryGroup:
 	group.label = _heading("")
 	header.add_child(group.label)
 	group.grow_button = _button("", func(): Game.engine.grow(group.uid))
-	group.grow_button.add_theme_font_size_override("font_size", 16)
 	header.add_child(group.grow_button)
 	group.row = HBoxContainer.new()
 	group.row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -446,10 +446,11 @@ func _new_group() -> TerritoryGroup:
 func _place(card: CardInstance, in_hand: bool, container: Container, index: int, delay: float) -> bool:
 	var e := Game.engine
 	var error := _hand_error(card.uid) if in_hand else ""
+	var compact := container == _frontier
 	var view: CardView = _views.get(card.uid)
 	if view == null:
 		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error)
+		view.setup(card, e.card_db, in_hand, error, compact)
 		view.set_pickable(container == _reveal, "Click to keep this territory.")
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(_on_double_clicked)
@@ -465,7 +466,7 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 		if view == _dragging:
 			_end_drag()
 		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error)
+		view.setup(card, e.card_db, in_hand, error, compact)
 		view.set_pickable(container == _reveal, "Click to keep this territory.")
 		view.fly_to_slot(_new_slot(in_hand, container, index), _fx)
 		_free_slot(old_slot)
@@ -659,6 +660,7 @@ func _build_layout() -> void:
 	# Default text size for everything without an explicit override (log, buttons, inputs).
 	theme = Theme.new()
 	theme.default_font_size = 20
+	_style_controls(theme)
 
 	var bg := ColorRect.new()
 	bg.color = Color("1d2126")
@@ -723,7 +725,7 @@ func _build_layout() -> void:
 	_tableau_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tableau_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	# Room for one territory group (header, a row of tableau cards, padding) before it scrolls.
-	_tableau_scroll.custom_minimum_size.y = CardView.TABLEAU_SIZE.y + 100
+	_tableau_scroll.custom_minimum_size.y = CardView.TABLEAU_SIZE.y + 115
 	tableau_section.add_child(_tableau_scroll)
 	_tableau = HFlowContainer.new()
 	_tableau.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -745,7 +747,7 @@ func _build_layout() -> void:
 	hand_pad.add_child(_hand)
 
 	var side_col := _section(body, "Log")
-	side_col.custom_minimum_size.x = 400
+	side_col.custom_minimum_size.x = 360
 	side_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var log_panel := PanelContainer.new()
 	log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -762,6 +764,7 @@ func _build_layout() -> void:
 	_end_turn_button = _button("End turn  (Enter)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)
+	_end_turn_button.theme_type_variation = "AccentButton"
 	side_col.add_child(_end_turn_button)
 
 	# Effects layer, above the board and below the overlays.
@@ -832,6 +835,37 @@ func _build_layout() -> void:
 	box.add_child(_game_over_label)
 	box.add_child(_button("Replay this seed", _on_restart_pressed))
 	box.add_child(_button("New game", func(): _start_game(-1)))
+
+
+## Button and text field looks: a visible fill and border, a hover state, and a disabled state that
+## still reads. "AccentButton" (End turn) is the one main action.
+static func _style_controls(t: Theme) -> void:
+	var box := func(bg: Color, border: Color) -> StyleBoxFlat:
+		var style := _panel_style(bg, border, 0)
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(6)
+		style.content_margin_left = 14
+		style.content_margin_right = 14
+		style.content_margin_top = 6
+		style.content_margin_bottom = 6
+		return style
+	for type: String in ["Button", "AccentButton"]:
+		var accent := type == "AccentButton"
+		if accent:
+			t.set_type_variation(type, "Button")
+		var fill := ACCENT if accent else Color("2f353d")
+		var text := Color("1d2126") if accent else Color("e6ebf0")
+		t.set_stylebox("normal", type, box.call(fill, ACCENT if accent else Color("78828e")))
+		t.set_stylebox("hover", type, box.call(fill.lightened(0.15), Color.WHITE))
+		t.set_stylebox("pressed", type, box.call(fill.darkened(0.2), Color.WHITE))
+		t.set_stylebox("disabled", type, box.call(Color("24282d"), Color("4a5058")))
+		t.set_stylebox("focus", type, StyleBoxEmpty.new())
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			t.set_color(state, type, text)
+		t.set_color("font_disabled_color", type, Color("8d96a0"))
+	t.set_stylebox("normal", "LineEdit", box.call(Color("14171a"), Color("78828e")))
+	t.set_stylebox("focus", "LineEdit", box.call(Color("14171a"), ACCENT))
+	t.set_color("font_color", "LineEdit", Color("e6ebf0"))
 
 
 ## Full-screen dimmer with a centred, opaque panel. The panel is stored as meta "panel" and its

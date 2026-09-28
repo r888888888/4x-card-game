@@ -17,10 +17,23 @@ const TYPE_COLORS := {
 	"city": Color("c08a3e"),
 	"territory": Color("8a6fb5"),
 }
-const HAND_SIZE := Vector2(215, 280)
+const HAND_SIZE := Vector2(232, 280)
 const TABLEAU_SIZE := Vector2(215, 150)
+const COMPACT_SIZE := Vector2(215, 90)  # a frontier territory: name and info only
+# A shape per type, so types can be told apart without colour.
+const TYPE_MARKS := {
+	"action": "◆",
+	"building": "■",
+	"city": "●",
+	"territory": "▲",
+}
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
+# A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
+const DIM_BG := Color("202328")
+const DIM_BORDER := Color("50565e")
+const STRIP_BG := Color("4a1f22")  # the reason strip at the bottom of a dimmed card
+const STRIP_TEXT := Color("ffd6d1")
 
 var uid := -1
 var in_hand := false
@@ -34,6 +47,7 @@ var _color: Color
 var _box: VBoxContainer
 var _warning := false
 var _highlight := false
+var _dimmed := false
 var _hover := false
 var _pressed := false
 var _press_pos := Vector2.ZERO
@@ -52,14 +66,15 @@ var _fx_tween: Tween
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
-## (shown as tooltip). Ignored for tableau cards.
-func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "") -> void:
+## (shown on the card and as tooltip). Ignored for tableau cards. compact leaves out the type line and
+## rules (for frontier territories, to save height).
+func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false) -> void:
 	uid = card.uid
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
 	_color = TYPE_COLORS.get(def.type, Color.GRAY)
-	_target_size = HAND_SIZE if in_hand else TABLEAU_SIZE
+	_target_size = HAND_SIZE if in_hand else (COMPACT_SIZE if compact else TABLEAU_SIZE)
 	custom_minimum_size = _target_size
 
 	if _style == null:
@@ -72,8 +87,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		mouse_entered.connect(_set_hover.bind(true))
 		mouse_exited.connect(_set_hover.bind(false))
 		size = _target_size
-	_style.bg_color = _color.darkened(0.65)
-	_style.border_color = _color
+	_dimmed = false
 
 	if _box != null:
 		remove_child(_box)
@@ -83,25 +97,29 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_box.add_theme_constant_override("separation", 6)
 	add_child(_box)
 
-	var header := HBoxContainer.new()
-	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_box.add_child(header)
-	var title := _label(def.name, 22)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(title)
-	if in_hand:
-		var cost := _label(_cost_text(def.cost), 19)
-		cost.name = "Cost"
-		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the title wraps around it instead
-		header.add_child(cost)
+	_box.add_child(_label(def.name, 22))  # the title gets the full width
 
-	var subtitle := def.type.capitalize()
+	# Type line, with the cost at its right on a hand card.
+	var type_row := HBoxContainer.new()
+	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + def.type.capitalize()
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
-	_box.add_child(_label(subtitle, 16, _color.lightened(0.5)))
+	var subtitle_label := _label(subtitle, 18, _color.lightened(0.5))
+	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	type_row.add_child(subtitle_label)
+	if in_hand:
+		var cost := _label(_cost_text(def.cost), 19, HIGHLIGHT_COLOR)
+		cost.name = "Cost"
+		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the type line wraps around it instead
+		type_row.add_child(cost)
+	if not compact:
+		_box.add_child(type_row)
+	else:
+		type_row.free()
 
-	var rules_text := def.rules_text(card_db)
+	var rules_text := "" if compact else def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
 		var rules := _label(rules_text, 19)
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -112,7 +130,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
-		var info_label := _label(info, 17, _color.lightened(0.5))
+		var info_label := _label(info, 18, _color.lightened(0.5))
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		_box.add_child(info_label)
@@ -126,32 +144,21 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		modulate = Color.WHITE
 		tooltip_text = ""
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
+	_update_border()
 
 
-## Updates the playable look of a hand card: cost colour, tooltip, cursor, greying.
+## Updates the playable look of a hand card: tooltip, cursor, dimming, and a strip at the bottom
+## saying why it can't be played.
 func set_play_error(play_error: String) -> void:
 	var playable := play_error == ""
-	var cost := _box.get_node_or_null("Cost") as Label
-	if cost != null:
-		cost.add_theme_color_override("font_color", Color("ffd966") if playable else Color("ff8a80"))
 	tooltip_text = "Drag into the tableau (or double-click) to play." if playable else play_error
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
-	# Greyed but still readable; the red cost shows why.
-	modulate = Color.WHITE if playable else Color(0.68, 0.68, 0.68)
+	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
 
-## Greys out a tableau building with no worker and marks it "Idle" (or clears that).
+## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
-	var marker := _box.get_node_or_null("Idle") as Label
-	if idle and marker == null:
-		marker = _label("Idle: no worker", 17, Color("ff8a80"))
-		marker.name = "Idle"
-		_box.add_child(marker)
-	elif not idle and marker != null:
-		_box.remove_child(marker)
-		marker.queue_free()
-	var shade := 0.55 if idle else 1.0
-	modulate = Color(shade, shade, shade, modulate.a)
+	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
 	tooltip_text = "Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else ""
 
 
@@ -175,6 +182,31 @@ func set_warning(on: bool) -> void:
 ## Outlines the card in gold as a valid target for the card being played.
 func set_highlight(on: bool) -> void:
 	_highlight = on
+	_update_border()
+
+
+## Greys the card's background and border (not its text) and shows reason in a strip at the
+## bottom, or undoes both.
+func _set_dimmed(on: bool, reason: String) -> void:
+	_dimmed = on
+	var strip := _box.get_node_or_null("Reason") as PanelContainer
+	if reason == "":
+		if strip != null:
+			_box.remove_child(strip)
+			strip.queue_free()
+	else:
+		if strip == null:
+			strip = PanelContainer.new()
+			strip.name = "Reason"
+			strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var style := StyleBoxFlat.new()
+			style.bg_color = STRIP_BG
+			style.set_corner_radius_all(4)
+			style.set_content_margin_all(6)
+			strip.add_theme_stylebox_override("panel", style)
+			strip.add_child(_label("", 18, STRIP_TEXT))
+			_box.add_child(strip)
+		(strip.get_child(0) as Label).text = reason
 	_update_border()
 
 
@@ -425,6 +457,7 @@ func _set_hover(on: bool) -> void:
 
 
 func _update_border() -> void:
+	_style.bg_color = DIM_BG if _dimmed else _color.darkened(0.65)
 	if _warning:
 		_style.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
@@ -432,7 +465,7 @@ func _update_border() -> void:
 	elif _highlight:
 		_style.border_color = HIGHLIGHT_COLOR
 	else:
-		_style.border_color = _color
+		_style.border_color = DIM_BORDER if _dimmed else _color
 	_style.shadow_size = 14 if (_hover or state == State.DRAGGING) else 0
 	_style.set_border_width_all(4 if _highlight else 2)
 	_style.shadow_offset = Vector2(0, 8)
