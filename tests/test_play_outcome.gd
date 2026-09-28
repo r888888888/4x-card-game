@@ -67,6 +67,17 @@ func test_gain_effect_reported_in_outcome() -> void:
 	eq(e.resources.food, 6, "food 4 + 2")
 
 
+func test_zero_gain_reported_as_zero() -> void:
+	var e := make_engine({"caravan": 10})
+	e.zone("tableau").take_all()
+	var outcomes := play_and_capture(e, first_in_hand(e))
+	eq(outcomes.size(), 1, "card_played emitted once")
+	if outcomes.size() != 1:
+		return
+	eq(outcomes[0].gained, {"food": 0}, "gained 2 per city x 0 cities")
+	eq(e.resources.food, 4, "food unchanged")
+
+
 func test_created_card_reported_in_outcome() -> void:
 	var e := make_engine({"settler": 10})
 	var outcomes := play_and_capture(e, first_in_hand(e))

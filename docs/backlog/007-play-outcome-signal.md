@@ -2,7 +2,7 @@
 id: 007
 title: Report what each card play did
 type: feature
-status: review
+status: red-review
 branch: feat/007-play-outcome-signal
 ---
 
@@ -29,6 +29,8 @@ comparing state before and after or copying rules.
   then the outcome has `vp: 1` and the score goes from 2 to 3.
 - [x] AC6: Given 1 food and a Farm in hand, when I try to play it, then `play_card` returns false
   and `card_played` is not emitted. The same holds after the game is over.
+- [ ] AC7: Given a Caravan deck and no cities on the tableau (Capital removed), when I play a
+  Caravan (+2 food per city = +0), then the outcome has `gained: {food: 0}` and food stays 4.
 
 ## Out of scope
 - Outcomes for upkeep and end-of-turn draws (end-turn animations can get their own item).
@@ -37,7 +39,7 @@ comparing state before and after or copying rules.
 ## Design notes
 - New signal on `GameEngine`: `card_played(outcome: Dictionary)`. Keys: `uid: int`,
   `to_zone: String`, `paid: Dictionary` (resource → amount, only costs > 0), `gained: Dictionary`
-  (resource → total from `gain` calls during the play; resources gaining 0 are left out),
+  (resource → total from `gain` calls during the play; a gain of 0 is recorded as 0),
   `vp: int` (from `add_score`), `drawn: Array[int]`, `created: Array[int]`.
 - Implementation idea: `play_card` starts an outcome dictionary; `gain`, `add_score`, `draw` and
   `create_card` add to it while it is active; `play_card` emits it and then `changed`.
@@ -59,10 +61,11 @@ comparing state before and after or copying rules.
 | AC4 | `test_play_outcome::test_created_card_reported_in_outcome` |
 | AC5 | `test_play_outcome::test_score_effect_reported_in_outcome` |
 | AC6 | `test_play_outcome::test_failed_play_emits_no_outcome`, `test_play_outcome::test_play_after_game_over_emits_no_outcome` |
+| AC7 | `test_play_outcome::test_zero_gain_reported_as_zero` |
 
 ## Log
 - The outcome is built in a private `_outcome` dictionary while `play_card` runs; `gain`, `add_score`,
   `draw` and `create_card` record into it only then, so upkeep and end-of-turn draws are not reported.
-- `paid` leaves out 0-cost entries and `gained` leaves out 0-amount gains, as the design notes say.
-  No test covers the 0-amount case yet, because no test card gains 0.
+- `paid` leaves out 0-cost entries.
+- Review: the user chose to record a gain of 0 as `food: 0` instead of leaving it out (AC7).
 - Follow-up: the Territories items (002 pending choice, 003 targets) need to extend the outcome; see Design notes.
