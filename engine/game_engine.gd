@@ -75,7 +75,12 @@ func play_error(uid: int, target_uid := -1) -> String:
 		return ""
 	var targets := valid_targets(uid)
 	if target_uid != -1:
-		return "" if targets.has(target_uid) else "That target isn't valid."
+		if targets.has(target_uid):
+			return ""
+		var target := zone("tableau").find(target_uid)
+		if _is_building(card) and target != null and target.def.type == "territory" and not _meets_requires(card, target):
+			return _requires_error(card)
+		return "That target isn't valid."
 	if targets.is_empty():
 		return _no_target_error(card)
 	if targets.size() > 1:
@@ -92,7 +97,7 @@ func valid_targets(uid: int) -> Array[int]:
 		return out
 	if _is_building(card):
 		for territory in zone("tableau").cards:
-			if territory.def.type == "territory" and free_slots(territory.uid) > 0:
+			if territory.def.type == "territory" and free_slots(territory.uid) > 0 and _meets_requires(card, territory):
 				out.append(territory.uid)
 	else:
 		for target in zone(_target_effect(card).target_zone()).cards:
@@ -334,9 +339,12 @@ func _event_phase() -> void:
 	pass  # Threat design deferred: the event/barbarian deck will resolve here.
 
 
+## Applies card's effects for trigger. A keyword effect applies only if the card's territory has it.
 func _resolve(card: CardInstance, trigger: String) -> void:
+	var territory := territory_of(card)
 	for e in card.def.effects_for(trigger):
-		e.apply(self, card)
+		if e.keyword == "" or (territory != null and territory.def.keywords.has(e.keyword)):
+			e.apply(self, card)
 
 
 func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
@@ -356,8 +364,25 @@ func _needs_target(card: CardInstance) -> bool:
 
 func _no_target_error(card: CardInstance) -> String:
 	if _is_building(card):
-		return "No territory with a free slot."
+		for territory in zone("tableau").cards:
+			if territory.def.type == "territory" and _meets_requires(card, territory):
+				return "No territory with a free slot."
+		return _requires_error(card)
 	return _target_effect(card).no_target_error()
+
+
+## Whether territory has one of the keywords building card requires (or it requires none).
+func _meets_requires(card: CardInstance, territory: CardInstance) -> bool:
+	if card.def.requires.is_empty():
+		return true
+	for k in card.def.requires:
+		if territory.def.keywords.has(k):
+			return true
+	return false
+
+
+func _requires_error(card: CardInstance) -> String:
+	return "%s needs a territory with %s." % [card.def.name, CardDef.keyword_names(card.def.requires)]
 
 
 func _choose_target_error(card: CardInstance) -> String:

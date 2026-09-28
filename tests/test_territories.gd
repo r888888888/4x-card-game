@@ -27,7 +27,7 @@ func base_cards(extra: Array) -> Array:
 
 
 func load_with_keywords(cards: Array) -> Dictionary:
-	return load_raw(base_cards(cards), raw_config({"farm": 1}, {"keywords": ["mountain", "fresh_water"]}))
+	return load_raw(base_cards(cards), raw_config({"farm": 1}, {"keywords": keywords()}))
 
 
 ## A config with no territories at all (the default test config starts on homeland).

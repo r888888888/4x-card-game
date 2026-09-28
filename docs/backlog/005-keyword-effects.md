@@ -2,7 +2,7 @@
 id: 005
 title: Keyword requirements and bonuses
 type: feature
-status: red-review
+status: in-progress
 branch: feat/005-keyword-effects
 ---
 

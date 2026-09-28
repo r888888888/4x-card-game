@@ -11,6 +11,7 @@ var tags: Array[String] = []
 var effects: Array[Effect] = []
 var slots: int = 0  # territories: building slots
 var keywords: Array[String] = []  # territories: keyword ids from config
+var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var text: String = ""  # optional override; otherwise generated from effects
 
 
@@ -35,9 +36,21 @@ func rules_text(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
+	if not requires.is_empty():
+		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
 		var line := e.describe(card_db)
 		if e.trigger == "upkeep":
 			line = "Each upkeep: " + line
+		if e.keyword != "":
+			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
 	return "\n".join(parts)
+
+
+## Keyword ids for display, joined by " or " ("fresh_water" -> "Fresh Water").
+static func keyword_names(ids: Array[String]) -> String:
+	var names: PackedStringArray = []
+	for k in ids:
+		names.append(k.capitalize())
+	return " or ".join(names)
