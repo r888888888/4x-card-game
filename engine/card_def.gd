@@ -10,6 +10,7 @@ var vp: int = 0
 var tags: Array[String] = []
 var effects: Array[Effect] = []
 var slots: int = 0  # territories: building slots
+var housing: int = 0  # territories: most pop the territory can hold
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var text: String = ""  # optional override; otherwise generated from effects

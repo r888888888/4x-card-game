@@ -46,10 +46,43 @@ func turn_limit() -> int:
 	return config.turn_limit
 
 
+## Printed VP on the tableau, VP from effects, and vp_per_pop for each pop (when population is on).
 func score() -> int:
 	var total := bonus_score
 	for card in zone("tableau").cards:
 		total += card.def.vp
+	if population_on():
+		total += total_pop() * config.population.vp_per_pop
+	return total
+
+
+## Whether the population rules apply (the config has a population block).
+func population_on() -> bool:
+	return not config.get("population", {}).is_empty()
+
+
+## Pop on settled territory territory_uid (0 for anything else).
+func pop(territory_uid: int) -> int:
+	var territory := zone("tableau").find(territory_uid)
+	if territory == null or territory.def.type != "territory":
+		return 0
+	return territory.pop
+
+
+## The most pop settled territory territory_uid can hold (0 if it isn't one).
+func housing(territory_uid: int) -> int:
+	var territory := zone("tableau").find(territory_uid)
+	if territory == null or territory.def.type != "territory":
+		return 0
+	return territory.def.housing
+
+
+## Pop summed over every settled territory.
+func total_pop() -> int:
+	var total := 0
+	for card in zone("tableau").cards:
+		if card.def.type == "territory":
+			total += card.pop
 	return total
 
 
@@ -163,6 +196,8 @@ func new_game(p_seed: int) -> void:
 	var home: CardInstance = null
 	if config.starting.territory != "":
 		home = _make_card(config.starting.territory)
+		if population_on():
+			home.pop = config.population.start
 		zone("tableau").add(home)
 	for id in config.starting.tableau:
 		var card := _make_card(id)
@@ -308,11 +343,14 @@ func explore(n: int, source: CardInstance) -> void:
 		_log("  %s: choose a territory to keep." % source.def.name)
 
 
-## Moves frontier territory territory_uid to the tableau and founds a new city_id on it.
+## Moves frontier territory territory_uid to the tableau and founds a new city_id on it. With population
+## on, the territory starts with 1 pop.
 func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:
 	var territory := zone("frontier").find(territory_uid)
 	zone("frontier").remove(territory)
 	zone("tableau").add(territory)
+	if population_on():
+		territory.pop = 1
 	var city := create_card(city_id, "tableau", source)
 	city.territory_uid = territory.uid
 	_log("  %s: settled %s." % [source.def.name, territory.def.name])
