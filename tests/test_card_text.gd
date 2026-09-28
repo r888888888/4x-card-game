@@ -139,3 +139,10 @@ func test_territory_tooltip_explains_slots_housing_keywords() -> void:
 		eq(db.river.rules_text(db), "", "short text stays empty")
 		eq(db.river.rules_tooltip(db), "2 building slots, holds up to 4 pop\nKeywords: Fresh Water, Flood Plain", "river")
 		eq(db.rock.rules_tooltip(db), "1 building slot, holds up to 3 pop", "rock")
+
+
+func test_city_with_slots_tooltip_mentions_them() -> void:
+	var db := load_cards([{"id": "hub", "name": "Hub", "type": "city", "slots": 4,
+		"effects": [{"op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep"}]}])
+	if db.has("hub"):
+		eq(db.hub.rules_tooltip(db), "Each upkeep: +2 food\n+4 building slots on its territory", "tooltip")

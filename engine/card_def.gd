@@ -85,6 +85,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
+	if type == "city" and slots > 0:
+		parts.append("+%d building slots on its territory" % slots)
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
 	return "\n".join(parts)

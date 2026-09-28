@@ -638,7 +638,7 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 			group.grow_button.disabled = error != ""
 			group.grow_button.tooltip_text = error
 		if key != -1:
-			var slots: int = e.zone("tableau").find(key).def.slots
+			var slots := e.total_slots(key)
 			var text := "%d / %d slots used" % [slots - e.free_slots(key), slots]
 			if e.population_on():
 				text += "  ·  Pop %d / %d" % [e.pop(key), e.housing(key)]
