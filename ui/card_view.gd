@@ -92,6 +92,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	if in_hand:
 		var cost := _label(_cost_text(def.cost), 19)
 		cost.name = "Cost"
+		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the title wraps around it instead
 		header.add_child(cost)
 
 	var subtitle := def.type.capitalize()
@@ -100,17 +101,21 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
 	_box.add_child(_label(subtitle, 16, _color.lightened(0.5)))
 
-	var rules := _label(def.rules_text(card_db), 19)
-	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_box.add_child(rules)
+	var rules_text := def.rules_text(card_db)
+	if rules_text != "":  # territories have none; an empty label would still take a line
+		var rules := _label(rules_text, 19)
+		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_box.add_child(rules)
 
 	if def.type == "territory":
 		var info := "%d slot%s · %d housing" % [def.slots, "" if def.slots == 1 else "s", def.housing]
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
-		_box.add_child(_label(info, 17, _color.lightened(0.5)))
+		var info_label := _label(info, 17, _color.lightened(0.5))
+		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
+		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		_box.add_child(info_label)
 
 	if def.vp > 0:
 		_box.add_child(_label("%d VP" % def.vp, 20, Color("ffd966")))
@@ -267,8 +272,11 @@ func _process(delta: float) -> void:
 		State.REST:
 			var w := _weight(Anim.REST_SHARPNESS, delta)
 			_rest_offset = _rest_offset.lerp(Vector2.ZERO, w)
-			_lift = lerpf(_lift, -Anim.HOVER_LIFT if _hover else 0.0, w)
-			_base_scale = lerpf(_base_scale, Anim.HOVER_SCALE if _hover else 1.0, w)
+			# Only hand cards lift and grow: the hand row has room for it; the scrolling frontier and
+			# tableau would clip a lifted target, so those show hover by border and shadow alone.
+			var lifted := _hover and in_hand
+			_lift = lerpf(_lift, -Anim.HOVER_LIFT if lifted else 0.0, w)
+			_base_scale = lerpf(_base_scale, Anim.HOVER_SCALE if lifted else 1.0, w)
 			rotation = lerp_angle(rotation, 0.0, w)
 			position = _rest_pos() + _rest_offset + Vector2(_shake_x, _lift)
 			_fit_to_slot()
@@ -438,9 +446,11 @@ static func _cost_text(cost: Dictionary) -> String:
 	return "Free" if parts.is_empty() else ", ".join(parts)
 
 
+## A card label. It wraps, so long text makes the card taller rather than wider than its slot.
 static func _label(text: String, font_size: int, color := Color.WHITE) -> Label:
 	var label := Label.new()
 	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
