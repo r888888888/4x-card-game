@@ -2,7 +2,7 @@
 id: 024
 title: Keep unplayed cards and discard down to a hand limit
 type: feature
-status: in-progress
+status: review
 branch: feat/024-hand-limit
 ---
 
@@ -15,38 +15,38 @@ hand than the limit, the player picks which cards to discard.
 In these criteria the config has `hand_size: 5` and `hand_limit: 7`, and `scout` is the TEST_CARDS
 action that draws 2 (it has no cost).
 
-- [ ] AC1 (keep the hand): Given a deck of 10 farms and a starting hand of 5, when I play 1 Farm and end
+- [x] AC1 (keep the hand): Given a deck of 10 farms and a starting hand of 5, when I play 1 Farm and end
   the turn, then the other 4 Farms are still in hand, the discard pile is empty, and the new turn draws
   1 card, so the hand has 5 and the deck has 4.
-- [ ] AC2 (draw up to hand size): Given a hand of 6 at the start of a turn (more than `hand_size`), no
+- [x] AC2 (draw up to hand size): Given a hand of 6 at the start of a turn (more than `hand_size`), no
   cards are drawn. Given a hand of 0, 5 are drawn.
-- [ ] AC3 (at or under the limit): Given a deck of 10 scouts, when I play 2 Scouts (hand 5 → 6 → 7) and
+- [x] AC3 (at or under the limit): Given a deck of 10 scouts, when I play 2 Scouts (hand 5 → 6 → 7) and
   end the turn, then there is nothing to discard: `discard_needed()` is 0, the turn advances to 2, and
   the hand still has 7.
-- [ ] AC4 (over the limit starts a discard): Given a deck of 10 scouts, when I play 3 Scouts (hand 8) and
+- [x] AC4 (over the limit starts a discard): Given a deck of 10 scouts, when I play 3 Scouts (hand 8) and
   end the turn, then the turn does not advance (still turn 1), `discard_needed()` is 1, and the hand
   still has 8. `changed` is emitted.
-- [ ] AC5 (discarding finishes the turn): Continuing AC4, when I call `discard_card(uid)` with a Scout in
+- [x] AC5 (discarding finishes the turn): Continuing AC4, when I call `discard_card(uid)` with a Scout in
   hand, then it returns true, that card is in the discard pile, and the turn ends by itself: turn is 2 and
   the hand has 7 (no draw, since 7 ≥ 5). With a hand of 9 (`discard_needed()` 2), the first
   `discard_card` returns true and leaves turn 1 with `discard_needed()` 1; the second ends the turn.
-- [ ] AC6 (blocked while discarding): While `discard_needed()` > 0:
+- [x] AC6 (blocked while discarding): While `discard_needed()` > 0:
   - `play_error(uid)` for a card in hand is "Discard down to 7 cards first." and `play_card` fails with
     nothing changed
   - `grow_error(territory_uid)` is the same message and `grow` fails
   - calling `end_turn()` again changes nothing (still turn 1, same `discard_needed()`).
-- [ ] AC7 (voluntary discard): `discard_card(uid)` also works during your turn with no discard pending
+- [x] AC7 (voluntary discard): `discard_card(uid)` also works during your turn with no discard pending
   (it is free and unlimited), so dead cards can be cycled out. Given a hand of 5 at the start of turn 1,
   when I discard one card, then it returns true, that card is in the discard pile, the hand has 4, the
   turn is still 1, `discard_needed()` is 0 and nothing is drawn. Given a hand of 8 (3 Scouts played),
   when I discard 1 card and then end the turn, then the hand is 7, there is no pending discard and the
   turn advances to 2. Given a hand emptied by discards, when I end the turn, then the next turn draws 5.
-- [ ] AC7b (bad discards): `discard_card` returns false and changes nothing when the uid isn't in hand
+- [x] AC7b (bad discards): `discard_card` returns false and changes nothing when the uid isn't in hand
   (for example the Capital, -1, or a uid already discarded), when a choice is pending (explore), and
   when the game is over.
-- [ ] AC8 (last turn): Given turn 20 of 20 and a hand of 8, when I end the turn, then no discard is asked
+- [x] AC8 (last turn): Given turn 20 of 20 and a hand of 8, when I end the turn, then no discard is asked
   for (`discard_needed()` stays 0) and the game ends as before.
-- [ ] AC9 (config): `hand_limit` is optional in config.json and defaults to 7. A value below `hand_size`,
+- [x] AC9 (config): `hand_limit` is optional in config.json and defaults to 7. A value below `hand_size`,
   or not an integer, is a load error naming config.json and `hand_limit`. `data/config.json` sets
   `"hand_limit": 7`.
 
@@ -95,8 +95,12 @@ action that draws 2 (it has no cost).
 | AC9 | `test_hand_limit_defaults_to_7`, `test_hand_limit_is_read_from_config`, `test_hand_limit_below_hand_size_is_an_error`, `test_hand_limit_must_be_an_integer`, `test_real_config_sets_hand_limit_7` |
 
 ## Manual check
-- [ ] Play enough draw to go over 7, press E: the discard banner shows the right count, cards can't be
-  played, and discarding with the mouse and with the keyboard each work and end the turn.
+- [ ] Play enough draw to go over 7, press E: the button reads "Discard N (hand limit 7)" and is disabled,
+  cards can't be played, and right-click, D on a focused card, and double-click each discard and end the turn.
 - [ ] At or under 7, E ends the turn at once and unplayed cards are still in hand.
+- [ ] Right-click or D discards a card mid-turn with no limit pending.
 
 ## Log
+- The first build deadlocked the scripted bot: with draw-up-to-5 and unaffordable cards, a dead hand never
+  cycled. Added voluntary discards (AC7) and re-approved the tests.
+- Game over still discards the hand, so a finished game ends as before.

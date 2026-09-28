@@ -43,6 +43,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
+| `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern

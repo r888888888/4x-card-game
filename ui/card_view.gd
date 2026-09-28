@@ -3,10 +3,11 @@ extends PanelContainer
 ## Visual for one card. It rests inside a slot Control that a zone's container lays out, and
 ## animates itself: it lifts on hover, slides when its slot moves, flies between slots on the
 ## shared effects layer, and follows the cursor while dragged. Hand cards emit drag_requested and
-## double_clicked; pickable cards (a pending choice) emit picked. main.gd decides what those mean.
+## double_clicked and discard_requested (right-click); pickable cards (a pending choice) emit picked. main.gd decides what those mean.
 
 signal drag_requested(view: CardView, grab_offset: Vector2)
 signal double_clicked(view: CardView)
+signal discard_requested(view: CardView)
 signal picked(view: CardView)
 
 enum State { REST, FLYING, DRAGGING, LEAVING }
@@ -156,7 +157,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 ## saying why it can't be played.
 func set_play_error(play_error: String) -> void:
 	var playable := play_error == ""
-	_set_tip("Drag into the tableau (or double-click) to play." if playable else play_error)
+	_set_tip("Drag into the tableau (or double-click) to play. Right-click to discard." if playable else play_error)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
@@ -492,7 +493,10 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	if not in_hand or _delay > 0.0 or state == State.DRAGGING or state == State.LEAVING:
 		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		accept_event()
+		discard_requested.emit(self)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		accept_event()
 		if not event.pressed:
 			_pressed = false
