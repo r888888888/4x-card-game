@@ -2,7 +2,7 @@
 id: 020
 title: Replace text glyphs with icon images
 type: feature
-status: review
+status: done
 branch: feat/020-icon-images
 ---
 
