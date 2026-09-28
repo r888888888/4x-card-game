@@ -2,7 +2,7 @@
 id: 021
 title: Add wealth as a second resource
 type: feature
-status: review
+status: done
 branch: feat/021-wealth-resource
 ---
 
