@@ -27,14 +27,14 @@ res://
     cards.json           # player card definitions
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # GameState + actions + turn loop (play_card, end_turn, play_error, score)
+    game_engine.gd       # GameState + actions + turn loop (play_card, end_turn, play_error, valid_targets, choose, score)
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; rules text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
     zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
-    effects/             # gain, gain_per_tag, draw, create, score, explore
+    effects/             # gain, gain_per_tag, draw, create, score, explore, settle
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
   ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning)
@@ -48,6 +48,8 @@ res://
   docs/                  # development process, testing guide, backlog
 ```
 Adding an effect: create `engine/effects/<name>_effect.gd` (extends Effect) and register it in `effect_registry.gd`.
+An effect that targets a card overrides `target_zone()` (and its two error messages); the engine then
+derives `needs_target`, `valid_targets` and the target checks in `play_error` from it.
 
 ## Card data format
 JSON only. Effects are structured objects, so no mini-language parser is needed.
@@ -103,7 +105,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
 (001 done: territory cards, territory deck, starting territory, tableau groups;
-002 done: explore, frontier, choice panel).
+002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
   (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.
