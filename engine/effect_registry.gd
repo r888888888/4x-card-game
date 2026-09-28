@@ -26,8 +26,11 @@ static func create(data: Variant, ctx: Dictionary, errors: Array[String], warnin
 	var effect: Effect = OPS[op].new()
 	effect.op = op
 	effect.trigger = Effect.read_string(data, "trigger", errors, Effect.TRIGGERS, "play")
+	effect.keyword = Effect.read_string(data, "keyword", errors, [], "")
+	if effect.keyword != "" and not ctx.keywords.has(effect.keyword):
+		errors.append("unknown keyword '%s' in 'keyword'" % effect.keyword)
 	effect.configure(data, ctx, errors)
 	for key in data:
-		if key != "op" and key != "trigger" and not effect.fields().has(key):
+		if not ["op", "trigger", "keyword"].has(key) and not effect.fields().has(key):
 			warnings.append("unknown field '%s' in '%s' effect" % [key, op])
 	return effect

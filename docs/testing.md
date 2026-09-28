@@ -29,6 +29,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 |---|---|
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
+| `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
 | `tests/test_explore.gd` | The `explore` op: reveal, `pending_choice`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |

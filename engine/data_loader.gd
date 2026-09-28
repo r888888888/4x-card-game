@@ -5,7 +5,7 @@ extends RefCounted
 ## Unknown fields are warnings, not errors.
 
 const CARD_TYPES: Array[String] = ["action", "building", "city", "territory"]
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "keywords"]
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "keywords", "requires"]
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "deck_model", "starting", "deck", "keywords", "territory_deck"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -180,6 +180,18 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		for key in ["slots", "keywords"]:
 			if c.has(key):
 				warns.append("'%s' only applies to territories (ignored)" % key)
+
+	var requires: Variant = c.get("requires", [])
+	if requires is Array:
+		for k in requires:
+			if not (k is String):
+				errs.append("requires must be keyword ids")
+			elif not ctx.keywords.has(k):
+				errs.append("unknown keyword '%s' in 'requires'" % k)
+			else:
+				def.requires.append(k)
+	else:
+		errs.append("'requires' must be an array of keyword ids")
 
 	for key in c:
 		if not CARD_FIELDS.has(key):

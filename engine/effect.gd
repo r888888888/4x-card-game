@@ -7,6 +7,7 @@ const TRIGGERS: Array[String] = ["play", "upkeep"]
 
 var op: String = ""
 var trigger: String = "play"
+var keyword: String = ""  # if set, applies only when the card's territory has this keyword
 
 
 ## Data fields this effect accepts besides "op" and "trigger".
