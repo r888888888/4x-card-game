@@ -2,7 +2,7 @@
 id: 007
 title: Report what each card play did
 type: feature
-status: ready
+status: red-review
 branch: feat/007-play-outcome-signal
 ---
 
@@ -53,5 +53,11 @@ comparing state before and after or copying rules.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_play_outcome::test_building_play_reports_tableau_and_cost` |
+| AC2 | `test_play_outcome::test_action_play_reports_discard_and_drawn_cards` |
+| AC3 | `test_play_outcome::test_gain_effect_reported_in_outcome` |
+| AC4 | `test_play_outcome::test_created_card_reported_in_outcome` |
+| AC5 | `test_play_outcome::test_score_effect_reported_in_outcome` |
+| AC6 | `test_play_outcome::test_failed_play_emits_no_outcome`, `test_play_outcome::test_play_after_game_over_emits_no_outcome` |
 
 ## Log
