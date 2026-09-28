@@ -27,6 +27,8 @@ var _game_over_label: Label
 var _fx: Control  # effects layer: flying, dragged and leaving cards, resource tokens, errors
 var _views := {}  # uid -> CardView
 var _dragging: CardView
+var _targeting: CardView  # hand card waiting for a target click (double-click with several targets)
+var _lit: Array[int] = []  # uids of the target views lit up for the dragged or targeting card
 var _drop_highlight: Panel  # lights up the tableau (the drop zone) during a drag
 var _drop_style: StyleBoxFlat
 var _ghost: Panel  # outline of the tableau slot a dragged building or city will land in
@@ -53,6 +55,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _targeting != null:
+		var cancel: bool = event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE
+		cancel = cancel or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT)
+		if cancel:
+			get_viewport().set_input_as_handled()
+			_end_targeting()
+		return
 	if _dragging == null:
 		return
 	if event is InputEventMouseButton:
@@ -85,61 +94,147 @@ func _on_restart_pressed() -> void:
 	_start_game(text.to_int() if text.is_valid_int() else -1)
 
 
-## Plays the card if it's legal; otherwise sends it back with a shake and says why.
-func _try_play(view: CardView) -> void:
-	var error := Game.engine.play_error(view.uid)
+## Plays the card (on target_uid) if it's legal; otherwise sends it back with a shake and says why.
+func _try_play(view: CardView, target_uid := -1) -> void:
+	var error := Game.engine.play_error(view.uid, target_uid)
 	if error != "":
 		_log.append_text("[color=#e88]%s[/color]\n" % error)
 		_show_error(view, error)
 		view.reject()
 		return
-	Game.engine.play_card(view.uid)
+	Game.engine.play_card(view.uid, target_uid)
+
+
+## Why a hand card can't be played at all, or "". A card that needs a target is checked against
+## its first valid target, so "choose a target" doesn't grey it out.
+func _hand_error(uid: int) -> String:
+	var e := Game.engine
+	var targets := e.valid_targets(uid)
+	return e.play_error(uid, targets[0] if e.needs_target(uid) and not targets.is_empty() else -1)
 
 
 func _on_double_clicked(view: CardView) -> void:
-	if _dragging == null and Game.engine.pending_choice.is_empty():
+	if _targeting != null:
+		_end_targeting()
+	if _dragging != null or not Game.engine.pending_choice.is_empty():
+		return
+	var e := Game.engine
+	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and _hand_error(view.uid) == "":
+		_begin_targeting(view)
+	else:
 		_try_play(view)
 
 
 func _on_picked(view: CardView) -> void:
-	Game.engine.choose(view.uid)
+	if _targeting != null:
+		var card := _targeting
+		_end_targeting()
+		_try_play(card, view.uid)
+	else:
+		Game.engine.choose(view.uid)
+
+
+# --- Targeting mode (double-click on a card with several targets) ---
+
+func _begin_targeting(view: CardView) -> void:
+	_targeting = view
+	view.set_highlight(true)
+	_light_targets(view.uid, true)
+	_log.append_text("[color=#ffd966]Click a territory to play %s on (Esc cancels).[/color]\n"
+		% Game.engine.zone("hand").find(view.uid).def.name)
+
+
+func _end_targeting() -> void:
+	if is_instance_valid(_targeting):
+		_targeting.set_highlight(false)
+	_targeting = null
+	_unlight_targets()
+
+
+## Lights up the valid targets of hand card uid; clickable makes them pickable (targeting mode).
+func _light_targets(uid: int, clickable: bool) -> void:
+	_lit = Game.engine.valid_targets(uid)
+	for target in _lit:
+		var view: CardView = _views.get(target)
+		if view != null:
+			view.set_highlight(true)
+			if clickable:
+				view.set_pickable(true, "Click to play the card here.")
+
+
+func _unlight_targets() -> void:
+	for target in _lit:
+		var view: CardView = _views.get(target)
+		if view != null:
+			view.set_highlight(false)
+			var in_reveal := is_instance_valid(view.slot) and view.slot.get_parent() == _reveal
+			view.set_pickable(in_reveal, "Click to keep this territory.")
+	_lit = []
 
 
 # --- Dragging ---
 
 func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
+	if _targeting != null:
+		_end_targeting()
 	if _dragging != null or Game.engine.is_over or not Game.engine.pending_choice.is_empty():
 		return
 	_dragging = view
 	view.begin_drag(_fx, grab_offset)
-	var card := Game.engine.zone("hand").find(view.uid)
-	if Game.engine.play_error(view.uid) == "":
-		_drop_highlight.global_position = _tableau_scroll.global_position
-		_drop_highlight.size = _tableau_scroll.size
-		_drop_highlight.show()
-		if card.def.is_permanent():
-			_ghost.show()
-			_tableau.move_child(_ghost, -1)
+	var e := Game.engine
+	var card := e.zone("hand").find(view.uid)
+	if _hand_error(view.uid) == "":
+		if e.needs_target(view.uid):
+			_light_targets(view.uid, false)
+		else:
+			_drop_highlight.global_position = _tableau_scroll.global_position
+			_drop_highlight.size = _tableau_scroll.size
+			_drop_highlight.show()
+			if card.def.is_permanent():
+				_ghost.show()
+				_tableau.move_child(_ghost, -1)
 	_update_drag_feedback()
 
 
+## Red when the drop here would fail: over a card it can't target, or in the drop zone when the
+## card can't be played (or needs a target to be picked).
 func _update_drag_feedback() -> void:
+	var e := Game.engine
 	var over := _over_drop_zone()
-	var playable := Game.engine.play_error(_dragging.uid) == ""
-	_dragging.set_warning(over and not playable)
+	var target := _target_under_mouse()
+	var error := e.play_error(_dragging.uid)
+	if e.needs_target(_dragging.uid) and target != -1:
+		error = e.play_error(_dragging.uid, target)
+	_dragging.set_warning(over and error != "")
 	_drop_style.bg_color.a = 0.10 if over else 0.03
 
 
+## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there).
 func _over_drop_zone() -> bool:
-	return _tableau_scroll.get_global_rect().has_point(get_global_mouse_position())
+	var mouse := get_global_mouse_position()
+	return _tableau_scroll.get_global_rect().has_point(mouse) \
+		or (_frontier.visible and _frontier.get_global_rect().has_point(mouse))
+
+
+## The uid of the tableau or frontier card under the mouse, or -1.
+func _target_under_mouse() -> int:
+	var mouse := get_global_mouse_position()
+	for uid in _views:
+		var view: CardView = _views[uid]
+		if view.in_hand or view == _dragging or view.state != CardView.State.REST:
+			continue
+		if view.slot.get_parent() != _reveal and view.get_global_rect().has_point(mouse):
+			return uid
+	return -1
 
 
 func _drop() -> void:
 	var view := _dragging
 	var over := _over_drop_zone()
+	var target := _target_under_mouse() if Game.engine.needs_target(view.uid) else -1
 	_end_drag()
 	if over:
-		_try_play(view)
+		_try_play(view, target)
 	else:
 		view.return_home()
 
@@ -155,6 +250,7 @@ func _end_drag() -> void:
 	_dragging = null
 	_drop_highlight.hide()
 	_ghost.hide()
+	_unlight_targets()
 
 
 # --- Rendering ---
@@ -265,12 +361,12 @@ func _new_group() -> HBoxContainer:
 ## Returns true if the card was newly dealt into the hand.
 func _place(card: CardInstance, in_hand: bool, container: Container, index: int, delay: float) -> bool:
 	var e := Game.engine
-	var error := e.play_error(card.uid) if in_hand else ""
+	var error := _hand_error(card.uid) if in_hand else ""
 	var view: CardView = _views.get(card.uid)
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error)
-		view.set_pickable(container == _reveal)
+		view.set_pickable(container == _reveal, "Click to keep this territory.")
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(_on_double_clicked)
 		view.picked.connect(_on_picked)
@@ -286,7 +382,7 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 			_end_drag()
 		var old_slot := view.slot
 		view.setup(card, e.card_db, in_hand, error)
-		view.set_pickable(container == _reveal)
+		view.set_pickable(container == _reveal, "Click to keep this territory.")
 		view.fly_to_slot(_new_slot(in_hand, container, index), _fx)
 		_free_slot(old_slot)
 		return false
@@ -303,8 +399,14 @@ func _remove_view(uid: int) -> void:
 	_views.erase(uid)
 	if view == _dragging:
 		_end_drag()
+	if view == _targeting:
+		_end_targeting()
 	var old_slot := view.slot
-	view.leave(_fx, _leave_point(uid), not _outcome.is_empty() and _outcome.uid == uid)
+	var just_played: bool = not _outcome.is_empty() and _outcome.uid == uid
+	var via: Variant = null
+	if just_played and _views.has(_outcome.target):  # fly to where it was played, e.g. the settled territory
+		via = (_views[_outcome.target] as CardView).get_global_rect().get_center()
+	view.leave(_fx, _leave_point(uid), just_played, via)
 	_free_slot(old_slot)
 
 
@@ -433,6 +535,7 @@ func _free_slot(slot: Control) -> void:
 func _reset_views() -> void:
 	if _dragging != null:
 		_end_drag()
+	_end_targeting()
 	for uid in _views:
 		var view: CardView = _views[uid]
 		_free_slot(view.slot)

@@ -27,6 +27,8 @@ const TEST_CARDS := {"cards": [
 	{"id": "hills", "name": "Hills", "type": "territory", "slots": 3, "keywords": ["mountain"]},
 	{"id": "jungle", "name": "Jungle", "type": "territory", "slots": 1},
 	{"id": "explorer", "name": "Explorer", "type": "action", "effects": [{"op": "explore"}]},
+	{"id": "pioneer", "name": "Pioneer", "type": "action", "cost": {"food": 3},
+	 "effects": [{"op": "settle", "card": "city"}]},
 ]}
 
 var test_name := ""  # "file::method", set by the runner

@@ -31,6 +31,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
 | `tests/test_explore.gd` | The `explore` op: reveal, `pending_choice`, `choose`, blocking play and end turn |
+| `tests/test_settle.gd` | The `settle` op and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern

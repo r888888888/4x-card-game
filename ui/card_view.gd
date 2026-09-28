@@ -20,10 +20,11 @@ const TYPE_COLORS := {
 const HAND_SIZE := Vector2(215, 280)
 const TABLEAU_SIZE := Vector2(215, 150)
 const WARN_COLOR := Color("ff6b6b")
+const HIGHLIGHT_COLOR := Color("ffd966")
 
 var uid := -1
 var in_hand := false
-var pickable := false  # one of the options of a pending choice: a click picks it
+var pickable := false  # an option of a pending choice or a target: a click picks it
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies the chased scale
@@ -32,6 +33,7 @@ var _style: StyleBoxFlat
 var _color: Color
 var _box: VBoxContainer
 var _warning := false
+var _highlight := false
 var _hover := false
 var _pressed := false
 var _press_pos := Vector2.ZERO
@@ -133,12 +135,12 @@ func set_play_error(play_error: String) -> void:
 	modulate = Color.WHITE if playable else Color(0.68, 0.68, 0.68)
 
 
-## Makes a non-hand card clickable as a choice option (or not).
-func set_pickable(on: bool) -> void:
+## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.
+func set_pickable(on: bool, tooltip := "") -> void:
 	pickable = on
 	if in_hand:
 		return
-	tooltip_text = "Click to keep this territory." if on else ""
+	tooltip_text = tooltip if on else ""
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if on else Control.CURSOR_ARROW
 	if not on:
 		_set_hover(false)
@@ -147,6 +149,12 @@ func set_pickable(on: bool) -> void:
 ## Tints the card red while it is held over the play area but can't be played there.
 func set_warning(on: bool) -> void:
 	_warning = on
+	_update_border()
+
+
+## Outlines the card in gold as a valid target for the card being played.
+func set_highlight(on: bool) -> void:
+	_highlight = on
 	_update_border()
 
 
@@ -216,12 +224,16 @@ func begin_drag(layer: Control, grab_offset: Vector2) -> void:
 	_update_border()
 
 
-## Leaves the board: optionally pops, then shrinks and fades towards point, then frees itself.
-func leave(layer: Control, point: Vector2, pop: bool) -> void:
+## Leaves the board: optionally pops (first flying to via, e.g. the card it was played on), then
+## shrinks and fades towards point, then frees itself.
+func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null) -> void:
 	_to_layer(layer)
 	state = State.LEAVING
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var t := _play_fx()
+	if via is Vector2:
+		t.tween_property(self, "global_position", via - size / 2, Anim.TARGET_FLY_TIME) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if pop:
 		t.tween_property(self, "fx_scale", Vector2(1.15, 1.15), Anim.DISCARD_POP_TIME) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -394,9 +406,12 @@ func _update_border() -> void:
 		_style.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
 		_style.border_color = Color.WHITE
+	elif _highlight:
+		_style.border_color = HIGHLIGHT_COLOR
 	else:
 		_style.border_color = _color
 	_style.shadow_size = 14 if (_hover or state == State.DRAGGING) else 0
+	_style.set_border_width_all(4 if _highlight else 2)
 	_style.shadow_offset = Vector2(0, 8)
 
 

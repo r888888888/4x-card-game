@@ -23,7 +23,7 @@
     {
       "id": "settler", "name": "Settler", "type": "action",
       "cost": { "food": 5 }, "vp": 0, "tags": ["expand"],
-      "effects": [ { "op": "create", "card": "city" } ]
+      "effects": [ { "op": "settle", "card": "city" } ]
     },
     {
       "id": "scout", "name": "Scout", "type": "action",

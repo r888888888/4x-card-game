@@ -34,6 +34,26 @@ func referenced_cards() -> Array[String]:
 	return []
 
 
+## Checks referenced cards once every card is loaded (e.g. their type); problems go to errors.
+func check_references(_card_db: Dictionary, _errors: Array[String]) -> void:
+	pass
+
+
+## The zone whose cards this effect targets, or "" if it needs no target.
+func target_zone() -> String:
+	return ""
+
+
+## play_error when the effect needs a target and there is none.
+func no_target_error() -> String:
+	return "There is nothing to target."
+
+
+## play_error when the effect needs a target, several are valid, and none was given.
+func choose_target_error() -> String:
+	return "Choose a target."
+
+
 static func read_int(data: Dictionary, key: String, errors: Array[String], min_value := 0, default_value: Variant = null) -> int:
 	if not data.has(key):
 		if default_value == null:

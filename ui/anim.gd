@@ -28,6 +28,7 @@ const SHAKE_TIME := 0.35
 const POP_IN_TIME := 0.28
 const DISCARD_POP_TIME := 0.12
 const DISCARD_FLY_TIME := 0.45
+const TARGET_FLY_TIME := 0.3  # a played action flying to its target before it is discarded
 const DEAL_STAGGER := 0.06  # delay between cards dealt into the hand
 const TOKEN_FLY_TIME := 0.55
 const TOKEN_STAGGER := 0.08

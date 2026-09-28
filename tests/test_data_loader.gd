@@ -89,6 +89,37 @@ func test_explore_reveal_0_is_error() -> void:
 	has_msg(errors, "card 'x': effects[0]: 'reveal' must be an integer >= 1")
 
 
+const CITY := {"id": "city", "name": "City", "type": "city"}
+const FARM := {"id": "farm", "name": "Farm", "type": "building"}
+
+
+func test_settle_text() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [CITY, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "city"}]}]}, resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	if cards.has("x"):
+		eq(cards.x.rules_text(cards), "Settle a discovered territory with a City", "card text")
+
+
+func test_settle_non_city_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [FARM, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "farm"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect: 'card' must be a city card (got 'farm')")
+
+
+func test_settle_unknown_card_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "nowhere"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect refers to unknown card 'nowhere'")
+
+
 func test_json_syntax_error_reports_line() -> void:
 	var path := "user://broken.json"
 	var f := FileAccess.open(path, FileAccess.WRITE)
