@@ -87,6 +87,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
 - Territory cards (`"type": "territory"`) need `slots` (int ≥ 0) and may list `keywords` from config
   `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
+- Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
+  only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
 ## Keeping the deck model open
 Every deck model is expressed through **zones + a `move_card` effect**:
