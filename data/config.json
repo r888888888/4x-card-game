@@ -43,6 +43,7 @@
     "astronomy": 1,
     "engineering": 1
   },
+  "era_unlocks": { "2": { "pop": 8, "wealth": 15 } },
   "territory_deck": {
     "plains": 1,
     "river_valley": 1,

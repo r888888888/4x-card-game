@@ -9,7 +9,7 @@ const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount", "era"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "population"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -267,6 +267,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"deck": {},
 		"territory_deck": {},
 		"research_deck": {},
+		"era_unlocks": {},
 		"population": {},
 	}
 
@@ -324,6 +325,8 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	else:
 		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
 
+	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
+
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
 
@@ -333,6 +336,37 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	for m in errs:
 		errors.append("%s: %s" % [src, m])
 	return config
+
+
+## Normalizes era_unlocks {"2": {"pop": 8, "wealth": 15}} to {2: {pop, wealth}}: each key an era >= 2, each
+## value at least one of pop and wealth, integers >= 1.
+static func _parse_era_unlocks(raw: Variant, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'era_unlocks' must be an object like {\"2\": {\"pop\": 8}}")
+		return out
+	for key in raw:
+		var era: Variant = int(key) if str(key).is_valid_int() else null
+		if era == null or era < 2:
+			errs.append("era_unlocks: '%s' must be an era number >= 2" % key)
+			continue
+		var value: Variant = raw[key]
+		if not (value is Dictionary) or value.is_empty():
+			errs.append("era_unlocks: era %d needs an object with 'pop' and/or 'wealth'" % era)
+			continue
+		var thresholds := {}
+		for field in value:
+			if not ["pop", "wealth"].has(field):
+				warnings.append("%s: era_unlocks: era %d: unknown field '%s'" % [src, era, field])
+				continue
+			var n: Variant = as_int(value[field])
+			if typeof(n) != TYPE_INT or n < 1:
+				errs.append("era_unlocks: era %d: '%s' must be an integer >= 1" % [era, field])
+			else:
+				thresholds[field] = n
+		if not thresholds.is_empty():
+			out[era] = thresholds
+	return out
 
 
 ## Normalizes the population block, filling in defaults. start must fit the starting territory's housing.
