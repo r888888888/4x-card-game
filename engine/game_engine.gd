@@ -150,7 +150,7 @@ func end_turn() -> void:
 
 func gain(resource: String, amount: int, source: CardInstance) -> void:
 	resources[resource] = resources.get(resource, 0) + amount
-	if not _outcome.is_empty() and amount != 0:
+	if not _outcome.is_empty():
 		_outcome.gained[resource] = _outcome.gained.get(resource, 0) + amount
 	_log("  %s: +%d %s" % [source.def.name, amount, resource])
 

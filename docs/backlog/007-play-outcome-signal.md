@@ -2,7 +2,7 @@
 id: 007
 title: Report what each card play did
 type: feature
-status: red-review
+status: review
 branch: feat/007-play-outcome-signal
 ---
 
@@ -29,7 +29,7 @@ comparing state before and after or copying rules.
   then the outcome has `vp: 1` and the score goes from 2 to 3.
 - [x] AC6: Given 1 food and a Farm in hand, when I try to play it, then `play_card` returns false
   and `card_played` is not emitted. The same holds after the game is over.
-- [ ] AC7: Given a Caravan deck and no cities on the tableau (Capital removed), when I play a
+- [x] AC7: Given a Caravan deck and no cities on the tableau (Capital removed), when I play a
   Caravan (+2 food per city = +0), then the outcome has `gained: {food: 0}` and food stays 4.
 
 ## Out of scope
