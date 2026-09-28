@@ -6,6 +6,13 @@ extends Control
 ## they were to where the engine now says they are. Cards in motion live on _fx, a layer above the
 ## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
 
+const SECTION_GAP := 22  # between the frontier, tableau and hand sections
+const HEADING_GAP := 6  # from a heading to its content
+const CARD_GAP := 10  # between cards in a row
+const GROUP_GAP := 16  # between territory groups in the tableau
+const GROUP_PADDING := 11  # inside a territory group's frame
+const PANEL_COLOR := Color("171a1e")  # log panel background
+
 var _turn_label: Label
 var _food_label: Label
 var _score_label: Label
@@ -17,8 +24,9 @@ var _groups := {}  # territory uid (-1 for cards with no territory) -> Territory
 var _tableau_scroll: ScrollContainer
 var _hand: HBoxContainer
 var _frontier: HBoxContainer  # discovered, unsettled territories
-var _frontier_heading: Label
-var _choice_panel: PanelContainer  # shown while an explore choice is pending
+var _frontier_section: Control  # the frontier's heading and row, hidden while it is empty
+var _choice_overlay: Control  # dims the board while an explore choice is pending
+var _choice_panel: PanelContainer  # the centred panel on _choice_overlay
 var _reveal: HBoxContainer  # the revealed territories to choose from, inside _choice_panel
 var _log: RichTextLabel
 var _end_turn_button: Button
@@ -50,7 +58,7 @@ class TerritoryGroup:
 	var row: HBoxContainer
 
 	func set_lit(on: bool) -> void:
-		style.border_color = CardView.HIGHLIGHT_COLOR if on else Color(1, 1, 1, 0.12)
+		style.border_color = CardView.HIGHLIGHT_COLOR if on else CardView.TYPE_COLORS.territory
 		style.set_border_width_all(3 if on else 1)
 
 
@@ -256,7 +264,7 @@ func _move_ghost(row: HBoxContainer) -> void:
 func _over_drop_zone() -> bool:
 	var mouse := get_global_mouse_position()
 	return _tableau_scroll.get_global_rect().has_point(mouse) \
-		or (_frontier.visible and _frontier.get_global_rect().has_point(mouse))
+		or (_frontier.is_visible_in_tree() and _frontier.get_global_rect().has_point(mouse))
 
 
 ## What the mouse is over as a target: a territory group's territory uid, else the uid of the
@@ -340,9 +348,8 @@ func _refresh() -> void:
 		_place(frontier[i], false, _frontier, i, 0.0)
 	for i in reveal.size():
 		_place(reveal[reveal.size() - 1 - i], false, _reveal, i, 0.0)  # top of the deck first
-	_frontier_heading.visible = not frontier.is_empty()
-	_frontier.visible = not frontier.is_empty()
-	_choice_panel.visible = not e.pending_choice.is_empty()
+	_frontier_section.visible = not frontier.is_empty()
+	_choice_overlay.visible = not e.pending_choice.is_empty()
 	_animate_outcome()
 
 	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty()
@@ -411,11 +418,12 @@ func _new_group() -> TerritoryGroup:
 	group.style = StyleBoxFlat.new()
 	group.style.bg_color = Color(1, 1, 1, 0.03)
 	group.style.set_corner_radius_all(10)
-	group.style.set_content_margin_all(6)
+	group.style.set_content_margin_all(GROUP_PADDING)
 	group.set_lit(false)
 	group.frame.add_theme_stylebox_override("panel", group.style)
 	var box := VBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", HEADING_GAP)
 	group.frame.add_child(box)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
@@ -427,7 +435,7 @@ func _new_group() -> TerritoryGroup:
 	header.add_child(group.grow_button)
 	group.row = HBoxContainer.new()
 	group.row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.row.add_theme_constant_override("separation", 10)
+	group.row.add_theme_constant_override("separation", CARD_GAP)
 	box.add_child(group.row)
 	_tableau.add_child(group.frame)
 	return group
@@ -635,7 +643,7 @@ func _append_log(message: String) -> void:
 
 
 func _show_load_errors(errors: Array[String]) -> void:
-	var overlay := _overlay()
+	var overlay := _overlay(CardView.WARN_COLOR)
 	var box := overlay.get_meta("box") as VBoxContainer
 	box.add_child(_heading("Game data has errors — fix data/*.json and restart"))
 	var text := RichTextLabel.new()
@@ -697,45 +705,37 @@ func _build_layout() -> void:
 
 	var play_area := VBoxContainer.new()
 	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	play_area.add_theme_constant_override("separation", SECTION_GAP)
 	body.add_child(play_area)
-	_choice_panel = PanelContainer.new()
-	var choice_style := StyleBoxFlat.new()
-	choice_style.bg_color = Color(0.54, 0.44, 0.71, 0.12)
-	choice_style.border_color = CardView.TYPE_COLORS.territory
-	choice_style.set_border_width_all(2)
-	choice_style.set_corner_radius_all(10)
-	choice_style.set_content_margin_all(10)
-	_choice_panel.add_theme_stylebox_override("panel", choice_style)
-	_choice_panel.hide()
-	play_area.add_child(_choice_panel)
-	var choice_box := VBoxContainer.new()
-	_choice_panel.add_child(choice_box)
-	choice_box.add_child(_heading("Explore — click a territory to keep it in the frontier; the other goes to the bottom of the territory deck"))
-	_reveal = HBoxContainer.new()
-	_reveal.add_theme_constant_override("separation", 12)
-	choice_box.add_child(_reveal)
-	_frontier_heading = _heading("Frontier — discovered, not yet settled")
-	_frontier_heading.hide()
-	play_area.add_child(_frontier_heading)
+
+	_frontier_section = _section(play_area, "Frontier — discovered, not yet settled")
+	_frontier_section.hide()
+	var frontier_scroll := ScrollContainer.new()
+	frontier_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_frontier_section.add_child(frontier_scroll)
 	_frontier = HBoxContainer.new()
-	_frontier.add_theme_constant_override("separation", 10)
-	_frontier.hide()
-	play_area.add_child(_frontier)
-	play_area.add_child(_heading("Tableau"))
+	_frontier.add_theme_constant_override("separation", CARD_GAP)
+	frontier_scroll.add_child(_frontier)
+
+	var tableau_section := _section(play_area, "Tableau")
+	tableau_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tableau_scroll = ScrollContainer.new()
 	_tableau_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tableau_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	play_area.add_child(_tableau_scroll)
+	# Room for one territory group (header, a row of tableau cards, padding) before it scrolls.
+	_tableau_scroll.custom_minimum_size.y = CardView.TABLEAU_SIZE.y + 100
+	tableau_section.add_child(_tableau_scroll)
 	_tableau = HFlowContainer.new()
 	_tableau.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tableau.add_theme_constant_override("h_separation", 10)
-	_tableau.add_theme_constant_override("v_separation", 10)
+	_tableau.add_theme_constant_override("h_separation", GROUP_GAP)
+	_tableau.add_theme_constant_override("v_separation", GROUP_GAP)
 	_tableau_scroll.add_child(_tableau)
-	play_area.add_child(_heading("Hand — drag a card into the tableau to play it (or double-click)"))
+
+	var hand_section := _section(play_area, "Hand — drag a card into the tableau to play it (or double-click)")
 	var hand_scroll := ScrollContainer.new()
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	play_area.add_child(hand_scroll)
+	hand_section.add_child(hand_scroll)
 	var hand_pad := MarginContainer.new()
 	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
 	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
@@ -744,19 +744,21 @@ func _build_layout() -> void:
 	_hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(_hand)
 
-	var side_col := VBoxContainer.new()
+	var side_col := _section(body, "Log")
 	side_col.custom_minimum_size.x = 400
-	body.add_child(side_col)
-	side_col.add_child(_heading("Log"))
+	side_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var log_panel := PanelContainer.new()
+	log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	log_panel.add_theme_stylebox_override("panel", _panel_style(PANEL_COLOR, Color(1, 1, 1, 0.08), 12))
+	side_col.add_child(log_panel)
 	_log = RichTextLabel.new()
 	_log.bbcode_enabled = true
 	_log.scroll_following = true
 	_log.selection_enabled = true
-	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.add_theme_font_size_override("normal_font_size", 19)
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
-	side_col.add_child(_log)
+	log_panel.add_child(_log)
 	_end_turn_button = _button("End turn  (Enter)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)
@@ -807,6 +809,20 @@ func _build_layout() -> void:
 	_ghost.hide()
 	_tableau.add_child(_ghost)
 
+	# Explore choice: a centred panel over the dimmed board, so the board keeps its layout.
+	_choice_overlay = _overlay(CardView.TYPE_COLORS.territory)
+	_choice_overlay.z_index = 5  # above lifted cards, below the game-over overlay
+	_choice_panel = _choice_overlay.get_meta("panel")
+	var choice_box := _choice_overlay.get_meta("box") as VBoxContainer
+	var choice_title := _heading("Explore")
+	choice_title.add_theme_font_size_override("font_size", 26)
+	choice_title.add_theme_color_override("font_color", Color.WHITE)
+	choice_box.add_child(choice_title)
+	choice_box.add_child(_heading("Keep one territory in the frontier; the other goes to the bottom of the territory deck."))
+	_reveal = HBoxContainer.new()
+	_reveal.add_theme_constant_override("separation", CARD_GAP)
+	choice_box.add_child(_reveal)
+
 	# Game-over overlay.
 	_game_over_overlay = _overlay()
 	var box := _game_over_overlay.get_meta("box") as VBoxContainer
@@ -818,8 +834,9 @@ func _build_layout() -> void:
 	box.add_child(_button("New game", func(): _start_game(-1)))
 
 
-## Full-screen dimmer with a centered panel. The panel's VBox is stored as meta "box".
-func _overlay() -> Control:
+## Full-screen dimmer with a centred, opaque panel. The panel is stored as meta "panel" and its
+## VBox as meta "box".
+func _overlay(border := Color(1, 1, 1, 0.25)) -> Control:
 	var overlay := ColorRect.new()
 	overlay.color = Color(0, 0, 0, 0.65)
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -830,16 +847,34 @@ func _overlay() -> Control:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.add_child(center)
 	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _panel_style(Color("262b31"), border, 24))
 	center.add_child(panel)
-	var pad := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		pad.add_theme_constant_override("margin_" + side, 24)
-	panel.add_child(pad)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
-	pad.add_child(box)
+	panel.add_child(box)
+	overlay.set_meta("panel", panel)
 	overlay.set_meta("box", box)
 	return overlay
+
+
+## A section of the board: a heading with its content close under it. Returns the VBox to add
+## the content to.
+func _section(parent: Control, title: String) -> VBoxContainer:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", HEADING_GAP)
+	section.add_child(_heading(title))
+	parent.add_child(section)
+	return section
+
+
+static func _panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(1 if border.a < 1.0 else 2)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(padding)
+	return style
 
 
 func _stat(parent: Control, color := Color.WHITE) -> Label:
