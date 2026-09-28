@@ -577,7 +577,7 @@ func _refresh() -> void:
 	_choice_overlay.visible = not e.pending_choice.is_empty()
 	_research_overlay.visible = not techs.is_empty()
 	var research_error := e.research_error()
-	_research_button.text = "Research (R) · %d left · deck %d" % [e.research_left(), e.zone("research_deck").size()]
+	_research_button.text = "Research (R) · %d left · deck %d · era %d" % [e.research_left(), e.zone("research_deck").size(), e.era()]
 	if not e.zone("lost_techs").is_empty():
 		_research_button.text += " · lost %d" % e.zone("lost_techs").size()
 	_research_button.disabled = research_error != ""

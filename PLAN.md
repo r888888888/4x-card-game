@@ -171,7 +171,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
-stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library), 028 (first content).
+stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content).
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Once per turn (`research_left()`), a free action: `research()` reveals the top 2 techs. `buy_tech(uid)` pays
@@ -183,8 +183,14 @@ stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`,
   Each pass is -1 wealth, and a third pass sends the tech to `lost_techs`. A tech's optional `prereq` (another
   tech) with `prereq_discount` (default 2) lowers its cost while the prereq is in `researched`; it never blocks a
   purchase. `tech_cost` = max(1, printed - passes - prereq discount).
+- Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
+  `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
+  techs into the research deck, once per era (`era()` is the highest added). Researching with an empty research
+  deck adds the lowest waiting era; it only errors when nothing waits. A tech with `add_era` is never lost
+  (its passes stop at 2). The `research` op (`{ "op": "research", "amount": 1 }`) adds research actions for
+  the turn: a Library uses it on upkeep, so an idle Library adds none. Actions reset to 1 each turn and never carry over.
 - Engine API: `research_error()`, `research()`, `research_options()`, `research_left()`, `buy_tech_error(uid)`,
-  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`.
+  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `add_research(n)`.
 - UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
   with the revealed techs (click one to buy) and Decline, and a Researched row.
 
