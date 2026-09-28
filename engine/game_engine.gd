@@ -56,7 +56,7 @@ func count_tag(tag: String, zone_name: String) -> int:
 
 
 ## Why the card can't be played right now, or "" if it can.
-func play_error(uid: int) -> String:
+func play_error(uid: int, _target_uid := -1) -> String:
 	if is_over:
 		return "The game is over."
 	if not pending_choice.is_empty():
@@ -70,6 +70,15 @@ func play_error(uid: int) -> String:
 		if have < need:
 			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
 	return ""
+
+
+## The uids card uid can be played on; [] if it needs no target.
+func valid_targets(_uid: int) -> Array[int]:
+	return []
+
+
+func needs_target(_uid: int) -> bool:
+	return false
 
 
 ## The settled territory card sits on, or null.
@@ -126,7 +135,7 @@ func new_game(p_seed: int) -> void:
 
 ## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects,
 ## then emits card_played with what happened.
-func play_card(uid: int) -> bool:
+func play_card(uid: int, _target_uid := -1) -> bool:
 	if play_error(uid) != "":
 		return false
 	var hand := zone("hand")

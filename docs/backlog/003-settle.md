@@ -2,7 +2,7 @@
 id: 003
 title: Settle a discovered territory
 type: feature
-status: ready
+status: red-review
 branch: feat/003-settle
 ---
 
@@ -70,6 +70,13 @@ In these criteria, `pioneer` is a test action card with cost 3 food and `{"op": 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_settle::test_settle_founds_city_on_only_frontier_territory` |
+| AC2 | `test_settle::test_settle_needs_a_target_when_several_territories`, `test_settle::test_settle_chosen_territory` |
+| AC3 | `test_settle::test_settle_with_empty_frontier_fails`, `test_settle::test_cost_is_checked_before_target` (check order) |
+| AC4 | `test_settle::test_settle_on_invalid_target_fails` |
+| AC5 | `test_settle::test_valid_targets_are_frontier_territories`, `test_settle::test_untargeted_card_has_no_targets_and_ignores_one` |
+| AC6 | `test_data_loader::test_settle_text`, `test_data_loader::test_settle_non_city_is_error`, `test_data_loader::test_settle_unknown_card_is_error` |
+| AC7 | `test_settle::test_outcome_target_is_given_target`, `test_settle::test_outcome_target_is_engine_pick`, `test_settle::test_outcome_target_for_untargeted_card` |
 
 ## Manual check
 - [ ] With 2 frontier territories, picking up Settler lights up both (and not the tableau). Dropping it
@@ -80,3 +87,6 @@ In these criteria, `pioneer` is a test action card with cost 3 food and `{"op": 
 - [ ] With 0 territories, Settler is greyed out, its tooltip gives the reason, and dropping it shakes it back.
 
 ## Log
+- 2026-09-28: red. Added `pioneer` to `TEST_CARDS`. Interface-only declarations committed with the
+  tests so they parse: optional `target_uid` on `play_card`/`play_error` (ignored), `valid_targets`
+  returning [], `needs_target` returning false.
