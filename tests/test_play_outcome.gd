@@ -88,8 +88,8 @@ func test_created_card_reported_in_outcome() -> void:
 	eq(o.paid, {"food": 3}, "paid")
 	eq(o.to_zone, "discard", "to_zone")
 	var tableau := e.zone("tableau").cards
-	eq(card_ids(e.zone("tableau")), ["capital", "city"], "tableau")
-	eq(Array(o.created), [tableau[1].uid], "created = the new City")
+	eq(card_ids(e.zone("tableau")), ["homeland", "capital", "city"], "tableau")
+	eq(Array(o.created), [tableau[2].uid], "created = the new City")
 
 
 func test_score_effect_reported_in_outcome() -> void:

@@ -8,7 +8,7 @@ func test_new_game_setup() -> void:
 	eq(e.zone("hand").size(), 5, "hand")
 	eq(e.zone("deck").size(), 5, "deck")
 	eq(e.resources.food, 4, "food (2 start + 2 capital upkeep)")
-	eq(card_ids(e.zone("tableau")), ["capital"], "tableau")
+	eq(card_ids(e.zone("tableau")), ["homeland", "capital"], "tableau")
 	eq(e.score(), 2, "score")
 
 
@@ -22,7 +22,7 @@ func test_play_building_pays_and_produces() -> void:
 	var e := make_engine({"farm": 10})
 	check(e.play_card(first_in_hand(e)))
 	eq(e.resources.food, 2, "food after paying 2")
-	eq(card_ids(e.zone("tableau")), ["capital", "farm"], "tableau")
+	eq(card_ids(e.zone("tableau")), ["homeland", "capital", "farm"], "tableau")
 	eq(e.zone("hand").size(), 4, "hand")
 	e.end_turn()
 	eq(e.turn, 2, "turn")
@@ -57,7 +57,7 @@ func test_reshuffle_when_deck_runs_out() -> void:
 func test_create_card() -> void:
 	var e := make_engine({"settler": 10})
 	check(e.play_card(first_in_hand(e)))
-	eq(card_ids(e.zone("tableau")), ["capital", "city"], "tableau")
+	eq(card_ids(e.zone("tableau")), ["homeland", "capital", "city"], "tableau")
 	eq(e.score(), 4, "score")
 
 

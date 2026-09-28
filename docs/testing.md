@@ -32,6 +32,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
 | `tests/test_explore.gd` | The `explore` op: reveal, `pending_choice`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
+| `tests/test_slots.gd` | Building slots: `free_slots`, building targets and placement |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern
@@ -62,7 +63,7 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 | `eq(actual, expected, what)` | Equality. Always pass `what` so failures say which value was wrong |
 | `check(cond, message)` | Boolean assertion |
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
-| `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys |
+| `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |

@@ -17,17 +17,22 @@ func load_raw(cards: Array, config: Dictionary) -> Dictionary:
 	return DataLoader.load_all(cards_path, config_path)
 
 
-## TEST_CARDS without its territories, plus extra.
+## TEST_CARDS without its territories (except homeland, the default starting territory), plus extra.
 func base_cards(extra: Array) -> Array:
 	var out: Array = []
 	for c in TEST_CARDS.cards:
-		if c.get("type") != "territory":
+		if c.get("type") != "territory" or c.id == "homeland":
 			out.append(c)
 	return out + extra
 
 
 func load_with_keywords(cards: Array) -> Dictionary:
 	return load_raw(base_cards(cards), raw_config({"farm": 1}, {"keywords": ["mountain", "fresh_water"]}))
+
+
+## A config with no territories at all (the default test config starts on homeland).
+func no_territory_overrides() -> Dictionary:
+	return {"starting": {"resources": {"food": 2}, "tableau": ["capital"]}}
 
 
 func territory_config() -> Dictionary:
@@ -172,7 +177,8 @@ func test_config_without_territories_loads_cleanly() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, no_territory_overrides()), resources(), cards,
+		"config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(warnings, [] as Array[String], "warnings")
 	eq(config.get("keywords"), [] as Array[String], "keywords default")
@@ -181,7 +187,7 @@ func test_config_without_territories_loads_cleanly() -> void:
 
 
 func test_game_without_territories_is_unchanged() -> void:
-	var e := make_engine({"farm": 10})
+	var e := make_engine({"farm": 10}, no_territory_overrides())
 	eq(e.zone("territory_deck").size(), 0, "territory deck empty")
 	eq(card_ids(e.zone("tableau")), ["capital"] as Array[String], "tableau")
 	eq(e.territory_of(e.zone("tableau").cards[0]), null, "capital has no territory")

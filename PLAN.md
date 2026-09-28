@@ -48,6 +48,7 @@ res://
   docs/                  # development process, testing guide, backlog
 ```
 Adding an effect: create `engine/effects/<name>_effect.gd` (extends Effect) and register it in `effect_registry.gd`.
+Buildings always target a settled territory with a free slot (`free_slots`).
 An effect that targets a card overrides `target_zone()` (and its two error messages); the engine then
 derives `needs_target`, `valid_targets` and the target checks in `play_error` from it.
 
@@ -105,7 +106,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
 (001 done: territory cards, territory deck, starting territory, tableau groups;
-002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI).
+002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI; 004 done: building slots).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
   (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.

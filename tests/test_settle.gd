@@ -102,7 +102,7 @@ func test_settle_on_invalid_target_fails() -> void:
 	eq(e.play_error(pioneer, capital), "That target isn't valid.", "play_error")
 	check(not e.play_card(pioneer, capital), "play fails")
 	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "frontier unchanged")
-	eq(card_ids(e.zone("tableau")), ["capital"] as Array[String], "tableau unchanged")
+	eq(card_ids(e.zone("tableau")), ["homeland", "capital"] as Array[String], "tableau unchanged")
 	eq(e.zone("hand").size(), 5, "hand unchanged")
 	eq(e.resources.food, food, "food unchanged")
 
@@ -118,14 +118,14 @@ func test_valid_targets_are_frontier_territories() -> void:
 
 
 func test_untargeted_card_has_no_targets_and_ignores_one() -> void:
-	var e := make_engine({"farm": 10})
-	var farm := first_in_hand(e)
+	var e := make_engine({"shrine": 10})
+	var shrine := first_in_hand(e)
 	var capital := uid_of(e.zone("tableau"), "capital")
-	eq(e.valid_targets(farm), [] as Array[int], "valid_targets")
-	check(not e.needs_target(farm), "Farm needs no target")
-	eq(e.play_error(farm, capital), "", "target ignored by play_error")
-	check(e.play_card(farm, capital), "target ignored by play_card")
-	eq(card_ids(e.zone("tableau")), ["capital", "farm"] as Array[String], "Farm played")
+	eq(e.valid_targets(shrine), [] as Array[int], "valid_targets")
+	check(not e.needs_target(shrine), "Shrine needs no target")
+	eq(e.play_error(shrine, capital), "", "target ignored by play_error")
+	check(e.play_card(shrine, capital), "target ignored by play_card")
+	eq(card_ids(e.zone("discard")), ["shrine"] as Array[String], "Shrine played")
 
 
 # --- AC7: outcome target ---
@@ -149,7 +149,7 @@ func test_outcome_target_is_engine_pick() -> void:
 
 
 func test_outcome_target_for_untargeted_card() -> void:
-	var e := make_engine({"farm": 10})
+	var e := make_engine({"shrine": 10})
 	var outcomes := play_and_capture(e, first_in_hand(e))
 	eq(outcomes.size(), 1, "one outcome")
 	if outcomes.size() == 1:
