@@ -78,7 +78,7 @@ func test_explore_defaults_to_reveal_2() -> void:
 	eq(errors, [] as Array[String], "errors")
 	eq(warnings, [] as Array[String], "warnings")
 	if cards.has("x"):
-		eq(cards.x.rules_text(cards), "Explore: reveal 2, keep 1", "card text")
+		eq(cards.x.rules_tooltip(cards), "Explore: reveal 2 territories, keep 1", "card text")
 
 
 func test_explore_reveal_0_is_error() -> void:
@@ -101,7 +101,7 @@ func test_settle_text() -> void:
 	eq(errors, [] as Array[String], "errors")
 	eq(warnings, [] as Array[String], "warnings")
 	if cards.has("x"):
-		eq(cards.x.rules_text(cards), "Settle a discovered territory with a City", "card text")
+		eq(cards.x.rules_tooltip(cards), "Settle a discovered territory with a City", "card text")
 
 
 func test_settle_non_city_is_error() -> void:
@@ -170,6 +170,6 @@ func test_grow_text() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	eq(cards.granary.rules_text(cards), "Each upkeep: +1 pop here", "Granary")
-	eq(cards.festival.rules_text(cards), "+1 pop in each territory", "Festival")
-	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_text({}), "+2 pop in each territory", "amount 2")
+	eq(cards.granary.rules_tooltip(cards), "Each upkeep: +1 pop here", "Granary")
+	eq(cards.festival.rules_tooltip(cards), "+1 pop in each territory", "Festival")
+	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")

@@ -25,9 +25,32 @@ func apply(_engine: GameEngine, _source: CardInstance) -> void:
 	pass
 
 
-## Short rules text, without the trigger prefix.
+## Short rules text for the card face, without the trigger prefix.
 func describe(_card_db: Dictionary) -> String:
 	return op
+
+
+## Full rules text for the tooltip, without the trigger prefix. Defaults to describe.
+func describe_long(card_db: Dictionary) -> String:
+	return describe(card_db)
+
+
+## True if this keyword effect can be shown as a bonus on prev's line: prev has no keyword, and
+## both have the same op, trigger and fields apart from amount.
+func can_merge_with(prev: Effect) -> bool:
+	if keyword == "" or prev.keyword != "" or prev.op != op or prev.trigger != trigger:
+		return false
+	if not "amount" in fields():
+		return false
+	for f in fields():
+		if f != "amount" and prev.get(f) != get(f):
+			return false
+	return true
+
+
+## The bonus shown after a merged line, e.g. "+1".
+func bonus_text() -> String:
+	return "+%d" % get("amount")
 
 
 ## Card ids this effect refers to; the loader checks they exist.

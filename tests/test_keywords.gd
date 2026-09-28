@@ -119,12 +119,12 @@ func test_keyword_fields_load_without_warnings() -> void:
 
 func test_keyword_effect_text() -> void:
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", [] as Array[String], [] as Array[String], keywords())
-	eq(cards.paddy.rules_text(cards), "Each upkeep: +1 food\nEach upkeep: +1 food (on Flood Plain)", "Paddy text")
+	eq(cards.paddy.rules_tooltip(cards), "Each upkeep: +1 food\nEach upkeep: +1 food (on Flood Plain)", "Paddy text")
 
 
 func test_requires_text() -> void:
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", [] as Array[String], [] as Array[String], keywords())
-	check("Requires Fresh Water" in cards.well.rules_text(cards), "Well text: %s" % cards.well.rules_text(cards))
+	check("Requires Fresh Water" in cards.well.rules_tooltip(cards), "Well text: %s" % cards.well.rules_tooltip(cards))
 
 
 func test_requires_several_keywords_text() -> void:
@@ -132,5 +132,5 @@ func test_requires_several_keywords_text() -> void:
 	var cards: Dictionary = r.cards
 	check(cards.has("x"), "loads: %s" % [r.errors])
 	if cards.has("x"):
-		var text: String = cards.x.rules_text(cards)
+		var text: String = cards.x.rules_tooltip(cards)
 		check("Requires Fresh Water or Flood Plain" in text, "text: %s" % text)

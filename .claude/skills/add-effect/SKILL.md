@@ -19,7 +19,8 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
    - add a card that uses the op to `TEST_CARDS` in `tests/lib/test_case.gd`;
    - test the effect on `play` and, if it makes sense, on `upkeep`;
    - test edge cases: zero or empty sources, not enough cards, interaction with reshuffle;
-   - test the generated text: `cards[id].rules_text(cards)` equals the expected string.
+   - test the generated text: `cards[id].rules_text(cards)` (short, on the card) and
+     `cards[id].rules_tooltip(cards)` (full wording, on hover) equal the expected strings.
 
 ## Green
 
@@ -32,7 +33,8 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
    - `apply(engine, source)` calls a **public helper on `GameEngine`**. Don't manipulate zones or
      resources directly from the effect, so that logging and signals stay in one place. Add the
      helper to `game_engine.gd` under "Helpers called by effects" if none fits;
-   - `describe()` returns short rules text, without the trigger prefix;
+   - `describe()` returns short rules text, without the trigger prefix; override `describe_long()`
+     if the tooltip needs fuller wording (it defaults to `describe()`);
    - `referenced_cards()` if the op names other cards.
 4. Register the op in `EffectRegistry.OPS` (`engine/effect_registry.gd`).
 5. Run `scripts/test.sh`. It re-imports automatically, so the new script is picked up.

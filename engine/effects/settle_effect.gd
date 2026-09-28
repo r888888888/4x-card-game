@@ -18,8 +18,15 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 
 func describe(card_db: Dictionary) -> String:
-	var card_name: String = card_db[card_id].name if card_db.has(card_id) else card_id
-	return "Settle a discovered territory with a %s" % card_name
+	return "Settle: %s" % _card_name(card_db)
+
+
+func describe_long(card_db: Dictionary) -> String:
+	return "Settle a discovered territory with a %s" % _card_name(card_db)
+
+
+func _card_name(card_db: Dictionary) -> String:
+	return card_db[card_id].name if card_db.has(card_id) else card_id
 
 
 func referenced_cards() -> Array[String]:

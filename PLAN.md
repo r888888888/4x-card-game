@@ -29,7 +29,7 @@ res://
   engine/                # plain GDScript, no scene nodes
     game_engine.gd       # GameState + actions + turn loop (play_card, end_turn, play_error, valid_targets, choose, score)
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
-    card_def.gd          # immutable definition; rules text generated from effects
+    card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
     zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal
     effect.gd            # Effect base class + field readers

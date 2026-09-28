@@ -24,7 +24,8 @@ targeting or drops the card focus, then opens the menu; Esc again closes it.
 
 ## Edit cards
 All content is in `data/cards.json` and `data/config.json`. Card text is generated
-from the effects, so it always matches the numbers. If the data has a mistake, the
+from the effects, so it always matches the numbers: a short form on the card, the
+full wording on hover. If the data has a mistake, the
 game shows every error (file, card, field) instead of starting.
 
 ## Tests

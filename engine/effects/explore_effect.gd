@@ -18,4 +18,8 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 
 func describe(_card_db: Dictionary) -> String:
-	return "Explore: reveal %d, keep 1" % reveal
+	return "Explore %d" % reveal
+
+
+func describe_long(_card_db: Dictionary) -> String:
+	return "Explore: reveal %d territor%s, keep 1" % [reveal, "y" if reveal == 1 else "ies"]
