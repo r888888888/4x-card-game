@@ -165,7 +165,7 @@ func valid_targets(uid: int) -> Array[int]:
 		return out
 	if _is_building(card):
 		for territory in zone("tableau").cards:
-			if territory.def.type == "territory" and free_slots(territory.uid) > 0 and _meets_requires(card, territory):
+			if _has_room(territory) and _has_worker(territory) and _meets_requires(card, territory):
 				out.append(territory.uid)
 	else:
 		for target in zone(_target_effect(card).target_zone()).cards:
@@ -178,11 +178,21 @@ func free_slots(territory_uid: int) -> int:
 	var territory := _settled_territory(territory_uid)
 	if territory == null:
 		return 0
-	var used := 0
-	for card in zone("tableau").cards:
-		if _is_building(card) and card.territory_uid == territory_uid:
-			used += 1
-	return territory.def.slots - used
+	return territory.def.slots - _buildings_on(territory_uid).size()
+
+
+## Pop on settled territory territory_uid not yet working a building (0 if none, or not a territory).
+func free_workers(territory_uid: int) -> int:
+	return maxi(pop(territory_uid) - _buildings_on(territory_uid).size(), 0)
+
+
+## Whether building uid is idle: with population on, a territory's buildings beyond its pop are idle,
+## the ones placed last first. Idle buildings skip upkeep but keep their printed VP.
+func is_idle(uid: int) -> bool:
+	var card := zone("tableau").find(uid)
+	if card == null or not _is_building(card) or not population_on():
+		return false
+	return _buildings_on(card.territory_uid).find(card) >= pop(card.territory_uid)
 
 
 func needs_target(uid: int) -> bool:
@@ -402,7 +412,8 @@ func add_score(amount: int, source: CardInstance) -> void:
 func _start_turn() -> void:
 	turn += 1
 	_log("— Turn %d —" % turn)
-	for card in zone("tableau").cards.duplicate():
+	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid))
+	for card in working:
 		_resolve(card, "upkeep")
 	if population_on():
 		_feed_pop()
@@ -458,11 +469,33 @@ func _needs_target(card: CardInstance) -> bool:
 
 func _no_target_error(card: CardInstance) -> String:
 	if _is_building(card):
+		var slot_found := false
 		for territory in zone("tableau").cards:
 			if territory.def.type == "territory" and _meets_requires(card, territory):
-				return "No territory with a free slot."
-		return _requires_error(card)
+				if _has_room(territory):
+					return "No territory with a free worker."
+				slot_found = true
+		return "No territory with a free slot." if slot_found else _requires_error(card)
 	return _target_effect(card).no_target_error()
+
+
+## Whether card is a territory with a free building slot.
+func _has_room(territory: CardInstance) -> bool:
+	return territory.def.type == "territory" and free_slots(territory.uid) > 0
+
+
+## Whether territory has a free worker for another building (always, with population off).
+func _has_worker(territory: CardInstance) -> bool:
+	return not population_on() or free_workers(territory.uid) > 0
+
+
+## The buildings on territory territory_uid, in the order they were placed.
+func _buildings_on(territory_uid: int) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for card in zone("tableau").cards:
+		if _is_building(card) and card.territory_uid == territory_uid:
+			out.append(card)
+	return out
 
 
 ## Whether territory has one of the keywords building card requires (or it requires none).

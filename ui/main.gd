@@ -465,6 +465,8 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 	container.move_child(view.slot, index)
 	if in_hand:
 		view.set_play_error(error)
+	else:
+		view.set_idle(e.is_idle(card.uid))
 	return false
 
 
