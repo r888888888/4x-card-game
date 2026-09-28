@@ -23,6 +23,7 @@ var _seed_edit: LineEdit
 var _tableau: HFlowContainer  # holds one group per territory, then the ghost
 var _groups := {}  # territory uid (-1 for cards with no territory) -> TerritoryGroup
 var _tableau_scroll: ScrollContainer
+var _hand_scroll: ScrollContainer
 var _hand: HBoxContainer
 var _frontier: HBoxContainer  # discovered, unsettled territories
 var _frontier_section: Control  # the frontier's heading and row, hidden while it is empty
@@ -33,11 +34,14 @@ var _log: RichTextLabel
 var _end_turn_button: Button
 var _game_over_overlay: Control
 var _game_over_label: Label
+var _replay_button: Button
 
 var _fx: Control  # effects layer: flying, dragged and leaving cards, resource tokens, errors
 var _views := {}  # uid -> CardView
 var _dragging: CardView
 var _targeting: CardView  # hand card waiting for a target click (double-click with several targets)
+var _focused: CardView  # the card with the keyboard focus ring (hand, target or choice), or null
+var _hand_index := -1  # keyboard position in the hand; -1 until the keyboard is used
 var _lit: Array[int] = []  # uids of the target views lit up for the dragged or targeting card
 var _drop_highlight: Panel  # lights up the tableau (the drop zone) during a drag
 var _drop_style: StyleBoxFlat
@@ -73,14 +77,32 @@ func _ready() -> void:
 	Game.engine.changed.connect(_refresh)
 	Game.engine.logged.connect(_append_log)
 	Game.engine.card_played.connect(_on_card_played)
+	get_viewport().gui_focus_changed.connect(func(_control: Control): _set_card_focus(null))
 	_start_game(-1)
 
 
+## Keyboard play. Only reached when no control with focus (a button or the seed field) used the key.
+## Left/Right move the card focus, Enter/Space acts on the focused card, Esc drops the focus, E ends
+## the turn.
 func _unhandled_key_input(event: InputEvent) -> void:
-	# Enter/Space ends the turn (unless a text field has focus).
-	if event.is_action_pressed("ui_accept") and Game.engine != null and not Game.engine.is_over \
-			and Game.engine.pending_choice.is_empty():
-		Game.engine.end_turn()
+	var e := Game.engine
+	if e == null or not event is InputEventKey or not event.pressed:
+		return
+	if event.keycode == KEY_E and not event.echo:
+		if not e.is_over and e.pending_choice.is_empty():
+			e.end_turn()
+	elif event.is_action_pressed("ui_right", true):
+		_move_card_focus(1)
+	elif event.is_action_pressed("ui_left", true):
+		_move_card_focus(-1)
+	elif event.is_action_pressed("ui_accept"):
+		_activate_card_focus()
+	elif event.keycode == KEY_ESCAPE and _targeting == null:
+		_set_card_focus(null)
+		_hand_index = -1
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
 
 func _input(event: InputEvent) -> void:
@@ -89,7 +111,10 @@ func _input(event: InputEvent) -> void:
 		cancel = cancel or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT)
 		if cancel:
 			get_viewport().set_input_as_handled()
+			var card := _targeting
 			_end_targeting()
+			if _focused != null and not _focused.in_hand:  # keyboard targeting: back to the card
+				_set_card_focus(card)
 		return
 	if _dragging == null:
 		return
@@ -169,7 +194,7 @@ func _begin_targeting(view: CardView) -> void:
 	_targeting = view
 	view.set_highlight(true)
 	_light_targets(view.uid, true)
-	_log.append_text("[color=#ffd966]Click a territory to play %s on (Esc cancels).[/color]\n"
+	_log.append_text("[color=#ffd966]Click a territory (or ←/→ then Enter) to play %s on (Esc cancels).[/color]\n"
 		% Game.engine.zone("hand").find(view.uid).def.name)
 
 
@@ -203,6 +228,102 @@ func _unlight_targets() -> void:
 			var in_reveal := is_instance_valid(view.slot) and view.slot.get_parent() == _reveal
 			view.set_pickable(in_reveal, "Click to keep this territory.")
 	_lit = []
+
+
+# --- Keyboard focus ---
+
+## The cards Left/Right move through now: the explore choice, the lit targets while targeting, or
+## the hand.
+func _focus_row() -> Array[CardView]:
+	var e := Game.engine
+	if not e.pending_choice.is_empty():
+		return _views_in(_reveal)
+	if _targeting != null:
+		var targets: Array[CardView] = []
+		for uid in _lit:
+			if _views.has(uid):
+				targets.append(_views[uid])
+		return targets
+	if e.is_over:
+		return [] as Array[CardView]
+	return _views_in(_hand)
+
+
+## The views resting in (or flying to) container's slots, in slot order.
+func _views_in(container: Container) -> Array[CardView]:
+	var out: Array[CardView] = []
+	for slot in container.get_children():
+		for uid in _views:
+			if _views[uid].slot == slot:
+				out.append(_views[uid])
+	return out
+
+
+## Moves the card focus step cards along the row. With nothing focused, Right starts at the first
+## card and Left at the last. The hand and choice stop at the ends; targets cycle.
+func _move_card_focus(step: int) -> void:
+	var row := _focus_row()
+	if row.is_empty():
+		return
+	var i := row.find(_focused)
+	if i == -1:
+		i = 0 if step > 0 else row.size() - 1
+	elif _targeting != null:
+		i = posmod(i + step, row.size())
+	else:
+		i = clampi(i + step, 0, row.size() - 1)
+	_set_card_focus(row[i])
+	if row[i].in_hand:
+		_hand_index = i
+
+
+## Enter on the focused card: keep it (explore choice), play onto it (targeting), or play it, which
+## starts targeting when it has several targets (same as a double-click).
+func _activate_card_focus() -> void:
+	var view := _focused
+	if view == null or not is_instance_valid(view):
+		return
+	if not Game.engine.pending_choice.is_empty() or (_targeting != null and _lit.has(view.uid)):
+		_on_picked(view)
+	elif view.in_hand:
+		_on_double_clicked(view)
+		if _targeting != null:
+			var targets := _focus_row()
+			if not targets.is_empty():
+				_set_card_focus(targets[0])
+
+
+## Gives view the keyboard focus ring (null: no card), taking focus away from any button.
+func _set_card_focus(view: CardView) -> void:
+	if is_instance_valid(_focused):
+		_focused.set_focused(false)
+	_focused = view
+	if view == null:
+		return
+	view.set_focused(true)
+	get_viewport().gui_release_focus()
+	if view.in_hand and is_instance_valid(view.slot):
+		_hand_scroll.ensure_control_visible(view.slot)
+
+
+## After the board changes, keeps the focus somewhere sensible: on the first choice card while
+## exploring, else on the same hand card, or the one now in its place (or the new last card).
+func _sync_card_focus() -> void:
+	var e := Game.engine
+	if not e.pending_choice.is_empty():
+		var choice := _views_in(_reveal)
+		if not choice.has(_focused) and not choice.is_empty():
+			_set_card_focus(choice[0])
+		return
+	if _targeting != null:
+		return
+	var hand := _views_in(_hand)
+	if hand.has(_focused):
+		_hand_index = hand.find(_focused)
+	elif _hand_index != -1 and not hand.is_empty() and not e.is_over:
+		_set_card_focus(hand[mini(_hand_index, hand.size() - 1)])
+	else:
+		_set_card_focus(null)
 
 
 # --- Dragging ---
@@ -354,8 +475,11 @@ func _refresh() -> void:
 	_frontier_section.visible = not frontier.is_empty()
 	_choice_overlay.visible = not e.pending_choice.is_empty()
 	_animate_outcome()
+	_sync_card_focus()
 
 	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty()
+	if e.is_over and not _game_over_overlay.visible:
+		_replay_button.grab_focus()  # so Enter replays from the keyboard
 	_game_over_overlay.visible = e.is_over
 	if e.is_over:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
@@ -640,6 +764,7 @@ func _reset_views() -> void:
 		_free_slot(view.slot)
 		view.queue_free()
 	_views.clear()
+	_focused = null
 	_outcome = {}
 	for child in _fx.get_children():
 		if child != _drop_highlight and child != _drag_hint:
@@ -751,15 +876,15 @@ func _build_layout() -> void:
 	_tableau.add_theme_constant_override("v_separation", GROUP_GAP)
 	_tableau_scroll.add_child(_tableau)
 
-	var hand_section := _section(play_area, "Hand — drag a card into the tableau to play it (or double-click)")
-	var hand_scroll := ScrollContainer.new()
-	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
-	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	hand_section.add_child(hand_scroll)
+	var hand_section := _section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter")
+	_hand_scroll = ScrollContainer.new()
+	_hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
+	_hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	hand_section.add_child(_hand_scroll)
 	var hand_pad := MarginContainer.new()
 	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
 	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
-	hand_scroll.add_child(hand_pad)
+	_hand_scroll.add_child(hand_pad)
 	_hand = HBoxContainer.new()
 	_hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(_hand)
@@ -779,7 +904,7 @@ func _build_layout() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
-	_end_turn_button = _button("End turn  (Enter)", func(): Game.engine.end_turn())
+	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)
 	_end_turn_button.theme_type_variation = "AccentButton"
@@ -853,7 +978,8 @@ func _build_layout() -> void:
 	_game_over_label.add_theme_font_size_override("font_size", 32)
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_game_over_label)
-	box.add_child(_button("Replay this seed", _on_restart_pressed))
+	_replay_button = _button("Replay this seed", _on_restart_pressed)
+	box.add_child(_replay_button)
 	box.add_child(_button("New game", func(): _start_game(-1)))
 
 
@@ -879,13 +1005,24 @@ static func _style_controls(t: Theme) -> void:
 		t.set_stylebox("hover", type, box.call(fill.lightened(0.15), Color.WHITE))
 		t.set_stylebox("pressed", type, box.call(fill.darkened(0.2), Color.WHITE))
 		t.set_stylebox("disabled", type, box.call(Color("24282d"), Color("4a5058")))
-		t.set_stylebox("focus", type, StyleBoxEmpty.new())
+		t.set_stylebox("focus", type, _focus_ring())
 		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			t.set_color(state, type, text)
 		t.set_color("font_disabled_color", type, Color("8d96a0"))
 	t.set_stylebox("normal", "LineEdit", box.call(Color("14171a"), Color("78828e")))
-	t.set_stylebox("focus", "LineEdit", box.call(Color("14171a"), ACCENT))
+	t.set_stylebox("focus", "LineEdit", _focus_ring())
 	t.set_color("font_color", "LineEdit", Color("e6ebf0"))
+
+
+## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.
+static func _focus_ring() -> StyleBoxFlat:
+	var ring := StyleBoxFlat.new()
+	ring.draw_center = false
+	ring.border_color = CardView.FOCUS_COLOR
+	ring.set_border_width_all(3)
+	ring.set_corner_radius_all(8)
+	ring.set_expand_margin_all(3)
+	return ring
 
 
 ## Full-screen dimmer with a centred, opaque panel. The panel is stored as meta "panel" and its
@@ -950,8 +1087,12 @@ func _heading(text: String) -> Label:
 func _button(text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.focus_mode = Control.FOCUS_NONE  # so Enter always means "end turn"
 	button.pressed.connect(on_pressed)
+	# Tab reaches every button (with a focus ring); a mouse click doesn't leave it focused, so a
+	# later Enter or arrow key goes to the cards, not to the last button clicked.
+	button.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and not event.pressed:
+			button.release_focus.call_deferred())
 	return button
 
 

@@ -2,7 +2,7 @@
 id: 017
 title: Play the whole game from the keyboard
 type: feature
-status: ready
+status: in-progress
 branch: feat/017-keyboard-play
 ---
 
