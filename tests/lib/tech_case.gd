@@ -21,8 +21,8 @@ func tech_db(extra: Array = [], errors: Array[String] = [], warnings: Array[Stri
 
 
 ## A game with the given main deck and a research deck holding the ids in order_top_first (top first),
-## starting with 2 food and 20 wealth.
-func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) -> Object:
+## starting with 2 food and 20 wealth. extra is more fixture cards to load.
+func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}, extra: Array = []) -> Object:
 	var counts := {}
 	for id in order_top_first:
 		counts[id] = counts.get(id, 0) + 1
@@ -33,7 +33,7 @@ func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) 
 	config.merge(overrides, true)
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := tech_db([], errors, warnings)
+	var cards := tech_db(extra, errors, warnings)
 	var parsed := DataLoader.parse_config(raw_config(deck, config), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var e := GameEngine.new(cards, parsed)

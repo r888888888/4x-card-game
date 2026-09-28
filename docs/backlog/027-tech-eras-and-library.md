@@ -2,7 +2,7 @@
 id: 027
 title: Tech eras (add_era) and extra research charges (Library)
 type: feature
-status: ready
+status: red-review
 branch: feat/027-tech-eras
 ---
 
@@ -78,7 +78,13 @@ Unless stated otherwise, the config has
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_eras::test_…` |
+| AC1 | `test_tech_eras::test_era_defaults_to_1_and_loads`, `test_era_below_1_is_an_error`, `test_era_on_a_card_that_is_not_a_tech_is_a_warning`, `test_add_era_loads`, `test_add_era_needs_an_era`, `test_add_era_1_is_an_error`, `test_research_op_loads_with_a_default_amount`, `test_research_amount_below_1_is_an_error`, `test_era_and_research_card_text` |
+| AC2 | `test_only_era_1_techs_start_in_the_research_deck` |
+| AC3 | `test_buying_an_era_tech_adds_the_next_era`, `test_an_era_is_only_added_once`, `test_a_building_can_add_an_era` |
+| AC4 | `test_an_empty_research_deck_adds_the_next_era`, `test_an_empty_research_deck_with_no_eras_left_is_an_error` (already passes: guards 025) |
+| AC5 | `test_an_era_tech_is_never_lost` |
+| AC6 | `test_a_staffed_library_gives_a_second_research`, `test_an_idle_library_gives_nothing`, `test_a_library_adds_nothing_until_the_next_upkeep`, `test_extra_research_does_not_carry_over` |
+| AC7 | `test_a_played_research_card_adds_a_charge_at_once`, `test_a_research_card_adds_to_the_charges_left` |
 
 ## Manual check
 - [ ] Buying an era tech shows the research deck count jump and the era change.
