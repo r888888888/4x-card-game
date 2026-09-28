@@ -101,27 +101,26 @@ func new_game(p_seed: int) -> void:
 	changed.emit()
 
 
-## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects.
+## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects,
+## then emits card_played with what happened.
 func play_card(uid: int) -> bool:
 	if play_error(uid) != "":
 		return false
 	var hand := zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
-	var drawn: Array[int] = []
-	var created: Array[int] = []
-	_outcome = {"uid": uid, "to_zone": "", "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
+	var permanent := card.def.is_permanent()
+	_outcome = _new_outcome(uid, "tableau" if permanent else "discard")
 	for r in card.def.cost:
 		resources[r] -= card.def.cost[r]
 		if card.def.cost[r] > 0:
 			_outcome.paid[r] = card.def.cost[r]
 	_log("Played %s." % card.def.name)
-	if card.def.is_permanent():
+	if permanent:
 		zone("tableau").add(card)
 	_resolve(card, "play")
-	if not card.def.is_permanent():
+	if not permanent:
 		zone("discard").add(card)
-	_outcome.to_zone = "tableau" if card.def.is_permanent() else "discard"
 	var outcome := _outcome
 	_outcome = {}
 	card_played.emit(outcome)
@@ -210,6 +209,12 @@ func _event_phase() -> void:
 func _resolve(card: CardInstance, trigger: String) -> void:
 	for e in card.def.effects_for(trigger):
 		e.apply(self, card)
+
+
+func _new_outcome(uid: int, to_zone: String) -> Dictionary:
+	var drawn: Array[int] = []
+	var created: Array[int] = []
+	return {"uid": uid, "to_zone": to_zone, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
 
 
 func _make_card(card_id: String) -> CardInstance:
