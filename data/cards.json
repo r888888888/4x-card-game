@@ -2,7 +2,7 @@
   "cards": [
     {
       "id": "capital", "name": "Capital", "type": "city",
-      "cost": {}, "vp": 2, "tags": ["city"],
+      "cost": {}, "vp": 2, "slots": 4, "tags": ["city"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }

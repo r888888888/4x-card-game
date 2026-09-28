@@ -2,7 +2,7 @@
 id: 030
 title: Capital adds 4 building slots to its territory
 type: feature
-status: red-review
+status: in-progress
 branch: feat/030-capital-slots
 ---
 
