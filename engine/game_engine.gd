@@ -152,6 +152,11 @@ func era() -> int:
 	return _era
 
 
+## The pop and wealth thresholds that add an era at the start of a turn: {era: {pop?, wealth?}}.
+func era_unlocks() -> Dictionary:
+	return config.get("era_unlocks", {})
+
+
 ## Why research can't start right now, or "" if it can.
 func research_error() -> String:
 	if is_over:
@@ -671,7 +676,18 @@ func _start_turn() -> void:
 		_resolve(card, "upkeep")
 	if population_on():
 		_feed_pop()
+	_check_era_unlocks()
 	draw(maxi(0, config.hand_size - zone("hand").size()))
+
+
+## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).
+func _check_era_unlocks() -> void:
+	var eras := era_unlocks().keys()
+	eras.sort()
+	for n in eras:
+		var need: Dictionary = era_unlocks()[n]
+		if total_pop() >= need.get("pop", INF) or resources.get("wealth", 0) >= need.get("wealth", INF):
+			add_era(n)
 
 
 ## Pop eats food_upkeep food each. Each food that can't be paid starves 1 pop from the territory with

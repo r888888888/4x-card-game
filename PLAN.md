@@ -190,8 +190,11 @@ Pyramids and Forge left the deck and come back through techs).
   deck adds the lowest waiting era; it only errors when nothing waits. A tech with `add_era` is never lost
   (its passes stop at 2). The `research` op (`{ "op": "research", "amount": 1 }`) adds research actions for
   the turn: a Library uses it on upkeep, so an idle Library adds none. Actions reset to 1 each turn and never carry over.
+- Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
+  (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
+  already added isn't added again. `era_unlocks()` returns the thresholds; the Research button's tooltip shows them.
 - Engine API: `research_error()`, `research()`, `research_options()`, `research_left()`, `buy_tech_error(uid)`,
-  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `add_research(n)`.
+  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `add_research(n)`, `era_unlocks()`.
 - UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
   with the revealed techs (click one to buy) and Decline, and a Researched row.
 

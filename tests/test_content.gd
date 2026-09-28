@@ -293,3 +293,13 @@ func test_scripted_games_buy_techs_and_never_go_negative() -> void:
 		if not e.zone("researched").is_empty():
 			bought_in += 1
 	check(bought_in >= 1, "a tech was bought in %d of 3 seeds (need >= 1)" % bought_in)
+
+
+# --- Era unlock thresholds (backlog 029) ---
+
+func test_real_config_sets_an_era_2_threshold() -> void:
+	var r := load_real()
+	var unlocks: Dictionary = r.config.get("era_unlocks", {})
+	check(unlocks.has(2), "era_unlocks has era 2: %s" % [unlocks])
+	if unlocks.has(2):
+		check(unlocks[2].has("pop") or unlocks[2].has("wealth"), "era 2 has a pop or wealth threshold")

@@ -227,3 +227,171 @@ func test_a_research_card_adds_to_the_charges_left() -> void:
 	var e := era_engine(["pottery", "writing"], {"study": 10})
 	check(e.play_card(first_in_hand(e)), "play Study")
 	eq(e.research_left(), 2, "1 + 1")
+
+
+# --- Era unlock thresholds (backlog 029) ---
+
+## A game with era-2 techs waiting, population on (start 2) and era_unlocks; starting resources as given.
+func threshold_engine(unlocks: Dictionary, start_resources := {"food": 10, "wealth": 0}, tableau: Array = ["capital"]) -> Object:
+	var overrides := {
+		"era_unlocks": unlocks,
+		"starting": {"resources": start_resources, "tableau": tableau, "territory": "homeland"},
+	}
+	overrides.merge(POP)
+	return era_engine(["pottery", "writing"], {"farm": 10}, overrides)
+
+
+func threshold_config_errors(unlocks: Variant) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := tech_db(ERA_CARDS)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_unlocks": unlocks}), resources(), cards, "config.json", errors, warnings)
+	return {"config": config, "errors": errors, "warnings": warnings}
+
+
+func set_home_pop(e: Object, n: int) -> void:
+	e.zone("tableau").find(home_uid(e)).pop = n
+
+
+# AC1: config
+
+func test_era_unlocks_is_normalized() -> void:
+	var r := threshold_config_errors({"2": {"pop": 8.0, "wealth": 15}})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.config.get("era_unlocks"), {2: {"pop": 8, "wealth": 15}}, "era_unlocks")
+
+
+func test_era_unlocks_defaults_to_empty() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(ERA_CARDS), "config.json", errors, warnings)
+	eq(config.get("era_unlocks"), {}, "default")
+
+
+func test_era_unlocks_bad_era_keys_are_errors() -> void:
+	for key in ["1", "0", "two"]:
+		has_msg(threshold_config_errors({key: {"pop": 8}}).errors, "config.json: era_unlocks")
+
+
+func test_era_unlocks_bad_values_are_errors() -> void:
+	for value in [8, {}, {"pop": 0}, {"wealth": "lots"}]:
+		has_msg(threshold_config_errors({"2": value}).errors, "config.json: era_unlocks")
+
+
+func test_era_unlocks_unknown_field_is_a_warning() -> void:
+	var r := threshold_config_errors({"2": {"pop": 8, "food": 3}})
+	eq(r.errors, [] as Array[String], "errors")
+	has_msg(r.warnings, "config.json: era_unlocks")
+
+
+func test_era_unlocks_query_returns_the_config() -> void:
+	var e := threshold_engine({"2": {"pop": 4}})
+	eq(e.era_unlocks(), {2: {"pop": 4}}, "era_unlocks()")
+
+
+# AC2: pop threshold
+
+func test_reaching_the_pop_threshold_adds_the_era() -> void:
+	var e := threshold_engine({"2": {"pop": 4}})
+	set_home_pop(e, 4)
+	e.end_turn()
+	eq(e.era(), 2, "era")
+	var deck := card_ids(e.zone("research_deck"))
+	check(deck.has("optics") and deck.has("astronomy"), "era-2 techs in the research deck: %s" % [deck])
+	eq(e.zone("future_techs").size(), 0, "future_techs emptied")
+
+
+func test_below_the_pop_threshold_nothing_happens() -> void:
+	var e := threshold_engine({"2": {"pop": 4}})
+	set_home_pop(e, 3)
+	e.end_turn()
+	eq(e.era(), 1, "era")
+	eq(e.zone("future_techs").size(), 2, "era-2 techs still waiting")
+
+
+# AC3: wealth threshold, not spent
+
+func test_reaching_the_wealth_threshold_adds_the_era_without_spending() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}})
+	e.resources.wealth = 15
+	e.end_turn()
+	eq(e.era(), 2, "era")
+	eq(e.resources.wealth, 15, "wealth not spent")
+
+
+func test_below_the_wealth_threshold_nothing_happens() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}})
+	e.resources.wealth = 14
+	e.end_turn()
+	eq(e.era(), 1, "era")
+
+
+# AC4: either is enough
+
+func test_either_threshold_is_enough() -> void:
+	var e := threshold_engine({"2": {"pop": 99, "wealth": 15}})
+	e.resources.wealth = 15
+	e.end_turn()
+	eq(e.era(), 2, "era")
+
+
+# AC5: checked at the start of the turn only
+
+func test_the_threshold_is_checked_at_the_start_of_turn_1() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}}, {"food": 10, "wealth": 20})
+	eq(e.turn, 1, "turn")
+	eq(e.era(), 2, "era on turn 1")
+
+
+func test_reaching_the_threshold_mid_turn_waits_for_the_next_turn() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}})
+	e.resources.wealth = 15
+	eq(e.era(), 1, "still era 1 mid-turn")
+	e.end_turn()
+	eq(e.era(), 2, "era 2 next turn")
+
+
+func test_upkeep_gains_count_toward_the_threshold() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}}, {"food": 10, "wealth": 0}, ["capital", "stall"])
+	e.resources.wealth = 14
+	e.end_turn()
+	eq(e.resources.wealth, 15, "14 + Stall 1")
+	eq(e.era(), 2, "era")
+
+
+func test_pop_that_starves_does_not_count() -> void:
+	var e := threshold_engine({"2": {"pop": 4}}, {"food": 0, "wealth": 0})
+	set_home_pop(e, 4)
+	e.resources.food = 0
+	e.end_turn()
+	eq(e.total_pop(), 2, "Capital +2 food feeds 2 of 4; 2 starve")
+	eq(e.era(), 1, "era")
+
+
+# AC6: once per era
+
+func test_an_era_added_by_a_tech_is_not_added_again() -> void:
+	var e := era_engine(["philosophy", "pottery"], {"farm": 10}, {"era_unlocks": {"2": {"pop": 4}}, "population": POP.population})
+	check(e.research(), "research")
+	check(e.buy_tech(uid_of(e.zone("research_reveal"), "philosophy")), "buy Philosophy")
+	eq(e.era(), 2, "era 2 from Philosophy")
+	var size: int = e.zone("research_deck").size()
+	set_home_pop(e, 4)
+	e.resources.food = 10
+	e.end_turn()
+	eq(e.zone("research_deck").size(), size, "research deck unchanged")
+	e.end_turn()
+	eq(e.zone("research_deck").size(), size, "still unchanged a turn later")
+	eq(e.era(), 2, "era")
+
+
+func test_an_era_added_by_an_empty_deck_is_not_added_again() -> void:
+	var e := threshold_engine({"2": {"wealth": 15}})
+	e.zone("research_deck").take_all()
+	check(e.research(), "research adds era 2")
+	check(e.decline_research(), "decline")
+	var size: int = e.zone("research_deck").size()
+	e.resources.wealth = 15
+	e.end_turn()
+	eq(e.zone("research_deck").size(), size, "research deck unchanged")
+	eq(e.era(), 2, "era")
