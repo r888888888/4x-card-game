@@ -2,7 +2,7 @@
 id: 028
 title: First tech content (era 1 and 2 techs, Library)
 type: feature
-status: red-review
+status: review
 branch: feat/028-tech-content
 ---
 
@@ -13,18 +13,18 @@ playtest. Depends on 025–027.
 
 ## Acceptance criteria
 <!-- Content tests check shape, not balance numbers (see tests/test_content.gd). -->
-- [ ] AC1: The real data loads with no errors or warnings. `research_deck` has at least 6 era-1 techs
+- [x] AC1: The real data loads with no errors or warnings. `research_deck` has at least 6 era-1 techs
   and at least 6 era-2 techs, and at least one era-1 tech has an `add_era` 2 effect.
-- [ ] AC2: Every tech's `prereq` is in `research_deck`, and every `create` target of a tech is a
+- [x] AC2: Every tech's `prereq` is in `research_deck`, and every `create` target of a tech is a
   non-tech card.
-- [ ] AC3: A Library exists and is reachable: a tech creates it (it isn't in the main deck).
-- [ ] AC4: Every card taken out of the starting deck (Pasture, Harbor, Monument, Pyramids, Forge) is
+- [x] AC3: A Library exists and is reachable: a tech creates it (it isn't in the main deck).
+- [x] AC4: Every card taken out of the starting deck (Pasture, Harbor, Monument, Pyramids, Forge) is
   created by some tech in `research_deck`. (That tech can still be lost to passes; then the card is gone
   for the game. That's intended: the player chose not to prioritize it.)
-- [ ] AC5: The scripted smoke game on real data (`play_scripted_game`, extended to research each turn
+- [x] AC5: The scripted smoke game on real data (`play_scripted_game`, extended to research each turn
   and buy the cheapest tech it can afford), 3 seeds: the game finishes, wealth never goes negative,
   and in at least one seed a tech is bought.
-- [ ] AC6: The existing content tests stay green (City smoke test, wealth smoke test, wealth-source
+- [x] AC6: The existing content tests stay green (City smoke test, wealth smoke test, wealth-source
   coverage).
 
 ## Out of scope
@@ -74,9 +74,22 @@ Numbers are a first draft for playtesting.
 
 ## Manual check
 Run `godot --path .`.
-- [ ] Research comes up from turn 1. Early techs are affordable within the first few turns.
+- [ ] The Research button (R) shows above End turn from turn 1 ("1 left · deck 7 · era 1").
+- [ ] Buying Writing puts a Library in your discard; it shows up after the next reshuffle.
+- [ ] Buying Philosophy (or emptying the deck) moves the button to era 2.
 - [ ] Over a full game, record techs bought, techs lost, final score and wealth left in the Log.
 
 ## Log
+- Scripted bot (20 seeds, `play_scripted_game` researching every turn and buying the cheapest affordable tech):
+
+  | | Mean score | Wealth left | Techs bought | Techs lost | Era 2 reached | First buy |
+  |---|---|---|---|---|---|---|
+  | Before (main data) | 20.7 | 36.2 | 0 | 0 | 0/20 | — |
+  | After | 41.5 | 36.0 | 12.4 of 13 | 0.6 | 20/20 | turn 2.5 |
+
+  The bot buys nearly every tech and still ends with ~36 wealth: techs are far too cheap for the wealth the game
+  makes. Balance is deferred to playtesting, but raising tech costs (or cutting wealth income) is the obvious lever.
+- `play_scripted_game` now researches (see test plan); existing smoke tests stayed green.
+- Suite: 289 → 296 tests. No engine or UI change.
 - Spec review: losing an unlock tech (and so its card) is intended. Balance issues (Library value, Mathematics
   with few culture cards, Currency/Pottery as default picks, costs vs. total wealth) are deferred to playtesting.
