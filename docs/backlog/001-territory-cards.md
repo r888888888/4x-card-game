@@ -76,7 +76,7 @@ All in `tests/test_territories.gd`.
 ## Manual check
 - [ ] Any seed: the tableau shows one framed group holding the Grassland card (purple, "2 slots"),
   then the Capital.
-- [ ] Dragging a Farm into the tableau still works. The Farm lands in a separate, unframed-territory
+- [ ] Dragging a Farm into the tableau still works. The Farm lands in a separate "no territory"
   group after the Grassland group (placing buildings on territories is 004).
 
 ## Log
