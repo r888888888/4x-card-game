@@ -118,3 +118,57 @@ func test_real_deck_has_growth_cards() -> void:
 				growth += r.config.deck[id]
 				break
 	check(growth >= 4, "at least 4 growth cards in the deck (got %d)" % growth)
+
+
+# --- Wealth content (backlog 022) ---
+
+## Whether any effect on def produces wealth (gain or gain_per_tag with resource "wealth").
+func makes_wealth(def: CardDef) -> bool:
+	for effect in def.effects:
+		if effect.get("resource") == "wealth":
+			return true
+	return false
+
+
+func test_real_deck_has_wealth_costs_and_capital_makes_wealth() -> void:
+	var r := load_real()
+	var costs_wealth := 0
+	for id in r.config.deck:
+		if r.cards[id].cost.get("wealth", 0) > 0:
+			costs_wealth += 1
+	check(costs_wealth >= 1, "at least 1 deck card costs wealth (got %d)" % costs_wealth)
+	var capital_upkeep_wealth := false
+	for effect in r.cards.capital.effects:
+		if effect.get("resource") == "wealth" and effect.trigger == "upkeep":
+			capital_upkeep_wealth = true
+	check(capital_upkeep_wealth, "Capital produces wealth at upkeep")
+
+
+func test_every_wealth_cost_has_a_wealth_source() -> void:
+	var r := load_real()
+	var sources: Array[String] = []
+	for id in r.config.deck.keys() + r.config.starting.tableau:
+		if makes_wealth(r.cards[id]):
+			sources.append(id)
+	for id in r.config.deck:
+		if r.cards[id].cost.get("wealth", 0) > 0:
+			check(not sources.is_empty(), "%s costs wealth but nothing in the deck or starting tableau makes it" % id)
+	check(true, "ran")  # the deck may have no wealth costs; the test above covers that
+
+
+func test_scripted_games_spend_wealth_and_never_go_negative() -> void:
+	var spent_in := 0
+	for s in range(1, 4):
+		var e := real_engine(s)
+		var state := {"spent": false, "min": e.resources.get("wealth", 0)}
+		var on_played := func(o): if o.paid.get("wealth", 0) > 0: state.spent = true
+		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
+		e.card_played.connect(on_played)
+		e.changed.connect(on_changed)
+		play_scripted_game(e)
+		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
+		e.card_played.disconnect(on_played)
+		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
+		if state.spent:
+			spent_in += 1
+	check(spent_in >= 1, "a card costing wealth was played in %d of 3 seeds (need >= 1)" % spent_in)
