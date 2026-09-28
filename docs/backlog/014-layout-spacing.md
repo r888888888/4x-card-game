@@ -2,7 +2,7 @@
 id: 014
 title: Fix card overlap and section spacing; explore choice as an overlay
 type: feature
-status: review
+status: done
 branch: feat/014-layout-spacing
 ---
 
