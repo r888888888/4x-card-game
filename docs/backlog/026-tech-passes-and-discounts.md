@@ -2,7 +2,7 @@
 id: 026
 title: Passed techs get cheaper, prerequisites discount, third pass removes
 type: feature
-status: ready
+status: red-review
 branch: feat/026-tech-passes
 ---
 
@@ -67,7 +67,14 @@ Starting wealth is 20. Tests set the research deck order directly.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_passes::test_…` |
+| AC1 | `test_tech_passes::test_prereq_and_default_discount_load`, `test_prereq_discount_loads`, `test_prereq_unknown_card_is_an_error`, `test_prereq_that_is_not_a_tech_is_an_error`, `test_prereq_on_itself_is_an_error`, `test_prereq_discount_below_1_is_an_error`, `test_prereq_discount_must_be_an_integer`, `test_prereq_discount_without_prereq_is_a_warning`, `test_prereq_on_a_card_that_is_not_a_tech_is_a_warning` |
+| AC2 | `test_buying_passes_the_other_tech` |
+| AC3 | `test_declining_passes_nothing` |
+| AC4 | `test_the_discount_stacks_and_is_paid` |
+| AC5 | `test_the_third_pass_sends_the_tech_to_lost_techs` |
+| AC6 | `test_prerequisite_discounts_only_when_owned`, `test_prerequisite_and_passes_stack`, `test_a_tech_can_be_bought_without_its_prerequisite` (already passes: guards 025 behavior) |
+| AC7 | `test_a_big_prerequisite_discount_stops_at_1`, `test_passes_cannot_take_a_tech_below_1` |
+| AC8 | `test_prerequisite_card_text` |
 
 ## Manual check
 - [ ] A passed tech shows its pass markers and lower cost when it comes up again. At ●● it says "last
