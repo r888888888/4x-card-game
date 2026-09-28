@@ -19,7 +19,12 @@ var _food_label: Label
 var _score_label: Label
 var _pop_label: Label
 var _piles_label: Label
-var _seed_edit: LineEdit
+var _seed_label: Label  # "Seed 4242" in the top bar
+var _seed_edit: LineEdit  # in the menu
+var _menu_button: Button  # "Menu (Esc)" in the top bar
+var _menu_overlay: Control  # the menu: seed, Restart, New game, Reduce motion, Close
+var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
+var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _tableau: HFlowContainer  # holds one group per territory, then the ghost
 var _groups := {}  # territory uid (-1 for cards with no territory) -> TerritoryGroup
 var _tableau_scroll: ScrollContainer
@@ -77,16 +82,16 @@ func _ready() -> void:
 	Game.engine.changed.connect(_refresh)
 	Game.engine.logged.connect(_append_log)
 	Game.engine.card_played.connect(_on_card_played)
-	get_viewport().gui_focus_changed.connect(func(_control: Control): _set_card_focus(null))
+	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	_start_game(-1)
 
 
 ## Keyboard play. Only reached when no control with focus (a button or the seed field) used the key.
-## Left/Right move the card focus, Enter/Space acts on the focused card, Esc drops the focus, E ends
-## the turn.
+## Left/Right move the card focus, Enter/Space acts on the focused card, Esc drops the focus (or opens
+## the menu when nothing is focused), E ends the turn. Nothing here runs while the menu is open.
 func _unhandled_key_input(event: InputEvent) -> void:
 	var e := Game.engine
-	if e == null or not event is InputEventKey or not event.pressed:
+	if e == null or not event is InputEventKey or not event.pressed or _menu_overlay.visible:
 		return
 	if event.keycode == KEY_E and not event.echo:
 		if not e.is_over and e.pending_choice.is_empty():
@@ -97,15 +102,23 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_move_card_focus(-1)
 	elif event.is_action_pressed("ui_accept"):
 		_activate_card_focus()
-	elif event.keycode == KEY_ESCAPE and _targeting == null:
-		_set_card_focus(null)
-		_hand_index = -1
+	elif event.keycode == KEY_ESCAPE and not event.echo and _targeting == null:
+		if _focused != null:
+			_set_card_focus(null)
+			_hand_index = -1
+		else:
+			_open_menu()
 	else:
 		return
 	get_viewport().set_input_as_handled()
 
 
 func _input(event: InputEvent) -> void:
+	if _menu_overlay.visible:
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+			get_viewport().set_input_as_handled()
+			_close_menu()
+		return
 	if _targeting != null:
 		var cancel: bool = event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE
 		cancel = cancel or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT)
@@ -143,9 +156,53 @@ func _start_game(seed_value: int) -> void:
 	Game.new_game(seed_value)
 
 
+## Menu Restart: the seed in the field, or a random one if it isn't a whole number.
 func _on_restart_pressed() -> void:
 	var text := _seed_edit.text.strip_edges()
+	_close_menu(false)
 	_start_game(text.to_int() if text.is_valid_int() else -1)
+
+
+func _on_new_game_pressed() -> void:
+	_close_menu(false)
+	_start_game(-1)
+
+
+# --- Menu ---
+
+## Opens the menu over the board, with the seed field focused and holding this game's seed.
+## Targeting is cancelled; the card that had the focus gets it back on close.
+func _open_menu() -> void:
+	if _dragging != null:
+		return
+	_menu_return = _focused if _focused != null else _card_before_menu_button
+	_end_targeting()
+	_set_card_focus(null)
+	_seed_edit.text = str(Game.engine.seed_value)
+	_menu_overlay.show()
+	_seed_edit.grab_focus()
+	_seed_edit.select_all()
+
+
+## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
+func _close_menu(give_back := true) -> void:
+	_menu_overlay.hide()
+	get_viewport().gui_release_focus()
+	var card := _menu_return
+	_menu_return = null
+	if not give_back:
+		return
+	if is_instance_valid(card) and _focus_row().has(card):
+		_set_card_focus(card)
+	else:
+		_menu_button.grab_focus()
+
+
+## A button or field took the focus: the card focus goes. Remembers the card if it was the Menu
+## button (clicking it moves the focus before it is pressed).
+func _on_gui_focus_changed(control: Control) -> void:
+	_card_before_menu_button = _focused if control == _menu_button else null
+	_set_card_focus(null)
 
 
 ## Plays the card (on target_uid) if it's legal; otherwise sends it back with a shake and says why.
@@ -447,6 +504,7 @@ func _on_card_played(outcome: Dictionary) -> void:
 func _refresh() -> void:
 	var e := Game.engine
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
+	_seed_label.text = "Seed %d" % e.seed_value
 	_set_stat(_food_label, "Food: %d" % e.resources.get("food", 0))
 	_set_stat(_score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
@@ -826,21 +884,11 @@ func _build_layout() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
-	# A toggle that says its state in words (a checkbox's box is hard to read on this background).
-	_motion_toggle = _button("", func(): pass)
-	_motion_toggle.toggle_mode = true
-	_motion_toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
-	_motion_toggle.toggled.connect(Settings.set_reduce_motion)
-	bar.add_child(_motion_toggle)
-	var seed_label := Label.new()
-	seed_label.text = "Seed"
-	bar.add_child(seed_label)
-	_seed_edit = LineEdit.new()
-	_seed_edit.custom_minimum_size.x = 130
-	_seed_edit.tooltip_text = "Restart replays this seed (same shuffle)."
-	bar.add_child(_seed_edit)
-	bar.add_child(_button("Restart", _on_restart_pressed))
-	bar.add_child(_button("New game", func(): _start_game(-1)))
+	_seed_label = _heading("")
+	bar.add_child(_seed_label)
+	_menu_button = _button("Menu (Esc)", _open_menu)
+	_menu_button.tooltip_text = "New game, restart with a seed, reduce motion."
+	bar.add_child(_menu_button)
 
 	# Body: play area on the left, log + end turn on the right.
 	var body := HBoxContainer.new()
@@ -942,8 +990,6 @@ func _build_layout() -> void:
 	_drop_pulse = _drop_highlight.create_tween().set_loops()
 	_drop_pulse.tween_property(_drop_highlight, "modulate:a", 0.45, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
 	_drop_pulse.tween_property(_drop_highlight, "modulate:a", 1.0, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
-	_apply_motion_setting()
-	Settings.changed.connect(_apply_motion_setting)
 
 	var ghost_style := StyleBoxFlat.new()
 	ghost_style.bg_color = Color(1, 1, 1, 0.04)
@@ -978,9 +1024,67 @@ func _build_layout() -> void:
 	_game_over_label.add_theme_font_size_override("font_size", 32)
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_game_over_label)
-	_replay_button = _button("Replay this seed", _on_restart_pressed)
+	_replay_button = _button("Replay this seed", func(): _start_game(Game.engine.seed_value))
 	box.add_child(_replay_button)
 	box.add_child(_button("New game", func(): _start_game(-1)))
+
+	_build_menu()
+	_apply_motion_setting()
+	Settings.changed.connect(_apply_motion_setting)
+
+
+## The menu modal, above everything else. Tab and the arrows stay inside it; a click on the dimmed
+## area closes it.
+func _build_menu() -> void:
+	_menu_overlay = _overlay()
+	_menu_overlay.z_index = 20  # above the explore choice and game-over overlays
+	_menu_overlay.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed:
+			_menu_overlay.accept_event()
+			_close_menu())
+	var box := _menu_overlay.get_meta("box") as VBoxContainer
+	box.custom_minimum_size.x = 320
+	var title := _heading("Menu")
+	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", Color.WHITE)
+	box.add_child(title)
+	var seed_row := HBoxContainer.new()
+	seed_row.add_theme_constant_override("separation", 10)
+	box.add_child(seed_row)
+	var seed_label := Label.new()
+	seed_label.text = "Seed"
+	seed_row.add_child(seed_label)
+	_seed_edit = LineEdit.new()
+	_seed_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_seed_edit.tooltip_text = "Restart replays this seed (same shuffle)."
+	_seed_edit.text_submitted.connect(func(_text: String): _on_restart_pressed())
+	seed_row.add_child(_seed_edit)
+	var restart := _button("Restart", _on_restart_pressed)
+	restart.tooltip_text = "Start again with the seed above."
+	box.add_child(restart)
+	var new_game := _button("New game", _on_new_game_pressed)
+	new_game.tooltip_text = "Start again with a random seed."
+	box.add_child(new_game)
+	# A toggle that says its state in words (a checkbox's box is hard to read on this background).
+	_motion_toggle = _button("", func(): pass)
+	_motion_toggle.toggle_mode = true
+	_motion_toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
+	_motion_toggle.toggled.connect(Settings.set_reduce_motion)
+	box.add_child(_motion_toggle)
+	box.add_child(HSeparator.new())
+	box.add_child(_button("Close (Esc)", _close_menu))
+	# Keep keyboard focus inside the menu: Tab/Shift+Tab and Up/Down wrap around its controls.
+	var controls: Array[Control] = [_seed_edit, restart, new_game, _motion_toggle, box.get_child(-1)]
+	for i in controls.size():
+		var here := controls[i]
+		var next := controls[(i + 1) % controls.size()]
+		var prev := controls[i - 1]
+		here.focus_next = here.get_path_to(next)
+		here.focus_previous = here.get_path_to(prev)
+		here.focus_neighbor_bottom = here.focus_next
+		here.focus_neighbor_top = here.focus_previous
+		here.focus_neighbor_left = NodePath(".")
+		here.focus_neighbor_right = NodePath(".")
 
 
 ## Button and text field looks: a visible fill and border, a hover state, and a disabled state that

@@ -15,9 +15,12 @@ end the turn.
 
 Keyboard: ←/→ move through your hand, Enter or Space plays the focused card. With several possible
 targets, ←/→ pick one, Enter plays it, and Esc cancels. During an explore choice, ←/→ and Enter pick a
-territory. Tab moves through the buttons. "Reduce motion" in the top bar turns off decorative animation.
+territory. Tab moves through the buttons.
 The game ends after 20 turns; your score is the VP on your tableau plus VP from effects.
-"Restart" replays the seed in the seed box (same shuffle), "New game" picks a random seed.
+
+"Menu (Esc)" in the top bar opens the menu: "Restart" replays the seed in the seed box (same shuffle),
+"New game" picks a random seed, and "Reduce motion" turns off decorative animation. Esc first cancels
+targeting or drops the card focus, then opens the menu; Esc again closes it.
 
 ## Edit cards
 All content is in `data/cards.json` and `data/config.json`. Card text is generated
