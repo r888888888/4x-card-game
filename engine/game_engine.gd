@@ -95,6 +95,11 @@ func valid_targets(uid: int) -> Array[int]:
 	return out
 
 
+## Building slots left on territory territory_uid.
+func free_slots(_territory_uid: int) -> int:
+	return 0
+
+
 func needs_target(uid: int) -> bool:
 	var card := zone("hand").find(uid)
 	return card != null and _target_effect(card) != null

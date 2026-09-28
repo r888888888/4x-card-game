@@ -2,7 +2,7 @@
 id: 004
 title: Buildings occupy territory slots
 type: feature
-status: ready
+status: red-review
 branch: feat/004-building-slots
 ---
 
@@ -58,8 +58,16 @@ In these criteria, Capital is on Grassland (2 slots) and Farm costs 2.
   - **Double-click** uses 003's targeting mode when there are several valid territories.
 
 ## Test plan
+All in `tests/test_slots.gd`.
+
 | AC | Test |
 |---|---|
+| AC1 | `test_building_goes_on_only_territory_with_room` |
+| AC2 | `test_building_with_no_free_slot_fails` |
+| AC3 | `test_building_needs_a_choice_with_several_territories`, `test_building_placed_on_chosen_territory` |
+| AC4 | `test_full_territory_is_not_a_target` |
+| AC5 | `test_frontier_territory_is_not_a_target` |
+| Design note (outcome target) | `test_building_outcome_target_is_its_territory` |
 
 ## Manual check
 - [ ] Slot counts show on each territory group.
@@ -69,3 +77,12 @@ In these criteria, Capital is on Grassland (2 slots) and Farm costs 2.
   "That target isn't valid.", and dropping shakes it back.
 
 ## Log
+- 2026-09-28: red. `homeland` (5 slots) added to `TEST_CARDS` and made the default `starting.territory`.
+  Interface-only `free_slots` returning 0 committed with the tests. Existing tests edited:
+  - listed in the design notes: `test_new_game_setup`, `test_play_building_pays_and_produces`,
+    `test_create_card`, `test_created_card_reported_in_outcome`;
+  - not listed (need approval): `test_territories::base_cards` keeps `homeland`;
+    `test_config_without_territories_loads_cleanly` and `test_game_without_territories_is_unchanged`
+    override `starting` with no territory; `test_settle_on_invalid_target_fails` expects
+    `["homeland", "capital"]`; `test_untargeted_card_has_no_targets_and_ignores_one` and
+    `test_outcome_target_for_untargeted_card` use Shrine instead of Farm (Farm now needs a target).

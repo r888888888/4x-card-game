@@ -23,6 +23,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "shrine", "name": "Shrine", "type": "action",
 	 "effects": [{"op": "score", "amount": 1}]},
+	{"id": "homeland", "name": "Homeland", "type": "territory", "slots": 5},
 	{"id": "grassland", "name": "Grassland", "type": "territory", "slots": 2},
 	{"id": "hills", "name": "Hills", "type": "territory", "slots": 3, "keywords": ["mountain"]},
 	{"id": "jungle", "name": "Jungle", "type": "territory", "slots": 1},
@@ -78,7 +79,7 @@ func keywords() -> Array[String]:
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
 		"resources": ["food"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
-		"starting": {"resources": {"food": 2}, "tableau": ["capital"]},
+		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"},
 		"deck": deck,
 	}
 	c.merge(overrides, true)
