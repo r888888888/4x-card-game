@@ -28,6 +28,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | File | Covers |
 |---|---|
 | `tests/test_content.gd` | The real data: territory/keyword coverage and a scripted 20-seed smoke test |
+| `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |

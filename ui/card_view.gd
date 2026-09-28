@@ -47,6 +47,7 @@ var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies th
 var _style: StyleBoxFlat
 var _color: Color
 var _box: VBoxContainer
+var _rules_tip := ""  # the full card text; the start of every tooltip
 var _warning := false
 var _highlight := false
 var _dimmed := false
@@ -122,6 +123,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	else:
 		type_row.free()
 
+	_rules_tip = def.rules_tooltip(card_db)
 	var rules_text := "" if compact else def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
 		var rules := _label(rules_text, 19)
@@ -129,7 +131,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_box.add_child(rules)
 
 	if def.type == "territory":
-		var info := "%d slot%s · %d housing" % [def.slots, "" if def.slots == 1 else "s", def.housing]
+		var info := "▢%d ⌂%d" % [def.slots, def.housing]  # explained in the tooltip
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
@@ -145,7 +147,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		set_play_error(play_error)
 	else:
 		modulate = Color.WHITE
-		tooltip_text = ""
+		_set_tip("")
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 	_update_border()
 
@@ -154,7 +156,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 ## saying why it can't be played.
 func set_play_error(play_error: String) -> void:
 	var playable := play_error == ""
-	tooltip_text = "Drag into the tableau (or double-click) to play." if playable else play_error
+	_set_tip("Drag into the tableau (or double-click) to play." if playable else play_error)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
@@ -162,7 +164,7 @@ func set_play_error(play_error: String) -> void:
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
-	tooltip_text = "Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else ""
+	_set_tip("Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else "")
 
 
 ## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.
@@ -170,7 +172,7 @@ func set_pickable(on: bool, tooltip := "") -> void:
 	pickable = on
 	if in_hand:
 		return
-	tooltip_text = tooltip if on else ""
+	_set_tip(tooltip if on else "")
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if on else Control.CURSOR_ARROW
 	if not on:
 		_set_hover(false)
@@ -194,6 +196,14 @@ func set_warning(on: bool) -> void:
 func set_highlight(on: bool) -> void:
 	_highlight = on
 	_update_border()
+
+
+## Sets the tooltip: the full card text, a blank line, then hint (either part may be empty).
+func _set_tip(hint: String) -> void:
+	if _rules_tip == "" or hint == "":
+		tooltip_text = _rules_tip + hint
+	else:
+		tooltip_text = _rules_tip + "\n\n" + hint
 
 
 ## Greys the card's background and border (not its text) and shows reason in a strip at the
