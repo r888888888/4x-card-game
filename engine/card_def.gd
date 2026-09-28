@@ -9,6 +9,8 @@ var cost: Dictionary = {}  # resource -> int
 var vp: int = 0
 var tags: Array[String] = []
 var effects: Array[Effect] = []
+var slots: int = 0  # territories: building slots
+var keywords: Array[String] = []  # territories: keyword ids from config
 var text: String = ""  # optional override; otherwise generated from effects
 
 

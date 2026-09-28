@@ -60,7 +60,7 @@ static func parse_resources(raw: Variant, src: String, errors: Array[String]) ->
 	return out
 
 
-static func parse_cards(raw: Variant, resources: Array[String], src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
+static func parse_cards(raw: Variant, resources: Array[String], src: String, errors: Array[String], warnings: Array[String], _keywords: Array[String] = []) -> Dictionary:
 	var db := {}
 	if not (raw is Dictionary) or not (raw.get("cards") is Array):
 		errors.append("%s: expected an object with a \"cards\" array" % src)

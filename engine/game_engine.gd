@@ -69,6 +69,11 @@ func play_error(uid: int) -> String:
 	return ""
 
 
+## The territory card sits on, or null.
+func territory_of(_card: CardInstance) -> CardInstance:
+	return null
+
+
 # --- Actions ---
 
 func new_game(p_seed: int) -> void:

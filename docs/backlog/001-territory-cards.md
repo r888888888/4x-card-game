@@ -2,7 +2,7 @@
 id: 001
 title: Territory cards and the Capital's starting territory
 type: feature
-status: ready
+status: red-review
 branch: feat/001-territory-cards
 ---
 
@@ -62,12 +62,23 @@ slots (004), and keywords (005). See PLAN.md › Territories.
   and add the `keywords` list. `territory_deck` stays empty until 002/006.
 
 ## Test plan
+All in `tests/test_territories.gd`.
+
 | AC | Test |
 |---|---|
-| AC1 | `test_data_loader::test_…` |
+| AC1 | `test_territory_card_loads_with_slots_and_keywords` |
+| AC2 | `test_territory_missing_slots_is_error`, `test_territory_negative_slots_is_error`, `test_territory_unknown_keyword_is_error` |
+| AC3 | `test_territory_fields_on_non_territory_are_warnings` |
+| AC4 | `test_territory_deck_is_normalized`, `test_territory_deck_unknown_card_is_error`, `test_territory_deck_non_territory_is_error`, `test_territory_in_main_deck_is_error`, `test_starting_territory_must_be_a_territory`, `test_starting_territory_unknown_card_is_error` |
+| AC5 | `test_new_game_shuffles_territory_deck`, `test_territory_deck_order_follows_seed`, `test_capital_starts_on_starting_territory`, `test_starting_territory_does_not_change_score` |
+| AC6 | `test_config_without_territories_loads_cleanly`, `test_game_without_territories_is_unchanged` |
 
 ## Manual check
 - [ ] The tableau shows a Grassland group: the Grassland card (with its slots and keywords), then the Capital.
 - [ ] Dragging a Farm into the tableau still works, and the Farm lands in the Grassland group.
 
 ## Log
+- 2026-09-28: red. Added `grassland` and `hills` territories to `TEST_CARDS` and a `keywords()` helper;
+  `parse_cards` takes the keyword list as an optional last argument. Interface-only declarations
+  (`CardDef.slots/keywords`, `CardInstance.territory_uid`, `territory_of` returning null, the unused
+  `parse_cards` parameter) went in with the red tests so the typed test files parse.

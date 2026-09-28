@@ -65,7 +65,7 @@ func test_unknown_field_is_warning_only() -> void:
 func test_config_unknown_deck_card() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings)
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
 	DataLoader.parse_config(raw_config({"dragon": 1}), resources(), cards, "config.json", errors, warnings)
 	check(has_message(errors, "config.json: deck: unknown card 'dragon'"), str(errors))
 

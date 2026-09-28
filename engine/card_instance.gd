@@ -4,6 +4,7 @@ extends RefCounted
 
 var uid: int
 var def: CardDef
+var territory_uid := -1  # the territory this card sits on, or -1
 
 
 func _init(p_uid: int, p_def: CardDef) -> void:
