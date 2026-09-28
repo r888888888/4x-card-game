@@ -63,18 +63,14 @@ func population_on() -> bool:
 
 ## Pop on settled territory territory_uid (0 for anything else).
 func pop(territory_uid: int) -> int:
-	var territory := zone("tableau").find(territory_uid)
-	if territory == null or territory.def.type != "territory":
-		return 0
-	return territory.pop
+	var territory := _settled_territory(territory_uid)
+	return territory.pop if territory != null else 0
 
 
 ## The most pop settled territory territory_uid can hold (0 if it isn't one).
 func housing(territory_uid: int) -> int:
-	var territory := zone("tableau").find(territory_uid)
-	if territory == null or territory.def.type != "territory":
-		return 0
-	return territory.def.housing
+	var territory := _settled_territory(territory_uid)
+	return territory.def.housing if territory != null else 0
 
 
 ## Pop summed over every settled territory.
@@ -140,12 +136,11 @@ func valid_targets(uid: int) -> Array[int]:
 
 ## Building slots left on settled territory territory_uid (0 if it isn't settled). Cities don't use slots.
 func free_slots(territory_uid: int) -> int:
-	var tableau := zone("tableau")
-	var territory := tableau.find(territory_uid)
-	if territory == null or territory.def.type != "territory":
+	var territory := _settled_territory(territory_uid)
+	if territory == null:
 		return 0
 	var used := 0
-	for card in tableau.cards:
+	for card in zone("tableau").cards:
 		if _is_building(card) and card.territory_uid == territory_uid:
 			used += 1
 	return territory.def.slots - used
@@ -435,6 +430,14 @@ func _target_effect(card: CardInstance) -> Effect:
 		if e.target_zone() != "":
 			return e
 	return null
+
+
+## The territory card territory_uid if it is settled (on the tableau), or null.
+func _settled_territory(territory_uid: int) -> CardInstance:
+	var territory := zone("tableau").find(territory_uid)
+	if territory == null or territory.def.type != "territory":
+		return null
+	return territory
 
 
 func _make_card(card_id: String) -> CardInstance:
