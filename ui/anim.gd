@@ -5,7 +5,11 @@ extends RefCounted
 
 const HOVER_LIFT := 20.0  # px a hand card rises under the mouse
 const HOVER_SCALE := 1.08
-const LIFT_ROOM := 24.0  # empty space above a resting hand card, so the lift isn't clipped
+# Room around the hand row so a hovered card (lifted, scaled up about its centre, with a shadow)
+# isn't clipped by the hand's scroll box. Above: lift 20 + half the growth of a 280px card (11) +
+# shadow reach (6). Sides: half the growth of a 215px card (9) + shadow (14).
+const LIFT_ROOM := 40.0
+const HAND_SIDE_ROOM := 24.0
 const DRAG_SCALE := 1.1
 const DRAG_START_DISTANCE := 6.0  # px the mouse must move while pressed before a drag starts
 

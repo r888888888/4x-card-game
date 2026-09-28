@@ -101,5 +101,6 @@ Run `godot --path .`, type seed `7` and press Restart.
   181px, not 150) stretched to the full tableau height, and could never "land". Cards now size to fit
   their text, and the slot follows.
 - The drop zone is the tableau area. Dropping anywhere else (the hand, the log) cancels.
+- Review: the hovered card's border was clipped by the hand box. There is now 40px of room above the hand row and 24px on each side.
 - Not done (out of scope or left for later): fanned hand, counters that tick up when the token arrives,
   a reduce-motion setting (all timings are in `ui/anim.gd`), end-turn upkeep tokens.

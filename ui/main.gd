@@ -442,9 +442,13 @@ func _build_layout() -> void:
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	play_area.add_child(hand_scroll)
+	var hand_pad := MarginContainer.new()
+	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
+	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
+	hand_scroll.add_child(hand_pad)
 	_hand = HBoxContainer.new()
 	_hand.add_theme_constant_override("separation", 12)
-	hand_scroll.add_child(_hand)
+	hand_pad.add_child(_hand)
 
 	var side_col := VBoxContainer.new()
 	side_col.custom_minimum_size.x = 400
