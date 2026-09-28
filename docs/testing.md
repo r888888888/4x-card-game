@@ -40,6 +40,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
+| `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, bad or missing files |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern

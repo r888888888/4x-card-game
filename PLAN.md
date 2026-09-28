@@ -37,6 +37,8 @@ res://
     effects/             # gain, gain_per_tag, draw, create, score, explore, settle, grow
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
+  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
+  autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
   ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning)
   tests/
     run_tests.gd         # dependency-free runner: finds tests/**/test_*.gd (use scripts/test.sh)
