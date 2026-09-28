@@ -17,6 +17,7 @@ const TYPE_COLORS := {
 	"building": Color("5f9a45"),
 	"city": Color("c08a3e"),
 	"territory": Color("8a6fb5"),
+	"tech": Color("3fa7a0"),
 }
 const HAND_SIZE := Vector2(232, 280)
 const TABLEAU_SIZE := Vector2(215, 150)
@@ -27,6 +28,7 @@ const TYPE_MARKS := {
 	"building": "■",
 	"city": "●",
 	"territory": "▲",
+	"tech": "✦",
 }
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
