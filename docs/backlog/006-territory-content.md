@@ -2,7 +2,7 @@
 id: 006
 title: Territory content and balance pass
 type: feature
-status: ready
+status: red-review
 branch: feat/006-territory-content
 ---
 
@@ -53,8 +53,14 @@ Proposed starting content, to be tuned by playtesting:
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_data_loader::test_real_data_loads` (exists) |
+| AC2 | `test_content::test_territory_deck_has_at_least_10_territories`, `test_content::test_territory_deck_covers_at_least_5_keywords`, `test_content::test_every_keyword_is_on_a_territory_and_a_card` |
+| AC3 | `test_content::test_scripted_games_run_and_found_cities` (">= 11 of 20" is "most") |
 
 ## Manual check
 - [ ] Play 2–3 full games. Expanding feels necessary by mid-game, and placement choices feel meaningful.
 
 ## Log
+- 2026-09-28: red. AC2 tests fail (7 territories, 3 keywords covered). The AC3 smoke test already passes
+  (a City founded in 20 of 20 seeds, no runtime errors); it guards the new content. The starting
+  territory counts as "a territory" for keyword coverage.
