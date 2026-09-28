@@ -2,7 +2,7 @@
 id: 005
 title: Keyword requirements and bonuses
 type: feature
-status: ready
+status: red-review
 branch: feat/005-keyword-effects
 ---
 
@@ -47,11 +47,21 @@ Test fixtures:
   "Well needs a territory with Fresh Water." (from `play_error(uid, target_uid)`).
 
 ## Test plan
+All in `tests/test_keywords.gd`.
+
 | AC | Test |
 |---|---|
+| AC1 | `test_requires_limits_targets_to_keyword_territories` |
+| AC2 | `test_requires_with_no_keyword_territory_fails`, `test_requires_error_for_target_without_keyword` (UI design note) |
+| AC3 | `test_keyword_upkeep_applies_on_matching_territory`, `test_keyword_upkeep_skipped_elsewhere` |
+| AC4 | `test_keyword_play_effect_applies_on_matching_territory`, `test_keyword_play_effect_skipped_elsewhere` |
+| AC5 | `test_unknown_requires_keyword_is_error`, `test_unknown_effect_keyword_is_error`, `test_keyword_fields_load_without_warnings` |
+| AC6 | `test_keyword_effect_text`, `test_requires_text`, `test_requires_several_keywords_text` |
 
 ## Manual check
 - [ ] Picking up Irrigation only lights up Fresh Water territories. Hovering it over another territory turns it red
   and shows the reason. Keyword bonus lines show on cards.
 
 ## Log
+- 2026-09-28: red. Added `river`, `well`, `paddy`, `lookout` to `TEST_CARDS`; `keywords()` gains
+  `flood_plain`. No interface stubs needed.

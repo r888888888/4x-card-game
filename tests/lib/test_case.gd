@@ -27,6 +27,13 @@ const TEST_CARDS := {"cards": [
 	{"id": "grassland", "name": "Grassland", "type": "territory", "slots": 2},
 	{"id": "hills", "name": "Hills", "type": "territory", "slots": 3, "keywords": ["mountain"]},
 	{"id": "jungle", "name": "Jungle", "type": "territory", "slots": 1},
+	{"id": "river", "name": "River", "type": "territory", "slots": 2, "keywords": ["fresh_water", "flood_plain"]},
+	{"id": "well", "name": "Well", "type": "building", "cost": {"food": 1}, "requires": ["fresh_water"]},
+	{"id": "paddy", "name": "Paddy", "type": "building", "cost": {"food": 2}, "effects": [
+		{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"},
+		{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain"}]},
+	{"id": "lookout", "name": "Lookout", "type": "building",
+	 "effects": [{"op": "score", "amount": 1, "keyword": "mountain"}]},
 	{"id": "explorer", "name": "Explorer", "type": "action", "effects": [{"op": "explore"}]},
 	{"id": "pioneer", "name": "Pioneer", "type": "action", "cost": {"food": 3},
 	 "effects": [{"op": "settle", "card": "city"}]},
@@ -72,7 +79,7 @@ func resources() -> Array[String]:
 
 ## Keyword ids for tests; TEST_CARDS territories only use these.
 func keywords() -> Array[String]:
-	var k: Array[String] = ["mountain", "fresh_water"]
+	var k: Array[String] = ["mountain", "fresh_water", "flood_plain"]
 	return k
 
 
