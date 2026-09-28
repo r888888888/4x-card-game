@@ -2,7 +2,7 @@
 id: 008
 title: Drag cards from hand to play them, with animations
 type: feature
-status: ready
+status: review
 branch: feat/008-drag-to-play
 ---
 
@@ -63,13 +63,44 @@ Depends on 007 (`card_played` outcome).
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| all | Manual (UI only; no engine change) |
+| all | Manual (UI only; no engine change). Also exercised by a scratch driver that plays the real UI with synthetic mouse input and checks engine state and that every view comes to rest (not committed). |
 
 ## Manual check
-- [ ] AC1–AC6 each tried in the running game (`godot --path .`).
-- [ ] Hover, pickup, dragging and landing feel smooth, with no jitter or jumps. The other hand
-  cards close up and spread without snapping.
-- [ ] Hand relayouts (after a play or a draw) are animated.
-- [ ] Nothing looks wrong after Restart or New game in the middle of an animation.
+Run `godot --path .`, type seed `7` and press Restart.
+- [ ] **Deal:** 5 cards fly in one after another from the Deck counter and settle in the hand.
+- [ ] **Hover:** a hand card lifts, grows a little and gets a white border and shadow. Moving off
+  it lowers it again.
+- [ ] **AC1, building:** drag the Farm up into the tableau. The tableau lights up gold, and a faint outline
+  appears where the Farm will land. The card follows the cursor with a little lag and tilts when you move
+  sideways. Let go: it shrinks into the outlined slot with a small squash, "−2 food" flies from the
+  counter to the card, and the rest of the hand slides left to close the gap.
+- [ ] **AC1, action:** drag Forage into the tableau. It pops, then shrinks and fades into the Discard
+  counter, "+2 food" flies to the Food counter, and the counter pulses.
+- [ ] **AC2:** pick up a card and press Esc; pick one up and right-click; pick one up and drop it back
+  on the hand. Each time the card flies back to its own slot and nothing is played.
+- [ ] **AC3:** drag the Settler (5 food, greyed out) over the tableau. There is no gold highlight, and its
+  border turns red. Let go: it flies back and shakes, and "Settler needs 5 food (you have …)"
+  appears over it and fades.
+- [ ] **AC4:** a single click on a card does nothing. A double-click on Scout plays it: it goes
+  to the discard pile, and 2 new cards fly in from the deck.
+- [ ] **AC5:** play Settler once you can afford it: food flies to the card, and the new City pops onto the tableau.
+- [ ] **AC6:** pick up a card and press Enter mid-drag. The drag ends, the hand is discarded
+  to the pile, and a new hand is dealt, with no card left floating. Press Restart twice quickly during
+  the deal: the board ends up clean.
+- [ ] Nothing jitters or jumps, and lifted or flying cards never go under the game-over overlay.
 
 ## Log
+- Movement is state-based rather than one-off tweens. Each card view chases a target every frame:
+  its slot at rest, the cursor while dragged, or a new slot when flying. Interrupting an animation
+  (End turn, Restart, another play) just changes the target, so no card can get stuck mid-flight (AC6).
+  Tweens are used only for effects that can't be interrupted: squash, shake, pop-in, and the fly to the discard pile.
+- Cards rest inside slot Controls in the hand and tableau containers, so scrolling and clipping keep
+  working. When a slot moves (the row relayouts), the card keeps its place on screen and slides into the
+  new spot.
+- Found while testing: a card whose text needs more height than the nominal tableau size (the Capital needs
+  181px, not 150) stretched to the full tableau height, and could never "land". Cards now size to fit
+  their text, and the slot follows.
+- The drop zone is the tableau area. Dropping anywhere else (the hand, the log) cancels.
+- Review: the hovered card's border was clipped by the hand box. There is now 40px of room above the hand row and 24px on each side.
+- Not done (out of scope or left for later): fanned hand, counters that tick up when the token arrives,
+  a reduce-motion setting (all timings are in `ui/anim.gd`), end-turn upkeep tokens.
