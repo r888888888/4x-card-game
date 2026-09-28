@@ -19,5 +19,11 @@
     "temple": 2,
     "monument": 2,
     "pyramids": 1
+  },
+  "territory_deck": {
+    "plains": 2,
+    "hills": 2,
+    "lakeshore": 2,
+    "rainforest": 1
   }
 }
