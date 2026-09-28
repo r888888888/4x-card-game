@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/test.sh)",
+      "Bash(scripts/test.sh *)",
+      "Bash(godot --headless --path . --import)",
+      "Bash(godot --headless --path . --script res://tests/run_tests.gd *)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/test-hook.sh",
+            "timeout": 120,
+            "statusMessage": "Running test suite..."
+          }
+        ]
+      }
+    ]
+  }
+}

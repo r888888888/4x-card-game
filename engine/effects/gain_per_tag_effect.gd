@@ -1,0 +1,28 @@
+extends Effect
+## { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "zone": "tableau" }
+## Gains amount x (number of cards with the tag in the zone). zone defaults to tableau.
+
+var resource: String
+var amount: int
+var tag: String
+var zone: String
+
+
+func fields() -> Array[String]:
+	return ["resource", "amount", "tag", "zone"]
+
+
+func configure(data: Dictionary, ctx: Dictionary, errors: Array[String]) -> void:
+	resource = read_string(data, "resource", errors, ctx.resources)
+	amount = read_int(data, "amount", errors, 1)
+	tag = read_string(data, "tag", errors)
+	zone = read_string(data, "zone", errors, ctx.zones, "tableau")
+
+
+func apply(engine: GameEngine, source: CardInstance) -> void:
+	engine.gain(resource, amount * engine.count_tag(tag, zone), source)
+
+
+func describe(_card_db: Dictionary) -> String:
+	var where := "" if zone == "tableau" else " in %s" % zone
+	return "+%d %s per %s card%s" % [amount, resource, tag, where]

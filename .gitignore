@@ -1,0 +1,6 @@
+.godot/
+*.import
+
+# Claude Code: personal settings and TDD red-checkpoint marker
+.claude/settings.local.json
+.claude/tdd-red

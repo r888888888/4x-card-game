@@ -1,0 +1,21 @@
+{
+  "resources": ["food"],
+  "turn_limit": 20,
+  "hand_size": 5,
+  "deck_model": "fixed",
+  "starting": {
+    "resources": { "food": 2 },
+    "tableau": ["capital"]
+  },
+  "deck": {
+    "farm": 4,
+    "irrigation": 2,
+    "settler": 3,
+    "scout": 3,
+    "forage": 3,
+    "caravan": 2,
+    "temple": 2,
+    "monument": 2,
+    "pyramids": 1
+  }
+}
