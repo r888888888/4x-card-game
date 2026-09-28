@@ -27,6 +27,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 
 | File | Covers |
 |---|---|
+| `tests/test_content.gd` | The real data: territory/keyword coverage and a scripted 20-seed smoke test |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
@@ -81,8 +82,8 @@ Add a helper to `test_case.gd` once two test files need it.
   that game's seed.
 - **Test through the public API** (`play_card`, `end_turn`, `play_error`, `score`, zones,
   signals). Setting state directly (`e.resources.food = 1`) is fine for setup.
-- **Real data** is only checked by `test_real_data_loads`. Don't assert on balance numbers from
-  `data/cards.json`.
+- **Real data** is only checked by `test_real_data_loads` and `tests/test_content.gd` (shape and a
+  smoke test). Don't assert on balance numbers from `data/cards.json`.
 - **Signals**: connect a lambda that appends to an array, then assert on the array
   (see `test_game_ends_at_turn_limit`).
 - **Loader errors**: assert the message names the file, card and field, since that is the
