@@ -2,7 +2,7 @@
 id: 006
 title: Territory content and balance pass
 type: feature
-status: review
+status: done
 branch: feat/006-territory-content
 ---
 
