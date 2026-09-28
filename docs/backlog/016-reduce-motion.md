@@ -2,7 +2,7 @@
 id: 016
 title: Reduce motion setting, saved between launches
 type: feature
-status: red-review
+status: in-progress
 branch: feat/016-reduce-motion
 ---
 
