@@ -11,7 +11,7 @@
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
 | Balance simulation | Later (engine kept headless-capable so it's cheap to add) |
 | Win condition (demo) | Game ends after 20 turns; final score = sum of VP on tableau cards |
-| Resources (demo) | Food only; unspent food carries over with no cap; more resources added later |
+| Resources (demo) | Food and wealth; unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), wealth for premium buildings (021, 022) |
 | Threat effects | Deferred: event phase is a stub until designed |
 
 ## Architecture principle

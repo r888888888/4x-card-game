@@ -1,5 +1,5 @@
 {
-  "resources": ["food"],
+  "resources": ["food", "wealth"],
   "keywords": [
     "fresh_water", "flood_plain", "mountain", "jungle", "coastal", "forest",
     "hills", "desert", "grassland", "iron", "gold"

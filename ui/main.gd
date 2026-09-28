@@ -16,6 +16,7 @@ const ACCENT := Color("e8c547")  # the main action's button (End turn)
 
 var _turn_label: Label
 var _food_label: Label
+var _wealth_label: Label
 var _score_label: Label
 var _pop_label: Label
 var _piles_label: Label
@@ -506,6 +507,7 @@ func _refresh() -> void:
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	_seed_label.text = "Seed %d" % e.seed_value
 	_set_stat(_food_label, "Food: %d" % e.resources.get("food", 0))
+	_set_stat(_wealth_label, "Wealth: %d" % e.resources.get("wealth", 0))
 	_set_stat(_score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	_set_stat(_pop_label, "Pop: %d" % e.total_pop())
@@ -720,7 +722,12 @@ func _animate_outcome() -> void:
 
 
 func _resource_label(resource: String) -> Label:
-	return _food_label if resource == "food" else null
+	match resource:
+		"food":
+			return _food_label
+		"wealth":
+			return _wealth_label
+	return null
 
 
 func _fly_token(text: String, from: Vector2, to: Vector2, color: Color, pulse_on_arrival: Control, delay: float) -> void:
@@ -879,6 +886,7 @@ func _build_layout() -> void:
 	root.add_child(bar)
 	_turn_label = _stat(bar)
 	_food_label = _stat(bar, Color("ffd966"))
+	_wealth_label = _stat(bar, Color("f2b46d"))
 	_score_label = _stat(bar, Color("ffd966"))
 	_pop_label = _stat(bar, Color("9fd89f"))
 	_piles_label = _stat(bar, Color("c3cad3"))
