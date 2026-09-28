@@ -830,6 +830,7 @@ func _reset_views() -> void:
 
 
 func _append_log(message: String) -> void:
+	message = Icons.bbcode(message, 19)  # the log's font size
 	if message.begins_with("—"):
 		_log.append_text("\n[b]%s[/b]\n" % message)
 	elif message.begins_with("Game over"):

@@ -20,7 +20,7 @@ const TYPE_COLORS := {
 const HAND_SIZE := Vector2(232, 280)
 const TABLEAU_SIZE := Vector2(215, 150)
 const COMPACT_SIZE := Vector2(215, 90)  # a frontier territory: name and info only
-# A shape per type, so types can be told apart without colour.
+# A shape per type, so types can be told apart without colour. Drawn as icons (see Icons).
 const TYPE_MARKS := {
 	"action": "◆",
 	"building": "■",
@@ -110,7 +110,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
-	var subtitle_label := _label(subtitle, 18, _color.lightened(0.5))
+	var subtitle_label := _rich_label(subtitle, 18, _color.lightened(0.5))
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
 	if in_hand:
@@ -126,7 +126,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_rules_tip = def.rules_tooltip(card_db)
 	var rules_text := "" if compact else def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
-		var rules := _label(rules_text, 19)
+		var rules := _rich_label(rules_text, 19)
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		_box.add_child(rules)
 
@@ -135,7 +135,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
-		var info_label := _label(info, 18, _color.lightened(0.5))
+		var info_label := _rich_label(info, 18, _color.lightened(0.5))
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		_box.add_child(info_label)
@@ -225,9 +225,9 @@ func _set_dimmed(on: bool, reason: String) -> void:
 			style.set_corner_radius_all(4)
 			style.set_content_margin_all(6)
 			strip.add_theme_stylebox_override("panel", style)
-			strip.add_child(_label("", 18, STRIP_TEXT))
+			strip.add_child(_rich_label("", 18, STRIP_TEXT))
 			_box.add_child(strip)
-		(strip.get_child(0) as Label).text = reason
+		Icons.fill(strip.get_child(0) as RichTextLabel, reason, 18, STRIP_TEXT)
 	_update_border()
 
 
@@ -546,4 +546,19 @@ static func _label(text: String, font_size: int, color := Color.WHITE) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
+
+
+## A card label for text that can hold glyphs (see Icons), which it draws as icons. Like _label it
+## wraps and never takes mouse input. One line is exactly as tall as a Label's; wrapped lines sit 3px
+## closer (a RichTextLabel adds its line_separation after the last line too, so it can't match both).
+static func _rich_label(text: String, font_size: int, color := Color.WHITE) -> RichTextLabel:
+	var label := RichTextLabel.new()
+	label.fit_content = true
+	label.scroll_active = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("normal_font_size", font_size)
+	label.add_theme_color_override("default_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Icons.fill(label, text, font_size, color)
 	return label
