@@ -31,6 +31,8 @@ var _targeting: CardView  # hand card waiting for a target click (double-click w
 var _lit: Array[int] = []  # uids of the target views lit up for the dragged or targeting card
 var _drop_highlight: Panel  # lights up the tableau (the drop zone) during a drag
 var _drop_style: StyleBoxFlat
+var _drag_hint: PanelContainer  # the engine's reason, under the dragged card while it shows red
+var _drag_hint_label: Label
 var _ghost: Panel  # outline of the tableau slot a dragged building or city will land in (in its group)
 var _show_ghost := false  # the dragged card is a targeted permanent: the ghost follows its target group
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
@@ -225,6 +227,13 @@ func _update_drag_feedback() -> void:
 		error = e.play_error(_dragging.uid, target)
 	_dragging.set_warning(over and error != "")
 	_drop_style.bg_color.a = 0.10 if over else 0.03
+	_drag_hint.visible = over and error != ""
+	if _drag_hint.visible:
+		_drag_hint_label.text = error
+		_drag_hint.reset_size()
+		var card := _dragging.get_global_rect()
+		_drag_hint.global_position = Vector2(
+			clampf(card.get_center().x - _drag_hint.size.x / 2, 8.0, size.x - _drag_hint.size.x - 8.0), card.end.y + 8)
 	if _show_ghost:
 		# In the lit group under the cursor, or in the only lit group.
 		var group_key := target if _lit.has(target) else (_lit[0] if _lit.size() == 1 else -1)
@@ -284,6 +293,7 @@ func _end_drag() -> void:
 	_dragging.set_warning(false)
 	_dragging = null
 	_drop_highlight.hide()
+	_drag_hint.hide()
 	_move_ghost(null)
 	_show_ghost = false
 	_unlight_targets()
@@ -588,7 +598,7 @@ func _reset_views() -> void:
 	_views.clear()
 	_outcome = {}
 	for child in _fx.get_children():
-		if child != _drop_highlight:
+		if child != _drop_highlight and child != _drag_hint:
 			child.queue_free()
 
 
@@ -743,6 +753,20 @@ func _build_layout() -> void:
 	_drop_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_drop_highlight.hide()
 	_fx.add_child(_drop_highlight)
+	_drag_hint = PanelContainer.new()
+	var hint_style := StyleBoxFlat.new()
+	hint_style.bg_color = Color(0.08, 0.09, 0.11, 0.92)
+	hint_style.border_color = CardView.WARN_COLOR
+	hint_style.set_border_width_all(1)
+	hint_style.set_corner_radius_all(6)
+	hint_style.set_content_margin_all(8)
+	_drag_hint.add_theme_stylebox_override("panel", hint_style)
+	_drag_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drag_hint.z_index = 3  # above the dragged card
+	_drag_hint_label = _fx_label("", 19, Color("ff8a80"))
+	_drag_hint.add_child(_drag_hint_label)
+	_drag_hint.hide()
+	_fx.add_child(_drag_hint)
 	var pulse := _drop_highlight.create_tween().set_loops()
 	pulse.tween_property(_drop_highlight, "modulate:a", 0.45, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)
 	pulse.tween_property(_drop_highlight, "modulate:a", 1.0, Anim.HIGHLIGHT_PULSE_TIME).set_trans(Tween.TRANS_SINE)

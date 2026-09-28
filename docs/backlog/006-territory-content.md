@@ -24,6 +24,12 @@ rhythm.
 - A headless bot or statistical balance tooling (PLAN.md › Later).
 
 ## Design notes
+- **Keywords (decided by the user, 2026-09-28):** `fresh_water`, `flood_plain`, `mountain`, `jungle`, `coastal`,
+  `forest`, `hills`, `desert`, `grassland`, `iron`, `gold`. Already in `data/config.json` (005). Keywords are
+  mostly features, so a territory can have several. Holy Site was dropped: it should come from an event
+  (threat design, later), not be printed on a territory.
+  AC2 ("every keyword is used by a territory and a card") applies to this whole list.
+
 Proposed starting content, to be tuned by playtesting:
 - **Territories:**
   - River Valley (2; Fresh Water, Flood Plain)
