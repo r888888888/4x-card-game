@@ -34,7 +34,7 @@ res://
     zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
-    effects/             # gain, gain_per_tag, draw, create, score, explore, settle
+    effects/             # gain, gain_per_tag, draw, create, score, explore, settle, grow
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
   ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning)
@@ -146,12 +146,15 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 
 ## Population (Milestone 3 — in progress)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
-010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards).
+010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
   block the game has no pop (the test fixtures leave it out).
 - The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`.
 - Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Each food that can't be paid
   starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
+- Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
+  capped by housing: `here` on the card's own territory (Granary, upkeep), `each` on every settled territory
+  (Harvest Festival). Engine helper: `add_pop(territory_uid, amount, source)`.
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
