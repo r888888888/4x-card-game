@@ -31,7 +31,7 @@ res://
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
-    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal
+    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal, research_deck, research_reveal, researched
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
     effects/             # gain, gain_per_tag, draw, create, score, explore, settle, grow
@@ -104,7 +104,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play or buy cards while resources allow, and buy growth for territories. A hand card can be discarded for free at any time.
+3. Play: play or buy cards while resources allow, buy growth for territories, and research once per turn. A hand card can be discarded for free at any time.
 4. Event: stub for now (threat design deferred).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
@@ -168,6 +168,21 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Engine API: `population_on()`, `pop(territory_uid)`, `housing(territory_uid)`, `total_pop()`,
   `grow_cost(territory_uid)`, `grow_error(territory_uid)`, `grow(territory_uid)`, `free_workers(territory_uid)`,
   `is_idle(uid)`.
+
+## Techs (Milestone 4 — in progress)
+Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
+stacking discount, prerequisite discount, removal), 027 (eras, `add_era`, Library), 028 (first content).
+- Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
+  Techs are not allowed in `deck`.
+- Once per turn (`research_left()`), a free action: `research()` reveals the top 2 techs. `buy_tech(uid)` pays
+  `tech_cost(uid)` wealth, moves the tech to `researched`, resolves its `play` effects, and shuffles the other back;
+  `decline_research()` shuffles both back (the charge stays spent). Open options block play, grow, discard and end turn.
+- Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
+  slot or worker.
+- Engine API: `research_error()`, `research()`, `research_options()`, `research_left()`, `buy_tech_error(uid)`,
+  `buy_tech(uid)`, `tech_cost(uid)`, `decline_research()`.
+- UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
+  with the revealed techs (click one to buy) and Decline, and a Researched row.
 
 ## Later
 - Headless bot + balance stats (random, then greedy)

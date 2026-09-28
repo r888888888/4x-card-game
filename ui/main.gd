@@ -36,6 +36,11 @@ var _frontier_section: Control  # the frontier's heading and row, hidden while i
 var _choice_overlay: Control  # dims the board while an explore choice is pending
 var _choice_panel: PanelContainer  # the centred panel on _choice_overlay
 var _reveal: HBoxContainer  # the revealed territories to choose from, inside _choice_panel
+var _research_overlay: Control  # dims the board while revealed techs wait to be bought or declined
+var _research_row: HBoxContainer  # the revealed techs, inside _research_overlay
+var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
+var _researched: HBoxContainer
+var _research_button: Button
 var _log: RichTextLabel
 var _end_turn_button: Button
 var _game_over_overlay: Control
@@ -97,6 +102,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.keycode == KEY_E and not event.echo:
 		if not e.is_over and e.pending_choice.is_empty():
 			e.end_turn()
+	elif event.keycode == KEY_R and not event.echo:
+		e.research()
 	elif event.keycode == KEY_D and not event.echo:
 		if _focused != null and is_instance_valid(_focused) and _focused.in_hand:
 			_on_discard_requested(_focused)
@@ -254,6 +261,13 @@ func _on_picked(view: CardView) -> void:
 		var card := _targeting
 		_end_targeting()
 		_try_play(card, view.uid)
+	elif not Game.engine.research_options().is_empty():
+		var error := Game.engine.buy_tech_error(view.uid)
+		if error != "":
+			_log.append_text("[color=#e88]%s[/color]\n" % error)
+			_show_error(view, error)
+		else:
+			Game.engine.buy_tech(view.uid)
 	else:
 		Game.engine.choose(view.uid)
 
@@ -295,8 +309,8 @@ func _unlight_targets() -> void:
 		var view: CardView = _views.get(target)
 		if view != null:
 			view.set_highlight(false)
-			var in_reveal := is_instance_valid(view.slot) and view.slot.get_parent() == _reveal
-			view.set_pickable(in_reveal, "Click to keep this territory.")
+			var in_choice := is_instance_valid(view.slot) and _is_choice_row(view.slot.get_parent())
+			view.set_pickable(in_choice, _pick_hint(view.slot.get_parent()) if in_choice else "")
 	_lit = []
 
 
@@ -308,6 +322,8 @@ func _focus_row() -> Array[CardView]:
 	var e := Game.engine
 	if not e.pending_choice.is_empty():
 		return _views_in(_reveal)
+	if not e.research_options().is_empty():
+		return _views_in(_research_row)
 	if _targeting != null:
 		var targets: Array[CardView] = []
 		for uid in _lit:
@@ -353,7 +369,7 @@ func _activate_card_focus() -> void:
 	var view := _focused
 	if view == null or not is_instance_valid(view):
 		return
-	if not Game.engine.pending_choice.is_empty() or (_targeting != null and _lit.has(view.uid)):
+	if not Game.engine.pending_choice.is_empty() or not Game.engine.research_options().is_empty() or (_targeting != null and _lit.has(view.uid)):
 		_on_picked(view)
 	elif view.in_hand:
 		_on_double_clicked(view)
@@ -384,6 +400,11 @@ func _sync_card_focus() -> void:
 		var choice := _views_in(_reveal)
 		if not choice.has(_focused) and not choice.is_empty():
 			_set_card_focus(choice[0])
+		return
+	if not e.research_options().is_empty():
+		var techs := _views_in(_research_row)
+		if not techs.has(_focused) and not techs.is_empty():
+			_set_card_focus(techs[0])
 		return
 	if _targeting != null:
 		return
@@ -529,8 +550,10 @@ func _refresh() -> void:
 	var tableau := e.zone("tableau").cards
 	var frontier := e.zone("frontier").cards
 	var reveal := e.zone("reveal").cards
+	var techs := e.zone("research_reveal").cards
+	var researched := e.zone("researched").cards
 	var shown := {}
-	for card in hand + tableau + frontier + reveal:
+	for card in hand + tableau + frontier + reveal + techs + researched:
 		shown[card.uid] = true
 	for uid in _views.keys():
 		if not shown.has(uid):
@@ -544,13 +567,24 @@ func _refresh() -> void:
 		_place(frontier[i], false, _frontier, i, 0.0)
 	for i in reveal.size():
 		_place(reveal[reveal.size() - 1 - i], false, _reveal, i, 0.0)  # top of the deck first
+	for i in techs.size():
+		_place(techs[i], false, _research_row, i, 0.0)
+	for i in researched.size():
+		_place(researched[i], false, _researched, i, 0.0)
 	_frontier_section.visible = not frontier.is_empty()
+	_researched_section.visible = not researched.is_empty()
 	_choice_overlay.visible = not e.pending_choice.is_empty()
+	_research_overlay.visible = not techs.is_empty()
+	var research_error := e.research_error()
+	_research_button.text = "Research (R) · %d left · deck %d" % [e.research_left(), e.zone("research_deck").size()]
+	_research_button.disabled = research_error != ""
+	_research_button.tooltip_text = research_error
+	_research_button.visible = e.config.research_deck.size() > 0
 	_animate_outcome()
 	_sync_card_focus()
 
 	var discarding := e.discard_needed() > 0
-	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty() or discarding
+	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty() or not techs.is_empty() or discarding
 	_end_turn_button.text = "Discard %d (hand limit %d)" % [e.discard_needed(), e.config.hand_limit] if discarding else "End turn  (E)"
 	if e.is_over and not _game_over_overlay.visible:
 		_replay_button.grab_focus()  # so Enter replays from the keyboard
@@ -646,12 +680,12 @@ func _new_group() -> TerritoryGroup:
 func _place(card: CardInstance, in_hand: bool, container: Container, index: int, delay: float) -> bool:
 	var e := Game.engine
 	var error := _hand_error(card.uid) if in_hand else ""
-	var compact := container == _frontier
+	var compact := container == _frontier or container == _researched
 	var view: CardView = _views.get(card.uid)
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error, compact)
-		view.set_pickable(container == _reveal, "Click to keep this territory.")
+		view.set_pickable(_is_choice_row(container), _pick_hint(container))
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(_on_double_clicked)
 		view.discard_requested.connect(_on_discard_requested)
@@ -668,7 +702,7 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 			_end_drag()
 		var old_slot := view.slot
 		view.setup(card, e.card_db, in_hand, error, compact)
-		view.set_pickable(container == _reveal, "Click to keep this territory.")
+		view.set_pickable(_is_choice_row(container), _pick_hint(container))
 		view.fly_to_slot(_new_slot(in_hand, container, index), _fx)
 		_free_slot(old_slot)
 		return false
@@ -678,6 +712,15 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 	else:
 		view.set_idle(e.is_idle(card.uid))
 	return false
+
+
+## Whether container holds cards to click on while an explore or research choice is open.
+func _is_choice_row(container: Node) -> bool:
+	return container == _reveal or container == _research_row
+
+
+func _pick_hint(container: Node) -> String:
+	return "Click to buy this tech." if container == _research_row else "Click to keep this territory."
 
 
 ## The card is no longer shown: it flies towards the zone it went to and fades (popping first if it
@@ -948,6 +991,15 @@ func _build_layout() -> void:
 	_tableau.add_theme_constant_override("v_separation", GROUP_GAP)
 	_tableau_scroll.add_child(_tableau)
 
+	_researched_section = _section(play_area, "Researched")
+	_researched_section.hide()
+	var researched_scroll := ScrollContainer.new()
+	researched_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_researched_section.add_child(researched_scroll)
+	_researched = HBoxContainer.new()
+	_researched.add_theme_constant_override("separation", CARD_GAP)
+	researched_scroll.add_child(_researched)
+
 	var hand_section := _section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	_hand_scroll = ScrollContainer.new()
 	_hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
@@ -976,6 +1028,9 @@ func _build_layout() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
+	_research_button = _button("Research (R)", func(): Game.engine.research())
+	_research_button.custom_minimum_size.y = 44
+	side_col.add_child(_research_button)
 	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)
@@ -1040,6 +1095,20 @@ func _build_layout() -> void:
 	_reveal = HBoxContainer.new()
 	_reveal.add_theme_constant_override("separation", CARD_GAP)
 	choice_box.add_child(_reveal)
+
+	# Research choice: the revealed techs to buy, or decline.
+	_research_overlay = _overlay(CardView.TYPE_COLORS.tech)
+	_research_overlay.z_index = 5
+	var research_box := _research_overlay.get_meta("box") as VBoxContainer
+	var research_title := _heading("Research")
+	research_title.add_theme_font_size_override("font_size", 26)
+	research_title.add_theme_color_override("font_color", Color.WHITE)
+	research_box.add_child(research_title)
+	research_box.add_child(_heading("Buy one tech with wealth, or decline both. The others go back into the research deck."))
+	_research_row = HBoxContainer.new()
+	_research_row.add_theme_constant_override("separation", CARD_GAP)
+	research_box.add_child(_research_row)
+	research_box.add_child(_button("Decline", func(): Game.engine.decline_research()))
 
 	# Game-over overlay.
 	_game_over_overlay = _overlay()
