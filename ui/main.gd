@@ -11,7 +11,8 @@ var _food_label: Label
 var _score_label: Label
 var _piles_label: Label
 var _seed_edit: LineEdit
-var _tableau: HFlowContainer
+var _tableau: HFlowContainer  # holds one group per territory, then the ghost
+var _groups := {}  # territory uid (-1 for cards with no territory) -> HBoxContainer of slots
 var _tableau_scroll: ScrollContainer
 var _hand: HBoxContainer
 var _log: RichTextLabel
@@ -176,15 +177,70 @@ func _refresh() -> void:
 	for i in hand.size():
 		if _place(hand[i], true, _hand, i, dealt * Anim.DEAL_STAGGER):
 			dealt += 1
-	for i in tableau.size():
-		_place(tableau[i], false, _tableau, i, 0.0)
-	_tableau.move_child(_ghost, -1)
+	_place_tableau(tableau)
 	_animate_outcome()
 
 	_end_turn_button.disabled = e.is_over
 	_game_over_overlay.visible = e.is_over
 	if e.is_over:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
+
+
+## Places tableau cards in territory groups: each territory card first, then the cards on it.
+## Cards with no territory go in a last group. Empty groups are removed.
+func _place_tableau(tableau: Array[CardInstance]) -> void:
+	var e := Game.engine
+	var members := {}  # group key -> Array[CardInstance], in tableau order
+	var order: Array[int] = []
+	for card in tableau:
+		var key := -1
+		if card.def.type == "territory":
+			key = card.uid
+		elif e.territory_of(card) != null:
+			key = card.territory_uid
+		if not members.has(key):
+			members[key] = []
+			if key != -1:
+				order.append(key)
+		if card.def.type == "territory":
+			members[key].push_front(card)
+		else:
+			members[key].append(card)
+	if members.has(-1):
+		order.append(-1)
+	for i in order.size():
+		var key := order[i]
+		if not _groups.has(key):
+			_groups[key] = _new_group()
+		var group: HBoxContainer = _groups[key]
+		_tableau.move_child(group.get_parent(), i)
+		for j in members[key].size():
+			_place(members[key][j], false, group, j, 0.0)
+	for key in _groups.keys():
+		if not members.has(key):
+			_groups[key].get_parent().queue_free()
+			_tableau.remove_child(_groups[key].get_parent())
+			_groups.erase(key)
+	_tableau.move_child(_ghost, -1)
+
+
+## A framed row for one territory's cards, added to the tableau.
+func _new_group() -> HBoxContainer:
+	var frame := PanelContainer.new()
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(1, 1, 1, 0.03)
+	style.border_color = Color(1, 1, 1, 0.12)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(6)
+	frame.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 10)
+	frame.add_child(row)
+	_tableau.add_child(frame)
+	return row
 
 
 ## Makes sure card has a view resting in (or flying to) a slot at index in container.
@@ -213,6 +269,8 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 		view.fly_to_slot(_new_slot(in_hand, container, index), _fx)
 		_free_slot(old_slot)
 		return false
+	if view.slot.get_parent() != container:
+		view.slot.reparent(container)
 	container.move_child(view.slot, index)
 	if in_hand:
 		view.set_play_error(error)
