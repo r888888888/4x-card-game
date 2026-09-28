@@ -21,12 +21,25 @@
     "caravan": 2,
     "temple": 2,
     "monument": 2,
-    "pyramids": 1
+    "pyramids": 1,
+    "pasture": 2,
+    "harbor": 2,
+    "lumber_camp": 2,
+    "mine": 2,
+    "forge": 1,
+    "market": 1
   },
   "territory_deck": {
-    "plains": 2,
-    "hills": 2,
-    "lakeshore": 2,
-    "rainforest": 1
+    "plains": 1,
+    "river_valley": 1,
+    "lakeshore": 1,
+    "floodplain_delta": 1,
+    "bay": 1,
+    "hills": 1,
+    "gold_hills": 1,
+    "highlands": 1,
+    "woodland": 1,
+    "rainforest": 1,
+    "dunes": 1
   }
 }
