@@ -135,6 +135,21 @@ func set_play_error(play_error: String) -> void:
 	modulate = Color.WHITE if playable else Color(0.68, 0.68, 0.68)
 
 
+## Greys out a tableau building with no worker and marks it "Idle" (or clears that).
+func set_idle(idle: bool) -> void:
+	var marker := _box.get_node_or_null("Idle") as Label
+	if idle and marker == null:
+		marker = _label("Idle: no worker", 17, Color("ff8a80"))
+		marker.name = "Idle"
+		_box.add_child(marker)
+	elif not idle and marker != null:
+		_box.remove_child(marker)
+		marker.queue_free()
+	var shade := 0.55 if idle else 1.0
+	modulate = Color(shade, shade, shade, modulate.a)
+	tooltip_text = "Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else ""
+
+
 ## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.
 func set_pickable(on: bool, tooltip := "") -> void:
 	pickable = on
