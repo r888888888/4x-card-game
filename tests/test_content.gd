@@ -102,3 +102,8 @@ func test_scripted_games_run_and_found_cities() -> void:
 		if count_id(e.zone("tableau"), "city") >= 1:
 			founded += 1
 	check(founded >= 11, "a City beyond the Capital was founded in %d of 20 seeds (need most: >= 11)" % founded)
+
+
+func test_real_config_turns_population_on() -> void:
+	var r := load_real()
+	check(not r.config.get("population", {}).is_empty(), "data/config.json has a population block (backlog 009)")

@@ -5,8 +5,10 @@ extends RefCounted
 ## Unknown fields are warnings, not errors.
 
 const CARD_TYPES: Array[String] = ["action", "building", "city", "territory"]
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "keywords", "requires"]
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "deck_model", "starting", "deck", "keywords", "territory_deck"]
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires"]
+## Population block fields: name -> [minimum, default].
+const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "deck_model", "starting", "deck", "keywords", "territory_deck", "population"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -165,6 +167,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 
 	if def.type == "territory":
 		def.slots = Effect.read_int(c, "slots", errs, 0)
+		def.housing = Effect.read_int(c, "housing", errs, 1, def.slots + 2)
 		var kws: Variant = c.get("keywords", [])
 		if kws is Array:
 			for k in kws:
@@ -177,7 +180,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		else:
 			errs.append("'keywords' must be an array of keyword ids")
 	else:
-		for key in ["slots", "keywords"]:
+		for key in ["slots", "housing", "keywords"]:
 			if c.has(key):
 				warns.append("'%s' only applies to territories (ignored)" % key)
 
@@ -200,7 +203,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 
 
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, deck_model,
-## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}}.
+## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count},
+## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -215,6 +219,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"starting": {"resources": {}, "tableau": [], "territory": ""},
 		"deck": {},
 		"territory_deck": {},
+		"population": {},
 	}
 
 	var starting: Variant = raw.get("starting", {})
@@ -263,12 +268,36 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	else:
 		errs.append("'territory_deck' must be an object like {\"hills\": 2}")
 
+	if raw.has("population"):
+		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
+
 	for key in raw:
 		if not CONFIG_FIELDS.has(key):
 			warnings.append("%s: unknown field '%s'" % [src, key])
 	for m in errs:
 		errors.append("%s: %s" % [src, m])
 	return config
+
+
+## Normalizes the population block, filling in defaults. start must fit the starting territory's housing.
+static func _parse_population(raw: Variant, cards: Dictionary, start_territory: String, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'population' must be an object")
+		return out
+	for field in POPULATION_FIELDS:
+		var min_value: int = POPULATION_FIELDS[field][0]
+		var n: Variant = as_int(raw.get(field, POPULATION_FIELDS[field][1]))
+		if typeof(n) != TYPE_INT or n < min_value:
+			errs.append("'population.%s' must be an integer >= %d" % [field, min_value])
+			n = POPULATION_FIELDS[field][1]
+		out[field] = n
+	for key in raw:
+		if not POPULATION_FIELDS.has(key):
+			warnings.append("%s: population: unknown field '%s'" % [src, key])
+	if start_territory != "" and out.start > cards[start_territory].housing:
+		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
+	return out
 
 
 ## Normalizes a {card_id: count} deck. territories: whether the deck must hold only

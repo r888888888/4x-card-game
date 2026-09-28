@@ -35,6 +35,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_explore.gd` | The `explore` op: reveal, `pending_choice`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
 | `tests/test_slots.gd` | Building slots: `free_slots`, building targets and placement |
+| `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern

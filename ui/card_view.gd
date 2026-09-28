@@ -106,7 +106,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_box.add_child(rules)
 
 	if def.type == "territory":
-		var info := "%d slot%s" % [def.slots, "" if def.slots == 1 else "s"]
+		var info := "%d slot%s · %d housing" % [def.slots, "" if def.slots == 1 else "s", def.housing]
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
