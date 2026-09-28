@@ -6,7 +6,7 @@ extends RefCounted
 
 const CARD_TYPES: Array[String] = ["action", "building", "city", "territory", "tech"]
 const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the main deck
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount"]
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount", "era"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "population"]
@@ -201,6 +201,12 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				warns.append("'%s' only applies to territories (ignored)" % key)
 
 	if def.type == "tech":
+		if c.has("era"):
+			var era: Variant = as_int(c.era)
+			if typeof(era) != TYPE_INT or era < 1:
+				errs.append("era: must be an integer >= 1")
+			else:
+				def.era = era
 		def.prereq = Effect.read_string(c, "prereq", errs, [], "")
 		if c.has("prereq_discount"):
 			var discount: Variant = as_int(c.prereq_discount)
@@ -211,7 +217,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			else:
 				def.prereq_discount = discount
 	else:
-		for key in ["prereq", "prereq_discount"]:
+		for key in ["prereq", "prereq_discount", "era"]:
 			if c.has(key):
 				warns.append("'%s' only applies to techs (ignored)" % key)
 

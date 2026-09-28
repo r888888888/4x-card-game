@@ -2,7 +2,7 @@
 id: 027
 title: Tech eras (add_era) and extra research charges (Library)
 type: feature
-status: ready
+status: review
 branch: feat/027-tech-eras
 ---
 
@@ -24,31 +24,31 @@ Unless stated otherwise, the config has
 `research_deck: {pottery: 1, philosophy: 1, optics: 1, astronomy: 1}` and starting resources
 `{food: 5, wealth: 20}`.
 
-- [ ] AC1 (loader):
+- [x] AC1 (loader):
   - Card field `era` is an integer ≥ 1 and defaults to 1. On a card that isn't a tech it is a warning
     (ignored).
   - The `add_era` op needs `era`, an integer ≥ 2; anything else is a load error that names the card,
     the effect and `era`.
   - The `research` op takes `amount`, an integer ≥ 1 (default 1).
   - Short texts: "Adds era 2 techs" and "⟳ +1 research".
-- [ ] AC2 (setup): In a new game, only era-1 techs are in the research deck (Pottery and Philosophy).
+- [x] AC2 (setup): In a new game, only era-1 techs are in the research deck (Pottery and Philosophy).
   Optics and Astronomy wait in `future_techs`. `era()` is 1.
-- [ ] AC3 (add an era once): Buying Philosophy shuffles Optics and Astronomy into the research deck,
+- [x] AC3 (add an era once): Buying Philosophy shuffles Optics and Astronomy into the research deck,
   and `era()` is 2. Then playing an Academy (`add_era` 2 again) changes nothing: the research deck
   size stays the same and `era()` stays 2. The effect works the same on a building: an Academy played
   first adds era 2.
-- [ ] AC4 (empty deck adds the next era): Given an empty research deck, era 1, and era-2 techs still in
+- [x] AC4 (empty deck adds the next era): Given an empty research deck, era 1, and era-2 techs still in
   `future_techs`, `research_error()` is "". `research()` adds era 2, then reveals 2 of its techs, and
   `era()` is 2. With an empty research deck and no eras left to add, `research_error()` is "The research
   deck is empty."
-- [ ] AC5 (era techs can't be lost): When Philosophy is passed a third time, it goes back to the
+- [x] AC5 (era techs can't be lost): When Philosophy is passed a third time, it goes back to the
   research deck instead of `lost_techs`, with passes still 2 and cost 1.
-- [ ] AC6 (Library): Given a Library on a territory with a free worker, the next turn starts with
+- [x] AC6 (Library): Given a Library on a territory with a free worker, the next turn starts with
   `research_left()` 2, and I can research, buy or decline, and research again. An idle Library
   (not enough pop) adds nothing: `research_left()` is 1. A Library built this turn adds nothing until
   the next upkeep. Unused charges don't carry over: a turn with 2 unused is followed by a turn with 2,
   not 4.
-- [ ] AC7 (research op outside upkeep): A play effect `research` 1 (fixture action `study`: "Study",
+- [x] AC7 (research op outside upkeep): A play effect `research` 1 (fixture action `study`: "Study",
   no cost) adds a charge at once. With 0 charges left, playing Study makes `research_left()` 1.
 
 ## Out of scope
@@ -78,10 +78,21 @@ Unless stated otherwise, the config has
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_eras::test_…` |
+| AC1 | `test_tech_eras::test_era_defaults_to_1_and_loads`, `test_era_below_1_is_an_error`, `test_era_on_a_card_that_is_not_a_tech_is_a_warning`, `test_add_era_loads`, `test_add_era_needs_an_era`, `test_add_era_1_is_an_error`, `test_research_op_loads_with_a_default_amount`, `test_research_amount_below_1_is_an_error`, `test_era_and_research_card_text` |
+| AC2 | `test_only_era_1_techs_start_in_the_research_deck` |
+| AC3 | `test_buying_an_era_tech_adds_the_next_era`, `test_an_era_is_only_added_once`, `test_a_building_can_add_an_era` |
+| AC4 | `test_an_empty_research_deck_adds_the_next_era`, `test_an_empty_research_deck_with_no_eras_left_is_an_error` (already passes: guards 025) |
+| AC5 | `test_an_era_tech_is_never_lost` |
+| AC6 | `test_a_staffed_library_gives_a_second_research`, `test_an_idle_library_gives_nothing`, `test_a_library_adds_nothing_until_the_next_upkeep`, `test_extra_research_does_not_carry_over` |
+| AC7 | `test_a_played_research_card_adds_a_charge_at_once`, `test_a_research_card_adds_to_the_charges_left` |
 
 ## Manual check
-- [ ] Buying an era tech shows the research deck count jump and the era change.
-- [ ] With a staffed Library, the Research button shows 2 charges.
+Add techs (including one with `add_era` and some with `"era": 2`) to `data/cards.json`, a Library to the deck, and a `research_deck` to `data/config.json`; revert afterwards.
+- [ ] Buying an era tech makes the Research button's deck count jump and its era read 2.
+- [ ] With a staffed Library, the Research button shows 2 left on the turn after it is built; an idle one shows 1.
+- [ ] Emptying the research deck and pressing Research reveals the next era's techs.
 
 ## Log
+- Suite: 267 → 289 tests. The 027 fixtures live in `test_tech_eras.gd`; `tech_engine` got an optional `extra` parameter.
+- The only UI change is the era on the Research button. The Library needs no UI beyond the card.
+- Follow-up (028): real content, and making `test_research.gd` use `tests/lib/tech_case.gd`.

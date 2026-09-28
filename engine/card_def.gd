@@ -13,6 +13,7 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
+var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
 var prereq: String = ""  # techs: id of the tech that makes this one cheaper when researched
 var prereq_discount := 2  # techs: wealth off when prereq is researched
 var text: String = ""  # optional override; otherwise generated from effects
@@ -20,6 +21,11 @@ var text: String = ""  # optional override; otherwise generated from effects
 
 func is_permanent() -> bool:
 	return type != "action"
+
+
+## Whether one of the card's effects adds an era of techs (such a tech can't be lost).
+func adds_era() -> bool:
+	return effects.any(func(e): return e.op == "add_era")
 
 
 func has_tag(tag: String) -> bool:
