@@ -18,7 +18,8 @@ func real_engine(seed_value: int) -> GameEngine:
 
 
 ## Plays one scripted game: resolve any pending choice with its first option, otherwise play the
-## first hand card that can be played (on its first valid target), otherwise end the turn.
+## first hand card that can be played (on its first valid target), otherwise discard the hand
+## (dead cards never cycle otherwise, backlog 024) and end the turn.
 func play_scripted_game(e: GameEngine) -> void:
 	var steps := 0
 	while not e.is_over and steps < 2000:
@@ -34,6 +35,8 @@ func play_scripted_game(e: GameEngine) -> void:
 				played = e.play_card(card.uid, target)
 				break
 		if not played:
+			for card in e.zone("hand").cards.duplicate():
+				e.discard_card(card.uid)
 			e.end_turn()
 	check(e.is_over, "game finished within 2000 steps")
 

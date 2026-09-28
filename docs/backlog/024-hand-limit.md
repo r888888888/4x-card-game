@@ -35,9 +35,15 @@ action that draws 2 (it has no cost).
     nothing changed
   - `grow_error(territory_uid)` is the same message and `grow` fails
   - calling `end_turn()` again changes nothing (still turn 1, same `discard_needed()`).
-- [ ] AC7 (bad discards): `discard_card` returns false and changes nothing when no discard is pending
-  (for example at the start of a turn with a hand of 5), or when the uid isn't in hand (for example the
-  Capital, or a uid already discarded).
+- [ ] AC7 (voluntary discard): `discard_card(uid)` also works during your turn with no discard pending
+  (it is free and unlimited), so dead cards can be cycled out. Given a hand of 5 at the start of turn 1,
+  when I discard one card, then it returns true, that card is in the discard pile, the hand has 4, the
+  turn is still 1, `discard_needed()` is 0 and nothing is drawn. Given a hand of 8 (3 Scouts played),
+  when I discard 1 card and then end the turn, then the hand is 7, there is no pending discard and the
+  turn advances to 2. Given a hand emptied by discards, when I end the turn, then the next turn draws 5.
+- [ ] AC7b (bad discards): `discard_card` returns false and changes nothing when the uid isn't in hand
+  (for example the Capital, -1, or a uid already discarded), when a choice is pending (explore), and
+  when the game is over.
 - [ ] AC8 (last turn): Given turn 20 of 20 and a hand of 8, when I end the turn, then no discard is asked
   for (`discard_needed()` stays 0) and the game ends as before.
 - [ ] AC9 (config): `hand_limit` is optional in config.json and defaults to 7. A value below `hand_size`,
@@ -46,7 +52,7 @@ action that draws 2 (it has no cost).
 
 ## Out of scope
 - Cards or effects that change the limit or discard from hand (a `discard` op).
-- Discarding at any time other than the end of the turn.
+- Any cost or limit on voluntary discards.
 - Cancelling a pending discard to go back and play cards.
 
 ## Design notes
@@ -64,7 +70,10 @@ action that draws 2 (it has no cost).
 - With draw-up-to-5 and a limit of 7, the only way over the limit in the current content is net card
   draw (Scout: play 1, draw 1 → net 0 in `data/cards.json`). So the limit will rarely trigger until
   there is more draw. That's expected; the rule is in place for later content.
-- UI: while `discard_needed()` > 0, the hand is in discard mode. A banner says "Discard N card(s)",
+- Added after the first build, when a scripted bot deadlocked holding cards it couldn't afford: with
+  draw-up-to-5 and no way to discard, a dead hand never cycles. Hence voluntary discards (AC7).
+- The scripted smoke bot in `test_content` discards every card it can't play before ending the turn.
+- UI: a hand card can be discarded any time (a discard action next to Play); while `discard_needed()` > 0, the hand is in discard mode. A banner says "Discard N card(s)",
   and double-click or the keyboard play key discards the selected card, and
   E does nothing. The UI calls `discard_needed()` / `discard_card()` only.
 - PLAN.md turn loop: step 2 becomes "Draw up to hand size", and step 5 becomes "Cleanup: keep your hand;
@@ -80,7 +89,8 @@ action that draws 2 (it has no cost).
 | AC4 | `test_end_turn_over_the_limit_waits_for_discard` |
 | AC5 | `test_discarding_down_to_the_limit_ends_the_turn`, `test_discard_two_cards_takes_two_calls` |
 | AC6 | `test_play_is_blocked_while_discarding`, `test_grow_is_blocked_while_discarding`, `test_end_turn_again_does_nothing_while_discarding` |
-| AC7 | `test_discard_refused_when_none_is_pending`, `test_discard_refused_for_a_card_not_in_hand`, `test_discard_refused_for_a_card_already_discarded` |
+| AC7 | `test_discard_without_pending_discards_one_card`, `test_voluntary_discard_avoids_the_forced_discard`, `test_discarding_the_whole_hand_redraws_next_turn` |
+| AC7b | `test_discard_refused_for_a_card_not_in_hand`, `test_discard_refused_for_a_card_already_discarded`, `test_discard_refused_while_a_choice_is_pending`, `test_discard_refused_when_the_game_is_over` (these already pass: guards) |
 | AC8 | `test_no_discard_on_the_last_turn` |
 | AC9 | `test_hand_limit_defaults_to_7`, `test_hand_limit_is_read_from_config`, `test_hand_limit_below_hand_size_is_an_error`, `test_hand_limit_must_be_an_integer`, `test_real_config_sets_hand_limit_7` |
 

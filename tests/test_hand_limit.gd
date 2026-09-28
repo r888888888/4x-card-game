@@ -124,15 +124,53 @@ func test_end_turn_again_does_nothing_while_discarding() -> void:
 	eq(e.zone("hand").size(), 9, "hand unchanged")
 
 
-# --- AC7: bad discards ---
+# --- AC7: voluntary discard ---
 
-func test_discard_refused_when_none_is_pending() -> void:
+func test_discard_without_pending_discards_one_card() -> void:
 	var e := make_engine({"farm": 10})
+	var uid := first_in_hand(e)
+	check(e.discard_card(uid), "discard succeeds")
+	check(in_zone(e, "discard", uid), "card is in the discard pile")
+	eq(e.zone("hand").size(), 4, "hand")
+	eq(e.turn, 1, "turn unchanged")
+	eq(e.discard_needed(), 0, "nothing pending")
+	eq(e.zone("deck").size(), 5, "nothing drawn")
+
+
+func test_voluntary_discard_avoids_the_forced_discard() -> void:
+	var e := scout_engine(3)  # hand 8
+	check(e.discard_card(first_in_hand(e)), "discard 1")
+	e.end_turn()
+	eq(e.turn, 2, "turn advanced")
+	eq(e.discard_needed(), 0, "nothing pending")
+	eq(e.zone("hand").size(), 7, "hand at limit")
+
+
+func test_discarding_the_whole_hand_redraws_next_turn() -> void:
+	var e := make_engine({"farm": 10})
+	for i in 5:
+		check(e.discard_card(first_in_hand(e)), "discard %d" % i)
+	eq(e.zone("hand").size(), 0, "hand empty")
+	e.end_turn()
+	eq(e.zone("hand").size(), 5, "drew 5")
+
+
+# --- AC7b: bad discards ---
+
+func test_discard_refused_while_a_choice_is_pending() -> void:
+	var e := make_engine({"explorer": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
+	check(e.play_card(first_in_hand(e)), "explore")
+	check(not e.pending_choice.is_empty(), "choice pending")
 	var uid := first_in_hand(e)
 	check(not e.discard_card(uid), "refused")
 	check(in_zone(e, "hand", uid), "still in hand")
-	eq(e.zone("hand").size(), 5, "hand unchanged")
-	eq(e.zone("discard").size(), 0, "discard unchanged")
+
+
+func test_discard_refused_when_the_game_is_over() -> void:
+	var e := make_engine({"farm": 10}, {"turn_limit": 1})
+	e.end_turn()
+	check(e.is_over, "game over")
+	check(not e.discard_card(-1), "refused")
 
 
 func test_discard_refused_for_a_card_not_in_hand() -> void:
