@@ -2,7 +2,7 @@
 id: 015
 title: Legible text, contrast and button styles; say why a card can't be played
 type: feature
-status: review
+status: done
 branch: feat/015-legibility-contrast
 ---
 
