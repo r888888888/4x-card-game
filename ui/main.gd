@@ -581,7 +581,10 @@ func _refresh() -> void:
 	if not e.zone("lost_techs").is_empty():
 		_research_button.text += " · lost %d" % e.zone("lost_techs").size()
 	_research_button.disabled = research_error != ""
-	_research_button.tooltip_text = "\n".join(PackedStringArray([research_error] + _era_unlock_lines()).filter(func(t): return t != ""))
+	var tip_lines := _era_unlock_lines()
+	if research_error != "":
+		tip_lines.push_front(research_error)
+	_research_button.tooltip_text = "\n".join(tip_lines)
 	_research_button.visible = e.config.research_deck.size() > 0
 	_animate_outcome()
 	_sync_card_focus()
