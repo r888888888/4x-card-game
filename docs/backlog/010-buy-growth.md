@@ -2,7 +2,7 @@
 id: 010
 title: Buy growth with food
 type: feature
-status: red-review
+status: in-progress
 branch: feat/010-buy-growth
 ---
 

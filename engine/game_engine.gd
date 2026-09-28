@@ -73,6 +73,45 @@ func housing(territory_uid: int) -> int:
 	return territory.def.housing if territory != null else 0
 
 
+## Food to grow settled territory territory_uid by 1 pop: its current pop + 1.
+func grow_cost(territory_uid: int) -> int:
+	return pop(territory_uid) + 1
+
+
+## Why settled territory territory_uid can't grow right now, or "" if it can.
+func grow_error(territory_uid: int) -> String:
+	if is_over:
+		return "The game is over."
+	if not population_on():
+		return "This game has no population."
+	if not pending_choice.is_empty():
+		return "Choose a territory first."
+	var territory := _settled_territory(territory_uid)
+	if territory == null:
+		return "Only a settled territory can grow."
+	if territory.pop >= territory.def.housing:
+		return "%s is at its housing (%d)." % [territory.def.name, territory.def.housing]
+	var cost := grow_cost(territory_uid)
+	var have: int = resources.get("food", 0)
+	if have < cost:
+		return "Growing %s needs %d food (you have %d)." % [territory.def.name, cost, have]
+	return ""
+
+
+## Pays grow_cost food for +1 pop on settled territory territory_uid. False (and no change) if
+## grow_error says it can't.
+func grow(territory_uid: int) -> bool:
+	if grow_error(territory_uid) != "":
+		return false
+	var territory := _settled_territory(territory_uid)
+	var cost := grow_cost(territory_uid)
+	resources.food -= cost
+	territory.pop += 1
+	_log("%s grew to %d pop (%d food)." % [territory.def.name, territory.pop, cost])
+	changed.emit()
+	return true
+
+
 ## Pop summed over every settled territory.
 func total_pop() -> int:
 	var total := 0
