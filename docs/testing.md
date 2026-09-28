@@ -45,6 +45,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, `research` / `buy_tech` / `decline_research`, blocking, charges |
+| `tests/test_tech_passes.gd` | Tech passes, stacking discount, removal to `lost_techs`, `prereq` discount, cost floor, prerequisite card text |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
 
 Add a new file when an area grows past ~300 lines or is a separate concern
@@ -77,6 +78,7 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
+| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_engine`, `arrange`, `uid_of`, `pass_tech` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `card_ids(zone)` / `first_in_hand(engine)` | Inspection helpers |

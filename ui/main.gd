@@ -569,6 +569,7 @@ func _refresh() -> void:
 		_place(reveal[reveal.size() - 1 - i], false, _reveal, i, 0.0)  # top of the deck first
 	for i in techs.size():
 		_place(techs[i], false, _research_row, i, 0.0)
+		_views[techs[i].uid].set_tech_info(e.tech_cost(techs[i].uid), techs[i].def.cost.wealth, e.tech_passes(techs[i].uid), GameEngine.MAX_PASSES)
 	for i in researched.size():
 		_place(researched[i], false, _researched, i, 0.0)
 	_frontier_section.visible = not frontier.is_empty()
@@ -577,6 +578,8 @@ func _refresh() -> void:
 	_research_overlay.visible = not techs.is_empty()
 	var research_error := e.research_error()
 	_research_button.text = "Research (R) · %d left · deck %d" % [e.research_left(), e.zone("research_deck").size()]
+	if not e.zone("lost_techs").is_empty():
+		_research_button.text += " · lost %d" % e.zone("lost_techs").size()
 	_research_button.disabled = research_error != ""
 	_research_button.tooltip_text = research_error
 	_research_button.visible = e.config.research_deck.size() > 0
