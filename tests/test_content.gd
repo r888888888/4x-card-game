@@ -107,3 +107,14 @@ func test_scripted_games_run_and_found_cities() -> void:
 func test_real_config_turns_population_on() -> void:
 	var r := load_real()
 	check(not r.config.get("population", {}).is_empty(), "data/config.json has a population block (backlog 009)")
+
+
+func test_real_deck_has_growth_cards() -> void:
+	var r := load_real()
+	var growth := 0
+	for id in r.config.deck:
+		for effect in r.cards[id].effects:
+			if effect.op == "grow":
+				growth += r.config.deck[id]
+				break
+	check(growth >= 4, "at least 4 growth cards in the deck (got %d)" % growth)
