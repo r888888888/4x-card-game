@@ -17,15 +17,19 @@ func real_engine(seed_value: int) -> GameEngine:
 	return e
 
 
-## Plays one scripted game: resolve any pending choice with its first option, otherwise play the
-## first hand card that can be played (on its first valid target), otherwise discard the hand
-## (dead cards never cycle otherwise, backlog 024) and end the turn.
+## Plays one scripted game: resolve any pending choice with its first option, buy the cheapest
+## revealed tech it can afford (or decline), otherwise play the first hand card that can be played
+## (on its first valid target), otherwise research if it can, otherwise discard the hand (dead cards
+## never cycle otherwise, backlog 024) and end the turn.
 func play_scripted_game(e: GameEngine) -> void:
 	var steps := 0
 	while not e.is_over and steps < 2000:
 		steps += 1
 		if not e.pending_choice.is_empty():
 			e.choose(e.pending_choice.options[0])
+			continue
+		if not e.research_options().is_empty():
+			buy_cheapest_tech(e)
 			continue
 		var played := false
 		for card in e.zone("hand").cards.duplicate():
@@ -34,11 +38,26 @@ func play_scripted_game(e: GameEngine) -> void:
 			if e.play_error(card.uid, target) == "":
 				played = e.play_card(card.uid, target)
 				break
+		if not played and e.research_error() == "":
+			e.research()
+			continue
 		if not played:
 			for card in e.zone("hand").cards.duplicate():
 				e.discard_card(card.uid)
 			e.end_turn()
 	check(e.is_over, "game finished within 2000 steps")
+
+
+## Buys the cheapest revealed tech the engine allows, or declines when none is affordable.
+func buy_cheapest_tech(e: GameEngine) -> void:
+	var best := -1
+	for uid in e.research_options():
+		if e.buy_tech_error(uid) == "" and (best == -1 or e.tech_cost(uid) < e.tech_cost(best)):
+			best = uid
+	if best == -1:
+		e.decline_research()
+	else:
+		e.buy_tech(best)
 
 
 func count_id(zone: Zone, id: String) -> int:
@@ -175,3 +194,102 @@ func test_scripted_games_spend_wealth_and_never_go_negative() -> void:
 		if state.spent:
 			spent_in += 1
 	check(spent_in >= 1, "a card costing wealth was played in %d of 3 seeds (need >= 1)" % spent_in)
+
+
+# --- Tech content (backlog 028) ---
+
+## The cards moved out of the starting deck, each now unlocked by a tech.
+const UNLOCKED := ["pasture", "harbor", "monument", "pyramids", "forge"]
+
+
+func techs_in_research_deck(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.config.get("research_deck", {}):
+		out.append(r.cards[id])
+	return out
+
+
+## Card ids a tech's create effects put into play.
+func created_by(tech: CardDef) -> Array[String]:
+	var out: Array[String] = []
+	for effect in tech.effects:
+		if effect.op == "create":
+			out.append(effect.card_id)
+	return out
+
+
+func test_real_data_loads_without_warnings() -> void:
+	var r := load_real()
+	eq(r.warnings, [] as Array[String], "real data warnings")
+
+
+func test_research_deck_has_6_techs_in_each_of_eras_1_and_2() -> void:
+	var r := load_real()
+	var per_era := {1: 0, 2: 0}
+	var adds_era_2 := false
+	for tech in techs_in_research_deck(r):
+		per_era[tech.era] = per_era.get(tech.era, 0) + 1
+		for effect in tech.effects:
+			if tech.era == 1 and effect.op == "add_era" and effect.era == 2:
+				adds_era_2 = true
+	check(per_era[1] >= 6, "era-1 techs: %d (need >= 6)" % per_era[1])
+	check(per_era[2] >= 6, "era-2 techs: %d (need >= 6)" % per_era[2])
+	check(adds_era_2, "an era-1 tech adds era 2")
+
+
+func test_every_tech_prereq_is_in_the_research_deck() -> void:
+	var r := load_real()
+	var techs := techs_in_research_deck(r)
+	check(not techs.is_empty(), "the research deck has techs")
+	for tech in techs:
+		if tech.prereq != "":
+			check(r.config.research_deck.has(tech.prereq), "%s: prereq %s is not in research_deck" % [tech.id, tech.prereq])
+
+
+func test_techs_only_create_cards_that_are_not_techs() -> void:
+	var r := load_real()
+	var created := 0
+	for tech in techs_in_research_deck(r):
+		for id in created_by(tech):
+			created += 1
+			check(r.cards[id].type != "tech", "%s creates tech %s" % [tech.id, id])
+	check(created > 0, "some tech creates a card")
+
+
+func test_a_tech_unlocks_the_library() -> void:
+	var r := load_real()
+	check(r.cards.has("library"), "a Library card exists")
+	check(not r.config.deck.has("library"), "the Library is not in the main deck")
+	var unlocked := false
+	for tech in techs_in_research_deck(r):
+		if created_by(tech).has("library"):
+			unlocked = true
+	check(unlocked, "a tech in research_deck creates a Library")
+	if r.cards.has("library"):
+		check(r.cards.library.effects.any(func(e): return e.op == "research"), "the Library grants research")
+
+
+func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
+	var r := load_real()
+	var unlocks := {}
+	for tech in techs_in_research_deck(r):
+		for id in created_by(tech):
+			unlocks[id] = tech.id
+	for id in UNLOCKED:
+		check(not r.config.deck.has(id), "%s is no longer in the main deck" % id)
+		check(unlocks.has(id), "a tech in research_deck creates %s" % id)
+
+
+func test_scripted_games_buy_techs_and_never_go_negative() -> void:
+	var bought_in := 0
+	for s in range(1, 4):
+		var e := real_engine(s)
+		var state := {"min": e.resources.get("wealth", 0)}
+		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
+		e.changed.connect(on_changed)
+		play_scripted_game(e)
+		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
+		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
+		if not e.zone("researched").is_empty():
+			bought_in += 1
+	check(bought_in >= 1, "a tech was bought in %d of 3 seeds (need >= 1)" % bought_in)

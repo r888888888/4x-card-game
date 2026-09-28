@@ -171,7 +171,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
-stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content).
+stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
+Pyramids and Forge left the deck and come back through techs).
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Once per turn (`research_left()`), a free action: `research()` reveals the top 2 techs. `buy_tech(uid)` pays
