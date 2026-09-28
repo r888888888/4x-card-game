@@ -121,6 +121,76 @@
       ]
     },
     {
+      "id": "library", "name": "Library", "type": "building",
+      "cost": { "food": 1, "wealth": 2 }, "vp": 1, "tags": [],
+      "effects": [ { "op": "research", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "pottery", "name": "Pottery", "type": "tech",
+      "cost": { "wealth": 2 }, "vp": 1, "tags": [],
+      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "pasture", "zone": "discard" } ]
+    },
+    {
+      "id": "bronze_working", "name": "Bronze Working", "type": "tech",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "forge", "zone": "discard" } ]
+    },
+    {
+      "id": "writing", "name": "Writing", "type": "tech",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "library", "zone": "discard" } ]
+    },
+    {
+      "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "pottery",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" } ]
+    },
+    {
+      "id": "currency", "name": "Currency", "type": "tech", "prereq": "bronze_working",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "philosophy", "name": "Philosophy", "type": "tech", "prereq": "writing",
+      "cost": { "wealth": 5 }, "vp": 2, "tags": [],
+      "effects": [ { "op": "add_era", "era": 2 } ]
+    },
+    {
+      "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 2, "prereq": "bronze_working",
+      "cost": { "wealth": 5 }, "vp": 2, "tags": [],
+      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 2, "prereq": "currency",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
+    },
+    {
+      "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "harbor", "zone": "discard" } ]
+    },
+    {
+      "id": "monarchy", "name": "Monarchy", "type": "tech", "era": 2, "prereq": "philosophy",
+      "cost": { "wealth": 6 }, "vp": 3, "tags": [],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 2, "prereq": "mathematics",
+      "cost": { "wealth": 6 }, "vp": 4, "tags": [],
+      "effects": []
+    },
+    {
+      "id": "engineering", "name": "Engineering", "type": "tech", "era": 2, "prereq": "masonry",
+      "cost": { "wealth": 6 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "create", "card": "monument", "zone": "discard" } ]
+    },
+    {
       "id": "grassland", "name": "Grassland", "type": "territory",
       "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["grassland"]
     },

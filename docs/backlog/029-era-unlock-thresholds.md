@@ -2,7 +2,7 @@
 id: 029
 title: Unlock tech eras by reaching a pop or wealth threshold
 type: feature
-status: draft
+status: ready
 branch: feat/029-era-thresholds
 ---
 
