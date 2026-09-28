@@ -2,7 +2,7 @@
 id: 025
 title: Research techs from a research deck (reveal 2, buy one or decline)
 type: feature
-status: in-progress
+status: review
 branch: feat/025-research-deck
 ---
 
@@ -23,18 +23,18 @@ Unless stated otherwise, the config has `research_deck: {pottery: 1, writing: 1,
 starting resources `{food: 2, wealth: 10}`. Tests set the research deck order directly when it
 matters ("top first").
 
-- [ ] AC1 (tech cards load): card type `tech` is valid. A tech's cost must be wealth only, and at
+- [x] AC1 (tech cards load): card type `tech` is valid. A tech's cost must be wealth only, and at
   least 1: `{"food": 1}`, `{"wealth": 0}`, `{"wealth": 2, "food": 1}` and a missing cost are each a
   load error that names the card and `cost`. A tech effect with a `keyword`, or a play effect that needs
   a target (`settle`), is a load error that names the card and the effect index.
-- [ ] AC2 (config): `research_deck` is optional ({tech_id: count}, default {}). An unknown id, a card
+- [x] AC2 (config): `research_deck` is optional ({tech_id: count}, default {}). An unknown id, a card
   that isn't a tech, or a count below 1 is a load error that names config.json and `research_deck`. A
   tech listed in `deck` is a load error that names `deck`.
-- [ ] AC3 (setup): In a new game, the `research_deck` zone holds the 3 techs in a shuffled order that
+- [x] AC3 (setup): In a new game, the `research_deck` zone holds the 3 techs in a shuffled order that
   depends only on the seed (same seed, same order). `researched` is empty and `research_left()` is 1.
   With no `research_deck` in the config, the research deck is empty and `research_error()` is "The
   research deck is empty."
-- [ ] AC4 (reveal): Given the research deck [pottery, writing, bronze] (top first), when I call
+- [x] AC4 (reveal): Given the research deck [pottery, writing, bronze] (top first), when I call
   `research()`, then it returns true. `research_options()` is [pottery uid, writing uid] (top first),
   the research deck holds only Bronze Working, and `research_left()` is 0. `changed` is emitted.
   While options are open:
@@ -43,7 +43,7 @@ matters ("top first").
   - `discard_card` returns false
   - `end_turn()` does nothing (still turn 1)
   - `research()` returns false.
-- [ ] AC5 (buy): Continuing AC4, when I call `buy_tech(pottery uid)`, then it returns true. Wealth is
+- [x] AC5 (buy): Continuing AC4, when I call `buy_tech(pottery uid)`, then it returns true. Wealth is
   8, Pottery is in `researched`, and the research deck holds 2 cards (Bronze Working and Writing, in
   shuffled order). `research_options()` is empty, and play and end turn work again.
   Rejections leave everything unchanged, including the open options:
@@ -51,14 +51,14 @@ matters ("top first").
     `buy_tech` returns false
   - `buy_tech` with a uid that isn't an option (Bronze Working, the Capital, -1) returns false.
   `tech_cost(uid)` is the tech's printed wealth cost: 2 for Pottery.
-- [ ] AC6 (techs count like buildings): Buying Writing resolves its play effects, so the score goes up
+- [x] AC6 (techs count like buildings): Buying Writing resolves its play effects, so the score goes up
   by 2 at once. Buying Pottery raises the score by 1 (its printed VP), and at the next turn's upkeep
   Pottery gives +1 food. A tech is never idle, and needs no territory, slot or worker.
-- [ ] AC7 (decline): Given open options [pottery, writing], when I call `decline_research()`, then it
+- [x] AC7 (decline): Given open options [pottery, writing], when I call `decline_research()`, then it
   returns true, both techs are back in the research deck (3 cards, reshuffled), no wealth is spent,
   `research_left()` stays 0, and `research_options()` is empty. With no options open,
   `decline_research()` returns false.
-- [ ] AC8 (can't research): `research()` returns false and changes nothing when `research_error()`
+- [x] AC8 (can't research): `research()` returns false and changes nothing when `research_error()`
   isn't "". The messages:
   - game over: "The game is over."
   - explore choice pending: "Choose a territory first."
@@ -67,7 +67,7 @@ matters ("top first").
   - empty research deck: "The research deck is empty."
 
   With 1 tech left, `research()` reveals just that one, and it can be bought or declined.
-- [ ] AC9 (charges reset): Each turn starts with `research_left()` 1. Unused charges don't carry over:
+- [x] AC9 (charges reset): Each turn starts with `research_left()` 1. Unused charges don't carry over:
   end turn 1 without researching, and turn 2 has 1, not 2.
 
 ## Out of scope
@@ -121,7 +121,7 @@ matters ("top first").
 | AC9 | `test_each_turn_starts_with_one_charge`, `test_unused_charges_do_not_carry_over` |
 
 ## Manual check
-Run the game with a temporary research deck in `data/config.json` (the real content comes in 028).
+Add three techs to `data/cards.json` and a `research_deck` to `data/config.json` first (the real content comes in 028); revert afterwards.
 - [ ] The Research button shows 1 charge and the deck count. After researching it is disabled, with
   "No research left this turn." as the reason.
 - [ ] The panel shows 2 techs with costs. An unaffordable Buy is disabled with the reason. Decline
@@ -129,3 +129,11 @@ Run the game with a temporary research deck in `data/config.json` (the real cont
 - [ ] A bought tech appears in the Researched row, and its VP shows in the score.
 
 ## Log
+- Tests use TEST_CARDS-independent tech fixtures in `test_research.gd`, and its engine helpers return `Object`,
+  so calls to methods the engine lacked failed at runtime in the red phase instead of as one parse error.
+- Bug in my own test helper found in the green phase: `arrange()` with an empty order emptied the deck. Fixed the
+  helper only; no assertion changed.
+- Suite: 212 → 248 tests. UI checked headless with a temporary research deck (research, buy by click, Researched
+  row, decline, next turn); the real data has no techs yet, so the Research button is hidden until 028.
+- Follow-ups: 026–028. The hand-drag and double-click guards in `main.gd` don't check for open research; the
+  overlay covers the board and the engine refuses play, so it is harmless.
