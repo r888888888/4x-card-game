@@ -104,6 +104,20 @@
       ]
     },
     {
+      "id": "granary", "name": "Granary", "type": "building",
+      "cost": { "food": 3 }, "vp": 0, "tags": [],
+      "effects": [
+        { "op": "grow", "amount": 1, "where": "here", "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "harvest_festival", "name": "Harvest Festival", "type": "action",
+      "cost": { "food": 2 }, "vp": 0, "tags": [],
+      "effects": [
+        { "op": "grow", "amount": 1, "where": "each" }
+      ]
+    },
+    {
       "id": "grassland", "name": "Grassland", "type": "territory",
       "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["grassland"]
     },

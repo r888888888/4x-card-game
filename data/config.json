@@ -28,7 +28,9 @@
     "lumber_camp": 2,
     "mine": 2,
     "forge": 1,
-    "market": 1
+    "market": 1,
+    "granary": 2,
+    "harvest_festival": 2
   },
   "territory_deck": {
     "plains": 1,

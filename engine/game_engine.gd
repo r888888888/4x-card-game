@@ -400,6 +400,19 @@ func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:
 	_log("  %s: settled %s." % [source.def.name, territory.def.name])
 
 
+## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if
+## population is off or territory_uid isn't a settled territory.
+func add_pop(territory_uid: int, amount: int, source: CardInstance) -> void:
+	var territory := _settled_territory(territory_uid)
+	if territory == null or not population_on():
+		return
+	var added := mini(amount, territory.def.housing - territory.pop)
+	if added <= 0:
+		return
+	territory.pop += added
+	_log("  %s: +%d pop on %s" % [source.def.name, added, territory.def.name])
+
+
 func add_score(amount: int, source: CardInstance) -> void:
 	bonus_score += amount
 	if not _outcome.is_empty():
