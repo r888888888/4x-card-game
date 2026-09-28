@@ -2,7 +2,7 @@
 id: 022
 title: Move premium buildings and trade cards to wealth
 type: feature
-status: review
+status: done
 branch: feat/022-wealth-content
 ---
 
