@@ -42,13 +42,16 @@ Test fixtures:
   and a keyword never applies.
 - **Validation:** loader validation needs the config keyword list in `ctx`, so `parse_cards` gets
   `keywords`.
-- **UI:** targeting highlights respect `requires`.
+- **UI:** targeting highlights respect `requires`. With the drag interface (008, 004), hovering a building over
+  a group without the keyword turns the card red and shows the engine's reason, for example
+  "Well needs a territory with Fresh Water." (from `play_error(uid, target_uid)`).
 
 ## Test plan
 | AC | Test |
 |---|---|
 
 ## Manual check
-- [ ] Irrigation only highlights Fresh Water territories. Keyword bonus lines show on cards.
+- [ ] Picking up Irrigation only lights up Fresh Water territories. Hovering it over another territory turns it red
+  and shows the reason. Keyword bonus lines show on cards.
 
 ## Log

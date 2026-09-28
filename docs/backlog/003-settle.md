@@ -30,6 +30,11 @@ In these criteria, `pioneer` is a test action card with cost 3 food and `{"op": 
 - [ ] AC6: Given `{"op": "settle", "card": "farm"}` (not a city) or an unknown card, when the data loads, then
   it is an error naming the card and the `card` field. The text for a valid settle is "Settle a discovered
   territory with a City".
+- [ ] AC7: The `card_played` outcome (007) gains `target: int`. It is the uid the card was played on (given, or
+  picked by the engine when there was exactly one), or -1 for a card that needs no target. Given a frontier of
+  [hills, grassland], when I play Pioneer targeting Grassland, then `target` is the Grassland uid. Given a
+  frontier of [hills] and no target given, `target` is the Hills uid. Playing a Farm gives `target: -1`
+  (until 004 gives buildings targets).
 
 ## Out of scope
 - Building slots (004).
@@ -47,15 +52,31 @@ In these criteria, `pioneer` is a test action card with cost 3 food and `{"op": 
 - **Tests:** the existing `create` op and the TEST_CARDS `settler` stay as they are, so
   `test_create_card` still passes.
 - **Real data:** Settler switches to `settle`.
-- **UI:** clicking a card that needs a target (with more than one option) highlights the valid
-  targets. Clicking one plays the card; Esc cancels.
+- **UI (drag interface, 008):**
+  - **Drag onto a target:** when a card that needs a target is picked up, only its `valid_targets`
+    light up, not the whole tableau. Dropping on one calls `play_card(uid, target_uid)`.
+    - If there is exactly one valid target, dropping anywhere in the drop zone plays it (the engine picks it).
+    - Otherwise, dropping away from a target shakes the card back with "Choose a territory to settle."
+    - Hovering a card over a target it can't use turns the card red, and the reason comes from
+      `play_error(uid, target_uid)`.
+  - **Drop zone:** the frontier row (002) becomes part of the drop zone. Settle targets live there,
+    outside the tableau.
+  - **Double-click fallback:** double-clicking a card with several valid targets enters targeting mode.
+    The targets light up, clicking one plays the card, and Esc or right-click cancels. With one target,
+    double-click plays straight away.
+  - **Animation:** use the outcome's `target` (AC7) to fly an action like Settler to its target
+    before it goes to the discard pile, so the player sees where the City was founded.
 
 ## Test plan
 | AC | Test |
 |---|---|
 
 ## Manual check
-- [ ] With 2 frontier territories, clicking Settler highlights both. Clicking one founds a City there.
-- [ ] With 0 territories, Settler shows the reason on hover or click.
+- [ ] With 2 frontier territories, picking up Settler lights up both (and not the tableau). Dropping it
+  on one founds a City there: the Settler flies to the territory, and the territory and new City
+  move into the tableau. Dropping it on empty tableau space shakes it back with "Choose a territory to settle."
+- [ ] With 1 frontier territory, dropping Settler anywhere in the tableau or frontier settles it.
+- [ ] Double-clicking Settler with 2 territories lights them up. Clicking one settles it, and Esc cancels.
+- [ ] With 0 territories, Settler is greyed out, its tooltip gives the reason, and dropping it shakes it back.
 
 ## Log

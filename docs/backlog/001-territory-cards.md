@@ -51,6 +51,13 @@ slots (004), and keywords (005). See PLAN.md › Territories.
   - `ZONES` gains `territory_deck` and `frontier`
   - `CardInstance.territory_uid` (default -1)
   - `GameEngine.territory_of(card) -> CardInstance` (null if none)
+- **UI (drag interface, 008):**
+  - add a `territory` colour to `CardView.TYPE_COLORS`
+  - the tableau is shown as **territory groups**: one container per settled territory, holding the
+    territory card first, then its city and buildings. Cards with no territory go in a last group.
+    004 builds on this: a whole group is a building's drop target.
+  - 008's slots work inside any container, so `main.gd::_place` puts a tableau card's slot in its
+    territory's group container instead of the flat tableau row
 - **Real data:** add a `grassland` territory (2 slots, no keywords), set it as `starting.territory`,
   and add the `keywords` list. `territory_deck` stays empty until 002/006.
 
@@ -60,7 +67,7 @@ slots (004), and keywords (005). See PLAN.md › Territories.
 | AC1 | `test_data_loader::test_…` |
 
 ## Manual check
-- [ ] The Capital's territory shows in the tableau next to the Capital, with its slots and keywords
-  on the card.
+- [ ] The tableau shows a Grassland group: the Grassland card (with its slots and keywords), then the Capital.
+- [ ] Dragging a Farm into the tableau still works, and the Farm lands in the Grassland group.
 
 ## Log

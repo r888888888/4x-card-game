@@ -37,15 +37,35 @@ In these criteria, Capital is on Grassland (2 slots) and Farm costs 2.
   - `test_new_game_setup`'s tableau assertion changes from `["capital"]` to `["homeland", "capital"]`.
     This edit to an approved test is pre-approved by the user.
   - A Capital with no territory can't hold buildings ("No territory with a free slot.").
-- **UI:**
+  - **Also affected (not covered by the pre-approval above; approve with this item):** three more tests
+    check the exact tableau, and each gains `homeland` in front:
+    - `test_rules::test_play_building_pays_and_produces`: `["capital", "farm"]` becomes
+      `["homeland", "capital", "farm"]`
+    - `test_rules::test_create_card`: `["capital", "city"]` becomes `["homeland", "capital", "city"]`
+    - `test_play_outcome::test_created_card_reported_in_outcome`: same change, and the new City is at
+      tableau index 2 instead of 1
+  - A building's `card_played` outcome now has `target` set to the territory it was placed on (003 AC7).
+- **UI (drag interface, 008):**
   - each territory group shows used/total slots
-  - a building with several valid territories uses the targeting flow from 003
+  - **Drop onto a territory group:** a whole group (the territory card plus its city and buildings) is a
+    drop target, not just the territory card, so it's easy to hit. Only groups in `valid_targets` light up.
+  - **Outline:** the ghost outline showing where the building will land appears inside the group under the
+    cursor. Today it sits at the end of the tableau.
+  - **One valid territory:** dropping anywhere in the tableau places it there, and the outline shows in that group
+    from the moment the card is picked up.
+  - **Invalid group** (full, or in 005 missing a keyword): hovering it turns the card red and shows
+    `play_error(uid, target_uid)`. Dropping there shakes the card back.
+  - **Double-click** uses 003's targeting mode when there are several valid territories.
 
 ## Test plan
 | AC | Test |
 |---|---|
 
 ## Manual check
-- [ ] Slot counts show on each territory. A full territory isn't highlighted as a target.
+- [ ] Slot counts show on each territory group.
+- [ ] With two territories with free slots, picking up a Farm lights up both groups. The outline follows
+  the group under the cursor, and dropping puts the Farm there.
+- [ ] A full territory isn't lit up. Hovering the Farm over it turns the card red with
+  "That target isn't valid.", and dropping shakes it back.
 
 ## Log
