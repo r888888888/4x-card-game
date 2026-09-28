@@ -2,7 +2,7 @@
 id: 027
 title: Tech eras (add_era) and extra research charges (Library)
 type: feature
-status: review
+status: done
 branch: feat/027-tech-eras
 ---
 
