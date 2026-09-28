@@ -24,13 +24,6 @@ func load_config(overrides: Dictionary) -> Dictionary:
 	return {"config": config, "errors": errors, "warnings": warnings}
 
 
-func home_uid(e: GameEngine) -> int:
-	for c in e.zone("tableau").cards:
-		if c.def.id == "homeland":
-			return c.uid
-	return -1
-
-
 ## A game with population overrides whose frontier holds one Grassland and whose hand is Pioneers.
 func frontier_engine(overrides: Dictionary) -> GameEngine:
 	var o := {"territory_deck": {"grassland": 1}}
