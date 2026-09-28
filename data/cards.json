@@ -54,6 +54,10 @@
       "id": "pyramids", "name": "Pyramids", "type": "building",
       "cost": { "food": 12 }, "vp": 10, "tags": ["wonder"],
       "effects": []
+    },
+    {
+      "id": "grassland", "name": "Grassland", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "keywords": []
     }
   ]
 }

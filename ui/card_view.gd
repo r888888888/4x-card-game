@@ -14,6 +14,7 @@ const TYPE_COLORS := {
 	"action": Color("4a7fb5"),
 	"building": Color("5f9a45"),
 	"city": Color("c08a3e"),
+	"territory": Color("8a6fb5"),
 }
 const HAND_SIZE := Vector2(215, 280)
 const TABLEAU_SIZE := Vector2(215, 150)
@@ -98,6 +99,13 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_box.add_child(rules)
+
+	if def.type == "territory":
+		var info := "%d slot%s" % [def.slots, "" if def.slots == 1 else "s"]
+		var names := def.keywords.map(func(k): return k.capitalize())
+		if not names.is_empty():
+			info += " · " + ", ".join(PackedStringArray(names))
+		_box.add_child(_label(info, 17, _color.lightened(0.5)))
 
 	if def.vp > 0:
 		_box.add_child(_label("%d VP" % def.vp, 20, Color("ffd966")))

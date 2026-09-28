@@ -1,11 +1,13 @@
 {
   "resources": ["food"],
+  "keywords": ["fresh_water", "flood_plain", "mountain", "jungle"],
   "turn_limit": 20,
   "hand_size": 5,
   "deck_model": "fixed",
   "starting": {
     "resources": { "food": 2 },
-    "tableau": ["capital"]
+    "tableau": ["capital"],
+    "territory": "grassland"
   },
   "deck": {
     "farm": 4,

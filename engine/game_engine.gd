@@ -12,7 +12,7 @@ signal game_over(final_score: int)
 ## paid and gained map resource -> amount, drawn and created are card uids.
 signal card_played(outcome: Dictionary)
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -69,6 +69,13 @@ func play_error(uid: int) -> String:
 	return ""
 
 
+## The settled territory card sits on, or null.
+func territory_of(card: CardInstance) -> CardInstance:
+	if card.territory_uid < 0:
+		return null
+	return zone("tableau").find(card.territory_uid)
+
+
 # --- Actions ---
 
 func new_game(p_seed: int) -> void:
@@ -93,8 +100,20 @@ func new_game(p_seed: int) -> void:
 		for i in config.deck[id]:
 			deck.add(_make_card(id))
 	rng.shuffle(deck.cards)
+	var territory_deck := zone("territory_deck")
+	for id in config.territory_deck:
+		for i in config.territory_deck[id]:
+			territory_deck.add(_make_card(id))
+	rng.shuffle(territory_deck.cards)
+	var home: CardInstance = null
+	if config.starting.territory != "":
+		home = _make_card(config.starting.territory)
+		zone("tableau").add(home)
 	for id in config.starting.tableau:
-		zone("tableau").add(_make_card(id))
+		var card := _make_card(id)
+		if home != null:
+			card.territory_uid = home.uid
+		zone("tableau").add(card)
 
 	_log("New game — seed %d, %d cards in deck." % [p_seed, deck.size()])
 	_start_turn()

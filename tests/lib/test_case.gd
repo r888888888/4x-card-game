@@ -23,6 +23,8 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "shrine", "name": "Shrine", "type": "action",
 	 "effects": [{"op": "score", "amount": 1}]},
+	{"id": "grassland", "name": "Grassland", "type": "territory", "slots": 2},
+	{"id": "hills", "name": "Hills", "type": "territory", "slots": 3, "keywords": ["mountain"]},
 ]}
 
 var test_name := ""  # "file::method", set by the runner
@@ -63,6 +65,12 @@ func resources() -> Array[String]:
 	return r
 
 
+## Keyword ids for tests; TEST_CARDS territories only use these.
+func keywords() -> Array[String]:
+	var k: Array[String] = ["mountain", "fresh_water"]
+	return k
+
+
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
 		"resources": ["food"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
@@ -77,7 +85,7 @@ func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 func make_engine(deck: Dictionary, overrides := {}, seed_value := 1) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings)
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
 	var config := DataLoader.parse_config(raw_config(deck, overrides), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var engine := GameEngine.new(cards, config)
