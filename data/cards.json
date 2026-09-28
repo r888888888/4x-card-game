@@ -28,7 +28,7 @@
     {
       "id": "scout", "name": "Scout", "type": "action",
       "cost": {}, "vp": 0, "tags": ["explore"],
-      "effects": [ { "op": "draw", "amount": 2 } ]
+      "effects": [ { "op": "explore" }, { "op": "draw", "amount": 1 } ]
     },
     {
       "id": "forage", "name": "Forage", "type": "action",
@@ -58,6 +58,22 @@
     {
       "id": "grassland", "name": "Grassland", "type": "territory",
       "cost": {}, "vp": 0, "tags": [], "slots": 2, "keywords": []
+    },
+    {
+      "id": "plains", "name": "Plains", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "keywords": []
+    },
+    {
+      "id": "hills", "name": "Hills", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "keywords": ["mountain"]
+    },
+    {
+      "id": "lakeshore", "name": "Lakeshore", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "keywords": ["fresh_water"]
+    },
+    {
+      "id": "rainforest", "name": "Rainforest", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "keywords": ["jungle"]
     }
   ]
 }

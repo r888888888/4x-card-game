@@ -4,7 +4,7 @@ extends Control
 ##
 ## Card views stay alive between refreshes (_views, keyed by uid), so they can animate from where
 ## they were to where the engine now says they are. Cards in motion live on _fx, a layer above the
-## board; at rest they sit in slot Controls inside the hand and tableau containers.
+## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
 
 var _turn_label: Label
 var _food_label: Label
@@ -15,6 +15,10 @@ var _tableau: HFlowContainer  # holds one group per territory, then the ghost
 var _groups := {}  # territory uid (-1 for cards with no territory) -> HBoxContainer of slots
 var _tableau_scroll: ScrollContainer
 var _hand: HBoxContainer
+var _frontier: HBoxContainer  # discovered, unsettled territories
+var _frontier_heading: Label
+var _choice_panel: PanelContainer  # shown while an explore choice is pending
+var _reveal: HBoxContainer  # the revealed territories to choose from, inside _choice_panel
 var _log: RichTextLabel
 var _end_turn_button: Button
 var _game_over_overlay: Control
@@ -43,7 +47,8 @@ func _ready() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	# Enter/Space ends the turn (unless a text field has focus).
-	if event.is_action_pressed("ui_accept") and Game.engine != null and not Game.engine.is_over:
+	if event.is_action_pressed("ui_accept") and Game.engine != null and not Game.engine.is_over \
+			and Game.engine.pending_choice.is_empty():
 		Game.engine.end_turn()
 
 
@@ -92,14 +97,18 @@ func _try_play(view: CardView) -> void:
 
 
 func _on_double_clicked(view: CardView) -> void:
-	if _dragging == null:
+	if _dragging == null and Game.engine.pending_choice.is_empty():
 		_try_play(view)
+
+
+func _on_picked(view: CardView) -> void:
+	Game.engine.choose(view.uid)
 
 
 # --- Dragging ---
 
 func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
-	if _dragging != null or Game.engine.is_over:
+	if _dragging != null or Game.engine.is_over or not Game.engine.pending_choice.is_empty():
 		return
 	_dragging = view
 	view.begin_drag(_fx, grab_offset)
@@ -156,8 +165,8 @@ func _on_card_played(outcome: Dictionary) -> void:
 	_outcome_point = view.get_global_rect().get_center() if view != null else size / 2
 
 
-## Brings the views in line with the engine: new cards are dealt in from the deck or pop onto the
-## tableau, played cards fly to their new place, and cards that left fly to the discard pile.
+## Brings the views in line with the engine: new cards are dealt in from the deck or pop into place,
+## cards that changed zone fly to their new place, and cards that left fly towards where they went.
 func _refresh() -> void:
 	var e := Game.engine
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
@@ -167,8 +176,10 @@ func _refresh() -> void:
 
 	var hand := e.zone("hand").cards
 	var tableau := e.zone("tableau").cards
+	var frontier := e.zone("frontier").cards
+	var reveal := e.zone("reveal").cards
 	var shown := {}
-	for card in hand + tableau:
+	for card in hand + tableau + frontier + reveal:
 		shown[card.uid] = true
 	for uid in _views.keys():
 		if not shown.has(uid):
@@ -178,9 +189,16 @@ func _refresh() -> void:
 		if _place(hand[i], true, _hand, i, dealt * Anim.DEAL_STAGGER):
 			dealt += 1
 	_place_tableau(tableau)
+	for i in frontier.size():
+		_place(frontier[i], false, _frontier, i, 0.0)
+	for i in reveal.size():
+		_place(reveal[reveal.size() - 1 - i], false, _reveal, i, 0.0)  # top of the deck first
+	_frontier_heading.visible = not frontier.is_empty()
+	_frontier.visible = not frontier.is_empty()
+	_choice_panel.visible = not e.pending_choice.is_empty()
 	_animate_outcome()
 
-	_end_turn_button.disabled = e.is_over
+	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty()
 	_game_over_overlay.visible = e.is_over
 	if e.is_over:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
@@ -252,8 +270,10 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error)
+		view.set_pickable(container == _reveal)
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(_on_double_clicked)
+		view.picked.connect(_on_picked)
 		_views[card.uid] = view
 		var slot := _new_slot(in_hand, container, index)
 		if in_hand:
@@ -261,32 +281,43 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 		else:
 			view.pop_in(slot)
 		return in_hand
-	if view.in_hand != in_hand:
+	if view.slot.get_parent() != container:
 		if view == _dragging:
 			_end_drag()
 		var old_slot := view.slot
 		view.setup(card, e.card_db, in_hand, error)
+		view.set_pickable(container == _reveal)
 		view.fly_to_slot(_new_slot(in_hand, container, index), _fx)
 		_free_slot(old_slot)
 		return false
-	if view.slot.get_parent() != container:
-		view.slot.reparent(container)
 	container.move_child(view.slot, index)
 	if in_hand:
 		view.set_play_error(error)
 	return false
 
 
-## The card left the hand and tableau: it flies to the discard pile (popping first if it was just
-## played, so the player sees it resolve).
+## The card is no longer shown: it flies towards the zone it went to and fades (popping first if it
+## was just played, so the player sees it resolve).
 func _remove_view(uid: int) -> void:
 	var view: CardView = _views[uid]
 	_views.erase(uid)
 	if view == _dragging:
 		_end_drag()
 	var old_slot := view.slot
-	view.leave(_fx, _pile_point(0.75), not _outcome.is_empty() and _outcome.uid == uid)
+	view.leave(_fx, _leave_point(uid), not _outcome.is_empty() and _outcome.uid == uid)
 	_free_slot(old_slot)
+
+
+## Where a card that left the board flies: the deck or discard counter, or for a territory put back
+## in the territory deck, the edge of the choice panel.
+func _leave_point(uid: int) -> Vector2:
+	var e := Game.engine
+	if e.zone("territory_deck").find(uid) != null:
+		var r := _choice_panel.get_global_rect()
+		return Vector2(r.end.x, r.get_center().y)
+	if e.zone("deck").find(uid) != null:
+		return _pile_point(0.25)
+	return _pile_point(0.75)
 
 
 ## Resource tokens for the last play: costs fly from the counters to the card, gains and VP fly
@@ -485,6 +516,29 @@ func _build_layout() -> void:
 	var play_area := VBoxContainer.new()
 	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(play_area)
+	_choice_panel = PanelContainer.new()
+	var choice_style := StyleBoxFlat.new()
+	choice_style.bg_color = Color(0.54, 0.44, 0.71, 0.12)
+	choice_style.border_color = CardView.TYPE_COLORS.territory
+	choice_style.set_border_width_all(2)
+	choice_style.set_corner_radius_all(10)
+	choice_style.set_content_margin_all(10)
+	_choice_panel.add_theme_stylebox_override("panel", choice_style)
+	_choice_panel.hide()
+	play_area.add_child(_choice_panel)
+	var choice_box := VBoxContainer.new()
+	_choice_panel.add_child(choice_box)
+	choice_box.add_child(_heading("Explore — click a territory to keep it in the frontier; the other goes to the bottom of the territory deck"))
+	_reveal = HBoxContainer.new()
+	_reveal.add_theme_constant_override("separation", 12)
+	choice_box.add_child(_reveal)
+	_frontier_heading = _heading("Frontier — discovered, not yet settled")
+	_frontier_heading.hide()
+	play_area.add_child(_frontier_heading)
+	_frontier = HBoxContainer.new()
+	_frontier.add_theme_constant_override("separation", 10)
+	_frontier.hide()
+	play_area.add_child(_frontier)
 	play_area.add_child(_heading("Tableau"))
 	_tableau_scroll = ScrollContainer.new()
 	_tableau_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL

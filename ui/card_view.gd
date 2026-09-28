@@ -1,12 +1,13 @@
 class_name CardView
 extends PanelContainer
-## Visual for one card. It rests inside a slot Control that the hand or tableau container lays
-## out, and animates itself: it lifts on hover, slides when its slot moves, flies between slots on
-## the shared effects layer, and follows the cursor while dragged. Hand cards emit drag_requested
-## and double_clicked; main.gd decides what those mean.
+## Visual for one card. It rests inside a slot Control that a zone's container lays out, and
+## animates itself: it lifts on hover, slides when its slot moves, flies between slots on the
+## shared effects layer, and follows the cursor while dragged. Hand cards emit drag_requested and
+## double_clicked; pickable cards (a pending choice) emit picked. main.gd decides what those mean.
 
 signal drag_requested(view: CardView, grab_offset: Vector2)
 signal double_clicked(view: CardView)
+signal picked(view: CardView)
 
 enum State { REST, FLYING, DRAGGING, LEAVING }
 
@@ -22,6 +23,7 @@ const WARN_COLOR := Color("ff6b6b")
 
 var uid := -1
 var in_hand := false
+var pickable := false  # one of the options of a pending choice: a click picks it
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies the chased scale
@@ -52,6 +54,7 @@ var _fx_tween: Tween
 func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "") -> void:
 	uid = card.uid
 	in_hand = p_in_hand
+	pickable = false
 	var def := card.def
 	_color = TYPE_COLORS.get(def.type, Color.GRAY)
 	_target_size = HAND_SIZE if in_hand else TABLEAU_SIZE
@@ -128,6 +131,17 @@ func set_play_error(play_error: String) -> void:
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	# Greyed but still readable; the red cost shows why.
 	modulate = Color.WHITE if playable else Color(0.68, 0.68, 0.68)
+
+
+## Makes a non-hand card clickable as a choice option (or not).
+func set_pickable(on: bool) -> void:
+	pickable = on
+	if in_hand:
+		return
+	tooltip_text = "Click to keep this territory." if on else ""
+	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if on else Control.CURSOR_ARROW
+	if not on:
+		_set_hover(false)
 
 
 ## Tints the card red while it is held over the play area but can't be played there.
@@ -345,6 +359,11 @@ static func _weight(sharpness: float, delta: float) -> float:
 # --- Input and hover ---
 
 func _gui_input(event: InputEvent) -> void:
+	if pickable and state == State.REST and event is InputEventMouseButton \
+			and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		accept_event()
+		picked.emit(self)
+		return
 	if not in_hand or _delay > 0.0 or state == State.DRAGGING or state == State.LEAVING:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -364,7 +383,7 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _set_hover(on: bool) -> void:
-	_hover = on and in_hand and state == State.REST
+	_hover = on and (in_hand or pickable) and state == State.REST
 	if state == State.REST:
 		z_index = 1 if _hover else 0  # draw over the neighbours while lifted
 	_update_border()

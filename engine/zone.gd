@@ -27,6 +27,11 @@ func take_top() -> CardInstance:
 	return cards.pop_back()
 
 
+## Puts card at the bottom (the deck's top is the last element).
+func add_bottom(card: CardInstance) -> void:
+	cards.push_front(card)
+
+
 func take_all() -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	out.assign(cards)

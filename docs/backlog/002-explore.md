@@ -2,7 +2,7 @@
 id: 002
 title: Explore reveals 2 territories, keep 1
 type: feature
-status: ready
+status: review
 branch: feat/002-explore
 ---
 
@@ -15,26 +15,26 @@ lasting effect and feeds settling (003).
 In these criteria, `explorer` is a test action card with `{"op": "explore"}`. The territory deck is
 arranged so the top (last element) is listed first.
 
-- [ ] AC1: Given a territory deck of [hills, grassland, jungle] (top first), when I play Explorer, then:
+- [x] AC1: Given a territory deck of [hills, grassland, jungle] (top first), when I play Explorer, then:
   - `pending_choice` offers exactly the Hills and Grassland uids
   - both are in the `reveal` zone
   - the territory deck holds only [jungle]
   - Explorer is in the discard pile.
-- [ ] AC2: Given AC1's pending choice, when I `choose(hills_uid)`, then:
+- [x] AC2: Given AC1's pending choice, when I `choose(hills_uid)`, then:
   - it returns true
   - the frontier is [hills] and the reveal zone is empty
   - the territory deck is [jungle, grassland] (top first), so Grassland is at the bottom
   - `pending_choice` is empty.
-- [ ] AC3: Given a pending choice, when I check `play_error` on any hand card or call `end_turn`, then:
+- [x] AC3: Given a pending choice, when I check `play_error` on any hand card or call `end_turn`, then:
   - `play_error` is "Choose a territory first."
   - `play_card` returns false
   - `end_turn` leaves the turn number, hand, and food unchanged.
-- [ ] AC4: Given a pending choice, when I `choose` a uid that isn't one of the options, or call `choose`
+- [x] AC4: Given a pending choice, when I `choose` a uid that isn't one of the options, or call `choose`
   with nothing pending, then it returns false and nothing changes.
-- [ ] AC5: Given a territory deck of exactly 1 territory, when I play Explorer, then that territory goes
+- [x] AC5: Given a territory deck of exactly 1 territory, when I play Explorer, then that territory goes
   straight to the frontier with no pending choice. Given an empty territory deck, when I play Explorer,
   then nothing is revealed, nothing is pending, and play continues.
-- [ ] AC6: Given `{"op": "explore"}`, when the data loads, then `reveal` defaults to 2 and the card text is
+- [x] AC6: Given `{"op": "explore"}`, when the data loads, then `reveal` defaults to 2 and the card text is
   "Explore: reveal 2, keep 1". `reveal: 0` is an error naming the card and `reveal`.
 
 ## Out of scope
@@ -71,6 +71,12 @@ arranged so the top (last element) is listed first.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_explore::test_explore_reveals_top_two_as_a_choice` |
+| AC2 | `test_explore::test_choose_keeps_pick_in_frontier_and_buries_the_rest`, `test_explore::test_choose_emits_changed_but_not_card_played` (design note) |
+| AC3 | `test_explore::test_pending_choice_blocks_play`, `test_explore::test_pending_choice_blocks_end_turn` |
+| AC4 | `test_explore::test_choose_non_option_is_refused`, `test_explore::test_choose_with_nothing_pending_is_refused` |
+| AC5 | `test_explore::test_explore_last_territory_goes_straight_to_frontier`, `test_explore::test_explore_empty_territory_deck_does_nothing` |
+| AC6 | `test_data_loader::test_explore_defaults_to_reveal_2`, `test_data_loader::test_explore_reveal_0_is_error` |
 
 ## Manual check
 - [ ] Playing Scout shows 2 territories to pick from. Picking one flies it into the frontier row, and
@@ -78,3 +84,13 @@ arranged so the top (last element) is listed first.
 - [ ] While the choice is open, trying to drag a hand card does nothing, and its tooltip says why.
 
 ## Log
+- 2026-09-28: red. Added `jungle` (territory, 1 slot) and `explorer` (action, `explore`) to `TEST_CARDS`.
+  Interface-only declarations committed with the tests so they parse: `pending_choice` and a
+  `choose` that returns false.
+- 2026-09-28: green. Engine: `explore(n, source)` helper, `choose`, `Zone.add_bottom`; options are
+  listed top first. UI: an inline choice panel above the tableau (not a modal, so the hand's
+  tooltips stay reachable) and a Frontier row; views moving between containers fly, and views that
+  leave fly towards their zone (deck / discard counters, or the choice panel's edge for buried territories).
+- Follow-ups: revealed territories pop into the panel rather than flying from a territory-deck
+  counter (there is none yet). An `explore` on an `upkeep` trigger would open a choice at turn start;
+  no card does that, so it's untested.

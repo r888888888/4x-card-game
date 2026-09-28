@@ -31,10 +31,10 @@ res://
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; rules text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
-    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier
+    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
-    effects/             # gain, gain_per_tag, draw, create, score
+    effects/             # gain, gain_per_tag, draw, create, score, explore
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
   ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning)
@@ -102,7 +102,8 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
-(001 done: territory cards, territory deck, starting territory, tableau groups).
+(001 done: territory cards, territory deck, starting territory, tableau groups;
+002 done: explore, frontier, choice panel).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
   (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.
