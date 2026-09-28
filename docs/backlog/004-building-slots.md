@@ -2,7 +2,7 @@
 id: 004
 title: Buildings occupy territory slots
 type: feature
-status: red-review
+status: in-progress
 branch: feat/004-building-slots
 ---
 

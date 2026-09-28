@@ -71,38 +71,52 @@ func play_error(uid: int, target_uid := -1) -> String:
 		var have: int = resources.get(r, 0)
 		if have < need:
 			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
-	var effect := _target_effect(card)
-	if effect == null:
+	if not _needs_target(card):
 		return ""
 	var targets := valid_targets(uid)
 	if target_uid != -1:
 		return "" if targets.has(target_uid) else "That target isn't valid."
 	if targets.is_empty():
-		return effect.no_target_error()
+		return "No territory with a free slot." if _is_building(card) else _target_effect(card).no_target_error()
 	if targets.size() > 1:
-		return effect.choose_target_error()
+		return "Choose a territory for %s." % card.def.name if _is_building(card) \
+			else _target_effect(card).choose_target_error()
 	return ""
 
 
-## The uids hand card uid can be played on; [] if it needs no target.
+## The uids hand card uid can be played on; [] if it needs no target. A building's targets are the
+## settled territories with a free slot; a targeting effect's are the cards in its target zone.
 func valid_targets(uid: int) -> Array[int]:
 	var out: Array[int] = []
 	var card := zone("hand").find(uid)
-	var effect := _target_effect(card) if card != null else null
-	if effect != null:
-		for target in zone(effect.target_zone()).cards:
+	if card == null or not _needs_target(card):
+		return out
+	if _is_building(card):
+		for territory in zone("tableau").cards:
+			if territory.def.type == "territory" and free_slots(territory.uid) > 0:
+				out.append(territory.uid)
+	else:
+		for target in zone(_target_effect(card).target_zone()).cards:
 			out.append(target.uid)
 	return out
 
 
-## Building slots left on territory territory_uid.
-func free_slots(_territory_uid: int) -> int:
-	return 0
+## Building slots left on settled territory territory_uid (0 if it isn't settled). Cities don't use slots.
+func free_slots(territory_uid: int) -> int:
+	var tableau := zone("tableau")
+	var territory := tableau.find(territory_uid)
+	if territory == null or territory.def.type != "territory":
+		return 0
+	var used := 0
+	for card in tableau.cards:
+		if _is_building(card) and card.territory_uid == territory_uid:
+			used += 1
+	return territory.def.slots - used
 
 
 func needs_target(uid: int) -> bool:
 	var card := zone("hand").find(uid)
-	return card != null and _target_effect(card) != null
+	return card != null and _needs_target(card)
 
 
 ## The settled territory card sits on, or null.
@@ -178,6 +192,8 @@ func play_card(uid: int, target_uid := -1) -> bool:
 			_outcome.paid[r] = card.def.cost[r]
 	_log("Played %s." % card.def.name)
 	if permanent:
+		if _is_building(card):
+			card.territory_uid = target
 		zone("tableau").add(card)
 	_resolve(card, "play")
 	if not permanent:
@@ -328,6 +344,15 @@ func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
 	var drawn: Array[int] = []
 	var created: Array[int] = []
 	return {"uid": uid, "to_zone": to_zone, "target": target, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
+
+
+func _is_building(card: CardInstance) -> bool:
+	return card.def.type == "building"
+
+
+## Buildings target a territory; other cards need a target if a "play" effect does.
+func _needs_target(card: CardInstance) -> bool:
+	return _is_building(card) or _target_effect(card) != null
 
 
 ## The card's first "play" effect that needs a target, or null.
