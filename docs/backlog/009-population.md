@@ -2,7 +2,7 @@
 id: 009
 title: Population on territories, counted in the final score
 type: feature
-status: review
+status: done
 branch: feat/009-population
 ---
 
