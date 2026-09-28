@@ -77,10 +77,9 @@ func play_error(uid: int, target_uid := -1) -> String:
 	if target_uid != -1:
 		return "" if targets.has(target_uid) else "That target isn't valid."
 	if targets.is_empty():
-		return "No territory with a free slot." if _is_building(card) else _target_effect(card).no_target_error()
+		return _no_target_error(card)
 	if targets.size() > 1:
-		return "Choose a territory for %s." % card.def.name if _is_building(card) \
-			else _target_effect(card).choose_target_error()
+		return _choose_target_error(card)
 	return ""
 
 
@@ -353,6 +352,18 @@ func _is_building(card: CardInstance) -> bool:
 ## Buildings target a territory; other cards need a target if a "play" effect does.
 func _needs_target(card: CardInstance) -> bool:
 	return _is_building(card) or _target_effect(card) != null
+
+
+func _no_target_error(card: CardInstance) -> String:
+	if _is_building(card):
+		return "No territory with a free slot."
+	return _target_effect(card).no_target_error()
+
+
+func _choose_target_error(card: CardInstance) -> String:
+	if _is_building(card):
+		return "Choose a territory for %s." % card.def.name
+	return _target_effect(card).choose_target_error()
 
 
 ## The card's first "play" effect that needs a target, or null.
