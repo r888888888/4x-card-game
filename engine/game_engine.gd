@@ -260,12 +260,24 @@ func valid_targets(uid: int) -> Array[int]:
 	return out
 
 
-## Building slots left on settled territory territory_uid (0 if it isn't settled). Cities don't use slots.
-func free_slots(territory_uid: int) -> int:
+## Building slots on settled territory territory_uid: its own plus the `slots` of cities on it
+## (0 if it isn't settled).
+func total_slots(territory_uid: int) -> int:
 	var territory := _settled_territory(territory_uid)
 	if territory == null:
 		return 0
-	return territory.def.slots - _buildings_on(territory_uid).size()
+	var total := territory.def.slots
+	for card in zone("tableau").cards:
+		if card.def.type == "city" and card.territory_uid == territory_uid:
+			total += card.def.slots
+	return total
+
+
+## Building slots left on settled territory territory_uid (0 if it isn't settled). Cities don't use slots.
+func free_slots(territory_uid: int) -> int:
+	if _settled_territory(territory_uid) == null:
+		return 0
+	return total_slots(territory_uid) - _buildings_on(territory_uid).size()
 
 
 ## Pop on settled territory territory_uid not yet working a building (0 if none, or not a territory).

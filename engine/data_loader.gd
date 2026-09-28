@@ -196,8 +196,10 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		else:
 			errs.append("'keywords' must be an array of keyword ids")
 	else:
+		if def.type == "city":
+			def.slots = Effect.read_int(c, "slots", errs, 0, 0)
 		for key in ["slots", "housing", "keywords"]:
-			if c.has(key):
+			if c.has(key) and not (key == "slots" and def.type == "city"):
 				warns.append("'%s' only applies to territories (ignored)" % key)
 
 	if def.type == "tech":

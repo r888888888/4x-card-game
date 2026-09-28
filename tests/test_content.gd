@@ -303,3 +303,8 @@ func test_real_config_sets_an_era_2_threshold() -> void:
 	check(unlocks.has(2), "era_unlocks has era 2: %s" % [unlocks])
 	if unlocks.has(2):
 		check(unlocks[2].has("pop") or unlocks[2].has("wealth"), "era 2 has a pop or wealth threshold")
+
+
+func test_capital_adds_4_building_slots() -> void:
+	var r := load_real()
+	eq(r.cards.capital.slots, 4, "Capital slots")

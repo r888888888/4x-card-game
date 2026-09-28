@@ -123,3 +123,67 @@ func test_building_outcome_target_is_its_territory() -> void:
 	eq(outcomes.size(), 1, "one outcome")
 	if outcomes.size() == 1:
 		eq(outcomes[0].get("target"), grassland, "target")
+
+
+# --- 030: a city with slots adds them to its territory (the Capital gives +4) ---
+
+## Like slots_engine, but the starting city is a Citadel (+4 slots) on Grassland (2 slots).
+func citadel_engine(settled: Array[String] = []) -> GameEngine:
+	var counts := {}
+	for id in settled:
+		counts[id] = counts.get(id, 0) + 1
+	var e := make_engine({"farm": 10}, {
+		"starting": {"resources": {"food": 2}, "tableau": ["citadel"], "territory": "grassland"},
+		"territory_deck": counts,
+	})
+	for c in e.zone("territory_deck").take_all():
+		e.zone("tableau").add(c)
+	e.resources.food = 30
+	return e
+
+
+## Plays n Farms onto territory, drawing more when the hand runs out.
+func farms_onto(e: GameEngine, territory: int, n: int) -> void:
+	for i in n:
+		if e.zone("hand").is_empty():
+			e.draw(5)
+		check(e.play_card(first_in_hand(e), territory), "Farm %d placed" % (i + 1))
+
+
+func test_city_slots_add_to_its_territory() -> void:
+	var e := citadel_engine()
+	var grassland := uid_of(e.zone("tableau"), "grassland")
+	eq(e.total_slots(grassland), 6, "2 + 4")
+	eq(e.free_slots(grassland), 6, "free before any building")
+
+
+func test_city_slots_are_usable_up_to_the_total() -> void:
+	var e := citadel_engine()
+	var grassland := uid_of(e.zone("tableau"), "grassland")
+	farms_onto(e, grassland, 5)
+	eq(e.free_slots(grassland), 1, "6 - 5")
+	farms_onto(e, grassland, 1)
+	eq(e.free_slots(grassland), 0, "full at 6")
+	if e.zone("hand").is_empty():
+		e.draw(5)
+	eq(e.play_error(first_in_hand(e)), "No territory with a free slot.", "seventh Farm refused")
+
+
+func test_city_slots_apply_only_to_its_own_territory() -> void:
+	var e := citadel_engine(["hills"])
+	var hills := uid_of(e.zone("tableau"), "hills")
+	var city: CardInstance = e.zone("tableau").cards.filter(func(c): return c.def.id == "citadel")[0]
+	eq(city.territory_uid, uid_of(e.zone("tableau"), "grassland"), "Citadel sits on Grassland")
+	eq(e.total_slots(hills), 3, "Hills keeps its own 3")
+	eq(e.total_slots(uid_of(e.zone("tableau"), "grassland")), 6, "Grassland gets the bonus")
+
+
+func test_city_slots_do_not_change_housing() -> void:
+	var e := citadel_engine()
+	var grassland := uid_of(e.zone("tableau"), "grassland")
+	eq(e.housing(grassland), 4, "Grassland housing stays slots 2 + 2")
+
+
+func test_total_slots_of_a_non_territory_is_0() -> void:
+	var e := citadel_engine()
+	eq(e.total_slots(uid_of(e.zone("tableau"), "citadel")), 0, "a city isn't a territory")
