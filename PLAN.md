@@ -43,6 +43,7 @@ res://
     lib/test_case.gd     # assertions, TEST_CARDS fixture, make_engine and helpers
     test_data_loader.gd  # loader validation tests
     test_rules.gd        # engine rules tests
+    test_play_outcome.gd # card_played outcome tests
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
   docs/                  # development process, testing guide, backlog
 ```

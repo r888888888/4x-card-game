@@ -2,7 +2,7 @@
 id: 007
 title: Report what each card play did
 type: feature
-status: in-progress
+status: review
 branch: feat/007-play-outcome-signal
 ---
 
@@ -14,20 +14,20 @@ comparing state before and after or copying rules.
 
 ## Acceptance criteria
 <!-- All use TEST_CARDS + make_engine. Food is 4 at the start of turn 1 (2 start + 2 Capital upkeep). -->
-- [ ] AC1: Given a Farm deck and 4 food, when I play a Farm from hand, then `card_played` is
+- [x] AC1: Given a Farm deck and 4 food, when I play a Farm from hand, then `card_played` is
   emitted exactly once, before `changed`, with outcome
   `{uid: <farm uid>, to_zone: "tableau", paid: {food: 2}, gained: {}, vp: 0, drawn: [], created: []}`.
-- [ ] AC2: Given a Scout deck, when I play a Scout (draw 2), then the outcome has
+- [x] AC2: Given a Scout deck, when I play a Scout (draw 2), then the outcome has
   `to_zone: "discard"`, `paid: {}`, and `drawn` holds the uids of the 2 cards that were on top of
   the deck, in draw order (they are now the last 2 cards in hand).
-- [ ] AC3: Given a Caravan deck, 4 food and only the Capital (1 city) on the tableau, when I play a
+- [x] AC3: Given a Caravan deck, 4 food and only the Capital (1 city) on the tableau, when I play a
   Caravan, then the outcome has `paid: {}` and `gained: {food: 2}`, and food is 6.
-- [ ] AC4: Given a Settler deck and 4 food, when I play a Settler (cost 3, creates a City), then
+- [x] AC4: Given a Settler deck and 4 food, when I play a Settler (cost 3, creates a City), then
   the outcome has `paid: {food: 3}`, `to_zone: "discard"`, and `created` holds exactly the uid of
   the new City, which is on the tableau.
-- [ ] AC5: Given a deck of a test action "Shrine" (free, play effect `score 1`), when I play it,
+- [x] AC5: Given a deck of a test action "Shrine" (free, play effect `score 1`), when I play it,
   then the outcome has `vp: 1` and the score goes from 2 to 3.
-- [ ] AC6: Given 1 food and a Farm in hand, when I try to play it, then `play_card` returns false
+- [x] AC6: Given 1 food and a Farm in hand, when I try to play it, then `play_card` returns false
   and `card_played` is not emitted. The same holds after the game is over.
 
 ## Out of scope
@@ -61,3 +61,8 @@ comparing state before and after or copying rules.
 | AC6 | `test_play_outcome::test_failed_play_emits_no_outcome`, `test_play_outcome::test_play_after_game_over_emits_no_outcome` |
 
 ## Log
+- The outcome is built in a private `_outcome` dictionary while `play_card` runs; `gain`, `add_score`,
+  `draw` and `create_card` record into it only then, so upkeep and end-of-turn draws are not reported.
+- `paid` leaves out 0-cost entries and `gained` leaves out 0-amount gains, as the design notes say.
+  No test covers the 0-amount case yet, because no test card gains 0.
+- Follow-up: the Territories items (002 pending choice, 003 targets) need to extend the outcome; see Design notes.

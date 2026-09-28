@@ -29,6 +29,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 |---|---|
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
+| `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
 
 Add a new file when an area grows past ~300 lines or is a separate concern
 (e.g. `test_effects.gd`, `test_market.gd`).
