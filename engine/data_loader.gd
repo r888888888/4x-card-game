@@ -6,7 +6,7 @@ extends RefCounted
 
 const CARD_TYPES: Array[String] = ["action", "building", "city", "territory", "tech"]
 const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the main deck
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires"]
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "population"]
@@ -109,6 +109,13 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 
 	# Second pass: cross-card references.
 	for id in db:
+		var prereq: String = db[id].prereq
+		if prereq == id:
+			errors.append("%s: card '%s': prereq: a tech can't be its own prerequisite" % [src, id])
+		elif prereq != "" and not db.has(prereq):
+			errors.append("%s: card '%s': prereq: unknown card '%s'" % [src, id, prereq])
+		elif prereq != "" and db[prereq].type != "tech":
+			errors.append("%s: card '%s': prereq: '%s' is not a tech" % [src, id, prereq])
 		for e in db[id].effects:
 			for ref in e.referenced_cards():
 				if not db.has(ref):
@@ -192,6 +199,21 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		for key in ["slots", "housing", "keywords"]:
 			if c.has(key):
 				warns.append("'%s' only applies to territories (ignored)" % key)
+
+	if def.type == "tech":
+		def.prereq = Effect.read_string(c, "prereq", errs, [], "")
+		if c.has("prereq_discount"):
+			var discount: Variant = as_int(c.prereq_discount)
+			if def.prereq == "":
+				warns.append("'prereq_discount' needs 'prereq' (ignored)")
+			elif typeof(discount) != TYPE_INT or discount < 1:
+				errs.append("prereq_discount: must be an integer >= 1")
+			else:
+				def.prereq_discount = discount
+	else:
+		for key in ["prereq", "prereq_discount"]:
+			if c.has(key):
+				warns.append("'%s' only applies to techs (ignored)" % key)
 
 	var requires: Variant = c.get("requires", [])
 	if requires is Array:
