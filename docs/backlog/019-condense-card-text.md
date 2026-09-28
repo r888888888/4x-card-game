@@ -2,7 +2,7 @@
 id: 019
 title: Condense card text and move the full wording to a hover tooltip
 type: feature
-status: review
+status: done
 branch: feat/019-condense-card-text
 ---
 
