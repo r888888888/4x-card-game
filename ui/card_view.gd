@@ -34,6 +34,8 @@ const DIM_BG := Color("202328")
 const DIM_BORDER := Color("50565e")
 const STRIP_BG := Color("4a1f22")  # the reason strip at the bottom of a dimmed card
 const STRIP_TEXT := Color("ffd6d1")
+const FOCUS_COLOR := Color("5ec8ff")  # keyboard focus ring; distinct from gold (target) and red (warning)
+const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
 var in_hand := false
@@ -48,6 +50,7 @@ var _box: VBoxContainer
 var _warning := false
 var _highlight := false
 var _dimmed := false
+var _focused := false
 var _hover := false
 var _pressed := false
 var _press_pos := Vector2.ZERO
@@ -171,6 +174,14 @@ func set_pickable(on: bool, tooltip := "") -> void:
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if on else Control.CURSOR_ARROW
 	if not on:
 		_set_hover(false)
+
+
+## Shows or hides the keyboard focus ring. A focused hand card also lifts like a hovered one.
+func set_focused(on: bool) -> void:
+	_focused = on
+	if state == State.REST:
+		z_index = 1 if (_hover or _focused) else 0
+	queue_redraw()
 
 
 ## Tints the card red while it is held over the play area but can't be played there.
@@ -313,7 +324,7 @@ func _process(delta: float) -> void:
 			_rest_offset = _rest_offset.lerp(Vector2.ZERO, w)
 			# Only hand cards lift and grow: the hand row has room for it; the scrolling frontier and
 			# tableau would clip a lifted target, so those show hover by border and shadow alone.
-			var lifted := _hover and in_hand and not _calm()
+			var lifted := (_hover or _focused) and in_hand and not _calm()
 			_lift = lerpf(_lift, -Anim.HOVER_LIFT if lifted else 0.0, w)
 			_base_scale = lerpf(_base_scale, Anim.HOVER_SCALE if lifted else 1.0, w)
 			rotation = lerp_angle(rotation, 0.0, w)
@@ -366,7 +377,7 @@ func _land() -> void:
 
 func _come_to_rest() -> void:
 	state = State.REST
-	z_index = 0
+	z_index = 1 if _focused else 0
 	_rest_offset = Vector2.ZERO
 	_lift = 0.0
 	rotation = 0.0
@@ -434,6 +445,19 @@ func _play_fx() -> Tween:
 	return _fx_tween
 
 
+func _draw() -> void:
+	if _focused:
+		var ring := StyleBoxFlat.new()
+		ring.draw_center = false
+		ring.border_color = FOCUS_COLOR
+		ring.set_border_width_all(3)
+		ring.set_corner_radius_all(12)
+		# Outside a hand card; inside any other, where the frontier and tableau scroll boxes would
+		# clip a ring drawn outside it.
+		var gap := FOCUS_RING_GAP if in_hand else -FOCUS_RING_GAP
+		draw_style_box(ring, Rect2(Vector2.ZERO, size).grow(gap))
+
+
 ## Reduce motion is on: no lift, tilt, squash or shake, and cards jump to their place and fade in.
 func _calm() -> bool:
 	return Settings.reduce_motion
@@ -477,7 +501,7 @@ func _gui_input(event: InputEvent) -> void:
 func _set_hover(on: bool) -> void:
 	_hover = on and (in_hand or pickable) and state == State.REST
 	if state == State.REST:
-		z_index = 1 if _hover else 0  # draw over the neighbours while lifted
+		z_index = 1 if (_hover or _focused) else 0  # draw over the neighbours while lifted
 	_update_border()
 
 
