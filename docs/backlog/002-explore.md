@@ -2,7 +2,7 @@
 id: 002
 title: Explore reveals 2 territories, keep 1
 type: feature
-status: red-review
+status: in-progress
 branch: feat/002-explore
 ---
 

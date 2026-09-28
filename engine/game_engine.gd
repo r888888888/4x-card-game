@@ -12,7 +12,7 @@ signal game_over(final_score: int)
 ## paid and gained map resource -> amount, drawn and created are card uids.
 signal card_played(outcome: Dictionary)
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -59,6 +59,8 @@ func count_tag(tag: String, zone_name: String) -> int:
 func play_error(uid: int) -> String:
 	if is_over:
 		return "The game is over."
+	if not pending_choice.is_empty():
+		return "Choose a territory first."
 	var card := zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
@@ -93,6 +95,7 @@ func new_game(p_seed: int) -> void:
 	turn = 0
 	bonus_score = 0
 	is_over = false
+	pending_choice = {}
 	_next_uid = 1
 	log_lines.clear()
 
@@ -148,13 +151,25 @@ func play_card(uid: int) -> bool:
 	return true
 
 
-## Resolves the pending choice by keeping the territory uid. False if uid isn't an option.
-func choose(_uid: int) -> bool:
-	return false
+## Resolves the pending choice: keeps territory uid in the frontier and puts the other revealed
+## territories at the bottom of the territory deck. False (and no change) if uid isn't an option.
+func choose(uid: int) -> bool:
+	if pending_choice.is_empty() or not pending_choice.options.has(uid):
+		return false
+	var reveal := zone("reveal")
+	var kept := reveal.find(uid)
+	reveal.remove(kept)
+	zone("frontier").add(kept)
+	for card in reveal.take_all():
+		zone("territory_deck").add_bottom(card)
+	_log("  %s: kept %s." % [pending_choice.source.def.name, kept.def.name])
+	pending_choice = {}
+	changed.emit()
+	return true
 
 
 func end_turn() -> void:
-	if is_over:
+	if is_over or not pending_choice.is_empty():
 		return
 	_event_phase()
 	var discard := zone("discard")
@@ -208,6 +223,30 @@ func create_card(card_id: String, zone_name: String, source: CardInstance) -> Ca
 		_outcome.created.append(card.uid)
 	_log("  %s: created %s." % [source.def.name, card.def.name])
 	return card
+
+
+## Reveals up to n territories. Several start a choice (see choose); a single one goes
+## straight to the frontier.
+func explore(n: int, source: CardInstance) -> void:
+	var territory_deck := zone("territory_deck")
+	var reveal := zone("reveal")
+	for i in n:
+		if territory_deck.is_empty():
+			break
+		reveal.add(territory_deck.take_top())
+	if reveal.is_empty():
+		_log("  %s: no territories left to explore." % source.def.name)
+	elif reveal.size() == 1:
+		var card := reveal.take_top()
+		zone("frontier").add(card)
+		_log("  %s: discovered %s." % [source.def.name, card.def.name])
+	else:
+		var options: Array[int] = []
+		for card in reveal.cards:
+			options.append(card.uid)
+		options.reverse()  # top first
+		pending_choice = {"options": options, "source": source}
+		_log("  %s: choose a territory to keep." % source.def.name)
 
 
 func add_score(amount: int, source: CardInstance) -> void:
