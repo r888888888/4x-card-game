@@ -3,7 +3,10 @@
     {
       "id": "capital", "name": "Capital", "type": "city",
       "cost": {}, "vp": 2, "tags": ["city"],
-      "effects": [ { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" } ]
+      "effects": [
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+      ]
     },
     {
       "id": "city", "name": "City", "type": "city",
@@ -41,11 +44,11 @@
     {
       "id": "caravan", "name": "Caravan", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": ["trade"],
-      "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 2, "tag": "city" } ]
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city" } ]
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
-      "cost": { "food": 4 }, "vp": 1, "tags": ["culture"],
+      "cost": { "food": 2, "wealth": 2 }, "vp": 1, "tags": ["culture"],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" }
@@ -53,12 +56,12 @@
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
-      "cost": { "food": 5 }, "vp": 3, "tags": ["culture"],
+      "cost": { "food": 2, "wealth": 3 }, "vp": 3, "tags": ["culture"],
       "effects": []
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "cost": { "food": 12 }, "vp": 10, "tags": ["wonder"],
+      "cost": { "food": 6, "wealth": 6 }, "vp": 10, "tags": ["wonder"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
@@ -92,15 +95,15 @@
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
-      "cost": { "food": 4 }, "vp": 2, "tags": [], "requires": ["iron"],
+      "cost": { "food": 2, "wealth": 2 }, "vp": 2, "tags": [], "requires": ["iron"],
       "effects": []
     },
     {
       "id": "market", "name": "Market", "type": "building",
       "cost": { "food": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
-        { "op": "score", "amount": 1, "trigger": "upkeep" },
-        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
       ]
     },
     {
