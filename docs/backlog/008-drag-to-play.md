@@ -2,7 +2,7 @@
 id: 008
 title: Drag cards from hand to play them, with animations
 type: feature
-status: ready
+status: in-progress
 branch: feat/008-drag-to-play
 ---
 
