@@ -2,7 +2,7 @@
 id: 012
 title: Workers gate buildings
 type: feature
-status: review
+status: done
 branch: feat/012-workers-gate-buildings
 ---
 
