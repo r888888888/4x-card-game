@@ -35,7 +35,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
 | `tests/test_explore.gd` | The `explore` op: reveal, `pending_choice`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
-| `tests/test_slots.gd` | Building slots: `free_slots`, building targets and placement |
+| `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep and starvation |
 | `tests/test_growth_cards.gd` | The `grow` op: Granary (`here`), Festival (`each`), housing cap |
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |

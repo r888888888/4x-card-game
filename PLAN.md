@@ -122,7 +122,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   taken automatically; with 0 nothing happens.
 - **Settle** (`settle` op, on Settler): move a frontier territory to the tableau and found a City
   on it. Each territory holds one city. The Capital starts on `starting.territory`.
-- **Slots**: a building must be placed in a settled territory with a free slot. The player picks
+- **Slots**: a city card may add `slots` to its territory (the Capital gives +4). A building must be placed in a settled territory with a free slot. The player picks
   the territory; if only one is valid, the engine picks it.
 - **Keywords are tags; card data gives them meaning:**
   - Building `requires: [...]`: the territory must have any of the listed keywords.
