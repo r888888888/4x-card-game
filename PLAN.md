@@ -85,8 +85,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
   errors with file, card id and field. Unknown fields are warnings, not errors.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
-- Territory cards (`"type": "territory"`) need `slots` (int ≥ 0) and may list `keywords` from config
-  `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
+- Territory cards (`"type": "territory"`) need `slots` (int ≥ 0), may set `housing` (int ≥ 1, default
+  `slots + 2`) and may list `keywords` from config `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
 - Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
@@ -143,6 +143,15 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
+
+## Population (Milestone 3 — in progress)
+Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
+010 (buy growth with food), 011 (food upkeep and starvation), 012 (workers gate buildings), 013 (growth cards).
+- Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
+  block the game has no pop (the test fixtures leave it out).
+- The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`.
+- Score = printed VP + effect VP + total pop × `vp_per_pop`.
+- Engine API: `population_on()`, `pop(territory_uid)`, `housing(territory_uid)`, `total_pop()`.
 
 ## Later
 - Headless bot + balance stats (random, then greedy)

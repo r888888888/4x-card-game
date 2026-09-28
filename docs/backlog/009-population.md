@@ -2,7 +2,7 @@
 id: 009
 title: Population on territories, counted in the final score
 type: feature
-status: in-progress
+status: review
 branch: feat/009-population
 ---
 
@@ -13,21 +13,21 @@ growth (010), food upkeep (011), workers gating buildings (012) and growth cards
 for mechanics triggered by total pop.
 
 ## Acceptance criteria
-- [ ] AC1: Loader. A territory's optional `housing` must be an int ≥ 1 and defaults to `slots + 2`
+- [x] AC1: Loader. A territory's optional `housing` must be an int ≥ 1 and defaults to `slots + 2`
   (Grassland with 2 slots → 4). `"housing": 0` or `"housing": "x"` on territory `t` gives an error
   naming the file, card `t` and field `housing`. `housing` on a non-territory card is a warning.
-- [ ] AC2: Loader. Config may have a `population` object with optional ints `start` (≥ 1, default 2),
+- [x] AC2: Loader. Config may have a `population` object with optional ints `start` (≥ 1, default 2),
   `food_upkeep` (≥ 0, default 1) and `vp_per_pop` (≥ 0, default 1). A negative value or a wrong type
   is an error naming the field (e.g. `population.start`). An unknown key is a warning.
   `start` greater than the starting territory's housing is an error.
-- [ ] AC3: Given `population: {start: 2}` and starting territory Homeland, when a new game starts,
+- [x] AC3: Given `population: {start: 2}` and starting territory Homeland, when a new game starts,
   then `pop(homeland_uid)` is 2 and `total_pop()` is 2. Territories in the territory deck, reveal
   and frontier have pop 0.
-- [ ] AC4: Given population on, when a Pioneer settles a frontier territory, then that territory has
+- [x] AC4: Given population on, when a Pioneer settles a frontier territory, then that territory has
   pop 1 and `total_pop()` goes from 2 to 3.
-- [ ] AC5: Given population on with `vp_per_pop: 1`, a Capital (2 VP) and total pop 3, then `score()`
+- [x] AC5: Given population on with `vp_per_pop: 1`, a Capital (2 VP) and total pop 3, then `score()`
   is 5, and the final score sent with `game_over` includes the pop VP.
-- [ ] AC6: Given a config with no `population` block, then every territory has pop 0 (including
+- [x] AC6: Given a config with no `population` block, then every territory has pop 0 (including
   after a settle), `total_pop()` is 0, and `score()` is unchanged from today.
 
 ## Out of scope
@@ -59,11 +59,19 @@ for mechanics triggered by total pop.
 | Real data | `test_content::test_real_config_turns_population_on` |
 
 ## Manual check
-- [ ] Each settled territory shows its pop and housing (e.g. "Pop 2/7"), and the stats bar shows total pop.
-- [ ] Settling a territory shows it with Pop 1.
+Run `godot --path .` (real data has population on, start 2).
+- [ ] The stats bar shows "Pop: 2" next to Score, and Score is 2 higher than the printed VP (Capital 2 + 2 pop = 4).
+- [ ] The Capital's territory box reads "0 / 2 slots used  ·  Pop 2 / 4" (Grassland: 2 slots, housing 4).
+- [ ] Territory cards in the frontier and choice panel show "2 slots · 4 housing · Grassland" style info.
+- [ ] Play a Scout, keep a territory, then settle it with a Settler: its box shows "Pop 1 / N", the stats bar
+  shows "Pop: 3", and Score goes up by 2 (City) + 1 (pop).
 
 ## Log
 - 2026-09-28: spec'd with the user. Pop is per territory and held (not spent); a settle gives 1 free pop;
   for now total pop only counts toward the final score (+1 VP per pop).
 - 2026-09-28: red. 22 failing tests (21 in the new `tests/test_population.gd`, 1 in `test_content`). Fixed the AC1 example:
   Grassland has 2 slots, so its default housing is 4, not 7.
+- 2026-09-28: green. `data/config.json` turns population on with the defaults, and every territory in
+  `data/cards.json` now states `housing` (slots + 2). Note: `food_upkeep` is already 1 in the real config but has
+  no effect until 011. The UI shows pop / housing on each territory group, housing on territory cards,
+  and total pop in the stats bar (hidden when population is off).
