@@ -2,7 +2,7 @@
 id: 044
 title: Repo housekeeping and PLAN.md cleanup
 type: chore
-status: review
+status: done
 branch: feat/044-repo-housekeeping
 ---
 
