@@ -23,3 +23,10 @@ func shuffle(arr: Array) -> void:
 		var tmp = arr[i]
 		arr[i] = arr[j]
 		arr[j] = tmp
+
+
+## A new source in the same state: it makes the same draws from here on, independently.
+func copy() -> SeededRng:
+	var r := SeededRng.new(seed_value)
+	r._rng.state = _rng.state
+	return r

@@ -2,7 +2,7 @@
 id: 051
 title: GameState and engine modules; forecast on a copy
 type: feature
-status: red-review
+status: in-progress
 branch: feat/051-game-state-split
 ---
 
