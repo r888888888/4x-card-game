@@ -208,6 +208,61 @@ func test_every_wealth_cost_has_a_wealth_source() -> void:
 	eq(unfunded_card_ids, [] as Array[String], "cards that cost wealth with nothing in the deck or starting tableau making it")
 
 
+# --- Building costs (backlog 076) ---
+
+## Whether any effect on def produces food (gain or gain_per_tag with resource food).
+func makes_food(def: CardDef) -> bool:
+	for effect in def.effects:
+		if effect.get("resource") == GameEngine.FOOD:
+			return true
+	return false
+
+
+func real_buildings(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.cards:
+		if r.cards[id].type == CardDef.BUILDING:
+			out.append(r.cards[id])
+	return out
+
+
+func test_every_building_costs_wealth() -> void:
+	var r := load_real()
+	var no_wealth: Array[String] = []
+	for def in real_buildings(r):
+		if def.cost.get(GameEngine.WEALTH, 0) < 1:
+			no_wealth.append(def.id)
+	eq(no_wealth, [] as Array[String], "buildings that cost no wealth")
+
+
+func test_only_food_buildings_cost_food_and_at_most_1() -> void:
+	var r := load_real()
+	var too_much_food: Array[String] = []
+	for def in real_buildings(r):
+		var limit := 1 if makes_food(def) else 0
+		if def.cost.get(GameEngine.FOOD, 0) > limit:
+			too_much_food.append(def.id)
+	eq(too_much_food, [] as Array[String], "buildings costing more food than allowed (0, or 1 if they make food)")
+
+
+func test_starting_resources_afford_a_starting_deck_building() -> void:
+	var r := load_real()
+	var start: Dictionary = r.config.starting.get("resources", {})
+	check(start.get(GameEngine.WEALTH, 0) >= 1, "start with at least 1 wealth (got %d)" % start.get(GameEngine.WEALTH, 0))
+	var affordable: Array[String] = []
+	for id in r.config.deck:
+		var def: CardDef = r.cards[id]
+		if def.type != CardDef.BUILDING:
+			continue
+		var ok := true
+		for res in def.cost:
+			if def.cost[res] > start.get(res, 0):
+				ok = false
+		if ok:
+			affordable.append(id)
+	check(not affordable.is_empty(), "starting resources %s pay for no building in the starting deck" % [start])
+
+
 # --- Tech content (backlog 028) ---
 
 ## The cards moved out of the starting deck, each now unlocked by a tech.
