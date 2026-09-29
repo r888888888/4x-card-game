@@ -2,7 +2,7 @@
 id: 076
 title: Buildings cost mostly wealth, early ones cheaper
 type: feature
-status: review
+status: done
 branch: feat/076-buildings-cost-wealth
 ---
 
