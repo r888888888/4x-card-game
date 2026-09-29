@@ -2,8 +2,9 @@
   "resources": ["food", "wealth"],
   "keywords": [
     "fresh_water", "flood_plain", "mountain", "jungle", "coastal", "forest",
-    "hills", "desert", "grassland", "iron", "gold"
+    "hills", "desert", "grassland"
   ],
+  "resource_keywords": ["gold"],
   "turn_limit": 20,
   "hand_size": 5,
   "hand_limit": 7,
@@ -58,11 +59,16 @@
     "lakeshore": 1,
     "floodplain_delta": 1,
     "bay": 1,
-    "hills": 1,
-    "gold_hills": 1,
+    "hills": 2,
     "highlands": 1,
     "woodland": 1,
     "rainforest": 1,
     "dunes": 1
+  },
+  "territory_resources": {
+    "hills": [
+      { "keywords": ["gold"], "weight": 1 },
+      { "keywords": [], "weight": 1 }
+    ]
   }
 }

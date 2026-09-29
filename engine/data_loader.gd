@@ -9,7 +9,7 @@ const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount", "era"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources"]
 const SUPPLY_TYPES: Array[String] = ["action", "building"]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -27,7 +27,8 @@ static func load_all(cards_path: String, config_path: String) -> Dictionary:
 	var resources := parse_resources(config_raw, config_src, errors)
 	var keyword_errors: Array[String] = []  # reported by parse_config
 	var keywords := parse_keywords(config_raw, config_src, keyword_errors)
-	result.cards = parse_cards(cards_raw, resources, cards_path.get_file(), errors, warnings, keywords)
+	var resource_keywords := parse_keywords(config_raw, config_src, keyword_errors, "resource_keywords")
+	result.cards = parse_cards(cards_raw, resources, cards_path.get_file(), errors, warnings, keywords, resource_keywords)
 	result.config = parse_config(config_raw, resources, result.cards, config_src, errors, warnings)
 	return result
 
@@ -66,12 +67,13 @@ static func parse_resources(raw: Variant, src: String, errors: Array[String]) ->
 	return out
 
 
-## The config's "keywords" list (default empty).
-static func parse_keywords(raw: Variant, src: String, errors: Array[String]) -> Array[String]:
+## The config's keyword list in field ("keywords" for terrain, "resource_keywords" for rolled ones;
+## default empty).
+static func parse_keywords(raw: Variant, src: String, errors: Array[String], field := "keywords") -> Array[String]:
 	var out: Array[String] = []
-	var list: Variant = raw.get("keywords", []) if raw is Dictionary else []
+	var list: Variant = raw.get(field, []) if raw is Dictionary else []
 	if not (list is Array):
-		errors.append("%s: 'keywords' must be an array of keyword ids" % src)
+		errors.append("%s: '%s' must be an array of keyword ids" % [src, field])
 		return out
 	for k in list:
 		if k is String:
@@ -81,12 +83,14 @@ static func parse_keywords(raw: Variant, src: String, errors: Array[String]) -> 
 	return out
 
 
-static func parse_cards(raw: Variant, resources: Array[String], src: String, errors: Array[String], warnings: Array[String], keywords: Array[String] = []) -> Dictionary:
+## Card definitions by id. keywords are terrain keywords (territories may print them); resource_keywords
+## are only rolled onto territories (config territory_resources). requires and effect keyword accept both.
+static func parse_cards(raw: Variant, resources: Array[String], src: String, errors: Array[String], warnings: Array[String], keywords: Array[String] = [], resource_keywords: Array[String] = []) -> Dictionary:
 	var db := {}
 	if not (raw is Dictionary) or not (raw.get("cards") is Array):
 		errors.append("%s: expected an object with a \"cards\" array" % src)
 		return db
-	var ctx := {"resources": resources, "zones": GameEngine.ZONES, "keywords": keywords}
+	var ctx := {"resources": resources, "zones": GameEngine.ZONES, "keywords": keywords + resource_keywords, "resource_keywords": resource_keywords}
 	var list: Array = raw.cards
 	for i in list.size():
 		var c: Variant = list[i]
@@ -190,6 +194,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			for k in kws:
 				if not (k is String):
 					errs.append("keywords must be strings")
+				elif ctx.resource_keywords.has(k):
+					errs.append("keywords: '%s' is a resource keyword; roll it with territory_resources instead" % k)
 				elif not ctx.keywords.has(k):
 					errs.append("unknown keyword '%s'" % k)
 				else:
@@ -263,6 +269,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	var config := {
 		"resources": resources,
 		"keywords": parse_keywords(raw, src, errors),
+		"resource_keywords": parse_keywords(raw, src, errors, "resource_keywords"),
 		"turn_limit": Effect.read_int(raw, "turn_limit", errs, 1, 20),
 		"hand_size": Effect.read_int(raw, "hand_size", errs, 1, 5),
 		"hand_limit": 0,
@@ -274,7 +281,11 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"era_unlocks": {},
 		"population": {},
 		"supply": {},
+		"territory_resources": {},
 	}
+	for k in config.resource_keywords:
+		if config.keywords.has(k):
+			errs.append("resource_keywords: '%s' is also in 'keywords'" % k)
 
 	config.hand_limit = Effect.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
 
@@ -331,6 +342,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
+	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
 
@@ -395,6 +407,59 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 	if start_territory != "" and out.start > cards[start_territory].housing:
 		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
 	return out
+
+
+## Normalizes territory_resources {territory_id: [{keywords, weight}]}: each key a territory, each table a
+## non-empty array of options whose keywords are resource keywords and whose weight is an integer >= 1.
+static func _parse_territory_resources(raw: Variant, cards: Dictionary, resource_keywords: Array[String], errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'territory_resources' must be an object like {\"hills\": [{\"keywords\": [\"gold\"], \"weight\": 1}]}")
+		return out
+	for id in raw:
+		if not cards.has(id):
+			errs.append("territory_resources: unknown card '%s'" % id)
+			continue
+		if cards[id].type != "territory":
+			errs.append("territory_resources: '%s' is not a territory" % id)
+			continue
+		var table: Variant = raw[id]
+		if not (table is Array) or table.is_empty():
+			errs.append("territory_resources: '%s' must be a non-empty array of options like {\"keywords\": [\"gold\"], \"weight\": 1}" % id)
+			continue
+		var options: Array = []
+		for i in table.size():
+			var option := _parse_resource_option(table[i], "territory_resources: '%s'[%d]" % [id, i], resource_keywords, errs)
+			if not option.is_empty():
+				options.append(option)
+		if options.size() == table.size():
+			out[id] = options
+	return out
+
+
+## One territory_resources option as {keywords, weight}, or {} (with errors) if it's invalid.
+static func _parse_resource_option(raw: Variant, where: String, resource_keywords: Array[String], errs: Array[String]) -> Dictionary:
+	if not (raw is Dictionary):
+		errs.append("%s must be an object like {\"keywords\": [\"gold\"], \"weight\": 1}" % where)
+		return {}
+	var valid := true
+	var keywords: Array[String] = []
+	var list: Variant = raw.get("keywords")
+	if list is Array:
+		for k in list:
+			if k is String and resource_keywords.has(k):
+				keywords.append(k)
+			else:
+				errs.append("%s: '%s' is not a resource keyword" % [where, k])
+				valid = false
+	else:
+		errs.append("%s: 'keywords' must be an array of resource keywords" % where)
+		valid = false
+	var weight: Variant = as_int(raw.get("weight"))
+	if typeof(weight) != TYPE_INT or weight < 1:
+		errs.append("%s: 'weight' must be an integer >= 1" % where)
+		valid = false
+	return {"keywords": keywords, "weight": weight} if valid else {}
 
 
 ## Normalizes the supply {card_id: {price, count}}: each card an action or building, price and count

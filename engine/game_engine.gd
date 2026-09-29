@@ -83,6 +83,15 @@ func housing(territory_uid: int) -> int:
 	return territory.def.housing if territory != null else 0
 
 
+## Keywords of territory uid in any zone: printed, then rolled resources ([] if it isn't a territory).
+func territory_keywords(uid: int) -> Array[String]:
+	for z in ZONES:
+		var card := zone(z).find(uid)
+		if card != null:
+			return card.keywords.duplicate() if card.def.type == "territory" else [] as Array[String]
+	return [] as Array[String]
+
+
 ## Food to grow settled territory territory_uid by 1 pop: its current pop + 1.
 func grow_cost(territory_uid: int) -> int:
 	return pop(territory_uid) + 1
@@ -385,7 +394,7 @@ func new_game(p_seed: int) -> void:
 	var territory_deck := zone("territory_deck")
 	for id in config.territory_deck:
 		for i in config.territory_deck[id]:
-			territory_deck.add(_make_card(id))
+			territory_deck.add(_make_territory(id))
 	rng.shuffle(territory_deck.cards)
 	var research_deck := zone("research_deck")
 	for id in config.research_deck:
@@ -396,7 +405,7 @@ func new_game(p_seed: int) -> void:
 		rng.shuffle(research_deck.cards)
 	var home: CardInstance = null
 	if config.starting.territory != "":
-		home = _make_card(config.starting.territory)
+		home = _make_territory(config.starting.territory)
 		if population_on():
 			home.pop = config.population.start
 		zone("tableau").add(home)
@@ -802,7 +811,7 @@ func _event_phase() -> void:
 func _resolve(card: CardInstance, trigger: String) -> void:
 	var territory := territory_of(card)
 	for e in card.def.effects_for(trigger):
-		if e.keyword == "" or (territory != null and territory.def.keywords.has(e.keyword)):
+		if e.keyword == "" or (territory != null and territory.keywords.has(e.keyword)):
 			e.apply(self, card)
 
 
@@ -857,7 +866,7 @@ func _meets_requires(card: CardInstance, territory: CardInstance) -> bool:
 	if card.def.requires.is_empty():
 		return true
 	for k in card.def.requires:
-		if territory.def.keywords.has(k):
+		if territory.keywords.has(k):
 			return true
 	return false
 
@@ -886,6 +895,24 @@ func _settled_territory(territory_uid: int) -> CardInstance:
 	if territory == null or territory.def.type != "territory":
 		return null
 	return territory
+
+
+## A new territory card_id with resource keywords rolled from its territory_resources table, if any.
+func _make_territory(card_id: String) -> CardInstance:
+	var card := _make_card(card_id)
+	var table: Array = config.get("territory_resources", {}).get(card_id, [])
+	if table.is_empty():
+		return card
+	var total := 0
+	for option in table:
+		total += option.weight
+	var roll := rng.randi_range(1, total)
+	for option in table:
+		roll -= option.weight
+		if roll <= 0:
+			card.keywords.append_array(option.keywords)
+			break
+	return card
 
 
 func _make_card(card_id: String) -> CardInstance:
