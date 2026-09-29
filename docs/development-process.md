@@ -76,7 +76,7 @@ Ask in plain language:
 | Loader validation (new fields, new error messages) | Yes |
 | New effect op | Yes (see the `add-effect` skill) |
 | Card/config balance numbers in `data/` | No new test; the suite must stay green; compare with `main` via the `balance` skill (`scripts/sim.sh`) |
-| UI layout / visuals | No automated test; logic moves to the engine (tested) + manual checklist |
+| UI layout / visuals | No test for the look; `test_ui_smoke` must stay green (catches script errors); logic moves to the engine (tested) + manual checklist |
 | Docs, comments, pure renames | No |
 
 ## Spikes
