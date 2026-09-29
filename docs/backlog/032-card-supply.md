@@ -2,7 +2,7 @@
 id: 032
 title: Buy cards from a supply
 type: feature
-status: red-review
+status: review
 branch: feat/032-card-supply
 ---
 
@@ -12,21 +12,21 @@ Some of the starting deck moves into a limited supply, so exploring, settling an
 become things the player chooses to invest in. No new cards.
 
 ## Acceptance criteria
-- [ ] AC1: Given config `supply: { "scout": { "price": 2, "count": 2 } }` and 3 wealth, when I
+- [x] AC1: Given config `supply: { "scout": { "price": 2, "count": 2 } }` and 3 wealth, when I
   `buy("scout")`, then it returns true, wealth is 1, a new Scout is on top of the discard,
   `supply_left("scout")` is 1, and `changed` is emitted.
-- [ ] AC2: Given the same supply and 4 wealth, when I buy Scout twice in one turn, then both buys
+- [x] AC2: Given the same supply and 4 wealth, when I buy Scout twice in one turn, then both buys
   succeed, wealth is 0, the discard has 2 Scouts, and `supply_left("scout")` is 0. There is no limit per turn.
-- [ ] AC3: `buy` returns false and changes nothing, and `buy_error` says why, when:
+- [x] AC3: `buy` returns false and changes nothing, and `buy_error` says why, when:
   (a) wealth is 1 and the price is 2 ("Scout costs 2 wealth (you have 1).");
   (b) the pile is empty ("No Scouts left in the supply.");
   (c) the card isn't in the supply, or the config has no supply ("Farm isn't in the supply.").
-- [ ] AC4: `buy` is also blocked, with the same error `grow_error` gives, while the game is over,
+- [x] AC4: `buy` is also blocked, with the same error `grow_error` gives, while the game is over,
   an explore choice is pending, research options are open, or a hand-limit discard is owed.
-- [ ] AC5: The loader reports an error that names `supply`, the card id and the field when: the card id is unknown; the card is not
+- [x] AC5: The loader reports an error that names `supply`, the card id and the field when: the card id is unknown; the card is not
   an `action` or `building` (city, territory and tech are rejected); `price` is missing or less than 1;
   `count` is missing or less than 1. Without a `supply` block the config loads with an empty supply.
-- [ ] AC6: `data/config.json` moves cards from `deck` to `supply`. Deck: scout 2, settler 2,
+- [x] AC6: `data/config.json` moves cards from `deck` to `supply`. Deck: scout 2, settler 2,
   temple 1, granary 1 (22 cards). Supply: scout (price 2, count 2), settler (3, 2), temple (3, 1),
   granary (2, 1). The real data loads with no errors.
 
@@ -59,11 +59,21 @@ become things the player chooses to invest in. No new cards.
 | AC6 | `test_content::test_real_supply_sells_scouts`, `test_every_supply_card_also_starts_in_the_deck`; changed: `test_real_deck_has_growth_cards` counts deck + supply |
 
 ## Manual check
-- [ ] The Supply panel shows Scout, Settler, Temple, Granary with price and count left.
-- [ ] Buying a Scout spends wealth, lowers the count, and the Scout later turns up in hand.
-- [ ] An empty or unaffordable pile is dimmed and its tooltip says why.
+- [ ] Start a game (`godot --path .`). The right column shows a Supply section above Research with
+  "Scout · 2 wealth · 2 left", "Settler · 3 wealth · 2 left", "Temple · 3 wealth · 1 left",
+  "Granary · 2 wealth · 1 left". The deck counter starts at 22 cards (5 in hand, 17 in the deck).
+- [ ] On turn 1 (0 wealth) every button is disabled; hovering one shows "Scout costs 2 wealth (you have 0)." and the card's rules.
+- [ ] Once you have 2 wealth, click Scout: wealth drops by 2, Discard goes up by 1, the button says "1 left", and the log says "Bought Scout (2 wealth)."
+- [ ] Buy the second Scout: the button stays disabled with "No Scouts left in the supply."
+- [ ] While an explore choice or research is open, the buttons are disabled.
 
 ## Log
 - 2026-09-29: Scoped from the marketplace brainstorm: supply of existing cards only, Scout required.
   User chose: Scout/Settler/Temple/Granary, per-card price in config, no buy limit, limited piles.
 - 2026-09-29: Approved by the user.
+- 2026-09-29: Supply UI uses one button per pile in the side column (not card views); simpler, and the
+  card's rules show in the tooltip. Revisit if the supply grows.
+- 2026-09-29: Refactor: the four shared blocking checks in play_error, research_error and buy_error are now
+  `_busy_error()`. grow_error kept as is (its population check sits in between; moving it would change
+  which message wins).
+- Follow-ups: tune prices after playtesting; the scripted smoke test in test_content never buys.

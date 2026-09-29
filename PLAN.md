@@ -198,6 +198,19 @@ Pyramids and Forge left the deck and come back through techs).
 - UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
   with the revealed techs (click one to buy) and Decline, and a Researched row.
 
+## Supply (backlog 032)
+Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
+starting deck moved into the supply (Scout, Settler, Temple, Granary).
+- Config `supply: { "scout": { "price": 2, "count": 2 } }`: only `action` and `building` cards; `price`
+  (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
+- `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
+  There is no limit per turn; an empty pile can't be bought from. Blocked like grow (game over, explore
+  choice, research open, discard owed).
+- Engine API: `supply()` ({card_id: count left}), `supply_left(card_id)`, `buy_price(card_id)`,
+  `buy_error(card_id)`, `buy(card_id)`.
+- UI: a Supply section above the Research button, one button per card ("Scout · 2 wealth · 2 left"),
+  disabled with the reason in its tooltip.
+
 ## Later
 - Headless bot + balance stats (random, then greedy)
 - Save/load, undo (snapshot GameState)
