@@ -266,6 +266,8 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 		return "%s %s effect can't use 'keyword' (%s %s has no territory)" % [article, type, article, type]
 	if effect.target_zone() != "":
 		return "%s %s effect can't need a target" % [article, type]
+	if effect.needs_own_territory():
+		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""
 
 

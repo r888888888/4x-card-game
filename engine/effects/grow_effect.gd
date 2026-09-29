@@ -14,6 +14,11 @@ func upkeep_ok() -> bool:
 	return true
 
 
+## "here" grows the card's own territory.
+func needs_own_territory() -> bool:
+	return where == "here"
+
+
 func fields() -> Array[String]:
 	return ["amount", "where"]
 

@@ -2,7 +2,7 @@
 id: 069
 title: Starter event deck — neutral and small beneficial events, Forage and Harvest Festival become events
 type: feature
-status: red-review
+status: in-progress
 branch: feat/069-starter-events
 ---
 
@@ -84,3 +84,5 @@ player can see what was drawn.
   Harvest Festival shows +1 food per farm in the forecast, and neither shows up in the hand.
 
 ## Log
+- Green: 068's `test_event_panel_is_hidden_without_an_event_deck` used the real data as its no-event-deck game; with
+  the starter deck shipped it now uses fixture data with an empty event deck (approved; assertions unchanged).
