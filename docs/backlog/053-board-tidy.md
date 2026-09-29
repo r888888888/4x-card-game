@@ -2,7 +2,7 @@
 id: 053
 title: Tidy the board — Realm above Frontier, Buy Cards, Knowledge wording, seed in the menu
 type: feature
-status: red-review
+status: review
 branch: feat/053-board-tidy
 ---
 
@@ -13,18 +13,18 @@ words: Realm, Buy Cards, Knowledge. UI and one card name only; no rule changes.
 
 ## Acceptance criteria
 <!-- Checked by the UI smoke test (045) where possible; the rest under Manual check. -->
-- [ ] AC1 (order): From top to bottom, the play area's sections are Realm, Frontier, Known (researched techs), Hand.
+- [x] AC1 (order): From top to bottom, the play area's sections are Realm, Frontier, Known (researched techs), Hand.
   The smoke test finds each heading and checks that their y positions increase in that order (the Frontier and Known
   sections are shown for the check).
-- [ ] AC2 (Realm): The section that was "Tableau" is headed "Realm". The hand hint says "drag a card into the realm".
+- [x] AC2 (Realm): The section that was "Tableau" is headed "Realm". The hand hint says "drag a card into the realm".
   No visible UI text says "tableau". Code keeps the zone id `tableau`.
-- [ ] AC3 (Frontier): The Frontier heading reads exactly "Frontier". The old explanation ("discovered, not yet settled")
+- [x] AC3 (Frontier): The Frontier heading reads exactly "Frontier". The old explanation ("discovered, not yet settled")
   is the heading's tooltip.
-- [ ] AC4 (seed): The top bar has no seed label. The menu's seed field shows the current game's seed when it opens
+- [x] AC4 (seed): The top bar has no seed label. The menu's seed field shows the current game's seed when it opens
   (as today), and the game-over overlay still shows "Seed: N" (smoke test unchanged).
-- [ ] AC5 (Buy Cards): The supply button reads "Buy Cards (S)". The screen it opens is still titled "Supply", and S
+- [x] AC5 (Buy Cards): The supply button reads "Buy Cards (S)". The screen it opens is still titled "Supply", and S
   still opens and closes it.
-- [ ] AC6 (Knowledge): The research choice panel is titled "Knowledge". The researched row is headed "Known". The card
+- [x] AC6 (Knowledge): The research choice panel is titled "Knowledge". The researched row is headed "Known". The card
   `research` is named "Insight" in `data/cards.json` (its id and the `research` op stay). The real data still loads
   with no warnings.
 
@@ -59,3 +59,12 @@ words: Realm, Buy Cards, Knowledge. UI and one card name only; no rule changes.
 - [ ] The Insight card, the Knowledge panel and the Known row read naturally in a full game.
 
 ## Log
+- 2026-09-29: Built in worktree `../4x-card-game-053`. Section order Realm, Frontier, Known, Events, Hand (Events, not in
+  the spec, sits between Known and Hand). AC1 checks the play area's child order through the new `section_headings()`
+  hook, not y positions: headless tests run no frames, so containers never lay out.
+- Engine wording: the `research` op's text is "Seek knowledge" / "Seek knowledge: reveal 2 techs, buy 1 or decline";
+  errors "The tech deck is empty." and "That tech isn't on offer."; log "Learned X (N wealth).", "Declined the techs.",
+  "Era N techs added to the tech deck.". UI: hand card tooltip "Drag into the realm", "Play an Insight card", Knowledge
+  panel says "tech deck".
+- To stay under 052's 500-line cap, the menu now parses its own seed field and emits `start_requested(seed_value)`;
+  `UIKit.card_row_section` takes an optional heading tooltip.

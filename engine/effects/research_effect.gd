@@ -13,8 +13,8 @@ func play_block_error(engine: GameEngine) -> String:
 
 
 func describe(_card_db: Dictionary) -> String:
-	return "Research"
+	return "Seek knowledge"
 
 
 func describe_long(_card_db: Dictionary) -> String:
-	return "Research: reveal 2 techs, buy 1 or decline"
+	return "Seek knowledge: reveal 2 techs, buy 1 or decline"

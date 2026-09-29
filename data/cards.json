@@ -37,7 +37,7 @@
       "effects": [ { "op": "explore" }, { "op": "draw", "amount": 1 } ]
     },
     {
-      "id": "research", "name": "Research", "type": "action",
+      "id": "research", "name": "Insight", "type": "action",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "research" } ]
     },

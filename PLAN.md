@@ -125,7 +125,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, then active events
    (which may end), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play or buy cards while resources allow, buy growth for territories, and play Research cards to reveal techs. A hand card can be discarded for free at any time.
+3. Play: play or buy cards while resources allow, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
@@ -173,7 +173,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Engine: state, zones, seeded RNG, actions, turn loop, 5 effect ops
 - [x] JSON data loader with validation
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
-- [x] UI: hand, tableau, stats bar, game log; drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
+- [x] UI: hand, tableau (headed "Realm" on screen, on top; 053), stats bar, game log; drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests

@@ -168,7 +168,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 ## saying why it can't be played.
 func set_play_error(play_error: String) -> void:
 	var playable := play_error == ""
-	_set_tip("Drag into the tableau (or double-click) to play. Right-click to discard." if playable else play_error)
+	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else play_error)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 

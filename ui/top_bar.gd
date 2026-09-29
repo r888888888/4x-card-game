@@ -12,7 +12,6 @@ var _food_label: Label
 var _wealth_label: Label
 var _pop_label: Label
 var _piles_label: Label
-var _seed_label: Label  # "Seed 4242"
 
 
 func _init(on_menu: Callable) -> void:
@@ -28,8 +27,6 @@ func _init(on_menu: Callable) -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
-	_seed_label = UIKit.heading("")
-	add_child(_seed_label)
 	menu_button = UIKit.button("Menu (Esc)", on_menu)
 	menu_button.tooltip_text = "New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
@@ -38,7 +35,6 @@ func _init(on_menu: Callable) -> void:
 ## Shows engine e's stats, pulsing the ones that changed.
 func refresh(e: GameEngine) -> void:
 	UIKit.set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
-	_seed_label.text = "Seed %d" % e.seed_value
 	var forecast := e.upkeep_forecast()
 	UIKit.set_stat(_food_label, "Food: %d%s" % [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)])
 	UIKit.set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)])

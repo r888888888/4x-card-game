@@ -122,10 +122,15 @@ static func section(parent: Control, text: String) -> VBoxContainer:
 	return box
 
 
-## A hidden section holding one scrolling row of cards. The row is stored as meta "row".
-static func card_row_section(parent: Control, text: String) -> VBoxContainer:
+## A hidden section holding one scrolling row of cards, with tooltip (if any) on its heading. The row is stored
+## as meta "row".
+static func card_row_section(parent: Control, text: String, tooltip := "") -> VBoxContainer:
 	var box := section(parent, text)
 	box.hide()
+	if tooltip != "":
+		var label: Label = box.get_child(0)
+		label.tooltip_text = tooltip
+		label.mouse_filter = Control.MOUSE_FILTER_STOP  # so the tooltip shows
 	var scroll := ScrollContainer.new()
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)

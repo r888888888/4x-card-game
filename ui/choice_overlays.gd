@@ -1,6 +1,6 @@
 class_name ChoiceOverlays
 extends RefCounted
-## The two choice overlays over the dimmed board: Explore (keep one revealed territory) and Research (buy one
+## The two choice overlays over the dimmed board: Explore (keep one revealed territory) and Knowledge (buy one
 ## revealed tech, or decline). Each shows while the engine waits for that decision.
 
 var reveal: HBoxContainer  # the revealed territories to choose from
@@ -26,8 +26,8 @@ func _init(parent: Control) -> void:
 	_research = UIKit.overlay(parent, CardView.TYPE_COLORS.tech)
 	_research.z_index = 5
 	var research_box := _research.get_meta("box") as VBoxContainer
-	research_box.add_child(UIKit.title("Research"))
-	research_box.add_child(UIKit.heading("Buy one tech with wealth, or decline both. The others go back into the research deck."))
+	research_box.add_child(UIKit.title("Knowledge"))
+	research_box.add_child(UIKit.heading("Buy one tech with wealth, or decline both. The others go back into the tech deck."))
 	research_row = HBoxContainer.new()
 	research_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	research_box.add_child(research_row)

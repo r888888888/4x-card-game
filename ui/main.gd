@@ -33,6 +33,7 @@ var _researched: HBoxContainer
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _side: SidePanel
+var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
@@ -97,6 +98,15 @@ func event_panel() -> Dictionary:
 		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
 	var info := _side.event_info
 	return {"visible": _events_section.visible, "info": info.text, "tooltip": info.tooltip_text, "views": shown}
+
+
+## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
+func section_headings() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for section in _play_area.get_children():
+		var heading: Label = section.get_child(0)
+		out.append({"text": heading.text, "tooltip": heading.tooltip_text})
+	return out
 
 
 ## Test hook (067): the menu's buttons, in order.
@@ -228,13 +238,6 @@ func _close_menu(give_back := true) -> void:
 		focus.set_card(card)
 	else:
 		_top_bar.menu_button.grab_focus()
-
-
-## Menu Restart: the seed in the field, or a random one if it isn't a whole number.
-func _on_restart_requested(seed_text: String) -> void:
-	var text := seed_text.strip_edges()
-	_close_menu(false)
-	start_game(text.to_int() if text.is_valid_int() else -1)
 
 
 ## A button or field took the focus: the card focus goes. Remembers the card if it was the Menu
@@ -429,23 +432,24 @@ func _build_layout() -> void:
 	body.add_theme_constant_override("separation", 14)
 	root.add_child(body)
 
-	var play_area := VBoxContainer.new()
-	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	body.add_child(play_area)
+	_play_area = VBoxContainer.new()
+	_play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
+	body.add_child(_play_area)
 
-	_frontier_section = UIKit.card_row_section(play_area, "Frontier — discovered, not yet settled")
-	frontier = _frontier_section.get_meta("row")
-	var tableau_section := UIKit.section(play_area, "Tableau")
-	tableau_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var realm_section := UIKit.section(_play_area, "Realm")
+	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tableau = TableauView.new()
-	tableau_section.add_child(tableau)
-	_researched_section = UIKit.card_row_section(play_area, "Researched")
+	realm_section.add_child(tableau)
+	_frontier_section = UIKit.card_row_section(_play_area, "Frontier",
+		"Territories discovered, not yet settled. Play a city card on one to settle it.")
+	frontier = _frontier_section.get_meta("row")
+	_researched_section = UIKit.card_row_section(_play_area, "Known")
 	_researched = _researched_section.get_meta("row")
-	_events_section = UIKit.card_row_section(play_area, "Events")
+	_events_section = UIKit.card_row_section(_play_area, "Events")
 	_events_row = _events_section.get_meta("row")
 
-	var hand_section := UIKit.section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter. Right-click or D discards.")
+	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	hand_scroll = ScrollContainer.new()
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -477,10 +481,9 @@ func _build_layout() -> void:
 	_game_over = GameOverOverlay.new(self, func(): start_game(Game.engine.seed_value), func(): start_game(-1))
 
 	_menu = GameMenu.new(self)
-	_menu.restart_requested.connect(_on_restart_requested)
-	_menu.new_game_requested.connect(func():
+	_menu.start_requested.connect(func(seed_value: int):
 		_close_menu(false)
-		start_game(-1))
+		start_game(seed_value))
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	_apply_motion_setting()

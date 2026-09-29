@@ -4,9 +4,9 @@ extends RefCounted
 ## Tab and the arrows stay inside it; a click on the dimmed area closes it. The board decides what the buttons
 ## do through the signals.
 
-## Restart, or Enter in the seed field; seed_text is the field's text.
-signal restart_requested(seed_text: String)
-signal new_game_requested
+## Restart or Enter in the seed field (seed_value: the field's seed, or -1 if it isn't a whole number), or
+## New game (-1: a random seed).
+signal start_requested(seed_value: int)
 ## Close, Esc, or a click on the dimmed area.
 signal close_requested
 signal exit_requested
@@ -36,12 +36,12 @@ func _init(parent: Control) -> void:
 	_seed_edit = LineEdit.new()
 	_seed_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_seed_edit.tooltip_text = "Restart replays this seed (same shuffle)."
-	_seed_edit.text_submitted.connect(func(text: String): restart_requested.emit(text))
+	_seed_edit.text_submitted.connect(func(_text: String): _restart())
 	seed_row.add_child(_seed_edit)
-	var restart := UIKit.button("Restart", func(): restart_requested.emit(_seed_edit.text))
+	var restart := UIKit.button("Restart", _restart)
 	restart.tooltip_text = "Start again with the seed above."
 	box.add_child(restart)
-	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
+	var new_game := UIKit.button("New game", func(): start_requested.emit(-1))
 	new_game.tooltip_text = "Start again with a random seed."
 	box.add_child(new_game)
 	# A toggle that says its state in words (a checkbox's box is hard to read on this background).
@@ -89,6 +89,12 @@ func open(seed_value: int) -> void:
 
 func hide() -> void:
 	overlay.hide()
+
+
+## Restart: the seed in the field, or a random one if it isn't a whole number.
+func _restart() -> void:
+	var text := _seed_edit.text.strip_edges()
+	start_requested.emit(text.to_int() if text.is_valid_int() else -1)
 
 
 ## Matches the Reduce motion toggle to the setting.
