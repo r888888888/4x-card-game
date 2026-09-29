@@ -160,14 +160,9 @@ func era_unlocks() -> Dictionary:
 
 ## Why research can't start right now, or "" if it can.
 func research_error() -> String:
-	if is_over:
-		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var busy := _busy_error()
+	if busy != "":
+		return busy
 	if _research_left <= 0:
 		return "No research left this turn."
 	if zone("research_deck").is_empty() and zone("future_techs").is_empty():
@@ -222,14 +217,9 @@ func buy_price(card_id: String) -> int:
 
 ## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
 func buy_error(card_id: String) -> String:
-	if is_over:
-		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var busy := _busy_error()
+	if busy != "":
+		return busy
 	var card_name: String = card_db[card_id].name if card_db.has(card_id) else card_id
 	if not _supply.has(card_id):
 		return "%s isn't in the supply." % card_name
@@ -248,14 +238,9 @@ func count_tag(tag: String, zone_name: String) -> int:
 
 ## Why the card can't be played right now, or "" if it can.
 func play_error(uid: int, target_uid := -1) -> String:
-	if is_over:
-		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var busy := _busy_error()
+	if busy != "":
+		return busy
 	var card := zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
@@ -698,6 +683,20 @@ func _lowest_future_era() -> int:
 	for tech in zone("future_techs").cards:
 		lowest = mini(lowest, tech.def.era)
 	return lowest
+
+
+## Why no action can be taken right now (game over, an explore choice, open research, a discard owed),
+## or "" if actions are allowed.
+func _busy_error() -> String:
+	if is_over:
+		return "The game is over."
+	if not pending_choice.is_empty():
+		return "Choose a territory first."
+	if not research_options().is_empty():
+		return _research_open_error()
+	if _discard_left > 0:
+		return _discard_error()
+	return ""
 
 
 func _research_open_error() -> String:
