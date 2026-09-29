@@ -133,13 +133,16 @@ func test_real_config_turns_population_on() -> void:
 
 func test_real_deck_has_growth_cards() -> void:
 	var r := load_real()
+	var counts: Dictionary = r.config.deck.duplicate()
+	for id in r.config.get("supply", {}):  # backlog 032: some copies moved to the supply
+		counts[id] = counts.get(id, 0) + r.config.supply[id].count
 	var growth := 0
-	for id in r.config.deck:
+	for id in counts:
 		for effect in r.cards[id].effects:
 			if effect.op == "grow":
-				growth += r.config.deck[id]
+				growth += counts[id]
 				break
-	check(growth >= 4, "at least 4 growth cards in the deck (got %d)" % growth)
+	check(growth >= 4, "at least 4 growth cards in the deck and supply (got %d)" % growth)
 
 
 # --- Wealth content (backlog 022) ---
@@ -308,3 +311,18 @@ func test_real_config_sets_an_era_2_threshold() -> void:
 func test_capital_adds_4_building_slots() -> void:
 	var r := load_real()
 	eq(r.cards.capital.slots, 4, "Capital slots")
+
+
+# --- Supply (backlog 032) ---
+
+func test_real_supply_sells_scouts() -> void:
+	var r := load_real()
+	check(r.config.get("supply", {}).has("scout"), "data/config.json supply has scout")
+
+
+func test_every_supply_card_also_starts_in_the_deck() -> void:
+	var r := load_real()
+	var supply: Dictionary = r.config.get("supply", {})
+	check(not supply.is_empty(), "the real config has a supply")
+	for id in supply:
+		check(r.config.deck.get(id, 0) >= 1, "%s is in the supply and still starts in the deck" % id)

@@ -34,6 +34,7 @@ var _research_left := 0  # research actions left this turn
 var _era := 1  # the highest era of techs added to the research deck
 var _eras_added: Array[int] = []  # eras add_era has already shuffled in
 var _discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
+var _supply: Dictionary = {}  # card_id -> copies left to buy, in config order
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
 
@@ -159,14 +160,9 @@ func era_unlocks() -> Dictionary:
 
 ## Why research can't start right now, or "" if it can.
 func research_error() -> String:
-	if is_over:
-		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var busy := _busy_error()
+	if busy != "":
+		return busy
 	if _research_left <= 0:
 		return "No research left this turn."
 	if zone("research_deck").is_empty() and zone("future_techs").is_empty():
@@ -204,20 +200,47 @@ func buy_tech_error(uid: int) -> String:
 	return ""
 
 
+## The cards in the supply and how many copies of each are left: {card_id: count}, in config order.
+func supply() -> Dictionary:
+	return _supply.duplicate()
+
+
+## Copies of card_id left in the supply (0 if it isn't sold there).
+func supply_left(card_id: String) -> int:
+	return _supply.get(card_id, 0)
+
+
+## What a copy of card_id costs in wealth from the supply (0 if it isn't sold there).
+func buy_price(card_id: String) -> int:
+	return config.get("supply", {}).get(card_id, {}).get("price", 0)
+
+
+## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
+func buy_error(card_id: String) -> String:
+	var busy := _busy_error()
+	if busy != "":
+		return busy
+	var card_name: String = card_db[card_id].name if card_db.has(card_id) else card_id
+	if not _supply.has(card_id):
+		return "%s isn't in the supply." % card_name
+	if _supply[card_id] <= 0:
+		return "No %ss left in the supply." % card_name
+	var price := buy_price(card_id)
+	var have: int = resources.get("wealth", 0)
+	if have < price:
+		return "%s costs %d wealth (you have %d)." % [card_name, price, have]
+	return ""
+
+
 func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
 
 
 ## Why the card can't be played right now, or "" if it can.
 func play_error(uid: int, target_uid := -1) -> String:
-	if is_over:
-		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var busy := _busy_error()
+	if busy != "":
+		return busy
 	var card := zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
@@ -327,6 +350,9 @@ func new_game(p_seed: int) -> void:
 	_research_left = 0
 	_era = 1
 	_eras_added = []
+	_supply = {}
+	for id in config.get("supply", {}):
+		_supply[id] = config.supply[id].count
 	_next_uid = 1
 	log_lines.clear()
 
@@ -447,6 +473,21 @@ func buy_tech(uid: int) -> bool:
 	_log("Researched %s (%d wealth)." % [tech.def.name, cost])
 	_resolve(tech, "play")
 	_return_revealed_techs(true)
+	changed.emit()
+	return true
+
+
+## Pays buy_price wealth for a new copy of card_id from the supply and puts it on the discard.
+## False (and no change) if buy_error says it can't.
+func buy(card_id: String) -> bool:
+	if buy_error(card_id) != "":
+		return false
+	var price := buy_price(card_id)
+	resources.wealth -= price
+	_supply[card_id] -= 1
+	var card := _make_card(card_id)
+	zone("discard").add(card)
+	_log("Bought %s (%d wealth)." % [card.def.name, price])
 	changed.emit()
 	return true
 
@@ -642,6 +683,20 @@ func _lowest_future_era() -> int:
 	for tech in zone("future_techs").cards:
 		lowest = mini(lowest, tech.def.era)
 	return lowest
+
+
+## Why no action can be taken right now (game over, an explore choice, open research, a discard owed),
+## or "" if actions are allowed.
+func _busy_error() -> String:
+	if is_over:
+		return "The game is over."
+	if not pending_choice.is_empty():
+		return "Choose a territory first."
+	if not research_options().is_empty():
+		return _research_open_error()
+	if _discard_left > 0:
+		return _discard_error()
+	return ""
 
 
 func _research_open_error() -> String:

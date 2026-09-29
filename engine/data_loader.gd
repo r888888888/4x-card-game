@@ -9,7 +9,8 @@ const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount", "era"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply"]
+const SUPPLY_TYPES: Array[String] = ["action", "building"]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -252,7 +253,8 @@ static func _tech_effect_problem(effect: Effect) -> String:
 
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
 ## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
-## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off)}.
+## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
+## supply: {card_id: {price, count}}, {} when there is none}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -271,6 +273,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"research_deck": {},
 		"era_unlocks": {},
 		"population": {},
+		"supply": {},
 	}
 
 	config.hand_limit = Effect.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
@@ -326,6 +329,8 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		config.research_deck = _parse_counts(research_deck, "research_deck", cards, "tech", errs)
 	else:
 		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
+
+	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
 
@@ -389,6 +394,35 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 			warnings.append("%s: population: unknown field '%s'" % [src, key])
 	if start_territory != "" and out.start > cards[start_territory].housing:
 		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
+	return out
+
+
+## Normalizes the supply {card_id: {price, count}}: each card an action or building, price and count
+## integers >= 1.
+static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'supply' must be an object like {\"scout\": {\"price\": 2, \"count\": 1}}")
+		return out
+	for id in raw:
+		var entry: Variant = raw[id]
+		if not cards.has(id):
+			errs.append("supply: unknown card '%s'" % id)
+			continue
+		if not SUPPLY_TYPES.has(cards[id].type):
+			errs.append("supply: '%s' is a %s" % [id, cards[id].type])
+			continue
+		if not (entry is Dictionary):
+			errs.append("supply: '%s' must be an object like {\"price\": 2, \"count\": 1}" % id)
+			continue
+		var valid := true
+		for field in ["price", "count"]:
+			var n: Variant = as_int(entry.get(field))
+			if typeof(n) != TYPE_INT or n < 1:
+				errs.append("supply: '%s': '%s' must be an integer >= 1" % [id, field])
+				valid = false
+		if valid:
+			out[id] = {"price": as_int(entry.price), "count": as_int(entry.count)}
 	return out
 
 
