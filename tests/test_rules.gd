@@ -46,12 +46,58 @@ func test_action_draws_then_discards() -> void:
 	eq(e.zone("discard").size(), 1, "discard")
 
 
-func test_reshuffle_when_deck_runs_out() -> void:
+## Discards 3 hand cards (hand 2, discard 3, deck 1) and returns their uids.
+func _discard_three(e: GameEngine) -> Array[int]:
+	var discarded: Array[int] = []
+	for i in 3:
+		var uid := first_in_hand(e)
+		check(e.discard_card(uid), "discard %d" % uid)
+		discarded.append(uid)
+	return discarded
+
+
+func _uids(zone: Zone) -> Array[int]:
+	var result: Array[int] = []
+	for card in zone.cards:
+		result.append(card.uid)
+	return result
+
+
+func test_bug_040_turn_end_draw_reshuffles_discard_into_deck() -> void:
 	var e := make_engine({"farm": 6})
-	e.end_turn()  # 5 discarded, 1 left in deck; draws 1 then reshuffles 5
+	var discarded := _discard_three(e)
+	eq(e.zone("discard").size(), 3, "discard before end_turn")
+	e.end_turn()  # draws the 1 deck card, reshuffles the 3 discarded, draws 2 of them
 	eq(e.zone("hand").size(), 5, "hand")
 	eq(e.zone("deck").size(), 1, "deck")
 	eq(e.zone("discard").size(), 0, "discard")
+	var hand_and_deck := _uids(e.zone("hand")) + _uids(e.zone("deck"))
+	for uid in discarded:
+		check(uid in hand_and_deck, "discarded %d back in hand or deck" % uid)
+
+
+func test_bug_040_reshuffle_is_reproducible_with_a_seed() -> void:
+	var a := make_engine({"farm": 6}, {}, 42)
+	var b := make_engine({"farm": 6}, {}, 42)
+	_discard_three(a)
+	_discard_three(b)
+	a.end_turn()
+	b.end_turn()
+	eq(_uids(a.zone("hand")), _uids(b.zone("hand")), "hands")
+	eq(_uids(a.zone("deck")), _uids(b.zone("deck")), "decks")
+
+
+func test_bug_040_draw_with_empty_deck_and_discard_draws_nothing() -> void:
+	var e := make_engine({"scout": 5}, {}, 1)
+	var outcomes: Array = []
+	e.card_played.connect(func(o): outcomes.append(o))
+	var scout := first_in_hand(e)
+	check(e.play_card(scout), "play Scout")
+	eq(e.zone("hand").size(), 4, "hand")
+	eq(e.zone("deck").size(), 0, "deck")
+	eq(_uids(e.zone("discard")), [scout], "discard holds only the Scout")
+	eq(outcomes.size(), 1, "one outcome")
+	eq(outcomes[0].drawn, [], "drawn")
 
 
 func test_create_card() -> void:
