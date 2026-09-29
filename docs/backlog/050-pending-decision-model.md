@@ -2,7 +2,7 @@
 id: 050
 title: One model for decisions the player owes
 type: feature
-status: draft
+status: red-review
 branch: feat/050-pending-decision-model
 ---
 
@@ -34,8 +34,14 @@ blocking rule makes the next kind (the event deck) a single addition.
   `discard_card` and `end_turn`.
 
 ## Test plan
-| AC | Test |
+| AC | Test (`tests/test_pending.gd`) |
 |---|---|
+| AC1 | `test_pending_is_empty_when_nothing_is_owed` |
+| AC2 | `test_pending_explore_lists_the_revealed_territories_top_first` |
+| AC3 | `test_pending_research_lists_the_revealed_techs` |
+| AC4 | `test_pending_discard_counts_down_and_offers_the_hand` |
+| AC5 | `test_each_pending_kind_blocks_actions_as_before` |
+| AC6 | the existing suite, unchanged; UI checked by `test_ui_smoke` and the Manual check |
 
 ## Manual check
 - [ ] Explore, research and hand-limit discard play exactly as before (overlays, disabled buttons, messages).
