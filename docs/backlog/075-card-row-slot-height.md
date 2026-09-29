@@ -2,7 +2,7 @@
 id: 075
 title: Frontier and Known rows change height when a card lands in them
 type: bug
-status: review
+status: done
 branch: fix/075-card-row-slot-height
 ---
 

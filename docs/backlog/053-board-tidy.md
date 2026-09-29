@@ -2,7 +2,7 @@
 id: 053
 title: Tidy the board — Realm above Frontier, Buy Cards, Knowledge wording, seed in the menu
 type: feature
-status: review
+status: done
 branch: feat/053-board-tidy
 ---
 
