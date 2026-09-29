@@ -2,7 +2,7 @@
 id: 042
 title: Headless balance simulator and a balance skill
 type: feature
-status: in-progress
+status: review
 branch: feat/042-balance-simulator
 ---
 
@@ -12,21 +12,21 @@ with `main`, instead of pinning numbers in tests. Uses the scripted bot that alr
 `tests/test_content.gd`.
 
 ## Acceptance criteria
-- [ ] AC1: The scripted bot moves to `sim/bot.gd` (`ScriptedBot.play(engine)`), with the same policy as today:
+- [x] AC1: The scripted bot moves to `sim/bot.gd` (`ScriptedBot.play(engine)`), with the same policy as today:
   resolve an explore choice with its first option; buy the cheapest affordable revealed tech or decline; else
   play the first playable hand card on its first valid target (Research last); else discard the hand and end
   the turn. It stops after 2000 steps. `tests/test_content.gd` uses it.
-- [ ] AC2: `SimStats.run(cards, config, seeds) -> Dictionary` plays one bot game per seed and returns
+- [x] AC2: `SimStats.run(cards, config, seeds) -> Dictionary` plays one bot game per seed and returns
   `{metric: {mean, min, max}}` for `score`, `cities` (City cards founded, not the Capital), `pop` (at game end),
   `techs` (cards in `researched`), `bought` (supply buys) and `era` (at game end). Given `TEST_CARDS` with deck
   `{"shrine": 10}`, `turn_limit` 3 and seeds [1, 2], then `score` is {mean 17, min 17, max 17} (Capital 2 + 5
   Shrines × 3 turns) and `cities` is {0, 0, 0}.
-- [ ] AC3: Given the real data, when `scripts/sim.sh 5` runs, then it prints one line per AC2 metric with mean,
+- [x] AC3: Given the real data, when `scripts/sim.sh 5` runs, then it prints one line per AC2 metric with mean,
   min and max over seeds 1–5 and exits 0. Given data with a loader error, it prints the errors and exits 1.
-- [ ] AC4: `tests/test_content.gd`'s three scripted-game tests become one 20-seed sweep (seeds 1–20) that checks:
+- [x] AC4: `tests/test_content.gd`'s three scripted-game tests become one 20-seed sweep (seeds 1–20) that checks:
   every game ends; wealth never goes below 0; a City beyond the Capital is founded in ≥ 9 seeds; a card
   costing wealth is played in ≥ 1 seed; a tech is bought in ≥ 1 seed.
-- [ ] AC5: A `balance` skill (`.claude/skills/balance/SKILL.md`) runs the simulator on `main` and on the current
+- [x] AC5: A `balance` skill (`.claude/skills/balance/SKILL.md`) runs the simulator on `main` and on the current
   checkout and shows the two tables side by side with the difference per metric.
 
 ## Out of scope
@@ -71,3 +71,12 @@ with `main`, instead of pinning numbers in tests. Uses the scripted bot that alr
   wrong order: `explore` lists options with the reveal zone's top first, which is the *second* card drawn
   (Grassland), so the bot correctly keeps Grassland and the frontier is [grassland, hills]. Waiting for the
   user's OK to fix the test's expectation.
+- 2026-09-29: User approved fixing the explore test's expected order to [grassland, hills] (assertion otherwise
+  unchanged). Suite green: 369 → 373 (7 new, 3 scripted-game tests merged into the sweep). Refactor: the tests use
+  `ScriptedBot` / `SimStats` directly now that they exist. `scripts/sim.sh` checked by hand: exit 0 on real data,
+  exit 1 with the loader error on a config with an unknown deck card. The `balance` skill's worktree flow was run
+  once (main + copied `sim/`, 5 seeds); it copies `sim/` into the worktree while main has none.
+- First numbers (real data, seeds 1–5): score mean 21.6 (14–31), cities 0.4 (0–1), pop 5.2, techs 5.2, bought 0,
+  era 2.
+- Follow-ups: the bot never buys from the supply, so `bought` is always 0; the test runner hangs instead of failing
+  when a `test_*` method needs arguments (noted in docs/testing.md; a runner fix would guard `t.call`).
