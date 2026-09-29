@@ -2,7 +2,7 @@
 id: 069
 title: Starter event deck — neutral and small beneficial events, Forage and Harvest Festival become events
 type: feature
-status: in-progress
+status: review
 branch: feat/069-starter-events
 ---
 
@@ -13,19 +13,19 @@ the game before harmful events exist, without shifting the balance much. Needs 0
 player can see what was drawn.
 
 ## Acceptance criteria
-- [ ] AC1 (real event deck): In the real data, `event_deck` is non-empty, and every card of type `event` in
+- [x] AC1 (real event deck): In the real data, `event_deck` is non-empty, and every card of type `event` in
   `cards.json` is in `event_deck` (no unused events).
-- [ ] AC2 (neutral or beneficial): Every real event's effects use only `gain`, `gain_per_tag`, `score` or `grow`
+- [x] AC2 (neutral or beneficial): Every real event's effects use only `gain`, `gain_per_tag`, `score` or `grow`
   (nothing that draws, creates, explores or needs a choice). At least one real event has no effects and at least
   one has an effect.
-- [ ] AC3 (moved cards): `forage` and `harvest_festival` are events in `event_deck`, and neither is in `deck` or
+- [x] AC3 (moved cards): `forage` and `harvest_festival` are events in `event_deck`, and neither is in `deck` or
   `supply`. Harvest Festival's effects are an upkeep `gain_per_tag` of food for tag `farm` (Farm and Pasture).
-- [ ] AC4 (bot sweep): In the 20-seed `ScriptedBot` sweep, every game still ends, and in every game at least one
+- [x] AC4 (bot sweep): In the 20-seed `ScriptedBot` sweep, every game still ends, and in every game at least one
   event was drawn (`active_events` plus `event_discard` is non-empty at game over).
-- [ ] AC5: The real data loads with no errors or warnings (`test_real_data_loads_without_warnings`).
-- [ ] AC6 (growth invariant): `test_real_deck_has_growth_cards` counts cards with a `grow` effect in `deck`,
+- [x] AC5: The real data loads with no errors or warnings (`test_real_data_loads_without_warnings`).
+- [x] AC6 (growth invariant): `test_real_deck_has_growth_cards` counts cards with a `grow` effect in `deck`,
   `supply` and `event_deck`, and still needs at least 4. This changes an existing content test.
-- [ ] AC7 (no silent `here`): A `grow` effect with `"where": "here"` on an event or a tech is a load error that names
+- [x] AC7 (no silent `here`): A `grow` effect with `"where": "here"` on an event or a tech is a load error that names
   the card and the effect index (such a card has no territory, so the effect would do nothing). `"where": "each"`
   still loads.
 
@@ -86,3 +86,21 @@ player can see what was drawn.
 ## Log
 - Green: 068's `test_event_panel_is_hidden_without_an_event_deck` used the real data as its no-event-deck game; with
   the starter deck shipped it now uses fixture data with an empty event deck (approved; assertions unchanged).
+- Built: `Effect.needs_own_territory()` (true for `grow` with `here`), checked by `DataLoader._no_territory_effect_problem`
+  for techs and events. Data as in the deck table: 13 events, main deck 23 -> 19, Granary supply pile 1 -> 3.
+  Blank events got no flavor `text` (it would replace the generated "Lasts 1 turn").
+- Balance (`scripts/sim.sh 20`, mean (min–max)):
+
+  | metric | main | + 10 new events only | 069 as built | Δ vs main |
+  |---|---|---|---|---|
+  | score | 27.75 (7–46) | 32.10 (14–47) | 42.85 (11–84) | +15.10 (+54%) |
+  | cities | 0.80 (0–3) | 0.95 (0–3) | 5.00 (0–11) | +4.20 |
+  | pop | 6.20 (3–17) | 7.30 (4–13) | 8.55 (3–16) | +2.35 (+38%) |
+  | techs | 5.00 (3–8) | 5.15 (4–7) | 6.95 (5–10) | +1.95 (+39%) |
+  | bought | 0 | 0 | 0 | 0 |
+  | era | 2 | 2 | 2 | 0 |
+
+  The 10 new events alone add ~4 score. Almost all of the jump comes from Forage and Harvest Festival leaving the
+  main deck: the bot plays the first playable card, so the 2-food Festival drained the food it saved for a 5-food
+  Settler, and Settlers come up more often in a 19-card deck. Part of this is the simple bot, but the deck really is
+  leaner. `cities` min is still 0 (as on main). Flagged for review: 066 (100-turn balance pass) may want to revisit.
