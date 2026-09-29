@@ -227,11 +227,8 @@ func parse_with(overrides: Dictionary) -> Array[String]:
 	return errors
 
 
-func test_hand_limit_below_hand_size_is_an_error() -> void:
-	var errors := parse_with({"hand_limit": 4})
-	check(has_message(errors, "config.json") and has_message(errors, "hand_limit"), str(errors))
-
-
-func test_hand_limit_must_be_an_integer() -> void:
-	var errors := parse_with({"hand_limit": "many"})
-	check(has_message(errors, "config.json") and has_message(errors, "hand_limit"), str(errors))
+func test_hand_limit_validation() -> void:
+	check_cases([
+		["below hand_size", {"hand_limit": 4}, ["config.json", "hand_limit"]],
+		["not an integer", {"hand_limit": "many"}, ["config.json", "hand_limit"]],
+	], parse_with)

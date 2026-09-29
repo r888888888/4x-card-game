@@ -54,26 +54,23 @@ func test_housing_loads_when_given() -> void:
 	eq(cards.bog.housing, 3, "housing")
 
 
-func test_housing_0_is_error() -> void:
+## Loads TEST_CARDS plus one extra card; returns {errors, warnings}.
+func card_messages(card: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	parse_test_cards([{"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": 0}], errors, warnings)
-	has_msg(errors, "cards.json: card 'bog': 'housing' must be an integer >= 1")
+	parse_test_cards([card], errors, warnings)
+	return {"errors": errors, "warnings": warnings}
 
 
-func test_housing_not_int_is_error() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	parse_test_cards([{"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": "x"}], errors, warnings)
-	has_msg(errors, "cards.json: card 'bog': 'housing' must be an integer >= 1")
-
-
-func test_housing_on_non_territory_is_warning() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	parse_test_cards([{"id": "hut", "name": "Hut", "type": "building", "housing": 2}], errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "card 'hut': 'housing' only applies to territories")
+func test_housing_validation() -> void:
+	check_cases([
+		["housing 0", {"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": 0},
+			"cards.json: card 'bog': 'housing' must be an integer >= 1"],
+		["housing not an int", {"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": "x"},
+			"cards.json: card 'bog': 'housing' must be an integer >= 1"],
+		["housing on a building", {"id": "hut", "name": "Hut", "type": "building", "housing": 2},
+			"card 'hut': 'housing' only applies to territories", "warning_only"],
+	], card_messages)
 
 
 # --- AC2: config population block ---
@@ -97,33 +94,18 @@ func test_no_population_block_leaves_population_off() -> void:
 	eq(r.config.population, {}, "no population block -> empty (off)")
 
 
-func test_population_start_0_is_error() -> void:
-	has_msg(load_config({"population": {"start": 0}}).errors, "config.json: 'population.start' must be an integer >= 1")
+func test_population_block_validation() -> void:
+	check_cases([
+		["start 0", {"start": 0}, "config.json: 'population.start' must be an integer >= 1"],
+		["negative food_upkeep", {"food_upkeep": -1}, "config.json: 'population.food_upkeep' must be an integer >= 0"],
+		["vp_per_pop not an int", {"vp_per_pop": "x"}, "config.json: 'population.vp_per_pop' must be an integer >= 0"],
+		["not an object", 3, "config.json: 'population' must be an object"],
+		["unknown key", {"growth": 1}, "config.json: population: unknown field 'growth'", "warning_only"],
+		["start above starting housing (homeland: 5 slots -> housing 7)", {"start": 8}, ["population.start", "housing"]],
+	], func(population): return load_config({"population": population}))
 
 
-func test_population_negative_food_upkeep_is_error() -> void:
-	has_msg(load_config({"population": {"food_upkeep": -1}}).errors, "config.json: 'population.food_upkeep' must be an integer >= 0")
-
-
-func test_population_vp_per_pop_wrong_type_is_error() -> void:
-	has_msg(load_config({"population": {"vp_per_pop": "x"}}).errors, "config.json: 'population.vp_per_pop' must be an integer >= 0")
-
-
-func test_population_not_an_object_is_error() -> void:
-	has_msg(load_config({"population": 3}).errors, "config.json: 'population' must be an object")
-
-
-func test_population_unknown_key_is_warning() -> void:
-	var r := load_config({"population": {"growth": 1}})
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "config.json: population: unknown field 'growth'")
-
-
-func test_population_start_above_starting_housing_is_error() -> void:
-	# homeland: 5 slots -> housing 7
-	var r := load_config({"population": {"start": 8}})
-	has_msg(r.errors, "population.start")
-	has_msg(r.errors, "housing")
+func test_population_start_equal_to_starting_housing_loads() -> void:
 	eq(load_config({"population": {"start": 7}}).errors, [] as Array[String], "start == housing is fine")
 
 

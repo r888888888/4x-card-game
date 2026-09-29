@@ -89,15 +89,13 @@ func test_keyword_play_effect_skipped_elsewhere() -> void:
 
 # --- AC5: validation ---
 
-func test_unknown_requires_keyword_is_error() -> void:
-	var r := load_one({"id": "x", "name": "X", "type": "building", "requires": ["lava"]})
-	has_msg(r.errors, "t: card 'x': unknown keyword 'lava' in 'requires'")
-
-
-func test_unknown_effect_keyword_is_error() -> void:
-	var r := load_one({"id": "x", "name": "X", "type": "building",
-		"effects": [{"op": "score", "amount": 1, "keyword": "lava"}]})
-	has_msg(r.errors, "t: card 'x': effects[0]: unknown keyword 'lava' in 'keyword'")
+func test_keyword_validation() -> void:
+	check_cases([
+		["unknown requires keyword", {"id": "x", "name": "X", "type": "building", "requires": ["lava"]},
+			"t: card 'x': unknown keyword 'lava' in 'requires'"],
+		["unknown effect keyword", {"id": "x", "name": "X", "type": "building", "effects": [{"op": "score", "amount": 1, "keyword": "lava"}]},
+			"t: card 'x': effects[0]: unknown keyword 'lava' in 'keyword'"],
+	], load_one)
 
 
 func test_keyword_fields_load_without_warnings() -> void:

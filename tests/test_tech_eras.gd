@@ -47,14 +47,15 @@ func test_era_defaults_to_1_and_loads() -> void:
 	eq(r.cards.x.era, 2, "era")
 
 
-func test_era_below_1_is_an_error() -> void:
-	has_msg(load_x({"era": 0}).errors, "cards.json: card 'x': era")
-
-
-func test_era_on_a_card_that_is_not_a_tech_is_a_warning() -> void:
-	var r := load_x({"era": 2}, "building")
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "cards.json: card 'x': 'era' only applies to techs")
+func test_era_and_research_field_validation() -> void:
+	check_cases([
+		["era 0", [{"era": 0}, "tech", []], "cards.json: card 'x': era"],
+		["era on a building", [{"era": 2}, "building", []], "cards.json: card 'x': 'era' only applies to techs", "warning_only"],
+		["add_era without era", [{}, "tech", [{"op": "add_era"}]], "cards.json: card 'x': effects[0]: missing 'era'"],
+		["add_era 1", [{}, "tech", [{"op": "add_era", "era": 1}]], "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2"],
+		["research on upkeep", [{}, "building", [{"op": "research", "trigger": "upkeep"}]], "cards.json: card 'x': effects[0]"],
+		["research amount", [{}, "action", [{"op": "research", "amount": 1}]], ["cards.json: card 'x': effects[0]", "amount"], "warnings"],
+	], func(args): return load_x(args[0], args[1], args[2]))
 
 
 func test_add_era_loads() -> void:
@@ -63,29 +64,10 @@ func test_add_era_loads() -> void:
 	eq(r.warnings, [] as Array[String], "warnings")
 
 
-func test_add_era_needs_an_era() -> void:
-	has_msg(load_x({}, "tech", [{"op": "add_era"}]).errors, "cards.json: card 'x': effects[0]: missing 'era'")
-
-
-func test_add_era_1_is_an_error() -> void:
-	has_msg(load_x({}, "tech", [{"op": "add_era", "era": 1}]).errors, "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2")
-
-
 func test_research_op_loads_with_no_fields() -> void:
 	var r := load_x({}, "action", [{"op": "research"}])
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
-
-
-func test_research_op_at_upkeep_is_an_error() -> void:
-	var r := load_x({}, "building", [{"op": "research", "trigger": "upkeep"}])
-	has_msg(r.errors, "cards.json: card 'x': effects[0]")
-
-
-func test_research_op_amount_is_an_unknown_field() -> void:
-	var r := load_x({}, "action", [{"op": "research", "amount": 1}])
-	has_msg(r.errors + r.warnings, "cards.json: card 'x': effects[0]")
-	has_msg(r.errors + r.warnings, "amount")
 
 
 func test_era_and_research_card_text() -> void:
@@ -237,20 +219,17 @@ func test_era_unlocks_defaults_to_empty() -> void:
 	eq(config.get("era_unlocks"), {}, "default")
 
 
-func test_era_unlocks_bad_era_keys_are_errors() -> void:
-	for key in ["1", "0", "two"]:
-		has_msg(threshold_config_errors({key: {"pop": 8}}).errors, "config.json: era_unlocks")
-
-
-func test_era_unlocks_bad_values_are_errors() -> void:
-	for value in [8, {}, {"pop": 0}, {"wealth": "lots"}]:
-		has_msg(threshold_config_errors({"2": value}).errors, "config.json: era_unlocks")
-
-
-func test_era_unlocks_unknown_field_is_a_warning() -> void:
-	var r := threshold_config_errors({"2": {"pop": 8, "food": 3}})
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "config.json: era_unlocks")
+func test_era_unlocks_validation() -> void:
+	check_cases([
+		["era key 1", {"1": {"pop": 8}}, "config.json: era_unlocks"],
+		["era key 0", {"0": {"pop": 8}}, "config.json: era_unlocks"],
+		["era key not a number", {"two": {"pop": 8}}, "config.json: era_unlocks"],
+		["value not an object", {"2": 8}, "config.json: era_unlocks"],
+		["no threshold", {"2": {}}, "config.json: era_unlocks"],
+		["pop 0", {"2": {"pop": 0}}, "config.json: era_unlocks"],
+		["wealth not an int", {"2": {"wealth": "lots"}}, "config.json: era_unlocks"],
+		["unknown field", {"2": {"pop": 8, "food": 3}}, "config.json: era_unlocks", "warning_only"],
+	], threshold_config_errors)
 
 
 func test_era_unlocks_query_returns_the_config() -> void:

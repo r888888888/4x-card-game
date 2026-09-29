@@ -76,6 +76,32 @@ func has_msg(messages: Array[String], fragment: String) -> void:
 	check(has_message(messages, fragment), "no message containing '%s' in %s" % [fragment, messages])
 
 
+## Table-driven loader validation (046). Each row is [label, input, fragment, kind]: load_input.call(input) returns the
+## loader errors (Array[String]) or {errors, warnings}; fragment (a String, or an Array of Strings that must all
+## appear) must be in the messages of kind: "errors" (the default), "one_error" (the only error), "warnings", or
+## "warning_only" (in the warnings, and no errors at all). A failing row is reported with its label.
+func check_cases(cases: Array, load_input: Callable) -> void:
+	for row in cases:
+		var label: String = row[0]
+		var kind: String = row[3] if row.size() > 3 else "errors"
+		var result: Variant = load_input.call(row[1])
+		var errors: Array[String] = []
+		var warnings: Array[String] = []
+		if result is Dictionary:
+			errors.assign(result.errors)
+			warnings.assign(result.warnings)
+		else:
+			errors.assign(result)
+		var messages := errors if kind in ["errors", "one_error"] else warnings
+		var fragments: Array = row[2] if row[2] is Array else [row[2]]
+		for fragment in fragments:
+			check(has_message(messages, fragment), "%s: no %s containing '%s' in %s" % [label, kind, fragment, messages])
+		if kind == "one_error":
+			eq(errors.size(), 1, "%s: one error in %s" % [label, errors])
+		if kind == "warning_only":
+			eq(errors, [] as Array[String], "%s: errors" % label)
+
+
 # --- Helpers ---
 
 func has_message(messages: Array[String], fragment: String) -> bool:
