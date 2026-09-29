@@ -2,7 +2,7 @@
 id: 050
 title: One model for decisions the player owes
 type: feature
-status: review
+status: done
 branch: feat/050-pending-decision-model
 ---
 
