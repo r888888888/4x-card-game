@@ -361,3 +361,37 @@ func test_real_hills_roll_gold_and_iron_is_gone() -> void:
 		eq(hills[0].weight, 1, "option 0 weight")
 		eq(hills[1].keywords, [] as Array[String], "option 1 keywords")
 		eq(hills[1].weight, 1, "option 1 weight")
+
+
+# --- Backlog 038: realistic territory slots and housing ---
+
+const TERRITORY_NUMBERS := {
+	"grassland": [3, 5], "plains": [3, 4], "river_valley": [2, 6], "lakeshore": [2, 5],
+	"floodplain_delta": [1, 6], "bay": [2, 4], "hills": [2, 3], "highlands": [1, 2],
+	"woodland": [2, 3], "rainforest": [1, 2], "dunes": [1, 2],
+}
+const TERRITORY_KEYWORDS := {
+	"grassland": ["grassland"], "plains": ["grassland"], "river_valley": ["fresh_water", "flood_plain"],
+	"lakeshore": ["fresh_water"], "floodplain_delta": ["fresh_water", "flood_plain", "coastal"],
+	"bay": ["coastal"], "hills": ["hills"], "highlands": ["mountain"], "woodland": ["forest"],
+	"rainforest": ["jungle"], "dunes": ["desert"],
+}
+
+
+func test_real_territory_slots_and_housing_follow_the_land() -> void:
+	var r := load_real()
+	eq(r.warnings, [] as Array[String], "warnings")
+	for id in TERRITORY_NUMBERS:
+		var def: CardDef = r.cards.get(id)
+		check(def != null, "territory '%s' exists" % id)
+		if def != null:
+			eq([def.slots, def.housing], TERRITORY_NUMBERS[id], "%s slots / housing" % id)
+
+
+func test_real_floodplain_delta_has_fresh_water_and_others_keep_keywords() -> void:
+	var r := load_real()
+	for id in TERRITORY_KEYWORDS:
+		var def: CardDef = r.cards.get(id)
+		check(def != null, "territory '%s' exists" % id)
+		if def != null:
+			eq(Array(def.keywords), TERRITORY_KEYWORDS[id], "%s keywords" % id)
