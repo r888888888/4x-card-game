@@ -41,6 +41,9 @@ var _research_row: HBoxContainer  # the revealed techs, inside _research_overlay
 var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
 var _researched: HBoxContainer
 var _research_button: Button
+var _supply_section: Control  # the supply's heading and buttons, hidden when the config has no supply
+var _supply_box: VBoxContainer  # one buy button per supply card
+var _supply_buttons := {}  # card_id -> Button
 var _log: RichTextLabel
 var _end_turn_button: Button
 var _game_over_overlay: Control
@@ -586,6 +589,7 @@ func _refresh() -> void:
 		tip_lines.push_front(research_error)
 	_research_button.tooltip_text = "\n".join(tip_lines)
 	_research_button.visible = e.config.research_deck.size() > 0
+	_refresh_supply()
 	_animate_outcome()
 	_sync_card_focus()
 
@@ -597,6 +601,30 @@ func _refresh() -> void:
 	_game_over_overlay.visible = e.is_over
 	if e.is_over:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
+
+
+## One button per supply card: "Scout · 2 wealth · 2 left". A button the engine won't let you use is
+## disabled, with the reason first in its tooltip; the card's rules follow.
+func _refresh_supply() -> void:
+	var e := Game.engine
+	var supply := e.supply()
+	_supply_section.visible = not supply.is_empty()
+	for id in _supply_buttons.keys():
+		if not supply.has(id):
+			_supply_buttons[id].queue_free()
+			_supply_buttons.erase(id)
+	for id in supply:
+		if not _supply_buttons.has(id):
+			var card_id: String = id
+			_supply_buttons[id] = _button("", func(): Game.engine.buy(card_id))
+			_supply_box.add_child(_supply_buttons[id])
+		var button: Button = _supply_buttons[id]
+		var def: CardDef = e.card_db[id]
+		var error := e.buy_error(id)
+		button.text = "%s · %d wealth · %d left" % [def.name, e.buy_price(id), supply[id]]
+		button.disabled = error != ""
+		var tip := def.rules_tooltip(e.card_db)
+		button.tooltip_text = tip if error == "" else "%s\n\n%s" % [error, tip]
 
 
 ## Places tableau cards in territory groups: each territory card first, then the cards on it.
@@ -1053,7 +1081,12 @@ func _build_layout() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
-	_research_button = _button("Research (R)", func(): Game.engine.research())
+	_supply_section = _section(side_col, "Supply — buy a copy into your discard")
+	_supply_section.hide()
+	_supply_box = VBoxContainer.new()
+	_supply_box.add_theme_constant_override("separation", 6)
+	_supply_section.add_child(_supply_box)
+	_research_button =_button("Research (R)", func(): Game.engine.research())
 	_research_button.custom_minimum_size.y = 44
 	side_col.add_child(_research_button)
 	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())

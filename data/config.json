@@ -17,16 +17,22 @@
   "deck": {
     "farm": 4,
     "irrigation": 1,
-    "settler": 4,
-    "scout": 4,
+    "settler": 2,
+    "scout": 2,
     "forage": 2,
     "caravan": 2,
-    "temple": 2,
+    "temple": 1,
     "lumber_camp": 2,
     "mine": 2,
     "market": 1,
-    "granary": 2,
+    "granary": 1,
     "harvest_festival": 2
+  },
+  "supply": {
+    "scout": { "price": 2, "count": 2 },
+    "settler": { "price": 3, "count": 2 },
+    "temple": { "price": 3, "count": 1 },
+    "granary": { "price": 2, "count": 1 }
   },
   "research_deck": {
     "pottery": 1,
