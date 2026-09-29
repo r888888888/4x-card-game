@@ -755,7 +755,6 @@ func _discard_error() -> String:
 	return "Discard down to %d cards first." % config.hand_limit
 
 
-
 func _start_turn() -> void:
 	turn += 1
 	_log("— Turn %d —" % turn)
