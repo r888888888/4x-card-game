@@ -122,8 +122,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.keycode == KEY_S and not event.echo:
 		_open_supply()
 	elif event.keycode == KEY_E and not event.echo:
-		if not e.is_over and e.pending_choice.is_empty():
-			e.end_turn()
+		e.end_turn()  # refused while end_turn_error() says so
 	elif event.keycode == KEY_D and not event.echo:
 		if _focused != null and is_instance_valid(_focused) and _focused.in_hand:
 			_on_discard_requested(_focused)
@@ -259,13 +258,18 @@ func _try_play(view: CardView, target_uid := -1) -> void:
 	Game.engine.play_card(view.uid, target_uid)
 
 
+## The kind of decision the engine is waiting for (GameEngine.PENDING_*), or "".
+func _pending_kind() -> String:
+	return Game.engine.pending().get("kind", "")
+
+
 func _on_double_clicked(view: CardView) -> void:
 	if _targeting != null:
 		_end_targeting()
-	if _dragging != null or not Game.engine.pending_choice.is_empty():
+	if _dragging != null or _pending_kind() == GameEngine.PENDING_EXPLORE:
 		return
 	var e := Game.engine
-	if e.discard_needed() > 0:
+	if _pending_kind() == GameEngine.PENDING_DISCARD:
 		_on_discard_requested(view)
 		return
 	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and e.playable_error(view.uid) == "":
@@ -285,7 +289,7 @@ func _on_picked(view: CardView) -> void:
 		var card := _targeting
 		_end_targeting()
 		_try_play(card, view.uid)
-	elif not Game.engine.research_options().is_empty():
+	elif _pending_kind() == GameEngine.PENDING_RESEARCH:
 		var error := Game.engine.buy_tech_error(view.uid)
 		if error != "":
 			_log.append_text("[color=#e88]%s[/color]\n" % error)
@@ -437,9 +441,9 @@ func _focus_row() -> Array[CardView]:
 		var piles: Array[CardView] = []
 		piles.assign(_supply_views.values())
 		return piles
-	if not e.pending_choice.is_empty():
+	if _pending_kind() == GameEngine.PENDING_EXPLORE:
 		return _views_in(_reveal)
-	if not e.research_options().is_empty():
+	if _pending_kind() == GameEngine.PENDING_RESEARCH:
 		return _views_in(_research_row)
 	if _targeting != null:
 		var targets: Array[CardView] = []
@@ -488,7 +492,7 @@ func _activate_card_focus() -> void:
 		return
 	if _supply_overlay.visible:
 		_on_supply_picked(view)
-	elif not Game.engine.pending_choice.is_empty() or not Game.engine.research_options().is_empty() or (_targeting != null and _lit.has(view.uid)):
+	elif _pending_kind() in [GameEngine.PENDING_EXPLORE, GameEngine.PENDING_RESEARCH] or (_targeting != null and _lit.has(view.uid)):
 		_on_picked(view)
 	elif view.in_hand:
 		_on_double_clicked(view)
@@ -517,12 +521,12 @@ func _sync_card_focus() -> void:
 	var e := Game.engine
 	if _supply_overlay.visible:  # the focus stays on the pile card (or nothing) while buying
 		return
-	if not e.pending_choice.is_empty():
+	if _pending_kind() == GameEngine.PENDING_EXPLORE:
 		var choice := _views_in(_reveal)
 		if not choice.has(_focused) and not choice.is_empty():
 			_set_card_focus(choice[0])
 		return
-	if not e.research_options().is_empty():
+	if _pending_kind() == GameEngine.PENDING_RESEARCH:
 		var techs := _views_in(_research_row)
 		if not techs.has(_focused) and not techs.is_empty():
 			_set_card_focus(techs[0])
@@ -543,7 +547,7 @@ func _sync_card_focus() -> void:
 func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
 	if _targeting != null:
 		_end_targeting()
-	if _dragging != null or Game.engine.is_over or not Game.engine.pending_choice.is_empty():
+	if _dragging != null or Game.engine.is_over or _pending_kind() == GameEngine.PENDING_EXPLORE:
 		return
 	_dragging = view
 	view.begin_drag(_fx, grab_offset)
@@ -700,8 +704,8 @@ func _refresh() -> void:
 		_place(researched[i], false, _researched, i, 0.0)
 	_frontier_section.visible = not frontier.is_empty()
 	_researched_section.visible = not researched.is_empty()
-	_choice_overlay.visible = not e.pending_choice.is_empty()
-	_research_overlay.visible = not techs.is_empty()
+	_choice_overlay.visible = _pending_kind() == GameEngine.PENDING_EXPLORE
+	_research_overlay.visible = _pending_kind() == GameEngine.PENDING_RESEARCH
 	_research_info.text = "Techs: deck %d · era %d" % [e.zone("research_deck").size(), e.era()]
 	if not e.zone("lost_techs").is_empty():
 		_research_info.text += " · lost %d" % e.zone("lost_techs").size()
@@ -713,9 +717,12 @@ func _refresh() -> void:
 	_animate_outcome()
 	_sync_card_focus()
 
-	var discarding := e.discard_needed() > 0
+	var pending := e.pending()
 	_end_turn_button.disabled = e.end_turn_error() != ""
-	_end_turn_button.text = "Discard %d (hand limit %d)" % [e.discard_needed(), e.config.hand_limit] if discarding else "End turn  (E)"
+	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
+		_end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.config.hand_limit]
+	else:
+		_end_turn_button.text = "End turn  (E)"
 	if e.is_over and not _game_over_overlay.visible:
 		_replay_button.grab_focus()  # so Enter replays from the keyboard
 	_game_over_overlay.visible = e.is_over
