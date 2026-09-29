@@ -2,7 +2,7 @@
 id: 049
 title: Engine queries for the rules the UI works out itself
 type: feature
-status: draft
+status: red-review
 branch: feat/049-engine-queries-for-ui
 ---
 
@@ -39,8 +39,14 @@ an engine query and have the UI call it (CLAUDE.md architecture rule).
 - Update the `tdd` skill's refactor step: check for logic added to `ui/`.
 
 ## Test plan
-| AC | Test |
+| AC | Test (`tests/test_ui_queries.gd`) |
 |---|---|
+| AC1 | `test_playable_error_ignores_the_choice_of_territory`, `test_playable_error_reports_a_missing_cost`, `test_playable_error_reports_no_free_slot` |
+| AC2 | `test_end_turn_error_is_empty_normally`, `test_end_turn_error_names_what_blocks_it_and_end_turn_does_nothing` |
+| AC3 | `test_supply_error_allows_browsing_normally_and_while_discarding`, `test_supply_error_blocks_during_choices_and_after_the_game` |
+| AC4 | `test_upcoming_era_unlocks_drops_eras_already_reached` |
+| AC5 | `test_territory_groups_put_each_territory_first_with_its_cards`, `test_territory_groups_put_cards_with_no_territory_last` |
+| AC6 | UI refactor, no engine test; `test_ui_smoke` and the Manual check cover it |
 
 ## Manual check
 - [ ] Hand cards grey out exactly as before, with the same reasons (too expensive, no slot, needs keyword).
