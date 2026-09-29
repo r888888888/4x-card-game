@@ -91,6 +91,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
 - Territory cards (`"type": "territory"`) need `slots` (int ≥ 0), may set `housing` (int ≥ 1, default
   `slots + 2`) and may list `keywords` from config `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
+- Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
+  them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
+  {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. Terrain with no table rolls nothing.
+  Iron counts as everywhere, so it isn't a keyword (036).
 - Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
@@ -133,13 +137,16 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   - Building `requires: [...]`: the territory must have any of the listed keywords.
   - Effect `keyword` condition: the effect applies only if the card's territory has that keyword
     (e.g. Farm +1 more food on Flood Plain).
+  - Both check the territory copy's keywords (`CardInstance.keywords`: printed, then rolled resources).
 - **Engine API:**
   - `play_card(uid, target_uid := -1)`, `play_error(uid, target_uid := -1)`
   - `valid_targets(uid)`
   - `pending_choice` + `choose(uid)` (explore only)
   - `CardInstance.territory_uid` links a city or building to its territory.
+  - `territory_keywords(uid)`: a territory's printed and rolled keywords, in any zone.
 - **Config:**
-  - `keywords` (known list, validated like `resources`)
+  - `keywords` (terrain keywords, validated like `resources`)
+  - `resource_keywords` and `territory_resources` (rolled per copy, 036)
   - `territory_deck` ({id: count})
   - `starting.territory`
 

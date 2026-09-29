@@ -100,7 +100,7 @@
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
-      "cost": { "food": 2, "wealth": 2 }, "vp": 2, "tags": [], "requires": ["iron"],
+      "cost": { "food": 2, "wealth": 2 }, "vp": 2, "tags": [],
       "effects": []
     },
     {
@@ -224,12 +224,8 @@
       "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["hills"]
     },
     {
-      "id": "gold_hills", "name": "Gold Hills", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["hills", "gold"]
-    },
-    {
       "id": "highlands", "name": "Highlands", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["mountain", "iron"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["mountain"]
     },
     {
       "id": "woodland", "name": "Woodland", "type": "territory",

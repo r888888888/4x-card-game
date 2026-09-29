@@ -128,6 +128,10 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		type_row.free()
 
 	_rules_tip = def.rules_tooltip(card_db)
+	var rolled := card.keywords.slice(def.keywords.size())  # resource keywords rolled onto this copy
+	var rolled_names := ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
+	if not rolled.is_empty():
+		_rules_tip += "\nResources: " + rolled_names
 	var rules_text := "" if compact else def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
 		var rules := _rich_label(rules_text, 19)
@@ -139,6 +143,8 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():
 			info += " · " + ", ".join(PackedStringArray(names))
+		if not rolled.is_empty():
+			info += " + " + rolled_names  # "Hills + Gold": rolled resources after the terrain
 		var info_label := _rich_label(info, 18, _color.lightened(0.5))
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
