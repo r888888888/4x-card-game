@@ -107,6 +107,16 @@ func test_create_card() -> void:
 	eq(e.score(), 4, "score")
 
 
+func test_create_card_without_a_source_puts_a_new_copy_in_the_zone() -> void:
+	var e := make_engine({"farm": 10})
+	var before := e.zone("hand").size()
+	var card: CardInstance = e.create_card("scout", "hand", null)
+	eq(e.zone("hand").size(), before + 1, "hand")
+	eq(e.zone("hand").cards.back(), card, "the new copy is in the hand")
+	eq(card.def.id, "scout", "card id")
+	check(e.log_lines.back().contains("Created Scout."), "logged without a source: %s" % e.log_lines.back())
+
+
 func test_gain_per_tag() -> void:
 	var e := make_engine({"caravan": 10})
 	check(e.play_card(first_in_hand(e)))

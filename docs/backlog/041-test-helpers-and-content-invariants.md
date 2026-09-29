@@ -2,7 +2,7 @@
 id: 041
 title: Share test helpers and replace exact-number content tests with invariants
 type: feature
-status: draft
+status: red-review
 branch: feat/041-test-helpers-and-content-invariants
 ---
 
@@ -56,7 +56,7 @@ edit no longer means editing a test. Developer-facing only: no game rule changes
 |---|---|
 | AC1 | |
 | AC2 | |
-| AC3 | |
+| AC3 | `test_rules::test_create_card_without_a_source_puts_a_new_copy_in_the_zone` (+ grep for `._` in tests/) |
 | AC4 | |
 | AC5 | |
 | AC6 | |
