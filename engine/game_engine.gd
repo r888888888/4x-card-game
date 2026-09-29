@@ -22,6 +22,8 @@ signal card_played(outcome: Dictionary)
 const MAX_PASSES := 3
 
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs"]
+## The zones a create effect may put a new card into.
+const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -556,7 +558,8 @@ func discard_card(uid: int) -> bool:
 	if _discard_left > 0:
 		_discard_left -= 1
 		if _discard_left == 0:
-			_finish_turn()
+			_finish_turn()  # emits changed
+			return true
 	changed.emit()
 	return true
 

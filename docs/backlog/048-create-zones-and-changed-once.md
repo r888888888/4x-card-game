@@ -2,7 +2,7 @@
 id: 048
 title: create can target any zone; discarding down to the hand limit emits changed twice
 type: bug
-status: red-review
+status: in-progress
 branch: fix/048-create-zones-and-changed-once
 ---
 

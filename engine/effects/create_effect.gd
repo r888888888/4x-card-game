@@ -12,7 +12,7 @@ func fields() -> Array[String]:
 
 func configure(data: Dictionary, ctx: Dictionary, errors: Array[String]) -> void:
 	card_id = Fields.read_string(data, "card", errors)
-	zone = Fields.read_string(data, "zone", errors, ctx.zones, "tableau")
+	zone = Fields.read_string(data, "zone", errors, GameEngine.CREATE_ZONES, "tableau")
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:
