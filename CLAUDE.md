@@ -49,6 +49,9 @@ docs, renames with no behavior change) need no item and no new test.
   fixtures (`make_engine`, `TEST_CARDS`, `eq`, `check`, `has_msg`, …) live there.
 - Name tests after the behavior: `test_<what_happens>`; for bugs `test_bug_<id>_<what>`.
 - Rules tests use `TEST_CARDS` + `make_engine`, never `data/cards.json` (balance edits must not break them).
+- Content tests (`tests/test_content.gd`) assert invariants of the real data, never exact numbers from `data/`.
+- Before writing a helper, check `tests/lib/test_case.gd` and `tests/lib/tech_case.gd`. Tests never call
+  engine members that start with `_`.
 - Assert on state and return values (zones, resources, score, signals), not on log text,
   unless the log text is the behavior.
 - Details: [docs/testing.md](docs/testing.md).
