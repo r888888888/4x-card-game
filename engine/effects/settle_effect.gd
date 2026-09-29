@@ -34,7 +34,7 @@ func referenced_cards() -> Array[String]:
 
 
 func check_references(card_db: Dictionary, errors: Array[String]) -> void:
-	if card_db.has(card_id) and card_db[card_id].type != "city":
+	if card_db.has(card_id) and card_db[card_id].type != CardDef.CITY:
 		errors.append("'card' must be a city card (got '%s')" % card_id)
 
 

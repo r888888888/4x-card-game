@@ -4,13 +4,25 @@ extends RefCounted
 ## the first) with file, card and field, so a bad data edit is easy to fix.
 ## Unknown fields are warnings, not errors.
 
-const CARD_TYPES: Array[String] = ["action", "building", "city", "territory", "tech"]
-const SEPARATE_DECK_TYPES: Array[String] = ["territory", "tech"]  # never in the main deck
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "slots", "housing", "keywords", "requires", "prereq", "prereq_discount", "era"]
+const CARD_TYPES := CardDef.TYPES
+const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH]  # never in the main deck
+## Fields every card type may have.
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "requires"]
+## Fields only some card types use: field -> those types, the first being the one the field is for. On any other
+## type the field is ignored with a warning ("'era' only applies to techs (ignored)").
+const TYPE_FIELDS := {
+	"slots": [CardDef.TERRITORY, CardDef.CITY],
+	"housing": [CardDef.TERRITORY],
+	"keywords": [CardDef.TERRITORY],
+	"prereq": [CardDef.TECH],
+	"prereq_discount": [CardDef.TECH],
+	"era": [CardDef.TECH],
+}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.TECH: "techs"}
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources"]
-const SUPPLY_TYPES: Array[String] = ["action", "building"]  # the only card types the supply sells
+const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -46,7 +58,7 @@ static func read_json(path: String, errors: Array[String]) -> Variant:
 
 static func parse_resources(raw: Variant, src: String, errors: Array[String]) -> Array[String]:
 	var out: Array[String] = []
-	var list: Variant = raw.get("resources", ["food"]) if raw is Dictionary else null
+	var list: Variant = raw.get("resources", [GameEngine.FOOD]) if raw is Dictionary else null
 	if not (list is Array) or list.is_empty():
 		errors.append("%s: 'resources' must be a non-empty array of names" % src)
 		return out
@@ -110,7 +122,7 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': prereq: a tech can't be its own prerequisite" % [src, id])
 		elif prereq != "" and not db.has(prereq):
 			errors.append("%s: card '%s': prereq: unknown card '%s'" % [src, id, prereq])
-		elif prereq != "" and db[prereq].type != "tech":
+		elif prereq != "" and db[prereq].type != CardDef.TECH:
 			errors.append("%s: card '%s': prereq: '%s' is not a tech" % [src, id, prereq])
 		for e in db[id].effects:
 			for ref in e.referenced_cards():
@@ -144,7 +156,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	else:
 		errs.append("'cost' must be an object like {\"food\": 2}")
 
-	if def.type == "tech" and not (def.cost.size() == 1 and def.cost.get("wealth", 0) >= 1):
+	if def.type == CardDef.TECH and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
 		errs.append("cost: a tech must cost wealth only, at least 1 (like {\"wealth\": 2})")
 
 	var tags: Variant = c.get("tags", [])
@@ -167,7 +179,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("effects[%d]: %s" % [j, m])
 			for m in e_warns:
 				warns.append("effects[%d]: %s" % [j, m])
-			if effect != null and e_errs.is_empty() and def.type == "tech":
+			if effect != null and e_errs.is_empty() and def.type == CardDef.TECH:
 				var problem := _tech_effect_problem(effect)
 				if problem != "":
 					errs.append("effects[%d]: %s" % [j, problem])
@@ -177,7 +189,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	else:
 		errs.append("'effects' must be an array")
 
-	if def.type == "territory":
+	if def.type == CardDef.TERRITORY:
 		def.slots = Fields.read_int(c, "slots", errs, 0)
 		def.housing = Fields.read_int(c, "housing", errs, 1, def.slots + 2)
 		var kws: Variant = c.get("keywords", [])
@@ -193,14 +205,14 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 					def.keywords.append(k)
 		else:
 			errs.append("'keywords' must be an array of keyword ids")
-	else:
-		if def.type == "city":
-			def.slots = Fields.read_int(c, "slots", errs, 0, 0)
-		for key in ["slots", "housing", "keywords"]:
-			if c.has(key) and not (key == "slots" and def.type == "city"):
-				warns.append("'%s' only applies to territories (ignored)" % key)
+	elif def.type == CardDef.CITY:
+		def.slots = Fields.read_int(c, "slots", errs, 0, 0)
+	for key in TYPE_FIELDS:
+		var types: Array = TYPE_FIELDS[key]
+		if c.has(key) and not types.has(def.type):
+			warns.append("'%s' only applies to %s (ignored)" % [key, TYPE_PLURALS[types[0]]])
 
-	if def.type == "tech":
+	if def.type == CardDef.TECH:
 		if c.has("era"):
 			var era: Variant = Fields.as_int(c.era)
 			if typeof(era) != TYPE_INT or era < 1:
@@ -216,10 +228,6 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("prereq_discount: must be an integer >= 1")
 			else:
 				def.prereq_discount = discount
-	else:
-		for key in ["prereq", "prereq_discount", "era"]:
-			if c.has(key):
-				warns.append("'%s' only applies to techs (ignored)" % key)
 
 	var requires: Variant = c.get("requires", [])
 	if requires is Array:
@@ -234,7 +242,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		errs.append("'requires' must be an array of keyword ids")
 
 	for key in c:
-		if not CARD_FIELDS.has(key):
+		if not CARD_FIELDS.has(key) and not TYPE_FIELDS.has(key):
 			warns.append("unknown field '%s'" % key)
 	return def
 
@@ -307,7 +315,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		if territory != "":
 			if not cards.has(territory):
 				errs.append("starting.territory: unknown card '%s'" % territory)
-			elif cards[territory].type != "territory":
+			elif cards[territory].type != CardDef.TERRITORY:
 				errs.append("starting.territory: '%s' is not a territory" % territory)
 			else:
 				config.starting.territory = territory
@@ -322,13 +330,13 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	var territory_deck: Variant = raw.get("territory_deck", {})
 	if territory_deck is Dictionary:
-		config.territory_deck = _parse_counts(territory_deck, "territory_deck", cards, "territory", errs)
+		config.territory_deck = _parse_counts(territory_deck, "territory_deck", cards, CardDef.TERRITORY, errs)
 	else:
 		errs.append("'territory_deck' must be an object like {\"hills\": 2}")
 
 	var research_deck: Variant = raw.get("research_deck", {})
 	if research_deck is Dictionary:
-		config.research_deck = _parse_counts(research_deck, "research_deck", cards, "tech", errs)
+		config.research_deck = _parse_counts(research_deck, "research_deck", cards, CardDef.TECH, errs)
 	else:
 		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
 
@@ -366,7 +374,7 @@ static func _parse_era_unlocks(raw: Variant, errs: Array[String], warnings: Arra
 			continue
 		var thresholds := {}
 		for field in value:
-			if not ["pop", "wealth"].has(field):
+			if not ["pop", GameEngine.WEALTH].has(field):
 				warnings.append("%s: era_unlocks: era %d: unknown field '%s'" % [src, era, field])
 				continue
 			var n: Variant = Fields.as_int(value[field])
@@ -411,7 +419,7 @@ static func _parse_territory_resources(raw: Variant, cards: Dictionary, resource
 		if not cards.has(id):
 			errs.append("territory_resources: unknown card '%s'" % id)
 			continue
-		if cards[id].type != "territory":
+		if cards[id].type != CardDef.TERRITORY:
 			errs.append("territory_resources: '%s' is not a territory" % id)
 			continue
 		var table: Variant = raw[id]

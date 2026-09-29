@@ -28,7 +28,7 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 		engine.add_pop(source.territory_uid, amount, source)
 		return
 	for card in engine.zone("tableau").cards:
-		if card.def.type == "territory":
+		if card.def.type == CardDef.TERRITORY:
 			engine.add_pop(card.uid, amount, source)
 
 
