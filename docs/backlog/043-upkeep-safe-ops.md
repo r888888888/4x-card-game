@@ -2,7 +2,7 @@
 id: 043
 title: Only forecast-safe ops may trigger on upkeep
 type: feature
-status: red-review
+status: in-progress
 branch: feat/043-upkeep-safe-ops
 ---
 

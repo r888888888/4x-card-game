@@ -15,6 +15,12 @@ func fields() -> Array[String]:
 	return []
 
 
+## Whether this op may use trigger "upkeep". upkeep_forecast runs upkeep effects for real and then restores
+## only resources, bonus score and pop, so only ops that change nothing else may return true.
+func upkeep_ok() -> bool:
+	return false
+
+
 ## Read fields from data, appending any problems to errors.
 ## ctx has "resources" and "zones" (the valid names for each).
 func configure(_data: Dictionary, _ctx: Dictionary, _errors: Array[String]) -> void:

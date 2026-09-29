@@ -1,12 +1,7 @@
 extends Effect
 ## { "op": "research" }
 ## Reveals the top 2 techs of the research deck to buy one or decline (see GameEngine.reveal_techs).
-## Play only: the reveal opens a choice, which upkeep has no one to answer.
-
-
-func configure(_data: Dictionary, _ctx: Dictionary, errors: Array[String]) -> void:
-	if trigger != "play":
-		errors.append("'research' only works on play (got trigger '%s')" % trigger)
+## Play only (not upkeep_ok): the reveal opens a choice, which upkeep has no one to answer.
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:
