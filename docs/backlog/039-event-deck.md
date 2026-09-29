@@ -2,7 +2,7 @@
 id: 039
 title: Event deck and event cards (framework)
 type: feature
-status: in-progress
+status: review
 branch: feat/039-event-deck
 ---
 
@@ -22,7 +22,7 @@ Fixture events added to TEST_CARDS (existing ops only):
 Unless stated otherwise, the config has `event_deck: {windfall: 1, trade_winds: 1, omen: 1}`, and
 tests set the event deck order directly when it matters ("top first").
 
-- [ ] AC1 (event cards load): card type `event` is valid. `discard` is optional and defaults to
+- [x] AC1 (event cards load): card type `event` is valid. `discard` is optional and defaults to
   `{"turns": 1}`. `turns` must be an integer ≥ 1, and `{"turns": 0}`, `{"turns": "x"}`,
   `{"until": 3}` (unknown condition) and a non-object `discard` are each a load error that names the
   card and `discard`. An event with a `cost` or a non-zero `vp` is a load error that names the card and
@@ -30,20 +30,20 @@ tests set the event deck order directly when it matters ("top first").
   that names the card and the effect index. An event `upkeep` effect whose op fails `upkeep_ok()` is a
   load error, as for any other card. `discard` on a card that isn't an event gives an
   unknown-field warning, not an error.
-- [ ] AC2 (config): `event_deck` is optional ({event_id: count}, default {}). An unknown id, a card that
+- [x] AC2 (config): `event_deck` is optional ({event_id: count}, default {}). An unknown id, a card that
   isn't an event, or a count below 1 is a load error that names config.json and `event_deck`. An event
   listed in `deck` is a load error that names `deck`. An event in `supply` is a load error, like any
   other type the supply doesn't sell.
-- [ ] AC3 (setup): In a new game, the `event_deck` zone holds the 3 events in a shuffled order that
+- [x] AC3 (setup): In a new game, the `event_deck` zone holds the 3 events in a shuffled order that
   depends only on the seed (same seed, same order). `active_events` and `event_discard` are empty.
   With no `event_deck` in the config, all three zones are empty and end turn works as before.
-- [ ] AC4 (draw in the event phase): Given the event deck [windfall, trade_winds, omen] (top first) and
+- [x] AC4 (draw in the event phase): Given the event deck [windfall, trade_winds, omen] (top first) and
   2 food on turn 1, when I call `end_turn()`, then Windfall is drawn before cleanup. Its play effects
   resolve (food is 2 + 2 = 4 before turn 2's upkeep). It is in `active_events` with
   `event_turns_left(uid)` 1, and the event deck holds 2 cards. Exactly one event is drawn per
   `end_turn()`. Over the hand limit, the event is drawn once when end_turn is called, not again when
   the last discard finishes the turn. The final turn also draws an event.
-- [ ] AC5 (upkeep and discard): Given Trade Winds is drawn at the end of turn 1, then:
+- [x] AC5 (upkeep and discard): Given Trade Winds is drawn at the end of turn 1, then:
   - at turn 2's upkeep it gives +1 wealth and `event_turns_left` becomes 1, and it stays in `active_events`
   - at turn 3's upkeep it gives +1 wealth again, then it moves to `event_discard`
   - at turn 4's upkeep it gives nothing.
@@ -52,12 +52,12 @@ tests set the event deck order directly when it matters ("top first").
   check runs after the event's upkeep effects, so an event always gives every upkeep it lasted for.
   `upkeep_forecast()` includes active events' upkeep effects (Trade Winds active: wealth +1 in the
   forecast), and calling it leaves `active_events`, `event_discard` and `event_turns_left` unchanged.
-- [ ] AC6 (single-turn and several active): Windfall (turns 1) drawn at the end of turn 1 is in
+- [x] AC6 (single-turn and several active): Windfall (turns 1) drawn at the end of turn 1 is in
   `event_discard` after turn 2's upkeep. Several events can be active at once. With Trade Winds drawn at
   the end of turn 1 and Omen at the end of turn 2, both are in `active_events` during turn 2's play
   phase, in draw order. Active events never score VP and are never in the hand, the tableau or the
   main discard.
-- [ ] AC7 (empty event deck): When the event deck is empty in the event phase, `event_discard` is
+- [x] AC7 (empty event deck): When the event deck is empty in the event phase, `event_discard` is
   shuffled back into the event deck with the engine rng (seeded), and the top card is drawn. When both
   are empty (every event is active, or there is no event deck), nothing is drawn and the turn ends
   normally.
@@ -114,3 +114,10 @@ tests set the event deck order directly when it matters ("top first").
   The test checks both are active right after Omen is drawn (end of turn 2, before turn 3's upkeep).
 - Green: `test_nothing_is_drawn_when_both_event_piles_are_empty` checked after turn 3's upkeep, when Trade Winds
   had rightly ended; with approval it now checks at the hand-limit pause right after the empty event phase.
+- Built: `engine/events.gd` (`Events.setup`, `draw`, `resolve_upkeep`, `turns_left`); `TurnLoop` calls it in
+  place of the old `_event_phase` stub. Loader: `CardDef.EVENT`, `discard` in `TYPE_FIELDS`, `NO_TERRITORY_TYPES`
+  (techs and events share the keyword/target rule, was `_tech_effect_problem`), `event_deck` config.
+- No manual check: `data/` has no events yet, so nothing changes in the game. The log shows "Event: X." and
+  "X ends." once content exists.
+- Follow-ups: event UI panel (active events, deck count), "Lasts n turns" in the full tooltip (`rules_tooltip`),
+  harmful ops, threshold/tag discard conditions, era-escalating event content.

@@ -12,7 +12,7 @@
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042); compared against `main`, not pinned in tests |
 | Win condition (demo) | Game ends after 20 turns; final score = sum of VP on tableau cards |
 | Resources (demo) | Food and wealth; unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), wealth for premium buildings (Temple, Monument, Pyramids, Forge cost both; Capital, Caravan, Market make wealth) (021, 022) |
-| Threat effects | Deferred: event phase is a stub until designed |
+| Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
 
 ## Architecture principle
 The rules engine is plain GDScript (`RefCounted`/`Resource` classes, no scene nodes).
@@ -35,9 +35,10 @@ res://
     research.gd          # Research: revealing, buying and declining techs, passes, eras
     supply.gd            # Supply: buying from the card supply
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
+    events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, passes, keywords)
+    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, passes, keywords, turns_left)
     zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
     effect.gd            # Effect base class
     fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
@@ -118,10 +119,11 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 `config.json` selects the model, so all three can be playtested without code changes.
 
 ## Turn loop (initial)
-1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then pop eats food (starving on a shortfall).
+1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, then active events
+   (which may end), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Play: play or buy cards while resources allow, buy growth for territories, and play Research cards to reveal techs. A hand card can be discarded for free at any time.
-4. Event: stub for now (threat design deferred).
+4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
@@ -236,6 +238,20 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
+
+## Events (backlog 039)
+The framework for solo opposition; real events, harmful ops and the event UI come later.
+- Card type `event`: no `cost`, `vp` 0, no `keyword` and no targeting effects. Optional `discard`, the condition
+  that ends it; for now only `{"turns": n}` (int ≥ 1, default 1), an unknown condition is a loader error. Card text
+  adds "Lasts n turns". Config `event_deck` ({event_id: count}, default {}); events are not allowed in `deck` or `supply`.
+- Zones `event_deck` (shuffled by seed at setup), `active_events` and `event_discard`.
+- Event phase (once per `end_turn()`, before the hand-limit discard, also on the final turn): draws the top event,
+  shuffling `event_discard` back in when the deck is empty (nothing when both are empty), makes it active with
+  `turns_left` = its `discard.turns`, and resolves its `play` effects.
+- Upkeep: each active event resolves its `upkeep` effects, then its `turns_left` drops by 1 and at 0 it moves to
+  `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
+  includes active events.
+- Code: `engine/events.gd`.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
