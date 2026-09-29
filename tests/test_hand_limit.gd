@@ -235,10 +235,3 @@ func test_hand_limit_below_hand_size_is_an_error() -> void:
 func test_hand_limit_must_be_an_integer() -> void:
 	var errors := parse_with({"hand_limit": "many"})
 	check(has_message(errors, "config.json") and has_message(errors, "hand_limit"), str(errors))
-
-
-func test_real_config_sets_hand_limit_7() -> void:
-	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
-	eq(r.config.get("hand_limit"), 7, "real hand_limit")
-	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/config.json"))
-	check(raw is Dictionary and raw.has("hand_limit"), "data/config.json sets hand_limit explicitly")

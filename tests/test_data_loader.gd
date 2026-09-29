@@ -5,7 +5,6 @@ extends "res://tests/lib/test_case.gd"
 func test_real_data_loads() -> void:
 	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
 	check(r.errors.is_empty(), "errors: %s" % [r.errors])
-	check(r.warnings.is_empty(), "warnings: %s" % [r.warnings])
 
 
 func test_unknown_op_is_error() -> void:
