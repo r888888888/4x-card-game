@@ -342,3 +342,22 @@ func test_every_supply_card_also_starts_in_the_deck() -> void:
 	check(not supply.is_empty(), "the real config has a supply")
 	for id in supply:
 		check(r.config.deck.get(id, 0) >= 1, "%s is in the supply and still starts in the deck" % id)
+
+
+# --- Backlog 036: resources rolled per copy; iron is everywhere ---
+
+func test_real_hills_roll_gold_and_iron_is_gone() -> void:
+	var r := load_real()
+	check(not r.config.keywords.has("iron"), "iron is not a keyword")
+	eq(r.cards.highlands.keywords, ["mountain"] as Array[String], "Highlands prints mountain only")
+	eq(r.cards.forge.requires, [] as Array[String], "Forge has no requires")
+	check(r.config.get("resource_keywords", []).has("gold"), "gold is a resource keyword")
+	check(not r.cards.has("gold_hills"), "Gold Hills is removed")
+	eq(r.config.territory_deck.get("hills"), 2, "2 Hills in the territory deck")
+	var hills: Array = r.config.get("territory_resources", {}).get("hills", [])
+	eq(hills.size(), 2, "Hills has 2 options")
+	if hills.size() == 2:
+		eq(hills[0].keywords, ["gold"] as Array[String], "option 0 keywords")
+		eq(hills[0].weight, 1, "option 0 weight")
+		eq(hills[1].keywords, [] as Array[String], "option 1 keywords")
+		eq(hills[1].weight, 1, "option 1 weight")
