@@ -1,0 +1,152 @@
+class_name CardFocus
+extends RefCounted
+## The keyboard focus ring on the cards: which row Left/Right move through (the supply piles, an open choice,
+## the lit targets while targeting, or the hand), what Enter does to the focused card, and keeping the focus
+## somewhere sensible after the board changes.
+
+var focused: CardView  # the card with the focus ring, or null
+var hand_index := -1  # keyboard position in the hand; -1 until the keyboard is used
+var _board: MainScreen
+
+
+func _init(board: MainScreen) -> void:
+	_board = board
+
+
+## The cards Left/Right move through now.
+func row() -> Array[CardView]:
+	if _board.supply.is_open():
+		return _board.supply.views()
+	var kind := _board.pending_kind()
+	if kind == GameEngine.PENDING_EXPLORE:
+		return _board.views_in(_board.choices.reveal)
+	if kind == GameEngine.PENDING_RESEARCH:
+		return _board.views_in(_board.choices.research_row)
+	if _board.drag.targeting != null:
+		var targets: Array[CardView] = []
+		for uid in _board.drag.lit:
+			if _board.views.has(uid):
+				targets.append(_board.views[uid])
+		return targets
+	if Game.engine.is_over:
+		return [] as Array[CardView]
+	return _board.views_in(_board.hand)
+
+
+## A key press the focused controls didn't use. Left/Right move the card focus, Enter/Space acts on the focused
+## card, D discards it, Esc drops the focus (or opens the menu when nothing is focused), E ends the turn, S opens
+## the supply screen. While that screen is open it owns the keys: S or Esc closes it, the arrows and Enter pick
+## cards, the rest do nothing. Returns whether the key was used.
+func handle_key(event: InputEventKey) -> bool:
+	if _board.supply.is_open():
+		if (event.keycode == KEY_S or event.keycode == KEY_ESCAPE) and not event.echo:
+			_board.supply.close()
+		else:
+			_move_or_activate(event)
+		return true
+	if event.keycode == KEY_S and not event.echo:
+		_board.open_supply()
+	elif event.keycode == KEY_E and not event.echo:
+		Game.engine.end_turn()  # refused while end_turn_error() says so
+	elif event.keycode == KEY_D and not event.echo:
+		if focused != null and is_instance_valid(focused) and focused.in_hand:
+			_board.discard(focused)
+	elif event.keycode == KEY_ESCAPE and not event.echo and _board.drag.targeting == null:
+		if focused != null:
+			clear()
+		else:
+			_board.open_menu()
+	else:
+		return _move_or_activate(event)
+	return true
+
+
+## Left/Right move the focus and Enter acts on the focused card. Returns whether the key was one of them.
+func _move_or_activate(event: InputEventKey) -> bool:
+	if event.is_action_pressed("ui_right", true):
+		move(1)
+	elif event.is_action_pressed("ui_left", true):
+		move(-1)
+	elif event.is_action_pressed("ui_accept"):
+		activate()
+	else:
+		return false
+	return true
+
+
+## Drops the focus and forgets the hand position.
+func clear() -> void:
+	set_card(null)
+	hand_index = -1
+
+
+## Moves the card focus step cards along the row. With nothing focused, Right starts at the first
+## card and Left at the last. The hand and choice stop at the ends; targets cycle.
+func move(step: int) -> void:
+	var cards := row()
+	if cards.is_empty():
+		return
+	var i := cards.find(focused)
+	if i == -1:
+		i = 0 if step > 0 else cards.size() - 1
+	elif _board.drag.targeting != null:
+		i = posmod(i + step, cards.size())
+	else:
+		i = clampi(i + step, 0, cards.size() - 1)
+	set_card(cards[i])
+	if cards[i].in_hand:
+		hand_index = i
+
+
+## Enter on the focused card: buy it (supply), keep it (explore choice), buy it (research), play onto it
+## (targeting), or play it, which starts targeting when it has several targets (same as a double-click).
+func activate() -> void:
+	var view := focused
+	if view == null or not is_instance_valid(view):
+		return
+	var drag := _board.drag
+	if _board.supply.is_open():
+		_board.supply.pick(view)
+	elif _board.pending_kind() in [GameEngine.PENDING_EXPLORE, GameEngine.PENDING_RESEARCH] or (drag.targeting != null and drag.lit.has(view.uid)):
+		_board.on_picked(view)
+	elif view.in_hand:
+		_board.on_double_clicked(view)
+		if drag.targeting != null:
+			var targets := row()
+			if not targets.is_empty():
+				set_card(targets[0])
+
+
+## Gives view the keyboard focus ring (null: no card), taking focus away from any button.
+func set_card(view: CardView) -> void:
+	if is_instance_valid(focused):
+		focused.set_focused(false)
+	focused = view
+	if view == null:
+		return
+	view.set_focused(true)
+	_board.get_viewport().gui_release_focus()
+	if view.in_hand and is_instance_valid(view.slot):
+		_board.hand_scroll.ensure_control_visible(view.slot)
+
+
+## After the board changes, keeps the focus somewhere sensible: on the first choice card while
+## choosing, else on the same hand card, or the one now in its place (or the new last card).
+func sync() -> void:
+	if _board.supply.is_open():  # the focus stays on the pile card (or nothing) while buying
+		return
+	var kind := _board.pending_kind()
+	if kind == GameEngine.PENDING_EXPLORE or kind == GameEngine.PENDING_RESEARCH:
+		var choice := row()
+		if not choice.has(focused) and not choice.is_empty():
+			set_card(choice[0])
+		return
+	if _board.drag.targeting != null:
+		return
+	var hand := _board.views_in(_board.hand)
+	if hand.has(focused):
+		hand_index = hand.find(focused)
+	elif hand_index != -1 and not hand.is_empty() and not Game.engine.is_over:
+		set_card(hand[mini(hand_index, hand.size() - 1)])
+	else:
+		set_card(null)

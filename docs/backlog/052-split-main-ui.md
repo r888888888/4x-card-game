@@ -2,7 +2,7 @@
 id: 052
 title: Split ui/main.gd into components
 type: feature
-status: red-review
+status: in-progress
 branch: feat/052-split-main-ui
 ---
 
