@@ -2,7 +2,7 @@
 id: 036
 title: Territories roll resource keywords per copy, separate from their terrain
 type: feature
-status: review
+status: done
 branch: feat/036-rolled-territory-resources
 ---
 
