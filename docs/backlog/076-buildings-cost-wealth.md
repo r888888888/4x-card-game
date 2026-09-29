@@ -2,7 +2,7 @@
 id: 076
 title: Buildings cost mostly wealth, early ones cheaper
 type: feature
-status: in-progress
+status: review
 branch: feat/076-buildings-cost-wealth
 ---
 
@@ -15,15 +15,15 @@ first turns, and the game starts with a little wealth so a building is playable 
 
 ## Acceptance criteria
 <!-- Content tests check shape, not balance numbers (see tests/test_content.gd). -->
-- [ ] AC1: In the real data (`data/cards.json`), every card of type `CardDef.BUILDING` costs at least
+- [x] AC1: In the real data (`data/cards.json`), every card of type `CardDef.BUILDING` costs at least
   1 wealth.
-- [ ] AC2: In the real data, a building with no effect that produces food (no effect whose `resource`
+- [x] AC2: In the real data, a building with no effect that produces food (no effect whose `resource`
   is `GameEngine.FOOD`) has no food cost (no `food` key, or `food` 0), and a building that produces
   food costs at most 1 food.
-- [ ] AC3: In the real data, the starting resources (`config.starting.resources`) include at least
+- [x] AC3: In the real data, the starting resources (`config.starting.resources`) include at least
   1 wealth and can pay the full cost of at least one building in the starting deck (`config.deck`).
-- [ ] AC4: The real data loads with no errors or warnings (existing `test_real_data_loads_without_warnings`).
-- [ ] AC5: Every card that costs wealth still has a wealth source in the deck or starting tableau
+- [x] AC4: The real data loads with no errors or warnings (existing `test_real_data_loads_without_warnings`).
+- [x] AC5: Every card that costs wealth still has a wealth source in the deck or starting tableau
   (existing `test_every_wealth_cost_has_a_wealth_source`), and the 20-seed scripted sweep stays green:
   every game ends, wealth never goes below 0, a City is founded in ≥ 9 seeds, a wealth-cost card is
   played in ≥ 1 seed, a tech is bought in ≥ 1 seed (existing `test_scripted_sweep_over_20_seeds`).
@@ -89,3 +89,21 @@ Run `godot --path .`.
   goes mostly to growth and Settlers. Record the final score and wealth/food left in the Log.
 
 ## Log
+- Data changed exactly as in the Design notes tables (Market at 3 wealth). No engine or UI change.
+  Suite: 407 → 410 tests.
+- AC3's affordability half already passed on main (2 food bought a Farm); only the wealth check was red.
+- Balance, 20 seeds (`scripts/sim.sh 20`):
+
+  | metric | main mean (min–max) | 076 mean (min–max) | Δ mean |
+  |---|---|---|---|
+  | score | 42.85 (11–84) | 52.80 (16–103) | +9.95 (+23%) |
+  | cities | 5.00 (0–11) | 4.40 (0–11) | −0.60 (−12%) |
+  | pop | 8.55 (3–16) | 8.70 (4–18) | +0.15 |
+  | techs | 6.95 (5–10) | 7.50 (5–12) | +0.55 (+8%) |
+  | bought | 0.00 | 0.00 | 0 |
+  | era | 2.00 | 2.00 | 0 |
+
+  Score rises as food no longer pays for buildings and the start's 2 wealth gets buildings out early.
+  Cities drop slightly (not investigated; pop is flat, so it isn't food going to growth instead).
+  Cities min is 0 on both. Revisit after 077 (Market per city).
+
