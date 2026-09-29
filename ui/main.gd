@@ -13,6 +13,7 @@ const GROUP_GAP := 16  # between territory groups in the tableau
 const GROUP_PADDING := 11  # inside a territory group's frame
 const PANEL_COLOR := Color("171a1e")  # log panel background
 const ACCENT := Color("e8c547")  # the main action's button (End turn)
+const FOOD_COLOR := Color("ffd966")  # the top bar's food stat; WARN_COLOR when pop would starve
 
 var _turn_label: Label
 var _food_label: Label
@@ -669,8 +670,13 @@ func _refresh() -> void:
 	var e := Game.engine
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	_seed_label.text = "Seed %d" % e.seed_value
-	_set_stat(_food_label, "Food: %d" % e.resources.get("food", 0))
-	_set_stat(_wealth_label, "Wealth: %d" % e.resources.get("wealth", 0))
+	var forecast := e.upkeep_forecast()
+	_set_stat(_food_label, "Food: %d%s" % [e.resources.get("food", 0), _forecast_text(forecast, "food")])
+	_set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get("wealth", 0), _forecast_text(forecast, "wealth")])
+	var starve: int = forecast.get("starve", 0)
+	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else FOOD_COLOR)
+	_food_label.tooltip_text = "Next upkeep: %d pop will starve." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
+	_wealth_label.tooltip_text = "In brackets: change at the next upkeep."
 	_set_stat(_score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	_set_stat(_pop_label, "Pop: %d" % e.total_pop())
@@ -994,6 +1000,13 @@ func _show_error(view: CardView, text: String, layer: Control = null) -> void:
 	t.tween_callback(panel.queue_free)
 
 
+## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.
+func _forecast_text(forecast: Dictionary, resource: String) -> String:
+	if not forecast.has(resource):
+		return ""
+	return " (%+d)" % forecast[resource]
+
+
 ## Sets a stat label, pulsing it when the value changes.
 func _set_stat(label: Label, text: String) -> void:
 	if label.text != "" and label.text != text:
@@ -1098,8 +1111,10 @@ func _build_layout() -> void:
 	bar.add_theme_constant_override("separation", 36)
 	root.add_child(bar)
 	_turn_label = _stat(bar)
-	_food_label = _stat(bar, Color("ffd966"))
+	_food_label = _stat(bar, FOOD_COLOR)
 	_wealth_label = _stat(bar, Color("f2b46d"))
+	_food_label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
+	_wealth_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_score_label = _stat(bar, Color("ffd966"))
 	_pop_label = _stat(bar, Color("9fd89f"))
 	_piles_label = _stat(bar, Color("c3cad3"))

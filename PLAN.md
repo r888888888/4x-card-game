@@ -108,6 +108,11 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 4. Event: stub for now (threat design deferred).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
+Forecast (035): `upkeep_forecast()` returns what the next upkeep does to each resource on hand, food net of what
+pop eats (may be negative), plus `starve` (pop the shortfall would kill); `{}` on the last turn or after game over.
+It runs the upkeep effects on a snapshot (quietly) and restores it. The top bar shows it as "Food: 2 (+1)",
+with the food stat in the warning color when pop would starve.
+
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices

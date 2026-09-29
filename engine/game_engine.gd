@@ -36,6 +36,7 @@ var _discard_left := 0  # cards still to discard before the turn can end; 0 = no
 var _supply: Dictionary = {}  # card_id -> copies left to buy, in config order
 var _next_uid := 1
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
+var _quiet := false  # true while upkeep_forecast runs upkeep on a snapshot: nothing is logged
 
 
 func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:
@@ -145,6 +146,33 @@ func research_options() -> Array[int]:
 ## The highest era of techs added to the research deck so far (1 at the start).
 func era() -> int:
 	return _era
+
+
+## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
+## "starve": the pop that food shortfall would starve. {} on the last turn or after game over.
+## Runs the upkeep effects on a snapshot and restores it: nothing changes, is logged or emitted.
+func upkeep_forecast() -> Dictionary:
+	if is_over or turn >= turn_limit():
+		return {}
+	var saved_resources := resources.duplicate()
+	var saved_bonus := bonus_score
+	var saved_pop := {}
+	for card in zone("tableau").cards:
+		saved_pop[card] = card.pop
+	_quiet = true
+	_resolve_upkeep()
+	_quiet = false
+	var forecast := {}
+	for r in saved_resources:
+		forecast[r] = resources[r] - saved_resources[r]
+	var need: int = total_pop() * config.population.food_upkeep if population_on() else 0
+	forecast.food = forecast.get("food", 0) - need
+	forecast.starve = maxi(need - resources.get("food", 0), 0)
+	resources = saved_resources
+	bonus_score = saved_bonus
+	for card in saved_pop:
+		card.pop = saved_pop[card]
+	return forecast
 
 
 ## The pop and wealth thresholds that add an era at the start of a turn: {era: {pop?, wealth?}}.
@@ -722,13 +750,18 @@ func _discard_error() -> String:
 func _start_turn() -> void:
 	turn += 1
 	_log("— Turn %d —" % turn)
-	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid)) + zone("researched").cards
-	for card in working:
-		_resolve(card, "upkeep")
+	_resolve_upkeep()
 	if population_on():
 		_feed_pop()
 	_check_era_unlocks()
 	draw(maxi(0, config.hand_size - zone("hand").size()))
+
+
+## Resolves "upkeep" on every working card: tableau cards that aren't idle, and researched techs.
+func _resolve_upkeep() -> void:
+	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid)) + zone("researched").cards
+	for card in working:
+		_resolve(card, "upkeep")
 
 
 ## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).
@@ -862,5 +895,7 @@ func _make_card(card_id: String) -> CardInstance:
 
 
 func _log(message: String) -> void:
+	if _quiet:
+		return
 	log_lines.append(message)
 	logged.emit(message)

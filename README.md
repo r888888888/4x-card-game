@@ -18,6 +18,9 @@ targets, ←/→ pick one, Enter plays it, and Esc cancels. During an explore ch
 territory. Tab moves through the buttons.
 The game ends after 20 turns; your score is the VP on your tableau plus VP from effects.
 
+The top bar shows food and wealth with the change the next upkeep brings in brackets ("Food: 2 (+1)"),
+net of what your pop eats; food turns red when pop would starve.
+
 "Menu (Esc)" in the top bar opens the menu: "Restart" replays the seed in the seed box (same shuffle),
 "New game" picks a random seed, and "Reduce motion" turns off decorative animation. Esc first cancels
 targeting or drops the card focus, then opens the menu; Esc again closes it.
