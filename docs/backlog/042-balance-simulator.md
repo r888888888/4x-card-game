@@ -2,7 +2,7 @@
 id: 042
 title: Headless balance simulator and a balance skill
 type: feature
-status: draft
+status: red-review
 branch: feat/042-balance-simulator
 ---
 
@@ -49,13 +49,20 @@ with `main`, instead of pinning numbers in tests. Uses the scripted bot that alr
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
-| AC2 | |
-| AC3 | |
-| AC4 | |
-| AC5 | |
+| AC1 | `test_sim::test_bot_plays_a_game_to_the_end`, `test_sim::test_bot_resolves_an_explore_choice_with_its_first_option`; used by `test_content::test_scripted_sweep_over_20_seeds` |
+| AC2 | `test_sim::test_sim_stats_reports_mean_min_max_per_metric`, `test_sim::test_sim_stats_counts_founded_cities` |
+| AC3 | `test_sim::test_sim_run_files_prints_one_line_per_metric`, `test_sim::test_sim_run_files_reports_loader_errors` (the logic `scripts/sim.sh` prints); the script itself is run by hand |
+| AC4 | `test_content::test_scripted_sweep_over_20_seeds` (replaces the three scripted-game tests) |
+| AC5 | skill, no test; manual check |
 
 ## Manual check
 - [ ] Run `/balance` after a small data edit (e.g. Farm cost 2 → 3) and check the comparison reads sensibly.
 
 ## Log
+- 2026-09-29: Approved by the user ("do 042"). Red: 7 new tests fail because `sim/bot.gd` and `sim/sim_stats.gd`
+  don't exist (loaded with `load()` so the files parse). Removed from test_content: `play_scripted_game`,
+  `buy_cheapest_tech`, `test_scripted_games_run_and_found_cities`, `test_scripted_games_spend_wealth_and_never_go_negative`,
+  `test_scripted_games_buy_techs_and_never_go_negative` (merged into the sweep; the wealth and tech checks now cover
+  20 seeds instead of 3).
+- Found while writing tests: a helper named `test_*` that takes arguments makes the runner's `t.call()` fail, which
+  aborts `_initialize` before `quit()`, so the suite hangs silently instead of failing. Follow-up for the runner.

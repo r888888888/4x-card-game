@@ -17,48 +17,6 @@ func real_engine(seed_value: int) -> GameEngine:
 	return e
 
 
-## Plays one scripted game: resolve any pending choice with its first option, buy the cheapest
-## revealed tech it can afford (or decline), otherwise play the first hand card that can be played
-## (on its first valid target; Research cards last), otherwise discard the hand (dead cards
-## never cycle otherwise, backlog 024) and end the turn.
-func play_scripted_game(e: GameEngine) -> void:
-	var steps := 0
-	while not e.is_over and steps < 2000:
-		steps += 1
-		if not e.pending_choice.is_empty():
-			e.choose(e.pending_choice.options[0])
-			continue
-		if not e.research_options().is_empty():
-			buy_cheapest_tech(e)
-			continue
-		var played := false
-		var hand := e.zone("hand").cards.duplicate()
-		hand.sort_custom(func(a, b): return a.def.id != "research" and b.def.id == "research")  # research last, as before 034
-		for card in hand:
-			var targets := e.valid_targets(card.uid)
-			var target: int = targets[0] if e.needs_target(card.uid) and not targets.is_empty() else -1
-			if e.play_error(card.uid, target) == "":
-				played = e.play_card(card.uid, target)
-				break
-		if not played:
-			for card in e.zone("hand").cards.duplicate():
-				e.discard_card(card.uid)
-			e.end_turn()
-	check(e.is_over, "game finished within 2000 steps")
-
-
-## Buys the cheapest revealed tech the engine allows, or declines when none is affordable.
-func buy_cheapest_tech(e: GameEngine) -> void:
-	var best := -1
-	for uid in e.research_options():
-		if e.buy_tech_error(uid) == "" and (best == -1 or e.tech_cost(uid) < e.tech_cost(best)):
-			best = uid
-	if best == -1:
-		e.decline_research()
-	else:
-		e.buy_tech(best)
-
-
 func count_id(zone: Zone, id: String) -> int:
 	var n := 0
 	for c in zone.cards:
@@ -113,17 +71,37 @@ func test_every_keyword_is_on_a_territory_and_a_card() -> void:
 	eq(missing_card, [] as Array[String], "keywords used by no card")
 
 
-# --- AC3: scripted smoke test ---
+# --- AC3: scripted smoke test (the bot is sim/bot.gd, backlog 042) ---
 
-func test_scripted_games_run_and_found_cities() -> void:
+## Plays seeds 1-20 with the scripted bot and checks every game ends, wealth never goes below 0, and that
+## Cities, wealth costs and techs all come up in some seeds.
+func test_scripted_sweep_over_20_seeds() -> void:
+	var bot: Object = load("res://sim/bot.gd")
 	var founded := 0
+	var spent_in := 0
+	var bought_in := 0
 	for s in range(1, 21):
 		var e := real_engine(s)
-		play_scripted_game(e)
+		var state := {"spent": false, "min": e.resources.get("wealth", 0)}
+		var on_played := func(o): if o.paid.get("wealth", 0) > 0: state.spent = true
+		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
+		e.card_played.connect(on_played)
+		e.changed.connect(on_changed)
+		bot.play(e)
+		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
+		e.card_played.disconnect(on_played)
+		check(e.is_over, "seed %d: game finished within 2000 steps" % s)
+		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
 		if count_id(e.zone("tableau"), "city") >= 1:
 			founded += 1
+		if state.spent:
+			spent_in += 1
+		if not e.zone("researched").is_empty():
+			bought_in += 1
 	# 9, not 11, since 038: home housing 5 lets pop eat the food the bot would save for a Settler.
 	check(founded >= 9, "a City beyond the Capital was founded in %d of 20 seeds (need >= 9)" % founded)
+	check(spent_in >= 1, "a card costing wealth was played in %d of 20 seeds (need >= 1)" % spent_in)
+	check(bought_in >= 1, "a tech was bought in %d of 20 seeds (need >= 1)" % bought_in)
 
 
 func test_real_deck_has_growth_cards() -> void:
@@ -176,24 +154,6 @@ func test_every_wealth_cost_has_a_wealth_source() -> void:
 			if r.cards[id].cost.get("wealth", 0) > 0:
 				unfunded_card_ids.append(id)
 	eq(unfunded_card_ids, [] as Array[String], "cards that cost wealth with nothing in the deck or starting tableau making it")
-
-
-func test_scripted_games_spend_wealth_and_never_go_negative() -> void:
-	var spent_in := 0
-	for s in range(1, 4):
-		var e := real_engine(s)
-		var state := {"spent": false, "min": e.resources.get("wealth", 0)}
-		var on_played := func(o): if o.paid.get("wealth", 0) > 0: state.spent = true
-		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
-		e.card_played.connect(on_played)
-		e.changed.connect(on_changed)
-		play_scripted_game(e)
-		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
-		e.card_played.disconnect(on_played)
-		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
-		if state.spent:
-			spent_in += 1
-	check(spent_in >= 1, "a card costing wealth was played in %d of 3 seeds (need >= 1)" % spent_in)
 
 
 # --- Tech content (backlog 028) ---
@@ -278,21 +238,6 @@ func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
 	for id in UNLOCKED:
 		check(not r.config.deck.has(id), "%s is no longer in the main deck" % id)
 		check(unlocks.has(id), "a tech in research_deck creates %s" % id)
-
-
-func test_scripted_games_buy_techs_and_never_go_negative() -> void:
-	var bought_in := 0
-	for s in range(1, 4):
-		var e := real_engine(s)
-		var state := {"min": e.resources.get("wealth", 0)}
-		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
-		e.changed.connect(on_changed)
-		play_scripted_game(e)
-		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
-		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
-		if not e.zone("researched").is_empty():
-			bought_in += 1
-	check(bought_in >= 1, "a tech was bought in %d of 3 seeds (need >= 1)" % bought_in)
 
 
 # --- Supply (backlog 032) ---
