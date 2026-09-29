@@ -101,7 +101,10 @@
     {
       "id": "forge", "name": "Forge", "type": "building",
       "cost": { "food": 2, "wealth": 2 }, "vp": 2, "tags": [],
-      "effects": []
+      "effects": [
+        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "copper" },
+        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "tin" }
+      ]
     },
     {
       "id": "market", "name": "Market", "type": "building",

@@ -354,10 +354,66 @@ func test_real_hills_roll_gold_and_iron_is_gone() -> void:
 	check(r.config.get("resource_keywords", []).has("gold"), "gold is a resource keyword")
 	check(not r.cards.has("gold_hills"), "Gold Hills is removed")
 	eq(r.config.territory_deck.get("hills"), 2, "2 Hills in the territory deck")
-	var hills: Array = r.config.get("territory_resources", {}).get("hills", [])
-	eq(hills.size(), 2, "Hills has 2 options")
-	if hills.size() == 2:
-		eq(hills[0].keywords, ["gold"] as Array[String], "option 0 keywords")
-		eq(hills[0].weight, 1, "option 0 weight")
-		eq(hills[1].keywords, [] as Array[String], "option 1 keywords")
-		eq(hills[1].weight, 1, "option 1 weight")
+
+
+# --- Backlog 037: tin and copper ---
+
+## A territory_resources table as [[keywords, weight], ...] for easy comparison.
+func table_pairs(table: Array) -> Array:
+	var out: Array = []
+	for option in table:
+		out.append([Array(option.keywords), option.weight])
+	return out
+
+
+func test_real_resource_keywords_are_gold_tin_copper() -> void:
+	var r := load_real()
+	eq(r.warnings, [] as Array[String], "warnings")
+	eq(r.config.resource_keywords, ["gold", "tin", "copper"] as Array[String], "resource_keywords")
+
+
+func test_real_hills_and_highlands_roll_metals() -> void:
+	var r := load_real()
+	var tables: Dictionary = r.config.territory_resources
+	eq(table_pairs(tables.get("hills", [])), [[["gold"], 1], [["tin", "copper"], 1], [[], 2]], "Hills table")
+	eq(table_pairs(tables.get("highlands", [])), [[["tin"], 1], [["copper"], 1], [["tin", "copper"], 1], [[], 1]], "Highlands table")
+
+
+func test_real_forge_scores_on_copper_and_tin() -> void:
+	var r := load_real()
+	var forge: CardDef = r.cards.forge
+	eq(forge.cost, {"food": 2, "wealth": 2}, "Forge cost")
+	eq(forge.vp, 2, "Forge VP")
+	eq(forge.requires, [] as Array[String], "Forge requires")
+	var shapes: Array = []
+	for e in forge.effects:
+		shapes.append([e.op, e.get("amount"), e.trigger, e.keyword])
+	eq(shapes, [["score", 1, "upkeep", "copper"], ["score", 1, "upkeep", "tin"]], "Forge effects")
+
+
+func test_every_resource_keyword_is_rolled_and_used() -> void:
+	var r := load_real()
+	var rolled := {}
+	for id in r.config.territory_resources:
+		if not r.config.territory_deck.has(id):
+			continue
+		for option in r.config.territory_resources[id]:
+			for k in option.keywords:
+				rolled[k] = true
+	var used := {}
+	for id in r.cards:
+		var def: CardDef = r.cards[id]
+		for k in def.requires:
+			used[k] = true
+		for e in def.effects:
+			if e.keyword != "":
+				used[e.keyword] = true
+	var not_rolled: Array[String] = []
+	var not_used: Array[String] = []
+	for k in r.config.resource_keywords:
+		if not rolled.has(k):
+			not_rolled.append(k)
+		if not used.has(k):
+			not_used.append(k)
+	eq(not_rolled, [] as Array[String], "resource keywords no territory in the deck rolls")
+	eq(not_used, [] as Array[String], "resource keywords no card uses")
