@@ -2,7 +2,7 @@
 id: 068
 title: Event panel — active events and the event deck on screen
 type: feature
-status: review
+status: done
 branch: feat/068-event-panel
 ---
 
