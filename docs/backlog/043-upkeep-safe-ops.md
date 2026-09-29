@@ -2,7 +2,7 @@
 id: 043
 title: Only forecast-safe ops may trigger on upkeep
 type: feature
-status: draft
+status: red-review
 branch: feat/043-upkeep-safe-ops
 ---
 
@@ -37,9 +37,11 @@ refreshes. Nothing in the data does this today, but nothing stops it either. The
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
-| AC2 | |
-| AC3 | |
-| AC4 | |
+| AC1 | `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` |
+| AC2 | `test_forecast::test_gain_gain_per_tag_score_and_grow_may_trigger_on_upkeep` |
+| AC3 | `test_forecast::test_forecast_leaves_score_pop_zones_and_log_unchanged` |
+| AC4 | `test_forecast::test_real_data_has_no_upkeep_only_errors` (plus `test_content::test_real_data_loads_without_warnings`) |
 
 ## Log
+- 2026-09-29: Approved by the user ("do 043"). Red: AC1 fails for draw, create, explore, settle and add_era (no
+  error today); research already passes. AC2–AC4 pass already: they pin current behavior that the change must keep.
