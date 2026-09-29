@@ -22,7 +22,7 @@ The top bar shows food and wealth with the change the next upkeep brings in brac
 net of what your pop eats; food turns red when pop would starve.
 
 "Menu (Esc)" in the top bar opens the menu: "Restart" replays the seed in the seed box (same shuffle),
-"New game" picks a random seed, and "Reduce motion" turns off decorative animation. Esc first cancels
+"New game" picks a random seed, and "Reduce motion" turns off decorative animation, and "Exit" quits the game. Esc first cancels
 targeting or drops the card focus, then opens the menu; Esc again closes it.
 
 ## Edit cards
