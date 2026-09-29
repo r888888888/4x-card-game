@@ -2,7 +2,7 @@
 id: 067
 title: Exit the game from the menu
 type: feature
-status: review
+status: done
 branch: feat/067-exit-from-menu
 ---
 
