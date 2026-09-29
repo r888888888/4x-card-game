@@ -2,7 +2,7 @@
 id: 069
 title: Starter event deck — neutral and small beneficial events, Forage and Harvest Festival become events
 type: feature
-status: review
+status: done
 branch: feat/069-starter-events
 ---
 
@@ -104,3 +104,4 @@ player can see what was drawn.
   main deck: the bot plays the first playable card, so the 2-food Festival drained the food it saved for a 5-food
   Settler, and Settlers come up more often in a 19-card deck. Part of this is the simple bot, but the deck really is
   leaner. `cities` min is still 0 (as on main). Flagged for review: 066 (100-turn balance pass) may want to revisit.
+- Renamed after merge: Quiet Season -> Solstice Rites, Travelers' Tales -> Traveling Bards, Border Rumors -> Distant Drums (ids too).

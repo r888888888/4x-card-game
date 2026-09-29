@@ -134,16 +134,16 @@
       "effects": [ { "op": "create", "card": "research", "zone": "discard" } ]
     },
     {
-      "id": "quiet_season", "name": "Quiet Season", "type": "event", "tags": [], "effects": []
+      "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": []
     },
     {
-      "id": "travelers_tales", "name": "Travelers' Tales", "type": "event", "tags": [], "effects": []
+      "id": "traveling_bards", "name": "Traveling Bards", "type": "event", "tags": [], "effects": []
     },
     {
       "id": "comet_sighted", "name": "Comet Sighted", "type": "event", "tags": [], "effects": []
     },
     {
-      "id": "border_rumors", "name": "Border Rumors", "type": "event", "tags": [], "effects": []
+      "id": "distant_drums", "name": "Distant Drums", "type": "event", "tags": [], "effects": []
     },
     {
       "id": "wild_berries", "name": "Wild Berries", "type": "event", "tags": [],

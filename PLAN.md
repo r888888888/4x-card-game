@@ -253,8 +253,8 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
   includes active events.
 - Code: `engine/events.gd`.
-- Starter deck (069): 13 events, all neutral or small boons: 4 blank (Quiet Season, Travelers' Tales, Comet Sighted,
-  Border Rumors), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
+- Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
+  Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
   supply's Granary pile grew to 3 to keep growth cards available.
 - UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an

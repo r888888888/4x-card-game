@@ -36,10 +36,10 @@
     "research": { "price": 3, "count": 2 }
   },
   "event_deck": {
-    "quiet_season": 1,
-    "travelers_tales": 1,
+    "solstice_rites": 1,
+    "traveling_bards": 1,
     "comet_sighted": 1,
-    "border_rumors": 1,
+    "distant_drums": 1,
     "wild_berries": 1,
     "wandering_trader": 1,
     "local_legend": 1,
