@@ -2,7 +2,7 @@
 id: 052
 title: Split ui/main.gd into components
 type: feature
-status: draft
+status: red-review
 branch: feat/052-split-main-ui
 ---
 
@@ -17,6 +17,12 @@ touch one small file. No visible change.
 
 ## Out of scope
 - Any visual or behavior change; scene files for layout (layout stays built in code).
+
+## Test plan
+| AC | Tests |
+|---|---|
+| AC1 | `test_ui_structure::test_main_script_is_at_most_500_lines`, `test_each_ui_component_has_its_own_script`, `test_main_uses_each_component` |
+| AC2 | `test_ui_structure::test_ui_scripts_read_no_engine_internals` (a guard: passes already), the unchanged `test_ui_smoke`, `test_menu`, `test_event_panel` |
 
 ## Manual check
 - [ ] Drag to play, double-click targeting, keyboard play (arrows, Enter, D, E, S, Esc), supply screen buying,
