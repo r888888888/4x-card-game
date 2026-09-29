@@ -76,7 +76,6 @@ func test_every_keyword_is_on_a_territory_and_a_card() -> void:
 ## Plays seeds 1-20 with the scripted bot and checks every game ends, wealth never goes below 0, and that
 ## Cities, wealth costs and techs all come up in some seeds.
 func test_scripted_sweep_over_20_seeds() -> void:
-	var bot: Object = load("res://sim/bot.gd")
 	var founded := 0
 	var spent_in := 0
 	var bought_in := 0
@@ -87,7 +86,7 @@ func test_scripted_sweep_over_20_seeds() -> void:
 		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
 		e.card_played.connect(on_played)
 		e.changed.connect(on_changed)
-		bot.play(e)
+		ScriptedBot.play(e)
 		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
 		e.card_played.disconnect(on_played)
 		check(e.is_over, "seed %d: game finished within 2000 steps" % s)
