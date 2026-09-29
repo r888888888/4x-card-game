@@ -146,25 +146,15 @@ func test_supply_defaults_to_empty() -> void:
 	eq(config.supply, {}, "supply")
 
 
-func test_supply_unknown_card_is_error() -> void:
-	has_msg(supply_errors({"dragon": {"price": 2, "count": 1}}), "config.json: supply: unknown card 'dragon'")
-
-
-func test_supply_rejects_cities_territories_and_techs() -> void:
-	has_msg(supply_errors({"city": {"price": 2, "count": 1}}), "config.json: supply: 'city' is a city")
-	has_msg(supply_errors({"grassland": {"price": 2, "count": 1}}), "config.json: supply: 'grassland' is a territory")
-	has_msg(supply_errors({"pottery": {"price": 2, "count": 1}}), "config.json: supply: 'pottery' is a tech")
-
-
-func test_supply_price_must_be_at_least_1() -> void:
-	has_msg(supply_errors({"scout": {"price": 0, "count": 1}}), "config.json: supply: 'scout': 'price' must be an integer >= 1")
-	has_msg(supply_errors({"scout": {"count": 1}}), "config.json: supply: 'scout': 'price' must be an integer >= 1")
-
-
-func test_supply_count_must_be_at_least_1() -> void:
-	has_msg(supply_errors({"scout": {"price": 2, "count": 0}}), "config.json: supply: 'scout': 'count' must be an integer >= 1")
-	has_msg(supply_errors({"scout": {"price": 2}}), "config.json: supply: 'scout': 'count' must be an integer >= 1")
-
-
-func test_supply_entry_must_be_an_object() -> void:
-	has_msg(supply_errors({"scout": 2}), "config.json: supply: 'scout' must be an object like {\"price\": 2, \"count\": 1}")
+func test_supply_validation() -> void:
+	check_cases([
+		["unknown card", {"dragon": {"price": 2, "count": 1}}, "config.json: supply: unknown card 'dragon'"],
+		["city", {"city": {"price": 2, "count": 1}}, "config.json: supply: 'city' is a city"],
+		["territory", {"grassland": {"price": 2, "count": 1}}, "config.json: supply: 'grassland' is a territory"],
+		["tech", {"pottery": {"price": 2, "count": 1}}, "config.json: supply: 'pottery' is a tech"],
+		["price 0", {"scout": {"price": 0, "count": 1}}, "config.json: supply: 'scout': 'price' must be an integer >= 1"],
+		["no price", {"scout": {"count": 1}}, "config.json: supply: 'scout': 'price' must be an integer >= 1"],
+		["count 0", {"scout": {"price": 2, "count": 0}}, "config.json: supply: 'scout': 'count' must be an integer >= 1"],
+		["no count", {"scout": {"price": 2}}, "config.json: supply: 'scout': 'count' must be an integer >= 1"],
+		["not an object", {"scout": 2}, "config.json: supply: 'scout' must be an object like {\"price\": 2, \"count\": 1}"],
+	], supply_errors)

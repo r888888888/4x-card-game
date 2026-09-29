@@ -36,37 +36,24 @@ func test_prereq_discount_loads() -> void:
 		eq(r.cards.x.prereq_discount, 3, "prereq_discount")
 
 
-func test_prereq_unknown_card_is_an_error() -> void:
-	has_msg(load_x({"prereq": "dragon"}).errors, "cards.json: card 'x': prereq")
+func test_prereq_validation() -> void:
+	check_cases([
+		["unknown card", [{"prereq": "dragon"}, "tech"], "cards.json: card 'x': prereq"],
+		["not a tech", [{"prereq": "farm"}, "tech"], "cards.json: card 'x': prereq"],
+		["itself", [{"prereq": "x"}, "tech"], "cards.json: card 'x': prereq"],
+		["discount 0", [{"prereq": "bronze", "prereq_discount": 0}, "tech"], "cards.json: card 'x': prereq_discount"],
+		["discount not an int", [{"prereq": "bronze", "prereq_discount": "two"}, "tech"], "cards.json: card 'x': prereq_discount"],
+		["discount without prereq", [{"prereq_discount": 3}, "tech"], "cards.json: card 'x': 'prereq_discount' needs 'prereq'",
+			"warning_only"],
+		["prereq on a building", [{"prereq": "bronze", "prereq_discount": 3}, "building"],
+			["cards.json: card 'x': 'prereq' only applies to techs", "cards.json: card 'x': 'prereq_discount' only applies to techs"],
+			"warning_only"],
+	], func(args): return load_x(args[0], args[1]))
 
 
-func test_prereq_that_is_not_a_tech_is_an_error() -> void:
-	has_msg(load_x({"prereq": "farm"}).errors, "cards.json: card 'x': prereq")
-
-
-func test_prereq_on_itself_is_an_error() -> void:
-	has_msg(load_x({"prereq": "x"}).errors, "cards.json: card 'x': prereq")
-
-
-func test_prereq_discount_below_1_is_an_error() -> void:
-	has_msg(load_x({"prereq": "bronze", "prereq_discount": 0}).errors, "cards.json: card 'x': prereq_discount")
-
-
-func test_prereq_discount_must_be_an_integer() -> void:
-	has_msg(load_x({"prereq": "bronze", "prereq_discount": "two"}).errors, "cards.json: card 'x': prereq_discount")
-
-
-func test_prereq_discount_without_prereq_is_a_warning() -> void:
-	var r := load_x({"prereq_discount": 3})
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "cards.json: card 'x': 'prereq_discount' needs 'prereq'")
-
-
-func test_prereq_on_a_card_that_is_not_a_tech_is_a_warning() -> void:
+func test_prereq_on_a_card_that_is_not_a_tech_is_ignored() -> void:
 	var r := load_x({"prereq": "bronze", "prereq_discount": 3}, "building")
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "cards.json: card 'x': 'prereq' only applies to techs")
-	has_msg(r.warnings, "cards.json: card 'x': 'prereq_discount' only applies to techs")
+	check(r.cards.has("x"), "the building loads")
 	if r.cards.has("x"):
 		eq(r.cards.x.prereq, "", "ignored")
 

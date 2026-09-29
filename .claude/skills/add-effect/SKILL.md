@@ -10,10 +10,11 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
 
 ## Red
 
-1. **Loader tests** in `tests/test_data_loader.gd`:
-   - a card using the op with valid fields loads with no errors or warnings;
+1. **Loader tests** in the op's feature file (or `tests/test_data_loader.gd`):
+   - a card using the op with valid fields loads with no errors or warnings (a named test);
    - each missing or invalid field gives an error that names the card and field
-     (e.g. `card 'x': effects[0]: 'amount' must be an integer >= 1`);
+     (e.g. `card 'x': effects[0]: 'amount' must be an integer >= 1`): one `test_<op>_validation` with a
+     `check_cases` row per case (see `test_grow_validation`);
    - if the op refers to cards, resources, or zones, unknown names are errors.
 2. **Rules tests** in `tests/test_rules.gd` (or `tests/test_effects.gd` if you're adding several):
    - add a card that uses the op to `TEST_CARDS` in `tests/lib/test_case.gd`;

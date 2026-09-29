@@ -45,30 +45,16 @@ func test_tech_with_a_wealth_cost_loads() -> void:
 		eq(r.cards.x.is_permanent(), true, "techs are permanent")
 
 
-func test_tech_food_cost_is_an_error() -> void:
-	has_msg(load_x("tech", {"food": 1}).errors, "cards.json: card 'x': cost")
-
-
-func test_tech_zero_wealth_cost_is_an_error() -> void:
-	has_msg(load_x("tech", {"wealth": 0}).errors, "cards.json: card 'x': cost")
-
-
-func test_tech_mixed_cost_is_an_error() -> void:
-	has_msg(load_x("tech", {"wealth": 2, "food": 1}).errors, "cards.json: card 'x': cost")
-
-
-func test_tech_without_a_cost_is_an_error() -> void:
-	has_msg(load_x("tech", null).errors, "cards.json: card 'x': cost")
-
-
-func test_tech_keyword_effect_is_an_error() -> void:
-	var r := load_x("tech", {"wealth": 2}, [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "mountain"}])
-	has_msg(r.errors, "cards.json: card 'x': effects[0]")
-
-
-func test_tech_targeting_effect_is_an_error() -> void:
-	var r := load_x("tech", {"wealth": 2}, [{"op": "settle", "card": "city"}])
-	has_msg(r.errors, "cards.json: card 'x': effects[0]")
+func test_tech_card_validation() -> void:
+	check_cases([
+		["food cost", [{"food": 1}, []], "cards.json: card 'x': cost"],
+		["zero wealth cost", [{"wealth": 0}, []], "cards.json: card 'x': cost"],
+		["mixed cost", [{"wealth": 2, "food": 1}, []], "cards.json: card 'x': cost"],
+		["no cost", [null, []], "cards.json: card 'x': cost"],
+		["keyword effect", [{"wealth": 2}, [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "mountain"}]],
+			"cards.json: card 'x': effects[0]"],
+		["targeting effect", [{"wealth": 2}, [{"op": "settle", "card": "city"}]], "cards.json: card 'x': effects[0]"],
+	], func(cost_and_effects): return load_x("tech", cost_and_effects[0], cost_and_effects[1]).errors)
 
 
 # --- AC2: research_deck config ---
@@ -89,20 +75,13 @@ func test_research_deck_defaults_to_empty() -> void:
 	eq(config.get("research_deck"), {}, "research_deck default")
 
 
-func test_research_deck_unknown_card_is_error() -> void:
-	has_msg(config_errors({"research_deck": {"dragon": 1}}), "config.json: research_deck: unknown card 'dragon'")
-
-
-func test_research_deck_non_tech_is_error() -> void:
-	has_msg(config_errors({"research_deck": {"farm": 1}}), "config.json: research_deck: 'farm' is not a tech")
-
-
-func test_research_deck_count_below_1_is_error() -> void:
-	has_msg(config_errors({"research_deck": {"pottery": 0}}), "config.json: research_deck: count for 'pottery'")
-
-
-func test_tech_in_the_main_deck_is_error() -> void:
-	has_msg(config_errors({}, {"pottery": 1}), "config.json: deck: 'pottery' is a tech")
+func test_research_deck_validation() -> void:
+	check_cases([
+		["unknown card", [{"research_deck": {"dragon": 1}}, {"farm": 1}], "config.json: research_deck: unknown card 'dragon'"],
+		["not a tech", [{"research_deck": {"farm": 1}}, {"farm": 1}], "config.json: research_deck: 'farm' is not a tech"],
+		["count below 1", [{"research_deck": {"pottery": 0}}, {"farm": 1}], "config.json: research_deck: count for 'pottery'"],
+		["tech in the main deck", [{}, {"pottery": 1}], "config.json: deck: 'pottery' is a tech"],
+	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], overrides_and_deck[1]))
 
 
 # --- AC3: setup ---

@@ -99,18 +99,12 @@ func test_grow_where_defaults_to_here() -> void:
 	eq(r.cards.x.rules_text(r.cards), "+1 pop here", "text")
 
 
-func test_grow_bad_where_is_error() -> void:
-	has_msg(grow_card_errors({"op": "grow", "amount": 1, "where": "everywhere"}).errors,
-		"cards.json: card 'x': effects[0]: 'where' must be one of")
-
-
-func test_grow_amount_below_1_is_error() -> void:
-	has_msg(grow_card_errors({"op": "grow", "amount": 0}).errors,
-		"cards.json: card 'x': effects[0]: 'amount' must be an integer >= 1")
-
-
-func test_grow_missing_amount_is_error() -> void:
-	has_msg(grow_card_errors({"op": "grow"}).errors, "cards.json: card 'x': effects[0]: missing 'amount'")
+func test_grow_validation() -> void:
+	check_cases([
+		["bad where", {"op": "grow", "amount": 1, "where": "everywhere"}, "cards.json: card 'x': effects[0]: 'where' must be one of"],
+		["amount 0", {"op": "grow", "amount": 0}, "cards.json: card 'x': effects[0]: 'amount' must be an integer >= 1"],
+		["missing amount", {"op": "grow"}, "cards.json: card 'x': effects[0]: missing 'amount'"],
+	], grow_card_errors)
 
 
 func test_grow_text() -> void:

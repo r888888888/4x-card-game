@@ -68,34 +68,19 @@ func test_territory_card_loads_with_slots_and_keywords() -> void:
 
 # --- AC2: bad territories ---
 
-func test_territory_missing_slots_is_error() -> void:
-	var r := load_with_keywords([{"id": "bog", "name": "Bog", "type": "territory"}])
-	eq(r.errors.size(), 1, "one error: %s" % [r.errors])
-	has_msg(r.errors, "card 'bog': missing 'slots'")
-
-
-func test_territory_negative_slots_is_error() -> void:
-	var r := load_with_keywords([{"id": "bog", "name": "Bog", "type": "territory", "slots": -1}])
-	eq(r.errors.size(), 1, "one error: %s" % [r.errors])
-	has_msg(r.errors, "card 'bog': 'slots' must be an integer >= 0")
-
-
-func test_territory_unknown_keyword_is_error() -> void:
-	var r := load_with_keywords([{"id": "volcano", "name": "Volcano", "type": "territory", "slots": 1,
-		"keywords": ["mountain", "lava"]}])
-	eq(r.errors.size(), 1, "one error: %s" % [r.errors])
-	has_msg(r.errors, "card 'volcano': unknown keyword 'lava'")
+func test_territory_card_validation() -> void:
+	check_cases([
+		["missing slots", {"id": "bog", "name": "Bog", "type": "territory"}, "card 'bog': missing 'slots'", "one_error"],
+		["negative slots", {"id": "bog", "name": "Bog", "type": "territory", "slots": -1},
+			"card 'bog': 'slots' must be an integer >= 0", "one_error"],
+		["unknown keyword", {"id": "volcano", "name": "Volcano", "type": "territory", "slots": 1, "keywords": ["mountain", "lava"]},
+			"card 'volcano': unknown keyword 'lava'", "one_error"],
+		["territory fields on a building", {"id": "mill", "name": "Mill", "type": "building", "slots": 2, "keywords": ["mountain"]},
+			["card 'mill': 'slots'", "card 'mill': 'keywords'"], "warning_only"],
+	], func(card): return load_with_keywords([card]))
 
 
 # --- AC3: territory fields on other cards ---
-
-func test_territory_fields_on_non_territory_are_warnings() -> void:
-	var r := load_with_keywords([{"id": "mill", "name": "Mill", "type": "building", "slots": 2,
-		"keywords": ["mountain"]}])
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "card 'mill': 'slots'")
-	has_msg(r.warnings, "card 'mill': 'keywords'")
-
 
 # --- AC4: territory deck and starting territory in config ---
 
@@ -109,26 +94,17 @@ func test_territory_deck_is_normalized() -> void:
 	eq(config.territory_deck, {"hills": 2, "grassland": 1}, "territory_deck")
 
 
-func test_territory_deck_unknown_card_is_error() -> void:
-	has_msg(config_errors({"territory_deck": {"dragon": 1}}), "config.json: territory_deck: unknown card 'dragon'")
-
-
-func test_territory_deck_non_territory_is_error() -> void:
-	has_msg(config_errors({"territory_deck": {"farm": 1}}), "config.json: territory_deck: 'farm' is not a territory")
-
-
-func test_territory_in_main_deck_is_error() -> void:
-	has_msg(config_errors({}, {"farm": 1, "hills": 1}), "config.json: deck: 'hills' is a territory")
-
-
-func test_starting_territory_must_be_a_territory() -> void:
-	var start := {"resources": {}, "tableau": ["capital"], "territory": "farm"}
-	has_msg(config_errors({"starting": start}), "config.json: starting.territory: 'farm' is not a territory")
-
-
-func test_starting_territory_unknown_card_is_error() -> void:
-	var start := {"resources": {}, "tableau": ["capital"], "territory": "atlantis"}
-	has_msg(config_errors({"starting": start}), "config.json: starting.territory: unknown card 'atlantis'")
+func test_territory_deck_and_starting_territory_validation() -> void:
+	var start := func(territory): return {"starting": {"resources": {}, "tableau": ["capital"], "territory": territory}}
+	check_cases([
+		["unknown card", [{"territory_deck": {"dragon": 1}}, {"farm": 1}], "config.json: territory_deck: unknown card 'dragon'"],
+		["not a territory", [{"territory_deck": {"farm": 1}}, {"farm": 1}], "config.json: territory_deck: 'farm' is not a territory"],
+		["territory in the main deck", [{}, {"farm": 1, "hills": 1}], "config.json: deck: 'hills' is a territory"],
+		["starting territory not a territory", [start.call("farm"), {"farm": 1}],
+			"config.json: starting.territory: 'farm' is not a territory"],
+		["starting territory unknown", [start.call("atlantis"), {"farm": 1}],
+			"config.json: starting.territory: unknown card 'atlantis'"],
+	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], overrides_and_deck[1]))
 
 
 # --- AC5: new game with territories ---

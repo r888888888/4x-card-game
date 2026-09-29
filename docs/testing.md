@@ -94,6 +94,7 @@ UI tests see structure (views, labels, overlays), never finished animations.
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
 | `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
+| `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
 | `play_research(engine)` | Puts a Research card (`study`) in hand and plays it, revealing techs (backlog 034) |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
@@ -116,4 +117,6 @@ writing one. Tests never call engine members that start with `_`: if setup needs
 - **Signals**: connect a lambda that appends to an array, then assert on the array
   (see `test_game_ends_at_turn_limit`).
 - **Loader errors**: assert the message names the file, card and field, since that is the
-  user-facing contract.
+  user-facing contract. Put the cases for one config block or card field in one table test,
+  `test_<area>_validation`, with `check_cases([[label, input, fragment, kind?], ...], load)`: adding a rule is
+  a row, and a failing row names its label. Valid input that loads and normalizes stays a named test.

@@ -203,12 +203,28 @@ func test_valid_resource_config_loads_cleanly() -> void:
 	eq(config.territory_resources.hills[1].keywords, kw([]), "option 1 keywords")
 
 
-func test_keyword_in_both_lists_is_error() -> void:
-	has_msg(config_errors({"keywords": ["mountain", "gold"]}), "config.json: resource_keywords: 'gold' is also in 'keywords'")
-
-
-func test_resource_keywords_must_be_array() -> void:
-	has_msg(config_errors({"resource_keywords": "gold"}), "config.json: 'resource_keywords' must be an array of keyword ids")
+func test_resource_config_validation() -> void:
+	var tr := func(tables): return {"territory_resources": tables}
+	var weight := func(w): return {"territory_resources": {"hills": [{"keywords": ["gold"], "weight": w}]}}
+	var weight_error := "config.json: territory_resources: 'hills'[0]: 'weight' must be an integer >= 1"
+	check_cases([
+		["keyword in both lists", {"keywords": ["mountain", "gold"]}, "config.json: resource_keywords: 'gold' is also in 'keywords'"],
+		["resource_keywords not an array", {"resource_keywords": "gold"}, "config.json: 'resource_keywords' must be an array of keyword ids"],
+		["table for an unknown card", tr.call({"nowhere": ALWAYS_GOLD.hills}), "config.json: territory_resources: unknown card 'nowhere'"],
+		["table for a non-territory", tr.call({"farm": ALWAYS_GOLD.hills}), "config.json: territory_resources: 'farm' is not a territory"],
+		["option with a terrain keyword", tr.call({"hills": [{"keywords": ["mountain"], "weight": 1}]}),
+			"config.json: territory_resources: 'hills'[0]: 'mountain' is not a resource keyword"],
+		["weight 0", weight.call(0), weight_error],
+		["weight -1", weight.call(-1), weight_error],
+		["weight 1.5", weight.call(1.5), weight_error],
+		["weight \"2\"", weight.call("2"), weight_error],
+		["empty table", tr.call({"hills": []}), "config.json: territory_resources: 'hills' must be a non-empty array"],
+		["option not an object", tr.call({"hills": ["gold"]}),
+			"config.json: territory_resources: 'hills'[0] must be an object like {\"keywords\": [\"gold\"], \"weight\": 1}"],
+		["option keywords not an array", tr.call({"hills": [{"keywords": "gold", "weight": 1}]}),
+			"config.json: territory_resources: 'hills'[0]: 'keywords' must be an array"],
+		["territory_resources not an object", tr.call([]), "config.json: 'territory_resources' must be an object"],
+	], config_errors)
 
 
 func test_territory_printing_resource_keyword_is_error() -> void:
@@ -217,35 +233,3 @@ func test_territory_printing_resource_keyword_is_error() -> void:
 	var card := {"id": "gold_hills", "name": "Gold Hills", "type": "territory", "slots": 2, "keywords": ["mountain", "gold"]}
 	DataLoader.parse_cards({"cards": [card]}, resources(), "cards.json", errors, warnings, keywords(), gold_resource_keywords())
 	has_msg(errors, "cards.json: card 'gold_hills': keywords: 'gold' is a resource keyword")
-
-
-func test_table_for_unknown_card_is_error() -> void:
-	has_msg(config_errors({"territory_resources": {"nowhere": ALWAYS_GOLD.hills}}), "config.json: territory_resources: unknown card 'nowhere'")
-
-
-func test_table_for_non_territory_is_error() -> void:
-	has_msg(config_errors({"territory_resources": {"farm": ALWAYS_GOLD.hills}}), "config.json: territory_resources: 'farm' is not a territory")
-
-
-func test_option_with_terrain_keyword_is_error() -> void:
-	var tables := {"hills": [{"keywords": ["mountain"], "weight": 1}]}
-	has_msg(config_errors({"territory_resources": tables}), "config.json: territory_resources: 'hills'[0]: 'mountain' is not a resource keyword")
-
-
-func test_option_weight_must_be_positive_int() -> void:
-	for weight in [0, -1, 1.5, "2"]:
-		var tables := {"hills": [{"keywords": ["gold"], "weight": weight}]}
-		has_msg(config_errors({"territory_resources": tables}), "config.json: territory_resources: 'hills'[0]: 'weight' must be an integer >= 1")
-
-
-func test_empty_table_is_error() -> void:
-	has_msg(config_errors({"territory_resources": {"hills": []}}), "config.json: territory_resources: 'hills' must be a non-empty array")
-
-
-func test_option_must_be_object_with_keywords_array() -> void:
-	has_msg(config_errors({"territory_resources": {"hills": ["gold"]}}), "config.json: territory_resources: 'hills'[0] must be an object like {\"keywords\": [\"gold\"], \"weight\": 1}")
-	has_msg(config_errors({"territory_resources": {"hills": [{"keywords": "gold", "weight": 1}]}}), "config.json: territory_resources: 'hills'[0]: 'keywords' must be an array")
-
-
-func test_territory_resources_must_be_object() -> void:
-	has_msg(config_errors({"territory_resources": []}), "config.json: 'territory_resources' must be an object")
