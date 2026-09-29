@@ -196,6 +196,15 @@ func era_unlocks() -> Dictionary:
 	return config.get("era_unlocks", {})
 
 
+## The era_unlocks entries for eras above the current one.
+func upcoming_era_unlocks() -> Dictionary:
+	var out := {}
+	for n in era_unlocks():
+		if n > era():
+			out[n] = era_unlocks()[n]
+	return out
+
+
 ## Why reveal_techs has nothing to reveal, or "" if it has (the research deck or a future era).
 func reveal_techs_error() -> String:
 	if zone("research_deck").is_empty() and zone("future_techs").is_empty():
@@ -267,6 +276,13 @@ func buy_error(card_id: String) -> String:
 
 func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
+
+
+## Why hand card uid can't be played on any target right now, or "" if it can. Unlike play_error, a card
+## with several valid targets isn't blocked by the choice between them: it is checked on the first.
+func playable_error(uid: int) -> String:
+	var targets := valid_targets(uid)
+	return play_error(uid, targets[0] if needs_target(uid) and not targets.is_empty() else -1)
 
 
 ## Why the card can't be played right now, or "" if it can.
@@ -564,9 +580,47 @@ func discard_card(uid: int) -> bool:
 	return true
 
 
+## Why the turn can't end right now, or "" if it can.
+func end_turn_error() -> String:
+	return _busy_error()
+
+
+## Why the supply screen can't open now, or "". A discard owed doesn't block it: you can browse, and
+## buy_error says why each card can't be bought.
+func supply_error() -> String:
+	return _choice_error()
+
+
+## The tableau in territory groups: [{territory: uid, cards: [uids]}]. Each settled territory is first in
+## its group, followed by the cards on it in tableau order; groups come in order of first appearance, and
+## cards on no territory come last in a group with territory -1.
+func territory_groups() -> Array[Dictionary]:
+	var members := {}  # territory uid or -1 -> Array[int]
+	for card in zone("tableau").cards:
+		var key := -1
+		if card.def.type == CardDef.TERRITORY:
+			key = card.uid
+		elif territory_of(card) != null:
+			key = card.territory_uid
+		if not members.has(key):
+			members[key] = [] as Array[int]
+		if card.def.type == CardDef.TERRITORY:
+			members[key].push_front(card.uid)
+		else:
+			members[key].append(card.uid)
+	var out: Array[Dictionary] = []
+	for key in members:
+		if key != -1:
+			out.append({"territory": key, "cards": members[key]})
+	if members.has(-1):
+		out.append({"territory": -1, "cards": members[-1]})
+	return out
+
+
 ## Ends the turn. Over the hand limit, waits for discard_card calls instead (not on the last turn).
+## Does nothing if end_turn_error says no.
 func end_turn() -> void:
-	if is_over or not pending_choice.is_empty() or not research_options().is_empty() or _discard_left > 0:
+	if end_turn_error() != "":
 		return
 	_event_phase()
 	if turn < turn_limit():
@@ -723,14 +777,22 @@ func _lowest_future_era() -> int:
 ## Why no action can be taken right now (game over, an explore choice, open research, a discard owed),
 ## or "" if actions are allowed.
 func _busy_error() -> String:
+	var choice := _choice_error()
+	if choice != "":
+		return choice
+	if _discard_left > 0:
+		return _discard_error()
+	return ""
+
+
+## Why nothing but finishing the open step can happen (game over, an explore choice, open research), or "".
+func _choice_error() -> String:
 	if is_over:
 		return "The game is over."
 	if not pending_choice.is_empty():
 		return "Choose a territory first."
 	if not research_options().is_empty():
 		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
 	return ""
 
 
