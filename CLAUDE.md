@@ -14,6 +14,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   logic (a calculation, a legality check, a derived value), put that logic in the engine under TDD
   and have the UI call it.
 - Content lives in `data/*.json`; the loader validates it. Card text is generated from effects.
+- Card types and the built-in resources are constants (`CardDef.TERRITORY`, `GameEngine.FOOD`, …); never write
+  their strings in `engine/` or `ui/`. A field only some card types use goes in `DataLoader.TYPE_FIELDS`.
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.

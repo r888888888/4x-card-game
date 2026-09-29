@@ -30,7 +30,7 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
    - `##` header comment showing the JSON shape, as in the existing files;
    - `fields()` lists every accepted key besides `op` and `trigger` (anything else becomes an
      "unknown field" warning);
-   - `configure()` reads fields with `read_int` / `read_string`, validating against
+   - `configure()` reads fields with `Fields.read_int` / `Fields.read_string`, validating against
      `ctx.resources` / `ctx.zones` where relevant;
    - `apply(engine, source)` calls a **public helper on `GameEngine`**. Don't manipulate zones or
      resources directly from the effect, so that logging and signals stay in one place. Add the

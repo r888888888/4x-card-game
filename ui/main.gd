@@ -400,7 +400,7 @@ func _refresh_supply() -> void:
 	_supply_button.tooltip_text = reason if reason != "" else "Buy copies of cards into your discard."
 	if not _supply_overlay.visible:
 		return
-	_set_stat(_supply_wealth, "Wealth: %d" % e.resources.get("wealth", 0))
+	_set_stat(_supply_wealth, "Wealth: %d" % e.resources.get(GameEngine.WEALTH, 0))
 	_supply_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _supply_views:
 		_supply_views[id].set_buy_info(e.buy_price(id), e.supply_left(id), e.buy_error(id))
@@ -682,8 +682,8 @@ func _refresh() -> void:
 	_set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	_seed_label.text = "Seed %d" % e.seed_value
 	var forecast := e.upkeep_forecast()
-	_set_stat(_food_label, "Food: %d%s" % [e.resources.get("food", 0), _forecast_text(forecast, "food")])
-	_set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get("wealth", 0), _forecast_text(forecast, "wealth")])
+	_set_stat(_food_label, "Food: %d%s" % [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)])
+	_set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)])
 	var starve: int = forecast.get("starve", 0)
 	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else FOOD_COLOR)
 	_food_label.tooltip_text = "Next upkeep: %d pop will starve." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
@@ -752,7 +752,7 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 	var order: Array[int] = []
 	for card in tableau:
 		var key := -1
-		if card.def.type == "territory":
+		if card.def.type == CardDef.TERRITORY:
 			key = card.uid
 		elif e.territory_of(card) != null:
 			key = card.territory_uid
@@ -760,7 +760,7 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 			members[key] = []
 			if key != -1:
 				order.append(key)
-		if card.def.type == "territory":
+		if card.def.type == CardDef.TERRITORY:
 			members[key].push_front(card)
 		else:
 			members[key].append(card)
@@ -878,7 +878,7 @@ func _era_unlock_lines() -> Array[String]:
 		var parts: PackedStringArray = []
 		if need.has("pop"):
 			parts.append("%d pop" % need.pop)
-		if need.has("wealth"):
+		if need.has(GameEngine.WEALTH):
 			parts.append("%d wealth" % need.wealth)
 		out.append("Era %d at %s (checked at the start of a turn)" % [n, " or ".join(parts)])
 	return out
@@ -950,11 +950,10 @@ func _animate_outcome() -> void:
 
 
 func _resource_label(resource: String) -> Label:
-	match resource:
-		"food":
-			return _food_label
-		"wealth":
-			return _wealth_label
+	if resource == GameEngine.FOOD:
+		return _food_label
+	if resource == GameEngine.WEALTH:
+		return _wealth_label
 	return null
 
 

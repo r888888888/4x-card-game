@@ -10,7 +10,7 @@ func fields() -> Array[String]:
 
 
 func configure(data: Dictionary, _ctx: Dictionary, errors: Array[String]) -> void:
-	card_id = read_string(data, "card", errors)
+	card_id = Fields.read_string(data, "card", errors)
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:
@@ -34,7 +34,7 @@ func referenced_cards() -> Array[String]:
 
 
 func check_references(card_db: Dictionary, errors: Array[String]) -> void:
-	if card_db.has(card_id) and card_db[card_id].type != "city":
+	if card_db.has(card_id) and card_db[card_id].type != CardDef.CITY:
 		errors.append("'card' must be a city card (got '%s')" % card_id)
 
 

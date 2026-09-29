@@ -2,9 +2,16 @@ class_name CardDef
 extends RefCounted
 ## Immutable card definition, parsed from data/cards.json by DataLoader.
 
+const ACTION := "action"  # one-shot: resolves, then goes to the discard
+const BUILDING := "building"  # stays in the tableau on a territory slot
+const CITY := "city"  # stays in the tableau; one per territory
+const TERRITORY := "territory"  # from the territory deck; holds a city, buildings and pop
+const TECH := "tech"  # from the research deck; bought with wealth, never in the main deck
+const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH]
+
 var id: String = ""
 var name: String = ""
-var type: String = ""  # "action" (one-shot) or "building"/"city" (stays in the tableau)
+var type: String = ""  # one of TYPES
 var cost: Dictionary = {}  # resource -> int
 var vp: int = 0
 var tags: Array[String] = []
@@ -20,7 +27,7 @@ var text: String = ""  # optional override; otherwise generated from effects
 
 
 func is_permanent() -> bool:
-	return type != "action"
+	return type != ACTION
 
 
 ## Whether one of the card's effects adds an era of techs (such a tech can't be lost).
@@ -71,7 +78,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
-	if type == "territory":
+	if type == TERRITORY:
 		parts.append("%d building slot%s, holds up to %d pop" % [slots, "" if slots == 1 else "s", housing])
 		if not keywords.is_empty():
 			parts.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
@@ -85,7 +92,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
-	if type == "city" and slots > 0:
+	if type == CITY and slots > 0:
 		parts.append("+%d building slots on its territory" % slots)
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])

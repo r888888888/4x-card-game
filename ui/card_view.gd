@@ -13,22 +13,22 @@ signal picked(view: CardView)
 enum State { REST, FLYING, DRAGGING, LEAVING }
 
 const TYPE_COLORS := {
-	"action": Color("4a7fb5"),
-	"building": Color("5f9a45"),
-	"city": Color("c08a3e"),
-	"territory": Color("8a6fb5"),
-	"tech": Color("3fa7a0"),
+	CardDef.ACTION: Color("4a7fb5"),
+	CardDef.BUILDING: Color("5f9a45"),
+	CardDef.CITY: Color("c08a3e"),
+	CardDef.TERRITORY: Color("8a6fb5"),
+	CardDef.TECH: Color("3fa7a0"),
 }
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
 const COMPACT_SIZE := Vector2(245, 95)  # a frontier territory: name and info only
 # A shape per type, so types can be told apart without colour. Drawn as icons (see Icons).
 const TYPE_MARKS := {
-	"action": "◆",
-	"building": "■",
-	"city": "●",
-	"territory": "▲",
-	"tech": "✦",
+	CardDef.ACTION: "◆",
+	CardDef.BUILDING: "■",
+	CardDef.CITY: "●",
+	CardDef.TERRITORY: "▲",
+	CardDef.TECH: "✦",
 }
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
@@ -138,7 +138,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		_box.add_child(rules)
 
-	if def.type == "territory":
+	if def.type == CardDef.TERRITORY:
 		var info := "▢%d ⌂%d" % [def.slots, def.housing]  # explained in the tooltip
 		var names := def.keywords.map(func(k): return k.capitalize())
 		if not names.is_empty():

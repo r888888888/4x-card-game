@@ -18,10 +18,10 @@ func fields() -> Array[String]:
 
 
 func configure(data: Dictionary, ctx: Dictionary, errors: Array[String]) -> void:
-	resource = read_string(data, "resource", errors, ctx.resources)
-	amount = read_int(data, "amount", errors, 1)
-	tag = read_string(data, "tag", errors)
-	zone = read_string(data, "zone", errors, ctx.zones, "tableau")
+	resource = Fields.read_string(data, "resource", errors, ctx.resources)
+	amount = Fields.read_int(data, "amount", errors, 1)
+	tag = Fields.read_string(data, "tag", errors)
+	zone = Fields.read_string(data, "zone", errors, ctx.zones, "tableau")
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:

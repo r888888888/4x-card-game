@@ -5,6 +5,11 @@ extends RefCounted
 ##
 ## Turn loop: upkeep -> draw -> play (player) -> event -> cleanup.
 
+## The two built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings,
+## techs and the supply. The config may list more resources; only these two have rules attached.
+const FOOD := "food"
+const WEALTH := "wealth"
+
 signal changed
 signal logged(message: String)
 signal game_over(final_score: int)
@@ -88,7 +93,7 @@ func territory_keywords(uid: int) -> Array[String]:
 	for z in ZONES:
 		var card := zone(z).find(uid)
 		if card != null:
-			return card.keywords.duplicate() if card.def.type == "territory" else [] as Array[String]
+			return card.keywords.duplicate() if card.def.type == CardDef.TERRITORY else [] as Array[String]
 	return [] as Array[String]
 
 
@@ -115,7 +120,7 @@ func grow_error(territory_uid: int) -> String:
 	if territory.pop >= territory.def.housing:
 		return "%s is at its housing (%d)." % [territory.def.name, territory.def.housing]
 	var cost := grow_cost(territory_uid)
-	var have: int = resources.get("food", 0)
+	var have: int = resources.get(FOOD, 0)
 	if have < cost:
 		return "Growing %s needs %d food (you have %d)." % [territory.def.name, cost, have]
 	return ""
@@ -139,7 +144,7 @@ func grow(territory_uid: int) -> bool:
 func total_pop() -> int:
 	var total := 0
 	for card in zone("tableau").cards:
-		if card.def.type == "territory":
+		if card.def.type == CardDef.TERRITORY:
 			total += card.pop
 	return total
 
@@ -175,8 +180,8 @@ func upkeep_forecast() -> Dictionary:
 	for r in saved_resources:
 		forecast[r] = resources[r] - saved_resources[r]
 	var need: int = total_pop() * config.population.food_upkeep if population_on() else 0
-	forecast.food = forecast.get("food", 0) - need
-	forecast.starve = maxi(need - resources.get("food", 0), 0)
+	forecast[FOOD] = forecast.get(FOOD, 0) - need
+	forecast.starve = maxi(need - resources.get(FOOD, 0), 0)
 	resources = saved_resources
 	bonus_score = saved_bonus
 	for card in saved_pop:
@@ -202,7 +207,7 @@ func tech_cost(uid: int) -> int:
 	var tech := _find_tech(uid)
 	if tech == null:
 		return 0
-	var cost: int = tech.def.cost.get("wealth", 0) - tech.passes
+	var cost: int = tech.def.cost.get(WEALTH, 0) - tech.passes
 	if tech.def.prereq != "" and zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
 		cost -= tech.def.prereq_discount
 	return maxi(cost, 1)
@@ -220,7 +225,7 @@ func buy_tech_error(uid: int) -> String:
 	if tech == null:
 		return "That tech isn't up for research."
 	var cost := tech_cost(uid)
-	var have: int = resources.get("wealth", 0)
+	var have: int = resources.get(WEALTH, 0)
 	if have < cost:
 		return "%s needs %d wealth (you have %d)." % [tech.def.name, cost, have]
 	return ""
@@ -252,7 +257,7 @@ func buy_error(card_id: String) -> String:
 	if _supply[card_id] <= 0:
 		return "No %ss left in the supply." % card_name
 	var price := buy_price(card_id)
-	var have: int = resources.get("wealth", 0)
+	var have: int = resources.get(WEALTH, 0)
 	if have < price:
 		return "%s costs %d wealth (you have %d)." % [card_name, price, have]
 	return ""
@@ -287,7 +292,7 @@ func play_error(uid: int, target_uid := -1) -> String:
 		if targets.has(target_uid):
 			return ""
 		var target := zone("tableau").find(target_uid)
-		if _is_building(card) and target != null and target.def.type == "territory" and not _meets_requires(card, target):
+		if _is_building(card) and target != null and target.def.type == CardDef.TERRITORY and not _meets_requires(card, target):
 			return _requires_error(card)
 		return "That target isn't valid."
 	if targets.is_empty():
@@ -322,7 +327,7 @@ func total_slots(territory_uid: int) -> int:
 		return 0
 	var total := territory.def.slots
 	for card in zone("tableau").cards:
-		if card.def.type == "city" and card.territory_uid == territory_uid:
+		if card.def.type == CardDef.CITY and card.territory_uid == territory_uid:
 			total += card.def.slots
 	return total
 
@@ -783,7 +788,7 @@ func _check_era_unlocks() -> void:
 	eras.sort()
 	for n in eras:
 		var need: Dictionary = era_unlocks()[n]
-		if total_pop() >= need.get("pop", INF) or resources.get("wealth", 0) >= need.get("wealth", INF):
+		if total_pop() >= need.get("pop", INF) or resources.get(WEALTH, 0) >= need.get(WEALTH, INF):
 			add_era(n)
 
 
@@ -799,7 +804,7 @@ func _feed_pop() -> void:
 	for i in need - eaten:
 		var biggest: CardInstance = null
 		for card in zone("tableau").cards:
-			if card.def.type == "territory" and card.pop > 0 and (biggest == null or card.pop > biggest.pop):
+			if card.def.type == CardDef.TERRITORY and card.pop > 0 and (biggest == null or card.pop > biggest.pop):
 				biggest = card
 		if biggest == null:
 			break
@@ -826,7 +831,7 @@ func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
 
 
 func _is_building(card: CardInstance) -> bool:
-	return card.def.type == "building"
+	return card.def.type == CardDef.BUILDING
 
 
 ## Buildings target a territory; other cards need a target if a "play" effect does.
@@ -838,7 +843,7 @@ func _no_target_error(card: CardInstance) -> String:
 	if _is_building(card):
 		var slot_found := false
 		for territory in zone("tableau").cards:
-			if territory.def.type == "territory" and _meets_requires(card, territory):
+			if territory.def.type == CardDef.TERRITORY and _meets_requires(card, territory):
 				if _has_room(territory):
 					return "No territory with a free worker."
 				slot_found = true
@@ -848,7 +853,7 @@ func _no_target_error(card: CardInstance) -> String:
 
 ## Whether card is a territory with a free building slot.
 func _has_room(territory: CardInstance) -> bool:
-	return territory.def.type == "territory" and free_slots(territory.uid) > 0
+	return territory.def.type == CardDef.TERRITORY and free_slots(territory.uid) > 0
 
 
 ## Whether territory has a free worker for another building (always, with population off).
@@ -896,7 +901,7 @@ func _target_effect(card: CardInstance) -> Effect:
 ## The territory card territory_uid if it is settled (on the tableau), or null.
 func _settled_territory(territory_uid: int) -> CardInstance:
 	var territory := zone("tableau").find(territory_uid)
-	if territory == null or territory.def.type != "territory":
+	if territory == null or territory.def.type != CardDef.TERRITORY:
 		return null
 	return territory
 
