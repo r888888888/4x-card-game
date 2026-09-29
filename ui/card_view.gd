@@ -507,6 +507,12 @@ func _fit_size() -> Vector2:
 	return Vector2(_target_size.x, maxf(_target_size.y, get_combined_minimum_size().y))
 
 
+## The size of the slot this card rests in: its nominal size, plus the lift room above a hand card. A card whose
+## text needs more room grows its slot once it is at rest.
+func slot_size() -> Vector2:
+	return _target_size + _rest_pos()
+
+
 ## Keeps the card at its fitted size and the slot tall enough to hold it.
 func _fit_to_slot() -> void:
 	var fit := _fit_size()

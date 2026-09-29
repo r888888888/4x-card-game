@@ -314,7 +314,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		view.discard_requested.connect(discard)
 		view.picked.connect(on_picked)
 		views[card.uid] = view
-		var slot := _new_slot(in_hand, container, index)
+		var slot := _new_slot(view, container, index)
 		if in_hand:
 			view.deal(slot, fx, _top_bar.pile_point(0.25), delay)
 		else:
@@ -326,7 +326,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		var old_slot := view.slot
 		view.setup(card, e.card_db, in_hand, error, compact)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
-		view.fly_to_slot(_new_slot(in_hand, container, index), fx)
+		view.fly_to_slot(_new_slot(view, container, index), fx)
 		_free_slot(old_slot)
 		return false
 	container.move_child(view.slot, index)
@@ -368,10 +368,12 @@ func _leave_point(uid: int) -> Vector2:
 	return _top_bar.pile_point(0.75)
 
 
-func _new_slot(in_hand: bool, container: Container, index: int) -> Control:
+## A slot for view at index in container, already the size view rests at, so the row doesn't change height
+## when a flying card lands (075).
+func _new_slot(view: CardView, container: Container, index: int) -> Control:
 	var slot := Control.new()
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	slot.custom_minimum_size = CardView.HAND_SIZE + Vector2(0, Anim.LIFT_ROOM) if in_hand else CardView.TABLEAU_SIZE
+	slot.custom_minimum_size = view.slot_size()
 	container.add_child(slot)
 	container.move_child(slot, index)
 	return slot
