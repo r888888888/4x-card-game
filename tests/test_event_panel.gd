@@ -1,0 +1,90 @@
+extends "res://tests/lib/test_case.gd"
+## The event panel (backlog 068): the real main scene shows the active events with their turns left and the event
+## piles' counts. The real data has no events yet, so most tests run main on TEST_CARDS + TEST_EVENTS through
+## with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
+
+
+## Runs body with Game.engine swapped for a game on TEST_CARDS + TEST_EVENTS (event deck: Windfall, Trade Winds,
+## Omen), then puts the real engine back, even when body fails.
+func with_event_engine(body: Callable) -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := event_db(errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 5, "scout": 5},
+		{"event_deck": {"windfall": 1, "trade_winds": 1, "omen": 1}}), resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var real := Game.engine
+	Game.engine = GameEngine.new(cards, config)
+	body.call()
+	Game.engine = real
+
+
+## The card ids of the event views, in panel order.
+func view_ids(panel: Dictionary) -> Array[String]:
+	var ids: Array[String] = []
+	for v in panel.get("views", []):
+		ids.append(v.id)
+	return ids
+
+
+# --- AC1: active events row ---
+
+func test_event_views_match_the_active_events_after_every_turn() -> void:
+	with_event_engine(func():
+		var main := open_main()
+		var mismatches: Array[String] = []
+		var shown := [0]
+		play_seed_1(main, func(m):
+			var ids := view_ids(m.event_panel())
+			shown[0] += ids.size()
+			var active := card_ids(Game.engine.zone("active_events"))
+			if ids != active:
+				mismatches.append("turn %d: views %s, active %s" % [Game.engine.turn, ids, active]))
+		eq(mismatches, [] as Array[String], "event views vs active events")
+		check(shown[0] > 0, "some event was shown during the game")
+		close_main(main))
+
+
+# --- AC2: turns left ---
+
+func test_event_view_shows_its_turns_left() -> void:
+	with_event_engine(func():
+		var main := open_main()
+		main.start_game(1)
+		var e := Game.engine
+		arrange(e.zone("event_deck"), ["trade_winds"])
+		e.end_turn()  # Trade Winds drawn; turn 2's upkeep leaves 1 turn
+		var uid := uid_of(e.zone("active_events"), "trade_winds")
+		var texts := {}
+		for v in main.event_panel().get("views", []):
+			texts[v.uid] = v.text
+		check(texts.get(uid, "").contains("1 turn left"), "Trade Winds view says '1 turn left': %s" % [texts])
+		close_main(main))
+
+
+# --- AC3: event info ---
+
+func test_event_info_counts_the_event_piles() -> void:
+	with_event_engine(func():
+		var main := open_main()
+		main.start_game(1)
+		var e := Game.engine
+		arrange(e.zone("event_deck"), ["windfall"])
+		var panel: Dictionary = main.event_panel()
+		eq(panel.get("visible"), true, "panel visible with an event deck")
+		eq(panel.get("info"), "Events: deck 3 · discard 0", "info at the start")
+		check(str(panel.get("tooltip")).contains("end of each turn"), "tooltip explains the draw: '%s'" % panel.get("tooltip"))
+		e.end_turn()  # Windfall drawn, then ends at turn 2's upkeep
+		eq(main.event_panel().get("info"), "Events: deck 2 · discard 1", "info after Windfall came and went")
+		close_main(main))
+
+
+# --- AC4: no events ---
+
+func test_event_panel_is_hidden_without_an_event_deck() -> void:
+	var main := open_main()
+	main.start_game(1)
+	var panel: Dictionary = main.event_panel()
+	eq(panel.get("visible"), false, "panel hidden with the real data (no event deck)")
+	eq(view_ids(panel), [] as Array[String], "no event views")
+	close_main(main)

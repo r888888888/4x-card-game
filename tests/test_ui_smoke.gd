@@ -6,32 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const SETTINGS_PATH := "user://settings.cfg"
 
 
-## Adds a fresh main scene to the running tree. Typed Node so calls to its test hooks parse before they exist.
-func open_main() -> Node:
-	var main: Node = load("res://ui/main.tscn").instantiate()
-	(Engine.get_main_loop() as SceneTree).root.add_child(main)
-	return main
-
-
-func close_main(main: Node) -> void:
-	main.get_parent().remove_child(main)
-	main.free()
-
-
-## Plays seed 1 to the end with the bot, calling after_turn(main) each time the turn number changes.
-func play_seed_1(main: Node, after_turn: Callable) -> void:
-	main.start_game(1)
-	var e := Game.engine
-	var state := {"turn": e.turn}
-	var on_changed := func():
-		if e.turn != state.turn or e.is_over:
-			state.turn = e.turn
-			after_turn.call(main)
-	e.changed.connect(on_changed)
-	ScriptedBot.play(e)
-	e.changed.disconnect(on_changed)
-
-
 func test_main_scene_follows_a_whole_game_without_errors() -> void:
 	var main := open_main()
 	play_seed_1(main, func(_m): pass)
