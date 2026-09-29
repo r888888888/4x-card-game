@@ -27,10 +27,17 @@ res://
     cards.json           # player card definitions
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # game state, actions and their *_error queries, turn loop, score
+    game_engine.gd       # public API: actions and their *_error queries, queries, score, fork(); calls the modules below
+    game_state.gd        # GameState: everything that changes during a game; copy() is a deep copy (051)
+    turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
+    card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
+    population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
+    research.gd          # Research: revealing, buying and declining techs, passes, eras
+    supply.gd            # Supply: buying from the card supply
+    territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
+    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, passes, keywords)
     zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
     effect.gd            # Effect base class
     fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
@@ -119,8 +126,8 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the shortfall would kill); `{}` on the last turn or after game over.
-It runs the upkeep effects quietly and restores resources, bonus score and pop, which is all an upkeep effect may
-change (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
+It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
+never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice, open research or a hand-limit discard. While one is owed,
@@ -149,7 +156,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
     (e.g. Farm +1 more food on Flood Plain).
   - Both check the territory copy's keywords (`CardInstance.keywords`: printed, then rolled resources).
 - Code: `engine/effects/explore_effect.gd`, `settle_effect.gd`; slots, targets and keywords in
-  `engine/game_engine.gd`. A city or building links to its territory through `CardInstance.territory_uid`.
+  `engine/territories.gd` and `engine/card_play.gd`. A city or building links to its territory through `CardInstance.territory_uid`.
 - **Config:**
   - `keywords` (terrain keywords, validated like `resources`)
   - `resource_keywords` and `territory_resources` (rolled per copy, 036)
@@ -183,7 +190,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth: during play, `grow(territory_uid)` pays `grow_cost` = pop + 1 food for +1 pop, up to housing, with no
   limit per turn. `grow_error` says why not (like `play_error`). The UI shows a Grow button on each territory.
-- Code: pop, housing, growth and workers in `engine/game_engine.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
+- Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
@@ -212,7 +219,7 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
   already added isn't added again. `era_unlocks()` returns the thresholds; the research info label's tooltip shows them.
 - An effect can refuse its card in `play_error` (`Effect.play_block_error`), as Research does with an empty deck.
-- Code: research, passes and eras in `engine/game_engine.gd`; `engine/effects/research_effect.gd`, `add_era_effect.gd`.
+- Code: research, passes and eras in `engine/research.gd`; `engine/effects/research_effect.gd`, `add_era_effect.gd`.
 - UI: a research info label above End turn (research deck count, era, lost techs; hidden when the config has no
   research deck), a choice panel with the revealed techs (click one to buy) and Decline, and a Researched row.
 
@@ -224,7 +231,7 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
   There is no limit per turn; an empty pile can't be bought from. Blocked like grow (game over, explore
   choice, research open, discard owed).
-- Code: supply and `buy` in `engine/game_engine.gd`.
+- Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): a Supply (S) button above the research info opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
@@ -232,5 +239,5 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
-- Save/load, undo (snapshot GameState)
+- Save/load, undo (on `GameState.copy()`, 051)
 - More eras, wonders, techs, automated rival

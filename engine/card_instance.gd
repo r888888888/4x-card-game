@@ -14,3 +14,13 @@ func _init(p_uid: int, p_def: CardDef) -> void:
 	uid = p_uid
 	def = p_def
 	keywords = p_def.keywords.duplicate()
+
+
+## A new instance with the same uid, card and per-copy fields (for GameState.copy).
+func copy() -> CardInstance:
+	var c := CardInstance.new(uid, def)
+	c.territory_uid = territory_uid
+	c.passes = passes
+	c.pop = pop
+	c.keywords = keywords.duplicate()
+	return c
