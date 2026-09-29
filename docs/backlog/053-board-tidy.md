@@ -2,7 +2,7 @@
 id: 053
 title: Tidy the board — Realm above Frontier, Buy Cards, Knowledge wording, seed in the menu
 type: feature
-status: ready
+status: red-review
 branch: feat/053-board-tidy
 ---
 
@@ -43,7 +43,13 @@ words: Realm, Buy Cards, Knowledge. UI and one card name only; no rule changes.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_smoke::test_…` |
+| AC1 | `test_board_labels::test_realm_frontier_known_and_hand_are_stacked_in_that_order` (hook `section_headings()`, play-area order) |
+| AC2 | `test_board_labels::test_the_tableau_section_is_headed_realm_and_the_hand_hint_says_realm`, `test_no_text_on_screen_says_tableau` |
+| AC3 | `test_board_labels::test_frontier_heading_is_one_word_with_the_explanation_as_its_tooltip` |
+| AC4 | `test_board_labels::test_top_bar_shows_no_seed`, `test_menu_seed_field_shows_the_current_seed` (guard, passes already); `test_ui_smoke::test_game_over_overlay_shows_score_and_seed` unchanged |
+| AC5 | `test_board_labels::test_supply_button_reads_buy_cards_and_s_opens_the_supply_screen` |
+| AC6 | `test_board_labels::test_research_choice_is_titled_knowledge_and_the_researched_row_known`, `test_content::test_research_card_is_named_insight`, `test_content::test_real_data_loads_without_warnings` (unchanged) |
+| Design notes (engine wording) | changed expectations: `test_tech_eras::test_era_and_research_card_text` ("Seek knowledge…"), `test_research::test_a_research_card_cannot_be_played_with_nothing_to_research` and `test_tech_eras::test_an_empty_research_deck_with_no_eras_left_is_an_error` ("The tech deck is empty.") |
 
 ## Manual check
 - [ ] Realm on top, Frontier under it, then Known, then Hand. Nothing overlaps at the default window size.

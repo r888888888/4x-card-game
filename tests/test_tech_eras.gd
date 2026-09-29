@@ -73,8 +73,8 @@ func test_research_op_loads_with_no_fields() -> void:
 func test_era_and_research_card_text() -> void:
 	var db := tech_db(ERA_CARDS)
 	eq(db.philosophy.rules_text(db), "Adds era 2 techs", "add_era short")
-	eq(db.study.rules_text(db), "Research", "research short")
-	eq(db.study.rules_tooltip(db), "Research: reveal 2 techs, buy 1 or decline", "research tooltip")
+	eq(db.study.rules_text(db), "Seek knowledge", "research short")
+	eq(db.study.rules_tooltip(db), "Seek knowledge: reveal 2 techs, buy 1 or decline", "research tooltip")
 
 
 # --- AC2: setup ---
@@ -136,7 +136,7 @@ func test_an_empty_research_deck_with_no_eras_left_is_an_error() -> void:
 	var e := tech_engine(["pottery"])
 	e.zone("research_deck").take_all()
 	var card := put_in_hand(e, "study")
-	eq(e.play_error(card), "The research deck is empty.", "play_error")
+	eq(e.play_error(card), "The tech deck is empty.", "play_error")
 	check(not e.play_card(card), "play_card should fail")
 
 
