@@ -2,7 +2,7 @@
 id: 037
 title: Tin and copper roll on Hills and Highlands and pay off on Forge
 type: feature
-status: red-review
+status: review
 branch: feat/037-tin-and-copper
 ---
 
@@ -13,15 +13,15 @@ since bronze needs both.
 
 ## Acceptance criteria
 <!-- All on the real data (data/*.json), in tests/test_content.gd. -->
-- [ ] AC1: Given the shipped data, when it loads, then there are no errors or warnings and
+- [x] AC1: Given the shipped data, when it loads, then there are no errors or warnings and
   `resource_keywords` is exactly `["gold", "tin", "copper"]`.
-- [ ] AC2: Given the shipped config, then `territory_resources.hills` is
+- [x] AC2: Given the shipped config, then `territory_resources.hills` is
   `[{gold, 1}, {tin + copper, 1}, {nothing, 2}]` and `territory_resources.highlands` is
   `[{tin, 1}, {copper, 1}, {tin + copper, 1}, {nothing, 1}]` (keywords, weight), in that order.
-- [ ] AC3: Given the shipped Forge, then it keeps its cost (2 food, 2 wealth), 2 printed VP and no
+- [x] AC3: Given the shipped Forge, then it keeps its cost (2 food, 2 wealth), 2 printed VP and no
   `requires`, and has exactly two effects: score 1 at upkeep with keyword `copper`, then score 1 at upkeep
   with keyword `tin`.
-- [ ] AC4: Every resource keyword is in at least one option of a `territory_resources` table for a
+- [x] AC4: Every resource keyword is in at least one option of a `territory_resources` table for a
   territory in the territory deck, and is used by at least one card's `requires` or effect `keyword`.
 
 ## Out of scope
@@ -48,3 +48,6 @@ since bronze needs both.
 - [ ] A Forge on a Hills or Highlands with tin and copper raises score by 2 each turn; with one metal, by 1.
 
 ## Log
+- 036's `test_real_hills_roll_gold_and_iron_is_gone` no longer checks the Hills table (approved at the red
+  checkpoint); `test_real_hills_and_highlands_roll_metals` owns it now.
+- Forge's card text reads "Copper: ⟳ +1 VP" and "Tin: ⟳ +1 VP" on two lines (no base effect to merge into).
