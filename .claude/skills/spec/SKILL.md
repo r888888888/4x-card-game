@@ -38,11 +38,13 @@ one maps directly to a test. Don't write code or tests in this skill.
    - Leave **Test plan** for the `tdd` skill to fill in.
    - Keep items small: if it needs more than ~6 criteria or touches several systems, propose
      splitting it into several items.
-   - `status: draft`.
+   - `status: ready`. Use `status: draft` only if a behavior question from step 2 is still
+     unanswered; list it under Open questions.
 
-5. **Get approval.** Show the user the criteria (not the whole file) and ask them to approve or
-   edit. On approval, set `status: ready`. If the user already said to go ahead and build it, hand
-   over to the `tdd` skill after approval.
+5. **Report, don't wait.** Don't ask the user to approve the spec; they review the criteria at the
+   `tdd` red checkpoint instead. Show the criteria briefly (not the whole file) and note any
+   assumption you made in place of a question. If the user asked you to build it, hand over to the
+   `tdd` skill straight away; otherwise end there.
 
 ## Quality bar for criteria
 
