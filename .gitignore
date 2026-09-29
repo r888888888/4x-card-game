@@ -7,3 +7,6 @@
 
 # Editor backup files
 *~
+
+# macOS Finder metadata
+.DS_Store

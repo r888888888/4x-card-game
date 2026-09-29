@@ -32,3 +32,22 @@ concrete numbers from the rules:
 - Too vague: *Farms should cost food.*
 
 Put anything you can only judge by eye (layout, feel, animation) under **Manual check**.
+
+## Planned order
+
+Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
+
+1. 044 repo housekeeping
+2. 040 reshuffle test bug
+3. 041 shared test helpers, content invariants
+4. 042 balance simulator
+5. 045 UI smoke test
+6. 043 only forecast-safe ops on upkeep
+7. 046 table-driven loader tests
+8. 047 field readers and constants
+9. 048 `create` zones, `changed` once
+10. 049 engine queries for UI rules
+11. 050 pending-decision model
+12. 051 GameState split
+13. 039 event deck (after 051: uses the type schema, the upkeep guard and the forecast on a copy)
+14. 052 split `ui/main.gd`

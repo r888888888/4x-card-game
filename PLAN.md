@@ -27,14 +27,14 @@ res://
     cards.json           # player card definitions
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # GameState + actions + turn loop (play_card, end_turn, play_error, valid_targets, choose, score)
+    game_engine.gd       # game state, actions and their *_error queries, turn loop, score
     data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
-    zone.gd              # named ordered pile: deck, hand, discard, tableau, territory_deck, frontier, reveal, research_deck, research_reveal, researched
+    zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
     effect.gd            # Effect base class + field readers
     effect_registry.gd   # op name → effect script
-    effects/             # gain, gain_per_tag, draw, create, score, explore, settle, grow
+    effects/             # one <op>_effect.gd per effect op
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
   autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
@@ -42,16 +42,12 @@ res://
   ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
-  tests/
-    run_tests.gd         # dependency-free runner: finds tests/**/test_*.gd (use scripts/test.sh)
-    lib/test_case.gd     # assertions, TEST_CARDS fixture, make_engine and helpers
-    test_data_loader.gd  # loader validation tests
-    test_rules.gd        # engine rules tests
-    test_play_outcome.gd # card_played outcome tests
+  tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
   docs/                  # development process, testing guide, backlog
 ```
-Adding an effect: create `engine/effects/<name>_effect.gd` (extends Effect) and register it in `effect_registry.gd`.
+Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
+`engine/game_engine.gd`; the sections below give the rules and name the functions only where it helps.
 Buildings always target a settled territory with a free slot (`free_slots`).
 An effect that targets a card overrides `target_zone()` (and its two error messages); the engine then
 derives `needs_target`, `valid_targets` and the target checks in `play_error` from it.
@@ -115,7 +111,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 4. Event: stub for now (threat design deferred).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
-Forecast (035): `upkeep_forecast()` returns what the next upkeep does to each resource on hand, food net of what
+Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the shortfall would kill); `{}` on the last turn or after game over.
 It runs the upkeep effects on a snapshot (quietly) and restores it. The top bar shows it as "Food: 2 (+1)",
 with the food stat in the warning color when pop would starve.
@@ -141,12 +137,8 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   - Effect `keyword` condition: the effect applies only if the card's territory has that keyword
     (e.g. Farm +1 more food on Flood Plain).
   - Both check the territory copy's keywords (`CardInstance.keywords`: printed, then rolled resources).
-- **Engine API:**
-  - `play_card(uid, target_uid := -1)`, `play_error(uid, target_uid := -1)`
-  - `valid_targets(uid)`
-  - `pending_choice` + `choose(uid)` (explore only)
-  - `CardInstance.territory_uid` links a city or building to its territory.
-  - `territory_keywords(uid)`: a territory's printed and rolled keywords, in any zone.
+- Code: `engine/effects/explore_effect.gd`, `settle_effect.gd`; slots, targets and keywords in
+  `engine/game_engine.gd`. A city or building links to its territory through `CardInstance.territory_uid`.
 - **Config:**
   - `keywords` (terrain keywords, validated like `resources`)
   - `resource_keywords` and `territory_resources` (rolled per copy, 036)
@@ -173,16 +165,14 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
   capped by housing: `here` on the card's own territory (Granary, upkeep), `each` on every settled territory
-  (Harvest Festival). Engine helper: `add_pop(territory_uid, amount, source)`.
+  (Harvest Festival).
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth: during play, `grow(territory_uid)` pays `grow_cost` = pop + 1 food for +1 pop, up to housing, with no
   limit per turn. `grow_error` says why not (like `play_error`). The UI shows a Grow button on each territory.
-- Engine API: `population_on()`, `pop(territory_uid)`, `housing(territory_uid)`, `total_pop()`,
-  `grow_cost(territory_uid)`, `grow_error(territory_uid)`, `grow(territory_uid)`, `free_workers(territory_uid)`,
-  `is_idle(uid)`.
+- Code: pop, housing, growth and workers in `engine/game_engine.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
@@ -210,9 +200,8 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
   already added isn't added again. `era_unlocks()` returns the thresholds; the research info label's tooltip shows them.
-- Engine API: `reveal_techs(source)`, `reveal_techs_error()`, `research_options()`, `buy_tech_error(uid)`,
-  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `era_unlocks()`.
-  `Effect.play_block_error(engine)` lets an effect refuse its card in `play_error`.
+- An effect can refuse its card in `play_error` (`Effect.play_block_error`), as Research does with an empty deck.
+- Code: research, passes and eras in `engine/game_engine.gd`; `engine/effects/research_effect.gd`, `add_era_effect.gd`.
 - UI: a research info label above End turn (research deck count, era, lost techs; hidden when the config has no
   research deck), a choice panel with the revealed techs (click one to buy) and Decline, and a Researched row.
 
@@ -224,8 +213,7 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
   There is no limit per turn; an empty pile can't be bought from. Blocked like grow (game over, explore
   choice, research open, discard owed).
-- Engine API: `supply()` ({card_id: count left}), `supply_left(card_id)`, `buy_price(card_id)`,
-  `buy_error(card_id)`, `buy(card_id)`.
+- Code: supply and `buy` in `engine/game_engine.gd`.
 - UI (033): a Supply (S) button above the research info opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth

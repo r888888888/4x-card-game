@@ -14,6 +14,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   logic (a calculation, a legality check, a derived value), put that logic in the engine under TDD
   and have the UI call it.
 - Content lives in `data/*.json`; the loader validates it. Card text is generated from effects.
+- Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
+  (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
+  calls the query instead of re-deriving the condition.
 - New effect op: follow the `add-effect` skill.
 
 ## How work flows
@@ -38,6 +41,8 @@ docs, renames with no behavior change) need no item and no new test.
   and say why.
 - Bugs: first write a test that reproduces the bug (use a fixed seed), and see it fail.
 - Every test must assert something; runtime errors inside a test count as failures.
+- Red-phase tip: when a test calls an engine method that doesn't exist yet, hold the engine in a
+  variable typed `Object` (not `GameEngine`) so the file still parses and fails on the missing method.
 
 ## Test conventions
 - Files: `tests/test_<area>.gd`, extending `"res://tests/lib/test_case.gd"`. Helpers and
