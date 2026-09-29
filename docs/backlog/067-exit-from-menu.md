@@ -2,7 +2,7 @@
 id: 067
 title: Exit the game from the menu
 type: feature
-status: red-review
+status: review
 branch: feat/067-exit-from-menu
 ---
 
@@ -12,11 +12,11 @@ in fullscreen.
 
 ## Acceptance criteria
 <!-- UI smoke test (045). -->
-- [ ] AC1: The menu has an "Exit" button, the last button in the menu (after the Reduce motion toggle and Close).
-- [ ] AC2: Pressing Exit quits the application right away, with no confirmation. In tests, pressing it calls the
+- [x] AC1: The menu has an "Exit" button, the last button in the menu (after the Reduce motion toggle and Close).
+- [x] AC2: Pressing Exit quits the application right away, with no confirmation. In tests, pressing it calls the
   scene's quit hook exactly once and the test process keeps running.
-- [ ] AC3: Keyboard: with the menu open, Tab or the arrows reach Exit, and Enter on it quits (the same hook as AC2).
-- [ ] AC4: The game-over overlay is unchanged: it has no Exit button.
+- [x] AC3: Keyboard: with the menu open, Tab or the arrows reach Exit, and Enter on it quits (the same hook as AC2).
+- [x] AC4: The game-over overlay is unchanged: it has no Exit button.
 
 ## Out of scope
 - Confirmation dialog, saving the game before quitting, Exit on the game-over overlay or the start screen (063).
@@ -35,6 +35,11 @@ in fullscreen.
 | AC4 | `test_menu::test_game_over_overlay_has_no_exit_button` |
 
 ## Manual check
-- [ ] Menu → Exit closes the game window, in windowed and fullscreen mode.
+- [ ] `godot --path .`, press Esc (or click "Menu (Esc)"): Exit is the last button, under Close.
+- [ ] Click Exit: the game window closes at once, no prompt.
+- [ ] Reopen, Esc, then Tab until Exit is highlighted (it wraps back to the seed box after Exit); Enter quits.
+- [ ] Same with `godot --path . --fullscreen`.
 
 ## Log
+- The Exit button calls `quit_hook` (default `get_tree().quit()`); tests swap it. `menu_buttons()` and `game_over_buttons()` are test hooks like `game_over_text()`.
+- Built in a separate worktree (`../4x-card-game-067`) because a 068 session was mid-item in the main checkout.
