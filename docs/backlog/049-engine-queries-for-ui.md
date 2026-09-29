@@ -2,7 +2,7 @@
 id: 049
 title: Engine queries for the rules the UI works out itself
 type: feature
-status: in-progress
+status: review
 branch: feat/049-engine-queries-for-ui
 ---
 
@@ -13,22 +13,22 @@ an engine query and have the UI call it (CLAUDE.md architecture rule).
 
 ## Acceptance criteria
 <!-- Fixtures: TEST_CARDS; Capital on Grassland (2 slots) unless stated. -->
-- [ ] AC1: `playable_error(uid)` is "" when the card can be played on at least one target. Given a Farm in hand,
+- [x] AC1: `playable_error(uid)` is "" when the card can be played on at least one target. Given a Farm in hand,
   plenty of food and two settled territories with room, then `play_error(uid)` is "Choose a territory for Farm."
   and `playable_error(uid)` is "". Given 1 food, it is "Farm needs 2 food (you have 1).". Given Grassland full
   (2 Farms) and no other territory, it is "No territory with a free slot.".
-- [ ] AC2: `end_turn_error()` is "" normally; "Choose a territory first." with an explore choice open; "Buy a tech
+- [x] AC2: `end_turn_error()` is "" normally; "Choose a territory first." with an explore choice open; "Buy a tech
   or decline first." with techs revealed; "Discard down to 7 cards first." with a discard owed; "The game is
   over." after the game ends. `end_turn()` does nothing whenever it isn't "".
-- [ ] AC3: `supply_error()` (can the supply screen open) is "" normally and while a discard is owed (you can
+- [x] AC3: `supply_error()` (can the supply screen open) is "" normally and while a discard is owed (you can
   browse), and gives the AC2 messages for game over, an explore choice and open research.
-- [ ] AC4: Given `era_unlocks` `{"2": {"pop": 8}, "3": {"wealth": 30}}`, then `upcoming_era_unlocks()` is
+- [x] AC4: Given `era_unlocks` `{"2": {"pop": 8}, "3": {"wealth": 30}}`, then `upcoming_era_unlocks()` is
   `{2: {pop: 8}, 3: {wealth: 30}}` at the start and `{3: {wealth: 30}}` after `add_era(2)`.
-- [ ] AC5: `territory_groups()` returns the tableau as `[{territory: uid, cards: [uids]}]`: each settled territory
+- [x] AC5: `territory_groups()` returns the tableau as `[{territory: uid, cards: [uids]}]`: each settled territory
   first in its own group, then the cards on it in tableau order; groups in order of first appearance; cards with
   no territory last in a group with `territory: -1`. Given the Capital on Homeland, a Farm on Homeland and a
   settled River with a City, then `[{homeland, [homeland, capital, farm]}, {river, [river, city]}]`.
-- [ ] AC6: `main.gd` uses these queries and no longer has `_hand_error`, `_supply_block_reason` or its own
+- [x] AC6: `main.gd` uses these queries and no longer has `_hand_error`, `_supply_block_reason` or its own
   grouping or era filtering.
 
 ## Out of scope
@@ -54,3 +54,7 @@ an engine query and have the UI call it (CLAUDE.md architecture rule).
   lists only eras still to come; tableau groups look the same.
 
 ## Log
+- 2026-09-29: spec approved (AC1 starts on Grassland; `playable_error` checks the first valid target, as `_hand_error` did).
+  Engine: `supply_error` is the old `_busy_error` minus the discard check (`_choice_error`); `end_turn_error` is
+  `_busy_error`, and `end_turn` refuses on it. `main.gd` lost `_hand_error`, `_supply_block_reason`, its grouping and
+  era filtering. The `tdd` skill's refactor step now checks `ui/` for logic. 331 → 341 tests.

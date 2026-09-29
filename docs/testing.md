@@ -33,6 +33,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
+| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups` |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |

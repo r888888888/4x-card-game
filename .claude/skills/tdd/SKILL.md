@@ -66,6 +66,8 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
 
 1. Look at the code you touched and at its neighbors: duplication, unclear names, long functions,
    and helpers that belong in `test_case.gd`. Also check that comments and doc comments are still true.
+   Check `ui/` for any logic you added (a legality check, calculation or derived value): move it into an
+   engine query under TDD and have the UI call it.
 2. Refactor in small steps, running `scripts/test.sh` after each. Behavior must not change.
 3. If you changed anything, commit: `<id>: refactor <what>`.
 
