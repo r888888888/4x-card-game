@@ -2,7 +2,7 @@
 id: 035
 title: Show next turn's food and wealth change in the top bar
 type: feature
-status: red-review
+status: in-progress
 branch: feat/035-upkeep-forecast
 ---
 
