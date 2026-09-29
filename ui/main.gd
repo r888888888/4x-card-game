@@ -40,7 +40,7 @@ var _research_overlay: Control  # dims the board while revealed techs wait to be
 var _research_row: HBoxContainer  # the revealed techs, inside _research_overlay
 var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
 var _researched: HBoxContainer
-var _research_button: Button
+var _research_info: Label  # research deck count, era and lost techs; research itself is a card (034)
 var _supply_button: Button  # "Supply (S)", hidden when the config has no supply
 var _supply_overlay: Control  # the supply screen: dims the board, shows one card per pile
 var _supply_row: HBoxContainer  # slots for the pile cards, in config order
@@ -123,8 +123,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	elif event.keycode == KEY_E and not event.echo:
 		if not e.is_over and e.pending_choice.is_empty():
 			e.end_turn()
-	elif event.keycode == KEY_R and not event.echo:
-		e.research()
 	elif event.keycode == KEY_D and not event.echo:
 		if _focused != null and is_instance_valid(_focused) and _focused.in_hand:
 			_on_discard_requested(_focused)
@@ -708,16 +706,13 @@ func _refresh() -> void:
 	_researched_section.visible = not researched.is_empty()
 	_choice_overlay.visible = not e.pending_choice.is_empty()
 	_research_overlay.visible = not techs.is_empty()
-	var research_error := e.research_error()
-	_research_button.text = "Research (R) · %d left · deck %d · era %d" % [e.research_left(), e.zone("research_deck").size(), e.era()]
+	_research_info.text = "Techs: deck %d · era %d" % [e.zone("research_deck").size(), e.era()]
 	if not e.zone("lost_techs").is_empty():
-		_research_button.text += " · lost %d" % e.zone("lost_techs").size()
-	_research_button.disabled = research_error != ""
+		_research_info.text += " · lost %d" % e.zone("lost_techs").size()
 	var tip_lines := _era_unlock_lines()
-	if research_error != "":
-		tip_lines.push_front(research_error)
-	_research_button.tooltip_text = "\n".join(tip_lines)
-	_research_button.visible = e.config.research_deck.size() > 0
+	tip_lines.push_front("Play a Research card to reveal 2 techs.")
+	_research_info.tooltip_text = "\n".join(tip_lines)
+	_research_info.visible = e.config.research_deck.size() > 0
 	_refresh_supply()
 	_animate_outcome()
 	_sync_card_focus()
@@ -1192,9 +1187,9 @@ func _build_layout() -> void:
 	_supply_button.custom_minimum_size.y = 44
 	_supply_button.hide()
 	side_col.add_child(_supply_button)
-	_research_button = _button("Research (R)", func(): Game.engine.research())
-	_research_button.custom_minimum_size.y = 44
-	side_col.add_child(_research_button)
+	_research_info = _heading("")
+	_research_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
+	side_col.add_child(_research_info)
 	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)

@@ -19,7 +19,7 @@ func real_engine(seed_value: int) -> GameEngine:
 
 ## Plays one scripted game: resolve any pending choice with its first option, buy the cheapest
 ## revealed tech it can afford (or decline), otherwise play the first hand card that can be played
-## (on its first valid target), otherwise research if it can, otherwise discard the hand (dead cards
+## (on its first valid target; Research cards last), otherwise discard the hand (dead cards
 ## never cycle otherwise, backlog 024) and end the turn.
 func play_scripted_game(e: GameEngine) -> void:
 	var steps := 0
@@ -32,15 +32,14 @@ func play_scripted_game(e: GameEngine) -> void:
 			buy_cheapest_tech(e)
 			continue
 		var played := false
-		for card in e.zone("hand").cards.duplicate():
+		var hand := e.zone("hand").cards.duplicate()
+		hand.sort_custom(func(a, b): return a.def.id != "research" and b.def.id == "research")  # research last, as before 034
+		for card in hand:
 			var targets := e.valid_targets(card.uid)
 			var target: int = targets[0] if e.needs_target(card.uid) and not targets.is_empty() else -1
 			if e.play_error(card.uid, target) == "":
 				played = e.play_card(card.uid, target)
 				break
-		if not played and e.research_error() == "":
-			e.research()
-			continue
 		if not played:
 			for card in e.zone("hand").cards.duplicate():
 				e.discard_card(card.uid)
@@ -269,7 +268,7 @@ func test_a_tech_unlocks_the_library() -> void:
 			unlocked = true
 	check(unlocked, "a tech in research_deck creates a Library")
 	if r.cards.has("library"):
-		check(r.cards.library.effects.any(func(e): return e.op == "research"), "the Library grants research")
+		check(created_by(r.cards.library).has("research"), "the Library creates a Research card")
 
 
 func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
@@ -314,6 +313,23 @@ func test_capital_adds_4_building_slots() -> void:
 
 
 # --- Supply (backlog 032) ---
+
+func test_real_research_card_starts_in_the_deck_and_is_sold() -> void:
+	var r := load_real()
+	check(r.cards.has("research"), "a research card exists")
+	if not r.cards.has("research"):
+		return
+	var card: CardDef = r.cards.research
+	eq([card.name, card.type, card.cost, card.vp], ["Research", "action", {}, 0], "name, type, cost, vp")
+	eq(card.effects.map(func(e): return e.op), ["research"], "effects")
+	eq(r.config.deck.get("research", 0), 1, "one Research card in the deck")
+	var total := 0
+	for id in r.config.deck:
+		total += r.config.deck[id]
+	eq(total, 23, "starting deck size")
+	var supply: Dictionary = r.config.get("supply", {})
+	eq(supply.get("research", {}), {"price": 3, "count": 2}, "supply entry")
+
 
 func test_real_supply_sells_scouts() -> void:
 	var r := load_real()

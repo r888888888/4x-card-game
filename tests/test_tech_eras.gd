@@ -10,8 +10,7 @@ const ERA_CARDS := [
 	{"id": "academy", "name": "Academy", "type": "building", "cost": {"food": 1},
 	 "effects": [{"op": "add_era", "era": 2}]},
 	{"id": "library", "name": "Library", "type": "building", "cost": {"food": 1},
-	 "effects": [{"op": "research", "amount": 1, "trigger": "upkeep"}]},
-	{"id": "study", "name": "Study", "type": "action", "effects": [{"op": "research", "amount": 1}]},
+	 "effects": [{"op": "create", "card": "study", "zone": "discard"}]},
 ]
 const POP := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 
@@ -72,24 +71,28 @@ func test_add_era_1_is_an_error() -> void:
 	has_msg(load_x({}, "tech", [{"op": "add_era", "era": 1}]).errors, "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2")
 
 
-func test_research_op_loads_with_a_default_amount() -> void:
-	var r := load_x({}, "building", [{"op": "research", "trigger": "upkeep"}])
+func test_research_op_loads_with_no_fields() -> void:
+	var r := load_x({}, "action", [{"op": "research"}])
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
 
 
-func test_research_amount_below_1_is_an_error() -> void:
-	var r := load_x({}, "building", [{"op": "research", "amount": 0}])
-	has_msg(r.errors, "cards.json: card 'x': effects[0]: 'amount' must be an integer >= 1")
+func test_research_op_at_upkeep_is_an_error() -> void:
+	var r := load_x({}, "building", [{"op": "research", "trigger": "upkeep"}])
+	has_msg(r.errors, "cards.json: card 'x': effects[0]")
+
+
+func test_research_op_amount_is_an_unknown_field() -> void:
+	var r := load_x({}, "action", [{"op": "research", "amount": 1}])
+	has_msg(r.errors + r.warnings, "cards.json: card 'x': effects[0]")
+	has_msg(r.errors + r.warnings, "amount")
 
 
 func test_era_and_research_card_text() -> void:
 	var db := tech_db(ERA_CARDS)
 	eq(db.philosophy.rules_text(db), "Adds era 2 techs", "add_era short")
-	eq(db.library.rules_text(db), "⟳ +1 research", "research short")
-	eq(db.library.rules_tooltip(db), "Each upkeep: +1 research", "research tooltip")
-	var two := load_x({}, "building", [{"op": "research", "amount": 2, "trigger": "upkeep"}])
-	eq(two.cards.x.rules_text(two.cards), "⟳ +2 research", "amount 2")
+	eq(db.study.rules_text(db), "Research", "research short")
+	eq(db.study.rules_tooltip(db), "Research: reveal 2 techs, buy 1 or decline", "research tooltip")
 
 
 # --- AC2: setup ---
@@ -109,7 +112,7 @@ func test_only_era_1_techs_start_in_the_research_deck() -> void:
 
 func test_buying_an_era_tech_adds_the_next_era() -> void:
 	var e := era_engine(["philosophy", "pottery"])
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), "philosophy")), "buy Philosophy")
 	var deck := card_ids(e.zone("research_deck"))
 	deck.sort()
@@ -120,7 +123,7 @@ func test_buying_an_era_tech_adds_the_next_era() -> void:
 
 func test_an_era_is_only_added_once() -> void:
 	var e := era_engine(["philosophy", "pottery"], {"academy": 10})
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), "philosophy")), "buy Philosophy")
 	var size: int = e.zone("research_deck").size()
 	check(e.play_card(first_in_hand(e)), "play Academy")
@@ -141,8 +144,7 @@ func test_a_building_can_add_an_era() -> void:
 func test_an_empty_research_deck_adds_the_next_era() -> void:
 	var e := era_engine(["pottery"])
 	e.zone("research_deck").take_all()
-	eq(e.research_error(), "", "research_error")
-	check(e.research(), "research should succeed")
+	check(play_research(e), "research should succeed")
 	eq(e.era(), 2, "era")
 	eq(e.research_options().size(), 2, "two era-2 techs revealed")
 	eq(e.zone("future_techs").size(), 0, "future_techs emptied")
@@ -151,8 +153,10 @@ func test_an_empty_research_deck_adds_the_next_era() -> void:
 func test_an_empty_research_deck_with_no_eras_left_is_an_error() -> void:
 	var e := tech_engine(["pottery"])
 	e.zone("research_deck").take_all()
-	eq(e.research_error(), "The research deck is empty.", "research_error")
-	check(not e.research(), "research should fail")
+	var card: CardInstance = e._make_card("study")
+	e.zone("hand").add(card)
+	eq(e.play_error(card.uid), "The research deck is empty.", "play_error")
+	check(not e.play_card(card.uid), "play_card should fail")
 
 
 # --- AC5: era techs can't be lost ---
@@ -169,64 +173,30 @@ func test_an_era_tech_is_never_lost() -> void:
 	eq(e.tech_cost(philosophy), 1, "cost 3 - 2")
 
 
-# --- AC6: Library ---
+# --- AC6: Library (backlog 034: it creates a Research card) ---
 
 func library_engine() -> Object:
 	return era_engine(["pottery", "writing"], {"library": 10}, POP)
 
 
-func test_a_staffed_library_gives_a_second_research() -> void:
+func test_building_a_library_creates_a_research_card() -> void:
+	var e := library_engine()
+	check(e.play_card(first_in_hand(e)), "play Library")
+	var discard := card_ids(e.zone("discard"))
+	eq(discard.back() if not discard.is_empty() else "", "study", "top of the discard")
+	eq(discard.size(), 1, "one card in the discard")
+
+
+func test_a_library_does_nothing_at_upkeep() -> void:
 	var e := library_engine()
 	check(e.play_card(first_in_hand(e)), "play Library")
 	e.end_turn()
-	eq(e.research_left(), 2, "research_left on turn 2")
-	check(e.research(), "first research")
-	check(e.decline_research(), "decline")
-	eq(e.research_left(), 1, "one left")
-	check(e.research(), "second research")
-	eq(e.research_left(), 0, "none left")
-
-
-func test_an_idle_library_gives_nothing() -> void:
-	var e := library_engine()
-	check(e.play_card(first_in_hand(e)), "play Library")
-	e.zone("tableau").find(home_uid(e)).pop = 0
-	e.end_turn()
-	eq(e.research_left(), 1, "the idle Library adds no research")
-
-
-func test_a_library_adds_nothing_until_the_next_upkeep() -> void:
-	var e := library_engine()
-	eq(e.research_left(), 1, "before")
-	check(e.play_card(first_in_hand(e)), "play Library")
-	eq(e.research_left(), 1, "the turn it is built")
-
-
-func test_extra_research_does_not_carry_over() -> void:
-	var e := library_engine()
-	check(e.play_card(first_in_hand(e)), "play Library")
-	e.end_turn()
-	eq(e.research_left(), 2, "turn 2")
-	e.end_turn()
-	eq(e.research_left(), 2, "turn 3: 2, not 4")
-
-
-# --- AC7: research op outside upkeep ---
-
-func test_a_played_research_card_adds_a_charge_at_once() -> void:
-	var e := era_engine(["pottery", "writing"], {"study": 10})
-	check(e.research(), "research")
-	check(e.decline_research(), "decline")
-	eq(e.research_left(), 0, "spent")
-	check(e.play_card(first_in_hand(e)), "play Study")
-	eq(e.research_left(), 1, "research_left")
-	check(e.research(), "research again")
-
-
-func test_a_research_card_adds_to_the_charges_left() -> void:
-	var e := era_engine(["pottery", "writing"], {"study": 10})
-	check(e.play_card(first_in_hand(e)), "play Study")
-	eq(e.research_left(), 2, "1 + 1")
+	eq(e.research_options(), [] as Array[int], "no tech options open")
+	eq(e.zone("research_deck").size(), 2, "research deck untouched")
+	var studies := 0
+	for z in ["deck", "hand", "discard"]:
+		studies += card_ids(e.zone(z)).count("study")
+	eq(studies, 1, "still one Research card: none added at upkeep")
 
 
 # --- Era unlock thresholds (backlog 029) ---
@@ -372,7 +342,7 @@ func test_pop_that_starves_does_not_count() -> void:
 
 func test_an_era_added_by_a_tech_is_not_added_again() -> void:
 	var e := era_engine(["philosophy", "pottery"], {"farm": 10}, {"era_unlocks": {"2": {"pop": 4}}, "population": POP.population})
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), "philosophy")), "buy Philosophy")
 	eq(e.era(), 2, "era 2 from Philosophy")
 	var size: int = e.zone("research_deck").size()
@@ -388,7 +358,7 @@ func test_an_era_added_by_a_tech_is_not_added_again() -> void:
 func test_an_era_added_by_an_empty_deck_is_not_added_again() -> void:
 	var e := threshold_engine({"2": {"wealth": 15}})
 	e.zone("research_deck").take_all()
-	check(e.research(), "research adds era 2")
+	check(play_research(e), "research adds era 2")
 	check(e.decline_research(), "decline")
 	var size: int = e.zone("research_deck").size()
 	e.resources.wealth = 15

@@ -44,7 +44,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
-| `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, `research` / `buy_tech` / `decline_research`, blocking, charges |
+| `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, playing Research (`play_research` helper) / `buy_tech` / `decline_research`, blocking, no charges |
 | `tests/test_tech_passes.gd` | Tech passes, stacking discount, removal to `lost_techs`, `prereq` discount, cost floor, prerequisite card text |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking |
@@ -84,6 +84,7 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `card_ids(zone)` / `first_in_hand(engine)` | Inspection helpers |
+| `play_research(engine)` | Puts a Research card (`study`) in hand and plays it, revealing techs (backlog 034) |
 
 Add a helper to `test_case.gd` once two test files need it.
 

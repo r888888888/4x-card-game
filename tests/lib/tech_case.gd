@@ -71,6 +71,5 @@ func uid_of(z: Zone, id: String) -> int:
 ## Researches with [tech_id, buy_id] on top and buys buy_id, so tech_id is passed once.
 func pass_tech(e: Object, tech_id: String, buy_id: String) -> void:
 	arrange(e.zone("research_deck"), [tech_id, buy_id])
-	e._research_left = 1
-	check(e.research(), "research should open: %s" % e.research_error())
+	check(play_research(e), "research should open")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), buy_id)), "buy %s" % buy_id)

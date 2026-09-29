@@ -37,6 +37,11 @@
       "effects": [ { "op": "explore" }, { "op": "draw", "amount": 1 } ]
     },
     {
+      "id": "research", "name": "Research", "type": "action",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "research" } ]
+    },
+    {
       "id": "forage", "name": "Forage", "type": "action",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "food", "amount": 2 } ]
@@ -123,7 +128,7 @@
     {
       "id": "library", "name": "Library", "type": "building",
       "cost": { "food": 1, "wealth": 2 }, "vp": 1, "tags": [],
-      "effects": [ { "op": "research", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "create", "card": "research", "zone": "discard" } ]
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",
