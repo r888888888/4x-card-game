@@ -122,3 +122,24 @@ func test_explore_empty_territory_deck_does_nothing() -> void:
 	eq(e.zone("reveal").size(), 0, "reveal empty")
 	eq(e.zone("frontier").size(), 0, "frontier empty")
 	eq(e.play_error(first_in_hand(e)), "", "play continues")
+
+
+# --- Loader: the explore op ---
+
+func test_explore_defaults_to_reveal_2() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "explore"}]}]}, resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	if cards.has("x"):
+		eq(cards.x.rules_tooltip(cards), "Explore: reveal 2 territories, keep 1", "card text")
+
+
+func test_explore_reveal_0_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "explore", "reveal": 0}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': effects[0]: 'reveal' must be an integer >= 1")

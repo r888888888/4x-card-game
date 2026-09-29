@@ -75,3 +75,48 @@ func test_grow_does_nothing_without_population() -> void:
 	eq(e.pop(home_uid(e)), 0, "Homeland pop")
 	eq(e.pop(uid_of(e.zone("tableau"), "grassland")), 0, "Grassland pop")
 	eq(e.total_pop(), 0, "total pop")
+
+
+# --- Loader: the grow op ---
+
+func grow_card_errors(effect: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action", "effects": [effect]}]},
+		resources(), "cards.json", errors, warnings)
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+func test_grow_op_loads() -> void:
+	var r := grow_card_errors({"op": "grow", "amount": 2, "where": "each"})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+
+
+func test_grow_where_defaults_to_here() -> void:
+	var r := grow_card_errors({"op": "grow", "amount": 1})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.cards.x.rules_text(r.cards), "+1 pop here", "text")
+
+
+func test_grow_bad_where_is_error() -> void:
+	has_msg(grow_card_errors({"op": "grow", "amount": 1, "where": "everywhere"}).errors,
+		"cards.json: card 'x': effects[0]: 'where' must be one of")
+
+
+func test_grow_amount_below_1_is_error() -> void:
+	has_msg(grow_card_errors({"op": "grow", "amount": 0}).errors,
+		"cards.json: card 'x': effects[0]: 'amount' must be an integer >= 1")
+
+
+func test_grow_missing_amount_is_error() -> void:
+	has_msg(grow_card_errors({"op": "grow"}).errors, "cards.json: card 'x': effects[0]: missing 'amount'")
+
+
+func test_grow_text() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
+	eq(cards.granary.rules_tooltip(cards), "Each upkeep: +1 pop here", "Granary")
+	eq(cards.festival.rules_tooltip(cards), "+1 pop in each territory", "Festival")
+	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")

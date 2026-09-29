@@ -141,3 +141,36 @@ func test_outcome_target_for_untargeted_card() -> void:
 	eq(outcomes.size(), 1, "one outcome")
 	if outcomes.size() == 1:
 		eq(outcomes[0].get("target"), -1, "target")
+
+
+# --- Loader: the settle op ---
+
+const CITY := {"id": "city", "name": "City", "type": "city"}
+const FARM := {"id": "farm", "name": "Farm", "type": "building"}
+
+
+func test_settle_text() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [CITY, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "city"}]}]}, resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	if cards.has("x"):
+		eq(cards.x.rules_tooltip(cards), "Settle a discovered territory with a City", "card text")
+
+
+func test_settle_non_city_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [FARM, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "farm"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect: 'card' must be a city card (got 'farm')")
+
+
+func test_settle_unknown_card_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "nowhere"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect refers to unknown card 'nowhere'")
