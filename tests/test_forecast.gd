@@ -124,3 +124,70 @@ func test_forecast_empty_after_game_over() -> void:
 	e.end_turn()
 	check(e.is_over, "game over")
 	eq(e.upkeep_forecast(), {}, "no next upkeep")
+
+
+# --- Backlog 043: only forecast-safe ops may trigger on upkeep ---
+
+const UPKEEP_UNSAFE := {
+	"draw": {"op": "draw", "amount": 1},
+	"create": {"op": "create", "card": "city"},
+	"explore": {"op": "explore"},
+	"settle": {"op": "settle", "card": "city"},
+	"add_era": {"op": "add_era", "era": 2},
+	"research": {"op": "research"},
+}
+const UPKEEP_SAFE := [
+	{"op": "gain", "resource": "food", "amount": 1},
+	{"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "city"},
+	{"op": "score", "amount": 1},
+	{"op": "grow", "amount": 1},
+]
+
+
+## Loads TEST_CARDS plus a building 'x' with one upkeep effect; returns {cards, errors, warnings}.
+func load_upkeep_building(effect: Dictionary) -> Dictionary:
+	var upkeep := effect.duplicate()
+	upkeep["trigger"] = "upkeep"
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var x := {"id": "x", "name": "X", "type": "building", "effects": [upkeep]}
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [x]}, resources(), "cards.json", errors, warnings, keywords())
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+func test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep() -> void:
+	for op in UPKEEP_UNSAFE:
+		var r := load_upkeep_building(UPKEEP_UNSAFE[op])
+		eq(r.errors, ["cards.json: card 'x': effects[0]: '%s' only works on play (got trigger 'upkeep')" % op] as Array[String],
+			"%s errors" % op)
+		check(not r.cards.has("x"), "%s: card x is not loaded" % op)
+
+
+func test_gain_gain_per_tag_score_and_grow_may_trigger_on_upkeep() -> void:
+	for effect in UPKEEP_SAFE:
+		var r := load_upkeep_building(effect)
+		eq(r.errors, [] as Array[String], "%s errors" % effect.op)
+		eq(r.warnings, [] as Array[String], "%s warnings" % effect.op)
+
+
+func test_forecast_leaves_score_pop_zones_and_log_unchanged() -> void:
+	var e := forecast_engine(2)
+	build(e, ["temple", "granary"])
+	var home := e.zone("tableau").find(home_uid(e))
+	eq(home.def.housing, 7, "Homeland housing")
+	var score := e.score()
+	var log_lines := e.log_lines.duplicate()
+	var zone_uids := {}
+	for z in GameEngine.ZONES:
+		zone_uids[z] = e.zone(z).cards.map(func(c): return c.uid)
+	e.upkeep_forecast()
+	eq(e.score(), score, "score")
+	eq(home.pop, 2, "Homeland pop")
+	for z in GameEngine.ZONES:
+		eq(e.zone(z).cards.map(func(c): return c.uid), zone_uids[z], "%s uids" % z)
+	eq(e.log_lines, log_lines, "log")
+
+
+func test_real_data_has_no_upkeep_only_errors() -> void:
+	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
+	eq(r.errors, [] as Array[String], "errors")

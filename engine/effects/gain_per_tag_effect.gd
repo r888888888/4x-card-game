@@ -8,6 +8,11 @@ var tag: String
 var zone: String
 
 
+## Changes only what upkeep_forecast restores (see Effect.upkeep_ok).
+func upkeep_ok() -> bool:
+	return true
+
+
 func fields() -> Array[String]:
 	return ["resource", "amount", "tag", "zone"]
 

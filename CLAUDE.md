@@ -17,7 +17,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
-- New effect op: follow the `add-effect` skill.
+- New effect op: follow the `add-effect` skill. Only ops that change nothing but resources, bonus score and pop
+  may trigger on `upkeep` (`upkeep_ok()`), because `upkeep_forecast` restores only those.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).

@@ -9,6 +9,11 @@ var amount: int
 var where: String
 
 
+## Changes only what upkeep_forecast restores (see Effect.upkeep_ok).
+func upkeep_ok() -> bool:
+	return true
+
+
 func fields() -> Array[String]:
 	return ["amount", "where"]
 

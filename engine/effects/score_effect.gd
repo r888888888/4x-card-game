@@ -5,6 +5,11 @@ extends Effect
 var amount: int
 
 
+## Changes only what upkeep_forecast restores (see Effect.upkeep_ok).
+func upkeep_ok() -> bool:
+	return true
+
+
 func fields() -> Array[String]:
 	return ["amount"]
 
