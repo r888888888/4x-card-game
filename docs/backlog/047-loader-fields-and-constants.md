@@ -2,7 +2,7 @@
 id: 047
 title: Field readers in their own helper; card type and resource constants
 type: feature
-status: review
+status: done
 branch: feat/047-loader-fields-and-constants
 ---
 
