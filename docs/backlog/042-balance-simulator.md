@@ -2,7 +2,7 @@
 id: 042
 title: Headless balance simulator and a balance skill
 type: feature
-status: review
+status: done
 branch: feat/042-balance-simulator
 ---
 
