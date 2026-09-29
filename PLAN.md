@@ -123,6 +123,10 @@ It runs the upkeep effects quietly and restores resources, bonus score and pop, 
 change (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
 with the food stat in the warning color when pop would starve.
 
+Pending decisions (050, `pending()`): an explore choice, open research or a hand-limit discard. While one is owed,
+every action is refused with the same message (`_blocked_error`), except that a discard still lets you discard and
+browse the supply. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
+
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices

@@ -2,7 +2,7 @@
 id: 050
 title: One model for decisions the player owes
 type: feature
-status: in-progress
+status: review
 branch: feat/050-pending-decision-model
 ---
 
@@ -12,17 +12,17 @@ branch: feat/050-pending-decision-model
 blocking rule makes the next kind (the event deck) a single addition.
 
 ## Acceptance criteria
-- [ ] AC1: `pending()` is `{}` when nothing is owed.
-- [ ] AC2: After a Scout-style explore reveals 2 territories, `pending()` is
+- [x] AC1: `pending()` is `{}` when nothing is owed.
+- [x] AC2: After a Scout-style explore reveals 2 territories, `pending()` is
   `{kind: "explore", options: [uids, top of the reveal zone first, as in pending_choice], source: <card uid>}`.
-- [ ] AC3: After a Research card reveals 2 techs, `pending()` is `{kind: "research", options: [the 2 tech uids]}`.
-- [ ] AC4: With hand limit 5 and 7 cards in hand at `end_turn()`, `pending()` is
+- [x] AC3: After a Research card reveals 2 techs, `pending()` is `{kind: "research", options: [the 2 tech uids]}`.
+- [x] AC4: With hand limit 5 and 7 cards in hand at `end_turn()`, `pending()` is
   `{kind: "discard", count: 2, options: [the 7 hand uids]}`; after one discard, `count` is 1.
-- [ ] AC5: A table test over each kind checks `play_error`, `grow_error`, `buy_error`, `end_turn_error`,
+- [x] AC5: A table test over each kind checks `play_error`, `grow_error`, `buy_error`, `end_turn_error`,
   `supply_error` and `discard_card`: each returns the same message or result as today (explore: "Choose a
   territory first."; research: "Buy a tech or decline first."; discard: "Discard down to N cards first.", except
   `discard_card` and `supply_error` are allowed).
-- [ ] AC6: `pending_choice`, `research_options()` and `discard_needed()` keep working (derived from `pending()`),
+- [x] AC6: `pending_choice`, `research_options()` and `discard_needed()` keep working (derived from `pending()`),
   and every existing test passes unchanged. The UI reads `pending()`.
 
 ## Out of scope
@@ -47,3 +47,13 @@ blocking rule makes the next kind (the event deck) a single addition.
 - [ ] Explore, research and hand-limit discard play exactly as before (overlays, disabled buttons, messages).
 
 ## Log
+- 2026-09-29: spec approved with these readings: `source` is a uid for explore only; game over isn't a pending
+  kind; `sim/bot.gd` keeps the old queries. `pending_choice` stays the stored state (a test assigns it), and
+  `pending()` is derived from it, `research_reveal` and `_discard_left`.
+- Green phase: AC2's test expected deck order [Hills, Grassland]; the engine and UI have always listed the reveal
+  zone's top first [Grassland, Hills]. With approval, the test's expected order was fixed (no engine change).
+- `_blocked_error(action)` replaced `_busy_error`, `_choice_error`, the copy in `grow_error` and the inline checks in
+  `discard_card` and `end_turn`. Kinds are constants `GameEngine.PENDING_EXPLORE/RESEARCH/DISCARD`. `main.gd` reads
+  `pending()` through `_pending_kind()`. 341 → 346 tests.
+- Follow-up (out of scope here): remove `research_options()` / `discard_needed()` once `sim/bot.gd` and the
+  tests stop using them.
