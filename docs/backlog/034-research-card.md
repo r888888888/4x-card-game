@@ -2,7 +2,7 @@
 id: 034
 title: Research is a card, not a free action each turn
 type: feature
-status: in-progress
+status: review
 branch: feat/034-research-card
 ---
 
@@ -16,26 +16,26 @@ Fixtures: TEST_CARDS gets `study` ("Research", action, cost {}, effects `[{op: r
 tech fixtures (pottery, writing, bronze) and the research deck [pottery, writing, bronze] (top first)
 come from `test_research.gd`, with starting resources `{food: 2, wealth: 10}`.
 
-- [ ] AC1 (op): `{"op": "research"}` loads with no other fields. Its short text is "Research" and its
+- [x] AC1 (op): `{"op": "research"}` loads with no other fields. Its short text is "Research" and its
   tooltip is "Research: reveal 2 techs, buy 1 or decline". A `research` effect with
   `"trigger": "upkeep"` is a load error that names the card and the effect index. `amount` is an
   unknown field (load error), like any other unknown field.
-- [ ] AC2 (play reveals): Given `study` in hand, when I `play_card(study uid)`, then it returns true,
+- [x] AC2 (play reveals): Given `study` in hand, when I `play_card(study uid)`, then it returns true,
   Research is in the discard, `research_options()` is [pottery uid, writing uid], and the research deck
   holds only Bronze Working. Buying and declining then work as in 025/026 (for example, buying Pottery
   leaves wealth at 8).
-- [ ] AC3 (no free research): There are no research charges. The engine has no `research()`,
+- [x] AC3 (no free research): There are no research charges. The engine has no `research()`,
   `research_left()` or `research_error()`, and a new game, or a new turn, opens no tech options on its own.
-- [ ] AC4 (no limit per turn): Given 2 `study` in hand and a research deck of 4 techs, when I play
+- [x] AC4 (no limit per turn): Given 2 `study` in hand and a research deck of 4 techs, when I play
   one, buy a tech, and play the other, then the second play reveals 2 techs again.
-- [ ] AC5 (can't play): With the research deck and future techs both empty, `play_error(study uid)` is
+- [x] AC5 (can't play): With the research deck and future techs both empty, `play_error(study uid)` is
   "The research deck is empty." and `play_card` returns false, with the card still in hand. It can
   still be discarded. With only future techs left, playing it adds the lowest future era first, as the
   button did. With tech options open, `play_error` is "Buy a tech or decline first." (unchanged).
-- [ ] AC6 (Library): The Library fixture in `test_tech_eras.gd` becomes play: `create study` into the
+- [x] AC6 (Library): The Library fixture in `test_tech_eras.gd` becomes play: `create study` into the
   discard. Building it puts a new Research card on top of the discard. It has no upkeep effect, and
   the next turn opens no tech options.
-- [ ] AC7 (content): `data/cards.json` has `research` ("Research", action, cost {}, 0 VP, no tags,
+- [x] AC7 (content): `data/cards.json` has `research` ("Research", action, cost {}, 0 VP, no tags,
   `[{op: research}]`). Config: deck gets `research: 1` (23 cards); supply gets
   `research: {price: 3, count: 2}`. The Library's effect becomes create `research` in the discard.
   The real data loads with no errors.
@@ -77,8 +77,9 @@ come from `test_research.gd`, with starting resources `{food: 2, wealth: 10}`.
 | AC7 | `test_content::test_real_research_card_starts_in_the_deck_and_is_sold`, `test_a_tech_unlocks_the_library`, `test_scripted_games_buy_techs_and_never_go_negative` (plays Research cards) |
 
 ## Manual check
-- [ ] Start a game. There is no Research button. The side column shows the research deck count and
-  era. The deck counter starts at 23 cards.
+- [ ] Start a game (`godot --path .`). There is no Research button, and R does nothing. Above End turn the
+  side column shows "Techs: deck 6 · era 1"; its tooltip says to play a Research card and lists the era
+  thresholds. The deck counter starts at 23 cards.
 - [ ] The Supply lists "Research · 3 wealth · 2 left".
 - [ ] Play the Research card: the tech overlay opens with 2 techs. Buy or decline closes it, and the
   card is in the discard.
@@ -88,3 +89,14 @@ come from `test_research.gd`, with starting resources `{food: 2, wealth: 10}`.
 - 2026-09-29: User chose: reveal on play (no charges), Library creates a Research card when built,
   free to play and priced 3 in the supply, can't be played with nothing to research.
 - 2026-09-29: Approved by the user.
+- 2026-09-29: Red approved. Green: `research` op now reveals via `GameEngine.reveal_techs(source)`;
+  `Effect.play_block_error(engine)` is the new hook `play_error` checks for play effects. Removed
+  `research()`, `research_left()`, `research_error()`, `add_research()` and the per-turn charge.
+- 2026-09-29: The scripted-game bot in `test_content.gd` (a test helper, not an assertion) now tries
+  Research cards last. Played first, the bot founded a second city in 9 of 20 seeds against the
+  required 11, so it went back to the old habit of researching after other plays. Balance signal: spending
+  early turns on Research slows expansion for a naive player. Watch this in playtests.
+- 2026-09-29: UI: the Research button and R shortcut are gone. A "Techs: deck N · era N" label keeps the
+  info and the era threshold tooltip.
+- Suite: 344 → 337 tests (charge tests removed, card tests added).
+- Follow-ups: tune the Research price (3) and the starting count after playtesting.

@@ -104,7 +104,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play or buy cards while resources allow, buy growth for territories, and research once per turn. A hand card can be discarded for free at any time.
+3. Play: play or buy cards while resources allow, buy growth for territories, and play Research cards to reveal techs. A hand card can be discarded for free at any time.
 4. Event: stub for now (threat design deferred).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
@@ -172,12 +172,14 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
 stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
-Pyramids and Forge left the deck and come back through techs).
+Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built).
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
-- Once per turn (`research_left()`), a free action: `research()` reveals the top 2 techs. `buy_tech(uid)` pays
-  `tech_cost(uid)` wealth, moves the tech to `researched`, resolves its `play` effects, and shuffles the other back;
-  `decline_research()` shuffles both back (the charge stays spent). Open options block play, grow, discard and end turn.
+- Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2
+  techs (`reveal_techs`). There is no free research: the deck starts with 1 Research card and the supply sells 2,
+  with no limit per turn. With nothing to reveal the card can't be played ("The research deck is empty.").
+  `buy_tech(uid)` pays `tech_cost(uid)` wealth, moves the tech to `researched`, resolves its `play` effects, and
+  shuffles the other back; `decline_research()` shuffles both back. Open options block play, grow, discard and end turn.
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
 - Passes (026): buying one revealed tech gives the other a pass (`tech_passes(uid)`); declining passes nothing.
@@ -188,19 +190,20 @@ Pyramids and Forge left the deck and come back through techs).
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
   techs into the research deck, once per era (`era()` is the highest added). Researching with an empty research
   deck adds the lowest waiting era; it only errors when nothing waits. A tech with `add_era` is never lost
-  (its passes stop at 2). The `research` op (`{ "op": "research", "amount": 1 }`) adds research actions for
-  the turn: a Library uses it on upkeep, so an idle Library adds none. Actions reset to 1 each turn and never carry over.
+  (its passes stop at 2). The Library creates a Research card in the discard when built (034; it used
+  to add research actions at upkeep).
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
-  already added isn't added again. `era_unlocks()` returns the thresholds; the Research button's tooltip shows them.
-- Engine API: `research_error()`, `research()`, `research_options()`, `research_left()`, `buy_tech_error(uid)`,
-  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `add_research(n)`, `era_unlocks()`.
-- UI: a Research button (R) above End turn (hidden when the config has no research deck), a choice panel
-  with the revealed techs (click one to buy) and Decline, and a Researched row.
+  already added isn't added again. `era_unlocks()` returns the thresholds; the research info label's tooltip shows them.
+- Engine API: `reveal_techs(source)`, `reveal_techs_error()`, `research_options()`, `buy_tech_error(uid)`,
+  `buy_tech(uid)`, `tech_cost(uid)`, `tech_passes(uid)`, `decline_research()`, `era()`, `add_era(n)`, `era_unlocks()`.
+  `Effect.play_block_error(engine)` lets an effect refuse its card in `play_error`.
+- UI: a research info label above End turn (research deck count, era, lost techs; hidden when the config has no
+  research deck), a choice panel with the revealed techs (click one to buy) and Decline, and a Researched row.
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
-starting deck moved into the supply (Scout, Settler, Temple, Granary).
+starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies).
 - Config `supply: { "scout": { "price": 2, "count": 2 } }`: only `action` and `building` cards; `price`
   (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
@@ -208,7 +211,7 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary).
   choice, research open, discard owed).
 - Engine API: `supply()` ({card_id: count left}), `supply_left(card_id)`, `buy_price(card_id)`,
   `buy_error(card_id)`, `buy(card_id)`.
-- UI (033): a Supply (S) button above Research opens the supply screen, an overlay with one card per pile
+- UI (033): a Supply (S) button above the research info opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
