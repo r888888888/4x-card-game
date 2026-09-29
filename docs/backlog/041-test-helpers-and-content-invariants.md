@@ -2,7 +2,7 @@
 id: 041
 title: Share test helpers and replace exact-number content tests with invariants
 type: feature
-status: red-review
+status: in-progress
 branch: feat/041-test-helpers-and-content-invariants
 ---
 

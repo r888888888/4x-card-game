@@ -601,12 +601,17 @@ func draw(n: int) -> int:
 	return drawn
 
 
+## Adds a new copy of card_id to zone_name. source is the card whose effect made it, or null
+## (the log then names no source).
 func create_card(card_id: String, zone_name: String, source: CardInstance) -> CardInstance:
 	var card := _make_card(card_id)
 	zone(zone_name).add(card)
 	if not _outcome.is_empty():
 		_outcome.created.append(card.uid)
-	_log("  %s: created %s." % [source.def.name, card.def.name])
+	if source == null:
+		_log("  Created %s." % card.def.name)
+	else:
+		_log("  %s: created %s." % [source.def.name, card.def.name])
 	return card
 
 
