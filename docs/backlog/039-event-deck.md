@@ -2,7 +2,7 @@
 id: 039
 title: Event deck and event cards (framework)
 type: feature
-status: review
+status: done
 branch: feat/039-event-deck
 ---
 
