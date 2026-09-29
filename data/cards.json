@@ -200,23 +200,23 @@
     },
     {
       "id": "grassland", "name": "Grassland", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["grassland"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland"]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["grassland"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 4, "keywords": ["grassland"]
     },
     {
       "id": "river_valley", "name": "River Valley", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["fresh_water", "flood_plain"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 6, "keywords": ["fresh_water", "flood_plain"]
     },
     {
       "id": "lakeshore", "name": "Lakeshore", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["fresh_water"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 5, "keywords": ["fresh_water"]
     },
     {
       "id": "floodplain_delta", "name": "Floodplain Delta", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["flood_plain", "coastal"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 6, "keywords": ["fresh_water", "flood_plain", "coastal"]
     },
     {
       "id": "bay", "name": "Bay", "type": "territory",
@@ -224,23 +224,23 @@
     },
     {
       "id": "hills", "name": "Hills", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["hills"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 3, "keywords": ["hills"]
     },
     {
       "id": "highlands", "name": "Highlands", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["mountain"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["mountain"]
     },
     {
       "id": "woodland", "name": "Woodland", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["forest"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 3, "keywords": ["forest"]
     },
     {
       "id": "rainforest", "name": "Rainforest", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 3, "keywords": ["jungle"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["jungle"]
     },
     {
       "id": "dunes", "name": "Dunes", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["desert"]
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["desert"]
     }
   ]
 }

@@ -96,6 +96,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. Terrain with no table rolls nothing.
   Iron counts as everywhere, so it isn't a keyword (036). Shipped: gold, tin and copper on Hills and
   Highlands; Forge scores +1 VP each upkeep on copper and on tin (037).
+- Territory slots and housing follow the land (038): fertile river land has high housing, flat land more
+  slots, and rough terrain (hills, mountain, jungle, desert) low on both, to be made up by keywords.
 - Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
