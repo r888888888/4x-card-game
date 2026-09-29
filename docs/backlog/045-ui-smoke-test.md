@@ -2,7 +2,7 @@
 id: 045
 title: Headless UI smoke test
 type: feature
-status: review
+status: done
 branch: feat/045-ui-smoke-test
 ---
 
