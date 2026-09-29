@@ -32,6 +32,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
+| `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
