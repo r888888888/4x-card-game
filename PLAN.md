@@ -32,7 +32,8 @@ res://
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid)
     zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
-    effect.gd            # Effect base class + field readers
+    effect.gd            # Effect base class
+    fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
     effect_registry.gd   # op name → effect script
     effects/             # one <op>_effect.gd per effect op
     rng.gd               # seeded RNG (reproducible games)
