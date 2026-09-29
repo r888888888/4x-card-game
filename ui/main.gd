@@ -97,7 +97,7 @@ func _ready() -> void:
 	Game.engine.logged.connect(_append_log)
 	Game.engine.card_played.connect(_on_card_played)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
-	_start_game(-1)
+	start_game(-1)
 
 
 ## Keyboard play. Only reached when no control with focus (a button or the seed field) used the key.
@@ -178,7 +178,8 @@ func _input(event: InputEvent) -> void:
 
 # --- Actions ---
 
-func _start_game(seed_value: int) -> void:
+## Starts a new game with seed_value (a random seed if negative), dropping the old game's views.
+func start_game(seed_value: int) -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
 	_seed_edit.text = str(seed_value)
@@ -188,16 +189,26 @@ func _start_game(seed_value: int) -> void:
 	Game.new_game(seed_value)
 
 
+## Test hook (045): the number of card views in the hand row, resting or flying in.
+func hand_view_count() -> int:
+	return _views_in(_hand).size()
+
+
+## Test hook (045): the game-over overlay's text, or "" while it is hidden.
+func game_over_text() -> String:
+	return _game_over_label.text if _game_over_overlay.visible else ""
+
+
 ## Menu Restart: the seed in the field, or a random one if it isn't a whole number.
 func _on_restart_pressed() -> void:
 	var text := _seed_edit.text.strip_edges()
 	_close_menu(false)
-	_start_game(text.to_int() if text.is_valid_int() else -1)
+	start_game(text.to_int() if text.is_valid_int() else -1)
 
 
 func _on_new_game_pressed() -> void:
 	_close_menu(false)
-	_start_game(-1)
+	start_game(-1)
 
 
 # --- Menu ---
@@ -1317,9 +1328,9 @@ func _build_layout() -> void:
 	_game_over_label.add_theme_font_size_override("font_size", 32)
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_game_over_label)
-	_replay_button = _button("Replay this seed", func(): _start_game(Game.engine.seed_value))
+	_replay_button = _button("Replay this seed", func(): start_game(Game.engine.seed_value))
 	box.add_child(_replay_button)
-	box.add_child(_button("New game", func(): _start_game(-1)))
+	box.add_child(_button("New game", func(): start_game(-1)))
 
 	_build_menu()
 	_apply_motion_setting()

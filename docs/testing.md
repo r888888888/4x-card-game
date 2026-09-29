@@ -28,6 +28,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | File | Covers |
 |---|---|
 | `tests/test_content.gd` | The real data: invariants (every keyword used, every cost has a source, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
+| `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole `ScriptedBot` game: no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
@@ -72,7 +73,9 @@ func test_settler_creates_city_on_tableau() -> void:
 	eq(e.resources.food, 0, "food after paying 3")
 ```
 
-The runner creates a fresh instance for every `test_*` method, so tests don't share state.
+The runner creates a fresh instance for every `test_*` method, so tests don't share state. It waits one frame
+before the first test so the `Game` and `Settings` autoloads are in the tree and ready; no other frames run, so
+UI tests see structure (views, labels, overlays), never finished animations.
 
 ### Available in every test (`tests/lib/test_case.gd`)
 
