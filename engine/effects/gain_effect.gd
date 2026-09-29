@@ -15,8 +15,8 @@ func fields() -> Array[String]:
 
 
 func configure(data: Dictionary, ctx: Dictionary, errors: Array[String]) -> void:
-	resource = read_string(data, "resource", errors, ctx.resources)
-	amount = read_int(data, "amount", errors, 1)
+	resource = Fields.read_string(data, "resource", errors, ctx.resources)
+	amount = Fields.read_int(data, "amount", errors, 1)
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:

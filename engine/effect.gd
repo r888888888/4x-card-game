@@ -87,32 +87,3 @@ func no_target_error() -> String:
 ## play_error when the effect needs a target, several are valid, and none was given.
 func choose_target_error() -> String:
 	return "Choose a target."
-
-
-static func read_int(data: Dictionary, key: String, errors: Array[String], min_value := 0, default_value: Variant = null) -> int:
-	if not data.has(key):
-		if default_value == null:
-			errors.append("missing '%s'" % key)
-			return 0
-		return default_value
-	var v: Variant = DataLoader.as_int(data[key])
-	if typeof(v) != TYPE_INT or v < min_value:
-		errors.append("'%s' must be an integer >= %d" % [key, min_value])
-		return 0
-	return v
-
-
-static func read_string(data: Dictionary, key: String, errors: Array[String], allowed: Array = [], default_value: Variant = null) -> String:
-	if not data.has(key):
-		if default_value == null:
-			errors.append("missing '%s'" % key)
-			return ""
-		return default_value
-	var v: Variant = data[key]
-	if not (v is String):
-		errors.append("'%s' must be a string" % key)
-		return ""
-	if not allowed.is_empty() and not allowed.has(v):
-		errors.append("'%s' must be one of: %s (got '%s')" % [key, ", ".join(PackedStringArray(allowed)), v])
-		return ""
-	return v

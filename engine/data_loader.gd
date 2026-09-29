@@ -44,15 +44,6 @@ static func read_json(path: String, errors: Array[String]) -> Variant:
 	return json.data
 
 
-## JSON numbers are floats; accept whole numbers as ints. Returns null otherwise.
-static func as_int(v: Variant) -> Variant:
-	if v is int:
-		return v
-	if v is float and is_finite(v) and v == floorf(v):
-		return int(v)
-	return null
-
-
 static func parse_resources(raw: Variant, src: String, errors: Array[String]) -> Array[String]:
 	var out: Array[String] = []
 	var list: Variant = raw.get("resources", ["food"]) if raw is Dictionary else null
@@ -134,16 +125,16 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 
 static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], warns: Array[String]) -> CardDef:
 	var def := CardDef.new()
-	def.id = Effect.read_string(c, "id", errs)
-	def.name = Effect.read_string(c, "name", errs)
-	def.type = Effect.read_string(c, "type", errs, CARD_TYPES)
-	def.vp = Effect.read_int(c, "vp", errs, 0, 0)
-	def.text = Effect.read_string(c, "text", errs, [], "")
+	def.id = Fields.read_string(c, "id", errs)
+	def.name = Fields.read_string(c, "name", errs)
+	def.type = Fields.read_string(c, "type", errs, CARD_TYPES)
+	def.vp = Fields.read_int(c, "vp", errs, 0, 0)
+	def.text = Fields.read_string(c, "text", errs, [], "")
 
 	var cost: Variant = c.get("cost", {})
 	if cost is Dictionary:
 		for r in cost:
-			var n: Variant = as_int(cost[r])
+			var n: Variant = Fields.as_int(cost[r])
 			if not ctx.resources.has(r):
 				errs.append("cost: unknown resource '%s'" % r)
 			elif typeof(n) != TYPE_INT or n < 0:
@@ -187,8 +178,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		errs.append("'effects' must be an array")
 
 	if def.type == "territory":
-		def.slots = Effect.read_int(c, "slots", errs, 0)
-		def.housing = Effect.read_int(c, "housing", errs, 1, def.slots + 2)
+		def.slots = Fields.read_int(c, "slots", errs, 0)
+		def.housing = Fields.read_int(c, "housing", errs, 1, def.slots + 2)
 		var kws: Variant = c.get("keywords", [])
 		if kws is Array:
 			for k in kws:
@@ -204,21 +195,21 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			errs.append("'keywords' must be an array of keyword ids")
 	else:
 		if def.type == "city":
-			def.slots = Effect.read_int(c, "slots", errs, 0, 0)
+			def.slots = Fields.read_int(c, "slots", errs, 0, 0)
 		for key in ["slots", "housing", "keywords"]:
 			if c.has(key) and not (key == "slots" and def.type == "city"):
 				warns.append("'%s' only applies to territories (ignored)" % key)
 
 	if def.type == "tech":
 		if c.has("era"):
-			var era: Variant = as_int(c.era)
+			var era: Variant = Fields.as_int(c.era)
 			if typeof(era) != TYPE_INT or era < 1:
 				errs.append("era: must be an integer >= 1")
 			else:
 				def.era = era
-		def.prereq = Effect.read_string(c, "prereq", errs, [], "")
+		def.prereq = Fields.read_string(c, "prereq", errs, [], "")
 		if c.has("prereq_discount"):
-			var discount: Variant = as_int(c.prereq_discount)
+			var discount: Variant = Fields.as_int(c.prereq_discount)
 			if def.prereq == "":
 				warns.append("'prereq_discount' needs 'prereq' (ignored)")
 			elif typeof(discount) != TYPE_INT or discount < 1:
@@ -270,10 +261,10 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"resources": resources,
 		"keywords": parse_keywords(raw, src, errors),
 		"resource_keywords": parse_keywords(raw, src, errors, "resource_keywords"),
-		"turn_limit": Effect.read_int(raw, "turn_limit", errs, 1, 20),
-		"hand_size": Effect.read_int(raw, "hand_size", errs, 1, 5),
+		"turn_limit": Fields.read_int(raw, "turn_limit", errs, 1, 20),
+		"hand_size": Fields.read_int(raw, "hand_size", errs, 1, 5),
 		"hand_limit": 0,
-		"deck_model": Effect.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
+		"deck_model": Fields.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
 		"starting": {"resources": {}, "tableau": [], "territory": ""},
 		"deck": {},
 		"territory_deck": {},
@@ -287,14 +278,14 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		if config.keywords.has(k):
 			errs.append("resource_keywords: '%s' is also in 'keywords'" % k)
 
-	config.hand_limit = Effect.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
+	config.hand_limit = Fields.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
 
 	var starting: Variant = raw.get("starting", {})
 	if starting is Dictionary:
 		var start_res: Variant = starting.get("resources", {})
 		if start_res is Dictionary:
 			for r in start_res:
-				var n: Variant = as_int(start_res[r])
+				var n: Variant = Fields.as_int(start_res[r])
 				if not resources.has(r):
 					errs.append("starting.resources: unknown resource '%s'" % r)
 				elif typeof(n) != TYPE_INT or n < 0:
@@ -312,7 +303,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 					errs.append("starting.tableau: unknown card '%s'" % id)
 		else:
 			errs.append("starting.tableau must be an array of card ids")
-		var territory := Effect.read_string(starting, "territory", errs, [], "")
+		var territory := Fields.read_string(starting, "territory", errs, [], "")
 		if territory != "":
 			if not cards.has(territory):
 				errs.append("starting.territory: unknown card '%s'" % territory)
@@ -378,7 +369,7 @@ static func _parse_era_unlocks(raw: Variant, errs: Array[String], warnings: Arra
 			if not ["pop", "wealth"].has(field):
 				warnings.append("%s: era_unlocks: era %d: unknown field '%s'" % [src, era, field])
 				continue
-			var n: Variant = as_int(value[field])
+			var n: Variant = Fields.as_int(value[field])
 			if typeof(n) != TYPE_INT or n < 1:
 				errs.append("era_unlocks: era %d: '%s' must be an integer >= 1" % [era, field])
 			else:
@@ -396,7 +387,7 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 		return out
 	for field in POPULATION_FIELDS:
 		var min_value: int = POPULATION_FIELDS[field][0]
-		var n: Variant = as_int(raw.get(field, POPULATION_FIELDS[field][1]))
+		var n: Variant = Fields.as_int(raw.get(field, POPULATION_FIELDS[field][1]))
 		if typeof(n) != TYPE_INT or n < min_value:
 			errs.append("'population.%s' must be an integer >= %d" % [field, min_value])
 			n = POPULATION_FIELDS[field][1]
@@ -455,7 +446,7 @@ static func _parse_resource_option(raw: Variant, where: String, resource_keyword
 	else:
 		errs.append("%s: 'keywords' must be an array of resource keywords" % where)
 		valid = false
-	var weight: Variant = as_int(raw.get("weight"))
+	var weight: Variant = Fields.as_int(raw.get("weight"))
 	if typeof(weight) != TYPE_INT or weight < 1:
 		errs.append("%s: 'weight' must be an integer >= 1" % where)
 		valid = false
@@ -482,12 +473,12 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 			continue
 		var valid := true
 		for field in ["price", "count"]:
-			var n: Variant = as_int(entry.get(field))
+			var n: Variant = Fields.as_int(entry.get(field))
 			if typeof(n) != TYPE_INT or n < 1:
 				errs.append("supply: '%s': '%s' must be an integer >= 1" % [id, field])
 				valid = false
 		if valid:
-			out[id] = {"price": as_int(entry.price), "count": as_int(entry.count)}
+			out[id] = {"price": Fields.as_int(entry.price), "count": Fields.as_int(entry.count)}
 	return out
 
 
@@ -496,7 +487,7 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, required: String, errs: Array[String]) -> Dictionary:
 	var out := {}
 	for id in deck:
-		var n: Variant = as_int(deck[id])
+		var n: Variant = Fields.as_int(deck[id])
 		if not cards.has(id):
 			errs.append("%s: unknown card '%s'" % [field, id])
 		elif required != "" and cards[id].type != required:

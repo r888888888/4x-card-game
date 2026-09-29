@@ -10,7 +10,7 @@ func fields() -> Array[String]:
 
 
 func configure(data: Dictionary, _ctx: Dictionary, errors: Array[String]) -> void:
-	card_id = read_string(data, "card", errors)
+	card_id = Fields.read_string(data, "card", errors)
 
 
 func apply(engine: GameEngine, source: CardInstance) -> void:
