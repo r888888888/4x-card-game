@@ -2,7 +2,7 @@
 id: 046
 title: Table-driven loader validation tests
 type: feature
-status: review
+status: done
 branch: feat/046-table-driven-loader-tests
 ---
 
