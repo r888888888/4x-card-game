@@ -48,8 +48,11 @@ res://
   autoload/game.gd       # "Game" singleton: loads data, owns the engine
   autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
-  ui/                    # main.tscn/main.gd (layout built in code), card_view.gd, anim.gd (animation tuning),
-                         # icons.gd (text glyphs → icon images in cards and the log)
+  ui/                    # main.tscn/main.gd (MainScreen: card views, refresh, layout built in code), card_view.gd,
+                         # anim.gd (animation tuning), icons.gd (text glyphs → icon images in cards and the log),
+                         # ui_kit.gd (shared styles, labels, overlays, tokens); components: top_bar.gd, side_panel.gd,
+                         # tableau_view.gd, choice_overlays.gd, supply_screen.gd, game_menu.gd, game_over_overlay.gd,
+                         # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot), sim_stats.gd (SimStats: per-seed metrics), run.gd (CLI)
