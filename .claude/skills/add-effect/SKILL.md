@@ -17,7 +17,8 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
    - if the op refers to cards, resources, or zones, unknown names are errors.
 2. **Rules tests** in `tests/test_rules.gd` (or `tests/test_effects.gd` if you're adding several):
    - add a card that uses the op to `TEST_CARDS` in `tests/lib/test_case.gd`;
-   - test the effect on `play` and, if it makes sense, on `upkeep`;
+   - test the effect on `play`; if it may trigger on `upkeep`, test that too, and add it to `UPKEEP_SAFE`
+     in `tests/test_forecast.gd` (otherwise to `UPKEEP_UNSAFE`, which expects the "only works on play" error);
    - test edge cases: zero or empty sources, not enough cards, interaction with reshuffle;
    - test the generated text: `cards[id].rules_text(cards)` (short, on the card) and
      `cards[id].rules_tooltip(cards)` (full wording, on hover) equal the expected strings.
@@ -35,7 +36,10 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
      helper to `game_engine.gd` under "Helpers called by effects" if none fits;
    - `describe()` returns short rules text, without the trigger prefix; override `describe_long()`
      if the tooltip needs fuller wording (it defaults to `describe()`);
-   - `referenced_cards()` if the op names other cards.
+   - `referenced_cards()` if the op names other cards;
+   - `upkeep_ok()` returns `true` only if the op changes nothing but resources, bonus score and pop:
+     `upkeep_forecast` runs upkeep effects for real and restores only those. Ops that move or make cards,
+     use the RNG or open a choice keep the default `false`, and the loader rejects them on `upkeep`.
 4. Register the op in `EffectRegistry.OPS` (`engine/effect_registry.gd`).
 5. Run `scripts/test.sh`. It re-imports automatically, so the new script is picked up.
 

@@ -81,7 +81,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   ]
 }
 ```
-- `trigger` is `play` (default), `upkeep`, or later `event`.
+- `trigger` is `play` (default), `upkeep`, or later `event`. Only `gain`, `gain_per_tag`, `score` and `grow` may use
+  `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
 - Conditional or compound effects nest naturally, e.g. `{ "op": "if", "cond": {...}, "then": [...] }`.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
@@ -115,7 +116,8 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the shortfall would kill); `{}` on the last turn or after game over.
-It runs the upkeep effects on a snapshot (quietly) and restores it. The top bar shows it as "Food: 2 (+1)",
+It runs the upkeep effects quietly and restores resources, bonus score and pop, which is all an upkeep effect may
+change (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
 with the food stat in the warning color when pop would starve.
 
 ## Territories (Milestone 2 — in design)

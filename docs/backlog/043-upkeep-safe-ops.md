@@ -2,7 +2,7 @@
 id: 043
 title: Only forecast-safe ops may trigger on upkeep
 type: feature
-status: in-progress
+status: review
 branch: feat/043-upkeep-safe-ops
 ---
 
@@ -12,16 +12,16 @@ An upkeep effect that moves cards, makes cards or uses the RNG would change the 
 refreshes. Nothing in the data does this today, but nothing stops it either. The loader should reject it.
 
 ## Acceptance criteria
-- [ ] AC1: Given a building with `{"op": "draw", "amount": 1, "trigger": "upkeep"}`, when the cards load, then there
+- [x] AC1: Given a building with `{"op": "draw", "amount": 1, "trigger": "upkeep"}`, when the cards load, then there
   is an error naming the file, card, effect and field: `cards.json: card 'x': effects[0]: 'draw' only works on
   play (got trigger 'upkeep')`, and the card is not in the result. The same holds for `create`, `explore`,
   `settle`, `add_era` and `research` (research's current message already has this form).
-- [ ] AC2: Given a building with each of `gain`, `gain_per_tag`, `score` and `grow` on `upkeep`, when the cards
+- [x] AC2: Given a building with each of `gain`, `gain_per_tag`, `score` and `grow` on `upkeep`, when the cards
   load, then there are no errors or warnings.
-- [ ] AC3: Given population on, Homeland with pop 2 (so neither building is idle) and housing 7, and a Temple (score +1 at upkeep) and a Granary
+- [x] AC3: Given population on, Homeland with pop 2 (so neither building is idle) and housing 7, and a Temple (score +1 at upkeep) and a Granary
   (grow +1 here at upkeep) on it, when `upkeep_forecast()` is called, then `score()`, the Homeland's pop, every
   zone's uids and the log are the same afterwards as before.
-- [ ] AC4: Given the shipped data, then it still loads with no errors or warnings.
+- [x] AC4: Given the shipped data, then it still loads with no errors or warnings.
 
 ## Out of scope
 - A full `GameState` copy for the forecast (a later refactor; it would let any op run at upkeep).
@@ -45,3 +45,6 @@ refreshes. Nothing in the data does this today, but nothing stops it either. The
 ## Log
 - 2026-09-29: Approved by the user ("do 043"). Red: AC1 fails for draw, create, explore, settle and add_era (no
   error today); research already passes. AC2–AC4 pass already: they pin current behavior that the change must keep.
+- 2026-09-29: Green: `Effect.upkeep_ok()` (default false; true on gain, gain_per_tag, score, grow), checked once in
+  `EffectRegistry.create`; research's own check removed. Suite 377 → 381. Docs: add-effect skill, CLAUDE.md,
+  PLAN.md (card data format, forecast).
