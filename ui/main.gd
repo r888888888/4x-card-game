@@ -15,6 +15,9 @@ const PANEL_COLOR := Color("171a1e")  # log panel background
 const ACCENT := Color("e8c547")  # the main action's button (End turn)
 const FOOD_COLOR := Color("ffd966")  # the top bar's food stat; WARN_COLOR when pop would starve
 
+## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
+var quit_hook := func(): get_tree().quit()
+
 var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
@@ -24,7 +27,7 @@ var _piles_label: Label
 var _seed_label: Label  # "Seed 4242" in the top bar
 var _seed_edit: LineEdit  # in the menu
 var _menu_button: Button  # "Menu (Esc)" in the top bar
-var _menu_overlay: Control  # the menu: seed, Restart, New game, Reduce motion, Close
+var _menu_overlay: Control  # the menu: seed, Restart, New game, Reduce motion, Close, Exit
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _tableau: HFlowContainer  # holds one group per territory, then the ghost
@@ -209,6 +212,22 @@ func event_panel() -> Dictionary:
 			if view.slot == slot:
 				views.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
 	return {"visible": _events_section.visible, "info": _event_info.text, "tooltip": _event_info.tooltip_text, "views": views}
+
+
+## Test hook (067): the menu's buttons, in order.
+func menu_buttons() -> Array[Button]:
+	return _buttons_in(_menu_overlay)
+
+
+## Test hook (067): the game-over overlay's buttons, in order.
+func game_over_buttons() -> Array[Button]:
+	return _buttons_in(_game_over_overlay)
+
+
+func _buttons_in(overlay: Control) -> Array[Button]:
+	var buttons: Array[Button] = []
+	buttons.assign(overlay.find_children("*", "Button", true, false))
+	return buttons
 
 
 ## Menu Restart: the seed in the field, or a random one if it isn't a whole number.
@@ -1127,7 +1146,7 @@ func _build_layout() -> void:
 	_seed_label = _heading("")
 	bar.add_child(_seed_label)
 	_menu_button = _button("Menu (Esc)", _open_menu)
-	_menu_button.tooltip_text = "New game, restart with a seed, reduce motion."
+	_menu_button.tooltip_text = "New game, restart with a seed, reduce motion, exit."
 	bar.add_child(_menu_button)
 
 	# Body: play area on the left, log + end turn on the right.
@@ -1382,9 +1401,13 @@ func _build_menu() -> void:
 	_motion_toggle.toggled.connect(Settings.set_reduce_motion)
 	box.add_child(_motion_toggle)
 	box.add_child(HSeparator.new())
-	box.add_child(_button("Close (Esc)", _close_menu))
+	var close := _button("Close (Esc)", _close_menu)
+	box.add_child(close)
+	var exit := _button("Exit", func(): quit_hook.call())
+	exit.tooltip_text = "Quit the game. It isn't saved."
+	box.add_child(exit)
 	# Keep keyboard focus inside the menu: Tab/Shift+Tab and Up/Down wrap around its controls.
-	var controls: Array[Control] = [_seed_edit, restart, new_game, _motion_toggle, box.get_child(-1)]
+	var controls: Array[Control] = [_seed_edit, restart, new_game, _motion_toggle, close, exit]
 	for i in controls.size():
 		var here := controls[i]
 		var next := controls[(i + 1) % controls.size()]
