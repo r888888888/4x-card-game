@@ -75,7 +75,7 @@ Ask in plain language:
 | Engine rules, effects, turn loop, scoring | Yes |
 | Loader validation (new fields, new error messages) | Yes |
 | New effect op | Yes (see the `add-effect` skill) |
-| Card/config balance numbers in `data/` | No new test; `test_real_data_loads` must stay green |
+| Card/config balance numbers in `data/` | No new test; the suite must stay green; compare with `main` via the `balance` skill (`scripts/sim.sh`) |
 | UI layout / visuals | No automated test; logic moves to the engine (tested) + manual checklist |
 | Docs, comments, pure renames | No |
 

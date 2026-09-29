@@ -31,6 +31,12 @@ from the effects, so it always matches the numbers: a short form on the card, th
 full wording on hover. If the data has a mistake, the
 game shows every error (file, card, field) instead of starting.
 
+To see what an edit does to balance, run the headless simulator (a scripted bot plays one game per seed):
+```bash
+scripts/sim.sh 20          # mean / min / max of score, cities, pop, techs, supply buys, era over seeds 1-20
+```
+In Claude Code, `/balance` runs it on `main` and on your changes and compares them.
+
 ## Tests
 ```bash
 scripts/test.sh            # all tests

@@ -4,7 +4,9 @@
       "Bash(scripts/test.sh)",
       "Bash(scripts/test.sh *)",
       "Bash(godot --headless --path . --import)",
-      "Bash(godot --headless --path . --script res://tests/run_tests.gd *)"
+      "Bash(godot --headless --path . --script res://tests/run_tests.gd *)",
+      "Bash(scripts/sim.sh)",
+      "Bash(scripts/sim.sh *)"
     ]
   },
   "hooks": {
