@@ -35,6 +35,7 @@ static func new_game(e: GameEngine, p_seed: int) -> void:
 			e.zone("research_deck" if tech.def.era == 1 else "future_techs").add(tech)
 	if not research_deck.is_empty():
 		e.rng.shuffle(research_deck.cards)
+	Events.setup(e)
 	var home: CardInstance = null
 	if e.config.starting.territory != "":
 		home = Territories.make(e, e.config.starting.territory)
@@ -73,7 +74,7 @@ static func discard_card(e: GameEngine, uid: int) -> bool:
 static func end_turn(e: GameEngine) -> void:
 	if e.end_turn_error() != "":
 		return
-	e._event_phase()
+	Events.draw(e)
 	if e.turn < e.turn_limit():
 		var over: int = e.zone("hand").size() - e.config.hand_limit
 		if over > 0:
@@ -109,8 +110,10 @@ static func start_turn(e: GameEngine) -> void:
 	e.draw(maxi(0, e.config.hand_size - e.zone("hand").size()))
 
 
-## Resolves "upkeep" on every working card: tableau cards that aren't idle, and researched techs.
+## Resolves "upkeep" on every working card: tableau cards that aren't idle, researched techs, then active
+## events (which may end).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var working := e.zone("tableau").cards.filter(func(c): return not e.is_idle(c.uid)) + e.zone("researched").cards
 	for card in working:
 		e._resolve(card, "upkeep")
+	Events.resolve_upkeep(e)

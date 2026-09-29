@@ -7,7 +7,8 @@ const BUILDING := "building"  # stays in the tableau on a territory slot
 const CITY := "city"  # stays in the tableau; one per territory
 const TERRITORY := "territory"  # from the territory deck; holds a city, buildings and pop
 const TECH := "tech"  # from the research deck; bought with wealth, never in the main deck
-const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH]
+const EVENT := "event"  # from the event deck; drawn each event phase, active until its discard condition
+const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT]
 
 var id: String = ""
 var name: String = ""
@@ -23,6 +24,7 @@ var requires: Array[String] = []  # buildings: the territory needs any of these 
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
 var prereq: String = ""  # techs: id of the tech that makes this one cheaper when researched
 var prereq_discount := 2  # techs: wealth off when prereq is researched
+var discard_turns := 1  # events: upkeeps the event stays active for
 var text: String = ""  # optional override; otherwise generated from effects
 
 
@@ -69,6 +71,8 @@ func rules_text(card_db: Dictionary) -> String:
 		prev = e
 	if prereq != "":
 		parts.append("-%d wealth with %s" % [prereq_discount, card_db[prereq].name])
+	if type == EVENT:
+		parts.append(lasts_text())
 	return "\n".join(parts)
 
 
@@ -97,6 +101,11 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
 	return "\n".join(parts)
+
+
+## How long an event stays active: "Lasts 1 turn" / "Lasts 2 turns".
+func lasts_text() -> String:
+	return "Lasts %d turn%s" % [discard_turns, "" if discard_turns == 1 else "s"]
 
 
 ## Keyword ids for display, joined by " or " ("fresh_water" -> "Fresh Water").

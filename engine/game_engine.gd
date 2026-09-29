@@ -7,7 +7,7 @@ extends RefCounted
 ##
 ## The state lives in a GameState (state); the public vars below read and write it. The rules live in modules
 ## of static functions that the methods here call: TurnLoop, CardPlay, Population, Research, Supply and
-## Territories. The modules may call the engine's _ helpers (_log, _resolve, _make_card, _blocked_error).
+## Territories, and Events. The modules may call the engine's _ helpers (_log, _resolve, _make_card, _blocked_error).
 
 ## The two built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings,
 ## techs and the supply. The config may list more resources; only these two have rules attached.
@@ -25,7 +25,7 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
@@ -185,6 +185,11 @@ func upkeep_forecast() -> Dictionary:
 	forecast[FOOD] = forecast.get(FOOD, 0) - need
 	forecast.starve = maxi(need - f.resources.get(FOOD, 0), 0)
 	return forecast
+
+
+## Upkeeps left for active event uid before it is discarded (0 if uid isn't an active event).
+func event_turns_left(uid: int) -> int:
+	return Events.turns_left(self, uid)
 
 
 ## The pop and wealth thresholds that add an era at the start of a turn: {era: {pop?, wealth?}}.
@@ -462,10 +467,6 @@ func _blocked_error(action: String) -> String:
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""
-
-
-func _event_phase() -> void:
-	pass  # Threat design deferred: the event/barbarian deck will resolve here.
 
 
 ## Applies card's effects for trigger. A keyword effect applies only if the card's territory has it.
