@@ -29,6 +29,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 |---|---|
 | `tests/test_content.gd` | The real data: invariants (every keyword used, every cost has a source, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
 | `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole `ScriptedBot` game: no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
+| `tests/test_event_panel.gd` | The event panel in the real `main.tscn`: event views match `active_events`, turns left, the event pile counts, hidden without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
@@ -51,7 +52,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
-| `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per end turn, active events' upkeep and discard, reshuffling; fixture `EVENTS` |
+| `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per end turn, active events' upkeep and discard, reshuffling |
 | `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, playing Research (`play_research` helper) / `buy_tech` / `decline_research`, blocking, no charges |
 | `tests/test_tech_passes.gd` | Tech passes, stacking discount, removal to `lost_techs`, `prereq` discount, cost floor, prerequisite card text |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
@@ -101,6 +102,8 @@ UI tests see structure (views, labels, overlays), never finished animations.
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
 | `play_research(engine)` | Puts a Research card (`study`) in hand and plays it, revealing techs (backlog 034) |
+| `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
+| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
 writing one. Tests never call engine members that start with `_`: if setup needs one, add a public method.

@@ -2,7 +2,7 @@
 id: 068
 title: Event panel — active events and the event deck on screen
 type: feature
-status: in-progress
+status: review
 branch: feat/068-event-panel
 ---
 
@@ -12,16 +12,16 @@ each lasts, and what's left in the event deck, so events can be followed at a gl
 content (069).
 
 ## Acceptance criteria
-- [ ] AC1 (active events row): Given a game whose config has an event deck, after every turn of a `ScriptedBot` game,
+- [x] AC1 (active events row): Given a game whose config has an event deck, after every turn of a `ScriptedBot` game,
   the Events row shows one card view per card in `active_events`, in the same order (test hook
   `event_view_ids()` equals the ids in `active_events`).
-- [ ] AC2 (turns left): Each event view shows "1 turn left" / "2 turns left" from `event_turns_left(uid)`. With
+- [x] AC2 (turns left): Each event view shows "1 turn left" / "2 turns left" from `event_turns_left(uid)`. With
   Trade Winds (2 turns) drawn at the end of turn 1, its view says "1 turn left" during turn 2 (hook
   `event_view_text(uid)` contains it).
-- [ ] AC3 (event info): An event info label reads "Events: deck N · discard M" from the `event_deck` and
+- [x] AC3 (event info): An event info label reads "Events: deck N · discard M" from the `event_deck` and
   `event_discard` sizes (hook `event_info_text()`). Its tooltip explains that one event is drawn at the end of
   each turn.
-- [ ] AC4 (no events): With no `event_deck` in the config (the current real data), the Events row and the event
+- [x] AC4 (no events): With no `event_deck` in the config (the current real data), the Events row and the event
   info label are hidden, and the existing UI smoke test still passes.
 
 ## Out of scope
@@ -37,7 +37,7 @@ content (069).
   `Game.new_game_with(cards, config, seed)`, using `TEST_CARDS` plus the 039 fixture events).
 - Placement follows 053's layout (side column, next to the research info). Build after 052 (split `ui/main.gd`)
   and 053 (board tidy), which both rework `ui/main.gd`.
-- Drawing an event flies its card into the row (off with Reduce motion); ending moves it out.
+- Drawing an event pops its card into the row; ending flies it to the event info label.
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
@@ -49,10 +49,14 @@ content (069).
 | AC4 | `test_event_panel::test_event_panel_is_hidden_without_an_event_deck`, and the existing `test_ui_smoke` tests |
 
 ## Manual check
-- [ ] With fixture or 069 events: end turn 1; the drawn event flies into the Events row with "1 turn left".
-- [ ] The event info label counts down the deck and shows the discard; its tooltip reads well.
-- [ ] A 1-turn event leaves the row at the next upkeep; Reduce motion turns the fly-in off.
-- [ ] With the current data (no events), nothing about events shows.
+The real data has no events until 069. To try it now, add a throwaway event to `data/cards.json`
+(`{"id": "omen", "name": "Omen", "type": "event", "discard": {"turns": 2}}`) and `"event_deck": {"omen": 2}` to
+`data/config.json`, run `godot --path .`, and revert both files afterwards.
+- [ ] End turn 1: Omen pops into the Events row (below Researched) with "1 turn left"; its card is coloured and
+  marked ❖ as an event.
+- [ ] The label under the research info reads "Events: deck 1 · discard 0"; its tooltip explains the draw.
+- [ ] End turn 2: the first Omen flies to the label as it ends ("discard 1"), and the second one pops in.
+- [ ] With the unchanged data (no events), no Events row or label shows.
 
 ## Log
 - Red: one test hook, `main.event_panel()` -> {visible, info, tooltip, views: [{uid, id, text}]}, instead of one per
@@ -60,3 +64,8 @@ content (069).
   before opening main and put the real one back (`with_event_engine`). `open_main`, `close_main`, `play_seed_1`
   moved from `test_ui_smoke.gd` to `test_case.gd`, and the fixture events to `TEST_EVENTS` there, since two files
   use them now.
+- Green: the panel test's fixture deck changed from farm + scout to farm + caravan (approved): TEST_CARDS' `scout`
+  only draws, so the bot replayed Scouts from the discard forever on turn 1 and the per-turn check never ran.
+- Built: `ui/main.gd` (Events section, `_event_info` label, `event_panel()` hook, ending events fly to the label),
+  `ui/card_view.gd` (event colour and ❖ mark, `set_event_info`, `_set_info_label` shared with techs). No engine change.
+- Follow-up: an icon for the ❖ event mark in `ui/icons.gd` (techs' ✦ has none either).
