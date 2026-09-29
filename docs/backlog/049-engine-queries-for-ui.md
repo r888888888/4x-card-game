@@ -2,7 +2,7 @@
 id: 049
 title: Engine queries for the rules the UI works out itself
 type: feature
-status: review
+status: done
 branch: feat/049-engine-queries-for-ui
 ---
 
