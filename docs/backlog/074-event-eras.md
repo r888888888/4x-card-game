@@ -17,16 +17,16 @@ when the game reaches era 2 the harsher era-2 events join the event deck.
   zone.
 - [ ] AC3 (era added): When era 2 is added (the `add_era` op, the empty research deck or an `era_unlocks`
   threshold), the era-2 events are shuffled into `event_deck` with the engine rng, once. Events already active or
-  in `event_discard` stay where they are.
+  in `event_discard` stay where they are, and the era-1 events stay in `event_deck`.
 - [ ] AC4 (panel): the event info label's tooltip says how many events wait for a later era.
 
 ## Out of scope
-- Removing easier events when an era is added (open question below).
+- Removing easier events when an era is added (they stay; see Design notes).
 - The era-2 event content itself.
 
 ## Design notes
 - Reuse the research deck's era handling (`Research.add_era`, `future_techs`) rather than a second copy of it.
-- Open question: when era 2 arrives, should the era-1 events leave the deck, stay, or be diluted? The draft keeps them.
+- Decided: when era 2 arrives, the era-1 events stay in the deck; the era-2 events are added to them.
 - Depends on 072 (harmful ops), since escalation only matters once events can hurt.
 
 ## Test plan
@@ -37,3 +37,4 @@ when the game reaches era 2 the harsher era-2 events join the event deck.
 
 ## Log
 - From 039's follow-ups.
+- Decided: era-1 events stay when later eras are added.
