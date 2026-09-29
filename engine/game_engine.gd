@@ -5,8 +5,9 @@ extends RefCounted
 ##
 ## Turn loop: upkeep -> draw -> play (player) -> event -> cleanup.
 ##
-## The state lives in a GameState (state); the public vars below read and write it. Population, Research,
-## Supply and Territories hold those subsystems' rules as static functions; the methods here call them.
+## The state lives in a GameState (state); the public vars below read and write it. The rules live in modules
+## of static functions that the methods here call: TurnLoop, CardPlay, Population, Research, Supply and
+## Territories. The modules may call the engine's _ helpers (_log, _resolve, _make_card, _blocked_error).
 
 ## The two built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings,
 ## techs and the supply. The config may list more resources; only these two have rules attached.
@@ -176,7 +177,7 @@ func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
 		return {}
 	var f := fork()
-	f._resolve_upkeep()
+	TurnLoop.resolve_upkeep(f)
 	var forecast := {}
 	for r in resources:
 		forecast[r] = f.resources[r] - resources[r]
@@ -250,51 +251,13 @@ func playable_error(uid: int) -> String:
 
 ## Why the card can't be played right now, or "" if it can.
 func play_error(uid: int, target_uid := -1) -> String:
-	var busy := _blocked_error("play")
-	if busy != "":
-		return busy
-	var card := zone("hand").find(uid)
-	if card == null:
-		return "That card is not in your hand."
-	for r in card.def.cost:
-		var need: int = card.def.cost[r]
-		var have: int = resources.get(r, 0)
-		if have < need:
-			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
-	for effect in card.def.effects:
-		if effect.trigger == "play":
-			var blocked := effect.play_block_error(self)
-			if blocked != "":
-				return blocked
-	if not _needs_target(card):
-		return ""
-	var targets := valid_targets(uid)
-	if target_uid != -1:
-		if targets.has(target_uid):
-			return ""
-		var target := zone("tableau").find(target_uid)
-		if _is_building(card) and target != null and target.def.type == CardDef.TERRITORY and not Territories.meets_requires(card, target):
-			return Territories.requires_error(card)
-		return "That target isn't valid."
-	if targets.is_empty():
-		return Territories.no_building_target_error(self, card) if _is_building(card) else _target_effect(card).no_target_error()
-	if targets.size() > 1:
-		return "Choose a territory for %s." % card.def.name if _is_building(card) else _target_effect(card).choose_target_error()
-	return ""
+	return CardPlay.error(self, uid, target_uid)
 
 
 ## The uids hand card uid can be played on; [] if it needs no target. A building's targets are the
 ## settled territories with a free slot; a targeting effect's are the cards in its target zone.
 func valid_targets(uid: int) -> Array[int]:
-	var out: Array[int] = []
-	var card := zone("hand").find(uid)
-	if card == null or not _needs_target(card):
-		return out
-	if _is_building(card):
-		return Territories.building_targets(self, card)
-	for target in zone(_target_effect(card).target_zone()).cards:
-		out.append(target.uid)
-	return out
+	return CardPlay.targets_of(self, uid)
 
 
 ## Building slots on settled territory territory_uid: its own plus the `slots` of cities on it
@@ -321,7 +284,7 @@ func is_idle(uid: int) -> bool:
 
 func needs_target(uid: int) -> bool:
 	var card := zone("hand").find(uid)
-	return card != null and _needs_target(card)
+	return card != null and CardPlay.needs_target(card)
 
 
 ## The settled territory card sits on, or null.
@@ -355,85 +318,14 @@ func supply_error() -> String:
 # --- Actions ---
 
 func new_game(p_seed: int) -> void:
-	state = GameState.new()
-	seed_value = p_seed
-	rng = SeededRng.new(p_seed)
-	for z in ZONES:
-		zones[z] = Zone.new(z)
-	for r in config.resources:
-		resources[r] = 0
-	for r in config.starting.resources:
-		resources[r] = config.starting.resources[r]
-	for id in config.get("supply", {}):
-		state.supply[id] = config.supply[id].count
-
-	var deck := zone("deck")
-	for id in config.deck:
-		for i in config.deck[id]:
-			deck.add(_make_card(id))
-	rng.shuffle(deck.cards)
-	var territory_deck := zone("territory_deck")
-	for id in config.territory_deck:
-		for i in config.territory_deck[id]:
-			territory_deck.add(Territories.make(self, id))
-	rng.shuffle(territory_deck.cards)
-	var research_deck := zone("research_deck")
-	for id in config.research_deck:
-		for i in config.research_deck[id]:
-			var tech := _make_card(id)
-			zone("research_deck" if tech.def.era == 1 else "future_techs").add(tech)
-	if not research_deck.is_empty():
-		rng.shuffle(research_deck.cards)
-	var home: CardInstance = null
-	if config.starting.territory != "":
-		home = Territories.make(self, config.starting.territory)
-		if population_on():
-			home.pop = config.population.start
-		zone("tableau").add(home)
-	for id in config.starting.tableau:
-		var card := _make_card(id)
-		if home != null:
-			card.territory_uid = home.uid
-		zone("tableau").add(card)
-
-	_log("New game — seed %d, %d cards in deck." % [p_seed, deck.size()])
-	_start_turn()
-	changed.emit()
+	TurnLoop.new_game(self, p_seed)
 
 
 ## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects on
 ## target_uid, then emits card_played with what happened. A card that needs a target and has only
 ## one valid target uses it when target_uid is -1; a card that needs none ignores target_uid.
 func play_card(uid: int, target_uid := -1) -> bool:
-	if play_error(uid, target_uid) != "":
-		return false
-	var target := -1
-	if needs_target(uid):
-		target = target_uid if target_uid != -1 else valid_targets(uid)[0]
-	var hand := zone("hand")
-	var card := hand.find(uid)
-	hand.remove(card)
-	var permanent := card.def.is_permanent()
-	_outcome = _new_outcome(uid, "tableau" if permanent else "discard", target)
-	play_target = target
-	for r in card.def.cost:
-		resources[r] -= card.def.cost[r]
-		if card.def.cost[r] > 0:
-			_outcome.paid[r] = card.def.cost[r]
-	_log("Played %s." % card.def.name)
-	if permanent:
-		if _is_building(card):
-			card.territory_uid = target
-		zone("tableau").add(card)
-	_resolve(card, "play")
-	if not permanent:
-		zone("discard").add(card)
-	var outcome := _outcome
-	_outcome = {}
-	play_target = -1
-	card_played.emit(outcome)
-	changed.emit()
-	return true
+	return CardPlay.play(self, uid, target_uid)
 
 
 ## Resolves the pending choice: keeps territory uid in the frontier and puts the other revealed
@@ -471,37 +363,13 @@ func decline_research() -> bool:
 ## pending this counts toward it, and the turn ends once the hand is down to the limit. False (and no
 ## change) if the game is over, a choice is pending, or the card isn't in hand.
 func discard_card(uid: int) -> bool:
-	if _blocked_error("discard") != "":
-		return false
-	var card := zone("hand").find(uid)
-	if card == null:
-		return false
-	zone("hand").remove(card)
-	zone("discard").add(card)
-	_log("Discarded %s." % card.def.name)
-	if state.discard_left > 0:
-		state.discard_left -= 1
-		if state.discard_left == 0:
-			_finish_turn()  # emits changed
-			return true
-	changed.emit()
-	return true
+	return TurnLoop.discard_card(self, uid)
 
 
 ## Ends the turn. Over the hand limit, waits for discard_card calls instead (not on the last turn).
 ## Does nothing if end_turn_error says no.
 func end_turn() -> void:
-	if end_turn_error() != "":
-		return
-	_event_phase()
-	if turn < turn_limit():
-		var over: int = zone("hand").size() - config.hand_limit
-		if over > 0:
-			state.discard_left = over
-			_log("Hand limit is %d: discard %d." % [config.hand_limit, over])
-			changed.emit()
-			return
-	_finish_turn()
+	TurnLoop.end_turn(self)
 
 
 # --- Helpers called by effects ---
@@ -581,21 +449,6 @@ func add_score(amount: int, source: CardInstance) -> void:
 
 # --- Internals (the modules call these too) ---
 
-func _finish_turn() -> void:
-	if turn >= turn_limit():
-		is_over = true
-		var discard := zone("discard")
-		for card in zone("hand").take_all():
-			discard.add(card)
-		var final_score := score()
-		_log("Game over after %d turns. Final score: %d." % [turn, final_score])
-		changed.emit()
-		game_over.emit(final_score)
-		return
-	_start_turn()
-	changed.emit()
-
-
 ## Why action ("play", "grow", "buy", "end_turn", "supply", "discard") is blocked by the game being over
 ## or by a pending() decision, or "". Only discarding and browsing the supply go on while a discard is owed.
 func _blocked_error(action: String) -> String:
@@ -611,23 +464,6 @@ func _blocked_error(action: String) -> String:
 	return ""
 
 
-func _start_turn() -> void:
-	turn += 1
-	_log("— Turn %d —" % turn)
-	_resolve_upkeep()
-	if population_on():
-		Population.feed(self)
-	Research.check_era_unlocks(self)
-	draw(maxi(0, config.hand_size - zone("hand").size()))
-
-
-## Resolves "upkeep" on every working card: tableau cards that aren't idle, and researched techs.
-func _resolve_upkeep() -> void:
-	var working := zone("tableau").cards.filter(func(c): return not is_idle(c.uid)) + zone("researched").cards
-	for card in working:
-		_resolve(card, "upkeep")
-
-
 func _event_phase() -> void:
 	pass  # Threat design deferred: the event/barbarian deck will resolve here.
 
@@ -638,29 +474,6 @@ func _resolve(card: CardInstance, trigger: String) -> void:
 	for e in card.def.effects_for(trigger):
 		if e.keyword == "" or (territory != null and territory.keywords.has(e.keyword)):
 			e.apply(self, card)
-
-
-func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
-	var drawn: Array[int] = []
-	var created: Array[int] = []
-	return {"uid": uid, "to_zone": to_zone, "target": target, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
-
-
-func _is_building(card: CardInstance) -> bool:
-	return card.def.type == CardDef.BUILDING
-
-
-## Buildings target a territory; other cards need a target if a "play" effect does.
-func _needs_target(card: CardInstance) -> bool:
-	return _is_building(card) or _target_effect(card) != null
-
-
-## The card's first "play" effect that needs a target, or null.
-func _target_effect(card: CardInstance) -> Effect:
-	for e in card.def.effects_for("play"):
-		if e.target_zone() != "":
-			return e
-	return null
 
 
 func _make_card(card_id: String) -> CardInstance:
