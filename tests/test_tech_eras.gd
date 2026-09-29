@@ -153,10 +153,9 @@ func test_an_empty_research_deck_adds_the_next_era() -> void:
 func test_an_empty_research_deck_with_no_eras_left_is_an_error() -> void:
 	var e := tech_engine(["pottery"])
 	e.zone("research_deck").take_all()
-	var card: CardInstance = e._make_card("study")
-	e.zone("hand").add(card)
-	eq(e.play_error(card.uid), "The research deck is empty.", "play_error")
-	check(not e.play_card(card.uid), "play_card should fail")
+	var card := put_in_hand(e, "study")
+	eq(e.play_error(card), "The research deck is empty.", "play_error")
+	check(not e.play_card(card), "play_card should fail")
 
 
 # --- AC5: era techs can't be lost ---

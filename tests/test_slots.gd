@@ -13,23 +13,10 @@ func slots_engine(settled: Array[String] = [], frontier: Array[String] = []) -> 
 		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "grassland"},
 		"territory_deck": counts,
 	})
-	var pool := e.zone("territory_deck").take_all()
-	for pair in [[settled, "tableau"], [frontier, "frontier"]]:
-		for id in pair[0]:
-			for c in pool:
-				if c.def.id == id:
-					pool.erase(c)
-					e.zone(pair[1]).add(c)
-					break
+	settle(e, settled)
+	to_frontier(e, frontier)
 	e.resources.food = 20
 	return e
-
-
-func uid_of(zone: Zone, id: String) -> int:
-	for c in zone.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 ## Plays two Farms onto Grassland (the only territory at that point).

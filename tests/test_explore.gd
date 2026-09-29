@@ -9,15 +9,7 @@ func explore_engine(ids_top_first: Array) -> GameEngine:
 	for id in ids_top_first:
 		counts[id] = counts.get(id, 0) + 1
 	var e := make_engine({"explorer": 10}, {"territory_deck": counts})
-	var cards := e.zone("territory_deck").cards
-	var ordered: Array[CardInstance] = []
-	for i in range(ids_top_first.size() - 1, -1, -1):  # bottom first: the top is the last element
-		for c in cards:
-			if c.def.id == ids_top_first[i] and not ordered.has(c):
-				ordered.append(c)
-				break
-	cards.assign(ordered)
-	eq(top_first(e.zone("territory_deck")), ids_top_first, "territory deck arranged")
+	arrange(e.zone("territory_deck"), ids_top_first)
 	return e
 
 
@@ -25,19 +17,6 @@ func top_first(zone: Zone) -> Array[String]:
 	var ids := card_ids(zone)
 	ids.reverse()
 	return ids
-
-
-func uid_of(zone: Zone, id: String) -> int:
-	for c in zone.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
-
-
-func sorted(a: Array) -> Array:
-	var out := a.duplicate()
-	out.sort()
-	return out
 
 
 ## Plays the first Explorer from [hills, grassland, jungle]; returns the engine with the choice pending.
@@ -143,3 +122,24 @@ func test_explore_empty_territory_deck_does_nothing() -> void:
 	eq(e.zone("reveal").size(), 0, "reveal empty")
 	eq(e.zone("frontier").size(), 0, "frontier empty")
 	eq(e.play_error(first_in_hand(e)), "", "play continues")
+
+
+# --- Loader: the explore op ---
+
+func test_explore_defaults_to_reveal_2() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "explore"}]}]}, resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	if cards.has("x"):
+		eq(cards.x.rules_tooltip(cards), "Explore: reveal 2 territories, keep 1", "card text")
+
+
+func test_explore_reveal_0_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "explore", "reveal": 0}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': effects[0]: 'reveal' must be an integer >= 1")

@@ -31,6 +31,9 @@ one maps directly to a test. Don't write code or tests in this skill.
    - For bugs, AC1 is the reproduction turned into the expected behavior, and it includes the seed
      when randomness matters.
    - Behavior you can only judge by eye goes under **Manual check**, not in the criteria.
+   - Content items (numbers in `data/*.json`): the criteria test rules with `TEST_CARDS` and invariants
+     of the real data (every keyword used, every cost has a source). Exact shipped numbers (slots, costs,
+     deck sizes) go under **Manual check** for review, never in a test criterion.
    - Note any data format change (new JSON fields, new ops) and new engine API under Design notes.
    - Leave **Test plan** for the `tdd` skill to fill in.
    - Keep items small: if it needs more than ~6 criteria or touches several systems, propose

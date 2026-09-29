@@ -126,11 +126,6 @@ func test_scripted_games_run_and_found_cities() -> void:
 	check(founded >= 9, "a City beyond the Capital was founded in %d of 20 seeds (need >= 9)" % founded)
 
 
-func test_real_config_turns_population_on() -> void:
-	var r := load_real()
-	check(not r.config.get("population", {}).is_empty(), "data/config.json has a population block (backlog 009)")
-
-
 func test_real_deck_has_growth_cards() -> void:
 	var r := load_real()
 	var counts: Dictionary = r.config.deck.duplicate()
@@ -175,10 +170,12 @@ func test_every_wealth_cost_has_a_wealth_source() -> void:
 	for id in r.config.deck.keys() + r.config.starting.tableau:
 		if makes_wealth(r.cards[id]):
 			sources.append(id)
-	for id in r.config.deck:
-		if r.cards[id].cost.get("wealth", 0) > 0:
-			check(not sources.is_empty(), "%s costs wealth but nothing in the deck or starting tableau makes it" % id)
-	check(true, "ran")  # the deck may have no wealth costs; the test above covers that
+	var unfunded_card_ids: Array[String] = []
+	if sources.is_empty():
+		for id in r.config.deck:
+			if r.cards[id].cost.get("wealth", 0) > 0:
+				unfunded_card_ids.append(id)
+	eq(unfunded_card_ids, [] as Array[String], "cards that cost wealth with nothing in the deck or starting tableau making it")
 
 
 func test_scripted_games_spend_wealth_and_never_go_negative() -> void:
@@ -298,44 +295,7 @@ func test_scripted_games_buy_techs_and_never_go_negative() -> void:
 	check(bought_in >= 1, "a tech was bought in %d of 3 seeds (need >= 1)" % bought_in)
 
 
-# --- Era unlock thresholds (backlog 029) ---
-
-func test_real_config_sets_an_era_2_threshold() -> void:
-	var r := load_real()
-	var unlocks: Dictionary = r.config.get("era_unlocks", {})
-	check(unlocks.has(2), "era_unlocks has era 2: %s" % [unlocks])
-	if unlocks.has(2):
-		check(unlocks[2].has("pop") or unlocks[2].has("wealth"), "era 2 has a pop or wealth threshold")
-
-
-func test_capital_adds_4_building_slots() -> void:
-	var r := load_real()
-	eq(r.cards.capital.slots, 4, "Capital slots")
-
-
 # --- Supply (backlog 032) ---
-
-func test_real_research_card_starts_in_the_deck_and_is_sold() -> void:
-	var r := load_real()
-	check(r.cards.has("research"), "a research card exists")
-	if not r.cards.has("research"):
-		return
-	var card: CardDef = r.cards.research
-	eq([card.name, card.type, card.cost, card.vp], ["Research", "action", {}, 0], "name, type, cost, vp")
-	eq(card.effects.map(func(e): return e.op), ["research"], "effects")
-	eq(r.config.deck.get("research", 0), 1, "one Research card in the deck")
-	var total := 0
-	for id in r.config.deck:
-		total += r.config.deck[id]
-	eq(total, 23, "starting deck size")
-	var supply: Dictionary = r.config.get("supply", {})
-	eq(supply.get("research", {}), {"price": 3, "count": 2}, "supply entry")
-
-
-func test_real_supply_sells_scouts() -> void:
-	var r := load_real()
-	check(r.config.get("supply", {}).has("scout"), "data/config.json supply has scout")
-
 
 func test_every_supply_card_also_starts_in_the_deck() -> void:
 	var r := load_real()
@@ -345,52 +305,7 @@ func test_every_supply_card_also_starts_in_the_deck() -> void:
 		check(r.config.deck.get(id, 0) >= 1, "%s is in the supply and still starts in the deck" % id)
 
 
-# --- Backlog 036: resources rolled per copy; iron is everywhere ---
-
-func test_real_hills_roll_gold_and_iron_is_gone() -> void:
-	var r := load_real()
-	check(not r.config.keywords.has("iron"), "iron is not a keyword")
-	eq(r.cards.highlands.keywords, ["mountain"] as Array[String], "Highlands prints mountain only")
-	eq(r.cards.forge.requires, [] as Array[String], "Forge has no requires")
-	check(r.config.get("resource_keywords", []).has("gold"), "gold is a resource keyword")
-	check(not r.cards.has("gold_hills"), "Gold Hills is removed")
-	eq(r.config.territory_deck.get("hills"), 2, "2 Hills in the territory deck")
-
-
-# --- Backlog 037: tin and copper ---
-
-## A territory_resources table as [[keywords, weight], ...] for easy comparison.
-func table_pairs(table: Array) -> Array:
-	var out: Array = []
-	for option in table:
-		out.append([Array(option.keywords), option.weight])
-	return out
-
-
-func test_real_resource_keywords_are_gold_tin_copper() -> void:
-	var r := load_real()
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.resource_keywords, ["gold", "tin", "copper"] as Array[String], "resource_keywords")
-
-
-func test_real_hills_and_highlands_roll_metals() -> void:
-	var r := load_real()
-	var tables: Dictionary = r.config.territory_resources
-	eq(table_pairs(tables.get("hills", [])), [[["gold"], 1], [["tin", "copper"], 1], [[], 2]], "Hills table")
-	eq(table_pairs(tables.get("highlands", [])), [[["tin"], 1], [["copper"], 1], [["tin", "copper"], 1], [[], 1]], "Highlands table")
-
-
-func test_real_forge_scores_on_copper_and_tin() -> void:
-	var r := load_real()
-	var forge: CardDef = r.cards.forge
-	eq(forge.cost, {"food": 2, "wealth": 2}, "Forge cost")
-	eq(forge.vp, 2, "Forge VP")
-	eq(forge.requires, [] as Array[String], "Forge requires")
-	var shapes: Array = []
-	for e in forge.effects:
-		shapes.append([e.op, e.get("amount"), e.trigger, e.keyword])
-	eq(shapes, [["score", 1, "upkeep", "copper"], ["score", 1, "upkeep", "tin"]], "Forge effects")
-
+# --- Rolled resources (036, 037) ---
 
 func test_every_resource_keyword_is_rolled_and_used() -> void:
 	var r := load_real()
@@ -418,37 +333,3 @@ func test_every_resource_keyword_is_rolled_and_used() -> void:
 			not_used.append(k)
 	eq(not_rolled, [] as Array[String], "resource keywords no territory in the deck rolls")
 	eq(not_used, [] as Array[String], "resource keywords no card uses")
-
-
-# --- Backlog 038: realistic territory slots and housing ---
-
-const TERRITORY_NUMBERS := {
-	"grassland": [3, 5], "plains": [3, 4], "river_valley": [2, 6], "lakeshore": [2, 5],
-	"floodplain_delta": [1, 6], "bay": [2, 4], "hills": [2, 3], "highlands": [1, 2],
-	"woodland": [2, 3], "rainforest": [1, 2], "dunes": [1, 2],
-}
-const TERRITORY_KEYWORDS := {
-	"grassland": ["grassland"], "plains": ["grassland"], "river_valley": ["fresh_water", "flood_plain"],
-	"lakeshore": ["fresh_water"], "floodplain_delta": ["fresh_water", "flood_plain", "coastal"],
-	"bay": ["coastal"], "hills": ["hills"], "highlands": ["mountain"], "woodland": ["forest"],
-	"rainforest": ["jungle"], "dunes": ["desert"],
-}
-
-
-func test_real_territory_slots_and_housing_follow_the_land() -> void:
-	var r := load_real()
-	eq(r.warnings, [] as Array[String], "warnings")
-	for id in TERRITORY_NUMBERS:
-		var def: CardDef = r.cards.get(id)
-		check(def != null, "territory '%s' exists" % id)
-		if def != null:
-			eq([def.slots, def.housing], TERRITORY_NUMBERS[id], "%s slots / housing" % id)
-
-
-func test_real_floodplain_delta_has_fresh_water_and_others_keep_keywords() -> void:
-	var r := load_real()
-	for id in TERRITORY_KEYWORDS:
-		var def: CardDef = r.cards.get(id)
-		check(def != null, "territory '%s' exists" % id)
-		if def != null:
-			eq(Array(def.keywords), TERRITORY_KEYWORDS[id], "%s keywords" % id)

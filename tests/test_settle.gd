@@ -9,22 +9,9 @@ func frontier_engine(ids: Array[String], deck := {"pioneer": 10}) -> GameEngine:
 	for id in ids:
 		counts[id] = counts.get(id, 0) + 1
 	var e := make_engine(deck, {"territory_deck": counts})
-	var pool := e.zone("territory_deck").take_all()
-	for id in ids:
-		for c in pool:
-			if c.def.id == id:
-				pool.erase(c)
-				e.zone("frontier").add(c)
-				break
+	to_frontier(e, ids)
 	eq(card_ids(e.zone("frontier")), ids, "frontier arranged")
 	return e
-
-
-func uid_of(zone: Zone, id: String) -> int:
-	for c in zone.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 func card_in(zone: Zone, id: String) -> CardInstance:
@@ -154,3 +141,36 @@ func test_outcome_target_for_untargeted_card() -> void:
 	eq(outcomes.size(), 1, "one outcome")
 	if outcomes.size() == 1:
 		eq(outcomes[0].get("target"), -1, "target")
+
+
+# --- Loader: the settle op ---
+
+const CITY := {"id": "city", "name": "City", "type": "city"}
+const FARM := {"id": "farm", "name": "Farm", "type": "building"}
+
+
+func test_settle_text() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": [CITY, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "city"}]}]}, resources(), "t", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	eq(warnings, [] as Array[String], "warnings")
+	if cards.has("x"):
+		eq(cards.x.rules_tooltip(cards), "Settle a discovered territory with a City", "card text")
+
+
+func test_settle_non_city_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [FARM, {"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "farm"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect: 'card' must be a city card (got 'farm')")
+
+
+func test_settle_unknown_card_is_error() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
+		"effects": [{"op": "settle", "card": "nowhere"}]}]}, resources(), "t", errors, warnings)
+	has_msg(errors, "card 'x': 'settle' effect refers to unknown card 'nowhere'")

@@ -13,17 +13,9 @@ func keyword_engine(deck_id: String, settled: Array[String], starting_territory 
 		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": starting_territory},
 		"territory_deck": counts,
 	})
-	for c in e.zone("territory_deck").take_all():
-		e.zone("tableau").add(c)
+	settle(e, settled)
 	e.resources.food = 20
 	return e
-
-
-func uid_of(zone: Zone, id: String) -> int:
-	for c in zone.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 func load_one(card: Dictionary, extra: Array = []) -> Dictionary:

@@ -6,7 +6,8 @@ extends "res://tests/lib/test_case.gd"
 const TECHS := [
 	{"id": "pottery", "name": "Pottery", "type": "tech", "cost": {"wealth": 2}, "vp": 1,
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
-	{"id": "writing", "name": "Writing", "type": "tech", "cost": {"wealth": 3}},
+	{"id": "writing", "name": "Writing", "type": "tech", "cost": {"wealth": 3},
+	 "effects": [{"op": "score", "amount": 2}]},
 	{"id": "bronze", "name": "Bronze Working", "type": "tech", "cost": {"wealth": 5}},
 	{"id": "iron", "name": "Iron Working", "type": "tech", "cost": {"wealth": 6}, "prereq": "bronze"},
 	{"id": "steel", "name": "Steel", "type": "tech", "cost": {"wealth": 3}, "prereq": "iron", "prereq_discount": 5},
@@ -40,32 +41,6 @@ func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}, 
 	e.new_game(1)
 	arrange(e.zone("research_deck"), order_top_first)
 	return e
-
-
-## Puts the cards with these ids on top of zone z, top first, keeping the rest below them.
-func arrange(z: Zone, ids_top_first: Array) -> void:
-	var top: Array[CardInstance] = []
-	for id in ids_top_first:
-		for c in z.cards:
-			if c.def.id == id and not top.has(c):
-				top.append(c)
-				break
-	var rest: Array[CardInstance] = []
-	for c in z.cards:
-		if not top.has(c):
-			rest.append(c)
-	top.reverse()  # the top is the last element
-	z.cards.assign(rest + top)
-	var got := card_ids(z)
-	got.reverse()
-	eq(got.slice(0, ids_top_first.size()), ids_top_first, "zone arranged")
-
-
-func uid_of(z: Zone, id: String) -> int:
-	for c in z.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 ## Researches with [tech_id, buy_id] on top and buys buy_id, so tech_id is passed once.

@@ -137,9 +137,69 @@ func first_in_hand(engine: GameEngine) -> int:
 	return engine.zone("hand").cards[0].uid
 
 
+## The uid of the first card with this id in zone, or -1.
+func uid_of(zone: Zone, id: String) -> int:
+	for c in zone.cards:
+		if c.def.id == id:
+			return c.uid
+	return -1
+
+
+## A sorted copy of a (for comparing uid or id lists whose order doesn't matter).
+func sorted(a: Array) -> Array:
+	var out := a.duplicate()
+	out.sort()
+	return out
+
+
+## Puts the cards with these ids on top of zone z, top first, keeping the rest below them.
+func arrange(z: Zone, ids_top_first: Array) -> void:
+	var top: Array[CardInstance] = []
+	for id in ids_top_first:
+		for c in z.cards:
+			if c.def.id == id and not top.has(c):
+				top.append(c)
+				break
+	var rest: Array[CardInstance] = []
+	for c in z.cards:
+		if not top.has(c):
+			rest.append(c)
+	top.reverse()  # the top is the last element
+	z.cards.assign(rest + top)
+	var got := card_ids(z)
+	got.reverse()
+	eq(got.slice(0, ids_top_first.size()), ids_top_first, "zone arranged")
+
+
+## Moves one territory_deck copy of each id (in order) straight to the tableau, as if settled
+## without a city.
+func settle(engine: Object, ids: Array) -> void:
+	_move_territories(engine, ids, "tableau")
+
+
+## Moves one territory_deck copy of each id (in order) to the frontier.
+func to_frontier(engine: Object, ids: Array) -> void:
+	_move_territories(engine, ids, "frontier")
+
+
+func _move_territories(engine: Object, ids: Array, to_zone: String) -> void:
+	var deck: Zone = engine.zone("territory_deck")
+	for id in ids:
+		var uid := uid_of(deck, id)
+		check(uid != -1, "territory_deck has no %s" % id)
+		if uid != -1:
+			var card := deck.find(uid)
+			deck.remove(card)
+			engine.zone(to_zone).add(card)
+
+
+## Puts a new copy of card id in the hand and returns its uid.
+func put_in_hand(engine: Object, id: String) -> int:
+	var card: CardInstance = engine.create_card(id, "hand", null)
+	return card.uid
+
+
 ## Puts a new Research card (study) in the hand and plays it, which reveals techs. Returns
 ## play_card's result.
 func play_research(engine: Object) -> bool:
-	var card: CardInstance = engine._make_card("study")
-	engine.zone("hand").add(card)
-	return engine.play_card(card.uid)
+	return engine.play_card(put_in_hand(engine, "study"))
