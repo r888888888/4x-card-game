@@ -10,7 +10,7 @@ func with_event_engine(body: Callable) -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := event_db(errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 5, "scout": 5},
+	var config := DataLoader.parse_config(raw_config({"farm": 5, "caravan": 5},
 		{"event_deck": {"windfall": 1, "trade_winds": 1, "omen": 1}}), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine

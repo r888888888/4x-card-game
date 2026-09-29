@@ -18,6 +18,7 @@ const TYPE_COLORS := {
 	CardDef.CITY: Color("c08a3e"),
 	CardDef.TERRITORY: Color("8a6fb5"),
 	CardDef.TECH: Color("3fa7a0"),
+	CardDef.EVENT: Color("b5566f"),
 }
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
@@ -29,6 +30,7 @@ const TYPE_MARKS := {
 	CardDef.CITY: "●",
 	CardDef.TERRITORY: "▲",
 	CardDef.TECH: "✦",
+	CardDef.EVENT: "❖",
 }
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
@@ -188,6 +190,23 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	var info := _label(text, 19, HIGHLIGHT_COLOR)
 	info.name = "TechInfo"
 	_box.add_child(info)
+
+
+## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left").
+func set_event_info(turns_left: int) -> void:
+	var old := _box.get_node_or_null("EventInfo")
+	if old != null:
+		_box.remove_child(old)
+		old.queue_free()
+	var info := _label("%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"], 19, HIGHLIGHT_COLOR)
+	info.name = "EventInfo"
+	_box.add_child(info)
+
+
+## The text set_event_info shows, or "" when it was never called.
+func event_info_text() -> String:
+	var info := _box.get_node_or_null("EventInfo") as Label
+	return info.text if info != null else ""
 
 
 ## Shows a supply pile's price and copies left ("2 wealth · 1 left"). error: "" if it can be bought,
