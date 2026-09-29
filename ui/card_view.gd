@@ -43,6 +43,7 @@ const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (ou
 var uid := -1
 var in_hand := false
 var pickable := false  # an option of a pending choice or a target: a click picks it
+var lift_on_hover := false  # lift and grow under the mouse like a hand card (supply cards, which have room)
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies the chased scale
@@ -183,6 +184,23 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	_box.add_child(info)
 
 
+## Shows a supply pile's price and copies left ("2 wealth · 1 left"). error: "" if it can be bought,
+## otherwise the reason, which dims the card and leads its tooltip.
+func set_buy_info(price: int, left: int, error: String) -> void:
+	var info := _box.get_node_or_null("BuyInfo") as Label
+	if info == null:
+		info = _label("", 19, HIGHLIGHT_COLOR)
+		info.name = "BuyInfo"
+		_box.add_child(info)
+	info.text = "%d wealth · %d left" % [price, left]
+	_set_dimmed(error != "", "" if error == "" else "⊘ " + error)
+	if error == "":
+		_set_tip("Click to buy a copy into your discard.")
+	else:
+		tooltip_text = error + "\n\n" + _rules_tip
+	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if error == "" else Control.CURSOR_FORBIDDEN
+
+
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
@@ -265,14 +283,25 @@ func attach(p_slot: Control) -> void:
 	_come_to_rest()
 
 
-## Starts at rest in slot, growing in from nothing (a card created on the tableau).
-func pop_in(p_slot: Control) -> void:
+## Starts at rest in slot, growing in from nothing (a card created on the tableau) after delay.
+func pop_in(p_slot: Control, delay := 0.0) -> void:
 	attach(p_slot)
 	if _calm():
 		_fade_in()
 		return
 	fx_scale = Vector2.ZERO
-	_play_fx().tween_property(self, "fx_scale", Vector2.ONE, Anim.POP_IN_TIME) \
+	var t := _play_fx()
+	t.tween_interval(delay)
+	t.tween_property(self, "fx_scale", Vector2.ONE, Anim.POP_IN_TIME) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## A quick squash and bounce back, the same as landing in a slot (nothing with reduce motion).
+func squash() -> void:
+	if _calm():
+		return
+	fx_scale = Anim.LAND_SQUASH
+	_play_fx().tween_property(self, "fx_scale", Vector2.ONE, Anim.LAND_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -354,9 +383,9 @@ func _process(delta: float) -> void:
 		State.REST:
 			var w := 1.0 if _calm() else _weight(Anim.REST_SHARPNESS, delta)
 			_rest_offset = _rest_offset.lerp(Vector2.ZERO, w)
-			# Only hand cards lift and grow: the hand row has room for it; the scrolling frontier and
-			# tableau would clip a lifted target, so those show hover by border and shadow alone.
-			var lifted := (_hover or _focused) and in_hand and not _calm()
+			# Only hand and supply cards lift and grow: their rows have room for it; the scrolling frontier
+			# and tableau would clip a lifted target, so those show hover by border and shadow alone.
+			var lifted := (_hover or _focused) and (in_hand or lift_on_hover) and not _calm()
 			_lift = lerpf(_lift, -Anim.HOVER_LIFT if lifted else 0.0, w)
 			_base_scale = lerpf(_base_scale, Anim.HOVER_SCALE if lifted else 1.0, w)
 			rotation = lerp_angle(rotation, 0.0, w)
@@ -399,9 +428,7 @@ func _land() -> void:
 		if modulate.a >= 1.0:  # not mid deal, which fades itself in
 			_fade_in()
 		return
-	fx_scale = Anim.LAND_SQUASH
-	_play_fx().tween_property(self, "fx_scale", Vector2.ONE, Anim.LAND_TIME) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	squash()
 	if _shake_on_land:
 		_shake_on_land = false
 		_shake()
