@@ -75,7 +75,7 @@ func test_prereq_on_a_card_that_is_not_a_tech_is_a_warning() -> void:
 
 func test_buying_passes_the_other_tech() -> void:
 	var e := tech_engine(["pottery", "bronze"])
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	var bronze := uid_of(e.zone("research_reveal"), "bronze")
 	var pottery := uid_of(e.zone("research_reveal"), "pottery")
 	check(e.buy_tech(pottery), "buy Pottery")
@@ -87,7 +87,7 @@ func test_buying_passes_the_other_tech() -> void:
 
 func test_declining_passes_nothing() -> void:
 	var e := tech_engine(["pottery", "bronze"])
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	var bronze := uid_of(e.zone("research_reveal"), "bronze")
 	var pottery := uid_of(e.zone("research_reveal"), "pottery")
 	check(e.decline_research(), "decline")
@@ -105,8 +105,7 @@ func test_the_discount_stacks_and_is_paid() -> void:
 	eq(e.tech_passes(bronze), 2, "passes")
 	eq(e.tech_cost(bronze), 3, "cost 5 - 2")
 	arrange(e.zone("research_deck"), ["bronze", "salt"])
-	e._research_left = 1
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	var wealth: int = e.resources.wealth
 	check(e.buy_tech(bronze), "buy Bronze Working")
 	eq(e.resources.wealth, wealth - 3, "wealth paid")
@@ -152,7 +151,7 @@ func test_prerequisite_and_passes_stack() -> void:
 
 func test_a_tech_can_be_bought_without_its_prerequisite() -> void:
 	var e := tech_engine(["iron", "pottery"])
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	var iron := uid_of(e.zone("research_reveal"), "iron")
 	check(e.buy_tech(iron), "buy Iron Working: %s" % e.buy_tech_error(iron))
 	eq(e.resources.wealth, 14, "wealth 20 - 6")
@@ -174,7 +173,7 @@ func test_passes_cannot_take_a_tech_below_1() -> void:
 	var card = e.zone("research_deck").find(pottery)
 	card.passes = 2
 	eq(e.tech_cost(pottery), 1, "2 - 2, raised to 1")
-	check(e.research(), "research")
+	check(play_research(e), "research")
 	check(e.buy_tech(pottery), "buy Pottery")
 	eq(e.resources.wealth, 19, "paid tech_cost 1")
 

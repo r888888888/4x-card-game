@@ -73,7 +73,7 @@ func sorted(a: Array) -> Array:
 ## An engine with the research deck [pottery, writing, bronze] and the first two revealed.
 func open_engine() -> Object:
 	var e := tech_engine(["pottery", "writing", "bronze"])
-	check(e.research(), "research should open: %s" % e.research_error())
+	check(play_research(e), "research should open")
 	return e
 
 
@@ -181,38 +181,31 @@ func test_new_game_shuffles_the_research_deck_by_seed() -> void:
 	check(card_ids(a.zone("research_deck")) != sorted_ids, "the deck should be shuffled, not sorted")
 
 
-func test_new_game_starts_with_one_charge_and_nothing_researched() -> void:
+func test_new_game_starts_with_nothing_researched() -> void:
 	var e := tech_engine(["pottery", "writing", "bronze"])
 	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "pottery", "writing"], "research deck")
 	eq(e.zone("researched").size(), 0, "researched")
-	eq(e.research_left(), 1, "research_left")
 	eq(e.research_options(), [] as Array[int], "no options open")
 
 
-func test_no_research_deck_means_nothing_to_research() -> void:
-	var e := make_engine({"farm": 10})
-	eq(e.zone("research_deck").size(), 0, "research deck")
-	eq(e.research_error(), "The research deck is empty.", "research_error")
+# --- AC4: reveal (backlog 034: playing a Research card reveals) ---
 
-
-# --- AC4: reveal ---
-
-func test_research_reveals_the_top_two() -> void:
+func test_playing_a_research_card_reveals_the_top_two() -> void:
 	var e := tech_engine(["pottery", "writing", "bronze"])
 	var changes := []
 	e.changed.connect(func(): changes.append(1))
-	check(e.research(), "research should succeed")
+	check(play_research(e), "playing Research should succeed")
+	eq(card_ids(e.zone("discard")), ["study"], "Research is in the discard")
 	var options = e.research_options()
 	eq(options, [uid_of(e.zone("research_reveal"), "pottery"), uid_of(e.zone("research_reveal"), "writing")] as Array[int], "options, top first")
 	eq(card_ids(e.zone("research_deck")), ["bronze"], "research deck")
-	eq(e.research_left(), 0, "charge spent")
-	eq(changes.size(), 1, "changed emitted once")
+	check(changes.size() >= 1, "changed emitted")
 
 
 func test_open_options_block_play_grow_discard_end_turn_and_research() -> void:
 	var pop := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, pop)
-	check(e.research(), "research should succeed")
+	check(play_research(e), "research should succeed")
 	var hand_uid := first_in_hand(e)
 	var food: int = e.resources.food
 	eq(e.play_error(hand_uid), "Buy a tech or decline first.", "play_error")
@@ -222,7 +215,8 @@ func test_open_options_block_play_grow_discard_end_turn_and_research() -> void:
 	check(not e.discard_card(hand_uid), "discard_card should fail")
 	e.end_turn()
 	eq(e.turn, 1, "still turn 1")
-	check(not e.research(), "a second research should fail")
+	check(not play_research(e), "a second Research card can't be played")
+	e.zone("hand").remove(e.zone("hand").cards[-1])  # the unplayed Research card
 	eq(e.zone("hand").size(), 5, "hand unchanged")
 	eq(e.resources.food, food, "food unchanged")
 	eq(e.research_options().size(), 2, "options still open")
@@ -307,7 +301,6 @@ func test_declining_returns_both_techs_and_spends_nothing() -> void:
 	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "pottery", "writing"], "research deck")
 	eq(e.zone("research_reveal").size(), 0, "nothing left revealed")
 	eq(e.resources.wealth, 10, "wealth unchanged")
-	eq(e.research_left(), 0, "the charge stays spent")
 	eq(e.research_options(), [] as Array[int], "options closed")
 
 
@@ -315,70 +308,43 @@ func test_decline_does_nothing_without_open_options() -> void:
 	var e := tech_engine(["pottery", "writing", "bronze"])
 	check(not e.decline_research(), "decline should fail")
 	eq(e.zone("research_deck").size(), 3, "research deck unchanged")
-	eq(e.research_left(), 1, "charge unchanged")
 
 
-# --- AC8: can't research ---
+# --- AC8: can't research (backlog 034 AC5) ---
 
-func test_research_error_when_the_game_is_over() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	e.is_over = true
-	eq(e.research_error(), "The game is over.", "research_error")
-	check(not e.research(), "research should fail")
-
-
-func test_research_error_while_an_explore_choice_is_pending() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	e.pending_choice = {"options": [1], "source": e.zone("tableau").cards[0]}
-	eq(e.research_error(), "Choose a territory first.", "research_error")
-	check(not e.research(), "research should fail")
-
-
-func test_research_error_while_a_discard_is_pending() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"], {"scout": 10})
-	for i in 3:
-		check(e.play_card(first_in_hand(e)), "play scout %d" % i)
-	e.end_turn()
-	eq(e.discard_needed(), 1, "a discard is pending")
-	eq(e.research_error(), "Discard down to 7 cards first.", "research_error")
-	check(not e.research(), "research should fail")
-
-
-func test_research_error_with_no_charge_left() -> void:
-	var e := open_engine()
-	check(e.decline_research(), "decline")
-	eq(e.research_error(), "No research left this turn.", "research_error")
-	check(not e.research(), "research should fail")
-	eq(e.zone("research_deck").size(), 3, "research deck unchanged")
-
-
-func test_research_error_with_an_empty_research_deck() -> void:
+func test_a_research_card_cannot_be_played_with_nothing_to_research() -> void:
 	var e := tech_engine([])
-	eq(e.research_error(), "The research deck is empty.", "research_error")
-	check(not e.research(), "research should fail")
-	eq(e.research_left(), 1, "charge not spent")
+	var card: CardInstance = e._make_card("study")
+	e.zone("hand").add(card)
+	eq(e.play_error(card.uid), "The research deck is empty.", "play_error")
+	check(not e.play_card(card.uid), "play_card should fail")
+	check(e.zone("hand").find(card.uid) != null, "the card stays in hand")
+	check(e.discard_card(card.uid), "it can still be discarded")
 
 
 func test_researching_with_one_tech_left_reveals_just_that_one() -> void:
 	var e := tech_engine(["writing"])
-	check(e.research(), "research should succeed")
+	check(play_research(e), "research should succeed")
 	eq(e.research_options().size(), 1, "one option")
 	check(e.buy_tech(e.research_options()[0]), "buy it")
 	eq(card_ids(e.zone("researched")), ["writing"], "researched")
 	eq(e.zone("research_deck").size(), 0, "research deck empty")
 
 
-# --- AC9: charges reset ---
+# --- Backlog 034 AC3/AC4: no free research, no limit per turn ---
 
-func test_each_turn_starts_with_one_charge() -> void:
-	var e := open_engine()
-	check(e.decline_research(), "decline")
-	eq(e.research_left(), 0, "spent")
-	e.end_turn()
-	eq(e.research_left(), 1, "turn 2 has 1")
-
-
-func test_unused_charges_do_not_carry_over() -> void:
+func test_there_are_no_research_charges() -> void:
 	var e := tech_engine(["pottery", "writing", "bronze"])
+	for method in ["research", "research_left", "research_error"]:
+		check(not e.has_method(method), "the engine has no %s()" % method)
 	e.end_turn()
-	eq(e.research_left(), 1, "turn 2 has 1, not 2")
+	eq(e.research_options(), [] as Array[int], "a new turn opens no tech options")
+	eq(e.zone("research_deck").size(), 3, "research deck untouched")
+
+
+func test_two_research_cards_can_be_played_in_one_turn() -> void:
+	var e := tech_engine(["pottery", "writing", "bronze"])
+	check(play_research(e), "first Research")
+	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
+	check(play_research(e), "second Research")
+	eq(e.research_options().size(), 2, "two techs revealed again")

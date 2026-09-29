@@ -49,6 +49,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "bazaar", "name": "Bazaar", "type": "action",
 	 "effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}]},
+	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "research"}]},
 ]}
 
 var test_name := ""  # "file::method", set by the runner
@@ -134,3 +135,11 @@ func home_uid(engine: GameEngine) -> int:
 
 func first_in_hand(engine: GameEngine) -> int:
 	return engine.zone("hand").cards[0].uid
+
+
+## Puts a new Research card (study) in the hand and plays it, which reveals techs. Returns
+## play_card's result.
+func play_research(engine: Object) -> bool:
+	var card: CardInstance = engine._make_card("study")
+	engine.zone("hand").add(card)
+	return engine.play_card(card.uid)

@@ -111,7 +111,7 @@ func test_cannot_buy_while_an_explore_choice_is_pending() -> void:
 
 func test_cannot_buy_while_research_options_are_open() -> void:
 	var e := supply_engine(10)
-	check(e.research(), "research opens")
+	check(play_research(e), "research opens")
 	assert_buy_refused(e, "scout", "Buy a tech or decline first.")
 
 
