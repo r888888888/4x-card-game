@@ -9,22 +9,9 @@ func frontier_engine(ids: Array[String], deck := {"pioneer": 10}) -> GameEngine:
 	for id in ids:
 		counts[id] = counts.get(id, 0) + 1
 	var e := make_engine(deck, {"territory_deck": counts})
-	var pool := e.zone("territory_deck").take_all()
-	for id in ids:
-		for c in pool:
-			if c.def.id == id:
-				pool.erase(c)
-				e.zone("frontier").add(c)
-				break
+	to_frontier(e, ids)
 	eq(card_ids(e.zone("frontier")), ids, "frontier arranged")
 	return e
-
-
-func uid_of(zone: Zone, id: String) -> int:
-	for c in zone.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 func card_in(zone: Zone, id: String) -> CardInstance:

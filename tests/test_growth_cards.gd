@@ -13,18 +13,12 @@ func cards_engine(start: int, deck: Dictionary, settled: Array[String] = [], pop
 	if population:
 		o["population"] = {"start": start, "food_upkeep": 0, "vp_per_pop": 0}
 	var e := make_engine(deck, o)
-	for c in e.zone("territory_deck").take_all():
-		e.zone("tableau").add(c)
-		c.pop = 1 if population else 0
+	settle(e, settled)
+	for c in e.zone("tableau").cards:
+		if c.def.type == "territory" and c.uid != home_uid(e):
+			c.pop = 1 if population else 0
 	e.resources.food = 50
 	return e
-
-
-func settled_uid(e: GameEngine, id: String) -> int:
-	for c in e.zone("tableau").cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
 
 
 # --- AC2: "here" on a building grows its own territory at upkeep ---
@@ -36,7 +30,7 @@ func test_granary_grows_its_territory_at_upkeep() -> void:
 	var food: int = e.resources.food
 	e.end_turn()
 	eq(e.pop(home), 3, "Homeland pop 2 + 1")
-	eq(e.pop(settled_uid(e, "grassland")), 1, "other territory unchanged")
+	eq(e.pop(uid_of(e.zone("tableau"), "grassland")), 1, "other territory unchanged")
 	eq(e.resources.food, food + 2, "no food spent (only the Capital's +2)")
 
 
@@ -46,7 +40,7 @@ func test_festival_grows_each_settled_territory() -> void:
 	var e := cards_engine(2, {"festival": 10}, ["grassland"])
 	check(e.play_card(first_in_hand(e)), "play Festival")
 	eq(e.pop(home_uid(e)), 3, "Homeland 2 + 1")
-	eq(e.pop(settled_uid(e, "grassland")), 2, "Grassland 1 + 1")
+	eq(e.pop(uid_of(e.zone("tableau"), "grassland")), 2, "Grassland 1 + 1")
 	eq(e.resources.food, 50, "no food spent")
 
 
@@ -56,7 +50,7 @@ func test_card_growth_stops_at_housing() -> void:
 	var e := cards_engine(7, {"festival": 10}, ["grassland"])  # Homeland housing 7
 	check(e.play_card(first_in_hand(e)), "play Festival")
 	eq(e.pop(home_uid(e)), 7, "Homeland stays at housing")
-	eq(e.pop(settled_uid(e, "grassland")), 2, "Grassland still grows")
+	eq(e.pop(uid_of(e.zone("tableau"), "grassland")), 2, "Grassland still grows")
 
 
 func test_granary_at_housing_adds_nothing() -> void:
@@ -79,5 +73,5 @@ func test_grow_does_nothing_without_population() -> void:
 	var e := cards_engine(2, {"festival": 10}, ["grassland"], false)
 	check(e.play_card(first_in_hand(e)), "play Festival")
 	eq(e.pop(home_uid(e)), 0, "Homeland pop")
-	eq(e.pop(settled_uid(e, "grassland")), 0, "Grassland pop")
+	eq(e.pop(uid_of(e.zone("tableau"), "grassland")), 0, "Grassland pop")
 	eq(e.total_pop(), 0, "total pop")

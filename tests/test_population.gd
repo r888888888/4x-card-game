@@ -29,7 +29,7 @@ func frontier_engine(overrides: Dictionary) -> GameEngine:
 	var o := {"territory_deck": {"grassland": 1}}
 	o.merge(overrides, true)
 	var e := make_engine({"pioneer": 10}, o)
-	e.zone("frontier").add(e.zone("territory_deck").take_top())
+	to_frontier(e, ["grassland"])
 	e.resources.food = 3
 	return e
 

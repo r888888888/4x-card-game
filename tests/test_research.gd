@@ -1,78 +1,15 @@
-extends "res://tests/lib/test_case.gd"
+extends "res://tests/lib/tech_case.gd"
 ## Research (backlog 025): tech cards, the research deck, and the reveal-2 buy-or-decline action.
-## Techs live here (not in TEST_CARDS) so existing tests don't load a card type they don't use.
-
-const TECHS := [
-	{"id": "pottery", "name": "Pottery", "type": "tech", "cost": {"wealth": 2}, "vp": 1,
-	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
-	{"id": "writing", "name": "Writing", "type": "tech", "cost": {"wealth": 3},
-	 "effects": [{"op": "score", "amount": 2}]},
-	{"id": "bronze", "name": "Bronze Working", "type": "tech", "cost": {"wealth": 5}},
-]
-
+## Fixture techs and tech_engine come from tests/lib/tech_case.gd.
 
 # --- Helpers ---
-# Engine helpers return Object, not GameEngine: GDScript rejects a call to a method the typed class
-# lacks at parse time, which would hide these tests behind a parse error until the API exists.
 
-func tech_db(errors: Array[String] = []) -> Dictionary:
-	var warnings: Array[String] = []
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TECHS}, resources(), "test", errors, warnings, keywords())
+const TEN_WEALTH := {"starting": {"resources": {"food": 2, "wealth": 10}, "tableau": ["capital"], "territory": "homeland"}}
 
 
-## A game with the given main deck and a research deck holding order_top_first (top first),
-## starting with 2 food and 10 wealth.
-func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) -> Object:
-	var counts := {}
-	for id in order_top_first:
-		counts[id] = counts.get(id, 0) + 1
-	var config := {
-		"research_deck": counts,
-		"starting": {"resources": {"food": 2, "wealth": 10}, "tableau": ["capital"], "territory": "homeland"},
-	}
-	config.merge(overrides, true)
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db(errors)
-	var parsed := DataLoader.parse_config(raw_config(deck, config), resources(), cards, "test", errors, warnings)
-	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e := GameEngine.new(cards, parsed)
-	e.new_game(1)
-	if not order_top_first.is_empty():  # otherwise keep the config's shuffled deck
-		arrange(e.zone("research_deck"), order_top_first)
-	return e
-
-
-## Reorders a zone so ids are top first (the top is the last element).
-func arrange(z: Zone, ids_top_first: Array) -> void:
-	var ordered: Array[CardInstance] = []
-	for i in range(ids_top_first.size() - 1, -1, -1):
-		for c in z.cards:
-			if c.def.id == ids_top_first[i] and not ordered.has(c):
-				ordered.append(c)
-				break
-	z.cards.assign(ordered)
-	var top_first := card_ids(z)
-	top_first.reverse()
-	eq(top_first, ids_top_first, "zone arranged")
-
-
-func uid_of(z: Zone, id: String) -> int:
-	for c in z.cards:
-		if c.def.id == id:
-			return c.uid
-	return -1
-
-
-func sorted(a: Array) -> Array:
-	var out := a.duplicate()
-	out.sort()
-	return out
-
-
-## An engine with the research deck [pottery, writing, bronze] and the first two revealed.
+## An engine with the research deck [pottery, writing, bronze], 10 wealth, and the first two revealed.
 func open_engine() -> Object:
-	var e := tech_engine(["pottery", "writing", "bronze"])
+	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, TEN_WEALTH)
 	check(play_research(e), "research should open")
 	return e
 
@@ -92,7 +29,7 @@ func load_x(type: String, cost: Variant, effects: Array = []) -> Dictionary:
 func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := tech_db(errors)
+	var cards := tech_db([], errors)
 	check(errors.is_empty(), "fixture cards should load: %s" % [errors])
 	DataLoader.parse_config(raw_config(deck, overrides), resources(), cards, "config.json", errors, warnings)
 	return errors
@@ -314,12 +251,11 @@ func test_decline_does_nothing_without_open_options() -> void:
 
 func test_a_research_card_cannot_be_played_with_nothing_to_research() -> void:
 	var e := tech_engine([])
-	var card: CardInstance = e._make_card("study")
-	e.zone("hand").add(card)
-	eq(e.play_error(card.uid), "The research deck is empty.", "play_error")
-	check(not e.play_card(card.uid), "play_card should fail")
-	check(e.zone("hand").find(card.uid) != null, "the card stays in hand")
-	check(e.discard_card(card.uid), "it can still be discarded")
+	var card := put_in_hand(e, "study")
+	eq(e.play_error(card), "The research deck is empty.", "play_error")
+	check(not e.play_card(card), "play_card should fail")
+	check(e.zone("hand").find(card) != null, "the card stays in hand")
+	check(e.discard_card(card), "it can still be discarded")
 
 
 func test_researching_with_one_tech_left_reveals_just_that_one() -> void:
