@@ -73,7 +73,7 @@ func refresh(e: GameEngine) -> void:
 	if not e.zone("lost_techs").is_empty():
 		_research_info.text += " · lost %d" % e.zone("lost_techs").size()
 	var tip_lines := _era_unlock_lines(e)
-	tip_lines.push_front("Play a Research card to reveal 2 techs.")
+	tip_lines.push_front("Play an Insight card to reveal 2 techs.")
 	_research_info.tooltip_text = "\n".join(tip_lines)
 	_research_info.visible = e.config.research_deck.size() > 0
 	event_info.visible = not e.config.get("event_deck", {}).is_empty()

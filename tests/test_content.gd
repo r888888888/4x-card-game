@@ -235,6 +235,11 @@ func test_real_data_loads_without_warnings() -> void:
 	eq(r.warnings, [] as Array[String], "real data warnings")
 
 
+func test_research_card_is_named_insight() -> void:
+	var r := load_real()
+	eq(r.cards.research.name if r.cards.has("research") else "", "Insight", "the research card's name")
+
+
 func test_research_deck_has_6_techs_in_each_of_eras_1_and_2() -> void:
 	var r := load_real()
 	var per_era := {1: 0, 2: 0}

@@ -231,7 +231,7 @@ func test_decline_does_nothing_without_open_options() -> void:
 func test_a_research_card_cannot_be_played_with_nothing_to_research() -> void:
 	var e := tech_engine([])
 	var card := put_in_hand(e, "study")
-	eq(e.play_error(card), "The research deck is empty.", "play_error")
+	eq(e.play_error(card), "The tech deck is empty.", "play_error")
 	check(not e.play_card(card), "play_card should fail")
 	check(e.zone("hand").find(card) != null, "the card stays in hand")
 	check(e.discard_card(card), "it can still be discarded")

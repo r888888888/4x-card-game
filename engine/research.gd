@@ -21,7 +21,7 @@ static func upcoming_era_unlocks(e: GameEngine) -> Dictionary:
 
 static func reveal_error(e: GameEngine) -> String:
 	if e.zone("research_deck").is_empty() and e.zone("future_techs").is_empty():
-		return "The research deck is empty."
+		return "The tech deck is empty."
 	return ""
 
 
@@ -52,7 +52,7 @@ static func passes(e: GameEngine, uid: int) -> int:
 static func buy_error(e: GameEngine, uid: int) -> String:
 	var tech := e.zone("research_reveal").find(uid)
 	if tech == null:
-		return "That tech isn't up for research."
+		return "That tech isn't on offer."
 	var price := cost(e, uid)
 	var have: int = e.resources.get(GameEngine.WEALTH, 0)
 	if have < price:
@@ -81,7 +81,7 @@ static func buy(e: GameEngine, uid: int) -> bool:
 	e.zone("research_reveal").remove(tech)
 	e.resources.wealth -= price
 	e.zone("researched").add(tech)
-	e._log("Researched %s (%d wealth)." % [tech.def.name, price])
+	e._log("Learned %s (%d wealth)." % [tech.def.name, price])
 	e._resolve(tech, "play")
 	_return_revealed(e, true)
 	e.changed.emit()
@@ -91,7 +91,7 @@ static func buy(e: GameEngine, uid: int) -> bool:
 static func decline(e: GameEngine) -> bool:
 	if e.zone("research_reveal").is_empty():
 		return false
-	e._log("Declined to research.")
+	e._log("Declined the techs.")
 	_return_revealed(e, false)
 	e.changed.emit()
 	return true
@@ -107,7 +107,7 @@ static func add_era(e: GameEngine, n: int, source: CardInstance = null) -> void:
 		e.zone("future_techs").remove(tech)
 		deck.add(tech)
 	e.rng.shuffle(deck.cards)
-	e._log("  %sEra %d techs added to the research deck." % [source.def.name + ": " if source != null else "", n])
+	e._log("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
 
 
 ## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).
