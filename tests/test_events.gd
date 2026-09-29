@@ -88,6 +88,24 @@ func test_event_card_validation() -> void:
 	], func(fields): return load_x("event", fields).errors)
 
 
+# --- 069 AC7: grow "here" needs a territory ---
+
+func test_grow_here_on_a_card_with_no_territory_is_a_load_error() -> void:
+	check_cases([
+		["event, where here", ["event", {"effects": [{"op": "grow", "amount": 1, "where": "here"}]}],
+			"cards.json: card 'x': effects[0]"],
+		["event, where defaults to here", ["event", {"effects": [{"op": "grow", "amount": 1}]}],
+			"cards.json: card 'x': effects[0]"],
+		["tech, where here", ["tech", {"cost": {"wealth": 2}, "effects": [{"op": "grow", "amount": 1, "where": "here"}]}],
+			"cards.json: card 'x': effects[0]"],
+	], func(args): return load_x(args[0], args[1]).errors)
+
+
+func test_grow_each_on_an_event_loads() -> void:
+	var r := load_x("event", {"effects": [{"op": "grow", "amount": 1, "where": "each"}]})
+	eq(r.errors, [] as Array[String], "loader errors")
+
+
 func test_discard_on_a_non_event_is_a_warning() -> void:
 	check_cases([
 		["discard on a building", {"discard": {"turns": 1}}, ["cards.json: card 'x'", "'discard'"], "warning_only"],

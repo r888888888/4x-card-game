@@ -2,7 +2,7 @@
 id: 069
 title: Starter event deck — neutral and small beneficial events, Forage and Harvest Festival become events
 type: feature
-status: ready
+status: red-review
 branch: feat/069-starter-events
 ---
 
@@ -69,7 +69,13 @@ player can see what was drawn.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_real_event_is_in_the_event_deck` |
+| AC2 | `test_content::test_real_events_are_neutral_or_beneficial` |
+| AC3 | `test_content::test_forage_and_harvest_festival_are_events` |
+| AC4 | `test_content::test_scripted_sweep_over_20_seeds` (new per-seed check: an event was drawn) |
+| AC5 | `test_content::test_real_data_loads_without_warnings` (existing) |
+| AC6 | `test_content::test_real_deck_has_growth_cards` (now also counts `event_deck`) |
+| AC7 | `test_events::test_grow_here_on_a_card_with_no_territory_is_a_load_error`, `test_grow_each_on_an_event_loads` |
 
 ## Manual check
 - [ ] Review the deck table above (names, effects, copies) and the Granary supply pile going to 3.
