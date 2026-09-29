@@ -2,7 +2,7 @@
 id: 033
 title: Show the supply on its own screen
 type: feature
-status: review
+status: done
 branch: feat/033-supply-screen
 ---
 
