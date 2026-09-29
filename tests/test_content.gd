@@ -19,7 +19,7 @@ func real_engine(seed_value: int) -> GameEngine:
 
 ## Plays one scripted game: resolve any pending choice with its first option, buy the cheapest
 ## revealed tech it can afford (or decline), otherwise play the first hand card that can be played
-## (on its first valid target; a Research card reveals techs), otherwise discard the hand (dead cards
+## (on its first valid target; Research cards last), otherwise discard the hand (dead cards
 ## never cycle otherwise, backlog 024) and end the turn.
 func play_scripted_game(e: GameEngine) -> void:
 	var steps := 0
@@ -32,7 +32,9 @@ func play_scripted_game(e: GameEngine) -> void:
 			buy_cheapest_tech(e)
 			continue
 		var played := false
-		for card in e.zone("hand").cards.duplicate():
+		var hand := e.zone("hand").cards.duplicate()
+		hand.sort_custom(func(a, b): return a.def.id != "research" and b.def.id == "research")  # research last, as before 034
+		for card in hand:
 			var targets := e.valid_targets(card.uid)
 			var target: int = targets[0] if e.needs_target(card.uid) and not targets.is_empty() else -1
 			if e.play_error(card.uid, target) == "":

@@ -68,6 +68,11 @@ func target_zone() -> String:
 	return ""
 
 
+## Why a card with this effect can't be played right now, or "" if it can (e.g. nothing to research).
+func play_block_error(_engine: GameEngine) -> String:
+	return ""
+
+
 ## play_error when the effect needs a target and there is none.
 func no_target_error() -> String:
 	return "There is nothing to target."

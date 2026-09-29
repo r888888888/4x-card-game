@@ -2,7 +2,7 @@
 id: 034
 title: Research is a card, not a free action each turn
 type: feature
-status: red-review
+status: in-progress
 branch: feat/034-research-card
 ---
 

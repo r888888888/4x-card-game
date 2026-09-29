@@ -26,13 +26,15 @@
     "mine": 2,
     "market": 1,
     "granary": 1,
-    "harvest_festival": 2
+    "harvest_festival": 2,
+    "research": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 2 },
     "settler": { "price": 3, "count": 2 },
     "temple": { "price": 3, "count": 1 },
-    "granary": { "price": 2, "count": 1 }
+    "granary": { "price": 2, "count": 1 },
+    "research": { "price": 3, "count": 2 }
   },
   "research_deck": {
     "pottery": 1,
