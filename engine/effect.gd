@@ -21,6 +21,12 @@ func upkeep_ok() -> bool:
 	return false
 
 
+## Whether this effect acts on its own card's territory, so it does nothing on a card that has none (a tech or
+## an event).
+func needs_own_territory() -> bool:
+	return false
+
+
 ## Read fields from data, appending any problems to errors.
 ## ctx has "resources" and "zones" (the valid names for each).
 func configure(_data: Dictionary, _ctx: Dictionary, _errors: Array[String]) -> void:

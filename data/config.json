@@ -20,22 +20,34 @@
     "irrigation": 1,
     "settler": 2,
     "scout": 2,
-    "forage": 2,
     "caravan": 2,
     "temple": 1,
     "lumber_camp": 2,
     "mine": 2,
     "market": 1,
     "granary": 1,
-    "harvest_festival": 2,
     "research": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 2 },
     "settler": { "price": 3, "count": 2 },
     "temple": { "price": 3, "count": 1 },
-    "granary": { "price": 2, "count": 1 },
+    "granary": { "price": 2, "count": 3 },
     "research": { "price": 3, "count": 2 }
+  },
+  "event_deck": {
+    "quiet_season": 1,
+    "travelers_tales": 1,
+    "comet_sighted": 1,
+    "border_rumors": 1,
+    "wild_berries": 1,
+    "wandering_trader": 1,
+    "local_legend": 1,
+    "mild_spring": 1,
+    "market_day": 1,
+    "good_omens": 1,
+    "forage": 2,
+    "harvest_festival": 1
   },
   "research_deck": {
     "pottery": 1,

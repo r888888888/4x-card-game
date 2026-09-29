@@ -15,7 +15,7 @@ trigger each upkeep while the event lasts.
 - [ ] AC1 (`lose`): Given 5 food, when an event with `{"op": "lose", "resource": "food", "amount": 2}` is drawn, food
   is 3. Given 1 food, it is 0 (never below 0). The same works for wealth.
 - [ ] AC2 (`lose` validation): an unknown resource, or an amount that isn't an integer ≥ 1, is a load error naming
-  the card and the effect index.
+  the card and the effect index. Both ops load on a building too (not only on events).
 - [ ] AC3 (`lose_pop`): Given Homeland with 3 pop and a second territory with 1 pop, when an event with
   `{"op": "lose_pop", "amount": 1}` is drawn, the territory with the most pop loses 1 (Homeland: 2). A tie picks the
   first in tableau order. A territory never goes below 0 pop; with no pop anywhere nothing happens.
@@ -29,9 +29,10 @@ trigger each upkeep while the event lasts.
 
 ## Design notes
 - Follow the `add-effect` skill for each op.
-- Open question: should `lose_pop` pick the largest territory, the Capital's, or let the player choose (a new
-  pending decision kind)? The draft picks the largest, to avoid a choice in the middle of `end_turn`.
-- Open question: should these ops be allowed on non-event cards (for example a building with an upkeep cost)?
+- Decided: `lose_pop` takes pop from the territory with the most pop (ties: first in tableau order), so there is
+  no choice in the middle of `end_turn`.
+- Decided: like every other op, both are allowed on any card type (for example a building with an upkeep cost);
+  the loader only applies its usual rules (no keyword or target on techs and events).
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
@@ -41,3 +42,4 @@ trigger each upkeep while the event lasts.
 
 ## Log
 - From 039's follow-ups.
+- Open questions settled: `lose_pop` hits the largest territory; both ops are allowed on any card type.

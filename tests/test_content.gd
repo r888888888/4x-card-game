@@ -90,6 +90,7 @@ func test_scripted_sweep_over_20_seeds() -> void:
 		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
 		e.card_played.disconnect(on_played)
 		check(e.is_over, "seed %d: game finished within 2000 steps" % s)
+		check(e.zone("active_events").size() + e.zone("event_discard").size() > 0, "seed %d: an event was drawn" % s)
 		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
 		if count_id(e.zone("tableau"), "city") >= 1:
 			founded += 1
@@ -108,13 +109,65 @@ func test_real_deck_has_growth_cards() -> void:
 	var counts: Dictionary = r.config.deck.duplicate()
 	for id in r.config.get("supply", {}):  # backlog 032: some copies moved to the supply
 		counts[id] = counts.get(id, 0) + r.config.supply[id].count
+	for id in r.config.get("event_deck", {}):  # backlog 069: Harvest Festival became an event
+		counts[id] = counts.get(id, 0) + r.config.event_deck[id]
 	var growth := 0
 	for id in counts:
 		for effect in r.cards[id].effects:
 			if effect.op == "grow":
 				growth += counts[id]
 				break
-	check(growth >= 4, "at least 4 growth cards in the deck and supply (got %d)" % growth)
+	check(growth >= 4, "at least 4 growth cards in the deck, supply and event deck (got %d)" % growth)
+
+
+# --- Starter events (backlog 069) ---
+
+## The ops a real event may use: they only give (see 072 for harmful ops).
+const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]
+
+
+func test_every_real_event_is_in_the_event_deck() -> void:
+	var r := load_real()
+	check(not r.config.get("event_deck", {}).is_empty(), "the real event deck is not empty")
+	var unused: Array[String] = []
+	for id in r.cards:
+		if r.cards[id].type == CardDef.EVENT and not r.config.get("event_deck", {}).has(id):
+			unused.append(id)
+	eq(unused, [] as Array[String], "events not in event_deck")
+
+
+func test_real_events_are_neutral_or_beneficial() -> void:
+	var r := load_real()
+	var blank := 0
+	var active := 0
+	var bad_ops: Array[String] = []
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		if def.effects.is_empty():
+			blank += 1
+		else:
+			active += 1
+		for effect in def.effects:
+			if not EVENT_OPS.has(effect.op):
+				bad_ops.append("%s: %s" % [id, effect.op])
+	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score or grow")
+	check(blank >= 1, "at least one blank event (got %d)" % blank)
+	check(active >= 1, "at least one event with an effect (got %d)" % active)
+
+
+func test_forage_and_harvest_festival_are_events() -> void:
+	var r := load_real()
+	for id in ["forage", "harvest_festival"]:
+		eq(r.cards[id].type, CardDef.EVENT, "%s type" % id)
+		check(r.config.get("event_deck", {}).has(id), "%s in event_deck" % id)
+		check(not r.config.deck.has(id), "%s not in deck" % id)
+		check(not r.config.get("supply", {}).has(id), "%s not in supply" % id)
+	var effects: Array = r.cards.harvest_festival.effects
+	eq(effects.size(), 1, "Harvest Festival has one effect")
+	if effects.size() == 1:
+		eq([effects[0].op, effects[0].trigger], ["gain_per_tag", "upkeep"], "Harvest Festival op and trigger")
+		if effects[0].op == "gain_per_tag":
+			eq([effects[0].resource, effects[0].tag], [GameEngine.FOOD, "farm"], "food per farm")
 
 
 # --- Wealth content (backlog 022) ---

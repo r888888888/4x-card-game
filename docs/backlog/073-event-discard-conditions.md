@@ -29,7 +29,8 @@ events can be threats the player answers, not only weather to wait out.
 ## Design notes
 - `CardDef.discard_turns` becomes one of several discard fields; `DataLoader.DISCARD_CONDITIONS` gains the new keys.
 - The check stays at upkeep, after the event's upkeep effects (039).
-- Open question: which conditions first? The draft proposes a tag on the tableau and a resource threshold.
+- Deferred: which conditions to build is decided per event, when harmful event content is designed. The two
+  criteria above are examples, not a commitment; rewrite them once the events that need them exist.
 - `event_turns_left` returns 0 for an event with no `turns`; the panel needs another query (for example
   `event_ends_text(uid)`).
 
@@ -41,3 +42,4 @@ events can be threats the player answers, not only weather to wait out.
 
 ## Log
 - From 039's follow-ups.
+- Deferred: discard conditions are event-specific; pick them with the harmful event content. Stays `draft`.

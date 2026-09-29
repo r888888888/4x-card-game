@@ -185,7 +185,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
   capped by housing: `here` on the card's own territory (Granary, upkeep), `each` on every settled territory
-  (Harvest Festival).
+  (Harvest Festival until 069, now an event; no shipped card uses `each` today). `here` is a load error on a tech
+  or an event, which has no territory (069).
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
@@ -252,6 +253,10 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
   includes active events.
 - Code: `engine/events.gd`.
+- Starter deck (069): 13 events, all neutral or small boons: 4 blank (Quiet Season, Travelers' Tales, Comet Sighted,
+  Border Rumors), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
+  and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
+  supply's Granary pile grew to 3 to keep growth cards available.
 - UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an
   "Events: deck N · discard M" label sits under the research info (tooltip: one event is drawn at the end of each
   turn). Both are hidden when the config has no event deck. An ending event flies to that label.

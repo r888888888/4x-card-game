@@ -1,17 +1,16 @@
 extends "res://tests/lib/test_case.gd"
 ## The event panel (backlog 068): the real main scene shows the active events with their turns left and the event
-## piles' counts. The real data has no events yet, so most tests run main on TEST_CARDS + TEST_EVENTS through
-## with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
+## piles' counts. The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
 
 
-## Runs body with Game.engine swapped for a game on TEST_CARDS + TEST_EVENTS (event deck: Windfall, Trade Winds,
-## Omen), then puts the real engine back, even when body fails.
-func with_event_engine(body: Callable) -> void:
+## Runs body with Game.engine swapped for a game on TEST_CARDS + TEST_EVENTS with event_deck (by default Windfall,
+## Trade Winds, Omen), then puts the real engine back, even when body fails.
+func with_event_engine(body: Callable, event_deck := {"windfall": 1, "trade_winds": 1, "omen": 1}) -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := event_db(errors, warnings)
 	var config := DataLoader.parse_config(raw_config({"farm": 5, "caravan": 5},
-		{"event_deck": {"windfall": 1, "trade_winds": 1, "omen": 1}}), resources(), cards, "test", errors, warnings)
+		{"event_deck": event_deck}), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine
 	Game.engine = GameEngine.new(cards, config)
@@ -82,9 +81,10 @@ func test_event_info_counts_the_event_piles() -> void:
 # --- AC4: no events ---
 
 func test_event_panel_is_hidden_without_an_event_deck() -> void:
-	var main := open_main()
-	main.start_game(1)
-	var panel: Dictionary = main.event_panel()
-	eq(panel.get("visible"), false, "panel hidden with the real data (no event deck)")
-	eq(view_ids(panel), [] as Array[String], "no event views")
-	close_main(main)
+	with_event_engine(func():
+		var main := open_main()
+		main.start_game(1)
+		var panel: Dictionary = main.event_panel()
+		eq(panel.get("visible"), false, "panel hidden with no event deck")
+		eq(view_ids(panel), [] as Array[String], "no event views")
+		close_main(main), {})
