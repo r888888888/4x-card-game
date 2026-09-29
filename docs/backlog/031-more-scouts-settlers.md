@@ -2,7 +2,7 @@
 id: 031
 title: More Scouts and Settlers in the starting deck
 type: feature
-status: review
+status: done
 branch: feat/031-more-scouts-settlers
 ---
 
@@ -31,3 +31,4 @@ counts so exploring and settling come up more often, keeping the deck at 28 card
 
 ## Log
 - 2026-09-29: Counts chosen from the expansion brainstorm (option 1, data-only tuning).
+- 2026-09-29: Approved by the user.
