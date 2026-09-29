@@ -2,7 +2,7 @@
 id: 039
 title: Event deck and event cards (framework)
 type: feature
-status: draft
+status: red-review
 branch: feat/039-event-deck
 ---
 
@@ -27,7 +27,8 @@ tests set the event deck order directly when it matters ("top first").
   `{"until": 3}` (unknown condition) and a non-object `discard` are each a load error that names the
   card and `discard`. An event with a `cost` or a non-zero `vp` is a load error that names the card and
   the field. An event effect with a `keyword`, or one that needs a target (`settle`), is a load error
-  that names the card and the effect index. `discard` on a card that isn't an event gives an
+  that names the card and the effect index. An event `upkeep` effect whose op fails `upkeep_ok()` is a
+  load error, as for any other card. `discard` on a card that isn't an event gives an
   unknown-field warning, not an error.
 - [ ] AC2 (config): `event_deck` is optional ({event_id: count}, default {}). An unknown id, a card that
   isn't an event, or a count below 1 is a load error that names config.json and `event_deck`. An event
@@ -50,7 +51,7 @@ tests set the event deck order directly when it matters ("top first").
   An event's upkeep effects resolve after tableau and researched upkeep and before pop eats. The discard
   check runs after the event's upkeep effects, so an event always gives every upkeep it lasted for.
   `upkeep_forecast()` includes active events' upkeep effects (Trade Winds active: wealth +1 in the
-  forecast).
+  forecast), and calling it leaves `active_events`, `event_discard` and `event_turns_left` unchanged.
 - [ ] AC6 (single-turn and several active): Windfall (turns 1) drawn at the end of turn 1 is in
   `event_discard` after turn 2's upkeep. Several events can be active at once. With Trade Winds drawn at
   the end of turn 1 and Omen at the end of turn 2, both are in `active_events` during turn 2's play
@@ -74,7 +75,8 @@ tests set the event deck order directly when it matters ("top first").
 ## Design notes
 - Card type `event`: add it to `CARD_TYPES` and `SEPARATE_DECK_TYPES`. It is not permanent in the
   tableau sense and never enters the main deck.
-- New card field `discard` (object). For now its only key is `turns` (int ≥ 1, default 1). Store it as
+- New constant `CardDef.EVENT`. New card field `discard` (object), declared in `DataLoader.TYPE_FIELDS`
+  as `discard: [CardDef.EVENT]`. For now its only key is `turns` (int ≥ 1, default 1). Store it as
   `CardDef.discard_turns`, and later conditions go in new keys. Card text gets a generated line:
   "Lasts 1 turn" / "Lasts 2 turns".
 - Config: `event_deck` {event_id: count}, parsed with `_parse_counts(..., "event")`.
@@ -86,8 +88,8 @@ tests set the event deck order directly when it matters ("top first").
     effects with the event as source.
   - `_resolve_upkeep()`: after tableau and researched cards, it resolves each active event's `upkeep`
     effects, lowers `turns_left` by 1, and moves events at 0 to `event_discard` (logs "Windfall ends.").
-    `upkeep_forecast` runs on a snapshot, so the discard step must be restored too. Check that the
-    snapshot covers the event zones and `turns_left`.
+    `upkeep_forecast` runs on a `GameEngine.fork()`, so `GameState.copy()` must copy the event zones
+    and `CardInstance.turns_left`.
 - The event phase already runs once per `end_turn()`, before the hand-limit discard. Keep it there.
 - Follow-ups to spec: event UI panel, harmful ops, threshold/tag discard conditions, era-escalating event
   content.
@@ -96,6 +98,17 @@ tests set the event deck order directly when it matters ("top first").
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_events::test_…` |
+| AC1 | `test_events::test_event_loads_with_discard_turns`, `test_event_discard_defaults_to_one_turn`, `test_event_card_validation`, `test_discard_on_a_non_event_is_a_warning`, `test_event_text_says_how_long_it_lasts` |
+| AC2 | `test_events::test_event_deck_is_normalized`, `test_event_deck_defaults_to_empty`, `test_event_deck_validation` |
+| AC3 | `test_events::test_new_game_shuffles_the_event_deck_by_seed`, `test_no_event_deck_leaves_the_event_zones_empty` |
+| AC4 | `test_events::test_end_turn_draws_the_top_event_and_resolves_it_before_cleanup`, `test_finishing_the_discard_does_not_draw_another_event`, `test_each_end_turn_draws_exactly_one_event`, `test_the_final_turn_draws_an_event`, `test_event_turns_left_is_zero_for_a_card_that_is_not_active` |
+| AC5 | `test_events::test_an_active_event_gives_its_upkeep_every_turn_it_lasts`, `test_event_upkeep_resolves_before_pop_eats`, `test_forecast_includes_active_event_upkeep`, `test_forecast_leaves_the_event_zones_alone` |
+| AC6 | `test_events::test_a_single_turn_event_ends_at_the_next_upkeep`, `test_several_events_can_be_active_in_draw_order`, `test_active_events_score_no_vp` |
+| AC7 | `test_events::test_empty_event_deck_reshuffles_the_event_discard_by_seed`, `test_nothing_is_drawn_when_both_event_piles_are_empty` |
 
 ## Log
+- Red: fixture events live in `tests/test_events.gd` (`EVENTS`, like `tech_case.gd`'s `TECHS`), not `TEST_CARDS`:
+  `event` isn't a valid type yet, so adding them to `TEST_CARDS` would break every test's `make_engine`. Added a
+  fourth fixture, `harvest` (upkeep +1 food, 2 turns), to test that event upkeep resolves before pop eats.
+- Red: AC6 said both events are active "during turn 2's play phase", but Omen is drawn at the end of turn 2.
+  The test checks both are active right after Omen is drawn (end of turn 2, before turn 3's upkeep).
