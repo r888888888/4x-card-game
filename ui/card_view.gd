@@ -176,10 +176,6 @@ func set_play_error(play_error: String) -> void:
 ## Shows a revealed tech's price and passes: "Cost 4 wealth (was 5)", pass markers (●○○), and
 ## "last chance" on its final appearance. The numbers come from the engine.
 func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> void:
-	var old := _box.get_node_or_null("TechInfo")
-	if old != null:
-		_box.remove_child(old)
-		old.queue_free()
 	var markers := "●".repeat(passes) + "○".repeat(max_passes - passes)
 	var text := "Cost %d wealth" % cost
 	if cost != printed:
@@ -187,26 +183,29 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	text += "\nPassed %s" % markers
 	if passes == max_passes - 1:
 		text += " · last chance"
-	var info := _label(text, 19, HIGHLIGHT_COLOR)
-	info.name = "TechInfo"
-	_box.add_child(info)
+	_set_info_label("TechInfo", text)
 
 
 ## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left").
 func set_event_info(turns_left: int) -> void:
-	var old := _box.get_node_or_null("EventInfo")
-	if old != null:
-		_box.remove_child(old)
-		old.queue_free()
-	var info := _label("%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"], 19, HIGHLIGHT_COLOR)
-	info.name = "EventInfo"
-	_box.add_child(info)
+	_set_info_label("EventInfo", "%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"])
 
 
 ## The text set_event_info shows, or "" when it was never called.
 func event_info_text() -> String:
 	var info := _box.get_node_or_null("EventInfo") as Label
 	return info.text if info != null else ""
+
+
+## Replaces the gold info line called label_name at the bottom of the card with text.
+func _set_info_label(label_name: String, text: String) -> void:
+	var old := _box.get_node_or_null(label_name)
+	if old != null:
+		_box.remove_child(old)
+		old.queue_free()
+	var info := _label(text, 19, HIGHLIGHT_COLOR)
+	info.name = label_name
+	_box.add_child(info)
 
 
 ## Shows a supply pile's price and copies left ("2 wealth · 1 left"). error: "" if it can be bought,
