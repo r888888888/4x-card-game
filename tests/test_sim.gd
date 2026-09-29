@@ -36,8 +36,9 @@ func test_bot_resolves_an_explore_choice_with_its_first_option() -> void:
 	var e := make_engine({"explorer": 10}, {"turn_limit": 1, "territory_deck": {"hills": 1, "grassland": 1}})
 	arrange(e.zone("territory_deck"), ["hills", "grassland"])
 	bot().play(e)
-	# Explorer 1 keeps Hills (the first option) and puts Grassland under; Explorer 2 finds Grassland.
-	eq(card_ids(e.zone("frontier")), ["hills", "grassland"] as Array[String], "first option kept first")
+	# Explorer 1 reveals Hills then Grassland; options list the reveal zone top first, so the first option is
+	# Grassland. The bot keeps it and puts Hills under; Explorer 2 then finds Hills.
+	eq(card_ids(e.zone("frontier")), ["grassland", "hills"] as Array[String], "first option kept first")
 
 
 # --- AC2: stats over seeds ---

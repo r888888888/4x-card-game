@@ -27,7 +27,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 
 | File | Covers |
 |---|---|
-| `tests/test_content.gd` | The real data: invariants (every keyword used, every cost has a source, techs and supply consistent) and scripted 20-seed smoke tests |
+| `tests/test_content.gd` | The real data: invariants (every keyword used, every cost has a source, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
+| `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
@@ -104,6 +105,8 @@ writing one. Tests never call engine members that start with `_`: if setup needs
   that game's seed.
 - **Test through the public API** (`play_card`, `end_turn`, `play_error`, `score`, zones,
   signals). Setting state directly (`e.resources.food = 1`) is fine for setup.
+- **Balance** is not tested: run `scripts/sim.sh` (or the `balance` skill) and compare with `main`.
+- **Helper names** must not start with `test_`: the runner calls every `test_*` method with no arguments.
 - **Real data** is only checked by `test_real_data_loads` and `tests/test_content.gd` (invariants and a
   smoke test). Don't assert exact numbers from `data/` (slots, costs, deck sizes): a balance edit must not
   break a test. Warnings in the real data are checked once, in `test_real_data_loads_without_warnings`.

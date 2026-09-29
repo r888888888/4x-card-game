@@ -9,7 +9,7 @@
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Later (engine kept headless-capable so it's cheap to add) |
+| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042); compared against `main`, not pinned in tests |
 | Win condition (demo) | Game ends after 20 turns; final score = sum of VP on tableau cards |
 | Resources (demo) | Food and wealth; unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), wealth for premium buildings (Temple, Monument, Pyramids, Forge cost both; Capital, Caravan, Market make wealth) (021, 022) |
 | Threat effects | Deferred: event phase is a stub until designed |
@@ -17,8 +17,8 @@
 ## Architecture principle
 The rules engine is plain GDScript (`RefCounted`/`Resource` classes, no scene nodes).
 Scenes only display state and send player actions. The engine talks to the UI
-through signals. This keeps rules testable and allows headless simulation later
-(`godot --headless --script sim/run.gd`).
+through signals. This keeps rules testable and allows headless simulation
+(`sim/`, run with `scripts/sim.sh`).
 
 ## Project layout (as built)
 ```
@@ -43,7 +43,9 @@ res://
                          # icons.gd (text glyphs → icon images in cards and the log)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
+  sim/                   # bot.gd (ScriptedBot), sim_stats.gd (SimStats: per-seed metrics), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
+  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds]
   docs/                  # development process, testing guide, backlog
 ```
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
@@ -220,6 +222,6 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Later
-- Headless bot + balance stats (random, then greedy)
+- Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
 - Save/load, undo (snapshot GameState)
 - More eras, wonders, techs, automated rival

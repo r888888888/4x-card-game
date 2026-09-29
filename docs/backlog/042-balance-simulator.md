@@ -2,7 +2,7 @@
 id: 042
 title: Headless balance simulator and a balance skill
 type: feature
-status: red-review
+status: in-progress
 branch: feat/042-balance-simulator
 ---
 
@@ -66,3 +66,8 @@ with `main`, instead of pinning numbers in tests. Uses the scripted bot that alr
   20 seeds instead of 3).
 - Found while writing tests: a helper named `test_*` that takes arguments makes the runner's `t.call()` fail, which
   aborts `_initialize` before `quit()`, so the suite hangs silently instead of failing. Follow-up for the runner.
+- 2026-09-29: Green phase: `sim/bot.gd`, `sim/sim_stats.gd`, `sim/run.gd`, `scripts/sim.sh`, the `balance` skill and
+  docs written; 372 of 373 tests pass. `test_bot_resolves_an_explore_choice_with_its_first_option` expects the
+  wrong order: `explore` lists options with the reveal zone's top first, which is the *second* card drawn
+  (Grassland), so the bot correctly keeps Grassland and the frontier is [grassland, hills]. Waiting for the
+  user's OK to fix the test's expectation.
