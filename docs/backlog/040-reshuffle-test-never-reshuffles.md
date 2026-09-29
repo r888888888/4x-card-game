@@ -2,7 +2,7 @@
 id: 040
 title: test_reshuffle_when_deck_runs_out no longer reshuffles; reshuffle is untested
 type: bug
-status: review
+status: done
 branch: fix/040-reshuffle-test
 ---
 
