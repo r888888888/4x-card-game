@@ -2,7 +2,7 @@
 id: 032
 title: Buy cards from a supply
 type: feature
-status: review
+status: done
 branch: feat/032-card-supply
 ---
 
