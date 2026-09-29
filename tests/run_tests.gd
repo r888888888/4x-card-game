@@ -22,6 +22,8 @@ class ErrorCollector extends Logger:
 
 
 func _initialize() -> void:
+	# Autoloads (Game, Settings) join the tree and run _ready only after the first frame; UI tests need them.
+	await process_frame
 	var args := OS.get_cmdline_user_args()
 	var filter: String = args[0] if not args.is_empty() else ""
 	var failures: Array[String] = []
