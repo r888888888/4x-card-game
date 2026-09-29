@@ -285,7 +285,7 @@ func _refresh() -> void:
 	_researched_section.visible = not e.zone("researched").is_empty()
 	choices.refresh(pending_kind())
 	_side.refresh(e)
-	_events_section.visible = _side.event_info.visible
+	_events_section.visible = _side.event_info.visible  # both only with an event deck
 	supply.refresh(e)
 	if not _outcome.is_empty():
 		_top_bar.fly_outcome(fx, _outcome, _outcome_point)
