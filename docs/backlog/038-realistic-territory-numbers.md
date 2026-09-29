@@ -2,7 +2,7 @@
 id: 038
 title: Realistic territory slots and housing; Floodplain Delta gets fresh water
 type: feature
-status: red-review
+status: review
 branch: feat/038-realistic-territory-numbers
 ---
 
@@ -14,7 +14,7 @@ Rough terrain loses value for now; future keywords (e.g. tin and copper, 037) ar
 
 ## Acceptance criteria
 <!-- On the real data (data/cards.json), in tests/test_content.gd. -->
-- [ ] AC1: Given the shipped data, when it loads, then there are no errors or warnings, and each territory
+- [x] AC1: Given the shipped data, when it loads, then there are no errors or warnings, and each territory
   has these slots / housing:
 
   | Territory | Slots | Housing |
@@ -30,9 +30,9 @@ Rough terrain loses value for now; future keywords (e.g. tin and copper, 037) ar
   | Woodland | 2 | 3 |
   | Rainforest | 1 | 2 |
   | Dunes | 1 | 2 |
-- [ ] AC2: Given the shipped data, then Floodplain Delta has keywords `["fresh_water", "flood_plain", "coastal"]`,
+- [x] AC2: Given the shipped data, then Floodplain Delta has keywords `["fresh_water", "flood_plain", "coastal"]`,
   and every other territory keeps its printed keywords.
-- [ ] AC3: Given the shipped data, then `population.start` (2) still fits the starting territory's housing (5), and
+- [x] AC3: Given the shipped data, then `population.start` (2) still fits the starting territory's housing (5), and
   the 20-seed scripted smoke games still run and found cities.
 
 ## Out of scope
@@ -59,4 +59,9 @@ Rough terrain loses value for now; future keywords (e.g. tin and copper, 037) ar
 - [ ] Play a game to turn 20: note whether era 2 (8 pop or 15 wealth) is still reachable with the lower housing.
 
 ## Log
+- Green phase: `test_scripted_games_run_and_found_cities` dropped to 9 of 20 seeds founding a city
+  (needed 11). Cause: Grassland housing 4 → 5. The slot changes and other territories were fine. The
+  bot's Granary and Festival grow the Capital to 5 pop, which eats the food it would save for a Settler.
+  The user chose to keep 3 / 5 and lower the bar to >= 9. It has no margin: 9 is exactly today's result.
+- Follow-up: if early expansion feels slow in play, try Grassland 3 / 4 (passes 11 of 20).
 - Replaces the earlier draft of 038 (Delta: fresh water, 1 slot), which is now part of this item.
