@@ -259,14 +259,6 @@ func _try_play(view: CardView, target_uid := -1) -> void:
 	Game.engine.play_card(view.uid, target_uid)
 
 
-## Why a hand card can't be played at all, or "". A card that needs a target is checked against
-## its first valid target, so "choose a target" doesn't grey it out.
-func _hand_error(uid: int) -> String:
-	var e := Game.engine
-	var targets := e.valid_targets(uid)
-	return e.play_error(uid, targets[0] if e.needs_target(uid) and not targets.is_empty() else -1)
-
-
 func _on_double_clicked(view: CardView) -> void:
 	if _targeting != null:
 		_end_targeting()
@@ -276,7 +268,7 @@ func _on_double_clicked(view: CardView) -> void:
 	if e.discard_needed() > 0:
 		_on_discard_requested(view)
 		return
-	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and _hand_error(view.uid) == "":
+	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and e.playable_error(view.uid) == "":
 		_begin_targeting(view)
 	else:
 		_try_play(view)
@@ -306,23 +298,10 @@ func _on_picked(view: CardView) -> void:
 
 # --- Supply screen ---
 
-## Why the supply screen can't open now, or "". A hand-limit discard doesn't stop it: you can browse,
-## and each card says why it can't be bought.
-func _supply_block_reason() -> String:
-	var e := Game.engine
-	if e.is_over:
-		return "The game is over."
-	if not e.pending_choice.is_empty():
-		return "Choose a territory first."
-	if not e.research_options().is_empty():
-		return "Buy a tech or decline first."
-	return ""
-
-
 ## Opens the supply screen: the panel fades in and one card per pile pops in, one after another.
 func _open_supply() -> void:
 	var e := Game.engine
-	if _supply_overlay.visible or e.supply().is_empty() or _supply_block_reason() != "" or _dragging != null:
+	if _supply_overlay.visible or e.supply().is_empty() or e.supply_error() != "" or _dragging != null:
 		return
 	_end_targeting()
 	_set_card_focus(null)
@@ -394,7 +373,7 @@ func _on_supply_picked(view: CardView) -> void:
 ## The Supply button, and while the screen is open its counters and each pile's price, count and state.
 func _refresh_supply() -> void:
 	var e := Game.engine
-	var reason := _supply_block_reason()
+	var reason := e.supply_error()
 	_supply_button.visible = not e.supply().is_empty()
 	_supply_button.disabled = reason != ""
 	_supply_button.tooltip_text = reason if reason != "" else "Buy copies of cards into your discard."
@@ -570,7 +549,7 @@ func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
 	view.begin_drag(_fx, grab_offset)
 	var e := Game.engine
 	var card := e.zone("hand").find(view.uid)
-	if _hand_error(view.uid) == "":
+	if Game.engine.playable_error(view.uid) == "":
 		if e.needs_target(view.uid):
 			_light_targets(view.uid, false)
 			_show_ghost = card.def.is_permanent()
@@ -709,7 +688,7 @@ func _refresh() -> void:
 	for i in hand.size():
 		if _place(hand[i], true, _hand, i, 0.0 if _calm() else dealt * Anim.DEAL_STAGGER):
 			dealt += 1
-	_place_tableau(tableau)
+	_place_tableau()
 	for i in frontier.size():
 		_place(frontier[i], false, _frontier, i, 0.0)
 	for i in reveal.size():
@@ -735,7 +714,7 @@ func _refresh() -> void:
 	_sync_card_focus()
 
 	var discarding := e.discard_needed() > 0
-	_end_turn_button.disabled = e.is_over or not e.pending_choice.is_empty() or not techs.is_empty() or discarding
+	_end_turn_button.disabled = e.end_turn_error() != ""
 	_end_turn_button.text = "Discard %d (hand limit %d)" % [e.discard_needed(), e.config.hand_limit] if discarding else "End turn  (E)"
 	if e.is_over and not _game_over_overlay.visible:
 		_replay_button.grab_focus()  # so Enter replays from the keyboard
@@ -744,36 +723,21 @@ func _refresh() -> void:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
 
 
-## Places tableau cards in territory groups: each territory card first, then the cards on it.
-## Cards with no territory go in a last group. Empty groups are removed.
-func _place_tableau(tableau: Array[CardInstance]) -> void:
+## Places tableau cards in the engine's territory groups. Empty groups are removed.
+func _place_tableau() -> void:
 	var e := Game.engine
-	var members := {}  # group key -> Array[CardInstance], in tableau order
-	var order: Array[int] = []
-	for card in tableau:
-		var key := -1
-		if card.def.type == CardDef.TERRITORY:
-			key = card.uid
-		elif e.territory_of(card) != null:
-			key = card.territory_uid
-		if not members.has(key):
-			members[key] = []
-			if key != -1:
-				order.append(key)
-		if card.def.type == CardDef.TERRITORY:
-			members[key].push_front(card)
-		else:
-			members[key].append(card)
-	if members.has(-1):
-		order.append(-1)
-	for i in order.size():
-		var key := order[i]
+	var tableau := e.zone("tableau")
+	var groups := e.territory_groups()
+	var shown := {}  # group keys in use
+	for i in groups.size():
+		var key: int = groups[i].territory
+		shown[key] = true
 		if not _groups.has(key):
 			_groups[key] = _new_group()
 		var group: TerritoryGroup = _groups[key]
 		_tableau.move_child(group.frame, i)
-		for j in members[key].size():
-			_place(members[key][j], false, group.row, j, 0.0)
+		for j in groups[i].cards.size():
+			_place(tableau.find(groups[i].cards[j]), false, group.row, j, 0.0)
 		group.uid = key
 		group.label.visible = key != -1
 		group.grow_button.visible = key != -1 and e.population_on()
@@ -789,7 +753,7 @@ func _place_tableau(tableau: Array[CardInstance]) -> void:
 				text += "  ·  Pop %d / %d" % [e.pop(key), e.housing(key)]
 			_set_stat(group.label, text)
 	for key in _groups.keys():
-		if not members.has(key):
+		if not shown.has(key):
 			_groups[key].frame.queue_free()
 			_tableau.remove_child(_groups[key].frame)
 			_groups.erase(key)
@@ -830,7 +794,7 @@ func _new_group() -> TerritoryGroup:
 ## Returns true if the card was newly dealt into the hand.
 func _place(card: CardInstance, in_hand: bool, container: Container, index: int, delay: float) -> bool:
 	var e := Game.engine
-	var error := _hand_error(card.uid) if in_hand else ""
+	var error := e.playable_error(card.uid) if in_hand else ""
 	var compact := container == _frontier or container == _researched
 	var view: CardView = _views.get(card.uid)
 	if view == null:
@@ -869,12 +833,11 @@ func _place(card: CardInstance, in_hand: bool, container: Container, index: int,
 func _era_unlock_lines() -> Array[String]:
 	var e := Game.engine
 	var out: Array[String] = []
-	var eras := e.era_unlocks().keys()
+	var upcoming := e.upcoming_era_unlocks()
+	var eras := upcoming.keys()
 	eras.sort()
 	for n in eras:
-		if n <= e.era():
-			continue
-		var need: Dictionary = e.era_unlocks()[n]
+		var need: Dictionary = upcoming[n]
 		var parts: PackedStringArray = []
 		if need.has("pop"):
 			parts.append("%d pop" % need.pop)
