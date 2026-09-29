@@ -2,7 +2,7 @@
 id: 037
 title: Tin and copper roll on Hills and Highlands and pay off on Forge
 type: feature
-status: review
+status: done
 branch: feat/037-tin-and-copper
 ---
 
