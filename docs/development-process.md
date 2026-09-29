@@ -11,7 +11,7 @@ procedures are the skills in `.claude/skills/`.
         │
         ▼
  ┌──────────────┐   /spec        docs/backlog/NNN-slug.md
- │ 1. Spec      │ ─────────────► status: draft → ready (you approve criteria)
+ │ 1. Spec      │ ─────────────► status: ready (no approval step)
  └──────────────┘
         │  /tdd NNN
         ▼
@@ -22,6 +22,7 @@ procedures are the skills in `.claude/skills/`.
         ▼
  ╔══════════════╗   status: red-review. Claude stops and shows you
  ║ CHECKPOINT   ║   AC → test mapping + failure output.
+                    This is where you review the criteria too.
  ╚══════════════╝   You: approve / ask for changes
         │
         ▼
@@ -42,8 +43,8 @@ procedures are the skills in `.claude/skills/`.
 
 | Step | You | Claude |
 |---|---|---|
-| Spec | Describe the goal; answer questions; approve the criteria | Asks clarifying questions, writes the item, proposes criteria |
-| Red | Review the tests: do they capture what you meant? | Writes tests, runs them, explains each failure |
+| Spec | Describe the goal; answer questions | Asks clarifying questions, writes the item and its criteria as `ready` |
+| Red | Review the criteria and tests: do they capture what you meant? | Writes tests, runs them, explains each failure |
 | Green/refactor | Nothing (unless Claude hits a design question) | Implements, refactors, commits on the branch |
 | Verify | Run the manual checklist for UI changes; accept | Runs the suite, updates PLAN.md / README / item, reports |
 | Merge | Say "merge" | Merges to `main`, marks the item `done` |

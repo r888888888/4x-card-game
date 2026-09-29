@@ -8,8 +8,8 @@ Claude to create the item (the `spec` skill).
 
 | Status | Meaning | Who moves it on |
 |---|---|---|
-| `draft` | Idea captured; acceptance criteria incomplete or unapproved | You approve the spec → `ready` |
-| `ready` | Criteria agreed; can be picked up | Claude starts → `in-progress` |
+| `draft` | Idea captured; a behavior question is still open | You answer it → `ready` |
+| `ready` | Criteria written; can be picked up (you review them at `red-review`) | Claude starts → `in-progress` |
 | `in-progress` | Branch exists; work underway | Claude writes failing tests → `red-review` |
 | `red-review` | Failing tests written; waiting for your review | You approve → `in-progress` (green phase) |
 | `review` | Green, refactored, verified; waiting for your final look (and manual UI check, if any) | You accept → `done` |
@@ -51,3 +51,18 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 12. 051 GameState split
 13. 039 event deck (after 051: uses the type schema, the upkeep guard and the forecast on a copy)
 14. 052 split `ui/main.gd`
+15. 053 board tidy (Realm, Buy Cards, Knowledge wording, seed in menu)
+16. 067 Exit button in the menu (after 053, which also edits the menu)
+17. 054 fresh-water start, Farm needs Fresh Water
+18. 055 Caravan `trade` op
+19. 056 card details modal (the tech tree reuses it)
+20. 057 locked supply piles, `unlock` op
+21. 058 Stone/Bronze Age tech content (uses 057)
+22. 059 tech tree modal (after 058's content, uses 056)
+23. 060 Granary famine guard
+24. 061 weighted explore
+25. 062 civilization cards
+26. 063 start screen
+27. 064 choose civilization (uses 062, 063)
+28. 065 government cards (content from 058's techs)
+29. 066 100-turn games, balance pass (last: everything above changes balance)

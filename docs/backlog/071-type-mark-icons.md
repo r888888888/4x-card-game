@@ -2,7 +2,7 @@
 id: 071
 title: Icons for the tech and event type marks
 type: feature
-status: draft
+status: ready
 branch: feat/071-type-mark-icons
 ---
 

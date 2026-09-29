@@ -51,4 +51,10 @@ Run `godot --path .`.
 - [ ] Over a full game, wealth gets spent rather than piling up. Record the final score and the wealth
   left in the Log.
 
+## Open questions
+- Is this still needed? The premise predates the research deck: 12 techs now cost 2–6 wealth each, so wealth may
+  no longer pile up. Rerun the stats before deciding.
+- AC1 fixes Amphitheater's exact cost and VP in a test, which the content-test rule forbids; move those numbers
+  to Manual check if the item goes ahead.
+
 ## Log

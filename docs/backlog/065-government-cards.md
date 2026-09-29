@@ -1,0 +1,55 @@
+---
+id: 065
+title: Government cards (one at a time, swap by playing)
+type: feature
+status: ready
+branch: feat/065-government-cards
+---
+
+## Goal
+Your people have a government (TODO 15). You start with a basic one. Techs give government cards, and playing one from
+your hand replaces the current government. The old one leaves the game. A government's bonuses apply while it rules.
+
+## Acceptance criteria
+Fixtures added to TEST_CARDS:
+- `council`, "Council", government, no effects
+- `kingdom`, "Kingdom", government, cost 2 food, vp 1, effects: play +1 wealth, upkeep +1 food
+Config: `starting.government: "council"`.
+
+- [ ] AC1 (loader): type `government` is valid. `starting.government` is optional. An unknown id or a non-government is
+  a load error naming config.json and `starting.government`. A government in `deck`, `supply`, `territory_deck` or
+  `research_deck` is a load error naming that field. A government effect that needs a target is a load error.
+- [ ] AC2 (setup): after `new_game`, the `government` zone holds Council, and `government()` returns its uid. With no
+  `starting.government`, the zone is empty and `government()` is -1.
+- [ ] AC3 (play): With Kingdom in hand and 2 food, `play_card(kingdom)` pays 2 food, moves Kingdom to `government`,
+  moves Council to `removed`, and gives +1 wealth. `government()` is Kingdom's uid.
+- [ ] AC4 (bonuses): While Kingdom rules, each upkeep gives +1 food (`upkeep_forecast` includes it), and the score
+  counts its 1 VP. After it's replaced, neither applies.
+- [ ] AC5 (errors): `play_error` for a government with the same id as the ruling one is "Kingdom is already your
+  government." Other errors (cost, blocked, game over) work as for any card.
+- [ ] AC6 (fork): `fork()` copies the government and removed zones.
+
+## Out of scope
+- Rule modifiers, anarchy or transition turns, and government-specific restrictions.
+- Choosing a government at research time (rejected: governments come as cards).
+
+## Design notes
+- `CardDef.GOVERNMENT`, in `SEPARATE_DECK_TYPES` for config lists, but `create` may put one in the discard (like
+  Library). New zones `government` and `removed`. Governments join the 062 list of always-on permanents for upkeep
+  and score.
+- Play resolution: a government is neither an action (discard) nor a tableau card. `CardPlay` sends it to the
+  `government` zone.
+- Proposed content (for review): starting **Chiefdom** (no bonus). **Kingship** from Code of Laws (058), with
+  ⟳ +1 wealth. **Theocracy** from Priesthood, with ⟳ +1 VP. The two techs `create` their government in the discard.
+- UI: the government card sits next to the civilization card. Playing one flies it there.
+
+## Test plan
+| AC | Test |
+|---|---|
+| AC1 | `test_government::test_…` |
+
+## Manual check
+- [ ] Playing Kingship replaces Chiefdom on screen, and the log says so.
+- [ ] Sim: how often the bot switches governments, and the effect on score (Log).
+
+## Log

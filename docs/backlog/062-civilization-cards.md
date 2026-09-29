@@ -1,0 +1,52 @@
+---
+id: 062
+title: Civilization cards (permanent bonuses)
+type: feature
+status: ready
+branch: feat/062-civilization-cards
+---
+
+## Goal
+A game is played as a civilization (TODO 14): one permanent card with a starting gift and ongoing bonuses. This item
+adds the card type, the `start` trigger and one civilization from config. Picking one comes in 063 and 064.
+
+## Acceptance criteria
+Fixtures added to TEST_CARDS:
+- `tribe`, "Tribe", civilization: `start` +3 food, `upkeep` +1 wealth
+- `nomads`, "Nomads", civilization, vp 1: `upkeep` score 1
+
+- [ ] AC1 (loader): type `civilization` is valid. A civilization in `deck`, `supply`, `territory_deck` or
+  `research_deck` is a load error naming that field. Config `starting.civilization` is optional. An unknown id, or a
+  card that isn't a civilization, is a load error naming config.json and `starting.civilization`.
+- [ ] AC2 (start trigger): the trigger `start` is valid only on civilization cards. Elsewhere it is a load error naming
+  the card and the effect index. A `start` effect whose op needs a target or opens a choice (`settle`, `explore`,
+  `research`) is a load error.
+- [ ] AC3 (setup): With `starting.civilization: "tribe"` and starting food 2, after `new_game` the `civilization` zone
+  holds Tribe, `civilization()` returns its uid, and food is 2 + 3 (start) + 2 (Capital, turn 1 upkeep) = 7, wealth 1.
+  The start effects resolve once, before turn 1's upkeep.
+- [ ] AC4 (upkeep and score): Tribe gives +1 wealth every upkeep, and `upkeep_forecast` includes it. With Nomads, the
+  score includes its 1 VP plus 1 per upkeep so far.
+- [ ] AC5 (none): With no `starting.civilization`, the zone is empty, `civilization()` is -1, and play is as before.
+- [ ] AC6 (fork): `fork()` copies the civilization zone.
+
+## Out of scope
+- Rule modifiers ("buildings cost 1 less"); only existing ops and the new trigger.
+- Choosing a civilization (064) and real civilization content beyond one default.
+
+## Design notes
+- `CardDef.CIVILIZATION`, in `SEPARATE_DECK_TYPES`. New zone `civilization`. `Effect.TRIGGERS` gains `start`.
+  Card text prefix "Start:" (face) and "When the game starts:" (tooltip).
+- Upkeep: `resolve_upkeep` covers tableau, researched and civilization. Keep a single list of "always-on
+  non-territory permanents", which the governments in 065 join.
+- Real data: one default civilization (for example "Tribe of the River": ⟳ +1 food), so the game keeps working before 064.
+- UI: the civilization card sits in its own small section (next to Known). Its details open via 056.
+
+## Test plan
+| AC | Test |
+|---|---|
+| AC1 | `test_civilization::test_…` |
+
+## Manual check
+- [ ] The civilization card is visible during play, and its bonus shows in the forecast.
+
+## Log
