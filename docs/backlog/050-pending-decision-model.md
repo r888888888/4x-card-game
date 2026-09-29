@@ -2,7 +2,7 @@
 id: 050
 title: One model for decisions the player owes
 type: feature
-status: red-review
+status: in-progress
 branch: feat/050-pending-decision-model
 ---
 
@@ -14,7 +14,7 @@ blocking rule makes the next kind (the event deck) a single addition.
 ## Acceptance criteria
 - [ ] AC1: `pending()` is `{}` when nothing is owed.
 - [ ] AC2: After a Scout-style explore reveals 2 territories, `pending()` is
-  `{kind: "explore", options: [top uid, second uid], source: <card uid>}`.
+  `{kind: "explore", options: [uids, top of the reveal zone first, as in pending_choice], source: <card uid>}`.
 - [ ] AC3: After a Research card reveals 2 techs, `pending()` is `{kind: "research", options: [the 2 tech uids]}`.
 - [ ] AC4: With hand limit 5 and 7 cards in hand at `end_turn()`, `pending()` is
   `{kind: "discard", count: 2, options: [the 7 hand uids]}`; after one discard, `count` is 1.

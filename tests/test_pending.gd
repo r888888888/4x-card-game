@@ -60,13 +60,14 @@ func test_pending_is_empty_when_nothing_is_owed() -> void:
 
 # --- AC2: explore ---
 
+## Options come top of the reveal zone first, as in pending_choice: Grassland (drawn last) before Hills.
 func test_pending_explore_lists_the_revealed_territories_top_first() -> void:
 	var e := pending_engine()
 	var hills := uid_of(e.zone("territory_deck"), "hills")
 	var grassland := uid_of(e.zone("territory_deck"), "grassland")
 	var explorer := put_in_hand(e, "explorer")
 	check(e.play_card(explorer), "play Explorer")
-	eq(pending_of(e), {"kind": "explore", "options": [hills, grassland], "source": explorer}, "pending")
+	eq(pending_of(e), {"kind": "explore", "options": [grassland, hills], "source": explorer}, "pending")
 
 
 # --- AC3: research ---

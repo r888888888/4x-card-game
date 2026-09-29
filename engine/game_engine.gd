@@ -24,6 +24,12 @@ const MAX_PASSES := 3
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
+## The kinds of decision pending() can report.
+const PENDING_EXPLORE := "explore"
+const PENDING_RESEARCH := "research"
+const PENDING_DISCARD := "discard"
+## The actions still allowed while a discard is owed (see _blocked_error).
+const _DISCARD_ALLOWS: Array[String] = ["discard", "supply"]
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -110,12 +116,9 @@ func grow_error(territory_uid: int) -> String:
 		return "The game is over."
 	if not population_on():
 		return "This game has no population."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
-	if _discard_left > 0:
-		return _discard_error()
+	var blocked := _blocked_error("grow")
+	if blocked != "":
+		return blocked
 	var territory := _settled_territory(territory_uid)
 	if territory == null:
 		return "Only a settled territory can grow."
@@ -149,6 +152,20 @@ func total_pop() -> int:
 		if card.def.type == CardDef.TERRITORY:
 			total += card.pop
 	return total
+
+
+## The decision the player owes before the game can go on, or {} when none:
+## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored},
+## {kind: PENDING_RESEARCH, options: revealed tech uids} or
+## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
+func pending() -> Dictionary:
+	if not pending_choice.is_empty():
+		return {"kind": PENDING_EXPLORE, "options": pending_choice.options, "source": pending_choice.source.uid}
+	if not zone("research_reveal").is_empty():
+		return {"kind": PENDING_RESEARCH, "options": research_options()}
+	if _discard_left > 0:
+		return {"kind": PENDING_DISCARD, "count": _discard_left, "options": zone("hand").cards.map(func(c): return c.uid)}
+	return {}
 
 
 ## The uids of the revealed techs waiting to be bought or declined, top first; [] when none is open.
@@ -259,7 +276,7 @@ func buy_price(card_id: String) -> int:
 
 ## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
 func buy_error(card_id: String) -> String:
-	var busy := _busy_error()
+	var busy := _blocked_error("buy")
 	if busy != "":
 		return busy
 	var card_name: String = card_db[card_id].name if card_db.has(card_id) else card_id
@@ -287,7 +304,7 @@ func playable_error(uid: int) -> String:
 
 ## Why the card can't be played right now, or "" if it can.
 func play_error(uid: int, target_uid := -1) -> String:
-	var busy := _busy_error()
+	var busy := _blocked_error("play")
 	if busy != "":
 		return busy
 	var card := zone("hand").find(uid)
@@ -563,7 +580,7 @@ func discard_needed() -> int:
 ## pending this counts toward it, and the turn ends once the hand is down to the limit. False (and no
 ## change) if the game is over, a choice is pending, or the card isn't in hand.
 func discard_card(uid: int) -> bool:
-	if is_over or not pending_choice.is_empty() or not research_options().is_empty():
+	if _blocked_error("discard") != "":
 		return false
 	var card := zone("hand").find(uid)
 	if card == null:
@@ -582,13 +599,13 @@ func discard_card(uid: int) -> bool:
 
 ## Why the turn can't end right now, or "" if it can.
 func end_turn_error() -> String:
-	return _busy_error()
+	return _blocked_error("end_turn")
 
 
 ## Why the supply screen can't open now, or "". A discard owed doesn't block it: you can browse, and
 ## buy_error says why each card can't be bought.
 func supply_error() -> String:
-	return _choice_error()
+	return _blocked_error("supply")
 
 
 ## The tableau in territory groups: [{territory: uid, cards: [uids]}]. Each settled territory is first in
@@ -774,25 +791,18 @@ func _lowest_future_era() -> int:
 	return lowest
 
 
-## Why no action can be taken right now (game over, an explore choice, open research, a discard owed),
-## or "" if actions are allowed.
-func _busy_error() -> String:
-	var choice := _choice_error()
-	if choice != "":
-		return choice
-	if _discard_left > 0:
-		return _discard_error()
-	return ""
-
-
-## Why nothing but finishing the open step can happen (game over, an explore choice, open research), or "".
-func _choice_error() -> String:
+## Why action ("play", "grow", "buy", "end_turn", "supply", "discard") is blocked by the game being over
+## or by a pending() decision, or "". Only discarding and browsing the supply go on while a discard is owed.
+func _blocked_error(action: String) -> String:
 	if is_over:
 		return "The game is over."
-	if not pending_choice.is_empty():
-		return "Choose a territory first."
-	if not research_options().is_empty():
-		return _research_open_error()
+	match pending().get("kind", ""):
+		PENDING_EXPLORE:
+			return "Choose a territory first."
+		PENDING_RESEARCH:
+			return _research_open_error()
+		PENDING_DISCARD:
+			return "" if _DISCARD_ALLOWS.has(action) else _discard_error()
 	return ""
 
 
