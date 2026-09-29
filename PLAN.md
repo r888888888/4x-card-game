@@ -252,6 +252,9 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
   includes active events.
 - Code: `engine/events.gd`.
+- UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an
+  "Events: deck N · discard M" label sits under the research info (tooltip: one event is drawn at the end of each
+  turn). Both are hidden when the config has no event deck. An ending event flies to that label.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats

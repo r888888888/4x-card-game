@@ -42,6 +42,9 @@ var _research_row: HBoxContainer  # the revealed techs, inside _research_overlay
 var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
 var _researched: HBoxContainer
 var _research_info: Label  # research deck count, era and lost techs; research itself is a card (034)
+var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
+var _events_row: HBoxContainer  # the active events, in draw order
+var _event_info: Label  # event deck and event discard counts
 var _supply_button: Button  # "Supply (S)", hidden when the config has no supply
 var _supply_overlay: Control  # the supply screen: dims the board, shows one card per pile
 var _supply_row: HBoxContainer  # slots for the pile cards, in config order
@@ -196,6 +199,16 @@ func hand_view_count() -> int:
 ## Test hook (045): the game-over overlay's text, or "" while it is hidden.
 func game_over_text() -> String:
 	return _game_over_label.text if _game_over_overlay.visible else ""
+
+
+## Test hook (068): the event panel as {visible, info, tooltip, views: [{uid, id, text}]}, views in row order.
+func event_panel() -> Dictionary:
+	var views := []
+	for slot in _events_row.get_children():
+		for view in _views.values():
+			if view.slot == slot:
+				views.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
+	return {"visible": _events_section.visible, "info": _event_info.text, "tooltip": _event_info.tooltip_text, "views": views}
 
 
 ## Menu Restart: the seed in the field, or a random one if it isn't a whole number.
@@ -682,8 +695,9 @@ func _refresh() -> void:
 	var reveal := e.zone("reveal").cards
 	var techs := e.zone("research_reveal").cards
 	var researched := e.zone("researched").cards
+	var events := e.zone("active_events").cards
 	var shown := {}
-	for card in hand + tableau + frontier + reveal + techs + researched:
+	for card in hand + tableau + frontier + reveal + techs + researched + events:
 		shown[card.uid] = true
 	for uid in _views.keys():
 		if not shown.has(uid):
@@ -702,6 +716,9 @@ func _refresh() -> void:
 		_views[techs[i].uid].set_tech_info(e.tech_cost(techs[i].uid), techs[i].def.cost.wealth, e.tech_passes(techs[i].uid), GameEngine.MAX_PASSES)
 	for i in researched.size():
 		_place(researched[i], false, _researched, i, 0.0)
+	for i in events.size():
+		_place(events[i], false, _events_row, i, 0.0)
+		_views[events[i].uid].set_event_info(e.event_turns_left(events[i].uid))
 	_frontier_section.visible = not frontier.is_empty()
 	_researched_section.visible = not researched.is_empty()
 	_choice_overlay.visible = _pending_kind() == GameEngine.PENDING_EXPLORE
@@ -713,6 +730,10 @@ func _refresh() -> void:
 	tip_lines.push_front("Play a Research card to reveal 2 techs.")
 	_research_info.tooltip_text = "\n".join(tip_lines)
 	_research_info.visible = e.config.research_deck.size() > 0
+	var has_events: bool = not e.config.get("event_deck", {}).is_empty()
+	_events_section.visible = has_events
+	_event_info.visible = has_events
+	_event_info.text = "Events: deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
 	_refresh_supply()
 	_animate_outcome()
 	_sync_card_focus()
@@ -802,7 +823,7 @@ func _new_group() -> TerritoryGroup:
 func _place(card: CardInstance, in_hand: bool, container: Container, index: int, delay: float) -> bool:
 	var e := Game.engine
 	var error := e.playable_error(card.uid) if in_hand else ""
-	var compact := container == _frontier or container == _researched
+	var compact := container == _frontier or container == _researched or container == _events_row
 	var view: CardView = _views.get(card.uid)
 	if view == null:
 		view = CardView.new()
@@ -890,6 +911,8 @@ func _leave_point(uid: int) -> Vector2:
 		return Vector2(r.end.x, r.get_center().y)
 	if e.zone("deck").find(uid) != null:
 		return _pile_point(0.25)
+	if e.zone("event_discard").find(uid) != null:
+		return _event_info.get_global_rect().get_center()
 	return _pile_point(0.75)
 
 
@@ -1150,6 +1173,15 @@ func _build_layout() -> void:
 	_researched.add_theme_constant_override("separation", CARD_GAP)
 	researched_scroll.add_child(_researched)
 
+	_events_section = _section(play_area, "Events")
+	_events_section.hide()
+	var events_scroll := ScrollContainer.new()
+	events_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_events_section.add_child(events_scroll)
+	_events_row = HBoxContainer.new()
+	_events_row.add_theme_constant_override("separation", CARD_GAP)
+	events_scroll.add_child(_events_row)
+
 	var hand_section := _section(play_area, "Hand — drag a card into the tableau, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	_hand_scroll = ScrollContainer.new()
 	_hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
@@ -1185,6 +1217,11 @@ func _build_layout() -> void:
 	_research_info = _heading("")
 	_research_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
 	side_col.add_child(_research_info)
+	_event_info = _heading("")
+	_event_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
+	_event_info.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
+	_event_info.hide()
+	side_col.add_child(_event_info)
 	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())
 	_end_turn_button.custom_minimum_size.y = 60
 	_end_turn_button.add_theme_font_size_override("font_size", 24)

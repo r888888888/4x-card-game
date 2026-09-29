@@ -18,6 +18,7 @@ const TYPE_COLORS := {
 	CardDef.CITY: Color("c08a3e"),
 	CardDef.TERRITORY: Color("8a6fb5"),
 	CardDef.TECH: Color("3fa7a0"),
+	CardDef.EVENT: Color("b5566f"),
 }
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
@@ -29,6 +30,7 @@ const TYPE_MARKS := {
 	CardDef.CITY: "●",
 	CardDef.TERRITORY: "▲",
 	CardDef.TECH: "✦",
+	CardDef.EVENT: "❖",
 }
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
@@ -174,10 +176,6 @@ func set_play_error(play_error: String) -> void:
 ## Shows a revealed tech's price and passes: "Cost 4 wealth (was 5)", pass markers (●○○), and
 ## "last chance" on its final appearance. The numbers come from the engine.
 func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> void:
-	var old := _box.get_node_or_null("TechInfo")
-	if old != null:
-		_box.remove_child(old)
-		old.queue_free()
 	var markers := "●".repeat(passes) + "○".repeat(max_passes - passes)
 	var text := "Cost %d wealth" % cost
 	if cost != printed:
@@ -185,8 +183,28 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	text += "\nPassed %s" % markers
 	if passes == max_passes - 1:
 		text += " · last chance"
+	_set_info_label("TechInfo", text)
+
+
+## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left").
+func set_event_info(turns_left: int) -> void:
+	_set_info_label("EventInfo", "%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"])
+
+
+## The text set_event_info shows, or "" when it was never called.
+func event_info_text() -> String:
+	var info := _box.get_node_or_null("EventInfo") as Label
+	return info.text if info != null else ""
+
+
+## Replaces the gold info line called label_name at the bottom of the card with text.
+func _set_info_label(label_name: String, text: String) -> void:
+	var old := _box.get_node_or_null(label_name)
+	if old != null:
+		_box.remove_child(old)
+		old.queue_free()
 	var info := _label(text, 19, HIGHLIGHT_COLOR)
-	info.name = "TechInfo"
+	info.name = label_name
 	_box.add_child(info)
 
 

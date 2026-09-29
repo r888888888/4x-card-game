@@ -52,6 +52,18 @@ const TEST_CARDS := {"cards": [
 	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "research"}]},
 ]}
 
+## Fixture events (backlog 039), loaded with TEST_CARDS by event_db. Not in TEST_CARDS itself, so make_engine games
+## have no event deck.
+const TEST_EVENTS := [
+	{"id": "windfall", "name": "Windfall", "type": "event", "discard": {"turns": 1},
+	 "effects": [{"op": "gain", "resource": "food", "amount": 2}]},
+	{"id": "trade_winds", "name": "Trade Winds", "type": "event", "discard": {"turns": 2},
+	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "omen", "name": "Omen", "type": "event"},
+	{"id": "harvest", "name": "Harvest", "type": "event", "discard": {"turns": 2},
+	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+]
+
 var test_name := ""  # "file::method", set by the runner
 var failures: Array[String] = []  # shared with the runner
 var assertions := 0
@@ -229,3 +241,36 @@ func put_in_hand(engine: Object, id: String) -> int:
 ## play_card's result.
 func play_research(engine: Object) -> bool:
 	return engine.play_card(put_in_hand(engine, "study"))
+
+
+## TEST_CARDS plus TEST_EVENTS, parsed.
+func event_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
+	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_EVENTS}, resources(), "cards.json", errors, warnings, keywords())
+
+
+# --- UI helpers (backlog 045) ---
+
+## Adds a fresh main scene to the running tree. Typed Node so calls to its test hooks parse before they exist.
+func open_main() -> Node:
+	var main: Node = load("res://ui/main.tscn").instantiate()
+	(Engine.get_main_loop() as SceneTree).root.add_child(main)
+	return main
+
+
+func close_main(main: Node) -> void:
+	main.get_parent().remove_child(main)
+	main.free()
+
+
+## Plays seed 1 to the end with the bot, calling after_turn(main) each time the turn number changes.
+func play_seed_1(main: Node, after_turn: Callable) -> void:
+	main.start_game(1)
+	var e := Game.engine
+	var state := {"turn": e.turn}
+	var on_changed := func():
+		if e.turn != state.turn or e.is_over:
+			state.turn = e.turn
+			after_turn.call(main)
+	e.changed.connect(on_changed)
+	ScriptedBot.play(e)
+	e.changed.disconnect(on_changed)

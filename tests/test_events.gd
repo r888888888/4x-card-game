@@ -1,22 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## The event deck (backlog 039): the event card type and its discard condition, the event_deck config, drawing
 ## one event per end_turn, active events' upkeep, discarding them, and reshuffling the event discard.
-## Engine helpers return Object, not GameEngine, so calls to new engine methods fail at run time, not parse time.
+## Fixture events: TEST_EVENTS in tests/lib/test_case.gd. Engine helpers return Object, not GameEngine, so calls
+## to new engine methods fail at run time, not parse time.
 
-const EVENTS := [
-	{"id": "windfall", "name": "Windfall", "type": "event", "discard": {"turns": 1},
-	 "effects": [{"op": "gain", "resource": "food", "amount": 2}]},
-	{"id": "trade_winds", "name": "Trade Winds", "type": "event", "discard": {"turns": 2},
-	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
-	{"id": "omen", "name": "Omen", "type": "event"},
-	{"id": "harvest", "name": "Harvest", "type": "event", "discard": {"turns": 2},
-	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
-]
 const ALL_EVENTS := {"windfall": 1, "trade_winds": 1, "omen": 1}
-
-
-func event_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + EVENTS}, resources(), "cards.json", errors, warnings, keywords())
 
 
 ## A game with the main deck {scout: 10}, the event deck order_top_first on top (the rest of event_deck below),
