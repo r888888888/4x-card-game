@@ -37,6 +37,25 @@ func test_card_validation() -> void:
 	], parse)
 
 
+## A card 'x' whose only effect creates a Farm in zone.
+func creator(zone: String) -> Array:
+	return [{"id": "farm", "name": "Farm", "type": "building"},
+		{"id": "x", "name": "X", "type": "action", "effects": [{"op": "create", "card": "farm", "zone": zone}]}]
+
+
+func test_bug_048_create_refuses_zones_where_a_new_card_makes_no_sense() -> void:
+	var cases := []
+	for zone in ["research_reveal", "reveal", "frontier", "territory_deck", "research_deck", "researched", "lost_techs", "future_techs"]:
+		cases.append([zone, creator(zone),
+			"card 'x': effects[0]: 'zone' must be one of: tableau, hand, discard, deck (got '%s')" % zone, "one_error"])
+	check_cases(cases, parse)
+
+
+func test_bug_048_create_loads_into_tableau_hand_discard_and_deck() -> void:
+	for zone in ["tableau", "hand", "discard", "deck"]:
+		eq(parse(creator(zone)).errors, [] as Array[String], "%s: errors" % zone)
+
+
 func test_config_unknown_deck_card() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []

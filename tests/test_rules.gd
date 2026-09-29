@@ -117,6 +117,22 @@ func test_create_card_without_a_source_puts_a_new_copy_in_the_zone() -> void:
 	check(e.log_lines.back().contains("Created Scout."), "logged without a source: %s" % e.log_lines.back())
 
 
+func test_bug_048_create_puts_the_card_in_each_allowed_zone() -> void:
+	for zone_name in ["tableau", "hand", "discard", "deck"]:
+		var maker := {"id": "maker", "name": "Maker", "type": "action",
+			"effects": [{"op": "create", "card": "scout", "zone": zone_name}]}
+		var errors: Array[String] = []
+		var warnings: Array[String] = []
+		var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [maker]}, resources(), "test", errors, warnings, keywords())
+		var config := DataLoader.parse_config(raw_config({"maker": 10}), resources(), cards, "test", errors, warnings)
+		eq(errors, [] as Array[String], "%s: errors" % zone_name)
+		var e := GameEngine.new(cards, config)
+		e.new_game(1)
+		var before := card_ids(e.zone(zone_name)).count("scout")
+		check(e.play_card(first_in_hand(e)), "%s: play Maker" % zone_name)
+		eq(card_ids(e.zone(zone_name)).count("scout"), before + 1, "%s: a new Scout" % zone_name)
+
+
 func test_gain_per_tag() -> void:
 	var e := make_engine({"caravan": 10})
 	check(e.play_card(first_in_hand(e)))
