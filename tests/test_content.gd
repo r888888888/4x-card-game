@@ -354,13 +354,6 @@ func test_real_hills_roll_gold_and_iron_is_gone() -> void:
 	check(r.config.get("resource_keywords", []).has("gold"), "gold is a resource keyword")
 	check(not r.cards.has("gold_hills"), "Gold Hills is removed")
 	eq(r.config.territory_deck.get("hills"), 2, "2 Hills in the territory deck")
-	var hills: Array = r.config.get("territory_resources", {}).get("hills", [])
-	eq(hills.size(), 2, "Hills has 2 options")
-	if hills.size() == 2:
-		eq(hills[0].keywords, ["gold"] as Array[String], "option 0 keywords")
-		eq(hills[0].weight, 1, "option 0 weight")
-		eq(hills[1].keywords, [] as Array[String], "option 1 keywords")
-		eq(hills[1].weight, 1, "option 1 weight")
 
 
 # --- Backlog 037: tin and copper ---

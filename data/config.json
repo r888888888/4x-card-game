@@ -4,7 +4,7 @@
     "fresh_water", "flood_plain", "mountain", "jungle", "coastal", "forest",
     "hills", "desert", "grassland"
   ],
-  "resource_keywords": ["gold"],
+  "resource_keywords": ["gold", "tin", "copper"],
   "turn_limit": 20,
   "hand_size": 5,
   "hand_limit": 7,
@@ -68,6 +68,13 @@
   "territory_resources": {
     "hills": [
       { "keywords": ["gold"], "weight": 1 },
+      { "keywords": ["tin", "copper"], "weight": 1 },
+      { "keywords": [], "weight": 2 }
+    ],
+    "highlands": [
+      { "keywords": ["tin"], "weight": 1 },
+      { "keywords": ["copper"], "weight": 1 },
+      { "keywords": ["tin", "copper"], "weight": 1 },
       { "keywords": [], "weight": 1 }
     ]
   }
