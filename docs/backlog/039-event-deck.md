@@ -2,7 +2,7 @@
 id: 039
 title: Event deck and event cards (framework)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/039-event-deck
 ---
 
@@ -112,3 +112,5 @@ tests set the event deck order directly when it matters ("top first").
   fourth fixture, `harvest` (upkeep +1 food, 2 turns), to test that event upkeep resolves before pop eats.
 - Red: AC6 said both events are active "during turn 2's play phase", but Omen is drawn at the end of turn 2.
   The test checks both are active right after Omen is drawn (end of turn 2, before turn 3's upkeep).
+- Green: `test_nothing_is_drawn_when_both_event_piles_are_empty` checked after turn 3's upkeep, when Trade Winds
+  had rightly ended; with approval it now checks at the hand-limit pause right after the empty event phase.

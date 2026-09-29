@@ -8,6 +8,7 @@ var territory_uid := -1  # the territory this card sits on, or -1
 var passes := 0  # techs: times another tech was bought over it; each is -1 wealth
 var pop := 0  # territories: population living there
 var keywords: Array[String] = []  # territories: printed keywords, then rolled resource keywords
+var turns_left := 0  # active events: upkeeps left before the event is discarded
 
 
 func _init(p_uid: int, p_def: CardDef) -> void:
@@ -23,4 +24,5 @@ func copy() -> CardInstance:
 	c.passes = passes
 	c.pop = pop
 	c.keywords = keywords.duplicate()
+	c.turns_left = turns_left
 	return c

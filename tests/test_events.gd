@@ -284,9 +284,10 @@ func test_empty_event_deck_reshuffles_the_event_discard_by_seed() -> void:
 
 
 func test_nothing_is_drawn_when_both_event_piles_are_empty() -> void:
-	var e := event_engine(["trade_winds"], {"event_deck": {"trade_winds": 1}})
+	var e := event_engine(["trade_winds"], {"event_deck": {"trade_winds": 1}, "hand_limit": 5})
 	e.end_turn()
-	e.end_turn()
-	eq(e.turn, 3, "turn ended normally")
+	end_turn_before_cleanup(e)  # the event phase found both piles empty
 	eq(card_ids(e.zone("active_events")), ["trade_winds"], "only Trade Winds, still active")
 	eq(e.zone("event_deck").size() + e.zone("event_discard").size(), 0, "nothing else to draw")
+	check(e.discard_card(first_in_hand(e)), "discard should finish the turn")
+	eq(e.turn, 3, "turn ended normally")

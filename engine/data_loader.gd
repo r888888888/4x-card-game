@@ -5,7 +5,7 @@ extends RefCounted
 ## Unknown fields are warnings, not errors.
 
 const CARD_TYPES := CardDef.TYPES
-const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH]  # never in the main deck
+const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT]  # never in the main deck
 ## Fields every card type may have.
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "requires"]
 ## Fields only some card types use: field -> those types, the first being the one the field is for. On any other
@@ -17,11 +17,16 @@ const TYPE_FIELDS := {
 	"prereq": [CardDef.TECH],
 	"prereq_discount": [CardDef.TECH],
 	"era": [CardDef.TECH],
+	"discard": [CardDef.EVENT],
 }
-const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.TECH: "techs"}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.TECH: "techs", CardDef.EVENT: "events"}
+## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
+const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT]
+## The keys of an event's discard object (its discard conditions). Only a duration so far.
+const DISCARD_CONDITIONS: Array[String] = ["turns"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -158,6 +163,10 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 
 	if def.type == CardDef.TECH and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
 		errs.append("cost: a tech must cost wealth only, at least 1 (like {\"wealth\": 2})")
+	if def.type == CardDef.EVENT and not def.cost.is_empty():
+		errs.append("cost: an event can't have a cost")
+	if def.type == CardDef.EVENT and def.vp != 0:
+		errs.append("vp: an event can't score VP")
 
 	var tags: Variant = c.get("tags", [])
 	if tags is Array:
@@ -179,8 +188,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("effects[%d]: %s" % [j, m])
 			for m in e_warns:
 				warns.append("effects[%d]: %s" % [j, m])
-			if effect != null and e_errs.is_empty() and def.type == CardDef.TECH:
-				var problem := _tech_effect_problem(effect)
+			if effect != null and e_errs.is_empty() and NO_TERRITORY_TYPES.has(def.type):
+				var problem := _no_territory_effect_problem(effect, def.type)
 				if problem != "":
 					errs.append("effects[%d]: %s" % [j, problem])
 					continue
@@ -211,6 +220,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):
 			warns.append("'%s' only applies to %s (ignored)" % [key, TYPE_PLURALS[types[0]]])
+
+	if def.type == CardDef.EVENT:
+		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 
 	if def.type == CardDef.TECH:
 		if c.has("era"):
@@ -247,17 +259,34 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	return def
 
 
-## Why effect can't be on a tech, or "" if it can (a tech has no territory to aim at).
-static func _tech_effect_problem(effect: Effect) -> String:
+## Why effect can't be on a card of type (a tech or an event, which has no territory to aim at), or "" if it can.
+static func _no_territory_effect_problem(effect: Effect, type: String) -> String:
+	var article := "an" if type == CardDef.EVENT else "a"
 	if effect.keyword != "":
-		return "a tech effect can't use 'keyword' (a tech has no territory)"
+		return "%s %s effect can't use 'keyword' (%s %s has no territory)" % [article, type, article, type]
 	if effect.target_zone() != "":
-		return "a tech effect can't need a target"
+		return "%s %s effect can't need a target" % [article, type]
 	return ""
+
+
+## An event's discard object {"turns": n} as its number of turns (default 1). Unknown conditions are errors.
+static func _parse_discard(raw: Variant, errs: Array[String]) -> int:
+	if not (raw is Dictionary):
+		errs.append("discard: must be an object like {\"turns\": 1}")
+		return 1
+	for key in raw:
+		if not DISCARD_CONDITIONS.has(key):
+			errs.append("discard: unknown condition '%s' (known: %s)" % [key, ", ".join(PackedStringArray(DISCARD_CONDITIONS))])
+	var turns: Variant = Fields.as_int(raw.get("turns", 1))
+	if typeof(turns) != TYPE_INT or turns < 1:
+		errs.append("discard: 'turns' must be an integer >= 1")
+		return 1
+	return turns
 
 
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
 ## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
+## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count}}, {} when there is none}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
@@ -277,6 +306,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"deck": {},
 		"territory_deck": {},
 		"research_deck": {},
+		"event_deck": {},
 		"era_unlocks": {},
 		"population": {},
 		"supply": {},
@@ -339,6 +369,12 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		config.research_deck = _parse_counts(research_deck, "research_deck", cards, CardDef.TECH, errs)
 	else:
 		errs.append("'research_deck' must be an object like {\"pottery\": 1}")
+
+	var event_deck: Variant = raw.get("event_deck", {})
+	if event_deck is Dictionary:
+		config.event_deck = _parse_counts(event_deck, "event_deck", cards, CardDef.EVENT, errs)
+	else:
+		errs.append("'event_deck' must be an object like {\"windfall\": 1}")
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, errs)
@@ -490,8 +526,8 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 	return out
 
 
-## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory" or
-## "tech"), or "" for the main deck, which holds neither.
+## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory", "tech" or
+## "event"), or "" for the main deck, which holds none of those.
 static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, required: String, errs: Array[String]) -> Dictionary:
 	var out := {}
 	for id in deck:
