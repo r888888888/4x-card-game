@@ -11,7 +11,7 @@
   "deck_model": "fixed",
   "population": { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 },
   "starting": {
-    "resources": { "food": 2 },
+    "resources": { "food": 2, "wealth": 2 },
     "tableau": ["capital"],
     "territory": "grassland"
   },

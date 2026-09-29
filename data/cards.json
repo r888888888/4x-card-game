@@ -15,7 +15,7 @@
     },
     {
       "id": "farm", "name": "Farm", "type": "building",
-      "cost": { "food": 2 }, "vp": 0, "tags": ["farm"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain" }
@@ -23,7 +23,7 @@
     },
     {
       "id": "irrigation", "name": "Irrigation", "type": "building",
-      "cost": { "food": 3 }, "vp": 0, "tags": [], "requires": ["fresh_water"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["fresh_water"],
       "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" } ]
     },
     {
@@ -53,7 +53,7 @@
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
-      "cost": { "food": 2, "wealth": 2 }, "vp": 1, "tags": ["culture"],
+      "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" }
@@ -61,31 +61,31 @@
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
-      "cost": { "food": 2, "wealth": 3 }, "vp": 3, "tags": ["culture"],
+      "cost": { "wealth": 5 }, "vp": 3, "tags": ["culture"],
       "effects": []
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "cost": { "food": 6, "wealth": 6 }, "vp": 10, "tags": ["wonder"],
+      "cost": { "wealth": 12 }, "vp": 10, "tags": ["wonder"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "pasture", "name": "Pasture", "type": "building",
-      "cost": { "food": 2 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
       ]
     },
     {
       "id": "harbor", "name": "Harbor", "type": "building",
-      "cost": { "food": 3 }, "vp": 0, "tags": [], "requires": ["coastal"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["coastal"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
       ]
     },
     {
       "id": "lumber_camp", "name": "Lumber Camp", "type": "building",
-      "cost": { "food": 2 }, "vp": 0, "tags": [], "requires": ["forest", "jungle"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["forest", "jungle"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1 }
@@ -93,14 +93,14 @@
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
-      "cost": { "food": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
+      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
-      "cost": { "food": 2, "wealth": 2 }, "vp": 2, "tags": [],
+      "cost": { "wealth": 4 }, "vp": 2, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "copper" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "tin" }
@@ -108,7 +108,7 @@
     },
     {
       "id": "market", "name": "Market", "type": "building",
-      "cost": { "food": 3 }, "vp": 0, "tags": ["trade"],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
@@ -116,7 +116,7 @@
     },
     {
       "id": "granary", "name": "Granary", "type": "building",
-      "cost": { "food": 3 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 2 }, "vp": 0, "tags": [],
       "effects": [
         { "op": "grow", "amount": 1, "where": "here", "trigger": "upkeep" }
       ]
@@ -130,7 +130,7 @@
     },
     {
       "id": "library", "name": "Library", "type": "building",
-      "cost": { "food": 1, "wealth": 2 }, "vp": 1, "tags": [],
+      "cost": { "wealth": 3 }, "vp": 1, "tags": [],
       "effects": [ { "op": "create", "card": "research", "zone": "discard" } ]
     },
     {
