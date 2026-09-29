@@ -41,9 +41,13 @@ var _research_row: HBoxContainer  # the revealed techs, inside _research_overlay
 var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
 var _researched: HBoxContainer
 var _research_button: Button
-var _supply_section: Control  # the supply's heading and buttons, hidden when the config has no supply
-var _supply_box: VBoxContainer  # one buy button per supply card
-var _supply_buttons := {}  # card_id -> Button
+var _supply_button: Button  # "Supply (S)", hidden when the config has no supply
+var _supply_overlay: Control  # the supply screen: dims the board, shows one card per pile
+var _supply_row: HBoxContainer  # slots for the pile cards, in config order
+var _supply_views := {}  # card_id -> CardView (display-only; not in _views)
+var _supply_wealth: Label  # the screen's own counters: the top bar's sit under the dimmer
+var _supply_discard: Label
+var _supply_fx: Control  # tokens, flying copies and errors above the supply panel
 var _log: RichTextLabel
 var _end_turn_button: Button
 var _game_over_overlay: Control
@@ -102,7 +106,21 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	var e := Game.engine
 	if e == null or not event is InputEventKey or not event.pressed or _menu_overlay.visible:
 		return
-	if event.keycode == KEY_E and not event.echo:
+	if _supply_overlay.visible:
+		# The supply screen owns the keys: S or Esc closes it, the arrows and Enter pick cards, the rest do nothing.
+		if (event.keycode == KEY_S or event.keycode == KEY_ESCAPE) and not event.echo:
+			_close_supply()
+		elif event.is_action_pressed("ui_right", true):
+			_move_card_focus(1)
+		elif event.is_action_pressed("ui_left", true):
+			_move_card_focus(-1)
+		elif event.is_action_pressed("ui_accept"):
+			_activate_card_focus()
+		get_viewport().set_input_as_handled()
+		return
+	if event.keycode == KEY_S and not event.echo:
+		_open_supply()
+	elif event.keycode == KEY_E and not event.echo:
 		if not e.is_over and e.pending_choice.is_empty():
 			e.end_turn()
 	elif event.keycode == KEY_R and not event.echo:
@@ -166,6 +184,7 @@ func _start_game(seed_value: int) -> void:
 		seed_value = randi_range(1, 999999)
 	_seed_edit.text = str(seed_value)
 	_log.clear()
+	_close_supply()
 	_reset_views()
 	Game.new_game(seed_value)
 
@@ -275,6 +294,108 @@ func _on_picked(view: CardView) -> void:
 		Game.engine.choose(view.uid)
 
 
+# --- Supply screen ---
+
+## Why the supply screen can't open now, or "". A hand-limit discard doesn't stop it: you can browse,
+## and each card says why it can't be bought.
+func _supply_block_reason() -> String:
+	var e := Game.engine
+	if e.is_over:
+		return "The game is over."
+	if not e.pending_choice.is_empty():
+		return "Choose a territory first."
+	if not e.research_options().is_empty():
+		return "Buy a tech or decline first."
+	return ""
+
+
+## Opens the supply screen: the panel fades in and one card per pile pops in, one after another.
+func _open_supply() -> void:
+	var e := Game.engine
+	if _supply_overlay.visible or e.supply().is_empty() or _supply_block_reason() != "" or _dragging != null:
+		return
+	_end_targeting()
+	_set_card_focus(null)
+	_hand_index = -1
+	var i := 0
+	for id in e.supply():
+		var slot := Control.new()
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.custom_minimum_size = CardView.TABLEAU_SIZE
+		_supply_row.add_child(slot)
+		var view := CardView.new()
+		view.setup(CardInstance.new(-1 - i, e.card_db[id]), e.card_db, false)
+		view.lift_on_hover = true
+		view.set_pickable(true)
+		view.picked.connect(_on_supply_picked)
+		view.pop_in(slot, i * Anim.DEAL_STAGGER)
+		_supply_views[id] = view
+		i += 1
+	_supply_overlay.show()
+	_refresh_supply()  # after show: it only fills in the cards while the screen is open
+	_supply_overlay.modulate.a = 0.0
+	_supply_overlay.create_tween().tween_property(_supply_overlay, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
+
+
+func _close_supply() -> void:
+	if not _supply_overlay.visible:
+		return
+	_supply_overlay.hide()
+	_set_card_focus(null)
+	_hand_index = -1
+	_supply_wealth.text = ""  # so the next open doesn't pulse it
+	_supply_views.clear()
+	for slot in _supply_row.get_children():
+		_supply_row.remove_child(slot)
+		slot.queue_free()
+	for child in _supply_fx.get_children():
+		child.queue_free()
+
+
+## A click (or Enter) on a pile card: buy a copy, or shake and say why not.
+func _on_supply_picked(view: CardView) -> void:
+	var e := Game.engine
+	var id: String = _supply_views.find_key(view)
+	var error := e.buy_error(id)
+	if error != "":
+		_log.append_text("[color=#e88]%s[/color]\n" % error)
+		_show_error(view, error, _supply_fx)
+		view.reject()
+		return
+	var price := e.buy_price(id)
+	e.buy(id)
+	view.squash()
+	var card_point := view.get_global_rect().get_center()
+	var wealth_from := _supply_wealth.get_global_rect().get_center() + Vector2(0, _supply_wealth.size.y)
+	_fly_token("−%d wealth" % price, wealth_from, card_point, Color("ff8a80"), null, 0.0, _supply_fx)
+	# A copy flies to the screen's Discard counter, which pulses as it lands.
+	var copy := CardView.new()
+	copy.setup(CardInstance.new(-100, e.card_db[id]), e.card_db, false)
+	_supply_fx.add_child(copy)
+	copy.size = view.size
+	copy.global_position = view.global_position
+	copy.leave(_supply_fx, _supply_discard.get_global_rect().get_center(), true)
+	if not _calm():
+		var t := create_tween()
+		t.tween_interval(Anim.DISCARD_POP_TIME + Anim.DISCARD_FLY_TIME)
+		t.tween_callback(_pulse.bind(_supply_discard))
+
+
+## The Supply button, and while the screen is open its counters and each pile's price, count and state.
+func _refresh_supply() -> void:
+	var e := Game.engine
+	var reason := _supply_block_reason()
+	_supply_button.visible = not e.supply().is_empty()
+	_supply_button.disabled = reason != ""
+	_supply_button.tooltip_text = reason if reason != "" else "Buy copies of cards into your discard."
+	if not _supply_overlay.visible:
+		return
+	_set_stat(_supply_wealth, "Wealth: %d" % e.resources.get("wealth", 0))
+	_supply_discard.text = "Discard: %d" % e.zone("discard").size()
+	for id in _supply_views:
+		_supply_views[id].set_buy_info(e.buy_price(id), e.supply_left(id), e.buy_error(id))
+
+
 # --- Targeting mode (double-click on a card with several targets) ---
 
 func _begin_targeting(view: CardView) -> void:
@@ -323,6 +444,10 @@ func _unlight_targets() -> void:
 ## the hand.
 func _focus_row() -> Array[CardView]:
 	var e := Game.engine
+	if _supply_overlay.visible:
+		var piles: Array[CardView] = []
+		piles.assign(_supply_views.values())
+		return piles
 	if not e.pending_choice.is_empty():
 		return _views_in(_reveal)
 	if not e.research_options().is_empty():
@@ -372,7 +497,9 @@ func _activate_card_focus() -> void:
 	var view := _focused
 	if view == null or not is_instance_valid(view):
 		return
-	if not Game.engine.pending_choice.is_empty() or not Game.engine.research_options().is_empty() or (_targeting != null and _lit.has(view.uid)):
+	if _supply_overlay.visible:
+		_on_supply_picked(view)
+	elif not Game.engine.pending_choice.is_empty() or not Game.engine.research_options().is_empty() or (_targeting != null and _lit.has(view.uid)):
 		_on_picked(view)
 	elif view.in_hand:
 		_on_double_clicked(view)
@@ -399,6 +526,8 @@ func _set_card_focus(view: CardView) -> void:
 ## exploring, else on the same hand card, or the one now in its place (or the new last card).
 func _sync_card_focus() -> void:
 	var e := Game.engine
+	if _supply_overlay.visible:  # the focus stays on the pile card (or nothing) while buying
+		return
 	if not e.pending_choice.is_empty():
 		var choice := _views_in(_reveal)
 		if not choice.has(_focused) and not choice.is_empty():
@@ -601,30 +730,6 @@ func _refresh() -> void:
 	_game_over_overlay.visible = e.is_over
 	if e.is_over:
 		_game_over_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
-
-
-## One button per supply card: "Scout · 2 wealth · 2 left". A button the engine won't let you use is
-## disabled, with the reason first in its tooltip; the card's rules follow.
-func _refresh_supply() -> void:
-	var e := Game.engine
-	var supply := e.supply()
-	_supply_section.visible = not supply.is_empty()
-	for id in _supply_buttons.keys():
-		if not supply.has(id):
-			_supply_buttons[id].queue_free()
-			_supply_buttons.erase(id)
-	for id in supply:
-		if not _supply_buttons.has(id):
-			var card_id: String = id
-			_supply_buttons[id] = _button("", func(): Game.engine.buy(card_id))
-			_supply_box.add_child(_supply_buttons[id])
-		var button: Button = _supply_buttons[id]
-		var def: CardDef = e.card_db[id]
-		var error := e.buy_error(id)
-		button.text = "%s · %d wealth · %d left" % [def.name, e.buy_price(id), supply[id]]
-		button.disabled = error != ""
-		var tip := def.rules_tooltip(e.card_db)
-		button.tooltip_text = tip if error == "" else "%s\n\n%s" % [error, tip]
 
 
 ## Places tableau cards in territory groups: each territory card first, then the cards on it.
@@ -841,10 +946,11 @@ func _resource_label(resource: String) -> Label:
 	return null
 
 
-func _fly_token(text: String, from: Vector2, to: Vector2, color: Color, pulse_on_arrival: Control, delay: float) -> void:
+## A resource token flying from from to to on layer (default: the board's effects layer).
+func _fly_token(text: String, from: Vector2, to: Vector2, color: Color, pulse_on_arrival: Control, delay: float, layer: Control = null) -> void:
 	var token := _fx_label(text, 26, color)
 	token.modulate.a = 0.0
-	_fx.add_child(token)
+	(layer if layer != null else _fx).add_child(token)
 	token.reset_size()
 	token.global_position = from - token.size / 2
 	var t := token.create_tween()
@@ -865,8 +971,9 @@ func _fly_token(text: String, from: Vector2, to: Vector2, color: Color, pulse_on
 	t.tween_callback(token.queue_free)
 
 
-## A short message on a dark backing over the card, drifting up and fading out.
-func _show_error(view: CardView, text: String) -> void:
+## A short message on a dark backing over the card, drifting up and fading out, on layer (default:
+## the board's effects layer).
+func _show_error(view: CardView, text: String, layer: Control = null) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.09, 0.11, 0.92)
 	style.border_color = Color("ff8a80")
@@ -878,7 +985,7 @@ func _show_error(view: CardView, text: String) -> void:
 	panel.z_index = 3  # above flying cards
 	panel.add_theme_stylebox_override("panel", style)
 	panel.add_child(_fx_label(text, 20, Color("ff8a80")))
-	_fx.add_child(panel)
+	(layer if layer != null else _fx).add_child(panel)
 	panel.reset_size()
 	var home := view.slot.get_global_rect() if is_instance_valid(view.slot) else view.get_global_rect()
 	var x := clampf(home.get_center().x - panel.size.x / 2, 8.0, size.x - panel.size.x - 8.0)
@@ -1081,12 +1188,11 @@ func _build_layout() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
-	_supply_section = _section(side_col, "Supply — buy a copy into your discard")
-	_supply_section.hide()
-	_supply_box = VBoxContainer.new()
-	_supply_box.add_theme_constant_override("separation", 6)
-	_supply_section.add_child(_supply_box)
-	_research_button =_button("Research (R)", func(): Game.engine.research())
+	_supply_button = _button("Supply (S)", _open_supply)
+	_supply_button.custom_minimum_size.y = 44
+	_supply_button.hide()
+	side_col.add_child(_supply_button)
+	_research_button = _button("Research (R)", func(): Game.engine.research())
 	_research_button.custom_minimum_size.y = 44
 	side_col.add_child(_research_button)
 	_end_turn_button = _button("End turn  (E)", func(): Game.engine.end_turn())
@@ -1167,6 +1273,32 @@ func _build_layout() -> void:
 	_research_row.add_theme_constant_override("separation", CARD_GAP)
 	research_box.add_child(_research_row)
 	research_box.add_child(_button("Decline", func(): Game.engine.decline_research()))
+
+	# Supply screen: one card per pile to click and buy; stays open for several buys.
+	_supply_overlay = _overlay(CardView.HIGHLIGHT_COLOR)
+	_supply_overlay.z_index = 5
+	var supply_box := _supply_overlay.get_meta("box") as VBoxContainer
+	var supply_title := _heading("Supply")
+	supply_title.add_theme_font_size_override("font_size", 26)
+	supply_title.add_theme_color_override("font_color", Color.WHITE)
+	supply_box.add_child(supply_title)
+	supply_box.add_child(_heading("Click a card to buy a copy into your discard. Buy as many as you can pay for."))
+	var supply_stats := HBoxContainer.new()
+	supply_stats.add_theme_constant_override("separation", 36)
+	supply_box.add_child(supply_stats)
+	_supply_wealth = _stat(supply_stats, Color("f2b46d"))
+	_supply_discard = _stat(supply_stats, Color("c3cad3"))
+	var supply_pad := MarginContainer.new()  # room above the cards for their hover lift
+	supply_pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
+	supply_box.add_child(supply_pad)
+	_supply_row = HBoxContainer.new()
+	_supply_row.add_theme_constant_override("separation", CARD_GAP)
+	supply_pad.add_child(_supply_row)
+	supply_box.add_child(_button("Close (S / Esc)", _close_supply))
+	_supply_fx = Control.new()
+	_supply_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_supply_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_supply_overlay.add_child(_supply_fx)
 
 	# Game-over overlay.
 	_game_over_overlay = _overlay()

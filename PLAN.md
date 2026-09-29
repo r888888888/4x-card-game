@@ -208,8 +208,10 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary).
   choice, research open, discard owed).
 - Engine API: `supply()` ({card_id: count left}), `supply_left(card_id)`, `buy_price(card_id)`,
   `buy_error(card_id)`, `buy(card_id)`.
-- UI: a Supply section above the Research button, one button per card ("Scout · 2 wealth · 2 left"),
-  disabled with the reason in its tooltip.
+- UI (033): a Supply (S) button above Research opens the supply screen, an overlay with one card per pile
+  ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
+  open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
+  token and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Later
 - Headless bot + balance stats (random, then greedy)
