@@ -2,7 +2,7 @@
 id: 095
 title: Split config parsing out of DataLoader into ConfigLoader
 type: feature
-status: review
+status: done
 branch: feat/095-split-config-loader
 ---
 
