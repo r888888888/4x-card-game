@@ -65,4 +65,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 26. 063 start screen
 27. 064 choose civilization (uses 062, 063)
 28. 065 government cards (content from 058's techs)
-29. 066 100-turn games, balance pass (last: everything above changes balance)
+29. 080 five early-game cards (data only)
+30. 081 `gain_per_keyword` op, Hunt
+31. 082 `trash` op, Rite of Passage
+32. 072 harmful event ops (`lose`, `lose_pop`)
+33. 083 Famine replaces starvation (uses 072, 060)
+34. 084 relieve a Famine with wealth
+35. 066 100-turn games, balance pass (last: everything above changes balance)
