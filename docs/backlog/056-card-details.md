@@ -2,7 +2,7 @@
 id: 056
 title: Card details modal with a full explanation of mechanics
 type: feature
-status: ready
+status: red-review
 branch: feat/056-card-details
 ---
 
@@ -51,7 +51,13 @@ tooltip lines (`rules_tooltip`), `state` is empty for `def_details`, and `terms`
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_card_details::test_…` |
+| AC1 | `test_card_details::test_farm_details_have_name_type_cost_rules_and_terms`, `test_card_details_of_a_hand_card_match_its_definition`, `test_action_effects_explain_their_mechanics` |
+| AC2 | `test_card_details::test_keyword_terms_name_the_cards_that_use_the_keyword` |
+| AC3 | `test_card_details::test_territory_details_show_pop_slots_and_workers`, `test_rolled_resource_keyword_shows_in_rules_and_terms` |
+| AC4 | `test_card_details::test_idle_building_says_it_has_no_worker` |
+| AC5 | `test_card_details::test_revealed_tech_explains_its_price_now` |
+| AC6 | `test_card_details::test_unknown_cards_have_no_details` |
+| UI | Manual check (below); `test_ui_structure` and `test_ui_smoke` stay green |
 
 ## Manual check
 - [ ] Single-click a hand card: the modal opens after a short beat. A double-click plays instead and never opens it.
