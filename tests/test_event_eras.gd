@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Event decks that escalate by era (backlog 074): an event may have an era; later-era events wait in future_events
 ## and are shuffled into the event deck when their era is added. Fixture: TEST_EVENTS (era 1) plus two local era-2
-## events, Raid and Blight. Engines are held as Object until green.
+## events, Raid and Blight.
 
 const ERA_2_EVENTS := [
 	{"id": "raid", "name": "Raid", "type": "event", "era": 2},
@@ -17,14 +17,14 @@ func era_db(errors: Array[String] = [], warnings: Array[String] = []) -> Diction
 
 
 ## A game with event_deck DECK (or event_deck), main deck {scout: 10}; overrides replace config keys.
-func era_engine(overrides := {}, event_deck := DECK, seed_value := 1) -> Object:
+func era_engine(overrides := {}, event_deck := DECK, seed_value := 1) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := era_db(errors, warnings)
 	var parsed := DataLoader.parse_config(raw_config({"scout": 10}, {"event_deck": event_deck}.merged(overrides, true)),
 		resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, parsed)
+	var e := GameEngine.new(cards, parsed)
 	e.new_game(seed_value)
 	return e
 
