@@ -110,7 +110,7 @@ func show_start_screen() -> void:
 	supply.close()
 	details.close()
 	_reset_views()
-	choices.refresh("")
+	choices.refresh(null)
 	_game_over.overlay.hide()
 	_board.hide()
 	var warnings: Array[String] = []
@@ -230,8 +230,14 @@ func on_double_clicked(view: CardView) -> void:
 
 ## Discards a hand card (right-click, D, or double-click while over the hand limit).
 func discard(view: CardView) -> void:
-	if drag.dragging == null and drag.targeting == null:
-		Game.engine.discard_card(view.uid)
+	if drag.dragging != null or drag.targeting != null:
+		return
+	var error := Game.engine.discard_error(view.uid)
+	if error != "":
+		_refuse(view, error)
+		view.reject()
+		return
+	Game.engine.discard_card(view.uid)
 
 
 ## A click on a lit target, a revealed tech or a revealed territory.
@@ -247,7 +253,11 @@ func on_picked(view: CardView) -> void:
 		else:
 			Game.engine.buy_tech(view.uid)
 	else:
-		Game.engine.choose(view.uid)
+		var error := Game.engine.choose_error(view.uid)
+		if error != "":
+			_refuse(view, error)
+		else:
+			Game.engine.choose(view.uid)
 
 
 func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
@@ -340,7 +350,7 @@ func _refresh() -> void:
 		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	for zone_name in _row_sections:
 		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
-	choices.refresh(pending_kind())
+	choices.refresh(e)
 	_side.refresh(e)
 	_events_section.visible = _side.event_info.visible  # both only with an event deck
 	supply.refresh(e)

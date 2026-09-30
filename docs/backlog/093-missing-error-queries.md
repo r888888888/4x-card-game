@@ -2,7 +2,7 @@
 id: 093
 title: Error queries for choose, decline_research and discard_card
 type: feature
-status: red-review
+status: in-progress
 branch: feat/093-missing-error-queries
 ---
 

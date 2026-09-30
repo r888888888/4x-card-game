@@ -8,6 +8,7 @@ var research_row: HBoxContainer  # the revealed techs
 var _explore: Control
 var _explore_panel: PanelContainer
 var _research: Control
+var _decline: Button
 
 
 ## Builds both overlays on parent, hidden.
@@ -31,13 +32,19 @@ func _init(parent: Control) -> void:
 	research_row = HBoxContainer.new()
 	research_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	research_box.add_child(research_row)
-	research_box.add_child(UIKit.button("Decline", func(): Game.engine.decline_research()))
+	_decline = UIKit.button("Decline", func(): Game.engine.decline_research())
+	research_box.add_child(_decline)
 
 
-## Shows the overlay for pending_kind (GameEngine.PENDING_*), hides the other.
-func refresh(pending_kind: String) -> void:
+## Shows the overlay for engine e's pending decision, hides the other, and sets Decline from decline_research_error.
+## e null hides both.
+func refresh(e: GameEngine) -> void:
+	var pending_kind: String = e.pending().get("kind", "") if e != null else ""
 	_explore.visible = pending_kind == GameEngine.PENDING_EXPLORE
 	_research.visible = pending_kind == GameEngine.PENDING_RESEARCH
+	var error := e.decline_research_error() if e != null else ""
+	_decline.disabled = e == null or error != ""
+	_decline.tooltip_text = error
 
 
 ## Whether container holds cards to click on while a choice is open.

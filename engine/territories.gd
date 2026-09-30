@@ -150,8 +150,17 @@ static func explore(e: GameEngine, n: int, source: CardInstance) -> void:
 		e._log("  %s: choose a territory to keep." % source.def.name)
 
 
+## Why territory uid can't be chosen now, or "".
+static func choose_error(e: GameEngine, uid: int) -> String:
+	if e.pending_choice.is_empty():
+		return "There is no territory to choose."
+	if not e.pending_choice.options.has(uid):
+		return "That territory isn't an option."
+	return ""
+
+
 static func choose(e: GameEngine, uid: int) -> bool:
-	if e.pending_choice.is_empty() or not e.pending_choice.options.has(uid):
+	if choose_error(e, uid) != "":
 		return false
 	var reveal := e.zone("reveal")
 	var kept := reveal.find(uid)
