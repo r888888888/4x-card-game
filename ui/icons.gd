@@ -14,6 +14,8 @@ const GLYPHS := {
 	"■": [preload("res://assets/icons/building.svg"), null, 0.6],
 	"●": [preload("res://assets/icons/city.svg"), null, 0.6],
 	"▲": [preload("res://assets/icons/territory.svg"), null, 0.6],
+	"✦": [preload("res://assets/icons/tech.svg"), null, 0.6],
+	"❖": [preload("res://assets/icons/event.svg"), null, 0.6],
 	"⊘": [preload("res://assets/icons/blocked.svg"), null, 1.0],
 }
 
