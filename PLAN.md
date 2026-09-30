@@ -62,7 +62,8 @@ res://
                          # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav; 104:
                          # titles and transitions), screen_header.gd (104: "← Realm", "Realm › River Meadow"),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
-                         # territory_view.gd (101: one territory in place of the Realm; its own Navigator),
+                         # territory_view.gd (101: one territory in place of the Realm; its own Navigator; 105: framed
+                         # in the territory colour and titled with the territory, outlines for free slots),
                          # palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in code:
                          # buttons, fields, Heading/Title/Stat/DarkPanel variations),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),

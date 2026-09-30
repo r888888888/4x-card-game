@@ -77,7 +77,7 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 		var view: Object = main.territory_view
 		check(view.is_open(), "the view is open")
 		eq(view.uid, home, "for the home territory")
-		eq(view.card_uids(), group_cards(home), "the territory, its Capital and its 2 buildings, in tableau order")
+		eq(view.card_uids(), group_cards(home).slice(1), "its Capital and its 2 buildings, in tableau order (105: the territory is the box)")
 		check(not shown(main.tableau), "the Realm is hidden")
 		check(shown(main.hand), "the hand is still shown")
 		check(shown(button(main, "Menu")), "the top bar is still shown")
@@ -313,10 +313,10 @@ func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() 
 		press_key(main, KEY_UP)
 		press_key(main, KEY_ENTER)
 		await wait_frames()
-		var cards: Array[int] = main.territory_view.card_uids()
-		eq(main.focus.focused.uid if main.focus.focused != null else -1, cards[0], "the territory card focused")
+		var cards: Array[int] = main.territory_view.card_uids()  # 105: the Capital, then the Farm
+		eq(main.focus.focused.uid if main.focus.focused != null else -1, cards[0], "its city focused (105)")
 		press_key(main, KEY_RIGHT)
-		eq(main.focus.focused.uid if main.focus.focused != null else -1, cards[1], "Right: its city")
+		eq(main.focus.focused.uid if main.focus.focused != null else -1, cards[1], "Right: its building")
 		press_key(main, KEY_I)
 		eq(main.details.shown().get("name", ""), e.zone("tableau").find(cards[1]).def.name, "I: its details")
 		press_key(main, KEY_ESCAPE)  # closes the details
@@ -324,3 +324,145 @@ func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() 
 		await wait_frames()
 		check(not main.territory_view.is_open(), "Esc closes the view")
 		eq(main.focus.focused.uid if main.focus.focused != null else -1, home, "the focus is back on the territory"))
+
+
+# --- Backlog 105: the layout ---
+# Hooks: territory_view.frame (the framed panel), .title_text() (its title line: the territory's name and info), .row
+# (its city and buildings, then the outlines), .outlines() (the free-slot outlines, in order) and .free_slot_count().
+
+func open_home(main: Node) -> int:
+	var home := home_uid(Game.engine)
+	click(main, home)
+	await wait_screen_transition()
+	return home
+
+
+func test_the_view_is_framed_in_the_territory_colour() -> void:
+	await with_fixture_main(func(main: Node):
+		await open_home(main)
+		var frame: Control = main.territory_view.frame
+		check(frame.is_visible_in_tree(), "the frame is shown")
+		var box := frame.get_theme_stylebox("panel") as StyleBoxFlat
+		check(box != null, "a flat panel")
+		if box != null:
+			eq(box.border_color.to_html(), CardView.TYPE_COLORS[CardDef.TERRITORY].to_html(), "bordered in the territory colour")
+			check(box.bg_color.a > 0.0, "a tinted background")
+		check(frame.is_ancestor_of(main.territory_view.row), "the cards are inside it"))
+
+
+func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home: int = await open_home(main)
+		var view: Object = main.territory_view
+		var territory: CardInstance = e.zone("tableau").find(home)
+		var title: String = view.title_text()
+		check(title.contains(territory.def.name), "the name in '%s'" % title)
+		check(title.contains(load("res://ui/card_face.gd").territory_info(territory)), "its info in '%s'" % title)
+		var card: CardView = main.views[home]
+		check(not view.is_ancestor_of(card.slot), "the territory's card isn't in the view")
+		eq(card.slot.get_parent(), main.tableau.row, "it stays in the Realm")
+		eq(view.card_uids(), group_cards(home).slice(1), "the view's cards: its city and buildings")
+		var top: float = view.row.get_global_rect().position.y
+		var stats: Array = view.find_children("*", "Label", true, false).filter(func(l): return l.text == view.stats_text())
+		check(not stats.is_empty(), "the stats line")
+		for c in stats + [view.grow_button]:
+			check(view.frame.is_ancestor_of(c), "%s in the box" % c)
+			check((c as Control).get_global_rect().end.y <= top + 1.0, "%s above the cards" % c), \
+		{"farm": 10}, POP)
+
+
+func test_free_slots_show_as_outlines_after_the_cards() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		build_on(e, home, ["farm"])
+		var temple := put_in_hand(e, "temple")
+		e.changed.emit()
+		await open_home(main)
+		var view: Object = main.territory_view
+		eq(view.free_slot_count(), e.free_slots(home), "one outline per free slot")
+		var last_card := -1
+		for v in main.views_in(view.row):
+			last_card = maxi(last_card, v.slot.get_index())
+		for outline in view.outlines():
+			check(outline.get_index() > last_card, "the outlines come after the cards")
+		var before: int = view.free_slot_count()
+		main.on_double_clicked(main.views[temple])
+		await wait_frames()
+		eq(view.free_slot_count(), before - 1, "one fewer after the Temple")
+		eq(view.free_slot_count(), e.free_slots(home), "still one per free slot"))
+
+
+func test_a_full_territory_shows_no_outlines() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		var fill: Array = []
+		for i in e.free_slots(home):
+			fill.append("farm")
+		build_on(e, home, fill)
+		e.changed.emit()
+		await open_home(main)
+		eq(e.free_slots(home), 0, "full")
+		eq(main.territory_view.free_slot_count(), 0, "no outlines"))
+
+
+func test_an_outline_is_a_drop_target_for_the_territory() -> void:
+	await with_fixture_main(func(main: Node):
+		var home: int = await open_home(main)
+		var view: Object = main.territory_view
+		check(view.free_slot_count() > 0, "an outline to drop on")
+		if view.free_slot_count() > 0:
+			var at: Vector2 = (view.outlines()[0] as Control).get_global_rect().get_center()
+			eq(view.target_at(at), home, "a drop on an outline targets the territory")
+			eq(main.drag.target_at(at), home, "and the drag agrees"))
+
+
+# --- 105 AC5: no bounce when navigating ---
+
+func test_opening_shows_the_cards_at_once_without_a_bounce() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		build_on(e, home, ["farm"])
+		e.changed.emit()
+		await wait_frames()
+		click(main, home)
+		for uid in main.territory_view.card_uids():
+			var v: CardView = main.views.get(uid)
+			check(v != null, "card %d has a view at once" % uid)
+			if v != null:
+				eq(v.state, CardView.State.REST, "card %d at rest at once" % uid)
+				eq(v.fx_scale, Vector2.ONE, "card %d at full size (no pop-in)" % uid)
+		eq(main.views[home].slot.get_parent(), main.tableau.row, "the territory's card didn't move"))
+
+
+func test_closing_removes_the_cards_at_once() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		build_on(e, home, ["farm"])
+		e.changed.emit()
+		click(main, home)
+		await wait_screen_transition()
+		var shown: Array[int] = main.territory_view.card_uids()
+		main.territory_view.back_button.pressed.emit()
+		for uid in shown:
+			check(not main.views.has(uid), "card %d's view is gone at once" % uid)
+		var leaving: Array = main.fx.get_children().filter(func(c): return c is CardView and shown.has(c.uid))
+		eq(leaving.size(), 0, "none of the view's cards flies off (hand cards may still be being dealt)")
+		eq(main.views[home].state, CardView.State.REST, "the territory's card stays at rest"))
+
+
+func test_a_card_played_in_the_view_still_flies_in() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		var temple := put_in_hand(e, "temple")
+		e.changed.emit()
+		await wait_frames()
+		click(main, home)
+		await wait_screen_transition()
+		main.on_double_clicked(main.views[temple])
+		eq(main.views[temple].state, CardView.State.FLYING, "the Temple flies to its slot"))

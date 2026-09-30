@@ -47,6 +47,7 @@ var _outcome := {}  # the last card_played outcome, animated by the next _refres
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
 var _event_modal: EventModal
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
+var _quiet := false  # refreshing after a navigation: cards appear and go at once, with no pop or flight (105)
 
 
 func _ready() -> void:
@@ -399,7 +400,7 @@ func _refresh() -> void:
 		shown[uid] = true
 	for uid in views.keys():
 		if not shown.has(uid):
-			_remove_view(uid)
+			_remove_view(uid, _quiet)
 	var dealt := 0
 	for i in hand_cards.size():
 		if _place(hand_cards[i], hand, i, 0.0 if UIKit.calm() else dealt * Anim.DEAL_STAGGER):
@@ -458,6 +459,8 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		var slot := _new_slot(view, container, index)
 		if in_hand:
 			view.deal(slot, fx, _top_bar.pile_point(0.25), delay)
+		elif _quiet:
+			view.attach(slot)
 		else:
 			view.pop_in(slot)
 		return in_hand
@@ -480,7 +483,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 
 ## The card is no longer shown: it flies towards the zone it went to and fades (popping first if it
 ## was just played, so the player sees it resolve).
-func _remove_view(uid: int) -> void:
+func _remove_view(uid: int, at_once := false) -> void:
 	var view: CardView = views[uid]
 	views.erase(uid)
 	if view == drag.dragging:
@@ -488,6 +491,10 @@ func _remove_view(uid: int) -> void:
 	if view == drag.targeting:
 		drag.end_targeting()
 	var old_slot := view.slot
+	if at_once:
+		_free_slot(old_slot)
+		view.queue_free()
+		return
 	var just_played: bool = not _outcome.is_empty() and _outcome.uid == uid
 	var via: Variant = null
 	if just_played and views.has(_outcome.target):  # fly to where it was played, e.g. the settled territory
@@ -591,7 +598,10 @@ func _build_layout() -> void:
 	tableau = TableauView.new()
 	realm_section.add_child(tableau)
 	territory_view = TerritoryView.new(self, realm_section)
-	territory_view.navigated.connect(_refresh)
+	territory_view.navigated.connect(func():  # the view carries its cards as it grows or shrinks (105)
+		_quiet = true
+		_refresh()
+		_quiet = false)
 	_row_sections.frontier = UIKit.card_row_section(_play_area, "Frontier",
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
 	frontier = _row_sections.frontier.get_meta("row")

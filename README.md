@@ -11,7 +11,8 @@ godot --path .
 ```
 
 Drag a card from your hand into the tableau (or double-click it) to play it; press E or "End turn" to
-end the turn. Click a territory in the Realm to see it on its own: its city and buildings, slots, pop and Grow.
+end the turn. Click a territory in the Realm to see it on its own: a box titled with the territory, its slots, pop and Grow, then
+its city and buildings and an outline for each free slot.
 While it is open, a building dropped anywhere on it (or double-clicked) goes there; "Back" or Esc returns.
 
 Keyboard: ←/→ move through your hand, Enter or Space plays the focused card. With several possible

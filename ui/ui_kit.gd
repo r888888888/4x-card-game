@@ -16,6 +16,20 @@ static func calm() -> bool:
 	return Settings.reduce_motion
 
 
+## The outline of an empty card slot, at tableau-card size: the Realm's ghost, a territory's free slots (105).
+static func slot_outline() -> Panel:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.GHOST_BG
+	style.border_color = Palette.GHOST_EDGE
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	var outline := Panel.new()
+	outline.add_theme_stylebox_override("panel", style)
+	outline.custom_minimum_size = CardView.TABLEAU_SIZE
+	outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return outline
+
+
 ## A flat panel: bg with a border (1 wide when see-through, else 2), round corners and padding all round.
 static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

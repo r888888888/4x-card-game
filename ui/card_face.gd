@@ -62,7 +62,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		add_child(rules)
 
 	if def.type == CardDef.TERRITORY:
-		var info_label := rich_label(_territory_info(card), 18, color.lightened(0.5))  # "Hills + Gold": rolled last
+		var info_label := rich_label(territory_info(card), 18, color.lightened(0.5))  # "Hills + Gold": rolled last
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
@@ -72,7 +72,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 
 
 ## A territory's info: "▢3 ⌂5 · Grassland, Fresh Water", plus " + Gold" for rolled resources.
-static func _territory_info(card: CardInstance) -> String:
+static func territory_info(card: CardInstance) -> String:
 	var def := card.def
 	var info := "▢%d ⌂%d" % [def.slots, def.housing]  # explained in the tooltip
 	var names := def.keywords.map(func(k): return k.capitalize())

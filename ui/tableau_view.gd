@@ -18,15 +18,7 @@ func _init() -> void:
 	row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
 	row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	add_child(row)
-	var ghost_style := StyleBoxFlat.new()
-	ghost_style.bg_color = Palette.GHOST_BG
-	ghost_style.border_color = Palette.GHOST_EDGE
-	ghost_style.set_border_width_all(2)
-	ghost_style.set_corner_radius_all(8)
-	ghost = Panel.new()
-	ghost.add_theme_stylebox_override("panel", ghost_style)
-	ghost.custom_minimum_size = CardView.TABLEAU_SIZE
-	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost = UIKit.slot_outline()
 	ghost.hide()
 	row.add_child(ghost)
 
