@@ -124,6 +124,13 @@ static func _replace_government(e: GameEngine, card: CardInstance) -> void:
 
 
 static func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:
+	var outcome := new_outcome(uid)
+	outcome.merge({"to_zone": to_zone, "target": target, "paid": {}})
+	return outcome
+
+
+## The outcome effects fill in while a card or event resolves: {uid, gained, lost, vp, drawn, created}.
+static func new_outcome(uid: int) -> Dictionary:
 	var drawn: Array[int] = []
 	var created: Array[int] = []
-	return {"uid": uid, "to_zone": to_zone, "target": target, "paid": {}, "gained": {}, "vp": 0, "drawn": drawn, "created": created}
+	return {"uid": uid, "gained": {}, "lost": {}, "vp": 0, "drawn": drawn, "created": created}

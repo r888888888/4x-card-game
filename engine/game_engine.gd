@@ -17,10 +17,14 @@ const WEALTH := "wealth"
 signal changed
 signal logged(message: String)
 signal game_over(final_score: int)
-## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, vp, drawn, created};
+## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, lost, vp, drawn, created};
 ## target is the uid the card was played on (-1 if none), paid and gained map resource -> amount,
 ## drawn and created are card uids.
 signal card_played(outcome: Dictionary)
+## Emitted when the event phase draws an event, after its play effects, before changed (079). outcome: {uid, id,
+## gained, lost, vp, drawn, created}, as card_played's plus the event's card id; lost maps resource -> what a lose
+## effect actually took.
+signal event_drawn(outcome: Dictionary)
 
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
@@ -170,6 +174,12 @@ func grow_cost(territory_uid: int) -> int:
 ## What relieve_famine costs: population.famine.relief ({resource: amount}), or {} when the Famine can't be relieved.
 func famine_relief() -> Dictionary:
 	return config.get("famine", {}).get("relief", {}).duplicate()
+
+
+## A card_played or event_drawn outcome as text: "+2 food, −1 wealth, +1 VP, drew 2 cards, created 1 card"; "" when
+## it did nothing.
+func outcome_summary(outcome: Dictionary) -> String:
+	return Events.outcome_summary(outcome)
 
 
 ## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
@@ -535,6 +545,8 @@ func gain(resource: String, amount: int, source: CardInstance) -> void:
 func lose(resource: String, amount: int, source: CardInstance) -> void:
 	var lost: int = mini(amount, resources.get(resource, 0))
 	resources[resource] = resources.get(resource, 0) - lost
+	if not _outcome.is_empty() and lost > 0:
+		_outcome.lost[resource] = _outcome.lost.get(resource, 0) + lost
 	_log("  %s: −%d %s" % [source.def.name, lost, resource])
 
 

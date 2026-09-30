@@ -29,6 +29,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 |---|---|
 | `tests/test_content.gd` | The real data: invariants over the whole data set, never a single card (every keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
 | `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole `ScriptedBot` game: no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
+| `tests/test_event_modal.gd` | `event_drawn`, `outcome_summary`, and the drawn-event modal in the real `main.tscn` (079): what it shows, closing it, hand-limit and last-turn order |
 | `tests/test_event_panel.gd` | The event panel in the real `main.tscn`: event views match `active_events`, turns left, the event pile counts, hidden without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
 | `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`pending_choice`, `state`, …) read in `ui/` |
 | `tests/test_board_labels.gd` | The board's section order (Realm, Frontier, Known, Hand) and game words in the real `main.tscn`: no "tableau" on screen, no seed in the top bar, Buy Cards, Knowledge; uses the `section_headings()` hook |
@@ -136,6 +137,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations (Tribe, Nomads; backlog 062), kept out of `TEST_CARDS`; `civ_engine` starts a game with `starting.civilization` civ (`""` for none) |
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments (Council, Kingdom; backlog 065), kept out of `TEST_CARDS`; `gov_engine` starts a game with `starting.government` gov (`""` for none) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
+| `with_event_engine(body, event_deck, overrides)` | UI tests: runs `body` with `Game.engine` swapped for a game on `TEST_CARDS` + `TEST_EVENTS`, then puts the real engine back (moved from `test_event_panel` in 079) |
 | `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
 

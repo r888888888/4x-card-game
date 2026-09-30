@@ -59,7 +59,8 @@ res://
                          # start_screen.gd (063: title, New game with a seed, Reduce motion; shown on launch),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
-                         # tech_tree_modal.gd (Knowledge button or T: the tech tree)
+                         # tech_tree_modal.gd (Knowledge button or T: the tech tree),
+                         # event_modal.gd (each drawn event and what it did, 079)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot), sim_stats.gd (SimStats: per-seed metrics), run.gd (CLI)
@@ -312,7 +313,10 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   and the event discard stay as they are. The event pile line's tooltip says how many events wait.
 - Event phase (once per `end_turn()`, before the hand-limit discard, also on the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty (nothing when both are empty), makes it active with
-  `turns_left` = its `discard.turns`, and resolves its `play` effects.
+  `turns_left` = its `discard.turns`, and resolves its `play` effects. Then `event_drawn(outcome)` reports it (079:
+  `{uid, id, gained, lost, vp, drawn, created}`, before `changed`); the UI pops up a modal with the event and
+  `outcome_summary(outcome)` ("No immediate effect" when empty), except when the game just ended. Play outcomes
+  gain `lost` too: what a `lose` effect actually took.
 - Upkeep: each active event resolves its `upkeep` effects, then its `turns_left` drops by 1 and at 0 it moves to
   `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
   includes active events.
