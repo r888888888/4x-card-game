@@ -14,6 +14,7 @@ const OPS := {
 	"grow": preload("res://engine/effects/grow_effect.gd"),
 	"add_era": preload("res://engine/effects/add_era_effect.gd"),
 	"research": preload("res://engine/effects/research_effect.gd"),
+	"trade": preload("res://engine/effects/trade_effect.gd"),
 }
 
 

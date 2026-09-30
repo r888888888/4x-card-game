@@ -2,7 +2,7 @@
 id: 055
 title: Caravan needs 2 cities and pays with diminishing returns (trade op)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/055-caravan-trade
 ---
 

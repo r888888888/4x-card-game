@@ -8,7 +8,7 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 	engine.reveal_techs(source)
 
 
-func play_block_error(engine: GameEngine) -> String:
+func play_block_error(engine: GameEngine, _card: CardInstance) -> String:
 	return engine.reveal_techs_error()
 
 
