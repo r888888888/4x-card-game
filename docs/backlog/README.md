@@ -77,7 +77,7 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 38. 078 wide territory row pushes the side panel off screen (bug: End turn goes off screen in longer games)
 39. 088 civilization and government as side-panel lines (fixes End turn off screen at 1080p since 065)
 40. 087 collapse territory groups (after 078: both rework `TerritoryGroup` in `ui/tableau_view.gd`)
-41. 089 unique cards have no supply pile (small loader + data change; before the event work)
+41. ~~089 unique cards have no supply pile~~ (wontfix)
 42. 072 harmful event ops (`lose`, `lose_pop`)
 43. 083 Famine replaces starvation (uses 072, 060; the first harm players feel)
 44. 084 relieve a Famine with wealth

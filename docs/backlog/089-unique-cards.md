@@ -2,7 +2,7 @@
 id: 089
 title: Unique cards (a card field) have no supply pile
 type: feature
-status: ready
+status: wontfix
 branch: feat/089-unique-cards
 ---
 
@@ -59,3 +59,4 @@ common cards. A card-level `unique` field marks the one-offs: the tech's free co
 - [ ] Balance: `balance` skill before/after (the sim bot never buys from the supply, so expect no change).
 
 ## Log
+- 2026-09-29: Set to wontfix by the user.
