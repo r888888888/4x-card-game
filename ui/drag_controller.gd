@@ -2,7 +2,8 @@ class_name DragController
 extends RefCounted
 ## Dragging a hand card onto the board, and targeting mode (a double-click on a card with several targets, then
 ## a click on the target). While either is on, the card's valid targets are lit; a drag also lights the drop zone
-## (the tableau), shows the engine's reason when the drop would fail, and the ghost slot a permanent will land in.
+## (the tableau), shows the engine's reason when the drop would fail, and the ghost slot a permanent with no target
+## will land in (a targeted one lands on its territory's card).
 
 var dragging: CardView
 var targeting: CardView  # hand card waiting for a target click
