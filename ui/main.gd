@@ -31,11 +31,11 @@ var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _row_sections := {}  # zone -> its heading and row (Frontier, Known, Civilization), hidden while the zone is empty
+var _row_sections := {}  # zone -> its heading and row (Frontier, Known, Civilization, Government), hidden while the zone is empty
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _side: SidePanel
-var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Civilization, Events, Hand
+var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Civilization, Government, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
@@ -489,6 +489,8 @@ func _build_layout() -> void:
 	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
 	_row_sections.civilization = UIKit.card_row_section(_play_area, "Civilization",
 		"The civilization you play as. Its bonuses last all game.")
+	_row_sections.government = UIKit.card_row_section(_play_area, "Government",
+		"Your government. Its bonuses last while it rules. Play another government card to replace it.")
 	_events_section = UIKit.card_row_section(_play_area, "Events")
 	_events_row = _events_section.get_meta("row")
 

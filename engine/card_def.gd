@@ -9,7 +9,8 @@ const TERRITORY := "territory"  # from the territory deck; holds a city, buildin
 const TECH := "tech"  # from the research deck; bought with wealth, never in the main deck
 const EVENT := "event"  # from the event deck; drawn each event phase, active until its discard condition
 const CIVILIZATION := "civilization"  # the civilization you play as; in its own zone all game, never in a deck
-const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION]
+const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
+const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT]
 
 var id: String = ""
 var name: String = ""

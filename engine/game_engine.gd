@@ -25,10 +25,9 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization", "government", "removed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
-## The governments of 065 join them.
-const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization"]
+const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
@@ -118,6 +117,12 @@ func score() -> int:
 func civilization() -> int:
 	var civ := zone("civilization")
 	return civ.cards[0].uid if not civ.is_empty() else -1
+
+
+## The uid of the ruling government, or -1 if the game has none.
+func government() -> int:
+	var gov := zone("government")
+	return gov.cards[0].uid if not gov.is_empty() else -1
 
 
 ## Whether the population rules apply (the config has a population block).

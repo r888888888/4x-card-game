@@ -11,6 +11,8 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	var card := e.zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
+	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
+		return "%s is already your government." % card.def.name
 	for r in card.def.cost:
 		var need: int = card.def.cost[r]
 		var have: int = e.resources.get(r, 0)
@@ -60,20 +62,22 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	var hand := e.zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
-	var permanent := card.def.is_permanent()
-	e._outcome = _new_outcome(uid, "tableau" if permanent else "discard", target)
+	var to_zone := _destination(card)
+	e._outcome = _new_outcome(uid, to_zone, target)
 	e.play_target = target
 	for r in card.def.cost:
 		e.resources[r] -= card.def.cost[r]
 		if card.def.cost[r] > 0:
 			e._outcome.paid[r] = card.def.cost[r]
 	e._log("Played %s." % card.def.name)
-	if permanent:
-		if card.def.type == CardDef.BUILDING:
-			card.territory_uid = target
+	if card.def.type == CardDef.BUILDING:
+		card.territory_uid = target
+	if to_zone == "government":
+		_replace_government(e, card)
+	elif to_zone == "tableau":
 		e.zone("tableau").add(card)
 	e._resolve(card, "play")
-	if not permanent:
+	if to_zone == "discard":
 		e.zone("discard").add(card)
 	var outcome := e._outcome
 	e._outcome = {}
@@ -94,6 +98,23 @@ static func target_effect(card: CardInstance) -> Effect:
 		if effect.target_zone() != "":
 			return effect
 	return null
+
+
+## Where a played card goes: a government rules, other permanents join the tableau, actions are discarded.
+static func _destination(card: CardInstance) -> String:
+	if card.def.type == CardDef.GOVERNMENT:
+		return "government"
+	return "tableau" if card.def.is_permanent() else "discard"
+
+
+## Makes card the government; the one it replaces leaves the game.
+static func _replace_government(e: GameEngine, card: CardInstance) -> void:
+	var gov := e.zone("government")
+	for old in gov.cards.duplicate():
+		gov.remove(old)
+		e.zone("removed").add(old)
+		e._log("%s replaces %s." % [card.def.name, old.def.name])
+	gov.add(card)
 
 
 static func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:

@@ -5,7 +5,7 @@ extends RefCounted
 ## Unknown fields are warnings, not errors.
 
 const CARD_TYPES := CardDef.TYPES
-const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION]  # never in the main deck
+const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Fields every card type may have.
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "requires"]
 ## Fields only some card types use: field -> those types, the first being the one the field is for. On any other
@@ -22,7 +22,7 @@ const TYPE_FIELDS := {
 }
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
-const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT]
+const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
 ## The keys of an event's discard object (its discard conditions). Only a duration so far.
 const DISCARD_CONDITIONS: Array[String] = ["turns"]
 ## Population block fields: name -> [minimum, default].
@@ -324,7 +324,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"hand_size": Fields.read_int(raw, "hand_size", errs, 1, 5),
 		"hand_limit": 0,
 		"deck_model": Fields.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
-		"starting": {"resources": {}, "tableau": [], "territory": "", "civilization": ""},
+		"starting": {"resources": {}, "tableau": [], "territory": "", "civilization": "", "government": ""},
 		"deck": {},
 		"territory_deck": {},
 		"research_deck": {},
@@ -373,16 +373,8 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 				errs.append("starting.territory: '%s' is not a territory" % territory)
 			else:
 				config.starting.territory = territory
-		var civilization: Variant = starting.get("civilization", "")
-		if not (civilization is String):
-			errs.append("starting.civilization must be a card id")
-		elif civilization != "":
-			if not cards.has(civilization):
-				errs.append("starting.civilization: unknown card '%s'" % civilization)
-			elif cards[civilization].type != CardDef.CIVILIZATION:
-				errs.append("starting.civilization: '%s' is not a civilization" % civilization)
-			else:
-				config.starting.civilization = civilization
+		config.starting.civilization = _parse_starting_card(starting, CardDef.CIVILIZATION, cards, errs)
+		config.starting.government = _parse_starting_card(starting, CardDef.GOVERNMENT, cards, errs)
 	else:
 		errs.append("'starting' must be an object")
 
@@ -620,6 +612,22 @@ static func _parse_civilizations(raw: Variant, cards: Dictionary, errs: Array[St
 		else:
 			out.append(id)
 	return out
+
+
+## The card id in starting[type] (the field is named after the card type it must hold), or "" when it's absent or
+## invalid.
+static func _parse_starting_card(starting: Dictionary, type: String, cards: Dictionary, errs: Array[String]) -> String:
+	var id: Variant = starting.get(type, "")
+	if not (id is String):
+		errs.append("starting.%s must be a card id" % type)
+	elif id != "":
+		if not cards.has(id):
+			errs.append("starting.%s: unknown card '%s'" % [type, id])
+		elif cards[id].type != type:
+			errs.append("starting.%s: '%s' is not a %s" % [type, id, type])
+		else:
+			return id
+	return ""
 
 
 ## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory", "tech" or
