@@ -57,6 +57,10 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]},
 ]}
 
+## How many turns play_seed_1 plays of the real game (066).
+const SEED_1_TURNS := 20
+## The real engine's turn_limit while play_seed_1 has shortened it (0 otherwise); close_main puts it back.
+var _real_turn_limit := 0
 ## The famine block raw_config adds to a population block that has none (backlog 083: required with population on).
 const FAMINE := {"card": "famine", "max_counters": 3}
 
@@ -393,12 +397,20 @@ func press_key(main: Node, keycode: Key) -> void:
 func close_main(main: Node) -> void:
 	main.get_parent().remove_child(main)
 	main.free()
+	if _real_turn_limit > 0:  # play_seed_1 shortened the real game
+		Game.engine.config.turn_limit = _real_turn_limit
+		_real_turn_limit = 0
 
 
-## Plays seed 1 to the end with the bot, calling after_turn(main) each time the turn number changes.
+## Plays seed 1 with the bot for SEED_1_TURNS turns (the real turn_limit is lowered for this game, 066: a whole
+## 100-turn game through the UI is too slow for the suite; close_main restores it), calling after_turn(main) each
+## time the turn number changes. test_content's sweep plays full-length games.
 func play_seed_1(main: Node, after_turn: Callable) -> void:
-	main.start_game(1)
 	var e := Game.engine
+	if _real_turn_limit == 0:
+		_real_turn_limit = e.config.turn_limit
+	e.config.turn_limit = mini(SEED_1_TURNS, _real_turn_limit)
+	main.start_game(1)
 	var state := {"turn": e.turn}
 	var on_changed := func():
 		if e.turn != state.turn or e.is_over:

@@ -3,10 +3,11 @@ extends RefCounted
 ## Plays one ScriptedBot game per seed and summarizes the results (backlog 042). Used by sim/run.gd
 ## (scripts/sim.sh) and the balance skill.
 
-const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era"]
+const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored"]
 
 
-## Plays one game per seed and returns {metric: {mean: float, min: int, max: int}} for each of METRICS.
+## Plays one game per seed and returns {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how
+## many turns the territory deck lasted: the turn it ran out, or the last turn played if it never did.
 static func run(cards: Dictionary, config: Dictionary, seeds: Array) -> Dictionary:
 	var values := {}
 	for m in METRICS:
@@ -14,8 +15,16 @@ static func run(cards: Dictionary, config: Dictionary, seeds: Array) -> Dictiona
 	for s in seeds:
 		var engine := GameEngine.new(cards, config)
 		engine.new_game(s)
+		var explored := [0]  # the turn the territory deck ran out (066); 0 until it does
+		var on_changed := func():
+			if explored[0] == 0 and engine.zone("territory_deck").is_empty():
+				explored[0] = engine.turn
+		engine.changed.connect(on_changed)
+		on_changed.call()  # an empty territory deck from the start
 		ScriptedBot.play(engine)
+		engine.changed.disconnect(on_changed)  # on_changed holds engine: break the cycle so it is freed
 		var game := game_metrics(engine, config)
+		game.explored = explored[0] if explored[0] > 0 else engine.turn
 		for m in METRICS:
 			values[m].append(game[m])
 	var stats := {}
@@ -50,7 +59,7 @@ static func run_files(cards_path: String, config_path: String, seed_count: int) 
 	var stats := run(data.cards, data.config, seeds)
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
 	for m in METRICS:
-		lines.append("%-7s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
+		lines.append("%-8s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
 	return {"code": 0, "lines": lines}
 
 

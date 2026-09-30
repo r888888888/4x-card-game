@@ -138,7 +138,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments (Council, Kingdom; backlog 065), kept out of `TEST_CARDS`; `gov_engine` starts a game with `starting.government` gov (`""` for none) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
 | `with_event_engine(body, event_deck, overrides)` | UI tests: runs `body` with `Game.engine` swapped for a game on `TEST_CARDS` + `TEST_EVENTS`, then puts the real engine back (moved from `test_event_panel` in 079) |
-| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
+| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A real-data game is cut to `SEED_1_TURNS` (20) turns, and `close_main` restores the limit (066: 100 turns through the UI is too slow); `test_content`'s sweep plays full games. A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before

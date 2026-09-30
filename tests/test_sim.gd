@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The balance simulator (backlog 042): the scripted bot (sim/bot.gd) and per-seed stats (sim/sim_stats.gd).
 
-const METRICS := ["bought", "cities", "era", "pop", "score", "techs"]  # sorted
+const METRICS := ["bought", "cities", "era", "explored", "pop", "score", "techs"]  # sorted
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
@@ -73,6 +73,16 @@ func test_sim_stats_counts_founded_cities() -> void:
 		"starting": {"resources": {"food": 30}, "tableau": ["capital"], "territory": "homeland"}})
 	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
 	eq(stats.get("cities", {}).get("min"), 10, "10 Settlers played with 30 food + upkeep over 2 turns")
+
+
+## Backlog 066: explored is how many turns the territory deck lasted: the turn it ran out, or the last turn played.
+func test_sim_stats_reports_how_long_the_territory_deck_lasted() -> void:
+	var d := sim_data({"explorer": 10}, {"turn_limit": 5, "territory_deck": {"hills": 1, "grassland": 1}})
+	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
+	eq(stats.get("explored", {}).get("min"), 1, "two Explorers on turn 1 empty a 2-card territory deck")
+	d = sim_data({"shrine": 10}, {"turn_limit": 5, "territory_deck": {"hills": 1, "grassland": 1}})
+	stats = SimStats.run(d.cards, d.config, [1])
+	eq(stats.get("explored", {}).get("min"), 5, "never explored: it lasted all 5 turns")
 
 
 # --- AC3: the command-line entry point ---
