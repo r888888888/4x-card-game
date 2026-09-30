@@ -75,6 +75,11 @@ func refresh(e: GameEngine) -> void:
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 
 
+## "Log (L) •" while the log has lines not yet seen (116).
+func set_log_unread(unread: bool) -> void:
+	log_button.text = "Log (L) •" if unread else "Log (L)"
+
+
 ## Puts the Supply button after the civilization and government.
 func add_supply_button(button: Button) -> void:
 	add_child(button)

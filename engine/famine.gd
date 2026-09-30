@@ -61,7 +61,7 @@ static func relieve(e: GameEngine) -> bool:
 	for r in relief:
 		e.resources[r] -= relief[r]
 	e.zone("active_events").remove(active(e))
-	e._log("Relieved the famine (%s)." % _amounts(relief))
+	e._notice("Relieved the famine (%s)." % _amounts(relief))
 	e.changed.emit()
 	return true
 
@@ -78,19 +78,19 @@ static func after_feeding(e: GameEngine, fed: bool) -> void:
 	if fed:
 		if famine != null:
 			e.zone("active_events").remove(famine)
-			e._log("Famine ends.")
+			e._notice("Famine ends.")
 		return
 	if famine == null:
 		famine = e._make_card(e.config.famine.card)
 		e.zone("active_events").add(famine)
-		e._log("Famine! Pop went hungry.")
+		e._notice("Famine! Pop went hungry.")
 	famine.counters = mini(famine.counters + 1, e.config.famine.max_counters)
 	var guards := guards_by_territory(e)
 	for i in famine.counters:
 		var hit := Population.most_pop(e)
 		if hit != null and guards.get(hit.uid, 0) > 0:
 			guards[hit.uid] -= 1
-			e._log("%s: 1 pop saved from famine." % hit.def.name)
+			e._notice("%s: 1 pop saved from famine." % hit.def.name)
 			continue
 		e._resolve(famine, "upkeep")
 

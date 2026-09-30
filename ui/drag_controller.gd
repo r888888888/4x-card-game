@@ -97,13 +97,16 @@ func begin_targeting(view: CardView) -> void:
 	view.set_highlight(true)
 	_light_targets(view.uid, true)
 	# The engine's reason the card can't be played yet, e.g. "Choose a territory to settle." or "Choose a card to trash."
-	_board.log_note("[color=#ffd966]%s Click one (or ←/→ then Enter); Esc cancels.[/color]" % Game.engine.play_error(view.uid))
+	var hint := "%s Click one (or ←/→ then Enter); Esc cancels." % Game.engine.play_error(view.uid)
+	_board.log_note("[color=#ffd966]%s[/color]" % hint)
+	_board.toasts.hint(hint)  # on screen until targeting ends (116)
 
 
 func end_targeting() -> void:
 	if is_instance_valid(targeting):
 		targeting.set_highlight(false)
 	targeting = null
+	_board.toasts.clear_hint()
 	_unlight_targets()
 
 

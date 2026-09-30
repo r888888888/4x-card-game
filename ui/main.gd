@@ -31,6 +31,7 @@ var nav := Navigator.new()  # the open start screens, title first (103); empty w
 var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
+var toasts: Toasts  # notices and the targeting hint under the top bar (116)
 
 var _board: Control  # the top bar and the body (play area and side panel)
 var _top_bar: TopBar
@@ -38,9 +39,7 @@ var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden while the zone is empty
-var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
-var _events_row: HBoxContainer  # the active events, in draw order
-var _relieve: Button  # under the events: pays to end the Famine (084), shown while one can be relieved
+var _events: EventsSection  # the event piles' counts, the active events and Relieve
 var _turn_box: TurnBox  # the deck and discard counts and End turn, beside the hand (115)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
@@ -58,6 +57,7 @@ func _ready() -> void:
 		return
 	Game.engine.changed.connect(_refresh)
 	Game.engine.logged.connect(log_drawer.append_log)
+	Game.engine.noticed.connect(toasts.notice)
 	Game.engine.card_played.connect(_on_card_played)
 	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
@@ -102,6 +102,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	territory_view.reset()
 	_reset_views()
 	Game.new_game(seed_value, civ_id)
+	log_drawer.mark_read()  # the new game's own lines
 	_menu.set_game(seed_value, _civilization_name())
 
 
@@ -175,31 +176,9 @@ func game_over_text() -> String:
 ## Test hook (068): the event panel as {visible, info, tooltip, views: [{uid, id, text}]}, views in row order.
 func event_panel() -> Dictionary:
 	var shown := []
-	for view in views_in(_events_row):
+	for view in views_in(_events.row):
 		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
-	var info: Label = _events_section.get_child(0)
-	return {"visible": _events_section.visible, "info": info.text, "tooltip": info.tooltip_text, "views": shown}
-
-
-## The Events section and its heading's pile counts (115), shown only with an event deck.
-func _refresh_events_heading(e: GameEngine) -> void:
-	var heading: Label = _events_section.get_child(0)
-	_events_section.visible = not e.config.get("event_deck", {}).is_empty()
-	heading.text = "Events · deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
-	heading.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
-	var waiting := e.zone("future_events").size()
-	if waiting > 0:
-		heading.tooltip_text += "\n%d %s for a later era." % [waiting, "event waits" if waiting == 1 else "events wait"]
-
-
-## The Relieve button: shown while a Famine is active and has a relief price, disabled with the reason it can't pay.
-func _refresh_relieve(e: GameEngine) -> void:
-	var relief := e.famine_relief()
-	_relieve.visible = e.famine_counters() > 0 and not relief.is_empty()
-	_relieve.text = "Relieve famine (%s)" % CardFace.cost_text(relief)
-	var error := e.relieve_famine_error()
-	_relieve.disabled = error != ""
-	_relieve.tooltip_text = error if error != "" else "Pay to end the famine now. A later hungry upkeep brings a new one."
+	return _events.info().merged({"views": shown})
 
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
@@ -401,7 +380,7 @@ func _refresh() -> void:
 	territory_view.close_if_stale(e)
 	_top_bar.refresh(e)
 	var hand_cards := e.zone("hand").cards
-	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events_row}
+	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events.row}
 	for zone_name in _row_sections:
 		rows[zone_name] = _row_sections[zone_name].get_meta("row")
 	var viewed := territory_view.card_uids()  # these rest in the territory view instead of the Realm
@@ -437,8 +416,7 @@ func _refresh() -> void:
 		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
 	choices.refresh(e)
 	_turn_box.refresh(e)
-	_refresh_events_heading(e)
-	_refresh_relieve(e)
+	_events.refresh(e)
 	supply.refresh(e)
 	if not _outcome.is_empty():
 		_top_bar.fly_outcome(fx, _outcome, _outcome_point)
@@ -457,7 +435,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var e := Game.engine
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
-	var compact := container == _events_row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
+	var compact := container == _events.row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
@@ -533,7 +511,7 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 	if e.zone("government").find(uid) != null:
 		return _top_bar.identity_point("government")
 	if e.zone("event_discard").find(uid) != null:
-		return (_events_section.get_child(0) as Control).get_global_rect().get_center()
+		return _events.heading_point()
 	return _turn_box.pile_point(0.75)
 
 
@@ -614,11 +592,7 @@ func _build_layout() -> void:
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
 	frontier = _row_sections.frontier.get_meta("row")
 	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
-	_events_section = UIKit.card_row_section(_play_area, "Events")
-	_events_row = _events_section.get_meta("row")
-	_relieve = UIKit.button("", func(): Game.engine.relieve_famine())
-	_relieve.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_events_section.add_child(_relieve)
+	_events = EventsSection.new(_play_area)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	var hand_row := HBoxContainer.new()  # the hand, then End turn (115)
@@ -654,6 +628,10 @@ func _build_layout() -> void:
 	_top_bar.add_supply_button(supply.button)
 	log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
 	add_child(log_drawer)
+	log_drawer.unread_changed.connect(_top_bar.set_log_unread)
+	toasts = Toasts.new(_top_bar, func(): return _menu.is_open() or nav.depth() > 0 or tech_tree.visible \
+		or details.visible or _event_modal.visible)
+	add_child(toasts)
 
 	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
 

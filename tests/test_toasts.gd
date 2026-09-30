@@ -130,6 +130,13 @@ func test_refusals_are_logged_but_do_not_toast() -> void:
 
 # --- AC5: the unread marker ---
 
+## Ends the turn and presses OK on the drawn event's pop-up, which otherwise takes the keys (L included).
+func end_turn_and_close_event(main: Node) -> void:
+	Game.engine.end_turn()
+	if not main.event_modal().is_empty():
+		main.event_modal_ok_button().pressed.emit()
+
+
 func test_the_log_button_marks_lines_not_yet_seen() -> void:
 	await with_game(true, func(main: Node):
 		var button := shown_button(main, "Log (L)")
@@ -137,15 +144,15 @@ func test_the_log_button_marks_lines_not_yet_seen() -> void:
 		if button == null:
 			return
 		eq(button.text, "Log (L)", "a new game's own lines don't mark it")
-		Game.engine.end_turn()
+		end_turn_and_close_event(main)
 		eq(button.text, "Log (L) •", "a line while closed marks it")
 		press_key(main, KEY_L)
 		eq(button.text, "Log (L)", "opening clears it")
-		Game.engine.end_turn()
+		end_turn_and_close_event(main)
 		eq(button.text, "Log (L)", "lines while open don't mark it")
 		press_key(main, KEY_L)
 		eq(button.text, "Log (L)", "closing doesn't mark it")
-		Game.engine.end_turn()
+		end_turn_and_close_event(main)
 		eq(button.text, "Log (L) •", "a new line after closing marks it")
 		main.start_game(2)
 		eq(button.text, "Log (L)", "a new game clears it"))

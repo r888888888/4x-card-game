@@ -16,6 +16,9 @@ const WEALTH := "wealth"
 
 signal changed
 signal logged(message: String)
+## Emitted after logged for a notable line the player should see even with the log closed (116): a famine arriving,
+## ending, saving pop or relieved, a tech lost, a pile unlocked, an era's techs or events added, an event ending.
+signal noticed(message: String)
 signal game_over(final_score: int)
 ## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, lost, vp, drawn, created};
 ## target is the uid the card was played on (-1 if none), paid and gained map resource -> amount,
@@ -617,7 +620,7 @@ func trash(uid: int, source: CardInstance) -> void:
 func unlock_supply(card_id: String, source: CardInstance) -> void:
 	if state.locked_supply.erase(card_id):
 		var prefix := "  %s: " % source.def.name if source != null else "  "
-		_log("%s%s can now be bought." % [prefix, card_db[card_id].name])
+		_notice("%s%s can now be bought." % [prefix, card_db[card_id].name])
 
 
 ## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if
@@ -673,3 +676,9 @@ func _make_card(card_id: String) -> CardInstance:
 func _log(message: String) -> void:
 	log_lines.append(message)
 	logged.emit(message)
+
+
+## Logs a notable message, then emits noticed with it (116).
+func _notice(message: String) -> void:
+	_log(message)
+	noticed.emit(message)
