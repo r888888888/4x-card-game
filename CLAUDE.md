@@ -33,6 +33,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
   e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
+- A screen you navigate to goes on an animated `Navigator` with a title, and carries a `ScreenHeader`: a back button
+  naming where it goes and a breadcrumb naming where you are. It enters and leaves with a transition (it grows out of
+  the card it opens, or fades; only a fade with Reduce motion), and counts as closed as soon as it starts leaving.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).

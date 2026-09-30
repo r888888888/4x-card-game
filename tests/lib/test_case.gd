@@ -371,6 +371,24 @@ func with_event_engine(body: Callable, event_deck := {"windfall": 1, "trade_wind
 	Game.engine = real
 
 
+## Runs body with Reduce motion set to calm in a temp settings store, then puts the player's settings back (104: a
+## transition test must know whether screens grow or only fade). Use with await.
+func with_reduce_motion(calm: bool, body: Callable) -> void:
+	var path := "user://test_reduce_motion_settings.cfg"
+	var original: SettingsStore = Settings.store
+	Settings.store = SettingsStore.new(path)
+	Settings.store.reduce_motion = calm
+	await body.call()
+	Settings.store = original
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+
+## Waits until a navigated screen's transition (Anim.SCREEN_TIME, 104) is over. Use with await.
+func wait_screen_transition() -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.SCREEN_TIME + 0.15).timeout
+
+
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
 func wait_frames(n := 2) -> void:
 	for i in n:

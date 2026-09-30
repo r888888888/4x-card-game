@@ -1,14 +1,16 @@
 class_name TerritoryView
 extends VBoxContainer
-## The territory view (backlog 101): one settled territory, its stats and Grow, then its card, city and buildings,
-## shown in place of the Realm section. It keeps its own Navigator with the Realm as the root (a nested stack: the
-## board's nav stays empty while a game is on, 103). A drop anywhere on it targets its territory. The board places
-## the view's cards through refresh; navigated asks the board to refresh after it opens or closes.
+## The territory view (backlog 101): one settled territory, under a header ("← Realm", "Realm › River Meadow", 104),
+## its stats and Grow, then its card, city and buildings, shown in place of the Realm section. It keeps its own
+## animated Navigator with the Realm as the root (a nested stack: the board's nav stays empty while a game is on,
+## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
+## board places the view's cards through refresh; navigated asks the board to refresh after it opens or closes.
 
 signal navigated
 
 var uid := -1  # the territory shown, -1 while closed
-var back_button: Button
+var header: ScreenHeader
+var back_button: Button  # the header's
 var grow_button: Button
 var row: HFlowContainer  # the territory's card, then its city and buildings, in tableau order
 
@@ -24,11 +26,13 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_realm = realm
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
+	_nav.animated = true
+	header = ScreenHeader.new(_nav, close)
+	add_child(header)
+	back_button = header.back_button
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
 	add_child(bar)
-	back_button = UIKit.button("Back (Esc)", close)
-	bar.add_child(back_button)
 	_stats = UIKit.heading("")
 	bar.add_child(_stats)
 	grow_button = UIKit.button("", func(): Game.engine.grow(uid))
@@ -41,17 +45,21 @@ func _init(board: MainScreen, realm: Control) -> void:
 	hide()
 	realm.get_parent().add_child(self)
 	realm.get_parent().move_child(self, realm.get_index() + 1)
-	_nav.set_root(realm)
+	_nav.set_root(realm, null, _realm_title())
 
 
 func is_open() -> bool:
-	return visible
+	return Navigator.is_shown(self)
 
 
-## Shows territory t in place of the Realm.
+## Shows territory t in place of the Realm, growing out of its card.
 func open(t: int) -> void:
 	uid = t
-	_nav.push(self)
+	var card: CardView = _board.views.get(t)
+	global_position = _realm.global_position  # where its container will put it: the Realm's place
+	size = _realm.size
+	var title := Game.engine.zone("tableau").find(t).def.name
+	_nav.push(self, null, title, card.get_global_rect() if card != null else Rect2())
 	navigated.emit()
 
 
@@ -69,8 +77,13 @@ func close() -> void:
 
 ## Closes the view without refreshing the board (a new game, or the territory is gone).
 func reset() -> void:
-	_nav.set_root(_realm)
+	_nav.set_root(_realm, null, _realm_title())
 	uid = -1
+
+
+## The Realm section's heading: the root of the view's breadcrumb.
+func _realm_title() -> String:
+	return (_realm.get_child(0) as Label).text
 
 
 ## Esc closes the view. Returns whether the key was used.

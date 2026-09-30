@@ -72,11 +72,13 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 	check_column([title.new_game_button, title.settings_button, title.exit_button], "title screen")
 	title.settings_button.pressed.emit()
 	await wait_frames()
-	check_column([main.settings_screen.motion_toggle, main.settings_screen.back_button], "settings screen")
+	check_column([main.settings_screen.motion_toggle], "settings screen")
+	check_fits(main.settings_screen.back_button, "settings screen's header back")  # 104: Back moved to the header
 	main.settings_screen.back_button.pressed.emit()
 	title.new_game_button.pressed.emit()
 	await wait_frames()
-	check_column([main.new_game_screen.start_button, main.new_game_screen.back_button], "new game screen")
+	check_column([main.new_game_screen.start_button], "new game screen")
+	check_fits(main.new_game_screen.back_button, "new game screen's header back")  # 104: Back moved to the header
 	close_at_1080(main)
 
 

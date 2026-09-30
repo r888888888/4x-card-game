@@ -34,5 +34,5 @@ func _init(parent: Control) -> void:
 
 
 func is_open() -> bool:
-	return overlay.visible
+	return Navigator.is_shown(overlay)
 
