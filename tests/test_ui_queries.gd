@@ -22,13 +22,6 @@ func choice_engine() -> Object:
 	return e
 
 
-## A game with pottery and writing revealed.
-func research_engine() -> Object:
-	var e: Object = tech_engine(["pottery", "writing"])
-	check(play_research(e), "research should open")
-	return e
-
-
 ## A game on turn 1 with 1 card to discard (hand 8, limit 7).
 func discard_engine() -> Object:
 	var e: Object = make_engine({"scout": 10})

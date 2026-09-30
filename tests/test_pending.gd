@@ -32,7 +32,7 @@ func explore_engine() -> Object:
 
 
 ## A game with pottery and writing revealed.
-func research_engine() -> Object:
+func pending_research_engine() -> Object:
 	var e := pending_engine()
 	check(play_research(e), "research should open")
 	return e
@@ -73,7 +73,7 @@ func test_pending_explore_lists_the_revealed_territories_top_first() -> void:
 # --- AC3: research ---
 
 func test_pending_research_lists_the_revealed_techs() -> void:
-	var e := research_engine()
+	var e := pending_research_engine()
 	var r: Zone = e.zone("research_reveal")
 	eq(pending_of(e), {"kind": "research", "options": [uid_of(r, "pottery"), uid_of(r, "writing")]}, "pending")
 
@@ -93,7 +93,7 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 	var discard_msg := "Discard down to 5 cards first."
 	var cases := [
 		["explore", explore_engine(), "Choose a territory first.", "Choose a territory first.", false],
-		["research", research_engine(), "Buy a tech or decline first.", "Buy a tech or decline first.", false],
+		["research", pending_research_engine(), "Buy a tech or decline first.", "Buy a tech or decline first.", false],
 		["discard", discard_engine(), discard_msg, "", true],
 	]
 	for row in cases:

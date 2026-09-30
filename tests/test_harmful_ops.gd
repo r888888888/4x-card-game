@@ -13,14 +13,6 @@ func card_x(type: String, effects: Array) -> Dictionary:
 	return {"id": "x", "name": "X", "type": type, "effects": effects}
 
 
-## TEST_CARDS plus extra, parsed; returns {cards, errors, warnings}.
-func load_with(extra: Array) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors, "warnings": warnings}
-
-
 ## A game on TEST_CARDS plus extra with config overrides; territory_deck holds hills and grassland.
 func engine_with(extra: Array, overrides := {}) -> Object:
 	var r := load_with(extra)

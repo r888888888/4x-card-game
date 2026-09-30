@@ -43,12 +43,7 @@ func territory_config() -> Dictionary:
 
 
 func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	check(errors.is_empty(), "TEST_CARDS should load: %s" % [errors])
-	DataLoader.parse_config(raw_config(deck, overrides), resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(load_with([]).cards, overrides, deck)
 
 
 # --- AC1: territory cards load ---

@@ -15,12 +15,7 @@ func card_errors(extra: Array) -> Array[String]:
 
 ## Loader errors for a config (on gov_db) with overrides.
 func config_errors(overrides: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := gov_db(errors, warnings)
-	check(errors.is_empty(), "cards should load: %s" % [errors])
-	DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(gov_db(), overrides)
 
 
 func starting_with(gov: Variant) -> Dictionary:

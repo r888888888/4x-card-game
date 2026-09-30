@@ -19,12 +19,7 @@ func one_effect(id: String, type: String, effect: Dictionary) -> Dictionary:
 
 ## Loader errors for a config (on civ_db) with overrides.
 func config_errors(overrides: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := civ_db(errors, warnings)
-	check(errors.is_empty(), "cards should load: %s" % [errors])
-	DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(civ_db(), overrides)
 
 
 func starting_with(civ: Variant) -> Dictionary:

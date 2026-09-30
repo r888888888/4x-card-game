@@ -43,14 +43,7 @@ func resource_engine(tables: Dictionary, territory_deck: Dictionary, deck := {"s
 
 ## Loader errors for a config with resource_keywords ["gold"] plus overrides.
 func config_errors(overrides: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := load_cards(errors, warnings)
-	check(errors.is_empty(), "cards should load: %s" % [errors])
-	var raw := {"resource_keywords": RESOURCE_KEYWORDS}
-	raw.merge(overrides, true)
-	DataLoader.parse_config(raw_config({"farm": 1}, raw), resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(load_cards([], []), {"resource_keywords": RESOURCE_KEYWORDS}.merged(overrides, true))
 
 
 func kw(list: Array) -> Array[String]:

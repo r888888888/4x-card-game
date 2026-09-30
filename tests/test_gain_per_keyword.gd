@@ -4,6 +4,7 @@ extends "res://tests/lib/test_case.gd"
 ## TEST_CARDS territories: homeland (no keywords), hills [mountain], river [fresh_water, flood_plain].
 
 const HUNT := {"op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["mountain", "fresh_water"]}
+const GOLD: Array[String] = ["gold"]  # the resource keyword the loader is given
 
 
 ## An action "x" with effect.
@@ -11,19 +12,9 @@ func action(effect: Dictionary) -> Dictionary:
 	return {"id": "x", "name": "X", "type": "action", "effects": [effect]}
 
 
-## TEST_CARDS plus extra, parsed with the fixture keywords and resource keyword gold; returns {cards, errors, warnings}.
-func load_with(extra: Array) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var gold: Array[String] = ["gold"]
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings,
-		keywords(), gold)
-	return {"cards": cards, "errors": errors, "warnings": warnings}
-
-
 ## Loader result for one action x with effect.
 func load_action(effect: Dictionary) -> Dictionary:
-	return load_with([action(effect)])
+	return load_with([action(effect)], GOLD)
 
 
 ## HUNT with key set to value (or removed when value is null).
@@ -38,7 +29,7 @@ func hunt_with(key: String, value: Variant) -> Dictionary:
 
 ## A game on TEST_CARDS plus extra, with territory_deck hills and river, a deck of farms, and 0 food.
 func engine_with(extra: Array) -> GameEngine:
-	var r := load_with(extra)
+	var r := load_with(extra, GOLD)
 	check(r.errors.is_empty(), "test data should load: %s" % [r.errors])
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
@@ -149,7 +140,7 @@ func test_gain_per_keyword_validation() -> void:
 func test_gain_per_keyword_may_trigger_on_upkeep() -> void:
 	var upkeep := HUNT.duplicate(true)
 	upkeep["trigger"] = "upkeep"
-	var r := load_with([{"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}])
+	var r := load_with([{"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}], GOLD)
 	eq(r.errors, [] as Array[String], "errors")
 
 

@@ -4,16 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## main.section_headings() lists the play area's headings top to bottom as {text, tooltip}.
 
 
-## Sends a key press and release through main's viewport, as the keyboard would.
-func press_key(main: Node, keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.physical_keycode = keycode
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
-
-
 ## Every Control under node.
 func controls_in(node: Node) -> Array[Control]:
 	var out: Array[Control] = []

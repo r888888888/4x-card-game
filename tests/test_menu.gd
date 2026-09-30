@@ -11,16 +11,6 @@ func open_main_counting_quits(quits: Array) -> Node:
 	return main
 
 
-## Sends a key press and release through main's viewport, as the keyboard would.
-func press_key(main: Node, keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.physical_keycode = keycode
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
-
-
 func button_texts(buttons: Array) -> Array[String]:
 	var texts: Array[String] = []
 	for b in buttons:

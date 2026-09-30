@@ -172,13 +172,7 @@ func test_forecast_starve_is_the_famines_deaths() -> void:
 
 ## Loader errors for population overrides and extra cards (famine is not added for you here).
 func config_errors(population: Variant, overrides := {}, extra: Array = []) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings, keywords())
-	var raw := raw_config({"farm": 1}, overrides)
-	raw["population"] = population
-	DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(load_with(extra).cards, overrides.merged({"population": population}, true))
 
 
 func test_famine_config_validation() -> void:

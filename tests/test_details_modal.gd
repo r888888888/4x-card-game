@@ -4,16 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## details on show ({} while hidden).
 
 
-## Sends a key press and release through main's viewport, as the keyboard would.
-func press_key(main: Node, keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.physical_keycode = keycode
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
-
-
 func test_i_opens_details_for_the_focused_card_and_esc_closes_them() -> void:
 	var main := open_main()
 	main.start_game(1)

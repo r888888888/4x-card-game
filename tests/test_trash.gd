@@ -6,14 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const PURGE := {"id": "purge", "name": "Purge", "type": "action", "cost": {"food": 1}, "effects": [{"op": "trash"}]}
 
 
-## TEST_CARDS plus extra, parsed; returns {cards, errors, warnings}.
-func load_with(extra: Array) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors, "warnings": warnings}
-
-
 ## A card "x" of type with effect.
 func card_with(type: String, effect: Dictionary) -> Dictionary:
 	return {"id": "x", "name": "X", "type": type, "effects": [effect]}
