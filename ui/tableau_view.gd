@@ -18,7 +18,7 @@ class TerritoryGroup:
 	var style: StyleBoxFlat
 	var label: Label
 	var grow_button: Button
-	var row: HBoxContainer
+	var row: HFlowContainer  # wraps; _fit_rows keeps it no wider than the tableau (078)
 
 	func set_lit(on: bool) -> void:
 		style.border_color = CardView.HIGHLIGHT_COLOR if on else CardView.TYPE_COLORS.territory
@@ -35,6 +35,7 @@ func _init() -> void:
 	_flow.add_theme_constant_override("h_separation", GROUP_GAP)
 	_flow.add_theme_constant_override("v_separation", GROUP_GAP)
 	add_child(_flow)
+	resized.connect(_fit_rows)
 	var ghost_style := StyleBoxFlat.new()
 	ghost_style.bg_color = Color(1, 1, 1, 0.04)
 	ghost_style.border_color = Color(1, 1, 1, 0.35)
@@ -83,6 +84,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 			_flow.remove_child(_groups[key].frame)
 			_groups.erase(key)
 	_flow.move_child(ghost, -1)
+	_fit_rows()
 
 
 ## Lights up (or dims) the group of territory uid, if it has one.
@@ -113,6 +115,20 @@ func move_ghost(uid: int) -> void:
 		ghost.reparent(parent, false)
 	parent.move_child(ghost, -1)
 	ghost.visible = parent != _flow
+	_fit_rows()
+
+
+## Gives each group's row the width of its cards in one line, capped at the tableau's width, so a full territory
+## wraps its cards onto more lines instead of widening the tableau (and pushing the side panel off screen, 078).
+func _fit_rows() -> void:
+	var cap := maxf(size.x - 2 * GROUP_PADDING - get_v_scroll_bar().size.x, 0.0)
+	for key in _groups:
+		var row: HFlowContainer = _groups[key].row
+		var width := 0.0
+		for child in row.get_children():
+			if child is Control and child.visible:
+				width += child.get_combined_minimum_size().x + (UIKit.CARD_GAP if width > 0 else 0)
+		row.custom_minimum_size.x = minf(width, cap)
 
 
 ## A framed group for one territory's cards, added to the tableau.
@@ -137,9 +153,10 @@ func _new_group() -> TerritoryGroup:
 	header.add_child(group.label)
 	group.grow_button = UIKit.button("", func(): Game.engine.grow(group.uid))
 	header.add_child(group.grow_button)
-	group.row = HBoxContainer.new()
+	group.row = HFlowContainer.new()
 	group.row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.row.add_theme_constant_override("separation", UIKit.CARD_GAP)
+	group.row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
+	group.row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	box.add_child(group.row)
 	_flow.add_child(group.frame)
 	return group
