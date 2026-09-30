@@ -15,10 +15,12 @@ var _views := {}  # card_id -> CardView (display-only; not the board's card view
 var _wealth: Label  # the screen's own counters: the top bar's sit under the dimmer
 var _discard: Label
 var _fx: Control  # tokens, flying copies and errors above the panel
+var _board: MainScreen
 
 
 ## Builds the screen on parent, hidden. on_open is the Supply button's action.
-func _init(parent: Control, on_open: Callable) -> void:
+func _init(parent: MainScreen, on_open: Callable) -> void:
+	_board = parent
 	button = UIKit.button("Buy Cards (S)", on_open)
 	button.custom_minimum_size.y = 44
 	button.hide()
@@ -74,6 +76,7 @@ func open(e: GameEngine) -> void:
 		view.lift_on_hover = true
 		view.set_pickable(true)
 		view.picked.connect(pick)
+		view.details_requested.connect(func(v: CardView): _board.details.open(v))
 		view.pop_in(slot, i * Anim.DEAL_STAGGER)
 		_views[id] = view
 		i += 1

@@ -12,6 +12,7 @@ const LIFT_ROOM := 40.0
 const HAND_SIDE_ROOM := 24.0
 const DRAG_SCALE := 1.1
 const DRAG_START_DISTANCE := 6.0  # px the mouse must move while pressed before a drag starts
+const DETAILS_CLICK_DELAY := 0.5  # a single click opens the card details after this, unless a second click came
 
 const REST_SHARPNESS := 18.0  # hover lift, and sliding into place after the hand relayouts
 const FOLLOW_SHARPNESS := 22.0  # dragged card chasing the cursor
