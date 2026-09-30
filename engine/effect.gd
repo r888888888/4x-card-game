@@ -15,8 +15,8 @@ func fields() -> Array[String]:
 	return []
 
 
-## Whether this op may use trigger "upkeep". upkeep_forecast runs upkeep effects for real and then restores
-## only resources, bonus score and pop, so only ops that change nothing else may return true.
+## Whether this op may use trigger "upkeep": true only for ops that change nothing but resources, bonus score and
+## pop. Nobody can choose or target during upkeep, and upkeep_forecast reports only resources and starve.
 func upkeep_ok() -> bool:
 	return false
 

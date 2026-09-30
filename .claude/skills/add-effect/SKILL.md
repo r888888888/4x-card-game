@@ -6,17 +6,21 @@ description: Recipe for adding a new card effect op (an "op" in data/cards.json 
 # Add a card effect op
 
 Use this inside the `tdd` skill's phases: steps 1–2 belong to Red, steps 3–5 to Green.
-Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `create`, `score`).
+Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `create`, `score`), and their test
+files (`tests/test_harmful_ops.gd`, `tests/test_gain_per_keyword.gd`, `tests/test_trash.gd`).
 
 ## Red
 
-1. **Loader tests** in the op's feature file (or `tests/test_data_loader.gd`):
+Put all of the op's tests in a new `tests/test_<op>.gd` (as 072, 081 and 082 did): loader rows and rules tests
+together, so the op's behavior reads in one place.
+
+1. **Loader tests** in `tests/test_<op>.gd`:
    - a card using the op with valid fields loads with no errors or warnings (a named test);
    - each missing or invalid field gives an error that names the card and field
      (e.g. `card 'x': effects[0]: 'amount' must be an integer >= 1`): one `test_<op>_validation` with a
      `check_cases` row per case (see `test_grow_validation`);
    - if the op refers to cards, resources, or zones, unknown names are errors.
-2. **Rules tests** in `tests/test_rules.gd` (or `tests/test_effects.gd` if you're adding several):
+2. **Rules tests** in the same `tests/test_<op>.gd`:
    - add a card that uses the op to `TEST_CARDS` in `tests/lib/test_case.gd`;
    - test the effect on `play`; if it may trigger on `upkeep`, test that too, and add it to `UPKEEP_SAFE`
      in `tests/test_forecast.gd` (otherwise to `UPKEEP_UNSAFE`, which expects the "only works on play" error);
@@ -33,14 +37,27 @@ Existing ops to copy from: `engine/effects/` (`gain`, `gain_per_tag`, `draw`, `c
    - `configure()` reads fields with `Fields.read_int` / `Fields.read_string`, validating against
      `ctx.resources` / `ctx.zones` where relevant;
    - `apply(engine, source)` calls a **public helper on `GameEngine`**. Don't manipulate zones or
-     resources directly from the effect, so that logging and signals stay in one place. Add the
-     helper to `game_engine.gd` under "Helpers called by effects" if none fits;
+     resources directly from the effect, so that logging, signals and the play outcome stay in one place.
+     Add the helper to `game_engine.gd` under "Helpers called by effects" if none fits; if the op changes
+     something the `card_played` outcome reports (gained, vp, drawn, created, trashed), the helper records it
+     there (`if not _outcome.is_empty(): …`, as `gain` and `create_card` do);
    - `describe()` returns short rules text, without the trigger prefix; override `describe_long()`
      if the tooltip needs fuller wording (it defaults to `describe()`);
    - `referenced_cards()` if the op names other cards;
    - `upkeep_ok()` returns `true` only if the op changes nothing but resources, bonus score and pop:
-     `upkeep_forecast` runs upkeep effects for real and restores only those. Ops that move or make cards,
-     use the RNG or open a choice keep the default `false`, and the loader rejects them on `upkeep`.
+     nobody can choose or target during upkeep, and `upkeep_forecast` reports only resources and `starve`.
+     Ops that move or make cards, use the RNG or open a choice keep the default `false`, and the loader
+     rejects them on `upkeep`.
+   - Consider each of the other `Effect` hooks (`engine/effect.gd`), and override the ones that apply:
+     - `target_zone()`: the zone the player picks a target card from ("" if none);
+     - `no_target_error()` / `choose_target_error()`: the `play_error` text when there is no valid target,
+       or several and none was given;
+     - `opens_choice()`: true if the op may leave a `pending()` decision (the loader then keeps it off
+       `start`);
+     - `needs_own_territory()`: true if the op acts on its own card's territory; the loader rejects it on
+       techs, events and governments, which have none (and `start` triggers check targets and choices);
+     - `play_block_error(engine, card)`: why the card can't be played right now (e.g. nothing to research);
+     - `terms()`: glossary terms the op uses, listed in the card details.
 4. Register the op in `EffectRegistry.OPS` (`engine/effect_registry.gd`).
 5. Run `scripts/test.sh`. It re-imports automatically, so the new script is picked up.
 

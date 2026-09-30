@@ -1,7 +1,8 @@
 extends Effect
 ## { "op": "unlock", "card": "guildhall" }
 ## Opens a locked supply pile so the card can be bought (backlog 057). The card must have a supply pile (checked by
-## the loader's config pass). Play only (not upkeep_ok): the lock isn't restored by the upkeep forecast.
+## the loader's config pass). Play only (not upkeep_ok): an unlock isn't a resource, bonus score or pop, so
+## upkeep_forecast couldn't report it.
 
 var card_id: String
 

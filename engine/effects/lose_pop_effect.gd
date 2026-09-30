@@ -6,7 +6,7 @@ extends Effect
 var amount: int
 
 
-## Changes only what upkeep_forecast restores (see Effect.upkeep_ok).
+## Changes only resources, bonus score or pop, which upkeep_forecast can report (see Effect.upkeep_ok).
 func upkeep_ok() -> bool:
 	return true
 

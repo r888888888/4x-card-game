@@ -13,14 +13,16 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - `ui/` only displays state and calls engine actions; it holds no rules. If a UI change needs
   logic (a calculation, a legality check, a derived value), put that logic in the engine under TDD
   and have the UI call it.
+- UI text never names content (card names, counts); ask the engine.
 - Content lives in `data/*.json`; the loader validates it. Card text is generated from effects.
 - Card types and the built-in resources are constants (`CardDef.TERRITORY`, `GameEngine.FOOD`, …); never write
   their strings in `engine/` or `ui/`. A field only some card types use goes in `DataLoader.TYPE_FIELDS`.
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
-- New effect op: follow the `add-effect` skill. Only ops that change nothing but resources, bonus score and pop
-  may trigger on `upkeep` (`upkeep_ok()`), because `upkeep_forecast` restores only those.
+- New effect op: follow the `add-effect` skill. Only ops whose `upkeep_ok()` is true may trigger on `upkeep`: ops that
+  change nothing but resources, bonus score and pop. Nobody can choose or target during upkeep, and
+  `upkeep_forecast` reports only resources and `starve`.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).
@@ -46,6 +48,7 @@ docs, renames with no behavior change) need no item and no new test.
 - Every test must assert something; runtime errors inside a test count as failures.
 - Red-phase tip: when a test calls an engine method that doesn't exist yet, hold the engine in a
   variable typed `Object` (not `GameEngine`) so the file still parses and fails on the missing method.
+- Type engines `Object` only in the red phase; retype them as `GameEngine` once green.
 
 ## Test conventions
 - Files: `tests/test_<area>.gd`, extending `"res://tests/lib/test_case.gd"`. Helpers and
@@ -53,6 +56,8 @@ docs, renames with no behavior change) need no item and no new test.
 - Name tests after the behavior: `test_<what_happens>`; for bugs `test_bug_<id>_<what>`.
 - Rules tests use `TEST_CARDS` + `make_engine`, never `data/cards.json` (balance edits must not break them).
 - Content tests (`tests/test_content.gd`) assert invariants of the real data, never exact numbers from `data/`.
+  A test in `test_content.gd` that names a card id is a smell: assert the invariant and put per-card facts under
+  the item's Manual check.
 - Before writing a helper, check `tests/lib/test_case.gd` and `tests/lib/tech_case.gd`. Tests never call
   engine members that start with `_`.
 - Assert on state and return values (zones, resources, score, signals), not on log text,

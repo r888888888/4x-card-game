@@ -44,6 +44,17 @@ for f in $(grep -ho '^func [a-z][a-z0-9_]*' $(ls engine/*.gd | grep -v 'engine/e
 	grep -qw "$f" tests/*.gd tests/lib/*.gd sim/*.gd || echo "$f"
 done
 
+section "Public actions without a \`*_error\` query (GameEngine, under # --- Actions ---)"
+# Actions whose query doesn't follow the foo/foo_error naming.
+ACTION_ERROR_PAIRS="play_card:play_error buy_tech:buy_tech_error new_game:new_game_error end_turn:end_turn_error buy:buy_error grow:grow_error"
+sed -n '/^# --- Actions ---/,/^# --- /p' engine/game_engine.gd \
+	| grep -oE '^func [a-z][a-z0-9_]*\(.*\) -> (bool|void)' | awk '{print $2}' | sed 's/(.*//' | grep -v '_error$' \
+	| while read -r action; do
+		query="${action}_error"
+		for pair in $ACTION_ERROR_PAIRS; do [ "${pair%%:*}" = "$action" ] && query="${pair#*:}"; done
+		grep -q "^func $query(" engine/game_engine.gd || echo "$action"
+	done
+
 section "Card type / resource string literals compared or indexed in engine/ and ui/ (should be constants)"
 grep -rnE '(==|!=) *"(action|building|city|territory|tech|event|civilization|government)"|(\[|get\()"(food|wealth)"|\.(food|wealth)\b' engine ui \
 	| grep -v '^\S*: *##' | head -20
