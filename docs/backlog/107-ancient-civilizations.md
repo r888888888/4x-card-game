@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: in-progress
+status: red-review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -48,6 +48,11 @@ Content item: the tests assert invariants of the real data; the roster and its n
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_content::test_every_civilization_card_is_listed` |
+| AC2 | `test_content::test_real_config_lists_at_least_6_different_civilizations` (replaces `…_at_least_3_…`) |
+| AC3 | `test_content::test_civilization_start_gifts_are_obtainable_cards_in_the_discard` |
+| AC4 | `test_content::test_a_new_game_starts_as_each_listed_civilization`, `::test_real_data_loads_without_warnings` |
+| (content coupling) | `test_identity_lines::test_side_panel_shows_civilization_then_government`, `::test_pressing_a_line_opens_its_details` now read the civilization's name from the engine |
 
 ## Manual check
 - [ ] The roster in data matches the design notes: six civilizations, Egypt the default, and each bonus reads right on

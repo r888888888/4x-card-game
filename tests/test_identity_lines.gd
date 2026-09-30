@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The civilization and government as side-panel lines (backlog 088), in the real main scene on the real data
-## (Children of the River and Chiefdom at the start). Hooks: main.identity_lines() is [{text, tooltip}] for the
+## (the default civilization and Chiefdom at the start). Hooks: main.identity_lines() is [{text, tooltip}] for the
 ## visible lines, top to bottom; main.identity_buttons() are the same lines as buttons, to press.
 
 
@@ -32,9 +32,9 @@ func test_side_panel_shows_civilization_then_government() -> void:
 	var main := open_main()
 	main.start_game(1)
 	var lines: Array = main.identity_lines()
-	eq(lines.map(func(l): return l.text), ["Civilization: Children of the River", "Government: Chiefdom"], "lines")
+	var civ_name: String = Game.engine.card_db[id_in("civilization")].name
+	eq(lines.map(func(l): return l.text), ["Civilization: " + civ_name, "Government: Chiefdom"], "lines")
 	if lines.size() == 2:
-		check("Each upkeep: +1 food" in lines[0].tooltip, "civilization tooltip has its rules: %s" % lines[0].tooltip)
 		eq(lines[0].tooltip, tooltip_of(id_in("civilization")), "civilization tooltip is its rules_tooltip")
 		eq(lines[1].tooltip, "No bonus.", "Chiefdom has no rules text")
 	close_main(main)
@@ -65,7 +65,7 @@ func test_pressing_a_line_opens_its_details() -> void:
 	check(buttons.size() == 2, "2 lines")
 	if buttons.size() == 2:
 		buttons[0].pressed.emit()
-		eq(main.details.shown().get("name", ""), "Children of the River", "civilization details")
+		eq(main.details.shown().get("name", ""), Game.engine.card_db[id_in("civilization")].name, "civilization details")
 		main.details.close()
 		buttons[1].pressed.emit()
 		eq(main.details.shown().get("name", ""), "Chiefdom", "government details")
