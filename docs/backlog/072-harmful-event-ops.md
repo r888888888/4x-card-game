@@ -2,7 +2,7 @@
 id: 072
 title: Harmful event ops — lose resources and lose pop
 type: feature
-status: review
+status: done
 branch: feat/072-harmful-event-ops
 ---
 
