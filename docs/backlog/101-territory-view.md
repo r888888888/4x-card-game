@@ -2,7 +2,7 @@
 id: 101
 title: Territory view: click a territory to see its city and buildings
 type: feature
-status: in-progress
+status: red-review
 branch: feat/101-territory-view
 ---
 
@@ -54,7 +54,12 @@ exists, 102 can shrink the Realm's territories to plain cards.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_territory_view::test_…` |
+| AC1 | `test_territory_view::test_clicking_a_territory_opens_its_view_in_place_of_the_realm`, `test_clicking_a_city_or_building_still_shows_its_details` |
+| AC2 | `test_the_view_shows_slots_and_pop_and_grow`, `test_grow_in_the_view_adds_pop`, `test_grow_is_disabled_with_the_reason_when_it_cannot_grow`, `test_without_population_there_is_no_pop_stat_or_grow` |
+| AC3 | `test_back_and_esc_return_to_the_realm`, `test_restart_new_game_and_game_over_close_the_view` |
+| AC4 | `test_a_drop_anywhere_on_the_view_targets_its_territory`, `test_double_clicking_a_building_plays_it_onto_the_viewed_territory`, `test_double_clicking_a_building_the_viewed_territory_cannot_take_says_why` |
+| AC5 | `test_clicking_a_territory_while_targeting_picks_it` |
+| AC6 | `test_up_from_the_hand_reaches_the_territories_and_enter_opens_one`, `test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes` |
 
 ## Manual check
 - [ ] Seed 1: click the Capital. The Realm is replaced by the Capital, its city and buildings, stats and Grow; the
