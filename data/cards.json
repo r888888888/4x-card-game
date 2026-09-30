@@ -15,7 +15,7 @@
     },
     {
       "id": "farm", "name": "Farm", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain" }
@@ -235,8 +235,8 @@
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" } ]
     },
     {
-      "id": "grassland", "name": "Grassland", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland"]
+      "id": "grassland", "name": "River Meadow", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland", "fresh_water"]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",

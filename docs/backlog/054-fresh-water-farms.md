@@ -2,7 +2,7 @@
 id: 054
 title: Fresh-water start; Farm needs Fresh Water
 type: feature
-status: red-review
+status: in-progress
 branch: feat/054-fresh-water-farms
 ---
 
