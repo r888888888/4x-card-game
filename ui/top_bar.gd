@@ -1,7 +1,7 @@
 class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food and wealth (with next upkeep's change), score, pop, the deck and discard counts, the
-## seed and the Menu button. Played cards' resource tokens fly to and from its counters.
+## seed and the Menu button. Costs float up from its counters; gains fly to them.
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
@@ -48,15 +48,15 @@ func refresh(e: GameEngine) -> void:
 	UIKit.set_stat(_piles_label, "Deck %d  ·  Discard %d" % [e.zone("deck").size(), e.zone("discard").size()])
 
 
-## Resource tokens for a card_played outcome, on layer: costs fly from the counters to point (where the card
-## was), gains and VP fly from point to the counters, which pulse when they arrive.
+## Resource tokens for a card_played outcome, on layer: costs float up from just below their counters (114), gains
+## and VP fly from point (where the card was) to the counters, which pulse when they arrive.
 func fly_outcome(layer: Control, outcome: Dictionary, point: Vector2) -> void:
 	var n := 0
 	for r in outcome.paid:
 		var label := resource_label(r)
 		if label != null:
 			var from := label.get_global_rect().get_center() + Vector2(0, label.size.y)  # just below the counter
-			UIKit.fly_token(layer, "−%d %s" % [outcome.paid[r], r], from, point, UIKit.COST_COLOR, null, n * Anim.TOKEN_STAGGER)
+			UIKit.float_token(layer, "−%d %s" % [outcome.paid[r], r], from, UIKit.COST_COLOR, n * Anim.TOKEN_STAGGER)
 			n += 1
 	for r in outcome.gained:
 		var label := resource_label(r)
