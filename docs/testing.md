@@ -57,6 +57,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060): loading, housing cap, saving starving pop, forecast, card text; uses the Silo fixture and `build_on` |
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |
+| `tests/test_identity_lines.gd` | The civilization and government lines in the side panel of the real `main.tscn` (088): text, tooltips, order, details on press, a new government, none without them; End turn on screen at 1920×1080 after layout (`wait_frames`); uses `identity_lines()` / `identity_buttons()` |
 | `tests/test_trash.gd` | The `trash` op (082): hand targets (never the card played), errors, auto-pick, `trashed` never reshuffled, fork, loading, card text |
 | `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked Winnow lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
 | `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
@@ -98,8 +99,10 @@ func test_settler_creates_city_on_tableau() -> void:
 ```
 
 The runner creates a fresh instance for every `test_*` method, so tests don't share state. It waits one frame
-before the first test so the `Game` and `Settings` autoloads are in the tree and ready; no other frames run, so
-UI tests see structure (views, labels, overlays), never finished animations.
+before the first test so the `Game` and `Settings` autoloads are in the tree and ready. Otherwise no frames run unless
+a test awaits them, so UI tests see structure (views, labels, overlays), never finished animations. The runner
+awaits every test: a UI test that measures laid-out sizes or positions calls `await wait_frames()` first (088).
+Minimum sizes before a layout pass are meaningless.
 
 ### Available in every test (`tests/lib/test_case.gd`)
 
@@ -117,6 +120,7 @@ UI tests see structure (views, labels, overlays), never finished animations.
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy for order-free comparisons |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
 | `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
+| `wait_frames(n)` | `await wait_frames()` lets containers lay out before a UI test measures sizes or positions (088); headless starts at 1920×1920, so set the window size first if the test depends on it |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order (no cost or slot check; the last go idle first) |
 | `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |

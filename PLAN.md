@@ -321,7 +321,7 @@ A game is played as one civilization: a permanent card with a starting gift and 
 - UI: the start screen shows the civilizations as cards; a click selects one (and `Settings` saves it) and New game
   plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
-  "Playing as …" and the game-over text "Played as …". In play, a Civilization row sits below Known.
+  "Playing as …" and the game-over text "Played as …". In play, the civilization is a line in the side panel (088).
 
 ## Governments (backlog 065)
 Your people have one government at a time; its bonuses apply while it rules.
@@ -335,7 +335,8 @@ Your people have one government at a time; its bonuses apply while it rules.
 - The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
 - Real data: Chiefdom (no bonus; the start), Kingship (⟳ +1 wealth; from Code of Laws), Theocracy (⟳ +1 VP; from
   Priesthood). Techs that give a government create it in the discard; it has no supply pile.
-- UI: a Government row sits below Civilization.
+- UI: the civilization and the government are one-line buttons in the side panel above Knowledge (088): hover shows
+  the rules, a click opens the details, and a played government flies to its line.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
