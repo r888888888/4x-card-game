@@ -2,7 +2,7 @@
 id: 105
 title: Territory view layout: framed, the territory large, its slots with free ones outlined
 type: feature
-status: in-progress
+status: review
 branch: feat/105-territory-view-layout
 ---
 
@@ -14,14 +14,14 @@ obvious place to go. Uses 104's header.
 
 ## Acceptance criteria
 <!-- UI tests in the real main scene on a TEST_CARDS game (tests/test_territory_view.gd). -->
-- [ ] AC1: Frame. The open view is inside a panel whose border colour is `CardView.TYPE_COLORS` for territories and
+- [x] AC1: Frame. The open view is inside a panel whose border colour is `CardView.TYPE_COLORS` for territories and
   whose background is tinted (not transparent).
-- [ ] AC2: The territory large on the left. The territory's card is at `CardView.HAND_SIZE`, left of the slot area,
+- [x] AC2: The territory large on the left. The territory's card is at `CardView.HAND_SIZE`, left of the slot area,
   with the stats line and Grow under it; the slot area holds the city, then the buildings, in tableau order.
-- [ ] AC3: Free slots. After the city and buildings, the slot area shows one empty-slot outline per free slot
+- [x] AC3: Free slots. After the city and buildings, the slot area shows one empty-slot outline per free slot
   (`free_slots(T)`). Given Homeland (5 slots) with the Capital and 1 Farm, when a Temple is played onto it from the
   view, then there is one outline fewer. A territory with no free slots shows none.
-- [ ] AC4: Still a drop target anywhere on the view (101 AC4), outlines included.
+- [x] AC4: Still a drop target anywhere on the view (101 AC4), outlines included.
 
 ## Out of scope
 - Hiding the Frontier, Known and Events sections while the view is open (the user chose not to).
@@ -42,9 +42,17 @@ obvious place to go. Uses 104's header.
 | AC4 | `test_an_outline_is_a_drop_target_for_the_territory` |
 
 ## Manual check
-- [ ] Seed 1: open the home territory. A purple-bordered panel with the territory card large on the left, stats and
-  Grow under it, the Capital and buildings in a row on the right, then dim outlines for the free slots.
+- [ ] Seed 1: open the home territory. Under the "← Realm  Realm › …" header, a purple-bordered, faintly purple panel
+  with the territory card large on the left, the stats line and Grow under it, the Capital and buildings in a row on
+  the right, then dim outlines for the free slots. The large card grows out of the Realm card as the view opens.
 - [ ] Drag a building onto an outline: it lands and one outline goes.
 
 ## Log
 - 2026-09-30: Specced with 104, after the user said the territory view gives no sign you're in it.
+- 2026-09-30: Built. `TerritoryView` is header, then `frame` (a panel bordered in `Palette.TERRITORY`, its background
+  `Palette.RAISED` tinted 12% towards it) holding a left column (`hero` with the territory's card, the stats line
+  wrapped to the card's width, Grow) and the `row` (city, buildings, then `outlines()`, one per `free_slots`, from the
+  new `UIKit.slot_outline()` the Realm's ghost now uses too). `CardView.setup(..., large)` gives a board card the hand
+  size; `main._place` passes it for `hero`. `CardFocus` walks `hero` then `row`.
+- 2026-09-30: With the user's OK, the AC2 test checks where the territory's card rests (`card.slot` in `hero`): it is
+  still flying from the Realm when the view's transition ends.
