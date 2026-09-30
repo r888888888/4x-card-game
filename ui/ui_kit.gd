@@ -169,6 +169,35 @@ static func button(text: String, on_pressed: Callable) -> Button:
 	return b
 
 
+## The Reduce motion toggle: a button that says its state in words (a checkbox's box is hard to read on this
+## background). Toggling it sets and saves the setting; show_motion matches it to the setting.
+static func motion_toggle() -> Button:
+	var toggle := button("", func(): pass)
+	toggle.toggle_mode = true
+	toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
+	toggle.toggled.connect(Settings.set_reduce_motion)
+	return toggle
+
+
+static func show_motion(toggle: Button, calm: bool) -> void:
+	toggle.set_pressed_no_signal(calm)
+	toggle.text = "Reduce motion: %s" % ("on" if calm else "off")
+
+
+## Keeps keyboard focus inside controls: Tab/Shift+Tab and Up/Down wrap around them; Left/Right stay put.
+static func focus_loop(controls: Array[Control]) -> void:
+	for i in controls.size():
+		var here := controls[i]
+		var next := controls[(i + 1) % controls.size()]
+		var prev := controls[i - 1]
+		here.focus_next = here.get_path_to(next)
+		here.focus_previous = here.get_path_to(prev)
+		here.focus_neighbor_bottom = here.focus_next
+		here.focus_neighbor_top = here.focus_previous
+		here.focus_neighbor_left = NodePath(".")
+		here.focus_neighbor_right = NodePath(".")
+
+
 static func fx_label(text: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text

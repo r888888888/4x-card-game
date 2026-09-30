@@ -4,9 +4,10 @@ extends RefCounted
 ## Tab and the arrows stay inside it; a click on the dimmed area closes it. The board decides what the buttons
 ## do through the signals.
 
-## Restart or Enter in the seed field (seed_value: the field's seed, or -1 if it isn't a whole number), or
-## New game (-1: a random seed).
+## Restart or Enter in the seed field (seed_value: the field's seed, or -1 if it isn't a whole number).
 signal start_requested(seed_value: int)
+## New game: back to the start screen (063).
+signal new_game_requested
 ## Close, Esc, or a click on the dimmed area.
 signal close_requested
 signal exit_requested
@@ -41,14 +42,10 @@ func _init(parent: Control) -> void:
 	var restart := UIKit.button("Restart", _restart)
 	restart.tooltip_text = "Start again with the seed above."
 	box.add_child(restart)
-	var new_game := UIKit.button("New game", func(): start_requested.emit(-1))
-	new_game.tooltip_text = "Start again with a random seed."
+	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
+	new_game.tooltip_text = "Leave this game for the start screen."
 	box.add_child(new_game)
-	# A toggle that says its state in words (a checkbox's box is hard to read on this background).
-	_motion_toggle = UIKit.button("", func(): pass)
-	_motion_toggle.toggle_mode = true
-	_motion_toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
-	_motion_toggle.toggled.connect(Settings.set_reduce_motion)
+	_motion_toggle = UIKit.motion_toggle()
 	box.add_child(_motion_toggle)
 	box.add_child(HSeparator.new())
 	var close := UIKit.button("Close (Esc)", func(): close_requested.emit())
@@ -56,18 +53,7 @@ func _init(parent: Control) -> void:
 	var exit := UIKit.button("Exit", func(): exit_requested.emit())
 	exit.tooltip_text = "Quit the game. It isn't saved."
 	box.add_child(exit)
-	# Keep keyboard focus inside the menu: Tab/Shift+Tab and Up/Down wrap around its controls.
-	var controls: Array[Control] = [_seed_edit, restart, new_game, _motion_toggle, close, exit]
-	for i in controls.size():
-		var here := controls[i]
-		var next := controls[(i + 1) % controls.size()]
-		var prev := controls[i - 1]
-		here.focus_next = here.get_path_to(next)
-		here.focus_previous = here.get_path_to(prev)
-		here.focus_neighbor_bottom = here.focus_next
-		here.focus_neighbor_top = here.focus_previous
-		here.focus_neighbor_left = NodePath(".")
-		here.focus_neighbor_right = NodePath(".")
+	UIKit.focus_loop([_seed_edit, restart, new_game, _motion_toggle, close, exit])
 
 
 func is_open() -> bool:
@@ -99,5 +85,4 @@ func _restart() -> void:
 
 ## Matches the Reduce motion toggle to the setting.
 func show_motion_setting(calm: bool) -> void:
-	_motion_toggle.set_pressed_no_signal(calm)
-	_motion_toggle.text = "Reduce motion: %s" % ("on" if calm else "off")
+	UIKit.show_motion(_motion_toggle, calm)

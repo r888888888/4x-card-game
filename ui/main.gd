@@ -23,7 +23,9 @@ var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
 var details: CardDetailsModal
+var start_screen: StartScreen  # shown on launch and from the menu's New game, with the board hidden (063)
 
+var _board: Control  # the top bar and the body (play area and side panel)
 var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
@@ -47,13 +49,14 @@ func _ready() -> void:
 	Game.engine.logged.connect(_side.append_log)
 	Game.engine.card_played.connect(_on_card_played)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
-	start_game(-1)
+	show_start_screen()
 
 
 ## Keyboard play (CardFocus.handle_key). Only reached when no control with focus (a button or the seed field)
 ## used the key. Nothing here runs while the menu is open.
 func _unhandled_key_input(event: InputEvent) -> void:
-	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and focus.handle_key(event as InputEventKey):
+	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and not start_screen.is_open() \
+			and focus.handle_key(event as InputEventKey):
 		get_viewport().set_input_as_handled()
 
 
@@ -73,11 +76,29 @@ func _input(event: InputEvent) -> void:
 func start_game(seed_value: int) -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
+	start_screen.hide()
+	_board.show()
 	_menu.set_seed(seed_value)
 	_side.clear_log()
 	supply.close()
 	_reset_views()
 	Game.new_game(seed_value)
+
+
+## Leaves the current game for the start screen: the board, its cards and any open choice go away.
+func show_start_screen() -> void:
+	supply.close()
+	details.close()
+	_reset_views()
+	choices.refresh("")
+	_game_over.overlay.hide()
+	_board.hide()
+	start_screen.open()
+
+
+## Test hook (063): whether the board (top bar, play area, side panel) is showing.
+func board_shown() -> bool:
+	return _board.visible
 
 
 ## Test hook (045): the number of card views in the hand row, resting or flying in.
@@ -420,6 +441,7 @@ func _build_layout() -> void:
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 18)
 	add_child(margin)
+	_board = margin
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 12)
@@ -486,14 +508,20 @@ func _build_layout() -> void:
 	_menu.start_requested.connect(func(seed_value: int):
 		_close_menu(false)
 		start_game(seed_value))
+	_menu.new_game_requested.connect(func():
+		_close_menu(false)
+		show_start_screen())
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	details = CardDetailsModal.new(self)
+	start_screen = StartScreen.new(self)
+	start_screen.start_requested.connect(start_game)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 
 
-## Matches the menu's toggle and the looping drop-zone pulse to the reduce motion setting.
+## Matches the menu's and start screen's toggles and the looping drop-zone pulse to the reduce motion setting.
 func _apply_motion_setting() -> void:
 	_menu.show_motion_setting(UIKit.calm())
+	UIKit.show_motion(start_screen.motion_toggle, UIKit.calm())
 	drag.apply_motion(UIKit.calm())

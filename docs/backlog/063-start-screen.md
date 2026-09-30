@@ -2,7 +2,7 @@
 id: 063
 title: Start screen (new game and options)
 type: feature
-status: ready
+status: review
 branch: feat/063-start-screen
 ---
 
@@ -12,15 +12,15 @@ The game opens on a start screen instead of dropping straight into a game (TODO 
 
 ## Acceptance criteria
 <!-- UI smoke test (045) where possible. -->
-- [ ] AC1: On launch the start screen shows the title, a "New game" button, a seed field (empty means random) and the
+- [x] AC1: On launch the start screen shows the title, a "New game" button, a seed field (empty means random) and the
   Reduce motion toggle. No game has started: the engine has no turn yet, and the board is hidden.
-- [ ] AC2: Pressing New game with the seed field at "42" starts a game with seed 42 and hides the start screen. With
+- [x] AC2: Pressing New game with the seed field at "42" starts a game with seed 42 and hides the start screen. With
   the field empty or not a whole number, it starts a game with a random seed.
-- [ ] AC3: The Reduce motion toggle on the start screen and the one in the menu both show the same `Settings` value,
+- [x] AC3: The Reduce motion toggle on the start screen and the one in the menu both show the same `Settings` value,
   and it is saved as today (018).
-- [ ] AC4: The in-game menu's "New game" returns to the start screen, and the current game is abandoned. "Restart"
+- [x] AC4: The in-game menu's "New game" returns to the start screen, and the current game is abandoned. "Restart"
   keeps its behavior (the same seed, straight into play). The game-over overlay's replay behaves as today.
-- [ ] AC5: Keyboard: New game has the focus when the start screen opens, Enter starts the game, and Tab reaches the
+- [x] AC5: Keyboard: New game has the focus when the start screen opens, Enter starts the game, and Tab reaches the
   seed field and the toggle.
 
 ## Out of scope
@@ -34,10 +34,27 @@ The game opens on a start screen instead of dropping straight into a game (TODO 
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_smoke::test_…` |
+| AC1 | `test_start_screen::test_launch_shows_the_start_screen_and_starts_no_game`, `::test_start_screen_has_title_new_game_seed_field_and_motion_toggle` |
+| AC2 | `test_start_screen::test_new_game_with_seed_42_starts_that_seed`, `::test_new_game_with_an_empty_or_bad_seed_uses_a_random_seed` |
+| AC3 | `test_start_screen::test_start_screen_and_menu_toggles_share_the_setting` |
+| AC4 | `test_start_screen::test_menu_new_game_returns_to_the_start_screen`, `::test_menu_restart_replays_the_seed_without_the_start_screen`, `::test_game_over_replay_starts_straight_away` |
+| AC5 | `test_start_screen::test_new_game_has_the_focus_and_enter_starts`, `::test_tab_reaches_the_seed_field_and_the_toggle` |
 
 ## Manual check
 - [ ] The screen looks intentional at the default window size and when resized.
 - [ ] Menu → New game → start screen → New game works repeatedly without leftover cards on the board.
+- [ ] Run `godot --path .`: the start screen shows "4X Card Game", New game is focused, Enter starts a random game.
+  Type 42 in the seed box and press Enter there: seed 42 starts (the menu's seed box shows 42).
+- [ ] On the start screen, Esc and the card keys (←/→, E, S) do nothing. Open the menu during an explore or research
+  choice, press New game: no choice overlay is left on the start screen.
+- [ ] Toggle Reduce motion on the start screen; the menu's toggle agrees, and it's remembered after a relaunch.
 
 ## Log
+- 2026-09-29: Built in a worktree off `main` (after 085 and 086 landed there). Red at 133b85d, 494 tests (was 484).
+- "No turn yet" is tested as "opening main didn't touch the engine": `Game.engine` is shared by every UI test.
+- The game-over overlay's New game still starts a random game straight away (AC4 only names Replay).
+- Approved change to an existing test: `test_board_labels::test_menu_seed_field_shows_the_current_seed` counted every
+  LineEdit; the start screen's hidden seed field made it 2, so it now counts only the visible ones.
+- The Reduce motion toggle and the menu's focus wrap moved into `UIKit.motion_toggle` / `show_motion` / `focus_loop`,
+  shared by GameMenu and StartScreen.
+- `ui/main.gd` is 527 lines, past 085's soft limit (500, a warning); the hard limit is 700.
