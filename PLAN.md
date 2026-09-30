@@ -99,11 +99,14 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 }
 ```
 - `trigger` is `play` (default), `upkeep`, or `start` (062: civilizations only, once at `new_game`; no op that needs a
-  target or opens a choice). Only `gain`, `gain_per_tag`, `score` and `grow` may use
+  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `score` and `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
   tableau the card can't be played (Caravan).
+- `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] }`
+  gains `amount` (default 1) per settled territory (in the tableau) with any of `keywords`, printed or rolled; each
+  territory counts once. `GameEngine.count_territories_with(keywords)` is the count (Hunt).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error.
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
