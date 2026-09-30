@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: review
+status: done
 branch: feat/107-ancient-civilizations
 ---
 
