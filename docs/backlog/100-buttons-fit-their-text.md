@@ -2,7 +2,7 @@
 id: 100
 title: Buttons fit their text; stacked menu buttons share one width
 type: feature
-status: red-review
+status: review
 branch: feat/100-buttons-fit-their-text
 ---
 
@@ -15,19 +15,19 @@ may still fill.
 ## Acceptance criteria
 <!-- UI tests in the real main scene (tests/test_button_widths.gd), measured after layout (wait_frames) at
 1920×1080. "Fits its text" means the button's width equals its minimum width (get_combined_minimum_size().x) ±1px. -->
-- [ ] AC1: Stacked columns. On the title screen (New game, Settings, Exit), the settings screen (Reduce motion,
+- [x] AC1: Stacked columns. On the title screen (New game, Settings, Exit), the settings screen (Reduce motion,
   Back), the new game screen (Start, Back), the menu (Restart, New game, Reduce motion, Close, Exit) and the
   game-over overlay (Replay this seed, New game), every button in the column has the same width, equal to the
   widest button's minimum width ±1px, and the column's horizontal centre is within 1px of its panel's centre.
-- [ ] AC2: Modal and choice buttons fit their text: Close in the card details, Close in Buy Cards, Close in the
+- [x] AC2: Modal and choice buttons fit their text: Close in the card details, Close in Buy Cards, Close in the
   Knowledge modal, OK in the drawn-event modal, and Decline in the research choice.
-- [ ] AC3: Board buttons fit their text: the top bar's Menu, the Realm heading's Collapse all, the Relieve Famine
+- [x] AC3: Board buttons fit their text: the top bar's Menu, the Realm heading's Collapse all, the Relieve Famine
   button, and each territory group's toggle and grow buttons (these already do; the test keeps them that way).
-- [ ] AC4: Side panel. Buy Cards, Knowledge and End turn fit their text, with their left edge at the side panel's
+- [x] AC4: Side panel. Buy Cards, Knowledge and End turn fit their text, with their left edge at the side panel's
   left edge (±1px). The civilization and government lines still span the side panel's width (±1px).
-- [ ] AC5: Tech tiles in the Knowledge modal still fill their era column: every tech button in a column has the
+- [x] AC5: Tech tiles in the Knowledge modal still fill their era column: every tech button in a column has the
   column's width (±1px).
-- [ ] AC6: A seed field still fills its row on the new game screen and in the menu (the rule is for buttons only):
+- [x] AC6: A seed field still fills its row on the new game screen and in the menu (the rule is for buttons only):
   the seed field's right edge is within 1px of its row's right edge.
 
 ## Out of scope
@@ -61,9 +61,16 @@ may still fill.
 - [ ] Start seed 1: Buy Cards, Knowledge and End turn in the side panel are only as wide as their text; the
   civilization line still spans the panel.
 - [ ] Open the menu (Esc), Buy Cards (S), Knowledge (T) and a card's details (I): the buttons look deliberate, not
-  stretched, and nothing is cut off.
+  stretched, and nothing is cut off. Their Close buttons now sit at the left of the modal: say if you'd rather
+  have them centred or right-aligned.
+- [ ] Seed 1, end turns until a Famine can be relieved: the Relieve button fits its text (not measured by a test,
+  since it only shows during a Famine).
 
 ## Log
 - 2026-09-30: Specced with the new CLAUDE.md "UI design" rule. The user chose: fix all buttons now; stacked menu
   columns are the exception; side-panel action buttons fit their text left-aligned while the civilization and
   government lines stay full width (list rows); tech tiles are exempt.
+- 2026-09-30: Built. `UIKit.button()` sets `SIZE_SHRINK_BEGIN`; the new `UIKit.button_column(parent, controls)` is a
+  `SIZE_SHRINK_CENTER` column whose controls fill it, used by the title, settings and new game screens, the menu
+  (its separator sits inside the column) and game over. The identity lines and tech tiles set `SIZE_FILL`. The
+  CLAUDE.md rule names both helpers.

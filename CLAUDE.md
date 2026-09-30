@@ -27,7 +27,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 ## UI design
 - Buttons are generally not full width: a `Button` sizes to its text plus padding and doesn't stretch across its
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
-  they share one width, the widest button's, with the column centred in its panel. Buttons that are really list
+  they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
+  stretch; build such a column with `UIKit.button_column`). Buttons that are really list
   rows or content tiles (the side panel's civilization and government lines, the tech tree's techs) may fill.
 
 ## How work flows
