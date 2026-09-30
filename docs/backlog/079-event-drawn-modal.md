@@ -2,7 +2,7 @@
 id: 079
 title: Show a modal when a new event is drawn
 type: feature
-status: red-review
+status: in-progress
 branch: feat/079-event-drawn-modal
 ---
 

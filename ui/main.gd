@@ -40,6 +40,8 @@ var _collapse_all: Button  # on the Realm heading: collapses or expands every te
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
+var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
+var _event_modal: EventModal
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
 
 
@@ -51,6 +53,7 @@ func _ready() -> void:
 	Game.engine.changed.connect(_refresh)
 	Game.engine.logged.connect(_side.append_log)
 	Game.engine.card_played.connect(_on_card_played)
+	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	show_start_screen()
 
@@ -84,6 +87,8 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_board.show()
 	_side.clear_log()
 	supply.close()
+	_event_modal.close()  # an old game's event
+	_drawn = {}
 	_reset_views()
 	tableau.reset()
 	Game.new_game(seed_value, civ_id)
@@ -110,6 +115,7 @@ func _civilization_card() -> CardInstance:
 func show_start_screen() -> void:
 	supply.close()
 	details.close()
+	_event_modal.close()
 	_reset_views()
 	choices.refresh(null)
 	_game_over.overlay.hide()
@@ -154,6 +160,16 @@ func _refresh_relieve(e: GameEngine) -> void:
 	var error := e.relieve_famine_error()
 	_relieve.disabled = error != ""
 	_relieve.tooltip_text = error if error != "" else "Pay to end the famine now. A later hungry upkeep brings a new one."
+
+
+## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
+func event_modal() -> Dictionary:
+	return _event_modal.shown()
+
+
+## Test hook (079): the drawn-event modal's OK button.
+func event_modal_ok_button() -> Button:
+	return _event_modal.ok_button
 
 
 ## Test hook (088): the visible civilization and government lines in the side panel, top to bottom, as {text, tooltip}.
@@ -371,6 +387,10 @@ func _refresh() -> void:
 		_outcome = {}
 	focus.sync()
 	_game_over.refresh(e)
+	if not _drawn.is_empty():
+		if not e.is_over:
+			_event_modal.open(_drawn)
+		_drawn = {}
 
 
 ## The Collapse all button: shown with a territory group, and says Expand all once every group is collapsed.
@@ -596,6 +616,7 @@ func _build_layout() -> void:
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	tech_tree = TechTreeModal.new(self)  # before details, which opens over it and takes the keys first
+	_event_modal = EventModal.new(self)  # before details, so a details modal opened from it takes the keys first
 	details = CardDetailsModal.new(self)
 	start_screen = StartScreen.new(self, details.open)
 	start_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, start_screen.selected))

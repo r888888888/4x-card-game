@@ -52,7 +52,12 @@ static func draw(e: GameEngine) -> void:
 	event.turns_left = event.def.discard_turns
 	e.zone("active_events").add(event)
 	e._log("Event: %s." % event.def.name)
+	e._outcome = CardPlay.new_outcome(event.uid)
+	e._outcome.id = event.def.id
 	e._resolve(event, "play")
+	var outcome := e._outcome
+	e._outcome = {}
+	e.event_drawn.emit(outcome)
 
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
@@ -68,3 +73,20 @@ static func resolve_upkeep(e: GameEngine) -> void:
 			active.remove(event)
 			e.zone("event_discard").add(event)
 			e._log("%s ends." % event.def.name)
+
+
+## outcome (card_played or event_drawn) as text: "+2 food, −1 wealth, +1 VP, drew 2 cards, created 1 card"; "" when
+## it did nothing.
+static func outcome_summary(outcome: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	for r in outcome.get("gained", {}):
+		parts.append("+%d %s" % [outcome.gained[r], r])
+	for r in outcome.get("lost", {}):
+		parts.append("−%d %s" % [outcome.lost[r], r])
+	if outcome.get("vp", 0) != 0:
+		parts.append("%+d VP" % outcome.vp)
+	for key in ["drawn", "created"]:
+		var n: int = outcome.get(key, []).size()
+		if n > 0:
+			parts.append("%s %d card%s" % ["drew" if key == "drawn" else "created", n, "" if n == 1 else "s"])
+	return ", ".join(parts)

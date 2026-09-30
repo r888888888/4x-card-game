@@ -36,6 +36,12 @@ func end_turn_signals(e: Object) -> Array:
 	return seen
 
 
+## The uid of event id in active_events or, once its turns ran out, event_discard (-1 if in neither).
+func event_uid(e: Object, id: String) -> int:
+	var uid := uid_of(e.zone("active_events"), id)
+	return uid if uid != -1 else uid_of(e.zone("event_discard"), id)
+
+
 func drawn_outcomes(seen: Array) -> Array:
 	return seen.filter(func(s): return s[0] == "event_drawn").map(func(s): return s[1])
 
@@ -49,7 +55,7 @@ func test_event_drawn_reports_the_event_and_what_it_gave_before_changed() -> voi
 	eq(outcomes.size(), 1, "event_drawn emitted once")
 	if outcomes.size() == 1:
 		var o: Dictionary = outcomes[0]
-		eq(o.uid, uid_of(e.zone("active_events"), "windfall"), "uid: Windfall in active_events")
+		eq(o.uid, event_uid(e, "windfall"), "uid: Windfall's")
 		eq(o.gained, {"food": 2}, "gained")
 		eq([o.vp, Array(o.drawn), Array(o.created)], [0, [], []], "vp, drawn, created")
 		eq(seen[0][0], "event_drawn", "emitted before changed")
@@ -63,7 +69,7 @@ func test_event_drawn_for_an_event_with_no_effect_reports_nothing_gained() -> vo
 	eq(outcomes.size(), 1, "event_drawn emitted once")
 	if outcomes.size() == 1:
 		var o: Dictionary = outcomes[0]
-		eq(o.uid, uid_of(e.zone("active_events"), "omen"), "uid: Omen")
+		eq(o.uid, event_uid(e, "omen"), "uid: Omen's")
 		eq([o.gained, o.vp, Array(o.drawn), Array(o.created)], [{}, 0, [], []], "nothing gained")
 
 
@@ -117,7 +123,7 @@ func test_ending_the_turn_shows_the_drawn_event() -> void:
 		var modal: Dictionary = main.event_modal()
 		var windfall: CardDef = Game.engine.card_db.windfall
 		eq(modal.get("id", ""), "windfall", "Windfall shown")
-		eq(modal.get("uid", -1), uid_of(Game.engine.zone("active_events"), "windfall"), "its uid")
+		eq(modal.get("uid", -1), event_uid(Game.engine, "windfall"), "its uid")
 		eq(modal.get("text", ""), windfall.rules_text(Game.engine.card_db), "its card text")
 		eq(modal.get("lasts", ""), "Lasts 1 turn", "how long it lasts")
 		var summary: String = modal.get("summary", "")
@@ -144,8 +150,10 @@ func test_esc_enter_ok_and_a_click_outside_close_the_modal() -> void:
 					var click := InputEventMouseButton.new()
 					click.button_index = MOUSE_BUTTON_LEFT
 					click.pressed = true
-					click.position = Vector2(5, 5)  # the dimmer's corner, outside the panel
-					main.get_viewport().push_input(click)
+					# The far corner: outside the panel, before and after the panel is laid out in the centre.
+					click.position = main.get_viewport().get_visible_rect().end - Vector2(5, 5)
+					click.global_position = click.position
+					main.get_viewport().push_input(click, true)  # viewport coordinates, not the window's
 			eq(main.event_modal(), {}, "%s closes it" % way), ["windfall"], {"windfall": 1, "omen": 1}, {"turn_limit": 10})
 
 
