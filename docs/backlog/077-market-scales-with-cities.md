@@ -2,7 +2,7 @@
 id: 077
 title: Market earns wealth per city
 type: feature
-status: review
+status: done
 branch: feat/077-market-scales-with-cities
 ---
 
