@@ -2,7 +2,7 @@
 id: 102
 title: Territories show as plain cards in the Realm
 type: feature
-status: review
+status: done
 branch: feat/102-territory-cards-in-realm
 ---
 
