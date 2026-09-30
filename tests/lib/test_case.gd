@@ -38,6 +38,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "score", "amount": 1, "keyword": "mountain"}]},
 	{"id": "granary", "name": "Granary", "type": "building", "cost": {"food": 1},
 	 "effects": [{"op": "grow", "amount": 1, "where": "here", "trigger": "upkeep"}]},
+	{"id": "silo", "name": "Silo", "type": "building", "cost": {"food": 1}, "housing": 1, "famine_guard": 1},
 	{"id": "festival", "name": "Festival", "type": "action",
 	 "effects": [{"op": "grow", "amount": 1, "where": "each"}]},
 	{"id": "rally", "name": "Rally", "type": "action", "effects": [{"op": "grow", "amount": 1}]},
@@ -209,6 +210,14 @@ func arrange(z: Zone, ids_top_first: Array) -> void:
 	var got := card_ids(z)
 	got.reverse()
 	eq(got.slice(0, ids_top_first.size()), ids_top_first, "zone arranged")
+
+
+## Puts new copies of the buildings card_ids straight on territory territory_uid, in order (the last ones go idle
+## first), without paying or checking slots.
+func build_on(engine: Object, territory_uid: int, card_ids: Array) -> void:
+	for id in card_ids:
+		var card: CardInstance = engine.create_card(id, "tableau", null)
+		card.territory_uid = territory_uid
 
 
 ## Moves one territory_deck copy of each id (in order) straight to the tableau, as if settled

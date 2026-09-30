@@ -2,7 +2,7 @@
 id: 060
 title: Granary stores grain — +1 housing and a famine guard
 type: feature
-status: ready
+status: red-review
 branch: feat/060-granary-famine-guard
 ---
 
@@ -49,7 +49,13 @@ Population is on (`population: {start: 3, food_upkeep: 1, vp_per_pop: 1}`), and 
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_population::test_…` |
+| AC1 | `test_famine_guard::test_building_housing_and_famine_guard_load`, `::test_building_housing_and_famine_guard_validation`; `test_population::test_housing_validation` (row changed: housing on an *action* warns) |
+| AC2 | `test_famine_guard::test_silo_adds_1_housing_to_its_territory`, `::test_silo_lets_homeland_grow_to_8`, `::test_silo_housing_caps_card_growth_at_8`, `::test_idle_silo_still_adds_housing` |
+| AC3 | `test_famine_guard::test_silo_saves_the_first_starving_pop`, `::test_without_silo_both_starve` |
+| AC4 | `test_famine_guard::test_silo_on_another_territory_does_not_save_homeland` |
+| AC5 | `test_famine_guard::test_two_silos_save_2_pop`, `::test_idle_silo_saves_none` |
+| AC6 | `test_famine_guard::test_forecast_starve_counts_the_guard`, `::test_forecast_starve_without_guard` |
+| AC7 | `test_famine_guard::test_silo_short_text`, `::test_silo_tooltip`, `::test_silo_details_explain_housing_and_famine_guard` |
 
 ## Manual check
 - [ ] A Granary's territory shows the higher housing, and the Granary's face reads well.
