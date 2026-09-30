@@ -2,7 +2,7 @@
 id: 086
 title: Split ui/card_view.gd into content and motion
 type: feature
-status: red-review
+status: review
 branch: feat/086-split-card-view
 ---
 
@@ -13,19 +13,19 @@ components so a card change touches one small file and every script is under the
 visible change.
 
 ## Acceptance criteria
-- [ ] AC1: The card's content lives in `CardFace` (`ui/card_face.gd`), and `CardView` uses it. That covers the title,
+- [x] AC1: The card's content lives in `CardFace` (`ui/card_face.gd`), and `CardView` uses it. That covers the title,
   the type line with its cost, the rules, the territory info line, VP, the info lines (`TechInfo`, `EventInfo`,
   `BuyInfo`), the reason strip and the label builders.
-- [ ] AC2: Movement and animation live in `CardMotion` (`ui/card_motion.gd`), and `CardView` uses it. That covers
+- [x] AC2: Movement and animation live in `CardMotion` (`ui/card_motion.gd`), and `CardView` uses it. That covers
   attach, pop in, squash, deal, fly to slot, return home, reject, begin drag, leave, the per-frame chase and fitting
   the slot.
-- [ ] AC3: `CardView`'s public API is unchanged: the signals, `setup`, the `set_*` methods, `event_info_text`, the
+- [x] AC3: `CardView`'s public API is unchanged: the signals, `setup`, the `set_*` methods, `event_info_text`, the
   movement methods, `slot_size`, `state`/`State`, `slot`, `uid`, `card_id`, `in_hand`, `pickable`, `lift_on_hover`,
   `fx_scale` and the constants other scripts read (`TYPE_COLORS`, `*_SIZE`, `WARN_COLOR`, `HIGHLIGHT_COLOR`,
   `FOCUS_COLOR`). Every existing test passes without edits.
-- [ ] AC4: `card_view.gd`, `card_face.gd` and `card_motion.gd` are each 500 lines or fewer, so `scripts/test.sh` prints
+- [x] AC4: `card_view.gd`, `card_face.gd` and `card_motion.gd` are each 500 lines or fewer, so `scripts/test.sh` prints
   no `WARN` line for any of them.
-- [ ] AC5: The new scripts read no engine internals (the existing `test_ui_structure` guard scans all of `ui/`).
+- [x] AC5: The new scripts read no engine internals (the existing `test_ui_structure` guard scans all of `ui/`).
 
 ## Out of scope
 - Any visual, timing or input change.
@@ -54,3 +54,10 @@ visible change.
   before.
 
 ## Log
+- 2026-09-29: The content-only split would have left `card_view.gd` at about 550 lines, so the user picked content +
+  motion. Built in worktree `../4x-card-game-086`. `card_view.gd` 674 → 342, `card_face.gd` 161, `card_motion.gd` 274,
+  so none gets a size warning. `CardMotion` uses the view's `_hover`, `_focused`, `_target_size` and `_update_border`,
+  the same way 051's engine modules use the engine's private members. `CardFace` has `replace_info` (tech and event
+  lines are rebuilt at the bottom) and `update_info` (the buy line is updated in place, keeping its spot above the
+  reason strip), matching the old behavior. `delay` (a dealt card waiting to fly) moved to `CardMotion`, and input
+  reads `_motion.delay`. Tests 482 → 484, and no existing test was edited.

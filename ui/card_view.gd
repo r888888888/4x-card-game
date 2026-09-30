@@ -5,7 +5,8 @@ extends PanelContainer
 ## shared effects layer, and follows the cursor while dragged. Hand cards emit drag_requested and
 ## double_clicked and discard_requested (right-click); pickable cards (a pending choice) emit picked. A single click
 ## with no second click or drag (or a right-click on a pickable card) emits details_requested. main.gd decides what
-## those mean.
+## those mean. Its content is a CardFace and its movement a CardMotion (backlog 086); it keeps the panel, tooltip,
+## border, focus ring and input.
 
 signal drag_requested(view: CardView, grab_offset: Vector2)
 signal double_clicked(view: CardView)
