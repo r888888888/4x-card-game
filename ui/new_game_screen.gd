@@ -1,18 +1,17 @@
 class_name NewGameScreen
 extends RefCounted
-## The new game screen (backlog 099): the civilizations to play as (064), the seed field and Start, and Back to the
-## title screen. It opens from the title screen's New game and the menu's New game, with the board hidden behind it.
-## The board decides what Start and Back do through the signals; selected is the civilization to use.
+## The new game screen (backlog 099): its header with Back to the title screen (104), the civilizations to play as
+## (064), the seed field and Start. It opens from the title screen's New game and the menu's New game, with the board
+## hidden behind it. The board decides what Start does through start_requested; selected is the civilization to use.
 
 ## Start, or Enter in the seed field (seed_value: the field's seed, or -1 if it is empty or not a whole number).
 signal start_requested(seed_value: int)
-## Back or Esc: to the title screen.
-signal back_requested
 
 var overlay: Control
+var header: ScreenHeader
 var seed_edit: LineEdit
 var start_button: Button
-var back_button: Button
+var back_button: Button  # the header's
 var selected := ""  # the id of the chosen civilization, "" if the game offers none
 
 var _civ_row: HBoxContainer  # one display-only card per civilization, in config order
@@ -20,16 +19,16 @@ var _civ_views := {}  # civilization id -> CardView
 var _on_details: Callable  # opens a card's details (the board's CardDetailsModal)
 
 
-## Builds the screen on parent, hidden.
-func _init(parent: Control, on_details: Callable) -> void:
+## Builds the screen on parent, hidden, for the board's navigator nav.
+func _init(parent: Control, nav: Navigator, on_details: Callable) -> void:
 	_on_details = on_details
 	overlay = UIKit.overlay(parent)
 	overlay.z_index = 15  # above the game-over overlay, below the card details (the menu can't be open)
 	var box := overlay.get_meta("box") as VBoxContainer
 	box.custom_minimum_size.x = 360
-	var title := UIKit.title("New game")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	header = ScreenHeader.new(nav)
+	box.add_child(header)
+	back_button = header.back_button
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
 	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
 	box.add_child(pad)
@@ -51,13 +50,12 @@ func _init(parent: Control, on_details: Callable) -> void:
 	seed_row.add_child(seed_edit)
 	start_button = UIKit.button("Start", _start)
 	start_button.tooltip_text = "Start a game with the seed above, or a random one if it's empty."
-	back_button = UIKit.button("Back", func(): back_requested.emit())
-	UIKit.button_column(box, [start_button, back_button])
+	UIKit.button_column(box, [start_button])
 	UIKit.focus_loop([start_button, seed_edit, back_button])
 
 
 func is_open() -> bool:
-	return overlay.visible
+	return Navigator.is_shown(overlay)
 
 
 ## Offers civilizations (ids in engine e's card_db) with preselect chosen. The board's Navigator shows the screen.

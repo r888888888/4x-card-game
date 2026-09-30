@@ -121,7 +121,7 @@ func _civilization_card() -> CardInstance:
 ## Leaves the current game (if any) for the title screen.
 func show_title_screen() -> void:
 	_leave_game()
-	nav.set_root(start_screen.overlay, start_screen.new_game_button)
+	nav.set_root(start_screen.overlay, start_screen.new_game_button, "Main menu")
 
 
 ## Leaves the current game for the new game screen, over the title screen (the menu's New game).
@@ -138,7 +138,7 @@ func _push_new_game_screen() -> void:
 	for w in warnings:
 		push_warning(w)
 	new_game_screen.show_civilizations(Game.engine, civs, preselect)
-	nav.push(new_game_screen.overlay, new_game_screen.start_button)
+	nav.push(new_game_screen.overlay, new_game_screen.start_button, "New game")
 
 
 ## Hides the board and every screen: the board's cards and any open choice go away.
@@ -647,13 +647,13 @@ func _build_layout() -> void:
 	details = CardDetailsModal.new(self)
 	start_screen = StartScreen.new(self)
 	start_screen.new_game_requested.connect(_push_new_game_screen)
-	start_screen.settings_requested.connect(func(): nav.push(settings_screen.overlay, settings_screen.back_button))
+	start_screen.settings_requested.connect(func():
+		nav.push(settings_screen.overlay, settings_screen.back_button, "Settings"))
 	start_screen.exit_requested.connect(func(): quit_hook.call())
-	new_game_screen = NewGameScreen.new(self, details.open)
+	nav.animated = true
+	new_game_screen = NewGameScreen.new(self, nav, details.open)
 	new_game_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, new_game_screen.selected))
-	new_game_screen.back_requested.connect(nav.back)
-	settings_screen = SettingsScreen.new(self)
-	settings_screen.back_requested.connect(nav.back)
+	settings_screen = SettingsScreen.new(self, nav)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 
