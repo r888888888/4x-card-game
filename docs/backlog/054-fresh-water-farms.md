@@ -2,7 +2,7 @@
 id: 054
 title: Fresh-water start; Farm needs Fresh Water
 type: feature
-status: ready
+status: red-review
 branch: feat/054-fresh-water-farms
 ---
 
@@ -34,7 +34,10 @@ changes ship together, or the Capital couldn't build Farms. Data only; `requires
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_starting_territory_has_fresh_water` |
+| AC2 | `test_content::test_farm_requires_fresh_water_and_the_deck_has_it` |
+| AC3 | `test_content::test_farm_can_target_the_capitals_territory` (passes today: guards the pair) |
+| AC4 | existing: `test_real_data_loads_without_warnings`, `test_every_keyword_is_on_a_territory_and_a_card`, `test_scripted_sweep_over_20_seeds`, `test_real_deck_has_growth_cards`, `test_every_wealth_cost_has_a_wealth_source` |
 
 ## Manual check
 - [ ] The starting territory's name ("Grassland" or "River Meadow") and its tooltip list Fresh Water.
