@@ -2,7 +2,7 @@
 id: 082
 title: trash op (remove a hand card from the game) and Winnow
 type: feature
-status: review
+status: done
 branch: feat/082-trash-op
 ---
 
