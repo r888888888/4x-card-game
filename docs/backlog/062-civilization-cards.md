@@ -2,7 +2,7 @@
 id: 062
 title: Civilization cards (permanent bonuses)
 type: feature
-status: ready
+status: red-review
 branch: feat/062-civilization-cards
 ---
 
@@ -44,7 +44,12 @@ Fixtures added to TEST_CARDS:
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_civilization::test_…` |
+| AC1 | `test_civilization::test_civilization_cards_load`, `::test_civilization_outside_its_place_is_a_load_error`, `::test_starting_civilization_validation`, `::test_starting_civilization_is_optional` |
+| AC2 | `test_civilization::test_start_trigger_only_on_civilizations`, `::test_start_effect_needing_a_target_or_choice_is_a_load_error` |
+| AC3 | `test_civilization::test_starting_civilization_is_in_the_civilization_zone`, `::test_start_effects_resolve_once_before_the_first_upkeep`, `::test_civilization_is_not_in_the_deck_or_tableau` |
+| AC4 | `test_civilization::test_civilization_upkeep_every_turn`, `::test_forecast_includes_the_civilization`, `::test_score_includes_civilization_vp_and_upkeep_score` |
+| AC5 | `test_civilization::test_without_a_civilization_play_is_as_before` |
+| AC6 | `test_civilization::test_fork_copies_the_civilization` |
 
 ## Manual check
 - [ ] The civilization card is visible during play, and its bonus shows in the forecast.
