@@ -28,6 +28,7 @@ var era := 1  # techs: the era whose research deck holds this tech (see the add_
 var prereq: String = ""  # techs: id of the tech that makes this one cheaper when researched
 var prereq_discount := 2  # techs: wealth off when prereq is researched
 var discard_turns := 1  # events: upkeeps the event stays active for
+var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
 
 

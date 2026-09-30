@@ -48,6 +48,7 @@ var config: Dictionary  # normalized by DataLoader.parse_config
 var state := GameState.new()
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
+var _famine_guards: Dictionary = {}  # territory uid -> famine deaths its guards can still save; set only during feed
 
 var seed_value: int:
 	get: return state.seed_value
@@ -123,6 +124,12 @@ func civilization() -> int:
 func government() -> int:
 	var gov := zone("government")
 	return gov.cards[0].uid if not gov.is_empty() else -1
+
+
+## The active Famine's counters (083), or 0 with no Famine.
+func famine_counters() -> int:
+	var famine := Population.famine(self)
+	return famine.counters if famine != null else 0
 
 
 ## Whether the population rules apply (the config has a population block).

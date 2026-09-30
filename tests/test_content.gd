@@ -131,6 +131,8 @@ func test_every_real_event_is_in_the_event_deck() -> void:
 	check(not r.config.get("event_deck", {}).is_empty(), "the real event deck is not empty")
 	var unused: Array[String] = []
 	for id in r.cards:
+		if id == r.config.famine.get("card", ""):  # 083: the Famine comes from hunger, never from the deck
+			continue
 		if r.cards[id].type == CardDef.EVENT and not r.config.get("event_deck", {}).has(id):
 			unused.append(id)
 	eq(unused, [] as Array[String], "events not in event_deck")

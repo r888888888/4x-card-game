@@ -232,6 +232,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 
 	if def.type == CardDef.EVENT:
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
+		def.has_discard = c.has("discard")
 
 	if def.type == CardDef.TECH:
 		if c.has("era"):
@@ -332,6 +333,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"era_unlocks": {},
 		"era_names": {},
 		"population": {},
+		"famine": {},  # population.famine, normalized: {card, max_counters} (083); {} with population off
 		"supply": {},
 		"territory_resources": {},
 		"civilizations": [] as Array[String],
@@ -416,6 +418,10 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
+		config.famine = _parse_famine(raw.population.get("famine") if raw.population is Dictionary else null, cards, errs)
+		var famine: String = config.famine.get("card", "")
+		if config.event_deck.has(famine):
+			errs.append("event_deck: '%s' is the famine card (it comes from hunger, never from the deck)" % famine)
 
 	for key in raw:
 		if not CONFIG_FIELDS.has(key):
@@ -487,11 +493,33 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 			n = POPULATION_FIELDS[field][1]
 		out[field] = n
 	for key in raw:
-		if not POPULATION_FIELDS.has(key):
+		if not POPULATION_FIELDS.has(key) and key != "famine":
 			warnings.append("%s: population: unknown field '%s'" % [src, key])
 	if start_territory != "" and out.start > cards[start_territory].housing:
 		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
 	return out
+
+
+## Normalizes population.famine {card, max_counters} (083): required with population on; card is an event with no
+## discard. Returns {} when invalid.
+static func _parse_famine(raw: Variant, cards: Dictionary, errs: Array[String]) -> Dictionary:
+	if not (raw is Dictionary):
+		errs.append("population.famine is required: an object like {\"card\": \"famine\", \"max_counters\": 3}")
+		return {}
+	var f_errs: Array[String] = []
+	var card := Fields.read_string(raw, "card", f_errs)
+	var max_counters := Fields.read_int(raw, "max_counters", f_errs, 1)
+	for m in f_errs:
+		errs.append("population.famine: " + m)
+	if card != "" and not cards.has(card):
+		errs.append("population.famine.card: unknown card '%s'" % card)
+	elif card != "" and cards[card].type != CardDef.EVENT:
+		errs.append("population.famine.card '%s' is not an event" % card)
+	elif card != "" and cards[card].has_discard:
+		errs.append("population.famine.card '%s' can't have a discard (the Famine ends when pop is fed)" % card)
+	elif f_errs.is_empty():
+		return {"card": card, "max_counters": max_counters}
+	return {}
 
 
 ## Normalizes territory_resources {territory_id: [{keywords, weight}]}: each key a territory, each table a

@@ -40,10 +40,14 @@ static func draw(e: GameEngine) -> void:
 	e._resolve(event, "play")
 
 
-## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0.
+## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
+## skipped: Population.feed resolves it, and it ends when pop is fed (083).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var active := e.zone("active_events")
+	var famine := Population.famine(e)
 	for event in active.cards.duplicate():
+		if event == famine:
+			continue
 		e._resolve(event, "upkeep")
 		event.turns_left -= 1
 		if event.turns_left <= 0:

@@ -243,6 +243,11 @@
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
+      "id": "famine", "name": "Famine", "type": "event", "tags": [],
+      "text": "Each hungry upkeep: +1 counter (max 3), −1 pop (largest territory) per counter. Ends when your pop is fed.",
+      "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
       "id": "market_day", "name": "Market Day", "type": "event", "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
