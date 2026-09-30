@@ -2,7 +2,7 @@
 id: 082
 title: trash op (remove a hand card from the game) and Rite of Passage
 type: feature
-status: ready
+status: red-review
 branch: feat/082-trash-op
 ---
 
@@ -53,7 +53,13 @@ effect that targets a card in hand.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_effects::test_…` |
+| AC1 | `test_trash::test_trash_moves_the_target_to_trashed`, `::test_trash_outcome_names_the_trashed_card` |
+| AC2 | `test_trash::test_valid_targets_are_the_other_hand_cards` |
+| AC3 | `test_trash::test_trash_with_no_other_hand_card_is_refused`, `::test_trash_with_several_choices_needs_a_target`, `::test_trash_refuses_itself_or_a_card_not_in_hand` |
+| AC4 | `test_trash::test_the_only_other_hand_card_is_picked` |
+| AC5 | `test_trash::test_trashed_card_is_not_reshuffled`, `::test_fork_copies_the_trashed_zone` |
+| AC6 | `test_trash::test_trash_loads`, `::test_trash_validation`, `::test_trash_card_text`, `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` (row added to `UPKEEP_UNSAFE`) |
+| AC7 | `test_content::test_rite_of_passage_trashes_and_is_on_sale` |
 
 ## Manual check
 - [ ] Double-click Rite of Passage with 2+ other cards in hand: the other hand cards light up. Clicking one removes
@@ -62,3 +68,4 @@ effect that targets a card in hand.
 - [ ] Review the numbers with the `balance` skill.
 
 ## Log
+- 2026-09-29: Red at 574 tests (was 561), 15 failing. Fixture Purge is local to `test_trash.gd`, not in `TEST_CARDS`.

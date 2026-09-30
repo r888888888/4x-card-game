@@ -622,3 +622,16 @@ func test_hunt_gains_food_per_keyword_and_is_available_from_the_start() -> void:
 	for effect in effects:
 		for k in effect.get("keywords"):
 			check(on_land.has(k), "Hunt's keyword %s is on a territory in territory_deck" % k)
+
+
+# --- Rite of Passage (backlog 082) ---
+
+func test_rite_of_passage_trashes_and_is_on_sale() -> void:
+	var r := load_real()
+	var rite := real_card(r, "rite_of_passage")
+	if rite == null:
+		return
+	eq(rite.type, CardDef.ACTION, "Rite of Passage type")
+	check(rite.effects.any(func(e): return e.op == "trash"), "Rite of Passage has a trash effect")
+	var pile: Dictionary = r.config.supply.get("rite_of_passage", {})
+	check(not pile.is_empty() and not pile.get("locked", false), "Rite of Passage is in an unlocked supply pile")
