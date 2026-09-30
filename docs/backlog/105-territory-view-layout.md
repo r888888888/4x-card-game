@@ -1,8 +1,8 @@
 ---
 id: 105
-title: Territory view layout: framed, the territory large, its slots with free ones outlined
+title: Territory view layout: the territory as a framed box, its slots with free ones outlined, no bounce
 type: feature
-status: review
+status: red-review
 branch: feat/105-territory-view-layout
 ---
 
@@ -14,14 +14,21 @@ obvious place to go. Uses 104's header.
 
 ## Acceptance criteria
 <!-- UI tests in the real main scene on a TEST_CARDS game (tests/test_territory_view.gd). -->
-- [x] AC1: Frame. The open view is inside a panel whose border colour is `CardView.TYPE_COLORS` for territories and
+- [ ] AC1: Frame. The open view is inside a panel whose border colour is `CardView.TYPE_COLORS` for territories and
   whose background is tinted (not transparent).
-- [x] AC2: The territory large on the left. The territory's card is at `CardView.HAND_SIZE`, left of the slot area,
-  with the stats line and Grow under it; the slot area holds the city, then the buildings, in tableau order.
-- [x] AC3: Free slots. After the city and buildings, the slot area shows one empty-slot outline per free slot
+- [ ] AC2 (revised at review): The territory is the box, not a card. At the top of the frame, a title line gives the
+  territory's name and its info (the same text as its card's info line: slots, housing, keywords, rolled resources),
+  then the stats line and Grow. The territory's card isn't in the view (it stays in the Realm); the slot area under the
+  title holds only the city, then the buildings, in tableau order, and `card_uids()` lists just those.
+- [ ] AC3: Free slots. After the city and buildings, the slot area shows one empty-slot outline per free slot
   (`free_slots(T)`). Given Homeland (5 slots) with the Capital and 1 Farm, when a Temple is played onto it from the
   view, then there is one outline fewer. A territory with no free slots shows none.
-- [x] AC4: Still a drop target anywhere on the view (101 AC4), outlines included.
+- [ ] AC4: Still a drop target anywhere on the view (101 AC4), outlines included.
+- [ ] AC5 (added at review): No bounce when navigating. Opening the view shows its city and buildings at once, at rest
+  and full size (no pop-in); closing it removes them at once (nothing flies off); the territory's card in the Realm
+  never moves. A card played while the view is open still flies to its slot and lands, as before.
+- [ ] AC6 (follows from AC2): In the view the card focus starts on the first city or building (101 AC6 said the
+  territory's card); Left/Right, I and Esc work as before.
 
 ## Out of scope
 - Hiding the Frontier, Known and Events sections while the view is open (the user chose not to).
@@ -37,9 +44,12 @@ obvious place to go. Uses 104's header.
 | AC | Test |
 |---|---|
 | AC1 | `test_territory_view::test_the_view_is_framed_in_the_territory_colour` |
-| AC2 | `test_the_territory_is_large_on_the_left_with_its_stats_and_grow_under_it` |
+| AC2 | `test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top` (replaces the large-card test) |
 | AC3 | `test_free_slots_show_as_outlines_after_the_cards`, `test_a_full_territory_shows_no_outlines` |
 | AC4 | `test_an_outline_is_a_drop_target_for_the_territory` |
+| AC5 | `test_opening_shows_the_cards_at_once_without_a_bounce`, `test_closing_removes_the_cards_at_once`, `test_a_card_played_in_the_view_still_flies_in` (guard) |
+| AC6 | 101's `test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes` (focus starts on the city) |
+| Changed | 101's `test_clicking_a_territory_opens_its_view_in_place_of_the_realm` (`card_uids()` without the territory) and its keyboard test (the first card is the city, Right goes to the building) |
 
 ## Manual check
 - [ ] Seed 1: open the home territory. Under the "← Realm  Realm › …" header, a purple-bordered, faintly purple panel
@@ -56,3 +66,5 @@ obvious place to go. Uses 104's header.
   size; `main._place` passes it for `hero`. `CardFocus` walks `hero` then `row`.
 - 2026-09-30: With the user's OK, the AC2 test checks where the territory's card rests (`card.slot` in `hero`): it is
   still flying from the Realm when the view's transition ends.
+- 2026-09-30: Review changes from the user: show the territory as text in the box instead of as a card (AC2 revised,
+  AC6), and no bounce on the cards when navigating (AC5). Back to in-progress.
