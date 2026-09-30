@@ -2,7 +2,7 @@
 id: 060
 title: Granary stores grain — +1 housing and a famine guard
 type: feature
-status: review
+status: done
 branch: feat/060-granary-famine-guard
 ---
 
