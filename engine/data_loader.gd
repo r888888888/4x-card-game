@@ -27,7 +27,7 @@ const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT]
 const DISCARD_CONDITIONS: Array[String] = ["turns"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -309,7 +309,8 @@ static func _parse_discard(raw: Variant, errs: Array[String]) -> int:
 ## starting: {resources, tableau, territory, civilization}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
-## supply: {card_id: {price, count, locked}}, {} when there is none}.
+## supply: {card_id: {price, count, locked}}, {} when there is none,
+## civilizations: the civilization ids a game may start as, in order ([] when there is no list)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -332,6 +333,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"population": {},
 		"supply": {},
 		"territory_resources": {},
+		"civilizations": [] as Array[String],
 	}
 	for k in config.resource_keywords:
 		if config.keywords.has(k):
@@ -394,6 +396,11 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		config.territory_deck = _parse_counts(territory_deck, "territory_deck", cards, CardDef.TERRITORY, errs)
 	else:
 		errs.append("'territory_deck' must be an object like {\"hills\": 2}")
+
+	config.civilizations = _parse_civilizations(raw.get("civilizations", []), cards, errs)
+	var start_civ: String = config.starting.civilization
+	if start_civ != "" and raw.has("civilizations") and not config.civilizations.has(start_civ):
+		errs.append("starting.civilization: '%s' is not in 'civilizations'" % start_civ)
 
 	var research_deck: Variant = raw.get("research_deck", {})
 	if research_deck is Dictionary:
@@ -576,6 +583,24 @@ static func _check_unlocks(config: Dictionary, cards: Dictionary, errs: Array[St
 		for effect in cards[id].effects:
 			if effect.op == "unlock" and not config.supply.has(effect.card_id):
 				errs.append("'%s' unlocks '%s', which has no supply pile" % [id, effect.card_id])
+
+
+## The config's civilizations list: civilization ids, each once.
+static func _parse_civilizations(raw: Variant, cards: Dictionary, errs: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	if not (raw is Array):
+		errs.append("'civilizations' must be an array of civilization ids")
+		return out
+	for id in raw:
+		if not (id is String) or not cards.has(id):
+			errs.append("civilizations: unknown card '%s'" % [id])
+		elif cards[id].type != CardDef.CIVILIZATION:
+			errs.append("civilizations: '%s' is not a civilization" % id)
+		elif out.has(id):
+			errs.append("civilizations: '%s' is listed twice" % id)
+		else:
+			out.append(id)
+	return out
 
 
 ## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory", "tech" or

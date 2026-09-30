@@ -72,17 +72,30 @@ func _input(event: InputEvent) -> void:
 
 # --- Actions ---
 
-## Starts a new game with seed_value (a random seed if negative), dropping the old game's views.
-func start_game(seed_value: int) -> void:
+## Starts a new game with seed_value (a random seed if negative) as civilization civ_id ("" for the config's
+## starting one), dropping the old game's views.
+func start_game(seed_value: int, civ_id := "") -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
 	start_screen.hide()
 	_board.show()
-	_menu.set_seed(seed_value)
 	_side.clear_log()
 	supply.close()
 	_reset_views()
-	Game.new_game(seed_value)
+	Game.new_game(seed_value, civ_id)
+	_menu.set_game(seed_value, _civilization_name())
+
+
+## Starts again as this game's civilization (Restart, Replay, the game-over New game).
+func _restart(seed_value: int) -> void:
+	var civ := Game.engine.zone("civilization").find(Game.engine.civilization())
+	start_game(seed_value, civ.def.id if civ != null else "")
+
+
+## The name of the civilization this game is played as, or "".
+func _civilization_name() -> String:
+	var civ := Game.engine.zone("civilization").find(Game.engine.civilization())
+	return civ.def.name if civ != null else ""
 
 
 ## Leaves the current game for the start screen: the board, its cards and any open choice go away.
@@ -93,7 +106,12 @@ func show_start_screen() -> void:
 	choices.refresh("")
 	_game_over.overlay.hide()
 	_board.hide()
-	start_screen.open()
+	var warnings: Array[String] = []
+	var civs := Game.engine.civilizations()
+	var preselect := Settings.store.civilization_in(civs, warnings)
+	for w in warnings:
+		push_warning(w)
+	start_screen.open(Game.engine, civs, preselect)
 
 
 ## Test hook (063): whether the board (top bar, play area, side panel) is showing.
@@ -502,20 +520,20 @@ func _build_layout() -> void:
 	supply.closed.connect(func(): focus.clear())
 	_side.add_supply_button(supply.button)
 
-	_game_over = GameOverOverlay.new(self, func(): start_game(Game.engine.seed_value), func(): start_game(-1))
+	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
 
 	_menu = GameMenu.new(self)
 	_menu.start_requested.connect(func(seed_value: int):
 		_close_menu(false)
-		start_game(seed_value))
+		_restart(seed_value))
 	_menu.new_game_requested.connect(func():
 		_close_menu(false)
 		show_start_screen())
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	details = CardDetailsModal.new(self)
-	start_screen = StartScreen.new(self)
-	start_screen.start_requested.connect(start_game)
+	start_screen = StartScreen.new(self, details.open)
+	start_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, start_screen.selected))
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 

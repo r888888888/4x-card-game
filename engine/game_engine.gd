@@ -350,8 +350,25 @@ func supply_error() -> String:
 
 # --- Actions ---
 
-func new_game(p_seed: int) -> void:
-	TurnLoop.new_game(self, p_seed)
+## Starts a new game with seed p_seed as civilization civ_id ("" for the config's starting.civilization, if any).
+## Refuses and changes nothing when new_game_error(civ_id) isn't "".
+func new_game(p_seed: int, civ_id := "") -> void:
+	if new_game_error(civ_id) != "":
+		return
+	TurnLoop.new_game(self, p_seed, civ_id if civ_id != "" else config.starting.get("civilization", ""))
+
+
+## Why new_game can't start as civilization civ_id, or "" if it can (a listed civilization, or "" for the
+## config's starting one).
+func new_game_error(civ_id: String) -> String:
+	if civ_id != "" and not civilizations().has(civ_id):
+		return "Unknown civilization '%s'." % civ_id
+	return ""
+
+
+## The civilizations a game may start as (config civilizations), in order.
+func civilizations() -> Array[String]:
+	return config.get("civilizations", [] as Array[String]).duplicate()
 
 
 ## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects on

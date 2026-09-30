@@ -21,5 +21,6 @@ func _ready() -> void:
 	engine = GameEngine.new(result.cards, result.config)
 
 
-func new_game(seed_value: int) -> void:
-	engine.new_game(seed_value)
+## Starts a game with seed_value as civilization civ_id ("" for the config's starting one).
+func new_game(seed_value: int, civ_id := "") -> void:
+	engine.new_game(seed_value, civ_id)

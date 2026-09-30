@@ -5,7 +5,8 @@ extends RefCounted
 ## methods call them.
 
 
-static func new_game(e: GameEngine, p_seed: int) -> void:
+## Sets up a game with seed p_seed played as civilization civ_id ("" for none) and starts turn 1.
+static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 	e.state = GameState.new()
 	e.seed_value = p_seed
 	e.rng = SeededRng.new(p_seed)
@@ -49,8 +50,8 @@ static func new_game(e: GameEngine, p_seed: int) -> void:
 		if home != null:
 			card.territory_uid = home.uid
 		e.zone("tableau").add(card)
-	if e.config.starting.get("civilization", "") != "":
-		var civilization := e._make_card(e.config.starting.civilization)
+	if civ_id != "":
+		var civilization := e._make_card(civ_id)
 		e.zone("civilization").add(civilization)
 		e._resolve(civilization, "start")
 

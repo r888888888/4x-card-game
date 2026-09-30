@@ -120,10 +120,32 @@
       "effects": []
     },
     {
-      "id": "tribe_of_the_river", "name": "Tribe of the River", "type": "civilization",
+      "id": "river_children", "name": "Children of the River", "type": "civilization",
       "vp": 0, "tags": [],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "salt_traders", "name": "Salt Road Traders", "type": "civilization",
+      "vp": 0, "tags": [],
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 3, "trigger": "start" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "hearth_clans", "name": "Hearth Clans", "type": "civilization",
+      "vp": 0, "tags": [],
+      "effects": [
+        { "op": "gain", "resource": "food", "amount": 4, "trigger": "start" }
+      ]
+    },
+    {
+      "id": "star_watchers", "name": "Star Watchers", "type": "civilization",
+      "vp": 1, "tags": [],
+      "effects": [
+        { "op": "score", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
