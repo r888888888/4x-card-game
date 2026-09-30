@@ -143,14 +143,14 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
-   (which may end), then pop eats food (starving on a shortfall).
+   (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Play: play or buy cards while resources allow, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
-pop eats (may be negative), plus `starve` (pop the shortfall would kill); `{}` on the last turn or after game over.
+pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
 with the food stat in the warning color when pop would starve.
@@ -204,14 +204,20 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 ## Population (Milestone 3 — built, playtesting next)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
 010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
-- Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
-  block the game has no pop (the test fixtures leave it out).
+- Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": { "card": "famine",
+  "max_counters": 3 } }` turns the rules on; without the block the game has no pop (the test fixtures leave it out;
+  `raw_config` adds `FAMINE` when a test turns it on). `famine` is required with population on (083).
 - The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`: the
   territory's own plus its buildings' (060).
-- Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Each food that can't be paid
-  starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
-  Famine guard (060): the working buildings on a territory (decided before pop eats) save up to their total
-  `famine_guard` of those deaths there each upkeep; `upkeep_forecast().starve` counts only the pop that die.
+- Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Famine (083, replaces 011's one
+  death per unpaid food): when pop can't be fed in full, the famine card (an event, never in `event_deck`, with no
+  `discard`) becomes active if it isn't, gains a counter up to `max_counters`, and its upkeep effects resolve once
+  per counter (real data: −1 pop from the territory with the most pop, ties settled first). A fed upkeep, even
+  with 0 food left, removes it from the game. One Famine at a time; no growth while it lasts (`grow_error`, and
+  `grow` adds nothing); `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
+  reach 0; the city stays. Famine guard (060): the working buildings on a territory (decided before pop eats) save
+  up to their total `famine_guard` of the Famine's deaths there each upkeep; `upkeep_forecast().starve` counts only
+  the pop that die.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
   capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every settled territory
   (Harvest Festival until 069, now an event; no shipped card uses `each` today). `here` is a load error on a tech

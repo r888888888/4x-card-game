@@ -2,7 +2,7 @@
 id: 083
 title: Famine — a lasting event that replaces starvation
 type: feature
-status: in-progress
+status: review
 branch: feat/083-famine-event
 ---
 
@@ -17,30 +17,30 @@ max_counters: 3}}`). Fixture event `famine`, "Famine": `{"op": "lose_pop", "amou
 no `discard`. The Capital gives +2 food at upkeep. "Short" means pop needs more food than is on hand after upkeep
 effects.
 
-- [ ] AC1 (arrives): Homeland has 4 pop and food is 0 when the turn ends. At the next upkeep the Capital gives +2
+- [x] AC1 (arrives): Homeland has 4 pop and food is 0 when the turn ends. At the next upkeep the Capital gives +2
   and the 4 pop eat 2 (food 0). A Famine becomes active with 1 counter (`famine_counters()` is 1), and 1 pop dies:
   Homeland 3. The old rule (1 pop per food short, which would leave 2) is gone.
-- [ ] AC2 (escalates): Continuing AC1, food is 0 when the turn ends. At the next upkeep (+2, need 3, short) the
+- [x] AC2 (escalates): Continuing AC1, food is 0 when the turn ends. At the next upkeep (+2, need 3, short) the
   Famine goes to 2 counters and 2 pop die: Homeland 1. Deaths use the `lose_pop` rule (072), one at a time: the
   territory with the most pop, ties first in tableau order. Pop never goes below 0, and with no pop left the rest
   of the deaths do nothing.
-- [ ] AC3 (cap and one Famine): Given a Famine at 3 counters, a short upkeep kills 3 pop and leaves it at 3
+- [x] AC3 (cap and one Famine): Given a Famine at 3 counters, a short upkeep kills 3 pop and leaves it at 3
   (`max_counters`). A short upkeep while a Famine is active never adds a second Famine: `active_events` holds at
   most one.
-- [ ] AC4 (ends): Given a Famine at 2 counters, an upkeep where pop is fed in full (even with food exactly 0 after
+- [x] AC4 (ends): Given a Famine at 2 counters, an upkeep where pop is fed in full (even with food exactly 0 after
   eating) kills nobody, and the Famine leaves the game: it is in no zone (not `active_events`, not
   `event_discard`), and `famine_counters()` is 0. A later short upkeep brings a new Famine with 1 counter. The
   Famine is never in the event deck, and the event phase never draws it.
-- [ ] AC5 (no growth): While a Famine is active, `grow_error(home)` is "Famine: pop can't grow." and `grow` changes
+- [x] AC5 (no growth): While a Famine is active, `grow_error(home)` is "Famine: pop can't grow." and `grow` changes
   nothing. A `grow` op (Rally, Festival, Granary upkeep) adds no pop. Once the Famine ends, both work again.
-- [ ] AC6 (Granary guard, replaces 060's starvation guard): Homeland has 4 pop and a working Silo, a Famine is at
+- [x] AC6 (Granary guard, replaces 060's starvation guard): Homeland has 4 pop and a working Silo, a Famine is at
   1 counter, and food is 0 when the turn ends. At the next upkeep (short) the Famine goes to 2 counters. The first
   famine death on Homeland is saved and the second happens: Homeland 3. Without the Silo: 2. A guard only saves
   deaths on its own territory, once per guard per upkeep, and an idle Silo saves none.
-- [ ] AC7 (forecast): `upkeep_forecast().starve` is the pop the Famine would kill at the next upkeep after guards:
+- [x] AC7 (forecast): `upkeep_forecast().starve` is the pop the Famine would kill at the next upkeep after guards:
   1 in AC1's starting state, 2 in AC2's, 0 when pop would be fed. The food forecast is unchanged
   (net of what pop eats).
-- [ ] AC8 (loader): with population on, `population.famine` is required. `card` must name an event card
+- [x] AC8 (loader): with population on, `population.famine` is required. `card` must name an event card
   ("population.famine.card 'x' is not an event"), and `max_counters` must be an integer ≥ 1. The Famine card in
   `event_deck`, or any `discard` on it, is a load error naming the card.
 
@@ -98,6 +98,8 @@ Rewritten approved tests (old rule: 1 death per food short; new: 1 death per Fam
 | `test_wealth` | `test_starvation_does_not_spend_wealth` | pop 0 → 1 |
 
 ## Manual check
+Run `godot --path .`, start any seed, and end turns without playing food cards until pop outgrows food (or grow pop
+with food first).
 - [ ] Going hungry puts a Famine in the Events row with "1 counter", and it disappears on the first fed upkeep.
 - [ ] The top bar warns in the famine turn with the right death count.
 - [ ] The log names the territory for each death and the pop a Granary saved.
@@ -110,3 +112,15 @@ Rewritten approved tests (old rule: 1 death per food short; new: 1 death per Fam
   `TEST_CARDS` gains the Famine event and `raw_config` adds `FAMINE` to a population block without one, so the 19
   files that turn population on need no edits. Most starvation tests keep their numbers: a first shortfall of any
   size now kills 1, the same as the old rule for 1 short.
+- Approved at red. Green: `Population.feed` brings, worsens and ends the Famine; `Population.famine`,
+  `GameEngine.famine_counters()`; guards now save the Famine's `lose_pop` deaths (`GameEngine._famine_guards`, set
+  only during `feed`); `Events.resolve_upkeep` skips the Famine; no growth during it (`grow_error`, `add_pop`);
+  `CardInstance.counters` (copied by `copy()`); `CardDef.has_discard` for the loader's no-discard rule.
+- The normalized famine block lives in `config.famine`, not `config.population.famine`, so the two approved
+  `test_population` tests that compare the population block exactly stay as they are.
+- **Changed at green, approved test**: `test_content::test_every_real_event_is_in_the_event_deck` now skips the
+  configured famine card: AC8 forbids it in `event_deck`, so the test and the spec couldn't both hold.
+- Added test-first: `GameEngine.event_counters(uid)` (the Famine's counters, else 0), for the event panel's
+  "N counters" (`CardView.set_event_info(turns_left, counters)`). The top bar's food tooltip says "famine, N pop
+  will die". Real data: a `famine` event whose `text` is the design note's wording, and the famine block in config.
+- Sim (20 seeds), main → this: identical (score 78.85, pop 13.00): the bot never goes hungry in these seeds.

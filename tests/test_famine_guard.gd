@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Storage buildings (backlog 060): a building's housing adds to its territory, and its famine_guard saves that many
-## pop on its territory from starving each upkeep, while it works. Uses the Silo fixture (+1 housing, guard 1).
+## of the Famine's deaths on its territory each upkeep (083), while it works. Uses the Silo fixture (+1 housing, guard 1).
 ## Engines are held as Object so the file parses before the loader knows the new fields.
 
 
@@ -127,7 +127,7 @@ func test_silo_on_another_territory_does_not_save_homeland() -> void:
 func test_two_silos_save_2_pop() -> void:
 	var e: Object = home_engine(4, ["silo", "silo"])
 	e.end_turn()  # Capital +2, 4 pop eat 4: 2 short
-	eq(e.pop(home_uid(e)), 4, "both starving pop saved")
+	eq(e.pop(home_uid(e)), 4, "the Famine's death is saved")
 
 
 func test_idle_silo_saves_none() -> void:

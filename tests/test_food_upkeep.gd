@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
-## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn,
-## and each unpaid food starves 1 pop from the biggest territory (ties: the one settled first).
+## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn. Since 083 a
+## shortfall brings a Famine (test_famine.gd); its first upkeep kills 1 pop from the biggest territory (ties: the one
+## settled first), whatever the size of the shortfall.
 
 
 ## Config overrides: population on with start pop and food_upkeep, and starting food on Homeland under
