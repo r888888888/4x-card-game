@@ -352,6 +352,21 @@ func config_errors_for(cards: Dictionary, overrides: Dictionary, deck := {"farm"
 
 # --- UI helpers (backlog 045) ---
 
+## Runs body with Game.engine swapped for a game on TEST_CARDS + TEST_EVENTS with main deck {farm: 5, caravan: 5} and
+## event_deck (by default Windfall, Trade Winds, Omen), then puts the real engine back. overrides replace config keys.
+func with_event_engine(body: Callable, event_deck := {"windfall": 1, "trade_winds": 1, "omen": 1}, overrides := {}) -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := event_db(errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 5, "caravan": 5},
+		{"event_deck": event_deck}.merged(overrides, true)), resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var real := Game.engine
+	Game.engine = GameEngine.new(cards, config)
+	body.call()
+	Game.engine = real
+
+
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
 func wait_frames(n := 2) -> void:
 	for i in n:

@@ -2,7 +2,7 @@
 id: 079
 title: Show a modal when a new event is drawn
 type: feature
-status: ready
+status: red-review
 branch: feat/079-event-drawn-modal
 ---
 
@@ -48,9 +48,15 @@ lasts, and what it just did, so events can't be missed.
 - UI tests use `with_event_engine` from `test_event_panel.gd` (move it to `tests/lib/test_case.gd` if shared).
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
-| AC | Test |
+| AC | Test (`tests/test_event_modal.gd`) |
 |---|---|
+| AC1 | `test_event_drawn_reports_the_event_and_what_it_gave_before_changed` |
+| AC2 | `test_event_drawn_for_an_event_with_no_effect_reports_nothing_gained`, `test_no_event_drawn_without_events` |
+| Losses (README order note) | `test_event_drawn_reports_what_the_event_took`; summary: `test_outcome_summary_lists_gains_losses_vp_and_cards` |
+| AC3 | `test_ending_the_turn_shows_the_drawn_event`, `test_an_event_with_no_effect_shows_no_immediate_effect` |
+| AC4 | `test_esc_enter_ok_and_a_click_outside_close_the_modal`, `test_keys_do_not_reach_the_board_while_the_modal_is_open` |
+| AC5 | `test_the_hand_limit_discard_is_still_owed_after_the_modal` |
+| AC6 | `test_the_last_turn_shows_game_over_and_no_modal` |
 
 ## Manual check
 - [ ] With the real data, end turn 1: a modal shows the drawn event large, its text, "Lasts N turns", and what it
@@ -59,3 +65,7 @@ lasts, and what it just did, so events can't be missed.
 - [ ] End the last turn: only the game-over overlay appears.
 
 ## Log
+- 2026-09-30: Red. `with_event_engine` moved from `test_event_panel.gd` to `test_case.gd` (gains `overrides`).
+  Beyond the ACs, following the planned-order note ("its summary covers losses as well as gains"): outcomes gain a
+  `lost` map ({resource: amount} the `lose` op actually took), and `outcome_summary(outcome)` formats
+  "+1 food, −2 wealth, +1 VP, drew 2 cards, created 1 card" ("" for nothing; the modal shows "No immediate effect").

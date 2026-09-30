@@ -3,21 +3,6 @@ extends "res://tests/lib/test_case.gd"
 ## piles' counts. The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
 
 
-## Runs body with Game.engine swapped for a game on TEST_CARDS + TEST_EVENTS with event_deck (by default Windfall,
-## Trade Winds, Omen), then puts the real engine back, even when body fails.
-func with_event_engine(body: Callable, event_deck := {"windfall": 1, "trade_winds": 1, "omen": 1}) -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := event_db(errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 5, "caravan": 5},
-		{"event_deck": event_deck}), resources(), cards, "test", errors, warnings)
-	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var real := Game.engine
-	Game.engine = GameEngine.new(cards, config)
-	body.call()
-	Game.engine = real
-
-
 ## The card ids of the event views, in panel order.
 func view_ids(panel: Dictionary) -> Array[String]:
 	var ids: Array[String] = []
