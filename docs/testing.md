@@ -50,6 +50,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_settle.gd` | The `settle` op (loading and play) and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
 | `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep and starvation |
+| `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060): loading, housing cap, saving starving pop, forecast, card text; uses the Silo fixture and `build_on` |
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
 | `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap |
@@ -107,6 +108,7 @@ UI tests see structure (views, labels, overlays), never finished animations.
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
 | `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
+| `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order (no cost or slot check; the last go idle first) |
 | `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
 | `play_research(engine)` | Puts a Research card (`study`) in hand and plays it, revealing techs (backlog 034) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
