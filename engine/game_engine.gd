@@ -167,6 +167,11 @@ func grow_cost(territory_uid: int) -> int:
 	return pop(territory_uid) + 1
 
 
+## What relieve_famine costs: population.famine.relief ({resource: amount}), or {} when the Famine can't be relieved.
+func famine_relief() -> Dictionary:
+	return config.get("famine", {}).get("relief", {}).duplicate()
+
+
 ## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
 ## or not enough to pay it. "" if it can.
 func relieve_famine_error() -> String:

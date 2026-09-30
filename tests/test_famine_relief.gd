@@ -134,3 +134,13 @@ func test_a_famine_without_relief_cant_be_relieved() -> void:
 	e.end_turn()  # famine 1
 	eq(e.relieve_famine_error(), "The famine can't be relieved.", "no relief configured")
 	check(not e.relieve_famine(), "refused")
+
+
+# --- UI support: the price for the Relieve button ---
+
+func test_famine_relief_is_the_configured_price_or_empty() -> void:
+	var e: Object = relief_engine(4)
+	eq(e.famine_relief(), RELIEF, "the configured relief")
+	e = relief_engine(4, 0, 0, {})
+	eq(e.famine_relief(), {}, "no relief configured")
+	eq(make_engine({"farm": 10}).famine_relief(), {}, "population off")

@@ -34,6 +34,7 @@ var _card_before_menu_button: CardView  # the focused card when the Menu button 
 var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden while the zone is empty
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
+var _relieve: Button  # under the events: pays to end the Famine (084), shown while one can be relieved
 var _side: SidePanel
 var _collapse_all: Button  # on the Realm heading: collapses or expands every territory group (087)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
@@ -143,6 +144,16 @@ func event_panel() -> Dictionary:
 		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
 	var info := _side.event_info
 	return {"visible": _events_section.visible, "info": info.text, "tooltip": info.tooltip_text, "views": shown}
+
+
+## The Relieve button: shown while a Famine is active and has a relief price, disabled with the reason it can't pay.
+func _refresh_relieve(e: GameEngine) -> void:
+	var relief := e.famine_relief()
+	_relieve.visible = e.famine_counters() > 0 and not relief.is_empty()
+	_relieve.text = "Relieve famine (%s)" % CardFace.cost_text(relief)
+	var error := e.relieve_famine_error()
+	_relieve.disabled = error != ""
+	_relieve.tooltip_text = error if error != "" else "Pay to end the famine now. A later hungry upkeep brings a new one."
 
 
 ## Test hook (088): the visible civilization and government lines in the side panel, top to bottom, as {text, tooltip}.
@@ -353,6 +364,7 @@ func _refresh() -> void:
 	choices.refresh(e)
 	_side.refresh(e)
 	_events_section.visible = _side.event_info.visible  # both only with an event deck
+	_refresh_relieve(e)
 	supply.refresh(e)
 	if not _outcome.is_empty():
 		_top_bar.fly_outcome(fx, _outcome, _outcome_point)
@@ -539,6 +551,9 @@ func _build_layout() -> void:
 	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
 	_events_section = UIKit.card_row_section(_play_area, "Events")
 	_events_row = _events_section.get_meta("row")
+	_relieve = UIKit.button("", func(): Game.engine.relieve_famine())
+	_relieve.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_events_section.add_child(_relieve)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	hand_scroll = ScrollContainer.new()
