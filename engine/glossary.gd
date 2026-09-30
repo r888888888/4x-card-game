@@ -21,6 +21,8 @@ const TERMS := {
 	"Settle": "Move a frontier territory into your realm and found a city on it.",
 	"Grow": "Add pop to a territory, up to its housing.",
 }
+## Terms a player learns in the first turn; card details leave them out (backlog 112).
+const BASIC: Array[String] = ["Upkeep", "Slots", "Pop"]
 
 
 ## The explanation of term, or "" if it isn't a fixed term.

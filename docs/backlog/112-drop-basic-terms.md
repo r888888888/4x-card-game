@@ -2,7 +2,7 @@
 id: 112
 title: Drop the basic terms from card details
 type: feature
-status: red-review
+status: review
 branch: feat/112-drop-basic-terms
 ---
 
@@ -12,11 +12,11 @@ building and territory. A player learns these in the first turn, so repeating th
 rules (Workers, Housing, Passes, Requires, keywords, …) stay.
 
 ## Acceptance criteria
-- [ ] AC1: `Glossary.BASIC` lists the terms a player learns in the first turn: Upkeep, Slots, Pop. `def_details` and
+- [x] AC1: `Glossary.BASIC` lists the terms a player learns in the first turn: Upkeep, Slots, Pop. `def_details` and
   `card_details` never list a basic term in `terms`, for any card.
-- [ ] AC2: the other terms are unchanged and keep their first-use order: a TEST Farm (⟳ +1 food, a building) has
+- [x] AC2: the other terms are unchanged and keep their first-use order: a TEST Farm (⟳ +1 food, a building) has
   terms ["Workers"]; Well has ["Requires", "Fresh Water", "Workers"]; a territory in play still lists Housing.
-- [ ] AC3: a card whose only terms were basic has `terms` [] (e.g. a civilization with only upkeep effects), so the
+- [x] AC3: a card whose only terms were basic has `terms` [] (e.g. a civilization with only upkeep effects), so the
   modal shows no "How it works" section for it.
 
 ## Out of scope
@@ -39,3 +39,4 @@ rules (Workers, Housing, Passes, Requires, keywords, …) stay.
 - [ ] Open a Farm's and Egypt's details: no Upkeep explanation; Egypt has no "How it works" section at all.
 
 ## Log
+- Built: `Glossary.BASIC`; `CardDetails._terms` skips it. Tests 744 → 747.

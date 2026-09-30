@@ -164,8 +164,7 @@ func test_bug_107_card_details_before_a_game_starts() -> void:
 # --- 112: the basic terms are left out ---
 
 func test_basic_terms_are_upkeep_slots_and_pop() -> void:
-	var basic: Array = (Glossary as Script).get_script_constant_map().get("BASIC", [])  # parses before BASIC exists
-	eq(basic, ["Upkeep", "Slots", "Pop"], "Glossary.BASIC")
+	eq(Glossary.BASIC, ["Upkeep", "Slots", "Pop"] as Array[String], "Glossary.BASIC")
 
 
 func test_no_card_lists_a_basic_term() -> void:
