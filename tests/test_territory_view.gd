@@ -324,3 +324,94 @@ func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() 
 		await wait_frames()
 		check(not main.territory_view.is_open(), "Esc closes the view")
 		eq(main.focus.focused.uid if main.focus.focused != null else -1, home, "the focus is back on the territory"))
+
+
+# --- Backlog 105: the layout ---
+# Hooks: territory_view.frame (the framed panel), .hero (holds the territory's card), .row (its city and buildings,
+# then the outlines), .outlines() (the free-slot outlines, in order) and .free_slot_count().
+
+func open_home(main: Node) -> int:
+	var home := home_uid(Game.engine)
+	click(main, home)
+	await wait_screen_transition()
+	return home
+
+
+func test_the_view_is_framed_in_the_territory_colour() -> void:
+	await with_fixture_main(func(main: Node):
+		await open_home(main)
+		var frame: Control = main.territory_view.frame
+		check(frame.is_visible_in_tree(), "the frame is shown")
+		var box := frame.get_theme_stylebox("panel") as StyleBoxFlat
+		check(box != null, "a flat panel")
+		if box != null:
+			eq(box.border_color.to_html(), CardView.TYPE_COLORS[CardDef.TERRITORY].to_html(), "bordered in the territory colour")
+			check(box.bg_color.a > 0.0, "a tinted background")
+		check(frame.is_ancestor_of(main.territory_view.row), "the cards are inside it"))
+
+
+func test_the_territory_is_large_on_the_left_with_its_stats_and_grow_under_it() -> void:
+	await with_fixture_main(func(main: Node):
+		var home: int = await open_home(main)
+		var view: Object = main.territory_view
+		var card: CardView = main.views[home]
+		check(view.hero.is_ancestor_of(card), "the territory's card is the large one")
+		eq(card.slot_size(), CardView.HAND_SIZE, "at hand-card size")
+		var rect := card.get_global_rect()
+		for uid in view.card_uids().slice(1):
+			check(main.views[uid].get_global_rect().position.x > rect.end.x, "card %d is right of the territory" % uid)
+		var stats: Array = view.find_children("*", "Label", true, false).filter(func(l): return l.text == view.stats_text())
+		check(not stats.is_empty(), "the stats line")
+		for c in stats + [view.grow_button]:
+			var r: Rect2 = (c as Control).get_global_rect()
+			check(r.position.y >= rect.end.y - 1.0, "%s under the card" % c)
+			check(r.position.x < rect.end.x, "%s in the card's column" % c)
+		eq(view.row.get_parent() != view.hero.get_parent(), true, "the slot area is its own column"), \
+		{"farm": 10}, POP)
+
+
+func test_free_slots_show_as_outlines_after_the_cards() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		build_on(e, home, ["farm"])
+		var temple := put_in_hand(e, "temple")
+		e.changed.emit()
+		await open_home(main)
+		var view: Object = main.territory_view
+		eq(view.free_slot_count(), e.free_slots(home), "one outline per free slot")
+		var last_card := -1
+		for v in main.views_in(view.row):
+			last_card = maxi(last_card, v.slot.get_index())
+		for outline in view.outlines():
+			check(outline.get_index() > last_card, "the outlines come after the cards")
+		var before: int = view.free_slot_count()
+		main.on_double_clicked(main.views[temple])
+		await wait_frames()
+		eq(view.free_slot_count(), before - 1, "one fewer after the Temple")
+		eq(view.free_slot_count(), e.free_slots(home), "still one per free slot"))
+
+
+func test_a_full_territory_shows_no_outlines() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		var fill: Array = []
+		for i in e.free_slots(home):
+			fill.append("farm")
+		build_on(e, home, fill)
+		e.changed.emit()
+		await open_home(main)
+		eq(e.free_slots(home), 0, "full")
+		eq(main.territory_view.free_slot_count(), 0, "no outlines"))
+
+
+func test_an_outline_is_a_drop_target_for_the_territory() -> void:
+	await with_fixture_main(func(main: Node):
+		var home: int = await open_home(main)
+		var view: Object = main.territory_view
+		check(view.free_slot_count() > 0, "an outline to drop on")
+		if view.free_slot_count() > 0:
+			var at: Vector2 = (view.outlines()[0] as Control).get_global_rect().get_center()
+			eq(view.target_at(at), home, "a drop on an outline targets the territory")
+			eq(main.drag.target_at(at), home, "and the drag agrees"))

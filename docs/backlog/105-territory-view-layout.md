@@ -2,7 +2,7 @@
 id: 105
 title: Territory view layout: framed, the territory large, its slots with free ones outlined
 type: feature
-status: in-progress
+status: red-review
 branch: feat/105-territory-view-layout
 ---
 
@@ -36,7 +36,10 @@ obvious place to go. Uses 104's header.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_territory_view::test_…` |
+| AC1 | `test_territory_view::test_the_view_is_framed_in_the_territory_colour` |
+| AC2 | `test_the_territory_is_large_on_the_left_with_its_stats_and_grow_under_it` |
+| AC3 | `test_free_slots_show_as_outlines_after_the_cards`, `test_a_full_territory_shows_no_outlines` |
+| AC4 | `test_an_outline_is_a_drop_target_for_the_territory` |
 
 ## Manual check
 - [ ] Seed 1: open the home territory. A purple-bordered panel with the territory card large on the left, stats and
