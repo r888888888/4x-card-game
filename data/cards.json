@@ -42,6 +42,11 @@
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2 } ]
     },
     {
+      "id": "hunt", "name": "Hunt", "type": "action",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
+    },
+    {
       "id": "storyteller", "name": "Storyteller", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "draw", "amount": 2 } ]

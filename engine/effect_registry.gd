@@ -6,6 +6,7 @@ extends RefCounted
 const OPS := {
 	"gain": preload("res://engine/effects/gain_effect.gd"),
 	"gain_per_tag": preload("res://engine/effects/gain_per_tag_effect.gd"),
+	"gain_per_keyword": preload("res://engine/effects/gain_per_keyword_effect.gd"),
 	"draw": preload("res://engine/effects/draw_effect.gd"),
 	"create": preload("res://engine/effects/create_effect.gd"),
 	"score": preload("res://engine/effects/score_effect.gd"),
