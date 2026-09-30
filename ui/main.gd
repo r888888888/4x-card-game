@@ -447,7 +447,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, container == territory_view.hero)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(on_double_clicked)
@@ -465,7 +465,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		if view == drag.dragging:
 			drag.end_drag()
 		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, container == territory_view.hero)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.fly_to_slot(_new_slot(view, container, index), fx)
 		_free_slot(old_slot)

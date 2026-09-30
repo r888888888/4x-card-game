@@ -2,7 +2,7 @@
 id: 105
 title: Territory view layout: framed, the territory large, its slots with free ones outlined
 type: feature
-status: red-review
+status: in-progress
 branch: feat/105-territory-view-layout
 ---
 

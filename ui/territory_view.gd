@@ -1,7 +1,8 @@
 class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a header ("← Realm", "Realm › River Meadow", 104),
-## its stats and Grow, then its card, city and buildings, shown in place of the Realm section. It keeps its own
+## shown in place of the Realm section. In a frame in the territory colour (105): the territory's card large on the
+## left with its stats and Grow under it, and on the right its city and buildings, then an outline per free slot. It keeps its own
 ## animated Navigator with the Realm as the root (a nested stack: the board's nav stays empty while a game is on,
 ## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
 ## board places the view's cards through refresh; navigated asks the board to refresh after it opens or closes.
@@ -12,9 +13,12 @@ var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
 var grow_button: Button
-var row: HFlowContainer  # the territory's card, then its city and buildings, in tableau order
+var frame: PanelContainer  # the framed body, bordered in the territory colour
+var hero: Container  # holds the territory's card, large
+var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 
 var _stats: Label
+var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _nav := Navigator.new()
 var _realm: Control
 var _board: MainScreen
@@ -30,18 +34,30 @@ func _init(board: MainScreen, realm: Control) -> void:
 	header = ScreenHeader.new(_nav, close)
 	add_child(header)
 	back_button = header.back_button
-	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 12)
-	add_child(bar)
+	frame = PanelContainer.new()
+	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	frame.add_theme_stylebox_override("panel", UIKit.panel_style(Palette.RAISED.lerp(Palette.TERRITORY, 0.12),
+		Palette.TERRITORY, 18))
+	add_child(frame)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 24)
+	frame.add_child(body)
+	var left := VBoxContainer.new()
+	left.add_theme_constant_override("separation", 10)
+	body.add_child(left)
+	hero = VBoxContainer.new()
+	left.add_child(hero)
 	_stats = UIKit.heading("")
-	bar.add_child(_stats)
+	_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_stats.custom_minimum_size.x = CardView.HAND_SIZE.x
+	left.add_child(_stats)
 	grow_button = UIKit.button("", func(): Game.engine.grow(uid))
-	bar.add_child(grow_button)
+	left.add_child(grow_button)
 	row = HFlowContainer.new()
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
 	row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
-	add_child(row)
+	body.add_child(row)
 	hide()
 	realm.get_parent().add_child(self)
 	realm.get_parent().move_child(self, realm.get_index() + 1)
@@ -131,8 +147,43 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	UIKit.set_stat(_stats, stats(e, uid))
 	show_grow(grow_button, e, uid)
 	var cards := card_uids()
-	for i in cards.size():
-		place.call(e.zone("tableau").find(cards[i]), row, i)
+	var tableau := e.zone("tableau")
+	place.call(tableau.find(cards[0]), hero, 0)
+	for i in range(1, cards.size()):
+		place.call(tableau.find(cards[i]), row, i - 1)
+	_show_outlines(e.free_slots(uid))
+
+
+## The free-slot outlines, in order.
+func outlines() -> Array[Panel]:
+	return _outlines.duplicate()
+
+
+func free_slot_count() -> int:
+	return _outlines.size()
+
+
+## Keeps n outlines at the end of the row, like the Realm's ghost slot.
+func _show_outlines(n: int) -> void:
+	while _outlines.size() > n:
+		var gone: Panel = _outlines.pop_back()
+		row.remove_child(gone)
+		gone.queue_free()
+	while _outlines.size() < n:
+		var outline := Panel.new()
+		var style := StyleBoxFlat.new()
+		style.bg_color = Palette.GHOST_BG
+		style.border_color = Palette.GHOST_EDGE
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(8)
+		outline.add_theme_stylebox_override("panel", style)
+		outline.custom_minimum_size = CardView.TABLEAU_SIZE
+		outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		outline.tooltip_text = "A free slot."
+		row.add_child(outline)
+		_outlines.append(outline)
+	for outline in _outlines:
+		row.move_child(outline, -1)
 
 
 ## "U / S slots used", then "  ·  Pop P / H" with population on.

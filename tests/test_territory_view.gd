@@ -355,7 +355,7 @@ func test_the_territory_is_large_on_the_left_with_its_stats_and_grow_under_it() 
 		var home: int = await open_home(main)
 		var view: Object = main.territory_view
 		var card: CardView = main.views[home]
-		check(view.hero.is_ancestor_of(card), "the territory's card is the large one")
+		check(view.hero.is_ancestor_of(card.slot), "the territory's card is the large one (where it rests; it may still be flying)")
 		eq(card.slot_size(), CardView.HAND_SIZE, "at hand-card size")
 		var rect := card.get_global_rect()
 		for uid in view.card_uids().slice(1):
