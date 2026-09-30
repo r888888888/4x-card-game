@@ -83,10 +83,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		return text
 	var parts: PackedStringArray = []
 	if type == TERRITORY:
-		parts.append("%d building slot%s, holds up to %d pop" % [slots, "" if slots == 1 else "s", housing])
-		if not keywords.is_empty():
-			parts.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
-		return "\n".join(parts)
+		return territory_text(keywords)
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
@@ -100,6 +97,14 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("+%d building slots on its territory" % slots)
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
+	return "\n".join(parts)
+
+
+## A territory's tooltip for a copy with these keywords (printed, plus any rolled resources).
+func territory_text(copy_keywords: Array[String]) -> String:
+	var parts: PackedStringArray = ["%d building slot%s, holds up to %d pop" % [slots, "" if slots == 1 else "s", housing]]
+	if not copy_keywords.is_empty():
+		parts.append("Keywords: " + ", ".join(PackedStringArray(copy_keywords.map(func(k): return k.capitalize()))))
 	return "\n".join(parts)
 
 

@@ -17,6 +17,12 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 	engine.settle(engine.play_target, card_id, source)
 
 
+
+func terms() -> Array[String]:
+	var out := super()
+	out.append_array(["Settle", "Frontier"])
+	return out
+
 func describe(card_db: Dictionary) -> String:
 	return "Settle: %s" % _card_name(card_db)
 

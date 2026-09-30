@@ -37,6 +37,12 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 			engine.add_pop(card.uid, amount, source)
 
 
+
+func terms() -> Array[String]:
+	var out := super()
+	out.append_array(["Grow"])
+	return out
+
 func describe(_card_db: Dictionary) -> String:
 	return "+%d pop %s" % [amount, "here" if where == "here" else "everywhere"]
 

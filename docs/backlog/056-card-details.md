@@ -2,7 +2,7 @@
 id: 056
 title: Card details modal with a full explanation of mechanics
 type: feature
-status: red-review
+status: in-progress
 branch: feat/056-card-details
 ---
 

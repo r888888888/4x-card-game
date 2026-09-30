@@ -292,6 +292,17 @@ func needs_target(uid: int) -> bool:
 	return card != null and CardPlay.needs_target(card)
 
 
+## A card definition's details for the details modal: {name, type, cost, vp, rules, state, terms}, with no state;
+## {} for an unknown id. terms are [{term, text}], unique, in first-use order.
+func def_details(card_id: String) -> Dictionary:
+	return CardDetails.of_def(self, card_id)
+
+
+## Like def_details for card uid in any zone, with its live state (pop, slots, idle, price now); {} if not found.
+func card_details(uid: int) -> Dictionary:
+	return CardDetails.of_card(self, uid)
+
+
 ## The settled territory card sits on, or null.
 func territory_of(card: CardInstance) -> CardInstance:
 	return Territories.territory_of(self, card)

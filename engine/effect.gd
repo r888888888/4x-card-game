@@ -65,6 +65,14 @@ func bonus_text() -> String:
 	return "+%d" % get("amount")
 
 
+## Glossary terms this effect uses (see Glossary), for the card details.
+func terms() -> Array[String]:
+	var out: Array[String] = []
+	if trigger == "upkeep":
+		out.append("Upkeep")
+	return out
+
+
 ## Card ids this effect refers to; the loader checks they exist.
 func referenced_cards() -> Array[String]:
 	return []
