@@ -94,7 +94,8 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 55. 071 icons for the tech and event type marks
 56. 077 Market earns wealth per city (data only; just before the balance pass)
 57. 066 100-turn games, balance pass (last: everything above changes balance)
-58. 101 territory view (click a territory: its city, buildings and Grow in place of the Realm)
-59. 102 territories as plain cards in the Realm (after 101, which gives the buildings somewhere to show)
+58. 103 navigation stack for screens (done; before 101, which pushes the territory view on it)
+59. 101 territory view (click a territory: its city, buildings and Grow in place of the Realm)
+60. 102 territories as plain cards in the Realm (after 101, which gives the buildings somewhere to show)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

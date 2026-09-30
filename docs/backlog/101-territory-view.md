@@ -2,7 +2,7 @@
 id: 101
 title: Territory view: click a territory to see its city and buildings
 type: feature
-status: red-review
+status: in-progress
 branch: feat/101-territory-view
 ---
 
@@ -30,9 +30,10 @@ exists, 102 can shrink the Realm's territories to plain cards.
   T when T is a valid target, and otherwise logs the engine's reason. The new card appears in the view.
 - [ ] AC5: Targeting wins. While a hand card is waiting for a target (double-clicked with several targets), clicking
   a territory card picks it as the target, as today, and does not open the view.
-- [ ] AC6: Keyboard. With the keyboard focus on a territory card in the Realm, Enter opens its view. In the view the
-  focus starts on Back; Tab and the arrows reach Grow and the view's cards; Esc works like Back (AC3); I on a
-  focused card opens its details.
+- [ ] AC6: Keyboard. Up from the hand moves the card focus to the Realm's territory cards (Left/Right between them,
+  Down back to the hand), and Enter on one opens its view. In the view the card focus starts on the territory card;
+  Left/Right move through the view's cards; I on a focused card opens its details; Esc works like Back (AC3) and puts
+  the focus back on that territory in the Realm. Back and Grow are buttons for the mouse.
 
 ## Out of scope
 - The Realm's look: territories stay as today's groups until 102.
@@ -71,3 +72,9 @@ exists, 102 can shrink the Realm's territories to plain cards.
 - 2026-09-30: Specced. The user chose: the view replaces the Realm on the board (hand, top bar and side panel
   stay); stats show on the Realm card (102) and Grow only in the view; you can play onto the card or anywhere on the
   view; collapse goes away and cards on no territory show as ordinary Realm cards (102).
+- 2026-09-30: Red checkpoint approved with these resolutions: a single click on a Realm territory opens its view
+  (not its details; I or a click inside the view shows them); AC6 reworded above (card focus can't reach the Realm
+  today, and focused buttons swallow the arrows); a double-click with the view open always plays onto the viewed
+  territory, with the engine's reason when it can't; drops are tested through `target_at`.
+- 2026-09-30: 103 (navigation stack) was built first. The territory view is pushed on `main.nav` over the Realm
+  section, which is the navigator's root while a game is on.
