@@ -55,7 +55,8 @@ res://
                          # ui_kit.gd (shared styles, labels, overlays, tokens); components: top_bar.gd, side_panel.gd,
                          # tableau_view.gd, choice_overlays.gd, supply_screen.gd, game_menu.gd, game_over_overlay.gd,
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
-                         # card_details_modal.gd (click, right-click in choices and supply, or I: full card details)
+                         # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
+                         # tech_tree_modal.gd (Knowledge button or T: the tech tree)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot), sim_stats.gd (SimStats: per-seed metrics), run.gd (CLI)
@@ -234,11 +235,17 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
   to add research actions at upkeep).
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
-  already added isn't added again. `era_unlocks()` returns the thresholds; the research info label's tooltip shows them.
+  already added isn't added again. `era_unlocks()` returns the thresholds; the tech tree shows them.
 - An effect can refuse its card in `play_error` (`Effect.play_block_error`), as Research does with an empty deck.
 - Code: research, passes and eras in `engine/research.gd`; `engine/effects/research_effect.gd`, `add_era_effect.gd`.
-- UI: a research info label above End turn (research deck count, era, lost techs; hidden when the config has no
-  research deck), a choice panel with the revealed techs (click one to buy) and Decline, and a Researched row.
+- Tech tree (059): `tech_tree()` lists every tech in `research_deck` by era, then config order, as
+  `{id, era, prereq, state, cost, passes, gives}`; `state` is `GameEngine.TECH_RESEARCHED` / `TECH_AVAILABLE` (research
+  deck or revealed) / `TECH_FUTURE` / `TECH_LOST`, `gives` the cards it creates or unlocks. Optional config
+  `era_names` (`{"1": "Stone Age"}`) feeds `era_name(n)`, default "Era n".
+- UI: a Knowledge (T) button above End turn (with the current era's name; hidden when the config has no research
+  deck) opens the tech tree modal: one column per era with its thresholds, each tech's state as a mark and a word,
+  cost now, prereq ("after Mining") and what it gives; clicking a tech opens its details. A choice panel shows the
+  revealed techs (click one to buy) and Decline, and a Known row the researched techs.
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
@@ -255,7 +262,7 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
   "X isn't unlocked yet.", and the Supply screen hides them. Every `unlock` on a card the config uses must name a
   supply pile. The lock state is in `GameState.locked_supply` and copied by `fork()`.
 - Code: supply and `buy` in `engine/supply.gd`.
-- UI (033): a Supply (S) button above the research info opens the supply screen, an overlay with one card per pile
+- UI (033): a Supply (S) button above the Knowledge button opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
@@ -278,7 +285,7 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
   supply's Granary pile grew to 3 to keep growth cards available.
 - UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an
-  "Events: deck N · discard M" label sits under the research info (tooltip: one event is drawn at the end of each
+  "Events: deck N · discard M" label sits under the Knowledge button (tooltip: one event is drawn at the end of each
   turn). Both are hidden when the config has no event deck. An ending event flies to that label.
 
 ## Later
