@@ -167,6 +167,18 @@ func grow_cost(territory_uid: int) -> int:
 	return pop(territory_uid) + 1
 
 
+## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
+## or not enough to pay it. "" if it can.
+func relieve_famine_error() -> String:
+	return Famine.relieve_error(self)
+
+
+## Pays the config's population.famine.relief and the active Famine leaves the game at once (084). False (and no
+## change) if relieve_famine_error says no.
+func relieve_famine() -> bool:
+	return Famine.relieve(self)
+
+
 ## Why settled territory territory_uid can't grow right now, or "" if it can.
 func grow_error(territory_uid: int) -> String:
 	return Population.grow_error(self, territory_uid)

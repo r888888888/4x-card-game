@@ -37,6 +37,40 @@ static func growth_error(e: GameEngine) -> String:
 	return "Famine: pop can't grow." if active(e) != null else ""
 
 
+## Why relieve can't end the Famine now, or "" (084).
+static func relieve_error(e: GameEngine) -> String:
+	var blocked := e._blocked_error("relieve_famine")
+	if blocked != "":
+		return blocked
+	if active(e) == null:
+		return "There is no famine."
+	var relief: Dictionary = e.config.famine.get("relief", {})
+	if relief.is_empty():
+		return "The famine can't be relieved."
+	for r in relief:
+		if e.resources.get(r, 0) < relief[r]:
+			return "Relieving the famine needs %s (you have %d)." % [_amounts(relief), e.resources.get(r, 0)]
+	return ""
+
+
+## Pays population.famine.relief and the Famine leaves the game (084). False (and no change) if relieve_error says no.
+static func relieve(e: GameEngine) -> bool:
+	if relieve_error(e) != "":
+		return false
+	var relief: Dictionary = e.config.famine.relief
+	for r in relief:
+		e.resources[r] -= relief[r]
+	e.zone("active_events").remove(active(e))
+	e._log("Relieved the famine (%s)." % _amounts(relief))
+	e.changed.emit()
+	return true
+
+
+## A cost as text: "5 wealth", "2 food, 5 wealth".
+static func _amounts(cost: Dictionary) -> String:
+	return ", ".join(PackedStringArray(cost.keys().map(func(r): return "%d %s" % [cost[r], r])))
+
+
 ## After pop has eaten: fed ends an active Famine. Short brings one (or adds a counter, up to max_counters) and
 ## resolves it once per counter; a guard on the territory the death would come from saves it instead.
 static func after_feeding(e: GameEngine, fed: bool) -> void:

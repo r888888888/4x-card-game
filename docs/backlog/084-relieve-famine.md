@@ -2,7 +2,7 @@
 id: 084
 title: Relieve a Famine by paying wealth
 type: feature
-status: red-review
+status: in-progress
 branch: feat/084-relieve-famine
 ---
 

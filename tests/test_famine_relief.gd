@@ -27,8 +27,9 @@ func set_home_pop(e: Object, n: int) -> void:
 
 
 ## relief_engine at 4 pop after two hungry upkeeps: a Famine with 2 counters, 1 pop left, then wealth on hand.
-func two_counter_engine(wealth: int) -> Object:
-	var e := relief_engine(4)
+## overrides replace config keys.
+func two_counter_engine(wealth: int, overrides := {}) -> Object:
+	var e := relief_engine(4, 0, 0, RELIEF, overrides)
 	e.end_turn()  # famine 1: 4 -> 3
 	e.end_turn()  # famine 2: 3 -> 1
 	check(e.famine_counters() == 2, "a Famine with 2 counters")
@@ -80,8 +81,9 @@ func test_relieve_famine_error_names_each_reason_and_relief_changes_nothing() ->
 	over.end_turn()  # famine 1
 	over.end_turn()  # the game ends
 	check(over.is_over, "the game is over")
-	var choice := two_counter_engine(20)
+	var choice := two_counter_engine(20, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(choice.play_card(put_in_hand(choice, "explorer")), "play Explorer")
+	check(not choice.pending().is_empty(), "an explore choice is open")
 	var cases := [
 		["no famine", relief_engine(2, 10, 20), "There is no famine."],
 		["3 wealth", two_counter_engine(3), "Relieving the famine needs 5 wealth (you have 3)."],
