@@ -17,6 +17,15 @@ static func options(e: GameEngine) -> Array[int]:
 	return out
 
 
+## The name of the first card with a research effect, in config deck order then supply order; "" if none.
+static func card_name(e: GameEngine) -> String:
+	for id in e.config.deck.keys() + e.config.get("supply", {}).keys():
+		var def: CardDef = e.card_db[id]
+		if def.effects.any(func(effect): return effect.op == "research"):
+			return def.name
+	return ""
+
+
 static func upcoming_era_unlocks(e: GameEngine) -> Dictionary:
 	var out := {}
 	for n in e.era_unlocks():

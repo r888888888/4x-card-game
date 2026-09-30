@@ -154,6 +154,11 @@ static func stat(parent: Control, color := Color.WHITE) -> Label:
 	return label
 
 
+## word with "a" or "an" before it, by its first letter ("an Insight", "a Research").
+static func with_article(word: String) -> String:
+	return ("an " if "AEIOUaeiou".contains(word.left(1)) else "a ") + word
+
+
 static func heading(text: String) -> Label:
 	var label := Label.new()
 	label.text = text

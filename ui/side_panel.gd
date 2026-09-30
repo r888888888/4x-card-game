@@ -39,7 +39,6 @@ func _init(on_knowledge: Callable, on_details: Callable) -> void:
 		_identity[zone_name] = line
 		add_child(line)
 	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
-	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives.\nPlay an Insight card to reveal 2 techs."
 	add_child(_knowledge)
 	event_info = UIKit.heading("")
 	event_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
@@ -103,6 +102,9 @@ func refresh(e: GameEngine) -> void:
 			line.set_meta("card_id", def.id)
 	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
 	_knowledge.visible = e.config.research_deck.size() > 0
+	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives."
+	if e.research_card_name() != "":
+		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 	event_info.visible = not e.config.get("event_deck", {}).is_empty()
 	event_info.text = "Events: deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
 	var pending := e.pending()

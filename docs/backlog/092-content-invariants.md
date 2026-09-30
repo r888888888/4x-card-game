@@ -2,7 +2,7 @@
 id: 092
 title: Research card name from the engine; content tests assert invariants only
 type: feature
-status: red-review
+status: in-progress
 branch: feat/092-content-invariants
 ---
 
