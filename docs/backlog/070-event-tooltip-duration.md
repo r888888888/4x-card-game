@@ -2,7 +2,7 @@
 id: 070
 title: Event tooltip says how long the event lasts
 type: feature
-status: red-review
+status: in-progress
 branch: feat/070-event-tooltip-duration
 ---
 
