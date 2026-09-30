@@ -29,7 +29,7 @@ duration out. The tooltip is the full text, so it should say it too.
 | AC3 | `test_events::test_card_text_replaces_the_duration_on_an_event` (passes already: `text` has always replaced both forms) |
 
 ## Manual check
-- [ ] Hover an active event with a duration (e.g. Harvest Festival): the tooltip ends with "Lasts n turns"; its
+- [ ] Hover an active event: the tooltip ends with "Lasts 1 turn" (Mild Spring: "Lasts 2 turns"); its
   details (right-click) show the line too.
 
 ## Log
