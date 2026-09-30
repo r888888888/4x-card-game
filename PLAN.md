@@ -244,6 +244,11 @@ starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds 
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
   There is no limit per turn; an empty pile can't be bought from. Blocked like grow (game over, explore
   choice, research open, discard owed).
+- Locked piles (057): `"locked": true` on a supply entry keeps the pile shut until an `unlock` effect
+  (`{ "op": "unlock", "card": "guildhall" }`, play only) opens it, typically on a tech next to a `create` of the free
+  copy. `supply()` still lists locked piles; `supply_locked(card_id)` tells them apart, `buy_error` says
+  "X isn't unlocked yet.", and the Supply screen hides them. Every `unlock` on a card the config uses must name a
+  supply pile. The lock state is in `GameState.locked_supply` and copied by `fork()`.
 - Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): a Supply (S) button above the research info opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
