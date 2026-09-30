@@ -2,7 +2,7 @@
 id: 103
 title: Navigation stack for screens (Back and Esc in one place)
 type: feature
-status: review
+status: done
 branch: feat/103-navigation-stack
 ---
 
