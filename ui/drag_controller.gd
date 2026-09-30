@@ -111,6 +111,7 @@ func end_targeting() -> void:
 func _light_targets(uid: int, clickable: bool) -> void:
 	lit = Game.engine.valid_targets(uid)
 	for target in lit:
+		_board.tableau.reveal(target)  # a lit card in a collapsed group must be visible (087)
 		_board.tableau.set_lit(target, true)
 		var view: CardView = _board.views.get(target)
 		if view != null:

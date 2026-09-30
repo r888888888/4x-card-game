@@ -27,6 +27,7 @@ const TYPE_COLORS := {
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
 const COMPACT_SIZE := Vector2(245, 95)  # a frontier territory: name and info only
+const BANNER_SIZE := Vector2(440, 44)  # a settled territory as its group's one-line title bar (087)
 const WARN_COLOR := Color("ff6b6b")
 const HIGHLIGHT_COLOR := Color("ffd966")
 # A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
@@ -56,20 +57,22 @@ var _hover := false
 var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
+var _banner := false  # drawn as a territory group's title bar: no fill, and a border only when lit or hovered
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
 ## (shown on the card and as tooltip). Ignored for tableau cards. compact leaves out the type line and
-## rules (for frontier territories, to save height).
-func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false) -> void:
+## rules (for frontier territories, to save height). banner draws a settled territory as a flat one-line title bar.
+func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false, banner := false) -> void:
 	uid = card.uid
 	card_id = card.def.id
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
 	_color = TYPE_COLORS.get(def.type, Color.GRAY)
-	_target_size = HAND_SIZE if in_hand else (COMPACT_SIZE if compact else TABLEAU_SIZE)
+	_banner = banner
+	_target_size = HAND_SIZE if in_hand else (BANNER_SIZE if banner else (COMPACT_SIZE if compact else TABLEAU_SIZE))
 	custom_minimum_size = _target_size
 
 	if _style == null:
@@ -89,7 +92,11 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_face.queue_free()
 	_face = CardFace.new()
 	add_child(_face)
-	_face.build(card, card_db, in_hand, compact, _color)
+	_style.set_content_margin_all(6 if banner else 12)
+	if banner:
+		_face.build_banner(card, _color)
+	else:
+		_face.build(card, card_db, in_hand, compact, _color)
 
 	if in_hand:
 		set_play_error(play_error)
@@ -247,6 +254,16 @@ func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null) -> vo
 
 ## The size of the slot this card rests in: its nominal size, plus the lift room above a hand card. A card whose
 ## text needs more room grows its slot once it is at rest.
+## Whether the card is drawn as a territory group's title bar.
+func is_banner() -> bool:
+	return _banner
+
+
+## Test hook (087): the text on the card's face, lines joined by newlines.
+func face_text() -> String:
+	return _face.text() if _face != null else ""
+
+
 func slot_size() -> Vector2:
 	return _motion.slot_size()
 
@@ -338,5 +355,9 @@ func _update_border() -> void:
 		_style.border_color = DIM_BORDER if _dimmed else _color
 	_style.shadow_size = 14 if (_hover or state == State.DRAGGING) else 0
 	_style.set_border_width_all(4 if _highlight else 2)
+	if _banner and state == State.REST:  # a title bar: flat, with a border only while lit, warned or hovered
+		_style.bg_color = Color.TRANSPARENT
+		if not (_highlight or _warning or _hover):
+			_style.set_border_width_all(0)
 	_style.shadow_offset = Vector2(0, 8)
 

@@ -45,8 +45,13 @@ func test_bug_078_every_card_stays_in_its_group() -> void:
 	add_farms(home, 10 - group_cards(home).size())
 	main.tableau.move_ghost(home)  # the ghost goes into the home group's row: use it to find that row
 	var row: Node = main.tableau.ghost.get_parent()
-	for uid in group_cards(home):
+	var cards := group_cards(home)
+	for uid in cards:
 		check(main.views.has(uid), "card %d has a view" % uid)
+	# 087: the territory is the group's title bar; every other card is in the row.
+	if main.views.has(home):
+		check(main.tableau.group_header(home).is_ancestor_of(main.views[home]), "the territory is in the header")
+	for uid in cards.slice(1):
 		if main.views.has(uid):
 			check((main.views[uid] as CardView).slot.get_parent() == row, "card %d is in the home group's row" % uid)
 	close_main(main)

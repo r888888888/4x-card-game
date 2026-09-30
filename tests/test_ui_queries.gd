@@ -146,3 +146,31 @@ func test_territory_groups_put_cards_with_no_territory_last() -> void:
 		[home, [home, uid_of(t, "capital")]],
 		[-1, [uid_of(t, "city")]],
 	], "groups")
+
+
+# --- territory_summary (backlog 087) ---
+
+## A game on Homeland with the Capital and 3 Farms built on it; population on with 2 pop when pop is true.
+func summary_engine(pop: bool) -> Object:
+	var o := {"territory_deck": {"hills": 1}}
+	if pop:
+		o["population"] = {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
+	var e: Object = make_engine({"farm": 10}, o)
+	build_on(e, home_uid(e), ["farm", "farm", "farm"])
+	return e
+
+
+func test_territory_summary_counts_cities_buildings_and_idle() -> void:
+	var e := summary_engine(true)
+	eq(e.territory_summary(home_uid(e)), {"cities": 1, "buildings": 3, "idle": 1}, "Capital, 3 Farms, 2 pop: 1 idle")
+	var off := summary_engine(false)
+	eq(off.territory_summary(home_uid(off)), {"cities": 1, "buildings": 3, "idle": 0}, "population off: none idle")
+
+
+func test_territory_summary_is_empty_for_anything_but_a_settled_territory() -> void:
+	var e := summary_engine(true)
+	to_frontier(e, ["hills"])
+	var farm := uid_of(e.zone("tableau"), "farm")
+	eq(e.territory_summary(farm), {}, "a building")
+	eq(e.territory_summary(uid_of(e.zone("frontier"), "hills")), {}, "a frontier territory")
+	eq(e.territory_summary(9999), {}, "an unknown uid")

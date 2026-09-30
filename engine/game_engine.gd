@@ -360,6 +360,12 @@ func territory_groups() -> Array[Dictionary]:
 	return Territories.groups(self)
 
 
+## What is built on settled territory uid, for a collapsed group's summary: {cities, buildings, idle}, or {} when
+## uid isn't a territory in the tableau.
+func territory_summary(uid: int) -> Dictionary:
+	return Territories.summary(self, uid)
+
+
 ## Cards that must still be discarded before the turn can end (0 when none is pending).
 func discard_needed() -> int:
 	return state.discard_left

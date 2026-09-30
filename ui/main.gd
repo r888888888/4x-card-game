@@ -35,6 +35,7 @@ var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _side: SidePanel
+var _collapse_all: Button  # on the Realm heading: collapses or expands every territory group (087)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
@@ -83,6 +84,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_side.clear_log()
 	supply.close()
 	_reset_views()
+	tableau.reset()
 	Game.new_game(seed_value, civ_id)
 	_menu.set_game(seed_value, _civilization_name())
 
@@ -326,6 +328,7 @@ func _refresh() -> void:
 		if _place(hand_cards[i], hand, i, 0.0 if UIKit.calm() else dealt * Anim.DEAL_STAGGER):
 			dealt += 1
 	tableau.refresh(e, func(card: CardInstance, row: Container, index: int): _place(card, row, index, 0.0))
+	_refresh_collapse_all()
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		for i in cards.size():
@@ -348,6 +351,12 @@ func _refresh() -> void:
 	_game_over.refresh(e)
 
 
+## The Collapse all button: shown with a territory group, and says Expand all once every group is collapsed.
+func _refresh_collapse_all() -> void:
+	_collapse_all.visible = Game.engine.territory_groups().any(func(g): return tableau.has_toggle(g.territory))
+	_collapse_all.text = "Expand all" if tableau.all_collapsed() else "Collapse all"
+
+
 ## Makes sure card has a view resting in (or flying to) a slot at index in container.
 ## Returns true if the card was newly dealt into the hand.
 func _place(card: CardInstance, container: Container, index: int, delay: float) -> bool:
@@ -355,10 +364,11 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
 	var compact := container == _events_row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
+	var banner := tableau.is_banner(container)  # a settled territory, drawn as its group's title bar (087)
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, banner)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(on_double_clicked)
@@ -376,7 +386,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		if view == drag.dragging:
 			drag.end_drag()
 		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, banner)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.fly_to_slot(_new_slot(view, container, index), fx)
 		_free_slot(old_slot)
@@ -500,7 +510,19 @@ func _build_layout() -> void:
 	var realm_section := UIKit.section(_play_area, "Realm")
 	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tableau = TableauView.new()
+	tableau.collapse_changed.connect(_refresh)
 	realm_section.add_child(tableau)
+	# Collapse all / Expand all (087), at the right end of the Realm heading so it takes no extra row.
+	_collapse_all = UIKit.button("Collapse all", func(): tableau.set_all_collapsed(not tableau.all_collapsed()))
+	_collapse_all.tooltip_text = "Show each territory as its territory card and a summary of what's built on it."
+	_collapse_all.add_theme_font_size_override("font_size", 17)
+	_collapse_all.anchor_left = 1.0  # pinned to the heading's right end, growing left
+	_collapse_all.anchor_right = 1.0
+	_collapse_all.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_collapse_all.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_collapse_all.anchor_top = 0.5
+	_collapse_all.anchor_bottom = 0.5
+	realm_section.get_child(0).add_child(_collapse_all)
 	_row_sections.frontier = UIKit.card_row_section(_play_area, "Frontier",
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
 	frontier = _row_sections.frontier.get_meta("row")
