@@ -2,7 +2,7 @@
 id: 081
 title: gain_per_keyword op (gain per settled territory with a keyword) and Hunt
 type: feature
-status: red-review
+status: in-progress
 branch: feat/081-gain-per-keyword-op
 ---
 

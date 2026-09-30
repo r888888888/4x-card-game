@@ -145,6 +145,12 @@ func territory_keywords(uid: int) -> Array[String]:
 	return Territories.keywords_of(self, uid)
 
 
+## How many settled territories (in the tableau) have any of keywords, printed or rolled; each counts once.
+func count_territories_with(keywords: Array[String]) -> int:
+	return zone("tableau").cards.filter(func(c: CardInstance):
+		return c.def.type == CardDef.TERRITORY and keywords.any(func(k): return c.keywords.has(k))).size()
+
+
 ## Food to grow settled territory territory_uid by 1 pop: its current pop + 1.
 func grow_cost(territory_uid: int) -> int:
 	return pop(territory_uid) + 1
