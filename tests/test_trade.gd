@@ -3,17 +3,6 @@ extends "res://tests/lib/test_case.gd"
 
 
 const TRADE := {"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2}
-const TRADER := {"id": "trader", "name": "Trader", "type": "action", "cost": {"food": 1}, "effects": [TRADE]}
-
-
-## TEST_CARDS plus Trader, parsed.
-func trader_cards() -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [TRADER]}, resources(), "test", errors, warnings,
-		keywords())
-	check(errors.is_empty(), "test data should load: %s" % [errors])
-	return cards
 
 
 ## Loads one action card x with effect; returns {cards, errors, warnings}.
@@ -41,13 +30,7 @@ func trade_engine(cities: int, total_pop: int, population := true) -> GameEngine
 	var o := {}
 	if population:
 		o["population"] = {"start": 1, "food_upkeep": 0, "vp_per_pop": 0}
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := trader_cards()
-	var config := DataLoader.parse_config(raw_config({"trader": 10}, o), resources(), cards, "test", errors, warnings)
-	check(errors.is_empty(), "test config should load: %s" % [errors])
-	var e := GameEngine.new(cards, config)
-	e.new_game(1)
+	var e := make_engine({"trader": 10}, o)
 	for i in cities - 1:
 		e.create_card("city", "tableau", null)
 	if population:
@@ -117,7 +100,9 @@ func test_trade_without_population_counts_no_pop() -> void:
 # --- AC5: text ---
 
 func test_trade_text() -> void:
-	var cards := trader_cards()
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
 	eq(cards.trader.rules_text(cards), "Needs 2 cities\n+2 wealth ×√cities, +1 per 5 pop", "short text")
 	eq(cards.trader.rules_tooltip(cards),
 		"Needs 2 cities. Gain 2 wealth × √cities (rounded down), plus 1 wealth per 5 pop.", "tooltip")
