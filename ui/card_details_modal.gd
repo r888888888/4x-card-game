@@ -9,6 +9,8 @@ var _title: Label
 var _subtitle: Label
 var _body: RichTextLabel
 var _details := {}  # what is shown; {} while hidden
+var _action_button: Button  # an optional action beside Close, e.g. "Play as …" on the new game screen (107)
+var _action := Callable()
 
 
 ## Builds the modal on parent, hidden.
@@ -47,7 +49,12 @@ func _init(parent: Control) -> void:
 	_body.add_theme_font_size_override("bold_font_size", 19)
 	_body.add_theme_font_size_override("italics_font_size", 19)
 	text.add_child(_body)
-	text.add_child(UIKit.button("Close (Esc)", close))
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 12)
+	text.add_child(buttons)
+	_action_button = UIKit.button("", _on_action)
+	buttons.add_child(_action_button)
+	buttons.add_child(UIKit.button("Close (Esc)", close))
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -60,15 +67,26 @@ func body_text() -> String:
 	return _body.get_parsed_text()
 
 
-## Opens the details of the card view shows: its live copy, or its definition for a supply pile.
-func open(view: CardView) -> void:
+## Test hook: the optional action button (hidden when the details were opened without an action).
+func action_button() -> Button:
+	return _action_button
+
+
+## Opens the details of the card view shows: its live copy, or its definition for a supply pile. With an action,
+## a button labelled action_text closes the details and calls it.
+func open(view: CardView, action_text := "", action := Callable()) -> void:
 	var details := Game.engine.card_details(view.uid)
 	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id)
+	_action = action
+	_action_button.text = action_text
+	_action_button.visible = action.is_valid()
 
 
 ## Opens the details of card definition card_id (a tech in the tree).
 func open_def(card_id: String) -> void:
 	_show(Game.engine.def_details(card_id), card_id)
+	_action = Callable()
+	_action_button.visible = false
 
 
 func _show(details: Dictionary, card_id: String) -> void:
@@ -91,12 +109,21 @@ func _show(details: Dictionary, card_id: String) -> void:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_slot.custom_minimum_size = card.slot_size()
 	card.attach(_card_slot)
+	# Last among its siblings: input goes by tree order, not z_index, so a screen added later (the new game screen)
+	# would otherwise take the clicks and keys meant for the details (107).
+	get_parent().move_child(self, -1)
 	show()
 
 
 func close() -> void:
 	hide()
 	_details = {}
+
+
+func _on_action() -> void:
+	var action := _action
+	close()
+	action.call()
 
 
 static func _body_text(details: Dictionary) -> String:

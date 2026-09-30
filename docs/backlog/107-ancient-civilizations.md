@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: red-review
+status: review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -35,9 +35,9 @@ Content item: the tests assert invariants of the real data; the roster and its n
   details modal, which starts with the flavor and shows every line of its rules (all its bonuses).
 - [x] AC10 (details order): in the details modal, the flavor comes first, then the quote, then Rules, Now and How it
   works; the same modal opens from the civilization line in play.
-- [ ] AC11 (bug, found in review): with the details open over the new game screen, a real mouse click on Close
+- [x] AC11 (bug, found in review): with the details open over the new game screen, a real mouse click on Close
   closes them. (The new game screen, later in the scene tree, took the click: Godot picks by tree order, not z_index.)
-- [ ] AC12 (new game screen): the details of a civilization opened there have a "Play as <name>" button that selects
+- [x] AC12 (new game screen): the details of a civilization opened there have a "Play as <name>" button that selects
   it (and saves the choice), closes the details and starts a game as it with the seed field's seed. Details opened
   anywhere else have no such button.
 
@@ -102,6 +102,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
   its card and in its details.
 - [ ] On the new game screen, click each civilization: it highlights and its details open with the flavor and quote
   on top and every bonus under Rules. Close; Start plays the last one clicked.
+- [ ] In the details on the new game screen, click Close: they close. Click a civilization again and press
+  "Play as …": a game starts as it (with the seed field's seed, if any), and the choice is remembered.
 - [ ] In a game, click the Civilization line in the side panel: the same details, flavor first.
 - [ ] Flavor reads well in the details modal; quotes are accurate to a published translation.
 - [ ] The new game screen fits six civilization cards without clipping, at the default and a narrow window size.
@@ -119,3 +121,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
   it too.
 - Review change (AC9, AC10): a click on a civilization on the new game screen selects it and opens its details; the
   details put flavor and quote first. New hook `NewGameScreen.civilization_view(id)`. Tests 738 → 740.
+- Review bug (AC11): Close didn't work over the new game screen. Godot routes mouse input by tree order, not z_index,
+  and the new game screen is a later sibling of the details modal, so its full-screen CenterContainer took the click.
+  The modal now moves itself to the end of its parent when it opens.
+- Review change (AC12): the details modal takes an optional action (`open(view, action_text, action)`, hook
+  `action_button()`); the new game screen passes "Play as <name>". Tests 740 → 743.
