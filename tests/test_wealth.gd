@@ -135,3 +135,39 @@ func test_growth_needs_food_not_wealth() -> void:
 	check(not e.grow(home), "grow fails")
 	eq(e.pop(home), 2, "pop unchanged")
 	eq(e.resources.wealth, 10, "wealth unchanged")
+
+
+# --- Backlog 077: upkeep wealth per city (the Market's rule), as a regression guard ---
+
+## A game whose tableau holds the Capital, cities more City cards and a building "bank" making +1 wealth per city at
+## upkeep, with 0 wealth.
+func per_city_engine(cities: int) -> GameEngine:
+	var bank := {"id": "bank", "name": "Bank", "type": "building",
+		"effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep"}]}
+	var loaded := load_with([bank])
+	var errors: Array[String] = loaded.errors
+	var config := DataLoader.parse_config(raw_config({"scout": 10}), resources(), loaded.cards, "test", errors, [] as Array[String])
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var e := GameEngine.new(loaded.cards, config)
+	e.new_game(1)
+	build_on(e, home_uid(e), ["bank"])
+	for i in cities:
+		e.create_card("city", "tableau", null)
+	e.resources.wealth = 0
+	return e
+
+
+func test_upkeep_wealth_per_city_counts_every_city_in_the_tableau() -> void:
+	var e := per_city_engine(2)
+	e.end_turn()
+	eq(e.resources.wealth, 3, "Capital + 2 Cities")
+	e = per_city_engine(0)
+	e.end_turn()
+	eq(e.resources.wealth, 1, "the Capital alone")
+
+
+func test_forecast_shows_upkeep_wealth_per_city_and_changes_nothing() -> void:
+	var e := per_city_engine(2)
+	var before: Dictionary = e.resources.duplicate()
+	eq(e.upkeep_forecast().get(GameEngine.WEALTH, 0), 3, "+3 wealth forecast")
+	eq(e.resources, before, "resources unchanged")
