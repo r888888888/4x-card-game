@@ -18,7 +18,7 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
 	for effect in card.def.effects:
 		if effect.trigger == "play":
-			var blocked := effect.play_block_error(e)
+			var blocked := effect.play_block_error(e, card)
 			if blocked != "":
 				return blocked
 	if not needs_target(card):

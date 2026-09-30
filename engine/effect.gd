@@ -80,8 +80,8 @@ func target_zone() -> String:
 	return ""
 
 
-## Why a card with this effect can't be played right now, or "" if it can (e.g. nothing to research).
-func play_block_error(_engine: GameEngine) -> String:
+## Why card, which has this effect, can't be played right now, or "" if it can (e.g. nothing to research).
+func play_block_error(_engine: GameEngine, _card: CardInstance) -> String:
 	return ""
 
 

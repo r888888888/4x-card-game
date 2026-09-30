@@ -95,6 +95,9 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 ```
 - `trigger` is `play` (default), `upkeep`, or later `event`. Only `gain`, `gain_per_tag`, `score` and `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
+- `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
+  gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
+  tableau the card can't be played (Caravan).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error.
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.

@@ -49,7 +49,7 @@
     {
       "id": "caravan", "name": "Caravan", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": ["trade"],
-      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city" } ]
+      "effects": [ { "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 } ]
     },
     {
       "id": "temple", "name": "Temple", "type": "building",

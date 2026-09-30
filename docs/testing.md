@@ -49,6 +49,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep and starvation |
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
+| `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
 | `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap |
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |

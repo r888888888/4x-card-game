@@ -50,6 +50,8 @@ const TEST_CARDS := {"cards": [
 	{"id": "bazaar", "name": "Bazaar", "type": "action",
 	 "effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}]},
 	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "research"}]},
+	{"id": "trader", "name": "Trader", "type": "action", "cost": {"food": 1}, "effects": [
+		{"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2}]},
 ]}
 
 ## Fixture events (backlog 039), loaded with TEST_CARDS by event_db. Not in TEST_CARDS itself, so make_engine games
