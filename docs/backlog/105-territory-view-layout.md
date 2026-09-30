@@ -2,7 +2,7 @@
 id: 105
 title: Territory view layout: the territory as a framed box, its slots with free ones outlined, no bounce
 type: feature
-status: red-review
+status: in-progress
 branch: feat/105-territory-view-layout
 ---
 

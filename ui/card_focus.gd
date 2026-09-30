@@ -38,7 +38,7 @@ func row() -> Array[CardView]:
 ## The open territory view's cards, else the Realm's territory cards in tableau order.
 func board_row() -> Array[CardView]:
 	if _board.territory_view.is_open():
-		return _board.views_in(_board.territory_view.hero) + _board.views_in(_board.territory_view.row)
+		return _board.views_in(_board.territory_view.row)
 	var out: Array[CardView] = []
 	for group in Game.engine.territory_groups():
 		if group.territory != -1 and _board.views.has(group.territory):
@@ -141,7 +141,8 @@ func activate() -> void:
 	elif _board.pending_kind() in [GameEngine.PENDING_EXPLORE, GameEngine.PENDING_RESEARCH] or (drag.targeting != null and drag.lit.has(view.uid)):
 		_board.on_picked(view)
 	elif on_board and not _board.territory_view.is_open():
-		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its card
+		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its first card
+		on_board = true  # the refresh dropped it: the territory's own card isn't in the view's row
 		set_card(_first(board_row()))
 	elif view.in_hand:
 		_board.on_double_clicked(view)

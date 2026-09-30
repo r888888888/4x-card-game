@@ -61,17 +61,15 @@ var _details_click := 0  # counts clicks; a delayed details request only fires i
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
 ## (shown on the card and as tooltip). Ignored for tableau cards. compact leaves out the type line and
-## rules (for frontier territories, to save height). large shows a board card at hand-card size (the territory in its
-## territory view, 105).
-func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false,
-		large := false) -> void:
+## rules (for frontier territories, to save height).
+func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false) -> void:
 	uid = card.uid
 	card_id = card.def.id
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
 	_color = TYPE_COLORS.get(def.type, Color.GRAY)
-	_target_size = HAND_SIZE if in_hand or large else (COMPACT_SIZE if compact else TABLEAU_SIZE)
+	_target_size = HAND_SIZE if in_hand else (COMPACT_SIZE if compact else TABLEAU_SIZE)
 	custom_minimum_size = _target_size
 
 	if _style == null:

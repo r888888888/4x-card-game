@@ -450,8 +450,8 @@ func test_closing_removes_the_cards_at_once() -> void:
 		main.territory_view.back_button.pressed.emit()
 		for uid in shown:
 			check(not main.views.has(uid), "card %d's view is gone at once" % uid)
-		var leaving: Array = main.fx.get_children().filter(func(c): return c is CardView)
-		eq(leaving.size(), 0, "nothing flies off")
+		var leaving: Array = main.fx.get_children().filter(func(c): return c is CardView and shown.has(c.uid))
+		eq(leaving.size(), 0, "none of the view's cards flies off (hand cards may still be being dealt)")
 		eq(main.views[home].state, CardView.State.REST, "the territory's card stays at rest"))
 
 
