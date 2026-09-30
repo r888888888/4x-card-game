@@ -120,6 +120,25 @@
       "effects": []
     },
     {
+      "id": "chiefdom", "name": "Chiefdom", "type": "government",
+      "vp": 0, "tags": [],
+      "effects": []
+    },
+    {
+      "id": "kingship", "name": "Kingship", "type": "government",
+      "vp": 0, "tags": [],
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "theocracy", "name": "Theocracy", "type": "government",
+      "vp": 0, "tags": [],
+      "effects": [
+        { "op": "score", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
       "id": "river_children", "name": "Children of the River", "type": "civilization",
       "vp": 0, "tags": [],
       "effects": [
@@ -249,12 +268,12 @@
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" } ]
+      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" } ]
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "create", "card": "kingship", "zone": "discard" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",

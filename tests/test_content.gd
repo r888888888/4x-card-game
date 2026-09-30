@@ -386,12 +386,29 @@ func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
 		for id in created_by(tech):
 			checked += 1
 			var pile: Dictionary = r.config.supply.get(id, {})
-			if r.cards[id].has_tag("wonder"):
-				check(pile.is_empty(), "wonder %s (from %s) has no supply pile" % [id, tech.id])
+			if r.cards[id].has_tag("wonder") or r.cards[id].type == CardDef.GOVERNMENT:
+				check(pile.is_empty(), "%s (from %s) has no supply pile" % [id, tech.id])
 				continue
 			check(pile.get("locked", false), "%s (from %s) is a locked supply pile" % [id, tech.id])
 			check(unlocks.has(id), "%s unlocks %s" % [tech.id, id])
 	check(checked > 0, "some tech gives a card")
+
+
+## Backlog 065: the game starts with a government, and every other government comes from a researchable tech.
+func test_starting_government_and_every_other_government_comes_from_a_tech() -> void:
+	var r := load_real()
+	var start: String = r.config.starting.government
+	check(start != "", "config has a starting.government")
+	var given := {}
+	for tech in techs_in_research_deck(r):
+		for id in created_by(tech):
+			given[id] = true
+	var others := 0
+	for id in r.cards:
+		if r.cards[id].type == CardDef.GOVERNMENT and id != start:
+			others += 1
+			check(given.has(id), "a tech in research_deck creates government %s" % id)
+	check(others >= 2, "at least 2 governments besides the starting one (got %d)" % others)
 
 
 func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:

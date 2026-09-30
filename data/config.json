@@ -14,7 +14,8 @@
     "resources": { "food": 2, "wealth": 2 },
     "tableau": ["capital"],
     "territory": "grassland",
-    "civilization": "river_children"
+    "civilization": "river_children",
+    "government": "chiefdom"
   },
   "civilizations": ["river_children", "salt_traders", "hearth_clans", "star_watchers"],
   "deck": {
