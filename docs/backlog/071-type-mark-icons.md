@@ -2,7 +2,7 @@
 id: 071
 title: Icons for the tech and event type marks
 type: feature
-status: ready
+status: red-review
 branch: feat/071-type-mark-icons
 ---
 
@@ -24,10 +24,10 @@ hand-drawn style.
   scale 0.6 like the other type marks.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_smoke::test_…` |
+| AC1 | `test_ui_smoke::test_every_type_mark_has_an_icon` |
+| AC2 | `test_ui_smoke::test_main_scene_follows_a_whole_game_without_errors` (existing) |
 
 ## Manual check
 - [ ] The tech and event marks read clearly beside the type name on a hand card, a compact card and in the log,
@@ -35,3 +35,4 @@ hand-drawn style.
 
 ## Log
 - From 068's follow-ups.
+- 2026-09-30: Red. `TYPE_MARKS` moved to `CardFace` in 086; the test reads it there.

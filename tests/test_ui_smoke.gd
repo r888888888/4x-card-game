@@ -47,3 +47,16 @@ func test_smoke_test_frees_the_scene_and_leaves_settings_alone() -> void:
 	eq(FileAccess.file_exists(SETTINGS_PATH), existed, "settings file created or deleted")
 	if existed:
 		eq(FileAccess.get_modified_time(SETTINGS_PATH), modified, "settings file modified time")
+
+
+## Backlog 071: every card type mark is drawn as an icon from assets/icons/, so a new type can't go without one.
+func test_every_type_mark_has_an_icon() -> void:
+	var missing: Array[String] = []
+	for type in CardFace.TYPE_MARKS:
+		var mark: String = CardFace.TYPE_MARKS[type]
+		if not Icons.GLYPHS.has(mark):
+			missing.append("%s (%s)" % [type, mark])
+			continue
+		var path: String = Icons.GLYPHS[mark][0].resource_path
+		check(path.begins_with("res://assets/icons/") and path.ends_with(".svg"), "%s's icon is an SVG in assets/icons/: %s" % [type, path])
+	eq(missing, [] as Array[String], "type marks with no icon")
