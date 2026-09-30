@@ -2,7 +2,7 @@
 id: 072
 title: Harmful event ops — lose resources and lose pop
 type: feature
-status: ready
+status: red-review
 branch: feat/072-harmful-event-ops
 ---
 
@@ -38,8 +38,15 @@ trigger each upkeep while the event lasts.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_events::test_…` |
+| AC1 | `test_harmful_ops::test_lose_takes_the_resource`, `::test_lose_never_goes_below_zero`, `::test_lose_works_for_wealth`, `::test_a_drawn_event_with_lose_takes_food` |
+| AC2 | `test_harmful_ops::test_lose_and_lose_pop_load_on_a_building`, `::test_lose_and_lose_pop_validation` |
+| AC3 | `test_harmful_ops::test_lose_pop_takes_from_the_territory_with_the_most_pop`, `::test_lose_pop_tie_takes_from_the_first_in_tableau_order`, `::test_lose_pop_with_no_pop_does_nothing` |
+| AC4 | `test_harmful_ops::test_upkeep_lose_is_in_the_forecast_and_applies`, `::test_upkeep_lose_pop_applies_and_the_forecast_leaves_pop_alone`, `test_forecast::test_upkeep_safe_ops_may_trigger_on_upkeep` (2 rows added to `UPKEEP_SAFE`) |
+| AC5 | `test_harmful_ops::test_lose_and_lose_pop_card_text`, `::test_the_log_names_the_source_card` |
 
 ## Log
 - From 039's follow-ups.
 - Open questions settled: `lose_pop` hits the largest territory; both ops are allowed on any card type.
+- 2026-09-30: Red at 610 tests (was 597), 14 failing. Fixtures are local to `test_harmful_ops.gd`. AC1's exact
+  numbers are tested on a played action; one test draws an event and stops before the next upkeep (hand over the
+  limit), so its numbers stay exact too.
