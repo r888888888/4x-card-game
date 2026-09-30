@@ -2,7 +2,7 @@
 id: 099
 title: Split the start screen into a title screen, a new game screen and settings
 type: feature
-status: review
+status: done
 branch: feat/099-title-screen
 ---
 
