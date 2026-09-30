@@ -21,9 +21,8 @@ func _init(parent: Control) -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
 	motion_toggle = UIKit.motion_toggle()
-	box.add_child(motion_toggle)
 	back_button = UIKit.button("Back", func(): back_requested.emit())
-	box.add_child(back_button)
+	UIKit.button_column(box, [motion_toggle, back_button])
 	UIKit.focus_loop([back_button, motion_toggle])
 
 

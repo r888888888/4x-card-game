@@ -51,9 +51,8 @@ func _init(parent: Control, on_details: Callable) -> void:
 	seed_row.add_child(seed_edit)
 	start_button = UIKit.button("Start", _start)
 	start_button.tooltip_text = "Start a game with the seed above, or a random one if it's empty."
-	box.add_child(start_button)
 	back_button = UIKit.button("Back", func(): back_requested.emit())
-	box.add_child(back_button)
+	UIKit.button_column(box, [start_button, back_button])
 	UIKit.focus_loop([start_button, seed_edit, back_button])
 
 

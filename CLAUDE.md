@@ -24,6 +24,13 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   change nothing but resources, bonus score and pop. Nobody can choose or target during upkeep, and
   `upkeep_forecast` reports only resources and `starve`.
 
+## UI design
+- Buttons are generally not full width: a `Button` sizes to its text plus padding and doesn't stretch across its
+  panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
+  they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
+  stretch; build such a column with `UIKit.button_column`). Buttons that are really list
+  rows or content tiles (the side panel's civilization and government lines, the tech tree's techs) may fill.
+
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).
 1. **Spec**: `spec` skill. Turns a request into an item with testable acceptance criteria.

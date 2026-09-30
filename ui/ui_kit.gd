@@ -170,6 +170,7 @@ static func heading(text: String) -> Label:
 static func button(text: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
+	b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN  # buttons fit their text (100); rows and tiles set SIZE_FILL
 	b.pressed.connect(on_pressed)
 	# Tab reaches every button (with a focus ring); a mouse click doesn't leave it focused, so a
 	# later Enter or arrow key goes to the cards, not to the last button clicked.
@@ -177,6 +178,19 @@ static func button(text: String, on_pressed: Callable) -> Button:
 		if event is InputEventMouseButton and not event.pressed:
 			b.release_focus.call_deferred())
 	return b
+
+
+## A stacked column of buttons for a menu or a screen (100), added to parent: controls share the widest one's width,
+## and the column is centred in parent.
+static func button_column(parent: Control, controls: Array[Control]) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_theme_constant_override("separation", 12)
+	for c in controls:
+		c.size_flags_horizontal = Control.SIZE_FILL
+		column.add_child(c)
+	parent.add_child(column)
+	return column
 
 
 ## The Reduce motion toggle: a button that says its state in words (a checkbox's box is hard to read on this
