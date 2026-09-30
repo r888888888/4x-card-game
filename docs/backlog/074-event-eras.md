@@ -2,7 +2,7 @@
 id: 074
 title: Event decks that escalate by era
 type: feature
-status: in-progress
+status: review
 branch: feat/074-event-eras
 ---
 
@@ -11,14 +11,14 @@ PLAN.md's solo opposition is "an event deck that escalates by era". Let events b
 when the game reaches era 2 the harsher era-2 events join the event deck.
 
 ## Acceptance criteria
-- [ ] AC1 (loader): an event may set `era` (int ≥ 1, default 1). `era` is no longer tech-only; on other card types it
+- [x] AC1 (loader): an event may set `era` (int ≥ 1, default 1). `era` is no longer tech-only; on other card types it
   stays an ignored-field warning.
-- [ ] AC2 (setup): In a new game, era-1 events start in `event_deck`; later-era events wait in a `future_events`
+- [x] AC2 (setup): In a new game, era-1 events start in `event_deck`; later-era events wait in a `future_events`
   zone.
-- [ ] AC3 (era added): When era 2 is added (the `add_era` op, the empty research deck or an `era_unlocks`
+- [x] AC3 (era added): When era 2 is added (the `add_era` op, the empty research deck or an `era_unlocks`
   threshold), the era-2 events are shuffled into `event_deck` with the engine rng, once. Events already active or
   in `event_discard` stay where they are, and the era-1 events stay in `event_deck`.
-- [ ] AC4 (panel): the event info label's tooltip says how many events wait for a later era.
+- [x] AC4 (panel): the event info label's tooltip says how many events wait for a later era.
 
 ## Out of scope
 - Removing easier events when an era is added (they stay; see Design notes).
@@ -37,8 +37,15 @@ when the game reaches era 2 the harsher era-2 events join the event deck.
 | AC3 | `test_event_eras::test_adding_era_2_shuffles_its_events_into_the_event_deck_once`, `test_era_2_events_are_shuffled_in_by_seed`, `test_an_era_unlocks_threshold_adds_the_era_2_events` |
 | AC4 | `test_event_eras::test_event_tooltip_says_how_many_events_wait_for_a_later_era` |
 
+## Manual check
+- [ ] No real event has an era yet (the era-2 content is out of scope), so the game looks as before: hover the
+  "Events: deck … · discard …" line; its tooltip has no "wait for a later era" sentence.
+
 ## Log
 - From 039's follow-ups.
 - Decided: era-1 events stay when later eras are added.
 - 2026-09-30: Red. Tests in a new `tests/test_event_eras.gd` with two local era-2 events (Raid, Blight). The
   warning for `era` on other types keeps naming techs (a TYPE_FIELDS warning names the field's first type).
+- 2026-09-30: Green. `Research.add_era` calls `Events.add_era`, so every way an era arrives shares one hook. The event
+  shuffle only draws on the rng when the era has events, so the real data (no event eras) plays exactly as before:
+  `scripts/sim.sh 20` is identical to `main`. Follow-up: era-2 event content (out of scope here).
