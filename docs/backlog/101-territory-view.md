@@ -2,7 +2,7 @@
 id: 101
 title: Territory view: click a territory to see its city and buildings
 type: feature
-status: review
+status: done
 branch: feat/101-territory-view
 ---
 
