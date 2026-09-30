@@ -81,6 +81,14 @@ func test_adding_era_2_shuffles_its_events_into_the_event_deck_once() -> void:
 	eq(card_ids(e.zone("event_deck")), deck, "adding era 2 again changes nothing")
 
 
+## Backlog 116: an era's events added is a notice.
+func test_an_eras_events_added_is_a_notice() -> void:
+	var e := era_engine()
+	var recorded := record_messages(e)
+	e.add_era(2)
+	check_noticed(recorded, "events added to the event deck")
+
+
 func test_era_2_events_are_shuffled_in_by_seed() -> void:
 	var orders := []
 	for i in 2:

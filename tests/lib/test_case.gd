@@ -437,3 +437,31 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 	e.changed.connect(on_changed)
 	ScriptedBot.play(e)
 	e.changed.disconnect(on_changed)
+
+
+## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116). e is an Object so
+## the connection fails at run time, not parse time, before the signal exists.
+func record_messages(e: Object) -> Array[String]:
+	var out: Array[String] = []
+	e.connect("logged", func(m: String): out.append("log: " + m))
+	e.connect("noticed", func(m: String): out.append("notice: " + m))
+	return out
+
+
+## The notices in recorded (from record_messages), without the prefix.
+func notices_in(recorded: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	for line in recorded:
+		if line.begins_with("notice: "):
+			out.append(line.trim_prefix("notice: "))
+	return out
+
+
+## Asserts recorded has a notice containing fragment, right after the log line with the same text (116).
+func check_noticed(recorded: Array[String], fragment: String) -> void:
+	for i in recorded.size():
+		if recorded[i].begins_with("notice: ") and recorded[i].contains(fragment):
+			var text := recorded[i].trim_prefix("notice: ")
+			check(i > 0 and recorded[i - 1] == "log: " + text, "the notice '%s' follows its log line: %s" % [text, recorded])
+			return
+	check(false, "a notice containing '%s': %s" % [fragment, recorded])

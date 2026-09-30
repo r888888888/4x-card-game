@@ -2,7 +2,7 @@
 id: 116
 title: Toasts for notable events, and an unread marker on the log
 type: feature
-status: ready
+status: red-review
 branch: feat/116-notices-and-toasts
 ---
 
@@ -47,6 +47,12 @@ shows when there are lines you haven't seen.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_famine::test_a_famine_arriving_and_ending_are_notices`, `test_a_guard_saving_pop_is_a_notice`; `test_famine_relief::test_relieving_the_famine_is_a_notice`; `test_tech_passes::test_a_lost_tech_is_a_notice`; `test_supply::test_an_unlocked_pile_is_a_notice_but_learning_and_buying_are_not`; `test_tech_eras::test_an_eras_techs_added_is_a_notice`; `test_event_eras::test_an_eras_events_added_is_a_notice`; `test_events::test_an_event_ending_is_a_notice_and_drawing_one_is_not` |
+| AC2 | `test_famine::test_fed_upkeeps_are_not_notices`; the "not" halves of the supply and events tests above |
+| AC3 | `test_toasts::test_a_notice_shows_a_toast_under_the_top_bar_for_toast_time`, `test_at_most_three_toasts_show_newest_on_top`, `test_with_reduce_motion_toasts_fade_in_place` |
+| AC4 | `test_toasts::test_the_targeting_hint_is_a_toast_until_targeting_ends`, `test_refusals_are_logged_but_do_not_toast` |
+| AC5 | `test_toasts::test_the_log_button_marks_lines_not_yet_seen` |
+| AC6 | `test_toasts::test_toasts_ignore_the_mouse_and_never_take_focus`, `test_toasts_hide_while_the_menu_is_open_and_show_when_it_closes`, `test_toasts_hide_while_the_tech_tree_is_open` |
 
 ## Manual check
 - [ ] Play to a famine: its toast reads clearly under the top bar and is gone in about 3 s.
