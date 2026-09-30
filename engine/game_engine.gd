@@ -233,6 +233,11 @@ func supply_left(card_id: String) -> int:
 	return state.supply.get(card_id, 0)
 
 
+## Whether card_id's supply pile is still locked (a tech's unlock effect opens it). supply() lists locked piles too.
+func supply_locked(card_id: String) -> bool:
+	return state.locked_supply.has(card_id)
+
+
 ## What a copy of card_id costs in wealth from the supply (0 if it isn't sold there).
 func buy_price(card_id: String) -> int:
 	return Supply.price(self, card_id)
@@ -446,6 +451,12 @@ func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:
 
 ## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if
 ## population is off or territory_uid isn't a settled territory.
+## Opens card_id's supply pile for buying; nothing happens if it is already open.
+func unlock_supply(card_id: String, source: CardInstance) -> void:
+	if state.locked_supply.erase(card_id):
+		_log("  %s: %s can now be bought." % [source.def.name, card_db[card_id].name])
+
+
 func add_pop(territory_uid: int, amount: int, source: CardInstance) -> void:
 	Population.add_pop(self, territory_uid, amount, source)
 

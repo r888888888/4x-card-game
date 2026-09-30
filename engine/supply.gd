@@ -15,6 +15,8 @@ static func buy_error(e: GameEngine, card_id: String) -> String:
 	var card_name: String = e.card_db[card_id].name if e.card_db.has(card_id) else card_id
 	if not e.state.supply.has(card_id):
 		return "%s isn't in the supply." % card_name
+	if e.state.locked_supply.has(card_id):
+		return "%s isn't unlocked yet." % card_name
 	if e.state.supply[card_id] <= 0:
 		return "No %ss left in the supply." % card_name
 	var cost := price(e, card_id)

@@ -354,12 +354,21 @@ func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
 
 # --- Supply (backlog 032) ---
 
-func test_every_supply_card_also_starts_in_the_deck() -> void:
+## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.
+func test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech() -> void:
 	var r := load_real()
 	var supply: Dictionary = r.config.get("supply", {})
 	check(not supply.is_empty(), "the real config has a supply")
+	var unlocked_by_tech := {}
+	for id in r.config.research_deck:
+		for effect in r.cards[id].effects:
+			if effect.op == "unlock":
+				unlocked_by_tech[effect.card_id] = true
 	for id in supply:
-		check(r.config.deck.get(id, 0) >= 1, "%s is in the supply and still starts in the deck" % id)
+		if supply[id].get("locked", false):
+			check(unlocked_by_tech.has(id), "locked pile %s is unlocked by a tech in research_deck" % id)
+		else:
+			check(r.config.deck.get(id, 0) >= 1, "unlocked pile %s still starts in the deck" % id)
 
 
 # --- Rolled resources (036, 037) ---

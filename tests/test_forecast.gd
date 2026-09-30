@@ -136,6 +136,7 @@ const UPKEEP_UNSAFE := {
 	"add_era": {"op": "add_era", "era": 2},
 	"research": {"op": "research"},
 	"trade": {"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2},
+	"unlock": {"op": "unlock", "card": "scout"},
 }
 const UPKEEP_SAFE := [
 	{"op": "gain", "resource": "food", "amount": 1},
