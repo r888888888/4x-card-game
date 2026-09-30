@@ -83,7 +83,7 @@ func handle_key(event: InputEvent) -> bool:
 
 ## Whether t is a settled territory (one with a view to open) in engine e.
 static func is_territory(e: GameEngine, t: int) -> bool:
-	return t != -1 and e.territory_groups().any(func(g): return g.territory == t)
+	return not e.territory_summary(t).is_empty()
 
 
 ## The uids shown: the territory's card, then its city and buildings in tableau order ([] while closed).

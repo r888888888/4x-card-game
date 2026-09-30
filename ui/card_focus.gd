@@ -90,7 +90,7 @@ func _move_or_activate(event: InputEventKey) -> bool:
 		activate()
 	elif event.is_action_pressed("ui_up") and not on_board and row() == _board.views_in(_board.hand):
 		on_board = true
-		set_card(board_row()[0] if not board_row().is_empty() else null)
+		set_card(_first(board_row()))
 	elif event.is_action_pressed("ui_down") and on_board:
 		on_board = false
 		var hand := _board.views_in(_board.hand)
@@ -98,6 +98,10 @@ func _move_or_activate(event: InputEventKey) -> bool:
 	else:
 		return false
 	return true
+
+
+func _first(cards: Array[CardView]) -> CardView:
+	return null if cards.is_empty() else cards[0]
 
 
 ## Drops the focus and forgets the hand position.
@@ -138,7 +142,7 @@ func activate() -> void:
 		_board.on_picked(view)
 	elif on_board and not _board.territory_view.is_open():
 		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its card
-		set_card(board_row()[0] if not board_row().is_empty() else null)
+		set_card(_first(board_row()))
 	elif view.in_hand:
 		_board.on_double_clicked(view)
 		if drag.targeting != null:
