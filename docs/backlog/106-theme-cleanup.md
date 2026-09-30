@@ -2,7 +2,7 @@
 id: 106
 title: One palette and theme variations for the UI's colours and looks
 type: feature
-status: red-review
+status: review
 branch: feat/106-theme-cleanup
 ---
 
@@ -15,24 +15,24 @@ ThemeGen, 097.)
 
 ## Acceptance criteria
 <!-- Structure tests over ui/*.gd (tests/test_ui_structure.gd) and theme tests (tests/test_theme.gd). -->
-- [ ] AC1: Nothing looks different. A test written first against today's code records the resolved look of: a
+- [x] AC1: Nothing looks different. A test written first against today's code records the resolved look of: a
   heading, a title, a stat, an overlay panel's background and border, the side panel's log panel, a Button and the
   AccentButton (normal, hover, pressed, disabled: background, border, font colour), a LineEdit, a card's type colour
   per card type, and the focus ring. It passes before and after this item, unchanged.
-- [ ] AC2: One palette. `ui/palette.gd` (`class_name Palette`) names every UI colour as a constant (e.g.
+- [x] AC2: One palette. `ui/palette.gd` (`class_name Palette`) names every UI colour as a constant (e.g.
   `Palette.PANEL`, `Palette.TEXT`, `Palette.TEXT_DIM`, `Palette.ACCENT`, `Palette.COST`, `Palette.GAIN`, and the card
   type colours). No `.gd` file in `ui/` other than `palette.gd` contains a `Color(` or `Color8(` constructor with
   literal arguments or a hex string; named engine colours (`Color.WHITE`, `Color.TRANSPARENT`) and
   `.lightened()`, `.darkened()`, `with_alpha`-style derivations of palette colours are allowed.
-- [ ] AC3: One theme. `ui/game_theme.gd` (`class_name GameTheme`) has `static func build() -> Theme`, which `main`
+- [x] AC3: One theme. `ui/game_theme.gd` (`class_name GameTheme`) has `static func build() -> Theme`, which `main`
   uses as its theme. Besides today's Button, AccentButton and LineEdit styles, it defines the type variations
   `Heading` (Label), `Title` (Label), `Stat` (Label) and `DarkPanel` (PanelContainer), each with the items it needs
   (font size and colour; the panel stylebox).
-- [ ] AC4: Components use the variations. `UIKit.heading()`, `UIKit.title()` and `UIKit.stat()` return labels with
+- [x] AC4: Components use the variations. `UIKit.heading()`, `UIKit.title()` and `UIKit.stat()` return labels with
   `theme_type_variation` set to `Heading`, `Title` and `Stat` and no font size or font colour override (a stat keeps
   its own colour override: each stat is coloured by what it counts). The overlay, tech tree and event modal panels
   use `DarkPanel` instead of their own `panel_style(Color("262b31"), …)` stylebox.
-- [ ] AC5: `UIKit.style_controls` and `UIKit.panel_style`'s colour arguments move into `GameTheme` / `Palette`;
+- [x] AC5: `UIKit.style_controls` and `UIKit.panel_style`'s colour arguments move into `GameTheme` / `Palette`;
   `UIKit` keeps only layout helpers and constants (gaps, sizes). `test_ui_structure` lists `Palette` and
   `GameTheme` as components.
 
@@ -67,3 +67,11 @@ ThemeGen, 097.)
 
 ## Log
 - 2026-09-30: Specced after closing 097 (ThemeGen) as wontfix: the goal of an easier-to-change theme is met in code.
+- 2026-09-30: Built. `ui/palette.gd` (48 named colours: surfaces, text, meaning, dimmed cards, card types, tech
+  states, see-through layers) and `ui/game_theme.gd` (`build()`, `dark_panel(border)`, `focus_ring()`; the old
+  `UIKit.style_controls` and `focus_ring` moved here). `UIKit.heading/title/stat` set the variations; `UIKit.overlay`
+  uses `DarkPanel` and only overrides its stylebox for a coloured border (explore, research, supply, errors, the
+  event modal). Existing constants (`CardView.TYPE_COLORS`, `WARN_COLOR`, `HIGHLIGHT_COLOR`, `FOCUS_COLOR`,
+  `TopBar.FOOD_COLOR`, `UIKit.COST_COLOR` / `GAIN_COLOR`, `CardFace.STRIP_*`) are aliases of palette entries.
+  `UIKit.ACCENT` and `UIKit.PANEL_COLOR` are gone (only the theme used them). CLAUDE.md's UI design section names
+  the rule.
