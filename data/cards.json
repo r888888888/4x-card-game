@@ -145,7 +145,7 @@
       "id": "market", "name": "Market", "type": "building",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
       ]
     },
