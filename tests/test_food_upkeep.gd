@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
-## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn,
-## and each unpaid food starves 1 pop from the biggest territory (ties: the one settled first).
+## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn. Since 083 a
+## shortfall brings a Famine (test_famine.gd); its first upkeep kills 1 pop from the biggest territory (ties: the one
+## settled first), whatever the size of the shortfall.
 
 
 ## Config overrides: population on with start pop and food_upkeep, and starting food on Homeland under
@@ -69,12 +70,13 @@ func test_starvation_hits_the_biggest_territory() -> void:
 	eq(e.resources.food, 0, "food")
 
 
-func test_each_unpaid_food_rechecks_the_biggest_territory() -> void:
+## 083 replaces 011's one death per unpaid food: the first hungry upkeep brings a Famine with 1 counter, 1 death.
+func test_a_deeper_shortfall_still_kills_1_pop_at_the_first_famine() -> void:
 	var r := two_territories(2, 3)
 	var e: GameEngine = r[0]
-	e.end_turn()  # produce 3, eat 5: 2 short
+	e.end_turn()  # produce 3, eat 5: 2 short, but a new Famine has 1 counter
 	eq(e.pop(r[1]), 2, "grassland 3 -> 2 (biggest)")
-	eq(e.pop(home_uid(e)), 1, "then a 2-2 tie: homeland (settled first) 2 -> 1")
+	eq(e.pop(home_uid(e)), 2, "homeland keeps 2")
 
 
 func test_starvation_tie_goes_to_the_territory_settled_first() -> void:

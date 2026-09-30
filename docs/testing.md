@@ -53,7 +53,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_explore.gd` | The `explore` op: loading, reveal, `pending_choice`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op (loading and play) and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
 | `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
-| `tests/test_food_upkeep.gd` | Pop eating food at upkeep and starvation |
+| `tests/test_food_upkeep.gd` | Pop eating food at upkeep, and a first shortfall's one death |
+| `tests/test_famine.gd` | The Famine (083): arrives, escalates to max_counters, one at a time, ends when fed and leaves the game, blocks growth, guards, forecast, `event_counters`, config |
 | `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060): loading, housing cap, saving starving pop, forecast, card text; uses the Silo fixture and `build_on` |
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |

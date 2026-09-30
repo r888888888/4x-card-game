@@ -312,7 +312,7 @@ func test_pop_that_starves_does_not_count() -> void:
 	set_home_pop(e, 4)
 	e.resources.food = 0
 	e.end_turn()
-	eq(e.total_pop(), 2, "Capital +2 food feeds 2 of 4; 2 starve")
+	eq(e.total_pop(), 3, "Capital +2 food feeds 2 of 4: a new Famine kills 1 (083)")
 	eq(e.era(), 1, "era")
 
 

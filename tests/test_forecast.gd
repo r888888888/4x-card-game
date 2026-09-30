@@ -72,7 +72,7 @@ func test_forecast_no_growth_at_housing_cap() -> void:
 
 func test_forecast_starve_with_no_food() -> void:
 	var e := forecast_engine(2, 0, 0, 2)
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 2}, "2 made, 4 needed, 2 short")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "2 made, 4 needed, short: a new Famine kills 1 (083)")
 
 
 func test_forecast_starve_with_some_food() -> void:

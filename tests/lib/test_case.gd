@@ -53,7 +53,12 @@ const TEST_CARDS := {"cards": [
 	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "research"}]},
 	{"id": "trader", "name": "Trader", "type": "action", "cost": {"food": 1}, "effects": [
 		{"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2}]},
+	{"id": "famine", "name": "Famine", "type": "event",
+	 "effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]},
 ]}
+
+## The famine block raw_config adds to a population block that has none (backlog 083: required with population on).
+const FAMINE := {"card": "famine", "max_counters": 3}
 
 ## Fixture events (backlog 039), loaded with TEST_CARDS by event_db. Not in TEST_CARDS itself, so make_engine games
 ## have no event deck.
@@ -154,6 +159,7 @@ func keywords() -> Array[String]:
 	return k
 
 
+## A population block without "famine" gets FAMINE (083), so fixtures that turn population on stay short.
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
 		"resources": ["food", "wealth"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
@@ -161,6 +167,9 @@ func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 		"deck": deck,
 	}
 	c.merge(overrides, true)
+	if c.get("population") is Dictionary and not c.population.has("famine"):
+		c.population = c.population.duplicate()
+		c.population["famine"] = FAMINE
 	return c
 
 

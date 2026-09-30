@@ -40,7 +40,7 @@ func refresh(e: GameEngine) -> void:
 	UIKit.set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)])
 	var starve: int = forecast.get("starve", 0)
 	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else FOOD_COLOR)
-	_food_label.tooltip_text = "Next upkeep: %d pop will starve." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
+	_food_label.tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
 	_wealth_label.tooltip_text = "In brackets: change at the next upkeep."
 	UIKit.set_stat(score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()

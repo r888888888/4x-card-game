@@ -129,9 +129,13 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	_face.replace_info("TechInfo", text)
 
 
-## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left").
-func set_event_info(turns_left: int) -> void:
-	_face.replace_info("EventInfo", "%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"])
+## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left"), or its counters when it has
+## any ("2 counters", the Famine).
+func set_event_info(turns_left: int, counters := 0) -> void:
+	if counters > 0:  # the Famine: it lasts until pop is fed, so it shows how bad it is (083)
+		_face.replace_info("EventInfo", "%d counter%s" % [counters, "" if counters == 1 else "s"])
+	else:
+		_face.replace_info("EventInfo", "%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"])
 
 
 ## The text set_event_info shows, or "" when it was never called.

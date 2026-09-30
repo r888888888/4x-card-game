@@ -9,6 +9,7 @@ var passes := 0  # techs: times another tech was bought over it; each is -1 weal
 var pop := 0  # territories: population living there
 var keywords: Array[String] = []  # territories: printed keywords, then rolled resource keywords
 var turns_left := 0  # active events: upkeeps left before the event is discarded
+var counters := 0  # the Famine: how bad it is, 1 to max_counters (083)
 
 
 func _init(p_uid: int, p_def: CardDef) -> void:
@@ -25,4 +26,5 @@ func copy() -> CardInstance:
 	c.pop = pop
 	c.keywords = keywords.duplicate()
 	c.turns_left = turns_left
+	c.counters = counters
 	return c

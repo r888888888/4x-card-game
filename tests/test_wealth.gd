@@ -122,9 +122,9 @@ func test_gain_wealth_per_city() -> void:
 # --- AC6: wealth is not food ---
 
 func test_starvation_does_not_spend_wealth() -> void:
-	# A Village produces nothing, so 2 pop with 0 food starve at the first upkeep.
+	# A Village produces nothing, so 2 pop with 0 food go hungry at the first upkeep: a Famine kills 1 (083).
 	var e := make_engine({"farm": 10}, pop_overrides(1, {"food": 0, "wealth": 5}, ["village"]))
-	eq(e.pop(home_uid(e)), 0, "both pop starved: 2 needed, 0 food")
+	eq(e.pop(home_uid(e)), 1, "a Famine killed 1: 2 needed, 0 food")
 	eq(e.resources.wealth, 5, "wealth untouched")
 
 
