@@ -59,7 +59,8 @@ res://
                          # start_screen.gd (063, 099: the title screen, shown on launch: New game, Settings, Exit),
                          # new_game_screen.gd (099: civilization cards, seed, Start, Back),
                          # settings_screen.gd (099: Reduce motion, Back),
-                         # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav),
+                         # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav; 104:
+                         # titles and transitions), screen_header.gd (104: "← Realm", "Realm › River Meadow"),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # territory_view.gd (101: one territory in place of the Realm; its own Navigator),
                          # palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in code:
