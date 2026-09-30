@@ -71,7 +71,7 @@ static func _tech_cost_text(e: GameEngine, tech: CardInstance) -> String:
 	return "Costs %d wealth now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
 
 
-## Unique terms, in order of first use: the rules, then the card type's mechanics.
+## Unique terms, in order of first use: the rules, then the card type's mechanics. Leaves out Glossary.BASIC.
 static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Array[Dictionary]:
 	var names: Array[String] = []
 	if def.type == CardDef.TERRITORY:
@@ -98,7 +98,7 @@ static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Arra
 	var seen := {}
 	for n in names:
 		var term := n.capitalize()
-		if seen.has(term):
+		if seen.has(term) or Glossary.BASIC.has(term):
 			continue
 		seen[term] = true
 		var text := Glossary.text(term)
