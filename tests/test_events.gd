@@ -118,6 +118,22 @@ func test_event_text_says_how_long_it_lasts() -> void:
 	eq(cards.omen.rules_text(cards), "Lasts 1 turn", "Omen text")
 
 
+## Backlog 070: the tooltip (the full text) says how long the event lasts too.
+func test_event_tooltip_says_how_long_it_lasts() -> void:
+	var cards := event_db()
+	eq(cards.trade_winds.rules_tooltip(cards), "Each upkeep: +1 wealth\nLasts 2 turns", "Trade Winds tooltip")
+	eq(cards.omen.rules_tooltip(cards), "Lasts 1 turn", "Omen tooltip")
+
+
+## Backlog 070: a card's own text replaces the generated text in both forms, the duration included.
+func test_card_text_replaces_the_duration_on_an_event() -> void:
+	var r := load_x("event", {"text": "Something odd", "discard": {"turns": 2}})
+	eq(r.errors, [] as Array[String], "loads")
+	if r.cards.has("x"):
+		eq(r.cards.x.rules_text(r.cards), "Something odd", "rules_text")
+		eq(r.cards.x.rules_tooltip(r.cards), "Something odd", "rules_tooltip")
+
+
 # --- AC2: event_deck config ---
 
 func test_event_deck_is_normalized() -> void:

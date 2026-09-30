@@ -2,7 +2,7 @@
 id: 070
 title: Event tooltip says how long the event lasts
 type: feature
-status: ready
+status: red-review
 branch: feat/070-event-tooltip-duration
 ---
 
@@ -23,10 +23,13 @@ duration out. The tooltip is the full text, so it should say it too.
 - `CardDef.rules_tooltip` appends `lasts_text()` for events, as `rules_text` already does.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_card_text::test_…` |
+| AC1, AC2 | `test_events::test_event_tooltip_says_how_long_it_lasts` |
+| AC3 | `test_events::test_card_text_replaces_the_duration_on_an_event` (passes already: `text` has always replaced both forms) |
 
 ## Log
 - From 039's follow-ups.
+- 2026-09-30: Red. Tests sit next to 039's `test_event_text_says_how_long_it_lasts` in `test_events.gd`. The card
+  details modal uses `rules_tooltip`, so event details gain the line too. A Famine card without `text` would read
+  "Lasts 1 turn" (as its `rules_text` already does); the real Famine sets `text`.
