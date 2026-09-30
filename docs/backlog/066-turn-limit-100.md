@@ -2,7 +2,7 @@
 id: 066
 title: 100-turn games, with a balance pass
 type: feature
-status: review
+status: done
 branch: feat/066-turn-limit-100
 ---
 
