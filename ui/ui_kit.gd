@@ -1,7 +1,8 @@
 class_name UIKit
 extends RefCounted
-## Shared building blocks for the board's components: layout constants, the theme, labels, buttons, overlays,
-## and the small effects (pulses, flying tokens, error pop-ups) several components use.
+## Shared building blocks for the board's components: layout constants, labels, buttons, overlays, and the small
+## effects (pulses, flying tokens, error pop-ups) several components use. Colours come from Palette and the looks
+## (Heading, Title, Stat, DarkPanel) from GameTheme (106).
 
 const SECTION_GAP := 22  # between the frontier, tableau and hand sections
 const HEADING_GAP := 6  # from a heading to its content
@@ -15,8 +16,7 @@ static func calm() -> bool:
 	return Settings.reduce_motion
 
 
-
-
+## A flat panel: bg with a border (1 wide when see-through, else 2), round corners and padding all round.
 static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
