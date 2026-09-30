@@ -2,7 +2,7 @@
 id: 063
 title: Start screen (new game and options)
 type: feature
-status: review
+status: done
 branch: feat/063-start-screen
 ---
 
