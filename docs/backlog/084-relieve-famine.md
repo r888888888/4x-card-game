@@ -2,7 +2,7 @@
 id: 084
 title: Relieve a Famine by paying wealth
 type: feature
-status: in-progress
+status: review
 branch: feat/084-relieve-famine
 ---
 
@@ -13,15 +13,15 @@ with wealth to end the Famine at once, so wealth is a real answer to hunger and 
 ## Acceptance criteria
 Setup as in 083, with `population.famine.relief: {"wealth": 5}`.
 
-- [ ] AC1 (relief): Given a Famine at 2 counters and 7 wealth, `relieve_famine()` returns true, wealth is 2, and the
+- [x] AC1 (relief): Given a Famine at 2 counters and 7 wealth, `relieve_famine()` returns true, wealth is 2, and the
   Famine leaves the game (in no zone, `famine_counters()` 0). Growth works again (`grow_error` no longer names the
   Famine). A later short upkeep brings a new Famine with 1 counter.
-- [ ] AC2 (rejections): `relieve_famine_error()` returns "There is no famine." with no Famine active, "Relieving the
+- [x] AC2 (rejections): `relieve_famine_error()` returns "There is no famine." with no Famine active, "Relieving the
   famine needs 5 wealth (you have 3)." with 3 wealth, "The game is over." after game over, and the pending-decision
   message while a decision is owed. In each case `relieve_famine()` returns false and changes nothing.
-- [ ] AC3 (forecast): after relief, `upkeep_forecast().starve` is 0 if the next upkeep feeds pop, else 1 (a new
+- [x] AC3 (forecast): after relief, `upkeep_forecast().starve` is 0 if the next upkeep feeds pop, else 1 (a new
   Famine's first death).
-- [ ] AC4 (loader): `relief` is a cost dict (known resources, integers ≥ 1); a bad value is a load error naming
+- [x] AC4 (loader): `relief` is a cost dict (known resources, integers ≥ 1); a bad value is a load error naming
   `population.famine.relief`. Without `relief`, `relieve_famine_error()` is "The famine can't be relieved."
 
 ## Out of scope
@@ -46,11 +46,21 @@ Setup as in 083, with `population.famine.relief: {"wealth": 5}`.
 | Design note (sim bot) | `test_sim::test_bot_relieves_a_famine_only_when_the_next_upkeep_would_starve` |
 
 ## Manual check
-- [ ] The Relieve button shows on the Famine, is disabled with a reason when you can't pay, and the Famine flies off
-  when you pay.
+- [ ] Start a game and starve pop into a Famine (grow past what food covers, or play no food for a few turns). A
+  "Relieve famine (5 wealth)" button shows under the Events row. With under 5 wealth it is disabled and its tooltip
+  says how much you need; with 5 or more, pressing it pays 5 wealth and the Famine leaves the Events row.
 
 ## Log
 - Split from 083 (user asked for a wealth payout condition, 2026-09-29).
 - 2026-09-30: Red. Tests in a new `tests/test_famine_relief.gd` (not `test_famine.gd`), so the feature reads in one
   place. Resolved: `_blocked_error` comes first (game over and pending decisions before "There is no famine."); an
   empty relief `{}` is a load error (it would make relief free).
+- 2026-09-30: The approved rejection test's "explore choice open" case had no territory deck, so no choice could
+  open; with the user's OK its engine gets `territory_deck {hills, grassland}` and a check that the choice is open
+  (assertions unchanged).
+- 2026-09-30: Green. Rules in `Famine.relieve_error` / `relieve`; relief parsed by `ConfigLoader._parse_relief`
+  (normalized `config.famine.relief`, {} when absent). Added `famine_relief()` (tested) so the UI's button label
+  doesn't read `config`. The button sits under the Events row rather than on the Famine card (the row only holds
+  card views). Real data: `relief {"wealth": 5}`. Balance, 20 seeds, main vs this branch: identical on every metric
+  (score 78.85 (60–98), cities 11, pop 13, techs 12.20 (11–13), bought 0, era 2): the bot never reaches a Famine on
+  the real data, so relief never fires there; the price is untested by the sim until 066's balance pass.

@@ -219,7 +219,11 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   `grow` adds nothing); `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
   reach 0; the city stays. Famine guard (060): the working buildings on a territory (decided before pop eats) save
   up to their total `famine_guard` of the Famine's deaths there each upkeep; `upkeep_forecast().starve` counts only
-  the pop that die.
+  the pop that die. A guard save skips one counter's upkeep effects (096).
+- Relief (084): `famine.relief` (optional cost, e.g. `{ "wealth": 5 }`; real data 5 wealth) lets the player pay to
+  end an active Famine at once (`relieve_famine()` / `relieve_famine_error()`, the Relieve button under the Events
+  row; `famine_relief()` gives the price). A later hungry upkeep brings a new Famine with 1 counter. The sim bot
+  relieves before ending a turn when it can pay and `upkeep_forecast().starve` is still above 0.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
   capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every settled territory
   (Harvest Festival until 069, now an event; no shipped card uses `each` today). `here` is a load error on a tech
