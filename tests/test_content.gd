@@ -419,3 +419,13 @@ func test_farm_can_target_the_capitals_territory() -> void:
 	var farm := put_in_hand(e, "farm")
 	check(capital_territory != -1, "the Capital is on a territory")
 	check(e.valid_targets(farm).has(capital_territory), "a Farm can go on the Capital's territory")
+
+
+# --- Caravan trade (055) ---
+
+func test_caravan_trades_between_at_least_2_cities() -> void:
+	var r := load_real()
+	var trades: Array = r.cards.caravan.effects.filter(func(e): return e.op == "trade")
+	eq(trades.size(), 1, "Caravan has one trade effect")
+	if trades.size() == 1:
+		check(trades[0].min_cities >= 2, "Caravan needs at least 2 cities (min_cities %d)" % trades[0].min_cities)

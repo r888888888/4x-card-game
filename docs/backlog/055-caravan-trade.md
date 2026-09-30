@@ -2,7 +2,7 @@
 id: 055
 title: Caravan needs 2 cities and pays with diminishing returns (trade op)
 type: feature
-status: ready
+status: red-review
 branch: feat/055-caravan-trade
 ---
 
@@ -41,7 +41,12 @@ Cities are city-type cards in the tableau (Capital and settled Cities). Pop is t
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_data_loader::test_…` |
+| AC1 | `test_trade::test_trade_op_loads`, `test_trade::test_trade_validation`, `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` (`trade` in `UPKEEP_UNSAFE`) |
+| AC2 | `test_trade::test_trade_with_too_few_cities_is_refused` |
+| AC3 | `test_trade::test_trade_with_2_cities_and_5_pop_gives_3_wealth` |
+| AC4 | `test_trade::test_trade_scales_with_root_cities_and_pop`, `test_trade::test_trade_without_population_counts_no_pop` |
+| AC5 | `test_trade::test_trade_text` |
+| AC6 | `test_content::test_caravan_trades_between_at_least_2_cities`; existing `test_real_data_loads_without_warnings`, `test_every_wealth_cost_has_a_wealth_source`, `test_real_deck_has_wealth_costs_and_capital_makes_wealth` |
 
 ## Manual check
 - [ ] With only the Capital, Caravan is dimmed and its tooltip says it needs 2 cities.
