@@ -276,6 +276,15 @@ func test_real_config_lists_at_least_6_different_civilizations() -> void:
 		seen[text] = id
 
 
+## Backlog 107: every offered civilization has a flavor paragraph and a quote with its source.
+func test_every_listed_civilization_has_flavor_and_a_quote() -> void:
+	var r := load_real()
+	for id in r.config.get("civilizations", []):
+		var def: CardDef = r.cards[id]
+		check(def.flavor != "", "%s has flavor" % id)
+		check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % id)
+
+
 ## Backlog 107: no civilization card is left in the data without being offered.
 func test_every_civilization_card_is_listed() -> void:
 	var r := load_real()

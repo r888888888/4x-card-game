@@ -128,3 +128,20 @@ func test_bug_088_end_turn_is_on_screen_at_1080() -> void:
 		check(bottom <= viewport.y, "End turn's bottom (%d) is on screen (%d)" % [bottom, viewport.y])
 	close_main(main)
 	window.size = old_size
+
+
+## Backlog 107 (AC7): the civilization's details show its flavor and quote, attributed.
+func test_civilization_details_show_its_flavor_and_quote() -> void:
+	var main := open_main()
+	main.start_game(1)
+	var buttons: Array = main.identity_buttons()
+	check(buttons.size() == 2, "2 lines")
+	if buttons.size() == 2:
+		buttons[0].pressed.emit()
+		var d: Dictionary = main.details.shown()
+		var body: String = main.details.body_text()
+		check(d.get("flavor", "") != "" and d.flavor in body, "the body shows the flavor: %s" % body)
+		var quote: Dictionary = d.get("quote", {})
+		check(not quote.is_empty() and quote.text in body and quote.by in body,
+			"the body shows the quote and who said it: %s" % body)
+	close_main(main)
