@@ -2,6 +2,10 @@ class_name TableauView
 extends ScrollContainer
 ## The tableau: one framed group per territory (slot count, pop and a Grow button over a row of card slots), then
 ## the ghost, the outline of the slot a dragged building or city will land in. The scroll box is the drop zone.
+## A territory group can be collapsed to its territory card and a one-line summary of what's built on it (087).
+
+## A group was collapsed or expanded: the board refreshes so the territory card switches size.
+signal collapse_changed
 
 const GROUP_GAP := 16  # between territory groups
 const GROUP_PADDING := 11  # inside a territory group's frame
@@ -9,6 +13,7 @@ const GROUP_PADDING := 11  # inside a territory group's frame
 var ghost: Panel
 var _flow: HFlowContainer  # holds one group per territory, then the ghost
 var _groups := {}  # territory uid (-1 for cards with no territory) -> TerritoryGroup
+var _collapsed := {}  # territory uid -> true while its group is collapsed; cleared by reset (a new game)
 
 
 ## The framed box for one territory: a slot count and Grow button, then a row of card slots.
@@ -18,6 +23,8 @@ class TerritoryGroup:
 	var style: StyleBoxFlat
 	var label: Label
 	var grow_button: Button
+	var toggle: Button  # ▾ / ▸: collapse or expand the group (none for the no-territory group)
+	var summary: Label  # "1 city · 3 buildings (1 idle)", shown while collapsed
 	var row: HFlowContainer  # wraps; _fit_rows keeps it no wider than the tableau (078)
 
 	func set_lit(on: bool) -> void:
@@ -65,6 +72,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		for j in groups[i].cards.size():
 			place.call(tableau.find(groups[i].cards[j]), group.row, j)
 		group.uid = key
+		group.toggle.visible = key != -1
 		group.label.visible = key != -1
 		group.grow_button.visible = key != -1 and e.population_on()
 		if group.grow_button.visible:
@@ -83,8 +91,96 @@ func refresh(e: GameEngine, place: Callable) -> void:
 			_groups[key].frame.queue_free()
 			_flow.remove_child(_groups[key].frame)
 			_groups.erase(key)
+			_collapsed.erase(key)
 	_flow.move_child(ghost, -1)
+	for key in _groups:
+		_apply_collapse(_groups[key])
 	_fit_rows()
+
+
+## Forgets which groups were collapsed (a new game starts with every group expanded). Emits nothing: the new
+## game's refresh lays the groups out.
+func reset() -> void:
+	_collapsed.clear()
+	for key in _groups:
+		_apply_collapse(_groups[key])
+
+
+## Collapses (on) or expands territory uid's group.
+func set_collapsed(uid: int, on: bool) -> void:
+	on = on and has_toggle(uid)
+	if on == is_collapsed(uid):
+		return
+	if on:
+		_collapsed[uid] = true
+	else:
+		_collapsed.erase(uid)
+	_apply_collapse(_groups[uid])
+	_fit_rows()
+	collapse_changed.emit()
+
+
+func is_collapsed(uid: int) -> bool:
+	return _collapsed.has(uid)
+
+
+## Collapses (on) or expands every territory group.
+func set_all_collapsed(on: bool) -> void:
+	for key in _groups:
+		set_collapsed(key, on)
+
+
+## Whether every territory group is collapsed (false with none).
+func all_collapsed() -> bool:
+	var territories := _groups.keys().filter(func(k): return k != -1)
+	return not territories.is_empty() and territories.all(func(k): return _collapsed.has(k))
+
+
+## Whether territory uid's group has a collapse toggle (every group but the no-territory one).
+func has_toggle(uid: int) -> bool:
+	return uid != -1 and _groups.has(uid)
+
+
+## The collapsed summary of territory uid's group, or "" while it is expanded.
+func group_summary(uid: int) -> String:
+	return _groups[uid].summary.text if _groups.has(uid) and _groups[uid].summary.visible else ""
+
+
+## The framed box of territory uid's group, or null.
+func group_frame(uid: int) -> Control:
+	return _groups[uid].frame if _groups.has(uid) else null
+
+
+## Expands the group holding tableau card uid, so a lit target inside it can be seen and reached. A territory
+## card is shown even when collapsed, so lighting a territory (a building's target) leaves its group as it is.
+func reveal(uid: int) -> void:
+	for group in Game.engine.territory_groups():
+		if group.cards.has(uid) and group.territory != uid:
+			set_collapsed(group.territory, false)
+
+
+## Shows or hides a group's cards after the territory card (the row's first slot), its summary and its toggle arrow.
+func _apply_collapse(group: TerritoryGroup) -> void:
+	var on := _collapsed.has(group.uid)
+	var slots := group.row.get_children().filter(func(c): return c != ghost)
+	for i in slots.size():
+		slots[i].visible = i == 0 or not on
+	group.toggle.text = "▸" if on else "▾"
+	group.toggle.tooltip_text = "Show the cards on this territory." if on else "Hide the cards on this territory."
+	group.summary.visible = on
+	if on:
+		group.summary.text = _summary_text(Game.engine.territory_summary(group.uid))
+
+
+static func _summary_text(summary: Dictionary) -> String:
+	if summary.is_empty():
+		return ""
+	var cities: int = summary.cities
+	var buildings: int = summary.buildings
+	var text := "%d %s · %d building%s" % [cities, "city" if cities == 1 else "cities", buildings, "" if buildings == 1 else "s"]
+	if summary.idle > 0:
+		text += " (%d idle)" % summary.idle
+	return text
 
 
 ## Lights up (or dims) the group of territory uid, if it has one.
@@ -149,6 +245,8 @@ func _new_group() -> TerritoryGroup:
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
 	box.add_child(header)
+	group.toggle = UIKit.button("▾", func(): set_collapsed(group.uid, not is_collapsed(group.uid)))
+	header.add_child(group.toggle)
 	group.label = UIKit.heading("")
 	header.add_child(group.label)
 	group.grow_button = UIKit.button("", func(): Game.engine.grow(group.uid))
@@ -158,5 +256,8 @@ func _new_group() -> TerritoryGroup:
 	group.row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
 	group.row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	box.add_child(group.row)
+	group.summary = UIKit.heading("")
+	group.summary.hide()
+	box.add_child(group.summary)
 	_flow.add_child(group.frame)
 	return group

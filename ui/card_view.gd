@@ -247,6 +247,11 @@ func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null) -> vo
 
 ## The size of the slot this card rests in: its nominal size, plus the lift room above a hand card. A card whose
 ## text needs more room grows its slot once it is at rest.
+## Whether the card is shown at its compact size (a frontier territory, a known tech, a collapsed territory).
+func is_compact() -> bool:
+	return _target_size == COMPACT_SIZE
+
+
 func slot_size() -> Vector2:
 	return _motion.slot_size()
 

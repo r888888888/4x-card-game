@@ -92,6 +92,19 @@ static func territory_of(e: GameEngine, card: CardInstance) -> CardInstance:
 	return e.zone("tableau").find(card.territory_uid)
 
 
+## What is built on settled territory uid: {cities, buildings, idle}, or {} when uid isn't a territory in the tableau.
+static func summary(e: GameEngine, uid: int) -> Dictionary:
+	var territory := e.zone("tableau").find(uid)
+	if territory == null or territory.def.type != CardDef.TERRITORY:
+		return {}
+	var cities := 0
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.CITY and card.territory_uid == uid:
+			cities += 1
+	var buildings := buildings_on(e, uid)
+	return {"cities": cities, "buildings": buildings.size(), "idle": buildings.filter(func(b): return e.is_idle(b.uid)).size()}
+
+
 static func groups(e: GameEngine) -> Array[Dictionary]:
 	var members := {}  # territory uid or -1 -> Array[int]
 	for card in e.zone("tableau").cards:

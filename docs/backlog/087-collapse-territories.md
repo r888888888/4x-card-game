@@ -2,7 +2,7 @@
 id: 087
 title: Collapse territory groups in the Realm
 type: feature
-status: red-review
+status: in-progress
 branch: feat/087-collapse-territories
 ---
 
