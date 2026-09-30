@@ -126,6 +126,13 @@ func government() -> int:
 	return gov.cards[0].uid if not gov.is_empty() else -1
 
 
+## Counters on active event uid: the Famine's (083); 0 for any other event or uid. The event panel shows them in
+## place of turns left.
+func event_counters(uid: int) -> int:
+	var famine := Population.famine(self)
+	return famine.counters if famine != null and famine.uid == uid else 0
+
+
 ## The active Famine's counters (083), or 0 with no Famine.
 func famine_counters() -> int:
 	var famine := Population.famine(self)

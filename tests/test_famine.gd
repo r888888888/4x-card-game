@@ -201,3 +201,15 @@ func test_the_famine_card_is_never_in_the_event_deck_and_has_no_discard() -> voi
 	var lasting := {"id": "blight", "name": "Blight", "type": "event", "discard": {"turns": 2}}
 	has_msg(config_errors(POP.merged({"famine": {"card": "blight", "max_counters": 3}}), {}, [lasting]),
 		"population.famine.card 'blight' can't have a discard")
+
+
+# --- Design note: the event panel shows the Famine's counters ---
+
+func test_event_counters_are_the_famines_and_0_for_other_events() -> void:
+	var e := famine_engine(4)
+	eq(e.event_counters(12345), 0, "an unknown uid")
+	e.end_turn()  # famine 1
+	var famine: int = uid_of(e.zone("active_events"), "famine")
+	eq(e.event_counters(famine), 1, "the Famine's counters")
+	e.end_turn()  # famine 2
+	eq(e.event_counters(famine), 2, "after it gets worse")
