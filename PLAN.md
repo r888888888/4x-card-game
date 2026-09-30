@@ -208,7 +208,11 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 ## Techs (Milestone 4 — in progress)
 Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
 stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
-Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built).
+Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built), 058 (Stone Age → Bronze
+Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 techs defined but not in the deck).
+- Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
+  (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
+  starting deck is the basics: Farm 4, Irrigation 1, Settler 2, Scout 2, Lumber Camp 2, Insight 2.
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2
@@ -238,7 +242,8 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
-starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies).
+starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies). Since 058
+the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Library, Market, Harbor) start locked.
 - Config `supply: { "scout": { "price": 2, "count": 2 } }`: only `action` and `building` cards; `price`
   (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
