@@ -2,7 +2,7 @@
 id: 071
 title: Icons for the tech and event type marks
 type: feature
-status: ready
+status: review
 branch: feat/071-type-mark-icons
 ---
 
@@ -12,9 +12,9 @@ Action, building, city and territory cards draw their type mark as an icon (`ui/
 hand-drawn style.
 
 ## Acceptance criteria
-- [ ] AC1: `Icons.GLYPHS` has an entry for every mark in `CardView.TYPE_MARKS` (so a new card type can't be added
+- [x] AC1: `Icons.GLYPHS` has an entry for every mark in `CardView.TYPE_MARKS` (so a new card type can't be added
   without an icon), each loading an SVG from `assets/icons/`.
-- [ ] AC2: The UI smoke test still passes (no missing-resource errors).
+- [x] AC2: The UI smoke test still passes (no missing-resource errors).
 
 ## Out of scope
 - Redrawing the existing icons.
@@ -24,10 +24,10 @@ hand-drawn style.
   scale 0.6 like the other type marks.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_smoke::test_…` |
+| AC1 | `test_ui_smoke::test_every_type_mark_has_an_icon` |
+| AC2 | `test_ui_smoke::test_main_scene_follows_a_whole_game_without_errors` (existing) |
 
 ## Manual check
 - [ ] The tech and event marks read clearly beside the type name on a hand card, a compact card and in the log,
@@ -35,3 +35,7 @@ hand-drawn style.
 
 ## Log
 - From 068's follow-ups.
+- 2026-09-30: Red. `TYPE_MARKS` moved to `CardFace` in 086; the test reads it there.
+- 2026-09-30: Green. `assets/icons/tech.svg` (a four-point star) and `event.svg` (an eight-point burst), drawn as
+  single filled paths like the other marks; import settings copied from `city.svg.import` (DPITexture, same params).
+  Both in `Icons.GLYPHS` at scale 0.6. PLAN.md needs no change (it describes the icon folder, not each icon).
