@@ -6,16 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const SETTINGS_PATH := "user://test_start_screen_settings.cfg"
 
 
-## Sends a key press and release through main's viewport, as the keyboard would.
-func press_key(main: Node, keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.physical_keycode = keycode
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
-
-
 ## The first Button under root whose text starts with prefix, or null.
 func button_starting(root: Node, prefix: String) -> Button:
 	for b in root.find_children("*", "Button", true, false):

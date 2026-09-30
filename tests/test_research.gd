@@ -27,12 +27,7 @@ func load_x(type: String, cost: Variant, effects: Array = []) -> Dictionary:
 
 
 func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([], errors)
-	check(errors.is_empty(), "fixture cards should load: %s" % [errors])
-	DataLoader.parse_config(raw_config(deck, overrides), resources(), cards, "config.json", errors, warnings)
-	return errors
+	return config_errors_for(tech_db(), overrides, deck)
 
 
 # --- AC1: tech cards load ---

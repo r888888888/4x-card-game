@@ -48,3 +48,10 @@ func pass_tech(e: Object, tech_id: String, buy_id: String) -> void:
 	arrange(e.zone("research_deck"), [tech_id, buy_id])
 	check(play_research(e), "research should open")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), buy_id)), "buy %s" % buy_id)
+
+
+## tech_engine(["pottery", "writing"]) with Research played, so both techs are revealed.
+func research_engine() -> Object:
+	var e: Object = tech_engine(["pottery", "writing"])
+	check(play_research(e), "research should open")
+	return e

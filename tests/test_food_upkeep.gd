@@ -1,7 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn. Since 083 a
-## shortfall brings a Famine (test_famine.gd); its first upkeep kills 1 pop from the biggest territory (ties: the one
-## settled first), whatever the size of the shortfall.
+## Food upkeep for population (backlog 011): pop eats food after production at the start of each turn. A shortfall
+## brings a Famine (083): test_famine.gd covers what it kills and where.
 
 
 ## Config overrides: population on with start pop and food_upkeep, and starting food on Homeland under
@@ -34,57 +33,6 @@ func test_pop_eats_after_production() -> void:
 	var e := make_engine({"farm": 10}, pop_overrides(2, 0))
 	eq(e.resources.food, 0, "food: 0 + 2 Capital - 2 eaten")
 	eq(e.pop(home_uid(e)), 2, "no starvation: production paid for it")
-
-
-# --- AC3: a shortfall starves pop ---
-
-func test_shortfall_starves_pop() -> void:
-	var e := make_engine({"farm": 10}, pop_overrides(3, 0))
-	eq(e.pop(home_uid(e)), 2, "homeland pop: 3 - 1 starved")
-	eq(e.total_pop(), 2, "total pop")
-	eq(e.resources.food, 0, "food: 0 + 2 Capital - 2 eaten, never below 0")
-
-
-# --- AC4: starve from the biggest territory, ties to the one settled first ---
-
-## Homeland (Capital, +2) and a settled Grassland (City, +1), with pops home_pop and t_pop and 0 food.
-## Returns [engine, grassland uid].
-func two_territories(home_pop: int, t_pop: int) -> Array:
-	var o := pop_overrides(home_pop, 10)
-	o["territory_deck"] = {"grassland": 1}
-	var e := make_engine({"pioneer": 10}, o)
-	e.zone("frontier").add(e.zone("territory_deck").take_top())
-	var t: int = e.zone("frontier").cards[0].uid
-	check(e.play_card(first_in_hand(e), t), "settle grassland")
-	e.zone("tableau").find(t).pop = t_pop
-	e.resources.food = 0
-	return [e, t]
-
-
-func test_starvation_hits_the_biggest_territory() -> void:
-	var r := two_territories(1, 3)
-	var e: GameEngine = r[0]
-	e.end_turn()  # produce 3, eat 4: 1 short
-	eq(e.pop(r[1]), 2, "grassland (biggest) loses 1")
-	eq(e.pop(home_uid(e)), 1, "homeland untouched")
-	eq(e.resources.food, 0, "food")
-
-
-## 083 replaces 011's one death per unpaid food: the first hungry upkeep brings a Famine with 1 counter, 1 death.
-func test_a_deeper_shortfall_still_kills_1_pop_at_the_first_famine() -> void:
-	var r := two_territories(2, 3)
-	var e: GameEngine = r[0]
-	e.end_turn()  # produce 3, eat 5: 2 short, but a new Famine has 1 counter
-	eq(e.pop(r[1]), 2, "grassland 3 -> 2 (biggest)")
-	eq(e.pop(home_uid(e)), 2, "homeland keeps 2")
-
-
-func test_starvation_tie_goes_to_the_territory_settled_first() -> void:
-	var r := two_territories(2, 2)
-	var e: GameEngine = r[0]
-	e.end_turn()  # produce 3, eat 4: 1 short
-	eq(e.pop(home_uid(e)), 1, "homeland (settled first) loses 1")
-	eq(e.pop(r[1]), 2, "grassland keeps 2")
 
 
 # --- AC5: pop can drop to 0; the city stays; 0 pop eats nothing ---

@@ -28,13 +28,6 @@ func explore_engine() -> Object:
 	return e
 
 
-## A game with pottery and writing revealed by a Research card.
-func research_engine() -> Object:
-	var e: Object = tech_engine(["pottery", "writing"])
-	check(play_research(e), "research should open")
-	return e
-
-
 # --- AC3: finishing the forced discard ---
 
 func test_bug_048_discarding_the_last_owed_card_emits_changed_once() -> void:

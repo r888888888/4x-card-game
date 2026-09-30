@@ -4,16 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## ([] while hidden).
 
 
-## Sends a key press and release through main's viewport, as the keyboard would.
-func press_key(main: Node, keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.physical_keycode = keycode
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
-
-
 func knowledge_button(main: Node) -> Button:
 	for b in main.find_children("*", "Button", true, false):
 		if b.text.begins_with("Knowledge"):

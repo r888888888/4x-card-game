@@ -330,6 +330,26 @@ func event_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dicti
 	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_EVENTS}, resources(), "cards.json", errors, warnings, keywords())
 
 
+## TEST_CARDS plus extra cards, parsed: {cards, errors, warnings}.
+func load_with(extra: Array, resource_keywords: Array[String] = []) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings,
+		keywords(), resource_keywords)
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+## The errors from parsing a config against the parsed card db cards. overrides replace config keys after
+## raw_config's defaults, so a population block is used as given (no FAMINE added).
+func config_errors_for(cards: Dictionary, overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var raw := raw_config(deck)
+	raw.merge(overrides, true)
+	DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
+	return errors
+
+
 # --- UI helpers (backlog 045) ---
 
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
@@ -343,6 +363,16 @@ func open_main() -> Node:
 	var main: Node = load("res://ui/main.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(main)
 	return main
+
+
+## Presses and releases keycode on main's viewport.
+func press_key(main: Node, keycode: Key) -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = keycode
+		event.physical_keycode = keycode
+		event.pressed = pressed
+		main.get_viewport().push_input(event)
 
 
 func close_main(main: Node) -> void:
