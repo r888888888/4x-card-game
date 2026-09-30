@@ -2,7 +2,7 @@
 id: 096
 title: Famine rules in one module
 type: feature
-status: ready
+status: review
 branch: feat/096-famine-module
 ---
 
@@ -17,7 +17,7 @@ The Famine (083) is spread over four places:
 `engine/famine.gd`, before 084, and keep the public API and every behavior as they are.
 
 ## Acceptance criteria
-- [ ] AC1: `engine/famine.gd` (`class_name Famine`, static functions like the other modules) owns:
+- [x] AC1: `engine/famine.gd` (`class_name Famine`, static functions like the other modules) owns:
   - finding the active Famine;
   - bringing one or adding a counter (up to `max_counters`) on a hungry upkeep;
   - resolving its upkeep once per counter, with guard saves;
@@ -25,14 +25,14 @@ The Famine (083) is spread over four places:
   - the growth block used by `grow_error` and `add_pop`.
 
   `Population.feed` keeps eating food and hands the result (fed or short) to `Famine`.
-- [ ] AC2: `GameEngine` has no Famine-specific field (`_famine_guards` is gone), and `Population.lose_pop` has no
+- [x] AC2: `GameEngine` has no Famine-specific field (`_famine_guards` is gone), and `Population.lose_pop` has no
   famine-guard branch. A guard's save still logs "`<territory>`: 1 pop saved from famine." and saves the same
   deaths, which `test_famine_guard` checks.
-- [ ] AC3: `Events.resolve_upkeep` asks `Famine` whether an active event is the Famine, and `event_counters` /
+- [x] AC3: `Events.resolve_upkeep` asks `Famine` whether an active event is the Famine, and `event_counters` /
   `famine_counters` delegate to `Famine`. `population.gd` holds no Famine rules beyond the call in `feed`.
-- [ ] AC4: Every existing test passes unedited: `test_famine`, `test_famine_guard`, `test_food_upkeep`,
+- [x] AC4: Every existing test passes unedited: `test_famine`, `test_famine_guard`, `test_food_upkeep`,
   `test_forecast`, `test_harmful_ops`, `test_event_panel`.
-- [ ] AC5: `scripts/sim.sh 20` output is identical before and after, and so is a per-seed dump of `log_lines` and
+- [x] AC5: `scripts/sim.sh 20` output is identical before and after, and so is a per-seed dump of `log_lines` and
   `upkeep_forecast()` for seeds 1–5 (scratch script, as in 051).
 
 ## Out of scope
@@ -61,3 +61,10 @@ The Famine (083) is spread over four places:
 ## Log
 - 2026-09-30: Specced from the project review (Famine scattered across four places). Before 084 (review decision:
   refactors first).
+- 2026-09-30: Guard design (chosen with the user): `Famine.after_feeding` keeps the guard budget local. For each
+  counter it looks at `Population.most_pop`; a guard there saves that death (same log line) and the counter's upkeep
+  effects are skipped, otherwise the Famine card's upkeep effects resolve. `lose_pop` is fully generic again. Same
+  behavior with today's cards (one `lose_pop` amount 1); an amount-2 effect would get one save per counter.
+- 2026-09-30: Done. 626 tests pass unedited. `scripts/sim.sh 20` and a scratch dump (log lines and every
+  `upkeep_forecast()` for seeds 1–5 on the real data, and again with `food_upkeep` 2 to force Famines) are identical
+  before and after. `population.gd` 164 → 123 lines, `famine.gd` 70, `game_engine.gd` 649 → 646.

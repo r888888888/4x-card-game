@@ -36,8 +36,9 @@ static func grow_error(e: GameEngine, territory_uid: int) -> String:
 	var blocked := e._blocked_error("grow")
 	if blocked != "":
 		return blocked
-	if famine(e) != null:
-		return "Famine: pop can't grow."
+	var famine := Famine.growth_error(e)
+	if famine != "":
+		return famine
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return "Only a settled territory can grow."
@@ -65,7 +66,7 @@ static func grow(e: GameEngine, territory_uid: int) -> bool:
 
 static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: CardInstance) -> void:
 	var territory := Territories.settled(e, territory_uid)
-	if territory == null or not e.population_on() or famine(e) != null:  # no growth during a Famine (083)
+	if territory == null or not e.population_on() or Famine.growth_error(e) != "":  # no growth during a Famine (083)
 		return
 	var added := mini(amount, housing(e, territory_uid) - territory.pop)
 	if added <= 0:
@@ -90,39 +91,14 @@ static func has_worker(e: GameEngine, territory: CardInstance) -> bool:
 	return not e.population_on() or free_workers(e, territory.uid) > 0
 
 
-## Pop eats food_upkeep food each (083). Short: a Famine comes (or gets worse), up to max_counters, and its upkeep
-## effects resolve once per counter, famine guards saving deaths on their territories. Fed: an active Famine leaves
-## the game.
+## Pop eats food_upkeep food each (083), then the Famine rules run on whether it was fed (Famine.after_feeding).
 static func feed(e: GameEngine) -> void:
 	var need: int = total_pop(e) * e.config.population.food_upkeep
 	var eaten: int = mini(need, e.resources.food)
 	e.resources.food -= eaten
 	if need > 0:
 		e._log("Pop eats %d food." % eaten)
-	var active := famine(e)
-	if eaten == need:
-		if active != null:
-			e.zone("active_events").remove(active)
-			e._log("Famine ends.")
-		return
-	if active == null:
-		active = e._make_card(e.config.famine.card)
-		e.zone("active_events").add(active)
-		e._log("Famine! Pop went hungry.")
-	active.counters = mini(active.counters + 1, e.config.famine.max_counters)
-	e._famine_guards = famine_guards(e)
-	for i in active.counters:
-		e._resolve(active, "upkeep")
-	e._famine_guards = {}
-
-
-## The active Famine, or null.
-static func famine(e: GameEngine) -> CardInstance:
-	var id: String = e.config.get("famine", {}).get("card", "")
-	for card in e.zone("active_events").cards:
-		if card.def.id == id:
-			return card
-	return null
+	Famine.after_feeding(e, eaten == need)
 
 
 ## The settled territory with the most pop (ties: the first in tableau order, the one settled first), or null when no
@@ -143,18 +119,5 @@ static func lose_pop(e: GameEngine, amount: int, source: CardInstance) -> void:
 		var biggest := most_pop(e)
 		if biggest == null:
 			return
-		if e._famine_guards.get(biggest.uid, 0) > 0:  # a Famine's death that a guard on that territory saves
-			e._famine_guards[biggest.uid] -= 1
-			e._log("%s: 1 pop saved from famine." % biggest.def.name)
-			continue
 		biggest.pop -= 1
 		e._log("  %s: −1 pop on %s" % [source.def.name, biggest.def.name])
-
-
-## The famine guard of the working buildings on each territory: {territory uid: pop it can save this upkeep}.
-static func famine_guards(e: GameEngine) -> Dictionary:
-	var guards := {}
-	for card in e.zone("tableau").cards:
-		if card.def.famine_guard > 0 and not is_idle(e, card.uid):
-			guards[card.territory_uid] = guards.get(card.territory_uid, 0) + card.def.famine_guard
-	return guards
