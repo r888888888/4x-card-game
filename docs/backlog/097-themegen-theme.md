@@ -2,7 +2,7 @@
 id: 097
 title: Evaluate ThemeGen for the UI theme
 type: feature
-status: draft
+status: wontfix
 branch: feat/097-themegen-theme
 ---
 
@@ -44,3 +44,12 @@ change without changing how the board looks.
 - [ ] Editing a colour in the ThemeGen script updates the editor preview.
 
 ## Log
+- 2026-09-30: Researched; closed as wontfix with the user. ThemeGen (github.com/Inspiaaa/ThemeGen, MIT, v1.4.0,
+  2026-05-02, maintained) is ~500 lines: a script extending `ProgrammaticTheme` (`define_style`,
+  `define_variant_style`, `stylebox_flat`, `inherit`) writes a `.tres` Theme when run from the editor. It doesn't fit:
+  `ProgrammaticTheme` extends `EditorScript`, which only the editor can instantiate (probed on 4.7.2: "Class
+  'EditorScript' can only be instantiated by editor"), so neither the suite nor the command line can regenerate the
+  theme or check the committed `.tres` is current; its live preview has nothing to show, since this UI is built in
+  code; `UIKit.style_controls` already builds a Theme in code; and it doesn't touch what makes the theme hard to change
+  (72 per-control theme overrides in 18 `ui/` files, 49 hex colours). An exported build would also need
+  `addons/theme_gen` excluded. The in-house cleanup is item 106.
