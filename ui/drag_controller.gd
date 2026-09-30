@@ -190,7 +190,7 @@ func _update_feedback() -> void:
 func _over_drop_zone() -> bool:
 	var mouse := _board.get_global_mouse_position()
 	var target: CardView = _board.views.get(_target_under_mouse())
-	return _board.tableau.get_global_rect().has_point(mouse) \
+	return _board.tableau.get_global_rect().has_point(mouse) or _board.territory_view.target_at(mouse) != -1 \
 		or (_board.frontier.is_visible_in_tree() and _board.frontier.get_global_rect().has_point(mouse)) \
 		or (target != null and target.in_hand)
 
@@ -199,6 +199,8 @@ func _over_drop_zone() -> bool:
 ## tableau or frontier card under it, or of a lit hand card, else -1.
 func _target_under_mouse() -> int:
 	var mouse := _board.get_global_mouse_position()
+	if _board.territory_view.target_at(mouse) != -1:  # anywhere on the territory view (101)
+		return _board.territory_view.uid
 	var group := _board.tableau.group_at(mouse)
 	if group != -1:
 		return group

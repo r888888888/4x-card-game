@@ -11,11 +11,13 @@ godot --path .
 ```
 
 Drag a card from your hand into the tableau (or double-click it) to play it; press E or "End turn" to
-end the turn.
+end the turn. Click a territory in the Realm to see it on its own: its city and buildings, slots, pop and Grow.
+While it is open, a building dropped anywhere on it (or double-clicked) goes there; "Back" or Esc returns.
 
 Keyboard: ←/→ move through your hand, Enter or Space plays the focused card. With several possible
 targets, ←/→ pick one, Enter plays it, and Esc cancels. During an explore choice, ←/→ and Enter pick a
-territory. Tab moves through the buttons.
+territory. ↑ from the hand moves to the Realm's territories (↓ goes back) and Enter opens one; in it, ←/→ move
+through its cards. Tab moves through the buttons.
 The game ends after 100 turns; your score is the VP on your tableau plus VP from effects.
 
 The top bar shows food and wealth with the change the next upkeep brings in brackets ("Food: 2 (+1)"),

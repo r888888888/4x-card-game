@@ -81,18 +81,10 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		group.uid = key
 		group.toggle.visible = key != -1
 		group.label.visible = key != -1
-		group.grow_button.visible = key != -1 and e.population_on()
-		if group.grow_button.visible:
-			var error := e.grow_error(key)
-			group.grow_button.text = "Grow (%d food)" % e.grow_cost(key)
-			group.grow_button.disabled = error != ""
-			group.grow_button.tooltip_text = error
+		group.grow_button.visible = false
 		if key != -1:
-			var slots := e.total_slots(key)
-			var text := "%d / %d slots used" % [slots - e.free_slots(key), slots]
-			if e.population_on():
-				text += "  ·  Pop %d / %d" % [e.pop(key), e.housing(key)]
-			UIKit.set_stat(group.label, text)
+			TerritoryView.show_grow(group.grow_button, e, key)
+			UIKit.set_stat(group.label, TerritoryView.stats(e, key))
 	for key in _groups.keys():
 		if not shown.has(key):
 			_groups[key].frame.queue_free()

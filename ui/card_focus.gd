@@ -1,11 +1,13 @@
 class_name CardFocus
 extends RefCounted
 ## The keyboard focus ring on the cards: which row Left/Right move through (the supply piles, an open choice,
-## the lit targets while targeting, or the hand), what Enter does to the focused card, and keeping the focus
-## somewhere sensible after the board changes.
+## the lit targets while targeting, the board row or the hand), what Enter does to the focused card, and keeping the
+## focus somewhere sensible after the board changes. Up from the hand goes to the board row: the Realm's territories,
+## or the open territory view's cards (101); Down goes back.
 
 var focused: CardView  # the card with the focus ring, or null
 var hand_index := -1  # keyboard position in the hand; -1 until the keyboard is used
+var on_board := false  # the focus is in the board row rather than the hand
 var _board: MainScreen
 
 
@@ -30,7 +32,18 @@ func row() -> Array[CardView]:
 		return targets
 	if Game.engine.is_over:
 		return [] as Array[CardView]
-	return _board.views_in(_board.hand)
+	return board_row() if on_board else _board.views_in(_board.hand)
+
+
+## The open territory view's cards, else the Realm's territory cards in tableau order.
+func board_row() -> Array[CardView]:
+	if _board.territory_view.is_open():
+		return _board.views_in(_board.territory_view.row)
+	var out: Array[CardView] = []
+	for group in Game.engine.territory_groups():
+		if group.territory != -1 and _board.views.has(group.territory):
+			out.append(_board.views[group.territory])
+	return out
 
 
 ## A key press the focused controls didn't use. Left/Right move the card focus, Enter/Space acts on the focused
@@ -75,15 +88,27 @@ func _move_or_activate(event: InputEventKey) -> bool:
 		move(-1)
 	elif event.is_action_pressed("ui_accept"):
 		activate()
+	elif event.is_action_pressed("ui_up") and not on_board and row() == _board.views_in(_board.hand):
+		on_board = true
+		set_card(_first(board_row()))
+	elif event.is_action_pressed("ui_down") and on_board:
+		on_board = false
+		var hand := _board.views_in(_board.hand)
+		set_card(hand[clampi(hand_index, 0, hand.size() - 1)] if not hand.is_empty() else null)
 	else:
 		return false
 	return true
+
+
+func _first(cards: Array[CardView]) -> CardView:
+	return null if cards.is_empty() else cards[0]
 
 
 ## Drops the focus and forgets the hand position.
 func clear() -> void:
 	set_card(null)
 	hand_index = -1
+	on_board = false
 
 
 ## Moves the card focus step cards along the row. With nothing focused, Right starts at the first
@@ -115,6 +140,9 @@ func activate() -> void:
 		_board.supply.pick(view)
 	elif _board.pending_kind() in [GameEngine.PENDING_EXPLORE, GameEngine.PENDING_RESEARCH] or (drag.targeting != null and drag.lit.has(view.uid)):
 		_board.on_picked(view)
+	elif on_board and not _board.territory_view.is_open():
+		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its card
+		set_card(_first(board_row()))
 	elif view.in_hand:
 		_board.on_double_clicked(view)
 		if drag.targeting != null:
@@ -149,6 +177,10 @@ func sync() -> void:
 		return
 	if _board.drag.targeting != null:
 		return
+	if on_board:
+		if board_row().has(focused):
+			return
+		on_board = false
 	var hand := _board.views_in(_board.hand)
 	if hand.has(focused):
 		hand_index = hand.find(focused)
