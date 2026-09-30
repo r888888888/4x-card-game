@@ -175,6 +175,7 @@ static func add_era(e: GameEngine, n: int, source: CardInstance = null) -> void:
 		deck.add(tech)
 	e.rng.shuffle(deck.cards)
 	e._log("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
+	Events.add_era(e, n)
 
 
 ## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).

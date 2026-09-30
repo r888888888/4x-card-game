@@ -306,6 +306,10 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   that ends it; for now only `{"turns": n}` (int ≥ 1, default 1), an unknown condition is a loader error. Card text
   adds "Lasts n turns". Config `event_deck` ({event_id: count}, default {}); events are not allowed in `deck` or `supply`.
 - Zones `event_deck` (shuffled by seed at setup), `active_events` and `event_discard`.
+- Eras (074): an event may set `era` (int ≥ 1, default 1), like a tech. Only era-1 events start in `event_deck`;
+  later ones wait in `future_events`. When an era is added (the `add_era` op, the empty research deck, or an
+  `era_unlocks` threshold), its events are shuffled into `event_deck`, once; the era-1 events, the active events
+  and the event discard stay as they are. The event pile line's tooltip says how many events wait.
 - Event phase (once per `end_turn()`, before the hand-limit discard, also on the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty (nothing when both are empty), makes it active with
   `turns_left` = its `discard.turns`, and resolves its `play` effects.
