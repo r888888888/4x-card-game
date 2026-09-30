@@ -312,7 +312,7 @@ func _refresh() -> void:
 	for i in hand_cards.size():
 		if _place(hand_cards[i], hand, i, 0.0 if UIKit.calm() else dealt * Anim.DEAL_STAGGER):
 			dealt += 1
-	tableau.refresh(e, func(card: CardInstance, row: HBoxContainer, index: int): _place(card, row, index, 0.0))
+	tableau.refresh(e, func(card: CardInstance, row: Container, index: int): _place(card, row, index, 0.0))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		for i in cards.size():
