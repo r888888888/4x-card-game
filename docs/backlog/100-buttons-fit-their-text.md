@@ -2,7 +2,7 @@
 id: 100
 title: Buttons fit their text; stacked menu buttons share one width
 type: feature
-status: review
+status: done
 branch: feat/100-buttons-fit-their-text
 ---
 
