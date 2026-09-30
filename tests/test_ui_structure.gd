@@ -13,6 +13,7 @@ const COMPONENTS := {
 	"res://ui/card_focus.gd": "CardFocus",
 	"res://ui/card_details_modal.gd": "CardDetailsModal",
 	"res://ui/tech_tree_modal.gd": "TechTreeModal",
+	"res://ui/event_modal.gd": "EventModal",
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.

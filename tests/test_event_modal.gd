@@ -2,13 +2,12 @@ extends "res://tests/lib/test_case.gd"
 ## The drawn-event modal (backlog 079): the engine reports each drawn event with event_drawn(outcome), and the real
 ## main scene pops up a modal showing it. Hook: main.event_modal() is {uid, id, text, lasts, summary}, {} while
 ## closed. Fixture events: TEST_EVENTS (Windfall: +2 food; Omen: nothing) plus Toll (−1 wealth), local here.
-## Engines are held as Object until green.
 
 const TOLL := {"id": "toll", "name": "Toll", "type": "event", "effects": [{"op": "lose", "resource": "wealth", "amount": 1}]}
 
 
 ## A game on TEST_CARDS + TEST_EVENTS + Toll with event_deck, top_first on top of it; overrides replace config keys.
-func drawn_engine(event_deck: Dictionary, top_first: Array = [], overrides := {}) -> Object:
+func drawn_engine(event_deck: Dictionary, top_first: Array = [], overrides := {}) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_EVENTS + [TOLL]}, resources(), "cards.json",
@@ -16,7 +15,7 @@ func drawn_engine(event_deck: Dictionary, top_first: Array = [], overrides := {}
 	var config := DataLoader.parse_config(raw_config({"scout": 10}, {"event_deck": event_deck}.merged(overrides, true)),
 		resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, config)
+	var e := GameEngine.new(cards, config)
 	e.new_game(1)
 	if not top_first.is_empty():
 		arrange(e.zone("event_deck"), top_first)
@@ -24,7 +23,7 @@ func drawn_engine(event_deck: Dictionary, top_first: Array = [], overrides := {}
 
 
 ## Ends e's turn and returns the signals emitted meanwhile, in order: ["event_drawn", outcome] or ["changed"].
-func end_turn_signals(e: Object) -> Array:
+func end_turn_signals(e: GameEngine) -> Array:
 	var seen := []
 	var on_drawn := func(o): seen.append(["event_drawn", o])
 	var on_changed := func(): seen.append(["changed"])
@@ -37,7 +36,7 @@ func end_turn_signals(e: Object) -> Array:
 
 
 ## The uid of event id in active_events or, once its turns ran out, event_discard (-1 if in neither).
-func event_uid(e: Object, id: String) -> int:
+func event_uid(e: GameEngine, id: String) -> int:
 	var uid := uid_of(e.zone("active_events"), id)
 	return uid if uid != -1 else uid_of(e.zone("event_discard"), id)
 
