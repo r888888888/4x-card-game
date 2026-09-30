@@ -304,7 +304,7 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
 The framework for solo opposition; real events, harmful ops and the event UI come later.
 - Card type `event`: no `cost`, `vp` 0, no `keyword` and no targeting effects. Optional `discard`, the condition
   that ends it; for now only `{"turns": n}` (int ≥ 1, default 1), an unknown condition is a loader error. Card text
-  adds "Lasts n turns". Config `event_deck` ({event_id: count}, default {}); events are not allowed in `deck` or `supply`.
+  and tooltip add "Lasts n turns" (tooltip: 070). Config `event_deck` ({event_id: count}, default {}); events are not allowed in `deck` or `supply`.
 - Zones `event_deck` (shuffled by seed at setup), `active_events` and `event_discard`.
 - Eras (074): an event may set `era` (int ≥ 1, default 1), like a tech. Only era-1 events start in `event_deck`;
   later ones wait in `future_events`. When an era is added (the `add_era` op, the empty research deck, or an
