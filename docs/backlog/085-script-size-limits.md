@@ -2,7 +2,7 @@
 id: 085
 title: Script size limits across engine/ and ui/
 type: feature
-status: review
+status: done
 branch: feat/085-script-size-limits
 ---
 
