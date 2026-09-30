@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: red-review
+status: review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -40,7 +40,7 @@ Content item: the tests assert invariants of the real data; the roster and its n
 - [x] AC12 (new game screen): the details of a civilization opened there have a "Play as <name>" button that selects
   it (and saves the choice), closes the details and starts a game as it with the seed field's seed. Details opened
   anywhere else have no such button.
-- [ ] AC13 (bug, found in review): before any game has started, `card_details(uid)` returns {} without a script
+- [x] AC13 (bug, found in review): before any game has started, `card_details(uid)` returns {} without a script
   error, so clicking a civilization on the new game screen (a card with no live copy) shows its definition's details.
 
 ## Out of scope
@@ -129,3 +129,6 @@ Content item: the tests assert invariants of the real data; the roster and its n
   The modal now moves itself to the end of its parent when it opens.
 - Review change (AC12): the details modal takes an optional action (`open(view, action_text, action)`, hook
   `action_button()`); the new game screen passes "Play as <name>". Tests 740 → 743.
+- Review bug (AC13): console errors on the new game screen. The details modal asks `card_details(uid)` first, which
+  read zones before `new_game` made them. Right-click details there always hit it; AC9 made every click do it.
+  `CardDetails.of_card` now skips missing zones. Tests 743 → 744.

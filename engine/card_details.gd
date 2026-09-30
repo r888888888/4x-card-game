@@ -12,9 +12,11 @@ static func of_def(e: GameEngine, card_id: String) -> Dictionary:
 	return _details(e, def, def.keywords, [])
 
 
-## Details of card uid in any zone, with its live state, or {} if there is no such card.
+## Details of card uid in any zone, with its live state, or {} if there is no such card (or no game yet).
 static func of_card(e: GameEngine, uid: int) -> Dictionary:
 	for zone_name in GameEngine.ZONES:
+		if not e.zones.has(zone_name):  # before new_game (the new game screen) there are no zones
+			continue
 		var card := e.zone(zone_name).find(uid)
 		if card != null:
 			return _details(e, card.def, card.keywords, _state(e, card, zone_name))
