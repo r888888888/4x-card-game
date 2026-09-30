@@ -93,7 +93,7 @@ func test_clicking_a_city_or_building_still_shows_its_details() -> void:
 		click(main, capital)
 		await wait_frames()
 		check(not main.territory_view.is_open(), "no view")
-		eq(main.details.shown().get("id", ""), "capital", "the Capital's details"))
+		eq(main.details.shown().get("name", ""), "Capital", "the Capital's details"))
 
 
 # --- AC2: stats and Grow ---
@@ -315,7 +315,7 @@ func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() 
 		press_key(main, KEY_RIGHT)
 		eq(main.focus.focused.uid if main.focus.focused != null else -1, cards[1], "Right: its city")
 		press_key(main, KEY_I)
-		eq(main.details.shown().get("id", ""), e.zone("tableau").find(cards[1]).def.id, "I: its details")
+		eq(main.details.shown().get("name", ""), e.zone("tableau").find(cards[1]).def.name, "I: its details")
 		press_key(main, KEY_ESCAPE)  # closes the details
 		press_key(main, KEY_ESCAPE)  # closes the view
 		await wait_frames()

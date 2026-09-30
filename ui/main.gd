@@ -29,6 +29,7 @@ var new_game_screen: NewGameScreen  # the civilization and seed, from the title 
 var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
+var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 
 var _board: Control  # the top bar and the body (play area and side panel)
 var _top_bar: TopBar
@@ -79,7 +80,7 @@ func _input(event: InputEvent) -> void:
 	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
 		get_viewport().set_input_as_handled()
 		return
-	if drag.handle_input(event):
+	if drag.handle_input(event) or (not supply.is_open() and territory_view.handle_key(event)):
 		get_viewport().set_input_as_handled()
 
 
@@ -96,6 +97,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	supply.close()
 	_event_modal.close()  # an old game's event
 	_drawn = {}
+	territory_view.reset()
 	_reset_views()
 	tableau.reset()
 	Game.new_game(seed_value, civ_id)
@@ -214,7 +216,7 @@ func identity_buttons() -> Array[Button]:
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
 func section_headings() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for section in _play_area.get_children():
+	for section in _play_area.get_children().filter(func(c): return c != territory_view):
 		var heading: Label = section.get_child(0)
 		out.append({"text": heading.text, "tooltip": heading.tooltip_text})
 	return out
@@ -260,6 +262,14 @@ func try_play(view: CardView, target_uid := -1) -> void:
 	Game.engine.play_card(view.uid, target_uid)
 
 
+## A single click on a board card: a Realm territory opens its view (101), anything else shows its details.
+func _on_clicked(view: CardView) -> void:
+	if not territory_view.is_open() and TerritoryView.is_territory(Game.engine, view.uid):
+		territory_view.open(view.uid)
+	else:
+		details.open(view)
+
+
 ## Logs the engine's refusal and shows it over view.
 func _refuse(view: CardView, error: String) -> void:
 	log_note("[color=#e88]%s[/color]" % error)
@@ -275,7 +285,9 @@ func on_double_clicked(view: CardView) -> void:
 	if pending_kind() == GameEngine.PENDING_DISCARD:
 		discard(view)
 		return
-	if e.needs_target_choice(view.uid):
+	if territory_view.is_open() and e.needs_target(view.uid):
+		try_play(view, territory_view.uid)  # onto the territory on view (101)
+	elif e.needs_target_choice(view.uid):
 		drag.begin_targeting(view)
 	else:
 		try_play(view)
@@ -374,6 +386,7 @@ func _on_card_played(outcome: Dictionary) -> void:
 ## cards that changed zone fly to their new place, and cards that left fly towards where they went.
 func _refresh() -> void:
 	var e := Game.engine
+	territory_view.close_if_stale(e)
 	_top_bar.refresh(e)
 	var hand_cards := e.zone("hand").cards
 	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events_row}
@@ -390,7 +403,11 @@ func _refresh() -> void:
 	for i in hand_cards.size():
 		if _place(hand_cards[i], hand, i, 0.0 if UIKit.calm() else dealt * Anim.DEAL_STAGGER):
 			dealt += 1
-	tableau.refresh(e, func(card: CardInstance, row: Container, index: int): _place(card, row, index, 0.0))
+	var viewed := territory_view.card_uids()  # these rest in the territory view instead
+	tableau.refresh(e, func(card: CardInstance, row: Container, index: int):
+		if not viewed.has(card.uid):
+			_place(card, row, index, 0.0))
+	territory_view.refresh(e, func(card: CardInstance, row: Container, index: int): _place(card, row, index, 0.0))
 	_refresh_collapse_all()
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
@@ -442,7 +459,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		view.double_clicked.connect(on_double_clicked)
 		view.discard_requested.connect(discard)
 		view.picked.connect(on_picked)
-		view.details_requested.connect(details.open)
+		view.details_requested.connect(_on_clicked)
 		views[card.uid] = view
 		var slot := _new_slot(view, container, index)
 		if in_hand:
@@ -591,6 +608,8 @@ func _build_layout() -> void:
 	_collapse_all.anchor_top = 0.5
 	_collapse_all.anchor_bottom = 0.5
 	realm_section.get_child(0).add_child(_collapse_all)
+	territory_view = TerritoryView.new(self, realm_section)
+	territory_view.navigated.connect(_refresh)
 	_row_sections.frontier = UIKit.card_row_section(_play_area, "Frontier",
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
 	frontier = _row_sections.frontier.get_meta("row")

@@ -76,5 +76,6 @@ exists, 102 can shrink the Realm's territories to plain cards.
   (not its details; I or a click inside the view shows them); AC6 reworded above (card focus can't reach the Realm
   today, and focused buttons swallow the arrows); a double-click with the view open always plays onto the viewed
   territory, with the engine's reason when it can't; drops are tested through `target_at`.
-- 2026-09-30: 103 (navigation stack) was built first. The territory view is pushed on `main.nav` over the Realm
-  section, which is the navigator's root while a game is on.
+- 2026-09-30: 103 (navigation stack) was built first. The territory view keeps its own `Navigator` with the Realm
+  section as the root (a nested stack): `main.nav` must stay empty while a game is on (103 AC6), since keyboard play
+  checks it.
