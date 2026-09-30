@@ -49,6 +49,13 @@ it, and collapse or expand all groups at once, so they see more territories with
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_ui_queries::test_territory_summary_counts_cities_buildings_and_idle` |
+| AC2 | `test_ui_queries::test_territory_summary_is_empty_for_anything_but_a_settled_territory` |
+| AC3 | `test_collapse_territories::test_collapsing_a_group_hides_its_city_and_buildings` |
+| AC4 | `test_collapse_territories::test_a_collapsed_group_stays_collapsed_when_a_building_arrives` |
+| AC5 | `test_collapse_territories::test_collapse_all_and_expand_all`, `::test_new_territories_and_new_games_start_expanded` |
+| AC6 | `test_collapse_territories::test_a_collapsed_group_is_still_a_drop_target` |
+| AC7 | `test_collapse_territories::test_revealing_a_card_expands_its_group` |
 
 ## Manual check
 - [ ] Collapse a territory with 4+ buildings: the group shrinks to one card wide and the summary is readable.
