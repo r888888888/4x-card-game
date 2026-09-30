@@ -2,7 +2,7 @@
 id: 100
 title: Buttons fit their text; stacked menu buttons share one width
 type: feature
-status: in-progress
+status: red-review
 branch: feat/100-buttons-fit-their-text
 ---
 
@@ -48,7 +48,12 @@ may still fill.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_button_widths::test_…` |
+| AC1 | `test_button_widths::test_title_settings_and_new_game_columns_share_one_width`, `test_menu_and_game_over_columns_share_one_width` |
+| AC2 | `test_modal_close_buttons_fit_their_text`, `test_event_ok_fits_its_text`, `test_research_decline_fits_its_text` |
+| AC3 | `test_board_buttons_fit_their_text` (guard: passes already) |
+| AC4 | `test_side_panel_actions_fit_their_text_at_its_left_edge`, `test_identity_lines_still_span_the_side_panel` (guard) |
+| AC5 | `test_tech_tiles_fill_their_era_column` (guard) |
+| AC6 | `test_seed_fields_still_fill_their_row` (guard) |
 
 ## Manual check
 - [ ] Run `godot --path .`: on the title, new game and settings screens the buttons form a neat centred column of
