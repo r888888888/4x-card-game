@@ -13,6 +13,7 @@ const COMPONENTS := {
 	"res://ui/drag_controller.gd": "DragController",
 	"res://ui/card_focus.gd": "CardFocus",
 	"res://ui/card_details_modal.gd": "CardDetailsModal",
+	"res://ui/tech_tree_modal.gd": "TechTreeModal",
 }
 ## Engine state the UI must reach through a query instead: pending_choice and discard_left (pending()), the raw
 ## GameState (state), the RNG and the log lines (the logged signal).

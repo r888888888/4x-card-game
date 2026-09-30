@@ -6,8 +6,8 @@ extends Control
 ## Card views stay alive between refreshes (views, keyed by uid), so they can animate from where
 ## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
 ## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
-## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, DragController
-## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
+## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, TechTreeModal,
+## DragController (dragging and targeting) and CardFocus (the keyboard focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
@@ -23,6 +23,7 @@ var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
 var details: CardDetailsModal
+var tech_tree: TechTreeModal
 
 var _top_bar: TopBar
 var _menu: GameMenu
@@ -112,16 +113,12 @@ func section_headings() -> Array[Dictionary]:
 
 ## Test hook (067): the menu's buttons, in order.
 func menu_buttons() -> Array[Button]:
-	return _buttons_in(_menu.overlay)
+	return UIKit.buttons_in(_menu.overlay)
 
 
 ## Test hook (067): the game-over overlay's buttons, in order.
 func game_over_buttons() -> Array[Button]:
-	return _buttons_in(_game_over.overlay)
-
-
-func _buttons_in(overlay: Control) -> Array[Button]:
-	return Array(overlay.find_children("*", "Button", true, false), TYPE_OBJECT, "Button", null)
+	return UIKit.buttons_in(_game_over.overlay)
 
 
 ## The kind of decision the engine is waiting for (GameEngine.PENDING_*), or "".
@@ -464,7 +461,7 @@ func _build_layout() -> void:
 	hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(hand)
 
-	_side = SidePanel.new()
+	_side = SidePanel.new(func(): tech_tree.open())
 	body.add_child(_side)
 
 	# Effects layer, above the board and below the overlays.
@@ -488,6 +485,7 @@ func _build_layout() -> void:
 		start_game(seed_value))
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
+	tech_tree = TechTreeModal.new(self)  # before details, which opens over it and takes the keys first
 	details = CardDetailsModal.new(self)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)

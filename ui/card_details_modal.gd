@@ -56,12 +56,19 @@ func shown() -> Dictionary:
 
 ## Opens the details of the card view shows: its live copy, or its definition for a supply pile.
 func open(view: CardView) -> void:
-	var e := Game.engine
-	var details := e.card_details(view.uid)
-	if details.is_empty():
-		details = e.def_details(view.card_id)
+	var details := Game.engine.card_details(view.uid)
+	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id)
+
+
+## Opens the details of card definition card_id (a tech in the tree).
+func open_def(card_id: String) -> void:
+	_show(Game.engine.def_details(card_id), card_id)
+
+
+func _show(details: Dictionary, card_id: String) -> void:
 	if details.is_empty():
 		return
+	var e := Game.engine
 	_details = details
 	_title.text = details.name
 	var facts: PackedStringArray = [details.type]
@@ -74,7 +81,7 @@ func open(view: CardView) -> void:
 	for child in _card_slot.get_children():
 		child.queue_free()
 	var card := CardView.new()
-	card.setup(CardInstance.new(-1, e.card_db[view.card_id]), e.card_db, true)
+	card.setup(CardInstance.new(-1, e.card_db[card_id]), e.card_db, true)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_slot.custom_minimum_size = card.slot_size()
 	card.attach(_card_slot)
