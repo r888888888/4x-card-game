@@ -20,7 +20,7 @@ func _init(on_knowledge: Callable, on_details: Callable) -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var log_panel := PanelContainer.new()
 	log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	log_panel.add_theme_stylebox_override("panel", UIKit.panel_style(UIKit.PANEL_COLOR, Color(1, 1, 1, 0.08), 12))
+	log_panel.add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, 12))
 	add_child(log_panel)
 	_log = RichTextLabel.new()
 	_log.bbcode_enabled = true
@@ -28,7 +28,7 @@ func _init(on_knowledge: Callable, on_details: Callable) -> void:
 	_log.selection_enabled = true
 	_log.add_theme_font_size_override("normal_font_size", 19)
 	_log.add_theme_font_size_override("bold_font_size", 20)
-	_log.add_theme_color_override("default_color", Color("dde3ea"))
+	_log.add_theme_color_override("default_color", Palette.LOG_TEXT)
 	log_panel.add_child(_log)
 	for zone_name in ["civilization", "government"]:
 		var line := UIKit.button("", func(): on_details.call(_identity[zone_name].get_meta("card_id")))

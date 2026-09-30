@@ -1,15 +1,14 @@
 class_name UIKit
 extends RefCounted
-## Shared building blocks for the board's components: layout constants, the theme, labels, buttons, overlays,
-## and the small effects (pulses, flying tokens, error pop-ups) several components use.
+## Shared building blocks for the board's components: layout constants, labels, buttons, overlays, and the small
+## effects (pulses, flying tokens, error pop-ups) several components use. Colours come from Palette and the looks
+## (Heading, Title, Stat, DarkPanel) from GameTheme (106).
 
 const SECTION_GAP := 22  # between the frontier, tableau and hand sections
 const HEADING_GAP := 6  # from a heading to its content
 const CARD_GAP := 10  # between cards in a row
-const PANEL_COLOR := Color("171a1e")  # log panel background
-const ACCENT := Color("e8c547")  # the main action's button (End turn)
-const COST_COLOR := Color("ff8a80")  # tokens for resources paid, and error text
-const GAIN_COLOR := Color("ffd966")  # tokens for resources and VP gained
+const COST_COLOR := Palette.COST  # tokens for resources paid, and error text
+const GAIN_COLOR := Palette.GAIN  # tokens for resources and VP gained
 
 
 ## Reduce motion is on: no pulses, drifts or flying tokens.
@@ -17,48 +16,7 @@ static func calm() -> bool:
 	return Settings.reduce_motion
 
 
-## Button and text field looks: a visible fill and border, a hover state, and a disabled state that
-## still reads. "AccentButton" (End turn) is the one main action.
-static func style_controls(t: Theme) -> void:
-	var box := func(bg: Color, border: Color) -> StyleBoxFlat:
-		var style := panel_style(bg, border, 0)
-		style.set_border_width_all(2)
-		style.set_corner_radius_all(6)
-		style.content_margin_left = 14
-		style.content_margin_right = 14
-		style.content_margin_top = 6
-		style.content_margin_bottom = 6
-		return style
-	for type: String in ["Button", "AccentButton"]:
-		var accent := type == "AccentButton"
-		if accent:
-			t.set_type_variation(type, "Button")
-		var fill := ACCENT if accent else Color("2f353d")
-		var text := Color("1d2126") if accent else Color("e6ebf0")
-		t.set_stylebox("normal", type, box.call(fill, ACCENT if accent else Color("78828e")))
-		t.set_stylebox("hover", type, box.call(fill.lightened(0.15), Color.WHITE))
-		t.set_stylebox("pressed", type, box.call(fill.darkened(0.2), Color.WHITE))
-		t.set_stylebox("disabled", type, box.call(Color("24282d"), Color("4a5058")))
-		t.set_stylebox("focus", type, focus_ring())
-		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			t.set_color(state, type, text)
-		t.set_color("font_disabled_color", type, Color("8d96a0"))
-	t.set_stylebox("normal", "LineEdit", box.call(Color("14171a"), Color("78828e")))
-	t.set_stylebox("focus", "LineEdit", focus_ring())
-	t.set_color("font_color", "LineEdit", Color("e6ebf0"))
-
-
-## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.
-static func focus_ring() -> StyleBoxFlat:
-	var ring := StyleBoxFlat.new()
-	ring.draw_center = false
-	ring.border_color = CardView.FOCUS_COLOR
-	ring.set_border_width_all(3)
-	ring.set_corner_radius_all(8)
-	ring.set_expand_margin_all(3)
-	return ring
-
-
+## A flat panel: bg with a border (1 wide when see-through, else 2), round corners and padding all round.
 static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
@@ -71,9 +29,9 @@ static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 
 ## Full-screen dimmer with a centred, opaque panel, added to parent. The panel is stored as meta "panel" and
 ## its VBox as meta "box".
-static func overlay(parent: Control, border := Color(1, 1, 1, 0.25)) -> Control:
+static func overlay(parent: Control, border := Palette.EDGE) -> Control:
 	var dimmer := ColorRect.new()
-	dimmer.color = Color(0, 0, 0, 0.65)
+	dimmer.color = Palette.DIMMER
 	dimmer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dimmer.visible = false
 	dimmer.z_index = 10  # above lifted and flying cards
@@ -82,7 +40,9 @@ static func overlay(parent: Control, border := Color(1, 1, 1, 0.25)) -> Control:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dimmer.add_child(center)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", panel_style(Color("262b31"), border, 24))
+	panel.theme_type_variation = &"DarkPanel"
+	if border != Palette.EDGE:  # a coloured border says what the overlay is about
+		panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(border))
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
@@ -112,8 +72,7 @@ static func buttons_in(node: Node) -> Array[Button]:
 ## An overlay's title: bigger and white.
 static func title(text: String) -> Label:
 	var label := heading(text)
-	label.add_theme_font_size_override("font_size", 26)
-	label.add_theme_color_override("font_color", Color.WHITE)
+	label.theme_type_variation = &"Title"
 	return label
 
 
@@ -148,7 +107,7 @@ static func card_row_section(parent: Control, text: String, tooltip := "") -> VB
 
 static func stat(parent: Control, color := Color.WHITE) -> Label:
 	var label := Label.new()
-	label.add_theme_font_size_override("font_size", 26)
+	label.theme_type_variation = &"Stat"
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
 	return label
@@ -162,8 +121,7 @@ static func with_article(word: String) -> String:
 static func heading(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 19)
-	label.add_theme_color_override("font_color", Color("b4bcc6"))
+	label.theme_type_variation = &"Heading"
 	return label
 
 
@@ -229,7 +187,7 @@ static func fx_label(text: String, font_size: int, color: Color) -> Label:
 	label.z_index = 3  # above flying cards
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	label.add_theme_color_override("font_outline_color", Palette.OUTLINE)
 	label.add_theme_constant_override("outline_size", 6)
 	return label
 
@@ -279,7 +237,7 @@ static func fly_token(layer: Control, text: String, from: Vector2, to: Vector2, 
 ## screen width it stays inside.
 static func show_error(layer: Control, view: CardView, text: String, width: float) -> void:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.09, 0.11, 0.92)
+	style.bg_color = Palette.HINT_BG
 	style.border_color = COST_COLOR
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(6)

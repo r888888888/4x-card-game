@@ -6,10 +6,10 @@ extends ColorRect
 ## stays reveal-2. While open it takes every key; T, Esc or a click outside closes it.
 
 const STATE_LOOK := {  # state -> [mark, word, border colour, text alpha]
-	GameEngine.TECH_RESEARCHED: ["✔", "Researched", Color("7fd48a"), 1.0],
-	GameEngine.TECH_AVAILABLE: ["○", "Available", Color("5ec8ff"), 1.0],
-	GameEngine.TECH_FUTURE: ["…", "Later era", Color("6b7280"), 0.6],
-	GameEngine.TECH_LOST: ["✕", "Lost", Color("b5566f"), 0.5],
+	GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
+	GameEngine.TECH_AVAILABLE: ["○", "Available", Palette.AVAILABLE, 1.0],
+	GameEngine.TECH_FUTURE: ["…", "Later era", Palette.FUTURE, 0.6],
+	GameEngine.TECH_LOST: ["✕", "Lost", Palette.LOST, 0.5],
 }
 
 var _header: Label
@@ -19,7 +19,7 @@ var _titles: Array[String] = []  # the column titles on show
 
 ## Builds the modal on parent (the board), hidden. Its techs open parent's details modal.
 func _init(parent: Control) -> void:
-	color = Color(0, 0, 0, 0.7)
+	color = Palette.SCRIM
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	z_index = 15  # above the supply screen; the details modal (20) opens over it
 	visible = false
@@ -33,7 +33,7 @@ func _init(parent: Control) -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UIKit.panel_style(Color("262b31"), Color(1, 1, 1, 0.25), 24))
+	panel.theme_type_variation = &"DarkPanel"
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
@@ -121,7 +121,7 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100)
 	b.tooltip_text = "Click for the full details."
-	var style := UIKit.panel_style(Color("1f2328"), look[2], 6)
+	var style := UIKit.panel_style(Palette.TILE, look[2], 6)
 	b.add_theme_stylebox_override("normal", style)
 	b.modulate.a = look[3]
 	return b

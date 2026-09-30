@@ -32,8 +32,8 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 36)
 	box.add_child(stats)
-	_wealth = UIKit.stat(stats, Color("f2b46d"))
-	_discard = UIKit.stat(stats, Color("c3cad3"))
+	_wealth = UIKit.stat(stats, Palette.WEALTH)
+	_discard = UIKit.stat(stats, Palette.PILES)
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
 	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
 	box.add_child(pad)

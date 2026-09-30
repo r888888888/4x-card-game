@@ -17,6 +17,8 @@ const COMPONENTS := {
 	"res://ui/new_game_screen.gd": "NewGameScreen",
 	"res://ui/settings_screen.gd": "SettingsScreen",
 	"res://ui/navigator.gd": "Navigator",
+	"res://ui/palette.gd": "Palette",
+	"res://ui/game_theme.gd": "GameTheme",
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.

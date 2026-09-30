@@ -17,22 +17,22 @@ signal details_requested(view: CardView)
 enum State { REST, FLYING, DRAGGING, LEAVING }
 
 const TYPE_COLORS := {
-	CardDef.ACTION: Color("4a7fb5"),
-	CardDef.BUILDING: Color("5f9a45"),
-	CardDef.CITY: Color("c08a3e"),
-	CardDef.TERRITORY: Color("8a6fb5"),
-	CardDef.TECH: Color("3fa7a0"),
-	CardDef.EVENT: Color("b5566f"),
+	CardDef.ACTION: Palette.ACTION,
+	CardDef.BUILDING: Palette.BUILDING,
+	CardDef.CITY: Palette.CITY,
+	CardDef.TERRITORY: Palette.TERRITORY,
+	CardDef.TECH: Palette.TECH,
+	CardDef.EVENT: Palette.EVENT,
 }
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
 const COMPACT_SIZE := Vector2(245, 95)  # a frontier territory: name and info only
-const WARN_COLOR := Color("ff6b6b")
-const HIGHLIGHT_COLOR := Color("ffd966")
+const WARN_COLOR := Palette.WARN
+const HIGHLIGHT_COLOR := Palette.GAIN
 # A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
-const DIM_BG := Color("202328")
-const DIM_BORDER := Color("50565e")
-const FOCUS_COLOR := Color("5ec8ff")  # keyboard focus ring; distinct from gold (target) and red (warning)
+const DIM_BG := Palette.DIM_BG
+const DIM_BORDER := Palette.DIM_BORDER
+const FOCUS_COLOR := Palette.FOCUS  # keyboard focus ring; distinct from gold (target) and red (warning)
 const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
@@ -77,7 +77,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_style.set_border_width_all(2)
 		_style.set_corner_radius_all(8)
 		_style.set_content_margin_all(12)
-		_style.shadow_color = Color(0, 0, 0, 0.45)
+		_style.shadow_color = Palette.SHADOW
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))
 		mouse_exited.connect(_set_hover.bind(false))

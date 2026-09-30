@@ -30,6 +30,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
   stretch; build such a column with `UIKit.button_column`). Buttons that are really list
   rows or content tiles (the side panel's civilization and government lines, the tech tree's techs) may fill.
+- Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
+  literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
+  e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).

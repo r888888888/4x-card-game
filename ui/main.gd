@@ -555,13 +555,10 @@ func _reset_views() -> void:
 # --- Layout ---
 
 func _build_layout() -> void:
-	# Default text size for everything without an explicit override (log, buttons, inputs).
-	theme = Theme.new()
-	theme.default_font_size = 20
-	UIKit.style_controls(theme)
+	theme = GameTheme.build()
 
 	var bg := ColorRect.new()
-	bg.color = Color("1d2126")
+	bg.color = Palette.BACKGROUND
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 

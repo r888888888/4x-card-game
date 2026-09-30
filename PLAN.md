@@ -62,6 +62,8 @@ res://
                          # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # territory_view.gd (101: one territory in place of the Realm; its own Navigator),
+                         # palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in code:
+                         # buttons, fields, Heading/Title/Stat/DarkPanel variations),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
                          # tech_tree_modal.gd (Knowledge button or T: the tech tree),
                          # event_modal.gd (each drawn event and what it did, 079)
