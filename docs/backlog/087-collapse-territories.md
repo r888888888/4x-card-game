@@ -2,7 +2,7 @@
 id: 087
 title: Collapse territory groups in the Realm
 type: feature
-status: in-progress
+status: review
 branch: feat/087-collapse-territories
 ---
 
@@ -30,11 +30,11 @@ it, and collapse or expand all groups at once, so they see more territories with
   `move_ghost(uid)` shows the ghost in that group right after the territory card.
 - [x] AC7: Given a collapsed group holding a card that targeting lights (a card that targets a city or building), when
   targeting starts, that group expands so the lit card is visible and reachable with ←/→; it stays expanded afterwards.
-- [ ] AC8 (review feedback): a group's territory is its title bar, not a card in the row: the territory's view sits in
+- [x] AC8 (review feedback): a group's territory is its title bar, not a card in the row: the territory's view sits in
   the group's header (`tableau.group_header(uid)`), is one line tall (shorter than `CardView.COMPACT_SIZE`), and shows
   the name, slots, housing and keywords (for example "River Meadow", "▢3", "Grassland"). The row holds the other cards.
-- [ ] AC9: a collapsed group keeps its title bar (visible, in the header).
-- [ ] AC10: with two lit territories while placing a building, ←/→ moves the focus between their title bars and
+- [x] AC9: a collapsed group keeps its title bar (visible, in the header).
+- [x] AC10: with two lit territories while placing a building, ←/→ moves the focus between their title bars and
   Enter plays the building on the focused one (guard: the title bar is still a card view, so this already works).
 
 ## Out of scope
@@ -67,10 +67,14 @@ it, and collapse or expand all groups at once, so they see more territories with
 | AC10 | `test_collapse_territories::test_keyboard_targeting_moves_between_title_bars` (guard) |
 
 ## Manual check
-- [ ] Collapse a territory with 4+ buildings: the group shrinks to one card wide and the summary is readable.
+- [ ] Every territory box starts with a one-line title bar (toggle, name, ▢ slots, ⌂ housing, keywords) and no
+  separate territory card. Hovering it shows the territory's tooltip; clicking it opens its details.
+- [ ] Settle a territory from the Frontier: its card flies into the new box's title bar.
+- [ ] Collapse a territory with 4+ buildings: the box shrinks to its title bar, stats line and a readable summary,
+  and keeps its own height beside an expanded box.
 - [ ] Collapse all with 4 territories at 1920×1080: all fit without scrolling the Realm.
-- [ ] Drag a building onto a collapsed territory: the group lights, the ghost appears after the territory card, and the
-  building lands with the summary updated.
+- [ ] Drag a building onto a collapsed territory: the box lights (its title bar too), and the building lands with the
+  summary updated. Place a building by keyboard: ←/→ moves between the lit title bars.
 
 ## Log
 - 2026-09-29: Red at 594 tests (was 586), 8 failing. Resolved while writing tests: AC1's "pop 3 (so 1 idle)" can't
@@ -100,3 +104,8 @@ it, and collapse or expand all groups at once, so they see more territories with
   tests; two approved tests change (see Test plan).
 - The runner now frees any node a test leaves in the tree (a test that crashes before `close_main`), so one crash no
   longer fails every later UI test (the red run showed 735 failures from 4 real ones).
+- Approved. Green: `CardView.setup(..., banner)` draws a settled territory as a flat title bar (`BANNER_SIZE`, no
+  fill, a border only while lit or hovered; `CardFace.build_banner`); `TableauView` places a group's territory in
+  its header's banner slot and the rest in the row (`is_banner`, `group_header`); collapsing hides the whole row.
+  The compact collapsed territory card is gone. Boxes keep their own height on a shared line
+  (`SIZE_SHRINK_BEGIN`). Rendered at 1920×1080 with 4 territories, one and all collapsed. 597 tests.

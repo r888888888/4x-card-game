@@ -249,6 +249,7 @@ func _new_group() -> TerritoryGroup:
 	var group := TerritoryGroup.new()
 	group.frame = PanelContainer.new()
 	group.frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # a collapsed group keeps its height beside a tall one
 	group.style = StyleBoxFlat.new()
 	group.style.bg_color = Color(1, 1, 1, 0.03)
 	group.style.set_corner_radius_all(10)

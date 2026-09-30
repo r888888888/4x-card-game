@@ -58,7 +58,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |
 | `tests/test_identity_lines.gd` | The civilization and government lines in the side panel of the real `main.tscn` (088): text, tooltips, order, details on press, a new government, none without them; End turn on screen at 1920×1080 after layout (`wait_frames`); uses `identity_lines()` / `identity_buttons()` |
-| `tests/test_collapse_territories.gd` | Collapsing territory groups in the real `main.tscn` (087): hidden cards, summary, height, refresh, Collapse all / Expand all, new territories and games expanded, drop target, `reveal`; uses `tableau.set_collapsed` / `is_collapsed` / `has_toggle` / `group_summary` / `group_frame` |
+| `tests/test_collapse_territories.gd` | Collapsing territory groups in the real `main.tscn` (087): the territory as the group's title bar, hidden cards, summary, height, refresh, Collapse all / Expand all, new territories and games expanded, drop target, `reveal`, keyboard targeting between title bars; uses `tableau.set_collapsed` / `is_collapsed` / `has_toggle` / `group_summary` / `group_frame` / `group_header` and `CardView.face_text()` |
 | `tests/test_territory_row.gd` | A full territory's cards wrap instead of widening the tableau (078) |
 | `tests/test_trash.gd` | The `trash` op (082): hand targets (never the card played), errors, auto-pick, `trashed` never reshuffled, fork, loading, card text |
 | `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked Winnow lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
@@ -104,7 +104,8 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 before the first test so the `Game` and `Settings` autoloads are in the tree and ready. Otherwise no frames run unless
 a test awaits them, so UI tests see structure (views, labels, overlays), never finished animations. The runner
 awaits every test: a UI test that measures laid-out sizes or positions calls `await wait_frames()` first (088).
-Minimum sizes before a layout pass are meaningless.
+Minimum sizes before a layout pass are meaningless. After each test the runner frees anything the test left in the
+tree (a UI test that crashed before `close_main`), so one crash doesn't fail every later UI test (087).
 
 ### Available in every test (`tests/lib/test_case.gd`)
 
