@@ -183,10 +183,11 @@ func card_ids(zone: Zone) -> Array[String]:
 	return ids
 
 
-## The uid of the starting territory (homeland) on the tableau, or -1.
+## The uid of the starting territory (config starting.territory: homeland in TEST_CARDS) on the tableau, or -1.
 func home_uid(engine: GameEngine) -> int:
+	var home: String = engine.config.starting.territory  # homeland in TEST_CARDS; the real data's own start
 	for c in engine.zone("tableau").cards:
-		if c.def.id == "homeland":
+		if c.def.id == home:
 			return c.uid
 	return -1
 

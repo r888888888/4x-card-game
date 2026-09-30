@@ -2,7 +2,7 @@
 id: 087
 title: Collapse territory groups in the Realm
 type: feature
-status: ready
+status: red-review
 branch: feat/087-collapse-territories
 ---
 
@@ -57,5 +57,12 @@ it, and collapse or expand all groups at once, so they see more territories with
   building lands with the summary updated.
 
 ## Log
+- 2026-09-29: Red at 594 tests (was 586), 8 failing. Resolved while writing tests: AC1's "pop 3 (so 1 idle)" can't
+  hold with 3 buildings (a building is idle when its index on the territory is ≥ pop), so the tests use pop 2, which
+  is also the real seed-1 start. AC7: no card targets a city or building yet, so it is tested through a public
+  `tableau.reveal(uid)`, which targeting calls for each lit card. AC3's "minimum height" is the group frame's laid-out
+  height (minimum sizes mean nothing before layout, 088). Fixed `test_case.home_uid`: it looked for `homeland`
+  only, so on the real data it returned -1 and 078's tests used the no-territory group; it now uses
+  `config.starting.territory` (078's tests still pass, now on River Meadow).
 - 2026-09-29: Specced. The user chose an in-place collapse toggle over a buildings modal, a header + count summary,
   groups expanded by default with Collapse all / Expand all, and collapsed groups staying drop targets.
