@@ -2,7 +2,7 @@
 id: 065
 title: Government cards (one at a time, swap by playing)
 type: feature
-status: ready
+status: red-review
 branch: feat/065-government-cards
 ---
 
@@ -46,10 +46,17 @@ Config: `starting.government: "council"`.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_government::test_…` |
+| AC1 | `test_government::test_government_cards_load`, `::test_government_outside_its_place_is_a_load_error`, `::test_starting_government_validation`, `::test_starting_government_is_optional`, `::test_government_effect_needing_a_target_is_a_load_error` |
+| AC2 | `test_government::test_starting_government_is_in_the_government_zone`, `::test_without_a_starting_government_the_zone_is_empty` |
+| AC3 | `test_government::test_playing_a_government_replaces_the_ruling_one`, `::test_playing_a_government_reports_the_government_zone` |
+| AC4 | `test_government::test_ruling_government_gives_its_upkeep_and_forecast`, `::test_score_counts_the_ruling_government_vp`, `::test_replaced_government_bonuses_stop` |
+| AC5 | `test_government::test_playing_the_ruling_government_again_is_an_error`, `::test_government_cost_is_checked_like_any_card` |
+| AC6 | `test_government::test_fork_copies_government_and_removed` |
 
 ## Manual check
 - [ ] Playing Kingship replaces Chiefdom on screen, and the log says so.
 - [ ] Sim: how often the bot switches governments, and the effect on score (Log).
 
 ## Log
+- 2026-09-29: Red at 544 tests (was 529). Fixtures went in `TEST_GOVS` (with `gov_db` / `gov_engine`), not
+  `TEST_CARDS`, as 062 did, so the red phase doesn't fail every `make_engine` test.
