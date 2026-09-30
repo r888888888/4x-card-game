@@ -16,7 +16,7 @@ end the turn.
 Keyboard: ←/→ move through your hand, Enter or Space plays the focused card. With several possible
 targets, ←/→ pick one, Enter plays it, and Esc cancels. During an explore choice, ←/→ and Enter pick a
 territory. Tab moves through the buttons.
-The game ends after 20 turns; your score is the VP on your tableau plus VP from effects.
+The game ends after 100 turns; your score is the VP on your tableau plus VP from effects.
 
 The top bar shows food and wealth with the change the next upkeep brings in brackets ("Food: 2 (+1)"),
 net of what your pop eats; food turns red when pop would starve.
