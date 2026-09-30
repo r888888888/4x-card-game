@@ -101,5 +101,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
     which add colours)
 62. 104 screen header and transitions for navigated screens (the pattern; after 103)
 63. 105 territory view layout (uses 104's header)
+64. 107 ancient civilizations: Egypt, Sumer, Phoenicia, Babylon, Greece, Persia (content only, existing ops)
+65. 108 civilization discounts (Babylon techs, Phoenicia supply, Egypt wonders; after 107)
+66. 109 civilization hand size (Greece; after 107)
+67. 110 civilization housing (Sumer; after 107)
+68. 111 civilization home territory (after 107; last, since it shifts every civ's start)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
