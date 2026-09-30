@@ -2,7 +2,7 @@
 id: 079
 title: Show a modal when a new event is drawn
 type: feature
-status: in-progress
+status: review
 branch: feat/079-event-drawn-modal
 ---
 
@@ -12,22 +12,22 @@ and a log line. Pop up a modal when a new event comes into play, showing the eve
 lasts, and what it just did, so events can't be missed.
 
 ## Acceptance criteria
-- [ ] AC1 (engine signal): Given an event game whose event deck has Windfall (gain 2 food) on top, when the turn
+- [x] AC1 (engine signal): Given an event game whose event deck has Windfall (gain 2 food) on top, when the turn
   ends, then `event_drawn` is emitted once with an outcome `{uid, gained, vp, drawn, created}` (the `card_played`
   shape) where `uid` is Windfall's uid in `active_events` and `gained` is `{food: 2}`; it is emitted before `changed`.
-- [ ] AC2 (no effect): Given Omen (no effects) on top, when the turn ends, then `event_drawn` is emitted with Omen's
+- [x] AC2 (no effect): Given Omen (no effects) on top, when the turn ends, then `event_drawn` is emitted with Omen's
   uid and empty `gained`, `drawn`, `created` and `vp` 0. Given empty event deck and event discard, when the turn
   ends, then `event_drawn` is not emitted.
-- [ ] AC3 (modal opens): Given main running an event game with Windfall on top, when the player ends turn 1, then
+- [x] AC3 (modal opens): Given main running an event game with Windfall on top, when the player ends turn 1, then
   the event modal is visible and its test hook `event_modal()` returns `{uid, id: "windfall", text, lasts, summary}`
   where `text` is Windfall's generated card text, `lasts` is "Lasts 1 turn" and `summary` contains "+2" and food.
   With Omen, the summary is empty (or "No immediate effect").
-- [ ] AC4 (dismiss): Given the event modal is open, when the player presses Esc, Enter, clicks its OK button or
+- [x] AC4 (dismiss): Given the event modal is open, when the player presses Esc, Enter, clicks its OK button or
   clicks outside the panel, then it closes (`event_modal()` returns `{}`). While it is open, keys and clicks don't
   reach the board (an End Turn key press doesn't end turn 2).
-- [ ] AC5 (hand limit): Given the drawn event and a hand over the hand limit, when the turn ends, then the event
+- [x] AC5 (hand limit): Given the drawn event and a hand over the hand limit, when the turn ends, then the event
   modal shows first and the hand-limit discard is still pending after it is closed (`pending_kind()` unchanged).
-- [ ] AC6 (last turn): Given the last turn of the game, when the player ends it, then the event modal is not shown
+- [x] AC6 (last turn): Given the last turn of the game, when the player ends it, then the event modal is not shown
   and the game-over overlay is.
 
 ## Out of scope
@@ -69,3 +69,11 @@ lasts, and what it just did, so events can't be missed.
   Beyond the ACs, following the planned-order note ("its summary covers losses as well as gains"): outcomes gain a
   `lost` map ({resource: amount} the `lose` op actually took), and `outcome_summary(outcome)` formats
   "+1 food, −2 wealth, +1 VP, drew 2 cards, created 1 card" ("" for nothing; the modal shows "No immediate effect").
+- 2026-09-30: With the user's OK, three approved uid lookups changed from `active_events` to "active_events or
+  event_discard" (`event_uid`): a 1-turn event has already been discarded by the next turn's upkeep when end_turn
+  returns. The click-outside case needed `push_input(click, true)` (viewport, not window, coordinates) at the far
+  corner (the panel is still at the origin before layout); the assertions are unchanged.
+- 2026-09-30: Green. The `event_drawn` outcome also carries the event's `id`, so the modal needs no zone search.
+  `start_game` closes an open event modal (an old game's event: caught by
+  `test_start_screen::test_menu_and_game_over_name_the_civilization`, whose Esc it swallowed). The 20-seed sim is
+  identical to `main`. `game_engine.gd` is at 675 lines (limit 700): the next engine item likely needs a split.
