@@ -322,6 +322,12 @@ func event_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dicti
 
 # --- UI helpers (backlog 045) ---
 
+## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
+func wait_frames(n := 2) -> void:
+	for i in n:
+		await (Engine.get_main_loop() as SceneTree).process_frame
+
+
 ## Adds a fresh main scene to the running tree. Typed Node so calls to its test hooks parse before they exist.
 func open_main() -> Node:
 	var main: Node = load("res://ui/main.tscn").instantiate()

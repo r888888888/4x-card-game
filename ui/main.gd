@@ -31,11 +31,11 @@ var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _row_sections := {}  # zone -> its heading and row (Frontier, Known, Civilization, Government), hidden while the zone is empty
+var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden while the zone is empty
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _side: SidePanel
-var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Civilization, Government, Events, Hand
+var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
@@ -141,6 +141,19 @@ func event_panel() -> Dictionary:
 		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
 	var info := _side.event_info
 	return {"visible": _events_section.visible, "info": info.text, "tooltip": info.tooltip_text, "views": shown}
+
+
+## Test hook (088): the visible civilization and government lines in the side panel, top to bottom, as {text, tooltip}.
+func identity_lines() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for line in identity_buttons():
+		out.append({"text": line.text, "tooltip": line.tooltip_text})
+	return out
+
+
+## Test hook (088): the visible civilization and government lines, to press.
+func identity_buttons() -> Array[Button]:
+	return _side.identity_buttons().filter(func(b: Button): return b.visible)
 
 
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
@@ -405,6 +418,8 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 		return choices.explore_exit_point()
 	if e.zone("deck").find(uid) != null:
 		return _top_bar.pile_point(0.25)
+	if e.zone("government").find(uid) != null:
+		return _side.identity_point("government")
 	if e.zone("event_discard").find(uid) != null:
 		return _side.event_info.get_global_rect().get_center()
 	return _top_bar.pile_point(0.75)
@@ -490,10 +505,6 @@ func _build_layout() -> void:
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
 	frontier = _row_sections.frontier.get_meta("row")
 	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
-	_row_sections.civilization = UIKit.card_row_section(_play_area, "Civilization",
-		"The civilization you play as. Its bonuses last all game.")
-	_row_sections.government = UIKit.card_row_section(_play_area, "Government",
-		"Your government. Its bonuses last while it rules. Play another government card to replace it.")
 	_events_section = UIKit.card_row_section(_play_area, "Events")
 	_events_row = _events_section.get_meta("row")
 
@@ -510,7 +521,7 @@ func _build_layout() -> void:
 	hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(hand)
 
-	_side = SidePanel.new(func(): tech_tree.open())
+	_side = SidePanel.new(func(): tech_tree.open(), func(card_id: String): details.open_def(card_id))
 	body.add_child(_side)
 
 	# Effects layer, above the board and below the overlays.

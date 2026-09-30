@@ -47,7 +47,7 @@ func _initialize() -> void:
 			t.test_name = test_name
 			t.failures = failures
 			collector.errors.clear()
-			t.call(method_name)
+			await t.call(method_name)  # a test may await frames (for layout); a plain one returns at once
 			for e in collector.errors:
 				failures.append("%s: error: %s" % [test_name, e])
 			if t.assertions == 0:
