@@ -30,6 +30,7 @@ var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
+var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
 
 var _board: Control  # the top bar and the body (play area and side panel)
 var _top_bar: TopBar
@@ -40,7 +41,7 @@ var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _relieve: Button  # under the events: pays to end the Famine (084), shown while one can be relieved
-var _side: SidePanel
+var _turn_box: TurnBox  # the deck and discard counts and End turn, beside the hand (115)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
@@ -56,7 +57,7 @@ func _ready() -> void:
 		UIKit.message_overlay(self, "Game data has errors — fix data/*.json and restart", Game.load_errors).show()
 		return
 	Game.engine.changed.connect(_refresh)
-	Game.engine.logged.connect(_side.append_log)
+	Game.engine.logged.connect(log_drawer.append_log)
 	Game.engine.card_played.connect(_on_card_played)
 	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
@@ -93,7 +94,8 @@ func start_game(seed_value: int, civ_id := "") -> void:
 		seed_value = randi_range(1, 999999)
 	nav.clear()
 	_board.show()
-	_side.clear_log()
+	log_drawer.clear()
+	log_drawer.close()
 	supply.close()
 	_event_modal.close()  # an old game's event
 	_drawn = {}
@@ -175,8 +177,19 @@ func event_panel() -> Dictionary:
 	var shown := []
 	for view in views_in(_events_row):
 		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
-	var info := _side.event_info
+	var info: Label = _events_section.get_child(0)
 	return {"visible": _events_section.visible, "info": info.text, "tooltip": info.tooltip_text, "views": shown}
+
+
+## The Events section and its heading's pile counts (115), shown only with an event deck.
+func _refresh_events_heading(e: GameEngine) -> void:
+	var heading: Label = _events_section.get_child(0)
+	_events_section.visible = not e.config.get("event_deck", {}).is_empty()
+	heading.text = "Events · deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
+	heading.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
+	var waiting := e.zone("future_events").size()
+	if waiting > 0:
+		heading.tooltip_text += "\n%d %s for a later era." % [waiting, "event waits" if waiting == 1 else "events wait"]
 
 
 ## The Relieve button: shown while a Famine is active and has a relief price, disabled with the reason it can't pay.
@@ -209,7 +222,7 @@ func identity_lines() -> Array[Dictionary]:
 
 ## Test hook (088): the visible civilization and government lines, to press.
 func identity_buttons() -> Array[Button]:
-	return _side.identity_buttons().filter(func(b: Button): return b.visible)
+	return _top_bar.identity_buttons().filter(func(b: Button): return b.visible)
 
 
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
@@ -248,7 +261,7 @@ func views_in(container: Container) -> Array[CardView]:
 
 ## Adds a line of BBCode to the log.
 func log_note(bbcode: String) -> void:
-	_side.note(bbcode)
+	log_drawer.note(bbcode)
 
 
 ## Plays the card (on target_uid) if it's legal; otherwise sends it back with a shake and says why.
@@ -423,8 +436,8 @@ func _refresh() -> void:
 	for zone_name in _row_sections:
 		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
 	choices.refresh(e)
-	_side.refresh(e)
-	_events_section.visible = _side.event_info.visible  # both only with an event deck
+	_turn_box.refresh(e)
+	_refresh_events_heading(e)
 	_refresh_relieve(e)
 	supply.refresh(e)
 	if not _outcome.is_empty():
@@ -458,7 +471,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		views[card.uid] = view
 		var slot := _new_slot(view, container, index)
 		if in_hand:
-			view.deal(slot, fx, _top_bar.pile_point(0.25), delay)
+			view.deal(slot, fx, _turn_box.pile_point(0.25), delay)
 		elif _quiet:
 			view.attach(slot)
 		else:
@@ -516,12 +529,12 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 	if e.zone("territory_deck").find(uid) != null:
 		return choices.explore_exit_point()
 	if e.zone("deck").find(uid) != null:
-		return _top_bar.pile_point(0.25)
+		return _turn_box.pile_point(0.25)
 	if e.zone("government").find(uid) != null:
-		return _side.identity_point("government")
+		return _top_bar.identity_point("government")
 	if e.zone("event_discard").find(uid) != null:
-		return _side.event_info.get_global_rect().get_center()
-	return _top_bar.pile_point(0.75)
+		return (_events_section.get_child(0) as Control).get_global_rect().get_center()
+	return _turn_box.pile_point(0.75)
 
 
 ## A slot for view at index in container, already the size view rests at, so the row doesn't change height
@@ -579,19 +592,14 @@ func _build_layout() -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 12)
 	margin.add_child(root)
-	_top_bar = TopBar.new(open_menu)
+	_top_bar = TopBar.new(open_menu, func(): tech_tree.open(), func(card_id: String): details.open_def(card_id),
+		func(): log_drawer.toggle())
 	root.add_child(_top_bar)
 
-	# Body: play area on the left, log + end turn on the right.
-	var body := HBoxContainer.new()
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 14)
-	root.add_child(body)
-
-	_play_area = VBoxContainer.new()
-	_play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_play_area = VBoxContainer.new()  # the whole width below the top bar (115)
+	_play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	body.add_child(_play_area)
+	root.add_child(_play_area)
 
 	var realm_section := UIKit.section(_play_area, "Realm")
 	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -613,10 +621,14 @@ func _build_layout() -> void:
 	_events_section.add_child(_relieve)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
+	var hand_row := HBoxContainer.new()  # the hand, then End turn (115)
+	hand_row.add_theme_constant_override("separation", 14)
+	hand_section.add_child(hand_row)
 	hand_scroll = ScrollContainer.new()
+	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	hand_section.add_child(hand_scroll)
+	hand_row.add_child(hand_scroll)
 	var hand_pad := MarginContainer.new()
 	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
 	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
@@ -625,8 +637,8 @@ func _build_layout() -> void:
 	hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(hand)
 
-	_side = SidePanel.new(func(): tech_tree.open(), func(card_id: String): details.open_def(card_id))
-	body.add_child(_side)
+	_turn_box = TurnBox.new()
+	hand_row.add_child(_turn_box)
 
 	# Effects layer, above the board and below the overlays.
 	fx = Control.new()
@@ -639,7 +651,9 @@ func _build_layout() -> void:
 	supply = SupplyScreen.new(self, open_supply)
 	supply.refused.connect(func(message: String): log_note("[color=#e88]%s[/color]" % message))
 	supply.closed.connect(func(): focus.clear())
-	_side.add_supply_button(supply.button)
+	_top_bar.add_supply_button(supply.button)
+	log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
+	add_child(log_drawer)
 
 	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
 
