@@ -7,7 +7,8 @@ extends Control
 ## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
 ## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
 ## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, TechTreeModal,
-## DragController (dragging and targeting) and CardFocus (the keyboard focus on the cards).
+## StartScreen, NewGameScreen, SettingsScreen, DragController (dragging and targeting) and CardFocus (the keyboard
+## focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
@@ -23,7 +24,9 @@ var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
 var details: CardDetailsModal
-var start_screen: StartScreen  # shown on launch and from the menu's New game, with the board hidden (063)
+var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
+var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
+var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099)
 var tech_tree: TechTreeModal
 
 var _board: Control  # the top bar and the body (play area and side panel)
@@ -55,13 +58,13 @@ func _ready() -> void:
 	Game.engine.card_played.connect(_on_card_played)
 	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
-	show_start_screen()
+	show_title_screen()
 
 
 ## Keyboard play (CardFocus.handle_key). Only reached when no control with focus (a button or the seed field)
 ## used the key. Nothing here runs while the menu is open.
 func _unhandled_key_input(event: InputEvent) -> void:
-	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and not start_screen.is_open() \
+	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and not _screen_open() \
 			and focus.handle_key(event as InputEventKey):
 		get_viewport().set_input_as_handled()
 
@@ -71,6 +74,11 @@ func _input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 			get_viewport().set_input_as_handled()
 			_close_menu()
+		return
+	if (new_game_screen.is_open() or settings_screen.is_open()) and event is InputEventKey and event.pressed \
+			and not event.echo and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		show_title_screen()  # Esc works like Back (099)
 		return
 	if drag.handle_input(event):
 		get_viewport().set_input_as_handled()
@@ -83,7 +91,7 @@ func _input(event: InputEvent) -> void:
 func start_game(seed_value: int, civ_id := "") -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
-	start_screen.hide()
+	_hide_screens()
 	_board.show()
 	_side.clear_log()
 	supply.close()
@@ -111,8 +119,26 @@ func _civilization_card() -> CardInstance:
 	return Game.engine.zone("civilization").find(Game.engine.civilization())
 
 
-## Leaves the current game for the start screen: the board, its cards and any open choice go away.
-func show_start_screen() -> void:
+## Leaves the current game (if any) for the title screen.
+func show_title_screen() -> void:
+	_leave_game()
+	start_screen.open()
+
+
+## Leaves the current game (if any) for the new game screen, with the saved civilization preselected.
+func show_new_game_screen() -> void:
+	_leave_game()
+	var warnings: Array[String] = []
+	var civs := Game.engine.civilizations()
+	var preselect := Settings.store.civilization_in(civs, warnings)
+	for w in warnings:
+		push_warning(w)
+	new_game_screen.open(Game.engine, civs, preselect)
+
+
+## Hides the board and every screen: the board's cards and any open choice go away.
+func _leave_game() -> void:
+	_hide_screens()
 	supply.close()
 	details.close()
 	_event_modal.close()
@@ -120,12 +146,16 @@ func show_start_screen() -> void:
 	choices.refresh(null)
 	_game_over.overlay.hide()
 	_board.hide()
-	var warnings: Array[String] = []
-	var civs := Game.engine.civilizations()
-	var preselect := Settings.store.civilization_in(civs, warnings)
-	for w in warnings:
-		push_warning(w)
-	start_screen.open(Game.engine, civs, preselect)
+
+
+func _hide_screens() -> void:
+	start_screen.hide()
+	new_game_screen.hide()
+	settings_screen.hide()
+
+
+func _screen_open() -> bool:
+	return start_screen.is_open() or new_game_screen.is_open() or settings_screen.is_open()
 
 
 ## Test hook (063): whether the board (top bar, play area, side panel) is showing.
@@ -612,20 +642,29 @@ func _build_layout() -> void:
 		_restart(seed_value))
 	_menu.new_game_requested.connect(func():
 		_close_menu(false)
-		show_start_screen())
+		show_new_game_screen())
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	tech_tree = TechTreeModal.new(self)  # before details, which opens over it and takes the keys first
 	_event_modal = EventModal.new(self)  # before details, so a details modal opened from it takes the keys first
 	details = CardDetailsModal.new(self)
-	start_screen = StartScreen.new(self, details.open)
-	start_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, start_screen.selected))
+	start_screen = StartScreen.new(self)
+	start_screen.new_game_requested.connect(show_new_game_screen)
+	start_screen.settings_requested.connect(func():
+		start_screen.hide()
+		settings_screen.open())
+	start_screen.exit_requested.connect(func(): quit_hook.call())
+	new_game_screen = NewGameScreen.new(self, details.open)
+	new_game_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, new_game_screen.selected))
+	new_game_screen.back_requested.connect(show_title_screen)
+	settings_screen = SettingsScreen.new(self)
+	settings_screen.back_requested.connect(show_title_screen)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 
 
-## Matches the menu's and start screen's toggles and the looping drop-zone pulse to the reduce motion setting.
+## Matches the menu's and settings screen's toggles and the looping drop-zone pulse to the reduce motion setting.
 func _apply_motion_setting() -> void:
 	_menu.show_motion_setting(UIKit.calm())
-	UIKit.show_motion(start_screen.motion_toggle, UIKit.calm())
+	UIKit.show_motion(settings_screen.motion_toggle, UIKit.calm())
 	drag.apply_motion(UIKit.calm())
