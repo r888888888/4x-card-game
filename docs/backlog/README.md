@@ -60,7 +60,7 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 21. 058 Stone/Bronze Age tech content (uses 057)
 22. 059 tech tree modal (after 058's content, uses 056)
 23. 060 Granary famine guard
-24. 061 weighted explore
+24. ~~061 weighted explore~~ (wontfix)
 25. 062 civilization cards
 26. 063 start screen
 27. 064 choose civilization (uses 062, 063)

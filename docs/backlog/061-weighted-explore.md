@@ -2,7 +2,7 @@
 id: 061
 title: Explore favours territories like the ones you know
 type: feature
-status: ready
+status: wontfix
 branch: feat/061-weighted-explore
 ---
 
@@ -48,3 +48,4 @@ Fixtures: a new TEST_CARDS territory `lake` ("Lake", slots 2, keywords ["fresh_w
 - [ ] Settle a Hills; later explores offer hills and highlands noticeably more often.
 
 ## Log
+- 2026-09-29: Dropped at the user's request while writing the red tests; nothing was committed.
