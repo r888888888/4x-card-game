@@ -2,7 +2,7 @@
 id: 078
 title: A territory with many cards pushes the side panel off screen
 type: bug
-status: ready
+status: red-review
 branch: fix/078-territory-row-overflows
 ---
 
@@ -28,6 +28,9 @@ branch: fix/078-territory-row-overflows
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_territory_row::test_bug_078_many_cards_do_not_widen_the_tableau` |
+| AC2 | `test_territory_row::test_bug_078_every_card_stays_in_its_group` (guard: passes before the fix) |
+| AC3 | `test_territory_row::test_bug_078_ghost_goes_after_the_groups_last_card` (guard: passes before the fix) |
 
 ## Root cause
 <!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
@@ -46,3 +49,5 @@ branch: fix/078-territory-row-overflows
 ## Log
 - 2026-09-29: Reported by the user. The cause comes from the layout code and the arithmetic above; it hasn't been
   recorded in the rendered scene yet.
+- Red: reproduced in the real main scene (seed 1, 8 Farms added to the home territory's territory card and Capital):
+  the tableau's minimum width goes 522 → 2562px. AC1 compares with the game's start (2 cards) rather than 1 card.
