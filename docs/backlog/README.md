@@ -97,5 +97,9 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 58. 103 navigation stack for screens (done; before 101, which pushes the territory view on it)
 59. 101 territory view (click a territory: its city, buildings and Grow in place of the Realm)
 60. 102 territories as plain cards in the Realm (after 101, which gives the buildings somewhere to show)
+61. 106 theme cleanup: one palette, theme type variations (the in-house alternative to 097; before 104 and 105,
+    which add colours)
+62. 104 screen header and transitions for navigated screens (the pattern; after 103)
+63. 105 territory view layout (uses 104's header)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
