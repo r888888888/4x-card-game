@@ -2,7 +2,7 @@
 id: 114
 title: Cost tokens float up from the counter
 type: feature
-status: in-progress
+status: review
 branch: feat/114-cost-tokens-float-up
 ---
 
@@ -14,17 +14,17 @@ Gains ("+N food", "+N VP") keep flying to their counters and pulsing them.
 
 ## Acceptance criteria
 <!-- UI tests: tokens are placed on the fx layer; step their tweens to read positions. -->
-- [ ] AC1: Given a card that costs 2 food is played, when its outcome is shown, then a "−2 food" token appears just
+- [x] AC1: Given a card that costs 2 food is played, when its outcome is shown, then a "−2 food" token appears just
   below the food counter and, over its lifetime, moves only upward (x unchanged, y decreasing by
   `Anim.TOKEN_FLOAT_PX`), fades to transparent and is freed; it never moves towards the played card.
-- [ ] AC2: The same holds for a wealth cost paid when playing a card: the "−N wealth" token floats up from the
+- [x] AC2: The same holds for a wealth cost paid when playing a card: the "−N wealth" token floats up from the
   wealth counter.
-- [ ] AC3: Given the supply screen is open and a pile costs 3 wealth, when it is bought, then the "−3 wealth"
+- [x] AC3: Given the supply screen is open and a pile costs 3 wealth, when it is bought, then the "−3 wealth"
   token floats up from the screen's wealth counter as in AC1, not towards the bought pile.
-- [ ] AC4: Given a card that costs food and wealth, when played, then both tokens float up from their own counters,
+- [x] AC4: Given a card that costs food and wealth, when played, then both tokens float up from their own counters,
   the second starting `Anim.TOKEN_STAGGER` seconds after the first (as today).
-- [ ] AC5: Gains are unchanged: a "+N food" token still flies from the played card to the food counter and pulses it.
-- [ ] AC6: With Reduce motion on, a cost token appears just below its counter, holds and fades out without moving
+- [x] AC5: Gains are unchanged: a "+N food" token still flies from the played card to the food counter and pulses it.
+- [x] AC6: With Reduce motion on, a cost token appears just below its counter, holds and fades out without moving
   (today it appears at the played card).
 
 ## Out of scope
@@ -52,3 +52,6 @@ Gains ("+N food", "+N VP") keep flying to their counters and pulsing them.
 - [ ] Turn on Reduce motion and repeat: tokens fade in place under the counter.
 
 ## Log
+- `UIKit.float_token(layer, text, from, color, delay)`: the token rises `Anim.TOKEN_FLOAT_PX` (40) over
+  `TOKEN_FLY_TIME` (ease out) and fades over the second half; with Reduce motion it fades in and out in place.
+  `fly_token` and `float_token` share `UIKit._token`. Costs no longer need the card point.
