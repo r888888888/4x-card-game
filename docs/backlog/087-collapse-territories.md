@@ -2,7 +2,7 @@
 id: 087
 title: Collapse territory groups in the Realm
 type: feature
-status: in-progress
+status: review
 branch: feat/087-collapse-territories
 ---
 
@@ -12,23 +12,23 @@ collapse a territory group to its territory card, header (slots, pop, Grow) and 
 it, and collapse or expand all groups at once, so they see more territories without scrolling.
 
 ## Acceptance criteria
-- [ ] AC1 (engine): Given a settled territory holding 1 city and 3 buildings with pop 3 (so 1 building idle, population
+- [x] AC1 (engine): Given a settled territory holding 1 city and 3 buildings with pop 3 (so 1 building idle, population
   on), `territory_summary(uid)` returns `{"cities": 1, "buildings": 3, "idle": 1}`. The territory card itself isn't
   counted. With population off, `idle` is 0.
-- [ ] AC2 (engine): `territory_summary(uid)` returns `{}` for a uid that is not a settled territory in the tableau
+- [x] AC2 (engine): `territory_summary(uid)` returns `{}` for a uid that is not a settled territory in the tableau
   (a building's uid, a frontier territory, an unknown uid).
-- [ ] AC3: Given the main scene with that territory's group expanded, when its collapse toggle is pressed
+- [x] AC3: Given the main scene with that territory's group expanded, when its collapse toggle is pressed
   (`tableau.set_collapsed(uid, true)`), then the city and building views in the group are hidden, the territory card,
   header label and Grow button stay visible, a summary label reads `1 city · 3 buildings (1 idle)`, and the tableau's
   minimum height is less than when expanded. `set_collapsed(uid, false)` shows all 5 views again and hides the summary.
-- [ ] AC4: Given a collapsed group, when the board refreshes after a building is played onto that territory, then the
+- [x] AC4: Given a collapsed group, when the board refreshes after a building is played onto that territory, then the
   group stays collapsed, the new building's view is hidden, and the summary reads `1 city · 4 buildings …`.
-- [ ] AC5: Given 2 settled territories and cards on no territory, when "Collapse all" is pressed, both territory groups
+- [x] AC5: Given 2 settled territories and cards on no territory, when "Collapse all" is pressed, both territory groups
   collapse and the no-territory group (uid -1) doesn't (it has no toggle); "Expand all" expands both. A territory
   settled afterwards starts expanded. A new game starts with every group expanded (the state isn't saved).
-- [ ] AC6: A collapsed group is still a drop target: `group_at(point)` inside its frame returns its uid, and
+- [x] AC6: A collapsed group is still a drop target: `group_at(point)` inside its frame returns its uid, and
   `move_ghost(uid)` shows the ghost in that group right after the territory card.
-- [ ] AC7: Given a collapsed group holding a card that targeting lights (a card that targets a city or building), when
+- [x] AC7: Given a collapsed group holding a card that targeting lights (a card that targets a city or building), when
   targeting starts, that group expands so the lit card is visible and reachable with ←/→; it stays expanded afterwards.
 
 ## Out of scope
@@ -71,5 +71,16 @@ it, and collapse or expand all groups at once, so they see more territories with
   height (minimum sizes mean nothing before layout, 088). Fixed `test_case.home_uid`: it looked for `homeland`
   only, so on the real data it returned -1 and 078's tests used the no-territory group; it now uses
   `config.starting.territory` (078's tests still pass, now on River Meadow).
+- Approved at red. Green: `Territories.summary` / `GameEngine.territory_summary`; `TableauView` keeps the collapsed
+  set, a ▾/▸ toggle per group, a summary label, `reset()` (called by `start_game`), `reveal()` (called by
+  targeting for each lit uid; a lit territory card doesn't expand its group, so dragging a building keeps groups
+  collapsed) and a `collapse_changed` signal the board refreshes on.
+- Design choice made during green (not in the spec): **a collapsed group's territory card is shown compact** (the
+  frontier size: name, slots, housing, keywords). With a full-size territory card plus the summary line, a one-line
+  group was taller collapsed (276px) than expanded (249px), so AC3's test failed; compact, collapsing saves height
+  as well as width. `CardView.is_compact()` lets the board resize the view when its group toggles.
+- Collapse all sits on the Realm heading's right end (no extra row, so End turn stays on screen) and reads Expand
+  all once every territory group is collapsed. Rendered at 1920×1080 with 4 territories: all collapsed fit in two
+  lines of groups.
 - 2026-09-29: Specced. The user chose an in-place collapse toggle over a buildings modal, a header + count summary,
   groups expanded by default with Collapse all / Expand all, and collapsed groups staying drop targets.

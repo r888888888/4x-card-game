@@ -44,7 +44,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
-| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups` |
+| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary` |
 | `tests/test_pending.gd` | `pending()` for each decision kind (explore, research, discard) and the one blocking rule every action follows |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
@@ -58,6 +58,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |
 | `tests/test_identity_lines.gd` | The civilization and government lines in the side panel of the real `main.tscn` (088): text, tooltips, order, details on press, a new government, none without them; End turn on screen at 1920×1080 after layout (`wait_frames`); uses `identity_lines()` / `identity_buttons()` |
+| `tests/test_collapse_territories.gd` | Collapsing territory groups in the real `main.tscn` (087): hidden cards, summary, height, refresh, Collapse all / Expand all, new territories and games expanded, drop target, `reveal`; uses `tableau.set_collapsed` / `is_collapsed` / `has_toggle` / `group_summary` / `group_frame` |
+| `tests/test_territory_row.gd` | A full territory's cards wrap instead of widening the tableau (078) |
 | `tests/test_trash.gd` | The `trash` op (082): hand targets (never the card played), errors, auto-pick, `trashed` never reshuffled, fork, loading, card text |
 | `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked Winnow lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
 | `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
@@ -116,7 +118,7 @@ Minimum sizes before a layout pass are meaningless.
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (20 wealth), `pass_tech` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers |
+| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers; `home_uid` is the config's starting territory (fixed in 087: it used to find only `homeland`) |
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy for order-free comparisons |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
 | `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
