@@ -47,6 +47,11 @@
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
     },
     {
+      "id": "winnow", "name": "Winnow", "type": "action",
+      "cost": { "food": 1 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "trash" } ]
+    },
+    {
       "id": "storyteller", "name": "Storyteller", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "draw", "amount": 2 } ]

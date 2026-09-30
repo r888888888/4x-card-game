@@ -107,6 +107,9 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] }`
   gains `amount` (default 1) per settled territory (in the tableau) with any of `keywords`, printed or rolled; each
   territory counts once. `GameEngine.count_territories_with(keywords)` is the count (Hunt).
+- `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
+  the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
+  (Winnow, supply only).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error.
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.

@@ -425,7 +425,8 @@ func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
 # --- Supply (backlog 032) ---
 
 ## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.
-func test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech() -> void:
+## Since 082 an unlocked pile needs no deck copy: some cards (Winnow, the 080 buildings) are only for sale.
+func test_every_locked_supply_pile_is_unlocked_by_a_tech() -> void:
 	var r := load_real()
 	var supply: Dictionary = r.config.get("supply", {})
 	check(not supply.is_empty(), "the real config has a supply")
@@ -437,8 +438,6 @@ func test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech() -> voi
 	for id in supply:
 		if supply[id].get("locked", false):
 			check(unlocked_by_tech.has(id), "locked pile %s is unlocked by a tech in research_deck" % id)
-		elif r.cards[id].type != CardDef.BUILDING:  # 080: a building may be on sale from turn 1 without a deck copy
-			check(r.config.deck.get(id, 0) >= 1, "unlocked pile %s still starts in the deck" % id)
 
 
 # --- Rolled resources (036, 037) ---
@@ -622,3 +621,16 @@ func test_hunt_gains_food_per_keyword_and_is_available_from_the_start() -> void:
 	for effect in effects:
 		for k in effect.get("keywords"):
 			check(on_land.has(k), "Hunt's keyword %s is on a territory in territory_deck" % k)
+
+
+# --- Winnow (backlog 082) ---
+
+func test_winnow_trashes_and_is_on_sale() -> void:
+	var r := load_real()
+	var winnow := real_card(r, "winnow")
+	if winnow == null:
+		return
+	eq(winnow.type, CardDef.ACTION, "Winnow type")
+	check(winnow.effects.any(func(e): return e.op == "trash"), "Winnow has a trash effect")
+	var pile: Dictionary = r.config.supply.get("winnow", {})
+	check(not pile.is_empty() and not pile.get("locked", false), "Winnow is in an unlocked supply pile")

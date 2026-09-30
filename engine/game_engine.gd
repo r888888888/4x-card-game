@@ -25,7 +25,7 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization", "government", "removed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
@@ -506,14 +506,24 @@ func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:
 	Territories.settle(self, territory_uid, city_id, source)
 
 
-## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if
-## population is off or territory_uid isn't a settled territory.
+## Moves hand card uid to the trashed zone, out of the game for good.
+func trash(uid: int, source: CardInstance) -> void:
+	var card := zone("hand").find(uid)
+	zone("hand").remove(card)
+	zone("trashed").add(card)
+	if not _outcome.is_empty():
+		_outcome.trashed = uid
+	_log("  %s: removed %s from the game." % [source.def.name, card.def.name])
+
+
 ## Opens card_id's supply pile for buying; nothing happens if it is already open.
 func unlock_supply(card_id: String, source: CardInstance) -> void:
 	if state.locked_supply.erase(card_id):
 		_log("  %s: %s can now be bought." % [source.def.name, card_db[card_id].name])
 
 
+## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if
+## population is off or territory_uid isn't a settled territory.
 func add_pop(territory_uid: int, amount: int, source: CardInstance) -> void:
 	Population.add_pop(self, territory_uid, amount, source)
 

@@ -96,8 +96,8 @@ func begin_targeting(view: CardView) -> void:
 	targeting = view
 	view.set_highlight(true)
 	_light_targets(view.uid, true)
-	_board.log_note("[color=#ffd966]Click a territory (or ←/→ then Enter) to play %s on (Esc cancels).[/color]"
-		% Game.engine.zone("hand").find(view.uid).def.name)
+	# The engine's reason the card can't be played yet, e.g. "Choose a territory to settle." or "Choose a card to trash."
+	_board.log_note("[color=#ffd966]%s Click one (or ←/→ then Enter); Esc cancels.[/color]" % Game.engine.play_error(view.uid))
 
 
 func end_targeting() -> void:
@@ -184,15 +184,18 @@ func _update_feedback() -> void:
 		_board.tableau.move_ghost(target if lit.has(target) else (lit[0] if lit.size() == 1 else -1))
 
 
-## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there).
+## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there), plus any lit
+## hand card (a trash target).
 func _over_drop_zone() -> bool:
 	var mouse := _board.get_global_mouse_position()
+	var target: CardView = _board.views.get(_target_under_mouse())
 	return _board.tableau.get_global_rect().has_point(mouse) \
-		or (_board.frontier.is_visible_in_tree() and _board.frontier.get_global_rect().has_point(mouse))
+		or (_board.frontier.is_visible_in_tree() and _board.frontier.get_global_rect().has_point(mouse)) \
+		or (target != null and target.in_hand)
 
 
 ## What the mouse is over as a target: a territory group's territory uid, else the uid of the
-## tableau or frontier card under it, else -1.
+## tableau or frontier card under it, or of a lit hand card, else -1.
 func _target_under_mouse() -> int:
 	var mouse := _board.get_global_mouse_position()
 	var group := _board.tableau.group_at(mouse)
@@ -200,7 +203,7 @@ func _target_under_mouse() -> int:
 		return group
 	for uid in _board.views:
 		var view: CardView = _board.views[uid]
-		if view.in_hand or view == dragging or view.state != CardView.State.REST:
+		if (view.in_hand and not lit.has(uid)) or view == dragging or view.state != CardView.State.REST:
 			continue
 		if view.slot.get_parent() != _board.choices.reveal and view.get_global_rect().has_point(mouse):
 			return uid

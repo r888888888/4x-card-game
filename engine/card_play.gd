@@ -49,7 +49,8 @@ static func targets_of(e: GameEngine, uid: int) -> Array[int]:
 	if card.def.type == CardDef.BUILDING:
 		return Territories.building_targets(e, card)
 	for target in e.zone(target_effect(card).target_zone()).cards:
-		out.append(target.uid)
+		if target != card:  # a hand target is never the card being played
+			out.append(target.uid)
 	return out
 
 

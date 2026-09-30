@@ -390,14 +390,17 @@ func _remove_view(uid: int) -> void:
 	var via: Variant = null
 	if just_played and views.has(_outcome.target):  # fly to where it was played, e.g. the settled territory
 		via = (views[_outcome.target] as CardView).get_global_rect().get_center()
-	view.leave(fx, _leave_point(uid), just_played, via)
+	var trashed := Game.engine.zone("trashed").find(uid) != null
+	view.leave(fx, _leave_point(uid, view), just_played or trashed, via)
 	_free_slot(old_slot)
 
 
-## Where a card that left the board flies: the deck or discard counter, the event counts, or for a territory
-## put back in the territory deck, the edge of the choice panel.
-func _leave_point(uid: int) -> Vector2:
+## Where a card that left the board flies: the deck or discard counter, the event counts, for a territory
+## put back in the territory deck the edge of the choice panel, or up off the table for a trashed card.
+func _leave_point(uid: int, view: CardView) -> Vector2:
 	var e := Game.engine
+	if e.zone("trashed").find(uid) != null:
+		return view.get_global_rect().get_center() - Vector2(0, view.size.y)
 	if e.zone("territory_deck").find(uid) != null:
 		return choices.explore_exit_point()
 	if e.zone("deck").find(uid) != null:
