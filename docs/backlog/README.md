@@ -50,25 +50,40 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 11. 050 pending-decision model
 12. 051 GameState split
 13. 039 event deck (after 051: uses the type schema, the upkeep guard and the forecast on a copy)
-14. 052 split `ui/main.gd`
-15. 053 board tidy (Realm, Buy Cards, Knowledge wording, seed in menu)
-16. 067 Exit button in the menu (after 053, which also edits the menu)
-17. 054 fresh-water start, Farm needs Fresh Water
-18. 055 Caravan `trade` op
-19. 056 card details modal (the tech tree reuses it)
-20. 057 locked supply piles, `unlock` op
-21. 058 Stone/Bronze Age tech content (uses 057)
-22. 059 tech tree modal (after 058's content, uses 056)
-23. 060 Granary famine guard
-24. ~~061 weighted explore~~ (wontfix)
-25. 062 civilization cards
-26. 063 start screen
-27. 064 choose civilization (uses 062, 063)
-28. 065 government cards (content from 058's techs)
-29. 080 five early-game cards (data only)
-30. 081 `gain_per_keyword` op, Hunt
-31. 082 `trash` op, Rite of Passage
-32. 072 harmful event ops (`lose`, `lose_pop`)
-33. 083 Famine replaces starvation (uses 072, 060)
-34. 084 relieve a Famine with wealth
-35. 066 100-turn games, balance pass (last: everything above changes balance)
+14. 068 event panel (uses 039)
+15. 069 starter event deck (uses 039, 068)
+16. 052 split `ui/main.gd`
+17. 053 board tidy (Realm, Buy Cards, Knowledge wording, seed in menu)
+18. 067 Exit button in the menu (after 053, which also edits the menu)
+19. 075 Frontier and Known rows keep their height
+20. 076 buildings cost mostly wealth
+21. 054 fresh-water start, Farm needs Fresh Water
+22. 055 Caravan `trade` op
+23. 056 card details modal (the tech tree reuses it)
+24. 057 locked supply piles, `unlock` op
+25. 058 Stone/Bronze Age tech content (uses 057)
+26. 059 tech tree modal (after 058's content, uses 056)
+27. 060 Granary famine guard
+28. ~~061 weighted explore~~ (wontfix)
+29. 062 civilization cards
+30. 085 script size limits
+31. 086 split `ui/card_view.gd` (after 085)
+32. 063 start screen
+33. 064 choose civilization (uses 062, 063)
+34. 065 government cards (content from 058's techs)
+35. 080 five early-game cards (data only)
+36. 081 `gain_per_keyword` op, Hunt
+37. 082 `trash` op, Rite of Passage
+38. 072 harmful event ops (`lose`, `lose_pop`)
+39. 083 Famine replaces starvation (uses 072, 060)
+40. 084 relieve a Famine with wealth
+41. 074 event decks escalate by era (uses 072)
+42. 077 Market earns wealth per city (uses 076)
+43. 070 event tooltip says how long it lasts
+44. 079 modal when a new event is drawn
+45. 071 icons for the tech and event type marks
+46. 078 wide territory row pushes the side panel off screen
+47. 087 collapse territory groups (independent of 078)
+48. 066 100-turn games, balance pass (last: everything above changes balance)
+
+Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
