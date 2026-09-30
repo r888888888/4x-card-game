@@ -146,13 +146,11 @@ func test_board_buttons_fit_their_text() -> void:
 	main.start_game(1)
 	await wait_frames()
 	check_fits(shown_button(main, "Menu"), "Menu")
-	check_fits(shown_button(main, "Collapse all"), "Collapse all")
 	var home := home_uid(Game.engine)
-	var header: Control = main.tableau.group_header(home)
-	var shown := UIKit.buttons_in(header).filter(func(b): return b.is_visible_in_tree())
-	check(not shown.is_empty(), "the home group shows buttons")
-	for b in shown:
-		check_fits(b, "territory group button '%s'" % b.text)
+	main.views[home].details_requested.emit(main.views[home])  # a click: the territory view (101, 102)
+	await wait_frames()
+	check_fits(main.territory_view.back_button, "territory view Back")
+	check_fits(main.territory_view.grow_button, "territory view Grow")
 	close_at_1080(main)
 
 

@@ -89,10 +89,13 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 func test_clicking_a_city_or_building_still_shows_its_details() -> void:
 	await with_fixture_main(func(main: Node):
 		var e := Game.engine
+		var home := home_uid(e)
+		click(main, home)  # 102: a city has a card only in its territory's view
+		await wait_frames()
 		var capital := uid_of(e.zone("tableau"), "capital")
 		click(main, capital)
 		await wait_frames()
-		check(not main.territory_view.is_open(), "no view")
+		eq(main.territory_view.uid, home, "still the home territory's view")
 		eq(main.details.shown().get("name", ""), "Capital", "the Capital's details"))
 
 

@@ -2,7 +2,8 @@ class_name DragController
 extends RefCounted
 ## Dragging a hand card onto the board, and targeting mode (a double-click on a card with several targets, then
 ## a click on the target). While either is on, the card's valid targets are lit; a drag also lights the drop zone
-## (the tableau), shows the engine's reason when the drop would fail, and the ghost slot a permanent will land in.
+## (the tableau), shows the engine's reason when the drop would fail, and the ghost slot a permanent with no target
+## will land in (a targeted one lands on its territory's card).
 
 var dragging: CardView
 var targeting: CardView  # hand card waiting for a target click
@@ -13,7 +14,6 @@ var _drop_style: StyleBoxFlat
 var _drop_pulse: Tween  # the drop highlight's looping pulse; paused with reduce motion
 var _hint: PanelContainer  # the engine's reason, under the dragged card while it shows red
 var _hint_label: Label
-var _show_ghost := false  # the dragged card is a targeted permanent: the ghost follows its target group
 
 
 ## Builds the drop highlight and the hint on board's effects layer.
@@ -111,8 +111,6 @@ func end_targeting() -> void:
 func _light_targets(uid: int, clickable: bool) -> void:
 	lit = Game.engine.valid_targets(uid)
 	for target in lit:
-		_board.tableau.reveal(target)  # a lit card in a collapsed group must be visible (087)
-		_board.tableau.set_lit(target, true)
 		var view: CardView = _board.views.get(target)
 		if view != null:
 			view.set_highlight(true)
@@ -122,7 +120,6 @@ func _light_targets(uid: int, clickable: bool) -> void:
 
 func _unlight_targets() -> void:
 	for target in lit:
-		_board.tableau.set_lit(target, false)
 		var view: CardView = _board.views.get(target)
 		if view != null:
 			view.set_highlight(false)
@@ -142,7 +139,6 @@ func begin_drag(view: CardView, grab_offset: Vector2) -> void:
 	if e.playable_error(view.uid) == "":
 		if e.needs_target(view.uid):
 			_light_targets(view.uid, false)
-			_show_ghost = card.def.is_permanent()
 		else:
 			_drop_highlight.global_position = _board.tableau.global_position
 			_drop_highlight.size = _board.tableau.size
@@ -157,8 +153,7 @@ func end_drag() -> void:
 	dragging = null
 	_drop_highlight.hide()
 	_hint.hide()
-	_board.tableau.move_ghost(-1)
-	_show_ghost = false
+	_board.tableau.hide_ghost()
 	_unlight_targets()
 
 
@@ -180,37 +175,34 @@ func _update_feedback() -> void:
 		var card := dragging.get_global_rect()
 		_hint.global_position = Vector2(
 			clampf(card.get_center().x - _hint.size.x / 2, 8.0, _board.size.x - _hint.size.x - 8.0), card.end.y + 8)
-	if _show_ghost:
-		# In the lit group under the cursor, or in the only lit group.
-		_board.tableau.move_ghost(target if lit.has(target) else (lit[0] if lit.size() == 1 else -1))
 
 
 ## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there), plus any lit
 ## hand card (a trash target).
 func _over_drop_zone() -> bool:
 	var mouse := _board.get_global_mouse_position()
-	var target: CardView = _board.views.get(_target_under_mouse())
+	var target: CardView = _board.views.get(target_at(mouse))
 	return _board.tableau.get_global_rect().has_point(mouse) or _board.territory_view.target_at(mouse) != -1 \
 		or (_board.frontier.is_visible_in_tree() and _board.frontier.get_global_rect().has_point(mouse)) \
 		or (target != null and target.in_hand)
 
 
-## What the mouse is over as a target: a territory group's territory uid, else the uid of the
-## tableau or frontier card under it, or of a lit hand card, else -1.
-func _target_under_mouse() -> int:
-	var mouse := _board.get_global_mouse_position()
-	if _board.territory_view.target_at(mouse) != -1:  # anywhere on the territory view (101)
+## What a drop at global point targets: the open territory view's territory anywhere on it, else the uid of the
+## Realm or frontier card there (a territory's card targets that territory), or of a lit hand card, else -1.
+func target_at(point: Vector2) -> int:
+	if _board.territory_view.target_at(point) != -1:  # anywhere on the territory view (101)
 		return _board.territory_view.uid
-	var group := _board.tableau.group_at(mouse)
-	if group != -1:
-		return group
 	for uid in _board.views:
 		var view: CardView = _board.views[uid]
 		if (view.in_hand and not lit.has(uid)) or view == dragging or view.state != CardView.State.REST:
 			continue
-		if view.slot.get_parent() != _board.choices.reveal and view.get_global_rect().has_point(mouse):
+		if view.slot.get_parent() != _board.choices.reveal and view.get_global_rect().has_point(point):
 			return uid
 	return -1
+
+
+func _target_under_mouse() -> int:
+	return target_at(_board.get_global_mouse_position())
 
 
 func _drop() -> void:

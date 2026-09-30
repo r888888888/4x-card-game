@@ -71,28 +71,6 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		add_child(label("%d VP" % def.vp, 20, Color("ffd966")))
 
 
-## Builds a settled territory's one-line title bar (087): the name, then slots, housing and keywords (printed and
-## rolled), the same info a territory card shows.
-func build_banner(card: CardInstance, color: Color) -> void:
-	var def := card.def
-	rules_tip = def.name
-	var rolled := card.keywords.slice(def.keywords.size())
-	if not rolled.is_empty():
-		rules_tip += "\nResources: " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
-	var line := HBoxContainer.new()
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_theme_constant_override("separation", 14)
-	add_child(line)
-	var title := label(def.name, 21)
-	title.autowrap_mode = TextServer.AUTOWRAP_OFF
-	line.add_child(title)
-	var info := rich_label(_territory_info(card), 18, color.lightened(0.5))
-	info.autowrap_mode = TextServer.AUTOWRAP_OFF
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.clip_contents = true
-	line.add_child(info)
-
-
 ## A territory's info: "▢3 ⌂5 · Grassland, Fresh Water", plus " + Gold" for rolled resources.
 static func _territory_info(card: CardInstance) -> String:
 	var def := card.def
