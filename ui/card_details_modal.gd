@@ -101,6 +101,11 @@ func close() -> void:
 
 static func _body_text(details: Dictionary) -> String:
 	var parts: PackedStringArray = []
+	if details.get("flavor", "") != "":
+		parts.append("[i]%s[/i]" % details.flavor)
+	var quote: Dictionary = details.get("quote", {})
+	if not quote.is_empty():
+		parts.append("“%s”\n— %s" % [quote.text, quote.by])
 	if not details.rules.is_empty():
 		parts.append("[b]Rules[/b]\n" + "\n".join(PackedStringArray(details.rules)))
 	if not details["state"].is_empty():
@@ -110,11 +115,6 @@ static func _body_text(details: Dictionary) -> String:
 		terms.append("[color=#ffd966]%s[/color]: %s" % [t.term, t.text])
 	if not terms.is_empty():
 		parts.append("[b]How it works[/b]\n" + "\n".join(terms))
-	if details.get("flavor", "") != "":
-		parts.append("[i]%s[/i]" % details.flavor)
-	var quote: Dictionary = details.get("quote", {})
-	if not quote.is_empty():
-		parts.append("“%s”\n— %s" % [quote.text, quote.by])
 	return "\n\n".join(parts)
 
 

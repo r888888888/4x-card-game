@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: red-review
+status: review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -31,9 +31,9 @@ Content item: the tests assert invariants of the real data; the roster and its n
   ({text, by}, or {} when none) for every card.
 - [x] AC7 (UI): the details modal of the civilization shows its flavor paragraph and its quote with who said it.
 - [x] AC8 (content): every listed real civilization has a flavor and a quote.
-- [ ] AC9 (new game screen): clicking a civilization card selects it (and saves the choice, as before) and opens its
+- [x] AC9 (new game screen): clicking a civilization card selects it (and saves the choice, as before) and opens its
   details modal, which starts with the flavor and shows every line of its rules (all its bonuses).
-- [ ] AC10 (details order): in the details modal, the flavor comes first, then the quote, then Rules, Now and How it
+- [x] AC10 (details order): in the details modal, the flavor comes first, then the quote, then Rules, Now and How it
   works; the same modal opens from the civilization line in play.
 
 ## Out of scope
@@ -68,8 +68,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
     customs, and a road of relay stations from Sardis to Susa." — "Neither snow nor rain nor heat nor gloom of night
     stays these couriers from the swift completion of their appointed rounds." (Herodotus, *Histories*)
 - New `CardDef` fields `flavor`, `quote_text`, `quote_by` (civilization only, in `TYPE_FIELDS`). Card text (the
-  generated rules) doesn't include them. The modal gets a test hook `body_text()`; flavor in italics after the rules
-  and terms, then the quote.
+  generated rules) doesn't include them. The modal gets a test hook `body_text()`; flavor in italics, then the quote,
+  before the rules (AC10).
 - Egypt on the starting River Meadow (fresh water) gives ⟳ +1 food, the same as today's default.
 - A saved civilization id that no longer exists (e.g. `river_children`) already falls back to the first listed one
   with a warning (064 AC5).
@@ -93,6 +93,9 @@ Content item: the tests assert invariants of the real data; the roster and its n
 ## Manual check
 - [ ] The roster in data matches the design notes: six civilizations, Egypt the default, and each bonus reads right on
   its card and in its details.
+- [ ] On the new game screen, click each civilization: it highlights and its details open with the flavor and quote
+  on top and every bonus under Rules. Close; Start plays the last one clicked.
+- [ ] In a game, click the Civilization line in the side panel: the same details, flavor first.
 - [ ] Flavor reads well in the details modal; quotes are accurate to a published translation.
 - [ ] The new game screen fits six civilization cards without clipping, at the default and a narrow window size.
 - [ ] Start a game as each civilization: its start gift appears (resources or a card in the discard) and its upkeep
@@ -107,3 +110,5 @@ Content item: the tests assert invariants of the real data; the roster and its n
 - Saved settings naming an old civilization (e.g. `river_children`) fall back to Egypt with a warning, as designed.
 - Follow-up (pre-existing, not this item): the `create` op's text says "Add a Insight" (wrong article); Library shows
   it too.
+- Review change (AC9, AC10): a click on a civilization on the new game screen selects it and opens its details; the
+  details put flavor and quote first. New hook `NewGameScreen.civilization_view(id)`. Tests 738 → 740.
