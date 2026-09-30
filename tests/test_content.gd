@@ -437,7 +437,7 @@ func test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech() -> voi
 	for id in supply:
 		if supply[id].get("locked", false):
 			check(unlocked_by_tech.has(id), "locked pile %s is unlocked by a tech in research_deck" % id)
-		else:
+		elif r.cards[id].type != CardDef.BUILDING:  # 080: a building may be on sale from turn 1 without a deck copy
 			check(r.config.deck.get(id, 0) >= 1, "unlocked pile %s still starts in the deck" % id)
 
 
@@ -508,3 +508,95 @@ func test_caravan_trades_between_at_least_2_cities() -> void:
 	eq(trades.size(), 1, "Caravan has one trade effect")
 	if trades.size() == 1:
 		check(trades[0].min_cities >= 2, "Caravan needs at least 2 cities (min_cities %d)" % trades[0].min_cities)
+
+
+# --- Early-game cards (backlog 080) ---
+
+const EARLY_CARDS := ["barter", "storyteller", "fishing_huts", "quarry", "shrine"]
+
+
+## The real card id, or null with a failed check when it's missing.
+func real_card(r: Dictionary, id: String) -> CardDef:
+	check(r.cards.has(id), "the real data has a '%s' card" % id)
+	return r.cards.get(id)
+
+
+## Whether def costs food only, at least 1.
+func costs_food_only(def: CardDef) -> bool:
+	return def.cost.keys() == [GameEngine.FOOD] and def.cost[GameEngine.FOOD] >= 1
+
+
+func test_barter_trades_food_for_wealth() -> void:
+	var def := real_card(load_real(), "barter")
+	if def == null:
+		return
+	eq(def.type, CardDef.ACTION, "Barter type")
+	check(costs_food_only(def), "Barter costs food only (>= 1): %s" % [def.cost])
+	eq(def.effects.size(), 1, "Barter has one effect")
+	if def.effects.size() == 1:
+		var effect := def.effects[0]
+		check(effect.op == "gain" and effect.trigger == "play" and effect.get("resource") == GameEngine.WEALTH,
+			"Barter's effect is a play gain of wealth (got %s %s)" % [effect.op, effect.trigger])
+
+
+func test_storyteller_draws_cards_for_food() -> void:
+	var def := real_card(load_real(), "storyteller")
+	if def == null:
+		return
+	eq(def.type, CardDef.ACTION, "Storyteller type")
+	check(costs_food_only(def), "Storyteller costs food only (>= 1): %s" % [def.cost])
+	eq(def.effects.size(), 1, "Storyteller has one effect")
+	if def.effects.size() == 1:
+		var effect := def.effects[0]
+		check(effect.op == "draw" and effect.trigger == "play" and effect.get("amount") >= 2,
+			"Storyteller's effect is a play draw of 2+ (got %s %s)" % [effect.op, effect.trigger])
+
+
+func test_fishing_huts_quarry_and_shrine_are_early_buildings() -> void:
+	var r := load_real()
+	var huts := real_card(r, "fishing_huts")
+	if huts != null:
+		eq(huts.type, CardDef.BUILDING, "Fishing Huts type")
+		eq(huts.requires, ["coastal"] as Array[String], "Fishing Huts requires")
+		check(huts.effects.any(func(e): return e.op == "gain" and e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD),
+			"Fishing Huts has an upkeep gain of food")
+	var quarry := real_card(r, "quarry")
+	if quarry != null:
+		eq(quarry.type, CardDef.BUILDING, "Quarry type")
+		check(not quarry.requires.is_empty() and quarry.requires.all(func(k): return k in ["hills", "mountain"]),
+			"Quarry requires hills and/or mountain (got %s)" % [quarry.requires])
+	var shrine := real_card(r, "shrine")
+	if shrine != null:
+		eq(shrine.type, CardDef.BUILDING, "Shrine type")
+		eq(shrine.requires, [] as Array[String], "Shrine requires")
+		check(shrine.has_tag("culture"), "Shrine is tagged culture")
+		check(shrine.vp >= 1, "Shrine has printed VP (got %d)" % shrine.vp)
+
+
+func test_early_cards_start_in_the_deck_or_an_open_supply_pile() -> void:
+	var r := load_real()
+	check(r.config.deck.get("barter", 0) >= 1, "Barter in the starting deck")
+	check(r.config.deck.get("storyteller", 0) >= 1, "Storyteller in the starting deck")
+	for id in ["fishing_huts", "quarry", "shrine"]:
+		var pile: Dictionary = r.config.supply.get(id, {})
+		check(not pile.is_empty(), "%s has a supply pile" % id)
+		check(not pile.get("locked", false), "%s's pile is not locked" % id)
+	for tech in techs_in_research_deck(r):
+		for effect in tech.effects:
+			if effect.op in ["create", "unlock"]:
+				check(not EARLY_CARDS.has(effect.card_id), "%s doesn't %s early card %s" % [tech.id, effect.op, effect.card_id])
+
+
+func test_every_territory_can_take_a_building_from_the_start() -> void:
+	var r := load_real()
+	var early: Array[CardDef] = []
+	for id in r.config.deck:
+		if r.cards[id].type == CardDef.BUILDING:
+			early.append(r.cards[id])
+	for id in r.config.supply:
+		if r.cards[id].type == CardDef.BUILDING and not r.config.supply[id].get("locked", false):
+			early.append(r.cards[id])
+	for id in r.config.territory_deck:
+		var land: CardDef = r.cards[id]
+		var fits := early.filter(func(b): return b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)))
+		check(not fits.is_empty(), "territory %s %s can take a starting-deck or open-supply building" % [id, land.keywords])
