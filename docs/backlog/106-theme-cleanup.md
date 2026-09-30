@@ -2,7 +2,7 @@
 id: 106
 title: One palette and theme variations for the UI's colours and looks
 type: feature
-status: in-progress
+status: red-review
 branch: feat/106-theme-cleanup
 ---
 
@@ -53,7 +53,11 @@ ThemeGen, 097.)
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_theme::test_…` |
+| AC1 (guard) | `test_theme::test_labels_look_as_before`, `test_panels_look_as_before`, `test_buttons_look_as_before`, `test_fields_and_card_colours_look_as_before` |
+| AC2 | `test_no_colour_literals_outside_the_palette`, `test_the_palette_names_the_ui_colours` |
+| AC3 | `test_game_theme_builds_the_controls_and_variations`, `test_main_uses_the_game_theme` |
+| AC4 | `test_ui_kit_labels_use_the_variations`, `test_overlay_panels_use_dark_panel` |
+| AC5 | `test_ui_kit_no_longer_builds_the_theme`; `test_ui_structure` lists `Palette` and `GameTheme` |
 
 ## Manual check
 - [ ] Before/after screenshots (title screen, board on seed 1, the menu, Buy Cards, Knowledge, a card's details, the
