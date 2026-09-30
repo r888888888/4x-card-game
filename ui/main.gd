@@ -88,14 +88,18 @@ func start_game(seed_value: int, civ_id := "") -> void:
 
 ## Starts again as this game's civilization (Restart, Replay, the game-over New game).
 func _restart(seed_value: int) -> void:
-	var civ := Game.engine.zone("civilization").find(Game.engine.civilization())
+	var civ := _civilization_card()
 	start_game(seed_value, civ.def.id if civ != null else "")
 
 
 ## The name of the civilization this game is played as, or "".
 func _civilization_name() -> String:
-	var civ := Game.engine.zone("civilization").find(Game.engine.civilization())
+	var civ := _civilization_card()
 	return civ.def.name if civ != null else ""
+
+
+func _civilization_card() -> CardInstance:
+	return Game.engine.zone("civilization").find(Game.engine.civilization())
 
 
 ## Leaves the current game for the start screen: the board, its cards and any open choice go away.
