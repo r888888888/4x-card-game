@@ -36,12 +36,3 @@ func _init(parent: Control) -> void:
 func is_open() -> bool:
 	return overlay.visible
 
-
-## Shows the screen with New game focused.
-func open() -> void:
-	overlay.show()
-	new_game_button.grab_focus()
-
-
-func hide() -> void:
-	overlay.hide()

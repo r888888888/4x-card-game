@@ -29,12 +29,3 @@ func _init(parent: Control) -> void:
 func is_open() -> bool:
 	return overlay.visible
 
-
-## Shows the screen with Back focused.
-func open() -> void:
-	overlay.show()
-	back_button.grab_focus()
-
-
-func hide() -> void:
-	overlay.hide()

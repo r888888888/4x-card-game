@@ -60,12 +60,10 @@ func is_open() -> bool:
 	return overlay.visible
 
 
-## Shows the screen with Start focused, offering civilizations (ids in engine e's card_db) with preselect chosen.
-func open(e: GameEngine, civilizations: Array[String], preselect: String) -> void:
-	_show_civilizations(e, civilizations)
+## Offers civilizations (ids in engine e's card_db) with preselect chosen. The board's Navigator shows the screen.
+func show_civilizations(e: GameEngine, civilizations: Array[String], preselect: String) -> void:
+	_fill_civilizations(e, civilizations)
 	_show_selected(preselect)
-	overlay.show()
-	start_button.grab_focus()
 
 
 ## The civilization cards shown, in order.
@@ -81,7 +79,7 @@ func select(civ_id: String) -> void:
 	Settings.set_civilization(civ_id)
 
 
-func _show_civilizations(e: GameEngine, civilizations: Array[String]) -> void:
+func _fill_civilizations(e: GameEngine, civilizations: Array[String]) -> void:
 	if civilization_ids() == civilizations:
 		return
 	for slot in _civ_row.get_children():
@@ -108,10 +106,6 @@ func _show_selected(civ_id: String) -> void:
 	selected = civ_id
 	for id in _civ_views:
 		_civ_views[id].set_highlight(id == civ_id)
-
-
-func hide() -> void:
-	overlay.hide()
 
 
 func _start() -> void:

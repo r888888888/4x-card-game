@@ -27,6 +27,7 @@ var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
 var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099)
+var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
 
 var _board: Control  # the top bar and the body (play area and side panel)
@@ -64,7 +65,7 @@ func _ready() -> void:
 ## Keyboard play (CardFocus.handle_key). Only reached when no control with focus (a button or the seed field)
 ## used the key. Nothing here runs while the menu is open.
 func _unhandled_key_input(event: InputEvent) -> void:
-	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and not _screen_open() \
+	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and nav.depth() == 0 \
 			and focus.handle_key(event as InputEventKey):
 		get_viewport().set_input_as_handled()
 
@@ -75,10 +76,8 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			_close_menu()
 		return
-	if (new_game_screen.is_open() or settings_screen.is_open()) and event is InputEventKey and event.pressed \
-			and not event.echo and event.keycode == KEY_ESCAPE:
+	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
 		get_viewport().set_input_as_handled()
-		show_title_screen()  # Esc works like Back (099)
 		return
 	if drag.handle_input(event):
 		get_viewport().set_input_as_handled()
@@ -91,7 +90,7 @@ func _input(event: InputEvent) -> void:
 func start_game(seed_value: int, civ_id := "") -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
-	_hide_screens()
+	nav.clear()
 	_board.show()
 	_side.clear_log()
 	supply.close()
@@ -122,23 +121,29 @@ func _civilization_card() -> CardInstance:
 ## Leaves the current game (if any) for the title screen.
 func show_title_screen() -> void:
 	_leave_game()
-	start_screen.open()
+	nav.set_root(start_screen.overlay, start_screen.new_game_button)
 
 
-## Leaves the current game (if any) for the new game screen, with the saved civilization preselected.
+## Leaves the current game for the new game screen, over the title screen (the menu's New game).
 func show_new_game_screen() -> void:
-	_leave_game()
+	show_title_screen()
+	_push_new_game_screen()
+
+
+## Opens the new game screen over the current screen, with the saved civilization preselected.
+func _push_new_game_screen() -> void:
 	var warnings: Array[String] = []
 	var civs := Game.engine.civilizations()
 	var preselect := Settings.store.civilization_in(civs, warnings)
 	for w in warnings:
 		push_warning(w)
-	new_game_screen.open(Game.engine, civs, preselect)
+	new_game_screen.show_civilizations(Game.engine, civs, preselect)
+	nav.push(new_game_screen.overlay, new_game_screen.start_button)
 
 
 ## Hides the board and every screen: the board's cards and any open choice go away.
 func _leave_game() -> void:
-	_hide_screens()
+	nav.clear()
 	supply.close()
 	details.close()
 	_event_modal.close()
@@ -147,15 +152,6 @@ func _leave_game() -> void:
 	_game_over.overlay.hide()
 	_board.hide()
 
-
-func _hide_screens() -> void:
-	start_screen.hide()
-	new_game_screen.hide()
-	settings_screen.hide()
-
-
-func _screen_open() -> bool:
-	return start_screen.is_open() or new_game_screen.is_open() or settings_screen.is_open()
 
 
 ## Test hook (063): whether the board (top bar, play area, side panel) is showing.
@@ -649,16 +645,14 @@ func _build_layout() -> void:
 	_event_modal = EventModal.new(self)  # before details, so a details modal opened from it takes the keys first
 	details = CardDetailsModal.new(self)
 	start_screen = StartScreen.new(self)
-	start_screen.new_game_requested.connect(show_new_game_screen)
-	start_screen.settings_requested.connect(func():
-		start_screen.hide()
-		settings_screen.open())
+	start_screen.new_game_requested.connect(_push_new_game_screen)
+	start_screen.settings_requested.connect(func(): nav.push(settings_screen.overlay, settings_screen.back_button))
 	start_screen.exit_requested.connect(func(): quit_hook.call())
 	new_game_screen = NewGameScreen.new(self, details.open)
 	new_game_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, new_game_screen.selected))
-	new_game_screen.back_requested.connect(show_title_screen)
+	new_game_screen.back_requested.connect(nav.back)
 	settings_screen = SettingsScreen.new(self)
-	settings_screen.back_requested.connect(show_title_screen)
+	settings_screen.back_requested.connect(nav.back)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 
