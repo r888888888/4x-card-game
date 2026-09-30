@@ -143,7 +143,7 @@ func test_a_collapsed_group_is_still_a_drop_target() -> void:
 			break
 		if (child as Control).visible:
 			before.append(child)
-	eq(before, [main.views[group_cards(home)[0]].slot], "only the territory card is shown before the ghost")
+	eq(before, [], "nothing is shown before the ghost (the territory is the header, 087 AC8)")
 	close_main(main)
 
 
@@ -156,4 +156,63 @@ func test_revealing_a_card_expands_its_group() -> void:
 	main.tableau.reveal(group_cards(home)[2])
 	check(not main.tableau.is_collapsed(home), "revealing a Farm expands its group")
 	check(shown(main, group_cards(home)[2]), "the Farm is shown")
+	close_main(main)
+
+
+# --- AC8-AC10: the territory is the group's title bar ---
+
+func test_the_territory_is_the_groups_title_bar() -> void:
+	var main := open_main()
+	var home: int = await start(main)
+	var view: CardView = main.views.get(home)
+	check(view != null, "the territory has a view")
+	if view == null:
+		close_main(main)
+		return
+	var header: Control = main.tableau.group_header(home)
+	check(header.is_ancestor_of(view), "the territory's view is in the group's header")
+	main.tableau.move_ghost(home)
+	check(not main.tableau.ghost.get_parent().is_ancestor_of(view), "the territory is not in the card row")
+	check(view.get_global_rect().size.y < CardView.COMPACT_SIZE.y, "a one-line title (%d px), not a card" % view.get_global_rect().size.y)
+	var text: String = view.face_text()
+	check("River Meadow" in text and "▢3" in text and "Grassland" in text, "name, slots and keywords: %s" % text)
+	close_main(main)
+
+
+func test_a_collapsed_group_keeps_its_title_bar() -> void:
+	var main := open_main()
+	var home: int = await start(main)
+	main.tableau.set_collapsed(home, true)
+	await wait_frames()
+	var view: CardView = main.views.get(home)
+	check(view != null and view.is_visible_in_tree(), "the title bar stays when collapsed")
+	check(view != null and main.tableau.group_header(home).is_ancestor_of(view), "still in the header")
+	close_main(main)
+
+
+func test_keyboard_targeting_moves_between_title_bars() -> void:
+	var main := open_main()
+	var home: int = await start(main)
+	var e := Game.engine
+	for card in e.zone("tableau").cards:  # clear the Farms so Home has free workers
+		if card.def.id == "farm":
+			e.zone("tableau").remove(card)
+	settle(e, [e.zone("territory_deck").cards[0].def.id])
+	var second: CardInstance = e.zone("tableau").cards[-1]
+	second.pop = 2  # a worker for a building there
+	e.resources.food = 9
+	e.resources.wealth = 9
+	var shrine := put_in_hand(e, "shrine")  # a building any territory can take
+	e.changed.emit()
+	await wait_frames()
+	check(e.valid_targets(shrine).size() >= 2, "two territories to choose from: %s" % [e.valid_targets(shrine)])
+	main.on_double_clicked(main.views[shrine])
+	check(main.drag.targeting != null, "targeting the Shrine")
+	main.focus.move(1)
+	var focused: CardView = main.focus.focused
+	check(focused != null and focused.uid in [home, second.uid], "the focus is on a territory's title bar")
+	if focused != null:
+		var target := focused.uid
+		main.focus.activate()
+		eq(e.zone("tableau").find(shrine).territory_uid if e.zone("tableau").find(shrine) != null else -1, target, "the Shrine went on the focused territory")
 	close_main(main)

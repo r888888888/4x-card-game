@@ -2,7 +2,7 @@
 id: 087
 title: Collapse territory groups in the Realm
 type: feature
-status: review
+status: red-review
 branch: feat/087-collapse-territories
 ---
 
@@ -30,6 +30,12 @@ it, and collapse or expand all groups at once, so they see more territories with
   `move_ghost(uid)` shows the ghost in that group right after the territory card.
 - [x] AC7: Given a collapsed group holding a card that targeting lights (a card that targets a city or building), when
   targeting starts, that group expands so the lit card is visible and reachable with ←/→; it stays expanded afterwards.
+- [ ] AC8 (review feedback): a group's territory is its title bar, not a card in the row: the territory's view sits in
+  the group's header (`tableau.group_header(uid)`), is one line tall (shorter than `CardView.COMPACT_SIZE`), and shows
+  the name, slots, housing and keywords (for example "River Meadow", "▢3", "Grassland"). The row holds the other cards.
+- [ ] AC9: a collapsed group keeps its title bar (visible, in the header).
+- [ ] AC10: with two lit territories while placing a building, ←/→ moves the focus between their title bars and
+  Enter plays the building on the focused one (guard: the title bar is still a card view, so this already works).
 
 ## Out of scope
 - A separate buildings modal or screen (considered; the in-place toggle was chosen instead).
@@ -56,6 +62,9 @@ it, and collapse or expand all groups at once, so they see more territories with
 | AC5 | `test_collapse_territories::test_collapse_all_and_expand_all`, `::test_new_territories_and_new_games_start_expanded` |
 | AC6 | `test_collapse_territories::test_a_collapsed_group_is_still_a_drop_target` |
 | AC7 | `test_collapse_territories::test_revealing_a_card_expands_its_group` |
+| AC8 | `test_collapse_territories::test_the_territory_is_the_groups_title_bar`; changed: `::test_a_collapsed_group_is_still_a_drop_target` (nothing before the ghost now), `test_territory_row::test_bug_078_every_card_stays_in_its_group` (territory in the header) |
+| AC9 | `test_collapse_territories::test_a_collapsed_group_keeps_its_title_bar` |
+| AC10 | `test_collapse_territories::test_keyboard_targeting_moves_between_title_bars` (guard) |
 
 ## Manual check
 - [ ] Collapse a territory with 4+ buildings: the group shrinks to one card wide and the summary is readable.
@@ -84,3 +93,8 @@ it, and collapse or expand all groups at once, so they see more territories with
   lines of groups.
 - 2026-09-29: Specced. The user chose an in-place collapse toggle over a buildings modal, a header + count summary,
   groups expanded by default with Collapse all / Expand all, and collapsed groups staying drop targets.
+- Review feedback (user): a box holds one territory, so its information belongs in the box, not a separate card.
+  Folded into 087 (AC8-AC10), with the header doing the card's jobs in both states. Approach: the territory keeps its
+  CardView (focus ring, details on click, lit target, the settle flight from the Frontier) but drawn as a flat
+  one-line title bar in the header. This replaces the compact territory card from the green phase. Red again at 597
+  tests; two approved tests change (see Test plan).
