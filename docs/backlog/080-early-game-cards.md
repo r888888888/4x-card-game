@@ -2,7 +2,7 @@
 id: 080
 title: Five early-game cards (Barter, Storyteller, Fishing Huts, Quarry, Shrine)
 type: feature
-status: ready
+status: red-review
 branch: feat/080-early-game-cards
 ---
 
@@ -56,7 +56,12 @@ something to build, and Shrine can go on any territory.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_barter_trades_food_for_wealth` |
+| AC2 | `test_content::test_storyteller_draws_cards_for_food` |
+| AC3 | `test_content::test_fishing_huts_quarry_and_shrine_are_early_buildings` |
+| AC4 | `test_content::test_early_cards_start_in_the_deck_or_an_open_supply_pile`; changed: `::test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech` lets an unlocked building pile have no deck copy |
+| AC5 | `test_content::test_every_territory_can_take_a_building_from_the_start` |
+| AC6 | `test_content::test_scripted_sweep_over_20_seeds` (existing; must stay green) |
 
 ## Manual check
 - [ ] Review the shipped numbers in Design notes against `scripts/sim.sh` before/after (`balance` skill): era-2 turn,
@@ -65,3 +70,4 @@ something to build, and Shrine can go on any territory.
   Fishing Huts on a Bay.
 
 ## Log
+- 2026-09-29: Red at 550 tests (was 545), 5 new failing.
