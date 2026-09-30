@@ -2,7 +2,7 @@
 id: 091
 title: Shared test helpers and one test per Famine behavior
 type: feature
-status: in-progress
+status: review
 branch: feat/091-shared-test-helpers
 ---
 
@@ -13,19 +13,19 @@ Famine behavior is now asserted in two or three files. Move the helpers to the l
 behavior, so the items that follow (092–096) add tests to one place. Tests only: no engine change.
 
 ## Acceptance criteria
-- [ ] AC1: `press_key(main, keycode)` lives in `tests/lib/test_case.gd`; the copies in `test_board_labels`,
+- [x] AC1: `press_key(main, keycode)` lives in `tests/lib/test_case.gd`; the copies in `test_board_labels`,
   `test_details_modal`, `test_menu`, `test_start_screen` and `test_tech_tree_modal` are gone, and those tests
   pass unedited otherwise.
-- [ ] AC2: `load_with(extra_cards)` (parse `TEST_CARDS` plus extra cards, returning `{cards, errors, warnings}`)
+- [x] AC2: `load_with(extra_cards)` (parse `TEST_CARDS` plus extra cards, returning `{cards, errors, warnings}`)
   lives in `test_case.gd`; the copies in `test_trash`, `test_harmful_ops` and `test_gain_per_keyword` are gone
   (`test_gain_per_keyword` keeps a local wrapper only if it still needs its extra resource keyword).
-- [ ] AC3: `research_engine()` (a `tech_engine(["pottery", "writing"])` with Research played) lives in
+- [x] AC3: `research_engine()` (a `tech_engine(["pottery", "writing"])` with Research played) lives in
   `tests/lib/tech_case.gd`; the copies in `test_changed` and `test_ui_queries` are gone. `test_pending`'s variant
   (built on `pending_engine`) is renamed if it still differs.
-- [ ] AC4: `config_errors_for(cards, overrides, deck := {"farm": 1}) -> Array[String]` in `test_case.gd` parses a
+- [x] AC4: `config_errors_for(cards, overrides, deck := {"farm": 1}) -> Array[String]` in `test_case.gd` parses a
   config against a parsed card db and returns its errors; the seven `config_errors` helpers become one-line
   wrappers over it (or are removed where a direct call reads as well).
-- [ ] AC5: Each of these Famine behaviors is asserted in one file only:
+- [x] AC5: Each of these Famine behaviors is asserted in one file only:
   - the first hungry upkeep kills 1 pop: `test_famine` (drop `test_food_upkeep::test_shortfall_starves_pop` and
     `test_a_deeper_shortfall_still_kills_1_pop_at_the_first_famine`, and
     `test_famine_guard::test_without_silo_the_famine_kills_1`);
@@ -36,7 +36,7 @@ behavior, so the items that follow (092–096) add tests to one place. Tests onl
   - the forecast's `starve` with no guard: `test_forecast` (drop
     `test_famine_guard::test_forecast_starve_without_guard`).
   Before deleting each, confirm (and note in the Test plan) which kept test asserts the same numbers.
-- [ ] AC6: No file in `engine/`, `ui/`, `autoload/` or `sim/` changes; the suite is green; the test count drops by
+- [x] AC6: No file in `engine/`, `ui/`, `autoload/` or `sim/` changes; the suite is green; the test count drops by
   exactly the tests AC5 removes. `docs/testing.md` lists the new helpers.
 
 ## Out of scope
@@ -48,7 +48,28 @@ behavior, so the items that follow (092–096) add tests to one place. Tests onl
   `food_upkeep` 0; update its header comment to point at `test_famine.gd` for shortfalls.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+Tests-only refactor: no failing tests (no behavior changes). The suite stayed green at every step.
+
+| AC | Check |
+|---|---|
+| AC1–AC4 | the moved helpers' callers pass unchanged (624 → 624) |
+| AC5 | each dropped test and the kept test asserting the same numbers, below |
+| AC6 | `git diff main -- engine ui autoload sim` is empty; 624 → 618 |
+
+| Dropped | Kept, same numbers |
+|---|---|
+| `test_food_upkeep::test_shortfall_starves_pop` (1 short, 3 → 2, food 0) | `test_famine::test_a_short_upkeep_brings_a_famine_with_1_counter` (2 short, 4 → 3, food 0) |
+| `test_food_upkeep::test_a_deeper_shortfall_still_kills_1_pop_at_the_first_famine` | same: 2 short kills 1 ("1 pop dies, not 2"); where it dies: `test_famine_deaths_use_the_most_pop_rule` |
+| `test_food_upkeep::test_starvation_hits_the_biggest_territory` (3 → 2, other untouched) | `test_famine::test_famine_deaths_use_the_most_pop_rule` (Hills 3 → 2, Homeland 2 untouched) |
+| `test_food_upkeep::test_starvation_tie_goes_to_the_territory_settled_first` | `test_harmful_ops::test_lose_pop_tie_takes_from_the_first_in_tableau_order` (the Famine kills through `lose_pop`) |
+| `test_famine_guard::test_without_silo_the_famine_kills_1` (4 → 3, food 0) | `test_famine::test_a_short_upkeep_brings_a_famine_with_1_counter` (identical setup and numbers) |
+| `test_famine_guard::test_forecast_starve_without_guard` (`{food -2, wealth 0, starve 1}`) | `test_forecast::test_forecast_starve_with_no_food` (same dict) |
 
 ## Log
 - 2026-09-30: Specced from the project review (duplicated helpers; triple Famine coverage since 083).
+- 2026-09-30: Done. `config_errors_for` merges overrides after `raw_config`'s defaults, so `test_famine` can pass a
+  population block without a famine (its "missing famine" row). The wrappers no longer check that the fixture cards
+  load; every fixture db loads in its own tests. `test_gain_per_keyword` calls `load_with(extra, GOLD)` directly
+  instead of keeping a wrapper; `test_pending`'s variant is now `pending_research_engine()`. `two_territories` in
+  `test_food_upkeep` went with the tests that used it. Follow-up: `test_forecast::
+  test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` still names 090's stale reason.

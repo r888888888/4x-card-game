@@ -101,13 +101,6 @@ func test_silo_saves_the_first_starving_pop() -> void:
 	eq(e.resources.food, 0, "food")
 
 
-func test_without_silo_the_famine_kills_1() -> void:
-	var e: Object = home_engine(4, [])
-	e.end_turn()  # Capital +2, 4 pop eat 4: short, a new Famine (1 counter) kills 1 (083)
-	eq(e.pop(home_uid(e)), 3, "1 dies")
-	eq(e.resources.food, 0, "food")
-
-
 # --- AC4: the guard only protects its own territory ---
 
 func test_silo_on_another_territory_does_not_save_homeland() -> void:
@@ -143,11 +136,6 @@ func test_idle_silo_saves_none() -> void:
 func test_forecast_starve_counts_the_guard() -> void:
 	var e: Object = home_engine(4, ["silo"])
 	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 0}, "2 made, 4 needed, short: the Famine's 1 death is saved (083)")
-
-
-func test_forecast_starve_without_guard() -> void:
-	var e: Object = home_engine(4, [])
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "2 made, 4 needed, short: a new Famine kills 1 (083)")
 
 
 # --- AC7: card text ---
