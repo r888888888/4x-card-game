@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: in-progress
+status: review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -14,23 +14,23 @@ engine already has. Items 108–111 add new mechanics and give some civilization
 ## Acceptance criteria
 Content item: the tests assert invariants of the real data; the roster and its numbers are under Manual check.
 
-- [ ] AC1 (no orphans): every card of type `civilization` in the real `data/cards.json` is listed in config
+- [x] AC1 (no orphans): every card of type `civilization` in the real `data/cards.json` is listed in config
   `civilizations`. (The four old civilizations are removed from the data, not left unlisted.)
-- [ ] AC2 (roster): the real config lists at least 6 civilizations, each with at least one effect, no two with the
+- [x] AC2 (roster): the real config lists at least 6 civilizations, each with at least one effect, no two with the
   same card text, and `starting.civilization` is one of them. (Extends
   `test_real_config_lists_at_least_3_different_civilizations`.)
-- [ ] AC3 (start gifts): every `create` with trigger `start` on a real civilization puts a card into `discard`, and
+- [x] AC3 (start gifts): every `create` with trigger `start` on a real civilization puts a card into `discard`, and
   that card is one the player can get in the game otherwise (in `deck`, `supply`, or created by a tech in
   `research_deck`).
-- [ ] AC4: the real data loads with no warnings or errors (existing test), and a `new_game` with each listed
+- [x] AC4: the real data loads with no warnings or errors (existing test), and a `new_game` with each listed
   civilization succeeds and leaves that civilization in the `civilization` zone.
-- [ ] AC5 (loader): a civilization may have `flavor` (a non-empty string) and `quote` ({"text", "by"}, both
+- [x] AC5 (loader): a civilization may have `flavor` (a non-empty string) and `quote` ({"text", "by"}, both
   non-empty strings), each optional. A wrong type, an empty string or a missing `text`/`by` is one load error naming
   the card and the field. On any other card type they're ignored with "'flavor' only applies to civilizations".
-- [ ] AC6 (details): `def_details` and `card_details` return `flavor` (a string, "" when none) and `quote`
+- [x] AC6 (details): `def_details` and `card_details` return `flavor` (a string, "" when none) and `quote`
   ({text, by}, or {} when none) for every card.
-- [ ] AC7 (UI): the details modal of the civilization shows its flavor paragraph and its quote with who said it.
-- [ ] AC8 (content): every listed real civilization has a flavor and a quote.
+- [x] AC7 (UI): the details modal of the civilization shows its flavor paragraph and its quote with who said it.
+- [x] AC8 (content): every listed real civilization has a flavor and a quote.
 
 ## Out of scope
 - New mechanics: cost discounts (108), hand size (109), housing (110), home territory (111).
@@ -64,8 +64,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
     customs, and a road of relay stations from Sardis to Susa." — "Neither snow nor rain nor heat nor gloom of night
     stays these couriers from the swift completion of their appointed rounds." (Herodotus, *Histories*)
 - New `CardDef` fields `flavor`, `quote_text`, `quote_by` (civilization only, in `TYPE_FIELDS`). Card text (the
-  generated rules) doesn't include them. The modal gets a test hook `body_text()`; flavor in italics after the rules,
-  then the quote.
+  generated rules) doesn't include them. The modal gets a test hook `body_text()`; flavor in italics after the rules
+  and terms, then the quote.
 - Egypt on the starting River Meadow (fresh water) gives ⟳ +1 food, the same as today's default.
 - A saved civilization id that no longer exists (e.g. `river_children`) already falls back to the first listed one
   with a warning (064 AC5).
@@ -95,3 +95,9 @@ Content item: the tests assert invariants of the real data; the roster and its n
 ## Log
 - Balance worries: Babylon's Kingship on turn 1 skips the Code of Laws tech; Sumer's per-farm food may snowball.
   Leave to the balance item.
+- Built: `CardDef.flavor` / `quote_text` / `quote_by`, `DataLoader._parse_flavor`, `flavor` and `quote` keys in the
+  card details, and the modal's `body_text()` hook. Tests 728 → 738.
+- `test_identity_lines` no longer names the default civilization; it reads the name from the engine.
+- Saved settings naming an old civilization (e.g. `river_children`) fall back to Egypt with a warning, as designed.
+- Follow-up (pre-existing, not this item): the `create` op's text says "Add a Insight" (wrong article); Library shows
+  it too.

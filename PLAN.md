@@ -349,8 +349,14 @@ A game is played as one civilization: a permanent card with a starting gift and 
   must be one of them) lists what a game may start as; `civilizations()` returns it. `new_game(seed, civ_id)` plays
   as civ_id, or `starting.civilization` when civ_id is ""; `new_game_error(civ_id)` refuses an unlisted id. The
   civilization is created after every shuffle and roll, so the same seed deals the same game whatever you choose.
-- Real data (064): Children of the River (⟳ +1 food; the default), Salt Road Traders (Start: +3 wealth; ⟳ +1 wealth),
-  Hearth Clans (Start: +4 food), Star Watchers (1 VP; ⟳ +1 VP).
+- Real data (107, replacing 064's four): six civilizations of antiquity. Egypt (⟳ +1 food per fresh water or flood
+  plain territory; the default), Sumer (Start: an Insight in the discard; ⟳ +1 food per farm), Phoenicia (Start: +3
+  wealth; ⟳ +1 wealth per coastal territory), Babylon (Start: Kingship in the discard), Greece (Start: a Storyteller in
+  the discard; ⟳ +1 VP), Persia (Start: a Caravan in the discard; ⟳ +1 wealth). A start gift is always a card the game
+  also hands out otherwise.
+- Flavor (107): a civilization may set `flavor` (a paragraph) and `quote` ({"text", "by"}); both optional, non-empty
+  strings. `def_details` / `card_details` return `flavor` ("" if none) and `quote` ({} if none) for every card, and
+  the details modal shows them (flavor in italics, then the quote and who said it) after the rules.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
