@@ -10,11 +10,6 @@ const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"wea
 	{"op": "create", "card": "guildhall", "zone": "discard"}, {"op": "unlock", "card": "guildhall"}]}
 
 
-## A GameEngine TECH_* constant by name ("" until it exists), so the file parses before the constants do.
-func tech_state(name: String) -> String:
-	return (GameEngine as Script).get_script_constant_map().get(name, "")
-
-
 ## era_2 techs (optics, astronomy) come first in the config, then order_top_first (era 1, top first).
 func tree_engine(order_top_first: Array, overrides := {}, extra: Array = []) -> Object:
 	var counts := {"optics": 1, "astronomy": 1}
@@ -52,16 +47,15 @@ func test_new_game_tree_has_era_1_available_and_era_2_future() -> void:
 		ids.append(t.id)
 	eq(ids, ["pottery", "writing", "optics", "astronomy"] as Array[String], "by era, then config order")
 	var pottery := entry(e, "pottery")
-	eq(pottery.get("state"), tech_state("TECH_AVAILABLE"), "pottery state")
+	eq(pottery.get("state"), GameEngine.TECH_AVAILABLE, "pottery state")
 	eq(pottery.get("cost"), 2, "pottery printed cost")
 	eq(pottery.get("passes"), 0, "pottery passes")
 	eq(pottery.get("era"), 1, "pottery era")
 	eq(pottery.get("prereq"), "", "pottery prereq")
-	eq(entry(e, "writing").get("state"), tech_state("TECH_AVAILABLE"), "writing state")
+	eq(entry(e, "writing").get("state"), GameEngine.TECH_AVAILABLE, "writing state")
 	for id in ["optics", "astronomy"]:
-		eq(entry(e, id).get("state"), tech_state("TECH_FUTURE"), "%s state" % id)
+		eq(entry(e, id).get("state"), GameEngine.TECH_FUTURE, "%s state" % id)
 		eq(entry(e, id).get("era"), 2, "%s era" % id)
-	check(tech_state("TECH_AVAILABLE") != "", "GameEngine.TECH_AVAILABLE exists")
 
 
 # --- AC2: buying one of two ---
@@ -70,9 +64,9 @@ func test_bought_tech_is_researched_and_the_other_takes_a_pass() -> void:
 	var e := tree_engine(["pottery", "writing"])
 	check(play_research(e), "research opens")
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
-	eq(entry(e, "pottery").get("state"), tech_state("TECH_RESEARCHED"), "pottery researched")
+	eq(entry(e, "pottery").get("state"), GameEngine.TECH_RESEARCHED, "pottery researched")
 	var writing := entry(e, "writing")
-	eq(writing.get("state"), tech_state("TECH_AVAILABLE"), "writing still available")
+	eq(writing.get("state"), GameEngine.TECH_AVAILABLE, "writing still available")
 	eq(writing.get("passes"), 1, "writing passes")
 	eq(writing.get("cost"), 2, "writing 3 - 1 pass")
 
@@ -84,8 +78,7 @@ func test_third_pass_makes_a_tech_lost() -> void:
 	pass_tech(e, "bronze", "loom")
 	pass_tech(e, "bronze", "dye")
 	pass_tech(e, "bronze", "salt")
-	eq(entry(e, "bronze").get("state"), tech_state("TECH_LOST"), "bronze lost")
-	check(tech_state("TECH_LOST") != "", "GameEngine.TECH_LOST exists")
+	eq(entry(e, "bronze").get("state"), GameEngine.TECH_LOST, "bronze lost")
 
 
 func test_researched_prerequisite_lowers_the_cost() -> void:
@@ -105,7 +98,7 @@ func test_adding_era_2_makes_its_techs_available() -> void:
 	var e := tree_engine(["pottery", "writing"])
 	e.add_era(2)
 	for id in ["optics", "astronomy"]:
-		eq(entry(e, id).get("state"), tech_state("TECH_AVAILABLE"), "%s after add_era(2)" % id)
+		eq(entry(e, id).get("state"), GameEngine.TECH_AVAILABLE, "%s after add_era(2)" % id)
 
 
 # --- AC5: what a tech gives ---

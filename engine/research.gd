@@ -3,6 +3,12 @@ extends RefCounted
 ## Tech rules (backlog 025 on): revealing, buying and declining techs, passes and discounts, eras and their
 ## unlock thresholds. Static functions on the engine's state; GameEngine's public methods call them.
 
+## The zones tech_tree looks in, in order, and the state a tech there is in.
+const _TREE_ZONES := {
+	"researched": GameEngine.TECH_RESEARCHED, "research_reveal": GameEngine.TECH_AVAILABLE,
+	"research_deck": GameEngine.TECH_AVAILABLE, "future_techs": GameEngine.TECH_FUTURE, "lost_techs": GameEngine.TECH_LOST,
+}
+
 
 static func options(e: GameEngine) -> Array[int]:
 	var out: Array[int] = []
@@ -30,12 +36,6 @@ static func tree(e: GameEngine) -> Array[Dictionary]:
 	for id in ids:
 		out.append(_tree_entry(e, e.card_db[id]))
 	return out
-
-
-const _TREE_ZONES := {
-	"researched": GameEngine.TECH_RESEARCHED, "research_reveal": GameEngine.TECH_AVAILABLE,
-	"research_deck": GameEngine.TECH_AVAILABLE, "future_techs": GameEngine.TECH_FUTURE, "lost_techs": GameEngine.TECH_LOST,
-}
 
 
 static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
