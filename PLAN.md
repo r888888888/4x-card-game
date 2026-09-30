@@ -56,7 +56,9 @@ res://
                          # anim.gd (animation tuning), icons.gd (text glyphs → icon images in cards and the log),
                          # ui_kit.gd (shared styles, labels, overlays, tokens); components: top_bar.gd, side_panel.gd,
                          # tableau_view.gd, choice_overlays.gd, supply_screen.gd, game_menu.gd, game_over_overlay.gd,
-                         # start_screen.gd (063: title, New game with a seed, Reduce motion; shown on launch),
+                         # start_screen.gd (063, 099: the title screen, shown on launch: New game, Settings, Exit),
+                         # new_game_screen.gd (099: civilization cards, seed, Start, Back),
+                         # settings_screen.gd (099: Reduce motion, Back),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
                          # tech_tree_modal.gd (Knowledge button or T: the tech tree),
@@ -343,8 +345,8 @@ A game is played as one civilization: a permanent card with a starting gift and 
   civilization is created after every shuffle and roll, so the same seed deals the same game whatever you choose.
 - Real data (064): Children of the River (⟳ +1 food; the default), Salt Road Traders (Start: +3 wealth; ⟳ +1 wealth),
   Hearth Clans (Start: +4 food), Star Watchers (1 VP; ⟳ +1 VP).
-- UI: the start screen shows the civilizations as cards; a click selects one (and `Settings` saves it) and New game
-  plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
+- UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
+  Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
   "Playing as …" and the game-over text "Played as …". In play, the civilization is a line in the side panel (088).
 

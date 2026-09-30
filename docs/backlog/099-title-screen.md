@@ -2,7 +2,7 @@
 id: 099
 title: Split the start screen into a title screen, a new game screen and settings
 type: feature
-status: in-progress
+status: review
 branch: feat/099-title-screen
 ---
 
@@ -14,22 +14,22 @@ screen with the Reduce motion toggle.
 
 ## Acceptance criteria
 <!-- UI tests in the real main scene (tests/test_start_screen.gd), like 063. -->
-- [ ] AC1: On launch the title screen is open. It shows the game's title and exactly three buttons, in this
+- [x] AC1: On launch the title screen is open. It shows the game's title and exactly three buttons, in this
   order: "New game", "Settings" and "Exit". It has no seed field, no civilization cards and no Reduce motion toggle.
   No game has started and the board is hidden, as in 063 AC1.
-- [ ] AC2: Pressing New game on the title screen hides it and opens the new game screen. That screen shows the
+- [x] AC2: Pressing New game on the title screen hides it and opens the new game screen. That screen shows the
   listed civilizations with the saved one preselected (064), the seed field (empty means random), a "Start" button
   and a "Back" button. No game has started yet.
-- [ ] AC3: On the new game screen, Start with the seed field at "42" starts seed 42 as the selected civilization
+- [x] AC3: On the new game screen, Start with the seed field at "42" starts seed 42 as the selected civilization
   and hides the screen. An empty or non-integer seed ("", "abc", "4.5") starts a random seed from 1 to 999999.
   Enter in the seed field does the same as Start. Selecting a civilization still saves it (064).
-- [ ] AC4: Settings on the title screen opens the settings screen, which holds the Reduce motion toggle and a
+- [x] AC4: Settings on the title screen opens the settings screen, which holds the Reduce motion toggle and a
   "Back" button. The toggle shows and saves the same `Settings` value as the menu's toggle (063 AC3). Back on the
   settings screen and Back on the new game screen both return to the title screen with no game started.
-- [ ] AC5: Exit on the title screen calls the quit hook once.
-- [ ] AC6: The in-game menu's "New game" abandons the current game and opens the new game screen, not the title
+- [x] AC5: Exit on the title screen calls the quit hook once.
+- [x] AC6: The in-game menu's "New game" abandons the current game and opens the new game screen, not the title
   screen. Back from there goes to the title screen. Restart and the game-over replay behave as today.
-- [ ] AC7: Keyboard. When each screen opens, its first button has the focus: New game on the title screen, Start
+- [x] AC7: Keyboard. When each screen opens, its first button has the focus: New game on the title screen, Start
   on the new game screen, Back on the settings screen. Enter presses the focused button. Tab and the arrows stay
   on the open screen and wrap. Esc on the new game screen or the settings screen works like Back. Esc on the
   title screen does nothing.
@@ -65,7 +65,7 @@ screen with the Reduce motion toggle.
 | Design | `test_ui_structure::test_each_ui_component_has_its_own_script`, `test_main_uses_each_component` (`NewGameScreen`, `SettingsScreen`) |
 
 ## Manual check
-- [ ] Run `godot --path .`: the title screen looks uncluttered at the default window size and when resized.
+- [ ] Run `godot --path .`: the title screen shows the game's name over New game, Settings and Exit, and looks uncluttered at the default window size and when resized.
 - [ ] Go title → New game → Back → Settings → Back → New game → Start. Each screen replaces the previous one, and
   no screen shows through another.
 - [ ] Menu → New game → pick another civilization → Start works repeatedly and leaves no old cards on the board.
@@ -75,3 +75,10 @@ screen with the Reduce motion toggle.
 ## Log
 - 2026-09-30: Specced. The user chose: the menu's New game goes to the new game screen (not the title screen), and
   Settings holds only Reduce motion plus Back, with the menu keeping its own toggle.
+- 2026-09-30: Built. `ui/start_screen.gd` is now the title screen (`new_game_button`, `settings_button`,
+  `exit_button`); the civilization and seed picker moved to `ui/new_game_screen.gd` (`NewGameScreen`, Start and
+  Back) and Reduce motion to `ui/settings_screen.gd` (`SettingsScreen`). `main.gd` gains `show_title_screen()` and
+  `show_new_game_screen()` (replacing `show_start_screen()`), and Esc on the inner screens goes back in `_input`
+  (the details modal takes Esc first). The 063/064 start-screen tests were moved onto the new screens as approved.
+- 2026-09-30: Follow-up worry: `ui/main.gd` is now 669 lines (limit 700). The three screens' navigation (open,
+  hide, Back, Esc, `_screen_open`) is a real boundary for a split if the next UI item needs room.

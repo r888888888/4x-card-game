@@ -7,7 +7,8 @@ extends Control
 ## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
 ## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
 ## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, TechTreeModal,
-## DragController (dragging and targeting) and CardFocus (the keyboard focus on the cards).
+## StartScreen, NewGameScreen, SettingsScreen, DragController (dragging and targeting) and CardFocus (the keyboard
+## focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
