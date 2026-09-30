@@ -39,3 +39,5 @@ techs, supply piles) and the thresholds are tuned so that the late game still ha
 - [ ] Play to turn 60+: there are still meaningful choices each turn.
 
 ## Log
+- 2026-09-29 (from 080): Barter (2 food → 2 wealth) raised the sim's score 61 → 77 and techs 7.75 → 12.00;
+  try +1 wealth or a 3-food cost here. 065's governments aren't counted by the sim yet (a `governments` metric).
