@@ -2,7 +2,7 @@
 id: 057
 title: Locked supply piles and the unlock op
 type: feature
-status: review
+status: done
 branch: feat/057-locked-supply-and-unlock
 ---
 
