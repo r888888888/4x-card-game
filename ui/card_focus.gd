@@ -34,10 +34,14 @@ func row() -> Array[CardView]:
 
 
 ## A key press the focused controls didn't use. Left/Right move the card focus, Enter/Space acts on the focused
-## card, D discards it, Esc drops the focus (or opens the menu when nothing is focused), E ends the turn, S opens
-## the supply screen. While that screen is open it owns the keys: S or Esc closes it, the arrows and Enter pick
-## cards, the rest do nothing. Returns whether the key was used.
+## card, D discards it, I shows its details, Esc drops the focus (or opens the menu when nothing is focused), E ends
+## the turn, S opens the supply screen. While that screen is open it owns the keys: S or Esc closes it, the arrows
+## and Enter pick cards, I shows details, the rest do nothing. Returns whether the key was used.
 func handle_key(event: InputEventKey) -> bool:
+	if event.keycode == KEY_I and not event.echo:
+		if focused != null and is_instance_valid(focused):
+			_board.details.open(focused)
+		return true
 	if _board.supply.is_open():
 		if (event.keycode == KEY_S or event.keycode == KEY_ESCAPE) and not event.echo:
 			_board.supply.close()

@@ -2,7 +2,7 @@
 id: 056
 title: Card details modal with a full explanation of mechanics
 type: feature
-status: ready
+status: review
 branch: feat/056-card-details
 ---
 
@@ -17,20 +17,20 @@ New engine API: `def_details(card_id) -> Dictionary` (any card, e.g. a supply pi
 `{name, type, cost, vp, rules: Array[String], state: Array[String], terms: Array[{term, text}]}`. `rules` are the
 tooltip lines (`rules_tooltip`), `state` is empty for `def_details`, and `terms` are unique and in first-use order.
 
-- [ ] AC1 (building): `def_details("farm")` has name "Farm", type "Building", cost "2 food", vp 0,
+- [x] AC1 (building): `def_details("farm")` has name "Farm", type "Building", cost "2 food", vp 0,
   rules ["Each upkeep: +1 food"], and `terms` with "Upkeep", "Slots" and "Workers", each with non-empty text.
-- [ ] AC2 (keywords): `def_details("well")` has terms "Requires" and "Fresh Water". The Fresh Water text is generated
+- [x] AC2 (keywords): `def_details("well")` has terms "Requires" and "Fresh Water". The Fresh Water text is generated
   from the card data and names the cards that need it or get a bonus on it (Well needs it; Paddy's bonus is on
   Flood Plain, so Paddy isn't named).
-- [ ] AC3 (territory in play): For the homeland on the tableau with 2 pop, 1 Farm and population on,
+- [x] AC3 (territory in play): For the homeland on the tableau with 2 pop, 1 Farm and population on,
   `card_details(home)` has state lines "Pop 2 / housing 7", "Slots 1 / 5 used" (plus any city slots),
   "Free workers 1", and terms "Pop", "Housing", "Slots". A rolled resource keyword on a territory shows in its rules
   and gets a term.
-- [ ] AC4 (idle building): A building placed beyond its territory's pop has the state line "Idle: no free worker (skips
+- [x] AC4 (idle building): A building placed beyond its territory's pop has the state line "Idle: no free worker (skips
   upkeep)".
-- [ ] AC5 (tech): A revealed tech with 1 pass whose prereq is researched shows the state line
+- [x] AC5 (tech): A revealed tech with 1 pass whose prereq is researched shows the state line
   "Costs 2 wealth now (printed 5, −1 pass, −2 prereq)", and has terms "Passes" and "Prerequisite".
-- [ ] AC6 (unknown): `card_details(-1)` and `def_details("nope")` return `{}`.
+- [x] AC6 (unknown): `card_details(-1)` and `def_details("nope")` return `{}`.
 
 ## Out of scope
 - Hand-written flavour text or lore.
@@ -51,12 +51,27 @@ tooltip lines (`rules_tooltip`), `state` is empty for `def_details`, and `terms`
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_card_details::test_…` |
+| AC1 | `test_card_details::test_farm_details_have_name_type_cost_rules_and_terms`, `test_card_details_of_a_hand_card_match_its_definition`, `test_action_effects_explain_their_mechanics` |
+| AC2 | `test_card_details::test_keyword_terms_name_the_cards_that_use_the_keyword` |
+| AC3 | `test_card_details::test_territory_details_show_pop_slots_and_workers`, `test_rolled_resource_keyword_shows_in_rules_and_terms` |
+| AC4 | `test_card_details::test_idle_building_says_it_has_no_worker` |
+| AC5 | `test_card_details::test_revealed_tech_explains_its_price_now` |
+| AC6 | `test_card_details::test_unknown_cards_have_no_details` |
+| UI | `test_details_modal` (I opens, Esc closes and keeps the focus, board keys blocked, supply pile details); gestures by manual check |
 
 ## Manual check
-- [ ] Single-click a hand card: the modal opens after a short beat. A double-click plays instead and never opens it.
+- [ ] Seed 1: single-click River Meadow in the Realm: the modal shows "Now: Pop 2 / housing 5, Slots 0 / 7 used,
+  Free workers 2" and terms Slots, Housing, Pop, Grassland (needed by Pasture), Fresh Water (needed by Farm, Irrigation).
+- [ ] Single-click a hand card: the modal opens after a short beat (0.5 s). A double-click plays instead and never opens it.
 - [ ] A drag never opens the modal.
 - [ ] Right-click in the explore choice and in Buy Cards opens the details. Left-click still picks or buys.
 - [ ] I opens the details for the keyboard-focused card; Esc closes them and gives the focus back.
 
 ## Log
+- 2026-09-29: Engine: `GameEngine.def_details` / `card_details` (`engine/card_details.gd`), fixed terms in
+  `engine/glossary.gd`, `Effect.terms()` (Upkeep by default; explore, settle, grow, add_era add theirs). Territory
+  rules use the copy's keywords (`CardDef.territory_text`), so rolled resources show. Extra state line "On <territory>"
+  for cards in the realm. UI: `ui/card_details_modal.gd` (a ColorRect that takes every key while open);
+  `CardView.details_requested` and `card_id`; `Anim.DETAILS_CLICK_DELAY` 0.5 s.
+- Follow-ups: the modal's big card shows "Free" for territories and cities (the hand card's cost label); the Research
+  card and the event deck have no terms yet.

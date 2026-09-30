@@ -17,5 +17,11 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 	engine.add_era(era, source)
 
 
+
+func terms() -> Array[String]:
+	var out := super()
+	out.append_array(["Era"])
+	return out
+
 func describe(_card_db: Dictionary) -> String:
 	return "Adds era %d techs" % era

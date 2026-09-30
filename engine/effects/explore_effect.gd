@@ -17,6 +17,12 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 	engine.explore(reveal, source)
 
 
+
+func terms() -> Array[String]:
+	var out := super()
+	out.append_array(["Explore", "Frontier"])
+	return out
+
 func describe(_card_db: Dictionary) -> String:
 	return "Explore %d" % reveal
 

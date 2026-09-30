@@ -6,8 +6,8 @@ extends Control
 ## Card views stay alive between refreshes (views, keyed by uid), so they can animate from where
 ## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
 ## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
-## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, DragController (dragging and
-## targeting) and CardFocus (the keyboard focus on the cards).
+## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, DragController
+## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
@@ -22,6 +22,7 @@ var choices: ChoiceOverlays
 var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
+var details: CardDetailsModal
 
 var _top_bar: TopBar
 var _menu: GameMenu
@@ -120,9 +121,7 @@ func game_over_buttons() -> Array[Button]:
 
 
 func _buttons_in(overlay: Control) -> Array[Button]:
-	var buttons: Array[Button] = []
-	buttons.assign(overlay.find_children("*", "Button", true, false))
-	return buttons
+	return Array(overlay.find_children("*", "Button", true, false), TYPE_OBJECT, "Button", null)
 
 
 ## The kind of decision the engine is waiting for (GameEngine.PENDING_*), or "".
@@ -313,6 +312,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		view.double_clicked.connect(on_double_clicked)
 		view.discard_requested.connect(discard)
 		view.picked.connect(on_picked)
+		view.details_requested.connect(details.open)
 		views[card.uid] = view
 		var slot := _new_slot(view, container, index)
 		if in_hand:
@@ -488,6 +488,7 @@ func _build_layout() -> void:
 		start_game(seed_value))
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
+	details = CardDetailsModal.new(self)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 

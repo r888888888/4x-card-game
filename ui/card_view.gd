@@ -3,12 +3,15 @@ extends PanelContainer
 ## Visual for one card. It rests inside a slot Control that a zone's container lays out, and
 ## animates itself: it lifts on hover, slides when its slot moves, flies between slots on the
 ## shared effects layer, and follows the cursor while dragged. Hand cards emit drag_requested and
-## double_clicked and discard_requested (right-click); pickable cards (a pending choice) emit picked. main.gd decides what those mean.
+## double_clicked and discard_requested (right-click); pickable cards (a pending choice) emit picked. A single click
+## with no second click or drag (or a right-click on a pickable card) emits details_requested. main.gd decides what
+## those mean.
 
 signal drag_requested(view: CardView, grab_offset: Vector2)
 signal double_clicked(view: CardView)
 signal discard_requested(view: CardView)
 signal picked(view: CardView)
+signal details_requested(view: CardView)
 
 enum State { REST, FLYING, DRAGGING, LEAVING }
 
@@ -43,6 +46,7 @@ const FOCUS_COLOR := Color("5ec8ff")  # keyboard focus ring; distinct from gold 
 const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
+var card_id := ""
 var in_hand := false
 var pickable := false  # an option of a pending choice or a target: a click picks it
 var lift_on_hover := false  # lift and grow under the mouse like a hand card (supply cards, which have room)
@@ -73,6 +77,7 @@ var _shake_x := 0.0
 var _shake_on_land := false
 var _layer: Control
 var _fx_tween: Tween
+var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
@@ -80,6 +85,7 @@ var _fx_tween: Tween
 ## rules (for frontier territories, to save height).
 func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false) -> void:
 	uid = card.uid
+	card_id = card.def.id
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
@@ -564,22 +570,33 @@ static func _weight(sharpness: float, delta: float) -> float:
 # --- Input and hover ---
 
 func _gui_input(event: InputEvent) -> void:
-	if pickable and state == State.REST and event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	var button: int = event.button_index if event is InputEventMouseButton else -1
+	if pickable and state == State.REST and button in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] and event.pressed:
 		accept_event()
-		picked.emit(self)
+		if button == MOUSE_BUTTON_LEFT:
+			picked.emit(self)
+		else:
+			details_requested.emit(self)
 		return
-	if not in_hand or _delay > 0.0 or state == State.DRAGGING or state == State.LEAVING:
+	if not in_hand:  # a realm, frontier, known or event card: a click shows its details
+		if state == State.REST and button == MOUSE_BUTTON_LEFT and event.pressed:
+			accept_event()
+			_details_later()
 		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+	if _delay > 0.0 or state == State.DRAGGING or state == State.LEAVING:
+		return
+	if button == MOUSE_BUTTON_RIGHT and event.pressed:
 		accept_event()
 		discard_requested.emit(self)
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+	elif button == MOUSE_BUTTON_LEFT:
 		accept_event()
 		if not event.pressed:
+			if _pressed:
+				_details_later()
 			_pressed = false
 		elif event.double_click:
 			_pressed = false
+			_details_click += 1
 			double_clicked.emit(self)
 		else:
 			_pressed = true
@@ -588,6 +605,17 @@ func _gui_input(event: InputEvent) -> void:
 		if event.position.distance_to(_press_pos) >= Anim.DRAG_START_DISTANCE:
 			_pressed = false
 			drag_requested.emit(self, _press_pos)
+
+
+## Asks for the details once the double-click window passes, unless another click came first.
+func _details_later() -> void:
+	_details_click += 1
+	get_tree().create_timer(Anim.DETAILS_CLICK_DELAY).timeout.connect(_on_details_timer.bind(_details_click))
+
+
+func _on_details_timer(click: int) -> void:
+	if click == _details_click and state == State.REST:
+		details_requested.emit(self)
 
 
 func _set_hover(on: bool) -> void:
