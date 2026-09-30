@@ -24,12 +24,17 @@
     "settler": 2,
     "scout": 2,
     "lumber_camp": 2,
-    "research": 2
+    "research": 2,
+    "barter": 1,
+    "storyteller": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 2 },
     "settler": { "price": 3, "count": 2 },
     "research": { "price": 3, "count": 2 },
+    "fishing_huts": { "price": 2, "count": 2 },
+    "quarry": { "price": 2, "count": 2 },
+    "shrine": { "price": 2, "count": 2 },
     "granary": { "price": 2, "count": 4, "locked": true },
     "pasture": { "price": 2, "count": 2, "locked": true },
     "mine": { "price": 2, "count": 2, "locked": true },

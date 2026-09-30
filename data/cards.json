@@ -37,6 +37,16 @@
       "effects": [ { "op": "explore" }, { "op": "draw", "amount": 1 } ]
     },
     {
+      "id": "barter", "name": "Barter", "type": "action",
+      "cost": { "food": 2 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2 } ]
+    },
+    {
+      "id": "storyteller", "name": "Storyteller", "type": "action",
+      "cost": { "food": 1 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "draw", "amount": 2 } ]
+    },
+    {
       "id": "research", "name": "Insight", "type": "action",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "research" } ]
@@ -90,6 +100,21 @@
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1 }
       ]
+    },
+    {
+      "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["coastal"],
+      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "quarry", "name": "Quarry", "type": "building",
+      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
+      "effects": [ { "op": "score", "amount": 1 } ]
+    },
+    {
+      "id": "shrine", "name": "Shrine", "type": "building",
+      "cost": { "wealth": 2 }, "vp": 1, "tags": ["culture"],
+      "effects": []
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
