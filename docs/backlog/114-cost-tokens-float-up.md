@@ -2,7 +2,7 @@
 id: 114
 title: Cost tokens float up from the counter
 type: feature
-status: red-review
+status: in-progress
 branch: feat/114-cost-tokens-float-up
 ---
 

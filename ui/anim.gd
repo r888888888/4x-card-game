@@ -32,6 +32,7 @@ const DISCARD_FLY_TIME := 0.45
 const TARGET_FLY_TIME := 0.3  # a played action flying to its target before it is discarded
 const DEAL_STAGGER := 0.06  # delay between cards dealt into the hand
 const TOKEN_FLY_TIME := 0.55
+const TOKEN_FLOAT_PX := 40.0  # how far a cost token rises from its counter (114)
 const TOKEN_STAGGER := 0.08
 const PULSE_SCALE := 1.18
 const PULSE_TIME := 0.25
