@@ -62,19 +62,59 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		add_child(rules)
 
 	if def.type == CardDef.TERRITORY:
-		var info := "▢%d ⌂%d" % [def.slots, def.housing]  # explained in the tooltip
-		var names := def.keywords.map(func(k): return k.capitalize())
-		if not names.is_empty():
-			info += " · " + ", ".join(PackedStringArray(names))
-		if not rolled.is_empty():
-			info += " + " + rolled_names  # "Hills + Gold": rolled resources after the terrain
-		var info_label := rich_label(info, 18, color.lightened(0.5))
+		var info_label := rich_label(_territory_info(card), 18, color.lightened(0.5))  # "Hills + Gold": rolled last
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, 20, Color("ffd966")))
+
+
+## Builds a settled territory's one-line title bar (087): the name, then slots, housing and keywords (printed and
+## rolled), the same info a territory card shows.
+func build_banner(card: CardInstance, color: Color) -> void:
+	var def := card.def
+	rules_tip = def.name
+	var rolled := card.keywords.slice(def.keywords.size())
+	if not rolled.is_empty():
+		rules_tip += "\nResources: " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
+	var line := HBoxContainer.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_constant_override("separation", 14)
+	add_child(line)
+	var title := label(def.name, 21)
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	line.add_child(title)
+	var info := rich_label(_territory_info(card), 18, color.lightened(0.5))
+	info.autowrap_mode = TextServer.AUTOWRAP_OFF
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.clip_contents = true
+	line.add_child(info)
+
+
+## A territory's info: "▢3 ⌂5 · Grassland, Fresh Water", plus " + Gold" for rolled resources.
+static func _territory_info(card: CardInstance) -> String:
+	var def := card.def
+	var info := "▢%d ⌂%d" % [def.slots, def.housing]  # explained in the tooltip
+	var names := def.keywords.map(func(k): return k.capitalize())
+	if not names.is_empty():
+		info += " · " + ", ".join(PackedStringArray(names))
+	var rolled := card.keywords.slice(def.keywords.size())
+	if not rolled.is_empty():
+		info += " + " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
+	return info
+
+
+## The text of every label on the face, one per line, glyphs included (for tests).
+func text() -> String:
+	var lines: PackedStringArray = []
+	for child in find_children("*", "", true, false):
+		if child is Label:
+			lines.append(child.text)
+		elif child is RichTextLabel:
+			lines.append(child.get_meta("source", child.get_parsed_text()))
+	return "\n".join(lines)
 
 
 ## Replaces the gold info line called label_name at the bottom of the card with text.
@@ -157,5 +197,6 @@ static func rich_label(text: String, font_size: int, color := Color.WHITE) -> Ri
 	result.add_theme_font_size_override("normal_font_size", font_size)
 	result.add_theme_color_override("default_color", color)
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.set_meta("source", text)  # the text with its glyphs, which are drawn as icons (see text())
 	Icons.fill(result, text, font_size, color)
 	return result

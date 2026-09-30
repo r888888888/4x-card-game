@@ -2,9 +2,10 @@ class_name TableauView
 extends ScrollContainer
 ## The tableau: one framed group per territory (slot count, pop and a Grow button over a row of card slots), then
 ## the ghost, the outline of the slot a dragged building or city will land in. The scroll box is the drop zone.
-## A territory group can be collapsed to its territory card and a one-line summary of what's built on it (087).
+## A group's territory is its title bar, and a group can be collapsed to that and a one-line summary of what's built
+## on it (087).
 
-## A group was collapsed or expanded: the board refreshes so the territory card switches size.
+## A group was collapsed or expanded: the board refreshes (the Collapse all button's text).
 signal collapse_changed
 
 const GROUP_GAP := 16  # between territory groups
@@ -24,6 +25,8 @@ class TerritoryGroup:
 	var label: Label
 	var grow_button: Button
 	var toggle: Button  # ▾ / ▸: collapse or expand the group (none for the no-territory group)
+	var header: VBoxContainer  # the title line (toggle, the territory's title bar) over the stats line
+	var banner: HBoxContainer  # holds the territory's view, drawn as the group's title bar (087)
 	var summary: Label  # "1 city · 3 buildings (1 idle)", shown while collapsed
 	var row: HFlowContainer  # wraps; _fit_rows keeps it no wider than the tableau (078)
 
@@ -69,8 +72,12 @@ func refresh(e: GameEngine, place: Callable) -> void:
 			_groups[key] = _new_group()
 		var group: TerritoryGroup = _groups[key]
 		_flow.move_child(group.frame, i)
-		for j in groups[i].cards.size():
-			place.call(tableau.find(groups[i].cards[j]), group.row, j)
+		var cards: Array = groups[i].cards
+		if key != -1:  # the territory (always first) is the title bar; the rest go in the row
+			place.call(tableau.find(cards[0]), group.banner, 0)
+			cards = cards.slice(1)
+		for j in cards.size():
+			place.call(tableau.find(cards[j]), group.row, j)
 		group.uid = key
 		group.toggle.visible = key != -1
 		group.label.visible = key != -1
@@ -151,20 +158,30 @@ func group_frame(uid: int) -> Control:
 	return _groups[uid].frame if _groups.has(uid) else null
 
 
-## Expands the group holding tableau card uid, so a lit target inside it can be seen and reached. A territory
-## card is shown even when collapsed, so lighting a territory (a building's target) leaves its group as it is.
+## Expands the group holding tableau card uid, so a lit target inside it can be seen and reached. A territory is
+## its group's title bar, shown even when collapsed, so lighting one (a building's target) leaves the group as it is.
 func reveal(uid: int) -> void:
 	for group in Game.engine.territory_groups():
 		if group.cards.has(uid) and group.territory != uid:
 			set_collapsed(group.territory, false)
 
 
-## Shows or hides a group's cards after the territory card (the row's first slot), its summary and its toggle arrow.
+## Whether container is a group's title-bar slot (the board draws the territory there as a banner).
+func is_banner(container: Node) -> bool:
+	return _groups.values().any(func(g): return g.banner == container)
+
+
+## The header of territory uid's group (its title bar and stats line), or null.
+func group_header(uid: int) -> Control:
+	return _groups[uid].header if _groups.has(uid) else null
+
+
+## Shows or hides a group's cards (the row; the territory stays as the title bar), its summary and its toggle arrow.
 func _apply_collapse(group: TerritoryGroup) -> void:
 	var on := _collapsed.has(group.uid)
-	var slots := group.row.get_children().filter(func(c): return c != ghost)
-	for i in slots.size():
-		slots[i].visible = i == 0 or not on
+	for slot in group.row.get_children():
+		if slot != ghost:
+			slot.visible = not on
 	group.toggle.text = "▸" if on else "▾"
 	group.toggle.tooltip_text = "Show the cards on this territory." if on else "Hide the cards on this territory."
 	group.summary.visible = on
@@ -242,11 +259,21 @@ func _new_group() -> TerritoryGroup:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	group.frame.add_child(box)
+	group.header = VBoxContainer.new()
+	group.header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.header.add_theme_constant_override("separation", 4)
+	box.add_child(group.header)
+	var title := HBoxContainer.new()
+	title.add_theme_constant_override("separation", 8)
+	group.header.add_child(title)
+	group.toggle = UIKit.button("▾", func(): set_collapsed(group.uid, not is_collapsed(group.uid)))
+	title.add_child(group.toggle)
+	group.banner = HBoxContainer.new()
+	group.banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.add_child(group.banner)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
-	box.add_child(header)
-	group.toggle = UIKit.button("▾", func(): set_collapsed(group.uid, not is_collapsed(group.uid)))
-	header.add_child(group.toggle)
+	group.header.add_child(header)
 	group.label = UIKit.heading("")
 	header.add_child(group.label)
 	group.grow_button = UIKit.button("", func(): Game.engine.grow(group.uid))

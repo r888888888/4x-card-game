@@ -363,12 +363,12 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var e := Game.engine
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
-	var compact := container == _events_row or _row_sections.values().any(func(s): return s.get_meta("row") == container) \
-		or (card.def.type == CardDef.TERRITORY and tableau.is_collapsed(card.uid))  # a collapsed group's territory (087)
+	var compact := container == _events_row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
+	var banner := tableau.is_banner(container)  # a settled territory, drawn as its group's title bar (087)
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, banner)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(on_double_clicked)
@@ -386,15 +386,12 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		if view == drag.dragging:
 			drag.end_drag()
 		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, compact, banner)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		view.fly_to_slot(_new_slot(view, container, index), fx)
 		_free_slot(old_slot)
 		return false
 	container.move_child(view.slot, index)
-	if view.is_compact() != compact:  # a territory whose group was collapsed or expanded
-		view.setup(card, e.card_db, in_hand, error, compact)
-		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
 		view.set_play_error(error)
 	else:
