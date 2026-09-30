@@ -2,7 +2,7 @@
 id: 104
 title: Screen header and transitions for every navigated screen
 type: feature
-status: in-progress
+status: red-review
 branch: feat/104-screen-header-and-transitions
 ---
 
@@ -51,7 +51,13 @@ breadcrumb naming where you are) and a transition in and out.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_navigator::test_…` |
+| AC1 | `test_navigator::test_titles_follow_the_stack` |
+| AC2 | `test_navigator::test_the_header_names_the_screen_below_and_the_path` |
+| AC3 | `test_screen_header::test_the_new_game_and_settings_screens_have_a_header`, `test_the_territory_view_has_a_header` |
+| AC4 | `test_navigator::test_push_from_a_rect_grows_the_screen_out_of_it`, `test_push_without_a_rect_fades_in`, `test_with_reduce_motion_a_push_only_fades` |
+| AC5 | `test_navigator::test_back_reverses_the_push_and_the_screen_below_takes_input_at_once`, `test_a_new_step_finishes_the_running_transition_first` |
+| AC6 | `test_screen_header::test_a_territory_view_grows_out_of_its_card_and_shrinks_back` |
+| Changed | `test_start_screen` (two Back texts → "← Main menu"); `test_button_widths::test_title_settings_and_new_game_columns_share_one_width` (Back left the settings and new game columns for the header; it fits its text) |
 
 ## Manual check
 - [ ] Click a territory: the view grows out of the card, headed "← Realm   Realm › <name>"; Back shrinks it into the
