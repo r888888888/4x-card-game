@@ -2,7 +2,7 @@
 id: 083
 title: Famine — a lasting event that replaces starvation
 type: feature
-status: review
+status: done
 branch: feat/083-famine-event
 ---
 
