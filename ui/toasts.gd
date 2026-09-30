@@ -82,6 +82,7 @@ func _add(text: String) -> Control:
 	panel.add_child(label)
 	var slot := Control.new()  # holds the panel's place in the column while the panel moves inside it
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER  # each toast centred, not just the column
 	slot.add_child(panel)
 	_column.add_child(slot)
 	_column.move_child(slot, 0)
