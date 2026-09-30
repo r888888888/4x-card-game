@@ -2,7 +2,7 @@
 id: 084
 title: Relieve a Famine by paying wealth
 type: feature
-status: ready
+status: red-review
 branch: feat/084-relieve-famine
 ---
 
@@ -29,18 +29,21 @@ Setup as in 083, with `population.famine.relief: {"wealth": 5}`.
 - Relief through a card effect (an op).
 
 ## Design notes
-- New action pair `relieve_famine()` / `relieve_famine_error()` on `GameEngine`, rules in `Population` next to
-  `feed`. Uses `_blocked_error("relieve_famine")` like `grow`.
+- New action pair `relieve_famine()` / `relieve_famine_error()` on `GameEngine`, rules in `Famine` (096), config
+  parsing in `ConfigLoader._parse_famine` (095). Uses `_blocked_error("relieve_famine")` like `grow`.
 - UI: a "Relieve (5 wealth)" button on the Famine card in the Events row, disabled with the error as its tooltip.
   The UI calls `relieve_famine_error()`; no rule in `ui/`.
 - Real data: the `relief` price is set in `data/config.json` and reviewed with the `balance` skill (the sim bot
   should relieve when it can afford to and food won't cover the next upkeep).
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_famine::test_…` |
+| AC1 | `test_famine_relief::test_relieving_pays_wealth_and_the_famine_leaves_the_game`, `test_a_short_upkeep_after_relief_brings_a_new_famine_with_1_counter` |
+| AC2 | `test_famine_relief::test_relieve_famine_error_names_each_reason_and_relief_changes_nothing` |
+| AC3 | `test_famine_relief::test_forecast_after_relief_is_0_when_fed_else_1` |
+| AC4 | `test_famine_relief::test_famine_relief_validation`, `test_a_famine_without_relief_cant_be_relieved` |
+| Design note (sim bot) | `test_sim::test_bot_relieves_a_famine_only_when_the_next_upkeep_would_starve` |
 
 ## Manual check
 - [ ] The Relieve button shows on the Famine, is disabled with a reason when you can't pay, and the Famine flies off
@@ -48,3 +51,6 @@ Setup as in 083, with `population.famine.relief: {"wealth": 5}`.
 
 ## Log
 - Split from 083 (user asked for a wealth payout condition, 2026-09-29).
+- 2026-09-30: Red. Tests in a new `tests/test_famine_relief.gd` (not `test_famine.gd`), so the feature reads in one
+  place. Resolved: `_blocked_error` comes first (game over and pending decisions before "There is no famine."); an
+  empty relief `{}` is a load error (it would make relief free).
