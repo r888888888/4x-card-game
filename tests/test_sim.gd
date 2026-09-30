@@ -32,6 +32,14 @@ func test_bot_resolves_an_explore_choice_with_its_first_option() -> void:
 	eq(card_ids(e.zone("frontier")), ["grassland", "hills"] as Array[String], "first option kept first")
 
 
+func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> void:
+	# Two free Scouts (draw 2) and nothing else: each play reshuffles the discard, which holds only the other Scout,
+	# and draws it back, forever.
+	var e := make_engine({"scout": 2}, {"turn_limit": 2})
+	check(ScriptedBot.play(e), "the game ends within the bot's step limit")
+	check(e.is_over, "game over")
+
+
 # --- AC2: stats over seeds ---
 
 func test_sim_stats_reports_mean_min_max_per_metric() -> void:
