@@ -191,13 +191,13 @@ const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"wea
 
 
 ## The tech_case fixture with Optics (era 2) waiting in future_techs; era_unlocks as given.
-func era_engine(era_unlocks: Dictionary) -> Object:
+func era_engine(era_unlocks: Dictionary) -> GameEngine:
 	return tech_engine(["pottery", "writing"], {"farm": 10},
 		{"research_deck": {"pottery": 1, "writing": 1, "optics": 1}, "era_unlocks": era_unlocks}, [OPTICS])
 
 
 ## tech_tree() entries of era n, in order.
-func tree_of_era(e: Object, n: int) -> Array:
+func tree_of_era(e: GameEngine, n: int) -> Array:
 	return e.tech_tree().filter(func(t): return t.era == n)
 
 
@@ -225,7 +225,7 @@ func test_tech_eras_is_empty_without_a_research_deck() -> void:
 # --- Backlog 094 AC4: open_supply_piles ---
 
 func test_open_supply_piles_are_the_unlocked_ones_in_config_order() -> void:
-	var e: Object = make_engine({"farm": 10}, {
+	var e := make_engine({"farm": 10}, {
 		"starting": {"resources": {"food": 20, "wealth": 20}, "tableau": ["capital"], "territory": "homeland"},
 		"supply": {"scout": {"price": 1, "count": 2}, "temple": {"price": 1, "count": 1, "locked": true},
 			"settler": {"price": 1, "count": 1}},

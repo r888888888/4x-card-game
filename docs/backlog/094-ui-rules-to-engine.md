@@ -2,7 +2,7 @@
 id: 094
 title: Engine queries for the rules still in the UI (targeting choice, tech eras, open supply piles)
 type: feature
-status: in-progress
+status: review
 branch: feat/094-ui-rules-to-engine
 ---
 
@@ -16,23 +16,23 @@ A few small rules are still decided in `ui/`, which CLAUDE.md forbids:
 Move each into an engine query under TDD, so the sim, future UIs and tests use the same answer.
 
 ## Acceptance criteria
-- [ ] AC1: `needs_target_choice(uid)` is true only when hand card uid is playable (`playable_error` is ""), needs a
+- [x] AC1: `needs_target_choice(uid)` is true only when hand card uid is playable (`playable_error` is ""), needs a
   target, and has more than one valid target. With Settled Homeland and Grassland, each with a free slot, and
   food to pay, a Farm in hand gives true; with only Homeland, false; with 0 food, false; a Scout (no target),
   false. `main.on_double_clicked` uses it in place of its own condition.
-- [ ] AC2: `tech_eras()` returns one entry per era with techs in `research_deck`, in era order:
+- [x] AC2: `tech_eras()` returns one entry per era with techs in `research_deck`, in era order:
   `{era, name, reached, unlocks, techs}`. `name` is `era_name(era)` and `reached` is `era <= era()`. `unlocks` is
   that era's `upcoming_era_unlocks()` entry ({} when reached or when only a tech adds it). `techs` are that era's
   `tech_tree()` entries in the same order. With the `tech_case` fixture at era 1 and `era_unlocks {"2": {"pop": 8}}`,
   era 1 is reached with `unlocks` {}, and era 2 is not reached with `unlocks` {pop: 8}.
-- [ ] AC3: The tech tree modal builds its columns from `tech_eras()`, formats the status text from `reached` and
+- [x] AC3: The tech tree modal builds its columns from `tech_eras()`, formats the status text from `reached` and
   `unlocks`, and opens only when `tech_eras()` isn't empty. `ui/tech_tree_modal.gd` no longer reads
   `config` or groups techs. `test_tech_tree_modal` passes unedited.
-- [ ] AC4: `open_supply_piles()` returns the supply's card ids whose piles aren't locked, in config order
+- [x] AC4: `open_supply_piles()` returns the supply's card ids whose piles aren't locked, in config order
   (a pile with 0 left still counts: it shows as sold out). The supply screen shows exactly these, and
   `SupplyScreen.can_open` needs at least one. With every pile locked, the screen doesn't open, where it used to
   open empty.
-- [ ] AC5: All existing tests pass unedited, including `test_ui_smoke`, `test_tech_tree_modal` and the supply tests.
+- [x] AC5: All existing tests pass unedited, including `test_ui_smoke`, `test_tech_tree_modal` and the supply tests.
   The 20-seed sim output is identical before and after.
 
 ## Out of scope
@@ -65,3 +65,8 @@ Move each into an engine query under TDD, so the sim, future UIs and tests use t
 - 2026-09-30: Specced from the project review (UI decides targeting, groups techs and filters the supply).
 - 2026-09-30: Red. The spec's "Homeland and Grassland" setup is `grassland_engine(true)` (Grassland start + Hills
   settled), the existing fixture with two free territories. The era-2 fixture tech (Optics) is local to the test.
+- 2026-09-30: Green. `unlock_supply` now takes a null source (the log then names none), like `create_card` and
+  `add_era`: the approved AC4 test unlocks a pile directly. The 20-seed `scripts/sim.sh` output is identical before
+  and after. No existing test was edited. `game_engine.gd` is at 649 lines (limit 700). Follow-up: the Buy Cards
+  button still shows whenever the config has a supply (`SupplyScreen.refresh` checks `supply()`), so with every pile
+  locked it shows but doesn't open.
