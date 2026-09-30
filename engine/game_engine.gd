@@ -25,7 +25,10 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization"]
+## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
+## The governments of 065 join them.
+const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
@@ -93,16 +96,22 @@ func turn_limit() -> int:
 	return config.turn_limit
 
 
-## Printed VP on the tableau, VP from effects, and vp_per_pop for each pop (when population is on).
+## Printed VP on the tableau and in ALWAYS_ON_ZONES, VP from effects, and vp_per_pop for each pop (when population
+## is on).
 func score() -> int:
 	var total := bonus_score
-	for card in zone("tableau").cards:
-		total += card.def.vp
-	for card in zone("researched").cards:
-		total += card.def.vp
+	for z in ["tableau"] + ALWAYS_ON_ZONES:
+		for card in zone(z).cards:
+			total += card.def.vp
 	if population_on():
 		total += total_pop() * config.population.vp_per_pop
 	return total
+
+
+## The uid of the civilization you play as, or -1 if the game has none.
+func civilization() -> int:
+	var civ := zone("civilization")
+	return civ.cards[0].uid if not civ.is_empty() else -1
 
 
 ## Whether the population rules apply (the config has a population block).

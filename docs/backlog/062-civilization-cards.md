@@ -2,7 +2,7 @@
 id: 062
 title: Civilization cards (permanent bonuses)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/062-civilization-cards
 ---
 

@@ -12,6 +12,10 @@ func play_block_error(engine: GameEngine, _card: CardInstance) -> String:
 	return engine.reveal_techs_error()
 
 
+func opens_choice() -> bool:
+	return true
+
+
 func describe(_card_db: Dictionary) -> String:
 	return "Seek knowledge"
 

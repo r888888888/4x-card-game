@@ -3,7 +3,7 @@ extends RefCounted
 ## Base class for card effects. Each op lives in engine/effects/ and is
 ## registered by name in EffectRegistry.
 
-const TRIGGERS: Array[String] = ["play", "upkeep"]
+const TRIGGERS: Array[String] = ["play", "upkeep", "start"]  # start: civilizations only, once at new_game
 
 var op: String = ""
 var trigger: String = "play"
@@ -86,6 +86,11 @@ func check_references(_card_db: Dictionary, _errors: Array[String]) -> void:
 ## The zone whose cards this effect targets, or "" if it needs no target.
 func target_zone() -> String:
 	return ""
+
+
+## Whether this effect may leave a decision pending (pending()), so it can't resolve where nobody can choose.
+func opens_choice() -> bool:
+	return false
 
 
 ## Why card, which has this effect, can't be played right now, or "" if it can (e.g. nothing to research).
