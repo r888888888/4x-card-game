@@ -2,7 +2,7 @@
 id: 092
 title: Research card name from the engine; content tests assert invariants only
 type: feature
-status: in-progress
+status: review
 branch: feat/092-content-invariants
 ---
 
@@ -14,15 +14,15 @@ assert invariants only: a balance edit breaks them. Ask the engine for the name,
 invariants over the whole data set, and delete the rest (their facts stay in their done items).
 
 ## Acceptance criteria
-- [ ] AC1: `research_card_name()` returns the name of the first card, in config `deck` order then `supply` order,
+- [x] AC1: `research_card_name()` returns the name of the first card, in config `deck` order then `supply` order,
   with a `research` effect, or "" when there is none. Given `TEST_CARDS` with `{"farm": 5, "study": 1}` as the
   deck, it is "Research"; with `{"farm": 5}` and no supply, "".
-- [ ] AC2: In the real `main.tscn`, the Knowledge button's tooltip and the tech tree header name
+- [x] AC2: In the real `main.tscn`, the Knowledge button's tooltip and the tech tree header name
   `research_card_name()` ("Play a Research card …" on fixture data whose card is named "Research"), and with no
   research card the hint sentence is left out. `ui/` holds no card name from `data/cards.json` as a string
   literal: a check in `test_ui_structure.gd` reads every card name in the real data and fails naming the file and
   line of any quoted match.
-- [ ] AC3: New invariants on the real data, each failing with the offending card or era named:
+- [x] AC3: New invariants on the real data, each failing with the offending card or era named:
   - every building's `requires` is met by the starting territory or some territory in `territory_deck`;
   - the starting territory can take a building from the starting deck or an unlocked supply pile (extends
     `test_every_territory_can_take_a_building_from_the_start`);
@@ -31,7 +31,7 @@ invariants over the whole data set, and delete the rest (their facts stay in the
   - every `add_era` effect and every `era_unlocks` key names an era with techs in `research_deck`;
   - every keyword a `gain_per_keyword` effect counts is printed on a territory in `territory_deck` or rolled by
     `territory_resources`.
-- [ ] AC4: These tests are deleted (the invariants above or existing ones cover what isn't a per-card fact):
+- [x] AC4: These tests are deleted (the invariants above or existing ones cover what isn't a per-card fact):
   `test_forage_and_harvest_festival_are_events`, `test_research_card_is_named_insight`,
   `test_research_deck_has_6_techs_in_each_of_eras_1_and_2`, `test_a_tech_unlocks_the_library`,
   `test_no_era_3_tech_is_researchable_or_added`, `test_era_3_techs_are_defined_but_not_in_the_research_deck`,
@@ -40,7 +40,7 @@ invariants over the whole data set, and delete the rest (their facts stay in the
   `test_barter_trades_food_for_wealth`, `test_storyteller_draws_cards_for_food`,
   `test_fishing_huts_quarry_and_shrine_are_early_buildings`, `test_early_cards_start_in_the_deck_or_an_open_supply_pile`,
   `test_hunt_gains_food_per_keyword_and_is_available_from_the_start`, `test_winnow_trashes_and_is_on_sale`.
-- [ ] AC5: Apart from `real_engine`'s use of the config's own starting ids, no remaining test in `test_content.gd`
+- [x] AC5: Apart from `real_engine`'s use of the config's own starting ids, no remaining test in `test_content.gd`
   names a card id from `data/` (checked by grep, noted in the Log). The real data still passes every invariant.
 
 ## Out of scope
@@ -74,3 +74,6 @@ invariants over the whole data set, and delete the rest (their facts stay in the
   (a list of 10 card ids; `test_every_locked_supply_pile_is_unlocked_by_a_tech` holds the invariant), the Capital in
   the wealth test (now: a starting tableau card makes wealth at upkeep) and "city" in the sweep (now: a territory
   beyond the start was settled). The building-requires invariant counts rolled resource keywords as met.
+- 2026-09-30: Green. `Research.card_name` does the lookup behind `GameEngine.research_card_name()`. The UI adds the
+  article with `UIKit.with_article` (a/an by first letter; approved at the red checkpoint). The Knowledge tooltip is
+  now set in `SidePanel.refresh`, since it depends on the engine. The new rules tests hold `GameEngine`, not `Object`.

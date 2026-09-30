@@ -27,7 +27,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 
 | File | Covers |
 |---|---|
-| `tests/test_content.gd` | The real data: invariants (every keyword used, every cost has a source, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
+| `tests/test_content.gd` | The real data: invariants over the whole data set, never a single card (every keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs and supply consistent) and a 20-seed `ScriptedBot` sweep |
 | `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole `ScriptedBot` game: no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
 | `tests/test_event_panel.gd` | The event panel in the real `main.tscn`: event views match `active_events`, turns left, the event pile counts, hidden without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
 | `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`pending_choice`, `state`, …) read in `ui/` |
