@@ -2,7 +2,7 @@
 id: 116
 title: Toasts for notable events, and an unread marker on the log
 type: feature
-status: red-review
+status: review
 branch: feat/116-notices-and-toasts
 ---
 
@@ -14,22 +14,22 @@ shows when there are lines you haven't seen.
 
 ## Acceptance criteria
 <!-- AC1–AC2: engine tests with TEST_CARDS. AC3–AC6: UI tests on the real main.tscn. -->
-- [ ] AC1: The engine emits `noticed(message)` for notable log lines, with the same text as the log line, after
+- [x] AC1: The engine emits `noticed(message)` for notable log lines, with the same text as the log line, after
   `logged`. Notable: a famine arriving ("Famine! …"), ending, and a building saving pop from it; relieving it; a tech
   lost for being passed over; a supply pile that can now be bought; an era's techs or events added; an active event
   ending. Test each with a fixture that triggers it.
-- [ ] AC2: Ordinary lines are not notices: given a turn where a card is played, a card bought, a tech learned,
+- [x] AC2: Ordinary lines are not notices: given a turn where a card is played, a card bought, a tech learned,
   cards drawn and reshuffled, and upkeep gains and pop eating, then `noticed` is never emitted.
-- [ ] AC3: A notice shows a toast. Given the famine arrives at upkeep, then a toast with its text appears centred
+- [x] AC3: A notice shows a toast. Given the famine arrives at upkeep, then a toast with its text appears centred
   under the top bar, stays `Anim.TOAST_TIME` (3 s) and fades out; at most 3 show at once, newest on top, the oldest
   going first when a fourth arrives. With Reduce motion toasts fade in and out without sliding.
-- [ ] AC4: The targeting hint is a toast. Given a card that needs a target is double-clicked, then its hint
+- [x] AC4: The targeting hint is a toast. Given a card that needs a target is double-clicked, then its hint
   ("… Click one (or ←/→ then Enter); Esc cancels.") shows as a toast that stays until targeting ends (a pick, Esc,
   or a cancel), then fades. Refusals don't toast (they already float over the card) but still go in the log.
-- [ ] AC5: Unread marker. Given the drawer is closed, when a new log line arrives, then the Log button reads
+- [x] AC5: Unread marker. Given the drawer is closed, when a new log line arrives, then the Log button reads
   "Log (L) •"; opening the drawer clears the marker, and lines arriving while it is open don't set it. A new game
   clears it.
-- [ ] AC6: Toasts never block play: they ignore the mouse, don't take focus, and hide while a modal or the menu is
+- [x] AC6: Toasts never block play: they ignore the mouse, don't take focus, and hide while a modal or the menu is
   open (queued notices show when it closes, if still within their time).
 
 ## Out of scope
@@ -60,3 +60,15 @@ shows when there are lines you haven't seen.
 - [ ] Close the drawer, end a turn: the Log button shows the dot; open it: the dot is gone.
 
 ## Log
+- Engine: `signal noticed(message)` and `GameEngine._notice(message)` (logs, then notices); famine.gd, research.gd,
+  events.gd and `unlock_supply` use it for the notable lines. Notices keep the log line's text (some start with two
+  spaces); toasts strip them.
+- UI: `Toasts` (`ui/toasts.gd`, `main.toasts`): `notice(text)`, `hint(text)` / `clear_hint()` (DragController's
+  targeting), `shown()` / `texts()`. Hidden while the menu, a start screen, the tech tree, details or the event pop-up
+  is open. `LogDrawer.unread_changed` drives `TopBar.set_log_unread` ("Log (L) •").
+- Made room in `main.gd` first (689 → 660): the Events section's heading, row and Relieve moved to `EventsSection`
+  (`ui/events_section.gd`). main.gd is at 667 after this item.
+- Test setup fix, agreed with the user at green: in `test_the_log_button_marks_lines_not_yet_seen`, each end_turn on
+  the real data draws an event whose pop-up (rightly) takes L, so the test now presses its OK first
+  (`end_turn_and_close_event`). The assertions are unchanged.
+- A screenshot showed stacked toasts left-aligned to each other; each is now centred (`SIZE_SHRINK_CENTER`).
