@@ -251,6 +251,12 @@ func upcoming_era_unlocks() -> Dictionary:
 	return Research.upcoming_era_unlocks(self)
 
 
+## The tech tree by era: one {era, name, reached, unlocks, techs} per era with techs in research_deck, in era
+## order. unlocks is the era's upcoming_era_unlocks entry ({} once reached); techs are its tech_tree entries.
+func tech_eras() -> Array[Dictionary]:
+	return Research.eras(self)
+
+
 ## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (wealth
 ## now; printed for a future tech), passes, gives (card ids it creates or unlocks)}].
 func tech_tree() -> Array[Dictionary]:
@@ -291,6 +297,11 @@ func supply() -> Dictionary:
 ## Copies of card_id left in the supply (0 if it isn't sold there).
 func supply_left(card_id: String) -> int:
 	return state.supply.get(card_id, 0)
+
+
+## The supply's card ids whose piles aren't locked (sold-out ones included), in config order: what the supply shows.
+func open_supply_piles() -> Array[String]:
+	return Supply.open_piles(self)
 
 
 ## Whether card_id's supply pile is still locked (a tech's unlock effect opens it). supply() lists locked piles too.
@@ -350,6 +361,11 @@ func free_workers(territory_uid: int) -> int:
 ## the ones placed last first. Idle buildings skip upkeep but keep their printed VP.
 func is_idle(uid: int) -> bool:
 	return Population.is_idle(self, uid)
+
+
+## Whether playing hand card uid needs the player to pick a target: it is playable and has several valid targets.
+func needs_target_choice(uid: int) -> bool:
+	return CardPlay.needs_target_choice(self, uid)
 
 
 func needs_target(uid: int) -> bool:
@@ -570,10 +586,12 @@ func trash(uid: int, source: CardInstance) -> void:
 	_log("  %s: removed %s from the game." % [source.def.name, card.def.name])
 
 
-## Opens card_id's supply pile for buying; nothing happens if it is already open.
+## Opens card_id's supply pile for buying; nothing happens if it is already open. source is the card whose effect
+## opened it, or null (the log then names no source).
 func unlock_supply(card_id: String, source: CardInstance) -> void:
 	if state.locked_supply.erase(card_id):
-		_log("  %s: %s can now be bought." % [source.def.name, card_db[card_id].name])
+		var prefix := "  %s: " % source.def.name if source != null else "  "
+		_log("%s%s can now be bought." % [prefix, card_db[card_id].name])
 
 
 ## Adds up to amount pop to settled territory territory_uid, stopping at its housing. Does nothing if

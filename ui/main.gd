@@ -222,7 +222,7 @@ func on_double_clicked(view: CardView) -> void:
 	if pending_kind() == GameEngine.PENDING_DISCARD:
 		discard(view)
 		return
-	if e.needs_target(view.uid) and e.valid_targets(view.uid).size() > 1 and e.playable_error(view.uid) == "":
+	if e.needs_target_choice(view.uid):
 		drag.begin_targeting(view)
 	else:
 		try_play(view)

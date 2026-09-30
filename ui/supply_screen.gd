@@ -58,17 +58,15 @@ func views() -> Array[CardView]:
 	return out
 
 
-## Whether the screen can open now: engine e has a supply and nothing blocks buying.
+## Whether the screen can open now: engine e has an open supply pile and nothing blocks buying.
 func can_open(e: GameEngine) -> bool:
-	return not is_open() and not e.supply().is_empty() and e.supply_error() == ""
+	return not is_open() and not e.open_supply_piles().is_empty() and e.supply_error() == ""
 
 
 ## Opens the screen: the panel fades in and one card per pile pops in, one after another.
 func open(e: GameEngine) -> void:
 	var i := 0
-	for id in e.supply():
-		if e.supply_locked(id):  # hidden until a tech unlocks it
-			continue
+	for id in e.open_supply_piles():  # a locked pile stays hidden until a tech unlocks it
 		var slot := Control.new()
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot.custom_minimum_size = CardView.TABLEAU_SIZE

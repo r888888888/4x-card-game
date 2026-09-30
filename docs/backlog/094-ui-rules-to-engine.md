@@ -2,7 +2,7 @@
 id: 094
 title: Engine queries for the rules still in the UI (targeting choice, tech eras, open supply piles)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/094-ui-rules-to-engine
 ---
 
