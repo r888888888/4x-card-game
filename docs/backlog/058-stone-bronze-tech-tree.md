@@ -2,7 +2,7 @@
 id: 058
 title: Stone Age and Bronze Age tech tree; gate cards behind techs
 type: feature
-status: review
+status: done
 branch: feat/058-stone-bronze-tech-tree
 ---
 

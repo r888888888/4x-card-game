@@ -2,7 +2,7 @@
 id: 023
 title: More wealth sinks (more culture copies, Amphitheater)
 type: feature
-status: draft
+status: wontfix
 branch: feat/023-more-wealth-sinks
 ---
 
@@ -58,3 +58,5 @@ Run `godot --path .`.
   to Manual check if the item goes ahead.
 
 ## Log
+- 2026-09-29: wontfix, superseded by 057/058: buildings (Temple, Monument, Market, …) now come from techs and
+  their locked supply piles, which are the new wealth sinks.
