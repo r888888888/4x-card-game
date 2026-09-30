@@ -2,7 +2,7 @@
 id: 102
 title: Territories show as plain cards in the Realm
 type: feature
-status: ready
+status: red-review
 branch: feat/102-territory-cards-in-realm
 ---
 
@@ -50,7 +50,14 @@ territory is compact now.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…::test_…` |
+| AC1 | `test_territory_cards::test_the_realm_shows_one_card_per_territory` |
+| AC2 | `test_a_card_on_no_territory_follows_the_territories` |
+| AC3 | `test_a_territory_card_shows_its_slots_and_pop` |
+| AC4 | `test_dragging_a_building_lights_its_targets_and_a_drop_plays_it_there`, `test_dropping_on_a_territory_that_cannot_take_it_says_why` (guard), `test_clicking_a_lit_territory_card_while_targeting_plays_there` (guard), `test_keyboard_targeting_moves_between_territory_cards` (guard) |
+| AC5 | `test_the_realm_has_no_collapse_toggles_or_grow` |
+| AC6 | `test_settling_adds_a_territory_card_that_opens_with_its_city` |
+| 078 | `test_many_territories_wrap_instead_of_widening_the_realm` (replaces `test_territory_row.gd`) |
+| Changed | `tests/test_collapse_territories.gd` and `tests/test_territory_row.gd` deleted; `test_button_widths::test_board_buttons_fit_their_text` checks the territory view's Back and Grow instead of Collapse all and the group buttons |
 
 ## Manual check
 - [ ] Seed 1: the Realm is a tidy row of territory cards the same size as other tableau cards, each with its slots
