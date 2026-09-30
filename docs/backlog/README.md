@@ -107,5 +107,6 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 67. 110 civilization housing (Sumer; after 107)
 68. 111 civilization home territory (after 107; last, since it shifts every civ's start)
 69. 112 drop the basic terms (Upkeep, Slots, Pop) from card details
+70. 113 capital slots +4 → +3 (balance; revisit after 111)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
