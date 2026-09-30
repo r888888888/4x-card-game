@@ -60,3 +60,36 @@ func test_every_type_mark_has_an_icon() -> void:
 		var path: String = Icons.GLYPHS[mark][0].resource_path
 		check(path.begins_with("res://assets/icons/") and path.ends_with(".svg"), "%s's icon is an SVG in assets/icons/: %s" % [type, path])
 	eq(missing, [] as Array[String], "type marks with no icon")
+
+
+## Backlog 066: the turn counter reads "Turn 37 / 100" in full at the base resolution.
+func test_the_turn_counter_shows_turn_37_of_100_untruncated() -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var old_size := window.size
+	window.size = Vector2i(1920, 1080)
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"scout": 10}, {"turn_limit": 100}), resources(), cards, "test",
+		errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var real := Game.engine
+	Game.engine = GameEngine.new(cards, config)
+	var main := open_main()
+	main.start_game(1)
+	for i in 36:
+		Game.engine.end_turn()
+	await wait_frames()
+	var turn: Label = null
+	for label in main.find_children("*", "Label", true, false):
+		if label.text.begins_with("Turn "):
+			turn = label
+	check(turn != null, "a turn label")
+	if turn != null:
+		eq(turn.text, "Turn 37 / 100", "turn label")
+		check(turn.get_minimum_size().x <= turn.size.x + 0.5, "not truncated (%d <= %d)" % [turn.get_minimum_size().x, turn.size.x])
+		check(turn.get_global_rect().end.x <= 1920, "on screen")
+	close_main(main)
+	Game.engine = real
+	window.size = old_size
+

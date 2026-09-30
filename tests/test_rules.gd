@@ -147,6 +147,19 @@ func test_upkeep_score() -> void:
 	eq(e.score(), 4, "+1 VP from temple upkeep")
 
 
+## Backlog 066: the same rule at the real game's length.
+func test_a_100_turn_game_ends_after_turn_100_with_no_forecast_on_it() -> void:
+	var e := make_engine({"scout": 10}, {"turn_limit": 100})
+	for i in 99:
+		e.end_turn()
+	eq(e.turn, 100, "turn 100")
+	check(not e.is_over, "not over during turn 100")
+	eq(e.upkeep_forecast(), {}, "no next upkeep on turn 100")
+	e.end_turn()
+	check(e.is_over, "over after turn 100's end_turn")
+	eq(e.turn, 100, "still turn 100")
+
+
 func test_game_ends_at_turn_limit() -> void:
 	var e := make_engine({"farm": 10}, {"turn_limit": 3})
 	var final_scores := []

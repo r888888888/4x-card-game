@@ -2,7 +2,7 @@
 id: 066
 title: 100-turn games, with a balance pass
 type: feature
-status: ready
+status: red-review
 branch: feat/066-turn-limit-100
 ---
 
@@ -32,7 +32,10 @@ techs, supply piles) and the thresholds are tuned so that the late game still ha
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_rules::test_a_100_turn_game_ends_after_turn_100_with_no_forecast_on_it` (regression guard: passes already) |
+| AC2 | `test_content::test_scripted_sweep_over_20_seeds` (existing), on the 100-turn real data |
+| AC3 | new sim metric `explored`: `test_sim::test_sim_stats_reports_how_long_the_territory_deck_lasted`; the value on the real data is recorded below from `scripts/sim.sh` |
+| AC4 | `test_ui_smoke::test_the_turn_counter_shows_turn_37_of_100_untruncated` (regression guard: passes already) |
 
 ## Manual check
 - [ ] Review the shipped numbers (turn limit, territory counts, supply counts, era thresholds).
@@ -41,3 +44,10 @@ techs, supply piles) and the thresholds are tuned so that the late game still ha
 ## Log
 - 2026-09-29 (from 080): Barter (2 food → 2 wealth) raised the sim's score 61 → 77 and techs 7.75 → 12.00;
   try +1 wealth or a 3-food cost here. 065's governments aren't counted by the sim yet (a `governments` metric).
+- 2026-09-30: Probe before any change (current content with `turn_limit` 100, seeds 1–10): the territory deck is empty by
+  turn 10–15, the last city is founded by turn 12–20, the last of the 13 techs is bought by turn 15–21, and
+  620–1550 food and 590–1710 wealth are left unspent at turn 100. Pop stays at 13 of 46 housing: the sim bot never
+  grows pop and never buys from the supply, so the sim can't measure either. The user chose to ship 100 turns now
+  and record the thin late game as a follow-up.
+- 2026-09-30: Red. `test_sim`'s METRICS list gains `explored` (an approved test's expectation, changed for the new
+  metric).
