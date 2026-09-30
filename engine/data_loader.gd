@@ -5,7 +5,7 @@ extends RefCounted
 ## Unknown fields are warnings, not errors.
 
 const CARD_TYPES := CardDef.TYPES
-const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT]  # never in the main deck
+const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION]  # never in the main deck
 ## Fields every card type may have.
 const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "requires"]
 ## Fields only some card types use: field -> those types, the first being the one the field is for. On any other
@@ -189,6 +189,11 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("effects[%d]: %s" % [j, m])
 			for m in e_warns:
 				warns.append("effects[%d]: %s" % [j, m])
+			if effect != null and e_errs.is_empty() and effect.trigger == "start":
+				var start_problem := _start_effect_problem(effect, def.type)
+				if start_problem != "":
+					errs.append("effects[%d]: %s" % [j, start_problem])
+					continue
 			if effect != null and e_errs.is_empty() and NO_TERRITORY_TYPES.has(def.type):
 				var problem := _no_territory_effect_problem(effect, def.type)
 				if problem != "":
@@ -263,6 +268,16 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	return def
 
 
+## Why start effect can't be on a card of type, or "" if it can: only civilizations start, and nobody can pick a
+## target or answer a choice before the first turn.
+static func _start_effect_problem(effect: Effect, type: String) -> String:
+	if type != CardDef.CIVILIZATION:
+		return "trigger 'start' only works on civilizations"
+	if effect.target_zone() != "" or effect.opens_choice():
+		return "'%s' can't trigger on start (it needs a target or a choice)" % effect.op
+	return ""
+
+
 ## Why effect can't be on a card of type (a tech or an event, which has no territory to aim at), or "" if it can.
 static func _no_territory_effect_problem(effect: Effect, type: String) -> String:
 	var article := "an" if type == CardDef.EVENT else "a"
@@ -291,7 +306,7 @@ static func _parse_discard(raw: Variant, errs: Array[String]) -> int:
 
 
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
-## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
+## starting: {resources, tableau, territory, civilization}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none}.
@@ -308,7 +323,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"hand_size": Fields.read_int(raw, "hand_size", errs, 1, 5),
 		"hand_limit": 0,
 		"deck_model": Fields.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
-		"starting": {"resources": {}, "tableau": [], "territory": ""},
+		"starting": {"resources": {}, "tableau": [], "territory": "", "civilization": ""},
 		"deck": {},
 		"territory_deck": {},
 		"research_deck": {},
@@ -355,6 +370,16 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 				errs.append("starting.territory: '%s' is not a territory" % territory)
 			else:
 				config.starting.territory = territory
+		var civilization: Variant = starting.get("civilization", "")
+		if not (civilization is String):
+			errs.append("starting.civilization must be a card id")
+		elif civilization != "":
+			if not cards.has(civilization):
+				errs.append("starting.civilization: unknown card '%s'" % civilization)
+			elif cards[civilization].type != CardDef.CIVILIZATION:
+				errs.append("starting.civilization: '%s' is not a civilization" % civilization)
+			else:
+				config.starting.civilization = civilization
 	else:
 		errs.append("'starting' must be an object")
 

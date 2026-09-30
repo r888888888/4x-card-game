@@ -17,6 +17,10 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 	engine.explore(reveal, source)
 
 
+func opens_choice() -> bool:
+	return true
+
+
 
 func terms() -> Array[String]:
 	var out := super()

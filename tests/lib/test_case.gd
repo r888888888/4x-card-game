@@ -67,6 +67,15 @@ const TEST_EVENTS := [
 	 "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
 ]
 
+## Fixture civilizations (backlog 062), loaded with TEST_CARDS by civ_db. Not in TEST_CARDS itself, like TEST_EVENTS.
+const TEST_CIVS := [
+	{"id": "tribe", "name": "Tribe", "type": "civilization", "effects": [
+		{"op": "gain", "resource": "food", "amount": 3, "trigger": "start"},
+		{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "nomads", "name": "Nomads", "type": "civilization", "vp": 1,
+	 "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
+]
+
 var test_name := ""  # "file::method", set by the runner
 var failures: Array[String] = []  # shared with the runner
 var assertions := 0
@@ -252,6 +261,28 @@ func put_in_hand(engine: Object, id: String) -> int:
 ## play_card's result.
 func play_research(engine: Object) -> bool:
 	return engine.play_card(put_in_hand(engine, "study"))
+
+
+## TEST_CARDS plus TEST_CIVS, parsed.
+func civ_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
+	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS}, resources(), "cards.json", errors, warnings, keywords())
+
+
+## A new game on civ_db() with starting.civilization civ ("" for none); overrides replace config keys.
+func civ_engine(civ: String, deck := {"farm": 10}, overrides := {}) -> GameEngine:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := civ_db(errors, warnings)
+	var starting := {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"}
+	if civ != "":
+		starting["civilization"] = civ
+	var o := {"starting": starting}
+	o.merge(overrides, true)
+	var config := DataLoader.parse_config(raw_config(deck, o), resources(), cards, "config.json", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var engine := GameEngine.new(cards, config)
+	engine.new_game(1)
+	return engine
 
 
 ## TEST_CARDS plus TEST_EVENTS, parsed.

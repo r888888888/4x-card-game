@@ -49,6 +49,10 @@ static func new_game(e: GameEngine, p_seed: int) -> void:
 		if home != null:
 			card.territory_uid = home.uid
 		e.zone("tableau").add(card)
+	if e.config.starting.get("civilization", "") != "":
+		var civilization := e._make_card(e.config.starting.civilization)
+		e.zone("civilization").add(civilization)
+		e._resolve(civilization, "start")
 
 	e._log("New game — seed %d, %d cards in deck." % [p_seed, deck.size()])
 	start_turn(e)
@@ -112,10 +116,12 @@ static func start_turn(e: GameEngine) -> void:
 	e.draw(maxi(0, e.config.hand_size - e.zone("hand").size()))
 
 
-## Resolves "upkeep" on every working card: tableau cards that aren't idle, researched techs, then active
-## events (which may end).
+## Resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
+## (researched techs, the civilization), then active events (which may end).
 static func resolve_upkeep(e: GameEngine) -> void:
-	var working := e.zone("tableau").cards.filter(func(c): return not e.is_idle(c.uid)) + e.zone("researched").cards
+	var working := e.zone("tableau").cards.filter(func(c): return not e.is_idle(c.uid))
+	for z in GameEngine.ALWAYS_ON_ZONES:
+		working += e.zone(z).cards
 	for card in working:
 		e._resolve(card, "upkeep")
 	Events.resolve_upkeep(e)

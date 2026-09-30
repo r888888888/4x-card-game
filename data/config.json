@@ -13,7 +13,8 @@
   "starting": {
     "resources": { "food": 2, "wealth": 2 },
     "tableau": ["capital"],
-    "territory": "grassland"
+    "territory": "grassland",
+    "civilization": "tribe_of_the_river"
   },
   "deck": {
     "farm": 4,
