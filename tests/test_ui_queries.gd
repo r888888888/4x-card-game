@@ -167,3 +167,89 @@ func test_territory_summary_is_empty_for_anything_but_a_settled_territory() -> v
 	eq(e.territory_summary(farm), {}, "a building")
 	eq(e.territory_summary(uid_of(e.zone("frontier"), "hills")), {}, "a frontier territory")
 	eq(e.territory_summary(9999), {}, "an unknown uid")
+
+
+# --- Backlog 094 AC1: needs_target_choice ---
+
+func test_needs_target_choice_with_two_territories_to_pick_from() -> void:
+	var e := grassland_engine(true)
+	check(e.needs_target_choice(first_in_hand(e)), "a Farm with Grassland and Hills free")
+
+
+func test_needs_target_choice_is_false_with_one_target_no_food_or_no_target() -> void:
+	var e := grassland_engine(false)
+	check(not e.needs_target_choice(first_in_hand(e)), "only Grassland")
+	e = grassland_engine(true)
+	e.resources.food = 0
+	check(not e.needs_target_choice(first_in_hand(e)), "no food to pay")
+	check(not e.needs_target_choice(put_in_hand(e, "scout")), "a Scout needs no target")
+
+
+# --- Backlog 094 AC2: tech_eras ---
+
+const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"wealth": 4}, "era": 2}
+
+
+## The tech_case fixture with Optics (era 2) waiting in future_techs; era_unlocks as given.
+func era_engine(era_unlocks: Dictionary) -> Object:
+	return tech_engine(["pottery", "writing"], {"farm": 10},
+		{"research_deck": {"pottery": 1, "writing": 1, "optics": 1}, "era_unlocks": era_unlocks}, [OPTICS])
+
+
+## tech_tree() entries of era n, in order.
+func tree_of_era(e: Object, n: int) -> Array:
+	return e.tech_tree().filter(func(t): return t.era == n)
+
+
+func test_tech_eras_list_each_era_with_its_status_and_techs() -> void:
+	var e := era_engine({"2": {"pop": 8}})
+	eq(e.tech_eras(), [
+		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "techs": tree_of_era(e, 1)},
+		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "techs": tree_of_era(e, 2)},
+	], "era 1 reached, era 2 unlocks at 8 pop")
+	eq(tree_of_era(e, 2).map(func(t): return t.id), ["optics"], "era 2 holds Optics")
+
+
+func test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era() -> void:
+	var e := era_engine({})
+	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, false, {}]], "no era_unlocks")
+	e = era_engine({"2": {"pop": 8}})
+	e.add_era(2)
+	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, true, {}]], "era 2 reached")
+
+
+func test_tech_eras_is_empty_without_a_research_deck() -> void:
+	eq(make_engine({"farm": 10}).tech_eras(), [] as Array[Dictionary], "no techs")
+
+
+# --- Backlog 094 AC4: open_supply_piles ---
+
+func test_open_supply_piles_are_the_unlocked_ones_in_config_order() -> void:
+	var e: Object = make_engine({"farm": 10}, {
+		"starting": {"resources": {"food": 20, "wealth": 20}, "tableau": ["capital"], "territory": "homeland"},
+		"supply": {"scout": {"price": 1, "count": 2}, "temple": {"price": 1, "count": 1, "locked": true},
+			"settler": {"price": 1, "count": 1}},
+	})
+	eq(e.open_supply_piles(), ["scout", "settler"] as Array[String], "locked Temple left out")
+	check(e.buy("settler"), "buy the last Settler")
+	eq(e.open_supply_piles(), ["scout", "settler"] as Array[String], "a sold-out pile still counts")
+	e.unlock_supply("temple", null)
+	eq(e.open_supply_piles(), ["scout", "temple", "settler"] as Array[String], "an unlocked pile joins in config order")
+
+
+func test_supply_screen_does_not_open_when_every_pile_is_locked() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 5},
+		{"supply": {"scout": {"price": 1, "count": 1, "locked": true}}}), resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var real := Game.engine
+	Game.engine = GameEngine.new(cards, config)
+	var main := open_main()
+	main.start_game(1)
+	main.open_supply()
+	var opened: bool = main.supply.is_open()
+	close_main(main)
+	Game.engine = real
+	check(not opened, "the supply screen stays closed")

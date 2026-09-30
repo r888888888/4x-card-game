@@ -2,7 +2,7 @@
 id: 094
 title: Engine queries for the rules still in the UI (targeting choice, tech eras, open supply piles)
 type: feature
-status: ready
+status: red-review
 branch: feat/094-ui-rules-to-engine
 ---
 
@@ -48,7 +48,13 @@ Move each into an engine query under TDD, so the sim, future UIs and tests use t
 - Watch `game_engine.gd`'s size (609 lines): three delegators with doc comments add about 15 lines.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+| AC | Test |
+|---|---|
+| AC1 | `test_ui_queries::test_needs_target_choice_with_two_territories_to_pick_from`, `test_needs_target_choice_is_false_with_one_target_no_food_or_no_target`; `test_ui_structure::test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles` (main.gd) |
+| AC2 | `test_ui_queries::test_tech_eras_list_each_era_with_its_status_and_techs`, `test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era`, `test_tech_eras_is_empty_without_a_research_deck` |
+| AC3 | `test_ui_structure::test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles` (tech_tree_modal.gd); `test_tech_tree_modal` unedited |
+| AC4 | `test_ui_queries::test_open_supply_piles_are_the_unlocked_ones_in_config_order`, `test_supply_screen_does_not_open_when_every_pile_is_locked`; the structure test (supply_screen.gd) |
+| AC5 | the existing suite unedited; `scripts/sim.sh` output diffed against the baseline taken before any change |
 
 ## Manual check
 - [ ] Double-click a Farm with two settled territories: targeting starts. With one, it plays straight away.
@@ -57,3 +63,5 @@ Move each into an engine query under TDD, so the sim, future UIs and tests use t
 
 ## Log
 - 2026-09-30: Specced from the project review (UI decides targeting, groups techs and filters the supply).
+- 2026-09-30: Red. The spec's "Homeland and Grassland" setup is `grassland_engine(true)` (Grassland start + Hills
+  settled), the existing fixture with two free territories. The era-2 fixture tech (Optics) is local to the test.

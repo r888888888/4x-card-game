@@ -102,3 +102,15 @@ func test_ui_names_no_card_from_the_real_data() -> void:
 					if text == name or text.contains(name + " card"):
 						found.append("%s:%d names %s" % [path, i + 1, name])
 	eq(found, [] as Array[String], "card names from data/cards.json in ui/ string literals")
+
+
+# --- Backlog 094: the targeting choice, tech eras and open piles come from the engine ---
+
+func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
+	check(source(MAIN_PATH).contains("needs_target_choice("), "main.gd asks needs_target_choice")
+	var tree := source("res://ui/tech_tree_modal.gd")
+	check(tree.contains("tech_eras()"), "tech_tree_modal.gd builds from tech_eras()")
+	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "tech_tree_modal.gd reads no config or tech_tree()")
+	var supply := source("res://ui/supply_screen.gd")
+	check(supply.contains("open_supply_piles()") and not supply.contains("supply_locked"),
+		"supply_screen.gd shows open_supply_piles() and filters nothing itself")
