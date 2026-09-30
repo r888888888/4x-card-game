@@ -2,7 +2,7 @@
 id: 063
 title: Start screen (new game and options)
 type: feature
-status: ready
+status: red-review
 branch: feat/063-start-screen
 ---
 
@@ -34,7 +34,11 @@ The game opens on a start screen instead of dropping straight into a game (TODO 
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_smoke::test_…` |
+| AC1 | `test_start_screen::test_launch_shows_the_start_screen_and_starts_no_game`, `::test_start_screen_has_title_new_game_seed_field_and_motion_toggle` |
+| AC2 | `test_start_screen::test_new_game_with_seed_42_starts_that_seed`, `::test_new_game_with_an_empty_or_bad_seed_uses_a_random_seed` |
+| AC3 | `test_start_screen::test_start_screen_and_menu_toggles_share_the_setting` |
+| AC4 | `test_start_screen::test_menu_new_game_returns_to_the_start_screen`, `::test_menu_restart_replays_the_seed_without_the_start_screen`, `::test_game_over_replay_starts_straight_away` |
+| AC5 | `test_start_screen::test_new_game_has_the_focus_and_enter_starts`, `::test_tab_reaches_the_seed_field_and_the_toggle` |
 
 ## Manual check
 - [ ] The screen looks intentional at the default window size and when resized.
