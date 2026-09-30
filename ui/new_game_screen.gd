@@ -16,7 +16,7 @@ var selected := ""  # the id of the chosen civilization, "" if the game offers n
 
 var _civ_row: HBoxContainer  # one display-only card per civilization, in config order
 var _civ_views := {}  # civilization id -> CardView
-var _on_details: Callable  # opens a card's details (the board's CardDetailsModal)
+var _on_details: Callable  # opens a card's details (the board's CardDetailsModal.open)
 
 
 ## Builds the screen on parent, hidden, for the board's navigator nav.
@@ -71,7 +71,12 @@ func civilization_ids() -> Array[String]:
 	return out
 
 
-## What a click on a civilization card does: choose it and remember the choice.
+## Test hook: the card shown for civilization civ_id, or null.
+func civilization_view(civ_id: String) -> CardView:
+	return _civ_views.get(civ_id)
+
+
+## Choose civ_id and remember the choice. A click on its card does this, then opens its details with Play as (107).
 func select(civ_id: String) -> void:
 	_show_selected(civ_id)
 	Settings.set_civilization(civ_id)
@@ -92,8 +97,13 @@ func _fill_civilizations(e: GameEngine, civilizations: Array[String]) -> void:
 		var view := CardView.new()
 		view.setup(CardInstance.new(-1 - i, e.card_db[civilizations[i]]), e.card_db, false)
 		view.lift_on_hover = true
-		view.set_pickable(true, "Click to play as this civilization.")
-		view.picked.connect(func(v: CardView): select(v.card_id))
+		view.set_pickable(true, "Click to play as this civilization and read about it.")
+		var play_as := "Play as %s" % e.card_db[civilizations[i]].name
+		view.picked.connect(func(v: CardView):
+			select(v.card_id)
+			_on_details.call(v, play_as, func():
+				select(v.card_id)
+				_start()))
 		view.details_requested.connect(_on_details)
 		view.attach(slot)
 		_civ_views[civilizations[i]] = view

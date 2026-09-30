@@ -30,6 +30,9 @@ var prereq_discount := 2  # techs: wealth off when prereq is researched
 var discard_turns := 1  # events: upkeeps the event stays active for
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
+var flavor: String = ""  # civilizations: a short paragraph of history, shown in the details
+var quote_text: String = ""  # civilizations: a quote shown in the details, with quote_by
+var quote_by: String = ""  # civilizations: who said quote_text
 
 
 func is_permanent() -> bool:

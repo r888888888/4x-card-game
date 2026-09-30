@@ -261,10 +261,12 @@ func created_by(tech: CardDef) -> Array[String]:
 	return out
 
 
-func test_real_config_lists_at_least_3_different_civilizations() -> void:
+## Backlog 107 (was at least 3, 064): six ancient civilizations, all different, the default among them.
+func test_real_config_lists_at_least_6_different_civilizations() -> void:
 	var r := load_real()
 	var civs: Array = r.config.get("civilizations", [])
-	check(civs.size() >= 3, "at least 3 civilizations (got %s)" % [civs])
+	check(civs.size() >= 6, "at least 6 civilizations (got %s)" % [civs])
+	check(civs.has(r.config.starting.civilization), "starting.civilization %s is listed" % r.config.starting.civilization)
 	var seen := {}  # effect text -> civilization id
 	for id in civs:
 		var def: CardDef = r.cards[id]
@@ -272,6 +274,62 @@ func test_real_config_lists_at_least_3_different_civilizations() -> void:
 		var text := def.rules_tooltip(r.cards)
 		check(not seen.has(text), "%s has the same effects as %s" % [id, seen.get(text, "")])
 		seen[text] = id
+
+
+## Backlog 107: every offered civilization has a flavor paragraph and a quote with its source.
+func test_every_listed_civilization_has_flavor_and_a_quote() -> void:
+	var r := load_real()
+	for id in r.config.get("civilizations", []):
+		var def: CardDef = r.cards[id]
+		check(def.flavor != "", "%s has flavor" % id)
+		check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % id)
+
+
+## Backlog 107: no civilization card is left in the data without being offered.
+func test_every_civilization_card_is_listed() -> void:
+	var r := load_real()
+	var civs: Array = r.config.get("civilizations", [])
+	for id in r.cards:
+		if r.cards[id].type == CardDef.CIVILIZATION:
+			check(civs.has(id), "civilization %s is listed in config civilizations" % id)
+
+
+## Card ids the player can get without a civilization: the starting deck, the supply, and what techs create.
+func obtainable_cards(r: Dictionary) -> Dictionary:
+	var out := {}
+	for id in r.config.deck:
+		out[id] = true
+	for id in r.config.get("supply", {}):
+		out[id] = true
+	for tech in techs_in_research_deck(r):
+		for id in created_by(tech):
+			out[id] = true
+	return out
+
+
+## Backlog 107: a civilization's start gift is a card for the discard that the game also hands out otherwise.
+func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void:
+	var r := load_real()
+	var obtainable := obtainable_cards(r)
+	var gifts := 0
+	for id in r.config.get("civilizations", []):
+		for effect in r.cards[id].effects:
+			if effect.op == "create" and effect.trigger == "start":
+				gifts += 1
+				eq(effect.zone, "discard", "%s puts %s into the discard" % [id, effect.card_id])
+				check(obtainable.has(effect.card_id), "%s gives %s, which the game also hands out" % [id, effect.card_id])
+	check(gifts > 0, "some civilization starts with a card")
+
+
+## Backlog 107: a game starts as each listed civilization.
+func test_a_new_game_starts_as_each_listed_civilization() -> void:
+	var r := load_real()
+	for id in r.config.get("civilizations", []):
+		var e := GameEngine.new(r.cards, r.config)
+		eq(e.new_game_error(id), "", "%s is playable" % id)
+		e.new_game(3, id)
+		var z := e.zone("civilization")
+		eq(z.cards.map(func(c): return c.def.id), [id], "playing as %s" % id)
 
 
 func test_real_data_loads_without_warnings() -> void:
