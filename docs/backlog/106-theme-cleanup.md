@@ -67,7 +67,7 @@ ThemeGen, 097.)
 
 ## Log
 - 2026-09-30: Specced after closing 097 (ThemeGen) as wontfix: the goal of an easier-to-change theme is met in code.
-- 2026-09-30: Built. `ui/palette.gd` (48 named colours: surfaces, text, meaning, dimmed cards, card types, tech
+- 2026-09-30: Built. `ui/palette.gd` (46 named colours: surfaces, text, meaning, dimmed cards, card types, tech
   states, see-through layers) and `ui/game_theme.gd` (`build()`, `dark_panel(border)`, `focus_ring()`; the old
   `UIKit.style_controls` and `focus_ring` moved here). `UIKit.heading/title/stat` set the variations; `UIKit.overlay`
   uses `DarkPanel` and only overrides its stylebox for a coloured border (explore, research, supply, errors, the
