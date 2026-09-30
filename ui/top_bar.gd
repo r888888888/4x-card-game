@@ -3,7 +3,7 @@ extends HBoxContainer
 ## The top bar: turn, food and wealth (with next upkeep's change), score, pop, the deck and discard counts, the
 ## seed and the Menu button. Played cards' resource tokens fly to and from its counters.
 
-const FOOD_COLOR := Color("ffd966")  # the food stat; CardView.WARN_COLOR when pop would starve
+const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
 var score_label: Label
 var menu_button: Button  # "Menu (Esc)"
@@ -18,12 +18,12 @@ func _init(on_menu: Callable) -> void:
 	add_theme_constant_override("separation", 36)
 	_turn_label = UIKit.stat(self)
 	_food_label = UIKit.stat(self, FOOD_COLOR)
-	_wealth_label = UIKit.stat(self, Color("f2b46d"))
+	_wealth_label = UIKit.stat(self, Palette.WEALTH)
 	_food_label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
 	_wealth_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	score_label = UIKit.stat(self, Color("ffd966"))
-	_pop_label = UIKit.stat(self, Color("9fd89f"))
-	_piles_label = UIKit.stat(self, Color("c3cad3"))
+	score_label = UIKit.stat(self, Palette.GAIN)
+	_pop_label = UIKit.stat(self, Palette.POP)
+	_piles_label = UIKit.stat(self, Palette.PILES)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)

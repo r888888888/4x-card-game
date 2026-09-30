@@ -20,8 +20,8 @@ var _hint_label: Label
 func _init(board: MainScreen) -> void:
 	_board = board
 	_drop_style = StyleBoxFlat.new()
-	_drop_style.bg_color = Color(1, 0.85, 0.4, 0.03)
-	_drop_style.border_color = Color("ffd966")
+	_drop_style.bg_color = Palette.DROP_BG
+	_drop_style.border_color = Palette.GAIN
 	_drop_style.set_border_width_all(3)
 	_drop_style.set_corner_radius_all(10)
 	_drop_highlight = Panel.new()
@@ -31,7 +31,7 @@ func _init(board: MainScreen) -> void:
 	board.fx.add_child(_drop_highlight)
 	_hint = PanelContainer.new()
 	var hint_style := StyleBoxFlat.new()
-	hint_style.bg_color = Color(0.08, 0.09, 0.11, 0.92)
+	hint_style.bg_color = Palette.HINT_BG
 	hint_style.border_color = CardView.WARN_COLOR
 	hint_style.set_border_width_all(1)
 	hint_style.set_corner_radius_all(6)

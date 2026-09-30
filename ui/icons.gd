@@ -7,7 +7,7 @@ extends RefCounted
 ## it. scale is the icon's height as a fraction of the font size (the type marks sit small, like the
 ## glyphs they replace, so the type line still fits beside the cost).
 const GLYPHS := {
-	"⟳": [preload("res://assets/icons/upkeep.svg"), Color("ffd966"), 1.0],
+	"⟳": [preload("res://assets/icons/upkeep.svg"), Palette.GAIN, 1.0],
 	"▢": [preload("res://assets/icons/slot.svg"), null, 1.0],
 	"⌂": [preload("res://assets/icons/housing.svg"), null, 1.0],
 	"◆": [preload("res://assets/icons/action.svg"), null, 0.6],

@@ -13,8 +13,8 @@ const TYPE_MARKS := {
 	CardDef.TECH: "✦",
 	CardDef.EVENT: "❖",
 }
-const STRIP_BG := Color("4a1f22")  # the reason strip at the bottom of a dimmed card
-const STRIP_TEXT := Color("ffd6d1")
+const STRIP_BG := Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
+const STRIP_TEXT := Palette.STRIP_TEXT
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 
@@ -68,7 +68,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		add_child(info_label)
 
 	if def.vp > 0:
-		add_child(label("%d VP" % def.vp, 20, Color("ffd966")))
+		add_child(label("%d VP" % def.vp, 20, Palette.GAIN))
 
 
 ## A territory's info: "▢3 ⌂5 · Grassland, Fresh Water", plus " + Gold" for rolled resources.

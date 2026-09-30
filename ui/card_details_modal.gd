@@ -13,7 +13,7 @@ var _details := {}  # what is shown; {} while hidden
 
 ## Builds the modal on parent, hidden.
 func _init(parent: Control) -> void:
-	color = Color(0, 0, 0, 0.7)
+	color = Palette.SCRIM
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	z_index = 20  # above the menu, the supply screen and flying cards
 	visible = false
@@ -24,7 +24,7 @@ func _init(parent: Control) -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # a click beside the panel reaches the dimmer and closes
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UIKit.panel_style(Color("262b31"), Color(1, 1, 1, 0.25), 24))
+	panel.theme_type_variation = &"DarkPanel"
 	center.add_child(panel)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
