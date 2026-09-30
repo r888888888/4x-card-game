@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Restart or Enter in the seed field (seed_value: the field's seed, or -1 if it isn't a whole number).
 signal start_requested(seed_value: int)
-## New game: back to the start screen (063).
+## New game: to the new game screen (099).
 signal new_game_requested
 ## Close, Esc, or a click on the dimmed area.
 signal close_requested
@@ -48,7 +48,7 @@ func _init(parent: Control) -> void:
 	restart.tooltip_text = "Start again with the seed above."
 	box.add_child(restart)
 	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
-	new_game.tooltip_text = "Leave this game for the start screen."
+	new_game.tooltip_text = "Leave this game and choose a civilization and seed."
 	box.add_child(new_game)
 	_motion_toggle = UIKit.motion_toggle()
 	box.add_child(_motion_toggle)
