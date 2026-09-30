@@ -5,14 +5,29 @@ extends RefCounted
 ## call them.
 
 
-## Deals the config's event_deck into the event_deck zone, shuffled with the engine rng.
+## Deals the config's era-1 events into the event_deck zone, shuffled with the engine rng; later-era events wait in
+## future_events until their era is added (074).
 static func setup(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")
 	for id in e.config.get("event_deck", {}):
 		for i in e.config.event_deck[id]:
-			deck.add(e._make_card(id))
+			var card := e._make_card(id)
+			e.zone("event_deck" if card.def.era == 1 else "future_events").add(card)
 	if not deck.is_empty():
 		e.rng.shuffle(deck.cards)
+
+
+## Shuffles the era-n events waiting in future_events into the event deck (Research.add_era calls it, once per era).
+static func add_era(e: GameEngine, n: int) -> void:
+	var waiting := e.zone("future_events").cards.filter(func(c): return c.def.era == n)
+	if waiting.is_empty():
+		return
+	var deck := e.zone("event_deck")
+	for event in waiting:
+		e.zone("future_events").remove(event)
+		deck.add(event)
+	e.rng.shuffle(deck.cards)
+	e._log("  Era %d events added to the event deck." % n)
 
 
 ## Upkeeps left for active event uid (0 if uid isn't an active event).

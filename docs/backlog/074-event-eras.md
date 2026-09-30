@@ -2,7 +2,7 @@
 id: 074
 title: Event decks that escalate by era
 type: feature
-status: red-review
+status: in-progress
 branch: feat/074-event-eras
 ---
 

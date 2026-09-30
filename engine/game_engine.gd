@@ -25,7 +25,7 @@ signal card_played(outcome: Dictionary)
 ## A tech passed over this many times is removed from the game.
 const MAX_PASSES := 3
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.

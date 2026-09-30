@@ -16,7 +16,7 @@ const TYPE_FIELDS := {
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"prereq_discount": [CardDef.TECH],
-	"era": [CardDef.TECH],
+	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
 }
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events"}
@@ -228,13 +228,13 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 		def.has_discard = c.has("discard")
 
+	if def.type in [CardDef.TECH, CardDef.EVENT] and c.has("era"):
+		var era: Variant = Fields.as_int(c.era)
+		if typeof(era) != TYPE_INT or era < 1:
+			errs.append("era: must be an integer >= 1")
+		else:
+			def.era = era
 	if def.type == CardDef.TECH:
-		if c.has("era"):
-			var era: Variant = Fields.as_int(c.era)
-			if typeof(era) != TYPE_INT or era < 1:
-				errs.append("era: must be an integer >= 1")
-			else:
-				def.era = era
 		def.prereq = Fields.read_string(c, "prereq", errs, [], "")
 		if c.has("prereq_discount"):
 			var discount: Variant = Fields.as_int(c.prereq_discount)

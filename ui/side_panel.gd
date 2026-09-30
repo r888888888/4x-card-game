@@ -42,7 +42,6 @@ func _init(on_knowledge: Callable, on_details: Callable) -> void:
 	add_child(_knowledge)
 	event_info = UIKit.heading("")
 	event_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
-	event_info.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
 	event_info.hide()
 	add_child(event_info)
 	_end_turn_button = UIKit.button("End turn  (E)", func(): Game.engine.end_turn())
@@ -107,6 +106,10 @@ func refresh(e: GameEngine) -> void:
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 	event_info.visible = not e.config.get("event_deck", {}).is_empty()
 	event_info.text = "Events: deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
+	event_info.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
+	var waiting := e.zone("future_events").size()
+	if waiting > 0:
+		event_info.tooltip_text += "\n%d %s for a later era." % [waiting, "event waits" if waiting == 1 else "events wait"]
 	var pending := e.pending()
 	_end_turn_button.disabled = e.end_turn_error() != ""
 	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
