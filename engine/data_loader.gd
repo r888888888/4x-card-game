@@ -290,7 +290,7 @@ static func _parse_discard(raw: Variant, errs: Array[String]) -> int:
 ## starting: {resources, tableau, territory}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
-## supply: {card_id: {price, count}}, {} when there is none}.
+## supply: {card_id: {price, count, locked}}, {} when there is none}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -379,6 +379,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		errs.append("'event_deck' must be an object like {\"windfall\": 1}")
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
+	_check_unlocks(config, cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
@@ -499,8 +500,8 @@ static func _parse_resource_option(raw: Variant, where: String, resource_keyword
 	return {"keywords": keywords, "weight": weight} if valid else {}
 
 
-## Normalizes the supply {card_id: {price, count}}: each card an action or building, price and count
-## integers >= 1.
+## Normalizes the supply {card_id: {price, count, locked}}: each card an action or building, price and count
+## integers >= 1, locked a bool (default false; a locked pile opens with the unlock op).
 static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) -> Dictionary:
 	var out := {}
 	if not (raw is Dictionary):
@@ -523,9 +524,29 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 			if typeof(n) != TYPE_INT or n < 1:
 				errs.append("supply: '%s': '%s' must be an integer >= 1" % [id, field])
 				valid = false
+		var locked: Variant = entry.get("locked", false)
+		if not (locked is bool):
+			errs.append("supply: '%s': 'locked' must be true or false" % id)
+			valid = false
 		if valid:
-			out[id] = {"price": Fields.as_int(entry.price), "count": Fields.as_int(entry.count)}
+			out[id] = {"price": Fields.as_int(entry.price), "count": Fields.as_int(entry.count), "locked": locked}
 	return out
+
+
+## Every unlock effect on a card the game uses (decks, starting tableau, supply) must name a supply pile.
+static func _check_unlocks(config: Dictionary, cards: Dictionary, errs: Array[String]) -> void:
+	var used := {}
+	for field in ["deck", "research_deck", "event_deck", "supply"]:
+		for id in config[field]:
+			used[id] = true
+	for id in config.starting.tableau:
+		used[id] = true
+	for id in used:
+		if not cards.has(id):
+			continue
+		for effect in cards[id].effects:
+			if effect.op == "unlock" and not config.supply.has(effect.card_id):
+				errs.append("'%s' unlocks '%s', which has no supply pile" % [id, effect.card_id])
 
 
 ## Normalizes a {card_id: count} deck. required: the card type the deck must hold ("territory", "tech" or

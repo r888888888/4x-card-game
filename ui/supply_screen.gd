@@ -67,6 +67,8 @@ func can_open(e: GameEngine) -> bool:
 func open(e: GameEngine) -> void:
 	var i := 0
 	for id in e.supply():
+		if e.supply_locked(id):  # hidden until a tech unlocks it
+			continue
 		var slot := Control.new()
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot.custom_minimum_size = CardView.TABLEAU_SIZE

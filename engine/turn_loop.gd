@@ -17,6 +17,8 @@ static func new_game(e: GameEngine, p_seed: int) -> void:
 		e.resources[r] = e.config.starting.resources[r]
 	for id in e.config.get("supply", {}):
 		e.state.supply[id] = e.config.supply[id].count
+		if e.config.supply[id].locked:
+			e.state.locked_supply[id] = true
 
 	var deck := e.zone("deck")
 	for id in e.config.deck:
