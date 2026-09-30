@@ -2,7 +2,7 @@
 id: 086
 title: Split ui/card_view.gd into content and motion
 type: feature
-status: review
+status: done
 branch: feat/086-split-card-view
 ---
 
