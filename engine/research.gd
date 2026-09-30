@@ -137,8 +137,13 @@ static func buy(e: GameEngine, uid: int) -> bool:
 	return true
 
 
+## Why the revealed techs can't be declined now, or "".
+static func decline_error(e: GameEngine) -> String:
+	return "No techs are revealed." if e.zone("research_reveal").is_empty() else ""
+
+
 static func decline(e: GameEngine) -> bool:
-	if e.zone("research_reveal").is_empty():
+	if decline_error(e) != "":
 		return false
 	e._log("Declined the techs.")
 	_return_revealed(e, false)

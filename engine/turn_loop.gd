@@ -62,12 +62,20 @@ static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 	e.changed.emit()
 
 
+## Why hand card uid can't be discarded now, or "".
+static func discard_error(e: GameEngine, uid: int) -> String:
+	var blocked := e._blocked_error("discard")
+	if blocked != "":
+		return blocked
+	if e.zone("hand").find(uid) == null:
+		return "That card is not in your hand."
+	return ""
+
+
 static func discard_card(e: GameEngine, uid: int) -> bool:
-	if e._blocked_error("discard") != "":
+	if discard_error(e, uid) != "":
 		return false
 	var card := e.zone("hand").find(uid)
-	if card == null:
-		return false
 	e.zone("hand").remove(card)
 	e.zone("discard").add(card)
 	e._log("Discarded %s." % card.def.name)

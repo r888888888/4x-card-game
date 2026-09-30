@@ -432,8 +432,13 @@ func play_card(uid: int, target_uid := -1) -> bool:
 	return CardPlay.play(self, uid, target_uid)
 
 
+## Why choose(uid) would refuse: no explore choice is open, or uid isn't one of its options. "" if it can.
+func choose_error(uid: int) -> String:
+	return Territories.choose_error(self, uid)
+
+
 ## Resolves the pending choice: keeps territory uid in the frontier and puts the other revealed
-## territories at the bottom of the territory deck. False (and no change) if uid isn't an option.
+## territories at the bottom of the territory deck. False (and no change) if choose_error says no.
 func choose(uid: int) -> bool:
 	return Territories.choose(self, uid)
 
@@ -457,15 +462,26 @@ func buy(card_id: String) -> bool:
 	return Supply.buy(self, card_id)
 
 
+## Why decline_research would refuse (no techs are revealed), or "".
+func decline_research_error() -> String:
+	return Research.decline_error(self)
+
+
 ## Puts the revealed techs back into the research deck without buying. The action stays spent.
-## False (and no change) if nothing is revealed.
+## False (and no change) if decline_research_error says no.
 func decline_research() -> bool:
 	return Research.decline(self)
 
 
+## Why discard_card(uid) would refuse: the game is over, a choice is pending, or uid isn't in the hand. "" if it
+## can, including while an end-of-turn discard is owed.
+func discard_error(uid: int) -> String:
+	return TurnLoop.discard_error(self, uid)
+
+
 ## Discards one card from the hand for free, any time in the turn. If an end-of-turn discard is
 ## pending this counts toward it, and the turn ends once the hand is down to the limit. False (and no
-## change) if the game is over, a choice is pending, or the card isn't in hand.
+## change) if discard_error says no.
 func discard_card(uid: int) -> bool:
 	return TurnLoop.discard_card(self, uid)
 

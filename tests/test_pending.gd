@@ -106,4 +106,5 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 		eq(e.buy_error("scout"), msg, "%s: buy_error" % kind)
 		eq(e.end_turn_error(), msg, "%s: end_turn_error" % kind)
 		eq(e.supply_error(), row[3], "%s: supply_error" % kind)
+		eq(e.discard_error(first_in_hand(e)), "" if row[4] else msg, "%s: discard_error (093)" % kind)
 		eq(e.discard_card(first_in_hand(e)), row[4], "%s: discard_card" % kind)
