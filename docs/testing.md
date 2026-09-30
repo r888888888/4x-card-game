@@ -45,7 +45,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
 | `tests/test_action_errors.gd` | `discard_error`, `choose_error`, `decline_research_error`, and the main scene showing their reasons (093) |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
-| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary` |
+| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094) |
 | `tests/test_pending.gd` | `pending()` for each decision kind (explore, research, discard) and the one blocking rule every action follows |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |

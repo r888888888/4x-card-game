@@ -4,6 +4,15 @@ extends RefCounted
 ## GameEngine's public methods call them.
 
 
+## The supply's card ids whose piles aren't locked, sold out or not, in config order.
+static func open_piles(e: GameEngine) -> Array[String]:
+	var out: Array[String] = []
+	for id in e.config.get("supply", {}):
+		if not e.state.locked_supply.has(id):
+			out.append(id)
+	return out
+
+
 static func price(e: GameEngine, card_id: String) -> int:
 	return e.config.get("supply", {}).get(card_id, {}).get("price", 0)
 

@@ -35,6 +35,19 @@ static func upcoming_era_unlocks(e: GameEngine) -> Dictionary:
 
 
 ## See GameEngine.tech_tree.
+## One entry per era with techs in research_deck, in era order: {era, name, reached, unlocks, techs}. unlocks is
+## the era's upcoming_era_unlocks entry ({} once reached, or when only a tech adds it); techs its tree() entries.
+static func eras(e: GameEngine) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var upcoming := upcoming_era_unlocks(e)
+	for tech in tree(e):
+		if out.is_empty() or out[-1].era != tech.era:
+			out.append({"era": tech.era, "name": e.era_name(tech.era), "reached": tech.era <= e.era(),
+				"unlocks": upcoming.get(tech.era, {}), "techs": []})
+		out[-1].techs.append(tech)
+	return out
+
+
 static func tree(e: GameEngine) -> Array[Dictionary]:
 	var ids: Array = e.config.get("research_deck", {}).keys()
 	var order := {}

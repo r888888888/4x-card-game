@@ -54,7 +54,7 @@ func shown() -> Array[String]:
 
 func open() -> void:
 	var e := Game.engine
-	if e == null or e.config.research_deck.is_empty():
+	if e == null or e.tech_eras().is_empty():
 		return
 	_header.text = "Research deck %d · lost %d" % [e.zone("research_deck").size(), e.zone("lost_techs").size()]
 	if e.research_card_name() != "":
@@ -63,14 +63,9 @@ func open() -> void:
 		_columns.remove_child(child)
 		child.queue_free()
 	_titles.clear()
-	var by_era := {}
-	for tech in e.tech_tree():
-		if not by_era.has(tech.era):
-			by_era[tech.era] = []
-		by_era[tech.era].append(tech)
-	for era in by_era:
-		_titles.append(e.era_name(era))
-		_columns.add_child(_column(e, era, by_era[era]))
+	for era in e.tech_eras():
+		_titles.append(era.name)
+		_columns.add_child(_column(e, era))
 	show()
 
 
@@ -78,25 +73,27 @@ func close() -> void:
 	hide()
 
 
-func _column(e: GameEngine, era: int, techs: Array) -> VBoxContainer:
+## One era's column: its name, status and techs. era is a tech_eras() entry.
+func _column(e: GameEngine, era: Dictionary) -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	column.custom_minimum_size.x = 320
-	column.add_child(UIKit.title(e.era_name(era)))
-	var status := UIKit.heading(_era_status(e, era))
+	column.add_child(UIKit.title(era.name))
+	var status := UIKit.heading(_era_status(era))
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status.custom_minimum_size.x = 320
 	column.add_child(status)
-	for tech in techs:
+	for tech in era.techs:
 		column.add_child(_tech_button(e, tech))
 	return column
 
 
-## "Reached", or "Unlocks at 8 pop or 15 wealth" (from upcoming_era_unlocks), or "Unlocks through a tech".
-static func _era_status(e: GameEngine, era: int) -> String:
-	if era <= e.era():
+## "Reached", or "Unlocks at 8 pop or 15 wealth" (from its unlocks), or "Unlocks through a tech". era is a
+## tech_eras() entry.
+static func _era_status(era: Dictionary) -> String:
+	if era.reached:
 		return "Reached"
-	var need: Dictionary = e.upcoming_era_unlocks().get(era, {})
+	var need: Dictionary = era.unlocks
 	var parts: PackedStringArray = []
 	if need.has("pop"):
 		parts.append("%d pop" % need.pop)

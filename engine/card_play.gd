@@ -89,6 +89,11 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 
 
 ## Buildings target a territory; other cards need a target if a "play" effect does.
+## Whether hand card uid is playable, needs a target and has more than one valid target, so the player picks one.
+static func needs_target_choice(e: GameEngine, uid: int) -> bool:
+	return e.needs_target(uid) and targets_of(e, uid).size() > 1 and e.playable_error(uid) == ""
+
+
 static func needs_target(card: CardInstance) -> bool:
 	return card.def.type == CardDef.BUILDING or target_effect(card) != null
 
