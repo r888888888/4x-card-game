@@ -220,7 +220,10 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 techs defined but not in the deck).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
   (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
-  starting deck is the basics: Farm 4, Irrigation 1, Settler 2, Scout 2, Lumber Camp 2, Insight 2.
+  starting deck is the basics: Farm 4, Irrigation 1, Settler 2, Scout 2, Lumber Camp 2, Insight 2, Barter 1 (2 food →
+  2 wealth), Storyteller 1 (1 food: draw 2). Early buildings (080) are on sale from turn 1, in unlocked supply piles
+  with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
+  culture), so every territory can take a building before any tech.
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2

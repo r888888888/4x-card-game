@@ -2,7 +2,7 @@
 id: 080
 title: Five early-game cards (Barter, Storyteller, Fishing Huts, Quarry, Shrine)
 type: feature
-status: in-progress
+status: review
 branch: feat/080-early-game-cards
 ---
 
@@ -15,19 +15,19 @@ something to build, and Shrine can go on any territory.
 
 ## Acceptance criteria
 <!-- Content item: criteria are invariants of data/*.json; the shipped numbers are under Manual check. -->
-- [ ] AC1 (Barter): the real data has an `action` card `barter` whose cost is food only (≥ 1) and whose only
+- [x] AC1 (Barter): the real data has an `action` card `barter` whose cost is food only (≥ 1) and whose only
   effect is a `play` `gain` of wealth.
-- [ ] AC2 (Storyteller): the real data has an `action` card `storyteller` whose cost is food only (≥ 1) and whose
+- [x] AC2 (Storyteller): the real data has an `action` card `storyteller` whose cost is food only (≥ 1) and whose
   only effect is a `play` `draw` of 2 or more cards.
-- [ ] AC3 (buildings): the real data has `building` cards `fishing_huts` (requires `coastal`; an `upkeep` `gain` of
+- [x] AC3 (buildings): the real data has `building` cards `fishing_huts` (requires `coastal`; an `upkeep` `gain` of
   food), `quarry` (requires `hills` or `mountain`, or both) and `shrine` (no `requires`; tag `culture`; printed vp ≥ 1).
-- [ ] AC4 (placement): the starting `deck` has at least 1 `barter` and at least 1 `storyteller`. `supply` has piles
+- [x] AC4 (placement): the starting `deck` has at least 1 `barter` and at least 1 `storyteller`. `supply` has piles
   for `fishing_huts`, `quarry` and `shrine`, and none of them is `locked`. None of the five cards is created or
   unlocked by a tech.
-- [ ] AC5 (reachable land): Given a new game on the real data, then every territory in `territory_deck` can take
+- [x] AC5 (reachable land): Given a new game on the real data, then every territory in `territory_deck` can take
   at least one building that is in the starting deck or in an unlocked supply pile (its `requires` is empty or
   shares a keyword with the territory's printed keywords).
-- [ ] AC6 (still plays): the scripted 20-seed sweep (`test_scripted_sweep_over_20_seeds`) still passes with the new
+- [x] AC6 (still plays): the scripted 20-seed sweep (`test_scripted_sweep_over_20_seeds`) still passes with the new
   cards in the deck and supply.
 
 ## Out of scope
@@ -64,10 +64,17 @@ something to build, and Shrine can go on any territory.
 | AC6 | `test_content::test_scripted_sweep_over_20_seeds` (existing; must stay green) |
 
 ## Manual check
-- [ ] Review the shipped numbers in Design notes against `scripts/sim.sh` before/after (`balance` skill): era-2 turn,
+- [ ] Review the shipped numbers (sim results in the Log) in Design notes against `scripts/sim.sh` before/after (`balance` skill): era-2 turn,
   final score, wealth curve.
 - [ ] In a game, the Supply screen shows Fishing Huts, Quarry and Shrine from turn 1. A Quarry can go on Hills and
   Fishing Huts on a Bay.
 
 ## Log
-- 2026-09-29: Red at 550 tests (was 545), 5 new failing.
+- 2026-09-29: Red at 550 tests (was 545), 5 new failing. Approved at red, with the change to
+  `test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech` (an unlocked building pile needs no deck copy).
+- Shipped the planned numbers from the Design notes unchanged.
+- Sim (20 seeds), main → this: score 61.05 (45–81) → 76.90 (49–93), +26%; techs 7.75 (1–13) → 12.00 (11–13);
+  cities 11.00 → 10.90; pop 13.00 → 12.90; era 2 → 2; bought 0 → 0. The bot never buys from the supply, so the
+  three buildings play no part in it: the change comes from Barter and Storyteller. Barter's wealth lets the bot buy
+  almost every tech (the worst seed went from 1 tech to 11). Candidates for 066's balance pass: Barter +1 wealth, or
+  cost 3 food.
