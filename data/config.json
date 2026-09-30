@@ -34,6 +34,7 @@
     "settler": { "price": 3, "count": 2 },
     "research": { "price": 3, "count": 2 },
     "hunt": { "price": 2, "count": 2 },
+    "winnow": { "price": 2, "count": 2 },
     "fishing_huts": { "price": 2, "count": 2 },
     "quarry": { "price": 2, "count": 2 },
     "shrine": { "price": 2, "count": 2 },

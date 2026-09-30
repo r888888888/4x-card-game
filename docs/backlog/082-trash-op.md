@@ -1,8 +1,8 @@
 ---
 id: 082
-title: trash op (remove a hand card from the game) and Rite of Passage
+title: trash op (remove a hand card from the game) and Winnow
 type: feature
-status: red-review
+status: in-progress
 branch: feat/082-trash-op
 ---
 
@@ -28,7 +28,7 @@ effect that targets a card in hand.
 - [ ] AC6 (loader and text): `trash` takes no fields besides `op` and `trigger`. `"trigger": "upkeep"` is a load
   error (`upkeep_ok()` is false). A `trash` effect on a tech or an event is a load error (targeting effects are
   already refused there). The short text reads "Remove a card in hand from the game".
-- [ ] AC7 (content): the real data has an `action` `rite_of_passage` with a `trash` effect, in an unlocked supply pile.
+- [ ] AC7 (content): the real data has an `action` `winnow` with a `trash` effect, in an unlocked supply pile.
 
 ## Out of scope
 - Trashing from the discard pile or deck, or trashing more than one card.
@@ -47,7 +47,7 @@ effect that targets a card in hand.
 - UI: hand cards must light up as targets when a `trash` card is dragged or double-clicked. Right now
   `drag_controller.gd` lights only board views. This is the only UI work, and it goes under Manual check plus a
   smoke test if one is cheap.
-- Planned content (Manual check): `rite_of_passage`: action, cost 1 food, trash. Supply price 2, count 2.
+- Planned content (Manual check): `winnow`: action, cost 1 food, trash. Supply price 2, count 2.
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
@@ -59,13 +59,15 @@ effect that targets a card in hand.
 | AC4 | `test_trash::test_the_only_other_hand_card_is_picked` |
 | AC5 | `test_trash::test_trashed_card_is_not_reshuffled`, `::test_fork_copies_the_trashed_zone` |
 | AC6 | `test_trash::test_trash_loads`, `::test_trash_validation`, `::test_trash_card_text`, `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` (row added to `UPKEEP_UNSAFE`) |
-| AC7 | `test_content::test_rite_of_passage_trashes_and_is_on_sale` |
+| AC7 | `test_content::test_winnow_trashes_and_is_on_sale`; changed: `test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech` → `test_every_locked_supply_pile_is_unlocked_by_a_tech` (an unlocked pile needs no deck copy) |
 
 ## Manual check
-- [ ] Double-click Rite of Passage with 2+ other cards in hand: the other hand cards light up. Clicking one removes
+- [ ] Double-click Winnow with 2+ other cards in hand: the other hand cards light up. Clicking one removes
   it (animated off the table). Esc cancels. Keyboard targeting works the same way.
-- [ ] Dragging Rite of Passage onto a hand card trashes it.
+- [ ] Dragging Winnow onto a hand card trashes it.
 - [ ] Review the numbers with the `balance` skill.
 
 ## Log
 - 2026-09-29: Red at 574 tests (was 561), 15 failing. Fixture Purge is local to `test_trash.gd`, not in `TEST_CARDS`.
+- Approved at red. The user renamed Rite of Passage to **Winnow** (id `winnow`) and approved relaxing the supply
+  content test: an unlocked pile of any type may have no deck copy.

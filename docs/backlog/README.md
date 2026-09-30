@@ -73,7 +73,7 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 34. 065 government cards (content from 058's techs)
 35. 080 five early-game cards (data only)
 36. 081 `gain_per_keyword` op, Hunt
-37. 082 `trash` op, Rite of Passage
+37. 082 `trash` op, Winnow
 38. 072 harmful event ops (`lose`, `lose_pop`)
 39. 083 Famine replaces starvation (uses 072, 060)
 40. 084 relieve a Famine with wealth
