@@ -46,18 +46,13 @@ func _init(parent: Control) -> void:
 	box.add_child(_civ_label)
 	var restart := UIKit.button("Restart", _restart)
 	restart.tooltip_text = "Start again with the seed above."
-	box.add_child(restart)
 	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
 	new_game.tooltip_text = "Leave this game and choose a civilization and seed."
-	box.add_child(new_game)
 	_motion_toggle = UIKit.motion_toggle()
-	box.add_child(_motion_toggle)
-	box.add_child(HSeparator.new())
 	var close := UIKit.button("Close (Esc)", func(): close_requested.emit())
-	box.add_child(close)
 	var exit := UIKit.button("Exit", func(): exit_requested.emit())
 	exit.tooltip_text = "Quit the game. It isn't saved."
-	box.add_child(exit)
+	UIKit.button_column(box, [restart, new_game, _motion_toggle, HSeparator.new(), close, exit])
 	UIKit.focus_loop([_seed_edit, restart, new_game, _motion_toggle, close, exit])
 
 

@@ -119,6 +119,7 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 		lines.append("after " + e.card_db[tech.prereq].name)
 	var b := UIKit.button("\n".join(lines), func(): get_parent().details.open_def(tech.id))
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100)
 	b.tooltip_text = "Click for the full details."
 	var style := UIKit.panel_style(Color("1f2328"), look[2], 6)
 	b.add_theme_stylebox_override("normal", style)

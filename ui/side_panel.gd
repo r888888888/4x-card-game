@@ -33,6 +33,7 @@ func _init(on_knowledge: Callable, on_details: Callable) -> void:
 	for zone_name in ["civilization", "government"]:
 		var line := UIKit.button("", func(): on_details.call(_identity[zone_name].get_meta("card_id")))
 		line.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		line.size_flags_horizontal = Control.SIZE_FILL  # a list row, not an action: spans the panel (100)
 		line.clip_text = true
 		line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		line.hide()

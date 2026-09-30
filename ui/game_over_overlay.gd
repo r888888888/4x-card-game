@@ -16,8 +16,7 @@ func _init(parent: Control, on_replay: Callable, on_new_game: Callable) -> void:
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_label)
 	_replay_button = UIKit.button("Replay this seed", on_replay)
-	box.add_child(_replay_button)
-	box.add_child(UIKit.button("New game", on_new_game))
+	UIKit.button_column(box, [_replay_button, UIKit.button("New game", on_new_game)])
 
 
 ## The overlay's text, or "" while it is hidden.

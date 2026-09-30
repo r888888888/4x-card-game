@@ -26,12 +26,10 @@ func _init(parent: Control) -> void:
 	box.add_child(title)
 	new_game_button = UIKit.button("New game", func(): new_game_requested.emit())
 	new_game_button.tooltip_text = "Choose a civilization and a seed, then start."
-	box.add_child(new_game_button)
 	settings_button = UIKit.button("Settings", func(): settings_requested.emit())
-	box.add_child(settings_button)
 	exit_button = UIKit.button("Exit", func(): exit_requested.emit())
 	exit_button.tooltip_text = "Quit the game."
-	box.add_child(exit_button)
+	UIKit.button_column(box, [new_game_button, settings_button, exit_button])
 	UIKit.focus_loop([new_game_button, settings_button, exit_button])
 
 
