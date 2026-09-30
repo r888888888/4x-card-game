@@ -171,7 +171,7 @@ func era() -> int:
 
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
-## "starve": the pop that food shortfall would starve. {} on the last turn or after game over.
+## "starve": the pop that food shortfall would starve, after famine guards. {} on the last turn or after game over.
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
@@ -183,7 +183,10 @@ func upkeep_forecast() -> Dictionary:
 		forecast[r] = f.resources[r] - resources[r]
 	var need: int = f.total_pop() * config.population.food_upkeep if population_on() else 0
 	forecast[FOOD] = forecast.get(FOOD, 0) - need
-	forecast.starve = maxi(need - f.resources.get(FOOD, 0), 0)
+	var pop_before := f.total_pop()
+	if population_on():
+		Population.feed(f)
+	forecast.starve = pop_before - f.total_pop()
 	return forecast
 
 

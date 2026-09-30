@@ -9,9 +9,15 @@ static func pop(e: GameEngine, territory_uid: int) -> int:
 	return territory.pop if territory != null else 0
 
 
+## A settled territory's housing plus the housing of every building on it, working or idle (0 if unsettled).
 static func housing(e: GameEngine, territory_uid: int) -> int:
 	var territory := Territories.settled(e, territory_uid)
-	return territory.def.housing if territory != null else 0
+	if territory == null:
+		return 0
+	var total := territory.def.housing
+	for building in Territories.buildings_on(e, territory_uid):
+		total += building.def.housing
+	return total
 
 
 static func total_pop(e: GameEngine) -> int:
@@ -33,8 +39,9 @@ static func grow_error(e: GameEngine, territory_uid: int) -> String:
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return "Only a settled territory can grow."
-	if territory.pop >= territory.def.housing:
-		return "%s is at its housing (%d)." % [territory.def.name, territory.def.housing]
+	var cap := housing(e, territory_uid)
+	if territory.pop >= cap:
+		return "%s is at its housing (%d)." % [territory.def.name, cap]
 	var cost := e.grow_cost(territory_uid)
 	var have: int = e.resources.get(GameEngine.FOOD, 0)
 	if have < cost:
@@ -58,7 +65,7 @@ static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: Card
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null or not e.population_on():
 		return
-	var added := mini(amount, territory.def.housing - territory.pop)
+	var added := mini(amount, housing(e, territory_uid) - territory.pop)
 	if added <= 0:
 		return
 	territory.pop += added
@@ -82,7 +89,7 @@ static func has_worker(e: GameEngine, territory: CardInstance) -> bool:
 
 
 ## Pop eats food_upkeep food each. Each food that can't be paid starves 1 pop from the territory with
-## the most pop (ties: the one settled first).
+## the most pop (ties: the one settled first), unless a famine guard on that territory saves it.
 static func feed(e: GameEngine) -> void:
 	var need: int = total_pop(e) * e.config.population.food_upkeep
 	if need == 0:
@@ -90,6 +97,7 @@ static func feed(e: GameEngine) -> void:
 	var eaten: int = mini(need, e.resources.food)
 	e.resources.food -= eaten
 	e._log("Pop eats %d food." % eaten)
+	var guards := famine_guards(e)
 	for i in need - eaten:
 		var biggest: CardInstance = null
 		for card in e.zone("tableau").cards:
@@ -97,5 +105,18 @@ static func feed(e: GameEngine) -> void:
 				biggest = card
 		if biggest == null:
 			break
+		if guards.get(biggest.uid, 0) > 0:
+			guards[biggest.uid] -= 1
+			e._log("%s: 1 pop saved from famine." % biggest.def.name)
+			continue
 		biggest.pop -= 1
 		e._log("%s: 1 pop starved." % biggest.def.name)
+
+
+## The famine guard of the working buildings on each territory: {territory uid: pop it can save this upkeep}.
+static func famine_guards(e: GameEngine) -> Dictionary:
+	var guards := {}
+	for card in e.zone("tableau").cards:
+		if card.def.famine_guard > 0 and not is_idle(e, card.uid):
+			guards[card.territory_uid] = guards.get(card.territory_uid, 0) + card.def.famine_guard
+	return guards

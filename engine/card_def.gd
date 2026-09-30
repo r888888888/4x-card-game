@@ -18,7 +18,8 @@ var vp: int = 0
 var tags: Array[String] = []
 var effects: Array[Effect] = []
 var slots: int = 0  # territories: building slots
-var housing: int = 0  # territories: most pop the territory can hold
+var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
+var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
@@ -69,6 +70,10 @@ func rules_text(card_db: Dictionary) -> String:
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
 		prev = e
+	if type == BUILDING and housing > 0:
+		parts.append("+%d housing" % housing)
+	if famine_guard > 0:
+		parts.append("Saves %d pop from famine" % famine_guard)
 	if prereq != "":
 		parts.append("-%d wealth with %s" % [prereq_discount, card_db[prereq].name])
 	if type == EVENT:
@@ -95,6 +100,10 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append(line)
 	if type == CITY and slots > 0:
 		parts.append("+%d building slots on its territory" % slots)
+	if type == BUILDING and housing > 0:
+		parts.append("+%d housing on its territory" % housing)
+	if famine_guard > 0:
+		parts.append("Each upkeep, %d pop here that would starve survives" % famine_guard)
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
 	return "\n".join(parts)
