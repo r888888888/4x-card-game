@@ -233,21 +233,9 @@ func test_the_start_screens_are_on_the_navigator() -> void:
 
 # --- Backlog 104: titles, the header and transitions ---
 # An animated navigator (nav.animated = true, as the board's are) transitions; a plain one switches at once (103).
-# Settings are swapped for a temp store so Reduce motion is known. ScreenHeader is loaded by path.
+# with_reduce_motion (test_case.gd) sets Reduce motion.
 
 const HEADER_PATH := "res://ui/screen_header.gd"
-const TEMP_SETTINGS := "user://test_navigator_settings.cfg"
-
-
-## Runs body with Reduce motion set to calm in a temp settings store, then puts the player's settings back.
-func with_motion(calm: bool, body: Callable) -> void:
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(TEMP_SETTINGS)
-	Settings.store.reduce_motion = calm
-	await body.call()
-	Settings.store = original
-	if FileAccess.file_exists(TEMP_SETTINGS):
-		DirAccess.remove_absolute(TEMP_SETTINGS)
 
 
 ## Screens A, B and C at 1000×800 (like full-screen overlays) in the running tree.
@@ -256,17 +244,6 @@ func sized_screens() -> Dictionary:
 	for name in s:
 		s[name].size = Vector2(1000, 800)
 	return s
-
-
-## Anim.SCREEN_TIME, read by name so this file parses before it exists (-1 until then: a failed check).
-func screen_time() -> float:
-	var t: float = load("res://ui/anim.gd").get_script_constant_map().get("SCREEN_TIME", -1.0)
-	check(t > 0.0, "Anim.SCREEN_TIME exists")
-	return maxf(t, 0.0)
-
-
-func wait_transition() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(screen_time() + 0.15).timeout
 
 
 func animated_nav() -> Object:
@@ -313,7 +290,7 @@ func test_the_header_names_the_screen_below_and_the_path() -> void:
 
 
 func test_push_from_a_rect_grows_the_screen_out_of_it() -> void:
-	await with_motion(false, func():
+	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
@@ -325,14 +302,14 @@ func test_push_from_a_rect_grows_the_screen_out_of_it() -> void:
 		check(s.B.scale.x < 0.5 and s.B.scale.y < 0.5, "starts small: %s" % s.B.scale)
 		var top_left: Vector2 = s.B.get_global_transform() * Vector2.ZERO
 		check(top_left.distance_to(from.position) < 2.0, "over the rect: %s vs %s" % [top_left, from.position])
-		await wait_transition()
+		await wait_screen_transition()
 		eq(s.B.scale, Vector2.ONE, "full size")
 		eq(s.B.modulate.a, 1.0, "opaque")
 		free_screens())
 
 
 func test_push_without_a_rect_fades_in() -> void:
-	await with_motion(false, func():
+	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
@@ -341,13 +318,13 @@ func test_push_without_a_rect_fades_in() -> void:
 		nav.push(s.B, null, "B")
 		check(s.B.modulate.a < 0.5, "starts see-through")
 		eq(s.B.scale, Vector2.ONE, "full size")
-		await wait_transition()
+		await wait_screen_transition()
 		eq(s.B.modulate.a, 1.0, "opaque")
 		free_screens())
 
 
 func test_with_reduce_motion_a_push_only_fades() -> void:
-	await with_motion(true, func():
+	await with_reduce_motion(true, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
@@ -356,27 +333,27 @@ func test_with_reduce_motion_a_push_only_fades() -> void:
 		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
 		eq(s.B.scale, Vector2.ONE, "no growing")
 		check(s.B.modulate.a < 0.5, "a fade")
-		await wait_transition()
+		await wait_screen_transition()
 		eq(s.B.modulate.a, 1.0, "opaque")
 		free_screens())
 
 
 func test_back_reverses_the_push_and_the_screen_below_takes_input_at_once() -> void:
-	await with_motion(false, func():
+	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
 		var s := sized_screens()
 		nav.set_root(s.A)
 		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
-		await wait_transition()
+		await wait_screen_transition()
 		check(nav.back(), "back")
 		check(s.A.visible, "the screen below is shown at once")
 		eq(nav.top(), s.A, "and is the top")
 		check(s.B.visible, "the leaving screen is still drawn")
-		check(not load("res://ui/navigator.gd").is_shown(s.B), "but no longer counts as shown")
+		check(not Navigator.is_shown(s.B), "but no longer counts as shown")
 		eq(s.B.mouse_behavior_recursive, Control.MOUSE_BEHAVIOR_DISABLED, "and takes no clicks")
-		await wait_transition()
+		await wait_screen_transition()
 		check(not s.B.visible, "then hidden")
 		eq(s.B.scale, Vector2.ONE, "reset to full size for next time")
 		eq(s.B.modulate.a, 1.0, "and opaque")
@@ -385,7 +362,7 @@ func test_back_reverses_the_push_and_the_screen_below_takes_input_at_once() -> v
 
 
 func test_a_new_step_finishes_the_running_transition_first() -> void:
-	await with_motion(false, func():
+	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
@@ -397,8 +374,8 @@ func test_a_new_step_finishes_the_running_transition_first() -> void:
 		eq(s.B.modulate.a, 1.0, "B left opaque")
 		nav.back()
 		nav.back()
-		check(s.A.visible and load("res://ui/navigator.gd").is_shown(s.A), "A shown")
+		check(s.A.visible and Navigator.is_shown(s.A), "A shown")
 		check(not s.C.visible, "C's fade out was finished when the next back came")
-		await wait_transition()
+		await wait_screen_transition()
 		check(not s.B.visible and not s.C.visible, "both gone")
 		free_screens())

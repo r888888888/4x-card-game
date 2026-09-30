@@ -1,19 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The screen header and transitions in the real main scene (backlog 104): the new game and settings screens and
 ## the territory view each carry a ScreenHeader (`header`: back_button, breadcrumb_text()), and a territory's view
-## grows out of its card. Settings are swapped for a temp store so Reduce motion is known.
-
-const TEMP_SETTINGS := "user://test_screen_header_settings.cfg"
-
-
-func with_motion(calm: bool, body: Callable) -> void:
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(TEMP_SETTINGS)
-	Settings.store.reduce_motion = calm
-	await body.call()
-	Settings.store = original
-	if FileAccess.file_exists(TEMP_SETTINGS):
-		DirAccess.remove_absolute(TEMP_SETTINGS)
+## grows out of its card. with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
 
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game on seed 1.
@@ -26,17 +14,6 @@ func with_fixture_main(body: Callable) -> void:
 	await body.call(main)
 	close_main(main)
 	Game.engine = real
-
-
-## Anim.SCREEN_TIME, read by name so this file parses before it exists (-1 until then: a failed check).
-func screen_time() -> float:
-	var t: float = load("res://ui/anim.gd").get_script_constant_map().get("SCREEN_TIME", -1.0)
-	check(t > 0.0, "Anim.SCREEN_TIME exists")
-	return maxf(t, 0.0)
-
-
-func wait_transition() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(screen_time() + 0.15).timeout
 
 
 # --- AC3: every navigated screen has the header ---
@@ -72,7 +49,7 @@ func test_the_territory_view_has_a_header() -> void:
 # --- AC6: a territory's view grows out of its card ---
 
 func test_a_territory_view_grows_out_of_its_card_and_shrinks_back() -> void:
-	await with_motion(false, func():
+	await with_reduce_motion(false, func():
 		await with_fixture_main(func(main: Node):
 			var home := home_uid(Game.engine)
 			var card := (main.views[home] as CardView).get_global_rect()
@@ -81,11 +58,11 @@ func test_a_territory_view_grows_out_of_its_card_and_shrinks_back() -> void:
 			check(view.scale.x < 1.0, "starts small: %s" % view.scale)
 			var top_left: Vector2 = view.get_global_transform() * Vector2.ZERO
 			check(top_left.distance_to(card.position) < 2.0, "over the card: %s vs %s" % [top_left, card.position])
-			await wait_transition()
+			await wait_screen_transition()
 			eq(view.scale, Vector2.ONE, "full size")
 			view.back_button.pressed.emit()
 			check(not view.is_open(), "closed at once")
 			check(main.tableau.is_visible_in_tree(), "the Realm is back at once")
 			check(view.visible and view.scale.x <= 1.0, "still drawn while it shrinks")
-			await wait_transition()
+			await wait_screen_transition()
 			check(not view.visible, "then hidden")))
