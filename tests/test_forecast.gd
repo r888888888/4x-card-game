@@ -14,10 +14,7 @@ func forecast_engine(pop: int, food := 5, wealth := 0, food_upkeep := 1) -> Game
 
 ## Puts buildings card_ids on Homeland, in order (the last ones go idle first).
 func build(e: GameEngine, card_ids: Array[String]) -> void:
-	for id in card_ids:
-		var card := CardInstance.new(1000 + e.zone("tableau").size(), e.card_db[id])
-		card.territory_uid = home_uid(e)
-		e.zone("tableau").add(card)
+	build_on(e, home_uid(e), card_ids)
 
 
 # --- AC1: production minus what pop eats, with no side effects ---

@@ -82,6 +82,10 @@ static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Arra
 		if effect.keyword != "":
 			names.append(effect.keyword)
 	if def.type == CardDef.BUILDING:
+		if def.housing > 0:
+			names.append("Housing")
+		if def.famine_guard > 0:
+			names.append("Famine guard")
 		names.append_array(["Slots", "Workers"])
 	if def.type == CardDef.TECH:
 		names.append("Passes")

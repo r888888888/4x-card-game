@@ -12,14 +12,15 @@ const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", 
 ## type the field is ignored with a warning ("'era' only applies to techs (ignored)").
 const TYPE_FIELDS := {
 	"slots": [CardDef.TERRITORY, CardDef.CITY],
-	"housing": [CardDef.TERRITORY],
+	"housing": [CardDef.TERRITORY, CardDef.BUILDING],
+	"famine_guard": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"prereq_discount": [CardDef.TECH],
 	"era": [CardDef.TECH],
 	"discard": [CardDef.EVENT],
 }
-const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.TECH: "techs", CardDef.EVENT: "events"}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT]
 ## The keys of an event's discard object (its discard conditions). Only a duration so far.
@@ -216,6 +217,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			errs.append("'keywords' must be an array of keyword ids")
 	elif def.type == CardDef.CITY:
 		def.slots = Fields.read_int(c, "slots", errs, 0, 0)
+	elif def.type == CardDef.BUILDING:
+		def.housing = Fields.read_int(c, "housing", errs, 1, 0)
+		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
 	for key in TYPE_FIELDS:
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):

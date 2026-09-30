@@ -9,7 +9,9 @@ const TERMS := {
 	"Workers": "With population on, each building needs a free pop on its territory to be placed and to work. "
 		+ "Buildings beyond a territory's pop are idle and skip upkeep.",
 	"Pop": "People living on a territory. Pop works buildings, eats food at upkeep and scores VP.",
-	"Housing": "The most pop a territory can hold. Growth stops there.",
+	"Housing": "The most pop a territory can hold. Growth stops there. Some buildings add housing to their territory.",
+	"Famine Guard": "Each upkeep, a working building with a famine guard saves pop on its territory that would "
+		+ "starve for lack of food.",
 	"Requires": "The building can only go on a territory with one of the listed keywords.",
 	"Passes": "Each time you buy another tech over this one, it gets 1 wealth cheaper. After 3 passes it is lost.",
 	"Prerequisite": "A tech is cheaper when you have researched its prerequisite. You can buy it without.",

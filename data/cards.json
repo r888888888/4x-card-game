@@ -116,10 +116,8 @@
     },
     {
       "id": "granary", "name": "Granary", "type": "building",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [],
-      "effects": [
-        { "op": "grow", "amount": 1, "where": "here", "trigger": "upkeep" }
-      ]
+      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "housing": 1, "famine_guard": 1,
+      "effects": []
     },
     {
       "id": "harvest_festival", "name": "Harvest Festival", "type": "event",

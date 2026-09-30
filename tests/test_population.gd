@@ -68,7 +68,7 @@ func test_housing_validation() -> void:
 			"cards.json: card 'bog': 'housing' must be an integer >= 1"],
 		["housing not an int", {"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": "x"},
 			"cards.json: card 'bog': 'housing' must be an integer >= 1"],
-		["housing on a building", {"id": "hut", "name": "Hut", "type": "building", "housing": 2},
+		["housing on an action", {"id": "hut", "name": "Hut", "type": "action", "housing": 2},
 			"card 'hut': 'housing' only applies to territories", "warning_only"],
 	], card_messages)
 

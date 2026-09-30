@@ -110,6 +110,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
 - Territory cards (`"type": "territory"`) need `slots` (int ≥ 0), may set `housing` (int ≥ 1, default
   `slots + 2`) and may list `keywords` from config `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
+- Buildings may set `housing` (int ≥ 1: added to their territory's housing, idle or not) and `famine_guard` (int ≥ 1:
+  pop on their territory saved from starving each upkeep, while working) (060).
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. Terrain with no table rolls nothing.
@@ -190,11 +192,14 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1 }` turns the rules on; without the
   block the game has no pop (the test fixtures leave it out).
-- The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`.
+- The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`: the
+  territory's own plus its buildings' (060).
 - Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Each food that can't be paid
   starves 1 pop from the territory with the most pop (ties: settled first). Pop can reach 0; the city stays.
+  Famine guard (060): the working buildings on a territory (decided before pop eats) save up to their total
+  `famine_guard` of those deaths there each upkeep; `upkeep_forecast().starve` counts only the pop that die.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
-  capped by housing: `here` on the card's own territory (Granary, upkeep), `each` on every settled territory
+  capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every settled territory
   (Harvest Festival until 069, now an event; no shipped card uses `each` today). `here` is a load error on a tech
   or an event, which has no territory (069).
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.

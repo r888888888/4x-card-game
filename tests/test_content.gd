@@ -113,11 +113,11 @@ func test_real_deck_has_growth_cards() -> void:
 		counts[id] = counts.get(id, 0) + r.config.event_deck[id]
 	var growth := 0
 	for id in counts:
-		for effect in r.cards[id].effects:
-			if effect.op == "grow":
-				growth += counts[id]
-				break
-	check(growth >= 4, "at least 4 growth cards in the deck, supply and event deck (got %d)" % growth)
+		var def: CardDef = r.cards[id]
+		# backlog 060: a famine guard (the Granary) keeps pop, so it counts as a growth card
+		if def.famine_guard > 0 or def.effects.any(func(effect): return effect.op == "grow"):
+			growth += counts[id]
+	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
 # --- Starter events (backlog 069) ---
