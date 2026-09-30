@@ -2,7 +2,7 @@
 id: 088
 title: Civilization and government as side-panel lines, not card rows
 type: feature
-status: red-review
+status: in-progress
 branch: feat/088-identity-in-side-panel
 ---
 

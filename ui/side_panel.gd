@@ -1,16 +1,19 @@
 class_name SidePanel
 extends VBoxContainer
-## The right-hand column: the log, the Supply button, the Knowledge button (the tech tree), the event pile line, and
-## End turn (which says how many cards to discard while the hand is over its limit).
+## The right-hand column: the log, the Supply button, the civilization and government lines (088), the Knowledge
+## button (the tech tree), the event pile line, and End turn (which says how many cards to discard while the hand is
+## over its limit).
 
 var event_info: Label  # event deck and event discard counts
 var _log: RichTextLabel
 var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
+var _identity := {}  # zone ("civilization", "government") -> its one-line button; hidden when the zone is empty
 var _end_turn_button: Button
 
 
-## on_knowledge: the Knowledge button's action (open the tech tree).
-func _init(on_knowledge: Callable) -> void:
+## on_knowledge: the Knowledge button's action (open the tech tree). on_details(card_id): what pressing a
+## civilization or government line does (open that card's details).
+func _init(on_knowledge: Callable, on_details: Callable) -> void:
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	add_child(UIKit.heading("Log"))
 	custom_minimum_size.x = 360
@@ -27,6 +30,14 @@ func _init(on_knowledge: Callable) -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
+	for zone_name in ["civilization", "government"]:
+		var line := UIKit.button("", func(): on_details.call(_identity[zone_name].get_meta("card_id")))
+		line.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		line.clip_text = true
+		line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		line.hide()
+		_identity[zone_name] = line
+		add_child(line)
 	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
 	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives.\nPlay an Insight card to reveal 2 techs."
 	add_child(_knowledge)
@@ -68,8 +79,28 @@ func append_log(message: String) -> void:
 		_log.append_text(message + "\n")
 
 
-## The research and event lines and the End turn button, from engine e.
+## The civilization and government lines, top to bottom (visible or not).
+func identity_buttons() -> Array[Button]:
+	return [_identity.civilization, _identity.government] as Array[Button]
+
+
+## Where a card leaving for zone_name's line flies to (the government a player just played).
+func identity_point(zone_name: String) -> Vector2:
+	return (_identity[zone_name] as Button).get_global_rect().get_center()
+
+
+## The identity, research and event lines and the End turn button, from engine e.
 func refresh(e: GameEngine) -> void:
+	for zone_name in _identity:
+		var line: Button = _identity[zone_name]
+		var z := e.zone(zone_name)
+		line.visible = not z.is_empty()
+		if line.visible:
+			var def: CardDef = z.cards[0].def
+			line.text = "%s: %s" % [zone_name.capitalize(), def.name]
+			var rules := def.rules_tooltip(e.card_db)
+			line.tooltip_text = rules if rules != "" else "No bonus."
+			line.set_meta("card_id", def.id)
 	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
 	_knowledge.visible = e.config.research_deck.size() > 0
 	event_info.visible = not e.config.get("event_deck", {}).is_empty()
