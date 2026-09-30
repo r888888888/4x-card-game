@@ -1,7 +1,7 @@
 extends "res://tests/lib/tech_case.gd"
 ## Button widths in the real main scene (backlog 100), measured after layout at 1920×1080. A button fits its text
 ## (its width is its minimum width); a stacked column of buttons in a menu or a screen shares the widest button's
-## width and is centred in its panel; list rows (the side panel's identity lines), tech tiles and seed fields fill.
+## width and is centred in its panel; tech tiles and seed fields fill.
 
 const TOLERANCE := 1.0
 
@@ -156,34 +156,7 @@ func test_board_buttons_fit_their_text() -> void:
 	close_at_1080(main)
 
 
-# --- AC4: the side panel ---
-
-func test_side_panel_actions_fit_their_text_at_its_left_edge() -> void:
-	var main := open_at_1080()
-	main.start_game(1)
-	await wait_frames()
-	var knowledge := shown_button(main, "Knowledge")
-	var side: Control = knowledge.get_parent() if knowledge != null else null
-	for prefix in ["Buy Cards", "Knowledge", "End turn"]:
-		var b := shown_button(main, prefix)
-		check_fits(b, prefix)
-		if b != null and side != null:
-			eq(b.get_parent(), side, "%s is in the side panel" % prefix)
-			check(absf(b.global_position.x - side.global_position.x) <= TOLERANCE, "%s at the side panel's left edge: %d, %d" % [
-				prefix, b.global_position.x, side.global_position.x])
-	close_at_1080(main)
-
-
-func test_identity_lines_still_span_the_side_panel() -> void:
-	var main := open_at_1080()
-	main.start_game(1)
-	await wait_frames()
-	var lines: Array[Button] = main.identity_buttons()
-	check(not lines.is_empty(), "the real data shows a civilization line")
-	for b in lines:
-		var side: Control = b.get_parent()
-		check(absf(b.size.x - side.size.x) <= TOLERANCE, "'%s' spans the panel: %d, %d" % [b.text, b.size.x, side.size.x])
-	close_at_1080(main)
+# --- AC4: the side panel is gone (115): the top bar's buttons fit their text (test_board_layout) ---
 
 
 # --- AC5: tech tiles fill their era column ---

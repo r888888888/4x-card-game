@@ -56,10 +56,12 @@ func test_event_info_counts_the_event_piles() -> void:
 		arrange(e.zone("event_deck"), ["windfall"])
 		var panel: Dictionary = main.event_panel()
 		eq(panel.get("visible"), true, "panel visible with an event deck")
-		eq(panel.get("info"), "Events: deck 3 · discard 0", "info at the start")
+		eq(panel.get("info"), "Events · deck 3 · discard 0", "info at the start (on the Events heading, 115)")
+		var headings: Array = main.section_headings().map(func(h): return h.text)
+		check(headings.has("Events · deck 3 · discard 0"), "the Events heading carries the counts: %s" % [headings])
 		check(str(panel.get("tooltip")).contains("end of each turn"), "tooltip explains the draw: '%s'" % panel.get("tooltip"))
 		e.end_turn()  # Windfall drawn, then ends at turn 2's upkeep
-		eq(main.event_panel().get("info"), "Events: deck 2 · discard 1", "info after Windfall came and went")
+		eq(main.event_panel().get("info"), "Events · deck 2 · discard 1", "info after Windfall came and went")
 		close_main(main))
 
 
