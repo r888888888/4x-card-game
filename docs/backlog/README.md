@@ -76,14 +76,15 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 37. 082 `trash` op, Winnow
 38. 078 wide territory row pushes the side panel off screen (bug: End turn goes off screen in longer games)
 39. 087 collapse territory groups (right after 078: both rework `TerritoryGroup` in `ui/tableau_view.gd`)
-40. 072 harmful event ops (`lose`, `lose_pop`)
-41. 083 Famine replaces starvation (uses 072, 060; the first harm players feel)
-42. 084 relieve a Famine with wealth
-43. 074 event decks escalate by era (uses 072)
-44. 070 event tooltip says how long it lasts (before 079, whose modal shows the event text)
-45. 079 modal when a new event is drawn (after 072, so its summary covers losses as well as gains)
-46. 071 icons for the tech and event type marks
-47. 077 Market earns wealth per city (data only; just before the balance pass)
-48. 066 100-turn games, balance pass (last: everything above changes balance)
+40. 088 civilization and government as side-panel lines (after 087: more board space, also edits `_row_sections`)
+41. 072 harmful event ops (`lose`, `lose_pop`)
+42. 083 Famine replaces starvation (uses 072, 060; the first harm players feel)
+43. 084 relieve a Famine with wealth
+44. 074 event decks escalate by era (uses 072)
+45. 070 event tooltip says how long it lasts (before 079, whose modal shows the event text)
+46. 079 modal when a new event is drawn (after 072, so its summary covers losses as well as gains)
+47. 071 icons for the tech and event type marks
+48. 077 Market earns wealth per city (data only; just before the balance pass)
+49. 066 100-turn games, balance pass (last: everything above changes balance)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
