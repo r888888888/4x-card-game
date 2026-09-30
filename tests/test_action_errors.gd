@@ -1,33 +1,33 @@
 extends "res://tests/lib/tech_case.gd"
 ## Error queries for the last actions without one (backlog 093): discard_error, choose_error and
-## decline_research_error, which their actions refuse through and the UI shows. Engines are held as Object until green.
+## decline_research_error, which their actions refuse through and the UI shows.
 
 
 ## A game on TEST_CARDS + TECHS with explorers and research cards to play, and three territories to explore.
-func action_engine() -> Object:
-	var e: Object = tech_engine(["pottery", "writing"], {"farm": 10},
+func action_engine() -> GameEngine:
+	var e: GameEngine = tech_engine(["pottery", "writing"], {"farm": 10},
 		{"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}})
 	arrange(e.zone("territory_deck"), ["hills", "grassland", "jungle"])
 	return e
 
 
 ## action_engine with an Explorer played: hills and grassland are revealed to choose from.
-func explore_engine() -> Object:
+func explore_engine() -> GameEngine:
 	var e := action_engine()
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 	return e
 
 
 ## action_engine with Research played: pottery and writing are revealed.
-func reveal_engine() -> Object:
+func reveal_engine() -> GameEngine:
 	var e := action_engine()
 	check(play_research(e), "research should open")
 	return e
 
 
 ## A game with a hand-limit discard owed (hand 6, limit 5).
-func owed_engine() -> Object:
-	var e: Object = make_engine({"scout": 10}, {"hand_limit": 5})
+func owed_engine() -> GameEngine:
+	var e: GameEngine = make_engine({"scout": 10}, {"hand_limit": 5})
 	check(e.play_card(first_in_hand(e)), "play Scout")
 	e.end_turn()
 	check(e.discard_needed() == 1, "1 discard owed")
@@ -35,8 +35,8 @@ func owed_engine() -> Object:
 
 
 ## A finished game.
-func over_engine() -> Object:
-	var e: Object = make_engine({"farm": 10}, {"turn_limit": 1})
+func over_engine() -> GameEngine:
+	var e: GameEngine = make_engine({"farm": 10}, {"turn_limit": 1})
 	e.end_turn()
 	check(e.is_over, "the game is over")
 	return e

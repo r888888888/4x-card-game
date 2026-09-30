@@ -2,7 +2,7 @@
 id: 093
 title: Error queries for choose, decline_research and discard_card
 type: feature
-status: in-progress
+status: review
 branch: feat/093-missing-error-queries
 ---
 
@@ -14,21 +14,21 @@ the Decline button is always enabled. Add the queries, make the actions refuse t
 the reason the way it does for a refused play.
 
 ## Acceptance criteria
-- [ ] AC1: `discard_error(uid)` is "" for a hand card with nothing pending, and also while an end-of-turn discard is
+- [x] AC1: `discard_error(uid)` is "" for a hand card with nothing pending, and also while an end-of-turn discard is
   owed. It is "The game is over." after the game ends, "Choose a territory first." while an explore choice is
   open, "Buy a tech or decline first." while techs are revealed, and "That card is not in your hand." for a uid
   that isn't in the hand, checked in that order.
-- [ ] AC2: `choose_error(uid)` is "" for a revealed territory while an explore choice is open. It is "There is no
+- [x] AC2: `choose_error(uid)` is "" for a revealed territory while an explore choice is open. It is "There is no
   territory to choose." with no explore choice open, and "That territory isn't an option." for any other uid
   while one is open.
-- [ ] AC3: `decline_research_error()` is "" while techs are revealed, and "No techs are revealed." otherwise.
-- [ ] AC4: `discard_card`, `choose` and `decline_research` each return false, change nothing and emit no `changed`
+- [x] AC3: `decline_research_error()` is "" while techs are revealed, and "No techs are revealed." otherwise.
+- [x] AC4: `discard_card`, `choose` and `decline_research` each return false, change nothing and emit no `changed`
   exactly when their query is non-empty (one case per query message, added to `test_changed`'s refused actions
   and `test_pending`'s blocking rule).
-- [ ] AC5: In the real `main.tscn`, discarding a hand card while an explore choice is open (the right-click / D
+- [x] AC5: In the real `main.tscn`, discarding a hand card while an explore choice is open (the right-click / D
   path, `main.discard(view)`) logs the engine's reason in the side panel and leaves the hand unchanged. The
   Decline button is disabled, with `decline_research_error()` as its tooltip, whenever that query is non-empty.
-- [ ] AC6: `main.on_picked` calls `choose_error` before `choose` and shows a non-empty reason like a refused play.
+- [x] AC6: `main.on_picked` calls `choose_error` before `choose` and shows a non-empty reason like a refused play.
   `scan.sh`'s "actions without a `*_error`" section (090) is empty.
 
 ## Out of scope
@@ -59,3 +59,7 @@ the reason the way it does for a refused play.
 ## Log
 - 2026-09-30: Specced from the project review (CLAUDE.md action/error rule broken by three actions). UI shows the
   reason (review decision).
+- 2026-09-30: Green. Bodies in `TurnLoop.discard_error`, `Territories.choose_error`, `Research.decline_error`.
+  `main.discard` refuses like a refused play (log line, error pop-up and card shake). `main.on_picked` logs and shows
+  the reason without shaking the card, like a refused `buy_tech`. `ChoiceOverlays.refresh` now takes the engine
+  (null hides both overlays). `scan.sh` gains the `discard_card`/`discard_error` pair; its section is now empty.
