@@ -2,7 +2,7 @@
 id: 065
 title: Government cards (one at a time, swap by playing)
 type: feature
-status: review
+status: done
 branch: feat/065-government-cards
 ---
 
