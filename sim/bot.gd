@@ -3,24 +3,33 @@ extends RefCounted
 ## A fixed-policy bot for smoke tests and the balance simulator (backlog 042). Each step it resolves an
 ## explore choice with its first option, buys the cheapest revealed tech it can afford (or declines),
 ## otherwise plays the first playable hand card on its first valid target (Research cards last),
-## otherwise discards the hand (dead cards never cycle otherwise, backlog 024) and ends the turn.
+## otherwise discards the hand (dead cards never cycle otherwise, backlog 024) and ends the turn. After
+## MAX_PLAYS_PER_TURN plays it ends the turn anyway: free cards that draw can redraw each other forever (058).
 
 const MAX_STEPS := 2000
+const MAX_PLAYS_PER_TURN := 40
 
 
 ## Plays engine's game to the end. Returns whether it ended within MAX_STEPS.
 static func play(engine: GameEngine) -> bool:
 	var steps := 0
+	var turn := engine.turn
+	var plays := 0
 	while not engine.is_over and steps < MAX_STEPS:
 		steps += 1
+		if engine.turn != turn:
+			turn = engine.turn
+			plays = 0
 		if not engine.pending_choice.is_empty():
 			engine.choose(engine.pending_choice.options[0])
 		elif not engine.research_options().is_empty():
 			_buy_cheapest_tech(engine)
-		elif not _play_first_playable(engine):
+		elif plays >= MAX_PLAYS_PER_TURN or not _play_first_playable(engine):
 			for card in engine.zone("hand").cards.duplicate():
 				engine.discard_card(card.uid)
 			engine.end_turn()
+		else:
+			plays += 1
 	return engine.is_over
 
 

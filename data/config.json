@@ -20,20 +20,23 @@
     "irrigation": 1,
     "settler": 2,
     "scout": 2,
-    "caravan": 2,
-    "temple": 1,
     "lumber_camp": 2,
-    "mine": 2,
-    "market": 1,
-    "granary": 1,
-    "research": 1
+    "research": 2
   },
   "supply": {
     "scout": { "price": 2, "count": 2 },
     "settler": { "price": 3, "count": 2 },
-    "temple": { "price": 3, "count": 1 },
-    "granary": { "price": 2, "count": 3 },
-    "research": { "price": 3, "count": 2 }
+    "research": { "price": 3, "count": 2 },
+    "granary": { "price": 2, "count": 4, "locked": true },
+    "pasture": { "price": 2, "count": 2, "locked": true },
+    "mine": { "price": 2, "count": 2, "locked": true },
+    "temple": { "price": 3, "count": 2, "locked": true },
+    "caravan": { "price": 2, "count": 2, "locked": true },
+    "monument": { "price": 3, "count": 1, "locked": true },
+    "forge": { "price": 3, "count": 1, "locked": true },
+    "library": { "price": 3, "count": 1, "locked": true },
+    "market": { "price": 3, "count": 2, "locked": true },
+    "harbor": { "price": 3, "count": 2, "locked": true }
   },
   "event_deck": {
     "solstice_rites": 1,
@@ -52,17 +55,17 @@
   "research_deck": {
     "pottery": 1,
     "animal_husbandry": 1,
+    "mining": 1,
+    "mysticism": 1,
+    "the_wheel": 1,
+    "masonry": 1,
     "bronze_working": 1,
     "writing": 1,
-    "masonry": 1,
     "currency": 1,
-    "philosophy": 1,
-    "iron_working": 1,
-    "mathematics": 1,
     "sailing": 1,
-    "monarchy": 1,
-    "astronomy": 1,
-    "engineering": 1
+    "priesthood": 1,
+    "code_of_laws": 1,
+    "calendar": 1
   },
   "era_unlocks": { "2": { "pop": 8, "wealth": 15 } },
   "territory_deck": {
