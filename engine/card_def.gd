@@ -67,6 +67,8 @@ func rules_text(card_db: Dictionary) -> String:
 			var line := e.describe(card_db)
 			if e.trigger == "upkeep":
 				line = "⟳ " + line
+			elif e.trigger == "start":
+				line = "Start: " + line
 			if e.keyword != "":
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
@@ -96,6 +98,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		var line := e.describe_long(card_db)
 		if e.trigger == "upkeep":
 			line = "Each upkeep: " + line
+		elif e.trigger == "start":
+			line = "When the game starts: " + line
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)

@@ -120,6 +120,13 @@
       "effects": []
     },
     {
+      "id": "tribe_of_the_river", "name": "Tribe of the River", "type": "civilization",
+      "vp": 0, "tags": [],
+      "effects": [
+        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
       "id": "harvest_festival", "name": "Harvest Festival", "type": "event",
       "tags": [],
       "effects": [

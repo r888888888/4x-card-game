@@ -152,3 +152,11 @@ func test_fork_copies_the_civilization() -> void:
 	eq(card_ids(f.zone("civilization")), ["tribe"] as Array[String], "fork civilization zone")
 	eq(f.civilization(), e.civilization(), "same uid")
 	check(f.zone("civilization").cards[0] != e.zone("civilization").cards[0], "a copy, not the same card")
+
+
+# --- Design note: card text for start effects ---
+
+func test_start_effects_are_marked_on_the_card_text() -> void:
+	var cards := civ_db()
+	eq(cards.tribe.rules_text(cards), "Start: +3 food\n⟳ +1 wealth", "rules_text")
+	eq(cards.tribe.rules_tooltip(cards), "When the game starts: +3 food\nEach upkeep: +1 wealth", "rules_tooltip")

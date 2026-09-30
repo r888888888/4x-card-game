@@ -28,13 +28,11 @@ var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _frontier_section: Control  # the frontier's heading and row, hidden while it is empty
-var _researched_section: Control  # the researched techs' heading and row, hidden while it is empty
-var _researched: HBoxContainer
+var _row_sections := {}  # zone -> its heading and row (Frontier, Known, Civilization), hidden while the zone is empty
 var _events_section: Control  # the active events' heading and row, hidden when the config has no event deck (068)
 var _events_row: HBoxContainer  # the active events, in draw order
 var _side: SidePanel
-var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
+var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Civilization, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
 var _outcome_point := Vector2.ZERO  # where the played card was when it was played
@@ -260,8 +258,9 @@ func _refresh() -> void:
 	var e := Game.engine
 	_top_bar.refresh(e)
 	var hand_cards := e.zone("hand").cards
-	var rows := {"frontier": frontier, "reveal": choices.reveal, "research_reveal": choices.research_row,
-		"researched": _researched, "active_events": _events_row}
+	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events_row}
+	for zone_name in _row_sections:
+		rows[zone_name] = _row_sections[zone_name].get_meta("row")
 	var shown := {}
 	for zone_name in ["hand", "tableau"] + rows.keys():
 		for card in e.zone(zone_name).cards:
@@ -283,8 +282,8 @@ func _refresh() -> void:
 		views[card.uid].set_tech_info(e.tech_cost(card.uid), card.def.cost.wealth, e.tech_passes(card.uid), GameEngine.MAX_PASSES)
 	for card in e.zone("active_events").cards:
 		views[card.uid].set_event_info(e.event_turns_left(card.uid))
-	_frontier_section.visible = not e.zone("frontier").is_empty()
-	_researched_section.visible = not e.zone("researched").is_empty()
+	for zone_name in _row_sections:
+		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
 	choices.refresh(pending_kind())
 	_side.refresh(e)
 	_events_section.visible = _side.event_info.visible  # both only with an event deck
@@ -302,7 +301,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var e := Game.engine
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
-	var compact := container == frontier or container == _researched or container == _events_row
+	var compact := container == _events_row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
@@ -443,11 +442,12 @@ func _build_layout() -> void:
 	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tableau = TableauView.new()
 	realm_section.add_child(tableau)
-	_frontier_section = UIKit.card_row_section(_play_area, "Frontier",
+	_row_sections.frontier = UIKit.card_row_section(_play_area, "Frontier",
 		"Territories discovered, not yet settled. Play a city card on one to settle it.")
-	frontier = _frontier_section.get_meta("row")
-	_researched_section = UIKit.card_row_section(_play_area, "Known")
-	_researched = _researched_section.get_meta("row")
+	frontier = _row_sections.frontier.get_meta("row")
+	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
+	_row_sections.civilization = UIKit.card_row_section(_play_area, "Civilization",
+		"The civilization you play as. Its bonuses last all game.")
 	_events_section = UIKit.card_row_section(_play_area, "Events")
 	_events_row = _events_section.get_meta("row")
 
