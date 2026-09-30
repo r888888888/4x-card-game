@@ -266,7 +266,9 @@ func test_starting_resources_afford_a_starting_deck_building() -> void:
 # --- Tech content (backlog 028) ---
 
 ## The cards moved out of the starting deck, each now unlocked by a tech.
-const UNLOCKED := ["pasture", "harbor", "monument", "pyramids", "forge"]
+const UNLOCKED := ["pasture", "harbor", "monument", "pyramids", "forge", "caravan", "temple", "mine", "market", "granary"]
+## Era-3 techs kept in cards.json but out of the game for now (058).
+const ERA_3_TECHS := ["philosophy", "iron_working", "mathematics", "monarchy", "astronomy", "engineering"]
 
 
 func techs_in_research_deck(r: Dictionary) -> Array[CardDef]:
@@ -339,6 +341,44 @@ func test_a_tech_unlocks_the_library() -> void:
 	check(unlocked, "a tech in research_deck creates a Library")
 	if r.cards.has("library"):
 		check(created_by(r.cards.library).has("research"), "the Library creates a Research card")
+
+
+func test_no_era_3_tech_is_researchable_or_added() -> void:
+	var r := load_real()
+	for tech in techs_in_research_deck(r):
+		check(tech.era < 3, "%s in research_deck is era %d" % [tech.id, tech.era])
+	for id in r.cards:
+		for effect in r.cards[id].effects:
+			if effect.op == "add_era":
+				check(effect.era < 3, "%s adds era %d" % [id, effect.era])
+
+
+func test_era_3_techs_are_defined_but_not_in_the_research_deck() -> void:
+	var r := load_real()
+	for id in ERA_3_TECHS:
+		check(r.cards.has(id) and r.cards[id].type == CardDef.TECH, "%s is still a tech in cards.json" % id)
+		if r.cards.has(id):
+			eq(r.cards[id].era, 3, "%s era" % id)
+		check(not r.config.research_deck.has(id), "%s is not in research_deck" % id)
+
+
+func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
+	var r := load_real()
+	var checked := 0
+	for tech in techs_in_research_deck(r):
+		var unlocks: Array[String] = []
+		for effect in tech.effects:
+			if effect.op == "unlock":
+				unlocks.append(effect.card_id)
+		for id in created_by(tech):
+			checked += 1
+			var pile: Dictionary = r.config.supply.get(id, {})
+			if r.cards[id].has_tag("wonder"):
+				check(pile.is_empty(), "wonder %s (from %s) has no supply pile" % [id, tech.id])
+				continue
+			check(pile.get("locked", false), "%s (from %s) is a locked supply pile" % [id, tech.id])
+			check(unlocks.has(id), "%s unlocks %s" % [tech.id, id])
+	check(checked > 0, "some tech gives a card")
 
 
 func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:

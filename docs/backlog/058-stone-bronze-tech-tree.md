@@ -2,7 +2,7 @@
 id: 058
 title: Stone Age and Bronze Age tech tree; gate cards behind techs
 type: feature
-status: ready
+status: red-review
 branch: feat/058-stone-bronze-tech-tree
 ---
 
@@ -63,7 +63,11 @@ Proposed tree (for review at approval; names and prices can change):
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_research_deck_has_6_techs_in_each_of_eras_1_and_2` (existing), `test_no_era_3_tech_is_researchable_or_added` (passes today: guard) |
+| AC2 | `test_content::test_era_3_techs_are_defined_but_not_in_the_research_deck`, `test_real_data_loads_without_warnings` (existing) |
+| AC3 | `test_content::test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks` |
+| AC4 | `test_content::test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech` (`UNLOCKED` extended) |
+| AC5 | existing content tests unchanged; `test_real_deck_has_wealth_costs_and_capital_makes_wealth` needs no change (Farm costs wealth since 076) |
 
 ## Manual check
 - [ ] Review the tree table above before the build starts.
