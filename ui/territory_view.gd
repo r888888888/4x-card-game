@@ -170,16 +170,7 @@ func _show_outlines(n: int) -> void:
 		row.remove_child(gone)
 		gone.queue_free()
 	while _outlines.size() < n:
-		var outline := Panel.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = Palette.GHOST_BG
-		style.border_color = Palette.GHOST_EDGE
-		style.set_border_width_all(2)
-		style.set_corner_radius_all(8)
-		outline.add_theme_stylebox_override("panel", style)
-		outline.custom_minimum_size = CardView.TABLEAU_SIZE
-		outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		outline.tooltip_text = "A free slot."
+		var outline := UIKit.slot_outline()
 		row.add_child(outline)
 		_outlines.append(outline)
 	for outline in _outlines:
