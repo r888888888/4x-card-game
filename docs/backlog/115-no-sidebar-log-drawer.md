@@ -2,7 +2,7 @@
 id: 115
 title: Remove the right sidebar; the log becomes a drawer
 type: feature
-status: review
+status: done
 branch: feat/115-no-sidebar-log-drawer
 ---
 
