@@ -48,7 +48,7 @@ func board_row() -> Array[CardView]:
 
 ## A key press the focused controls didn't use. Left/Right move the card focus, Enter/Space acts on the focused
 ## card, D discards it, I shows its details, Esc drops the focus (or opens the menu when nothing is focused), E ends
-## the turn, S opens the supply screen, T the tech tree. While that screen is open it owns the keys: S or Esc closes it, the arrows
+## the turn, S opens the supply screen, T the tech tree, L the log (115). While that screen is open it owns the keys: S or Esc closes it, the arrows
 ## and Enter pick cards, I shows details, the rest do nothing. Returns whether the key was used.
 func handle_key(event: InputEventKey) -> bool:
 	if event.keycode == KEY_I and not event.echo:
@@ -65,6 +65,8 @@ func handle_key(event: InputEventKey) -> bool:
 		_board.open_supply()
 	elif event.keycode == KEY_T and not event.echo:
 		_board.tech_tree.open()
+	elif event.keycode == KEY_L and not event.echo:
+		_board.log_drawer.open()  # while open, the drawer takes L and closes itself
 	elif event.keycode == KEY_E and not event.echo:
 		Game.engine.end_turn()  # refused while end_turn_error() says so
 	elif event.keycode == KEY_D and not event.echo:

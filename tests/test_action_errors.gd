@@ -96,16 +96,9 @@ func with_action_main(body: Callable) -> void:
 	Game.engine = real
 
 
-## The side panel's log text (card faces have rich text too, so only RichTextLabels in the SidePanel count).
+## The log as plain text (in the log drawer since 115).
 func log_text(main: Node) -> String:
-	var out := ""
-	for c in main.find_children("*", "RichTextLabel", true, false):
-		var side: Node = c.get_parent()
-		while side != null and not side is SidePanel:
-			side = side.get_parent()
-		if side != null:
-			out += c.get_parsed_text()
-	return out
+	return main.log_drawer.text()
 
 
 func decline_button(main: Node) -> Button:

@@ -1,21 +1,25 @@
 class_name TopBar
 extends HBoxContainer
-## The top bar: turn, food and wealth (with next upkeep's change), score, pop, the deck and discard counts, the
-## seed and the Menu button. Costs float up from its counters; gains fly to them.
+## The top bar: turn, food and wealth (with next upkeep's change), score and pop, then
+## (115) the civilization and government buttons, Buy Cards, Knowledge, Log and the Menu button. Costs float up from its counters; gains fly to them.
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
 var score_label: Label
 var menu_button: Button  # "Menu (Esc)"
+var log_button: Button  # "Log (L)": opens the log drawer (115)
 var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
 var _pop_label: Label
-var _piles_label: Label
+var _identity := {}  # zone ("civilization", "government") -> its button, naming the card; hidden when the zone is empty
+var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
 
 
-func _init(on_menu: Callable) -> void:
-	add_theme_constant_override("separation", 36)
+## on_knowledge opens the tech tree, on_details(card_id) opens a civilization's or government's details, on_log
+## toggles the log drawer.
+func _init(on_menu: Callable, on_knowledge: Callable, on_details: Callable, on_log: Callable) -> void:
+	add_theme_constant_override("separation", 20)  # tight: the stats and six buttons share 1920 px (115)
 	_turn_label = UIKit.stat(self)
 	_food_label = UIKit.stat(self, FOOD_COLOR)
 	_wealth_label = UIKit.stat(self, Palette.WEALTH)
@@ -23,10 +27,19 @@ func _init(on_menu: Callable) -> void:
 	_wealth_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	score_label = UIKit.stat(self, Palette.GAIN)
 	_pop_label = UIKit.stat(self, Palette.POP)
-	_piles_label = UIKit.stat(self, Palette.PILES)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
+	for zone_name in ["civilization", "government"]:
+		var line := UIKit.button("", func(): on_details.call(_identity[zone_name].get_meta("card_id")))
+		line.hide()
+		_identity[zone_name] = line
+		add_child(line)
+	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
+	add_child(_knowledge)
+	log_button = UIKit.button("Log (L)", on_log)
+	log_button.tooltip_text = "The game log: everything that happened."
+	add_child(log_button)
 	menu_button = UIKit.button("Menu (Esc)", on_menu)
 	menu_button.tooltip_text = "New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
@@ -45,7 +58,37 @@ func refresh(e: GameEngine) -> void:
 	UIKit.set_stat(score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	UIKit.set_stat(_pop_label, "Pop: %d" % e.total_pop())
-	UIKit.set_stat(_piles_label, "Deck %d  ·  Discard %d" % [e.zone("deck").size(), e.zone("discard").size()])
+	for zone_name in _identity:
+		var line: Button = _identity[zone_name]
+		var z := e.zone(zone_name)
+		line.visible = not z.is_empty()
+		if line.visible:
+			var def: CardDef = z.cards[0].def
+			line.text = def.name
+			var rules := def.rules_tooltip(e.card_db)
+			line.tooltip_text = rules if rules != "" else "No bonus."
+			line.set_meta("card_id", def.id)
+	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
+	_knowledge.visible = e.config.research_deck.size() > 0
+	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives."
+	if e.research_card_name() != "":
+		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
+
+
+## Puts the Supply button after the civilization and government.
+func add_supply_button(button: Button) -> void:
+	add_child(button)
+	move_child(button, _knowledge.get_index())
+
+
+## The civilization and government buttons, in that order (visible or not).
+func identity_buttons() -> Array[Button]:
+	return [_identity.civilization, _identity.government] as Array[Button]
+
+
+## Where a card leaving for zone_name's button flies to (the government a player just played).
+func identity_point(zone_name: String) -> Vector2:
+	return (_identity[zone_name] as Button).get_global_rect().get_center()
 
 
 ## Resource tokens for a card_played outcome, on layer: costs float up from just below their counters (114), gains
@@ -76,12 +119,6 @@ func resource_label(resource: String) -> Label:
 	if resource == GameEngine.WEALTH:
 		return _wealth_label
 	return null
-
-
-## A point on the "Deck N · Discard M" label: 0.25 is roughly the deck, 0.75 the discard pile.
-func pile_point(fraction: float) -> Vector2:
-	var r := _piles_label.get_global_rect()
-	return Vector2(r.position.x + r.size.x * fraction, r.get_center().y)
 
 
 ## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.

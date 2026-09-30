@@ -40,20 +40,17 @@ func check_box(box: StyleBoxFlat, bg: Color, border: Color, width: int, radius: 
 	eq(Vector2(box.content_margin_left, box.content_margin_top), margins, "%s content margins" % what)
 
 
-## The side panel's log panel: the PanelContainer holding a RichTextLabel inside the SidePanel.
+## The log's panel: the PanelContainer holding the log's RichTextLabel (in the log drawer since 115), or null.
 func log_panel(main: Node) -> PanelContainer:
-	for c in main.find_children("*", "RichTextLabel", true, false):
+	var drawer: Node = main.get("log_drawer")
+	if drawer == null:
+		return null
+	for c in drawer.find_children("*", "RichTextLabel", true, false):
 		var node: Node = c.get_parent()
-		var inside_side := false
-		var panel: PanelContainer = null
-		while node != null:
-			if node is PanelContainer and panel == null:
-				panel = node
-			if node is SidePanel:
-				inside_side = true
+		while node != null and node != drawer.get_parent():
+			if node is PanelContainer:
+				return node
 			node = node.get_parent()
-		if inside_side and panel != null:
-			return panel
 	return null
 
 
@@ -80,7 +77,7 @@ func test_panels_look_as_before() -> void:
 	check_box(stylebox(panel, "panel"), OVERLAY_PANEL, Color(1, 1, 1, 0.25), 1, 10, Vector2(24, 24), "overlay panel")
 	main.start_game(1)
 	var log := log_panel(main)
-	check(log != null, "the side panel's log panel")
+	check(log != null, "the log's panel")
 	if log != null:
 		check_box(stylebox(log, "panel"), Color("171a1e"), Color(1, 1, 1, 0.08), 1, 10, Vector2(12, 12), "log panel")
 	close_main(main)

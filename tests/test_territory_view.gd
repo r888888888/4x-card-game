@@ -81,7 +81,7 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 		check(not shown(main.tableau), "the Realm is hidden")
 		check(shown(main.hand), "the hand is still shown")
 		check(shown(button(main, "Menu")), "the top bar is still shown")
-		check(shown(button(main, "End turn")), "the side panel is still shown")
+		check(shown(button(main, "End turn")), "End turn is still shown")
 		for uid in view.card_uids():
 			check(shown(main.views[uid]), "card %d is shown in the view" % uid))
 

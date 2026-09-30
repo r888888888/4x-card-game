@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## The civilization and government as side-panel lines (backlog 088), in the real main scene on the real data
-## (the default civilization and Chiefdom at the start). Hooks: main.identity_lines() is [{text, tooltip}] for the
+## The civilization and government as buttons (backlog 088; in the top bar since 115), in the real main scene on the
+## real data (the default civilization and Chiefdom at the start). Hooks: main.identity_lines() is [{text, tooltip}] for the
 ## visible lines, top to bottom; main.identity_buttons() are the same lines as buttons, to press.
 
 
@@ -28,19 +28,19 @@ func test_no_civilization_or_government_rows_in_the_play_area() -> void:
 
 # --- AC2, AC3: lines and tooltips ---
 
-func test_side_panel_shows_civilization_then_government() -> void:
+func test_top_bar_shows_civilization_then_government() -> void:
 	var main := open_main()
 	main.start_game(1)
 	var lines: Array = main.identity_lines()
 	var civ_name: String = Game.engine.card_db[id_in("civilization")].name
-	eq(lines.map(func(l): return l.text), ["Civilization: " + civ_name, "Government: Chiefdom"], "lines")
+	eq(lines.map(func(l): return l.text), [civ_name, "Chiefdom"], "lines name the cards (115)")
 	if lines.size() == 2:
 		eq(lines[0].tooltip, tooltip_of(id_in("civilization")), "civilization tooltip is its rules_tooltip")
 		eq(lines[1].tooltip, "No bonus.", "Chiefdom has no rules text")
 	close_main(main)
 
 
-func test_identity_lines_sit_above_the_knowledge_button() -> void:
+func test_identity_lines_sit_before_the_knowledge_button() -> void:
 	var main := open_main()
 	main.start_game(1)
 	var buttons: Array = main.identity_buttons()
@@ -50,7 +50,7 @@ func test_identity_lines_sit_above_the_knowledge_button() -> void:
 			knowledge = b
 	check(knowledge != null and buttons.size() == 2, "Knowledge button and 2 lines found")
 	if knowledge != null and buttons.size() == 2:
-		check(buttons[0].get_parent() == knowledge.get_parent(), "the lines are in the side panel with Knowledge")
+		check(buttons[0].get_parent() == knowledge.get_parent(), "the lines are in the top bar with Knowledge")
 		check(buttons[0].get_index() < buttons[1].get_index() and buttons[1].get_index() < knowledge.get_index(),
 			"civilization, government, then Knowledge")
 	close_main(main)
@@ -82,7 +82,7 @@ func test_playing_a_government_updates_its_line() -> void:
 	var lines: Array = main.identity_lines()
 	check(lines.size() == 2, "2 lines")
 	if lines.size() == 2:
-		eq(lines[1].text, "Government: Kingship", "government line")
+		eq(lines[1].text, "Kingship", "government line")
 		eq(lines[1].tooltip, tooltip_of("kingship"), "Kingship's rules")
 	check(not main.views.has(kingship), "no view left for Kingship")
 	close_main(main)
