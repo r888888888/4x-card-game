@@ -21,8 +21,11 @@ The game ends after 20 turns; your score is the VP on your tableau plus VP from 
 The top bar shows food and wealth with the change the next upkeep brings in brackets ("Food: 2 (+1)"),
 net of what your pop eats; food turns red when pop would starve.
 
+The game opens on a start screen: "New game" starts a game with the seed in the seed box, or a random one if it is
+empty (Enter works too), and "Reduce motion" is there as well.
+
 "Menu (Esc)" in the top bar opens the menu: "Restart" replays the seed in the seed box (same shuffle),
-"New game" picks a random seed, and "Reduce motion" turns off decorative animation, and "Exit" quits the game. Esc first cancels
+"New game" leaves the game for the start screen, and "Reduce motion" turns off decorative animation, and "Exit" quits the game. Esc first cancels
 targeting or drops the card focus, then opens the menu; Esc again closes it.
 
 ## Edit cards

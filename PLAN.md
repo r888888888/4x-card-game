@@ -54,6 +54,7 @@ res://
                          # anim.gd (animation tuning), icons.gd (text glyphs → icon images in cards and the log),
                          # ui_kit.gd (shared styles, labels, overlays, tokens); components: top_bar.gd, side_panel.gd,
                          # tableau_view.gd, choice_overlays.gd, supply_screen.gd, game_menu.gd, game_over_overlay.gd,
+                         # start_screen.gd (063: title, New game with a seed, Reduce motion; shown on launch),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
