@@ -465,6 +465,18 @@ func gain(resource: String, amount: int, source: CardInstance) -> void:
 	_log("  %s: +%d %s" % [source.def.name, amount, resource])
 
 
+## Takes up to amount of resource (never below 0). source is the card whose effect takes it.
+func lose(resource: String, amount: int, source: CardInstance) -> void:
+	var lost: int = mini(amount, resources.get(resource, 0))
+	resources[resource] = resources.get(resource, 0) - lost
+	_log("  %s: −%d %s" % [source.def.name, lost, resource])
+
+
+## Takes up to amount pop, one at a time, from the territory with the most pop (see Population.lose_pop).
+func lose_pop(amount: int, source: CardInstance) -> void:
+	Population.lose_pop(self, amount, source)
+
+
 ## Draws up to n cards, reshuffling the discard pile into the deck when it runs out.
 func draw(n: int) -> int:
 	var deck := zone("deck")

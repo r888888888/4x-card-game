@@ -142,6 +142,8 @@ const UPKEEP_SAFE := [
 	{"op": "score", "amount": 1},
 	{"op": "grow", "amount": 1},
 	{"op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["mountain"]},
+	{"op": "lose", "resource": "food", "amount": 1},
+	{"op": "lose_pop", "amount": 1},
 ]
 
 

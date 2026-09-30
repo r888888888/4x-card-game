@@ -18,6 +18,8 @@ const OPS := {
 	"trade": preload("res://engine/effects/trade_effect.gd"),
 	"unlock": preload("res://engine/effects/unlock_effect.gd"),
 	"trash": preload("res://engine/effects/trash_effect.gd"),
+	"lose": preload("res://engine/effects/lose_effect.gd"),
+	"lose_pop": preload("res://engine/effects/lose_pop_effect.gd"),
 }
 
 
