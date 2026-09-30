@@ -30,6 +30,7 @@ func _initialize() -> void:
 	var count := 0
 	var collector := ErrorCollector.new()
 	OS.add_logger(collector)
+	var kept := root.get_children()  # the autoloads; anything else a test leaves behind is freed after it
 
 	for path in _find_test_files(TEST_ROOT):
 		var script: GDScript = load(path)
@@ -52,6 +53,10 @@ func _initialize() -> void:
 				failures.append("%s: error: %s" % [test_name, e])
 			if t.assertions == 0:
 				failures.append("%s: made no assertions (empty, or crashed before the first check)" % test_name)
+			for node in root.get_children():  # a test that crashed before close_main leaves its scene in the tree
+				if not kept.has(node):
+					root.remove_child(node)
+					node.free()
 
 	for f in failures:
 		printerr("FAIL ", f)

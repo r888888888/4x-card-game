@@ -98,3 +98,5 @@ it, and collapse or expand all groups at once, so they see more territories with
   CardView (focus ring, details on click, lit target, the settle flight from the Frontier) but drawn as a flat
   one-line title bar in the header. This replaces the compact territory card from the green phase. Red again at 597
   tests; two approved tests change (see Test plan).
+- The runner now frees any node a test leaves in the tree (a test that crashes before `close_main`), so one crash no
+  longer fails every later UI test (the red run showed 735 failures from 4 real ones).
