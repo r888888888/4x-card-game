@@ -219,6 +219,80 @@ func test_clicking_a_civilization_selects_it_and_shows_its_flavor_and_bonuses() 
 		close_main(main))
 
 
+## A real left click (press and release) at the centre of c, in viewport coordinates.
+func mouse_click(main: Node, c: Control) -> void:
+	var at: Vector2 = c.get_global_rect().get_center()
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.position = at
+		event.global_position = at
+		main.get_viewport().push_input(event, true)
+
+
+## The details modal's Close button, or null.
+func details_close_button(main: Node) -> Button:
+	for b in UIKit.buttons_in(main.details):
+		if b.text.begins_with("Close"):
+			return b
+	return null
+
+
+## Backlog 107 (AC11, bug): the details open over the new game screen, and a real click on Close closes them (the
+## screen, later in the tree, took the click).
+func test_a_click_on_close_closes_the_details_over_the_new_game_screen() -> void:
+	var original: SettingsStore = Settings.store
+	Settings.store = SettingsStore.new(SETTINGS_PATH)  # the click saves the choice (with_temp_settings can't await)
+	var main := open_new_game_screen()
+	var civs: Array[String] = Game.engine.civilizations()
+	var view: CardView = main.new_game_screen.civilization_view(civs[0])
+	view.picked.emit(view)
+	await wait_frames()
+	check(not main.details.shown().is_empty(), "the details are open")
+	var close := details_close_button(main)
+	check(close != null, "a Close button")
+	if close != null:
+		mouse_click(main, close)
+		await wait_frames()
+		eq(main.details.shown(), {}, "a click on Close closes the details")
+	close_main(main)
+	Settings.store = original
+	Settings.changed.emit()
+	if FileAccess.file_exists(SETTINGS_PATH):
+		DirAccess.remove_absolute(SETTINGS_PATH)
+
+
+## Backlog 107 (AC12): the details of a civilization on the new game screen offer "Play as <name>", which selects it
+## and starts a game as it with the seed in the field.
+func test_play_as_in_the_details_starts_a_game_as_that_civilization() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		var main := open_new_game_screen()
+		main.new_game_screen.seed_edit.text = "42"
+		var view: CardView = main.new_game_screen.civilization_view(civs[2])
+		view.picked.emit(view)
+		var play: Button = main.details.action_button()
+		var civ_name: String = Game.engine.card_db[civs[2]].name
+		check(play.visible and civ_name in play.text, "a visible Play as %s button (got '%s')" % [civ_name, play.text])
+		play.pressed.emit()
+		eq(civ_now(), [civs[2]] as Array[String], "the game is played as it")
+		eq(Game.engine.seed_value, 42, "with the seed in the field")
+		eq(Settings.store.civilization, civs[2], "the choice is remembered")
+		eq(main.details.shown(), {}, "the details closed")
+		check(not main.new_game_screen.is_open(), "the new game screen closed")
+		close_main(main))
+
+
+## Backlog 107 (AC12): details opened anywhere else have no Play as button.
+func test_details_in_play_have_no_play_as_button() -> void:
+	var main := open_main()
+	main.start_game(1)
+	main.identity_buttons()[0].pressed.emit()
+	check(not main.details.action_button().visible, "no action button in play")
+	close_main(main)
+
+
 # --- AC4: Settings, and Back ---
 
 func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
