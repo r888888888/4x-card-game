@@ -2,7 +2,7 @@
 id: 059
 title: Tech tree modal (Knowledge)
 type: feature
-status: ready
+status: red-review
 branch: feat/059-tech-tree-view
 ---
 
@@ -44,7 +44,12 @@ and `TECH_LOST`. `gives` lists the card ids the tech creates or unlocks, without
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_tech_tree::test_…` |
+| AC1 | `test_tech_tree::test_new_game_tree_has_era_1_available_and_era_2_future` |
+| AC2 | `test_tech_tree::test_bought_tech_is_researched_and_the_other_takes_a_pass` |
+| AC3 | `test_tech_tree::test_third_pass_makes_a_tech_lost`, `test_researched_prerequisite_lowers_the_cost` |
+| AC4 | `test_tech_tree::test_adding_era_2_makes_its_techs_available` |
+| AC5 | `test_tech_tree::test_gives_merges_create_and_unlock` |
+| AC6 | `test_tech_tree::test_era_names_come_from_config_with_a_default`, `test_era_names_validation` |
 
 ## Manual check
 - [ ] Knowledge (T) opens the tree. The columns read Stone Age and Bronze Age, and the Bronze Age column shows its
