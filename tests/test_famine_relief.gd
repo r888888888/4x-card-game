@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Relieving a Famine with wealth (backlog 084): relieve_famine() pays population.famine.relief and the Famine leaves
 ## the game at once; relieve_famine_error() says why it can't. Setup as in test_famine.gd (population on, Capital
-## +2 food), with relief {"wealth": 5}. Engines are held as Object until green.
+## +2 food), with relief {"wealth": 5}.
 
 const POP := {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}
 const RELIEF := {"wealth": 5}
@@ -9,26 +9,26 @@ const RELIEF := {"wealth": 5}
 
 ## A game with relief on the famine block (none when relief is {}), the Homeland at home_pop and food and wealth on
 ## hand. overrides replace config keys.
-func relief_engine(home_pop: int, food := 0, wealth := 0, relief: Dictionary = RELIEF, overrides := {}) -> Object:
+func relief_engine(home_pop: int, food := 0, wealth := 0, relief: Dictionary = RELIEF, overrides := {}) -> GameEngine:
 	var famine: Dictionary = FAMINE.duplicate()
 	if not relief.is_empty():
 		famine["relief"] = relief
 	var o := {"population": POP.merged({"famine": famine})}
 	o.merge(overrides, true)
-	var e: Object = make_engine({"farm": 10}, o)
+	var e: GameEngine = make_engine({"farm": 10}, o)
 	set_home_pop(e, home_pop)
 	e.resources.food = food
 	e.resources.wealth = wealth
 	return e
 
 
-func set_home_pop(e: Object, n: int) -> void:
+func set_home_pop(e: GameEngine, n: int) -> void:
 	e.zone("tableau").find(home_uid(e)).pop = n
 
 
 ## relief_engine at 4 pop after two hungry upkeeps: a Famine with 2 counters, 1 pop left, then wealth on hand.
 ## overrides replace config keys.
-func two_counter_engine(wealth: int, overrides := {}) -> Object:
+func two_counter_engine(wealth: int, overrides := {}) -> GameEngine:
 	var e := relief_engine(4, 0, 0, RELIEF, overrides)
 	e.end_turn()  # famine 1: 4 -> 3
 	e.end_turn()  # famine 2: 3 -> 1
@@ -38,7 +38,7 @@ func two_counter_engine(wealth: int, overrides := {}) -> Object:
 
 
 ## Card ids named famine in every zone.
-func famines_anywhere(e: Object) -> int:
+func famines_anywhere(e: GameEngine) -> int:
 	var n := 0
 	for z in GameEngine.ZONES:
 		n += card_ids(e.zone(z)).count("famine")
@@ -46,7 +46,7 @@ func famines_anywhere(e: Object) -> int:
 
 
 ## What a refused relief must leave alone.
-func snapshot(e: Object) -> Array:
+func snapshot(e: GameEngine) -> Array:
 	return [e.resources.duplicate(), e.famine_counters(), famines_anywhere(e), e.total_pop(), e.turn]
 
 
@@ -91,7 +91,7 @@ func test_relieve_famine_error_names_each_reason_and_relief_changes_nothing() ->
 		["explore choice open", choice, "Choose a territory first."],
 	]
 	for row in cases:
-		var e: Object = row[1]
+		var e: GameEngine = row[1]
 		eq(e.relieve_famine_error(), row[2], "%s: relieve_famine_error" % row[0])
 		var before := snapshot(e)
 		check(not e.relieve_famine(), "%s: relieve_famine refused" % row[0])
@@ -139,7 +139,7 @@ func test_a_famine_without_relief_cant_be_relieved() -> void:
 # --- UI support: the price for the Relieve button ---
 
 func test_famine_relief_is_the_configured_price_or_empty() -> void:
-	var e: Object = relief_engine(4)
+	var e: GameEngine = relief_engine(4)
 	eq(e.famine_relief(), RELIEF, "the configured relief")
 	e = relief_engine(4, 0, 0, {})
 	eq(e.famine_relief(), {}, "no relief configured")
