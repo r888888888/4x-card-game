@@ -87,7 +87,7 @@ func rules_text(card_db: Dictionary) -> String:
 
 
 ## Full card text for the hover tooltip: one line per effect, spelled out. For a territory, its
-## slots, housing and keywords.
+## slots, housing and keywords; for an event, how long it lasts (070).
 func rules_tooltip(card_db: Dictionary) -> String:
 	if text != "":
 		return text
@@ -113,6 +113,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("Each upkeep, %d pop here that would starve survives" % famine_guard)
 	if prereq != "":
 		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
+	if type == EVENT:
+		parts.append(lasts_text())
 	return "\n".join(parts)
 
 
