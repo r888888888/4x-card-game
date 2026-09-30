@@ -2,7 +2,7 @@
 id: 064
 title: Choose your civilization when starting a game
 type: feature
-status: review
+status: done
 branch: feat/064-choose-civilization
 ---
 
