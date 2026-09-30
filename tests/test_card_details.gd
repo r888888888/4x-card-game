@@ -40,7 +40,7 @@ func test_farm_details_have_name_type_cost_rules_and_terms() -> void:
 	eq(d.get("vp"), 0, "vp")
 	eq(d.get("rules"), ["Each upkeep: +1 food"] as Array[String], "rules")
 	eq(d.get("state"), [] as Array[String], "no state for a definition")
-	eq(term_names(d), ["Upkeep", "Slots", "Workers"] as Array[String], "terms in first-use order")
+	eq(term_names(d), ["Workers"] as Array[String], "terms in first-use order, without the basic ones (112)")
 	for term in term_names(d):
 		check(term_text(d, term) != "", "%s has text" % term)
 
@@ -65,7 +65,7 @@ func test_action_effects_explain_their_mechanics() -> void:
 func test_keyword_terms_name_the_cards_that_use_the_keyword() -> void:
 	var e: Object = make_engine({"farm": 10})
 	var well: Dictionary = e.def_details("well")
-	eq(term_names(well), ["Requires", "Fresh Water", "Slots", "Workers"] as Array[String], "Well terms")
+	eq(term_names(well), ["Requires", "Fresh Water", "Workers"] as Array[String], "Well terms")
 	var fresh := term_text(well, "Fresh Water")
 	check("Well" in fresh, "Fresh Water names Well, which needs it: '%s'" % fresh)
 	check(not "Paddy" in fresh, "Fresh Water doesn't name Paddy: '%s'" % fresh)
@@ -81,8 +81,7 @@ func test_territory_details_show_pop_slots_and_workers() -> void:
 	check(e.play_card(first_in_hand(e), home), "Farm on Homeland")
 	var d: Dictionary = e.card_details(home)
 	eq(d.get("state"), ["Pop 2 / housing 7", "Slots 1 / 5 used", "Free workers 1"] as Array[String], "state")
-	for term in ["Pop", "Housing", "Slots"]:
-		check(term_names(d).has(term), "term %s in %s" % [term, term_names(d)])
+	check(term_names(d).has("Housing"), "term Housing in %s" % [term_names(d)])
 
 
 func test_rolled_resource_keyword_shows_in_rules_and_terms() -> void:
@@ -160,3 +159,25 @@ func test_bug_107_card_details_before_a_game_starts() -> void:
 	var e: Object = GameEngine.new(cards, config)  # no new_game: no zones yet
 	eq(e.card_details(-1), {}, "no card has live details before a game")
 	eq(e.def_details("farm").get("name", ""), "Farm", "a definition's details work before a game")
+
+
+# --- 112: the basic terms are left out ---
+
+func test_basic_terms_are_upkeep_slots_and_pop() -> void:
+	var basic: Array = (Glossary as Script).get_script_constant_map().get("BASIC", [])  # parses before BASIC exists
+	eq(basic, ["Upkeep", "Slots", "Pop"], "Glossary.BASIC")
+
+
+func test_no_card_lists_a_basic_term() -> void:
+	var e := pop_engine(2)
+	var basic := ["Upkeep", "Slots", "Pop"]
+	for id in e.card_db:
+		for term in term_names(e.def_details(id)):
+			check(not basic.has(term), "%s lists basic term %s" % [id, term])
+	for term in term_names(e.card_details(home_uid(e))):
+		check(not basic.has(term), "the home territory in play lists basic term %s" % term)
+
+
+func test_a_card_with_only_basic_terms_has_none() -> void:
+	var e := pop_engine(2)
+	eq(e.def_details("capital").get("terms"), [] as Array[Dictionary], "Capital (upkeep and slots only) has no terms")
