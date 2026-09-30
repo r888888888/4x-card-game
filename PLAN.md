@@ -99,7 +99,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 }
 ```
 - `trigger` is `play` (default), `upkeep`, or `start` (062: civilizations only, once at `new_game`; no op that needs a
-  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `score` and `grow` may use
+  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `lose`, `lose_pop`, `score` and `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
@@ -107,6 +107,9 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] }`
   gains `amount` (default 1) per settled territory (in the tableau) with any of `keywords`, printed or rolled; each
   territory counts once. `GameEngine.count_territories_with(keywords)` is the count (Hunt).
+- Harmful ops (072), on any card type: `{ "op": "lose", "resource": "food", "amount": 2 }` takes a resource, never
+  below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
+  pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
 - `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
   (Winnow, supply only).

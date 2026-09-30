@@ -99,10 +99,7 @@ static func feed(e: GameEngine) -> void:
 	e._log("Pop eats %d food." % eaten)
 	var guards := famine_guards(e)
 	for i in need - eaten:
-		var biggest: CardInstance = null
-		for card in e.zone("tableau").cards:
-			if card.def.type == CardDef.TERRITORY and card.pop > 0 and (biggest == null or card.pop > biggest.pop):
-				biggest = card
+		var biggest := most_pop(e)
 		if biggest == null:
 			break
 		if guards.get(biggest.uid, 0) > 0:
@@ -111,6 +108,28 @@ static func feed(e: GameEngine) -> void:
 			continue
 		biggest.pop -= 1
 		e._log("%s: 1 pop starved." % biggest.def.name)
+
+
+## The settled territory with the most pop (ties: the first in tableau order, the one settled first), or null when no
+## territory has pop. Starvation and lose_pop take pop from it.
+static func most_pop(e: GameEngine) -> CardInstance:
+	var biggest: CardInstance = null
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.TERRITORY and card.pop > 0 and (biggest == null or card.pop > biggest.pop):
+			biggest = card
+	return biggest
+
+
+## Takes up to amount pop, one at a time, from the territory with the most pop. Does nothing with population off.
+static func lose_pop(e: GameEngine, amount: int, source: CardInstance) -> void:
+	if not e.population_on():
+		return
+	for i in amount:
+		var biggest := most_pop(e)
+		if biggest == null:
+			return
+		biggest.pop -= 1
+		e._log("  %s: −1 pop on %s" % [source.def.name, biggest.def.name])
 
 
 ## The famine guard of the working buildings on each territory: {territory uid: pop it can save this upkeep}.

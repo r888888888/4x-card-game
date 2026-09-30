@@ -2,7 +2,7 @@
 id: 072
 title: Harmful event ops — lose resources and lose pop
 type: feature
-status: red-review
+status: review
 branch: feat/072-harmful-event-ops
 ---
 
@@ -12,16 +12,16 @@ Add the first harmful ops, limited to what the upkeep forecast can restore (reso
 trigger each upkeep while the event lasts.
 
 ## Acceptance criteria
-- [ ] AC1 (`lose`): Given 5 food, when an event with `{"op": "lose", "resource": "food", "amount": 2}` is drawn, food
+- [x] AC1 (`lose`): Given 5 food, when an event with `{"op": "lose", "resource": "food", "amount": 2}` is drawn, food
   is 3. Given 1 food, it is 0 (never below 0). The same works for wealth.
-- [ ] AC2 (`lose` validation): an unknown resource, or an amount that isn't an integer ≥ 1, is a load error naming
+- [x] AC2 (`lose` validation): an unknown resource, or an amount that isn't an integer ≥ 1, is a load error naming
   the card and the effect index. Both ops load on a building too (not only on events).
-- [ ] AC3 (`lose_pop`): Given Homeland with 3 pop and a second territory with 1 pop, when an event with
+- [x] AC3 (`lose_pop`): Given Homeland with 3 pop and a second territory with 1 pop, when an event with
   `{"op": "lose_pop", "amount": 1}` is drawn, the territory with the most pop loses 1 (Homeland: 2). A tie picks the
   first in tableau order. A territory never goes below 0 pop; with no pop anywhere nothing happens.
-- [ ] AC4 (upkeep): both ops may use `"trigger": "upkeep"` (`upkeep_ok()` is true), and `upkeep_forecast` includes
+- [x] AC4 (upkeep): both ops may use `"trigger": "upkeep"` (`upkeep_ok()` is true), and `upkeep_forecast` includes
   them (an active event with ⟳ lose 1 food shows food −1 more in the forecast).
-- [ ] AC5 (text): card text reads "−2 food" and "−1 pop (largest territory)"; the log names the source card.
+- [x] AC5 (text): card text reads "−2 food" and "−1 pop (largest territory)"; the log names the source card.
 
 ## Out of scope
 - Rule modifiers ("buildings cost +1"), destroying or idling a building, discarding from hand.
@@ -50,3 +50,7 @@ trigger each upkeep while the event lasts.
 - 2026-09-30: Red at 610 tests (was 597), 14 failing. Fixtures are local to `test_harmful_ops.gd`. AC1's exact
   numbers are tested on a played action; one test draws an event and stops before the next upkeep (hand over the
   limit), so its numbers stay exact too.
+- Approved at red. Green: `lose_effect.gd`, `lose_pop_effect.gd`, `GameEngine.lose` / `lose_pop`, and
+  `Population.most_pop`, which starvation (`feed`) now shares. `lose_pop` does nothing with population off (like
+  `grow`); no test pins that, since the spec doesn't say. The log shows what was really lost ("−1 food" when only 1
+  was left). No real content uses the ops yet (a content item after 074; see the README).
