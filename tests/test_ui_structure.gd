@@ -1,9 +1,8 @@
 extends "res://tests/lib/test_case.gd"
-## The shape of ui/ (backlog 052): main.gd stays small, each UI component lives in its own script, and no UI script
+## The shape of ui/ (backlog 052): each UI component lives in its own script, and no UI script
 ## reads engine state that an engine query covers. Checks the source files; behavior is covered by the UI smoke test.
 
 const MAIN_PATH := "res://ui/main.gd"
-const MAX_MAIN_LINES := 500
 ## Component script -> the class_name it declares.
 const COMPONENTS := {
 	"res://ui/supply_screen.gd": "SupplyScreen",
@@ -32,12 +31,7 @@ func ui_scripts() -> Array[String]:
 	return out
 
 
-# --- AC1: components in their own scripts, main.gd small ---
-
-func test_main_script_is_at_most_500_lines() -> void:
-	var lines := source(MAIN_PATH).split("\n").size()
-	check(lines <= MAX_MAIN_LINES, "ui/main.gd has %d lines, over %d" % [lines, MAX_MAIN_LINES])
-
+# --- AC1: components in their own scripts (script size: test_script_size.gd, backlog 085) ---
 
 func test_each_ui_component_has_its_own_script() -> void:
 	for path in COMPONENTS:
