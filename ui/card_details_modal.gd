@@ -45,6 +45,7 @@ func _init(parent: Control) -> void:
 	_body.custom_minimum_size = Vector2(620, 0)
 	_body.add_theme_font_size_override("normal_font_size", 19)
 	_body.add_theme_font_size_override("bold_font_size", 19)
+	_body.add_theme_font_size_override("italics_font_size", 19)
 	text.add_child(_body)
 	text.add_child(UIKit.button("Close (Esc)", close))
 
@@ -52,6 +53,11 @@ func _init(parent: Control) -> void:
 ## Test hook: the details on show, {} while hidden.
 func shown() -> Dictionary:
 	return _details if visible else {}
+
+
+## Test hook: the body text on show, without markup.
+func body_text() -> String:
+	return _body.get_parsed_text()
 
 
 ## Opens the details of the card view shows: its live copy, or its definition for a supply pile.
@@ -104,6 +110,11 @@ static func _body_text(details: Dictionary) -> String:
 		terms.append("[color=#ffd966]%s[/color]: %s" % [t.term, t.text])
 	if not terms.is_empty():
 		parts.append("[b]How it works[/b]\n" + "\n".join(terms))
+	if details.get("flavor", "") != "":
+		parts.append("[i]%s[/i]" % details.flavor)
+	var quote: Dictionary = details.get("quote", {})
+	if not quote.is_empty():
+		parts.append("“%s”\n— %s" % [quote.text, quote.by])
 	return "\n\n".join(parts)
 
 

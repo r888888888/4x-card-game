@@ -18,8 +18,10 @@ const TYPE_FIELDS := {
 	"prereq_discount": [CardDef.TECH],
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
+	"flavor": [CardDef.CIVILIZATION],
+	"quote": [CardDef.CIVILIZATION],
 }
-const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events"}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
 ## The keys of an event's discard object (its discard conditions). Only a duration so far.
@@ -224,6 +226,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		if c.has(key) and not types.has(def.type):
 			warns.append("'%s' only applies to %s (ignored)" % [key, TYPE_PLURALS[types[0]]])
 
+	if def.type == CardDef.CIVILIZATION:
+		_parse_flavor(c, def, errs)
 	if def.type == CardDef.EVENT:
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 		def.has_discard = c.has("discard")
@@ -283,6 +287,24 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""
+
+
+## Reads a civilization's optional flavor paragraph and quote {text, by} into def.
+static func _parse_flavor(c: Dictionary, def: CardDef, errs: Array[String]) -> void:
+	if c.has("flavor"):
+		if c.flavor is String and c.flavor != "":
+			def.flavor = c.flavor
+		else:
+			errs.append("'flavor' must be a non-empty string")
+	if c.has("quote"):
+		var q: Variant = c.quote
+		var text: Variant = q.get("text") if q is Dictionary else null
+		var by: Variant = q.get("by") if q is Dictionary else null
+		if text is String and text != "" and by is String and by != "":
+			def.quote_text = text
+			def.quote_by = by
+		else:
+			errs.append("'quote' must be {\"text\": …, \"by\": …} with non-empty strings")
 
 
 ## An event's discard object {"turns": n} as its number of turns (default 1). Unknown conditions are errors.

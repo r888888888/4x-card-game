@@ -29,6 +29,7 @@ static func _details(e: GameEngine, def: CardDef, keywords: Array[String], state
 	return {
 		"name": def.name, "type": def.type.capitalize(), "cost": _cost_text(def.cost), "vp": def.vp,
 		"rules": rules, "state": state, "terms": _terms(e, def, keywords),
+		"flavor": def.flavor, "quote": {"text": def.quote_text, "by": def.quote_by} if def.quote_text != "" else {},
 	}
 
 

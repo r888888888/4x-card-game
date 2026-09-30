@@ -174,32 +174,61 @@
       ]
     },
     {
-      "id": "river_children", "name": "Children of the River", "type": "civilization",
+      "id": "egypt", "name": "Egypt", "type": "civilization",
       "vp": 0, "tags": [],
+      "flavor": "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.",
+      "quote": { "text": "Egypt is the gift of the river.", "by": "Herodotus, Histories" },
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" }
+        { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["fresh_water", "flood_plain"], "trigger": "upkeep" }
       ]
     },
     {
-      "id": "salt_traders", "name": "Salt Road Traders", "type": "civilization",
+      "id": "sumer", "name": "Sumer", "type": "civilization",
       "vp": 0, "tags": [],
+      "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
+      "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
+      "effects": [
+        { "op": "create", "card": "research", "zone": "discard", "trigger": "start" },
+        { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "phoenicia", "name": "Phoenicia", "type": "civilization",
+      "vp": 0, "tags": [],
+      "flavor": "From Tyre and Sidon, Phoenician ships carried cedar, glass and purple dye across the Mediterranean, and their alphabet travelled with them.",
+      "quote": { "text": "A merchant of the people for many isles.", "by": "Ezekiel 27:3, of Tyre" },
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 3, "trigger": "start" },
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+        { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" }
       ]
     },
     {
-      "id": "hearth_clans", "name": "Hearth Clans", "type": "civilization",
+      "id": "babylon", "name": "Babylon", "type": "civilization",
       "vp": 0, "tags": [],
+      "flavor": "Hammurabi carved his laws in stone for all to see, and Babylon's astronomers kept the most careful records of the heavens in the ancient world.",
+      "quote": { "text": "That the strong should not harm the weak.", "by": "Code of Hammurabi" },
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 4, "trigger": "start" }
+        { "op": "create", "card": "kingship", "zone": "discard", "trigger": "start" }
       ]
     },
     {
-      "id": "star_watchers", "name": "Star Watchers", "type": "civilization",
-      "vp": 1, "tags": [],
+      "id": "greece", "name": "Greece", "type": "civilization",
+      "vp": 0, "tags": [],
+      "flavor": "Rival city-states argued in the agora, staged tragedies in open theatres, and asked questions philosophers still ask.",
+      "quote": { "text": "The unexamined life is not worth living.", "by": "Socrates, in Plato's Apology" },
       "effects": [
+        { "op": "create", "card": "storyteller", "zone": "discard", "trigger": "start" },
         { "op": "score", "amount": 1, "trigger": "upkeep" }
+      ]
+    },
+    {
+      "id": "persia", "name": "Persia", "type": "civilization",
+      "vp": 0, "tags": [],
+      "flavor": "Cyrus and Darius ruled the largest empire yet seen, held together by satraps, respect for local customs, and a road of relay stations from Sardis to Susa.",
+      "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "Herodotus, Histories" },
+      "effects": [
+        { "op": "create", "card": "caravan", "zone": "discard", "trigger": "start" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {

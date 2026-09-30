@@ -14,10 +14,10 @@
     "resources": { "food": 2, "wealth": 2 },
     "tableau": ["capital"],
     "territory": "grassland",
-    "civilization": "river_children",
+    "civilization": "egypt",
     "government": "chiefdom"
   },
-  "civilizations": ["river_children", "salt_traders", "hearth_clans", "star_watchers"],
+  "civilizations": ["egypt", "sumer", "phoenicia", "babylon", "greece", "persia"],
   "deck": {
     "farm": 4,
     "irrigation": 1,
