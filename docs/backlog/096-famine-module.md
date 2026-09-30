@@ -2,7 +2,7 @@
 id: 096
 title: Famine rules in one module
 type: feature
-status: review
+status: done
 branch: feat/096-famine-module
 ---
 
