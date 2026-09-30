@@ -390,3 +390,32 @@ func test_every_resource_keyword_is_rolled_and_used() -> void:
 			not_used.append(k)
 	eq(not_rolled, [] as Array[String], "resource keywords no territory in the deck rolls")
 	eq(not_used, [] as Array[String], "resource keywords no card uses")
+
+
+# --- Fresh Water (054) ---
+
+func test_starting_territory_has_fresh_water() -> void:
+	var r := load_real()
+	var def: CardDef = r.cards[r.config.starting.territory]
+	check(def.keywords.has("fresh_water"), "the starting territory %s has fresh_water" % def.id)
+
+
+func test_farm_requires_fresh_water_and_the_deck_has_it() -> void:
+	var r := load_real()
+	eq(r.cards.farm.requires, ["fresh_water"] as Array[String], "farm requires")
+	var wet := 0
+	for id in r.config.territory_deck:
+		if r.cards[id].keywords.has("fresh_water"):
+			wet += 1
+	check(wet >= 2, "at least 2 territories in the territory deck have fresh_water (got %d)" % wet)
+
+
+func test_farm_can_target_the_capitals_territory() -> void:
+	var e := real_engine(1)
+	var capital_territory := -1
+	for c in e.zone("tableau").cards:
+		if c.def.id == "capital":
+			capital_territory = c.territory_uid
+	var farm := put_in_hand(e, "farm")
+	check(capital_territory != -1, "the Capital is on a territory")
+	check(e.valid_targets(farm).has(capital_territory), "a Farm can go on the Capital's territory")

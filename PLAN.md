@@ -156,7 +156,8 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - **Slots**: a city card may add `slots` to its territory (the Capital gives +4). A building must be placed in a settled territory with a free slot. The player picks
   the territory; if only one is valid, the engine picks it.
 - **Keywords are tags; card data gives them meaning:**
-  - Building `requires: [...]`: the territory must have any of the listed keywords.
+  - Building `requires: [...]`: the territory must have any of the listed keywords (e.g. Farm and
+    Irrigation need Fresh Water, so the Capital starts on River Meadow, which has it).
   - Effect `keyword` condition: the effect applies only if the card's territory has that keyword
     (e.g. Farm +1 more food on Flood Plain).
   - Both check the territory copy's keywords (`CardInstance.keywords`: printed, then rolled resources).
