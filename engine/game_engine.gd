@@ -48,7 +48,6 @@ var config: Dictionary  # normalized by DataLoader.parse_config
 var state := GameState.new()
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
-var _famine_guards: Dictionary = {}  # territory uid -> famine deaths its guards can still save; set only during feed
 
 var seed_value: int:
 	get: return state.seed_value
@@ -129,14 +128,12 @@ func government() -> int:
 ## Counters on active event uid: the Famine's (083); 0 for any other event or uid. The event panel shows them in
 ## place of turns left.
 func event_counters(uid: int) -> int:
-	var famine := Population.famine(self)
-	return famine.counters if famine != null and famine.uid == uid else 0
+	return Famine.counters_on(self, uid)
 
 
 ## The active Famine's counters (083), or 0 with no Famine.
 func famine_counters() -> int:
-	var famine := Population.famine(self)
-	return famine.counters if famine != null else 0
+	return Famine.counters(self)
 
 
 ## Whether the population rules apply (the config has a population block).

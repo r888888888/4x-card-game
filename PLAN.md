@@ -35,6 +35,7 @@ res://
     research.gd          # Research: revealing, buying and declining techs, passes, eras
     supply.gd            # Supply: buying from the card supply
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
+    famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
     events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
     glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated
