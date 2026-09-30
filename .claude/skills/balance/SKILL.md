@@ -1,6 +1,6 @@
 ---
 name: balance
-description: Compare game balance between main and the current checkout with the headless simulator (scripts/sim.sh), side by side per metric. Use after editing data/*.json or rules that change balance, when the user asks "what did this do to balance", "run the sim", "/balance", or when making a content-only change.
+description: Compare game balance between main and the current checkout with the headless simulator (scripts/sim.sh), side by side per metric. Use only in a dedicated balance item or when the user asks ("what did this do to balance", "run the sim", "/balance"). Balance is a separate step: don't run it after ordinary feature, bug or content changes.
 argument-hint: "[seeds, default 20]"
 ---
 
@@ -29,12 +29,13 @@ The bot is fixed and simple, so read the numbers as *relative*: compare against 
    on what moved and the likely cause from the diff (`git diff main -- data/`). Flag any metric whose mean
    moved by more than ~10%, and any `min` of `cities` or `techs` that fell to 0.
 
-## Content change
+## Content changes
 
 For an edit that only touches `data/*.json` (numbers, new cards made from existing ops):
 
 - No new tests. Content tests check invariants, not numbers; if one fails, the data broke an invariant
   (fix the data, or ask whether the invariant should change).
-- Run `scripts/test.sh` (includes `test_real_data_loads` and the 20-seed smoke sweep), then this comparison.
-- Put the exact shipped numbers and the comparison table in the backlog item's Manual check / Log.
+- Run `scripts/test.sh` (includes `test_real_data_loads` and the 20-seed smoke sweep). Don't run this comparison
+  as part of an ordinary content item: balance is a separate step. Note any balance worry in the item's Log.
+- In a balance item: run this comparison, and put the exact shipped numbers and the table in its Manual check / Log.
 - If a rule changed (not just a number), update PLAN.md.

@@ -34,6 +34,10 @@ If the user asks for a behavior change with no backlog item, create one with the
 (a small one is fine) unless they say to skip it. Trivial non-behavioral edits (typos, comments,
 docs, renames with no behavior change) need no item and no new test.
 
+Balance is a separate, later step. A feature, bug or content item doesn't run the `balance` skill or the sim, and
+doesn't tune numbers beyond what its criteria set; note balance worries in the item's Log instead. Balancing happens
+in a dedicated balance item, or when the user asks.
+
 ## TDD rules (non-negotiable)
 - No new or changed behavior in `engine/`, `autoload/`, or the loader without a test that failed first.
 - Confirm each new test fails **for the right reason** (assertion mismatch or missing method, not a

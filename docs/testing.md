@@ -153,7 +153,8 @@ writing one. Tests never call engine members that start with `_`: if setup needs
   that game's seed.
 - **Test through the public API** (`play_card`, `end_turn`, `play_error`, `score`, zones,
   signals). Setting state directly (`e.resources.food = 1`) is fine for setup.
-- **Balance** is not tested: run `scripts/sim.sh` (or the `balance` skill) and compare with `main`.
+- **Balance** is not tested, and not checked per change: it's a separate step (a balance item, or when the user
+  asks), using `scripts/sim.sh` / the `balance` skill.
 - **Helper names** must not start with `test_`: the runner calls every `test_*` method with no arguments.
 - **Real data** is only checked by `test_real_data_loads` and `tests/test_content.gd` (invariants and a
   smoke test). Don't assert exact numbers from `data/` (slots, costs, deck sizes): a balance edit must not
