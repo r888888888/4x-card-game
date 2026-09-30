@@ -68,3 +68,5 @@ docs, renames with no behavior change) need no item and no new test.
 ## Style
 - Match the surrounding GDScript: tabs, static types, `##` doc comments on classes and public
   functions, two blank lines between functions, and error messages that name file, card, and field.
+- Scripts in `engine/` and `ui/` stay within 700 lines (the suite fails past it and prints `WARN` past 500).
+  When a file crosses 700, spec an item that splits it along a real boundary; don't trim lines to fit.

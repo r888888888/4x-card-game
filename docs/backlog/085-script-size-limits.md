@@ -2,7 +2,7 @@
 id: 085
 title: Script size limits across engine/ and ui/
 type: feature
-status: red-review
+status: review
 branch: feat/085-script-size-limits
 ---
 
@@ -14,17 +14,17 @@ the file that was already split, so features trim lines just to fit it. Meanwhil
 split item", not "evict a helper".
 
 ## Acceptance criteria
-- [ ] AC1: Given a map of script path → line count `{a: 701, b: 700, c: 501, d: 500}`, when it is checked against
+- [x] AC1: Given a map of script path → line count `{a: 701, b: 700, c: 501, d: 500}`, when it is checked against
   hard 700 / soft 500, then the hard-limit list is `[a]` and the soft-limit list is `[b, c]` (so 700 and 500
   themselves are within their limits).
-- [ ] AC2: Given every `.gd` file under `engine/` and `ui/`, including subfolders such as `engine/effects/`, when
+- [x] AC2: Given every `.gd` file under `engine/` and `ui/`, including subfolders such as `engine/effects/`, when
   the suite runs, then a test fails if any file has more than 700 lines, and its failure message names each such
   file with its line count. It passes on today's code (largest: `ui/card_view.gd`, 674).
-- [ ] AC3: Given files over 500 lines but at most 700, when `scripts/test.sh` runs, then its output has one
+- [x] AC3: Given files over 500 lines but at most 700, when `scripts/test.sh` runs, then its output has one
   `WARN <path>: <N> lines (soft limit 500)` line per file, and the suite still exits 0. Today that is
   `engine/game_engine.gd`, `engine/data_loader.gd` and `ui/card_view.gd`.
-- [ ] AC4: Line counts match `wc -l` for the same file (a trailing newline doesn't add a line).
-- [ ] AC5: `test_main_script_is_at_most_500_lines` and `MAX_MAIN_LINES` are gone. The other checks in
+- [x] AC4: Line counts match `wc -l` for the same file (a trailing newline doesn't add a line).
+- [x] AC5: `test_main_script_is_at_most_500_lines` and `MAX_MAIN_LINES` are gone. The other checks in
   `tests/test_ui_structure.gd` (components in their own scripts, main uses each, no engine internals) are unchanged.
 
 ## Out of scope
@@ -53,3 +53,8 @@ split item", not "evict a helper".
 | AC5 | `test_ui_structure::test_main_script_is_at_most_500_lines` deleted; checked by grep |
 
 ## Log
+- 2026-09-29: Built in worktree `../4x-card-game-085` because the main checkout had other sessions' uncommitted
+  backlog edits. Helpers are static functions in `tests/lib/script_sizes.gd` (`line_count`, `count_lines_in`,
+  `classify`, `warning`). Tests 478 → 482 (+5 new, −1 main.gd cap). On `main`, the warnings are
+  `engine/data_loader.gd` (597), `engine/game_engine.gd` (522) and `ui/card_view.gd` (674). The 059 branch adds lines
+  to `game_engine.gd` (527) and doesn't reach 700.
