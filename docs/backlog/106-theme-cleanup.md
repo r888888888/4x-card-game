@@ -2,7 +2,7 @@
 id: 106
 title: One palette and theme variations for the UI's colours and looks
 type: feature
-status: review
+status: done
 branch: feat/106-theme-cleanup
 ---
 
