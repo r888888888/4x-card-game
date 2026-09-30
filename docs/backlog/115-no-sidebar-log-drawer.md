@@ -2,7 +2,7 @@
 id: 115
 title: Remove the right sidebar; the log becomes a drawer
 type: feature
-status: red-review
+status: review
 branch: feat/115-no-sidebar-log-drawer
 ---
 
@@ -14,25 +14,25 @@ counts onto the Events heading, and the log into a drawer you open when you want
 
 ## Acceptance criteria
 <!-- UI tests on the real main.tscn at 1920×1080 (like test_button_widths / test_identity_lines). -->
-- [ ] AC1: No sidebar. Given a game at 1920×1080, then main has no `SidePanel`, and the Realm row and the hand section
+- [x] AC1: No sidebar. Given a game at 1920×1080, then main has no `SidePanel`, and the Realm row and the hand section
   (the hand, then End turn) both reach to within 40 px of the window's right edge.
-- [ ] AC2: The top bar carries the identity and screens. Given a game with a civilization and a government, then
+- [x] AC2: The top bar carries the identity and screens. Given a game with a civilization and a government, then
   the top bar holds, after the stats and before Menu: the civilization and government buttons (text is the card's
   name, tooltip as today, pressing one opens its details), Buy Cards (S), and Knowledge (T) · era name. Each is
   hidden when it is today (no civilization / government / supply / research deck). At 1920×1080 every top bar
   control is fully on screen and each button fits its text (as `test_button_widths` checks).
-- [ ] AC3: End turn beside the hand. Given a game at 1920×1080, then End turn is fully on screen, to the right of the
+- [x] AC3: End turn beside the hand. Given a game at 1920×1080, then End turn is fully on screen, to the right of the
   hand's scroll area, and vertically within the hand section; it keeps its AccentButton look, its E key and its
   "Discard N (hand limit M)" text while a discard is pending.
-- [ ] AC4: Event pile counts on the Events heading. Given a config with an event deck of 3 and 1 in the event
+- [x] AC4: Event pile counts on the Events heading. Given a config with an event deck of 3 and 1 in the event
   discard, then the Events section heading reads "Events · deck 3 · discard 1" with the tooltip today's event line
   has; without an event deck the section stays hidden (as today). An event leaving the board flies to that heading.
-- [ ] AC5: The log drawer. Given a game, then the log is closed and not on screen. Pressing L, or the top bar's
+- [x] AC5: The log drawer. Given a game, then the log is closed and not on screen. Pressing L, or the top bar's
   "Log (L)" button, opens a drawer that slides in from the right edge over the board, showing every log line so far
   (the same text and formatting as today's log, scrolled to the newest). L, Esc, the button again, or a click outside
   it closes it. New lines append while it is open or closed. A new game clears it. With Reduce motion it fades
   instead of sliding.
-- [ ] AC6: Nothing else moves or breaks. S, T, E, D, I and the arrow keys work as before; a government played
+- [x] AC6: Nothing else moves or breaks. S, T, E, D, I and the arrow keys work as before; a government played
   flies to its top bar button; the game-over, menu, details, tech tree and event modals still open over everything,
   including an open drawer.
 
@@ -68,9 +68,19 @@ counts onto the Events heading, and the log into a drawer you open when you want
 ## Manual check
 - [ ] Play a government: it flies to its top bar button. An event ending flies to the Events heading.
 - [ ] With the drawer open, open the tech tree (T), a card's details (I) and the menu: each shows above the drawer.
-- [ ] At 1920×1080 the Realm fills the width; nothing in the top bar is cut off or wraps.
-- [ ] End turn sits comfortably right of the hand; with 8+ cards the hand scrolls without covering it.
+- [ ] At 1920×1080 the Realm fills the width; nothing in the top bar is cut off or wraps (check late game too: bigger
+  numbers, a long civilization, government or era name).
+- [ ] The deck and discard counts and End turn sit bottom-right; with 8+ cards the hand scrolls without covering them.
+  Dealt cards come from the Deck count, discarded ones fly to the Discard count.
 - [ ] L opens the log drawer from the right and it reads like today's log; Esc and L close it.
 - [ ] A smaller window (1600×900): the top bar still fits (note in the Log if not).
 
 ## Log
+- The top bar didn't fit at 1920: stats (~890 px at size 26), six buttons (~860 px) and 36 px gaps needed ~2280 of
+  1884 px. Agreed with the user: "Deck N · Discard M" moved out of the top bar to sit above End turn beside the hand
+  (`TurnBox`: the counts, End turn and `pile_point`), and the top bar's gap went from 36 to 20 px (one separation for
+  the whole bar; the tests read the bar as one row). It now needs ~1817 px: little slack for long names late game.
+- `LogDrawer` (`ui/log_drawer.gd`) takes over `SidePanel`'s log; `TopBar` has the identity buttons, Knowledge and
+  Log (L). The drawer covers the full height, so it hides the top bar's Knowledge, Log and Menu buttons while open
+  (L, Esc or a click outside closes it). Follow-up if that bothers: start it below the top bar.
+- `main.gd` is at 689/700 lines after this item. The next item touching it should split something out first.
