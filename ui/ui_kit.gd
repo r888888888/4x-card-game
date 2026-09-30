@@ -104,6 +104,11 @@ static func message_overlay(parent: Control, text: String, lines: Array[String])
 	return dimmer
 
 
+## The buttons under node, in tree order.
+static func buttons_in(node: Node) -> Array[Button]:
+	return Array(node.find_children("*", "Button", true, false), TYPE_OBJECT, "Button", null)
+
+
 ## An overlay's title: bigger and white.
 static func title(text: String) -> Label:
 	var label := heading(text)

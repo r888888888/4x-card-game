@@ -27,7 +27,7 @@ const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT]
 const DISCARD_CONDITIONS: Array[String] = ["turns"]
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -330,6 +330,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"research_deck": {},
 		"event_deck": {},
 		"era_unlocks": {},
+		"era_names": {},
 		"population": {},
 		"supply": {},
 		"territory_resources": {},
@@ -419,6 +420,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
+	config.era_names = _parse_era_names(raw.get("era_names", {}), errs)
 
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
@@ -429,6 +431,23 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	for m in errs:
 		errors.append("%s: %s" % [src, m])
 	return config
+
+
+## Normalizes era_names {"1": "Stone Age"} to {1: "Stone Age"}: each key an era >= 1, each value a string.
+static func _parse_era_names(raw: Variant, errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'era_names' must be an object like {\"1\": \"Stone Age\"}")
+		return out
+	for key in raw:
+		var era: Variant = int(key) if str(key).is_valid_int() else null
+		if era == null or era < 1:
+			errs.append("era_names: '%s' must be an era number >= 1" % key)
+		elif not (raw[key] is String):
+			errs.append("era_names: '%s' must be a name" % key)
+		else:
+			out[era] = raw[key]
+	return out
 
 
 ## Normalizes era_unlocks {"2": {"pop": 8, "wealth": 15}} to {2: {pop, wealth}}: each key an era >= 2, each

@@ -1,15 +1,16 @@
 class_name SidePanel
 extends VBoxContainer
-## The right-hand column: the log, the Supply button, the research and event pile lines, and End turn (which says
-## how many cards to discard while the hand is over its limit).
+## The right-hand column: the log, the Supply button, the Knowledge button (the tech tree), the event pile line, and
+## End turn (which says how many cards to discard while the hand is over its limit).
 
 var event_info: Label  # event deck and event discard counts
 var _log: RichTextLabel
-var _research_info: Label  # research deck count, era and lost techs; research itself is a card (034)
+var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
 var _end_turn_button: Button
 
 
-func _init() -> void:
+## on_knowledge: the Knowledge button's action (open the tech tree).
+func _init(on_knowledge: Callable) -> void:
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	add_child(UIKit.heading("Log"))
 	custom_minimum_size.x = 360
@@ -26,9 +27,9 @@ func _init() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	_log.add_theme_color_override("default_color", Color("dde3ea"))
 	log_panel.add_child(_log)
-	_research_info = UIKit.heading("")
-	_research_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
-	add_child(_research_info)
+	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
+	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives.\nPlay an Insight card to reveal 2 techs."
+	add_child(_knowledge)
 	event_info = UIKit.heading("")
 	event_info.mouse_filter = Control.MOUSE_FILTER_STOP  # so its tooltip shows
 	event_info.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
@@ -69,13 +70,8 @@ func append_log(message: String) -> void:
 
 ## The research and event lines and the End turn button, from engine e.
 func refresh(e: GameEngine) -> void:
-	_research_info.text = "Techs: deck %d · era %d" % [e.zone("research_deck").size(), e.era()]
-	if not e.zone("lost_techs").is_empty():
-		_research_info.text += " · lost %d" % e.zone("lost_techs").size()
-	var tip_lines := _era_unlock_lines(e)
-	tip_lines.push_front("Play an Insight card to reveal 2 techs.")
-	_research_info.tooltip_text = "\n".join(tip_lines)
-	_research_info.visible = e.config.research_deck.size() > 0
+	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
+	_knowledge.visible = e.config.research_deck.size() > 0
 	event_info.visible = not e.config.get("event_deck", {}).is_empty()
 	event_info.text = "Events: deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
 	var pending := e.pending()
@@ -85,19 +81,3 @@ func refresh(e: GameEngine) -> void:
 	else:
 		_end_turn_button.text = "End turn  (E)"
 
-
-## "Era 2 at 8 pop or 15 wealth" for each era above the current one that has a threshold.
-func _era_unlock_lines(e: GameEngine) -> Array[String]:
-	var out: Array[String] = []
-	var upcoming := e.upcoming_era_unlocks()
-	var eras := upcoming.keys()
-	eras.sort()
-	for n in eras:
-		var need: Dictionary = upcoming[n]
-		var parts: PackedStringArray = []
-		if need.has("pop"):
-			parts.append("%d pop" % need.pop)
-		if need.has(GameEngine.WEALTH):
-			parts.append("%d wealth" % need.wealth)
-		out.append("Era %d at %s (checked at the start of a turn)" % [n, " or ".join(parts)])
-	return out

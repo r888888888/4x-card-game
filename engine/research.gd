@@ -3,6 +3,12 @@ extends RefCounted
 ## Tech rules (backlog 025 on): revealing, buying and declining techs, passes and discounts, eras and their
 ## unlock thresholds. Static functions on the engine's state; GameEngine's public methods call them.
 
+## The zones tech_tree looks in, in order, and the state a tech there is in.
+const _TREE_ZONES := {
+	"researched": GameEngine.TECH_RESEARCHED, "research_reveal": GameEngine.TECH_AVAILABLE,
+	"research_deck": GameEngine.TECH_AVAILABLE, "future_techs": GameEngine.TECH_FUTURE, "lost_techs": GameEngine.TECH_LOST,
+}
+
 
 static func options(e: GameEngine) -> Array[int]:
 	var out: Array[int] = []
@@ -17,6 +23,40 @@ static func upcoming_era_unlocks(e: GameEngine) -> Dictionary:
 		if n > e.era():
 			out[n] = e.era_unlocks()[n]
 	return out
+
+
+## See GameEngine.tech_tree.
+static func tree(e: GameEngine) -> Array[Dictionary]:
+	var ids: Array = e.config.get("research_deck", {}).keys()
+	var order := {}
+	for i in ids.size():
+		order[ids[i]] = i
+	ids.sort_custom(func(a, b): return [e.card_db[a].era, order[a]] < [e.card_db[b].era, order[b]])
+	var out: Array[Dictionary] = []
+	for id in ids:
+		out.append(_tree_entry(e, e.card_db[id]))
+	return out
+
+
+static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
+	var state := GameEngine.TECH_FUTURE
+	var tech: CardInstance = null
+	for zone_name in _TREE_ZONES:
+		var i := e.zone(zone_name).cards.find_custom(func(c): return c.def.id == def.id)
+		if i != -1:
+			tech = e.zone(zone_name).cards[i]
+			state = _TREE_ZONES[zone_name]
+			break
+	var gives: Array[String] = []
+	for effect in def.effects:
+		if effect.op in ["create", "unlock"] and not gives.has(effect.card_id):
+			gives.append(effect.card_id)
+	var future := tech == null or state == GameEngine.TECH_FUTURE
+	return {
+		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
+		"cost": def.cost.get(GameEngine.WEALTH, 0) if future else cost(e, tech.uid),
+		"passes": 0 if tech == null else tech.passes, "gives": gives,
+	}
 
 
 static func reveal_error(e: GameEngine) -> String:
