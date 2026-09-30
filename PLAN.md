@@ -96,7 +96,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   ]
 }
 ```
-- `trigger` is `play` (default), `upkeep`, or later `event`. Only `gain`, `gain_per_tag`, `score` and `grow` may use
+- `trigger` is `play` (default), `upkeep`, or `start` (062: civilizations only, once at `new_game`; no op that needs a
+  target or opens a choice). Only `gain`, `gain_per_tag`, `score` and `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
@@ -130,7 +131,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 `config.json` selects the model, so all three can be playtested without code changes.
 
 ## Turn loop (initial)
-1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, then active events
+1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs and the civilization, then active events
    (which may end), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Play: play or buy cards while resources allow, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
@@ -285,6 +286,17 @@ The framework for solo opposition; real events, harmful ops and the event UI com
 - UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an
   "Events: deck N · discard M" label sits under the research info (tooltip: one event is drawn at the end of each
   turn). Both are hidden when the config has no event deck. An ending event flies to that label.
+
+## Civilizations (backlog 062)
+A game is played as one civilization: a permanent card with a starting gift and ongoing bonuses.
+- Card type `civilization`: never in `deck`, `supply`, `territory_deck`, `research_deck` or `event_deck`. Config
+  `starting.civilization` (optional, a civilization id) puts it in the `civilization` zone at `new_game`, where its
+  `start` effects resolve once, before turn 1's upkeep. `civilization()` is its uid, or -1.
+- It resolves `upkeep` every turn and scores its printed VP like a researched tech: `GameEngine.ALWAYS_ON_ZONES`
+  (`researched`, `civilization`; governments join in 065) lists the permanents outside the tableau.
+- Card text marks start effects "Start:" (face) and "When the game starts:" (tooltip).
+- Real data: Tribe of the River (⟳ +1 food) until choosing a civilization lands (063, 064).
+- UI: a Civilization row below Known, hidden when there is none.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
