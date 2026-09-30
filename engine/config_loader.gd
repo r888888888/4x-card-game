@@ -123,7 +123,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
-		config.famine = _parse_famine(raw.population.get("famine") if raw.population is Dictionary else null, cards, errs)
+		config.famine = _parse_famine(raw.population.get("famine") if raw.population is Dictionary else null, cards, resources, errs)
 		var famine: String = config.famine.get("card", "")
 		if config.event_deck.has(famine):
 			errs.append("event_deck: '%s' is the famine card (it comes from hunger, never from the deck)" % famine)
@@ -205,17 +205,18 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 	return out
 
 
-## Normalizes population.famine {card, max_counters} (083): required with population on; card is an event with no
-## discard. Returns {} when invalid.
-static func _parse_famine(raw: Variant, cards: Dictionary, errs: Array[String]) -> Dictionary:
+## Normalizes population.famine {card, max_counters, relief} (083, 084): required with population on; card is an
+## event with no discard; relief (optional, {} when absent) is what relieve_famine costs. Returns {} when invalid.
+static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[String], errs: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errs.append("population.famine is required: an object like {\"card\": \"famine\", \"max_counters\": 3}")
 		return {}
 	var f_errs: Array[String] = []
 	var card := Fields.read_string(raw, "card", f_errs)
 	var max_counters := Fields.read_int(raw, "max_counters", f_errs, 1)
+	var relief := _parse_relief(raw.get("relief", {}), resources, f_errs) if raw.has("relief") else {}
 	for m in f_errs:
-		errs.append("population.famine: " + m)
+		errs.append("population.famine" + ("" if m.begins_with(".") else ": ") + m)
 	if card != "" and not cards.has(card):
 		errs.append("population.famine.card: unknown card '%s'" % card)
 	elif card != "" and cards[card].type != CardDef.EVENT:
@@ -223,8 +224,26 @@ static func _parse_famine(raw: Variant, cards: Dictionary, errs: Array[String]) 
 	elif card != "" and cards[card].has_discard:
 		errs.append("population.famine.card '%s' can't have a discard (the Famine ends when pop is fed)" % card)
 	elif f_errs.is_empty():
-		return {"card": card, "max_counters": max_counters}
+		return {"card": card, "max_counters": max_counters, "relief": relief}
 	return {}
+
+
+## population.famine.relief as {resource: amount}: a non-empty object of known resources, amounts integers >= 1.
+## Problems go to errs, each starting ".relief" (the caller prefixes "population.famine").
+static func _parse_relief(raw: Variant, resources: Array[String], errs: Array[String]) -> Dictionary:
+	if not (raw is Dictionary) or raw.is_empty():
+		errs.append(".relief must be an object like {\"wealth\": 5}")
+		return {}
+	var out := {}
+	for r in raw:
+		var n: Variant = Fields.as_int(raw[r])
+		if not resources.has(r):
+			errs.append(".relief: unknown resource '%s'" % r)
+		elif typeof(n) != TYPE_INT or n < 1:
+			errs.append(".relief: '%s' must be an integer >= 1" % r)
+		else:
+			out[r] = n
+	return out
 
 
 ## Normalizes territory_resources {territory_id: [{keywords, weight}]}: each key a territory, each table a

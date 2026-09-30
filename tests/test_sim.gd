@@ -40,6 +40,20 @@ func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> vo
 	check(e.is_over, "game over")
 
 
+## Backlog 084: before ending a turn the bot relieves a Famine it can pay for when the next upkeep would still starve.
+func test_bot_relieves_a_famine_only_when_the_next_upkeep_would_starve() -> void:
+	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
+	var e: Object = make_engine({"shrine": 10}, {"turn_limit": 3,
+		"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": famine}})
+	e.zone("tableau").find(home_uid(e)).pop = 4
+	e.resources.food = 0
+	e.resources.wealth = 20
+	# Turn 2 starts short (Famine, 4 -> 3) and would starve again: relieved (20 -> 15). Turn 3 starts short again
+	# (a new Famine, 3 -> 2), but it's the last turn: no next upkeep, so no relief.
+	ScriptedBot.play(e)
+	eq(e.resources.wealth, 15, "relieved once")
+
+
 # --- AC2: stats over seeds ---
 
 func test_sim_stats_reports_mean_min_max_per_metric() -> void:
