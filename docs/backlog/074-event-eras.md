@@ -2,7 +2,7 @@
 id: 074
 title: Event decks that escalate by era
 type: feature
-status: ready
+status: red-review
 branch: feat/074-event-eras
 ---
 
@@ -30,11 +30,15 @@ when the game reaches era 2 the harsher era-2 events join the event deck.
 - Depends on 072 (harmful ops), since escalation only matters once events can hurt.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_events::test_…` |
+| AC1 | `test_event_eras::test_an_event_may_have_an_era`, `test_event_era_validation` (era on a non-tech, non-event card stays a warning: `test_tech_eras::test_era_and_research_field_validation`) |
+| AC2 | `test_event_eras::test_later_era_events_wait_in_future_events` |
+| AC3 | `test_event_eras::test_adding_era_2_shuffles_its_events_into_the_event_deck_once`, `test_era_2_events_are_shuffled_in_by_seed`, `test_an_era_unlocks_threshold_adds_the_era_2_events` |
+| AC4 | `test_event_eras::test_event_tooltip_says_how_many_events_wait_for_a_later_era` |
 
 ## Log
 - From 039's follow-ups.
 - Decided: era-1 events stay when later eras are added.
+- 2026-09-30: Red. Tests in a new `tests/test_event_eras.gd` with two local era-2 events (Raid, Blight). The
+  warning for `era` on other types keeps naming techs (a TYPE_FIELDS warning names the field's first type).
