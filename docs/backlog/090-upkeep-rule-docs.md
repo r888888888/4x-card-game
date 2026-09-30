@@ -2,7 +2,7 @@
 id: 090
 title: True upkeep-rule rationale, refreshed add-effect skill, review rules in CLAUDE.md
 type: chore
-status: review
+status: done
 branch: feat/090-upkeep-rule-docs
 ---
 
