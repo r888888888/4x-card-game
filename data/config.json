@@ -68,6 +68,7 @@
     "calendar": 1
   },
   "era_unlocks": { "2": { "pop": 8, "wealth": 15 } },
+  "era_names": { "1": "Stone Age", "2": "Bronze Age", "3": "Iron Age" },
   "territory_deck": {
     "plains": 1,
     "river_valley": 1,

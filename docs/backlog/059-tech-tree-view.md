@@ -2,7 +2,7 @@
 id: 059
 title: Tech tree modal (Knowledge)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/059-tech-tree-view
 ---
 

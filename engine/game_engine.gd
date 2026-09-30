@@ -32,6 +32,12 @@ const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 const PENDING_EXPLORE := "explore"
 const PENDING_RESEARCH := "research"
 const PENDING_DISCARD := "discard"
+## A tech's state in tech_tree(): bought, still to be revealed (or revealed now), in an era not added yet, or
+## removed after its third pass.
+const TECH_RESEARCHED := "researched"
+const TECH_AVAILABLE := "available"
+const TECH_FUTURE := "future"
+const TECH_LOST := "lost"
 ## The actions still allowed while a discard is owed (see _blocked_error).
 const _DISCARD_ALLOWS: Array[String] = ["discard", "supply"]
 
@@ -200,6 +206,17 @@ func era_unlocks() -> Dictionary:
 ## The era_unlocks entries for eras above the current one.
 func upcoming_era_unlocks() -> Dictionary:
 	return Research.upcoming_era_unlocks(self)
+
+
+## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (wealth
+## now; printed for a future tech), passes, gives (card ids it creates or unlocks)}].
+func tech_tree() -> Array[Dictionary]:
+	return Research.tree(self)
+
+
+## Era n's name from config era_names ("Stone Age"), or "Era n".
+func era_name(n: int) -> String:
+	return config.get("era_names", {}).get(n, "Era %d" % n)
 
 
 ## Why reveal_techs has nothing to reveal, or "" if it has (the research deck or a future era).
