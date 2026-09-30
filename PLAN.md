@@ -296,8 +296,16 @@ A game is played as one civilization: a permanent card with a starting gift and 
 - It resolves `upkeep` every turn and scores its printed VP like a researched tech: `GameEngine.ALWAYS_ON_ZONES`
   (`researched`, `civilization`; governments join in 065) lists the permanents outside the tableau.
 - Card text marks start effects "Start:" (face) and "When the game starts:" (tooltip).
-- Real data: Tribe of the River (⟳ +1 food) until choosing a civilization lands (063, 064).
-- UI: a Civilization row below Known, hidden when there is none.
+- Choosing (064): config `civilizations` (optional, civilization ids in order, no duplicates; `starting.civilization`
+  must be one of them) lists what a game may start as; `civilizations()` returns it. `new_game(seed, civ_id)` plays
+  as civ_id, or `starting.civilization` when civ_id is ""; `new_game_error(civ_id)` refuses an unlisted id. The
+  civilization is created after every shuffle and roll, so the same seed deals the same game whatever you choose.
+- Real data (064): Children of the River (⟳ +1 food; the default), Salt Road Traders (Start: +3 wealth; ⟳ +1 wealth),
+  Hearth Clans (Start: +4 food), Star Watchers (1 VP; ⟳ +1 VP).
+- UI: the start screen shows the civilizations as cards; a click selects one (and `Settings` saves it) and New game
+  plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
+  if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
+  "Playing as …" and the game-over text "Played as …". In play, a Civilization row sits below Known.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats

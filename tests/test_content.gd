@@ -287,6 +287,19 @@ func created_by(tech: CardDef) -> Array[String]:
 	return out
 
 
+func test_real_config_lists_at_least_3_different_civilizations() -> void:
+	var r := load_real()
+	var civs: Array = r.config.get("civilizations", [])
+	check(civs.size() >= 3, "at least 3 civilizations (got %s)" % [civs])
+	var seen := {}  # effect text -> civilization id
+	for id in civs:
+		var def: CardDef = r.cards[id]
+		check(not def.effects.is_empty(), "%s has an effect" % id)
+		var text := def.rules_tooltip(r.cards)
+		check(not seen.has(text), "%s has the same effects as %s" % [id, seen.get(text, "")])
+		seen[text] = id
+
+
 func test_real_data_loads_without_warnings() -> void:
 	var r := load_real()
 	eq(r.warnings, [] as Array[String], "real data warnings")

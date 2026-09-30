@@ -33,7 +33,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`pending_choice`, `state`, …) read in `ui/` |
 | `tests/test_board_labels.gd` | The board's section order (Realm, Frontier, Known, Hand) and game words in the real `main.tscn`: no "tableau" on screen, no seed in the top bar, Buy Cards, Knowledge; uses the `section_headings()` hook |
 | `tests/test_card_slots.gd` | Card slots in the real `main.tscn` start at the height their card rests at (frontier and Known cards while still flying; hand slots) |
-| `tests/test_start_screen.gd` | The start screen in the real `main.tscn` (063): shown on launch with no game started, New game with a seed or a random one, the shared Reduce motion setting (saved to a temp file), the menu's New game back to it, Restart and Replay skipping it, keyboard focus; uses `main.start_screen` and `main.board_shown()` |
+| `tests/test_start_screen.gd` | The start screen in the real `main.tscn` (063): shown on launch with no game started, New game with a seed or a random one, the shared Reduce motion setting (saved to a temp file), the menu's New game back to it, Restart and Replay skipping it, keyboard focus; the civilization cards (064: listed, preselected, selecting saves, Restart keeps, named in the menu and at game over); uses `main.start_screen` and `main.board_shown()` |
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
@@ -59,11 +59,12 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
-| `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, bad or missing files |
+| `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion` and `civilization`, `civilization_in` fallback, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per end turn, active events' upkeep and discard, reshuffling |
 | `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
+| `tests/test_choose_civilization.gd` | Choosing a civilization (064): config `civilizations`, `civilizations()`, `new_game(seed, civ_id)`, `new_game_error`, the same seed dealing the same game for any civilization |
 | `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, playing Research (`play_research` helper) / `buy_tech` / `decline_research`, blocking, no charges |
 | `tests/test_tech_passes.gd` | Tech passes, stacking discount, removal to `lost_techs`, `prereq` discount, cost floor, prerequisite card text |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |

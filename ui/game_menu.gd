@@ -14,6 +14,7 @@ signal exit_requested
 
 var overlay: Control
 var _seed_edit: LineEdit
+var _civ_label: Label  # "Playing as <civilization>", hidden when the game has none (064)
 var _motion_toggle: Button  # "Reduce motion: on/off"
 
 
@@ -39,6 +40,10 @@ func _init(parent: Control) -> void:
 	_seed_edit.tooltip_text = "Restart replays this seed (same shuffle)."
 	_seed_edit.text_submitted.connect(func(_text: String): _restart())
 	seed_row.add_child(_seed_edit)
+	_civ_label = UIKit.heading("")
+	_civ_label.tooltip_text = "Restart keeps this civilization. New game lets you choose again."
+	_civ_label.mouse_filter = Control.MOUSE_FILTER_STOP  # so the tooltip shows
+	box.add_child(_civ_label)
 	var restart := UIKit.button("Restart", _restart)
 	restart.tooltip_text = "Start again with the seed above."
 	box.add_child(restart)
@@ -63,6 +68,13 @@ func is_open() -> bool:
 ## Puts seed_value in the seed field (shown the next time the menu opens).
 func set_seed(seed_value: int) -> void:
 	_seed_edit.text = str(seed_value)
+
+
+## The game now being played: its seed, and its civilization's name ("" for none).
+func set_game(seed_value: int, civ_name: String) -> void:
+	set_seed(seed_value)
+	_civ_label.text = "Playing as %s" % civ_name
+	_civ_label.visible = civ_name != ""
 
 
 ## Shows the menu with the seed field focused and holding seed_value.

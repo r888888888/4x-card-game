@@ -32,3 +32,6 @@ func refresh(e: GameEngine) -> void:
 	overlay.visible = e.is_over
 	if e.is_over:
 		_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]
+		var civ := e.zone("civilization").find(e.civilization())
+		if civ != null:
+			_label.text += "\nPlayed as %s" % civ.def.name
