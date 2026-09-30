@@ -2,7 +2,7 @@
 id: 083
 title: Famine — a lasting event that replaces starvation
 type: feature
-status: ready
+status: red-review
 branch: feat/083-famine-event
 ---
 
@@ -75,7 +75,27 @@ effects.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_famine::test_…` |
+| AC1 | `test_famine::test_a_short_upkeep_brings_a_famine_with_1_counter` |
+| AC2 | `test_famine::test_a_famine_escalates_each_hungry_upkeep`, `::test_famine_deaths_use_the_most_pop_rule` |
+| AC3 | `test_famine::test_counters_stop_at_max_and_there_is_one_famine` |
+| AC4 | `test_famine::test_a_fed_upkeep_ends_the_famine_and_it_leaves_the_game`, `::test_fed_with_exactly_0_food_left_ends_the_famine`, `::test_a_later_short_upkeep_brings_a_new_famine` |
+| AC5 | `test_famine::test_no_growth_during_a_famine`, `::test_growth_works_again_after_the_famine` (guard) |
+| AC6 | `test_famine::test_a_guard_saves_the_first_famine_death_on_its_territory` |
+| AC7 | `test_famine::test_forecast_starve_is_the_famines_deaths` |
+| AC8 | `test_famine::test_famine_config_validation`, `::test_the_famine_card_is_never_in_the_event_deck_and_has_no_discard` |
+
+Rewritten approved tests (old rule: 1 death per food short; new: 1 death per Famine counter):
+| File | Test | Was → now |
+|---|---|---|
+| `test_food_upkeep` | `test_each_unpaid_food_rechecks_the_biggest_territory` → `test_a_deeper_shortfall_still_kills_1_pop_at_the_first_famine` | 2 short: 2 deaths → 1 |
+| `test_forecast` | `test_forecast_starve_with_no_food` | starve 2 → 1 |
+| `test_famine_guard` | `test_silo_saves_the_first_starving_pop` | Homeland 3 → 4 |
+| `test_famine_guard` | `test_without_silo_both_starve` → `test_without_silo_the_famine_kills_1` | 2 → 3 |
+| `test_famine_guard` | `test_silo_on_another_territory_does_not_save_homeland` | Homeland 1 → 2 |
+| `test_famine_guard` | `test_idle_silo_saves_none` | 0 → 1 |
+| `test_famine_guard` | `test_forecast_starve_counts_the_guard` / `test_forecast_starve_without_guard` | starve 1 → 0 / 2 → 1 |
+| `test_tech_eras` | `test_pop_that_starves_does_not_count` | total pop 2 → 3 |
+| `test_wealth` | `test_starvation_does_not_spend_wealth` | pop 0 → 1 |
 
 ## Manual check
 - [ ] Going hungry puts a Famine in the Events row with "1 counter", and it disappears on the first fed upkeep.
@@ -86,3 +106,7 @@ effects.
 - Decided (user, 2026-09-29): Famine replaces starvation; deaths use `lose_pop` (largest territory, no choice);
   counters cap at 3; fed check after eating; one Famine at a time; no growth during a Famine; the Granary guard
   applies to famine deaths; a Famine leaves the game when it ends.
+- 2026-09-30: Red at 623 tests (was 610), 23 failing (13 new, 9 rewritten, 1 loader warning). Fixtures:
+  `TEST_CARDS` gains the Famine event and `raw_config` adds `FAMINE` to a population block without one, so the 19
+  files that turn population on need no edits. Most starvation tests keep their numbers: a first shortfall of any
+  size now kills 1, the same as the old rule for 1 short.

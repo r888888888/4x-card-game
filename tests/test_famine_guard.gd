@@ -96,15 +96,15 @@ func test_idle_silo_still_adds_housing() -> void:
 
 func test_silo_saves_the_first_starving_pop() -> void:
 	var e: Object = home_engine(4, ["silo"])
-	e.end_turn()  # Capital +2, 4 pop eat 4: 2 short
-	eq(e.pop(home_uid(e)), 3, "first starving pop saved, second dies")
+	e.end_turn()  # Capital +2, 4 pop eat 4: short, a new Famine (1 counter) would kill 1 (083)
+	eq(e.pop(home_uid(e)), 4, "the famine's death is saved")
 	eq(e.resources.food, 0, "food")
 
 
-func test_without_silo_both_starve() -> void:
+func test_without_silo_the_famine_kills_1() -> void:
 	var e: Object = home_engine(4, [])
-	e.end_turn()  # Capital +2, 4 pop eat 4: 2 short
-	eq(e.pop(home_uid(e)), 2, "both starve")
+	e.end_turn()  # Capital +2, 4 pop eat 4: short, a new Famine (1 counter) kills 1 (083)
+	eq(e.pop(home_uid(e)), 3, "1 dies")
 	eq(e.resources.food, 0, "food")
 
 
@@ -117,8 +117,8 @@ func test_silo_on_another_territory_does_not_save_homeland() -> void:
 	e.zone("tableau").find(river).pop = 1
 	build_on(e, river, ["silo"])
 	check(not e.is_idle(uid_of(e.zone("tableau"), "silo")), "river Silo works")
-	e.end_turn()  # Capital +2, 4 pop eat 4: 2 short, both from the biggest (Homeland)
-	eq(e.pop(home_uid(e)), 1, "Homeland 3 -> 1")
+	e.end_turn()  # Capital +2, 4 pop eat 4: short, the Famine's 1 death is on the biggest (Homeland, 083)
+	eq(e.pop(home_uid(e)), 2, "Homeland 3 -> 2")
 	eq(e.pop(river), 1, "river keeps 1")
 
 
@@ -135,19 +135,19 @@ func test_idle_silo_saves_none() -> void:
 	var e: Object = home_engine(2, ["guildhall", "guildhall", "silo"], 0, {"farm": 10}, ["village"])
 	check(e.is_idle(uid_of(e.zone("tableau"), "silo")), "Silo idle")
 	e.end_turn()
-	eq(e.pop(home_uid(e)), 0, "both starve")
+	eq(e.pop(home_uid(e)), 1, "the Famine's 1 death isn't saved (083)")
 
 
 # --- AC6: the forecast counts only the pop that would die ---
 
 func test_forecast_starve_counts_the_guard() -> void:
 	var e: Object = home_engine(4, ["silo"])
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "2 made, 4 needed, 2 short, 1 saved")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 0}, "2 made, 4 needed, short: the Famine's 1 death is saved (083)")
 
 
 func test_forecast_starve_without_guard() -> void:
 	var e: Object = home_engine(4, [])
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 2}, "2 made, 4 needed, 2 short")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "2 made, 4 needed, short: a new Famine kills 1 (083)")
 
 
 # --- AC7: card text ---
