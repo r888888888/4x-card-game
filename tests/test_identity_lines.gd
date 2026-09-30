@@ -145,3 +145,19 @@ func test_civilization_details_show_its_flavor_and_quote() -> void:
 		check(not quote.is_empty() and quote.text in body and quote.by in body,
 			"the body shows the quote and who said it: %s" % body)
 	close_main(main)
+
+
+## Backlog 107 (AC10): in play, the civilization's details open with the flavor and quote, before the rules.
+func test_civilization_details_start_with_flavor_then_quote_then_rules() -> void:
+	var main := open_main()
+	main.start_game(1)
+	var buttons: Array = main.identity_buttons()
+	check(buttons.size() == 2, "2 lines")
+	if buttons.size() == 2:
+		buttons[0].pressed.emit()
+		var d: Dictionary = main.details.shown()
+		var body: String = main.details.body_text()
+		var quote: Dictionary = d.get("quote", {})
+		check(d.get("flavor", "") != "" and body.begins_with(d.flavor), "the body starts with the flavor: %s" % body)
+		check(not quote.is_empty() and body.find(quote.text) < body.find("Rules"), "the quote comes before the rules: %s" % body)
+	close_main(main)

@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: review
+status: red-review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -31,6 +31,10 @@ Content item: the tests assert invariants of the real data; the roster and its n
   ({text, by}, or {} when none) for every card.
 - [x] AC7 (UI): the details modal of the civilization shows its flavor paragraph and its quote with who said it.
 - [x] AC8 (content): every listed real civilization has a flavor and a quote.
+- [ ] AC9 (new game screen): clicking a civilization card selects it (and saves the choice, as before) and opens its
+  details modal, which starts with the flavor and shows every line of its rules (all its bonuses).
+- [ ] AC10 (details order): in the details modal, the flavor comes first, then the quote, then Rules, Now and How it
+  works; the same modal opens from the civilization line in play.
 
 ## Out of scope
 - New mechanics: cost discounts (108), hand size (109), housing (110), home territory (111).
@@ -82,6 +86,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
 | AC6 | `test_civ_flavor::test_civilization_details_carry_flavor_and_quote`, `::test_cards_without_flavor_have_empty_flavor_and_quote` |
 | AC7 | `test_identity_lines::test_civilization_details_show_its_flavor_and_quote` |
 | AC8 | `test_content::test_every_listed_civilization_has_flavor_and_a_quote` |
+| AC9 | `test_start_screen::test_clicking_a_civilization_selects_it_and_shows_its_flavor_and_bonuses` |
+| AC10 | `test_identity_lines::test_civilization_details_start_with_flavor_then_quote_then_rules` |
 | (content coupling) | `test_identity_lines::test_side_panel_shows_civilization_then_government`, `::test_pressing_a_line_opens_its_details` now read the civilization's name from the engine |
 
 ## Manual check

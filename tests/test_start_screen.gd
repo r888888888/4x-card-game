@@ -200,6 +200,25 @@ func test_selecting_a_civilization_saves_it_and_start_uses_it() -> void:
 		close_main(main))
 
 
+## Backlog 107 (AC9): a click on a civilization card selects it and opens its details: flavor first, then every bonus.
+func test_clicking_a_civilization_selects_it_and_shows_its_flavor_and_bonuses() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		var main := open_new_game_screen()
+		var view: CardView = main.new_game_screen.civilization_view(civs[1])
+		check(view != null, "a card for %s" % civs[1])
+		if view != null:
+			view.picked.emit(view)
+			eq(main.new_game_screen.selected, civs[1], "selected")
+			var def: CardDef = Game.engine.card_db[civs[1]]
+			eq(main.details.shown().get("name", ""), def.name, "its details are open")
+			var body: String = main.details.body_text()
+			check(body.begins_with(def.flavor), "the details start with the flavor: %s" % body)
+			for line in def.rules_tooltip(Game.engine.card_db).split("\n"):
+				check(line in body, "the details show the bonus '%s': %s" % [line, body])
+		close_main(main))
+
+
 # --- AC4: Settings, and Back ---
 
 func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
