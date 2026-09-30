@@ -59,7 +59,7 @@ static func run_files(cards_path: String, config_path: String, seed_count: int) 
 	var stats := run(data.cards, data.config, seeds)
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
 	for m in METRICS:
-		lines.append("%-7s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
+		lines.append("%-8s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
 	return {"code": 0, "lines": lines}
 
 
