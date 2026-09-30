@@ -2,7 +2,7 @@
 id: 092
 title: Research card name from the engine; content tests assert invariants only
 type: feature
-status: ready
+status: red-review
 branch: feat/092-content-invariants
 ---
 
@@ -54,7 +54,13 @@ invariants over the whole data set, and delete the rest (their facts stay in the
   in unrelated UI text don't trip it; tune at the red checkpoint if the real names collide with UI words.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+| AC | Test |
+|---|---|
+| AC1 | `test_research::test_research_card_name_is_the_research_card_in_the_deck`, `…_is_empty_without_a_research_card`, `…_looks_in_the_deck_then_the_supply_in_order` |
+| AC2 | `test_tech_tree_modal::test_hints_name_the_research_card`, `test_hints_leave_out_the_research_sentence_without_a_research_card`; `test_ui_structure::test_ui_names_no_card_from_the_real_data` |
+| AC3 | `test_content::test_every_building_requirement_is_met_by_a_territory_in_play`, `test_every_territory_can_take_a_building_from_the_start` (now with the starting territory), `test_every_researchable_era_has_2_techs_and_is_added`, `test_every_added_era_has_techs_in_the_research_deck`, `test_every_gain_per_keyword_keyword_is_on_a_territory_in_play` |
+| AC4 | the 16 listed tests deleted from `test_content.gd` |
+| AC5 | grep of `test_content.gd` for quoted card ids and `cards.<id>` (none); the suite |
 
 ## Manual check
 - [ ] Hover Knowledge and open the tech tree (T): the hint names Insight, as before.
@@ -62,3 +68,9 @@ invariants over the whole data set, and delete the rest (their facts stay in the
 ## Log
 - 2026-09-30: Specced from the project review (UI names content; content tests pin cards). Per the review
   decision, pinned tests become invariants or are deleted.
+- 2026-09-30: Red. AC3's invariants pass on the real data from the start (it already meets them); each was seen to fail,
+  naming the card or era, on temporarily broken data (coastal and forest territories dropped, era 2 not added,
+  an add_era and era_unlocks naming era 3). AC5 also removed `test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech`
+  (a list of 10 card ids; `test_every_locked_supply_pile_is_unlocked_by_a_tech` holds the invariant), the Capital in
+  the wealth test (now: a starting tableau card makes wealth at upkeep) and "city" in the sweep (now: a territory
+  beyond the start was settled). The building-requires invariant counts rolled resource keywords as met.

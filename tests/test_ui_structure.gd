@@ -74,3 +74,31 @@ func test_ui_scripts_read_no_engine_internals() -> void:
 			if text.contains(name):
 				found.append("%s reads %s" % [path, name])
 	eq(found, [] as Array[String], "engine internals read in ui/")
+
+
+# --- Backlog 092: UI text never names content ---
+
+## The quoted string literals on a line of GDScript, without their quotes.
+func string_literals(line: String) -> Array[String]:
+	var out: Array[String] = []
+	var re := RegEx.create_from_string("\"((?:[^\"\\\\]|\\\\.)*)\"")
+	for m in re.search_all(line):
+		out.append(m.get_string(1))
+	return out
+
+
+func test_ui_names_no_card_from_the_real_data() -> void:
+	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
+	check(r.errors.is_empty(), "real data errors: %s" % [r.errors])
+	var names: Array[String] = []
+	for id in r.cards:
+		names.append(r.cards[id].name)
+	var found: Array[String] = []
+	for path in ui_scripts():
+		var lines := source(path).split("\n")
+		for i in lines.size():
+			for text in string_literals(lines[i]):
+				for name in names:
+					if text == name or text.contains(name + " card"):
+						found.append("%s:%d names %s" % [path, i + 1, name])
+	eq(found, [] as Array[String], "card names from data/cards.json in ui/ string literals")

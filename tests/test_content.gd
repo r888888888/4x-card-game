@@ -17,14 +17,6 @@ func real_engine(seed_value: int) -> GameEngine:
 	return e
 
 
-func count_id(zone: Zone, id: String) -> int:
-	var n := 0
-	for c in zone.cards:
-		if c.def.id == id:
-			n += 1
-	return n
-
-
 # --- AC2: coverage ---
 
 func test_territory_deck_has_at_least_10_territories() -> void:
@@ -74,7 +66,7 @@ func test_every_keyword_is_on_a_territory_and_a_card() -> void:
 # --- AC3: scripted smoke test (the bot is sim/bot.gd, backlog 042) ---
 
 ## Plays seeds 1-20 with the scripted bot and checks every game ends, wealth never goes below 0, and that
-## Cities, wealth costs and techs all come up in some seeds.
+## new territories, wealth costs and techs all come up in some seeds.
 func test_scripted_sweep_over_20_seeds() -> void:
 	var founded := 0
 	var spent_in := 0
@@ -92,14 +84,14 @@ func test_scripted_sweep_over_20_seeds() -> void:
 		check(e.is_over, "seed %d: game finished within 2000 steps" % s)
 		check(e.zone("active_events").size() + e.zone("event_discard").size() > 0, "seed %d: an event was drawn" % s)
 		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
-		if count_id(e.zone("tableau"), "city") >= 1:
+		if e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size() >= 2:
 			founded += 1
 		if state.spent:
 			spent_in += 1
 		if not e.zone("researched").is_empty():
 			bought_in += 1
 	# 9, not 11, since 038: home housing 5 lets pop eat the food the bot would save for a Settler.
-	check(founded >= 9, "a City beyond the Capital was founded in %d of 20 seeds (need >= 9)" % founded)
+	check(founded >= 9, "a territory beyond the start was settled in %d of 20 seeds (need >= 9)" % founded)
 	check(spent_in >= 1, "a card costing wealth was played in %d of 20 seeds (need >= 1)" % spent_in)
 	check(bought_in >= 1, "a tech was bought in %d of 20 seeds (need >= 1)" % bought_in)
 
@@ -157,21 +149,6 @@ func test_real_events_are_neutral_or_beneficial() -> void:
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
 
-func test_forage_and_harvest_festival_are_events() -> void:
-	var r := load_real()
-	for id in ["forage", "harvest_festival"]:
-		eq(r.cards[id].type, CardDef.EVENT, "%s type" % id)
-		check(r.config.get("event_deck", {}).has(id), "%s in event_deck" % id)
-		check(not r.config.deck.has(id), "%s not in deck" % id)
-		check(not r.config.get("supply", {}).has(id), "%s not in supply" % id)
-	var effects: Array = r.cards.harvest_festival.effects
-	eq(effects.size(), 1, "Harvest Festival has one effect")
-	if effects.size() == 1:
-		eq([effects[0].op, effects[0].trigger], ["gain_per_tag", "upkeep"], "Harvest Festival op and trigger")
-		if effects[0].op == "gain_per_tag":
-			eq([effects[0].resource, effects[0].tag], [GameEngine.FOOD, "farm"], "food per farm")
-
-
 # --- Wealth content (backlog 022) ---
 
 ## Whether any effect on def produces wealth (gain or gain_per_tag with resource "wealth").
@@ -182,18 +159,19 @@ func makes_wealth(def: CardDef) -> bool:
 	return false
 
 
-func test_real_deck_has_wealth_costs_and_capital_makes_wealth() -> void:
+func test_real_deck_has_wealth_costs_and_the_starting_tableau_makes_wealth() -> void:
 	var r := load_real()
 	var costs_wealth := 0
 	for id in r.config.deck:
 		if r.cards[id].cost.get("wealth", 0) > 0:
 			costs_wealth += 1
 	check(costs_wealth >= 1, "at least 1 deck card costs wealth (got %d)" % costs_wealth)
-	var capital_upkeep_wealth := false
-	for effect in r.cards.capital.effects:
-		if effect.get("resource") == "wealth" and effect.trigger == "upkeep":
-			capital_upkeep_wealth = true
-	check(capital_upkeep_wealth, "Capital produces wealth at upkeep")
+	var upkeep_wealth := false
+	for id in r.config.starting.tableau:
+		for effect in r.cards[id].effects:
+			if effect.get("resource") == GameEngine.WEALTH and effect.trigger == "upkeep":
+				upkeep_wealth = true
+	check(upkeep_wealth, "a starting tableau card %s produces wealth at upkeep" % [r.config.starting.tableau])
 
 
 func test_every_wealth_cost_has_a_wealth_source() -> void:
@@ -267,12 +245,6 @@ func test_starting_resources_afford_a_starting_deck_building() -> void:
 
 # --- Tech content (backlog 028) ---
 
-## The cards moved out of the starting deck, each now unlocked by a tech.
-const UNLOCKED := ["pasture", "harbor", "monument", "pyramids", "forge", "caravan", "temple", "mine", "market", "granary"]
-## Era-3 techs kept in cards.json but out of the game for now (058).
-const ERA_3_TECHS := ["philosophy", "iron_working", "mathematics", "monarchy", "astronomy", "engineering"]
-
-
 func techs_in_research_deck(r: Dictionary) -> Array[CardDef]:
 	var out: Array[CardDef] = []
 	for id in r.config.get("research_deck", {}):
@@ -307,25 +279,6 @@ func test_real_data_loads_without_warnings() -> void:
 	eq(r.warnings, [] as Array[String], "real data warnings")
 
 
-func test_research_card_is_named_insight() -> void:
-	var r := load_real()
-	eq(r.cards.research.name if r.cards.has("research") else "", "Insight", "the research card's name")
-
-
-func test_research_deck_has_6_techs_in_each_of_eras_1_and_2() -> void:
-	var r := load_real()
-	var per_era := {1: 0, 2: 0}
-	var adds_era_2 := false
-	for tech in techs_in_research_deck(r):
-		per_era[tech.era] = per_era.get(tech.era, 0) + 1
-		for effect in tech.effects:
-			if tech.era == 1 and effect.op == "add_era" and effect.era == 2:
-				adds_era_2 = true
-	check(per_era[1] >= 6, "era-1 techs: %d (need >= 6)" % per_era[1])
-	check(per_era[2] >= 6, "era-2 techs: %d (need >= 6)" % per_era[2])
-	check(adds_era_2, "an era-1 tech adds era 2")
-
-
 func test_every_tech_prereq_is_in_the_research_deck() -> void:
 	var r := load_real()
 	var techs := techs_in_research_deck(r)
@@ -333,6 +286,42 @@ func test_every_tech_prereq_is_in_the_research_deck() -> void:
 	for tech in techs:
 		if tech.prereq != "":
 			check(r.config.research_deck.has(tech.prereq), "%s: prereq %s is not in research_deck" % [tech.id, tech.prereq])
+
+
+## Techs in research_deck per era: {era: count}.
+func techs_per_era(r: Dictionary) -> Dictionary:
+	var out := {}
+	for tech in techs_in_research_deck(r):
+		out[tech.era] = out.get(tech.era, 0) + 1
+	return out
+
+
+func test_every_researchable_era_has_2_techs_and_is_added() -> void:
+	var r := load_real()
+	var per_era := techs_per_era(r)
+	check(per_era.has(1), "era 1 has techs in research_deck")
+	var added := {}  # era -> true, when a lower-era tech in research_deck or era_unlocks adds it
+	for tech in techs_in_research_deck(r):
+		for effect in tech.effects:
+			if effect.op == "add_era" and tech.era < effect.era:
+				added[effect.era] = true
+	for era in r.config.era_unlocks:
+		added[era] = true
+	for era in per_era:
+		check(per_era[era] >= 2, "era %d has %d tech(s) in research_deck (a reveal shows 2)" % [era, per_era[era]])
+		if era > 1:
+			check(added.has(era), "era %d is added by a lower-era tech's add_era or by era_unlocks" % era)
+
+
+func test_every_added_era_has_techs_in_the_research_deck() -> void:
+	var r := load_real()
+	var per_era := techs_per_era(r)
+	for id in r.cards:
+		for effect in r.cards[id].effects:
+			if effect.op == "add_era":
+				check(per_era.has(effect.era), "%s adds era %d, which has no techs in research_deck" % [id, effect.era])
+	for era in r.config.era_unlocks:
+		check(per_era.has(era), "era_unlocks names era %d, which has no techs in research_deck" % era)
 
 
 func test_techs_only_create_cards_that_are_not_techs() -> void:
@@ -343,38 +332,6 @@ func test_techs_only_create_cards_that_are_not_techs() -> void:
 			created += 1
 			check(r.cards[id].type != "tech", "%s creates tech %s" % [tech.id, id])
 	check(created > 0, "some tech creates a card")
-
-
-func test_a_tech_unlocks_the_library() -> void:
-	var r := load_real()
-	check(r.cards.has("library"), "a Library card exists")
-	check(not r.config.deck.has("library"), "the Library is not in the main deck")
-	var unlocked := false
-	for tech in techs_in_research_deck(r):
-		if created_by(tech).has("library"):
-			unlocked = true
-	check(unlocked, "a tech in research_deck creates a Library")
-	if r.cards.has("library"):
-		check(created_by(r.cards.library).has("research"), "the Library creates a Research card")
-
-
-func test_no_era_3_tech_is_researchable_or_added() -> void:
-	var r := load_real()
-	for tech in techs_in_research_deck(r):
-		check(tech.era < 3, "%s in research_deck is era %d" % [tech.id, tech.era])
-	for id in r.cards:
-		for effect in r.cards[id].effects:
-			if effect.op == "add_era":
-				check(effect.era < 3, "%s adds era %d" % [id, effect.era])
-
-
-func test_era_3_techs_are_defined_but_not_in_the_research_deck() -> void:
-	var r := load_real()
-	for id in ERA_3_TECHS:
-		check(r.cards.has(id) and r.cards[id].type == CardDef.TECH, "%s is still a tech in cards.json" % id)
-		if r.cards.has(id):
-			eq(r.cards[id].era, 3, "%s era" % id)
-		check(not r.config.research_deck.has(id), "%s is not in research_deck" % id)
 
 
 func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
@@ -413,21 +370,10 @@ func test_starting_government_and_every_other_government_comes_from_a_tech() -> 
 	check(others >= 2, "at least 2 governments besides the starting one (got %d)" % others)
 
 
-func test_every_card_moved_out_of_the_deck_is_unlocked_by_a_tech() -> void:
-	var r := load_real()
-	var unlocks := {}
-	for tech in techs_in_research_deck(r):
-		for id in created_by(tech):
-			unlocks[id] = tech.id
-	for id in UNLOCKED:
-		check(not r.config.deck.has(id), "%s is no longer in the main deck" % id)
-		check(unlocks.has(id), "a tech in research_deck creates %s" % id)
-
-
 # --- Supply (backlog 032) ---
 
 ## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.
-## Since 082 an unlocked pile needs no deck copy: some cards (Winnow, the 080 buildings) are only for sale.
+## Since 082 an unlocked pile needs no deck copy: some cards are only for sale.
 func test_every_locked_supply_pile_is_unlocked_by_a_tech() -> void:
 	var r := load_real()
 	var supply: Dictionary = r.config.get("supply", {})
@@ -472,120 +418,21 @@ func test_every_resource_keyword_is_rolled_and_used() -> void:
 	eq(not_used, [] as Array[String], "resource keywords no card uses")
 
 
-# --- Fresh Water (054) ---
+# --- Territories and what they take (054, 080, backlog 092) ---
 
-func test_starting_territory_has_fresh_water() -> void:
-	var r := load_real()
-	var def: CardDef = r.cards[r.config.starting.territory]
-	check(def.keywords.has("fresh_water"), "the starting territory %s has fresh_water" % def.id)
-
-
-func test_farm_requires_fresh_water_and_the_deck_has_it() -> void:
-	var r := load_real()
-	eq(r.cards.farm.requires, ["fresh_water"] as Array[String], "farm requires")
-	var wet := 0
-	for id in r.config.territory_deck:
-		if r.cards[id].keywords.has("fresh_water"):
-			wet += 1
-	check(wet >= 2, "at least 2 territories in the territory deck have fresh_water (got %d)" % wet)
-
-
-func test_farm_can_target_the_capitals_territory() -> void:
-	var e := real_engine(1)
-	var capital_territory := -1
-	for c in e.zone("tableau").cards:
-		if c.def.id == "capital":
-			capital_territory = c.territory_uid
-	var farm := put_in_hand(e, "farm")
-	check(capital_territory != -1, "the Capital is on a territory")
-	check(e.valid_targets(farm).has(capital_territory), "a Farm can go on the Capital's territory")
-
-
-# --- Caravan trade (055) ---
-
-func test_caravan_trades_between_at_least_2_cities() -> void:
-	var r := load_real()
-	var trades: Array = r.cards.caravan.effects.filter(func(e): return e.op == "trade")
-	eq(trades.size(), 1, "Caravan has one trade effect")
-	if trades.size() == 1:
-		check(trades[0].min_cities >= 2, "Caravan needs at least 2 cities (min_cities %d)" % trades[0].min_cities)
-
-
-# --- Early-game cards (backlog 080) ---
-
-const EARLY_CARDS := ["barter", "storyteller", "fishing_huts", "quarry", "shrine"]
-
-
-## The real card id, or null with a failed check when it's missing.
-func real_card(r: Dictionary, id: String) -> CardDef:
-	check(r.cards.has(id), "the real data has a '%s' card" % id)
-	return r.cards.get(id)
-
-
-## Whether def costs food only, at least 1.
-func costs_food_only(def: CardDef) -> bool:
-	return def.cost.keys() == [GameEngine.FOOD] and def.cost[GameEngine.FOOD] >= 1
-
-
-func test_barter_trades_food_for_wealth() -> void:
-	var def := real_card(load_real(), "barter")
-	if def == null:
-		return
-	eq(def.type, CardDef.ACTION, "Barter type")
-	check(costs_food_only(def), "Barter costs food only (>= 1): %s" % [def.cost])
-	eq(def.effects.size(), 1, "Barter has one effect")
-	if def.effects.size() == 1:
-		var effect := def.effects[0]
-		check(effect.op == "gain" and effect.trigger == "play" and effect.get("resource") == GameEngine.WEALTH,
-			"Barter's effect is a play gain of wealth (got %s %s)" % [effect.op, effect.trigger])
-
-
-func test_storyteller_draws_cards_for_food() -> void:
-	var def := real_card(load_real(), "storyteller")
-	if def == null:
-		return
-	eq(def.type, CardDef.ACTION, "Storyteller type")
-	check(costs_food_only(def), "Storyteller costs food only (>= 1): %s" % [def.cost])
-	eq(def.effects.size(), 1, "Storyteller has one effect")
-	if def.effects.size() == 1:
-		var effect := def.effects[0]
-		check(effect.op == "draw" and effect.trigger == "play" and effect.get("amount") >= 2,
-			"Storyteller's effect is a play draw of 2+ (got %s %s)" % [effect.op, effect.trigger])
-
-
-func test_fishing_huts_quarry_and_shrine_are_early_buildings() -> void:
-	var r := load_real()
-	var huts := real_card(r, "fishing_huts")
-	if huts != null:
-		eq(huts.type, CardDef.BUILDING, "Fishing Huts type")
-		eq(huts.requires, ["coastal"] as Array[String], "Fishing Huts requires")
-		check(huts.effects.any(func(e): return e.op == "gain" and e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD),
-			"Fishing Huts has an upkeep gain of food")
-	var quarry := real_card(r, "quarry")
-	if quarry != null:
-		eq(quarry.type, CardDef.BUILDING, "Quarry type")
-		check(not quarry.requires.is_empty() and quarry.requires.all(func(k): return k in ["hills", "mountain"]),
-			"Quarry requires hills and/or mountain (got %s)" % [quarry.requires])
-	var shrine := real_card(r, "shrine")
-	if shrine != null:
-		eq(shrine.type, CardDef.BUILDING, "Shrine type")
-		eq(shrine.requires, [] as Array[String], "Shrine requires")
-		check(shrine.has_tag("culture"), "Shrine is tagged culture")
-		check(shrine.vp >= 1, "Shrine has printed VP (got %d)" % shrine.vp)
-
-
-func test_early_cards_start_in_the_deck_or_an_open_supply_pile() -> void:
-	var r := load_real()
-	check(r.config.deck.get("barter", 0) >= 1, "Barter in the starting deck")
-	check(r.config.deck.get("storyteller", 0) >= 1, "Storyteller in the starting deck")
-	for id in ["fishing_huts", "quarry", "shrine"]:
-		var pile: Dictionary = r.config.supply.get(id, {})
-		check(not pile.is_empty(), "%s has a supply pile" % id)
-		check(not pile.get("locked", false), "%s's pile is not locked" % id)
-	for tech in techs_in_research_deck(r):
-		for effect in tech.effects:
-			if effect.op in ["create", "unlock"]:
-				check(not EARLY_CARDS.has(effect.card_id), "%s doesn't %s early card %s" % [tech.id, effect.op, effect.card_id])
+## The keywords territories in play can have: printed on the starting territory or one in territory_deck, or
+## rolled by territory_resources for one in territory_deck.
+func keywords_in_play(r: Dictionary) -> Dictionary:
+	var out := {}
+	for id in [r.config.starting.territory] + r.config.territory_deck.keys():
+		for k in r.cards[id].keywords:
+			out[k] = true
+	for id in r.config.territory_resources:
+		if r.config.territory_deck.has(id):
+			for option in r.config.territory_resources[id]:
+				for k in option.keywords:
+					out[k] = true
+	return out
 
 
 func test_every_territory_can_take_a_building_from_the_start() -> void:
@@ -597,42 +444,30 @@ func test_every_territory_can_take_a_building_from_the_start() -> void:
 	for id in r.config.supply:
 		if r.cards[id].type == CardDef.BUILDING and not r.config.supply[id].get("locked", false):
 			early.append(r.cards[id])
-	for id in r.config.territory_deck:
+	for id in [r.config.starting.territory] + r.config.territory_deck.keys():
 		var land: CardDef = r.cards[id]
 		var fits := early.filter(func(b): return b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)))
 		check(not fits.is_empty(), "territory %s %s can take a starting-deck or open-supply building" % [id, land.keywords])
 
 
-# --- Hunt (backlog 081) ---
-
-func test_hunt_gains_food_per_keyword_and_is_available_from_the_start() -> void:
+func test_every_building_requirement_is_met_by_a_territory_in_play() -> void:
 	var r := load_real()
-	var hunt := real_card(r, "hunt")
-	if hunt == null:
-		return
-	eq(hunt.type, CardDef.ACTION, "Hunt type")
-	var effects := hunt.effects.filter(func(e): return e.op == "gain_per_keyword" and e.get("resource") == GameEngine.FOOD)
-	eq(effects.size(), 1, "Hunt has a gain_per_keyword food effect")
-	var pile: Dictionary = r.config.supply.get("hunt", {})
-	check(r.config.deck.get("hunt", 0) >= 1 or (not pile.is_empty() and not pile.get("locked", false)),
-		"Hunt is in the starting deck or an unlocked supply pile")
-	var on_land := {}
-	for id in r.config.territory_deck:
-		for k in r.cards[id].keywords:
-			on_land[k] = true
-	for effect in effects:
-		for k in effect.get("keywords"):
-			check(on_land.has(k), "Hunt's keyword %s is on a territory in territory_deck" % k)
+	var in_play := keywords_in_play(r)
+	var unmet: Array[String] = []
+	for def in real_buildings(r):
+		if not def.requires.is_empty() and not def.requires.any(func(k): return in_play.has(k)):
+			unmet.append("%s %s" % [def.id, def.requires])
+	eq(unmet, [] as Array[String], "buildings whose requires no starting or territory_deck territory meets")
 
 
-# --- Winnow (backlog 082) ---
-
-func test_winnow_trashes_and_is_on_sale() -> void:
+func test_every_gain_per_keyword_keyword_is_on_a_territory_in_play() -> void:
 	var r := load_real()
-	var winnow := real_card(r, "winnow")
-	if winnow == null:
-		return
-	eq(winnow.type, CardDef.ACTION, "Winnow type")
-	check(winnow.effects.any(func(e): return e.op == "trash"), "Winnow has a trash effect")
-	var pile: Dictionary = r.config.supply.get("winnow", {})
-	check(not pile.is_empty() and not pile.get("locked", false), "Winnow is in an unlocked supply pile")
+	var in_play := keywords_in_play(r)
+	var missing: Array[String] = []
+	for id in r.cards:
+		for effect in r.cards[id].effects:
+			if effect.op == "gain_per_keyword":
+				for k in effect.get("keywords"):
+					if not in_play.has(k):
+						missing.append("%s: %s" % [id, k])
+	eq(missing, [] as Array[String], "gain_per_keyword keywords no territory in play has")
