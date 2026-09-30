@@ -94,6 +94,8 @@ change is rebuilt test-first.
 | `.claude/skills/spec/` | Procedure: request → backlog item |
 | `.claude/skills/tdd/` | Procedure: backlog item → merged change |
 | `.claude/skills/add-effect/` | Recipe for a new card effect op |
+| `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout |
+| `.claude/skills/project-review/` | Procedure: whole-project architecture and test review → backlog items; `scan.sh` for the mechanical checks |
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |
 | `docs/backlog/` | Items, templates, status flow |
 | `docs/testing.md` | How tests are written and run |
