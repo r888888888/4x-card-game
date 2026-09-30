@@ -59,6 +59,7 @@ res://
                          # start_screen.gd (063, 099: the title screen, shown on launch: New game, Settings, Exit),
                          # new_game_screen.gd (099: civilization cards, seed, Start, Back),
                          # settings_screen.gd (099: Reduce motion, Back),
+                         # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
                          # tech_tree_modal.gd (Knowledge button or T: the tech tree),

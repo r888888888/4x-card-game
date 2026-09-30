@@ -1,7 +1,7 @@
 class_name StartScreen
 extends RefCounted
-## The title screen (backlog 063, 099): the game's title and New game, Settings and Exit. It is shown on launch and
-## from Back on the new game and settings screens, with the board hidden behind it. The board decides what the
+## The title screen (backlog 063, 099): the game's title and New game, Settings and Exit. It is the Navigator's
+## root on launch and after leaving a game, with the board hidden behind it. The board decides what the
 ## buttons do through the signals.
 
 signal new_game_requested

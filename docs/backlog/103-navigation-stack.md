@@ -2,7 +2,7 @@
 id: 103
 title: Navigation stack for screens (Back and Esc in one place)
 type: feature
-status: red-review
+status: review
 branch: feat/103-navigation-stack
 ---
 
@@ -15,18 +15,18 @@ behaviour change), so the territory view (101) and later detail screens are one 
 
 ## Acceptance criteria
 <!-- Unit tests of the Navigator on plain Controls (tests/test_navigator.gd), then the real main scene. -->
-- [ ] AC1: Push. Given a navigator whose root is screen A (shown), when screen B is pushed, then B is shown, A is
+- [x] AC1: Push. Given a navigator whose root is screen A (shown), when screen B is pushed, then B is shown, A is
   hidden, `top()` is B and `depth()` is 2. Pushing C on top hides B; `depth()` is 3.
-- [ ] AC2: Back. `back()` hides the top screen, shows the one below and returns true. At the root (depth 1) or when
+- [x] AC2: Back. `back()` hides the top screen, shows the one below and returns true. At the root (depth 1) or when
   empty, `back()` returns false and shows or hides nothing.
-- [ ] AC3: Focus. `push(B, focus)` gives `focus` (a Control on B) the keyboard focus. `back()` gives the focus back
+- [x] AC3: Focus. `push(B, focus)` gives `focus` (a Control on B) the keyboard focus. `back()` gives the focus back
   to the Control that had it when B was pushed, if that Control is still in the tree and visible; otherwise no
   Control has the focus.
-- [ ] AC4: Esc. `handle_key(event)` with an Esc press (not an echo, not a release) calls `back()` and returns true when
+- [x] AC4: Esc. `handle_key(event)` with an Esc press (not an echo, not a release) calls `back()` and returns true when
   `depth()` > 1; at the root, and for any other key, it returns false and changes nothing.
-- [ ] AC5: Reset. `set_root(R)` hides every screen on the stack and leaves `[R]`, shown; `clear()` hides every screen
+- [x] AC5: Reset. `set_root(R)` hides every screen on the stack and leaves `[R]`, shown; `clear()` hides every screen
   and leaves the stack empty. The navigator emits `changed` once after each push, back, set_root and clear.
-- [ ] AC6: The start screens use it. In the real main scene, `main.nav.top()` is the title screen's overlay on launch,
+- [x] AC6: The start screens use it. In the real main scene, `main.nav.top()` is the title screen's overlay on launch,
   the new game screen's after New game (title or menu), and the settings screen's after Settings; it is empty while
   a game is on the board. Every `test_start_screen` test passes unchanged.
 
@@ -63,3 +63,9 @@ behaviour change), so the territory view (101) and later detail screens are one 
 ## Log
 - 2026-09-30: Specced after the user asked for a pattern for detail screens (before 101). The user chose to build it
   first; 101's red tests wait on its branch.
+- 2026-09-30: Built. `ui/navigator.gd` (`Navigator`), and `main.nav`: launch and leaving a game `set_root` the title
+  screen; its New game and Settings push their screens, whose Back calls `nav.back`; `main._input` asks
+  `nav.handle_key` for Esc; starting a game clears the stack. `StartScreen` and `SettingsScreen` lost their own
+  `open` / `hide`, and `NewGameScreen.open` became `show_civilizations` (fills the cards; the navigator shows it).
+- 2026-09-30: `ui/main.gd` only went from 669 to 664 lines: the start screens' wiring was already small. 101 needs
+  more room than that; its red checkpoint notes where the territory view's logic goes (mostly in its own component).
