@@ -204,3 +204,69 @@ func test_tab_reaches_the_seed_field_and_the_toggle() -> void:
 	check(seen.has(main.start_screen.motion_toggle), "Tab reaches the toggle")
 	check(seen.all(func(c): return c != null and main.start_screen.overlay.is_ancestor_of(c)), "focus stays on the screen")
 	close_main(main)
+
+
+# --- Backlog 064: choosing a civilization on the start screen ---
+# start_screen.civilization_ids() lists the civilization cards shown, start_screen.selected is the chosen id, and
+# start_screen.select(id) is what clicking a card does.
+
+func civ_now() -> Array[String]:
+	return card_ids(Game.engine.zone("civilization"))
+
+
+func test_start_screen_shows_the_listed_civilizations() -> void:
+	var main := open_main()
+	var civs: Array[String] = Game.engine.civilizations()
+	check(civs.size() >= 3, "real data lists civilizations")
+	eq(main.start_screen.civilization_ids(), civs, "cards shown, in config order")
+	close_main(main)
+
+
+func test_the_saved_civilization_is_preselected() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		Settings.store.civilization = civs[1]
+		var main := open_main()
+		eq(main.start_screen.selected, civs[1], "saved choice selected")
+		close_main(main)
+		Settings.store.civilization = "not_a_civilization"
+		main = open_main()
+		eq(main.start_screen.selected, civs[0], "unknown saved choice: the first")
+		close_main(main))
+
+
+func test_selecting_a_civilization_saves_it_and_new_game_uses_it() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		var main := open_main()
+		main.start_screen.select(civs[2])
+		eq(main.start_screen.selected, civs[2], "selected")
+		eq(Settings.store.civilization, civs[2], "remembered")
+		main.start_screen.new_game_button.pressed.emit()
+		eq(civ_now(), [civs[2]] as Array[String], "the game is played as it")
+		close_main(main))
+
+
+func test_restart_keeps_the_civilization() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		var main := open_main()
+		main.start_screen.select(civs[1])
+		main.start_screen.new_game_button.pressed.emit()
+		press_key(main, KEY_ESCAPE)
+		menu_button(main, "Restart").pressed.emit()
+		eq(civ_now(), [civs[1]] as Array[String], "same civilization after Restart")
+		close_main(main))
+
+
+func test_menu_and_game_over_name_the_civilization() -> void:
+	var main := open_main()
+	play_seed_1(main, func(_m): pass)
+	var civ_name: String = Game.engine.zone("civilization").cards[0].def.name
+	check(main.game_over_text().contains(civ_name), "game over names %s in '%s'" % [civ_name, main.game_over_text()])
+	main.start_game(1)
+	press_key(main, KEY_ESCAPE)
+	var names := main.find_children("*", "Label", true, false).filter(
+		func(l): return l.is_visible_in_tree() and l.text.contains(civ_name))
+	check(not names.is_empty(), "the open menu names %s" % civ_name)
+	close_main(main)

@@ -2,7 +2,7 @@
 id: 064
 title: Choose your civilization when starting a game
 type: feature
-status: ready
+status: red-review
 branch: feat/064-choose-civilization
 ---
 
@@ -42,7 +42,13 @@ Fixtures: TEST config `civilizations: ["tribe", "nomads"]` (062 fixtures).
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_civilization::test_…` |
+| AC1 | `test_choose_civilization::test_civilizations_list_loads`, `::test_civilizations_list_is_optional`, `::test_civilizations_list_validation` |
+| AC2 | `test_choose_civilization::test_civilizations_returns_the_list_in_order`, `::test_civilizations_is_empty_without_a_list`, `::test_new_game_with_a_civilization_uses_it`, `::test_new_game_without_a_civilization_uses_starting`, `::test_new_game_without_any_civilization_has_none` |
+| AC3 | `test_choose_civilization::test_new_game_error_accepts_a_listed_civilization_or_none`, `::test_new_game_error_names_an_unlisted_civilization`, `::test_new_game_with_an_unlisted_civilization_changes_nothing` |
+| AC4 | `test_choose_civilization::test_same_seed_same_decks_whatever_the_civilization` |
+| AC5 | `test_settings::test_missing_file_means_no_civilization`, `::test_civilization_survives_save_and_load`, `::test_non_string_civilization_falls_back_to_none_with_warning`, `::test_civilization_in_keeps_a_listed_choice`, `::test_civilization_in_falls_back_to_the_first_with_warning`, `::test_civilization_in_with_nothing_saved_picks_the_first_quietly`, `::test_settings_set_civilization_saves_it` |
+| AC6 | `test_content::test_real_config_lists_at_least_3_different_civilizations` (plus the existing `test_real_data_loads_without_warnings`) |
+| UI (design notes) | `test_start_screen::test_start_screen_shows_the_listed_civilizations`, `::test_the_saved_civilization_is_preselected`, `::test_selecting_a_civilization_saves_it_and_new_game_uses_it`, `::test_restart_keeps_the_civilization`, `::test_menu_and_game_over_name_the_civilization` |
 
 ## Manual check
 - [ ] The start screen shows the civilization cards, the last choice is pre-selected, and each plays noticeably
