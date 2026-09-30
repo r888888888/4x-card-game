@@ -2,7 +2,7 @@
 id: 112
 title: Drop the basic terms from card details
 type: feature
-status: review
+status: done
 branch: feat/112-drop-basic-terms
 ---
 
