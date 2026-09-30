@@ -133,7 +133,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 `config.json` selects the model, so all three can be playtested without code changes.
 
 ## Turn loop (initial)
-1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs and the civilization, then active events
+1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (starving on a shortfall).
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Play: play or buy cards while resources allow, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
@@ -301,7 +301,7 @@ A game is played as one civilization: a permanent card with a starting gift and 
   `starting.civilization` (optional, a civilization id) puts it in the `civilization` zone at `new_game`, where its
   `start` effects resolve once, before turn 1's upkeep. `civilization()` is its uid, or -1.
 - It resolves `upkeep` every turn and scores its printed VP like a researched tech: `GameEngine.ALWAYS_ON_ZONES`
-  (`researched`, `civilization`; governments join in 065) lists the permanents outside the tableau.
+  (`researched`, `civilization`, `government`) lists the permanents outside the tableau.
 - Card text marks start effects "Start:" (face) and "When the game starts:" (tooltip).
 - Choosing (064): config `civilizations` (optional, civilization ids in order, no duplicates; `starting.civilization`
   must be one of them) lists what a game may start as; `civilizations()` returns it. `new_game(seed, civ_id)` plays
@@ -313,6 +313,20 @@ A game is played as one civilization: a permanent card with a starting gift and 
   plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
   "Playing as …" and the game-over text "Played as …". In play, a Civilization row sits below Known.
+
+## Governments (backlog 065)
+Your people have one government at a time; its bonuses apply while it rules.
+- Card type `government`: never in `deck`, `supply`, `territory_deck`, `research_deck` or `event_deck`, but a `create`
+  may put one in the discard, so it's drawn and played like any hand card. Its effects can't need a target, use
+  `keyword` or act on their own territory (like a tech's). Config `starting.government` (optional, a government id)
+  puts it in the `government` zone at `new_game`. `government()` is its uid, or -1.
+- Playing one pays its cost, moves it to `government` and moves the ruling one to `removed` (out of the game); then its
+  `play` effects resolve. The outcome's `to_zone` is `government`. `play_error` refuses a government with the same id
+  as the ruling one ("X is already your government.").
+- The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
+- Real data: Chiefdom (no bonus; the start), Kingship (⟳ +1 wealth; from Code of Laws), Theocracy (⟳ +1 VP; from
+  Priesthood). Techs that give a government create it in the discard; it has no supply pile.
+- UI: a Government row sits below Civilization.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats
