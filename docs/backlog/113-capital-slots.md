@@ -2,7 +2,7 @@
 id: 113
 title: Balance the Capital's building slots
 type: feature
-status: review
+status: done
 branch: feat/113-capital-slots
 ---
 
