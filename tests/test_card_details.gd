@@ -148,3 +148,15 @@ func test_unknown_cards_have_no_details() -> void:
 	var e: Object = make_engine({"farm": 10})
 	eq(e.card_details(-1), {}, "card_details(-1)")
 	eq(e.def_details("nope"), {}, "def_details(\"nope\")")
+
+
+## Backlog 107 (AC13, bug): before any game starts (the new game screen), a card's details are {} with no error, and a
+## definition's details still work.
+func test_bug_107_card_details_before_a_game_starts() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", errors, warnings)
+	var e: Object = GameEngine.new(cards, config)  # no new_game: no zones yet
+	eq(e.card_details(-1), {}, "no card has live details before a game")
+	eq(e.def_details("farm").get("name", ""), "Farm", "a definition's details work before a game")

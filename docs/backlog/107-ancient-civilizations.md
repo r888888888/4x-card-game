@@ -2,7 +2,7 @@
 id: 107
 title: Replace the starting civilizations with ancient historical ones
 type: feature
-status: review
+status: red-review
 branch: feat/107-ancient-civilizations
 ---
 
@@ -40,6 +40,8 @@ Content item: the tests assert invariants of the real data; the roster and its n
 - [x] AC12 (new game screen): the details of a civilization opened there have a "Play as <name>" button that selects
   it (and saves the choice), closes the details and starts a game as it with the seed field's seed. Details opened
   anywhere else have no such button.
+- [ ] AC13 (bug, found in review): before any game has started, `card_details(uid)` returns {} without a script
+  error, so clicking a civilization on the new game screen (a card with no live copy) shows its definition's details.
 
 ## Out of scope
 - New mechanics: cost discounts (108), hand size (109), housing (110), home territory (111).
@@ -95,6 +97,7 @@ Content item: the tests assert invariants of the real data; the roster and its n
 | AC10 | `test_identity_lines::test_civilization_details_start_with_flavor_then_quote_then_rules` |
 | AC11 | `test_start_screen::test_a_click_on_close_closes_the_details_over_the_new_game_screen` |
 | AC12 | `test_start_screen::test_play_as_in_the_details_starts_a_game_as_that_civilization`, `::test_details_in_play_have_no_play_as_button` |
+| AC13 | `test_card_details::test_bug_107_card_details_before_a_game_starts` |
 | (content coupling) | `test_identity_lines::test_side_panel_shows_civilization_then_government`, `::test_pressing_a_line_opens_its_details` now read the civilization's name from the engine |
 
 ## Manual check
