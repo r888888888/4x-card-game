@@ -2,7 +2,7 @@
 id: 080
 title: Five early-game cards (Barter, Storyteller, Fishing Huts, Quarry, Shrine)
 type: feature
-status: review
+status: done
 branch: feat/080-early-game-cards
 ---
 
