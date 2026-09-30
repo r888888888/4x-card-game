@@ -2,7 +2,7 @@
 id: 081
 title: gain_per_keyword op (gain per settled territory with a keyword) and Hunt
 type: feature
-status: ready
+status: red-review
 branch: feat/081-gain-per-keyword-op
 ---
 
@@ -52,9 +52,19 @@ grassland (no keywords). Add a test action, e.g. `hunt`: {"op": "gain_per_keywor
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_effects::test_…` |
+| AC1 | `test_gain_per_keyword::test_gains_amount_per_settled_territory_with_a_keyword`, `::test_count_territories_with_query` |
+| AC2 | `test_gain_per_keyword::test_a_territory_with_several_listed_keywords_counts_once` |
+| AC3 | `test_gain_per_keyword::test_frontier_territories_do_not_count` |
+| AC4 | `test_gain_per_keyword::test_rolled_resource_keywords_count` |
+| AC5 | `test_gain_per_keyword::test_upkeep_gain_per_keyword_is_forecast_and_given`, `::test_gain_per_keyword_may_trigger_on_upkeep`, `test_forecast::test_upkeep_safe_ops_may_trigger_on_upkeep` (row added to `UPKEEP_SAFE`) |
+| AC6 | `test_gain_per_keyword::test_gain_per_keyword_loads`, `::test_gain_per_keyword_validation`, `::test_gain_per_keyword_card_text` |
+| AC7 | `test_content::test_hunt_gains_food_per_keyword_and_is_available_from_the_start` |
 
 ## Manual check
 - [ ] Hunt's card text and details modal read cleanly; its numbers are reviewed with the `balance` skill.
 
 ## Log
+- 2026-09-29: Red at 561 tests (was 550), 12 failing. Fixtures are local to `test_gain_per_keyword.gd`, not in
+  `TEST_CARDS`, so other tests load while the op is missing. Renamed
+  `test_forecast::test_gain_gain_per_tag_score_and_grow_may_trigger_on_upkeep` to `test_upkeep_safe_ops_may_trigger_on_upkeep`
+  (it now covers five ops).

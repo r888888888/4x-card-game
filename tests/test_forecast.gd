@@ -140,6 +140,7 @@ const UPKEEP_SAFE := [
 	{"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "city"},
 	{"op": "score", "amount": 1},
 	{"op": "grow", "amount": 1},
+	{"op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["mountain"]},
 ]
 
 
@@ -162,7 +163,7 @@ func test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep
 		check(not r.cards.has("x"), "%s: card x is not loaded" % op)
 
 
-func test_gain_gain_per_tag_score_and_grow_may_trigger_on_upkeep() -> void:
+func test_upkeep_safe_ops_may_trigger_on_upkeep() -> void:
 	for effect in UPKEEP_SAFE:
 		var r := load_upkeep_building(effect)
 		eq(r.errors, [] as Array[String], "%s errors" % effect.op)

@@ -600,3 +600,25 @@ func test_every_territory_can_take_a_building_from_the_start() -> void:
 		var land: CardDef = r.cards[id]
 		var fits := early.filter(func(b): return b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)))
 		check(not fits.is_empty(), "territory %s %s can take a starting-deck or open-supply building" % [id, land.keywords])
+
+
+# --- Hunt (backlog 081) ---
+
+func test_hunt_gains_food_per_keyword_and_is_available_from_the_start() -> void:
+	var r := load_real()
+	var hunt := real_card(r, "hunt")
+	if hunt == null:
+		return
+	eq(hunt.type, CardDef.ACTION, "Hunt type")
+	var effects := hunt.effects.filter(func(e): return e.op == "gain_per_keyword" and e.get("resource") == GameEngine.FOOD)
+	eq(effects.size(), 1, "Hunt has a gain_per_keyword food effect")
+	var pile: Dictionary = r.config.supply.get("hunt", {})
+	check(r.config.deck.get("hunt", 0) >= 1 or (not pile.is_empty() and not pile.get("locked", false)),
+		"Hunt is in the starting deck or an unlocked supply pile")
+	var on_land := {}
+	for id in r.config.territory_deck:
+		for k in r.cards[id].keywords:
+			on_land[k] = true
+	for effect in effects:
+		for k in effect.get("keywords"):
+			check(on_land.has(k), "Hunt's keyword %s is on a territory in territory_deck" % k)
