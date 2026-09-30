@@ -2,7 +2,7 @@
 id: 078
 title: A territory with many cards pushes the side panel off screen
 type: bug
-status: review
+status: done
 branch: fix/078-territory-row-overflows
 ---
 
