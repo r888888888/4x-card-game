@@ -80,12 +80,19 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 41. ~~089 unique cards have no supply pile~~ (wontfix)
 42. 072 harmful event ops (`lose`, `lose_pop`)
 43. 083 Famine replaces starvation (uses 072, 060; the first harm players feel)
-44. 084 relieve a Famine with wealth
-45. 074 event decks escalate by era (uses 072)
-46. 070 event tooltip says how long it lasts (before 079, whose modal shows the event text)
-47. 079 modal when a new event is drawn (after 072, so its summary covers losses as well as gains)
-48. 071 icons for the tech and event type marks
-49. 077 Market earns wealth per city (data only; just before the balance pass)
-50. 066 100-turn games, balance pass (last: everything above changes balance)
+44. 090 upkeep-rule rationale, add-effect skill, review rules in CLAUDE.md (docs first: the items below follow them)
+45. 091 shared test helpers, one test per Famine behavior (test infrastructure before the items that add tests)
+46. 092 research card name from the engine, content tests as invariants (uses 091's helpers)
+47. 093 error queries for `choose`, `decline_research`, `discard_card` (logic out of the UI, before engine restructuring)
+48. 094 engine queries for the UI's targeting choice, tech eras, open supply piles (same reason as 093)
+49. 095 split `ConfigLoader` out of `DataLoader` (677/700 lines; before 084 and 074, which add config)
+50. 096 Famine module (before 084, which adds Famine rules)
+51. 084 relieve a Famine with wealth (after 095 and 096: its rules and config land in the new files)
+52. 074 event decks escalate by era (uses 072; after 095: adds config)
+53. 070 event tooltip says how long it lasts (before 079, whose modal shows the event text)
+54. 079 modal when a new event is drawn (after 072, so its summary covers losses as well as gains)
+55. 071 icons for the tech and event type marks
+56. 077 Market earns wealth per city (data only; just before the balance pass)
+57. 066 100-turn games, balance pass (last: everything above changes balance)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
