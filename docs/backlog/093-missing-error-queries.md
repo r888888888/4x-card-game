@@ -2,7 +2,7 @@
 id: 093
 title: Error queries for choose, decline_research and discard_card
 type: feature
-status: ready
+status: red-review
 branch: feat/093-missing-error-queries
 ---
 
@@ -43,7 +43,14 @@ the reason the way it does for a refused play.
 - `ChoiceOverlays.refresh` gets the engine (or the decline error) so it can set the button's state.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+| AC | Test |
+|---|---|
+| AC1 | `test_action_errors::test_discard_error` |
+| AC2 | `test_action_errors::test_choose_error` |
+| AC3 | `test_action_errors::test_decline_research_error` |
+| AC4 | `test_changed::test_actions_refuse_exactly_when_their_error_query_says_why` (one row per message); `test_pending::test_each_pending_kind_blocks_actions_as_before` (gains a `discard_error` check) |
+| AC5 | `test_action_errors::test_discarding_during_an_explore_choice_logs_why`, `test_decline_is_disabled_with_the_reason_when_no_techs_are_revealed` |
+| AC6 | `test_action_errors::test_picking_a_card_that_isnt_an_option_logs_why`; `scan.sh` section (checked at green) |
 
 ## Manual check
 - [ ] Play an Explorer, then right-click a hand card: it shakes and the log says "Choose a territory first."

@@ -92,3 +92,41 @@ func test_bug_048_refused_actions_emit_no_changed() -> void:
 	var turn: int = e.turn
 	expect_changes("end_turn with a choice pending", e, func(): e.end_turn(), true, 0)
 	eq(e.turn, turn, "turn unchanged")
+
+
+# --- Backlog 093: discard_card, choose and decline_research refuse through their error queries ---
+
+## The sizes of the zones a refused discard, choose or decline could touch.
+func zone_sizes(e: Object) -> Array[int]:
+	var out: Array[int] = []
+	for z in ["hand", "discard", "reveal", "frontier", "territory_deck", "research_reveal", "research_deck"]:
+		out.append(e.zone(z).size())
+	return out
+
+
+func test_actions_refuse_exactly_when_their_error_query_says_why() -> void:
+	var over: Object = make_engine({"farm": 10}, {"turn_limit": 1})
+	over.end_turn()
+	var cases := [
+		# [label, engine, query, action]
+		["discard, game over", over, func(e): return e.discard_error(-1), func(e): return e.discard_card(-1)],
+		["discard, explore open", explore_engine(),
+			func(e): return e.discard_error(first_in_hand(e)), func(e): return e.discard_card(first_in_hand(e))],
+		["discard, techs revealed", research_engine(),
+			func(e): return e.discard_error(first_in_hand(e)), func(e): return e.discard_card(first_in_hand(e))],
+		["discard, not in hand", make_engine({"farm": 10}),
+			func(e): return e.discard_error(-1), func(e): return e.discard_card(-1)],
+		["choose, no choice", make_engine({"farm": 10}), func(e): return e.choose_error(-1), func(e): return e.choose(-1)],
+		["choose, not an option", explore_engine(), func(e): return e.choose_error(-1), func(e): return e.choose(-1)],
+		["decline, nothing revealed", make_engine({"farm": 10}),
+			func(e): return e.decline_research_error(), func(e): return e.decline_research()],
+	]
+	for row in cases:
+		var e: Object = row[1]
+		var query: Callable = row[2]
+		var action: Callable = row[3]
+		check(query.call(e) != "", "%s: the query says why" % row[0])
+		var before := zone_sizes(e)
+		expect_changes(row[0], e, func(): return action.call(e), false, 0)
+		eq(zone_sizes(e), before, "%s: zones unchanged" % row[0])
+
