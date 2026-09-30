@@ -2,7 +2,7 @@
 id: 063
 title: Start screen (new game and options)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/063-start-screen
 ---
 
