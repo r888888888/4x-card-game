@@ -2,7 +2,7 @@
 id: 095
 title: Split config parsing out of DataLoader into ConfigLoader
 type: feature
-status: ready
+status: review
 branch: feat/095-split-config-loader
 ---
 
@@ -13,18 +13,18 @@ holds two separate jobs, parsing cards and parsing the config, and the split fol
 changes.
 
 ## Acceptance criteria
-- [ ] AC1: A new `engine/config_loader.gd` (`class_name ConfigLoader`) holds config parsing: `parse_config` and
+- [x] AC1: A new `engine/config_loader.gd` (`class_name ConfigLoader`) holds config parsing: `parse_config` and
   every helper only it uses. That covers `_parse_era_names`, `_parse_era_unlocks`, `_parse_population`,
   `_parse_famine`, `_parse_territory_resources`, `_parse_resource_option`, `_parse_supply`, `_check_unlocks`,
   `_parse_civilizations`, `_parse_starting_card` and `_parse_counts`, plus the config-only constants
   (`CONFIG_FIELDS`, `POPULATION_FIELDS`, `SUPPLY_TYPES`, `DECK_MODELS`, `SEPARATE_DECK_TYPES`).
-- [ ] AC2: `DataLoader` keeps `load_all`, `read_json`, `parse_resources`, `parse_keywords`, card parsing and the
+- [x] AC2: `DataLoader` keeps `load_all`, `read_json`, `parse_resources`, `parse_keywords`, card parsing and the
   card constants (`CARD_FIELDS`, `TYPE_FIELDS`, `TYPE_PLURALS`, `NO_TERRITORY_TYPES`, `DISCARD_CONDITIONS`).
   `DataLoader.parse_config(...)` stays as a one-line delegator with the same signature, so callers don't change.
-- [ ] AC3: Every existing test passes unedited. Every loader error and warning message is byte-identical: all of
+- [x] AC3: Every existing test passes unedited. Every loader error and warning message is byte-identical: all of
   them go through the existing table tests.
-- [ ] AC4: `scripts/sim.sh 20` output is identical before and after.
-- [ ] AC5: Both files are at most 500 lines (no `WARN` for either in `scripts/test.sh`). `PLAN.md`'s layout lists
+- [x] AC4: `scripts/sim.sh 20` output is identical before and after.
+- [x] AC5: Both files are at most 500 lines (no `WARN` for either in `scripts/test.sh`). `PLAN.md`'s layout lists
   `config_loader.gd`, and the CLAUDE.md line on `DataLoader.TYPE_FIELDS` still holds.
 
 ## Out of scope
@@ -47,3 +47,6 @@ changes.
 
 ## Log
 - 2026-09-30: Specced from the project review. Must land before 084 and 074 (review decision: refactors first).
+- 2026-09-30: Done as one move. `data_loader.gd` 677 → 305 lines, `config_loader.gd` 382; no `WARN` for either.
+  The moved code's only calls back into DataLoader are `DataLoader.parse_keywords` (twice). 626 tests pass unedited;
+  the 20-seed `scripts/sim.sh` output is identical to the baseline taken before 094 (no data or rule change since).

@@ -38,7 +38,8 @@ res://
     events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
     glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated
-    data_loader.gd       # JSON → CardDef + normalized config; collects all errors/warnings
+    data_loader.gd       # JSON → CardDef; load_all reads both files; collects all errors/warnings
+    config_loader.gd     # config.json → normalized config, checked against the cards (095)
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
     card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, passes, keywords, turns_left)
     zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
