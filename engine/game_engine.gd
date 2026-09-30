@@ -205,6 +205,12 @@ func research_options() -> Array[int]:
 	return Research.options(self)
 
 
+## The name of the card that reveals techs, for hints: the first with a research effect in config deck order, then
+## supply order; "" when there is none.
+func research_card_name() -> String:
+	return Research.card_name(self)
+
+
 ## The highest era of techs added to the research deck so far (1 at the start).
 func era() -> int:
 	return state.era

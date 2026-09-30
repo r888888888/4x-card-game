@@ -56,8 +56,9 @@ func open() -> void:
 	var e := Game.engine
 	if e == null or e.config.research_deck.is_empty():
 		return
-	_header.text = "Research deck %d · lost %d · play an Insight card to reveal 2 techs" % [
-		e.zone("research_deck").size(), e.zone("lost_techs").size()]
+	_header.text = "Research deck %d · lost %d" % [e.zone("research_deck").size(), e.zone("lost_techs").size()]
+	if e.research_card_name() != "":
+		_header.text += " · play %s card to reveal 2 techs" % UIKit.with_article(e.research_card_name())
 	for child in _columns.get_children():
 		_columns.remove_child(child)
 		child.queue_free()

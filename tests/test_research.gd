@@ -258,3 +258,27 @@ func test_two_research_cards_can_be_played_in_one_turn() -> void:
 	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
 	check(play_research(e), "second Research")
 	eq(e.research_options().size(), 2, "two techs revealed again")
+
+
+# --- Backlog 092: the research card's name, for the UI's hints ---
+
+## A second research card, to tell deck order from supply order.
+const SEEK := {"id": "seek", "name": "Seek", "type": "action", "effects": [{"op": "research"}]}
+
+
+func test_research_card_name_is_the_research_card_in_the_deck() -> void:
+	var e: GameEngine = make_engine({"farm": 5, "study": 1})
+	eq(e.research_card_name(), "Research", "Research is in the deck")
+
+
+func test_research_card_name_is_empty_without_a_research_card() -> void:
+	var e: GameEngine = make_engine({"farm": 5})
+	eq(e.research_card_name(), "", "no research card in the deck or supply")
+
+
+func test_research_card_name_looks_in_the_deck_then_the_supply_in_order() -> void:
+	var pile := {"price": 1, "count": 1}
+	var e: GameEngine = tech_engine(["pottery"], {"farm": 5}, {"supply": {"seek": pile, "study": pile}}, [SEEK])
+	eq(e.research_card_name(), "Seek", "first supply pile with a research effect")
+	e = tech_engine(["pottery"], {"farm": 5, "study": 1}, {"supply": {"seek": pile}}, [SEEK])
+	eq(e.research_card_name(), "Research", "the deck comes before the supply")
