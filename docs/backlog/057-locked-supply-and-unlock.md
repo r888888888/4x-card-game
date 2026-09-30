@@ -2,7 +2,7 @@
 id: 057
 title: Locked supply piles and the unlock op
 type: feature
-status: ready
+status: red-review
 branch: feat/057-locked-supply-and-unlock
 ---
 
@@ -50,7 +50,14 @@ Fixtures: the test supply adds `guildhall: {price: 2, count: 2, locked: true}`. 
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_supply::test_…` |
+| AC1 | `test_supply::test_supply_pile_may_be_locked`, `test_supply_locked_must_be_a_bool`; changed: `test_supply_block_is_normalized` (now includes `locked: false`) |
+| AC2 | `test_supply::test_unlock_op_loads`, `test_unlock_validation`, `test_unlock_of_a_card_with_no_supply_pile_is_a_config_error`; `test_forecast` `UPKEEP_UNSAFE` gets `unlock` |
+| AC3 | `test_supply::test_a_locked_pile_is_listed_but_cannot_be_bought` |
+| AC4 | `test_supply::test_researching_guilds_adds_a_guildhall_and_unlocks_the_pile` |
+| AC5 | `test_supply::test_unlocking_twice_or_an_unlocked_pile_changes_nothing` |
+| AC6 | `test_supply::test_a_fork_copies_the_locks_and_unlocks_on_its_own` |
+| AC7 | `test_content::test_every_supply_pile_starts_in_the_deck_or_is_unlocked_by_a_tech` (replaces `test_every_supply_card_also_starts_in_the_deck`) |
+| Text | `test_supply::test_unlock_text` |
 
 ## Manual check
 - [ ] The Supply screen shows no locked piles. After researching the unlocking tech, the pile appears.

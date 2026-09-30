@@ -134,7 +134,7 @@ func test_supply_block_is_normalized() -> void:
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"supply": {"scout": {"price": 2, "count": 3}}}),
 		resources(), cards, "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
-	eq(config.supply, {"scout": {"price": 2, "count": 3}}, "supply")
+	eq(config.supply, {"scout": {"price": 2, "count": 3, "locked": false}}, "supply")
 
 
 func test_supply_defaults_to_empty() -> void:
@@ -158,3 +158,135 @@ func test_supply_validation() -> void:
 		["no count", {"scout": {"price": 2}}, "config.json: supply: 'scout': 'count' must be an integer >= 1"],
 		["not an object", {"scout": 2}, "config.json: supply: 'scout' must be an object like {\"price\": 2, \"count\": 1}"],
 	], supply_errors)
+
+
+# --- Backlog 057: locked piles and the unlock op ---
+
+## Guilds (tech, 2 wealth): a free Guildhall in the discard, and the Guildhall pile unlocked.
+const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"wealth": 2}, "effects": [
+	{"op": "create", "card": "guildhall", "zone": "discard"}, {"op": "unlock", "card": "guildhall"}]}
+## Actions that unlock a pile: the locked Guildhall, or Scout, which was never locked.
+const CHARTER := {"id": "charter", "name": "Charter", "type": "action", "effects": [{"op": "unlock", "card": "guildhall"}]}
+const SCOUT_CHARTER := {"id": "scout_charter", "name": "Scout Charter", "type": "action",
+	"effects": [{"op": "unlock", "card": "scout"}]}
+const LOCKED_SUPPLY := {"scout": {"price": 2, "count": 2}, "guildhall": {"price": 2, "count": 2, "locked": true}}
+
+
+## A game with LOCKED_SUPPLY, Guilds on top of the research deck and the given wealth.
+func locked_engine(wealth: int, deck := {"farm": 10}) -> Object:
+	var e := tech_engine(["guilds", "pottery", "writing"], deck, {"supply": LOCKED_SUPPLY}, [GUILDS, CHARTER, SCOUT_CHARTER])
+	e.resources.wealth = wealth
+	return e
+
+
+## Loads fixtures plus extra and a config with overrides; returns {cards, config, errors, warnings}.
+func load_locked(extra: Array, overrides: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := tech_db([GUILDS] + extra, errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
+	return {"cards": cards, "config": config, "errors": errors, "warnings": warnings}
+
+
+## Loads one action card x with effect; returns {cards, errors, warnings}.
+func unlock_card(effect: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
+		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, resources(), "cards.json", errors, warnings,
+		keywords())
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+# AC1: config
+
+func test_supply_pile_may_be_locked() -> void:
+	var r := load_locked([], {"supply": LOCKED_SUPPLY, "research_deck": {"guilds": 1}})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.config.supply.guildhall.get("locked"), true, "guildhall locked")
+	eq(r.config.supply.scout.get("locked"), false, "scout defaults to unlocked")
+
+
+func test_supply_locked_must_be_a_bool() -> void:
+	check_cases([
+		["locked not a bool", {"scout": {"price": 2, "count": 1, "locked": "yes"}},
+			"config.json: supply: 'scout': 'locked' must be true or false"],
+		["locked a number", {"scout": {"price": 2, "count": 1, "locked": 1}},
+			"config.json: supply: 'scout': 'locked' must be true or false"],
+	], supply_errors)
+
+
+# AC2: the unlock op
+
+func test_unlock_op_loads() -> void:
+	var r := unlock_card({"op": "unlock", "card": "guildhall"})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+
+
+func test_unlock_validation() -> void:
+	check_cases([
+		["missing card", {"op": "unlock"}, "cards.json: card 'x': effects[0]: missing 'card'"],
+		["unknown card", {"op": "unlock", "card": "dragon"}, "cards.json: card 'x': 'unlock' effect refers to unknown card 'dragon'"],
+		["on upkeep", {"op": "unlock", "card": "guildhall", "trigger": "upkeep"},
+			"cards.json: card 'x': effects[0]: 'unlock' only works on play (got trigger 'upkeep')"],
+	], unlock_card)
+
+
+func test_unlock_of_a_card_with_no_supply_pile_is_a_config_error() -> void:
+	var r := load_locked([], {"supply": {"scout": {"price": 2, "count": 2}}, "research_deck": {"guilds": 1}})
+	check(has_message(r.errors, "config.json: 'guilds' unlocks 'guildhall', which has no supply pile"), str(r.errors))
+
+
+# AC3: a locked pile
+
+func test_a_locked_pile_is_listed_but_cannot_be_bought() -> void:
+	var e := locked_engine(5)
+	eq(e.supply(), {"scout": 2, "guildhall": 2}, "supply lists the locked pile")
+	check(e.supply_locked("guildhall"), "guildhall locked")
+	check(not e.supply_locked("scout"), "scout not locked")
+	assert_buy_refused(e, "guildhall", "Guildhall isn't unlocked yet.")
+
+
+# AC4: a tech unlocks it
+
+func test_researching_guilds_adds_a_guildhall_and_unlocks_the_pile() -> void:
+	var e := locked_engine(0)
+	e.resources.wealth = 2
+	check(play_research(e), "research opens")
+	check(e.buy_tech(uid_of(e.zone("research_reveal"), "guilds")), "buy Guilds")
+	eq(card_ids(e.zone("discard")).count("guildhall"), 1, "a free Guildhall in the discard")
+	check(not e.supply_locked("guildhall"), "the pile is unlocked")
+	e.resources.wealth = 2
+	check(e.buy("guildhall"), "buy a Guildhall")
+	eq(e.supply_left("guildhall"), 1, "2 - 1 left")
+
+
+# AC5: idempotent
+
+func test_unlocking_twice_or_an_unlocked_pile_changes_nothing() -> void:
+	var e := locked_engine(0, {"charter": 2, "scout_charter": 3})
+	for id in ["charter", "charter", "scout_charter"]:
+		check(e.play_card(uid_of(e.zone("hand"), id)), "play %s" % id)
+	check(not e.supply_locked("guildhall"), "guildhall unlocked")
+	check(not e.supply_locked("scout"), "scout still unlocked")
+	eq(e.supply(), {"scout": 2, "guildhall": 2}, "counts unchanged")
+
+
+# AC6: fork
+
+func test_a_fork_copies_the_locks_and_unlocks_on_its_own() -> void:
+	var e := locked_engine(0, {"charter": 5})
+	var f: Object = e.fork()
+	check(f.supply_locked("guildhall"), "the fork starts locked")
+	check(f.play_card(uid_of(f.zone("hand"), "charter")), "play Charter on the fork")
+	check(not f.supply_locked("guildhall"), "the fork's pile is unlocked")
+	check(e.supply_locked("guildhall"), "the game's pile stays locked")
+
+
+# Text
+
+func test_unlock_text() -> void:
+	var r := unlock_card({"op": "unlock", "card": "guildhall"})
+	eq(r.cards.x.rules_text(r.cards), "Unlock Guildhall", "short text")
+	eq(r.cards.x.rules_tooltip(r.cards), "Guildhall can now be bought in the supply.", "tooltip")
