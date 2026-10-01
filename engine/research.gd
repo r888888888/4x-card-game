@@ -73,7 +73,7 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 	return {
 		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
 		"cost": def.cost.get(GameEngine.INSIGHT, 0) if future else cost(e, tech.uid),
-		"gives": gives, "uid": -1 if future else tech.uid,
+		"gives": gives, "uid": -1 if future else tech.uid, "eureka": eureka_met(e, def),
 	}
 
 
@@ -92,7 +92,18 @@ static func cost(e: GameEngine, uid: int) -> int:
 		return 0
 	var insight: int = tech.def.cost.get(GameEngine.INSIGHT, 0)
 	insight -= Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
+	if eureka_met(e, tech.def):
+		insight -= tech.def.eureka.off
 	return maxi(insight, 1)
+
+
+## Whether def has a eureka (141) and the tableau holds its count of matching cards (by id, or by tag), idle or not.
+static func eureka_met(e: GameEngine, def: CardDef) -> bool:
+	if def.eureka.is_empty():
+		return false
+	var matches := e.zone("tableau").cards.filter(func(c): return c.def.id == def.eureka.card if def.eureka.has("card") \
+		else c.def.tags.has(def.eureka.tag))
+	return matches.size() >= def.eureka.count
 
 
 ## Whether def has no prereq or its prereq is researched.

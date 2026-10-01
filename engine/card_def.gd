@@ -37,6 +37,7 @@ var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
 var prereq: String = ""  # techs: id of the tech that must be researched first (140)
+var eureka: Dictionary = {}  # techs: {card | tag, count, off}: off insight while the tableau holds count matches (141)
 var discard_turns := 1  # events: upkeeps the event stays active for
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
@@ -101,6 +102,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append("Saves %d pop from famine" % famine_guard)
 	if prereq != "":
 		parts.append("Needs %s" % card_db[prereq].name)
+	if not eureka.is_empty():
+		parts.append(eureka_text(card_db))
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
@@ -137,9 +140,20 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("Each upkeep, %d pop here that would starve survives" % famine_guard)
 	if prereq != "":
 		parts.append("Needs %s researched first." % card_db[prereq].name)
+	if not eureka.is_empty():
+		parts.append(eureka_text(card_db) + ".")
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
+
+
+## A tech's eureka line (141): "Eureka: -2 insight with 2 Farms", "Eureka: -2 insight with 2 city cards"; "" without.
+func eureka_text(card_db: Dictionary) -> String:
+	if eureka.is_empty():
+		return ""
+	var plural := "" if eureka.count == 1 else "s"
+	var what: String = card_db[eureka.card].name + plural if eureka.has("card") else "%s card%s" % [eureka.tag, plural]
+	return "Eureka: -%d insight with %d %s" % [eureka.off, eureka.count, what]
 
 
 ## A government's actions line (127): "2 actions each turn."

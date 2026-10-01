@@ -67,6 +67,8 @@ static func _tech_cost_text(e: GameEngine, tech: CardInstance) -> String:
 	var civ: int = Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
 	if civ > 0:
 		parts.append("−%d civilization" % civ)
+	if Research.eureka_met(e, tech.def):
+		parts.append("−%d eureka" % tech.def.eureka.off)
 	return "Costs %d insight now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
 
 

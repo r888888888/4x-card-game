@@ -210,7 +210,8 @@ func tech_eras() -> Array[Dictionary]:
 
 
 ## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (insight
-## now; printed for a future tech), gives (card ids it creates or unlocks), uid (-1 for a future tech)}].
+## now; printed for a future tech), gives (card ids it creates or unlocks), uid (-1 for a future tech), eureka (whether
+## its eureka is met, 141)}].
 func tech_tree() -> Array[Dictionary]:
 	return Research.tree(self)
 
@@ -220,8 +221,8 @@ func era_name(n: int) -> String:
 	return config.get("era_names", {}).get(n, "Era %d" % n)
 
 
-## What tech uid costs in insight right now: its printed cost less civilization discounts, never under 1 (0 if uid
-## isn't a tech).
+## What tech uid costs in insight right now: its printed cost less civilization discounts and its eureka when met
+## (141), never under 1 (0 if uid isn't a tech).
 func tech_cost(uid: int) -> int:
 	return Research.cost(self, uid)
 

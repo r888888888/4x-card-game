@@ -15,6 +15,7 @@ const TYPE_FIELDS := {
 	"famine_guard": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
+	"eureka": [CardDef.TECH],
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION],
@@ -131,6 +132,9 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': prereq: unknown card '%s'" % [src, id, prereq])
 		elif prereq != "" and db[prereq].type != CardDef.TECH:
 			errors.append("%s: card '%s': prereq: '%s' is not a tech" % [src, id, prereq])
+		var eureka_card: String = db[id].eureka.get("card", "")
+		if eureka_card != "" and not db.has(eureka_card):
+			errors.append("%s: card '%s': eureka: unknown card '%s'" % [src, id, eureka_card])
 		var home: String = db[id].home
 		if home != "" and not db.has(home):
 			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
@@ -261,6 +265,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			def.era = era
 	if def.type == CardDef.TECH:
 		def.prereq = Fields.read_string(c, "prereq", errs, [], "")
+		if c.has("eureka"):
+			def.eureka = _parse_eureka(c.eureka, errs)
 
 	var requires: Variant = c.get("requires", [])
 	if requires is Array:
@@ -390,6 +396,25 @@ static func _parse_flavor(c: Dictionary, def: CardDef, errs: Array[String]) -> v
 			def.quote_by = by
 		else:
 			errs.append("'quote' must be {\"text\": …, \"by\": …} with non-empty strings")
+
+
+## A tech's eureka object (141), {"card" | "tag": String, "count": int >= 1, "off": int >= 1}, as given; {} after an
+## error. Whether a card id is known is checked in the cross-card pass.
+static func _parse_eureka(raw: Variant, errs: Array[String]) -> Dictionary:
+	var example := "like {\"card\": \"farm\", \"count\": 2, \"off\": 2}"
+	if not (raw is Dictionary):
+		errs.append("eureka: must be an object %s" % example)
+		return {}
+	var own: Array[String] = []
+	if raw.has("card") == raw.has("tag"):
+		own.append("needs exactly one of 'card' and 'tag'")
+	var key := "card" if raw.has("card") else "tag"
+	var out := {key: Fields.read_string(raw, key, own, [], "")}
+	out.count = Fields.read_int(raw, "count", own, 1)
+	out.off = Fields.read_int(raw, "off", own, 1)
+	for m in own:
+		errs.append("eureka: %s (%s)" % [m, example])
+	return out if own.is_empty() else {}
 
 
 ## An event's discard object {"turns": n} as its number of turns (default 1). Unknown conditions are errors.
