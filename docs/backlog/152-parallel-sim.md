@@ -2,7 +2,7 @@
 id: 152
 title: Run the balance sim on every CPU core
 type: feature
-status: ready
+status: red-review
 branch: feat/152-parallel-sim
 ---
 
@@ -50,6 +50,12 @@ contends on shared objects.)
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_parallel_sim::test_the_report_is_the_same_on_1_2_and_4_processes` |
+| AC2 | `test_parallel_sim::test_a_single_strategy_report_is_the_same_on_2_processes` |
+| AC3 | `test_parallel_sim::test_more_processes_than_games_runs_one_per_game` |
+| AC4 | `test_parallel_sim::test_run_files_plays_in_this_process_by_default` |
+| AC5 | `test_parallel_sim::test_a_shard_with_no_results_fails_the_run_and_its_directory_goes` |
+| AC6 | `test_parallel_sim::test_a_parallel_run_leaves_no_results_directory`, and AC5's test (after a failed shard) |
 
 ## Manual check
 - [ ] `time scripts/sim.sh 20` on this machine: note the time against `SIM_PROCS=1 scripts/sim.sh 20`.
