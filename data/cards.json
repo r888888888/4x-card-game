@@ -55,7 +55,7 @@
     {
       "id": "research", "name": "Research", "type": "action",
       "cost": {}, "vp": 0, "tags": [],
-      "effects": [ { "op": "research" } ]
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ]
     },
     {
       "id": "forage", "name": "Forage", "type": "event",

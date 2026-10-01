@@ -22,8 +22,6 @@ func row() -> Array[CardView]:
 	var kind := _board.pending_kind()
 	if kind == GameEngine.PENDING_EXPLORE:
 		return _board.views_in(_board.choices.reveal)
-	if kind == GameEngine.PENDING_RESEARCH:
-		return _board.views_in(_board.choices.research_row)
 	if _board.drag.targeting != null:
 		var targets: Array[CardView] = []
 		for uid in _board.drag.lit:
@@ -140,7 +138,7 @@ func activate() -> void:
 	var drag := _board.drag
 	if _board.supply.is_open():
 		_board.supply.pick(view)
-	elif _board.pending_kind() in [GameEngine.PENDING_EXPLORE, GameEngine.PENDING_RESEARCH] or (drag.targeting != null and drag.lit.has(view.uid)):
+	elif _board.pending_kind() == GameEngine.PENDING_EXPLORE or (drag.targeting != null and drag.lit.has(view.uid)):
 		_board.on_picked(view)
 	elif on_board and not _board.territory_view.is_open():
 		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its first card
@@ -173,7 +171,7 @@ func sync() -> void:
 	if _board.supply.is_open():  # the focus stays on the pile card (or nothing) while buying
 		return
 	var kind := _board.pending_kind()
-	if kind == GameEngine.PENDING_EXPLORE or kind == GameEngine.PENDING_RESEARCH:
+	if kind == GameEngine.PENDING_EXPLORE:
 		var choice := row()
 		if not choice.has(focused) and not choice.is_empty():
 			set_card(choice[0])

@@ -1,4 +1,4 @@
-extends "res://tests/lib/test_case.gd"
+extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the scripted bot (sim/bot.gd) and per-seed stats (sim/sim_stats.gd).
 
 const METRICS := ["bought", "cities", "era", "explored", "pop", "score", "techs"]  # sorted
@@ -38,6 +38,15 @@ func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> vo
 	var e := make_engine({"scout": 2}, {"turn_limit": 2})
 	check(ScriptedBot.play(e), "the game ends within the bot's step limit")
 	check(e.is_over, "game over")
+
+
+## Backlog 140: the tree is open, so the bot learns the cheapest tech it can afford at the start of its turn.
+func test_bot_learns_the_cheapest_tech_it_can_afford() -> void:
+	var e: Object = tech_engine(["writing", "pottery", "bronze"], {"farm": 10},
+		{"starting": {"resources": {"food": 2, "insight": 2}, "tableau": ["capital"], "territory": "homeland"}})
+	ScriptedBot.take_turn(e, "baseline")
+	eq(card_ids(e.zone("researched")), ["pottery"], "Pottery (2) learned; Writing (3) and Bronze (5) too dear")
+	eq(e.resources.get("insight"), 0, "2 − 2")
 
 
 ## Backlog 084: before ending a turn the bot relieves a Famine it can pay for when the next upkeep would still starve.

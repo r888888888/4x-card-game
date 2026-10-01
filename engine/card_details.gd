@@ -56,21 +56,17 @@ static func _state(e: GameEngine, card: CardInstance, zone_name: String) -> Arra
 		out.append("On %s" % territory.def.name)
 	if zone_name == "tableau" and card.def.type == CardDef.BUILDING and e.is_idle(card.uid):
 		out.append("Idle: no free worker (skips upkeep)")
-	if card.def.type == CardDef.TECH and zone_name in ["research_reveal", "research_deck"]:
+	if card.def.type == CardDef.TECH and zone_name == "research_deck":
 		out.append(_tech_cost_text(e, card))
 	return out
 
 
-## "Costs 2 insight now (printed 5, −1 civilization, −1 pass, −2 prereq)"
+## "Costs 2 insight now (printed 3, −1 civilization)"
 static func _tech_cost_text(e: GameEngine, tech: CardInstance) -> String:
 	var parts: PackedStringArray = ["printed %d" % tech.def.cost.get(GameEngine.INSIGHT, 0)]
 	var civ: int = Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
 	if civ > 0:
 		parts.append("−%d civilization" % civ)
-	if tech.passes > 0:
-		parts.append("−%d pass%s" % [tech.passes, "" if tech.passes == 1 else "es"])
-	if tech.def.prereq != "" and e.zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
-		parts.append("−%d prereq" % tech.def.prereq_discount)
 	return "Costs %d insight now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
 
 
@@ -94,7 +90,6 @@ static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Arra
 			names.append("Famine guard")
 		names.append_array(["Slots", "Workers"])
 	if def.type == CardDef.TECH:
-		names.append("Passes")
 		if def.prereq != "":
 			names.append("Prerequisite")
 	var out: Array[Dictionary] = []

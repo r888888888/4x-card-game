@@ -50,7 +50,7 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "bazaar", "name": "Bazaar", "type": "action",
 	 "effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}]},
-	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "research"}]},
+	{"id": "study", "name": "Research", "type": "action", "effects": [{"op": "gain", "resource": "insight", "amount": 3}]},
 	{"id": "trader", "name": "Trader", "type": "action", "cost": {"food": 1}, "effects": [
 		{"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2}]},
 	{"id": "famine", "name": "Famine", "type": "event",
@@ -155,7 +155,7 @@ func has_message(messages: Array[String], fragment: String) -> bool:
 
 
 func resources() -> Array[String]:
-	var r: Array[String] = ["food", "wealth"]
+	var r: Array[String] = ["food", "wealth", "insight"]
 	return r
 
 
@@ -168,7 +168,7 @@ func keywords() -> Array[String]:
 ## A population block without "famine" gets FAMINE (083), so fixtures that turn population on stay short.
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
-		"resources": ["food", "wealth"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
+		"resources": ["food", "wealth", "insight"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
 		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"},
 		"deck": deck,
 	}
@@ -279,12 +279,6 @@ func _move_territories(engine: Object, ids: Array, to_zone: String) -> void:
 func put_in_hand(engine: Object, id: String) -> int:
 	var card: CardInstance = engine.create_card(id, "hand", null)
 	return card.uid
-
-
-## Puts a new Research card (study) in the hand and plays it, which reveals techs. Returns
-## play_card's result.
-func play_research(engine: Object) -> bool:
-	return engine.play_card(put_in_hand(engine, "study"))
 
 
 ## TEST_CARDS plus TEST_CIVS, parsed.

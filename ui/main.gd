@@ -299,18 +299,12 @@ func discard(view: CardView) -> void:
 	Game.engine.discard_card(view.uid)
 
 
-## A click on a lit target, a revealed tech or a revealed territory.
+## A click on a lit target or a revealed territory.
 func on_picked(view: CardView) -> void:
 	if drag.targeting != null:
 		var card := drag.targeting
 		drag.end_targeting()
 		try_play(card, view.uid)
-	elif pending_kind() == GameEngine.PENDING_RESEARCH:
-		var error := Game.engine.buy_tech_error(view.uid)
-		if error != "":
-			_refuse(view, error)
-		else:
-			Game.engine.buy_tech(view.uid)
 	else:
 		var error := Game.engine.choose_error(view.uid)
 		if error != "":
@@ -383,7 +377,7 @@ func _refresh() -> void:
 	actions_label.visible = e.actions_per_turn() >= 0
 	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
 	var hand_cards := e.zone("hand").cards
-	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row}
+	var rows := {"reveal": choices.reveal}
 	var viewed := territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}
 	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():
@@ -410,8 +404,6 @@ func _refresh() -> void:
 		for i in cards.size():
 			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
 			_place(card, rows[zone_name], i, 0.0)
-	for card in e.zone("research_reveal").cards:
-		views[card.uid].set_tech_info(e.tech_cost(card.uid), card.def.cost.get(GameEngine.INSIGHT, 0), e.tech_passes(card.uid), GameEngine.MAX_PASSES)
 	for card in e.zone("active_events").cards:
 		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	choices.refresh(e)

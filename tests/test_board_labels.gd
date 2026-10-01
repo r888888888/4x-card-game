@@ -102,14 +102,3 @@ func test_supply_button_reads_buy_cards_and_s_opens_the_supply_screen() -> void:
 	press_key(main, KEY_S)
 	check(title != null and not title.is_visible_in_tree(), "S closes it again")
 	close_main(main)
-
-
-# --- AC6: Knowledge ---
-
-func test_research_choice_is_titled_knowledge() -> void:
-	var main := open_main()
-	main.start_game(1)
-	var overlay: Node = main.choices.research_row.get_parent()  # the hand may hold a card named Research (139)
-	check(label_with_text(overlay, "Knowledge") != null, "a Knowledge title")
-	check(label_with_text(overlay, "Research") == null, "no Research title")
-	close_main(main)

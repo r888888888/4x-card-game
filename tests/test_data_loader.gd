@@ -45,7 +45,7 @@ func creator(zone: String) -> Array:
 
 func test_bug_048_create_refuses_zones_where_a_new_card_makes_no_sense() -> void:
 	var cases := []
-	for zone in ["research_reveal", "reveal", "frontier", "territory_deck", "research_deck", "researched", "lost_techs", "future_techs"]:
+	for zone in ["reveal", "frontier", "territory_deck", "research_deck", "researched", "future_techs"]:
 		cases.append([zone, creator(zone),
 			"card 'x': effects[0]: 'zone' must be one of: tableau, hand, discard, deck (got '%s')" % zone, "one_error"])
 	check_cases(cases, parse)

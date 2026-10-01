@@ -14,7 +14,6 @@ const OPS := {
 	"settle": preload("res://engine/effects/settle_effect.gd"),
 	"grow": preload("res://engine/effects/grow_effect.gd"),
 	"add_era": preload("res://engine/effects/add_era_effect.gd"),
-	"research": preload("res://engine/effects/research_effect.gd"),
 	"trade": preload("res://engine/effects/trade_effect.gd"),
 	"unlock": preload("res://engine/effects/unlock_effect.gd"),
 	"trash": preload("res://engine/effects/trash_effect.gd"),

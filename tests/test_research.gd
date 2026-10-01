@@ -1,37 +1,68 @@
 extends "res://tests/lib/tech_case.gd"
-## Research (backlog 025): tech cards, the research deck, and the reveal-2 buy-or-decline action.
-## Fixture techs and tech_engine come from tests/lib/tech_case.gd.
+## Research (backlog 025; an open tree since 140): tech cards, the research deck, and learning any tech whose
+## prerequisite is researched with insight, at any time, with no card or action. Fixture techs and tech_engine come
+## from tests/lib/tech_case.gd: Pottery 2, Writing 3, Bronze Working 5, Iron Working 6 (prereq Bronze), Steel 3
+## (prereq Iron), Loom, Dye, Salt 4.
 
 # --- Helpers ---
 
-const TEN_INSIGHT := {"starting": {"resources": {"food": 2, "wealth": 10, "insight": 10}, "tableau": ["capital"],
-	"territory": "homeland"}}
+const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}
+const ASTRONOMY := {"id": "astronomy", "name": "Astronomy", "type": "tech", "cost": {"insight": 5}, "era": 2}
 
 
-## An engine with the research deck [pottery, writing, bronze], 10 wealth and 10 insight, and the first two revealed.
-func open_engine() -> Object:
-	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, TEN_INSIGHT)
-	check(play_research(e), "research should open")
-	return e
+## GameEngine.<name>, read by name so this file parses before the constant exists (red phase); "<missing>" if absent.
+func engine_const(name: String) -> Variant:
+	return (GameEngine as Script).get_script_constant_map().get(name, "<missing>")
 
 
-## Loads a card 'x' of the given type/cost/effects next to a city; returns {cards, errors}.
-func load_x(type: String, cost: Variant, effects: Array = []) -> Dictionary:
+## A game with the research deck order_top_first and the given starting insight (and 20 wealth).
+func insight_engine(order_top_first: Array, insight: int, overrides := {}, extra: Array = []) -> Object:
+	var o := {"starting": {"resources": {"food": 2, "wealth": 20, "insight": insight}, "tableau": ["capital"],
+		"territory": "homeland"}}
+	o.merge(overrides, true)
+	return tech_engine(order_top_first, {"farm": 10}, o, extra)
+
+
+## The uid of tech id in the research deck (-1 if it isn't there).
+func deck_tech(e: Object, id: String) -> int:
+	return uid_of(e.zone("research_deck"), id)
+
+
+## Learns tech id from the research deck; returns buy_tech's result.
+func learn(e: Object, id: String) -> bool:
+	return e.buy_tech(deck_tech(e, id))
+
+
+## The tech_tree() entry for id ({} if missing).
+func entry(e: Object, id: String) -> Dictionary:
+	for t in e.tech_tree():
+		if t.id == id:
+			return t
+	return {}
+
+
+## Loads a card 'x' of the given type/cost/effects next to the fixture cards; returns {cards, errors, warnings}.
+func load_x(type: String, cost: Variant, effects: Array = [], fields := {}) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var x := {"id": "x", "name": "X", "type": type, "effects": effects}
 	if cost != null:
 		x["cost"] = cost
-	var raw := {"cards": [{"id": "city", "name": "City", "type": "city"}, x]}
-	var cards := DataLoader.parse_cards(raw, tech_resources(), "cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors}
+	x.merge(fields, true)
+	var cards := tech_db([x], errors, warnings)
+	return {"cards": cards, "errors": errors, "warnings": warnings}
 
 
 func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
 	return config_errors_for(tech_db(), overrides, deck)
 
 
-# --- AC1: tech cards load ---
+## What buy_tech changes: [insight, researched ids, research deck ids sorted].
+func snapshot(e: Object) -> Array:
+	return [e.resources.get("insight"), card_ids(e.zone("researched")), sorted(card_ids(e.zone("research_deck")))]
+
+
+# --- Tech cards load ---
 
 func test_tech_with_an_insight_cost_loads() -> void:
 	var r := load_x("tech", {"insight": 2})
@@ -53,13 +84,46 @@ func test_tech_card_validation() -> void:
 	], func(cost_and_effects): return load_x("tech", cost_and_effects[0], cost_and_effects[1]).errors)
 
 
-# --- AC2: research_deck config ---
+# --- Prerequisites load (backlog 026) ---
+
+func test_prereq_loads() -> void:
+	var r := load_x("tech", {"insight": 2}, [], {"prereq": "bronze"})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+	if r.cards.has("x"):
+		eq(r.cards.x.prereq, "bronze", "prereq")
+
+
+func test_prereq_validation() -> void:
+	check_cases([
+		["unknown card", [{"prereq": "dragon"}, "tech"], "cards.json: card 'x': prereq"],
+		["not a tech", [{"prereq": "farm"}, "tech"], "cards.json: card 'x': prereq"],
+		["itself", [{"prereq": "x"}, "tech"], "cards.json: card 'x': prereq"],
+		["prereq on a building", [{"prereq": "bronze"}, "building"], "cards.json: card 'x': 'prereq' only applies to techs",
+			"warning_only"],
+	], func(args): return load_x(args[1], {"insight": 2} if args[1] == "tech" else {"wealth": 2}, [], args[0]))
+
+
+func test_prereq_on_a_card_that_is_not_a_tech_is_ignored() -> void:
+	var r := load_x("building", {"wealth": 2}, [], {"prereq": "bronze"})
+	check(r.cards.has("x"), "the building loads")
+	if r.cards.has("x"):
+		eq(r.cards.x.prereq, "", "ignored")
+
+
+func test_prerequisite_card_text() -> void:
+	var db := tech_db()
+	eq(db.iron.rules_text(db), "Needs Bronze Working", "short text")
+	eq(db.iron.rules_tooltip(db), "Needs Bronze Working researched first.", "tooltip")
+
+
+# --- research_deck config ---
 
 func test_research_deck_is_normalized() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"research_deck": {"pottery": 2.0, "writing": 1}}),
-		tech_resources(), tech_db(), "config.json", errors, warnings)
+		resources(), tech_db(), "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.get("research_deck"), {"pottery": 2, "writing": 1}, "research_deck")
 
@@ -67,7 +131,7 @@ func test_research_deck_is_normalized() -> void:
 func test_research_deck_defaults_to_empty() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), tech_resources(), tech_db(), "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(), "config.json", errors, warnings)
 	eq(config.get("research_deck"), {}, "research_deck default")
 
 
@@ -80,7 +144,7 @@ func test_research_deck_validation() -> void:
 	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], overrides_and_deck[1]))
 
 
-# --- AC3: setup ---
+# --- Setup ---
 
 func test_new_game_shuffles_the_research_deck_by_seed() -> void:
 	var big := {"research_deck": {"pottery": 5, "writing": 5, "bronze": 5}}
@@ -97,189 +161,212 @@ func test_new_game_starts_with_nothing_researched() -> void:
 	var e := tech_engine(["pottery", "writing", "bronze"])
 	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "pottery", "writing"], "research deck")
 	eq(e.zone("researched").size(), 0, "researched")
-	eq(e.research_options(), [] as Array[int], "no options open")
+	eq(e.pending(), {}, "nothing owed")
 
 
-# --- AC4: reveal (backlog 034: playing a Research card reveals) ---
+# --- AC1 (140): learn any time, no card, no action ---
 
-func test_playing_a_research_card_reveals_the_top_two() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	var changes := []
-	e.changed.connect(func(): changes.append(1))
-	check(play_research(e), "playing Research should succeed")
-	eq(card_ids(e.zone("discard")), ["study"], "Research is in the discard")
-	var options = e.research_options()
-	eq(options, [uid_of(e.zone("research_reveal"), "pottery"), uid_of(e.zone("research_reveal"), "writing")] as Array[int], "options, top first")
-	eq(card_ids(e.zone("research_deck")), ["bronze"], "research deck")
-	check(changes.size() >= 1, "changed emitted")
-
-
-func test_open_options_block_play_grow_discard_end_turn_and_research() -> void:
-	var pop := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
-	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, pop)
-	check(play_research(e), "research should succeed")
-	var hand_uid := first_in_hand(e)
-	var food: int = e.resources.food
-	eq(e.play_error(hand_uid), "Buy a tech or decline first.", "play_error")
-	check(not e.play_card(hand_uid), "play_card should fail")
-	eq(e.grow_error(home_uid(e)), "Buy a tech or decline first.", "grow_error")
-	check(not e.grow(home_uid(e)), "grow should fail")
-	check(not e.discard_card(hand_uid), "discard_card should fail")
-	e.end_turn()
-	eq(e.turn, 1, "still turn 1")
-	check(not play_research(e), "a second Research card can't be played")
-	e.zone("hand").remove(e.zone("hand").cards[-1])  # the unplayed Research card
-	eq(e.zone("hand").size(), 5, "hand unchanged")
-	eq(e.resources.food, food, "food unchanged")
-	eq(e.research_options().size(), 2, "options still open")
-
-
-# --- AC5: buy ---
-
-func test_buying_a_tech_pays_for_it_and_moves_it_to_researched() -> void:
-	var e := open_engine()
-	var pottery := uid_of(e.zone("research_reveal"), "pottery")
-	check(e.buy_tech(pottery), "buy should succeed: %s" % e.buy_tech_error(pottery))
-	eq(e.resources.insight, 8, "insight 10 - 2")
+func test_learning_a_tech_needs_no_card_and_no_action() -> void:
+	var o := {"starting": {"resources": {"food": 2, "insight": 2}, "tableau": ["capital"], "territory": "homeland",
+		"government": "band"}}
+	var e := tech_engine(["pottery", "writing"], {"farm": 10}, o, TEST_GOVS)
+	eq(e.actions_left(), 2, "Band: 2 actions")
+	var pottery := deck_tech(e, "pottery")
+	check(e.buy_tech(pottery), "learn Pottery: %s" % e.buy_tech_error(pottery))
 	eq(card_ids(e.zone("researched")), ["pottery"], "researched")
-	eq(e.research_options(), [] as Array[int], "options closed")
-	eq(e.zone("research_reveal").size(), 0, "nothing left revealed")
+	eq(e.resources.get("insight"), 0, "insight 2 − 2")
+	eq(card_ids(e.zone("research_deck")), ["writing"], "Writing still in the research deck")
+	eq(e.actions_left(), 2, "no action used")
+	eq(e.zone("discard").size(), 0, "no card played")
 
 
-func test_buying_shuffles_the_other_techs_back_into_the_deck() -> void:
-	var e := open_engine()
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy")
-	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "writing"], "research deck")
-
-
-func test_play_and_end_turn_work_again_after_buying() -> void:
-	var e := open_engine()
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy")
-	eq(e.play_error(first_in_hand(e)), "", "play_error")
-	e.end_turn()
-	eq(e.turn, 2, "turn advanced")
-
-
-func test_cannot_afford_a_tech() -> void:
-	var e := open_engine()
-	e.resources.insight = 1
-	var writing := uid_of(e.zone("research_reveal"), "writing")
-	eq(e.buy_tech_error(writing), "Writing needs 3 insight (you have 1).", "buy_tech_error")
-	check(not e.buy_tech(writing), "buy should fail")
-	eq(e.resources.insight, 1, "insight unchanged")
-	eq(e.research_options().size(), 2, "options still open")
-	eq(e.zone("researched").size(), 0, "nothing researched")
-
-
-func test_cannot_buy_a_tech_that_was_not_revealed() -> void:
-	var e := open_engine()
-	var not_options := [uid_of(e.zone("research_deck"), "bronze"), uid_of(e.zone("tableau"), "capital"), -1]
-	for uid in not_options:
-		check(not e.buy_tech(uid), "buy_tech(%d) should fail" % uid)
-	eq(e.resources.insight, 10, "insight unchanged")
-	eq(e.research_options().size(), 2, "options still open")
-
-
-func test_tech_cost_is_the_printed_insight_cost() -> void:
-	var e := open_engine()
-	eq(e.tech_cost(uid_of(e.zone("research_reveal"), "pottery")), 2, "Pottery")
-	eq(e.tech_cost(uid_of(e.zone("research_reveal"), "writing")), 3, "Writing")
-
-
-# --- AC6: techs count like buildings ---
-
-func test_buying_a_tech_resolves_its_play_effects() -> void:
-	var e := open_engine()
+func test_learning_a_tech_resolves_its_play_effects() -> void:
+	var e := insight_engine(["writing", "pottery"], 20)
 	var before: int = e.score()
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "writing")), "buy Writing")
+	check(learn(e, "writing"), "learn Writing")
 	eq(e.score(), before + 2, "score: Writing's +2 VP")
 
 
 func test_a_tech_scores_its_vp_and_works_at_upkeep() -> void:
-	var e := open_engine()
+	var e := insight_engine(["pottery", "writing"], 20)
 	var before: int = e.score()
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
+	check(learn(e, "pottery"), "learn Pottery")
 	eq(e.score(), before + 1, "score: Pottery's printed VP")
 	var food: int = e.resources.food
 	e.end_turn()
 	eq(e.resources.food, food + 3, "upkeep: Capital 2 + Pottery 1")
 
 
-# --- AC7: decline ---
-
-func test_declining_returns_both_techs_and_spends_nothing() -> void:
-	var e := open_engine()
-	check(e.decline_research(), "decline should succeed")
-	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "pottery", "writing"], "research deck")
-	eq(e.zone("research_reveal").size(), 0, "nothing left revealed")
-	eq(e.resources.insight, 10, "insight unchanged")
-	eq(e.research_options(), [] as Array[int], "options closed")
+func test_several_techs_can_be_learned_in_one_turn() -> void:
+	var e := insight_engine(["pottery", "writing", "bronze"], 20)
+	check(learn(e, "pottery"), "learn Pottery")
+	check(learn(e, "writing"), "learn Writing")
+	eq(e.resources.get("insight"), 15, "20 − 2 − 3")
+	eq(card_ids(e.zone("researched")), ["pottery", "writing"], "researched")
 
 
-func test_decline_does_nothing_without_open_options() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	check(not e.decline_research(), "decline should fail")
-	eq(e.zone("research_deck").size(), 3, "research deck unchanged")
+func test_tech_cost_is_the_printed_insight_cost() -> void:
+	var e := insight_engine(["pottery", "writing"], 20)
+	eq(e.tech_cost(deck_tech(e, "pottery")), 2, "Pottery")
+	eq(e.tech_cost(deck_tech(e, "writing")), 3, "Writing")
 
 
-# --- AC8: can't research (backlog 034 AC5) ---
+# --- AC2 (140): prerequisites are hard ---
 
-func test_a_research_card_cannot_be_played_with_nothing_to_research() -> void:
-	var e := tech_engine([])
-	var card := put_in_hand(e, "study")
-	eq(e.play_error(card), "The tech deck is empty.", "play_error")
-	check(not e.play_card(card), "play_card should fail")
-	check(e.zone("hand").find(card) != null, "the card stays in hand")
-	check(e.discard_card(card), "it can still be discarded")
-
-
-func test_researching_with_one_tech_left_reveals_just_that_one() -> void:
-	var e := tech_engine(["writing"])
-	check(play_research(e), "research should succeed")
-	eq(e.research_options().size(), 1, "one option")
-	check(e.buy_tech(e.research_options()[0]), "buy it")
-	eq(card_ids(e.zone("researched")), ["writing"], "researched")
-	eq(e.zone("research_deck").size(), 0, "research deck empty")
+func test_a_tech_whose_prereq_isnt_researched_is_locked() -> void:
+	var e := insight_engine(["iron", "bronze"], 20)
+	eq(entry(e, "iron").get("state"), engine_const("TECH_LOCKED"), "Iron Working is locked")
+	eq(entry(e, "bronze").get("state"), GameEngine.TECH_AVAILABLE, "Bronze Working is available")
+	var iron := deck_tech(e, "iron")
+	eq(e.buy_tech_error(iron), "Iron Working needs Bronze Working first.", "buy_tech_error")
+	var before := snapshot(e)
+	check(not e.buy_tech(iron), "buy_tech refuses")
+	eq(snapshot(e), before, "nothing changed")
 
 
-# --- Backlog 034 AC3/AC4: no free research, no limit per turn ---
+func test_learning_the_prereq_unlocks_the_tech() -> void:
+	var e := insight_engine(["iron", "bronze"], 20)
+	check(learn(e, "bronze"), "learn Bronze Working")
+	eq(entry(e, "iron").get("state"), GameEngine.TECH_AVAILABLE, "Iron Working is available")
+	check(learn(e, "iron"), "learn Iron Working: %s" % e.buy_tech_error(deck_tech(e, "iron")))
+	eq(card_ids(e.zone("researched")), ["bronze", "iron"], "researched")
 
-func test_there_are_no_research_charges() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	for method in ["research", "research_left", "research_error"]:
-		check(not e.has_method(method), "the engine has no %s()" % method)
+
+# --- AC3 (140): when learning is refused ---
+
+func test_a_tech_not_in_the_research_deck_isnt_on_offer() -> void:
+	var e := insight_engine(["pottery", "writing"], 20,
+		{"research_deck": {"pottery": 1, "writing": 1, "optics": 1}}, [OPTICS])
+	check(learn(e, "pottery"), "learn Pottery")
+	var researched := uid_of(e.zone("researched"), "pottery")
+	var future := uid_of(e.zone("future_techs"), "optics")
+	for row in [["researched Pottery", researched], ["era 2 Optics", future], ["the Capital", home_uid(e)], ["no card", -1]]:
+		eq(e.buy_tech_error(row[1]), "That tech isn't on offer.", "%s: buy_tech_error" % row[0])
+		var before := snapshot(e)
+		check(not e.buy_tech(row[1]), "%s: buy_tech refuses" % row[0])
+		eq(snapshot(e), before, "%s: nothing changed" % row[0])
+
+
+func test_a_tech_needs_enough_insight() -> void:
+	var e := insight_engine(["pottery", "writing"], 1)
+	var pottery := deck_tech(e, "pottery")
+	eq(e.buy_tech_error(pottery), "Pottery needs 2 insight (you have 1).", "buy_tech_error")
+	var before := snapshot(e)
+	check(not e.buy_tech(pottery), "buy_tech refuses")
+	eq(snapshot(e), before, "nothing changed")
+
+
+func test_no_learning_after_the_game_is_over() -> void:
+	var e := insight_engine(["pottery", "writing"], 20, {"turn_limit": 1})
 	e.end_turn()
-	eq(e.research_options(), [] as Array[int], "a new turn opens no tech options")
-	eq(e.zone("research_deck").size(), 3, "research deck untouched")
+	check(e.is_over, "game over")
+	var pottery := deck_tech(e, "pottery")
+	eq(e.buy_tech_error(pottery), "The game is over.", "buy_tech_error")
+	var before := snapshot(e)
+	check(not e.buy_tech(pottery), "buy_tech refuses")
+	eq(snapshot(e), before, "nothing changed")
 
 
-func test_two_research_cards_can_be_played_in_one_turn() -> void:
-	var e := tech_engine(["pottery", "writing", "bronze"])
-	check(play_research(e), "first Research")
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
-	check(play_research(e), "second Research")
-	eq(e.research_options().size(), 2, "two techs revealed again")
+func test_no_learning_during_an_explore_choice() -> void:
+	var e := insight_engine(["pottery", "writing"], 20, {"territory_deck": {"hills": 1, "grassland": 1}})
+	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
+	var pottery := deck_tech(e, "pottery")
+	eq(e.buy_tech_error(pottery), "Choose a territory first.", "buy_tech_error")
+	var before := snapshot(e)
+	check(not e.buy_tech(pottery), "buy_tech refuses")
+	eq(snapshot(e), before, "nothing changed")
 
 
-# --- Backlog 092: the research card's name, for the UI's hints ---
+func test_learning_is_allowed_while_a_discard_is_owed() -> void:
+	var e := insight_engine(["pottery", "writing"], 20)
+	for i in 3:
+		check(e.play_card(put_in_hand(e, "scout")), "play Scout %d" % i)
+	e.end_turn()
+	check(e.discard_needed() > 0, "a discard is owed")
+	var pottery := deck_tech(e, "pottery")
+	eq(e.buy_tech_error(pottery), "", "buy_tech_error")
+	check(e.buy_tech(pottery), "learn Pottery")
+
+
+# --- AC4 (140): the last tech of an era brings the next ---
+
+func test_learning_the_last_tech_adds_the_next_era() -> void:
+	var e := insight_engine(["pottery"], 20,
+		{"research_deck": {"pottery": 1, "optics": 1, "astronomy": 1}}, [OPTICS, ASTRONOMY])
+	eq(sorted(card_ids(e.zone("future_techs"))), ["astronomy", "optics"], "era 2 waits")
+	check(learn(e, "pottery"), "learn Pottery")
+	eq(e.era(), 2, "era 2")
+	eq(sorted(card_ids(e.zone("research_deck"))), ["astronomy", "optics"], "era 2 techs in the research deck")
+
+
+# --- AC5 (140): the reveal is gone ---
+
+func test_the_research_op_is_unknown() -> void:
+	var r := load_x("action", null, [{"op": "research"}])
+	check(has_message(r.errors, "unknown op 'research'"), "errors: %s" % [r.errors])
+
+
+func test_prereq_discount_is_an_unknown_field() -> void:
+	var r := load_x("tech", {"insight": 2}, [], {"prereq": "bronze", "prereq_discount": 3})
+	eq(r.errors, [] as Array[String], "errors")
+	check(has_message(r.warnings, "unknown field 'prereq_discount'"), "warnings: %s" % [r.warnings])
+
+
+func test_the_engine_has_no_reveal_passes_or_lost_techs() -> void:
+	var e := insight_engine(["pottery", "writing"], 20)
+	for method in ["reveal_techs", "reveal_techs_error", "decline_research", "decline_research_error",
+			"research_options", "tech_passes"]:
+		check(not e.has_method(method), "no %s()" % method)
+	for zone_name in ["research_reveal", "lost_techs"]:
+		check(not GameEngine.ZONES.has(zone_name), "no %s zone" % zone_name)
+	for constant in ["PENDING_RESEARCH", "TECH_LOST", "MAX_PASSES"]:
+		check(not (GameEngine as Script).get_script_constant_map().has(constant), "no GameEngine.%s" % constant)
+	var card: CardInstance = e.zone("research_deck").cards[0]
+	check(not "passes" in card, "a tech has no passes")
+
+
+func test_tech_tree_entries_carry_a_uid_and_no_passes() -> void:
+	var e := insight_engine(["pottery", "writing"], 20,
+		{"research_deck": {"pottery": 1, "writing": 1, "optics": 1}}, [OPTICS])
+	eq(entry(e, "pottery").get("uid"), deck_tech(e, "pottery"), "Pottery's uid")
+	eq(entry(e, "optics").get("uid"), -1, "a future tech has uid -1")
+	for t in e.tech_tree():
+		check(not t.has("passes"), "%s: no passes" % t.id)
+
+
+func test_learning_never_leaves_a_choice_pending() -> void:
+	var e := insight_engine(["pottery", "writing"], 20)
+	check(e.play_card(put_in_hand(e, "study")), "play a Research card")
+	eq(e.pending(), {}, "playing Research opens nothing")
+	check(learn(e, "pottery"), "learn Pottery")
+	eq(e.pending(), {}, "learning opens nothing")
+
+
+func test_the_research_card_gains_insight() -> void:
+	var e := insight_engine(["pottery", "writing"], 0)
+	check(e.play_card(put_in_hand(e, "study")), "play a Research card")
+	eq(e.resources.get("insight"), 3, "+3 insight")
+
+
+# --- Backlog 092: the research card's name, for the UI's hints (140: the first card that gains insight) ---
 
 ## A second research card, to tell deck order from supply order.
-const SEEK := {"id": "seek", "name": "Seek", "type": "action", "effects": [{"op": "research"}]}
+const SEEK := {"id": "seek", "name": "Seek", "type": "action", "effects": [{"op": "gain", "resource": "insight", "amount": 1}]}
 
 
 func test_research_card_name_is_the_research_card_in_the_deck() -> void:
-	var e: GameEngine = make_engine({"farm": 5, "study": 1})
+	var e: Object = tech_engine(["pottery"], {"farm": 5, "study": 1})
 	eq(e.research_card_name(), "Research", "Research is in the deck")
 
 
 func test_research_card_name_is_empty_without_a_research_card() -> void:
-	var e: GameEngine = make_engine({"farm": 5})
+	var e: Object = tech_engine(["pottery"], {"farm": 5})
 	eq(e.research_card_name(), "", "no research card in the deck or supply")
 
 
 func test_research_card_name_looks_in_the_deck_then_the_supply_in_order() -> void:
 	var pile := {"price": 1, "count": 1}
-	var e: GameEngine = tech_engine(["pottery"], {"farm": 5}, {"supply": {"seek": pile, "study": pile}}, [SEEK])
-	eq(e.research_card_name(), "Seek", "first supply pile with a research effect")
+	var e: Object = tech_engine(["pottery"], {"farm": 5}, {"supply": {"seek": pile, "study": pile}}, [SEEK])
+	eq(e.research_card_name(), "Seek", "first supply pile that gains insight")
 	e = tech_engine(["pottery"], {"farm": 5, "study": 1}, {"supply": {"seek": pile}}, [SEEK])
 	eq(e.research_card_name(), "Research", "the deck comes before the supply")

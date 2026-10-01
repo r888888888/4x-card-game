@@ -90,12 +90,12 @@ func test_rolled_resource_keyword_shows_in_rules_and_terms() -> void:
 	var resource_keywords: Array[String] = ["gold"]
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
 		{"id": "mint", "name": "Mint", "type": "building", "requires": ["gold"]}]},
-		tech_resources(), "t", errors, warnings, keywords(), resource_keywords)
+		resources(), "t", errors, warnings, keywords(), resource_keywords)
 	var config := DataLoader.parse_config(raw_config({"farm": 10}, {
 		"resource_keywords": ["gold"],
 		"territory_resources": {"hills": [{"keywords": ["gold"], "weight": 1}]},
 		"territory_deck": {"hills": 1},
-	}), tech_resources(), cards, "t", errors, warnings)
+	}), resources(), cards, "t", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var e: Object = GameEngine.new(cards, config)
 	e.new_game(1)
@@ -125,19 +125,12 @@ func test_idle_building_says_it_has_no_worker() -> void:
 
 # --- AC5: a tech's price now ---
 
-func test_revealed_tech_explains_its_price_now() -> void:
+func test_a_tech_in_the_research_deck_explains_its_price_now() -> void:
 	var e := tech_engine(["chariot", "bronze"], {"farm": 10}, {}, [CHARIOT])
-	var deck: Zone = e.zone("research_deck")
-	var bronze := deck.find(uid_of(deck, "bronze"))
-	deck.remove(bronze)
-	e.zone("researched").add(bronze)
-	var chariot := deck.find(uid_of(deck, "chariot"))
-	deck.remove(chariot)
-	e.zone("research_reveal").add(chariot)
-	chariot.passes = 1
-	var d: Dictionary = e.card_details(chariot.uid)
-	check(d.get("state", []).has("Costs 2 insight now (printed 5, −1 pass, −2 prereq)"), "state: %s" % [d.get("state")])
-	check(term_names(d).has("Passes"), "term Passes in %s" % [term_names(d)])
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "bronze")), "learn Bronze Working")
+	var d: Dictionary = e.card_details(uid_of(e.zone("research_deck"), "chariot"))
+	check(d.get("state", []).has("Costs 5 insight now (printed 5)"), "state: %s" % [d.get("state")])
+	check(not term_names(d).has("Passes"), "no term Passes (140) in %s" % [term_names(d)])
 	check(term_names(d).has("Prerequisite"), "term Prerequisite in %s" % [term_names(d)])
 
 
@@ -154,8 +147,8 @@ func test_unknown_cards_have_no_details() -> void:
 func test_bug_107_card_details_before_a_game_starts() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 10}), tech_resources(), cards, "test", errors, warnings)
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", errors, warnings)
 	var e: Object = GameEngine.new(cards, config)  # no new_game: no zones yet
 	eq(e.card_details(-1), {}, "no card has live details before a game")
 	eq(e.def_details("farm").get("name", ""), "Farm", "a definition's details work before a game")

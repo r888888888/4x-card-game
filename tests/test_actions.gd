@@ -11,7 +11,7 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 func load_cards(extra: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, tech_resources(), "cards.json", errors, warnings, keywords())
+	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json", errors, warnings, keywords())
 	return {"errors": errors, "warnings": warnings}
 
 
@@ -122,19 +122,15 @@ func test_other_actions_dont_use_or_need_actions() -> void:
 	eq(e.actions_left(), 0, "still 0 left")
 
 
-func test_buying_a_revealed_tech_after_the_last_action_is_free() -> void:
+func test_learning_a_tech_after_the_last_action_is_free() -> void:
 	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland",
 		"government": "band"}
-	for decline in [false, true]:
-		var e: Object = tech_engine(["pottery", "writing"], {"farm": 10}, {"starting": starting}, TEST_GOVS)
-		play_all(e, shrines(e, 1))
-		check(play_research(e), "Research with the last action: %s" % e.play_error(first_in_hand(e)))
-		eq(e.actions_left(), 0, "no actions left")
-		if decline:
-			check(e.decline_research(), "decline: %s" % e.decline_research_error())
-		else:
-			var pottery := uid_of(e.zone("research_reveal"), "pottery")
-			check(e.buy_tech(pottery), "buy_tech: %s" % e.buy_tech_error(pottery))
+	var e: Object = tech_engine(["pottery", "writing"], {"farm": 10}, {"starting": starting}, TEST_GOVS)
+	play_all(e, shrines(e, 2))
+	eq(e.actions_left(), 0, "no actions left")
+	var pottery := uid_of(e.zone("research_deck"), "pottery")
+	check(e.buy_tech(pottery), "buy_tech: %s" % e.buy_tech_error(pottery))
+	eq(e.actions_left(), 0, "still none used by learning")
 
 
 func test_choosing_an_explored_territory_after_the_last_action_is_free() -> void:

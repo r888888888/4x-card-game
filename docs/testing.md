@@ -55,11 +55,11 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms |
 | `tests/test_details_modal.gd` | The details modal in the real `main.tscn`: I opens it for the focused card, Esc closes it, board keys blocked, supply piles; uses `main.details.shown()` |
-| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, passes, `gives`) and `era_name` / config `era_names` |
+| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`) and `era_name` / config `era_names` |
 | `tests/test_tech_tree_modal.gd` | The Knowledge modal in the real `main.tscn`: T and the Knowledge button open it, one column per era by name, T/Esc close; uses `main.tech_tree.shown()` |
 | `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
 | `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
-| `tests/test_action_errors.gd` | `discard_error`, `choose_error`, `decline_research_error`, and the main scene showing their reasons (093) |
+| `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing their reasons (093) |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094) |
 | `tests/test_pending.gd` | `pending()` for each decision kind (explore, research, discard) and the one blocking rule every action follows |
@@ -92,9 +92,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
 | `tests/test_government.gd` | Government cards (065): the type, `starting.government`, `government()`, playing one to replace the ruling one (to `removed`), upkeep, forecast, score, the same-government error, fork; uses `TEST_GOVS` / `gov_engine` |
 | `tests/test_choose_civilization.gd` | Choosing a civilization (064): config `civilizations`, `civilizations()`, `new_game(seed, civ_id)`, `new_game_error`, the same seed dealing the same game for any civilization |
-| `tests/test_research.gd` | Techs: the `tech` card type, `research_deck` config, playing Research (`play_research` helper) / `buy_tech` / `decline_research`, blocking, no charges |
+| `tests/test_research.gd` | Techs: the `tech` card type and `prereq`, `research_deck` config, learning from the open tree (140: `buy_tech` / `buy_tech_error`, locked techs, the next era), the reveal gone, `research_card_name` |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
-| `tests/test_tech_passes.gd` | Tech passes, stacking discount, removal to `lost_techs`, `prereq` discount, cost floor, prerequisite card text |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
 | `tests/test_terrains.gd` | Terrain keywords (130): config `terrains`, exactly one terrain per territory, terrain-keyed roll tables, terrain/feature keyword details |
@@ -136,7 +135,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
-| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_resources` (adds insight), `tech_engine` (20 wealth and 20 insight), `pass_tech`, `research_engine()` (Pottery and Writing revealed by Research) |
+| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (20 wealth and 20 insight) |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `load_with(extra, resource_keywords)` | `TEST_CARDS` plus `extra` cards, parsed: `{cards, errors, warnings}` |
@@ -149,7 +148,6 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order (no cost or slot check; the last go idle first) |
 | `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
-| `play_research(engine)` | Puts a Research card (`study`) in hand and plays it, revealing techs (backlog 034) |
 | `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations (Tribe, Nomads; backlog 062), kept out of `TEST_CARDS`; `civ_engine` starts a game with `starting.civilization` civ (`""` for none) |
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments (Council, Kingdom; backlog 065), kept out of `TEST_CARDS`; `gov_engine` starts a game with `starting.government` gov (`""` for none) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |

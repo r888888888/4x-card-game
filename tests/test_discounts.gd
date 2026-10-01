@@ -3,7 +3,7 @@ extends "res://tests/lib/tech_case.gd"
 ## A `type` or `tag` filter lowers a hand card's play_cost and a tech's tech_cost; `supply: true` lowers buy_price.
 ## Local fixtures (so other tests load while the field is missing): civilizations Scholars (techs −1 insight),
 ## Builders (wonders −3 wealth) and Traders (supply −1 wealth); buildings Obelisk (12 wealth, wonder) and Cairn
-## (2 wealth + 1 food, wonder). TECHS from tech_case: Loom 4, Iron 6 (prereq Bronze, −2), Steel 3 (prereq Iron, −5).
+## (2 wealth + 1 food, wonder); tech Awl (1 insight). TECHS from tech_case: Loom 4, Iron 6.
 ## Engines are held as Object so the file parses before the API.
 
 const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "civilization", "discounts": [{"type": "tech", "insight": 1}]}
@@ -11,7 +11,8 @@ const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization",
 const TRADERS := {"id": "traders", "name": "Traders", "type": "civilization", "discounts": [{"supply": true, "wealth": 1}]}
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
 const CAIRN := {"id": "cairn", "name": "Cairn", "type": "building", "cost": {"wealth": 2, "food": 1}, "tags": ["wonder"]}
-const FIXTURES := [SCHOLARS, BUILDERS, TRADERS, OBELISK, CAIRN]
+const AWL := {"id": "awl", "name": "Awl", "type": "tech", "cost": {"insight": 1}}
+const FIXTURES := [SCHOLARS, BUILDERS, TRADERS, OBELISK, CAIRN, AWL]
 const SUPPLY := {"supply": {"scout": {"price": 3, "count": 2}, "shrine": {"price": 1, "count": 1}}}
 
 
@@ -76,8 +77,7 @@ func test_discount_text() -> void:
 
 func test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges() -> void:
 	var e: Object = game_as("scholars")
-	check(play_research(e), "research")
-	var loom := uid_of(e.zone("research_reveal"), "loom")
+	var loom := uid_of(e.zone("research_deck"), "loom")
 	eq(e.tech_cost(loom), 3, "Loom 4 − 1")
 	e.resources.insight = 3
 	eq(e.buy_tech_error(loom), "", "3 insight is enough")
@@ -85,16 +85,12 @@ func test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges() -> void:
 	eq(e.resources.insight, 0, "charged 3")
 
 
-func test_a_tech_discount_stacks_with_passes_and_prereqs_but_never_below_1() -> void:
+func test_a_tech_discount_never_takes_a_tech_below_1() -> void:
 	var e: Object = game_as("scholars")
-	pass_tech(e, "loom", "dye")
-	e.create_card("bronze", "researched", null)
 	e.create_card("iron", "research_deck", null)
-	e.create_card("steel", "research_deck", null)
-	eq(e.tech_cost(uid_of(e.zone("research_deck"), "loom")), 2, "Loom 4 − 1 pass − 1")
-	eq(e.tech_cost(uid_of(e.zone("research_deck"), "iron")), 3, "Iron 6 − 2 for Bronze − 1")
-	e.create_card("iron", "researched", null)
-	eq(e.tech_cost(uid_of(e.zone("research_deck"), "steel")), 1, "Steel 3 − 5 for Iron − 1 stops at 1")
+	e.create_card("awl", "research_deck", null)
+	eq(e.tech_cost(uid_of(e.zone("research_deck"), "iron")), 5, "Iron 6 − 1")
+	eq(e.tech_cost(uid_of(e.zone("research_deck"), "awl")), 1, "Awl 1 − 1 stops at 1")
 
 
 # --- AC3: playing from hand ---
@@ -139,15 +135,14 @@ func test_costs_are_unchanged_without_discounts() -> void:
 		var e: Object = game_as(civ)
 		eq(e.play_cost(put_in_hand(e, "obelisk")), {"wealth": 12}, "%s: play_cost" % civ)
 		eq(e.buy_price("scout"), 3, "%s: buy_price" % civ)
-		check(play_research(e), "%s: research" % civ)
-		eq(e.tech_cost(uid_of(e.zone("research_reveal"), "loom")), 4, "%s: tech_cost" % civ)
+		eq(e.tech_cost(uid_of(e.zone("research_deck"), "loom")), 4, "%s: tech_cost" % civ)
 
 
 # --- 136: play_cost with no game ---
 
 func test_bug_136_play_cost_is_empty_before_a_game_starts() -> void:
-	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", [] as Array[String], [] as Array[String], keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 10}), tech_resources(), cards, "test", [] as Array[String], [] as Array[String])
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", [] as Array[String], [] as Array[String], keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", [] as Array[String], [] as Array[String])
 	var e := GameEngine.new(cards, config)
 	eq(e.play_cost(-1), {}, "no hand before new_game")
 

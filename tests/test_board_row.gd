@@ -61,9 +61,7 @@ func test_the_only_section_headings_are_realm_and_hand() -> void:
 func test_a_bought_tech_has_no_view_on_the_board() -> void:
 	await with_main(tech_engine(["pottery", "writing"]), func(main: Node):
 		var e := Game.engine
-		check(play_research(e), "Research played")
-		await wait_frames()
-		var tech: int = e.zone("research_reveal").cards[0].uid
+		var tech: int = e.zone("research_deck").cards[0].uid
 		check(e.buy_tech(tech), "buy_tech: %s" % e.buy_tech_error(tech))
 		await wait_frames()
 		check(e.zone("researched").find(tech) != null, "the tech is known")

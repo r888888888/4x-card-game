@@ -71,7 +71,6 @@ func test_end_turn_error_is_empty_normally() -> void:
 func test_end_turn_error_names_what_blocks_it_and_end_turn_does_nothing() -> void:
 	var cases := [
 		["explore choice", choice_engine(), "Choose a territory first."],
-		["research", research_engine(), "Buy a tech or decline first."],
 		["discard owed", discard_engine(), "Discard down to 7 cards first."],
 		["game over", over_engine(), "The game is over."],
 	]
@@ -94,7 +93,6 @@ func test_supply_error_allows_browsing_normally_and_while_discarding() -> void:
 
 func test_supply_error_blocks_during_choices_and_after_the_game() -> void:
 	eq(choice_engine().supply_error(), "Choose a territory first.", "explore choice")
-	eq(research_engine().supply_error(), "Buy a tech or decline first.", "research")
 	eq(over_engine().supply_error(), "The game is over.", "game over")
 
 
@@ -240,9 +238,9 @@ func test_open_supply_piles_are_the_unlocked_ones_in_config_order() -> void:
 func test_supply_screen_does_not_open_when_every_pile_is_locked() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", errors, warnings, keywords())
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
 	var config := DataLoader.parse_config(raw_config({"farm": 5},
-		{"supply": {"scout": {"price": 1, "count": 1, "locked": true}}}), tech_resources(), cards, "test", errors, warnings)
+		{"supply": {"scout": {"price": 1, "count": 1, "locked": true}}}), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine
 	Game.engine = GameEngine.new(cards, config)

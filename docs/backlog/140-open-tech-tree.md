@@ -2,7 +2,7 @@
 id: 140
 title: Open tech tree: learn any tech whose prerequisite you have
 type: feature
-status: ready
+status: review
 branch: feat/140-open-tech-tree
 ---
 
@@ -13,29 +13,29 @@ hard (no Iron Working before Bronze Working), and the Research card simply makes
 techs go. Follows 139; tried on `spike/research-insight`.
 
 ## Acceptance criteria
-- [ ] AC1: Given a research deck of Pottery (2 insight) and Writing (3 insight), 2 insight and 2 actions left, when
+- [x] AC1: Given a research deck of Pottery (2 insight) and Writing (3 insight), 2 insight and 2 actions left, when
   the player calls `buy_tech` on Pottery with no card played, then Pottery is in `researched`, insight is 0, Writing
   is still in `research_deck`, Pottery's play effects have resolved and 2 actions are still left.
-- [ ] AC2: Given Iron Working (prereq Bronze Working) in the research deck and Bronze Working not researched, with 20
+- [x] AC2: Given Iron Working (prereq Bronze Working) in the research deck and Bronze Working not researched, with 20
   insight, then Iron Working's `tech_tree()` state is `GameEngine.TECH_LOCKED` and `buy_tech_error` is
   `"Iron Working needs Bronze Working first."`. When Bronze Working is bought, then Iron Working's state is
   `TECH_AVAILABLE` and it can be bought.
-- [ ] AC3: `buy_tech_error` refuses, and `buy_tech` changes nothing, for: a tech not in the research deck (researched
+- [x] AC3: `buy_tech_error` refuses, and `buy_tech` changes nothing, for: a tech not in the research deck (researched
   or in a future era) → `"That tech isn't on offer."`; too little insight → `"Pottery needs 2 insight (you have
   1)."`; the game over → `"The game is over."`; an explore choice open → `"Choose a territory first."`. While a
   hand-limit discard is owed, learning is allowed (like buying from the supply).
-- [ ] AC4: Given era 2 techs waiting in `future_techs` and Pottery as the only tech left in the research deck, when
+- [x] AC4: Given era 2 techs waiting in `future_techs` and Pottery as the only tech left in the research deck, when
   Pottery is bought, then `era()` is 2 and the era 2 techs are in the research deck.
-- [ ] AC5: The reveal is gone: a card with `{"op": "research"}` fails to load as an unknown op; `prereq_discount` is an
+- [x] AC5: The reveal is gone: a card with `{"op": "research"}` fails to load as an unknown op; `prereq_discount` is an
   unknown field (warning); `pending()` never reports a research choice; the engine has no `research_reveal` or
   `lost_techs` zone, no passes and no `TECH_LOST`, and `tech_tree()` entries carry `uid` (−1 for a future tech) and
   no `passes`. `research_card_name()` names the first deck-then-supply card whose effects gain insight.
-- [ ] AC6: Given the tech tree open, then an available tech's tile has a "Learn" button, disabled with
+- [x] AC6: Given the tech tree open, then an available tech's tile has a "Learn" button, disabled with
   `buy_tech_error` as its tooltip when that is non-empty; clicking an enabled one learns the tech and the tree
   refreshes with it marked ✔ Researched. A locked tech shows 🔒 Locked and "needs Bronze Working" and has no
   Learn button. The tree's header reads `"Insight 5 · play a Research card for more"`, and the board has no research
   choice overlay.
-- [ ] AC7: Given a sim game whose bot has 2 insight and Pottery learnable, when the bot takes its turn, then it learns
+- [x] AC7: Given a sim game whose bot has 2 insight and Pottery learnable, when the bot takes its turn, then it learns
   the cheapest tech it can afford before playing cards (`ScriptedBot` no longer declines or buys from a reveal).
 
 ## Out of scope
@@ -66,6 +66,13 @@ techs go. Follows 139; tried on `spike/research-insight`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_research::test_learning_a_tech_needs_no_card_and_no_action`, `test_learning_a_tech_resolves_its_play_effects`, `test_a_tech_scores_its_vp_and_works_at_upkeep`, `test_several_techs_can_be_learned_in_one_turn`; `test_actions::test_learning_a_tech_after_the_last_action_is_free`; `test_changed` (buy_tech emits once) |
+| AC2 | `test_research::test_a_tech_whose_prereq_isnt_researched_is_locked`, `test_learning_the_prereq_unlocks_the_tech`, `test_prerequisite_card_text`; `test_tech_tree::test_a_researched_prerequisite_no_longer_lowers_the_cost` |
+| AC3 | `test_research::test_a_tech_not_in_the_research_deck_isnt_on_offer`, `test_a_tech_needs_enough_insight`, `test_no_learning_after_the_game_is_over`, `test_no_learning_during_an_explore_choice`, `test_learning_is_allowed_while_a_discard_is_owed`; `test_pending::test_each_pending_kind_blocks_actions_as_before` (buy_tech_error row) |
+| AC4 | `test_research::test_learning_the_last_tech_adds_the_next_era`; `test_tech_eras::test_learning_the_last_era_tech_adds_the_next_era`, `test_learning_the_last_tech_with_no_eras_left_adds_nothing`, `test_an_era_added_by_an_empty_deck_is_not_added_again` |
+| AC5 | `test_research::test_the_research_op_is_unknown`, `test_prereq_discount_is_an_unknown_field`, `test_the_engine_has_no_reveal_passes_or_lost_techs`, `test_tech_tree_entries_carry_a_uid_and_no_passes`, `test_learning_never_leaves_a_choice_pending`, `test_the_research_card_gains_insight`, `test_research_card_name_*`; `test_card_details::test_a_tech_in_the_research_deck_explains_its_price_now` |
+| AC6 | `test_tech_tree_modal::test_an_available_tech_has_a_learn_button_that_learns_it`, `test_a_learn_button_you_cant_use_is_disabled_with_the_reason`, `test_a_locked_tech_says_what_it_needs_and_has_no_learn_button`, `test_the_tree_header_counts_insight_and_names_the_research_card`, `test_the_board_has_no_research_choice`, `test_hints_*` |
+| AC7 | `test_sim::test_bot_learns_the_cheapest_tech_it_can_afford` |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`: play a Research card (+3 insight), open Knowledge (T), learn Pottery with its Learn
@@ -73,3 +80,19 @@ techs go. Follows 139; tried on `spike/research-insight`.
 - [ ] A Learn button you can't afford is disabled and its tooltip says why.
 
 ## Log
+- 2026-10-01: Built. Engine: `Research.buy`/`buy_error` work on the research deck (blocked → not on offer → prereq →
+  insight), `prereq_met`, `TECH_LOCKED`, the next era arrives after the last tech is learned, `tech_tree` entries carry
+  `uid` (−1 for a future tech); `"research"` joins `_DISCARD_ALLOWS`. Removed everything in the Design notes list,
+  plus the glossary's "Passes" term; "Prerequisite" now says it gates. Card text: "Needs Bronze Working" / tooltip
+  "Needs Bronze Working researched first.". Content: the Research card is `+3 insight`.
+- UI: the tree's tiles sit in a row with a Learn button while available (it rebuilds the tree after learning);
+  🔒 Locked tiles read "needs X"; header "Insight N · play a Research card for more"; the Knowledge tooltip says
+  "Play a Research card for more insight."; the research overlay, its Decline button, its focus/pick paths and
+  `CardView.set_tech_info` are gone. `Palette.LOST` became `Palette.LOCKED`.
+- Bot: `_learn_cheapest_tech` each step before playing cards; non-baseline strategies still play insight cards last.
+- Approved in the green phase: deleted `test_board_labels::test_research_choice_is_titled_knowledge` (the overlay is
+  gone); `test_button_widths::test_tech_tiles_fill_their_era_column` now checks each tech row fills its column and the
+  tile takes what the Learn button leaves.
+- Balance worry (for 143 / a balance item): Research is now +3 insight for 1 action, with the Capital +1 and the
+  Library +2; era-1 techs cost 6–10. Hard prereqs also slow Masonry and Bronze Working (both need Mining).
+

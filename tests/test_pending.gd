@@ -1,6 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
-## The pending-decision model (backlog 050): pending() describes what the player owes (an explore choice,
-## open research, a hand-limit discard), and one blocking rule applies to every action.
+## The pending-decision model (backlog 050): pending() describes what the player owes (an explore choice or a
+## hand-limit discard; 140 dropped open research), and one blocking rule applies to every action.
 
 const POP_ON := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}}
 
@@ -28,13 +28,6 @@ func pending_engine(deck := {"farm": 10}, overrides := {}) -> Object:
 func explore_engine() -> Object:
 	var e := pending_engine()
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
-	return e
-
-
-## A game with pottery and writing revealed.
-func pending_research_engine() -> Object:
-	var e := pending_engine()
-	check(play_research(e), "research should open")
 	return e
 
 
@@ -70,14 +63,6 @@ func test_pending_explore_lists_the_revealed_territories_top_first() -> void:
 	eq(pending_of(e), {"kind": "explore", "options": [grassland, hills], "source": explorer}, "pending")
 
 
-# --- AC3: research ---
-
-func test_pending_research_lists_the_revealed_techs() -> void:
-	var e := pending_research_engine()
-	var r: Zone = e.zone("research_reveal")
-	eq(pending_of(e), {"kind": "research", "options": [uid_of(r, "pottery"), uid_of(r, "writing")]}, "pending")
-
-
 # --- AC4: discard ---
 
 func test_pending_discard_counts_down_and_offers_the_hand() -> void:
@@ -93,7 +78,6 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 	var discard_msg := "Discard down to 5 cards first."
 	var cases := [
 		["explore", explore_engine(), "Choose a territory first.", "Choose a territory first.", false],
-		["research", pending_research_engine(), "Buy a tech or decline first.", "Buy a tech or decline first.", false],
 		["discard", discard_engine(), discard_msg, "", true],
 	]
 	for row in cases:
@@ -106,5 +90,6 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 		eq(e.buy_error("scout"), msg, "%s: buy_error" % kind)
 		eq(e.end_turn_error(), msg, "%s: end_turn_error" % kind)
 		eq(e.supply_error(), row[3], "%s: supply_error" % kind)
+		eq(e.buy_tech_error(uid_of(e.zone("research_deck"), "pottery")), row[3], "%s: buy_tech_error (140)" % kind)
 		eq(e.discard_error(first_in_hand(e)), "" if row[4] else msg, "%s: discard_error (093)" % kind)
 		eq(e.discard_card(first_in_hand(e)), row[4], "%s: discard_card" % kind)

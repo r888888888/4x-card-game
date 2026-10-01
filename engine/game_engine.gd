@@ -10,26 +10,22 @@ extends EngineCore
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, and Events. The modules may call the
 ## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
 
-## A tech passed over this many times is removed from the game.
-const MAX_PASSES := 3
-
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "research_reveal", "researched", "lost_techs", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"
-const PENDING_RESEARCH := "research"
 const PENDING_DISCARD := "discard"
-## A tech's state in tech_tree(): bought, still to be revealed (or revealed now), in an era not added yet, or
-## removed after its third pass.
+## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
+## in an era not added yet.
 const TECH_RESEARCHED := "researched"
 const TECH_AVAILABLE := "available"
+const TECH_LOCKED := "locked"
 const TECH_FUTURE := "future"
-const TECH_LOST := "lost"
 ## The actions still allowed while a discard is owed (see _blocked_error).
-const _DISCARD_ALLOWS: Array[String] = ["discard", "supply"]
+const _DISCARD_ALLOWS: Array[String] = ["discard", "supply", "research"]
 
 ## A new engine on a deep copy of this one's state (GameState.copy). Nothing is connected to its signals and
 ## it logs to its own copy of the log, so playing on it never touches this game.
@@ -151,26 +147,18 @@ func total_pop() -> int:
 
 
 ## The decision the player owes before the game can go on, or {} when none:
-## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored},
-## {kind: PENDING_RESEARCH, options: revealed tech uids} or
+## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored} or
 ## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
 func pending() -> Dictionary:
 	if not pending_choice.is_empty():
 		return {"kind": PENDING_EXPLORE, "options": pending_choice.options, "source": pending_choice.source.uid}
-	if not zone("research_reveal").is_empty():
-		return {"kind": PENDING_RESEARCH, "options": research_options()}
 	if state.discard_left > 0:
 		return {"kind": PENDING_DISCARD, "count": state.discard_left, "options": zone("hand").cards.map(func(c): return c.uid)}
 	return {}
 
 
-## The uids of the revealed techs waiting to be bought or declined, top first; [] when none is open.
-func research_options() -> Array[int]:
-	return Research.options(self)
-
-
-## The name of the card that reveals techs, for hints: the first with a research effect in config deck order, then
-## supply order; "" when there is none.
+## The name of the card that makes insight, for hints: the first whose effects gain insight in config deck order,
+## then supply order; "" when there is none.
 func research_card_name() -> String:
 	return Research.card_name(self)
 
@@ -221,8 +209,8 @@ func tech_eras() -> Array[Dictionary]:
 	return Research.eras(self)
 
 
-## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (wealth
-## now; printed for a future tech), passes, gives (card ids it creates or unlocks)}].
+## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (insight
+## now; printed for a future tech), gives (card ids it creates or unlocks), uid (-1 for a future tech)}].
 func tech_tree() -> Array[Dictionary]:
 	return Research.tree(self)
 
@@ -232,23 +220,14 @@ func era_name(n: int) -> String:
 	return config.get("era_names", {}).get(n, "Era %d" % n)
 
 
-## Why reveal_techs has nothing to reveal, or "" if it has (the research deck or a future era).
-func reveal_techs_error() -> String:
-	return Research.reveal_error(self)
-
-
-## What tech uid costs in insight right now: its printed cost, less 1 per pass and less its prereq
-## discount when the prereq is researched, but never under 1 (0 if uid isn't a tech).
+## What tech uid costs in insight right now: its printed cost less civilization discounts, never under 1 (0 if uid
+## isn't a tech).
 func tech_cost(uid: int) -> int:
 	return Research.cost(self, uid)
 
 
-## Times another tech was bought over tech uid (0 if uid isn't a tech).
-func tech_passes(uid: int) -> int:
-	return Research.passes(self, uid)
-
-
-## Why revealed tech uid can't be bought right now, or "" if it can.
+## Why tech uid can't be learned right now, or "" if it can: the game is over or a choice is pending, it isn't in the
+## research deck, its prereq isn't researched, or the insight is short.
 func buy_tech_error(uid: int) -> String:
 	return Research.buy_error(self, uid)
 
@@ -462,15 +441,9 @@ func choose(uid: int) -> bool:
 	return Territories.choose(self, uid)
 
 
-## Reveals the top 2 techs (or the last one) of the research deck, adding the lowest future era first
-## when it is empty. The player then calls buy_tech or decline_research. Does nothing if
-## reveal_techs_error says there is nothing to reveal. source is the card that researched.
-func reveal_techs(_source: CardInstance) -> void:
-	Research.reveal(self)
-
-
-## Pays for revealed tech uid, moves it to the researched row and resolves its play effects. The other
-## revealed tech goes back into the research deck. False (and no change) if buy_tech_error says no.
+## Learns tech uid from the research deck (140): pays its tech_cost in insight, moves it to the researched row and
+## resolves its play effects; no card or action. Once the research deck is empty the lowest waiting era's techs
+## arrive. False (and no change) if buy_tech_error says no.
 func buy_tech(uid: int) -> bool:
 	return Research.buy(self, uid)
 
@@ -479,17 +452,6 @@ func buy_tech(uid: int) -> bool:
 ## False (and no change) if buy_error says it can't.
 func buy(card_id: String) -> bool:
 	return Supply.buy(self, card_id)
-
-
-## Why decline_research would refuse (no techs are revealed), or "".
-func decline_research_error() -> String:
-	return Research.decline_error(self)
-
-
-## Puts the revealed techs back into the research deck without buying. The action stays spent.
-## False (and no change) if decline_research_error says no.
-func decline_research() -> bool:
-	return Research.decline(self)
 
 
 ## Why discard_card(uid) would refuse: the game is over, a choice is pending, or uid isn't in the hand. "" if it
@@ -513,16 +475,15 @@ func end_turn() -> void:
 
 # --- Internals (the modules call these too) ---
 
-## Why action ("play", "grow", "buy", "end_turn", "supply", "discard") is blocked by the game being over
-## or by a pending() decision, or "". Only discarding and browsing the supply go on while a discard is owed.
+## Why action ("play", "grow", "buy", "end_turn", "supply", "discard", "research") is blocked by the game being over
+## or by a pending() decision, or "". Only discarding, browsing the supply and learning techs go on while a discard is
+## owed.
 func _blocked_error(action: String) -> String:
 	if is_over:
 		return "The game is over."
 	match pending().get("kind", ""):
 		PENDING_EXPLORE:
 			return "Choose a territory first."
-		PENDING_RESEARCH:
-			return "Buy a tech or decline first."
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""

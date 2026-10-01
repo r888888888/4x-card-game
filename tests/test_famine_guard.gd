@@ -135,7 +135,7 @@ func test_idle_silo_saves_none() -> void:
 
 func test_forecast_starve_counts_the_guard() -> void:
 	var e: Object = home_engine(4, ["silo"])
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 0}, "2 made, 4 needed, short: the Famine's 1 death is saved (083)")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "insight": 0, "starve": 0}, "2 made, 4 needed, short: the Famine's 1 death is saved (083)")
 
 
 # --- AC7: card text ---

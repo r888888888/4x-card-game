@@ -2,14 +2,15 @@ class_name TechTreeModal
 extends ColorRect
 ## The Knowledge modal (backlog 059): the tech tree from GameEngine.tech_tree, one column per era named with era_name.
 ## An era not reached yet shows its unlock thresholds. Each tech shows its state with a mark and a word (not colour
-## alone), its cost now, its prerequisite and what it gives; clicking one opens its details. A view only: research
-## stays reveal-2. While open it takes every key; T, Esc or a click outside closes it.
+## alone), its cost now, its prerequisite and what it gives; clicking one opens its details. An available tech has a
+## Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be learned. While open it
+## takes every key; T, Esc or a click outside closes it.
 
 const STATE_LOOK := {  # state -> [mark, word, border colour, text alpha]
 	GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
 	GameEngine.TECH_AVAILABLE: ["○", "Available", Palette.AVAILABLE, 1.0],
+	GameEngine.TECH_LOCKED: ["🔒", "Locked", Palette.LOCKED, 0.8],
 	GameEngine.TECH_FUTURE: ["…", "Later era", Palette.FUTURE, 0.6],
-	GameEngine.TECH_LOST: ["✕", "Lost", Palette.LOST, 0.5],
 }
 
 var _header: Label
@@ -56,9 +57,9 @@ func open() -> void:
 	var e := Game.engine
 	if e == null or e.tech_eras().is_empty():
 		return
-	_header.text = "Research deck %d · lost %d" % [e.zone("research_deck").size(), e.zone("lost_techs").size()]
+	_header.text = "Insight %d" % e.resources.get(GameEngine.INSIGHT, 0)
 	if e.research_card_name() != "":
-		_header.text += " · play %s card to reveal 2 techs" % UIKit.with_article(e.research_card_name())
+		_header.text += " · play %s card for more" % UIKit.with_article(e.research_card_name())
 	for child in _columns.get_children():
 		_columns.remove_child(child)
 		child.queue_free()
@@ -84,8 +85,25 @@ func _column(e: GameEngine, era: Dictionary) -> VBoxContainer:
 	status.custom_minimum_size.x = 320
 	column.add_child(status)
 	for tech in era.techs:
-		column.add_child(_tech_button(e, tech))
+		column.add_child(_tech_row(e, tech))
 	return column
+
+
+## A tech's tile and, while it is available, its Learn button beside it.
+func _tech_row(e: GameEngine, tech: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	var tile := _tech_button(e, tech)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(tile)
+	if tech.state == GameEngine.TECH_AVAILABLE:
+		var error := e.buy_tech_error(tech.uid)
+		var learn := UIKit.button("Learn", func():
+			Game.engine.buy_tech(tech.uid)
+			open())
+		learn.disabled = error != ""
+		learn.tooltip_text = error
+		row.add_child(learn)
+	return row
 
 
 ## "Reached", or "Unlocks at 8 pop or 15 wealth" (from its unlocks), or "Unlocks through a tech". era is a
@@ -107,19 +125,17 @@ static func _era_status(era: Dictionary) -> String:
 func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	var look: Array = STATE_LOOK[tech.state]
 	var title := "%s %s" % [look[0], e.card_db[tech.id].name]
-	if tech.state in [GameEngine.TECH_AVAILABLE, GameEngine.TECH_FUTURE]:
+	if tech.state != GameEngine.TECH_RESEARCHED:
 		title += " · %d insight" % tech.cost
-		if tech.passes > 0:
-			title += " (%d pass%s)" % [tech.passes, "" if tech.passes == 1 else "es"]
 	var status: String = look[1]
 	if not tech.gives.is_empty():
 		status += " · gives " + ", ".join(PackedStringArray(tech.gives.map(func(id): return e.card_db[id].name)))
 	var lines: PackedStringArray = [title, status]
 	if tech.prereq != "":
-		lines.append("after " + e.card_db[tech.prereq].name)
+		lines.append(("needs " if tech.state == GameEngine.TECH_LOCKED else "after ") + e.card_db[tech.prereq].name)
 	var b := UIKit.button("\n".join(lines), func(): get_parent().details.open_def(tech.id))
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100)
+	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100) beside its Learn button
 	b.tooltip_text = "Click for the full details."
 	var style := UIKit.panel_style(Palette.TILE, look[2], 6)
 	b.add_theme_stylebox_override("normal", style)

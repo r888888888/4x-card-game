@@ -10,22 +10,15 @@ const TECHS := [
 	 "effects": [{"op": "score", "amount": 2}]},
 	{"id": "bronze", "name": "Bronze Working", "type": "tech", "cost": {"insight": 5}},
 	{"id": "iron", "name": "Iron Working", "type": "tech", "cost": {"insight": 6}, "prereq": "bronze"},
-	{"id": "steel", "name": "Steel", "type": "tech", "cost": {"insight": 3}, "prereq": "iron", "prereq_discount": 5},
+	{"id": "steel", "name": "Steel", "type": "tech", "cost": {"insight": 3}, "prereq": "iron"},
 	{"id": "loom", "name": "Loom", "type": "tech", "cost": {"insight": 4}},
 	{"id": "dye", "name": "Dye", "type": "tech", "cost": {"insight": 4}},
 	{"id": "salt", "name": "Salt", "type": "tech", "cost": {"insight": 4}},
 ]
 
 
-## resources() plus insight, which techs cost (139).
-func tech_resources() -> Array[String]:
-	var r := resources()
-	r.append("insight")
-	return r
-
-
 func tech_db(extra: Array = [], errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TECHS + extra}, tech_resources(), "cards.json", errors, warnings, keywords())
+	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TECHS + extra}, resources(), "cards.json", errors, warnings, keywords())
 
 
 ## A game with the given main deck and a research deck holding the ids in order_top_first (top first),
@@ -35,30 +28,17 @@ func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}, 
 	for id in order_top_first:
 		counts[id] = counts.get(id, 0) + 1
 	var config := {
-		"resources": ["food", "wealth", "insight"], "research_deck": counts,
+		"research_deck": counts,
 		"starting": {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland"},
 	}
 	config.merge(overrides, true)
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db(extra, errors, warnings)
-	var parsed := DataLoader.parse_config(raw_config(deck, config), tech_resources(), cards, "test", errors, warnings)
+	var parsed := DataLoader.parse_config(raw_config(deck, config), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var e := GameEngine.new(cards, parsed)
 	e.new_game(1)
 	arrange(e.zone("research_deck"), order_top_first)
 	return e
 
-
-## Researches with [tech_id, buy_id] on top and buys buy_id, so tech_id is passed once.
-func pass_tech(e: Object, tech_id: String, buy_id: String) -> void:
-	arrange(e.zone("research_deck"), [tech_id, buy_id])
-	check(play_research(e), "research should open")
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), buy_id)), "buy %s" % buy_id)
-
-
-## tech_engine(["pottery", "writing"]) with Research played, so both techs are revealed.
-func research_engine() -> Object:
-	var e: Object = tech_engine(["pottery", "writing"])
-	check(play_research(e), "research should open")
-	return e

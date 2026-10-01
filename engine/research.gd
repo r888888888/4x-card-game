@@ -1,27 +1,21 @@
 class_name Research
 extends RefCounted
-## Tech rules (backlog 025 on): revealing, buying and declining techs, passes and discounts, eras and their
-## unlock thresholds. Static functions on the engine's state; GameEngine's public methods call them.
+## Tech rules (backlog 025 on; an open tree since 140): learning any tech in the research deck whose prereq is
+## researched with insight, discounts, eras and their unlock thresholds. Static functions on the engine's state;
+## GameEngine's public methods call them.
 
-## The zones tech_tree looks in, in order, and the state a tech there is in.
+## The zones tech_tree looks in, in order, and the state a tech there is in (TECH_LOCKED is worked out on top).
 const _TREE_ZONES := {
-	"researched": GameEngine.TECH_RESEARCHED, "research_reveal": GameEngine.TECH_AVAILABLE,
-	"research_deck": GameEngine.TECH_AVAILABLE, "future_techs": GameEngine.TECH_FUTURE, "lost_techs": GameEngine.TECH_LOST,
+	"researched": GameEngine.TECH_RESEARCHED, "research_deck": GameEngine.TECH_AVAILABLE,
+	"future_techs": GameEngine.TECH_FUTURE,
 }
 
 
-static func options(e: GameEngine) -> Array[int]:
-	var out: Array[int] = []
-	for card in e.zone("research_reveal").cards:
-		out.append(card.uid)
-	return out
-
-
-## The name of the first card with a research effect, in config deck order then supply order; "" if none.
+## The name of the first card whose effects gain insight, in config deck order then supply order; "" if none.
 static func card_name(e: GameEngine) -> String:
 	for id in e.config.deck.keys() + e.config.get("supply", {}).keys():
 		var def: CardDef = e.card_db[id]
-		if def.effects.any(func(effect): return effect.op == "research"):
+		if def.effects.any(func(effect): return effect.op == "gain" and effect.get("resource") == GameEngine.INSIGHT):
 			return def.name
 	return ""
 
@@ -69,6 +63,8 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 			tech = e.zone(zone_name).cards[i]
 			state = _TREE_ZONES[zone_name]
 			break
+	if state == GameEngine.TECH_AVAILABLE and not prereq_met(e, def):
+		state = GameEngine.TECH_LOCKED
 	var gives: Array[String] = []
 	for effect in def.effects:
 		if effect.op in ["create", "unlock"] and not gives.has(effect.card_id):
@@ -77,19 +73,13 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 	return {
 		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
 		"cost": def.cost.get(GameEngine.INSIGHT, 0) if future else cost(e, tech.uid),
-		"passes": 0 if tech == null else tech.passes, "gives": gives,
+		"gives": gives, "uid": -1 if future else tech.uid,
 	}
 
 
-static func reveal_error(e: GameEngine) -> String:
-	if e.zone("research_deck").is_empty() and e.zone("future_techs").is_empty():
-		return "The tech deck is empty."
-	return ""
-
-
-## The tech uid in the research deck, the revealed techs, the researched row or the lost techs, or null.
+## The tech uid in the research deck or the researched row, or null.
 static func find(e: GameEngine, uid: int) -> CardInstance:
-	for name in ["research_reveal", "research_deck", "researched", "lost_techs"]:
+	for name in ["research_deck", "researched"]:
 		var tech := e.zone(name).find(uid)
 		if tech != null:
 			return tech
@@ -100,22 +90,25 @@ static func cost(e: GameEngine, uid: int) -> int:
 	var tech := find(e, uid)
 	if tech == null:
 		return 0
-	var insight: int = tech.def.cost.get(GameEngine.INSIGHT, 0) - tech.passes
+	var insight: int = tech.def.cost.get(GameEngine.INSIGHT, 0)
 	insight -= Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
-	if tech.def.prereq != "" and e.zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
-		insight -= tech.def.prereq_discount
 	return maxi(insight, 1)
 
 
-static func passes(e: GameEngine, uid: int) -> int:
-	var tech := find(e, uid)
-	return tech.passes if tech != null else 0
+## Whether def has no prereq or its prereq is researched.
+static func prereq_met(e: GameEngine, def: CardDef) -> bool:
+	return def.prereq == "" or e.zone("researched").cards.any(func(c): return c.def.id == def.prereq)
 
 
 static func buy_error(e: GameEngine, uid: int) -> String:
-	var tech := e.zone("research_reveal").find(uid)
+	var busy := e._blocked_error("research")
+	if busy != "":
+		return busy
+	var tech := e.zone("research_deck").find(uid)
 	if tech == null:
 		return "That tech isn't on offer."
+	if not prereq_met(e, tech.def):
+		return "%s needs %s first." % [tech.def.name, e.card_db[tech.def.prereq].name]
 	var price := cost(e, uid)
 	var have: int = e.resources.get(GameEngine.INSIGHT, 0)
 	if have < price:
@@ -123,44 +116,18 @@ static func buy_error(e: GameEngine, uid: int) -> String:
 	return ""
 
 
-static func reveal(e: GameEngine) -> void:
-	if reveal_error(e) != "":
-		return
-	var deck := e.zone("research_deck")
-	if deck.is_empty():
-		add_era(e, _lowest_future_era(e))
-	for i in 2:
-		if deck.is_empty():
-			break
-		e.zone("research_reveal").add(deck.take_top())
-	e._log("  Researching: %s." % ", ".join(PackedStringArray(e.zone("research_reveal").cards.map(func(c): return c.def.name))))
-
-
 static func buy(e: GameEngine, uid: int) -> bool:
 	if buy_error(e, uid) != "":
 		return false
-	var tech := e.zone("research_reveal").find(uid)
+	var tech := e.zone("research_deck").find(uid)
 	var price := cost(e, uid)
-	e.zone("research_reveal").remove(tech)
+	e.zone("research_deck").remove(tech)
 	e.resources[GameEngine.INSIGHT] -= price
 	e.zone("researched").add(tech)
 	e._log("Learned %s (%d insight)." % [tech.def.name, price])
 	e._resolve(tech, "play")
-	_return_revealed(e, true)
-	e.changed.emit()
-	return true
-
-
-## Why the revealed techs can't be declined now, or "".
-static func decline_error(e: GameEngine) -> String:
-	return "No techs are revealed." if e.zone("research_reveal").is_empty() else ""
-
-
-static func decline(e: GameEngine) -> bool:
-	if decline_error(e) != "":
-		return false
-	e._log("Declined the techs.")
-	_return_revealed(e, false)
+	if e.zone("research_deck").is_empty() and not e.zone("future_techs").is_empty():
+		add_era(e, _lowest_future_era(e))
 	e.changed.emit()
 	return true
 
@@ -196,19 +163,3 @@ static func _lowest_future_era(e: GameEngine) -> int:
 		lowest = mini(lowest, tech.def.era)
 	return lowest
 
-
-## Shuffles every revealed tech back into the research deck. With passed, each was passed over by a
-## purchase: it gets a pass, and a third pass loses it for good.
-static func _return_revealed(e: GameEngine, passed: bool) -> void:
-	var deck := e.zone("research_deck")
-	for card in e.zone("research_reveal").take_all():
-		if passed:
-			card.passes += 1
-		if card.def.adds_era():
-			card.passes = mini(card.passes, GameEngine.MAX_PASSES - 1)
-		if card.passes >= GameEngine.MAX_PASSES:
-			e.zone("lost_techs").add(card)
-			e._notice("  %s was passed over too often and is lost." % card.def.name)
-		else:
-			deck.add(card)
-	e.rng.shuffle(deck.cards)

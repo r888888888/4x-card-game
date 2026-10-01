@@ -55,7 +55,7 @@ const FRONTIER_HATCH := Color(1, 1, 1, 0.05)  # its diagonal lines
 const RESEARCHED := Color("7fd48a")
 const AVAILABLE := Color("5ec8ff")
 const FUTURE := Color("6b7280")
-const LOST := Color("b5566f")
+const LOCKED := Color("8a6f4a")  # a tech whose prerequisite isn't researched (140)
 
 # See-through layers.
 const DIMMER := Color(0, 0, 0, 0.65)  # behind an overlay

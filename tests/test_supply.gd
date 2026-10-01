@@ -20,7 +20,7 @@ func supply_errors(supply: Variant) -> Array[String]:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	DataLoader.parse_config(raw_config({"farm": 1}, {"supply": supply}), tech_resources(), cards, "config.json", errors, warnings)
+	DataLoader.parse_config(raw_config({"farm": 1}, {"supply": supply}), resources(), cards, "config.json", errors, warnings)
 	return errors
 
 
@@ -109,12 +109,6 @@ func test_cannot_buy_while_an_explore_choice_is_pending() -> void:
 	assert_buy_refused(e, "scout", "Choose a territory first.")
 
 
-func test_cannot_buy_while_research_options_are_open() -> void:
-	var e := supply_engine(10)
-	check(play_research(e), "research opens")
-	assert_buy_refused(e, "scout", "Buy a tech or decline first.")
-
-
 func test_cannot_buy_while_a_discard_is_pending() -> void:
 	var e := supply_engine(10, {"scout": 10})
 	for i in 3:
@@ -132,7 +126,7 @@ func test_supply_block_is_normalized() -> void:
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"supply": {"scout": {"price": 2, "count": 3}}}),
-		tech_resources(), cards, "config.json", errors, warnings)
+		resources(), cards, "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.supply, {"scout": {"price": 2, "count": 3, "locked": false}}, "supply")
 
@@ -141,7 +135,7 @@ func test_supply_defaults_to_empty() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), tech_resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), cards, "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.supply, {}, "supply")
 
@@ -184,7 +178,7 @@ func load_locked(extra: Array, overrides: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([GUILDS] + extra, errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), tech_resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
 	return {"cards": cards, "config": config, "errors": errors, "warnings": warnings}
 
 
@@ -193,7 +187,7 @@ func unlock_card(effect: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
-		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, tech_resources(), "cards.json", errors, warnings,
+		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, resources(), "cards.json", errors, warnings,
 		keywords())
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 
@@ -253,8 +247,7 @@ func test_a_locked_pile_is_listed_but_cannot_be_bought() -> void:
 func test_researching_guilds_adds_a_guildhall_and_unlocks_the_pile() -> void:
 	var e := locked_engine(0)
 	e.resources.wealth = 2
-	check(play_research(e), "research opens")
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "guilds")), "buy Guilds")
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "guilds")), "learn Guilds")
 	eq(card_ids(e.zone("discard")).count("guildhall"), 1, "a free Guildhall in the discard")
 	check(not e.supply_locked("guildhall"), "the pile is unlocked")
 	e.resources.wealth = 2
@@ -267,8 +260,7 @@ func test_an_unlocked_pile_is_a_notice_but_learning_and_buying_are_not() -> void
 	var e := locked_engine(0)
 	e.resources.wealth = 4
 	var recorded := record_messages(e)
-	check(play_research(e), "research opens")
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "guilds")), "buy Guilds")
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "guilds")), "learn Guilds")
 	check(e.buy("guildhall"), "buy a Guildhall")
 	eq(notices_in(recorded).size(), 1, "one notice: %s" % [recorded])
 	check_noticed(recorded, "can now be bought")
