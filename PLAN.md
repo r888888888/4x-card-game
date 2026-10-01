@@ -458,6 +458,12 @@ Your people have one government at a time; its bonuses apply while it rules.
   2 cards from your discard first."). The Renewal overlay shows the discard pile; a click renews. The bot trashes the
   card worth least (cost + 2 × VP, +4 building, +3 calms unrest, +3 explores/settles while land remains, +3 gains
   insight). Real data: renewal 1, Mysticism +1.
+- Revolution (148): an event with `"revolt": true` ("While active, you may revolt.") lets `revolt()` start Anarchy now
+  (`revolt_error()`: game over or pending, "Anarchy already rules.", "Only a revolutionary event lets you revolt."):
+  the same fall as at the limit, 0 counters, renewal owed at once; no action used. The Revolt button sits beside
+  Relieve famine and Restore order. The bot revolts at the start of a turn with an action left, a discard to renew and
+  a government in hand the people would accept (`Anarchy.accept_error`). Real data: Calls for Reform (2 turns,
+  renewal +1), Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2).
   `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), fallback Chiefdom,
   4 counters, era unrest 3, Feast is the `order` card.
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its

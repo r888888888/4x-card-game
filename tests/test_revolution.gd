@@ -2,7 +2,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Revolution events (backlog 148): an active event with `"revolt": true` lets the player revolt, starting Anarchy at
 ## once (145's fall) with renewal owed at once (147). The Revolt button sits below the Realm; the bot revolts when a
 ## government in hand ends the Anarchy at once. Fixtures: tests/lib/anarchy_case.gd, plus Reform (event, revolt,
-## renewal +1, 2 turns) and Quiet (event, no revolt). Engines are held as Object so the file parses before the API.
+## renewal +1, 2 turns) and Quiet (event, no revolt).
 
 const REFORM := {"id": "reform", "name": "Reform", "type": "event", "revolt": true, "discard": {"turns": 2},
 	"modifiers": {"renewal": 1}}
@@ -13,7 +13,7 @@ const REVOLT_TEXT := "While active, you may revolt."
 
 
 ## A renewal game (unrest.renewal 1) with event_id active ("" for none), discard_ids in the discard and unrest.
-func revolt_engine(event_id: String, discard_ids := ["farm", "scout", "shrine"], unrest := 2) -> Object:
+func revolt_engine(event_id: String, discard_ids := ["farm", "scout", "shrine"], unrest := 2) -> GameEngine:
 	var e := anarchy_engine(RENEWAL, {}, EVENTS)
 	if event_id != "":
 		e.create_card(event_id, "active_events", null).turns_left = 2

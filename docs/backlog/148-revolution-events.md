@@ -2,7 +2,7 @@
 id: 148
 title: Revolution events: choose to start Anarchy
 type: feature
-status: in-progress
+status: review
 branch: feat/148-revolution-events
 ---
 
@@ -12,17 +12,17 @@ their own terms: to renew a cluttered deck, or to change government at a moment 
 for unrest to boil over. Follows 145–147. From `spike/unrest`.
 
 ## Acceptance criteria
-- [ ] AC1: An event may set `"revolt": true` (events only; on other types the field is ignored with the warning
+- [x] AC1: An event may set `"revolt": true` (events only; on other types the field is ignored with the warning
   `'revolt' only applies to events (ignored)`; a non-boolean is a load error). Its card text and tooltip add
   `"While active, you may revolt."`.
-- [ ] AC2: Given an active event with `revolt` and no Anarchy, then `revolt_error()` is "". When `revolt()` is
+- [x] AC2: Given an active event with `revolt` and no Anarchy, then `revolt_error()` is "". When `revolt()` is
   called, then Anarchy rules as when unrest reaches the limit (145 AC2: the government shuffled into the deck, a
   notice), with 0 counters, and renewal is pending at once (count 1 + the `renewal` modifier, 147).
-- [ ] AC3: `revolt_error()` is `"Only a revolutionary event lets you revolt."` with no such event active,
+- [x] AC3: `revolt_error()` is `"Only a revolutionary event lets you revolt."` with no such event active,
   `"Anarchy already rules."` during Anarchy, the pending-decision message while one is owed and `"The game is
   over."` after the end; `revolt()` then returns false and changes nothing. Revolting uses no action.
-- [ ] AC4: A Revolt button below the Realm shows while `revolt_error()` is ""; its tooltip says what revolting does.
-- [ ] AC5 (bot): at the start of its turn, before playing a card, `ScriptedBot` revolts when it may, has an action
+- [x] AC4: A Revolt button below the Realm shows while `revolt_error()` is ""; its tooltip says what revolting does.
+- [x] AC5 (bot): at the start of its turn, before playing a card, `ScriptedBot` revolts when it may, has an action
   left, the discard isn't empty, and holds a government whose limit / 2 is at least the current unrest (so it can end
   the Anarchy at once). Without such a government it doesn't revolt.
 
@@ -57,3 +57,12 @@ for unrest to boil over. Follows 145–147. From `spike/unrest`.
 - [ ] Shipped events and numbers as listed in Design notes.
 
 ## Log
+
+- 2026-10-01: Built. Red checkpoint (agreed): the bot's "limit / 2 at least the unrest" uses 146's acceptance rule
+  (`Anarchy.accept_error`, now shared with `play_error`: modifier included, a government with no limit accepted).
+- Green: `test_revolting_starts_anarchy_with_renewal_owed_at_once` compared `actions_left()` before (Chiefs:
+  unlimited, -1) and after (Anarchy: 1), which can never hold; with the user's OK it now checks 1 of 1 left.
+- Content as the Design notes list (one copy each). Peasant Uprising lasts 1 turn (no discard). The spike's
+  `revolution` tag isn't used: the field replaces it.
+- `ui/main.gd` is at 691 of 700 lines: the next UI addition there needs a split item first.
+- Balance: not simmed.
