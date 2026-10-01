@@ -359,6 +359,11 @@ func _on_gui_focus_changed(control: Control) -> void:
 
 # --- Rendering ---
 
+## The tokens for a grow from the territory view's pop meter, the pip at from (124).
+func fly_grow(from: Vector2, cost: int) -> void:
+	_top_bar.fly_grow(fx, cost, from)
+
+
 func _on_card_played(outcome: Dictionary) -> void:
 	_outcome = outcome
 	var view: CardView = views.get(outcome.uid)

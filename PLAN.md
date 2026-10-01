@@ -243,7 +243,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   before pop eats) but keep their printed VP. Cities never use a worker.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth: during play, `grow(territory_uid)` pays `grow_cost` = pop + 1 food for +1 pop, up to housing, with no
-  limit per turn. `grow_error` says why not (like `play_error`). The UI shows a Grow button on each territory.
+  limit per turn. `grow_error` says why not (like `play_error`). In the territory view pop is a meter of pips, one per
+  housing, and Grow is the first empty pip, showing its cost; when it can't be used, `grow_error` shows beside it (124).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)

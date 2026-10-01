@@ -129,6 +129,15 @@ func fly_outcome(layer: Control, outcome: Dictionary, point: Vector2) -> void:
 			UIKit.GAIN_COLOR, score_label, n * Anim.TOKEN_STAGGER)
 
 
+## Tokens for a grow from the territory view's pop meter (124), on layer: the food cost floats up from Food and
+## "+1 pop" flies from the pip at from to the Pop counter, which pulses when it lands.
+func fly_grow(layer: Control, cost: int, from: Vector2) -> void:
+	var below := _food_label.get_global_rect().get_center() + Vector2(0, _food_label.size.y)
+	UIKit.float_token(layer, "−%d %s" % [cost, GameEngine.FOOD], below, UIKit.COST_COLOR, 0.0)
+	UIKit.fly_token(layer, "+1 pop", from, _pop_label.get_global_rect().get_center(), UIKit.GAIN_COLOR, _pop_label,
+		Anim.TOKEN_STAGGER)
+
+
 ## The counter for resource, or null if the bar has none.
 func resource_label(resource: String) -> Label:
 	if resource == GameEngine.FOOD:
