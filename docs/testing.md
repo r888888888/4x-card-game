@@ -93,6 +93,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_government.gd` | Government cards (065): the type, `starting.government`, `government()`, playing one to replace the ruling one (to `removed`), upkeep, forecast, score, the same-government error, fork; uses `TEST_GOVS` / `gov_engine` |
 | `tests/test_choose_civilization.gd` | Choosing a civilization (064): config `civilizations`, `civilizations()`, `new_game(seed, civ_id)`, `new_game_error`, the same seed dealing the same game for any civilization |
 | `tests/test_research.gd` | Techs: the `tech` card type and `prereq`, `research_deck` config, learning from the open tree (140: `buy_tech` / `buy_tech_error`, locked techs, the next era), the reveal gone, `research_card_name` |
+| `tests/test_eurekas.gd` | Eurekas (141): loading `eureka`, the tableau count (card and tag forms, idle cards), the floor, `tech_tree`'s `eureka`, card text, details and the tree's line |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |

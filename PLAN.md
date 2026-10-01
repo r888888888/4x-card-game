@@ -298,7 +298,11 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
 - Prerequisites (026, hard since 140): a tech's optional `prereq` (another tech) must be researched before it can be
-  learned; card text "Needs Bronze Working". `tech_cost` = max(1, printed − civilization discount).
+  learned; card text "Needs Bronze Working".
+- Eurekas (141): a tech's optional `eureka` (`{"card": "farm" | "tag": "city", "count": 2, "off": 2}`) takes `off`
+  insight off while the tableau holds `count` matching cards (idle ones count). Card text "Eureka: -2 insight with 2
+  Farms"; `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.
+  `tech_cost` = max(1, printed − civilization discount − eureka).
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
   techs into the research deck, once per era (`era()` is the highest added). Learning the last tech of the research

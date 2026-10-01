@@ -2,7 +2,7 @@ class_name TechTreeModal
 extends ColorRect
 ## The Knowledge modal (backlog 059): the tech tree from GameEngine.tech_tree, one column per era named with era_name.
 ## An era not reached yet shows its unlock thresholds. Each tech shows its state with a mark and a word (not colour
-## alone), its cost now, its prerequisite and what it gives; clicking one opens its details. An available tech has a
+## alone), its cost now, its eureka (✔ when met, 141), its prerequisite and what it gives; clicking one opens its details. An available tech has a
 ## Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be learned. While open it
 ## takes every key; T, Esc or a click outside closes it.
 
@@ -131,6 +131,9 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	if not tech.gives.is_empty():
 		status += " · gives " + ", ".join(PackedStringArray(tech.gives.map(func(id): return e.card_db[id].name)))
 	var lines: PackedStringArray = [title, status]
+	var eureka: String = e.card_db[tech.id].eureka_text(e.card_db)
+	if eureka != "" and tech.state != GameEngine.TECH_RESEARCHED:
+		lines.append(("✔ " if tech.eureka else "") + eureka)
 	if tech.prereq != "":
 		lines.append(("needs " if tech.state == GameEngine.TECH_LOCKED else "after ") + e.card_db[tech.prereq].name)
 	var b := UIKit.button("\n".join(lines), func(): get_parent().details.open_def(tech.id))
