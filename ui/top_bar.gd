@@ -81,6 +81,12 @@ func refresh(e: GameEngine) -> void:
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 
 
+## Where the deck and discard are on screen (121): the Log button, whose drawer shows their counts. Dealt cards come
+## from it; cards going to the deck or discard fly to it.
+func pile_point() -> Vector2:
+	return log_button.get_global_rect().get_center()
+
+
 ## "Log •" while the log has lines not yet seen (116).
 func set_log_unread(unread: bool) -> void:
 	log_button.text = "Log •" if unread else "Log"

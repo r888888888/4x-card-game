@@ -121,11 +121,7 @@ func pick(view: CardView) -> void:
 	_fx.add_child(copy)
 	copy.size = view.size
 	copy.global_position = view.global_position
-	copy.leave(_fx, _discard.get_global_rect().get_center(), true)
-	if not UIKit.calm():
-		var t := _fx.create_tween()
-		t.tween_interval(Anim.DISCARD_POP_TIME + Anim.DISCARD_FLY_TIME)
-		t.tween_callback(UIKit.pulse.bind(_discard))
+	copy.leave(_fx, _discard.get_global_rect().get_center(), true, null, UIKit.pulse.bind(_discard))
 
 
 ## The Supply button, and while the screen is open its counters and each pile's price, count and state.

@@ -59,10 +59,10 @@ func test_no_side_panel_and_the_board_spans_the_window() -> void:
 	check(not has_script_class(main, "SidePanel"), "no SidePanel")
 	var realm_end: float = main.tableau.row.get_global_rect().end.x
 	check(realm_end >= width - EDGE, "the Realm row reaches the right edge: ends at %d of %d" % [realm_end, width])
-	var piles := shown_label(main, "Deck ")  # the hand's row ends with the pile counts (115; End turn left in 120)
-	var hand_end: float = piles.get_global_rect().end.x if piles != null else 0.0
-	check(hand_end >= width - EDGE, "the hand's row (hand, then the pile counts) reaches the right edge: ends at %d of %d" % [
-		hand_end, width])
+	check(not has_script_class(main, "TurnBox"), "no TurnBox beside the hand (121)")
+	check(shown_label(main, "Deck ") == null, "no Deck/Discard counts on the board: they are in the log drawer (121)")
+	var hand_end: float = main.hand_scroll.get_global_rect().end.x
+	check(hand_end >= width - EDGE, "the hand reaches the right edge: ends at %d of %d" % [hand_end, width])
 	close_at_1080(main)
 
 
