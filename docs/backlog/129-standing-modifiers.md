@@ -2,7 +2,7 @@
 id: 129
 title: Permanent cards can carry standing modifiers, starting with extra actions each turn
 type: feature
-status: review
+status: done
 branch: feat/129-standing-modifiers
 ---
 
