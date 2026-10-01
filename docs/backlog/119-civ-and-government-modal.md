@@ -2,7 +2,7 @@
 id: 119
 title: One top-bar button opens a Civilization and Government modal
 type: feature
-status: review
+status: done
 branch: feat/119-civ-and-government-modal
 ---
 
