@@ -1,12 +1,19 @@
 class_name TableauView
 extends ScrollContainer
-## The Realm (backlog 102): one wrapping row of cards. Each settled territory is a card with its slots and pop on it,
-## then come the tableau cards on no territory. A territory's city and buildings show only in its territory view
+## The Realm (backlog 102): one wrapping row of cards. The active events and the frontier territories come first (137:
+## what wants a decision stays at the top), then each settled territory as a card with its slots and pop on it, then
+## the tableau cards on no territory. A territory's city and buildings show only in its territory view
 ## (101). The ghost is the outline of the slot a dragged permanent with no target will land in. The scroll box is
 ## the drop zone.
 
+## The zones whose cards lead the row, in order, each with the explanation its cards' tooltips end with.
+const LEADING_ZONES := {
+	"active_events": "One event is drawn at the end of each turn. It stays active until its turns run out.",
+	"frontier": "Territories discovered, not yet settled. Play a city card on one to settle it.",
+}
+
 var ghost: Panel
-var row: HFlowContainer  # the Realm's card slots, then the ghost; wraps within the tableau's width (078)
+var row: HFlowContainer  # the leading cards, the Realm's card slots, then the ghost; wraps within its width (078)
 
 
 func _init() -> void:
@@ -35,11 +42,23 @@ static func realm_uids(e: GameEngine) -> Array[int]:
 	return out + loose
 
 
-## Lays out engine e's Realm, calling place(card, row, index) for each card it shows except those in skip (resting
-## in the territory view).
+## The leading zone (a key of LEADING_ZONES) card uid is in, or "" for a Realm card.
+static func leading_zone(e: GameEngine, uid: int) -> String:
+	for zone_name in LEADING_ZONES:
+		if e.zone(zone_name).find(uid) != null:
+			return zone_name
+	return ""
+
+
+## Lays out engine e's row, calling place(card, row, index) for each card it shows except those in skip (resting
+## in the territory view): the leading zones' cards, then the Realm's.
 func refresh(e: GameEngine, place: Callable, skip: Array[int] = []) -> void:
-	var tableau := e.zone("tableau")
 	var index := 0
+	for zone_name in LEADING_ZONES:
+		for card in e.zone(zone_name).cards:
+			place.call(card, row, index)
+			index += 1
+	var tableau := e.zone("tableau")
 	for uid in realm_uids(e):
 		if not skip.has(uid):
 			place.call(tableau.find(uid), row, index)

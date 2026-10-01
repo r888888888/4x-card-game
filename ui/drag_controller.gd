@@ -180,13 +180,12 @@ func _update_feedback() -> void:
 			clampf(card.get_center().x - _hint.size.x / 2, 8.0, _board.size.x - _hint.size.x - 8.0), card.end.y + 8)
 
 
-## The drop zone: the tableau, plus the frontier row when it is showing (settle targets live there), plus any lit
-## hand card (a trash target).
+## The drop zone: the Realm's row (frontier settle targets included, 137), the open territory view, or any lit hand
+## card (a trash target).
 func _over_drop_zone() -> bool:
 	var mouse := _board.get_global_mouse_position()
 	var target: CardView = _board.views.get(target_at(mouse))
 	return _board.tableau.get_global_rect().has_point(mouse) or _board.territory_view.target_at(mouse) != -1 \
-		or (_board.frontier.is_visible_in_tree() and _board.frontier.get_global_rect().has_point(mouse)) \
 		or (target != null and target.in_hand)
 
 

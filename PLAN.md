@@ -231,8 +231,9 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Engine: state, zones, seeded RNG, actions, turn loop, 5 effect ops
 - [x] JSON data loader with validation
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
-- [x] UI: hand, tableau (headed "Realm" on screen, on top; 053; one wrapping row of cards, 078: each settled
-  territory is a card with its slots and pop, then cards on no territory, 102; a click opens the territory view with
+- [x] UI: hand, tableau (headed "Realm" on screen, on top; 053; one wrapping row of cards, 078: the active events and
+  frontier territories first (137; no Frontier, Known or Events rows, and Relieve below the row), then each settled
+  territory as a card with its slots and pop, then cards on no territory, 102; a click opens the territory view with
   its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
@@ -314,7 +315,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
 - UI: a Knowledge button (T) in the top bar (with the current era's name; hidden when the config has no research
   deck) opens the tech tree modal: one column per era with its thresholds, each tech's state as a mark and a word,
   cost now, prereq ("after Mining") and what it gives; clicking a tech opens its details. A choice panel shows the
-  revealed techs (click one to buy) and Decline, and a Known row the researched techs.
+  revealed techs (click one to buy) and Decline; researched techs show only in the tech tree (137).
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the

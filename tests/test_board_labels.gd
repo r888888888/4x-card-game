@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## The board's section order and game words (backlog 053): Realm on top, then Frontier, Known and Hand; Buy Cards,
-## Knowledge and Insight; no seed in the top bar and no "tableau" on screen. Runs the real main scene. Test hook:
+## The board's game words (backlog 053; the section order moved to test_board_row, 137): Realm, Buy Cards, Knowledge
+## and Insight; no seed in the top bar and no "tableau" on screen. Runs the real main scene. Test hook:
 ## main.section_headings() lists the play area's headings top to bottom as {text, tooltip}.
 
 
@@ -36,20 +36,6 @@ func heading_texts(main: Node) -> Array[String]:
 	return out
 
 
-# --- AC1: section order ---
-
-func test_realm_frontier_known_and_hand_are_stacked_in_that_order() -> void:
-	var main := open_main()
-	main.start_game(1)
-	var order: Array[String] = []
-	for text in heading_texts(main):
-		for name in ["Realm", "Frontier", "Known", "Hand"]:
-			if text == name or text.begins_with(name + " "):
-				order.append(name)
-	eq(order, ["Realm", "Frontier", "Known", "Hand"] as Array[String], "section order in %s" % [heading_texts(main)])
-	close_main(main)
-
-
 # --- AC2: Realm ---
 
 func test_the_tableau_section_is_headed_realm_and_the_hand_hint_says_realm() -> void:
@@ -71,20 +57,6 @@ func test_no_text_on_screen_says_tableau() -> void:
 			if text.to_lower().contains("tableau"):
 				found.append("%s: '%s'" % [c.get_class(), text])
 	eq(found, [] as Array[String], "UI text mentioning tableau")
-	close_main(main)
-
-
-# --- AC3: Frontier ---
-
-func test_frontier_heading_is_one_word_with_the_explanation_as_its_tooltip() -> void:
-	var main := open_main()
-	main.start_game(1)
-	var frontier := {}
-	for h in main.section_headings():
-		if h.text.begins_with("Frontier"):
-			frontier = h
-	eq(frontier.get("text"), "Frontier", "Frontier heading")
-	check(str(frontier.get("tooltip")).contains("discovered, not yet settled"), "tooltip: '%s'" % frontier.get("tooltip"))
 	close_main(main)
 
 
@@ -134,10 +106,9 @@ func test_supply_button_reads_buy_cards_and_s_opens_the_supply_screen() -> void:
 
 # --- AC6: Knowledge ---
 
-func test_research_choice_is_titled_knowledge_and_the_researched_row_known() -> void:
+func test_research_choice_is_titled_knowledge() -> void:
 	var main := open_main()
 	main.start_game(1)
 	check(label_with_text(main, "Knowledge") != null, "a Knowledge title")
 	check(label_with_text(main, "Research") == null, "no Research title")
-	check(heading_texts(main).has("Known"), "a Known heading in %s" % [heading_texts(main)])
 	close_main(main)

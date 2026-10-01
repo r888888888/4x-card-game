@@ -4,7 +4,7 @@ extends RefCounted
 ## effects (pulses, flying tokens, error pop-ups) several components use. Colours come from Palette and the looks
 ## (Heading, Title, Stat, DarkPanel) from GameTheme (106).
 
-const SECTION_GAP := 22  # between the frontier, tableau and hand sections
+const SECTION_GAP := 22  # between the Realm and hand sections
 const HEADING_GAP := 6  # from a heading to its content
 const CARD_GAP := 10  # between cards in a row
 const COST_COLOR := Palette.COST  # tokens for resources paid, and error text
@@ -97,25 +97,6 @@ static func section(parent: Control, text: String) -> VBoxContainer:
 	box.add_theme_constant_override("separation", HEADING_GAP)
 	box.add_child(heading(text))
 	parent.add_child(box)
-	return box
-
-
-## A hidden section holding one scrolling row of cards, with tooltip (if any) on its heading. The row is stored
-## as meta "row".
-static func card_row_section(parent: Control, text: String, tooltip := "") -> VBoxContainer:
-	var box := section(parent, text)
-	box.hide()
-	if tooltip != "":
-		var label: Label = box.get_child(0)
-		label.tooltip_text = tooltip
-		label.mouse_filter = Control.MOUSE_FILTER_STOP  # so the tooltip shows
-	var scroll := ScrollContainer.new()
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	box.add_child(scroll)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", CARD_GAP)
-	scroll.add_child(row)
-	box.set_meta("row", row)
 	return box
 
 

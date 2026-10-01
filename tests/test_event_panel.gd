@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
-## The event panel (backlog 068): the real main scene shows the active events with their turns left (the event piles'
-## counts are hidden since 122). The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
+## The active events (backlog 068; in the Realm's row since 137): the real main scene shows them with their turns
+## left. The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook:
+## {visible, tooltip, views: [{uid, id, text}]}.
 
 
 ## The card ids of the event views, in panel order.
@@ -43,44 +44,6 @@ func test_event_view_shows_its_turns_left() -> void:
 		for v in main.event_panel().get("views", []):
 			texts[v.uid] = v.text
 		check(texts.get(uid, "").contains("1 turn left"), "Trade Winds view says '1 turn left': %s" % [texts])
-		close_main(main))
-
-
-# --- AC3: event info (no pile counts since 122) ---
-
-const TOOLTIP := "One event is drawn at the end of each turn. It stays active until its turns run out."
-
-
-func test_the_events_heading_names_no_pile_counts() -> void:
-	with_event_engine(func():
-		var main := open_main()
-		main.start_game(1)
-		var e := Game.engine
-		arrange(e.zone("event_deck"), ["trade_winds"])
-		e.end_turn()  # Trade Winds drawn: active for another turn
-		var panel: Dictionary = main.event_panel()
-		eq(panel.get("info"), "Events", "just 'Events' (122)")
-		var headings: Array = main.section_headings().map(func(h): return h.text)
-		check(headings.has("Events"), "the Events heading: %s" % [headings])
-		check(not headings.any(func(h: String): return h.begins_with("Events") and (h.contains("deck") or h.contains("discard"))),
-			"no counts on the Events heading: %s" % [headings])
-		eq(panel.get("tooltip"), TOOLTIP, "the tooltip explains the draw only")
-		close_main(main))
-
-
-## Backlog 122 (AC2): the section shows only while an event is active.
-func test_the_events_section_shows_only_while_an_event_is_active() -> void:
-	with_event_engine(func():
-		var main := open_main()
-		main.start_game(1)
-		var e := Game.engine
-		eq(main.event_panel().get("visible"), false, "hidden at the start: nothing active")
-		arrange(e.zone("event_deck"), ["trade_winds", "windfall"])
-		e.end_turn()  # Trade Winds drawn: active
-		eq(main.event_panel().get("visible"), true, "shown while Trade Winds is active")
-		e.end_turn()  # Windfall drawn; turn 3's upkeep ends both
-		eq(card_ids(e.zone("active_events")), [] as Array[String], "nothing active")
-		eq(main.event_panel().get("visible"), false, "hidden again")
 		close_main(main))
 
 

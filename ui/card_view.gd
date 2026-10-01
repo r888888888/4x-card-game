@@ -157,6 +157,16 @@ func set_buy_info(price: int, left: int, error: String) -> void:
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if error == "" else Control.CURSOR_FORBIDDEN
 
 
+## Ends the tooltip with hint after the card text (137: what an event or a frontier territory in the Realm's row is).
+func set_hint(hint: String) -> void:
+	_set_tip(hint)
+
+
+## Whether the card rests at COMPACT_SIZE (a frontier territory or an event: name and info only).
+func rests_compact() -> bool:
+	return _target_size == COMPACT_SIZE
+
+
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")

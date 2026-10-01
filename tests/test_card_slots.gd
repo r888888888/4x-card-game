@@ -30,18 +30,6 @@ func test_bug_075_frontier_slot_starts_at_compact_height() -> void:
 	close_main(main)
 
 
-func test_bug_075_known_slot_starts_at_compact_height() -> void:
-	var main := open_main()
-	main.start_game(7)
-	var e := Game.engine
-	e.resources[GameEngine.WEALTH] = 99
-	var insight := e.create_card("research", "hand", null)
-	check(e.play_card(insight.uid), "Research card played")
-	check(e.buy_tech(e.pending().options[0]), "a tech bought")
-	eq(slot_heights(main, "researched"), heights(CardView.COMPACT_SIZE.y, 1), "known slot heights")
-	close_main(main)
-
-
 ## Realm cards pop in already at rest, and headless (no layout) their text wraps at zero width, so only the hand is
 ## checked here.
 func test_hand_slots_keep_their_height() -> void:
