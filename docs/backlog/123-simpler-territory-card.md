@@ -2,7 +2,7 @@
 id: 123
 title: A settled territory card shows only what you build with: free slots, pop, free workers
 type: feature
-status: review
+status: done
 branch: feat/123-simpler-territory-card
 ---
 
