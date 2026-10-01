@@ -2,7 +2,7 @@
 id: 146
 title: Leaving Anarchy: a government the people accept, or paying to restore order
 type: feature
-status: red-review
+status: in-progress
 branch: feat/146-leaving-anarchy
 ---
 

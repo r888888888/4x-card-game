@@ -13,7 +13,7 @@ extends RefCounted
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it plays a
-## government first (145).
+## government first (145), and after 2 counters pays to restore order (146).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -58,6 +58,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			break
 		else:
 			plays += 1
+	_restore_order(engine)
 	if strategy == "wealth":
 		_buy_wealth_card(engine)
 	if strategy != "baseline":
@@ -147,6 +148,14 @@ static func _unrest_ok(engine: GameEngine, def: CardDef) -> bool:
 		return true
 	var next: int = engine.resources.get(GameEngine.UNREST, 0) + engine.upkeep_forecast().get(GameEngine.UNREST, 0) + 1
 	return next + change < limit if change > 0 else next >= limit - CALM_MARGIN
+
+
+## Under Anarchy with at least 2 counters and no government in hand it can play, pays to restore order (146).
+static func _restore_order(engine: GameEngine) -> void:
+	if engine.anarchy() == -1 or engine.anarchy_counters() < 2 or engine.restore_order_error() != "":
+		return
+	if not engine.zone("hand").cards.any(func(c): return c.def.type == CardDef.GOVERNMENT and engine.play_error(c.uid) == ""):
+		engine.restore_order()
 
 
 static func _makes_wealth(def: CardDef) -> bool:

@@ -289,6 +289,23 @@ func anarchy() -> int:
 	return card.uid if card != null else -1
 
 
+## What restore_order pays (146): config unrest.relief ({resource: amount}), or {} when order can't be bought.
+func order_relief() -> Dictionary:
+	return Anarchy.relief(self)
+
+
+## Why restore_order would refuse: game over or a pending decision, no Anarchy, no relief in the config, or not
+## enough to pay it. "" if it can.
+func restore_order_error() -> String:
+	return Anarchy.restore_error(self)
+
+
+## Pays the config's unrest.relief and the fallback government replaces Anarchy (146). False (and no change) if
+## restore_order_error says no.
+func restore_order() -> bool:
+	return Anarchy.restore(self)
+
+
 ## The counters on the ruling Anarchy card (145): 0 the turn it falls, +1 each turn after; 0 without Anarchy.
 func anarchy_counters() -> int:
 	var card := Anarchy.active(self)
