@@ -12,7 +12,11 @@ const CIVILIZATION := "civilization"  # the civilization you play as; in its own
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT]
 ## Each modifier key's noun in card text, [singular, plural] (129).
-const MODIFIER_NOUNS := {Modifiers.ACTIONS: ["action", "actions"]}
+## Each modifier key's line in card text (129, 109): %d is the amount; [for a gain, for a loss].
+const MODIFIER_TEXT := {
+	Modifiers.ACTIONS: ["+%d action%s each turn", "−%d action%s each turn"],
+	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
+}
 
 var id: String = ""
 var name: String = ""
@@ -144,7 +148,7 @@ func modifier_lines(long: bool) -> PackedStringArray:
 	var out: PackedStringArray = []
 	for key in modifiers:
 		var n: int = modifiers[key]
-		var line := "%s%d %s each turn" % ["+" if n > 0 else "−", absi(n), MODIFIER_NOUNS[key][0 if absi(n) == 1 else 1]]
+		var line: String = MODIFIER_TEXT[key][0 if n > 0 else 1] % [absi(n), "" if absi(n) == 1 else "s"]
 		out.append(line + (" while active" if long and type == EVENT else ""))
 	return out
 

@@ -85,11 +85,17 @@ func test_the_opening_hand_and_each_refill_draw_up_to_hand_size() -> void:
 
 # --- AC4: the deal ---
 
+## The hand in the order drawn, then the deck from its top (the deck's last card).
+func draw_order(e: Object) -> Array[String]:
+	var deck := card_ids(e.zone("deck"))
+	deck.reverse()
+	return card_ids(e.zone("hand")) + deck
+
+
 func test_the_same_seed_deals_the_same_order_with_or_without_the_bonus() -> void:
 	var plain: Object = game_as("")
 	var sages: Object = game_as("sages")
-	eq(card_ids(sages.zone("hand")) + card_ids(sages.zone("deck")), card_ids(plain.zone("hand")) + card_ids(plain.zone("deck")),
-		"hand then deck, in order")
+	eq(draw_order(sages), draw_order(plain), "the cards drawn, then the deck from the top")
 	eq(sages.zone("hand").size(), plain.zone("hand").size() + 1, "only the number drawn differs")
 
 

@@ -292,6 +292,11 @@ func actions_per_turn() -> int:
 	return CardPlay.actions_per_turn(self)
 
 
+## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).
+func hand_size() -> int:
+	return Modifiers.hand_size(self)
+
+
 ## key ("actions", …) summed over the `modifiers` of the working tableau cards, ALWAYS_ON_ZONES and active events (129).
 func modifier(key: String) -> int:
 	return Modifiers.total(self, key)

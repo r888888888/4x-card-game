@@ -126,7 +126,7 @@ static func start_turn(e: GameEngine) -> void:
 	if e.population_on():
 		Population.feed(e)
 	Research.check_era_unlocks(e)
-	e.draw(maxi(0, e.config.hand_size - e.zone("hand").size()))
+	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 
 
 ## Resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
