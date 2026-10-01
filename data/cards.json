@@ -283,7 +283,7 @@
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",
-      "cost": { "insight": 6 }, "vp": 1, "tags": [],
+      "cost": { "insight": 6 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" } ]
     },
     {
@@ -293,88 +293,88 @@
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
-      "cost": { "insight": 6 }, "vp": 0, "tags": [],
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "quarry", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "mine", "zone": "discard" }, { "op": "unlock", "card": "mine" } ]
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
-      "cost": { "insight": 6 }, "vp": 0, "tags": [],
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
-      "cost": { "insight": 8 }, "vp": 0, "tags": [],
+      "cost": { "insight": 8 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
-      "cost": { "insight": 10 }, "vp": 0, "tags": [],
+      "cost": { "insight": 10 }, "vp": 0, "eureka": { "card": "quarry", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
-      "cost": { "insight": 10 }, "vp": 0, "tags": [],
+      "cost": { "insight": 10 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2,
-      "cost": { "insight": 15 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" } ]
+      "cost": { "insight": 15 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
+      "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 } ]
     },
     {
       "id": "currency", "name": "Currency", "type": "tech", "era": 2, "prereq": "bronze_working",
-      "cost": { "insight": 19 }, "vp": 0, "tags": [],
+      "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
-      "cost": { "insight": 19 }, "vp": 0, "tags": [],
+      "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
-      "cost": { "insight": 22 }, "vp": 0, "tags": [],
+      "cost": { "insight": 22 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" } ]
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
-      "cost": { "insight": 22 }, "vp": 0, "tags": [],
+      "cost": { "insight": 22 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
-      "cost": { "insight": 22 }, "vp": 3, "tags": [],
+      "cost": { "insight": 22 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
       "effects": []
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
-      "cost": { "insight": 27 }, "vp": 2, "tags": [],
+      "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "temple", "count": 2, "off": 6 }, "tags": [],
       "effects": []
     },
     {
       "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 3, "prereq": "bronze_working",
-      "cost": { "insight": 27 }, "vp": 2, "tags": [],
+      "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "forge", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "currency",
-      "cost": { "insight": 27 }, "vp": 0, "tags": [],
+      "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "market", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
     },
     {
       "id": "monarchy", "name": "Monarchy", "type": "tech", "era": 3, "prereq": "philosophy",
-      "cost": { "insight": 32 }, "vp": 3, "tags": [],
+      "cost": { "insight": 32 }, "vp": 3, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
-      "cost": { "insight": 32 }, "vp": 4, "tags": [],
+      "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
       "effects": []
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
-      "cost": { "insight": 32 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "create", "card": "monument", "zone": "discard" } ]
+      "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "quarry", "count": 3, "off": 6 }, "tags": [],
+      "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",

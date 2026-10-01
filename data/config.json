@@ -76,7 +76,13 @@
     "sailing": 1,
     "priesthood": 1,
     "code_of_laws": 1,
-    "calendar": 1
+    "calendar": 1,
+    "philosophy": 1,
+    "iron_working": 1,
+    "mathematics": 1,
+    "monarchy": 1,
+    "astronomy": 1,
+    "engineering": 1
   },
   "era_unlocks": { "2": { "pop": 8, "wealth": 15 } },
   "era_names": { "1": "Stone Age", "2": "Bronze Age", "3": "Iron Age" },

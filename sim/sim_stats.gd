@@ -8,7 +8,9 @@ const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "er
 
 ## Plays one game per seed with strategy (a ScriptedBot.STRATEGIES name, 134) as civ ("" for the default) and returns
 ## {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how many turns the territory deck lasted:
-## the turn it ran out, or the last turn played if it never did.
+## the turn it ran out, or the last turn played if it never did. For each era with techs in the research deck (143),
+## era_<n>_open is the turn it was added (1 for era 1) and era_<n>_done the turn its last tech was researched; either
+## is the last turn played when it never happened.
 static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := "baseline", civ := "") -> Dictionary:
 	return _summaries(_values(cards, config, seeds, strategy, civ))
 
@@ -16,29 +18,52 @@ static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy :=
 ## {metric: [one value per seed]} for games with strategy as civ.
 static func _values(cards: Dictionary, config: Dictionary, seeds: Array, strategy: String, civ: String) -> Dictionary:
 	var values := {}
-	for m in METRICS:
+	var era_techs := _techs_per_era(cards, config)
+	var names := METRICS.duplicate()
+	for n in era_techs:
+		names.append_array(["era_%d_open" % n, "era_%d_done" % n])
+	for m in names:
 		values[m] = []
 	for s in seeds:
 		var engine := GameEngine.new(cards, config)
 		engine.new_game(s, civ)
-		var explored := [0]  # the turn the territory deck ran out (066); 0 until it does
+		var seen := {}  # the turn things first happened: "explored" (the territory deck ran out, 066), "era_<n>_…" (143)
 		var on_changed := func():
-			if explored[0] == 0 and engine.zone("territory_deck").is_empty():
-				explored[0] = engine.turn
+			if not seen.has("explored") and engine.zone("territory_deck").is_empty():
+				seen.explored = engine.turn
+			for n in era_techs:
+				if not seen.has("era_%d_open" % n) and engine.era() >= n:
+					seen["era_%d_open" % n] = engine.turn
+				var learned := engine.zone("researched").cards.filter(func(c): return c.def.era == n).size()
+				if not seen.has("era_%d_done" % n) and learned >= era_techs[n]:
+					seen["era_%d_done" % n] = engine.turn
 		engine.changed.connect(on_changed)
-		on_changed.call()  # an empty territory deck from the start
+		on_changed.call()  # an empty territory deck from the start, era 1 open
 		ScriptedBot.play(engine, strategy)
 		engine.changed.disconnect(on_changed)  # on_changed holds engine: break the cycle so it is freed
 		var game := game_metrics(engine, config)
-		game.explored = explored[0] if explored[0] > 0 else engine.turn
-		for m in METRICS:
-			values[m].append(game[m])
+		for m in names:
+			values[m].append(game[m] if game.has(m) else seen.get(m, engine.turn))
 	return values
+
+
+## How many techs each era has in config research_deck: {era: count}, by era.
+static func _techs_per_era(cards: Dictionary, config: Dictionary) -> Dictionary:
+	var out := {}
+	for id in config.get("research_deck", {}):
+		var era: int = cards[id].era
+		out[era] = out.get(era, 0) + config.research_deck[id]
+	var sorted := {}
+	var eras := out.keys()
+	eras.sort()
+	for n in eras:
+		sorted[n] = out[n]
+	return sorted
 
 
 static func _summaries(values: Dictionary) -> Dictionary:
 	var stats := {}
-	for m in METRICS:
+	for m in values:
 		stats[m] = _summary(values[m])
 	return stats
 
@@ -84,14 +109,12 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 	for s in ScriptedBot.STRATEGIES:
 		lines.append("== %s" % s)
 		var all := {}
-		for m in METRICS:
-			all[m] = []
 		var scores: PackedStringArray = []
 		for civ in civs:
 			var values := _values(data.cards, data.config, seeds, s, civ)
 			scores.append("%s %.1f" % [civ if civ != "" else "default", _summary(values.score).mean])
-			for m in METRICS:
-				all[m].append_array(values[m])
+			for m in values:
+				all[m] = all.get(m, []) + values[m]
 		lines.append("score by civilization: " + ", ".join(scores))
 		lines.append_array(_metric_lines(_summaries(all)))
 	return {"code": 0, "lines": lines}
@@ -99,8 +122,8 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 
 static func _metric_lines(stats: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
-	for m in METRICS:
-		lines.append("%-8s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
+	for m in stats:  # METRICS, then the era metrics by era
+		lines.append("%-10s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
 	return lines
 
 
