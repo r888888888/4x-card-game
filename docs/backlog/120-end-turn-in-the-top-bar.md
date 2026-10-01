@@ -2,7 +2,7 @@
 id: 120
 title: End turn moves to the top bar
 type: feature
-status: red-review
+status: review
 branch: feat/120-end-turn-in-the-top-bar
 ---
 
@@ -12,14 +12,14 @@ last control before Menu... the primary action you press every turn, always in t
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn at 1920×1080. -->
-- [ ] AC1: Given a game at 1920×1080, then End turn is a button in the top bar, right of Log (L) and left of Menu (Esc),
+- [x] AC1: Given a game at 1920×1080, then End turn is a button in the top bar, right of Log (L) and left of Menu (Esc),
   fully on screen, with its AccentButton look, and no End turn button is beside the hand.
-- [ ] AC2: It keeps its behavior: E and a click end the turn; it is disabled with `end_turn_error()` as its tooltip
+- [x] AC2: It keeps its behavior: E and a click end the turn; it is disabled with `end_turn_error()` as its tooltip
   while the turn can't end; while the hand is over its limit it reads "Discard N (hand limit M)" (the whole text
   shown, no truncation, the top bar still fitting at 1920 with that text); otherwise "End turn (E)".
-- [ ] AC3: Every top-bar control is on screen and each button fits its text with the text at its longest (a long
+- [x] AC3: Every top-bar control is on screen and each button fits its text with the text at its longest (a long
   civilization name, "Discard 3 (hand limit 5)").
-- [ ] AC4: (moved to 121) The Deck/Discard counts stay beside the hand for now, so the hand's row is the hand then the
+- [x] AC4: (moved to 121) The Deck/Discard counts stay beside the hand for now, so the hand's row is the hand then the
   counts, still reaching the right edge; the hand itself reaches it once 121 moves the counts.
 
 ## Out of scope
@@ -43,3 +43,10 @@ last control before Menu... the primary action you press every turn, always in t
 - [ ] With 8+ cards in hand and a pending discard, "Discard N (hand limit M)" fits and nothing in the bar is cut off.
 
 ## Log
+- At its longest (Phoenicia · Theocracy, "Discard 3 (hand limit 7)") the bar needed ~2010 of 1884 px. Agreed with the
+  user: the top-bar buttons drop their "(S)", "(T)", "(L)", "(E)", "(Esc)" suffixes and each tooltip starts with
+  "Shortcut: X." (a disabled End turn shows only its reason). New test
+  `test_board_layout::test_top_bar_buttons_put_their_key_in_the_tooltip_not_the_text`; tests that named the old
+  labels changed (`test_log_drawer`, `test_toasts`: "Log" / "Log •"; `test_board_labels`: "Buy Cards";
+  `test_tech_tree_modal`: the Knowledge tooltip). Modal Close buttons keep "(Esc)".
+- `TopBar.end_turn_button` replaces `TurnBox.end_turn`; `TurnBox` keeps only the pile counts until 121 removes it.
