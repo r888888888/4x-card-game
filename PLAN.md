@@ -11,7 +11,7 @@
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests; the games run on one process per core (152) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077) |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
 
@@ -129,7 +129,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
-  object of `DataLoader.MODIFIER_KEYS` (only `actions` so far) to non-zero ints, e.g. `"modifiers": {"actions": 1}`.
+  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`) to non-zero ints, e.g. `"modifiers": {"actions": 1}`.
   `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
   (`Modifiers.total`); `actions_per_turn()` adds the `actions` modifier to the government's, never below 1. Text
   "+1 action each turn" (an event's tooltip adds "while active"). `hand_size` (109): `hand_size()` is config
@@ -137,6 +137,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   turn"); a card whose `hand_size` alone takes config `hand_size` past `hand_limit` is a config error. `housing` (110)
   adds to every settled territory's housing, never below 1 ("Every territory houses 1 more pop"); a building's own
   `housing` field (its territory, idle or not) is separate. `population.start` is checked against printed housing.
+  `unrest_limit` (144) adds to the government's unrest limit ("Unrest limit +1").
 - `gain_actions` (128, play only): `{ "op": "gain_actions", "amount": 1 }` (amount defaults to 1) gives that many more
   actions this turn (127), on top of the government's; they don't carry over, and the op does nothing while actions
   are unlimited. A load error on `start` or on an event (both resolve outside your plays): `Effect.needs_a_turn`.
@@ -189,7 +190,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
-never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight),
+never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 / 5 (+1)", 144),
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice or a hand-limit discard. While one is owed, every action is
@@ -430,8 +431,20 @@ Your people have one government at a time; its bonuses apply while it rules.
   rules or it sets none: unlimited, as in the test fixtures); `play_error` says "No actions left this turn." after the
   game-over and pending-decision checks. `GameState.actions_used` counts plays (reset at the start of a turn), so a
   government played mid-turn counts at once. The rules are in `CardPlay`; the counter sits beside the hand's heading.
-- Real data: Chiefdom (2 actions; no other bonus; the start), Kingship (3 actions, ⟳ +1 wealth; from Code of Laws), Theocracy (3 actions, ⟳ +1 VP; from
-  Priesthood). Techs that give a government create it in the discard; it has no supply pile.
+- Unrest (144): `EngineCore.UNREST`, on when config `resources` lists it (`unrest_on()`; test fixtures leave it out). A
+  government's optional `unrest_limit` (int ≥ 1; text "Unrest limit 5.") caps it: `unrest_limit()` is that plus the
+  `unrest_limit` modifier, never below 0, and -1 (no limit) while unrest is off or the government sets none;
+  `at_unrest_limit()` says unrest has reached it. `gain` stops unrest at the limit and reports what it added. Unrest can't
+  be paid: in a cost, a civilization discount, `population.famine.relief` or a `trade` it is a load error ("unrest can't
+  be paid (it is only gained and lost)", `Fields.unpayable`). Reaching the limit does nothing yet (Anarchy is 145).
+  The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its
+  stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
+  unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.
+  Real data: Settler +1 unrest; Famine ⟳ +1 per counter; Temple ⟳ −1; Shrine and Monument raise the limit by 1 and 2;
+  Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Omen of Doom
+  (+2) and Bandit Raids (⟳ +1, 2 turns), the only events that harm.
+- Real data: Chiefdom (2 actions, unrest limit 5; no other bonus; the start), Kingship (3 actions, limit 7, ⟳ +1 wealth; from Code of Laws),
+  Theocracy (3 actions, limit 10, ⟳ +1 VP; from Priesthood). Techs that give a government create it in the discard; it has no supply pile.
 - UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
   Knowledge (088, 115, 119); it opens a modal showing both (flavor, quote, rules), and a played government flies to it.
 

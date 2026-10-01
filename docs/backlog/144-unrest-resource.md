@@ -2,7 +2,7 @@
 id: 144
 title: Unrest, a resource capped by the government's unrest limit
 type: feature
-status: in-progress
+status: review
 branch: feat/144-unrest-resource
 ---
 
@@ -13,30 +13,30 @@ the most stable). This item adds only the pressure: reaching the limit does noth
 `spike/unrest` (see Design notes).
 
 ## Acceptance criteria
-- [ ] AC1: Given a government with `"unrest_limit": 5`, then it loads and its card text and tooltip include
+- [x] AC1: Given a government with `"unrest_limit": 5`, then it loads and its card text and tooltip include
   `"Unrest limit 5."`. Given `"unrest_limit": 0`, `-1` or `"5"`, then loading fails with
   `cards.json: card '<id>': unrest_limit must be an integer >= 1`. On any other card type the field is ignored with
   the warning `'unrest_limit' only applies to governments (ignored)`. `modifiers` accepts the key `unrest_limit`,
   with the text `"Unrest limit +1"` / `"Unrest limit −1"`.
-- [ ] AC2: Given a game whose config lists `unrest`, with a government of unrest limit 5 ruling, then
+- [x] AC2: Given a game whose config lists `unrest`, with a government of unrest limit 5 ruling, then
   `unrest_limit()` is 5. With a working building with `"modifiers": {"unrest_limit": 1}` it is 6, and 5 again
   while that building is idle. With a modifier of −10 it is 0. With no government, or one without `unrest_limit`,
   it is -1 (no limit).
-- [ ] AC3: Given unrest 4 and an unrest limit of 5, when a card with `{"op": "gain", "resource": "unrest",
+- [x] AC3: Given unrest 4 and an unrest limit of 5, when a card with `{"op": "gain", "resource": "unrest",
   "amount": 3}` is played, then unrest is 5 and the outcome's `gained` has `unrest: 1`. With no limit (-1) the same
   play makes unrest 7. `lose` of unrest never goes below 0 (as for any resource).
-- [ ] AC4: Given unrest in a card's `cost`, in a civilization discount, or in `population.famine.relief`, then
+- [x] AC4: Given unrest in a card's `cost`, in a civilization discount, or in `population.famine.relief`, then
   loading fails with `<file>: <where>: unrest can't be paid (it is only gained and lost)`, where `<where>` names the
   card and field as other loader errors do (e.g. `card 'feast': cost`).
-- [ ] AC5: Given unrest 2 of 5 and a building with `⟳ +1 unrest`, then `upkeep_forecast()` has `unrest: 1`, and the
+- [x] AC5: Given unrest 2 of 5 and a building with `⟳ +1 unrest`, then `upkeep_forecast()` has `unrest: 1`, and the
   top bar shows `"Unrest: 2 / 5 (+1)"`, in `Palette.UNREST`, floating its change like Food and Wealth (126). At
   unrest 5 of 5 it is in the warning colour. With no limit it shows `"Unrest: 2 (+1)"`. The top bar still fits
   1920 px with its longest texts (alongside 139's Insight counter).
-- [ ] AC6 (bot): `ScriptedBot`, every strategy, doesn't play a card whose play gains unrest when unrest plus the
+- [x] AC6 (bot): `ScriptedBot`, every strategy, doesn't play a card whose play gains unrest when unrest plus the
   next upkeep's forecast plus 1 plus that gain would reach the limit, and doesn't play a card whose play loses unrest
   while that sum is below the limit − 2. Given unrest 3 of 5, no forecast change and a Settler (`+1 unrest`) as the
   only playable card, the bot doesn't play it; at unrest 2 it does.
-- [ ] AC7 (content invariant, replaces `test_real_events_are_neutral_or_beneficial`): every real event's effects are
+- [x] AC7 (content invariant, replaces `test_real_events_are_neutral_or_beneficial`): every real event's effects are
   `gain`, `gain_per_tag`, `score` or `grow`, or `lose` of unrest; gaining unrest is the only harm an event deals.
 
 ## Out of scope
@@ -73,10 +73,28 @@ the most stable). This item adds only the pressure: reaching the limit does noth
 | AC5 | `test_unrest::test_the_forecast_includes_unrest`, `test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change`, `test_the_top_bar_shows_unrest_alone_without_a_limit`, `test_the_top_bar_has_no_unrest_counter_when_unrest_is_off`; `test_board_layout::test_the_top_bar_fits_with_its_longest_texts` (now checks Unrest, at 10) |
 | AC6 | `test_unrest::test_the_bot_doesnt_gain_unrest_that_would_reach_the_limit`, `test_the_bot_doesnt_calm_unrest_far_below_the_limit` |
 | AC7 | `test_content::test_real_events_harm_only_by_unrest` (was `test_real_events_are_neutral_or_beneficial`) |
+| refactor | `test_unrest::test_at_unrest_limit_when_unrest_reaches_a_limit` (`at_unrest_limit()`, for the top bar's colour) |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`: the top bar shows `Unrest: 0 / 5`; play a Settler and it floats +1; nothing
   overflows at 1920 px next to Insight.
+- [ ] The top bar's stats are now 20 px (the `BarStat` variation, down from 26) so the bar fits with Unrest: check
+  they still read as stats beside the 20 px buttons. Other `Stat` labels (supply screen, actions counter) keep 26.
+- [ ] At the limit the counter turns red; hover it for the tooltip.
 - [ ] Shipped numbers as listed in Design notes (limits 5 / 7 / 10, the sources and sinks, Feast in the supply).
+  Event counts (not in the notes, the spike's): Grumbling 2, Omen of Doom 1, Bandit Raids 1.
 
 ## Log
+- 2026-10-01: Built. Red checkpoint resolutions (agreed): the bad-limit error uses the loader's usual form
+  `'unrest_limit' must be an integer >= 1`; `unrest_on()` (config lists unrest) gates the limit and the top-bar
+  counter; `trade` naming unrest is a load error too (Design notes).
+- Green: the test helper `unrest_engine` passed the full resource list to `parse_config` even when a test overrode
+  `resources`, so `test_without_unrest_in_the_config_there_is_no_limit`'s Given didn't hold; fixed the helper with
+  the user's OK (assertions unchanged). A discount whose only amount names unrest (or an unknown resource) no longer
+  adds a second "needs an amount" error.
+- The top bar overflowed 1920 px by ~235 px with Unrest in its longest case (it fit by 1 px before). Fixed with a
+  `BarStat` theme variation (20 px, the top bar's seven stats) and separation 16 → 12; ~33 px to spare now.
+- Bandit Raids is `⟳ +1 unrest` only (the spike also took food, which AC7 forbids). A famine guard that saves a death
+  also skips that counter's +1 unrest (Famine's upkeep effects resolve per unsaved counter).
+- Refactor: `at_unrest_limit()` in the engine (test first) for the counter's warning colour; 145 will want it too.
+- Balance worry (no sim run, per CLAUDE.md): with no Anarchy, unrest only ratchets up to the limit, as the spike found.
