@@ -2,7 +2,7 @@
 id: 148
 title: Revolution events: choose to start Anarchy
 type: feature
-status: review
+status: done
 branch: feat/148-revolution-events
 ---
 

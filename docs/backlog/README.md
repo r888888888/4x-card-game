@@ -41,6 +41,6 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-1. 148 revolution events: choose to revolt (after 147)
+Nothing scheduled: 142–148 are done (see done/HISTORY.md).
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
