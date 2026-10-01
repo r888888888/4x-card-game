@@ -2,7 +2,7 @@
 id: 111
 title: Civilizations can start on their own home territory
 type: feature
-status: ready
+status: in-progress
 branch: feat/111-civilization-home-territory
 ---
 
@@ -45,8 +45,17 @@ Fixtures: a test civilization with `home: "<a second TEST territory>"`; TEST `st
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_civ_home::test_home_loads_on_a_civilization`, `test_home_validation`, `test_population_start_must_fit_each_listed_home`, `test_home_is_on_the_card_text` |
+| AC2 | `test_civ_home::test_new_game_settles_the_home`, `test_without_a_home_the_game_starts_on_starting_territory` |
+| AC3 | `test_civ_home::test_same_seed_same_decks_with_or_without_a_home` |
+| AC4 | `test_civ_home::test_home_roll_does_not_shift_the_rng`, `test_home_rolls_from_its_table` |
+| AC5 | `test_content::test_every_listed_civilization_has_its_own_home_that_takes_most_starting_buildings` |
 
 ## Manual check
 - [ ] Each civilization's game starts on its listed home; the territory view shows it with the capital.
 
 ## Log
+- Red: AC4 read as "the starting territory's roll never moves the game rng": the home (or default) rolls from a copy
+  of the rng, so a home with a table and a default without one leave the same rng behind. Guards that pass before the
+  change: `test_without_a_home_…`, `test_same_seed_…`, `test_home_roll_does_not_shift_the_rng`. The card-text line
+  ("Starts on: River") is tested under AC1.
