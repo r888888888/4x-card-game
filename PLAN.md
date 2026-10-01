@@ -151,11 +151,14 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Deck contents and starting state live in `config.json` (e.g. `"deck": { "farm": 4, "scout": 3, ... }`).
 - Territory cards (`"type": "territory"`) need `slots` (int ≥ 0), may set `housing` (int ≥ 1, default
   `slots + 2`) and may list `keywords` from config `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
+- Terrains (130): config `terrains` (a subset of `keywords`) names the terrain keywords; the rest are features (fresh
+  water, coastal, …). With `terrains` set, every territory card prints exactly one terrain (a load error otherwise).
 - Buildings may set `housing` (int ≥ 1: added to their territory's housing, idle or not) and `famine_guard` (int ≥ 1:
   pop on their territory saved from starving each upkeep, while working) (060).
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
-  {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. Terrain with no table rolls nothing.
+  {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or
+  by terrain (130); a territory's own table wins over its terrain's, and a key can't be both. No table, no roll.
   Iron counts as everywhere, so it isn't a keyword (036). Shipped: gold, tin and copper on Hills and
   Highlands; Forge scores +1 VP each upkeep on copper and on tin (037).
 - Territory slots and housing follow the land (038): fertile river land has high housing, flat land more
@@ -213,7 +216,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - Code: `engine/effects/explore_effect.gd`, `settle_effect.gd`; slots, targets and keywords in
   `engine/territories.gd` and `engine/card_play.gd`. A city or building links to its territory through `CardInstance.territory_uid`.
 - **Config:**
-  - `keywords` (terrain keywords, validated like `resources`)
+  - `keywords` (printable territory keywords, validated like `resources`) and `terrains` (the terrain subset, 130)
   - `resource_keywords` and `territory_resources` (rolled per copy, 036)
   - `territory_deck` ({id: count})
   - `starting.territory`

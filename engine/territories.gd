@@ -206,10 +206,16 @@ static func settle(e: GameEngine, territory_uid: int, city_id: String, source: C
 	e._log("  %s: settled %s." % [source.def.name, territory.def.name])
 
 
-## A new territory card_id with resource keywords rolled from its territory_resources table, if any.
+## A new territory card_id with resource keywords rolled from its territory_resources table, if any: its own, else
+## its terrain's (130).
 static func make(e: GameEngine, card_id: String) -> CardInstance:
 	var card := e._make_card(card_id)
-	var table: Array = e.config.get("territory_resources", {}).get(card_id, [])
+	var tables: Dictionary = e.config.get("territory_resources", {})
+	var table: Array = tables.get(card_id, [])
+	if table.is_empty():
+		for k in card.def.keywords:
+			if e.config.get("terrains", []).has(k):
+				table = tables.get(k, [])
 	if table.is_empty():
 		return card
 	var total := 0
