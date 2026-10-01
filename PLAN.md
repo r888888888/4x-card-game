@@ -124,6 +124,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Harmful ops (072), on any card type: `{ "op": "lose", "resource": "food", "amount": 2 }` takes a resource, never
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
+- `gain_actions` (128, play only): `{ "op": "gain_actions", "amount": 1 }` (amount defaults to 1) gives that many more
+  actions this turn (127), on top of the government's; they don't carry over, and the op does nothing while actions
+  are unlimited. A load error on `start` or on an event (both resolve outside your plays): `Effect.needs_a_turn`.
+  Text "+1 action" (tooltip "+1 action this turn"). Real data: Scout and Barter.
 - `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
   (Winnow, supply only).
