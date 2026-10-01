@@ -173,8 +173,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	else:
 		errs.append("'cost' must be an object like {\"food\": 2}")
 
-	if def.type == CardDef.TECH and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
-		errs.append("cost: a tech must cost wealth only, at least 1 (like {\"wealth\": 2})")
+	if def.type == CardDef.TECH and not (def.cost.size() == 1 and def.cost.get(GameEngine.INSIGHT, 0) >= 1):
+		errs.append("cost: a tech must cost insight only, at least 1 (like {\"insight\": 2})")
 	if def.type == CardDef.EVENT and not def.cost.is_empty():
 		errs.append("cost: an event can't have a cost")
 	if def.type == CardDef.EVENT and def.vp != 0:

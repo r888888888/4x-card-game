@@ -28,7 +28,7 @@ func _init(parent: Control) -> void:
 	_research.z_index = 5
 	var research_box := _research.get_meta("box") as VBoxContainer
 	research_box.add_child(UIKit.title("Knowledge"))
-	research_box.add_child(UIKit.heading("Buy one tech with wealth, or decline both. The others go back into the tech deck."))
+	research_box.add_child(UIKit.heading("Buy one tech with insight, or decline both. The others go back into the tech deck."))
 	research_row = HBoxContainer.new()
 	research_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	research_box.add_child(research_row)

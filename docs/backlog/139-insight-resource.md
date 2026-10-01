@@ -2,7 +2,7 @@
 id: 139
 title: Insight, a third resource that pays for techs
 type: feature
-status: red-review
+status: in-progress
 branch: feat/139-insight-resource
 ---
 

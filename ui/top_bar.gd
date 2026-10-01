@@ -1,8 +1,8 @@
 class_name TopBar
 extends HBoxContainer
-## The top bar: turn, food and wealth (with next upkeep's change), score and pop, then
+## The top bar: turn, food, wealth and insight (139) (with next upkeep's change), score and pop, then
 ## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Any
-## change to Food, Wealth, Score or Pop floats its net change up from that counter (126).
+## change to Food, Wealth, Insight, Score or Pop floats its net change up from that counter (126).
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
@@ -13,6 +13,7 @@ var end_turn_button: Button  # "End turn", or "Discard N (hand limit M)" while t
 var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
+var _insight_label: Label
 var _pop_label: Label
 var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
 var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
@@ -21,12 +22,13 @@ var _shown := {}  # counter Label -> the value it last showed; empty for a fresh
 
 ## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
 func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
-	add_theme_constant_override("separation", 20)  # tight: the stats and six buttons share 1920 px (115)
+	add_theme_constant_override("separation", 16)  # tight: the stats and six buttons share 1920 px (115, 139)
 	_turn_label = UIKit.stat(self)
 	_food_label = UIKit.stat(self, FOOD_COLOR)
 	_wealth_label = UIKit.stat(self, Palette.WEALTH)
-	_food_label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
-	_wealth_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_insight_label = UIKit.stat(self, Palette.INSIGHT)
+	for label in [_food_label, _wealth_label, _insight_label]:
+		label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
 	score_label = UIKit.stat(self, Palette.GAIN)
 	_pop_label = UIKit.stat(self, Palette.POP)
 	var spacer := Control.new()
@@ -65,6 +67,8 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else FOOD_COLOR)
 	_food_label.tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
 	_wealth_label.tooltip_text = "In brackets: change at the next upkeep."
+	UIKit.set_stat(_insight_label, "Insight: %d%s" % [e.resources.get(GameEngine.INSIGHT, 0), _forecast_text(forecast, GameEngine.INSIGHT)])
+	_insight_label.tooltip_text = "Pays for techs. In brackets: change at the next upkeep."
 	UIKit.set_stat(score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	UIKit.set_stat(_pop_label, "Pop: %d" % e.total_pop())
@@ -82,14 +86,15 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.config.hand_limit]
 	else:
 		end_turn_button.text = "End turn"
-	_knowledge.text = "Knowledge · %s" % e.era_name(e.era())
 	_knowledge.visible = e.config.research_deck.size() > 0
-	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives."
+	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
+		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
 	if e.research_card_name() != "":
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 	notification(NOTIFICATION_SORT_CHILDREN)  # lay the counters out at their new widths, so tokens start under them
 	_float_changes({_food_label: [e.resources.get(GameEngine.FOOD, 0), GameEngine.FOOD],
-		_wealth_label: [e.resources.get(GameEngine.WEALTH, 0), GameEngine.WEALTH], score_label: [e.score(), "VP"],
+		_wealth_label: [e.resources.get(GameEngine.WEALTH, 0), GameEngine.WEALTH],
+		_insight_label: [e.resources.get(GameEngine.INSIGHT, 0), GameEngine.INSIGHT], score_label: [e.score(), "VP"],
 		_pop_label: [e.total_pop(), "pop"]}, layer, quiet)
 
 

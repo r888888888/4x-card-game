@@ -1,13 +1,13 @@
 extends "res://tests/lib/tech_case.gd"
 ## Insight (backlog 139): a third built-in resource that pays for techs. Techs cost insight only; buying one spends
 ## insight and leaves wealth alone; civilization tech discounts take insight; the forecast and the top bar show it.
-## Local fixtures: Sages (civilization, techs −1 insight), Study (building, ⟳ +1 insight) and Optics (era 2 tech).
+## Local fixtures: Sages (civilization, techs −1 insight), Scriptorium (building, ⟳ +1 insight) and Optics (era 2 tech).
 
 const SAGES := {"id": "sages", "name": "Sages", "type": "civilization", "discounts": [{"type": "tech", "insight": 1}]}
-const STUDY := {"id": "study", "name": "Study", "type": "building",
+const SCRIPTORIUM := {"id": "scriptorium", "name": "Scriptorium", "type": "building",
 	"effects": [{"op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep"}]}
 const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}
-const FIXTURES := [SAGES, STUDY, OPTICS]
+const FIXTURES := [SAGES, SCRIPTORIUM, OPTICS]
 
 
 ## Loads a tech 'x' with the given cost next to the fixture cards; returns the loader errors.
@@ -90,8 +90,8 @@ func test_a_revealed_techs_details_name_its_insight_price_and_the_civilization_d
 
 func test_the_forecast_includes_insight() -> void:
 	var e := insight_engine({"food": 2, "insight": 0})
-	e.create_card("study", "tableau", null)
-	eq(e.upkeep_forecast().get("insight"), 1, "Study ⟳ +1 insight")
+	e.create_card("scriptorium", "tableau", null)
+	eq(e.upkeep_forecast().get("insight"), 1, "Scriptorium ⟳ +1 insight")
 
 
 ## The one visible label under root whose text starts with prefix, or null.
@@ -106,10 +106,12 @@ func shown_label(root: Node, prefix: String) -> Label:
 func test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change() -> void:
 	var real := Game.engine
 	Game.engine = tech_engine(["pottery", "writing"], {"farm": 10},
-		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital", "study"], "territory": "homeland"}},
+		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital", "scriptorium"], "territory": "homeland"}},
 		FIXTURES)
 	var main := open_main()
 	main.start_game(1)
+	Game.engine.resources["insight"] = 0
+	Game.engine.changed.emit()
 	await wait_frames()
 	var counter := shown_label(main, "Insight:")
 	check(counter != null, "an Insight counter in the top bar")

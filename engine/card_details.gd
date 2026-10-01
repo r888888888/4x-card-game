@@ -61,14 +61,17 @@ static func _state(e: GameEngine, card: CardInstance, zone_name: String) -> Arra
 	return out
 
 
-## "Costs 2 wealth now (printed 5, −1 pass, −2 prereq)"
+## "Costs 2 insight now (printed 5, −1 civilization, −1 pass, −2 prereq)"
 static func _tech_cost_text(e: GameEngine, tech: CardInstance) -> String:
-	var parts: PackedStringArray = ["printed %d" % tech.def.cost.get(GameEngine.WEALTH, 0)]
+	var parts: PackedStringArray = ["printed %d" % tech.def.cost.get(GameEngine.INSIGHT, 0)]
+	var civ: int = Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
+	if civ > 0:
+		parts.append("−%d civilization" % civ)
 	if tech.passes > 0:
 		parts.append("−%d pass%s" % [tech.passes, "" if tech.passes == 1 else "es"])
 	if tech.def.prereq != "" and e.zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
 		parts.append("−%d prereq" % tech.def.prereq_discount)
-	return "Costs %d wealth now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
+	return "Costs %d insight now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
 
 
 ## Unique terms, in order of first use: the rules, then the card type's mechanics. Leaves out Glossary.BASIC.

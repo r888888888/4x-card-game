@@ -411,7 +411,7 @@ func _refresh() -> void:
 			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
 			_place(card, rows[zone_name], i, 0.0)
 	for card in e.zone("research_reveal").cards:
-		views[card.uid].set_tech_info(e.tech_cost(card.uid), card.def.cost.wealth, e.tech_passes(card.uid), GameEngine.MAX_PASSES)
+		views[card.uid].set_tech_info(e.tech_cost(card.uid), card.def.cost.get(GameEngine.INSIGHT, 0), e.tech_passes(card.uid), GameEngine.MAX_PASSES)
 	for card in e.zone("active_events").cards:
 		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	choices.refresh(e)

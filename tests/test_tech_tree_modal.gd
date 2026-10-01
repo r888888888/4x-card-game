@@ -37,7 +37,7 @@ func test_knowledge_button_opens_the_tree() -> void:
 
 # --- Backlog 092: the hint names the research card from the engine ---
 
-const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives."
+const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: Era 1."  # the fixture has no era names
 
 
 ## Opens main on a fixture game (TECHS in the research deck) with main deck deck, starts it, opens the tree and
