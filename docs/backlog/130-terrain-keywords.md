@@ -2,7 +2,7 @@
 id: 130
 title: Terrain keywords: every territory has exactly one terrain
 type: feature
-status: in-progress
+status: review
 branch: feat/130-terrain-keywords
 ---
 
@@ -16,24 +16,24 @@ territory can roll metals without a separate table for each.
 Fixtures: TEST config with `keywords: ["mountain", "fresh_water", "flood_plain", "plain"]` and `terrains: ["mountain",
 "plain"]` (only where a test opts in; with no `terrains` the existing fixtures load unchanged).
 
-- [ ] AC1 (loader, terrains list): config `terrains` is optional, an array of keyword ids, default `[]`. Each must be in
+- [x] AC1 (loader, terrains list): config `terrains` is optional, an array of keyword ids, default `[]`. Each must be in
   `keywords`. Given `terrains: ["swamp"]` with no `swamp` keyword, loading fails with an error naming config.json,
   `terrains` and `'swamp'`. Given `terrains: "mountain"` (not an array), loading fails with an error naming config.json
   and `terrains`. The normalized config has `terrains`.
-- [ ] AC2 (loader, exactly one terrain): when `terrains` is non-empty, every territory card prints exactly one of them.
+- [x] AC2 (loader, exactly one terrain): when `terrains` is non-empty, every territory card prints exactly one of them.
   A territory with keywords `["fresh_water"]` is a load error naming the card and `keywords` ("needs exactly one
   terrain"); one with `["mountain", "plain"]` is a load error naming the card and both terrains. A territory with
   `["mountain", "fresh_water", "flood_plain"]` loads. With `terrains` empty, a territory with no keywords still loads.
-- [ ] AC3 (terrain roll tables): a `territory_resources` key may be a terrain as well as a territory id. Given
+- [x] AC3 (terrain roll tables): a `territory_resources` key may be a terrain as well as a territory id. Given
   `territory_resources: {"mountain": [{"keywords": ["gold"], "weight": 1}]}`, every copy of each territory whose
   terrain is mountain (in the territory deck and the starting territory) has `gold`; a territory with another terrain
   rolls nothing. A key that is neither a territory card nor a terrain is still the error
   `territory_resources: unknown card '<key>'`. A key that names both a territory card and a terrain is a load error
   naming `territory_resources` and the key (it would be ambiguous).
-- [ ] AC4 (precedence): a territory with a table under its own id rolls only from that table, never also from its
+- [x] AC4 (precedence): a territory with a table under its own id rolls only from that table, never also from its
   terrain's. Given tables for both `hills` (the TEST territory, terrain mountain) → `[tin]` and `mountain` → `[gold]`,
   each Hills copy has `tin` and not `gold`. A territory with no table of either kind uses no rng step, as today.
-- [ ] AC5 (keyword details): with `terrains` set, the generated detail text for a terrain keyword starts "A terrain."
+- [x] AC5 (keyword details): with `terrains` set, the generated detail text for a terrain keyword starts "A terrain."
   and for any other printed keyword starts "A territory feature."; resource keywords keep "A resource some territories
   have.". With `terrains` empty the text stays "A territory keyword.". The "Needed by" and "Bonus on it" parts are
   unchanged.
@@ -68,3 +68,5 @@ Fixtures: TEST config with `keywords: ["mountain", "fresh_water", "flood_plain",
   `test_keyword_details_without_terrains_say_territory_keyword`.
 - The user approved building 130, 131 and 111 in one go ("approve and build all three"), so the red checkpoint was
   not a stop.
+- Green: 878 → 891 tests. `ConfigLoader._check_terrains` and the terrain branch of `_parse_territory_resources`;
+  `Territories.make` falls back to the terrain's table; `CardDetails._keyword_text` reads `config.terrains`.
