@@ -13,7 +13,7 @@ extends RefCounted
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it plays a
-## government first (145), and after 2 counters pays to restore order (146).
+## government first (145), after 2 counters pays to restore order (146), and renews the card worth least to keep (147).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -50,7 +50,9 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 	var plays := 0
 	while not engine.is_over and steps < MAX_STEPS:
 		steps += 1
-		if not engine.pending_choice.is_empty():
+		if engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
+			engine.renew(_renewal_pick(engine))
+		elif not engine.pending_choice.is_empty():
 			engine.choose(engine.pending_choice.options[0])
 		elif learn_cheapest_tech(engine):
 			pass
@@ -156,6 +158,36 @@ static func _restore_order(engine: GameEngine) -> void:
 		return
 	if not engine.zone("hand").cards.any(func(c): return c.def.type == CardDef.GOVERNMENT and engine.play_error(c.uid) == ""):
 		engine.restore_order()
+
+
+## The renewal option worth least to keep (147, see _keep_value); a tie goes to the first in discard order.
+static func _renewal_pick(engine: GameEngine) -> int:
+	var best := -1
+	var best_value := 0
+	for uid in engine.pending().options:
+		var value := _keep_value(engine, engine.zone("discard").find(uid).def)
+		if best == -1 or value < best_value:
+			best = uid
+			best_value = value
+	return best
+
+
+## A rough worth of keeping def in the deck: its cost + 2 × VP, +4 for a building, +3 for a card that loses unrest,
+## +3 for one that explores or settles while territories remain, +3 for one that gains insight.
+static func _keep_value(engine: GameEngine, def: CardDef) -> int:
+	var v := 2 * def.vp
+	for r in def.cost:
+		v += def.cost[r]
+	if def.type == CardDef.BUILDING:
+		v += 4
+	if def.effects.any(func(e): return e.op == "lose" and e.get("resource") == GameEngine.UNREST):
+		v += 3
+	var lands_left := not engine.zone("territory_deck").is_empty() or not engine.zone("frontier").is_empty()
+	if lands_left and def.effects.any(func(e): return e.op == "explore" or e.op == "settle"):
+		v += 3
+	if def.effects.any(func(e): return e.get("resource") == GameEngine.INSIGHT):
+		v += 3
+	return v
 
 
 static func _makes_wealth(def: CardDef) -> bool:

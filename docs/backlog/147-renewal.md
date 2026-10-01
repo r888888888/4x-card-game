@@ -2,7 +2,7 @@
 id: 147
 title: Renewal: Anarchy makes you trash cards from your discard
 type: feature
-status: red-review
+status: in-progress
 branch: feat/147-renewal
 ---
 

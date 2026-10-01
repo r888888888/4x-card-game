@@ -305,12 +305,18 @@ func discard(view: CardView) -> void:
 	Game.engine.discard_card(view.uid)
 
 
-## A click on a lit target or a revealed territory.
+## A click on a lit target, a revealed territory or a card to renew (147).
 func on_picked(view: CardView) -> void:
 	if drag.targeting != null:
 		var card := drag.targeting
 		drag.end_targeting()
 		try_play(card, view.uid)
+	elif pending_kind() == GameEngine.PENDING_RENEWAL:
+		var refused := Game.engine.renew_error(view.uid)
+		if refused != "":
+			_refuse(view, refused)
+		else:
+			Game.engine.renew(view.uid)
 	else:
 		var error := Game.engine.choose_error(view.uid)
 		if error != "":
@@ -384,6 +390,8 @@ func _refresh() -> void:
 	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
 	var hand_cards := e.zone("hand").cards
 	var rows := {"reveal": choices.reveal}
+	if pending_kind() == GameEngine.PENDING_RENEWAL:
+		rows["discard"] = choices.renewal_row  # the discard pile, to trash from (147)
 	var viewed := territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}
 	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():

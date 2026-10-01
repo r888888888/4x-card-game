@@ -6,10 +6,13 @@ extends RefCounted
 ## under it adds a counter; at unrest.max_counters the unrest.fallback government restores order and unrest drops to
 ## half its limit. Each new era adds unrest.era_unrest. Ways out sooner (146): a government the people accept (unrest
 ## at most half its limit), or paying unrest.relief to restore order under the fallback. Static functions on the
-## engine's state.
+## engine's state. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
+## counters + the renewal modifier cards from the discard (governments aside), each calming 1 unrest.
 
 const PLAY_ERROR := "Anarchy: only a government or an order card can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
+const RENEWAL := "renewal"  # the modifier key: more (or fewer) cards renewal trashes (147)
+const RENEW_ERROR := "Trash a card from your discard (not a government)."
 
 
 ## The ruling Anarchy card, or null.
@@ -30,6 +33,45 @@ static func start_of_turn(e: GameEngine) -> void:
 		return
 	if not e.config.get("unrest", {}).is_empty() and e.at_unrest_limit():
 		_fall(e)
+
+
+## After the draw: how many cards renewal asks for this turn, capped at the options (0 outside Anarchy, and with no
+## unrest.renewal in the config: renewal off).
+static func start_renewal(e: GameEngine) -> void:
+	var anarchy := active(e)
+	if anarchy == null or not e.config.unrest.has("renewal"):
+		e.state.renewal_left = 0
+		return
+	var n: int = e.config.unrest.renewal + anarchy.counters + e.modifier(RENEWAL)
+	e.state.renewal_left = clampi(n, 0, renewal_options(e).size())
+
+
+## The discard cards renewal may trash, in discard order: all but governments.
+static func renewal_options(e: GameEngine) -> Array[int]:
+	var out: Array[int] = []
+	for card in e.zone("discard").cards:
+		if card.def.type != CardDef.GOVERNMENT:
+			out.append(card.uid)
+	return out
+
+
+static func renew_error(e: GameEngine, uid: int) -> String:
+	if e.state.renewal_left <= 0:
+		return "Nothing to renew."
+	return "" if renewal_options(e).has(uid) else RENEW_ERROR
+
+
+static func renew(e: GameEngine, uid: int) -> bool:
+	if renew_error(e, uid) != "":
+		return false
+	var card := e.zone("discard").find(uid)
+	e.zone("discard").remove(card)
+	e.zone("trashed").add(card)
+	e.state.renewal_left -= 1
+	e._log("Renewal: trashed %s." % card.def.name)
+	e.lose(GameEngine.UNREST, 1, card)
+	e.changed.emit()
+	return true
 
 
 ## Why hand card can't be played under Anarchy, or "": only a government or an allowed_tag card can, and a government

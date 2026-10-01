@@ -178,7 +178,7 @@
     {
       "id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
       "vp": 0, "tags": [],
-      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. A government is accepted once unrest is at most half its limit. Pay 6 wealth, or wait 4 turns, and order returns under Chiefdom.",
+      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. A government is accepted once unrest is at most half its limit. Pay 6 wealth, or wait 4 turns, and order returns under Chiefdom. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
       "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -323,7 +323,7 @@
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
-      "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [],
+      "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
       "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" } ]
     },
     {
