@@ -179,6 +179,7 @@
     },
     {
       "id": "sumer", "name": "Sumer", "type": "civilization", "home": "delta_marsh", "modifiers": { "housing": 1 },
+      "discounts": [ { "tag": "farm", "wealth": 1 } ],
       "vp": 0, "tags": [],
       "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },

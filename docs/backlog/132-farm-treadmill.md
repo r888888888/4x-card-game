@@ -31,6 +31,7 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
 - `data/config.json`: drop `irrigation` from `deck`, and swap a Farm for a Barter (`farm` 4 → 3, `barter` 1 → 2):
   17 → 16 starting cards.
 - Every building and tech costs 1 more wealth to play (supply prices unchanged).
+- Sumer gets `discounts: [ { "tag": "farm", "wealth": 1 } ]` (existing discount field, 108).
 - No engine or format change; card text is generated from the effects.
 
 ## Test plan
@@ -44,6 +45,7 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
 ## Manual check
 - [ ] Farm reads "Upkeep: +2 food; +1 more on a flood plain" (or the generated equivalent); Mine reads "Upkeep: +1 wealth".
 - [ ] Starting deck is 16 cards: 3 Farms, 2 Barters, no Irrigation; the Mine supply pile still unlocks with Mining.
+- [ ] Sumer's Farm shows 1 food + 1 wealth to play; other civilizations' Farms show 1 food + 2 wealth.
 - [ ] Play 10–15 turns as Egypt and as Sumer: does the early game still feel like a farm loop?
 
 ## Log
@@ -60,3 +62,6 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
   cost +1 (Farm, Pasture, Lumber Camp, Fishing Huts 2; Quarry, Shrine, Mine, Granary 3; techs 3–7). Supply prices are
   unchanged. Trace at T15: Egypt score 43 → 39, wealth 23 → 15; Sumer score 55 → 27, wealth 41 → 12. Sumer's opening
   slows hard (Farms now cost 2 wealth against +1 a turn); a balance item should check whether that's too much.
+- Sumer's opening stalled after the cost bump (no Farm in about 29% of opening hands; without one Sumer makes no food).
+  Sumer now has `discounts: [{tag: farm, wealth: 1}]`, so its Farms cost 1 food + 1 wealth as before. Trace seed 1
+  T15 score 27 → 37 (seeds 2, 3: 37, 42). The swingy start (no Farm, no food) is left to 133.
