@@ -2,7 +2,7 @@
 id: 122
 title: Hide the event deck's counts
 type: feature
-status: review
+status: done
 branch: feat/122-hide-event-deck-info
 ---
 
