@@ -33,6 +33,15 @@ func shown_button(root: Node, prefix: String) -> Button:
 	return null
 
 
+## The first label under root that is visible on screen and whose text starts with prefix, or null.
+func shown_label(root: Node, prefix: String) -> Label:
+	for node in root.find_children("*", "Label", true, false):
+		var label := node as Label
+		if label.is_visible_in_tree() and label.text.begins_with(prefix):
+			return label
+	return null
+
+
 ## Whether any node under root runs a script whose class_name is class_name_.
 func has_script_class(root: Node, class_name_: String) -> bool:
 	for node in root.find_children("*", "", true, false):
@@ -50,9 +59,9 @@ func test_no_side_panel_and_the_board_spans_the_window() -> void:
 	check(not has_script_class(main, "SidePanel"), "no SidePanel")
 	var realm_end: float = main.tableau.row.get_global_rect().end.x
 	check(realm_end >= width - EDGE, "the Realm row reaches the right edge: ends at %d of %d" % [realm_end, width])
-	var end_turn := shown_button(main, "End turn")
-	var hand_end: float = end_turn.get_global_rect().end.x if end_turn != null else 0.0
-	check(hand_end >= width - EDGE, "the hand section (hand, then End turn) reaches the right edge: ends at %d of %d" % [
+	var piles := shown_label(main, "Deck ")  # the hand's row ends with the pile counts (115; End turn left in 120)
+	var hand_end: float = piles.get_global_rect().end.x if piles != null else 0.0
+	check(hand_end >= width - EDGE, "the hand's row (hand, then the pile counts) reaches the right edge: ends at %d of %d" % [
 		hand_end, width])
 	close_at_1080(main)
 
@@ -101,22 +110,81 @@ func test_top_bar_controls_are_on_screen_and_buttons_fit_their_text() -> void:
 	close_at_1080(main)
 
 
-# --- AC3: End turn beside the hand ---
+# --- 120: End turn in the top bar ---
 
-func test_end_turn_sits_right_of_the_hand_on_screen() -> void:
+## Every button under root whose text starts with prefix, shown or not.
+func buttons_starting(root: Node, prefix: String) -> Array[Button]:
+	var out: Array[Button] = []
+	for b in UIKit.buttons_in(root):
+		if b.text.begins_with(prefix):
+			out.append(b)
+	return out
+
+
+func test_end_turn_is_in_the_top_bar_between_log_and_menu() -> void:
 	var main: Node = await open_game_at_1080()
 	var viewport: Vector2 = main.get_viewport_rect().size
-	var end_turn := shown_button(main, "End turn")
-	check(end_turn != null, "an End turn button")
-	if end_turn != null:
-		var r := end_turn.get_global_rect()
-		var hand: Rect2 = main.hand_scroll.get_global_rect()
-		check(Rect2(Vector2.ZERO, viewport).encloses(r), "on screen: %s" % r)
-		check(r.position.x >= hand.end.x, "right of the hand: starts at %d, the hand ends at %d" % [r.position.x, hand.end.x])
-		check(r.position.y >= hand.position.y - TOLERANCE and r.end.y <= hand.end.y + TOLERANCE,
-			"within the hand's height: %s vs %s" % [r, hand])
+	var menu := shown_button(main, "Menu")
+	var log_button := shown_button(main, "Log (L)")
+	var end_turns := buttons_starting(main, "End turn")
+	eq(end_turns.size(), 1, "one End turn button (none beside the hand)")
+	if end_turns.size() == 1 and menu != null and log_button != null:
+		var end_turn := end_turns[0]
+		eq(end_turn.get_parent(), menu.get_parent(), "in the top bar")
+		check(log_button.get_index() < end_turn.get_index() and end_turn.get_index() < menu.get_index(),
+			"right of Log, left of Menu: %d, %d, %d" % [log_button.get_index(), end_turn.get_index(), menu.get_index()])
+		check(Rect2(Vector2.ZERO, viewport).encloses(end_turn.get_global_rect()), "on screen: %s" % end_turn.get_global_rect())
 		eq(end_turn.theme_type_variation, &"AccentButton", "the accent look")
 		check_fits_or_wider(end_turn)
+	close_at_1080(main)
+
+
+func test_end_turn_is_disabled_with_the_reason_while_the_turn_cant_end() -> void:
+	var main: Node = await open_game_at_1080()
+	var e := Game.engine
+	check(e.play_card(put_in_hand(e, "scout")), "play Scout: an explore choice is pending")
+	await wait_frames()
+	var error := e.end_turn_error()
+	check(error != "", "the turn can't end")
+	var end_turn := shown_button(main, "End turn")
+	check(end_turn != null, "End turn shown")
+	if end_turn != null:
+		check(end_turn.disabled, "disabled")
+		eq(end_turn.tooltip_text, error, "the reason as its tooltip")
+	close_at_1080(main)
+
+
+## Starts seed 1 again as the civilization with the longest name and puts the hand 3 over its limit at the end of
+## the turn, so End turn reads "Discard 3 (hand limit M)": the top bar's texts at their longest.
+func longest_top_bar(main: Node) -> void:
+	var e := Game.engine
+	var longest := ""
+	for id in e.card_db:
+		var def: CardDef = e.card_db[id]
+		if def.type == CardDef.CIVILIZATION and (longest == "" or def.name.length() > e.card_db[longest].name.length()):
+			longest = id
+	main.start_game(1, longest)
+	for i in e.config.hand_limit + 3 - e.zone("hand").size():
+		put_in_hand(e, e.zone("hand").cards[0].def.id)
+	e.end_turn()
+	if not main.event_modal().is_empty():
+		main.event_modal_ok_button().pressed.emit()
+	await wait_frames()
+
+
+func test_the_top_bar_fits_with_its_longest_texts() -> void:
+	var main: Node = await open_game_at_1080()
+	await longest_top_bar(main)
+	var viewport: Vector2 = main.get_viewport_rect().size
+	check(shown_button(main, "Discard 3 (hand limit") != null, "End turn asks for 3 discards")
+	var bar: Control = shown_button(main, "Menu").get_parent()
+	for c in bar.get_children():
+		if not (c is Control and c.visible):
+			continue
+		var r: Rect2 = c.get_global_rect()
+		check(r.position.x >= -TOLERANCE and r.end.x <= viewport.x + TOLERANCE, "'%s' on screen: %s" % [c.get("text"), r])
+		if c is Button:
+			check(c.size.x >= c.get_combined_minimum_size().x - TOLERANCE, "'%s' shows its whole text" % c.text)
 	close_at_1080(main)
 
 
