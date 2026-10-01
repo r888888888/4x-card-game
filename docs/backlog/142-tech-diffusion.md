@@ -2,7 +2,7 @@
 id: 142
 title: Diffusion: techs of earlier eras get cheaper
 type: feature
-status: ready
+status: red-review
 branch: feat/142-tech-diffusion
 ---
 
@@ -34,6 +34,10 @@ replaces the old passes. Follows 140; tried on `spike/research-insight`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_diffusion::test_an_era_1_tech_costs_1_less_per_later_era` |
+| AC2 | `test_diffusion::test_a_tech_has_no_diffusion_in_its_own_era` |
+| AC3 | `test_diffusion::test_diffusion_stacks_with_discounts_and_eurekas_but_never_below_1` (passes already: the floor holds) |
+| AC4 | `test_diffusion::test_a_future_tech_keeps_its_printed_cost_in_the_tree` (passes already), `test_the_details_list_the_older_era_discount` |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5 --turns 30`: once the Bronze Age arrives, an unlearned Stone Age tech's price drops
