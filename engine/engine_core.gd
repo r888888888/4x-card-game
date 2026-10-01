@@ -5,10 +5,12 @@ extends RefCounted
 ## with the player-facing actions, their *_error queries and the read queries.
 
 ## The built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings and the
-## supply, insight for techs (139). The config may list more resources; only these have rules attached.
+## supply, insight for techs (139); unrest (144) is only gained and lost, never paid, and gain caps it at
+## GameEngine.unrest_limit(). The config may list more resources; only these have rules attached.
 const FOOD := "food"
 const WEALTH := "wealth"
 const INSIGHT := "insight"
+const UNREST := "unrest"
 
 signal changed
 signal logged(message: String)
@@ -73,7 +75,12 @@ func zone(zone_name: String) -> Zone:
 
 # --- Helpers called by effects ---
 
+## Adds amount of resource; unrest stops at the unrest limit (144). The outcome and the log report what was added.
 func gain(resource: String, amount: int, source: CardInstance) -> void:
+	if resource == UNREST:
+		var limit := Modifiers.unrest_limit(self)
+		if limit >= 0:
+			amount = clampi(limit - resources.get(UNREST, 0), 0, amount)
 	resources[resource] = resources.get(resource, 0) + amount
 	if not _outcome.is_empty():
 		_outcome.gained[resource] = _outcome.gained.get(resource, 0) + amount

@@ -168,7 +168,7 @@ func test_top_bar_buttons_put_their_key_in_the_tooltip_not_the_text() -> void:
 
 
 ## Starts seed 1 again as the civilization with the longest name and puts the hand 3 over its limit at the end of
-## the turn, so End turn reads "Discard 3 (hand limit M)": the top bar's texts at their longest.
+## the turn, so End turn reads "Discard 3 (hand limit M)", with unrest at 10 (144): the top bar's texts at their longest.
 func longest_top_bar(main: Node) -> void:
 	var e := Game.engine
 	var longest := ""
@@ -182,6 +182,8 @@ func longest_top_bar(main: Node) -> void:
 	e.end_turn()
 	if not main.event_modal().is_empty():
 		main.event_modal_ok_button().pressed.emit()
+	e.resources["unrest"] = 10  # two digits (144): "Unrest: 10 / N (+n)"
+	e.changed.emit()
 	await wait_frames()
 
 
@@ -191,6 +193,7 @@ func test_the_top_bar_fits_with_its_longest_texts() -> void:
 	var viewport: Vector2 = main.get_viewport_rect().size
 	check(shown_button(main, "Discard 3 (hand limit") != null, "End turn asks for 3 discards")
 	check(shown_label(main, "Insight:") != null, "the Insight counter is in the bar (139)")
+	check(shown_label(main, "Unrest:") != null, "the Unrest counter is in the bar (144)")
 	var bar: Control = shown_button(main, "Menu").get_parent()
 	for c in bar.get_children():
 		if not (c is Control and c.visible):

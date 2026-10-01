@@ -12,13 +12,15 @@ extends RefCounted
 ## first, wealth plays cards that make wealth first and buys one from the supply each turn, wide plays cards that
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
-## tall the most housing.
+## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok.
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
 const STRATEGIES: Array[String] = ["baseline", "growth", "wealth", "wide", "tall"]
 ## The settled territories the tall strategy stops at.
 const TALL_TERRITORIES := 2
+## How far below the unrest limit the bot still plays cards that calm unrest (144).
+const CALM_MARGIN := 2
 
 
 ## Plays engine's game to the end with strategy. Returns whether it ended within MAX_STEPS; false, without playing,
@@ -87,6 +89,8 @@ static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> 
 	for card in _hand_order(engine, strategy):
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
+		if not _unrest_ok(engine, card.def):
+			continue
 		var targets := engine.valid_targets(card.uid)
 		var target: int = targets[0] if engine.needs_target(card.uid) and not targets.is_empty() else -1
 		if engine.play_error(card.uid, target) == "":
@@ -123,6 +127,21 @@ static func _prefers(strategy: String, def: CardDef) -> bool:
 		"wide":
 			return def.effects.any(func(e): return e.op == "explore" or e.op == "settle")
 	return false
+
+
+## Whether playing def is sensible for unrest (144), with a limit set: next = unrest + the next upkeep's change + 1 (a
+## margin for the event). A card that gains unrest is skipped when next plus its gain reaches the limit, and one that
+## loses unrest while next is below the limit − CALM_MARGIN.
+static func _unrest_ok(engine: GameEngine, def: CardDef) -> bool:
+	var change := 0
+	for e in def.effects:
+		if e.trigger == "play" and e.get("resource") == GameEngine.UNREST:
+			change += e.amount if e.op == "gain" else -e.amount if e.op == "lose" else 0
+	var limit := engine.unrest_limit()
+	if change == 0 or limit < 0:
+		return true
+	var next: int = engine.resources.get(GameEngine.UNREST, 0) + engine.upkeep_forecast().get(GameEngine.UNREST, 0) + 1
+	return next + change < limit if change > 0 else next >= limit - CALM_MARGIN
 
 
 static func _makes_wealth(def: CardDef) -> bool:

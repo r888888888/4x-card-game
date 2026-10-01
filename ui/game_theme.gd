@@ -2,7 +2,7 @@ class_name GameTheme
 extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
-## Heading, Title and Stat labels, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
+## Heading, Title, Stat and BarStat labels, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
 ## and GrowPip (124). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
@@ -17,6 +17,7 @@ static func build() -> Theme:
 	_label(t, "Heading", 19, Palette.TEXT_DIM)
 	_label(t, "Title", 26, Color.WHITE)
 	_label(t, "Stat", 26, Color.WHITE)  # each stat also sets its own colour: what it counts
+	_label(t, "BarStat", 20, Color.WHITE)  # the top bar's stats: 20 like its buttons, so the bar fits 1920 px (144)
 	_link(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())

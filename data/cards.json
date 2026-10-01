@@ -25,7 +25,7 @@
     {
       "id": "settler", "name": "Settler", "type": "action",
       "cost": { "food": 5 }, "vp": 0, "tags": ["expand"],
-      "effects": [ { "op": "settle", "card": "city" } ]
+      "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "scout", "name": "Scout", "type": "action",
@@ -46,6 +46,11 @@
       "id": "winnow", "name": "Winnow", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "trash" } ]
+    },
+    {
+      "id": "feast", "name": "Feast", "type": "action",
+      "cost": { "food": 3 }, "vp": 0, "tags": ["order"],
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 2 } ]
     },
     {
       "id": "storyteller", "name": "Storyteller", "type": "action",
@@ -72,12 +77,13 @@
       "cost": { "wealth": 4 }, "vp": 1, "tags": ["culture"],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
-        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" }
+        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" },
+        { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
-      "cost": { "wealth": 6 }, "vp": 3, "tags": ["culture"],
+      "cost": { "wealth": 6 }, "vp": 3, "tags": ["culture"], "modifiers": { "unrest_limit": 2 },
       "effects": []
     },
     {
@@ -119,7 +125,7 @@
     },
     {
       "id": "shrine", "name": "Shrine", "type": "building",
-      "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"],
+      "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"], "modifiers": { "unrest_limit": 1 },
       "effects": []
     },
     {
@@ -151,19 +157,19 @@
       "effects": []
     },
     {
-      "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2,
+      "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2, "unrest_limit": 5,
       "vp": 0, "tags": [],
       "effects": []
     },
     {
-      "id": "kingship", "name": "Kingship", "type": "government", "actions": 3,
+      "id": "kingship", "name": "Kingship", "type": "government", "actions": 3, "unrest_limit": 7,
       "vp": 0, "tags": [],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
-      "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3,
+      "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3, "unrest_limit": 10,
       "vp": 0, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" }
@@ -232,7 +238,8 @@
       "id": "harvest_festival", "name": "Harvest Festival", "type": "event",
       "tags": [],
       "effects": [
-        { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" }
+        { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" },
+        { "op": "lose", "resource": "unrest", "amount": 1 }
       ]
     },
     {
@@ -270,8 +277,8 @@
     },
     {
       "id": "famine", "name": "Famine", "type": "event", "tags": [],
-      "text": "Each hungry upkeep: +1 counter (max 3), −1 pop (largest territory) per counter. Ends when your pop is fed.",
-      "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
+      "text": "Each hungry upkeep: +1 counter (max 3), −1 pop (largest territory) and +1 unrest per counter. Ends when your pop is fed.",
+      "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" }, { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "market_day", "name": "Market Day", "type": "event", "tags": [],
@@ -280,6 +287,18 @@
     {
       "id": "good_omens", "name": "Good Omens", "type": "event", "tags": [],
       "effects": [ { "op": "score", "amount": 1 } ]
+    },
+    {
+      "id": "grumbling", "name": "Grumbling", "type": "event", "tags": [],
+      "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
+    },
+    {
+      "id": "omen_of_doom", "name": "Omen of Doom", "type": "event", "tags": [],
+      "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ]
+    },
+    {
+      "id": "bandit_raids", "name": "Bandit Raids", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",

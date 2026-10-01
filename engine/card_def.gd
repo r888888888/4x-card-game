@@ -18,6 +18,7 @@ const MODIFIER_TEXT := {
 	Modifiers.ACTIONS: ["+%d action%s each turn", "−%d action%s each turn"],
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
 	Modifiers.HOUSING: ["Every territory houses %d more pop%.0s", "Every territory houses %d less pop%.0s"],
+	Modifiers.UNREST_LIMIT: ["Unrest limit +%d%.0s", "Unrest limit −%d%.0s"],
 }
 
 var id: String = ""
@@ -31,6 +32,7 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
+var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
 var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts: {resource: int}}] (108)
 var keywords: Array[String] = []  # territories: keyword ids from config
@@ -76,6 +78,8 @@ func rules_text(card_db: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if actions > 0:
 		parts.append(actions_text())
+	if unrest_limit > 0:
+		parts.append(unrest_limit_text())
 	if home != "":
 		parts.append("Starts on: %s" % card_db[home].name)
 	if not requires.is_empty():
@@ -119,6 +123,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		return territory_text(keywords)
 	if actions > 0:
 		parts.append(actions_text())
+	if unrest_limit > 0:
+		parts.append(unrest_limit_text())
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
@@ -159,6 +165,11 @@ func eureka_text(card_db: Dictionary) -> String:
 ## A government's actions line (127): "2 actions each turn."
 func actions_text() -> String:
 	return "%d action%s each turn." % [actions, "" if actions == 1 else "s"]
+
+
+## A government's unrest limit line (144): "Unrest limit 5."
+func unrest_limit_text() -> String:
+	return "Unrest limit %d." % unrest_limit
 
 
 ## One line per modifier (129): "+1 action each turn"; long (the tooltip) adds " while active" on an event.
