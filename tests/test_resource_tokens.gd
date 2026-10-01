@@ -393,14 +393,15 @@ func test_several_counters_float_left_to_right_a_stagger_apart() -> void:
 		eq(tokens.map(func(l: Label): return l.text), ["+1 food", "+1 wealth", "+1 VP", "+1 pop"], "a token per counter")
 		if tokens.size() != 4:
 			return
+		var texts: Array = tokens.map(func(l: Label): return l.text)  # read before the tokens are freed
 		var tracks := await step_tweens(main, tokens)
 		var shown_at: Array[int] = []  # the first step each token shows
 		for token in tokens:
 			shown_at.append((tracks[token].alpha as Array).find_custom(func(a: float): return a > 0.0))
-		var stagger := int(roundf(Anim.TOKEN_STAGGER / STEP))
 		for i in range(1, 4):
-			check(shown_at[i] > shown_at[i - 1], "%s after %s: %s" % [tokens[i].text, tokens[i - 1].text, shown_at])
-		check(shown_at[3] - shown_at[0] >= 3 * stagger - 1, "a stagger apart: %s" % [shown_at]), {"scout": 10}, POP)
+			check(shown_at[i] > shown_at[i - 1], "%s after %s: %s" % [texts[i], texts[i - 1], shown_at])
+		check((shown_at[3] - shown_at[0]) * STEP >= 3 * Anim.TOKEN_STAGGER - STEP,
+			"three staggers from first to last: steps %s" % [shown_at]), {"scout": 10}, POP)
 
 
 # --- 126 AC4: no tokens for a fresh game ---

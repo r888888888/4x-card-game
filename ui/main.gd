@@ -43,10 +43,9 @@ var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden
 var _events: EventsSection  # the event piles' counts, the active events and Relieve
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
-var _outcome := {}  # the last card_played outcome, animated by the next _refresh
+var _outcome := {}  # the last card_played outcome: the next _refresh flies the played card to where it was played
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
 var _event_modal: EventModal
-var _outcome_point := Vector2.ZERO  # where the played card was when it was played
 var _quiet := false  # refreshing after a navigation: cards appear and go at once, with no pop or flight (105)
 
 
@@ -101,6 +100,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_drawn = {}
 	territory_view.reset()
 	_reset_views()
+	_top_bar.reset_counters()  # a new game's counters float nothing (126)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
 	_menu.set_game(seed_value, _civilization_name())
@@ -359,15 +359,8 @@ func _on_gui_focus_changed(control: Control) -> void:
 
 # --- Rendering ---
 
-## The tokens for a grow from the territory view's pop meter, the pip at from (124).
-func fly_grow(from: Vector2, cost: int) -> void:
-	_top_bar.fly_grow(fx, cost, from)
-
-
 func _on_card_played(outcome: Dictionary) -> void:
 	_outcome = outcome
-	var view: CardView = views.get(outcome.uid)
-	_outcome_point = view.get_global_rect().get_center() if view != null else size / 2
 
 
 ## Brings the views in line with the engine: new cards are dealt in from the deck or pop into place,
@@ -375,7 +368,7 @@ func _on_card_played(outcome: Dictionary) -> void:
 func _refresh() -> void:
 	var e := Game.engine
 	territory_view.close_if_stale(e)
-	_top_bar.refresh(e)
+	_top_bar.refresh(e, fx, supply.is_open())
 	var hand_cards := e.zone("hand").cards
 	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events.row}
 	for zone_name in _row_sections:
@@ -417,9 +410,7 @@ func _refresh() -> void:
 	_events.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
-	if not _outcome.is_empty():
-		_top_bar.fly_outcome(fx, _outcome, _outcome_point)
-		_outcome = {}
+	_outcome = {}
 	focus.sync()
 	_game_over.refresh(e)
 	if not _drawn.is_empty():

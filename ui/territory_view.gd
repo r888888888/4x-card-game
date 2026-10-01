@@ -24,7 +24,7 @@ var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing, Grow on the first empty one
 var _pips: Array[Panel] = []  # the meter's filled and empty pips, Grow not among them
-var _grow_cost := 0  # the food a grow from the meter is paying while it runs, so the next refresh animates it
+var _growing := false  # while a grow from the meter runs, so the refresh it causes pops the new pip in
 var _nav := Navigator.new()
 var _realm: Control
 var _board: MainScreen
@@ -237,14 +237,14 @@ func pips() -> Array[Control]:
 
 ## Grows the shown territory from the meter; the refresh that follows animates it (124).
 func _grow() -> void:
-	_grow_cost = Game.engine.grow_cost(uid)
+	_growing = true
 	Game.engine.grow(uid)
-	_grow_cost = 0
+	_growing = false
 
 
 ## Shows the pop meter (with population on): a pip per housing, the first pop filled, Grow on the first empty one
 ## (hidden at housing), and grow_error as a dim line when Grow can't be used. After a grow from the meter, the new
-## pip pops in and the board flies its tokens.
+## pip pops in; the top bar floats the food and pop (126).
 func _show_meter(e: GameEngine) -> void:
 	_meter.visible = e.population_on()
 	var error := e.grow_error(uid) if _meter.visible else ""
@@ -272,18 +272,13 @@ func _show_meter(e: GameEngine) -> void:
 		_pips[i].theme_type_variation = "PipFilled" if i < pop else "PipEmpty"
 		_meter.move_child(_pips[i], i if i < pop else i + 1)
 	_meter.move_child(grow_button, pop)
-	if _grow_cost > 0:
-		_animate_grow(_pips[pop - 1], _grow_cost)
+	if _growing and not UIKit.calm():
+		_pop_in(_pips[pop - 1])
 
 
-## A grow from the meter: pip (the one just filled) pops in, then the board flies "+1 pop" from it and floats the
-## food cost up (124).
-func _animate_grow(pip: Panel, cost: int) -> void:
-	if not UIKit.calm():
-		pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
-		pip.scale = Vector2.ONE * 0.4
-		pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await get_tree().process_frame  # the meter lays out its pips
-	if is_instance_valid(pip):
-		_board.fly_grow(pip.get_global_rect().get_center(), cost)
+## pip (the one a grow from the meter just filled) pops in (124).
+static func _pop_in(pip: Panel) -> void:
+	pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
+	pip.scale = Vector2.ONE * 0.4
+	pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
