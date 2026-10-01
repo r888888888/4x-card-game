@@ -136,15 +136,6 @@ func _float_changes(now: Dictionary, layer: Control, quiet: bool) -> void:
 		n += 1
 
 
-## The counter for resource, or null if the bar has none.
-func resource_label(resource: String) -> Label:
-	if resource == GameEngine.FOOD:
-		return _food_label
-	if resource == GameEngine.WEALTH:
-		return _wealth_label
-	return null
-
-
 ## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.
 func _forecast_text(forecast: Dictionary, resource: String) -> String:
 	if not forecast.has(resource):
