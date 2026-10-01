@@ -222,8 +222,8 @@ static func pulse(node: Control) -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-## A cost token on layer, centred at from (just below its counter), floating straight up Anim.TOKEN_FLOAT_PX as it
-## fades out (114).
+## A counter's token on layer ("−2 food", "+1 pop"), centred at from (just below its counter), floating straight up
+## Anim.TOKEN_FLOAT_PX as it fades out (114; every counter change since 126).
 static func float_token(layer: Control, text: String, from: Vector2, color: Color, delay: float) -> void:
 	var token := _token(layer, text, from, color)
 	var t := token.create_tween()
@@ -238,27 +238,6 @@ static func float_token(layer: Control, text: String, from: Vector2, color: Colo
 	t.tween_property(token, "global_position:y", token.global_position.y - Anim.TOKEN_FLOAT_PX, Anim.TOKEN_FLY_TIME) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(token, "modulate:a", 0.0, Anim.TOKEN_FLY_TIME / 2).set_delay(Anim.TOKEN_FLY_TIME / 2)
-	t.tween_callback(token.queue_free)
-
-
-## A resource token flying from from to to on layer, pulsing pulse_on_arrival (if any) when it lands.
-static func fly_token(layer: Control, text: String, from: Vector2, to: Vector2, color: Color, pulse_on_arrival: Control, delay: float) -> void:
-	var token := _token(layer, text, from, color)
-	var t := token.create_tween()
-	t.tween_interval(delay)
-	if calm():  # appear at the counter, hold, fade
-		token.global_position = to - token.size / 2
-		t.tween_property(token, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
-		t.tween_interval(Anim.TOKEN_FLY_TIME)
-		t.tween_property(token, "modulate:a", 0.0, Anim.CALM_FADE_TIME)
-		t.tween_callback(token.queue_free)
-		return
-	t.tween_property(token, "modulate:a", 1.0, 0.1)
-	t.tween_property(token, "global_position", to - token.size / 2, Anim.TOKEN_FLY_TIME) \
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	if pulse_on_arrival != null:
-		t.tween_callback(pulse.bind(pulse_on_arrival))
-	t.tween_property(token, "modulate:a", 0.0, 0.12)
 	t.tween_callback(token.queue_free)
 
 

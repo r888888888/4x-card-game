@@ -1,7 +1,8 @@
 class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food and wealth (with next upkeep's change), score and pop, then
-## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Costs float up from its counters; gains fly to them.
+## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Any
+## change to Food, Wealth, Score or Pop floats its net change up from that counter (126).
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
@@ -15,6 +16,7 @@ var _wealth_label: Label
 var _pop_label: Label
 var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
 var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
+var _shown := {}  # counter Label -> the value it last showed; empty for a fresh game, which floats nothing (126)
 
 
 ## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
@@ -47,8 +49,14 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_
 	add_child(menu_button)
 
 
-## Shows engine e's stats, pulsing the ones that changed.
-func refresh(e: GameEngine) -> void:
+## Forgets the values the counters showed, so a new game's first refresh floats nothing (126).
+func reset_counters() -> void:
+	_shown = {}
+
+
+## Shows engine e's stats, pulsing the ones that changed, and floats each counter's change up from it on layer
+## (126); quiet (a screen covering the bar shows its own) takes the new values without tokens.
+func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	UIKit.set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	var forecast := e.upkeep_forecast()
 	UIKit.set_stat(_food_label, "Food: %d%s" % [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)])
@@ -79,6 +87,10 @@ func refresh(e: GameEngine) -> void:
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives."
 	if e.research_card_name() != "":
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
+	notification(NOTIFICATION_SORT_CHILDREN)  # lay the counters out at their new widths, so tokens start under them
+	_float_changes({_food_label: [e.resources.get(GameEngine.FOOD, 0), GameEngine.FOOD],
+		_wealth_label: [e.resources.get(GameEngine.WEALTH, 0), GameEngine.WEALTH], score_label: [e.score(), "VP"],
+		_pop_label: [e.total_pop(), "pop"]}, layer, quiet)
 
 
 ## Where the deck and discard are on screen (121): the Log button, whose drawer shows their counts. Dealt cards come
@@ -108,43 +120,20 @@ func identity_point() -> Vector2:
 	return _identity.get_global_rect().get_center()
 
 
-## Resource tokens for a card_played outcome, on layer: costs float up from just below their counters (114), gains
-## and VP fly from point (where the card was) to the counters, which pulse when they arrive.
-func fly_outcome(layer: Control, outcome: Dictionary, point: Vector2) -> void:
+## For each counter in now (Label -> [value, unit], in the bar's order) whose value changed since it last showed, a
+## "+N unit" / "−N unit" token floats up from just below it on layer, each Anim.TOKEN_STAGGER after the one before.
+func _float_changes(now: Dictionary, layer: Control, quiet: bool) -> void:
 	var n := 0
-	for r in outcome.paid:
-		var label := resource_label(r)
-		if label != null:
-			var from := label.get_global_rect().get_center() + Vector2(0, label.size.y)  # just below the counter
-			UIKit.float_token(layer, "−%d %s" % [outcome.paid[r], r], from, UIKit.COST_COLOR, n * Anim.TOKEN_STAGGER)
-			n += 1
-	for r in outcome.gained:
-		var label := resource_label(r)
-		if label != null and outcome.gained[r] != 0:
-			UIKit.fly_token(layer, "+%d %s" % [outcome.gained[r], r], point, label.get_global_rect().get_center(),
-				UIKit.GAIN_COLOR, label, n * Anim.TOKEN_STAGGER)
-			n += 1
-	if outcome.vp != 0:
-		UIKit.fly_token(layer, "+%d VP" % outcome.vp, point, score_label.get_global_rect().get_center(),
-			UIKit.GAIN_COLOR, score_label, n * Anim.TOKEN_STAGGER)
-
-
-## Tokens for a grow from the territory view's pop meter (124), on layer: the food cost floats up from Food and
-## "+1 pop" flies from the pip at from to the Pop counter, which pulses when it lands.
-func fly_grow(layer: Control, cost: int, from: Vector2) -> void:
-	var below := _food_label.get_global_rect().get_center() + Vector2(0, _food_label.size.y)
-	UIKit.float_token(layer, "−%d %s" % [cost, GameEngine.FOOD], below, UIKit.COST_COLOR, 0.0)
-	UIKit.fly_token(layer, "+1 pop", from, _pop_label.get_global_rect().get_center(), UIKit.GAIN_COLOR, _pop_label,
-		Anim.TOKEN_STAGGER)
-
-
-## The counter for resource, or null if the bar has none.
-func resource_label(resource: String) -> Label:
-	if resource == GameEngine.FOOD:
-		return _food_label
-	if resource == GameEngine.WEALTH:
-		return _wealth_label
-	return null
+	for label: Label in now:
+		var value: int = now[label][0]
+		var change: int = value - _shown.get(label, value)
+		_shown[label] = value
+		if change == 0 or quiet or layer == null or not label.visible:
+			continue
+		var below := label.get_global_rect().get_center() + Vector2(0, label.size.y)
+		UIKit.float_token(layer, "%s%d %s" % ["+" if change > 0 else "−", absi(change), now[label][1]], below,
+			UIKit.GAIN_COLOR if change > 0 else UIKit.COST_COLOR, n * Anim.TOKEN_STAGGER)
+		n += 1
 
 
 ## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.

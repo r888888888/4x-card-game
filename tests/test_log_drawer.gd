@@ -133,7 +133,6 @@ func test_dealt_cards_start_from_the_log_button_and_it_pulses_as_cards_arrive() 
 		for b in UIKit.buttons_in(main):
 			if b.text.begins_with("Log"):
 				button = b
-		var origin := button.get_global_rect().get_center()
 		for i in 2:  # room in the hand, so the next turn deals cards; the discards fly to the Log button
 			check(Game.engine.discard_card(Game.engine.zone("hand").cards[0].uid), "discard a hand card")
 		var hand_before := Game.engine.zone("hand").cards.map(func(c): return c.uid)
@@ -142,6 +141,7 @@ func test_dealt_cards_start_from_the_log_button_and_it_pulses_as_cards_arrive() 
 			main.event_modal_ok_button().pressed.emit()
 		var dealt: Array = Game.engine.zone("hand").cards.filter(func(c): return not hand_before.has(c.uid))
 		check(not dealt.is_empty(), "cards dealt")
+		var origin := button.get_global_rect().get_center()  # where it is after the turn's counters (126: laid out at once)
 		for card in dealt:
 			var view: CardView = main.views[card.uid]
 			var centre := view.global_position + view.size / 2
