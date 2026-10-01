@@ -184,6 +184,7 @@
       "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
       "effects": [
+        { "op": "create", "card": "farm", "zone": "tableau", "trigger": "start" },
         { "op": "create", "card": "research", "zone": "discard", "trigger": "start" },
         { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" }
       ]

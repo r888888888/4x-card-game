@@ -375,10 +375,11 @@ A game is played as one civilization: a permanent card with a starting gift and 
   as civ_id, or `starting.civilization` when civ_id is ""; `new_game_error(civ_id)` refuses an unlisted id. The
   civilization is created after every shuffle and roll, so the same seed deals the same game whatever you choose.
 - Real data (107, replacing 064's four): six civilizations of antiquity. Egypt (⟳ +1 food per fresh water or flood
-  plain territory; the default), Sumer (Start: an Insight in the discard; ⟳ +1 food per farm; houses +1 pop everywhere, 110), Phoenicia (Start: +3
+  plain territory; the default), Sumer (Start: a Farm on its home, 133, and a Research in the discard; ⟳ +1 food per farm; houses +1 pop everywhere, 110), Phoenicia (Start: +3
   wealth; ⟳ +1 wealth per coastal territory), Babylon (Start: Kingship in the discard), Greece (Start: a Storyteller in
   the discard; draws up to 6, 109), Persia (Start: a Caravan in the discard; ⟳ +1 wealth). A start gift is always a card the game
-  also hands out otherwise.
+  also hands out otherwise. A start `create` into the tableau (133) must name a building and puts it on the home; the
+  config loader checks it meets the home's keywords and fits its slots (the territory's plus the starting tableau's).
 - Discounts (108): a civilization's optional `discounts` is a list of entries, each with one filter (`type`: a card
   type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
   or tag discount lowers a hand card's `play_cost(uid)` (what `play_error` checks and `play_card` charges, never below 0
