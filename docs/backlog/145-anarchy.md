@@ -2,7 +2,7 @@
 id: 145
 title: Anarchy when unrest reaches the limit
 type: feature
-status: red-review
+status: in-progress
 branch: feat/145-anarchy
 ---
 

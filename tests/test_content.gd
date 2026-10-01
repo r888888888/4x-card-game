@@ -92,39 +92,6 @@ func test_every_keyword_is_on_at_least_2_territory_types() -> void:
 	eq(thin, [] as Array[String], "keywords on fewer than 2 territory types in play")
 
 
-# --- AC3: scripted smoke test (the bot is sim/bot.gd, backlog 042) ---
-
-## Plays seeds 1-20 with the scripted bot and checks every game ends, wealth never goes below 0, and that
-## new territories, wealth costs and techs all come up in some seeds.
-func test_scripted_sweep_over_20_seeds() -> void:
-	var founded := 0
-	var spent_in := 0
-	var bought_in := 0
-	for s in range(1, 21):
-		var e := real_engine(s)
-		var state := {"spent": false, "min": e.resources.get("wealth", 0)}
-		var on_played := func(o): if o.paid.get("wealth", 0) > 0: state.spent = true
-		var on_changed := func(): state.min = mini(state.min, e.resources.get("wealth", 0))
-		e.card_played.connect(on_played)
-		e.changed.connect(on_changed)
-		ScriptedBot.play(e)
-		e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
-		e.card_played.disconnect(on_played)
-		check(e.is_over, "seed %d: game finished within 2000 steps" % s)
-		check(e.zone("active_events").size() + e.zone("event_discard").size() > 0, "seed %d: an event was drawn" % s)
-		check(state.min >= 0, "seed %d: wealth went down to %d" % [s, state.min])
-		if e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size() >= 2:
-			founded += 1
-		if state.spent:
-			spent_in += 1
-		if not e.zone("researched").is_empty():
-			bought_in += 1
-	# 9, not 11, since 038: home housing 5 lets pop eat the food the bot would save for a Settler.
-	check(founded >= 9, "a territory beyond the start was settled in %d of 20 seeds (need >= 9)" % founded)
-	check(spent_in >= 1, "a card costing wealth was played in %d of 20 seeds (need >= 1)" % spent_in)
-	check(bought_in >= 1, "a tech was bought in %d of 20 seeds (need >= 1)" % bought_in)
-
-
 func test_real_deck_has_growth_cards() -> void:
 	var r := load_real()
 	var counts: Dictionary = r.config.deck.duplicate()

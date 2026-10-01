@@ -24,6 +24,8 @@ static func buy_error(e: GameEngine, card_id: String) -> String:
 	var busy := e._blocked_error("buy")
 	if busy != "":
 		return busy
+	if Anarchy.build_error(e) != "":
+		return Anarchy.build_error(e)
 	var card_name: String = e.card_db[card_id].name if e.card_db.has(card_id) else card_id
 	if not e.state.supply.has(card_id):
 		return "%s isn't in the supply." % card_name
