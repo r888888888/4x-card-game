@@ -2,7 +2,7 @@
 id: 110
 title: Modifiers can add housing to every territory (Sumer houses +1 pop everywhere)
 type: feature
-status: ready
+status: in-progress
 branch: feat/110-modifier-housing
 ---
 
@@ -38,6 +38,12 @@ Fixtures: a test civilization with `modifiers: {"housing": 1}`; a test building 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_housing_modifier::test_housing_is_a_modifier_key` |
+| AC2 | `test_housing_modifier::test_a_housing_modifier_adds_to_every_settled_territory`, `test_housing_never_drops_below_1_on_a_settled_territory` |
+| AC3 | `test_housing_modifier::test_growth_stops_at_the_raised_cap` |
+| AC4 | `test_housing_modifier::test_an_idle_buildings_housing_modifier_stops_but_its_own_housing_doesnt` |
+| AC5 | `test_housing_modifier::test_population_start_is_checked_against_printed_housing` (a guard: passes already) |
+| AC6 | `test_housing_modifier::test_housing_modifier_text` |
 
 ## Manual check
 - [ ] As Sumer, territory pop reads "/ 6" on the starting territory.
