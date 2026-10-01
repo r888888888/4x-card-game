@@ -2,7 +2,7 @@
 id: 145
 title: Anarchy when unrest reaches the limit
 type: feature
-status: in-progress
+status: review
 branch: feat/145-anarchy
 ---
 
@@ -13,29 +13,29 @@ comes about once per era (with 143's pacing). This item covers falling into Anar
 146 adds the ways out, 147 renewal. Follows 144. From `spike/unrest`.
 
 ## Acceptance criteria
-- [ ] AC1: Config `unrest` (optional; only with `unrest` in `resources`) is `{"anarchy": <government id>,
+- [x] AC1: Config `unrest` (optional; only with `unrest` in `resources`) is `{"anarchy": <government id>,
   "fallback": <government id>, "max_counters": <int >= 1>, "era_unrest": <int >= 0, default 0>, "allowed_tag":
   <string, default "">}`. Given an id that isn't a government, `max_counters` 0 or `era_unrest` -1, then loading
   fails with `config.json: unrest.<field>: …` naming the field and what it must be. The anarchy government can't
   be `starting.government`, can't set `unrest_limit` (load error), and isn't in any deck or supply.
-- [ ] AC2: Given Chiefdom (unrest limit 5) ruling and unrest 5 when a turn starts (after upkeep and feeding, before
+- [x] AC2: Given Chiefdom (unrest limit 5) ruling and unrest 5 when a turn starts (after upkeep and feeding, before
   the draw), then the anarchy card is the government (`anarchy()` is its uid), Chiefdom is in the `deck` (the deck
   shuffled with the seeded rng), and a notice names Anarchy. Given unrest 4, or unrest 5 that an upkeep effect lowers
   to 4, then nothing happens. While Anarchy rules, `unrest_limit()` is -1, so unrest gains aren't capped.
-- [ ] AC3: While Anarchy rules, `play_error` for a hand card that is neither a government nor tagged `allowed_tag`
+- [x] AC3: While Anarchy rules, `play_error` for a hand card that is neither a government nor tagged `allowed_tag`
   is `"Anarchy: only a government or an order card can be played."`; a card with that tag plays normally.
   `grow_error`, `buy_error`, and every way of learning a tech (`buy_tech_error`, the Research card) give
   `"Anarchy: nothing can be grown, bought or researched."`. Discarding, ending the turn and relieving a Famine work
   as usual. Actions per turn are the anarchy card's `actions` (data: 1).
-- [ ] AC4: Each turn that starts with Anarchy already ruling adds a counter to it (`anarchy_counters()`: 0 on the turn
+- [x] AC4: Each turn that starts with Anarchy already ruling adds a counter to it (`anarchy_counters()`: 0 on the turn
   it falls, then 1, 2, …); the anarchy card's own upkeep effects resolve like any government's (data: −1 pop). When a
   counter makes it reach `max_counters` (4), the fallback government (Chiefdom) is created as the government, the
   anarchy card goes to `removed`, unrest becomes min(unrest, the fallback's limit / 2, rounded down), and a notice
   says order returns.
-- [ ] AC5: When an era is added (an `add_era` effect, an empty research deck, or `era_unlocks`), unrest rises by
+- [x] AC5: When an era is added (an `add_era` effect, an empty research deck, or `era_unlocks`), unrest rises by
   `era_unrest`, capped at the limit, with a notice; with `era_unrest` 0 nothing happens. Given unrest 3 of 5 and
   `era_unrest` 3, then adding era 2 makes unrest 5, and the next turn falls into Anarchy.
-- [ ] AC6: While Anarchy rules, the bot plays a government from its hand before any other card. (That real games
+- [x] AC6: While Anarchy rules, the bot plays a government from its hand before any other card. (That real games
   with Anarchy play to the end is a sim run, under Manual check, not a test.)
 
 ## Out of scope
@@ -79,3 +79,15 @@ comes about once per era (with 143's pacing). This item covers falling into Anar
   red checkpoint: sim runs don't belong in tests).
 
 ## Log
+- 2026-10-01: Red checkpoint (agreed): the 100-game bot sweep for AC6 left the suite (sim runs aren't tests); AC6 now
+  only tests the bot's government-first rule, and the real-game run is a Manual check. The older
+  `test_content::test_scripted_sweep_over_20_seeds` was removed for the same reason. The Research card is refused by
+  the play rule (it isn't `order`); only `buy_tech` gets the "researched" message. `anarchy`, `fallback` and
+  `max_counters` are required in the block.
+- Built: `engine/anarchy.gd`; `TurnLoop.start_turn` calls `Anarchy.start_of_turn` after era unlocks, so an era added
+  at a turn's start (era_unlocks) can tip that same turn into Anarchy. Burning out halves to the fallback's
+  effective limit (`unrest_limit()`, modifiers included). Era unrest is added straight to the resource (not via
+  `gain`), so a played `add_era` card's outcome doesn't list it. The Anarchy card's text is hand-written and names
+  Chiefdom and 4 turns: keep it in step with config `unrest`.
+- `engine/config_loader.gd` (521) and `engine/game_engine.gd` (520) are past the 500-line warning.
+- Balance worries: not simmed (a feature item). The spike measured 0.9–2.2 Anarchies a game.

@@ -4,7 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## turn adds a counter, and at max_counters the fallback government restores order. Each new era adds era_unrest.
 ## Local fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5), Kings (limit 8), Anarchy (government,
 ## 1 action, ⟳ −1 pop), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest), Dawn (adds era 2) and Lore (a tech).
-## Engines are held as Object so the file parses before the API.
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
@@ -62,7 +61,7 @@ func config_errors(raw: Dictionary) -> Array[String]:
 
 
 ## A new anarchy game (see anarchy_raw).
-func anarchy_engine(unrest := {}, overrides := {}) -> Object:
+func anarchy_engine(unrest := {}, overrides := {}) -> GameEngine:
 	var cards := anarchy_db()
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
@@ -77,15 +76,15 @@ func anarchy_engine(unrest := {}, overrides := {}) -> Object:
 
 
 ## An anarchy game that fell into Anarchy at the start of turn 2 (unrest 5 of 5 at the end of turn 1).
-func fallen_engine(unrest := {}) -> Object:
-	var e: Object = anarchy_engine(unrest)
+func fallen_engine(unrest := {}) -> GameEngine:
+	var e := anarchy_engine(unrest)
 	e.resources["unrest"] = 5
 	e.end_turn()
 	return e
 
 
 ## The ruling government's card id ("" for none).
-func ruling(e: Object) -> String:
+func ruling(e: GameEngine) -> String:
 	return "" if e.zone("government").is_empty() else e.zone("government").cards[0].def.id
 
 
@@ -124,7 +123,7 @@ func test_unrest_block_validation() -> void:
 # --- AC2: falling into Anarchy ---
 
 func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	var recorded := record_messages(e)
 	var deck_before: int = e.zone("deck").size()
 	e.resources["unrest"] = 5
@@ -137,7 +136,7 @@ func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
 
 
 func test_unrest_below_the_limit_doesnt_fall() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	e.resources["unrest"] = 4
 	e.end_turn()
 	eq(ruling(e), "chiefs", "Chiefs still rules")
@@ -145,7 +144,7 @@ func test_unrest_below_the_limit_doesnt_fall() -> void:
 
 
 func test_an_upkeep_that_calms_below_the_limit_prevents_anarchy() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	build_on(e, home_uid(e), ["calm"])
 	e.resources["unrest"] = 5
 	e.end_turn()
@@ -154,7 +153,7 @@ func test_an_upkeep_that_calms_below_the_limit_prevents_anarchy() -> void:
 
 
 func test_without_an_unrest_block_the_limit_only_caps() -> void:
-	var e: Object = anarchy_engine({}, {"unrest": null})
+	var e := anarchy_engine({}, {"unrest": null})
 	e.resources["unrest"] = 5
 	e.end_turn()
 	eq(ruling(e), "chiefs", "no Anarchy without the config block")
@@ -167,7 +166,7 @@ func test_unrest_has_no_limit_under_anarchy() -> void:
 # --- AC3: what Anarchy locks ---
 
 func test_under_anarchy_only_governments_and_order_cards_play() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var shrine := put_in_hand(e, "shrine")
 	eq(e.play_error(shrine), ONLY_ORDER, "Shrine")
 	check(not e.play_card(shrine), "play_card refuses")
@@ -182,7 +181,7 @@ func test_anarchy_has_its_cards_actions() -> void:
 
 
 func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	eq(e.grow_error(home_uid(e)), NOTHING_BUILT, "grow_error")
 	check(not e.grow(home_uid(e)), "grow refuses")
 	eq(e.buy_error("farm"), NOTHING_BUILT, "buy_error")
@@ -193,7 +192,7 @@ func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 
 
 func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var card: int = e.zone("hand").cards[0].uid
 	eq(e.discard_error(card), "", "discard_error")
 	eq(e.end_turn_error(), "", "end_turn_error")
@@ -202,7 +201,7 @@ func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
 # --- AC4: counters and burning out ---
 
 func test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var home := home_uid(e)
 	eq(e.anarchy_counters(), 0, "the turn it falls")
 	eq(e.pop(home), 6, "no Anarchy upkeep yet")
@@ -215,7 +214,7 @@ func test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop() -> void:
 
 
 func test_anarchy_burns_out_at_max_counters_and_the_fallback_restores_order() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var recorded := record_messages(e)
 	var anarchy_uid: int = e.anarchy()
 	for i in 3:
@@ -230,7 +229,7 @@ func test_anarchy_burns_out_at_max_counters_and_the_fallback_restores_order() ->
 
 
 func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var feast := put_in_hand(e, "feast")
 	e.play_card(feast)
 	e.resources["unrest"] = 1
@@ -245,7 +244,7 @@ func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
 # --- AC5: a new era stirs unrest ---
 
 func test_a_new_era_adds_era_unrest_up_to_the_limit() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	var recorded := record_messages(e)
 	e.resources["unrest"] = 3
 	var dawn := put_in_hand(e, "dawn")
@@ -257,7 +256,7 @@ func test_a_new_era_adds_era_unrest_up_to_the_limit() -> void:
 
 
 func test_era_unrest_0_adds_nothing() -> void:
-	var e: Object = anarchy_engine({"era_unrest": 0})
+	var e := anarchy_engine({"era_unrest": 0})
 	e.resources["unrest"] = 3
 	e.play_card(put_in_hand(e, "dawn"))
 	eq(e.resources.get("unrest"), 3, "no era unrest")
@@ -266,7 +265,7 @@ func test_era_unrest_0_adds_nothing() -> void:
 # --- AC6: the bot ---
 
 func test_the_bot_plays_a_government_first_under_anarchy() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	put_in_hand(e, "feast")
 	put_in_hand(e, "kings")
 	var played: Array[String] = []
