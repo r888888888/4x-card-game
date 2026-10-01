@@ -7,7 +7,7 @@ extends "res://tests/lib/tech_case.gd"
 func load_x(fields: Dictionary, type := "tech") -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var x := {"id": "x", "name": "X", "type": type, "cost": {"wealth": 2}}
+	var x := {"id": "x", "name": "X", "type": type, "cost": {"insight": 2} if type == "tech" else {"wealth": 2}}
 	x.merge(fields, true)
 	var cards := tech_db([x], errors, warnings)
 	return {"cards": cards, "errors": errors, "warnings": warnings}
@@ -93,9 +93,9 @@ func test_the_discount_stacks_and_is_paid() -> void:
 	eq(e.tech_cost(bronze), 3, "cost 5 - 2")
 	arrange(e.zone("research_deck"), ["bronze", "salt"])
 	check(play_research(e), "research")
-	var wealth: int = e.resources.wealth
+	var insight: int = e.resources.insight
 	check(e.buy_tech(bronze), "buy Bronze Working")
-	eq(e.resources.wealth, wealth - 3, "wealth paid")
+	eq(e.resources.insight, insight - 3, "insight paid")
 
 
 # --- AC5: the third pass removes ---
@@ -151,7 +151,7 @@ func test_a_tech_can_be_bought_without_its_prerequisite() -> void:
 	check(play_research(e), "research")
 	var iron := uid_of(e.zone("research_reveal"), "iron")
 	check(e.buy_tech(iron), "buy Iron Working: %s" % e.buy_tech_error(iron))
-	eq(e.resources.wealth, 14, "wealth 20 - 6")
+	eq(e.resources.insight, 14, "insight 20 - 6")
 
 
 # --- AC7: minimum cost 1 ---
@@ -172,7 +172,7 @@ func test_passes_cannot_take_a_tech_below_1() -> void:
 	eq(e.tech_cost(pottery), 1, "2 - 2, raised to 1")
 	check(play_research(e), "research")
 	check(e.buy_tech(pottery), "buy Pottery")
-	eq(e.resources.wealth, 19, "paid tech_cost 1")
+	eq(e.resources.insight, 19, "paid tech_cost 1")
 
 
 # --- AC8: card text ---

@@ -20,7 +20,7 @@ func supply_errors(supply: Variant) -> Array[String]:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	DataLoader.parse_config(raw_config({"farm": 1}, {"supply": supply}), resources(), cards, "config.json", errors, warnings)
+	DataLoader.parse_config(raw_config({"farm": 1}, {"supply": supply}), tech_resources(), cards, "config.json", errors, warnings)
 	return errors
 
 
@@ -132,7 +132,7 @@ func test_supply_block_is_normalized() -> void:
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"supply": {"scout": {"price": 2, "count": 3}}}),
-		resources(), cards, "config.json", errors, warnings)
+		tech_resources(), cards, "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.supply, {"scout": {"price": 2, "count": 3, "locked": false}}, "supply")
 
@@ -141,7 +141,7 @@ func test_supply_defaults_to_empty() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), tech_resources(), cards, "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.supply, {}, "supply")
 
@@ -163,7 +163,7 @@ func test_supply_validation() -> void:
 # --- Backlog 057: locked piles and the unlock op ---
 
 ## Guilds (tech, 2 wealth): a free Guildhall in the discard, and the Guildhall pile unlocked.
-const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"wealth": 2}, "effects": [
+const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"insight": 2}, "effects": [
 	{"op": "create", "card": "guildhall", "zone": "discard"}, {"op": "unlock", "card": "guildhall"}]}
 ## Actions that unlock a pile: the locked Guildhall, or Scout, which was never locked.
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action", "effects": [{"op": "unlock", "card": "guildhall"}]}
@@ -184,7 +184,7 @@ func load_locked(extra: Array, overrides: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([GUILDS] + extra, errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), tech_resources(), cards, "config.json", errors, warnings)
 	return {"cards": cards, "config": config, "errors": errors, "warnings": warnings}
 
 
@@ -193,7 +193,7 @@ func unlock_card(effect: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
-		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, resources(), "cards.json", errors, warnings,
+		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, tech_resources(), "cards.json", errors, warnings,
 		keywords())
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 

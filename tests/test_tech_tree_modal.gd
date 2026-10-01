@@ -47,7 +47,7 @@ func hints_with_deck(deck: Dictionary) -> Array[String]:
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
 	var config := DataLoader.parse_config(raw_config(deck, {"research_deck": {"pottery": 1, "writing": 1}}),
-		resources(), cards, "test", errors, warnings)
+		tech_resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine
 	Game.engine = GameEngine.new(cards, config)

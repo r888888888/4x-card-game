@@ -2,7 +2,7 @@
 id: 139
 title: Insight, a third resource that pays for techs
 type: feature
-status: ready
+status: red-review
 branch: feat/139-insight-resource
 ---
 
@@ -48,6 +48,11 @@ Design notes); research stays reveal-2 until 140.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_insight::test_a_tech_costing_insight_loads`, `test_a_tech_must_cost_insight_only`; `test_research::test_tech_with_an_insight_cost_loads`, `test_tech_card_validation` (cases now in insight) |
+| AC2 | `test_insight::test_buying_a_tech_spends_insight_and_leaves_wealth`; `test_research::test_buying_a_tech_pays_for_it_and_moves_it_to_researched` (now insight) |
+| AC3 | `test_insight::test_a_tech_needs_enough_insight`; `test_research::test_cannot_afford_a_tech` (now insight) |
+| AC4 | `test_insight::test_a_civilization_tech_discount_takes_insight`, `test_the_tech_tree_reports_costs_in_insight`, `test_a_revealed_techs_details_name_its_insight_price_and_the_civilization_discount`; `test_discounts::test_discount_text`, `test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges`; `test_card_details::test_revealed_tech_explains_its_price_now` (now insight) |
+| AC5 | `test_insight::test_the_forecast_includes_insight`, `test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change`; `test_board_layout::test_the_top_bar_fits_with_its_longest_texts` (asserts the Insight counter too) |
 
 ## Manual check
 - [ ] `godot --path . -- --civ babylon --seed 5`: the top bar shows Insight with its forecast (+1 from the Capital),

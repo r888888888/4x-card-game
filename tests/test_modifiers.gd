@@ -6,7 +6,7 @@ extends "res://tests/lib/tech_case.gd"
 ## (1-turn event, −3). Engines are held as Object so the file parses before the API.
 
 const PALACE := {"id": "palace", "name": "Palace", "type": "building", "modifiers": {"actions": 1}}
-const CALENDAR := {"id": "calendar", "name": "Calendar", "type": "tech", "cost": {"wealth": 2}, "modifiers": {"actions": 1}}
+const CALENDAR := {"id": "calendar", "name": "Calendar", "type": "tech", "cost": {"insight": 2}, "modifiers": {"actions": 1}}
 const SAGES := {"id": "sages", "name": "Sages", "type": "civilization", "modifiers": {"actions": 1}}
 const UNREST := {"id": "unrest", "name": "Unrest", "type": "event", "discard": {"turns": 1}, "modifiers": {"actions": -1}}
 const RIOT := {"id": "riot", "name": "Riot", "type": "event", "discard": {"turns": 1}, "modifiers": {"actions": -3}}
@@ -18,7 +18,7 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 func load_cards(extra: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json",
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, tech_resources(), "cards.json",
 		errors, warnings, keywords())
 	return {"errors": errors, "warnings": warnings, "cards": cards}
 
@@ -27,7 +27,7 @@ func load_cards(extra: Array) -> Dictionary:
 func with_modifiers(type: String, value: Variant) -> Dictionary:
 	var card := {"id": "x", "name": "X", "type": type, "modifiers": value}
 	if type == CardDef.TECH:
-		card["cost"] = {"wealth": 1}
+		card["cost"] = {"insight": 1}
 	return card
 
 
@@ -40,7 +40,7 @@ func band_game() -> Object:
 	var o := {"starting": {"resources": {"food": 10, "wealth": 10}, "tableau": ["capital"], "territory": "homeland",
 		"government": "band"}}
 	o.merge(POP)
-	var config := DataLoader.parse_config(raw_config({"farm": 10}, o), resources(), r.cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 10}, o), tech_resources(), r.cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "config should load: %s" % [errors])
 	var e := GameEngine.new(r.cards, config)
 	e.new_game(1)
@@ -141,7 +141,8 @@ func test_a_modifier_played_mid_turn_counts_at_once() -> void:
 
 
 func test_a_tech_bought_mid_turn_counts_at_once() -> void:
-	var starting := {"resources": {"food": 2, "wealth": 20}, "tableau": ["capital"], "territory": "homeland", "government": "band"}
+	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland",
+		"government": "band"}
 	var e: Object = tech_engine(["calendar", "pottery"], {"farm": 10}, {"starting": starting}, TEST_GOVS + [CALENDAR])
 	check(play_research(e), "research")
 	eq(e.actions_left(), 1, "Research used one")

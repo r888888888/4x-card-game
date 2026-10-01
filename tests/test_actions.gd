@@ -11,7 +11,7 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 func load_cards(extra: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json", errors, warnings, keywords())
+	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, tech_resources(), "cards.json", errors, warnings, keywords())
 	return {"errors": errors, "warnings": warnings}
 
 
@@ -123,7 +123,8 @@ func test_other_actions_dont_use_or_need_actions() -> void:
 
 
 func test_buying_a_revealed_tech_after_the_last_action_is_free() -> void:
-	var starting := {"resources": {"food": 2, "wealth": 20}, "tableau": ["capital"], "territory": "homeland", "government": "band"}
+	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland",
+		"government": "band"}
 	for decline in [false, true]:
 		var e: Object = tech_engine(["pottery", "writing"], {"farm": 10}, {"starting": starting}, TEST_GOVS)
 		play_all(e, shrines(e, 1))

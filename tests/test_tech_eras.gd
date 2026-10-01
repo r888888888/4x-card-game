@@ -3,10 +3,10 @@ extends "res://tests/lib/tech_case.gd"
 ## future_techs, the empty research deck adding the next era, and the Library.
 
 const ERA_CARDS := [
-	{"id": "philosophy", "name": "Philosophy", "type": "tech", "cost": {"wealth": 3},
+	{"id": "philosophy", "name": "Philosophy", "type": "tech", "cost": {"insight": 3},
 	 "effects": [{"op": "add_era", "era": 2}]},
-	{"id": "optics", "name": "Optics", "type": "tech", "cost": {"wealth": 4}, "era": 2},
-	{"id": "astronomy", "name": "Astronomy", "type": "tech", "cost": {"wealth": 5}, "era": 2},
+	{"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2},
+	{"id": "astronomy", "name": "Astronomy", "type": "tech", "cost": {"insight": 5}, "era": 2},
 	{"id": "academy", "name": "Academy", "type": "building", "cost": {"food": 1},
 	 "effects": [{"op": "add_era", "era": 2}]},
 	{"id": "library", "name": "Library", "type": "building", "cost": {"food": 1},
@@ -21,7 +21,7 @@ func load_x(fields: Dictionary, type := "tech", effects: Array = []) -> Dictiona
 	var warnings: Array[String] = []
 	var x := {"id": "x", "name": "X", "type": type, "effects": effects}
 	if type == "tech":
-		x["cost"] = {"wealth": 2}
+		x["cost"] = {"insight": 2}
 	x.merge(fields, true)
 	var cards := tech_db([x], errors, warnings)
 	return {"cards": cards, "errors": errors, "warnings": warnings}
@@ -205,7 +205,7 @@ func threshold_config_errors(unlocks: Variant) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db(ERA_CARDS)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_unlocks": unlocks}), resources(), cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_unlocks": unlocks}), tech_resources(), cards, "config.json", errors, warnings)
 	return {"config": config, "errors": errors, "warnings": warnings}
 
 
@@ -224,7 +224,7 @@ func test_era_unlocks_is_normalized() -> void:
 func test_era_unlocks_defaults_to_empty() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(ERA_CARDS), "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), tech_resources(), tech_db(ERA_CARDS), "config.json", errors, warnings)
 	eq(config.get("era_unlocks"), {}, "default")
 
 

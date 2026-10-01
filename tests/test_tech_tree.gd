@@ -3,10 +3,10 @@ extends "res://tests/lib/tech_case.gd"
 ## what it gives; era_name(n) names eras from config era_names. Engines are Object so this parses before the API.
 
 const ERA_2 := [
-	{"id": "optics", "name": "Optics", "type": "tech", "cost": {"wealth": 4}, "era": 2},
-	{"id": "astronomy", "name": "Astronomy", "type": "tech", "cost": {"wealth": 5}, "era": 2},
+	{"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2},
+	{"id": "astronomy", "name": "Astronomy", "type": "tech", "cost": {"insight": 5}, "era": 2},
 ]
-const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"wealth": 2}, "effects": [
+const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"insight": 2}, "effects": [
 	{"op": "create", "card": "guildhall", "zone": "discard"}, {"op": "unlock", "card": "guildhall"}]}
 
 
@@ -33,7 +33,7 @@ func era_names_config(era_names: Variant) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_names": era_names}), resources(), cards,
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_names": era_names}), tech_resources(), cards,
 		"config.json", errors, warnings)
 	return {"config": config, "errors": errors, "warnings": warnings}
 

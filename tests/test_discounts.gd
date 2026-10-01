@@ -1,12 +1,12 @@
 extends "res://tests/lib/tech_case.gd"
 ## Civilization discounts (backlog 108): a civilization's `discounts` lowers what some cards cost while it's yours.
 ## A `type` or `tag` filter lowers a hand card's play_cost and a tech's tech_cost; `supply: true` lowers buy_price.
-## Local fixtures (so other tests load while the field is missing): civilizations Scholars (techs −1 wealth),
+## Local fixtures (so other tests load while the field is missing): civilizations Scholars (techs −1 insight),
 ## Builders (wonders −3 wealth) and Traders (supply −1 wealth); buildings Obelisk (12 wealth, wonder) and Cairn
 ## (2 wealth + 1 food, wonder). TECHS from tech_case: Loom 4, Iron 6 (prereq Bronze, −2), Steel 3 (prereq Iron, −5).
 ## Engines are held as Object so the file parses before the API.
 
-const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "civilization", "discounts": [{"type": "tech", "wealth": 1}]}
+const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "civilization", "discounts": [{"type": "tech", "insight": 1}]}
 const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}
 const TRADERS := {"id": "traders", "name": "Traders", "type": "civilization", "discounts": [{"supply": true, "wealth": 1}]}
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
@@ -28,9 +28,10 @@ func civ_with(value: Variant) -> Dictionary:
 	return {"id": "x", "name": "X", "type": "civilization", "discounts": value}
 
 
-## A game as civilization civ ("" for none) with Loom then Dye on the research deck, 20 wealth and the test supply.
+## A game as civilization civ ("" for none) with Loom then Dye on the research deck, 20 wealth, 20 insight and the
+## test supply.
 func game_as(civ: String) -> Object:
-	var starting := {"resources": {"food": 2, "wealth": 20}, "tableau": ["capital"], "territory": "homeland"}
+	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland"}
 	if civ != "":
 		starting["civilization"] = civ
 	var o := {"starting": starting}
@@ -62,7 +63,7 @@ func test_discounts_validation() -> void:
 
 func test_discount_text() -> void:
 	var cards: Dictionary = load_cards(FIXTURES).cards
-	for row in [["scholars", "Techs cost 1 less wealth."], ["builders", "Wonders cost 3 less wealth."],
+	for row in [["scholars", "Techs cost 1 less insight."], ["builders", "Wonders cost 3 less wealth."],
 			["traders", "Supply cards cost 1 less wealth."]]:
 		if not cards.has(row[0]):
 			check(false, "%s should load" % row[0])
@@ -78,10 +79,10 @@ func test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges() -> void:
 	check(play_research(e), "research")
 	var loom := uid_of(e.zone("research_reveal"), "loom")
 	eq(e.tech_cost(loom), 3, "Loom 4 − 1")
-	e.resources.wealth = 3
-	eq(e.buy_tech_error(loom), "", "3 wealth is enough")
+	e.resources.insight = 3
+	eq(e.buy_tech_error(loom), "", "3 insight is enough")
 	check(e.buy_tech(loom), "buy Loom")
-	eq(e.resources.wealth, 0, "charged 3")
+	eq(e.resources.insight, 0, "charged 3")
 
 
 func test_a_tech_discount_stacks_with_passes_and_prereqs_but_never_below_1() -> void:
@@ -145,8 +146,8 @@ func test_costs_are_unchanged_without_discounts() -> void:
 # --- 136: play_cost with no game ---
 
 func test_bug_136_play_cost_is_empty_before_a_game_starts() -> void:
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", [] as Array[String], [] as Array[String], keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", [] as Array[String], [] as Array[String])
+	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", [] as Array[String], [] as Array[String], keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), tech_resources(), cards, "test", [] as Array[String], [] as Array[String])
 	var e := GameEngine.new(cards, config)
 	eq(e.play_cost(-1), {}, "no hand before new_game")
 

@@ -187,7 +187,7 @@ func test_needs_target_choice_is_false_with_one_target_no_food_or_no_target() ->
 
 # --- Backlog 094 AC2: tech_eras ---
 
-const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"wealth": 4}, "era": 2}
+const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}
 
 
 ## The tech_case fixture with Optics (era 2) waiting in future_techs; era_unlocks as given.
@@ -240,9 +240,9 @@ func test_open_supply_piles_are_the_unlocked_ones_in_config_order() -> void:
 func test_supply_screen_does_not_open_when_every_pile_is_locked() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", errors, warnings, keywords())
 	var config := DataLoader.parse_config(raw_config({"farm": 5},
-		{"supply": {"scout": {"price": 1, "count": 1, "locked": true}}}), resources(), cards, "test", errors, warnings)
+		{"supply": {"scout": {"price": 1, "count": 1, "locked": true}}}), tech_resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine
 	Game.engine = GameEngine.new(cards, config)
