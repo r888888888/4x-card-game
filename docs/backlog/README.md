@@ -102,11 +102,18 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 62. 104 screen header and transitions for navigated screens (the pattern; after 103)
 63. 105 territory view layout (uses 104's header)
 64. 107 ancient civilizations: Egypt, Sumer, Phoenicia, Babylon, Greece, Persia (content only, existing ops)
-65. 108 civilization discounts (Babylon techs, Phoenicia supply, Egypt wonders; after 107)
-66. 109 civilization hand size (Greece; after 107)
-67. 110 civilization housing (Sumer; after 107)
-68. 111 civilization home territory (after 107; last, since it shifts every civ's start)
-69. 112 drop the basic terms (Upkeep, Slots, Pop) from card details
-70. 113 capital slots +4 → +3 (balance; revisit after 111)
+65. 112 drop the basic terms (Upkeep, Slots, Pop) from card details
+66. 113 capital slots +4 → +3 (balance; revisit after 111)
+67. 125 split effect hooks and internals out of `GameEngine` (694/700 lines; before everything below, which adds
+    engine queries)
+68. 127 actions per turn: playing a hand card uses 1; the government sets the count (Chiefdom 2, Kingship and
+    Theocracy 3)
+69. 128 `gain_actions` op: Scout and Barter give +1 action (after 127)
+70. 129 standing `modifiers` on permanent cards, first key `actions` (after 127)
+71. 108 civilization discounts (Babylon techs, Phoenicia supply, Egypt wonders; after 107 and 125)
+72. 109 hand size as a `modifiers` key (Greece; after 129)
+73. 110 housing as a `modifiers` key (Sumer; after 129)
+74. 111 civilization home territory (after 107; last, since it shifts every civ's start)
+75. Balance pass for the action economy (to spec: 127–129 shift the game from resources to tempo)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
