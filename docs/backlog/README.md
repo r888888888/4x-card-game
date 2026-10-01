@@ -41,15 +41,9 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-1. 142 diffusion: earlier-era techs get cheaper (after 140)
-2. 143 Iron Age techs in the deck, research pacing (after 139–142)
-3. 144 Unrest resource, government unrest limit (from `spike/unrest`)
-4. 145 Anarchy at the unrest limit (after 144; once-per-era pacing assumes 143)
-5. 146 leaving Anarchy: half-limit government, restore order (after 145)
-6. 147 renewal: trash from the discard during Anarchy (after 146)
-7. 148 revolution events: choose to revolt (after 147)
-
-Sim speed (from `spike/sim-speed`, independent of the game items above; any time, in this order): 150 linear working
-cards and eurekas, 151 bot tech pick without the tree, 152 parallel sim.
+1. 145 Anarchy at the unrest limit (after 144; once-per-era pacing assumes 143)
+2. 146 leaving Anarchy: half-limit government, restore order (after 145)
+3. 147 renewal: trash from the discard during Anarchy (after 146)
+4. 148 revolution events: choose to revolt (after 147)
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).

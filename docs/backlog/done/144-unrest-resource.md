@@ -2,7 +2,7 @@
 id: 144
 title: Unrest, a resource capped by the government's unrest limit
 type: feature
-status: review
+status: done
 branch: feat/144-unrest-resource
 ---
 
