@@ -1,91 +1,8 @@
-extends "res://tests/lib/test_case.gd"
+extends "res://tests/lib/anarchy_case.gd"
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy, the config's unrest.anarchy
 ## government. While it rules only governments and allowed_tag cards play, nothing is grown, bought or researched, each
 ## turn adds a counter, and at max_counters the fallback government restores order. Each new era adds era_unrest.
-## Local fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5), Kings (limit 8), Anarchy (government,
-## 1 action, ⟳ −1 pop), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest), Dawn (adds era 2) and Lore (a tech).
-
-const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
-const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
-const KINGS := {"id": "kings", "name": "Kings", "type": "government", "unrest_limit": 8}
-const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
-	"effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]}
-const FEAST := {"id": "feast", "name": "Feast", "type": "action", "tags": ["order"],
-	"effects": [{"op": "lose", "resource": "unrest", "amount": 2}]}
-const CALM := {"id": "calm", "name": "Calm", "type": "building",
-	"effects": [{"op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep"}]}
-const DAWN := {"id": "dawn", "name": "Dawn", "type": "action", "effects": [{"op": "add_era", "era": 2}]}
-const LORE := {"id": "lore", "name": "Lore", "type": "tech", "cost": {"insight": 1}}
-const FIXTURES := [CHIEFS, KINGS, ANARCHY, FEAST, CALM, DAWN, LORE]
-const UNREST_BLOCK := {"anarchy": "anarchy", "fallback": "chiefs", "max_counters": 4, "era_unrest": 3,
-	"allowed_tag": "order"}
-const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
-const ONLY_ORDER := "Anarchy: only a government or an order card can be played."
-const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."
-
-
-## TEST_CARDS, TEST_GOVS and FIXTURES, parsed with unrest a resource.
-func anarchy_db() -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + FIXTURES}, RESOURCES, "cards.json",
-		errors, warnings, keywords())
-	check(errors.is_empty(), "test cards should load: %s" % [errors])
-	return cards
-
-
-## The raw config for an anarchy game: Chiefs ruling, unrest listed, the unrest block (merged with unrest), population
-## on (home pop 6), 10 food, wealth and insight, Lore in the research deck and Farms in the supply; overrides last (a
-## null value drops that key).
-func anarchy_raw(unrest := {}, overrides := {}) -> Dictionary:
-	var o := {"resources": RESOURCES, "population": POP, "unrest": UNREST_BLOCK.merged(unrest, true),
-		"research_deck": {"lore": 1}, "supply": {"farm": {"price": 1, "count": 3}},
-		"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
-			"territory": "homeland", "government": "chiefs"}}
-	o.merge(overrides, true)
-	var raw := raw_config({"farm": 10}, o)
-	for key in overrides:
-		if overrides[key] == null:
-			raw.erase(key)
-	return raw
-
-
-## The errors from parsing raw against anarchy_db.
-func config_errors(raw: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var listed: Array[String] = []
-	listed.assign(raw.resources)
-	DataLoader.parse_config(raw, listed, anarchy_db(), "config.json", errors, warnings)
-	return errors
-
-
-## A new anarchy game (see anarchy_raw).
-func anarchy_engine(unrest := {}, overrides := {}) -> GameEngine:
-	var cards := anarchy_db()
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var raw := anarchy_raw(unrest, overrides)
-	var listed: Array[String] = []
-	listed.assign(raw.resources)
-	var config := DataLoader.parse_config(raw, listed, cards, "config.json", errors, warnings)
-	check(errors.is_empty(), "test config should load: %s" % [errors])
-	var e := GameEngine.new(cards, config)
-	e.new_game(1)
-	return e
-
-
-## An anarchy game that fell into Anarchy at the start of turn 2 (unrest 5 of 5 at the end of turn 1).
-func fallen_engine(unrest := {}) -> GameEngine:
-	var e := anarchy_engine(unrest)
-	e.resources["unrest"] = 5
-	e.end_turn()
-	return e
-
-
-## The ruling government's card id ("" for none).
-func ruling(e: GameEngine) -> String:
-	return "" if e.zone("government").is_empty() else e.zone("government").cards[0].def.id
+## Fixtures: tests/lib/anarchy_case.gd.
 
 
 # --- AC1: the config block ---
@@ -170,7 +87,9 @@ func test_under_anarchy_only_governments_and_order_cards_play() -> void:
 	var shrine := put_in_hand(e, "shrine")
 	eq(e.play_error(shrine), ONLY_ORDER, "Shrine")
 	check(not e.play_card(shrine), "play_card refuses")
+	e.resources["unrest"] = 3  # 146: Kings (limit 7) is accepted at 3 or less
 	eq(e.play_error(put_in_hand(e, "kings")), "", "a government plays")
+	e.resources["unrest"] = 5
 	var feast := put_in_hand(e, "feast")
 	check(e.play_card(feast), "Feast (order) plays: %s" % e.play_error(feast))
 	eq(e.resources.get("unrest"), 3, "5 − 2")
@@ -266,6 +185,7 @@ func test_era_unrest_0_adds_nothing() -> void:
 
 func test_the_bot_plays_a_government_first_under_anarchy() -> void:
 	var e := fallen_engine()
+	e.resources["unrest"] = 2  # 146: low enough for Kings (limit 7) to be accepted
 	put_in_hand(e, "feast")
 	put_in_hand(e, "kings")
 	var played: Array[String] = []

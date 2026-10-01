@@ -41,6 +41,7 @@ var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ReliefButton  # below the Realm while a Famine can be relieved
+var _restore: RestoreOrderButton  # beside it while Anarchy rules and order can be bought (146)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome: the next _refresh flies the played card to where it was played
@@ -190,6 +191,11 @@ func event_panel() -> Dictionary:
 ## Test hook (137): the Relieve button below the Realm (visible or not).
 func relieve_button() -> Button:
 	return _relief.button
+
+
+## Test hook (146): the Restore order button beside Relieve (visible or not).
+func restore_order_button() -> Button:
+	return _restore.button
 
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
@@ -409,6 +415,7 @@ func _refresh() -> void:
 	choices.refresh(e)
 	log_drawer.refresh(e)
 	_relief.refresh(e)
+	_restore.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
 	_outcome = {}
@@ -588,7 +595,10 @@ func _build_layout() -> void:
 		_quiet = true
 		_refresh()
 		_quiet = false)
-	_relief = ReliefButton.new(realm_section)
+	var relief_row := HBoxContainer.new()  # Relieve famine and Restore order (146), each shown only when it applies
+	realm_section.add_child(relief_row)
+	_relief = ReliefButton.new(relief_row)
+	_restore = RestoreOrderButton.new(relief_row)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	var hand_heading := HBoxContainer.new()  # the heading, then the actions counter (127)

@@ -286,7 +286,7 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 
 
 ## Normalizes the unrest block (145) {anarchy, fallback, max_counters, era_unrest (default 0), allowed_tag (default
-## "")}: only with unrest in resources; anarchy and fallback are governments, and the anarchy card sets no
+## ""), relief (146, only when given: what restore_order pays)}: only with unrest in resources; anarchy and fallback are governments, and the anarchy card sets no
 ## unrest_limit and isn't starting.government. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
@@ -322,8 +322,13 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 		out.allowed_tag = tag
 	else:
 		u_errs.append("unrest.allowed_tag: must be a string (a tag)")
+	if raw.has("relief"):
+		var r_errs: Array[String] = []
+		out.relief = _parse_relief(raw.relief, config.resources, r_errs)
+		for m in r_errs:
+			u_errs.append("unrest" + m)
 	for key in raw:
-		if not ["anarchy", "fallback", "max_counters", "era_unrest", "allowed_tag"].has(key):
+		if not ["anarchy", "fallback", "max_counters", "era_unrest", "allowed_tag", "relief"].has(key):
 			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
 	errs.append_array(u_errs)
 	return out if u_errs.is_empty() else {}
