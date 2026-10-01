@@ -2,7 +2,7 @@
 id: 117
 title: A dealt card lands without the squash-and-bounce
 type: feature
-status: review
+status: done
 branch: feat/117-no-bounce-on-dealt-cards
 ---
 
