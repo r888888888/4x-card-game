@@ -2,7 +2,7 @@
 id: 144
 title: Unrest, a resource capped by the government's unrest limit
 type: feature
-status: ready
+status: red-review
 branch: feat/144-unrest-resource
 ---
 
@@ -66,6 +66,13 @@ the most stable). This item adds only the pressure: reaching the limit does noth
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_unrest::test_a_government_unrest_limit_loads_and_shows_in_its_text`, `test_unrest_limit_validation`, `test_the_unrest_limit_modifier_loads_with_its_text` |
+| AC2 | `test_unrest::test_the_unrest_limit_is_the_governments`, `test_a_working_modifier_adds_to_the_limit_and_an_idle_one_does_not`, `test_the_unrest_limit_never_goes_below_0`, `test_no_unrest_limit_without_a_government_that_sets_one`, `test_without_unrest_in_the_config_there_is_no_limit` |
+| AC3 | `test_unrest::test_gaining_unrest_stops_at_the_limit`, `test_gaining_unrest_without_a_limit_is_uncapped`, `test_losing_unrest_never_goes_below_0` |
+| AC4 | `test_unrest::test_unrest_cant_be_paid` (cost, discount, trade), `test_unrest_cant_be_famine_relief` |
+| AC5 | `test_unrest::test_the_forecast_includes_unrest`, `test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change`, `test_the_top_bar_shows_unrest_alone_without_a_limit`, `test_the_top_bar_has_no_unrest_counter_when_unrest_is_off`; `test_board_layout::test_the_top_bar_fits_with_its_longest_texts` (now checks Unrest, at 10) |
+| AC6 | `test_unrest::test_the_bot_doesnt_gain_unrest_that_would_reach_the_limit`, `test_the_bot_doesnt_calm_unrest_far_below_the_limit` |
+| AC7 | `test_content::test_real_events_harm_only_by_unrest` (was `test_real_events_are_neutral_or_beneficial`) |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`: the top bar shows `Unrest: 0 / 5`; play a Settler and it floats +1; nothing

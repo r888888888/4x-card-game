@@ -144,7 +144,7 @@ func test_real_deck_has_growth_cards() -> void:
 # --- Starter events (backlog 069) ---
 
 ## The ops a real event may use: they only give (see 072 for harmful ops).
-const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]
+const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]  # and lose of unrest (144)
 
 
 func test_every_real_event_is_in_the_event_deck() -> void:
@@ -159,7 +159,8 @@ func test_every_real_event_is_in_the_event_deck() -> void:
 	eq(unused, [] as Array[String], "events not in event_deck")
 
 
-func test_real_events_are_neutral_or_beneficial() -> void:
+## Backlog 144: gaining unrest is the only harm an event deals; an event may also calm it (lose unrest).
+func test_real_events_harm_only_by_unrest() -> void:
 	var r := load_real()
 	var blank := 0
 	var active := 0
@@ -171,9 +172,9 @@ func test_real_events_are_neutral_or_beneficial() -> void:
 		else:
 			active += 1
 		for effect in def.effects:
-			if not EVENT_OPS.has(effect.op):
+			if not EVENT_OPS.has(effect.op) and not (effect.op == "lose" and effect.get("resource") == "unrest"):
 				bad_ops.append("%s: %s" % [id, effect.op])
-	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score or grow")
+	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score, grow or lose of unrest")
 	check(blank >= 1, "at least one blank event (got %d)" % blank)
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
