@@ -170,6 +170,14 @@ func add_era(n: int, source: CardInstance = null) -> void:
 	Research.add_era(self, n, source)
 
 
+## Gives amount more actions this turn (128). Does nothing while actions are unlimited.
+func gain_actions(amount: int, source: CardInstance) -> void:
+	if CardPlay.actions_per_turn(self) < 0:
+		return
+	state.actions_gained += amount
+	_log("  %s: +%d action%s" % [source.def.name, amount, "" if amount == 1 else "s"])
+
+
 func add_score(amount: int, source: CardInstance) -> void:
 	bonus_score += amount
 	if not _outcome.is_empty():

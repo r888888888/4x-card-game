@@ -20,6 +20,7 @@ const OPS := {
 	"trash": preload("res://engine/effects/trash_effect.gd"),
 	"lose": preload("res://engine/effects/lose_effect.gd"),
 	"lose_pop": preload("res://engine/effects/lose_pop_effect.gd"),
+	"gain_actions": preload("res://engine/effects/gain_actions_effect.gd"),
 }
 
 

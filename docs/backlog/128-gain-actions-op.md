@@ -2,7 +2,7 @@
 id: 128
 title: A card can give actions this turn when played (Scout and Barter give +1 action)
 type: feature
-status: ready
+status: review
 branch: feat/128-gain-actions-op
 ---
 
@@ -15,17 +15,17 @@ Settlers and already replaces itself; Barter (2 food → 2 wealth) is a conversi
 Fixtures: TEST `band` government (`actions: 2`, from 127); new free TEST action cards `drill` with
 `{"op": "gain_actions", "amount": 1}` and `muster` with `"amount": 2`.
 
-- [ ] AC1 (loader): new op `gain_actions` with `amount` an int ≥ 1 (default 1). Any trigger other than `play` is a
+- [x] AC1 (loader): new op `gain_actions` with `amount` an int ≥ 1 (default 1). Any trigger other than `play` is a
   load error (it isn't `upkeep_ok`, and at `start` there is no turn yet). On an event it's a load error naming the
   card and the op (events resolve at the end of the turn, so the actions would be lost).
-- [ ] AC2: given `band` at the start of a turn, playing `drill` leaves `actions_left()` 2 (one used, one gained);
+- [x] AC2: given `band` at the start of a turn, playing `drill` leaves `actions_left()` 2 (one used, one gained);
   playing `muster` instead leaves 3. `actions_per_turn()` stays 2.
-- [ ] AC3: given `band` with 0 actions left, `drill`'s `play_error` is "No actions left this turn." (it needs an
+- [x] AC3: given `band` with 0 actions left, `drill`'s `play_error` is "No actions left this turn." (it needs an
   action to be played, like any card).
-- [ ] AC4: actions gained this turn don't carry over: after `end_turn()`, `actions_left()` is 2 again.
-- [ ] AC5: with unlimited actions (no `actions` on the government), the op does nothing and `actions_left()` stays
+- [x] AC4: actions gained this turn don't carry over: after `end_turn()`, `actions_left()` is 2 again.
+- [x] AC5: with unlimited actions (no `actions` on the government), the op does nothing and `actions_left()` stays
   -1.
-- [ ] AC6 (text): the card text is "+1 action" on the face and "+1 action this turn" in the tooltip; with amount 2,
+- [x] AC6 (text): the card text is "+1 action" on the face and "+1 action this turn" in the tooltip; with amount 2,
   "+2 actions" and "+2 actions this turn".
 
 ## Out of scope
@@ -42,11 +42,21 @@ Fixtures: TEST `band` government (`actions: 2`, from 127); new free TEST action 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_gain_actions::test_gain_actions_loads`, `test_gain_actions_validation`, `test_gain_actions_amount_defaults_to_1`; `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` (new row) |
+| AC2 | `test_gain_actions::test_a_plus_one_card_pays_back_its_action`, `test_a_plus_two_card_leaves_one_more` |
+| AC3 | `test_gain_actions::test_a_plus_one_card_cant_be_played_with_no_actions_left` |
+| AC4 | `test_gain_actions::test_gained_actions_dont_carry_over` |
+| AC5 | `test_gain_actions::test_gain_actions_does_nothing_with_unlimited_actions` |
+| AC6 | `test_gain_actions::test_gain_actions_text` |
 
 ## Manual check
-- [ ] As Chiefdom, playing Scout leaves the counter at 2 / 2; Scout, Barter and then two more cards can all be
-  played in one turn.
+- [ ] As Egypt (Chiefdom), with a Scout in hand: playing it leaves the hand's counter at "Actions: 2 / 2", and its
+  card reads "+1 action" (tooltip "+1 action this turn"). With Scout and Barter (2 food) in hand, both plus two more
+  cards can be played in one turn; the next turn starts at 2 / 2.
 
 ## Log
+- New `Effect.needs_a_turn()` hook: the loader rejects such an op on `start` ("can't trigger on start (it only lasts
+  the turn it's played)") and on events ("an event effect can't use 'gain_actions' (an event resolves after your
+  plays)"). The engine helper is `EngineCore.gain_actions(amount, source)`, counted in `GameState.actions_gained`.
 - Balance worry (for the balance item): Scout costs nothing, explores and draws 1, so with +1 action it's pure
   upside; if the supply's 6 Scouts make a "Scout chain" deck, look at Scout's draw or supply count there.

@@ -277,6 +277,8 @@ static func _start_effect_problem(effect: Effect, type: String) -> String:
 		return "trigger 'start' only works on civilizations"
 	if effect.target_zone() != "" or effect.opens_choice():
 		return "'%s' can't trigger on start (it needs a target or a choice)" % effect.op
+	if effect.needs_a_turn():
+		return "'%s' can't trigger on start (it only lasts the turn it's played)" % effect.op
 	return ""
 
 
@@ -287,6 +289,8 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 		return "%s %s effect can't use 'keyword' (%s %s has no territory)" % [article, type, article, type]
 	if effect.target_zone() != "":
 		return "%s %s effect can't need a target" % [article, type]
+	if type == CardDef.EVENT and effect.needs_a_turn():
+		return "an event effect can't use '%s' (an event resolves after your plays)" % effect.op
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""

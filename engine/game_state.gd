@@ -16,6 +16,7 @@ var era := 1  # the highest era of techs added to the research deck
 var eras_added: Array[int] = []  # eras add_era has already shuffled in
 var discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
 var actions_used := 0  # cards played from hand this turn (127)
+var actions_gained := 0  # actions gain_actions effects gave this turn (128)
 var supply: Dictionary = {}  # card_id -> copies left to buy, in config order
 var locked_supply: Dictionary = {}  # card_id -> true for piles not yet unlocked (057)
 var next_uid := 1
@@ -46,6 +47,7 @@ func copy() -> GameState:
 	s.eras_added = eras_added.duplicate()
 	s.discard_left = discard_left
 	s.actions_used = actions_used
+	s.actions_gained = actions_gained
 	s.supply = supply.duplicate()
 	s.locked_supply = locked_supply.duplicate()
 	s.next_uid = next_uid
