@@ -2,7 +2,7 @@
 id: 128
 title: A card can give actions this turn when played (Scout and Barter give +1 action)
 type: feature
-status: review
+status: done
 branch: feat/128-gain-actions-op
 ---
 
