@@ -76,7 +76,7 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 	var future := tech == null or state == GameEngine.TECH_FUTURE
 	return {
 		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
-		"cost": def.cost.get(GameEngine.WEALTH, 0) if future else cost(e, tech.uid),
+		"cost": def.cost.get(GameEngine.INSIGHT, 0) if future else cost(e, tech.uid),
 		"passes": 0 if tech == null else tech.passes, "gives": gives,
 	}
 
@@ -100,11 +100,11 @@ static func cost(e: GameEngine, uid: int) -> int:
 	var tech := find(e, uid)
 	if tech == null:
 		return 0
-	var wealth: int = tech.def.cost.get(GameEngine.WEALTH, 0) - tech.passes
-	wealth -= Discounts.off(e, tech.def, false).get(GameEngine.WEALTH, 0)
+	var insight: int = tech.def.cost.get(GameEngine.INSIGHT, 0) - tech.passes
+	insight -= Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
 	if tech.def.prereq != "" and e.zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
-		wealth -= tech.def.prereq_discount
-	return maxi(wealth, 1)
+		insight -= tech.def.prereq_discount
+	return maxi(insight, 1)
 
 
 static func passes(e: GameEngine, uid: int) -> int:
@@ -117,9 +117,9 @@ static func buy_error(e: GameEngine, uid: int) -> String:
 	if tech == null:
 		return "That tech isn't on offer."
 	var price := cost(e, uid)
-	var have: int = e.resources.get(GameEngine.WEALTH, 0)
+	var have: int = e.resources.get(GameEngine.INSIGHT, 0)
 	if have < price:
-		return "%s needs %d wealth (you have %d)." % [tech.def.name, price, have]
+		return "%s needs %d insight (you have %d)." % [tech.def.name, price, have]
 	return ""
 
 
@@ -142,9 +142,9 @@ static func buy(e: GameEngine, uid: int) -> bool:
 	var tech := e.zone("research_reveal").find(uid)
 	var price := cost(e, uid)
 	e.zone("research_reveal").remove(tech)
-	e.resources.wealth -= price
+	e.resources[GameEngine.INSIGHT] -= price
 	e.zone("researched").add(tech)
-	e._log("Learned %s (%d wealth)." % [tech.def.name, price])
+	e._log("Learned %s (%d insight)." % [tech.def.name, price])
 	e._resolve(tech, "play")
 	_return_revealed(e, true)
 	e.changed.emit()

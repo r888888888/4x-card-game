@@ -13,7 +13,7 @@ const TERMS := {
 	"Famine Guard": "Each upkeep, a working building with a famine guard saves pop on its territory that would "
 		+ "starve for lack of food.",
 	"Requires": "The building can only go on a territory with one of the listed keywords.",
-	"Passes": "Each time you buy another tech over this one, it gets 1 wealth cheaper. After 3 passes it is lost.",
+	"Passes": "Each time you buy another tech over this one, it gets 1 insight cheaper. After 3 passes it is lost.",
 	"Prerequisite": "A tech is cheaper when you have researched its prerequisite. You can buy it without.",
 	"Era": "Techs come in eras. A new era adds its techs to the research deck.",
 	"Explore": "Reveal territories from the territory deck and keep one in the frontier.",

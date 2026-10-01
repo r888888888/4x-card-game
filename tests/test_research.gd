@@ -4,12 +4,13 @@ extends "res://tests/lib/tech_case.gd"
 
 # --- Helpers ---
 
-const TEN_WEALTH := {"starting": {"resources": {"food": 2, "wealth": 10}, "tableau": ["capital"], "territory": "homeland"}}
+const TEN_INSIGHT := {"starting": {"resources": {"food": 2, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+	"territory": "homeland"}}
 
 
-## An engine with the research deck [pottery, writing, bronze], 10 wealth, and the first two revealed.
+## An engine with the research deck [pottery, writing, bronze], 10 wealth and 10 insight, and the first two revealed.
 func open_engine() -> Object:
-	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, TEN_WEALTH)
+	var e := tech_engine(["pottery", "writing", "bronze"], {"farm": 10}, TEN_INSIGHT)
 	check(play_research(e), "research should open")
 	return e
 
@@ -22,7 +23,7 @@ func load_x(type: String, cost: Variant, effects: Array = []) -> Dictionary:
 	if cost != null:
 		x["cost"] = cost
 	var raw := {"cards": [{"id": "city", "name": "City", "type": "city"}, x]}
-	var cards := DataLoader.parse_cards(raw, resources(), "cards.json", errors, warnings, keywords())
+	var cards := DataLoader.parse_cards(raw, tech_resources(), "cards.json", errors, warnings, keywords())
 	return {"cards": cards, "errors": errors}
 
 
@@ -32,8 +33,8 @@ func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
 
 # --- AC1: tech cards load ---
 
-func test_tech_with_a_wealth_cost_loads() -> void:
-	var r := load_x("tech", {"wealth": 2})
+func test_tech_with_an_insight_cost_loads() -> void:
+	var r := load_x("tech", {"insight": 2})
 	eq(r.errors, [] as Array[String], "loader errors")
 	if r.cards.has("x"):
 		eq(r.cards.x.type, "tech", "type")
@@ -43,12 +44,12 @@ func test_tech_with_a_wealth_cost_loads() -> void:
 func test_tech_card_validation() -> void:
 	check_cases([
 		["food cost", [{"food": 1}, []], "cards.json: card 'x': cost"],
-		["zero wealth cost", [{"wealth": 0}, []], "cards.json: card 'x': cost"],
-		["mixed cost", [{"wealth": 2, "food": 1}, []], "cards.json: card 'x': cost"],
+		["zero insight cost", [{"insight": 0}, []], "cards.json: card 'x': cost"],
+		["mixed cost", [{"insight": 2, "food": 1}, []], "cards.json: card 'x': cost"],
 		["no cost", [null, []], "cards.json: card 'x': cost"],
-		["keyword effect", [{"wealth": 2}, [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "mountain"}]],
+		["keyword effect", [{"insight": 2}, [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "mountain"}]],
 			"cards.json: card 'x': effects[0]"],
-		["targeting effect", [{"wealth": 2}, [{"op": "settle", "card": "city"}]], "cards.json: card 'x': effects[0]"],
+		["targeting effect", [{"insight": 2}, [{"op": "settle", "card": "city"}]], "cards.json: card 'x': effects[0]"],
 	], func(cost_and_effects): return load_x("tech", cost_and_effects[0], cost_and_effects[1]).errors)
 
 
@@ -58,7 +59,7 @@ func test_research_deck_is_normalized() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"research_deck": {"pottery": 2.0, "writing": 1}}),
-		resources(), tech_db(), "config.json", errors, warnings)
+		tech_resources(), tech_db(), "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(config.get("research_deck"), {"pottery": 2, "writing": 1}, "research_deck")
 
@@ -66,7 +67,7 @@ func test_research_deck_is_normalized() -> void:
 func test_research_deck_defaults_to_empty() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(), "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 1}), tech_resources(), tech_db(), "config.json", errors, warnings)
 	eq(config.get("research_deck"), {}, "research_deck default")
 
 
@@ -139,7 +140,7 @@ func test_buying_a_tech_pays_for_it_and_moves_it_to_researched() -> void:
 	var e := open_engine()
 	var pottery := uid_of(e.zone("research_reveal"), "pottery")
 	check(e.buy_tech(pottery), "buy should succeed: %s" % e.buy_tech_error(pottery))
-	eq(e.resources.wealth, 8, "wealth 10 - 2")
+	eq(e.resources.insight, 8, "insight 10 - 2")
 	eq(card_ids(e.zone("researched")), ["pottery"], "researched")
 	eq(e.research_options(), [] as Array[int], "options closed")
 	eq(e.zone("research_reveal").size(), 0, "nothing left revealed")
@@ -161,11 +162,11 @@ func test_play_and_end_turn_work_again_after_buying() -> void:
 
 func test_cannot_afford_a_tech() -> void:
 	var e := open_engine()
-	e.resources.wealth = 1
+	e.resources.insight = 1
 	var writing := uid_of(e.zone("research_reveal"), "writing")
-	eq(e.buy_tech_error(writing), "Writing needs 3 wealth (you have 1).", "buy_tech_error")
+	eq(e.buy_tech_error(writing), "Writing needs 3 insight (you have 1).", "buy_tech_error")
 	check(not e.buy_tech(writing), "buy should fail")
-	eq(e.resources.wealth, 1, "wealth unchanged")
+	eq(e.resources.insight, 1, "insight unchanged")
 	eq(e.research_options().size(), 2, "options still open")
 	eq(e.zone("researched").size(), 0, "nothing researched")
 
@@ -175,11 +176,11 @@ func test_cannot_buy_a_tech_that_was_not_revealed() -> void:
 	var not_options := [uid_of(e.zone("research_deck"), "bronze"), uid_of(e.zone("tableau"), "capital"), -1]
 	for uid in not_options:
 		check(not e.buy_tech(uid), "buy_tech(%d) should fail" % uid)
-	eq(e.resources.wealth, 10, "wealth unchanged")
+	eq(e.resources.insight, 10, "insight unchanged")
 	eq(e.research_options().size(), 2, "options still open")
 
 
-func test_tech_cost_is_the_printed_wealth_cost() -> void:
+func test_tech_cost_is_the_printed_insight_cost() -> void:
 	var e := open_engine()
 	eq(e.tech_cost(uid_of(e.zone("research_reveal"), "pottery")), 2, "Pottery")
 	eq(e.tech_cost(uid_of(e.zone("research_reveal"), "writing")), 3, "Writing")
@@ -211,7 +212,7 @@ func test_declining_returns_both_techs_and_spends_nothing() -> void:
 	check(e.decline_research(), "decline should succeed")
 	eq(sorted(card_ids(e.zone("research_deck"))), ["bronze", "pottery", "writing"], "research deck")
 	eq(e.zone("research_reveal").size(), 0, "nothing left revealed")
-	eq(e.resources.wealth, 10, "wealth unchanged")
+	eq(e.resources.insight, 10, "insight unchanged")
 	eq(e.research_options(), [] as Array[int], "options closed")
 
 

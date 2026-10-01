@@ -1,11 +1,11 @@
-extends "res://tests/lib/test_case.gd"
+extends "res://tests/lib/tech_case.gd"
 ## Hand size as a modifier (backlog 109): `modifiers: {"hand_size": n}` (129's field) raises or lowers the hand you
 ## draw up to each turn. Config hand_size 5, hand_limit 7. Local fixtures, so other tests load while the key is
 ## missing: Sages (civilization, +1), Scrolls (tech, +1), Archive (free building, +1), Drought (1-turn event, −1) and
 ## Oracles (civilization, +3: too many for hand_limit 7). Engines are held as Object so the file parses before the API.
 
 const SAGES := {"id": "sages", "name": "Sages", "type": "civilization", "modifiers": {"hand_size": 1}}
-const SCROLLS := {"id": "scrolls", "name": "Scrolls", "type": "tech", "cost": {"wealth": 1}, "modifiers": {"hand_size": 1}}
+const SCROLLS := {"id": "scrolls", "name": "Scrolls", "type": "tech", "cost": {"insight": 1}, "modifiers": {"hand_size": 1}}
 const ARCHIVE := {"id": "archive", "name": "Archive", "type": "building", "modifiers": {"hand_size": 1}}
 const DROUGHT := {"id": "drought", "name": "Drought", "type": "event", "discard": {"turns": 1}, "modifiers": {"hand_size": -1}}
 const ORACLES := {"id": "oracles", "name": "Oracles", "type": "civilization", "modifiers": {"hand_size": 3}}
@@ -17,7 +17,7 @@ const DECK := {"farm": 4, "scout": 4, "shrine": 4, "temple": 4}
 func load_cards(extra: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors,
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, tech_resources(), "cards.json", errors,
 		warnings, keywords())
 	return {"errors": errors, "warnings": warnings, "cards": cards}
 

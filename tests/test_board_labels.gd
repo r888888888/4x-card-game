@@ -109,6 +109,7 @@ func test_supply_button_reads_buy_cards_and_s_opens_the_supply_screen() -> void:
 func test_research_choice_is_titled_knowledge() -> void:
 	var main := open_main()
 	main.start_game(1)
-	check(label_with_text(main, "Knowledge") != null, "a Knowledge title")
-	check(label_with_text(main, "Research") == null, "no Research title")
+	var overlay: Node = main.choices.research_row.get_parent()  # the hand may hold a card named Research (139)
+	check(label_with_text(overlay, "Knowledge") != null, "a Knowledge title")
+	check(label_with_text(overlay, "Research") == null, "no Research title")
 	close_main(main)

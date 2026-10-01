@@ -3,7 +3,7 @@ extends "res://tests/lib/tech_case.gd"
 ## and an explanation of every mechanic it uses. Engines are held as Object so the file parses before the API exists.
 
 ## A tech with a prerequisite and the default discount (2): printed 5 wealth.
-const CHARIOT := {"id": "chariot", "name": "Chariot", "type": "tech", "cost": {"wealth": 5}, "prereq": "bronze"}
+const CHARIOT := {"id": "chariot", "name": "Chariot", "type": "tech", "cost": {"insight": 5}, "prereq": "bronze"}
 
 
 ## The term names of details, in order.
@@ -90,12 +90,12 @@ func test_rolled_resource_keyword_shows_in_rules_and_terms() -> void:
 	var resource_keywords: Array[String] = ["gold"]
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
 		{"id": "mint", "name": "Mint", "type": "building", "requires": ["gold"]}]},
-		resources(), "t", errors, warnings, keywords(), resource_keywords)
+		tech_resources(), "t", errors, warnings, keywords(), resource_keywords)
 	var config := DataLoader.parse_config(raw_config({"farm": 10}, {
 		"resource_keywords": ["gold"],
 		"territory_resources": {"hills": [{"keywords": ["gold"], "weight": 1}]},
 		"territory_deck": {"hills": 1},
-	}), resources(), cards, "t", errors, warnings)
+	}), tech_resources(), cards, "t", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var e: Object = GameEngine.new(cards, config)
 	e.new_game(1)
@@ -136,7 +136,7 @@ func test_revealed_tech_explains_its_price_now() -> void:
 	e.zone("research_reveal").add(chariot)
 	chariot.passes = 1
 	var d: Dictionary = e.card_details(chariot.uid)
-	check(d.get("state", []).has("Costs 2 wealth now (printed 5, −1 pass, −2 prereq)"), "state: %s" % [d.get("state")])
+	check(d.get("state", []).has("Costs 2 insight now (printed 5, −1 pass, −2 prereq)"), "state: %s" % [d.get("state")])
 	check(term_names(d).has("Passes"), "term Passes in %s" % [term_names(d)])
 	check(term_names(d).has("Prerequisite"), "term Prerequisite in %s" % [term_names(d)])
 
@@ -154,8 +154,8 @@ func test_unknown_cards_have_no_details() -> void:
 func test_bug_107_card_details_before_a_game_starts() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", errors, warnings)
+	var cards := DataLoader.parse_cards(TEST_CARDS, tech_resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), tech_resources(), cards, "test", errors, warnings)
 	var e: Object = GameEngine.new(cards, config)  # no new_game: no zones yet
 	eq(e.card_details(-1), {}, "no card has live details before a game")
 	eq(e.def_details("farm").get("name", ""), "Farm", "a definition's details work before a game")

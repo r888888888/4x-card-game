@@ -37,7 +37,7 @@ func test_knowledge_button_opens_the_tree() -> void:
 
 # --- Backlog 092: the hint names the research card from the engine ---
 
-const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives."
+const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: Era 1."  # the fixture has no era names
 
 
 ## Opens main on a fixture game (TECHS in the research deck) with main deck deck, starts it, opens the tree and
@@ -47,7 +47,7 @@ func hints_with_deck(deck: Dictionary) -> Array[String]:
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
 	var config := DataLoader.parse_config(raw_config(deck, {"research_deck": {"pottery": 1, "writing": 1}}),
-		resources(), cards, "test", errors, warnings)
+		tech_resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var real := Game.engine
 	Game.engine = GameEngine.new(cards, config)

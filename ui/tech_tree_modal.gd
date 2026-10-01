@@ -108,7 +108,7 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	var look: Array = STATE_LOOK[tech.state]
 	var title := "%s %s" % [look[0], e.card_db[tech.id].name]
 	if tech.state in [GameEngine.TECH_AVAILABLE, GameEngine.TECH_FUTURE]:
-		title += " · %d wealth" % tech.cost
+		title += " · %d insight" % tech.cost
 		if tech.passes > 0:
 			title += " (%d pass%s)" % [tech.passes, "" if tech.passes == 1 else "es"]
 	var status: String = look[1]

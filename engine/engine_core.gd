@@ -4,10 +4,11 @@ extends RefCounted
 ## accessors, the effect hooks (gain, lose, draw, create_card, …) and the logging internals. GameEngine extends it
 ## with the player-facing actions, their *_error queries and the read queries.
 
-## The two built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings,
-## techs and the supply. The config may list more resources; only these two have rules attached.
+## The built-in resources: food pays for people (growth, upkeep, Settlers), wealth for premium buildings and the
+## supply, insight for techs (139). The config may list more resources; only these have rules attached.
 const FOOD := "food"
 const WEALTH := "wealth"
+const INSIGHT := "insight"
 
 signal changed
 signal logged(message: String)
