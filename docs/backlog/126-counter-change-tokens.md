@@ -2,7 +2,7 @@
 id: 126
 title: Every change to a top-bar counter floats its net change up from that counter
 type: feature
-status: review
+status: done
 branch: feat/126-counter-change-tokens
 ---
 
