@@ -94,7 +94,13 @@ static func cost(e: GameEngine, uid: int) -> int:
 	insight -= Discounts.off(e, tech.def, false).get(GameEngine.INSIGHT, 0)
 	if eureka_met(e, tech.def):
 		insight -= tech.def.eureka.off
+	insight -= diffusion(e, tech.def)
 	return maxi(insight, 1)
+
+
+## Insight off def for diffusion (142): 1 per era added past def's own.
+static func diffusion(e: GameEngine, def: CardDef) -> int:
+	return maxi(0, e.era() - def.era)
 
 
 ## Whether def has a eureka (141) and the tableau holds its count of matching cards (by id, or by tag), idle or not.
