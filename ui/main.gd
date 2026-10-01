@@ -41,7 +41,6 @@ var _menu_return: CardView  # the card to give the focus back to when the menu c
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden while the zone is empty
 var _events: EventsSection  # the event piles' counts, the active events and Relieve
-var _turn_box: TurnBox  # the deck and discard counts and End turn, beside the hand (115)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome, animated by the next _refresh
@@ -408,7 +407,7 @@ func _refresh() -> void:
 	for zone_name in _row_sections:
 		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
 	choices.refresh(e)
-	_turn_box.refresh(e)
+	log_drawer.refresh(e)
 	_events.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
@@ -443,7 +442,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		views[card.uid] = view
 		var slot := _new_slot(view, container, index)
 		if in_hand:
-			view.deal(slot, fx, _turn_box.pile_point(0.25), delay)
+			view.deal(slot, fx, _top_bar.pile_point(), delay)
 		elif _quiet:
 			view.attach(slot)
 		else:
@@ -485,11 +484,13 @@ func _remove_view(uid: int, at_once := false) -> void:
 	if just_played and views.has(_outcome.target):  # fly to where it was played, e.g. the settled territory
 		via = (views[_outcome.target] as CardView).get_global_rect().get_center()
 	var trashed := Game.engine.zone("trashed").find(uid) != null
-	view.leave(fx, _leave_point(uid, view), just_played or trashed, via)
+	var point := _leave_point(uid, view)
+	var pulse := UIKit.pulse.bind(_top_bar.log_button) if point == _top_bar.pile_point() else Callable()
+	view.leave(fx, point, just_played or trashed, via, pulse)  # the Log button pulses as a card reaches the piles (121)
 	_free_slot(old_slot)
 
 
-## Where a card that left the board flies: the deck or discard counter, the event counts, for a territory
+## Where a card that left the board flies: the Log button for the deck or discard (121), the event counts, for a territory
 ## put back in the territory deck the edge of the choice panel, or up off the table for a trashed card.
 func _leave_point(uid: int, view: CardView) -> Vector2:
 	var e := Game.engine
@@ -501,12 +502,12 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 	if e.zone("territory_deck").find(uid) != null:
 		return choices.explore_exit_point()
 	if e.zone("deck").find(uid) != null:
-		return _turn_box.pile_point(0.25)
+		return _top_bar.pile_point()
 	if e.zone("government").find(uid) != null:
 		return _top_bar.identity_point()
 	if e.zone("event_discard").find(uid) != null:
 		return _events.heading_point()
-	return _turn_box.pile_point(0.75)
+	return _top_bar.pile_point()
 
 
 ## A slot for view at index in container, already the size view rests at, so the row doesn't change height
@@ -588,14 +589,11 @@ func _build_layout() -> void:
 	_events = EventsSection.new(_play_area)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
-	var hand_row := HBoxContainer.new()  # the hand, then End turn (115)
-	hand_row.add_theme_constant_override("separation", 14)
-	hand_section.add_child(hand_row)
 	hand_scroll = ScrollContainer.new()
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	hand_row.add_child(hand_scroll)
+	hand_section.add_child(hand_scroll)
 	var hand_pad := MarginContainer.new()
 	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
 	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
@@ -603,9 +601,6 @@ func _build_layout() -> void:
 	hand = HBoxContainer.new()
 	hand.add_theme_constant_override("separation", 12)
 	hand_pad.add_child(hand)
-
-	_turn_box = TurnBox.new()
-	hand_row.add_child(_turn_box)
 
 	# Effects layer, above the board and below the overlays.
 	fx = Control.new()

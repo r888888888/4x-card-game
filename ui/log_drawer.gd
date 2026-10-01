@@ -1,7 +1,7 @@
 class_name LogDrawer
 extends PanelContainer
 ## The game log in a drawer (backlog 115): closed at the start, it slides in from the right edge over the board
-## (fades with Reduce motion). L, Esc, the top bar's Log button or a click outside close it. Lines append whether
+## (fades with Reduce motion). Under its heading, the deck and discard counts (121). L, Esc, the top bar's Log button or a click outside close it. Lines append whether
 ## it is open or not.
 
 signal unread_changed(unread: bool)  # a line arrived while closed, or the drawer was opened or cleared (116)
@@ -9,6 +9,7 @@ signal unread_changed(unread: bool)  # a line arrived while closed, or the drawe
 const WIDTH := 480.0
 
 var _log: RichTextLabel
+var _piles: Label  # "Deck N · Discard M"
 var _tween: Tween
 var _unread := false
 
@@ -24,6 +25,9 @@ func _init() -> void:
 	box.add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	add_child(box)
 	box.add_child(UIKit.heading("Log"))
+	_piles = UIKit.heading("")
+	_piles.add_theme_color_override("font_color", Palette.PILES)
+	box.add_child(_piles)
 	_log = RichTextLabel.new()
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.bbcode_enabled = true
@@ -43,6 +47,11 @@ func is_open() -> bool:
 ## The log as plain text.
 func text() -> String:
 	return _log.get_parsed_text()
+
+
+## Shows engine e's deck and discard counts.
+func refresh(e: GameEngine) -> void:
+	_piles.text = "Deck %d · Discard %d" % [e.zone("deck").size(), e.zone("discard").size()]
 
 
 func toggle() -> void:

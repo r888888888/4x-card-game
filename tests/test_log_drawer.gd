@@ -120,6 +120,8 @@ func test_the_drawer_shows_the_deck_and_discard_counts() -> void:
 			return
 		eq(counts.text, counts_now(), "the engine's counts")
 		var before := counts.text
+		for i in 2:  # the full hand is kept between turns: discard so the counts move
+			check(Game.engine.discard_card(Game.engine.zone("hand").cards[0].uid), "discard a hand card")
 		Game.engine.end_turn()
 		eq(counts.text, counts_now(), "updated after a turn")
 		check(counts.text != before, "and they changed: %s, %s" % [before, counts.text]))

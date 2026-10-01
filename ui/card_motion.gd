@@ -103,8 +103,8 @@ func begin_drag(layer: Control, grab_offset: Vector2) -> void:
 
 
 ## Leaves the board: optionally pops (first flying to via, e.g. the card it was played on), then
-## shrinks and fades towards point, then frees the view.
-func leave(layer: Control, point: Vector2, pop: bool, via: Variant) -> void:
+## shrinks and fades towards point, calls on_arrival (if valid; not with Reduce motion), then frees the view.
+func leave(layer: Control, point: Vector2, pop: bool, via: Variant, on_arrival := Callable()) -> void:
 	_to_layer(layer)
 	view.state = CardView.State.LEAVING
 	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -125,6 +125,8 @@ func leave(layer: Control, point: Vector2, pop: bool, via: Variant) -> void:
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	t.parallel().tween_property(view, "modulate:a", 0.0, Anim.DISCARD_FLY_TIME) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if on_arrival.is_valid():
+		t.tween_callback(on_arrival)
 	t.tween_callback(view.queue_free)
 
 

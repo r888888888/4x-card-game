@@ -249,9 +249,9 @@ func begin_drag(layer: Control, grab_offset: Vector2) -> void:
 
 
 ## Leaves the board: optionally pops (first flying to via, e.g. the card it was played on), then
-## shrinks and fades towards point, then frees itself.
-func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null) -> void:
-	_motion.leave(layer, point, pop, via)
+## shrinks and fades towards point, calls on_arrival (if valid; not with Reduce motion), then frees itself.
+func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null, on_arrival := Callable()) -> void:
+	_motion.leave(layer, point, pop, via, on_arrival)
 
 
 ## Test hook (087): the text on the card's face, lines joined by newlines.
