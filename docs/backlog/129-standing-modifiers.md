@@ -2,7 +2,7 @@
 id: 129
 title: Permanent cards can carry standing modifiers, starting with extra actions each turn
 type: feature
-status: ready
+status: in-progress
 branch: feat/129-standing-modifiers
 ---
 
@@ -54,6 +54,12 @@ a TEST civilization with `modifiers: {"actions": 1}`.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_modifiers::test_modifiers_load_on_permanent_cards`, `test_modifiers_validation` |
+| AC2 | `test_modifiers::test_modifier_sums_working_cards_always_on_zones_and_active_events`, `test_an_idle_building_stops_counting` |
+| AC3 | `test_modifiers::test_actions_per_turn_adds_the_actions_modifier`, `test_actions_per_turn_never_drops_below_1` |
+| AC4 | `test_modifiers::test_a_modifier_played_mid_turn_counts_at_once`, `test_a_tech_bought_mid_turn_counts_at_once` |
+| AC5 | `test_modifiers::test_modifiers_dont_limit_unlimited_actions` (a guard: passes already) |
+| AC6 | `test_modifiers::test_modifier_text` |
 
 ## Manual check
 - [ ] With a test data tweak (Calendar given `modifiers: {"actions": 1}`), researching it raises the top bar's
