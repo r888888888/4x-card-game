@@ -132,9 +132,6 @@ static func start_turn(e: GameEngine) -> void:
 ## Resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government), then active events (which may end).
 static func resolve_upkeep(e: GameEngine) -> void:
-	var working := e.zone("tableau").cards.filter(func(c): return not e.is_idle(c.uid))
-	for z in GameEngine.ALWAYS_ON_ZONES:
-		working += e.zone(z).cards
-	for card in working:
+	for card in Modifiers.working_cards(e):
 		e._resolve(card, "upkeep")
 	Events.resolve_upkeep(e)

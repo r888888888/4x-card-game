@@ -21,7 +21,10 @@ const TYPE_FIELDS := {
 	"flavor": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION],
 	"actions": [CardDef.GOVERNMENT],
+	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
+## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
+const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS]
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
@@ -229,6 +232,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		if c.has(key) and not types.has(def.type):
 			warns.append("'%s' only applies to %s (ignored)" % [key, TYPE_PLURALS[types[0]]])
 
+	if c.has("modifiers") and TYPE_FIELDS.modifiers.has(def.type):
+		def.modifiers = _parse_modifiers(c.modifiers, errs)
 	if def.type == CardDef.CIVILIZATION:
 		_parse_flavor(c, def, errs)
 	if def.type == CardDef.EVENT:
@@ -294,6 +299,23 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""
+
+
+## A card's modifiers as {key: int}: an object whose keys are MODIFIER_KEYS and whose values are non-zero ints (129).
+static func _parse_modifiers(raw: Variant, errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'modifiers' must be an object like {\"actions\": 1}")
+		return out
+	for key in raw:
+		var n: Variant = Fields.as_int(raw[key])
+		if not MODIFIER_KEYS.has(key):
+			errs.append("modifiers.%s: unknown modifier (known: %s)" % [key, ", ".join(MODIFIER_KEYS)])
+		elif typeof(n) != TYPE_INT or n == 0:
+			errs.append("modifiers.%s: must be a non-zero integer" % key)
+		else:
+			out[key] = n
+	return out
 
 
 ## Reads a civilization's optional flavor paragraph and quote {text, by} into def.

@@ -91,12 +91,13 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	return true
 
 
-## Actions each turn from the ruling government's `actions` (127), or -1 (unlimited) when none rules or it sets none.
+## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; -1
+## (unlimited) when no government rules or it sets none.
 static func actions_per_turn(e: GameEngine) -> int:
 	var gov := e.zone("government")
 	if gov.is_empty() or gov.cards[0].def.actions == 0:
 		return -1
-	return gov.cards[0].def.actions
+	return maxi(1, gov.cards[0].def.actions + Modifiers.total(e, Modifiers.ACTIONS))
 
 
 ## Actions left this turn: actions_per_turn plus those gain_actions gave (128), less the cards played from hand, never
