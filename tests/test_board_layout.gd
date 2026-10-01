@@ -63,26 +63,25 @@ func test_the_top_bar_holds_identity_supply_and_knowledge_before_menu() -> void:
 	var main: Node = await open_game_at_1080()
 	var menu := shown_button(main, "Menu")
 	var bar: Control = menu.get_parent()
-	var identity: Array = main.identity_buttons()
+	var identity: Button = main.identity_button()  # civilization and government in one button since 119
 	var supply := shown_button(main, "Buy Cards")
 	var knowledge := shown_button(main, "Knowledge")
-	eq(identity.size(), 2, "civilization and government buttons")
 	check(supply != null and knowledge != null, "Buy Cards and Knowledge shown")
-	if identity.size() != 2 or supply == null or knowledge == null:
+	if supply == null or knowledge == null:
 		close_at_1080(main)
 		return
 	var civ_name: String = Game.engine.card_db[Game.engine.zone("civilization").cards[0].def.id].name
-	eq(identity.map(func(b: Button): return b.text), [civ_name, "Chiefdom"], "the buttons name the cards")
-	var order: Array = [identity[0], identity[1], supply, knowledge, menu]
+	eq(identity.text, "%s · Chiefdom" % civ_name, "the button names the cards")
+	var order: Array = [identity, supply, knowledge, menu]
 	for b: Button in order:
 		eq(b.get_parent(), bar, "'%s' is in the top bar" % b.text)
 	var indices := order.map(func(b: Button): return b.get_index())
-	eq(indices, sorted(indices), "civilization, government, Buy Cards, Knowledge, then Menu")
+	eq(indices, sorted(indices), "civilization and government, Buy Cards, Knowledge, then Menu")
 	var score: Label = null
 	for c in bar.get_children():
 		if c is Label and (c as Label).text.begins_with("Score"):
 			score = c
-	check(score != null and score.get_index() < identity[0].get_index(), "after the stats")
+	check(score != null and score.get_index() < identity.get_index(), "after the stats")
 	close_at_1080(main)
 
 

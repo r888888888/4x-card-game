@@ -288,7 +288,7 @@ func test_play_as_in_the_details_starts_a_game_as_that_civilization() -> void:
 func test_details_in_play_have_no_play_as_button() -> void:
 	var main := open_main()
 	main.start_game(1)
-	main.identity_buttons()[0].pressed.emit()
+	main.details.open(main.views[first_in_hand(Game.engine)])  # a hand card's details (the identity has its own modal, 119)
 	check(not main.details.action_button().visible, "no action button in play")
 	close_main(main)
 

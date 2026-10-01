@@ -1,7 +1,7 @@
 class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food and wealth (with next upkeep's change), score and pop, then
-## (115) the civilization and government buttons, Buy Cards, Knowledge, Log and the Menu button. Costs float up from its counters; gains fly to them.
+## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log and the Menu button. Costs float up from its counters; gains fly to them.
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
@@ -12,13 +12,12 @@ var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
 var _pop_label: Label
-var _identity := {}  # zone ("civilization", "government") -> its button, naming the card; hidden when the zone is empty
+var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
 var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
 
 
-## on_knowledge opens the tech tree, on_details(card_id) opens a civilization's or government's details, on_log
-## toggles the log drawer.
-func _init(on_menu: Callable, on_knowledge: Callable, on_details: Callable, on_log: Callable) -> void:
+## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
+func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
 	add_theme_constant_override("separation", 20)  # tight: the stats and six buttons share 1920 px (115)
 	_turn_label = UIKit.stat(self)
 	_food_label = UIKit.stat(self, FOOD_COLOR)
@@ -30,11 +29,10 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_details: Callable, on_l
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
-	for zone_name in ["civilization", "government"]:
-		var line := UIKit.button("", func(): on_details.call(_identity[zone_name].get_meta("card_id")))
-		line.hide()
-		_identity[zone_name] = line
-		add_child(line)
+	_identity = UIKit.button("", on_identity)
+	_identity.tooltip_text = "Your civilization and government."
+	_identity.hide()
+	add_child(_identity)
 	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
 	add_child(_knowledge)
 	log_button = UIKit.button("Log (L)", on_log)
@@ -58,16 +56,12 @@ func refresh(e: GameEngine) -> void:
 	UIKit.set_stat(score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	UIKit.set_stat(_pop_label, "Pop: %d" % e.total_pop())
-	for zone_name in _identity:
-		var line: Button = _identity[zone_name]
-		var z := e.zone(zone_name)
-		line.visible = not z.is_empty()
-		if line.visible:
-			var def: CardDef = z.cards[0].def
-			line.text = def.name
-			var rules := def.rules_tooltip(e.card_db)
-			line.tooltip_text = rules if rules != "" else "No bonus."
-			line.set_meta("card_id", def.id)
+	var names: PackedStringArray = []
+	for zone_name in IdentityModal.ZONES:
+		if not e.zone(zone_name).is_empty():
+			names.append(e.zone(zone_name).cards[0].def.name)
+	_identity.text = " · ".join(names)
+	_identity.visible = not names.is_empty()
 	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
 	_knowledge.visible = e.config.research_deck.size() > 0
 	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives."
@@ -86,14 +80,14 @@ func add_supply_button(button: Button) -> void:
 	move_child(button, _knowledge.get_index())
 
 
-## The civilization and government buttons, in that order (visible or not).
-func identity_buttons() -> Array[Button]:
-	return [_identity.civilization, _identity.government] as Array[Button]
+## The civilization and government button (visible or not).
+func identity_button() -> Button:
+	return _identity
 
 
-## Where a card leaving for zone_name's button flies to (the government a player just played).
-func identity_point(zone_name: String) -> Vector2:
-	return (_identity[zone_name] as Button).get_global_rect().get_center()
+## Where a card leaving for the civilization and government button flies to (the government a player just played).
+func identity_point() -> Vector2:
+	return _identity.get_global_rect().get_center()
 
 
 ## Resource tokens for a card_played outcome, on layer: costs float up from just below their counters (114), gains
