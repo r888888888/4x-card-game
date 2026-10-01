@@ -2,7 +2,7 @@
 id: 152
 title: Run the balance sim on every CPU core
 type: feature
-status: review
+status: done
 branch: feat/152-parallel-sim
 ---
 
