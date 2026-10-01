@@ -46,6 +46,10 @@ const TERRITORY := Color("8a6fb5")
 const TECH := Color("3fa7a0")
 const EVENT := Color("b5566f")
 
+# An unsettled territory on the board (138): open land, not yet yours.
+const FRONTIER_BG := Color("1a1c21")  # barely off the board
+const FRONTIER_HATCH := Color(1, 1, 1, 0.05)  # its diagonal lines
+
 # Tech tree states.
 const RESEARCHED := Color("7fd48a")
 const AVAILABLE := Color("5ec8ff")

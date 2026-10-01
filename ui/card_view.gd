@@ -26,7 +26,13 @@ const TYPE_COLORS := {
 }
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
-const COMPACT_SIZE := Vector2(245, 95)  # a frontier territory: name and info only
+const BOARD_SIZE := Vector2(245, 150)  # every card in the Realm's row (138): one line per field, the rest in details
+# Board faces (138): what a card in the Realm's row is.
+const BOARD_REALM := "realm"
+const BOARD_FRONTIER := "frontier"
+const BOARD_EVENT := "event"
+const DASH := 9.0  # an unsettled territory's dashed border
+const HATCH_STEP := 14.0  # the spacing of its diagonal lines
 const WARN_COLOR := Palette.WARN
 const HIGHLIGHT_COLOR := Palette.GAIN
 # A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
@@ -38,6 +44,7 @@ const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (ou
 var uid := -1
 var card_id := ""
 var in_hand := false
+var board_kind := ""  # a card in the Realm's row: BOARD_REALM, BOARD_FRONTIER or BOARD_EVENT; "" elsewhere
 var pickable := false  # an option of a pending choice or a target: a click picks it
 var lift_on_hover := false  # lift and grow under the mouse like a hand card (supply cards, which have room)
 var state := State.REST
@@ -61,16 +68,17 @@ var _details_click := 0  # counts clicks; a delayed details request only fires i
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
-## (shown on the card and as tooltip). Ignored for tableau cards. compact leaves out the type line and
-## rules (for frontier territories, to save height).
-func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", compact := false) -> void:
+## (shown on the card and as tooltip). Ignored for tableau cards. kind: a board face for the Realm's row (BOARD_*,
+## 138), at BOARD_SIZE; "" for the full face.
+func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", kind := "") -> void:
+	board_kind = kind
 	uid = card.uid
 	card_id = card.def.id
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
 	_color = TYPE_COLORS.get(def.type, Color.GRAY)
-	_target_size = HAND_SIZE if in_hand else (COMPACT_SIZE if compact else TABLEAU_SIZE)
+	_target_size = HAND_SIZE if in_hand else (BOARD_SIZE if kind != "" else TABLEAU_SIZE)
 	custom_minimum_size = _target_size
 
 	if _style == null:
@@ -90,7 +98,10 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_face.queue_free()
 	_face = CardFace.new()
 	add_child(_face)
-	_face.build(card, card_db, in_hand, compact, _color)
+	if kind != "":
+		_face.build_board(card, card_db, kind, _color)
+	else:
+		_face.build(card, card_db, in_hand, _color)
 
 	if in_hand:
 		set_play_error(play_error)
@@ -161,10 +172,6 @@ func set_buy_info(price: int, left: int, error: String) -> void:
 func set_hint(hint: String) -> void:
 	_set_tip(hint)
 
-
-## Whether the card rests at COMPACT_SIZE (a frontier territory or an event: name and info only).
-func rests_compact() -> bool:
-	return _target_size == COMPACT_SIZE
 
 
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
@@ -285,6 +292,8 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if board_kind == BOARD_FRONTIER:
+		_draw_frontier()
 	if _focused:
 		var ring := StyleBoxFlat.new()
 		ring.draw_center = false
@@ -355,6 +364,21 @@ func _set_hover(on: bool) -> void:
 	_update_border()
 
 
+## An unsettled territory (138): faint diagonal hatching, like unmapped land, and a dashed border in the colour
+## _update_border chose (StyleBoxFlat draws no dashes).
+func _draw_frontier() -> void:
+	var r := Rect2(Vector2.ONE, size - Vector2.ONE * 2)
+	var k := -r.size.y
+	while k < r.size.x:  # the lines y = x - k, clipped to r
+		var end_x := minf(k + r.size.y, r.size.x)
+		draw_line(r.position + Vector2(maxf(k, 0.0), maxf(0.0, -k)), r.position + Vector2(end_x, end_x - k),
+			Palette.FRONTIER_HATCH, 2.0)
+		k += HATCH_STEP
+	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
+	for i in 4:
+		draw_dashed_line(corners[i], corners[(i + 1) % 4], _style.border_color, 4.0 if _highlight else 2.0, DASH)
+
+
 func _update_border() -> void:
 	_style.bg_color = DIM_BG if _dimmed else _color.darkened(0.65)
 	if _warning:
@@ -368,4 +392,8 @@ func _update_border() -> void:
 	_style.shadow_size = 14 if (_hover or state == State.DRAGGING) else 0
 	_style.set_border_width_all(4 if _highlight else 2)
 	_style.shadow_offset = Vector2(0, 8)
+	if board_kind == BOARD_FRONTIER:  # its border is dashed, drawn in _draw_frontier
+		_style.bg_color = Palette.FRONTIER_BG
+		_style.set_border_width_all(0)
+		queue_redraw()
 

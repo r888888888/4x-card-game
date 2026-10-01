@@ -42,6 +42,11 @@ static func realm_uids(e: GameEngine) -> Array[int]:
 	return out + loose
 
 
+## The board face (CardView.board_kind) for a card in the row whose leading zone is leading ("" for a Realm card).
+static func board_kind(leading: String) -> String:
+	return {"active_events": CardView.BOARD_EVENT, "frontier": CardView.BOARD_FRONTIER}.get(leading, CardView.BOARD_REALM)
+
+
 ## The leading zone (a key of LEADING_ZONES) card uid is in, or "" for a Realm card.
 static func leading_zone(e: GameEngine, uid: int) -> String:
 	for zone_name in LEADING_ZONES:
