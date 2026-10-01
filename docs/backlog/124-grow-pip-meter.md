@@ -2,7 +2,7 @@
 id: 124
 title: Grow is the next pip of a pop meter, says why it's blocked, and animates into the Pop counter
 type: feature
-status: review
+status: done
 branch: feat/124-grow-pip-meter
 ---
 
