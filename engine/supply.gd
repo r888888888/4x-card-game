@@ -14,7 +14,10 @@ static func open_piles(e: GameEngine) -> Array[String]:
 
 
 static func price(e: GameEngine, card_id: String) -> int:
-	return e.config.get("supply", {}).get(card_id, {}).get("price", 0)
+	var printed: int = e.config.get("supply", {}).get(card_id, {}).get("price", 0)
+	if printed == 0 or not e.card_db.has(card_id):
+		return printed
+	return maxi(0, printed - Discounts.off(e, e.card_db[card_id], true).get(GameEngine.WEALTH, 0))
 
 
 static func buy_error(e: GameEngine, card_id: String) -> String:

@@ -15,8 +15,9 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 		return "No actions left this turn."
 	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
 		return "%s is already your government." % card.def.name
-	for r in card.def.cost:
-		var need: int = card.def.cost[r]
+	var cost := Discounts.cost(e, card.def)
+	for r in cost:
+		var need: int = cost[r]
 		var have: int = e.resources.get(r, 0)
 		if have < need:
 			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
@@ -69,10 +70,11 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	var to_zone := _destination(card)
 	e._outcome = _new_outcome(uid, to_zone, target)
 	e.play_target = target
-	for r in card.def.cost:
-		e.resources[r] -= card.def.cost[r]
-		if card.def.cost[r] > 0:
-			e._outcome.paid[r] = card.def.cost[r]
+	var cost := Discounts.cost(e, card.def)
+	for r in cost:
+		e.resources[r] -= cost[r]
+		if cost[r] > 0:
+			e._outcome.paid[r] = cost[r]
 	e._log("Played %s." % card.def.name)
 	if card.def.type == CardDef.BUILDING:
 		card.territory_uid = target

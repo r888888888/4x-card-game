@@ -101,6 +101,7 @@ static func cost(e: GameEngine, uid: int) -> int:
 	if tech == null:
 		return 0
 	var wealth: int = tech.def.cost.get(GameEngine.WEALTH, 0) - tech.passes
+	wealth -= Discounts.off(e, tech.def, false).get(GameEngine.WEALTH, 0)
 	if tech.def.prereq != "" and e.zone("researched").cards.any(func(c): return c.def.id == tech.def.prereq):
 		wealth -= tech.def.prereq_discount
 	return maxi(wealth, 1)

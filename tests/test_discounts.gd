@@ -1,0 +1,142 @@
+extends "res://tests/lib/tech_case.gd"
+## Civilization discounts (backlog 108): a civilization's `discounts` lowers what some cards cost while it's yours.
+## A `type` or `tag` filter lowers a hand card's play_cost and a tech's tech_cost; `supply: true` lowers buy_price.
+## Local fixtures (so other tests load while the field is missing): civilizations Scholars (techs −1 wealth),
+## Builders (wonders −3 wealth) and Traders (supply −1 wealth); buildings Obelisk (12 wealth, wonder) and Cairn
+## (2 wealth + 1 food, wonder). TECHS from tech_case: Loom 4, Iron 6 (prereq Bronze, −2), Steel 3 (prereq Iron, −5).
+## Engines are held as Object so the file parses before the API.
+
+const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "civilization", "discounts": [{"type": "tech", "wealth": 1}]}
+const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}
+const TRADERS := {"id": "traders", "name": "Traders", "type": "civilization", "discounts": [{"supply": true, "wealth": 1}]}
+const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
+const CAIRN := {"id": "cairn", "name": "Cairn", "type": "building", "cost": {"wealth": 2, "food": 1}, "tags": ["wonder"]}
+const FIXTURES := [SCHOLARS, BUILDERS, TRADERS, OBELISK, CAIRN]
+const SUPPLY := {"supply": {"scout": {"price": 3, "count": 2}, "shrine": {"price": 1, "count": 1}}}
+
+
+## Loader result {errors, warnings, cards} for TEST_CARDS, TECHS, TEST_CIVS and extra.
+func load_cards(extra: Array) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := tech_db(TEST_CIVS + extra, errors, warnings)
+	return {"errors": errors, "warnings": warnings, "cards": cards}
+
+
+## A civilization "x" with discounts value.
+func civ_with(value: Variant) -> Dictionary:
+	return {"id": "x", "name": "X", "type": "civilization", "discounts": value}
+
+
+## A game as civilization civ ("" for none) with Loom then Dye on the research deck, 20 wealth and the test supply.
+func game_as(civ: String) -> Object:
+	var starting := {"resources": {"food": 2, "wealth": 20}, "tableau": ["capital"], "territory": "homeland"}
+	if civ != "":
+		starting["civilization"] = civ
+	var o := {"starting": starting}
+	o.merge(SUPPLY)
+	return tech_engine(["loom", "dye"], {"farm": 10}, o, TEST_CIVS + FIXTURES)
+
+
+# --- AC1: loading and text ---
+
+func test_discounts_load() -> void:
+	var r := load_cards(FIXTURES)
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+
+
+func test_discounts_validation() -> void:
+	check_cases([
+		["unknown type", [civ_with([{"type": "wizard", "wealth": 1}])], ["card 'x'", "discounts"]],
+		["unknown resource", [civ_with([{"tag": "wonder", "gold": 1}])], ["card 'x'", "discounts", "gold"]],
+		["no filter", [civ_with([{"wealth": 1}])], ["card 'x'", "discounts"]],
+		["two filters", [civ_with([{"type": "tech", "tag": "wonder", "wealth": 1}])], ["card 'x'", "discounts"]],
+		["amount 0", [civ_with([{"type": "tech", "wealth": 0}])], ["card 'x'", "discounts"]],
+		["no amount", [civ_with([{"type": "tech"}])], ["card 'x'", "discounts"]],
+		["not a list", [civ_with({"type": "tech", "wealth": 1})], ["card 'x'", "discounts"]],
+		["on a building", [{"id": "x", "name": "X", "type": "building", "discounts": [{"type": "tech", "wealth": 1}]}],
+			"'discounts' only applies to civilizations", "warning_only"],
+	], load_cards)
+
+
+func test_discount_text() -> void:
+	var cards: Dictionary = load_cards(FIXTURES).cards
+	for row in [["scholars", "Techs cost 1 less wealth."], ["builders", "Wonders cost 3 less wealth."],
+			["traders", "Supply cards cost 1 less wealth."]]:
+		if not cards.has(row[0]):
+			check(false, "%s should load" % row[0])
+			continue
+		eq(cards[row[0]].rules_text(cards), row[1], "%s's face" % row[0])
+		eq(cards[row[0]].rules_tooltip(cards), row[1], "%s's tooltip" % row[0])
+
+
+# --- AC2: techs ---
+
+func test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges() -> void:
+	var e: Object = game_as("scholars")
+	check(play_research(e), "research")
+	var loom := uid_of(e.zone("research_reveal"), "loom")
+	eq(e.tech_cost(loom), 3, "Loom 4 − 1")
+	e.resources.wealth = 3
+	eq(e.buy_tech_error(loom), "", "3 wealth is enough")
+	check(e.buy_tech(loom), "buy Loom")
+	eq(e.resources.wealth, 0, "charged 3")
+
+
+func test_a_tech_discount_stacks_with_passes_and_prereqs_but_never_below_1() -> void:
+	var e: Object = game_as("scholars")
+	pass_tech(e, "loom", "dye")
+	e.create_card("bronze", "researched", null)
+	e.create_card("iron", "research_deck", null)
+	e.create_card("steel", "research_deck", null)
+	eq(e.tech_cost(uid_of(e.zone("research_deck"), "loom")), 2, "Loom 4 − 1 pass − 1")
+	eq(e.tech_cost(uid_of(e.zone("research_deck"), "iron")), 3, "Iron 6 − 2 for Bronze − 1")
+	e.create_card("iron", "researched", null)
+	eq(e.tech_cost(uid_of(e.zone("research_deck"), "steel")), 1, "Steel 3 − 5 for Iron − 1 stops at 1")
+
+
+# --- AC3: playing from hand ---
+
+func test_a_tag_discount_lowers_play_cost_and_what_a_play_charges() -> void:
+	var e: Object = game_as("builders")
+	var obelisk := put_in_hand(e, "obelisk")
+	eq(e.play_cost(obelisk), {"wealth": 9}, "Obelisk 12 − 3")
+	e.resources.wealth = 9
+	eq(e.play_error(obelisk), "", "9 wealth is enough")
+	check(e.play_card(obelisk), "play Obelisk")
+	eq(e.resources.wealth, 0, "charged 9")
+
+
+func test_a_discount_never_takes_a_cost_below_0_and_skips_other_cards() -> void:
+	var e: Object = game_as("builders")
+	var cairn := put_in_hand(e, "cairn")
+	eq(e.play_cost(cairn).get("wealth"), 0, "Cairn's 2 wealth − 3 stops at 0")
+	eq(e.play_cost(cairn).get("food"), 1, "its food is untouched")
+	eq(e.play_cost(put_in_hand(e, "farm")), {"food": 2}, "a card without the tag")
+	var s: Object = game_as("scholars")
+	eq(s.play_cost(put_in_hand(s, "obelisk")), {"wealth": 12}, "a tech discount doesn't touch a building")
+
+
+# --- AC4: the supply ---
+
+func test_a_supply_discount_lowers_buy_price_and_what_buy_charges() -> void:
+	var e: Object = game_as("traders")
+	eq(e.buy_price("scout"), 2, "Scout 3 − 1")
+	e.resources.wealth = 2
+	check(e.buy("scout"), "buy a Scout: %s" % e.buy_error("scout"))
+	eq(e.resources.wealth, 0, "charged 2")
+	eq(e.buy_price("shrine"), 0, "Shrine 1 − 1")
+	check(e.buy("shrine"), "a free Shrine: %s" % e.buy_error("shrine"))
+	check(not e.buy("shrine"), "the pile of 1 is empty")
+
+
+# --- AC5: no discount ---
+
+func test_costs_are_unchanged_without_discounts() -> void:
+	for civ in ["", "tribe"]:
+		var e: Object = game_as(civ)
+		eq(e.play_cost(put_in_hand(e, "obelisk")), {"wealth": 12}, "%s: play_cost" % civ)
+		eq(e.buy_price("scout"), 3, "%s: buy_price" % civ)
+		check(play_research(e), "%s: research" % civ)
+		eq(e.tech_cost(uid_of(e.zone("research_reveal"), "loom")), 4, "%s: tech_cost" % civ)
