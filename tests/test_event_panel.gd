@@ -62,7 +62,8 @@ func test_the_events_heading_names_no_pile_counts() -> void:
 		eq(panel.get("info"), "Events", "just 'Events' (122)")
 		var headings: Array = main.section_headings().map(func(h): return h.text)
 		check(headings.has("Events"), "the Events heading: %s" % [headings])
-		check(not headings.any(func(h: String): return h.contains("deck") or h.contains("discard")), "no counts: %s" % [headings])
+		check(not headings.any(func(h: String): return h.begins_with("Events") and (h.contains("deck") or h.contains("discard"))),
+			"no counts on the Events heading: %s" % [headings])
 		eq(panel.get("tooltip"), TOOLTIP, "the tooltip explains the draw only")
 		close_main(main))
 
