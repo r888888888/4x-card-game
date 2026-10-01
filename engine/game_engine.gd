@@ -308,8 +308,10 @@ func actions_left() -> int:
 
 
 ## What hand card uid costs to play now: its cost less the civilization's discounts (108), never below 0 per
-## resource; {} if uid isn't in the hand.
+## resource; {} if uid isn't in the hand, or there's no hand yet (before new_game, 136).
 func play_cost(uid: int) -> Dictionary:
+	if not zones.has("hand"):
+		return {}
 	var card := zone("hand").find(uid)
 	return Discounts.cost(self, card.def) if card != null else {}
 
