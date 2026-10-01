@@ -28,6 +28,7 @@ res://
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
     game_engine.gd       # public API: actions and their *_error queries, queries, score, fork(); calls the modules below
+    engine_core.gd       # EngineCore, GameEngine's parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
     game_state.gd        # GameState: everything that changes during a game; copy() is a deep copy (051)
     turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
     card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
