@@ -2,7 +2,7 @@
 id: 151
 title: Let the bot pick a tech without building the tech tree
 type: feature
-status: ready
+status: red-review
 branch: feat/151-bot-tech-pick-without-tree
 ---
 
@@ -36,6 +36,10 @@ is a large share of `main`'s sim time. The bot only needs the learnable techs in
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_sim::test_bot_learns_the_cheapest_tech_it_can_afford` (existing, unchanged) |
+| AC2 | `test_sim::test_bot_breaks_a_cost_tie_by_the_lower_era`, `test_sim::test_bot_breaks_a_cost_tie_in_the_same_era_by_config_order` |
+| AC3 | `test_sim::test_bot_learns_nothing_it_cant_afford_or_lacks_the_prereq_for_and_plays_cards` |
+| AC4 | `test_sim::test_a_bot_tech_pick_costs_under_half_a_tech_tree` |
 
 ## Log
 - 2026-10-01: from `spike/sim-speed`.
