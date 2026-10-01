@@ -61,19 +61,24 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 
 ## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines}: code 0 and one line per
 ## metric; with strategy "all", a block per strategy: its mean score per listed civilization, then its metrics over all
-## of them. Code 1 and the loader errors (or an unknown strategy).
-static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline") -> Dictionary:
+## of them. Code 1 and the loader errors (or an unknown strategy). options (LaunchOptions.parse, 135): turns replaces
+## the turn limit, civ plays only that civilization.
+static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline",
+		options := {}) -> Dictionary:
 	var data := DataLoader.load_all(cards_path, config_path)
 	if not data.errors.is_empty():
 		return {"code": 1, "lines": data.errors}
+	if options.get("turns", 0) > 0:
+		data.config.turn_limit = options.turns
+	var only_civ: String = options.get("civ", "")
 	if strategy != "all" and not ScriptedBot.STRATEGIES.has(strategy):
 		return {"code": 1, "lines": ["unknown strategy '%s' (one of %s, or all)" % [strategy, ScriptedBot.STRATEGIES]]}
 	var seeds := range(1, seed_count + 1)
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
 	if strategy != "all":
-		lines.append_array(_metric_lines(run(data.cards, data.config, seeds, strategy)))
+		lines.append_array(_metric_lines(run(data.cards, data.config, seeds, strategy, only_civ)))
 		return {"code": 0, "lines": lines}
-	var civs: Array = data.config.get("civilizations", [])
+	var civs: Array = [only_civ] if only_civ != "" else data.config.get("civilizations", [])
 	if civs.is_empty():
 		civs = [""]
 	for s in ScriptedBot.STRATEGIES:

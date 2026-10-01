@@ -61,7 +61,10 @@ func _ready() -> void:
 	Game.engine.card_played.connect(_on_card_played)
 	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
-	show_title_screen()
+	if LaunchOptions.starts_game(Game.launch):  # --civ / --seed on the command line (135)
+		start_game(Game.launch.seed, Game.launch.civ)
+	else:
+		show_title_screen()
 
 
 ## Keyboard play (CardFocus.handle_key). Only reached when no control with focus (a button or the seed field)
