@@ -2,7 +2,7 @@
 id: 133
 title: A civilization can start with a building on its home (Sumer starts with a Farm)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/133-sumer-starts-with-a-farm
 ---
 
@@ -57,3 +57,7 @@ draw.
 ## Log
 - From the Sumer balance brainstorm after 132 (idea 5). Branched from `main`; 132 (Farm +2 food, Sumer's Farm discount)
   is a separate branch, so the two touch Sumer's card entry and may need a small merge.
+- Green: start buildings go on the home (TurnLoop.new_game), the card loader rejects a non-building, and the config
+  loader checks keywords and slots. Giving Sumer the Farm breaks the approved content test
+  `test_civilization_start_gifts_are_obtainable_cards_in_the_discard` (107: every start `create` goes to the discard).
+  Held back the Sumer data change and asked the user whether 107's rule should allow the tableau for buildings.

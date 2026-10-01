@@ -137,6 +137,10 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
 		elif home != "" and db[home].type != CardDef.TERRITORY:
 			errors.append("%s: card '%s': home: '%s' is not a territory" % [src, id, home])
+		for j in db[id].effects.size():
+			var start_building := _start_building_problem(db[id].effects[j], db)
+			if start_building != "":
+				errors.append("%s: card '%s': effects[%d]: %s" % [src, id, j, start_building])
 		for e in db[id].effects:
 			for ref in e.referenced_cards():
 				if not db.has(ref):
@@ -283,6 +287,16 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		if not CARD_FIELDS.has(key) and not TYPE_FIELDS.has(key):
 			warns.append("unknown field '%s'" % key)
 	return def
+
+
+## Why effect, a start create into the tableau, can't place its card (only a building goes on the home, 133), or "".
+static func _start_building_problem(effect: Effect, db: Dictionary) -> String:
+	if effect.op != "create" or effect.trigger != "start" or effect.get("zone") != "tableau":
+		return ""
+	var card_id: String = effect.get("card_id")
+	if db.has(card_id) and db[card_id].type != CardDef.BUILDING:
+		return "a start 'create' into the tableau must name a building (got '%s')" % card_id
+	return ""
 
 
 ## Why start effect can't be on a card of type, or "" if it can: only civilizations start, and nobody can pick a

@@ -126,6 +126,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
 	_check_unlocks(config, cards, errs)
+	_check_start_buildings(config, cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, config.terrains, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
@@ -226,6 +227,37 @@ static func _check_homes_house_start(config: Dictionary, cards: Dictionary, errs
 		if home != "" and cards.has(home) and config.population.get("start", 0) > cards[home].housing:
 			errs.append("'population.start' (%d) is more than the housing of civilization '%s''s home '%s' (%d)" % [
 				config.population.start, civ, home, cards[home].housing])
+
+
+## Each listed (or starting) civilization's start buildings (133) must meet its home's keywords and fit its slots (the
+## territory's plus the starting tableau's). The home is starting.territory for a civilization without one.
+static func _check_start_buildings(config: Dictionary, cards: Dictionary, errs: Array[String]) -> void:
+	var civs: Array[String] = config.civilizations.duplicate()
+	if config.starting.civilization != "" and not civs.has(config.starting.civilization):
+		civs.append(config.starting.civilization)
+	for civ in civs:
+		if not cards.has(civ):
+			continue
+		var home: String = cards[civ].home if cards[civ].home != "" else config.starting.territory
+		if not cards.has(home):
+			continue
+		var slots: int = cards[home].slots
+		for id in config.starting.tableau:
+			if cards.has(id) and cards[id].type == CardDef.CITY:
+				slots += cards[id].slots
+		var built := 0
+		for effect in cards[civ].effects_for("start"):
+			var id: String = effect.get("card_id") if effect.op == "create" and effect.get("zone") == "tableau" else ""
+			if not cards.has(id) or cards[id].type != CardDef.BUILDING:
+				continue
+			built += 1
+			var req: Array = cards[id].requires
+			if not req.is_empty() and not req.any(func(k): return cards[home].keywords.has(k)):
+				errs.append("civilization '%s' starts with '%s', which needs %s; its home '%s' has none" % [
+					civ, id, " or ".join(req), home])
+		if built > slots:
+			errs.append("civilization '%s' starts with %d buildings, more than its home '%s' has slots (%d)" % [
+				civ, built, home, slots])
 
 
 ## Normalizes population.famine {card, max_counters, relief} (083, 084): required with population on; card is an
