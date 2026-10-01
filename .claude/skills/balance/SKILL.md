@@ -7,7 +7,9 @@ argument-hint: "[seeds, default 20]"
 # Balance comparison
 
 The simulator plays one ScriptedBot game per seed (1..N) and reports mean, min and max of `score`, `cities`
-(founded beyond the starting ones), `pop` (at game end), `techs` (researched), `bought` (supply buys) and `era`.
+(founded beyond the starting ones), `pop` (at game end), `techs` (researched), `bought` (supply buys), `era`,
+`explored` (turns the territory deck lasted) and, per era with techs (143), `era_<n>_open` / `era_<n>_done` (the turn
+the era was added / its last tech was learned; the turn limit if never).
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.

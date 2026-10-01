@@ -94,6 +94,44 @@ func test_sim_stats_reports_how_long_the_territory_deck_lasted() -> void:
 	eq(stats.get("explored", {}).get("min"), 5, "never explored: it lasted all 5 turns")
 
 
+## Backlog 143: when each era with techs opens and runs out. Fixture: Pottery (2) and Writing (3) in era 1, Optics (era 2,
+## 4 insight) and a 3-turn game; insight as given, with no income.
+const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}
+
+
+func tempo_stats(insight: int, era_1 := {"pottery": 1, "writing": 1}) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := tech_db([OPTICS], errors, warnings)
+	var deck := era_1.duplicate()
+	deck["optics"] = 1
+	var config := DataLoader.parse_config(raw_config({"shrine": 10}, {"turn_limit": 3, "research_deck": deck,
+		"starting": {"resources": {"food": 2, "insight": insight}, "tableau": ["capital"], "territory": "homeland"}}),
+		resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	return SimStats.run(cards, config, [1])
+
+
+func test_sim_stats_report_when_each_era_opens_and_runs_out() -> void:
+	var stats := tempo_stats(5)
+	eq(stats.get("era_1_open"), {"mean": 1.0, "min": 1, "max": 1}, "era 1 is open from turn 1")
+	eq(stats.get("era_1_done", {}).get("min"), 1, "Pottery and Writing both learned on turn 1")
+	eq(stats.get("era_2_open", {}).get("min"), 1, "the empty deck adds era 2 on turn 1")
+	eq(stats.get("era_2_done", {}).get("min"), 3, "Optics (4) never afforded: the turn limit")
+
+
+func test_an_era_never_finished_reports_the_turn_limit() -> void:
+	var stats := tempo_stats(0, {"pottery": 1, "bronze": 1})
+	eq(stats.get("era_1_done", {}).get("min"), 3, "never afforded: the turn limit")
+	eq(stats.get("era_2_open", {}).get("min"), 3, "never opened: the turn limit")
+
+
+func test_sim_stats_have_no_era_metrics_without_techs() -> void:
+	var stats: Dictionary = SimStats.run(sim_data({"shrine": 10}, {"turn_limit": 2}).cards,
+		sim_data({"shrine": 10}, {"turn_limit": 2}).config, [1])
+	check(not stats.keys().any(func(k): return k.begins_with("era_")), "no era_ metrics: %s" % [stats.keys()])
+
+
 # --- AC3: the command-line entry point ---
 
 func test_sim_run_files_prints_one_line_per_metric() -> void:

@@ -15,7 +15,11 @@ func test_t_opens_the_tree_by_era_and_esc_closes_it() -> void:
 	var main := open_main()
 	main.start_game(1)
 	press_key(main, KEY_T)
-	eq(main.tech_tree.shown(), ["Stone Age", "Bronze Age"] as Array[String], "one column per era, by name")
+	var names: Array[String] = []
+	for era in Game.engine.tech_eras():
+		names.append(Game.engine.era_name(era.era))
+	check(names.size() >= 2, "the real tree has several eras: %s" % [names])
+	eq(main.tech_tree.shown(), names, "one column per era, by name")
 	press_key(main, KEY_ESCAPE)
 	eq(main.tech_tree.shown(), [] as Array[String], "Esc closes")
 	press_key(main, KEY_T)
