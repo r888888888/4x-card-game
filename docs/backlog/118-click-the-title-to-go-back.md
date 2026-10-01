@@ -2,7 +2,7 @@
 id: 118
 title: Click the parent title in the header to go back
 type: feature
-status: review
+status: done
 branch: feat/118-click-the-title-to-go-back
 ---
 
