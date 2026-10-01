@@ -294,6 +294,8 @@ static func _parse_relief(raw: Variant, resources: Array[String], errs: Array[St
 		var n: Variant = Fields.as_int(raw[r])
 		if not resources.has(r):
 			errs.append(".relief: unknown resource '%s'" % r)
+		elif Fields.unpayable(r) != "":
+			errs.append(".relief: " + Fields.unpayable(r))
 		elif typeof(n) != TYPE_INT or n < 1:
 			errs.append(".relief: '%s' must be an integer >= 1" % r)
 		else:

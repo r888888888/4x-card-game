@@ -30,6 +30,7 @@ const WARN := Color("ff6b6b")  # a failing drop, food that would starve
 const FOCUS := Color("5ec8ff")  # the keyboard focus ring; distinct from gold (target) and red (warning)
 const WEALTH := Color("f2b46d")
 const INSIGHT := Color("8fc7ff")
+const UNREST := Color("d9827a")  # the unrest stat (144); at the limit it turns WARN
 const POP := Color("9fd89f")
 const PILES := Color("c3cad3")  # deck, discard and pile counts
 

@@ -44,9 +44,11 @@ func unrest_engine(gov: String, unrest: int, extra := [], deck := {"farm": 10}, 
 		starting["government"] = gov
 	var o := {"resources": RESOURCES, "starting": starting, "population": POP}
 	o.merge(overrides, true)
+	var listed: Array[String] = []
+	listed.assign(o.resources)  # the loader's resource list is the config's, as DataLoader.load_all reads it
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config(deck, o), RESOURCES, r.cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config(deck, o), listed, r.cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "test config should load: %s" % [errors])
 	var e := GameEngine.new(r.cards, config)
 	e.new_game(1)

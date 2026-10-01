@@ -1,8 +1,9 @@
 class_name TopBar
 extends HBoxContainer
-## The top bar: turn, food, wealth and insight (139) (with next upkeep's change), score and pop, then
+## The top bar: turn, food, wealth, insight (139) and unrest (144, out of its limit) (with next upkeep's change), score
+## and pop, then
 ## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Any
-## change to Food, Wealth, Insight, Score or Pop floats its net change up from that counter (126).
+## change to Food, Wealth, Insight, Unrest, Score or Pop floats its net change up from that counter (126).
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
@@ -14,6 +15,7 @@ var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
 var _insight_label: Label
+var _unrest_label: Label  # hidden while unrest is off (144)
 var _pop_label: Label
 var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
@@ -22,15 +24,18 @@ var _shown := {}  # counter Label -> the value it last showed; empty for a fresh
 
 ## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
 func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
-	add_theme_constant_override("separation", 16)  # tight: the stats and six buttons share 1920 px (115, 139)
+	add_theme_constant_override("separation", 12)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
 	_turn_label = UIKit.stat(self)
 	_food_label = UIKit.stat(self, FOOD_COLOR)
 	_wealth_label = UIKit.stat(self, Palette.WEALTH)
 	_insight_label = UIKit.stat(self, Palette.INSIGHT)
-	for label in [_food_label, _wealth_label, _insight_label]:
+	_unrest_label = UIKit.stat(self, Palette.UNREST)
+	for label in [_food_label, _wealth_label, _insight_label, _unrest_label]:
 		label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
 	score_label = UIKit.stat(self, Palette.GAIN)
 	_pop_label = UIKit.stat(self, Palette.POP)
+	for label in [_turn_label, _food_label, _wealth_label, _insight_label, _unrest_label, score_label, _pop_label]:
+		label.theme_type_variation = &"BarStat"
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
@@ -69,6 +74,7 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	_wealth_label.tooltip_text = "In brackets: change at the next upkeep."
 	UIKit.set_stat(_insight_label, "Insight: %d%s" % [e.resources.get(GameEngine.INSIGHT, 0), _forecast_text(forecast, GameEngine.INSIGHT)])
 	_insight_label.tooltip_text = "Pays for techs. In brackets: change at the next upkeep."
+	_refresh_unrest(e, forecast)
 	UIKit.set_stat(score_label, "Score: %d" % e.score())
 	_pop_label.visible = e.population_on()
 	UIKit.set_stat(_pop_label, "Pop: %d" % e.total_pop())
@@ -94,8 +100,22 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	notification(NOTIFICATION_SORT_CHILDREN)  # lay the counters out at their new widths, so tokens start under them
 	_float_changes({_food_label: [e.resources.get(GameEngine.FOOD, 0), GameEngine.FOOD],
 		_wealth_label: [e.resources.get(GameEngine.WEALTH, 0), GameEngine.WEALTH],
-		_insight_label: [e.resources.get(GameEngine.INSIGHT, 0), GameEngine.INSIGHT], score_label: [e.score(), "VP"],
+		_insight_label: [e.resources.get(GameEngine.INSIGHT, 0), GameEngine.INSIGHT],
+		_unrest_label: [e.resources.get(GameEngine.UNREST, 0), GameEngine.UNREST], score_label: [e.score(), "VP"],
 		_pop_label: [e.total_pop(), "pop"]}, layer, quiet)
+
+
+## "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; hidden while unrest is off.
+func _refresh_unrest(e: GameEngine, forecast: Dictionary) -> void:
+	_unrest_label.visible = e.unrest_on()
+	var unrest: int = e.resources.get(GameEngine.UNREST, 0)
+	var limit := e.unrest_limit()
+	UIKit.set_stat(_unrest_label, "Unrest: %d%s%s" % [unrest, " / %d" % limit if limit >= 0 else "",
+		_forecast_text(forecast, GameEngine.UNREST)])
+	var at_limit := limit >= 0 and unrest >= limit
+	_unrest_label.add_theme_color_override("font_color", CardView.WARN_COLOR if at_limit else Palette.UNREST)
+	_unrest_label.tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
+		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
 
 
 ## Where the deck and discard are on screen (121): the Log button, whose drawer shows their counts. Dealt cards come

@@ -22,11 +22,12 @@ const TYPE_FIELDS := {
 	"home": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION],
 	"actions": [CardDef.GOVERNMENT],
+	"unrest_limit": [CardDef.GOVERNMENT],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
-const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING]
+const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT]
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
@@ -169,6 +170,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			var n: Variant = Fields.as_int(cost[r])
 			if not ctx.resources.has(r):
 				errs.append("cost: unknown resource '%s'" % r)
+			elif Fields.unpayable(r) != "":
+				errs.append("cost: " + Fields.unpayable(r))
 			elif typeof(n) != TYPE_INT or n < 0:
 				errs.append("cost: '%s' must be an integer >= 0" % r)
 			else:
@@ -241,6 +244,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
 	elif def.type == CardDef.GOVERNMENT:
 		def.actions = Fields.read_int(c, "actions", errs, 1, 0)
+		def.unrest_limit = Fields.read_int(c, "unrest_limit", errs, 1, 0)
 	for key in TYPE_FIELDS:
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):
@@ -352,12 +356,15 @@ static func _parse_discounts(raw: Variant, resources: Array[String], errs: Array
 			var n: Variant = Fields.as_int(entry[key])
 			if not resources.has(key):
 				errs.append("%s: unknown resource '%s'" % [where, key])
+			elif Fields.unpayable(key) != "":
+				errs.append("%s: %s" % [where, Fields.unpayable(key)])
 			elif typeof(n) != TYPE_INT or n < 1:
 				errs.append("%s: '%s' must be an integer >= 1" % [where, key])
 			else:
 				d.amounts[key] = n
 		if d.amounts.is_empty():
-			errs.append("%s: needs an amount of a resource, like \"wealth\": 1" % where)
+			if entry.size() == 1:  # only the filter; a bad amount was reported above
+				errs.append("%s: needs an amount of a resource, like \"wealth\": 1" % where)
 		else:
 			out.append(d)
 	return out

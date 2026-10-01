@@ -15,6 +15,8 @@ func fields() -> Array[String]:
 
 func configure(data: Dictionary, ctx: Dictionary, errors: Array[String]) -> void:
 	resource = Fields.read_string(data, "resource", errors, ctx.resources)
+	if Fields.unpayable(resource) != "":
+		errors.append(Fields.unpayable(resource))
 	per_root_city = Fields.read_int(data, "per_root_city", errors, 1)
 	pop_per = Fields.read_int(data, "pop_per", errors, 1)
 	min_cities = Fields.read_int(data, "min_cities", errors, 1)

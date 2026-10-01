@@ -4,6 +4,12 @@ extends RefCounted
 ## and returns a safe default, so a loader can report every problem in one pass.
 
 
+## Why resource can't be paid, or "": unrest (144) is only gained and lost, so no cost, discount, relief or trade
+## names it.
+static func unpayable(resource: String) -> String:
+	return "%s can't be paid (it is only gained and lost)" % resource if resource == GameEngine.UNREST else ""
+
+
 ## JSON numbers are floats; accept whole numbers as ints. Returns null otherwise.
 static func as_int(v: Variant) -> Variant:
 	if v is int:

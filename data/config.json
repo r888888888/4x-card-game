@@ -1,5 +1,5 @@
 {
-  "resources": ["food", "wealth", "insight"],
+  "resources": ["food", "wealth", "insight", "unrest"],
   "keywords": [
     "grassland", "forest", "hills", "mountain", "desert", "marsh",
     "fresh_water", "coastal", "flood_plain"
@@ -35,6 +35,7 @@
     "research": { "price": 3, "count": 6 },
     "hunt": { "price": 2, "count": 6 },
     "winnow": { "price": 2, "count": 6 },
+    "feast": { "price": 2, "count": 6 },
     "fishing_huts": { "price": 2, "count": 6 },
     "quarry": { "price": 2, "count": 6 },
     "shrine": { "price": 2, "count": 6 },
@@ -61,7 +62,10 @@
     "market_day": 1,
     "good_omens": 1,
     "forage": 2,
-    "harvest_festival": 1
+    "harvest_festival": 1,
+    "grumbling": 2,
+    "omen_of_doom": 1,
+    "bandit_raids": 1
   },
   "research_deck": {
     "pottery": 1,

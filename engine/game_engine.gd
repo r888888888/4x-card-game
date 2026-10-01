@@ -81,6 +81,11 @@ func population_on() -> bool:
 	return not config.get("population", {}).is_empty()
 
 
+## Whether the unrest rules are on (144): the config lists unrest as a resource.
+func unrest_on() -> bool:
+	return config.get("resources", []).has(UNREST)
+
+
 ## Pop on settled territory territory_uid (0 for anything else).
 func pop(territory_uid: int) -> int:
 	return Population.pop(self, territory_uid)
@@ -270,6 +275,12 @@ func count_tag(tag: String, zone_name: String) -> int:
 ## How many cards can be played from hand each turn: the ruling government's actions (127), or -1 for no limit.
 func actions_per_turn() -> int:
 	return CardPlay.actions_per_turn(self)
+
+
+## The most unrest the realm holds (144): the government's unrest_limit plus the unrest_limit modifier, never below 0;
+## -1 (no limit) while unrest is off or no government sets one.
+func unrest_limit() -> int:
+	return Modifiers.unrest_limit(self)
 
 
 ## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).
