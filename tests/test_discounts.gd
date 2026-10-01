@@ -140,3 +140,17 @@ func test_costs_are_unchanged_without_discounts() -> void:
 		eq(e.buy_price("scout"), 3, "%s: buy_price" % civ)
 		check(play_research(e), "%s: research" % civ)
 		eq(e.tech_cost(uid_of(e.zone("research_reveal"), "loom")), 4, "%s: tech_cost" % civ)
+
+
+# --- 136: play_cost with no game ---
+
+func test_bug_136_play_cost_is_empty_before_a_game_starts() -> void:
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", [] as Array[String], [] as Array[String], keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", [] as Array[String], [] as Array[String])
+	var e := GameEngine.new(cards, config)
+	eq(e.play_cost(-1), {}, "no hand before new_game")
+
+
+func test_bug_136_play_cost_is_empty_for_a_card_not_in_the_hand() -> void:
+	var e := make_engine({"farm": 10})
+	eq(e.play_cost(-1), {}, "uid -1 isn't in the hand")
