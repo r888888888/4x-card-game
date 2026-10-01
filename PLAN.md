@@ -12,6 +12,7 @@
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042); compared against `main`, not pinned in tests |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food and wealth; unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077) |
+| Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, buying a revealed tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
 
 ## Architecture principle
@@ -158,7 +159,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play or buy cards while resources allow, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
+3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
@@ -377,7 +378,12 @@ Your people have one government at a time; its bonuses apply while it rules.
   `play` effects resolve. The outcome's `to_zone` is `government`. `play_error` refuses a government with the same id
   as the ruling one ("X is already your government.").
 - The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
-- Real data: Chiefdom (no bonus; the start), Kingship (⟳ +1 wealth; from Code of Laws), Theocracy (⟳ +1 VP; from
+- Actions (127): a government's optional `actions` (int ≥ 1; text "2 actions each turn.") is how many cards can be
+  played from hand each turn while it rules. `actions_per_turn()` and `actions_left()` (-1 for both when no government
+  rules or it sets none: unlimited, as in the test fixtures); `play_error` says "No actions left this turn." after the
+  game-over and pending-decision checks. `GameState.actions_used` counts plays (reset at the start of a turn), so a
+  government played mid-turn counts at once. The rules are in `CardPlay`; the counter sits beside the hand's heading.
+- Real data: Chiefdom (2 actions; no other bonus; the start), Kingship (3 actions, ⟳ +1 wealth; from Code of Laws), Theocracy (3 actions, ⟳ +1 VP; from
   Priesthood). Techs that give a government create it in the discard; it has no supply pile.
 - UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
   Knowledge (088, 115, 119); it opens a modal showing both (flavor, quote, rules), and a played government flies to it.

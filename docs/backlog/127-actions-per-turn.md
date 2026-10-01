@@ -2,7 +2,7 @@
 id: 127
 title: Playing a card from hand uses an action; your government sets how many you get each turn
 type: feature
-status: ready
+status: review
 branch: feat/127-actions-per-turn
 ---
 
@@ -19,28 +19,29 @@ explored territory, relieving a Famine, discarding and ending the turn never do.
 Fixtures: two new TEST_GOVS, `band` (`actions: 2`, cost {}) and `court` (`actions: 3`, cost {}); the existing
 `council` and `kingdom` keep no `actions`. Free TEST_CARDS (`scout`, `shrine`, `study`) fill the hand.
 
-- [ ] AC1 (loader, text): government field `actions` is optional: an int ≥ 1. A value < 1 or not an int is a load
+- [x] AC1 (loader, text): government field `actions` is optional: an int ≥ 1. A value < 1 or not an int is a load
   error naming the card and `actions`. On another card type it's an unknown-field warning (`DataLoader.TYPE_FIELDS`).
   A government with `actions: 2` has the card text "2 actions each turn." (face and tooltip).
-- [ ] AC2 (queries): new `actions_per_turn() -> int` is the ruling government's `actions`, and `actions_left() -> int`
+- [x] AC2 (queries): new `actions_per_turn() -> int` is the ruling government's `actions`, and `actions_left() -> int`
   is that minus the actions used this turn, never below 0. Both are -1 (unlimited) when no government rules or it
   sets no `actions`. Given `band` at the start of a turn, both are 2; `fork().actions_left()` matches the game's.
-- [ ] AC3 (spending): given `band` and 3 free cards in hand, playing two leaves `actions_left()` 0. The third's
+- [x] AC3 (spending): given `band` and 3 free cards in hand, playing two leaves `actions_left()` 0. The third's
   `play_error` and `playable_error` are "No actions left this turn." and `play_card` returns false with the card
   still in hand. With game over or a pending decision, those errors keep their current, higher-priority message.
-- [ ] AC4 (free actions): given `band` with 0 actions left, `grow_error`, `buy_error`, `discard_error`,
+- [x] AC4 (free actions): given `band` with 0 actions left, `grow_error`, `buy_error`, `discard_error`,
   `relieve_famine_error` and `end_turn_error` don't mention actions, and each action still works when otherwise
   legal. Playing `study` (research) with the last action still lets `buy_tech` or `decline_research` resolve its
   reveal, and playing an explore card with the last action still lets `choose` pick a territory.
-- [ ] AC5 (reset): given `band` with 0 actions left, after `end_turn()` the new turn starts with `actions_left()` 2.
+- [x] AC5 (reset): given `band` with 0 actions left, after `end_turn()` the new turn starts with `actions_left()` 2.
   Unused actions don't carry over (ending a turn with 1 left still starts the next with 2).
-- [ ] AC6 (changing government): given `band` with 1 action used, playing `court` from hand uses the second action
+- [x] AC6 (changing government): given `band` with 1 action used, playing `court` from hand uses the second action
   and leaves `actions_left()` 1 (3 − 2). Given `court` with 3 used, playing `band` leaves 0. Given no `actions` on
   the government (`council`), any number of cards can be played, as today.
-- [ ] AC7 (UI, in the real main.tscn): with `band` ruling, the top bar shows an actions counter reading "Actions:
+- [x] AC7 (UI, in the real main.tscn): with `band` ruling, an actions counter beside the hand's heading (moved from
+  the top bar: see Log) reads "Actions:
   2 / 2", which reads "Actions: 1 / 2" after a play; at 0 the hand cards show as unplayable (as for any non-empty
-  `playable_error`). With unlimited actions the counter is hidden.
-- [ ] AC8 (content): every government in `data/cards.json` sets `actions` (an invariant, no numbers).
+  `playable_error`; the card's tooltip gives the reason). With unlimited actions the counter is hidden.
+- [x] AC8 (content): every government in `data/cards.json` sets `actions` (an invariant, no numbers).
 
 ## Out of scope
 - Cards that give actions when played (128) and standing bonuses from techs, buildings, civilizations or events
@@ -68,12 +69,33 @@ Fixtures: two new TEST_GOVS, `band` (`actions: 2`, cost {}) and `court` (`action
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_actions::test_government_actions_load`, `test_bad_government_actions_are_load_errors`, `test_government_actions_text` |
+| AC2 | `test_actions::test_actions_per_turn_come_from_the_government`, `test_actions_are_unlimited_without_a_government_that_sets_them` |
+| AC3 | `test_actions::test_each_play_uses_an_action_until_none_are_left`, `test_no_actions_comes_after_game_over_and_a_pending_choice` (a guard: passes already) |
+| AC4 | `test_actions::test_other_actions_dont_use_or_need_actions`, `test_buying_a_revealed_tech_after_the_last_action_is_free`, `test_choosing_an_explored_territory_after_the_last_action_is_free` |
+| AC5 | `test_actions::test_actions_reset_each_turn_and_dont_carry_over` |
+| AC6 | `test_actions::test_a_new_government_counts_at_once`, `test_any_number_of_plays_without_actions` |
+| AC7 | `test_actions::test_top_bar_counts_actions_and_spent_hands_dim` |
+| AC8 | `test_content::test_every_government_sets_actions` |
 
 ## Manual check
-- [ ] As Chiefdom, after two plays the hand dims and the counter reads "Actions: 0 / 2"; growing and buying still
-  work. Playing Kingship as the second action leaves 1 action that turn and 3 the next.
+- [ ] Seed 1 as Egypt (Chiefdom): the hand's heading row ends with "Actions: 2 / 2", and hovering it explains actions.
+  After two plays it reads "Actions: 0 / 2" and the rest of the hand dims with "⊘ No actions left this turn.";
+  growing (territory view), buying (Buy Cards) and discarding still work, and End turn starts the next turn at 2 / 2.
+- [ ] As Babylon (Kingship in the discard), playing Kingship as the second action leaves "Actions: 1 / 3" that turn
+  and 3 / 3 the next. The civilization and government modal lists "3 actions each turn." under Kingship.
 
 ## Log
+- AC1: a TYPE_FIELDS field on the wrong card type gets the loader's existing "'actions' only applies to governments
+  (ignored)" warning, not "unknown field"; the test asserts that (fixed in the green phase, my own test was wrong).
+- AC7: the counter sits beside the hand's heading, not in the top bar. With it there, the top bar overflowed 1920 px
+  by 152 px in `test_board_layout`'s longest case (Menu ended at x=2072). Next to the hand it also sits by what it
+  limits. `main.section_headings()` now takes each section's first label, since the hand's heading shares a row.
+- `test_identity_lines` expected Chiefdom to show "No bonus."; it now has its actions line, so the test checks the
+  government's generated rules like the civilization's.
+- `game_engine.gd` is at 510 lines (WARN, as 125 expected).
+- Follow-up: the "Actions" glossary term from the design notes isn't built (no test asked for it); add it with 129,
+  which also puts actions on more card types.
 - Balance worries (for the balance item, not here): the whole economy shifts from resources to tempo. Food and
   wealth will pile up; the sim bot discards its whole hand every turn, which now matters much more (it refills to 5
   each turn while a human keeps cards). Babylon starts with Kingship in its discard, so it reaches 3 actions within a

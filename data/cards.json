@@ -155,19 +155,19 @@
       "effects": []
     },
     {
-      "id": "chiefdom", "name": "Chiefdom", "type": "government",
+      "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2,
       "vp": 0, "tags": [],
       "effects": []
     },
     {
-      "id": "kingship", "name": "Kingship", "type": "government",
+      "id": "kingship", "name": "Kingship", "type": "government", "actions": 3,
       "vp": 0, "tags": [],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
-      "id": "theocracy", "name": "Theocracy", "type": "government",
+      "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3,
       "vp": 0, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" }

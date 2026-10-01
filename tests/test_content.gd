@@ -428,6 +428,14 @@ func test_starting_government_and_every_other_government_comes_from_a_tech() -> 
 	check(others >= 2, "at least 2 governments besides the starting one (got %d)" % others)
 
 
+## 127: actions per turn come from the government, so every government sets them.
+func test_every_government_sets_actions() -> void:
+	var r := load_real()
+	for id in r.cards:
+		if r.cards[id].type == CardDef.GOVERNMENT:
+			check(r.cards[id].get("actions") > 0, "government %s sets actions" % id)
+
+
 # --- Supply (backlog 032) ---
 
 ## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.

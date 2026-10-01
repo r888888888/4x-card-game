@@ -85,12 +85,14 @@ const TEST_CIVS := [
 	 "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
 ]
 
-## Fixture governments (backlog 065), loaded with TEST_CARDS by gov_db. Not in TEST_CARDS itself, like TEST_CIVS.
+## Fixture governments (backlog 065; Band and Court set actions, 127), loaded with TEST_CARDS by gov_db. Not in TEST_CARDS itself, like TEST_CIVS.
 const TEST_GOVS := [
 	{"id": "council", "name": "Council", "type": "government"},
 	{"id": "kingdom", "name": "Kingdom", "type": "government", "cost": {"food": 2}, "vp": 1, "effects": [
 		{"op": "gain", "resource": "wealth", "amount": 1},
 		{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "band", "name": "Band", "type": "government", "actions": 2},  # 127
+	{"id": "court", "name": "Court", "type": "government", "actions": 3},
 ]
 
 var test_name := ""  # "file::method", set by the runner
