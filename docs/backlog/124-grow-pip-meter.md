@@ -2,7 +2,7 @@
 id: 124
 title: Grow is the next pip of a pop meter, says why it's blocked, and animates into the Pop counter
 type: feature
-status: red-review
+status: review
 branch: feat/124-grow-pip-meter
 ---
 
@@ -20,22 +20,22 @@ Pop  ● ● ● ● ●        at housing: no Grow, dim line "River Meadow is a
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn on TEST_CARDS, population on, territory view open on a settled territory. -->
-- [ ] AC1: Pips. Given a territory with pop 2 and housing 5, the view's pop meter (`territory_view.pips()`) has 5
+- [x] AC1: Pips. Given a territory with pop 2 and housing 5, the view's pop meter (`territory_view.pips()`) has 5
   pips, the first 2 filled and the rest empty. The third pip is `grow_button`, its text is the food cost `grow_cost`
   (3) with the food icon (`Icons`, no word "food"), and its tooltip names the action and the cost. Pips 4 and 5 are
   plain empty pips, not buttons. With population off there is no meter, no Grow and no reason line (as today).
-- [ ] AC2: At housing. Given pop 5 and housing 5, all 5 pips are filled, `grow_button` is hidden, and the reason line
+- [x] AC2: At housing. Given pop 5 and housing 5, all 5 pips are filled, `grow_button` is hidden, and the reason line
   (`territory_view.grow_reason`) is visible and reads `grow_error(uid)`.
-- [ ] AC3: Blocked, with room. Given pop 2, housing 5 and 1 food (cost 3), `grow_button` shows on the third pip,
+- [x] AC3: Blocked, with room. Given pop 2, housing 5 and 1 food (cost 3), `grow_button` shows on the third pip,
   disabled, and the reason line reads `grow_error(uid)` ("Growing … needs 3 food (you have 1)."). The same holds for
   a Famine (the reason is the Famine's). When Grow is legal, the reason line is hidden.
-- [ ] AC4: Growing. Given pop 2, housing 5 and 10 food, pressing `grow_button` makes pop 3 and food 7; the meter then
+- [x] AC4: Growing. Given pop 2, housing 5 and 10 food, pressing `grow_button` makes pop 3 and food 7; the meter then
   has 3 filled pips and `grow_button` is the fourth pip, showing 4. The top bar's Pop counter reads the new total.
-- [ ] AC5: Grow animation. After AC4's press, the newly filled pip pops in (scales up from below 1 back to 1 over
+- [x] AC5: Grow animation. After AC4's press, the newly filled pip pops in (scales up from below 1 back to 1 over
   `Anim.POP_IN_TIME`), a "+1 pop" token on the fx layer flies from that pip to the top bar's Pop counter and pulses it
   on arrival, and a "−3 food" token floats up from the food counter (as 114). With Reduce motion on, the pip doesn't
   scale, the "+1 pop" token appears at the Pop counter and fades without moving, and the food token behaves as 114 AC6.
-- [ ] AC6: Only a grow animates. Pop rising for another reason (a card's `grow` effect while the view is open) fills
+- [x] AC6: Only a grow animates. Pop rising for another reason (a card's `grow` effect while the view is open) fills
   its pips without the "+1 pop" token; a refresh that changes nothing starts no animation.
 
 ## Out of scope
@@ -67,6 +67,7 @@ Pop  ● ● ● ● ●        at housing: no Grow, dim line "River Meadow is a
 | Changed | `test_territory_view::test_the_view_shows_slots_and_pop_and_grow` and `test_grow_is_disabled_with_the_reason_when_it_cannot_grow`: Grow's text is its cost, the reason is `grow_reason`, not the tooltip |
 
 ## Manual check
+- [ ] `godot --path .`, any seed. Open your home territory from the Realm.
 - [ ] Open a territory: the pips read at a glance, the Grow pip stands out as clickable and shows the food icon.
 - [ ] Grow: the pip pops in, "+1 pop" flies to the top bar's Pop and pulses it, "−N food" floats up from Food.
 - [ ] Grow until housing: the Grow pip disappears and the dim reason shows. Run out of food: the reason updates.
@@ -79,3 +80,9 @@ Pop  ● ● ● ● ●        at housing: no Grow, dim line "River Meadow is a
 - 2026-09-30: Red. The Famine case of AC3 isn't its own test: the reason line shows `grow_error` whatever it says.
   The food icon is new (`assets/icons/food.svg`); the Grow pip carries it as its Button icon. The view's header keeps
   123's live line ("▢ F   ⌂ P/H   ⚒ W"); the meter goes in the bar beside it.
+- 2026-09-30: Green, 800 → 810 tests. UI only: `TerritoryView.pips()`, `grow_reason`, `_show_meter` (reuses its
+  pips), `TopBar.fly_grow` and `MainScreen.fly_grow` for the tokens; `Icons.FOOD`; `GameTheme` `PipFilled`,
+  `PipEmpty`, `GrowPip` and `PIP_SIZE`. The view tells a grow from the meter apart from other pop gains by noting the
+  cost while `grow` runs (its refresh is synchronous), so card effects fill pips without tokens (AC6).
+- Follow-up: the meter hides Grow by comparing pop with housing in the UI; an engine query (e.g. `can_ever_grow`)
+  would keep that rule out of `ui/`. Also, inside the view the header's "⌂ P/H" now repeats the meter.
