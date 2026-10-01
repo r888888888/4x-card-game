@@ -2,7 +2,7 @@
 id: 131
 title: A realistic, orthogonal territory set (terrain × features)
 type: content
-status: review
+status: done
 branch: feat/131-orthogonal-territory-set
 ---
 

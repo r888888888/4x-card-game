@@ -2,7 +2,7 @@
 id: 130
 title: Terrain keywords: every territory has exactly one terrain
 type: feature
-status: review
+status: done
 branch: feat/130-terrain-keywords
 ---
 

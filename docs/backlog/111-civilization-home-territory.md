@@ -2,7 +2,7 @@
 id: 111
 title: Civilizations can start on their own home territory
 type: feature
-status: review
+status: done
 branch: feat/111-civilization-home-territory
 ---
 
