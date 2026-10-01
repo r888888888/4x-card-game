@@ -2,7 +2,7 @@
 id: 141
 title: Eurekas: what you have built makes related techs cheaper
 type: feature
-status: review
+status: done
 branch: feat/141-tech-eurekas
 ---
 
