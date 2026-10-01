@@ -34,6 +34,7 @@ var housing: int = 0  # territories: most pop the territory can hold; buildings:
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
+var revolt := false  # events: while active, the player may revolt (148)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
 var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts: {resource: int}}] (108)
 var keywords: Array[String] = []  # territories: keyword ids from config
@@ -109,6 +110,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append("Needs %s" % card_db[prereq].name)
 	if not eureka.is_empty():
 		parts.append(eureka_text(card_db))
+	if revolt:
+		parts.append(revolt_text())
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
@@ -149,6 +152,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("Needs %s researched first." % card_db[prereq].name)
 	if not eureka.is_empty():
 		parts.append(eureka_text(card_db) + ".")
+	if revolt:
+		parts.append(revolt_text())
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
@@ -205,6 +210,11 @@ func territory_text(copy_keywords: Array[String]) -> String:
 	if not copy_keywords.is_empty():
 		parts.append("Keywords: " + ", ".join(PackedStringArray(copy_keywords.map(func(k): return k.capitalize()))))
 	return "\n".join(parts)
+
+
+## A revolutionary event's line (148).
+func revolt_text() -> String:
+	return "While active, you may revolt."
 
 
 ## How long an event stays active: "Lasts 1 turn" / "Lasts 2 turns".

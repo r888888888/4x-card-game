@@ -101,6 +101,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_anarchy.gd` | Anarchy (145): the config `unrest` block, falling at the limit, what it locks, counters and burning out, era unrest, the bot's government first |
 | `tests/test_leaving_anarchy.gd` | Leaving Anarchy (146): a government accepted at half its limit, `restore_order` and its error, `unrest.relief`, the Restore order button, the bot paying after 2 counters |
 | `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
+| `tests/test_revolution.gd` | Revolution events (148): the event's `revolt` field and text, `revolt` and its error, the Revolt button, the bot's revolt |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
@@ -144,7 +145,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (20 wealth and 20 insight) |
-| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–147): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, relief 6 wealth, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `ruling`, `config_errors` |
+| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, relief 6 wealth, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `ruling`, `config_errors` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `load_with(extra, resource_keywords)` | `TEST_CARDS` plus `extra` cards, parsed: `{cards, errors, warnings}` |

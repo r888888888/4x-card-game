@@ -23,6 +23,7 @@ const TYPE_FIELDS := {
 	"quote": [CardDef.CIVILIZATION],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
+	"revolt": [CardDef.EVENT],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
@@ -260,6 +261,11 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	if def.type == CardDef.EVENT:
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 		def.has_discard = c.has("discard")
+		if c.has("revolt"):
+			if c.revolt is bool:
+				def.revolt = c.revolt
+			else:
+				errs.append("'revolt' must be true or false")
 
 	if def.type in [CardDef.TECH, CardDef.EVENT] and c.has("era"):
 		var era: Variant = Fields.as_int(c.era)

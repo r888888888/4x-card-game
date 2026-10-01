@@ -293,6 +293,17 @@ func anarchy() -> int:
 	return card.uid if card != null else -1
 
 
+## Why revolt would refuse (148): game over or a pending decision, Anarchy already ruling, or no active event that
+## lets you revolt. "" if it can.
+func revolt_error() -> String:
+	return Anarchy.revolt_error(self)
+
+
+## Starts Anarchy now, by choice, with renewal owed at once (148). False (and no change) if revolt_error says no.
+func revolt() -> bool:
+	return Anarchy.revolt(self)
+
+
 ## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""
 ## if it can.
 func renew_error(uid: int) -> String:
