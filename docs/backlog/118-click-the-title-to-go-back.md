@@ -2,7 +2,7 @@
 id: 118
 title: Click the parent title in the header to go back
 type: feature
-status: red-review
+status: review
 branch: feat/118-click-the-title-to-go-back
 ---
 
@@ -12,14 +12,14 @@ same thing the breadcrumb does. Drop the button and make the breadcrumb's parent
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn on test_screen_header's fixtures. -->
-- [ ] AC1: Given the territory view is open on River Meadow, then its header has no "←" back button, and the
+- [x] AC1: Given the territory view is open on River Meadow, then its header has no "←" back button, and the
   breadcrumb still reads "Realm › River Meadow" with "Realm" a clickable segment (hand cursor, tooltip "Back to
   Realm"). Clicking it closes the view like Esc does (the Realm is back at once, the view shrinks away).
-- [ ] AC2: The same for the New game screen ("Main menu › New game") and the Settings screen ("Main menu › Settings"):
+- [x] AC2: The same for the New game screen ("Main menu › New game") and the Settings screen ("Main menu › Settings"):
   no back button, and clicking "Main menu" returns to the title screen.
-- [ ] AC3: The last segment ("River Meadow", "New game") is plain text: clicking it does nothing. At the root of a
+- [x] AC3: The last segment ("River Meadow", "New game") is plain text: clicking it does nothing. At the root of a
   stack the header shows just its title, with nothing clickable.
-- [ ] AC4: Esc and the menu's New game still go back / close as before (guard); keyboard focus after going back is
+- [x] AC4: Esc and the menu's New game still go back / close as before (guard); keyboard focus after going back is
   where it was after the button (guard: the same tests, driven by the segment).
 
 ## Out of scope
@@ -47,3 +47,7 @@ same thing the breadcrumb does. Drop the button and make the breadcrumb's parent
 - [ ] The link reads as clickable (hover underline, hand cursor) and the current page title doesn't.
 
 ## Log
+- `ScreenHeader.back_button` is now the parent's title as a flat "Link" button (new `GameTheme` variation: Title-sized,
+  dim, accent on hover and focus, no box or padding so it sits in the text), with a "Back to …" tooltip and a hand
+  cursor; a label follows with " › <title>". The hook kept its name so focus loops and tests that press it still work.
+- CLAUDE.md's UI design note about the header updated to match.
