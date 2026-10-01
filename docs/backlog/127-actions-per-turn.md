@@ -2,7 +2,7 @@
 id: 127
 title: Playing a card from hand uses an action; your government sets how many you get each turn
 type: feature
-status: review
+status: done
 branch: feat/127-actions-per-turn
 ---
 
