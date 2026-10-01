@@ -336,7 +336,8 @@ func obtainable_cards(r: Dictionary) -> Dictionary:
 	return out
 
 
-## Backlog 107: a civilization's start gift is a card for the discard that the game also hands out otherwise.
+## Backlog 107: a civilization's start gift is a card for the discard that the game also hands out otherwise; since 133
+## a building may instead start on the home (a create into the tableau).
 func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void:
 	var r := load_real()
 	var obtainable := obtainable_cards(r)
@@ -345,7 +346,9 @@ func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void
 		for effect in r.cards[id].effects:
 			if effect.op == "create" and effect.trigger == "start":
 				gifts += 1
-				eq(effect.zone, "discard", "%s puts %s into the discard" % [id, effect.card_id])
+				var on_home: bool = effect.zone == "tableau" and r.cards[effect.card_id].type == CardDef.BUILDING
+				check(effect.zone == "discard" or on_home,
+					"%s puts %s into the discard, or a building on its home (got %s)" % [id, effect.card_id, effect.zone])
 				check(obtainable.has(effect.card_id), "%s gives %s, which the game also hands out" % [id, effect.card_id])
 	check(gifts > 0, "some civilization starts with a card")
 

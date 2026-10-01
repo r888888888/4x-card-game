@@ -2,7 +2,7 @@
 id: 133
 title: A civilization can start with a building on its home (Sumer starts with a Farm)
 type: feature
-status: in-progress
+status: review
 branch: feat/133-sumer-starts-with-a-farm
 ---
 
@@ -13,17 +13,17 @@ on its home territory, and Sumer starts with its first Farm ("its first canal"),
 draw.
 
 ## Acceptance criteria
-- [ ] AC1: Given a civilization with the start effect `{ "op": "create", "card": "farm", "zone": "tableau", "trigger":
+- [x] AC1: Given a civilization with the start effect `{ "op": "create", "card": "farm", "zone": "tableau", "trigger":
   "start" }` and a home, when a new game starts as it, then the tableau holds one Farm whose territory is the home (the
   Capital's territory), and the home has 1 free slot fewer than in a game as a civilization without it.
-- [ ] AC2: Given that game, when its first turn starts, then the Farm is not idle (the home's starting pop works it)
+- [x] AC2: Given that game, when its first turn starts, then the Farm is not idle (the home's starting pop works it)
   and the upkeep forecast's food includes the Farm's upkeep food.
-- [ ] AC3: Given a civilization whose start `create` puts a non-building (e.g. a Scout) into the tableau, when the cards
+- [x] AC3: Given a civilization whose start `create` puts a non-building (e.g. a Scout) into the tableau, when the cards
   load, then there's an error naming the card, the effect and the created card id.
-- [ ] AC4: Given a listed civilization whose start building `requires` a keyword its home (or `starting.territory`, when
+- [x] AC4: Given a listed civilization whose start building `requires` a keyword its home (or `starting.territory`, when
   it has no home) lacks, when the config loads, then there's an error naming the civilization, the building and the
   territory.
-- [ ] AC5: Given a listed civilization that starts with more buildings than its home has slots (the territory's slots
+- [x] AC5: Given a listed civilization that starts with more buildings than its home has slots (the territory's slots
   plus the starting tableau's), when the config loads, then there's an error naming the civilization and its home.
 
 ## Out of scope
@@ -61,3 +61,9 @@ draw.
   loader checks keywords and slots. Giving Sumer the Farm breaks the approved content test
   `test_civilization_start_gifts_are_obtainable_cards_in_the_discard` (107: every start `create` goes to the discard).
   Held back the Sumer data change and asked the user whether 107's rule should allow the tableau for buildings.
+- The user approved widening 107's content test: a start `create` goes to the discard, or a building goes onto the
+  home. Sumer now starts with a Farm on Delta Marsh (and keeps its Research gift).
+- Trace on this branch (main's data, without 132's Farm and cost changes, so not comparable to 132's numbers), Sumer
+  seeds 1-3: turn-1 food forecast +5 / +5 / +6 (was 0 without a Farm), T15 score 51 / 42 / 64.
+- Card text reads "When the game starts: Create a Farm"; it doesn't say the Farm is on the home. Left for the
+  Manual check; a follow-up could word it "Starts with a Farm on its home".
