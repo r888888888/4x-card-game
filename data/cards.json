@@ -212,13 +212,12 @@
       ]
     },
     {
-      "id": "greece", "name": "Greece", "type": "civilization",
+      "id": "greece", "name": "Greece", "type": "civilization", "modifiers": { "hand_size": 1 },
       "vp": 0, "tags": [],
       "flavor": "Rival city-states argued in the agora, staged tragedies in open theatres, and asked questions philosophers still ask.",
       "quote": { "text": "The unexamined life is not worth living.", "by": "Socrates, in Plato's Apology" },
       "effects": [
-        { "op": "create", "card": "storyteller", "zone": "discard", "trigger": "start" },
-        { "op": "score", "amount": 1, "trigger": "upkeep" }
+        { "op": "create", "card": "storyteller", "zone": "discard", "trigger": "start" }
       ]
     },
     {

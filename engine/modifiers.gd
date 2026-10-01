@@ -3,8 +3,10 @@ extends RefCounted
 ## Standing modifiers (backlog 129): a card's `modifiers` ({key: int}) count while it works. Static functions on the
 ## engine's state; GameEngine.modifier calls total.
 
-## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn.
+## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn, and more cards drawn
+## each turn (109).
 const ACTIONS := "actions"
+const HAND_SIZE := "hand_size"
 
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
@@ -15,6 +17,11 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	for z in GameEngine.ALWAYS_ON_ZONES:
 		out.append_array(e.zone(z).cards)
 	return out
+
+
+## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).
+static func hand_size(e: GameEngine) -> int:
+	return clampi(e.config.hand_size + total(e, HAND_SIZE), 1, e.config.hand_limit)
 
 
 ## key summed over the working cards and the active events; 0 when none has it.

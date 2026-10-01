@@ -48,6 +48,11 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 			errs.append("resource_keywords: '%s' is also in 'keywords'" % k)
 
 	config.hand_limit = Fields.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
+	for id in cards:  # 109: one card's hand_size modifier alone must fit under hand_limit
+		var more: int = cards[id].modifiers.get(Modifiers.HAND_SIZE, 0)
+		if config.hand_size + more > config.hand_limit:
+			errs.append("card '%s': modifiers.hand_size %d takes hand_size %d past hand_limit %d" % [
+				id, more, config.hand_size, config.hand_limit])
 
 	var starting: Variant = raw.get("starting", {})
 	if starting is Dictionary:

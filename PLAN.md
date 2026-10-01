@@ -130,7 +130,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   object of `DataLoader.MODIFIER_KEYS` (only `actions` so far) to non-zero ints, e.g. `"modifiers": {"actions": 1}`.
   `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
   (`Modifiers.total`); `actions_per_turn()` adds the `actions` modifier to the government's, never below 1. Text
-  "+1 action each turn" (an event's tooltip adds "while active"). 109 and 110 add `hand_size` and `housing`.
+  "+1 action each turn" (an event's tooltip adds "while active"). `hand_size` (109): `hand_size()` is config
+  `hand_size` plus the modifier, between 1 and `hand_limit`, and the turn draws up to it ("Draw up to 1 more card each
+  turn"); a card whose `hand_size` alone takes config `hand_size` past `hand_limit` is a config error. 110 adds
+  `housing`.
 - `gain_actions` (128, play only): `{ "op": "gain_actions", "amount": 1 }` (amount defaults to 1) gives that many more
   actions this turn (127), on top of the government's; they don't carry over, and the op does nothing while actions
   are unlimited. A load error on `start` or on an event (both resolve outside your plays): `Effect.needs_a_turn`.
@@ -367,7 +370,7 @@ A game is played as one civilization: a permanent card with a starting gift and 
 - Real data (107, replacing 064's four): six civilizations of antiquity. Egypt (⟳ +1 food per fresh water or flood
   plain territory; the default), Sumer (Start: an Insight in the discard; ⟳ +1 food per farm), Phoenicia (Start: +3
   wealth; ⟳ +1 wealth per coastal territory), Babylon (Start: Kingship in the discard), Greece (Start: a Storyteller in
-  the discard; ⟳ +1 VP), Persia (Start: a Caravan in the discard; ⟳ +1 wealth). A start gift is always a card the game
+  the discard; draws up to 6, 109), Persia (Start: a Caravan in the discard; ⟳ +1 wealth). A start gift is always a card the game
   also hands out otherwise.
 - Discounts (108): a civilization's optional `discounts` is a list of entries, each with one filter (`type`: a card
   type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
