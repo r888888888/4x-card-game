@@ -88,7 +88,7 @@ unless asked.
 ## 5. Backlog items (only when the user asks)
 
 1. Ask the few questions that change the items (approach, scope splits), with a recommended answer each.
-2. Use the `spec` skill for each item. Run `ls docs/backlog` right before picking each id: other sessions add
+2. Use the `spec` skill for each item. Run `ls docs/backlog docs/backlog/done` right before picking each id: other sessions add
    items in parallel. Never edit or renumber another session's item; renumber your own if you collide.
 3. Group small related fixes into one item and split large ones (at most ~6 criteria each). For refactors,
    add an acceptance criterion that pins behavior: existing tests pass unedited, and the sim output

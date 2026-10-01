@@ -87,4 +87,4 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
 ## 5. Merge (only when the user says so)
 
 `git switch main && git merge --no-ff <branch>`, run `scripts/test.sh` on `main`, set
-`status: done` and commit on `main` (`<id>: done`). Ask before deleting the branch.
+`status: done`, `git mv` the item into `docs/backlog/done/`, and commit on `main` (`<id>: done`). Ask before deleting the branch.

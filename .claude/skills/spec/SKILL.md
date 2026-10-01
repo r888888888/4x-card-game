@@ -21,7 +21,7 @@ one maps directly to a test. Don't write code or tests in this skill.
    change behavior: edge cases, numbers, interaction with existing rules, what's out of scope.
    Propose a recommended answer for each. Skip questions the code or PLAN.md already answers.
 
-3. **Pick the id**: highest `NNN` in `docs/backlog/` + 1, zero-padded to 3 digits. Slug is a short
+3. **Pick the id**: highest `NNN` in `docs/backlog/` and `docs/backlog/done/` + 1, zero-padded to 3 digits. Slug is a short
    kebab-case summary.
 
 4. **Write the item** from `docs/backlog/_templates/feature.md` or `bug.md`:
