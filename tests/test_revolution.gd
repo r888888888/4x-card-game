@@ -58,7 +58,6 @@ func test_revolting_starts_anarchy_with_renewal_owed_at_once() -> void:
 	var e := revolt_engine("reform")
 	var recorded := record_messages(e)
 	eq(e.revolt_error(), "", "revolt_error")
-	var actions: int = e.actions_left()
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	eq(ruling(e), "anarchy", "Anarchy rules")
 	check(uid_of(e.zone("deck"), "chiefs") != -1, "Chiefs is shuffled into the deck")
@@ -66,7 +65,7 @@ func test_revolting_starts_anarchy_with_renewal_owed_at_once() -> void:
 	check_noticed(recorded, "Anarchy")
 	var p: Dictionary = e.pending()
 	eq([p.get("kind"), p.get("count")], ["renewal", 2], "renewal owed: 1 + 0 counters + Reform 1")
-	eq(e.actions_left(), actions, "revolting uses no action")
+	eq(e.actions_left(), e.actions_per_turn(), "revolting uses no action: Anarchy's 1 of 1 left")
 
 
 # --- AC3: revolt_error ---

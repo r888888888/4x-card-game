@@ -66,7 +66,10 @@
     "harvest_festival": 1,
     "grumbling": 2,
     "omen_of_doom": 1,
-    "bandit_raids": 1
+    "bandit_raids": 1,
+    "calls_for_reform": 1,
+    "peasant_uprising": 1,
+    "radical_thinkers": 1
   },
   "research_deck": {
     "pottery": 1,

@@ -13,7 +13,8 @@ extends RefCounted
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it plays a
-## government first (145), after 2 counters pays to restore order (146), and renews the card worth least to keep (147).
+## government first (145), after 2 counters pays to restore order (146), renews the card worth least to keep (147), and
+## revolts when a government in hand would end the Anarchy at once (148).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -48,6 +49,7 @@ static func play(engine: GameEngine, strategy := "baseline") -> bool:
 static func take_turn(engine: GameEngine, strategy: String) -> int:
 	var steps := 0
 	var plays := 0
+	_revolt(engine)
 	while not engine.is_over and steps < MAX_STEPS:
 		steps += 1
 		if engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
@@ -158,6 +160,15 @@ static func _restore_order(engine: GameEngine) -> void:
 		return
 	if not engine.zone("hand").cards.any(func(c): return c.def.type == CardDef.GOVERNMENT and engine.play_error(c.uid) == ""):
 		engine.restore_order()
+
+
+## Revolts at the start of the turn (148) when it may, has an action left, has a discard to renew and holds a
+## government the people would accept at once, so the Anarchy ends this turn.
+static func _revolt(engine: GameEngine) -> void:
+	if engine.revolt_error() != "" or engine.actions_left() == 0 or engine.zone("discard").is_empty():
+		return
+	if engine.zone("hand").cards.any(func(c): return c.def.type == CardDef.GOVERNMENT and Anarchy.accept_error(engine, c.def) == ""):
+		engine.revolt()
 
 
 ## The renewal option worth least to keep (147, see _keep_value); a tie goes to the first in discard order.

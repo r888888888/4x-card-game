@@ -6,7 +6,8 @@ extends RefCounted
 ## under it adds a counter; at unrest.max_counters the unrest.fallback government restores order and unrest drops to
 ## half its limit. Each new era adds unrest.era_unrest. Ways out sooner (146): a government the people accept (unrest
 ## at most half its limit), or paying unrest.relief to restore order under the fallback. Static functions on the
-## engine's state. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
+## engine's state. Revolution (148): while an event with revolt is active you may revolt, falling into Anarchy at once
+## with renewal owed. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
 ## counters + the renewal modifier cards from the discard (governments aside), each calming 1 unrest.
 
 const PLAY_ERROR := "Anarchy: only a government or an order card can be played."
@@ -80,14 +81,44 @@ static func play_error(e: GameEngine, card: CardInstance) -> String:
 	if active(e) == null:
 		return ""
 	if card.def.type == CardDef.GOVERNMENT:
-		if card.def.unrest_limit == 0:
-			return ""
-		var accepts := (card.def.unrest_limit + e.modifier(Modifiers.UNREST_LIMIT)) / 2
-		if e.resources.get(GameEngine.UNREST, 0) > accepts:
-			return "The people won't accept %s until unrest is %d or less." % [card.def.name, accepts]
-		return ""
+		return accept_error(e, card.def)
 	var tag: String = e.config.unrest.allowed_tag
 	return "" if tag != "" and card.def.tags.has(tag) else PLAY_ERROR
+
+
+## Why government def wouldn't be accepted to end an Anarchy now, or "" (146): unrest must be at most half its limit,
+## the unrest_limit modifier added before halving; one with no limit is always accepted.
+static func accept_error(e: GameEngine, def: CardDef) -> String:
+	if def.unrest_limit == 0:
+		return ""
+	var accepts := (def.unrest_limit + e.modifier(Modifiers.UNREST_LIMIT)) / 2
+	if e.resources.get(GameEngine.UNREST, 0) > accepts:
+		return "The people won't accept %s until unrest is %d or less." % [def.name, accepts]
+	return ""
+
+
+## Why revolt would refuse, or "" (148): game over or a pending decision, Anarchy already ruling, or no active event
+## with revolt.
+static func revolt_error(e: GameEngine) -> String:
+	var blocked := e._blocked_error("revolt")
+	if blocked != "":
+		return blocked
+	if active(e) != null:
+		return "Anarchy already rules."
+	if not e.zone("active_events").cards.any(func(c): return c.def.revolt):
+		return "Only a revolutionary event lets you revolt."
+	return ""
+
+
+## Falls into Anarchy now, by choice, with renewal owed at once (148). Uses no action. False (and no change) if
+## revolt_error says no.
+static func revolt(e: GameEngine) -> bool:
+	if revolt_error(e) != "":
+		return false
+	_fall(e)
+	start_renewal(e)
+	e.changed.emit()
+	return true
 
 
 ## Why growing, buying or learning a tech is refused under Anarchy, or "".

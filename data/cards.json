@@ -307,6 +307,20 @@
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
+      "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "revolt": true, "modifiers": { "renewal": 1 },
+      "effects": []
+    },
+    {
+      "id": "peasant_uprising", "name": "Peasant Uprising", "type": "event", "tags": [], "revolt": true,
+      "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
+    },
+    {
+      "id": "radical_thinkers", "name": "Radical Thinkers", "type": "event", "tags": [], "era": 2, "discard": { "turns": 3 },
+      "revolt": true, "modifiers": { "renewal": 2 },
+      "effects": []
+    },
+    {
       "id": "pottery", "name": "Pottery", "type": "tech",
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" } ]
