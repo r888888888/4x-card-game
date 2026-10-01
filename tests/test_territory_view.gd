@@ -115,9 +115,10 @@ func test_the_view_shows_slots_and_pop_and_grow() -> void:
 			"the card's live line (123)")
 		var grow: Button = view.grow_button
 		check(shown(grow), "Grow shown")
-		eq(grow.text, "Grow (%d food)" % e.grow_cost(home), "Grow text")
+		eq(grow.text, str(e.grow_cost(home)), "Grow shows its food cost (124: on the pop meter)")
 		eq(grow.disabled, e.grow_error(home) != "", "disabled exactly when grow_error says so")
-		eq(grow.tooltip_text, e.grow_error(home), "the reason as tooltip"), {"farm": 10}, POP)
+		eq(view.grow_reason.text if shown(view.grow_reason) else "", e.grow_error(home), "the reason as a line (124)"), \
+		{"farm": 10}, POP)
 
 
 func test_grow_in_the_view_adds_pop() -> void:
@@ -148,7 +149,7 @@ func test_grow_is_disabled_with_the_reason_when_it_cannot_grow() -> void:
 		var grow: Button = main.territory_view.grow_button
 		check(e.grow_error(home) != "", "can't grow with no food")
 		check(grow.disabled, "disabled")
-		eq(grow.tooltip_text, e.grow_error(home), "reason"), {"farm": 10}, POP)
+		eq(main.territory_view.grow_reason.text, e.grow_error(home), "the reason as a line (124)"), {"farm": 10}, POP)
 
 
 func test_without_population_there_is_no_pop_stat_or_grow() -> void:
