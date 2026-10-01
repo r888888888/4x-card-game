@@ -2,7 +2,7 @@
 id: 138
 title: Fixed-height board cards with kind badges and a distinct frontier look
 type: feature
-status: in-progress
+status: review
 branch: feat/138-board-card-faces
 ---
 
@@ -13,20 +13,20 @@ a dashed border) and events carry a badge, so both are told apart from the realm
 `spike/unified-tableau` (commit 84fd386). Builds on 137.
 
 ## Acceptance criteria
-- [ ] AC1: Given a board row with an active event, a frontier territory, a settled territory with 4 keywords and a
+- [x] AC1: Given a board row with an active event, a frontier territory, a settled territory with 4 keywords and a
   tableau card on no territory whose rules run over several lines, then every one rests in a slot of
   `CardView.BOARD_SIZE` (245 × 150), and the row's slots all have that height.
-- [ ] AC2: Given a frontier territory, then its face shows a badge reading "Frontier · unsettled", its name, its
+- [x] AC2: Given a frontier territory, then its face shows a badge reading "Frontier · unsettled", its name, its
   keyword line and its printed slots and housing (▢ N ⌂ N), and no type line or "Free" cost. A settled territory's
   face has no badge.
-- [ ] AC3: Given an active event with 1 turn left, then its face shows a badge reading "Event" with "1 turn left"
+- [x] AC3: Given an active event with 1 turn left, then its face shows a badge reading "Event" with "1 turn left"
   beside it, its name, and the first line of its rules other than the "Lasts N turns" line (no line for an event with
   no effects). An active Famine shows its counters ("2 counters") beside the badge instead.
-- [ ] AC4: Given a frontier territory on the board, when a city settles it, then its view switches to the settled
+- [x] AC4: Given a frontier territory on the board, when a city settles it, then its view switches to the settled
   face (badge gone, live line "▢ … ⌂ …/… ⚒ …" shown) and stays at `BOARD_SIZE`.
-- [ ] AC5: Given a settled territory whose keyword line doesn't fit on one line, when its card is clicked, then the
+- [x] AC5: Given a settled territory whose keyword line doesn't fit on one line, when its card is clicked, then the
   details modal's body names every one of its keywords (nothing clipped on the face is lost).
-- [ ] AC6: The frontier style's colours come from `Palette` (the colour-literal check stays green), and a hand card's
+- [x] AC6: The frontier style's colours come from `Palette` (the colour-literal check stays green), and a hand card's
   face and size are unchanged (`HAND_SIZE`, with type line and full rules).
 
 ## Out of scope
@@ -62,9 +62,17 @@ a dashed border) and events carry a badge, so both are told apart from the realm
 | AC6 | `test_board_faces::test_a_hand_card_keeps_its_size_type_line_and_rules` (guard: passes already); colours: `test_theme::test_no_colour_literals_outside_the_palette` (kept) |
 
 ## Manual check
-- [ ] Frontier cards read as unsettled at a glance (hatched, dashed border, badge) and stay legible.
-- [ ] Event badge and turns left are readable; a turn-30 board is a tidy grid.
-- [ ] Hover, focus ring and target highlight still show on a frontier card (its border is drawn, not styled).
+- [ ] `godot --path . -- --civ sumer --seed 5`: every card in the Realm's row is the same height; long keyword lines
+  end in "…"; clicking a card shows its full text in the details.
+- [ ] Play a Scout and keep a territory: its card is hatched with a dashed purple border and a "Frontier · unsettled"
+  badge, and reads as not yours yet while staying legible.
+- [ ] Drag a Settler over it: its dashed border turns gold (lit target), white under the mouse, red over a card it
+  can't settle. Focus it with the keyboard: the focus ring shows.
+- [ ] Settle it: the hatching and badge go, the live line appears, the card keeps its size.
+- [ ] When an event is drawn: a red "Event" badge with its turns left beside it, then its name and effect. During a
+  Famine its counters show beside the badge.
+- [ ] Late game (`--turns 30`): the row is a tidy grid. Judge whether badged titles sitting one line lower than
+  settled ones need fixing.
 
 ## Log
 - Red: the fixtures have 3 keyword ids, so "a territory with 4 keywords" is Grassland with 3 rolled keywords
@@ -72,3 +80,9 @@ a dashed border) and events carry a badge, so both are told apart from the realm
   stands. Tests read `CardView.BOARD_SIZE` through a `board_size()` helper while it didn't exist; the refactor step
   replaced it with the constant and removed the helper.
 - `with_main` / `board_engine` (with `BOARD_TERRITORIES`, `HUNGRY_POP`) moved from test_board_row.gd to test_case.gd.
+- Green: `CardView.setup` takes a board kind (`BOARD_REALM`, `BOARD_FRONTIER`, `BOARD_EVENT`) in place of `compact`;
+  `COMPACT_SIZE`, `rests_compact()` and `CardFace.build`'s compact path are gone (main rebuilds a face when its board
+  kind changes). `TableauView.board_kind(leading)` maps a row card's zone to its kind.
+- Frontier cards draw their dashed border in the colour `_update_border` picks, so hover, lit target, warning and
+  the thicker highlighted border all show (the spike ignored them).
+- `ui/main.gd` stays at 674 lines.

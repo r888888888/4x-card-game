@@ -233,7 +233,9 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
 - [x] UI: hand, tableau (headed "Realm" on screen, on top; 053; one wrapping row of cards, 078: the active events and
   frontier territories first (137; no Frontier, Known or Events rows, and Relieve below the row), then each settled
-  territory as a card with its slots and pop, then cards on no territory, 102; a click opens the territory view with
+  territory as a card with its slots and pop, then cards on no territory, 102; every card in the row one fixed height
+  with one line per field, the rest in its details, frontier territories hatched with a dashed border and a badge,
+  events badged with their turns left, 138; a click opens the territory view with
   its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
