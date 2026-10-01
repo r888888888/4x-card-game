@@ -14,6 +14,7 @@ var _grab_offset := Vector2.ZERO
 var _last_mouse_x := 0.0
 var _shake_x := 0.0
 var _shake_on_land := false
+var _dealt := false  # flying in from the deck: it lands without the squash (117)
 var _layer: Control
 var _fx_tween: Tween
 
@@ -61,6 +62,7 @@ func deal(slot: Control, layer: Control, from_point: Vector2, p_delay: float) ->
 	view.fx_scale = Vector2.ONE if _calm() else Vector2(0.5, 0.5)
 	view.modulate.a = 0.0
 	fly_to_slot(slot, layer)
+	_dealt = true
 	delay = p_delay
 	var t := _play_fx()
 	t.tween_interval(p_delay)
@@ -179,12 +181,15 @@ func slot_size() -> Vector2:
 func _land() -> void:
 	view.reparent(view.slot)
 	_come_to_rest()
+	var dealt := _dealt
+	_dealt = false
 	if _calm():
 		_shake_on_land = false
 		if view.modulate.a >= 1.0:  # not mid deal, which fades itself in
 			_fade_in()
 		return
-	squash()
+	if not dealt:
+		squash()
 	if _shake_on_land:
 		_shake_on_land = false
 		_shake()
