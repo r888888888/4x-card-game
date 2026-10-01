@@ -2,7 +2,7 @@
 id: 141
 title: Eurekas: what you have built makes related techs cheaper
 type: feature
-status: ready
+status: red-review
 branch: feat/141-tech-eurekas
 ---
 
@@ -47,6 +47,11 @@ tech, and it's realistic, since need drives invention. Follows 140; tried on `sp
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_eurekas::test_card_and_tag_eurekas_load`, `test_eureka_validation` |
+| AC2 | `test_eurekas::test_a_card_eureka_needs_its_count_of_cards_in_the_tableau`, `test_an_idle_card_still_counts_for_a_eureka` |
+| AC3 | `test_eurekas::test_a_tag_eureka_counts_tableau_cards_with_the_tag`, `test_a_eureka_never_takes_a_tech_below_1` |
+| AC4 | `test_eurekas::test_tech_tree_entries_say_whether_the_eureka_is_met`, `test_eureka_card_text`, `test_a_met_eureka_shows_in_the_price_details` |
+| AC5 | `test_eurekas::test_the_tree_shows_a_eureka_and_ticks_it_when_met` |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`: open Knowledge; Pottery shows its eureka. Build a second farm: the line gets a ✔
