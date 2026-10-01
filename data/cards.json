@@ -174,7 +174,7 @@
       ]
     },
     {
-      "id": "egypt", "name": "Egypt", "type": "civilization", "discounts": [{ "tag": "wonder", "wealth": 3 }],
+      "id": "egypt", "name": "Egypt", "type": "civilization", "home": "desert_floodplain", "discounts": [{ "tag": "wonder", "wealth": 3 }],
       "vp": 0, "tags": [],
       "flavor": "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.",
       "quote": { "text": "Egypt is the gift of the river.", "by": "Herodotus, Histories" },
@@ -183,7 +183,7 @@
       ]
     },
     {
-      "id": "sumer", "name": "Sumer", "type": "civilization", "modifiers": { "housing": 1 },
+      "id": "sumer", "name": "Sumer", "type": "civilization", "home": "delta_marsh", "modifiers": { "housing": 1 },
       "vp": 0, "tags": [],
       "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
@@ -193,7 +193,7 @@
       ]
     },
     {
-      "id": "phoenicia", "name": "Phoenicia", "type": "civilization", "discounts": [{ "supply": true, "wealth": 1 }],
+      "id": "phoenicia", "name": "Phoenicia", "type": "civilization", "home": "cedar_coast", "discounts": [{ "supply": true, "wealth": 1 }],
       "vp": 0, "tags": [],
       "flavor": "From Tyre and Sidon, Phoenician ships carried cedar, glass and purple dye across the Mediterranean, and their alphabet travelled with them.",
       "quote": { "text": "A merchant of the people for many isles.", "by": "Ezekiel 27:3, of Tyre" },
@@ -203,7 +203,7 @@
       ]
     },
     {
-      "id": "babylon", "name": "Babylon", "type": "civilization", "discounts": [{ "type": "tech", "wealth": 1 }],
+      "id": "babylon", "name": "Babylon", "type": "civilization", "home": "alluvial_plain", "discounts": [{ "type": "tech", "wealth": 1 }],
       "vp": 0, "tags": [],
       "flavor": "Hammurabi carved his laws in stone for all to see, and Babylon's astronomers kept the most careful records of the heavens in the ancient world.",
       "quote": { "text": "That the strong should not harm the weak.", "by": "Code of Hammurabi" },
@@ -212,7 +212,7 @@
       ]
     },
     {
-      "id": "greece", "name": "Greece", "type": "civilization", "modifiers": { "hand_size": 1 },
+      "id": "greece", "name": "Greece", "type": "civilization", "home": "coastal_hills", "modifiers": { "hand_size": 1 },
       "vp": 0, "tags": [],
       "flavor": "Rival city-states argued in the agora, staged tragedies in open theatres, and asked questions philosophers still ask.",
       "quote": { "text": "The unexamined life is not worth living.", "by": "Socrates, in Plato's Apology" },
@@ -221,7 +221,7 @@
       ]
     },
     {
-      "id": "persia", "name": "Persia", "type": "civilization",
+      "id": "persia", "name": "Persia", "type": "civilization", "home": "highland_valley",
       "vp": 0, "tags": [],
       "flavor": "Cyrus and Darius ruled the largest empire yet seen, held together by satraps, respect for local customs, and a road of relay stations from Sardis to Susa.",
       "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "Herodotus, Histories" },

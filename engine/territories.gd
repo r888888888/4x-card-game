@@ -217,6 +217,16 @@ static func resource_table(config: Dictionary, def: CardDef) -> Array:
 	return []
 
 
+## The starting territory card_id, rolled from a copy of the rng so whichever territory a civilization starts on
+## leaves the game rng where it was (111).
+static func make_home(e: GameEngine, card_id: String) -> CardInstance:
+	var game_rng := e.rng
+	e.rng = game_rng.copy()
+	var card := make(e, card_id)
+	e.rng = game_rng
+	return card
+
+
 ## A new territory card_id with resource keywords rolled from its resource_table, if any.
 static func make(e: GameEngine, card_id: String) -> CardInstance:
 	var card := e._make_card(card_id)

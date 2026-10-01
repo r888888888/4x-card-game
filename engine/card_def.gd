@@ -44,6 +44,7 @@ var text: String = ""  # optional override; otherwise generated from effects
 var flavor: String = ""  # civilizations: a short paragraph of history, shown in the details
 var quote_text: String = ""  # civilizations: a quote shown in the details, with quote_by
 var quote_by: String = ""  # civilizations: who said quote_text
+var home: String = ""  # civilizations: the territory card id the game starts on, or "" for starting.territory (111)
 
 
 func is_permanent() -> bool:
@@ -75,6 +76,8 @@ func rules_text(card_db: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if actions > 0:
 		parts.append(actions_text())
+	if home != "":
+		parts.append("Starts on: %s" % card_db[home].name)
 	if not requires.is_empty():
 		parts.append("Needs " + "/".join(PackedStringArray(requires.map(func(k): return k.capitalize()))))
 	var prev: Effect = null

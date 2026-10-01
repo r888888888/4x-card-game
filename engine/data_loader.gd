@@ -19,6 +19,7 @@ const TYPE_FIELDS := {
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION],
+	"home": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION],
 	"actions": [CardDef.GOVERNMENT],
 	"discounts": [CardDef.CIVILIZATION],
@@ -131,6 +132,11 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': prereq: unknown card '%s'" % [src, id, prereq])
 		elif prereq != "" and db[prereq].type != CardDef.TECH:
 			errors.append("%s: card '%s': prereq: '%s' is not a tech" % [src, id, prereq])
+		var home: String = db[id].home
+		if home != "" and not db.has(home):
+			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
+		elif home != "" and db[home].type != CardDef.TERRITORY:
+			errors.append("%s: card '%s': home: '%s' is not a territory" % [src, id, home])
 		for e in db[id].effects:
 			for ref in e.referenced_cards():
 				if not db.has(ref):
@@ -237,6 +243,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.modifiers = _parse_modifiers(c.modifiers, errs)
 	if def.type == CardDef.CIVILIZATION:
 		_parse_flavor(c, def, errs)
+		def.home = Fields.read_string(c, "home", errs, [], "")
 		if c.has("discounts"):
 			def.discounts = _parse_discounts(c.discounts, ctx.resources, errs)
 	if def.type == CardDef.EVENT:

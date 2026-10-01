@@ -385,6 +385,12 @@ A game is played as one civilization: a permanent card with a starting gift and 
   per resource) and a tech's `tech_cost` (never below 1); a supply discount lowers `buy_price` (never below 0). Text
   "Wonders cost 3 less wealth." Real data: Babylon techs −1 wealth, Phoenicia supply −1 wealth, Egypt wonders −3
   wealth. Hand cards show their cost after discounts; card details show the printed cost.
+- Home (111): a civilization may set `home`, a territory card id. A game as it starts on that territory (the
+  Capital on it, `population.start` pop) instead of `starting.territory`; the home isn't drawn from `territory_deck`,
+  and its resource roll uses a copy of the rng, so the same seed deals and rolls the same whatever the civilization.
+  `population.start` must fit every listed civilization's home. Card text: "Starts on: <territory>". Real data:
+  Egypt Desert Floodplain, Sumer Delta Marsh, Babylon Alluvial Plain, Phoenicia Cedar Coast, Greece Coastal Hills,
+  Persia Highland Valley; every home takes most of the starting deck's buildings.
 - Flavor (107): a civilization may set `flavor` (a paragraph) and `quote` ({"text", "by"}); both optional, non-empty
   strings. `def_details` / `card_details` return `flavor` ("" if none) and `quote` ({} if none) for every card, and
   the details modal shows them first (flavor in italics, then the quote and who said it), before the rules. On the

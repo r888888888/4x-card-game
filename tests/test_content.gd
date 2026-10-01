@@ -351,6 +351,30 @@ func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void
 
 
 ## Backlog 107: a game starts as each listed civilization.
+func test_every_listed_civilization_has_its_own_home_that_takes_most_starting_buildings() -> void:
+	var r := load_real()
+	var buildings: Array[CardDef] = []
+	var copies := 0
+	for id in r.config.deck:
+		if r.cards[id].type == CardDef.BUILDING:
+			buildings.append(r.cards[id])
+			copies += r.config.deck[id]
+	var homes := {}
+	for civ in r.config.civilizations:
+		var home: String = r.cards[civ].home
+		check(home != "", "%s has a home" % civ)
+		if home == "":
+			continue
+		check(not homes.has(home), "%s's home %s is also %s's" % [civ, home, homes.get(home, "")])
+		homes[home] = civ
+		var land: CardDef = r.cards[home]
+		var fit := 0
+		for b in buildings:
+			if b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)):
+				fit += r.config.deck[b.id]
+		check(fit * 2 > copies, "%s's home %s takes %d of %d starting building copies" % [civ, home, fit, copies])
+
+
 func test_a_new_game_starts_as_each_listed_civilization() -> void:
 	var r := load_real()
 	for id in r.config.get("civilizations", []):
