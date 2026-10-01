@@ -262,6 +262,18 @@ func test_researching_guilds_adds_a_guildhall_and_unlocks_the_pile() -> void:
 	eq(e.supply_left("guildhall"), 1, "2 - 1 left")
 
 
+## Backlog 116: a pile that can now be bought is a notice; learning the tech and buying are not.
+func test_an_unlocked_pile_is_a_notice_but_learning_and_buying_are_not() -> void:
+	var e := locked_engine(0)
+	e.resources.wealth = 4
+	var recorded := record_messages(e)
+	check(play_research(e), "research opens")
+	check(e.buy_tech(uid_of(e.zone("research_reveal"), "guilds")), "buy Guilds")
+	check(e.buy("guildhall"), "buy a Guildhall")
+	eq(notices_in(recorded).size(), 1, "one notice: %s" % [recorded])
+	check_noticed(recorded, "can now be bought")
+
+
 # AC5: idempotent
 
 func test_unlocking_twice_or_an_unlocked_pile_changes_nothing() -> void:

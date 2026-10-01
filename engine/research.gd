@@ -174,7 +174,7 @@ static func add_era(e: GameEngine, n: int, source: CardInstance = null) -> void:
 		e.zone("future_techs").remove(tech)
 		deck.add(tech)
 	e.rng.shuffle(deck.cards)
-	e._log("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
+	e._notice("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
 	Events.add_era(e, n)
 
 
@@ -207,7 +207,7 @@ static func _return_revealed(e: GameEngine, passed: bool) -> void:
 			card.passes = mini(card.passes, GameEngine.MAX_PASSES - 1)
 		if card.passes >= GameEngine.MAX_PASSES:
 			e.zone("lost_techs").add(card)
-			e._log("  %s was passed over too often and is lost." % card.def.name)
+			e._notice("  %s was passed over too often and is lost." % card.def.name)
 		else:
 			deck.add(card)
 	e.rng.shuffle(deck.cards)

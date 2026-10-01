@@ -39,6 +39,27 @@ func test_a_short_upkeep_brings_a_famine_with_1_counter() -> void:
 	eq(e.resources.food, 0, "food")
 
 
+## Backlog 116: a famine arriving and ending are notices.
+func test_a_famine_arriving_and_ending_are_notices() -> void:
+	var e := famine_engine(4)
+	var recorded := record_messages(e)
+	e.end_turn()  # +2, 4 pop eat 2: short
+	check_noticed(recorded, "Famine!")
+	e.resources.food = 10
+	e.end_turn()  # fed
+	check_noticed(recorded, "Famine ends.")
+
+
+## Backlog 116: pop eating and fed upkeeps are not notices.
+func test_fed_upkeeps_are_not_notices() -> void:
+	var e := famine_engine(2, 10)
+	var recorded := record_messages(e)
+	e.end_turn()
+	e.end_turn()
+	check(recorded.any(func(l: String): return l.begins_with("log: Pop eats")), "pop ate: %s" % [recorded])
+	eq(notices_in(recorded), [] as Array[String], "no notices")
+
+
 # --- AC2: escalates ---
 
 func test_a_famine_escalates_each_hungry_upkeep() -> void:
@@ -153,6 +174,18 @@ func test_a_guard_saves_the_first_famine_death_on_its_territory() -> void:
 	without.resources.food = 0
 	without.end_turn()
 	eq(home_pop(without), 2, "without: 2 deaths")
+
+
+## Backlog 116: a building saving pop from the famine is a notice.
+func test_a_guard_saving_pop_is_a_notice() -> void:
+	var e := famine_engine(4)
+	e.end_turn()  # famine 1: 4 -> 3
+	e.zone("tableau").find(home_uid(e)).pop = 4
+	build_on(e, home_uid(e), ["silo"])
+	e.resources.food = 0
+	var recorded := record_messages(e)
+	e.end_turn()  # famine 2: first death saved
+	check_noticed(recorded, "1 pop saved from famine")
 
 
 # --- AC7: forecast ---

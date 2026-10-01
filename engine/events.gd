@@ -27,7 +27,7 @@ static func add_era(e: GameEngine, n: int) -> void:
 		e.zone("future_events").remove(event)
 		deck.add(event)
 	e.rng.shuffle(deck.cards)
-	e._log("  Era %d events added to the event deck." % n)
+	e._notice("  Era %d events added to the event deck." % n)
 
 
 ## Upkeeps left for active event uid (0 if uid isn't an active event).
@@ -72,7 +72,7 @@ static func resolve_upkeep(e: GameEngine) -> void:
 		if event.turns_left <= 0:
 			active.remove(event)
 			e.zone("event_discard").add(event)
-			e._log("%s ends." % event.def.name)
+			e._notice("%s ends." % event.def.name)
 
 
 ## outcome (card_played or event_drawn) as text: "+2 food, −1 wealth, +1 VP, drew 2 cards, created 1 card"; "" when

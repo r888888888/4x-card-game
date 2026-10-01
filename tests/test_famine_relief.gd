@@ -65,6 +65,14 @@ func test_relieving_pays_wealth_and_the_famine_leaves_the_game() -> void:
 	check(not e.grow_error(home_uid(e)).contains("Famine"), "growth works again: %s" % e.grow_error(home_uid(e)))
 
 
+## Backlog 116: relieving the famine is a notice.
+func test_relieving_the_famine_is_a_notice() -> void:
+	var e := two_counter_engine(7)
+	var recorded := record_messages(e)
+	check(e.relieve_famine(), "relieve_famine")
+	check_noticed(recorded, "Relieved the famine")
+
+
 func test_a_short_upkeep_after_relief_brings_a_new_famine_with_1_counter() -> void:
 	var e := two_counter_engine(7)
 	check(e.relieve_famine(), "relieve_famine")

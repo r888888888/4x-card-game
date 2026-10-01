@@ -4,10 +4,13 @@ extends PanelContainer
 ## (fades with Reduce motion). L, Esc, the top bar's Log button or a click outside close it. Lines append whether
 ## it is open or not.
 
+signal unread_changed(unread: bool)  # a line arrived while closed, or the drawer was opened or cleared (116)
+
 const WIDTH := 480.0
 
 var _log: RichTextLabel
 var _tween: Tween
+var _unread := false
 
 
 func _init() -> void:
@@ -54,6 +57,7 @@ func open() -> void:
 	if is_open():
 		return
 	show()
+	mark_read()
 	if _tween != null:
 		_tween.kill()
 	_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -75,11 +79,24 @@ func close() -> void:
 
 func clear() -> void:
 	_log.clear()
+	mark_read()
+
+
+## No line counts as unseen any more (opening the drawer; a new game's own lines).
+func mark_read() -> void:
+	_set_unread(false)
+
+
+func _set_unread(unread: bool) -> void:
+	if unread != _unread:
+		_unread = unread
+		unread_changed.emit(unread)
 
 
 ## Adds a line of BBCode to the log.
 func note(bbcode: String) -> void:
 	_log.append_text(bbcode + "\n")
+	_set_unread(not is_open())
 
 
 ## Adds an engine log message: turn headers bold, game over gold.
@@ -91,6 +108,7 @@ func append_log(message: String) -> void:
 		_log.append_text("[b][color=#e8c547]%s[/color][/b]\n" % message)
 	else:
 		_log.append_text(message + "\n")
+	_set_unread(not is_open())
 
 
 ## While open, L and Esc close it, and so does a click outside it (the click does nothing else).

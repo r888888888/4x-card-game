@@ -103,6 +103,15 @@ func test_buying_an_era_tech_adds_the_next_era() -> void:
 	eq(e.era(), 2, "era")
 
 
+## Backlog 116: an era's techs added is a notice.
+func test_an_eras_techs_added_is_a_notice() -> void:
+	var e := era_engine(["philosophy", "pottery"])
+	check(play_research(e), "research")
+	var recorded := record_messages(e)
+	check(e.buy_tech(uid_of(e.zone("research_reveal"), "philosophy")), "buy Philosophy")
+	check_noticed(recorded, "techs added to the tech deck")
+
+
 func test_an_era_is_only_added_once() -> void:
 	var e := era_engine(["philosophy", "pottery"], {"academy": 10})
 	check(play_research(e), "research")

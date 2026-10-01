@@ -113,6 +113,16 @@ func test_the_third_pass_sends_the_tech_to_lost_techs() -> void:
 	check(not card_ids(e.zone("researched")).has("bronze"), "not researched either")
 
 
+## Backlog 116: a tech lost for being passed over is a notice.
+func test_a_lost_tech_is_a_notice() -> void:
+	var e := passing_engine()
+	pass_tech(e, "bronze", "loom")
+	pass_tech(e, "bronze", "dye")
+	var recorded := record_messages(e)
+	pass_tech(e, "bronze", "salt")
+	check_noticed(recorded, "passed over too often and is lost")
+
+
 # --- AC6: prerequisite discount ---
 
 func test_prerequisite_discounts_only_when_owned() -> void:

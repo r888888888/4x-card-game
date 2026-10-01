@@ -272,6 +272,16 @@ func test_a_single_turn_event_ends_at_the_next_upkeep() -> void:
 	eq(uid_of(e.zone("active_events"), "windfall"), -1, "no longer active")
 
 
+## Backlog 116: an active event ending is a notice; drawing one is not (its modal shows it).
+func test_an_event_ending_is_a_notice_and_drawing_one_is_not() -> void:
+	var e := event_engine(["windfall", "trade_winds", "omen"])
+	var recorded := record_messages(e)
+	e.end_turn()
+	check_noticed(recorded, "Windfall ends.")
+	check(recorded.has("log: Event: Windfall."), "Windfall drawn: %s" % [recorded])
+	check(not notices_in(recorded).has("Event: Windfall."), "drawing isn't a notice")
+
+
 func test_several_events_can_be_active_in_draw_order() -> void:
 	var e := event_engine(["trade_winds", "omen", "windfall"], {"hand_limit": 5})
 	e.end_turn()
