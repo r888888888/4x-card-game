@@ -2,7 +2,7 @@
 id: 120
 title: End turn moves to the top bar
 type: feature
-status: review
+status: done
 branch: feat/120-end-turn-in-the-top-bar
 ---
 
