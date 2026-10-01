@@ -2,7 +2,7 @@
 id: 116
 title: Toasts for notable events, and an unread marker on the log
 type: feature
-status: review
+status: done
 branch: feat/116-notices-and-toasts
 ---
 
