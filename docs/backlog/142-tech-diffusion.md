@@ -2,7 +2,7 @@
 id: 142
 title: Diffusion: techs of earlier eras get cheaper
 type: feature
-status: review
+status: done
 branch: feat/142-tech-diffusion
 ---
 
