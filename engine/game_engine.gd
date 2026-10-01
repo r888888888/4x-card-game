@@ -221,8 +221,8 @@ func era_name(n: int) -> String:
 	return config.get("era_names", {}).get(n, "Era %d" % n)
 
 
-## What tech uid costs in insight right now: its printed cost less civilization discounts and its eureka when met
-## (141), never under 1 (0 if uid isn't a tech).
+## What tech uid costs in insight right now: its printed cost less civilization discounts, its eureka when met (141)
+## and 1 per era added past its own (diffusion, 142), never under 1 (0 if uid isn't a tech).
 func tech_cost(uid: int) -> int:
 	return Research.cost(self, uid)
 

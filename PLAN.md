@@ -302,7 +302,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
 - Eurekas (141): a tech's optional `eureka` (`{"card": "farm" | "tag": "city", "count": 2, "off": 2}`) takes `off`
   insight off while the tableau holds `count` matching cards (idle ones count). Card text "Eureka: -2 insight with 2
   Farms"; `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.
-  `tech_cost` = max(1, printed − civilization discount − eureka).
+- Diffusion (142): a tech costs 1 insight less per era added past its own (`Research.diffusion`); the details say
+  "−1 older era". `tech_cost` = max(1, printed − civilization discount − eureka − diffusion).
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
   techs into the research deck, once per era (`era()` is the highest added). Learning the last tech of the research
