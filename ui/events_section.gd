@@ -1,7 +1,7 @@
 class_name EventsSection
 extends RefCounted
-## The play area's Events section (068, 084, 115): a heading with the event piles' counts, the active events' row,
-## and the Relieve button, shown while a Famine can be relieved. Hidden when the config has no event deck.
+## The play area's Events section (068, 084): the "Events" heading, the active events' row, and the Relieve button,
+## shown while a Famine can be relieved. Shown only while an event is active (122: the event piles stay hidden).
 
 var box: VBoxContainer  # the section: heading, row, Relieve
 var row: HBoxContainer  # the active events, in draw order
@@ -19,12 +19,8 @@ func _init(parent: Control) -> void:
 
 
 func refresh(e: GameEngine) -> void:
-	box.visible = not e.config.get("event_deck", {}).is_empty()
-	_heading.text = "Events · deck %d · discard %d" % [e.zone("event_deck").size(), e.zone("event_discard").size()]
+	box.visible = not e.config.get("event_deck", {}).is_empty() and not e.zone("active_events").is_empty()
 	_heading.tooltip_text = "One event is drawn at the end of each turn. It stays active until its turns run out."
-	var waiting := e.zone("future_events").size()
-	if waiting > 0:
-		_heading.tooltip_text += "\n%d %s for a later era." % [waiting, "event waits" if waiting == 1 else "events wait"]
 	# Relieve: shown while a Famine is active and has a relief price, disabled with the reason it can't pay.
 	var relief := e.famine_relief()
 	_relieve.visible = e.famine_counters() > 0 and not relief.is_empty()
@@ -39,6 +35,6 @@ func info() -> Dictionary:
 	return {"visible": box.visible, "info": _heading.text, "tooltip": _heading.tooltip_text}
 
 
-## Where an event leaving the board flies: its heading's counts.
+## Where an event leaving the board flies: its heading.
 func heading_point() -> Vector2:
 	return _heading.get_global_rect().get_center()
