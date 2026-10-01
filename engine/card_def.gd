@@ -26,6 +26,7 @@ var housing: int = 0  # territories: most pop the territory can hold; buildings:
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
+var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts: {resource: int}}] (108)
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
@@ -85,6 +86,7 @@ func rules_text(card_db: Dictionary) -> String:
 			parts.append(line)
 		prev = e
 	parts.append_array(modifier_lines(false))
+	parts.append_array(discount_lines())
 	if type == BUILDING and housing > 0:
 		parts.append("+%d housing" % housing)
 	if famine_guard > 0:
@@ -118,6 +120,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
 	parts.append_array(modifier_lines(true))
+	parts.append_array(discount_lines())
 	if type == CITY and slots > 0:
 		parts.append("+%d building slots on its territory" % slots)
 	if type == BUILDING and housing > 0:
@@ -143,6 +146,22 @@ func modifier_lines(long: bool) -> PackedStringArray:
 		var n: int = modifiers[key]
 		var line := "%s%d %s each turn" % ["+" if n > 0 else "−", absi(n), MODIFIER_NOUNS[key][0 if absi(n) == 1 else 1]]
 		out.append(line + (" while active" if long and type == EVENT else ""))
+	return out
+
+
+## One line per discount (108): "Techs cost 1 less wealth.", "Wonders cost 3 less wealth.", "Supply cards cost …".
+func discount_lines() -> PackedStringArray:
+	var out: PackedStringArray = []
+	for d in discounts:
+		var subject: String = "Supply cards"
+		if d.filter == "type":
+			subject = "Cities" if d.value == CITY else d.value.capitalize() + "s"
+		elif d.filter == "tag":
+			subject = d.value.capitalize() + "s"
+		var amounts: PackedStringArray = []
+		for r in d.amounts:
+			amounts.append("%d less %s" % [d.amounts[r], r])
+		out.append("%s cost %s." % [subject, ", ".join(amounts)])
 	return out
 
 

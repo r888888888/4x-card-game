@@ -21,6 +21,7 @@ const TYPE_FIELDS := {
 	"flavor": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION],
 	"actions": [CardDef.GOVERNMENT],
+	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
@@ -236,6 +237,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.modifiers = _parse_modifiers(c.modifiers, errs)
 	if def.type == CardDef.CIVILIZATION:
 		_parse_flavor(c, def, errs)
+		if c.has("discounts"):
+			def.discounts = _parse_discounts(c.discounts, ctx.resources, errs)
 	if def.type == CardDef.EVENT:
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 		def.has_discard = c.has("discard")
@@ -299,6 +302,47 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""
+
+
+## A civilization's discounts (108): a list of entries, each with exactly one filter (Discounts.FILTERS: a card type, a
+## tag, or supply: true) and one or more amounts of known resources, ints >= 1.
+static func _parse_discounts(raw: Variant, resources: Array[String], errs: Array[String]) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (raw is Array):
+		errs.append("'discounts' must be a list like [{\"type\": \"tech\", \"wealth\": 1}]")
+		return out
+	for i in raw.size():
+		var where := "discounts[%d]" % i
+		var entry: Variant = raw[i]
+		if not (entry is Dictionary):
+			errs.append("%s: must be an object like {\"type\": \"tech\", \"wealth\": 1}" % where)
+			continue
+		var filters: Array = Discounts.FILTERS.filter(func(f): return entry.has(f))
+		if filters.size() != 1:
+			errs.append("%s: needs exactly one filter: %s" % [where, ", ".join(Discounts.FILTERS)])
+			continue
+		var d := {"filter": filters[0], "value": entry[filters[0]], "amounts": {}}
+		if d.filter == "type" and not CardDef.TYPES.has(d.value):
+			errs.append("%s: unknown card type '%s'" % [where, d.value])
+		elif d.filter == "tag" and not (d.value is String and d.value != ""):
+			errs.append("%s: 'tag' must be a non-empty string" % where)
+		elif d.filter == "supply" and not (d.value is bool and d.value):
+			errs.append("%s: 'supply' must be true" % where)
+		for key in entry:
+			if key == d.filter:
+				continue
+			var n: Variant = Fields.as_int(entry[key])
+			if not resources.has(key):
+				errs.append("%s: unknown resource '%s'" % [where, key])
+			elif typeof(n) != TYPE_INT or n < 1:
+				errs.append("%s: '%s' must be an integer >= 1" % [where, key])
+			else:
+				d.amounts[key] = n
+		if d.amounts.is_empty():
+			errs.append("%s: needs an amount of a resource, like \"wealth\": 1" % where)
+		else:
+			out.append(d)
+	return out
 
 
 ## A card's modifiers as {key: int}: an object whose keys are MODIFIER_KEYS and whose values are non-zero ints (129).

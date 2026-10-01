@@ -42,7 +42,8 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
 	if in_hand:
-		var cost := label(cost_text(def.cost), 19, CardView.HIGHLIGHT_COLOR)
+		var now: Dictionary = Game.engine.play_cost(card.uid) if Game.engine != null else {}  # after discounts (108)
+		var cost := label(cost_text(now if not now.is_empty() else def.cost), 19, CardView.HIGHLIGHT_COLOR)
 		cost.name = "Cost"
 		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the type line wraps around it instead
 		type_row.add_child(cost)

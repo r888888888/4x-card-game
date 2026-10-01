@@ -302,6 +302,13 @@ func actions_left() -> int:
 	return CardPlay.actions_left(self)
 
 
+## What hand card uid costs to play now: its cost less the civilization's discounts (108), never below 0 per
+## resource; {} if uid isn't in the hand.
+func play_cost(uid: int) -> Dictionary:
+	var card := zone("hand").find(uid)
+	return Discounts.cost(self, card.def) if card != null else {}
+
+
 ## Why hand card uid can't be played on any target right now, or "" if it can. Unlike play_error, a card
 ## with several valid targets isn't blocked by the choice between them: it is checked on the first.
 func playable_error(uid: int) -> String:
