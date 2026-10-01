@@ -2,7 +2,7 @@
 id: 109
 title: Modifiers can change hand size (Greece draws up to 6)
 type: feature
-status: review
+status: done
 branch: feat/109-modifier-hand-size
 ---
 
