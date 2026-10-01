@@ -237,7 +237,7 @@ func reveal_techs_error() -> String:
 	return Research.reveal_error(self)
 
 
-## What tech uid costs in wealth right now: its printed cost, less 1 per pass and less its prereq
+## What tech uid costs in insight right now: its printed cost, less 1 per pass and less its prereq
 ## discount when the prereq is researched, but never under 1 (0 if uid isn't a tech).
 func tech_cost(uid: int) -> int:
 	return Research.cost(self, uid)

@@ -2,7 +2,7 @@
 id: 139
 title: Insight, a third resource that pays for techs
 type: feature
-status: in-progress
+status: review
 branch: feat/139-insight-resource
 ---
 
@@ -13,17 +13,17 @@ cards) like any other. First step of the research redesign tried on `spike/resea
 Design notes); research stays reveal-2 until 140.
 
 ## Acceptance criteria
-- [ ] AC1: Given a tech with cost `{"insight": 2}`, then it loads. Given a tech with cost `{"wealth": 2}`, `{}`,
+- [x] AC1: Given a tech with cost `{"insight": 2}`, then it loads. Given a tech with cost `{"wealth": 2}`, `{}`,
   `{"insight": 0}` or `{"insight": 2, "wealth": 1}`, then loading fails with
   `cards.json: card '<id>': cost: a tech must cost insight only, at least 1 (like {"insight": 2})`.
-- [ ] AC2: Given a game with 2 insight and 20 wealth, and Pottery (2 insight) and Writing (3 insight) revealed, when
+- [x] AC2: Given a game with 2 insight and 20 wealth, and Pottery (2 insight) and Writing (3 insight) revealed, when
   the player buys Pottery, then insight is 0, wealth is still 20 and Pottery is in `researched`.
-- [ ] AC3: Given 1 insight and Pottery (2 insight) revealed, then `buy_tech_error` for Pottery is
+- [x] AC3: Given 1 insight and Pottery (2 insight) revealed, then `buy_tech_error` for Pottery is
   `"Pottery needs 2 insight (you have 1)."`, and `buy_tech` returns false and changes nothing.
-- [ ] AC4: Given a civilization with discounts `[{"type": "tech", "insight": 1}]`, then `tech_cost` of a revealed
+- [x] AC4: Given a civilization with discounts `[{"type": "tech", "insight": 1}]`, then `tech_cost` of a revealed
   Writing (3 insight) is 2. `tech_tree()` reports each tech's `cost` in insight (the printed insight for a tech in a
   future era), and a revealed tech's details read `"Costs 2 insight now (printed 3, −1 civilization)"`.
-- [ ] AC5: Given a building in the tableau with `⟳ +1 insight`, then `upkeep_forecast()` has `insight: 1`, and the
+- [x] AC5: Given a building in the tableau with `⟳ +1 insight`, then `upkeep_forecast()` has `insight: 1`, and the
   top bar shows an Insight counter, `"Insight: 0 (+1)"`, that floats its change like Food and Wealth (126). The top
   bar still fits 1920 px with its longest texts.
 
@@ -60,3 +60,20 @@ Design notes); research stays reveal-2 until 140.
 - [ ] Shipped numbers: Capital +1 insight, Library +2, Babylon −1 insight on techs, tech prices as listed above.
 
 ## Log
+- 2026-10-01: Built. `EngineCore.INSIGHT`; the loader's tech-cost rule, `Research.cost`/`buy_error`/`buy`, the tree's
+  printed cost and the details line use insight; the details line names a civilization discount (`−1 civilization`).
+  UI: Insight counter in the top bar (`Palette.INSIGHT`), tech prices on revealed techs, the Knowledge overlay and the
+  tree read insight. To fit 1920 px the era moved from the Knowledge button to its tooltip ("Era: Stone Age.") and the
+  bar's spacing went 20 → 16. Content as the Design notes; era-3 techs (not in the research deck yet) are priced at the
+  spike's 27–32 so they load. Glossary "Passes" now says insight.
+- Approved test changes in the green phase: `test_tech_tree_modal` tooltips expect the "Era: …" line;
+  `test_board_labels::test_research_choice_is_titled_knowledge` looks only inside the Knowledge overlay (the hand can
+  hold a card named Research now). Also fixed in `test_insight`: the building fixture was renamed Study → Scriptorium
+  (Study clashed with a TEST_CARDS id), and the top-bar test sets insight to 0 after the start (turn 1 had already
+  gained the building's +1).
+- Fixtures: only tech configs list insight (`tech_resources()` in `tech_case.gd`); the shared `resources()` stays
+  food and wealth so exact-forecast tests elsewhere are untouched.
+- Balance worry (for 143 / a balance item): with reveal-2 research still in place, era-1 techs at 6–10 insight on a
+  +1/turn income (Library +2) are much slower than before; the spike paired these prices with the Research card
+  giving 3 insight.
+

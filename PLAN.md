@@ -11,7 +11,7 @@
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food and wealth; unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077) |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, buying a revealed tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
 
@@ -182,14 +182,14 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, and play Insight cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
+3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, and play Research cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
-never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)",
+never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight),
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice, open research or a hand-limit discard. While one is owed,
@@ -286,17 +286,17 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles
   with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
-- Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
+- Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 6–10, era 2 15–22); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2
   techs (`reveal_techs`). There is no free research: the deck starts with 1 Research card and the supply sells 2,
   with no limit per turn. With nothing to reveal the card can't be played ("The research deck is empty.").
-  `buy_tech(uid)` pays `tech_cost(uid)` wealth, moves the tech to `researched`, resolves its `play` effects, and
+  `buy_tech(uid)` pays `tech_cost(uid)` insight, moves the tech to `researched`, resolves its `play` effects, and
   shuffles the other back; `decline_research()` shuffles both back. Open options block play, grow, discard and end turn.
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
 - Passes (026): buying one revealed tech gives the other a pass (`tech_passes(uid)`); declining passes nothing.
-  Each pass is -1 wealth, and a third pass sends the tech to `lost_techs`. A tech's optional `prereq` (another
+  Each pass is -1 insight, and a third pass sends the tech to `lost_techs`. A tech's optional `prereq` (another
   tech) with `prereq_discount` (default 2) lowers its cost while the prereq is in `researched`; it never blocks a
   purchase. `tech_cost` = max(1, printed - passes - prereq discount).
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
@@ -389,7 +389,7 @@ A game is played as one civilization: a permanent card with a starting gift and 
   type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
   or tag discount lowers a hand card's `play_cost(uid)` (what `play_error` checks and `play_card` charges, never below 0
   per resource) and a tech's `tech_cost` (never below 1); a supply discount lowers `buy_price` (never below 0). Text
-  "Wonders cost 3 less wealth." Real data: Babylon techs −1 wealth, Phoenicia supply −1 wealth, Egypt wonders −3
+  "Wonders cost 3 less wealth." Real data: Babylon techs −1 insight, Phoenicia supply −1 wealth, Egypt wonders −3
   wealth. Hand cards show their cost after discounts; card details show the printed cost.
 - Home (111): a civilization may set `home`, a territory card id. A game as it starts on that territory (the
   Capital on it, `population.start` pop) instead of `starting.territory`; the home isn't drawn from `territory_deck`,
