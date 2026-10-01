@@ -14,10 +14,10 @@ static func housing(e: GameEngine, territory_uid: int) -> int:
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return 0
-	var total := territory.def.housing
+	var total := territory.def.housing + Modifiers.total(e, Modifiers.HOUSING)
 	for building in Territories.buildings_on(e, territory_uid):
 		total += building.def.housing
-	return total
+	return maxi(1, total)
 
 
 static func total_pop(e: GameEngine) -> int:

@@ -4,9 +4,10 @@ extends RefCounted
 ## engine's state; GameEngine.modifier calls total.
 
 ## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn, and more cards drawn
-## each turn (109).
+## each turn (109), and housing on every settled territory (110).
 const ACTIONS := "actions"
 const HAND_SIZE := "hand_size"
+const HOUSING := "housing"
 
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES

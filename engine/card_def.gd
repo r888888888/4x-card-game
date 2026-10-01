@@ -12,10 +12,12 @@ const CIVILIZATION := "civilization"  # the civilization you play as; in its own
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT]
 ## Each modifier key's noun in card text, [singular, plural] (129).
-## Each modifier key's line in card text (129, 109): %d is the amount; [for a gain, for a loss].
+## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
+## since "pop" has no plural); [for a gain, for a loss].
 const MODIFIER_TEXT := {
 	Modifiers.ACTIONS: ["+%d action%s each turn", "−%d action%s each turn"],
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
+	Modifiers.HOUSING: ["Every territory houses %d more pop%.0s", "Every territory houses %d less pop%.0s"],
 }
 
 var id: String = ""
