@@ -2,12 +2,11 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Leaving Anarchy (backlog 146): a government is accepted during Anarchy only at unrest of at most half its limit
 ## (the unrest_limit modifier added before halving); restore_order() pays config unrest.relief and the fallback
 ## government rules, with unrest at most half its limit. The Restore order button sits beside Relieve famine; the bot
-## pays after 2 counters. Fixtures: tests/lib/anarchy_case.gd (relief 6 wealth). Engines are held as Object so the
-## file parses before the API.
+## pays after 2 counters. Fixtures: tests/lib/anarchy_case.gd (relief 6 wealth).
 
 
 ## A game in Anarchy (fallen_engine) with unrest and wealth set.
-func anarchy_with(unrest: int, wealth := 10, block := {}) -> Object:
+func anarchy_with(unrest: int, wealth := 10, block := {}) -> GameEngine:
 	var e := fallen_engine(block)
 	e.resources["unrest"] = unrest
 	e.resources["wealth"] = wealth
@@ -64,7 +63,7 @@ func test_restore_order_pays_and_the_fallback_rules() -> void:
 
 
 func test_order_relief_is_empty_without_relief() -> void:
-	var e: Object = anarchy_engine({"relief": null})
+	var e := anarchy_engine({"relief": null})
 	eq(e.order_relief(), {}, "no relief configured")
 
 

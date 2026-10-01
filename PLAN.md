@@ -445,7 +445,12 @@ Your people have one government at a time; its bonuses apply while it rules.
   can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."), and its
   `actions` and upkeep apply as any government's. Each later turn start adds a counter (`anarchy_counters()`); at
   `max_counters` the fallback is created as the government, the anarchy card goes to `removed` and unrest drops to at
-  most half the new limit. Each added era adds `era_unrest` (capped). Until 146, playing a government ends it too.
+  most half the new limit. Each added era adds `era_unrest` (capped). Ways out sooner (146): a government played
+  during Anarchy is accepted only while unrest is at most half its limit (plus the `unrest_limit` modifier, halved:
+  "The people won't accept Kingship until unrest is 3 or less."), and `restore_order()` pays config `unrest.relief`
+  (`order_relief()`, `restore_order_error()`) for the fallback to rule, unrest again at most half its limit. The
+  Restore order button sits beside Relieve famine below the Realm; the bot pays after 2 counters with no government
+  it can play. Real relief: 6 wealth.
   `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), fallback Chiefdom,
   4 counters, era unrest 3, Feast is the `order` card.
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its

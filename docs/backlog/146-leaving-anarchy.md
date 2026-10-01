@@ -2,7 +2,7 @@
 id: 146
 title: Leaving Anarchy: a government the people accept, or paying to restore order
 type: feature
-status: in-progress
+status: review
 branch: feat/146-leaving-anarchy
 ---
 
@@ -13,20 +13,20 @@ government, the sooner it is accepted. The player can also pay to restore order 
 Follows 145. From `spike/unrest`.
 
 ## Acceptance criteria
-- [ ] AC1: While Anarchy rules, given unrest 4 and Kingship (unrest limit 7) in hand, then `play_error` for Kingship
+- [x] AC1: While Anarchy rules, given unrest 4 and Kingship (unrest limit 7) in hand, then `play_error` for Kingship
   is `"The people won't accept Kingship until unrest is 3 or less."` (7 / 2 rounded down, plus the `unrest_limit`
   modifier before halving). At unrest 3 it plays: Kingship rules, the anarchy card goes to `removed`, and unrest
   stays 3. Outside Anarchy, playing a government has no unrest condition.
-- [ ] AC2: Given config `unrest.relief` `{"wealth": 6}` (optional; a non-empty object of known resources, amounts
+- [x] AC2: Given config `unrest.relief` `{"wealth": 6}` (optional; a non-empty object of known resources, amounts
   >= 1, unrest not allowed), Anarchy ruling and 6 wealth, when `restore_order()` is called, then wealth is 0, the
   fallback government (Chiefdom, limit 5) rules, the anarchy card is in `removed`, unrest becomes min(unrest, 2), and
   a notice says order is restored. `order_relief()` returns the price, `{}` with no relief configured.
-- [ ] AC3: `restore_order_error()` is `"There is no anarchy."` outside Anarchy, `"Restoring order needs 6 wealth
+- [x] AC3: `restore_order_error()` is `"There is no anarchy."` outside Anarchy, `"Restoring order needs 6 wealth
   (you have 5)."` when short, the pending-decision message while one is owed, `"The game is over."` after the end;
   "" when it can pay. `restore_order()` returns false and changes nothing whenever the error is non-empty.
-- [ ] AC4: A Restore order button below the Realm, beside Relieve famine, shows while Anarchy rules and relief is
+- [x] AC4: A Restore order button below the Realm, beside Relieve famine, shows while Anarchy rules and relief is
   configured: `"Restore order (6 wealth)"`, disabled with `restore_order_error()` as its tooltip when it can't pay.
-- [ ] AC5 (bot): while Anarchy rules, `ScriptedBot` pays to restore order at the end of its turn when it has at least
+- [x] AC5 (bot): while Anarchy rules, `ScriptedBot` pays to restore order at the end of its turn when it has at least
   2 counters, can pay, and no government in hand can be played. Given Anarchy with 1 counter and 10 wealth, it
   doesn't pay; with 2 counters it does.
 
@@ -59,3 +59,9 @@ Follows 145. From `spike/unrest`.
 - [ ] The Restore order button appears below the Realm in Anarchy and disappears once order is restored.
 
 ## Log
+- 2026-10-01: Built. Red checkpoint (agreed): "Order can't be bought." with no relief configured; Restore order shares
+  a row with Relieve famine below the Realm. A government without an `unrest_limit` is accepted at any unrest.
+  `restore_order` and burning out share `Anarchy._install_fallback`. The Anarchy card's hand-written text now names
+  the half-limit rule and the 6 wealth: keep it in step with config `unrest`.
+- `ui/main.gd` is at 676 of 700 lines: 147 or 148 will likely push it over; spec a split then.
+- Balance: not simmed (a feature item).
