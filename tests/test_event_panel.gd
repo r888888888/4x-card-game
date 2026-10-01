@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
-## The event panel (backlog 068): the real main scene shows the active events with their turns left (the event piles'
-## counts are hidden since 122). The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook: {visible, info, tooltip, views: [{uid, id, text}]}.
+## The active events (backlog 068; in the Realm's row since 137): the real main scene shows them with their turns
+## left. The tests run main on TEST_CARDS + TEST_EVENTS through with_event_engine. main.event_panel() is the test hook:
+## {visible, tooltip, views: [{uid, id, text}]}.
 
 
 ## The card ids of the event views, in panel order.
