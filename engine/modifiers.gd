@@ -12,9 +12,24 @@ const HOUSING := "housing"
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government). Active events come on top (see total).
+## One pass over the tableau (150): a building is idle once its territory's earlier buildings use up its pop, as
+## is_idle says, without looking each one up.
 static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
-	out.assign(e.zone("tableau").cards.filter(func(c): return not e.is_idle(c.uid)))
+	var tableau := e.zone("tableau").cards
+	var pop_on := e.population_on()
+	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
+	if pop_on:
+		for c in tableau:
+			if c.def.type == CardDef.TERRITORY:
+				workers[c.uid] = c.pop
+	for c in tableau:
+		if pop_on and c.def.type == CardDef.BUILDING:
+			var left: int = workers.get(c.territory_uid, 0)
+			workers[c.territory_uid] = left - 1
+			if left <= 0:
+				continue
+		out.append(c)
 	for z in GameEngine.ALWAYS_ON_ZONES:
 		out.append_array(e.zone(z).cards)
 	return out

@@ -50,6 +50,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_card_landing.gd` | How a card lands (117): a dealt card settles with no squash but still flies and fades in; other flights still squash; a rejected card still shakes. CardViews in a plain Control tree, stepped by frames |
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
+| `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; ratios of `best_time_usec` timings (test_case.gd), never absolute times |
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
 | `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game; the sim's `--civ` / `--turns` |
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |

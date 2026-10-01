@@ -107,9 +107,14 @@ static func diffusion(e: GameEngine, def: CardDef) -> int:
 static func eureka_met(e: GameEngine, def: CardDef) -> bool:
 	if def.eureka.is_empty():
 		return false
-	var matches := e.zone("tableau").cards.filter(func(c): return c.def.id == def.eureka.card if def.eureka.has("card") \
-		else c.def.tags.has(def.eureka.tag))
-	return matches.size() >= def.eureka.count
+	var card_id: String = def.eureka.get("card", "")
+	var n := 0
+	for c in e.zone("tableau").cards:  # stops at the count (150)
+		if c.def.id == card_id if card_id != "" else c.def.tags.has(def.eureka.tag):
+			n += 1
+			if n >= def.eureka.count:
+				return true
+	return false
 
 
 ## Whether def has no prereq or its prereq is researched.
