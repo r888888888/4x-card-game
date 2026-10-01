@@ -32,6 +32,7 @@ var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
+var identity_modal: IdentityModal  # the civilization and government, from the top bar's button (119)
 
 var _board: Control  # the top bar and the body (play area and side panel)
 var _top_bar: TopBar
@@ -191,17 +192,9 @@ func event_modal_ok_button() -> Button:
 	return _event_modal.ok_button
 
 
-## Test hook (088): the visible civilization and government lines in the side panel, top to bottom, as {text, tooltip}.
-func identity_lines() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for line in identity_buttons():
-		out.append({"text": line.text, "tooltip": line.tooltip_text})
-	return out
-
-
-## Test hook (088): the visible civilization and government lines, to press.
-func identity_buttons() -> Array[Button]:
-	return _top_bar.identity_buttons().filter(func(b: Button): return b.visible)
+## Test hook (119): the top bar's civilization and government button (visible or not).
+func identity_button() -> Button:
+	return _top_bar.identity_button()
 
 
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
@@ -417,6 +410,7 @@ func _refresh() -> void:
 	choices.refresh(e)
 	_turn_box.refresh(e)
 	_events.refresh(e)
+	identity_modal.refresh(e)
 	supply.refresh(e)
 	if not _outcome.is_empty():
 		_top_bar.fly_outcome(fx, _outcome, _outcome_point)
@@ -509,7 +503,7 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 	if e.zone("deck").find(uid) != null:
 		return _turn_box.pile_point(0.25)
 	if e.zone("government").find(uid) != null:
-		return _top_bar.identity_point("government")
+		return _top_bar.identity_point()
 	if e.zone("event_discard").find(uid) != null:
 		return _events.heading_point()
 	return _turn_box.pile_point(0.75)
@@ -570,8 +564,7 @@ func _build_layout() -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 12)
 	margin.add_child(root)
-	_top_bar = TopBar.new(open_menu, func(): tech_tree.open(), func(card_id: String): details.open_def(card_id),
-		func(): log_drawer.toggle())
+	_top_bar = TopBar.new(open_menu, func(): tech_tree.open(), func(): identity_modal.open(), func(): log_drawer.toggle())
 	root.add_child(_top_bar)
 
 	_play_area = VBoxContainer.new()  # the whole width below the top bar (115)
@@ -630,7 +623,7 @@ func _build_layout() -> void:
 	add_child(log_drawer)
 	log_drawer.unread_changed.connect(_top_bar.set_log_unread)
 	toasts = Toasts.new(_top_bar, func(): return _menu.is_open() or nav.depth() > 0 or tech_tree.visible \
-		or details.visible or _event_modal.visible)
+		or details.visible or _event_modal.visible or identity_modal.visible)
 	add_child(toasts)
 
 	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
@@ -646,6 +639,7 @@ func _build_layout() -> void:
 	_menu.exit_requested.connect(func(): quit_hook.call())
 	tech_tree = TechTreeModal.new(self)  # before details, which opens over it and takes the keys first
 	_event_modal = EventModal.new(self)  # before details, so a details modal opened from it takes the keys first
+	identity_modal = IdentityModal.new(self)
 	details = CardDetailsModal.new(self)
 	start_screen = StartScreen.new(self)
 	start_screen.new_game_requested.connect(_push_new_game_screen)

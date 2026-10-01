@@ -101,7 +101,7 @@ func _show(details: Dictionary, card_id: String) -> void:
 	if details.vp > 0:
 		facts.append("%d VP" % details.vp)
 	_subtitle.text = " · ".join(facts)
-	_body.text = _body_text(details)
+	_body.text = body_bbcode(details)
 	for child in _card_slot.get_children():
 		child.queue_free()
 	var card := CardView.new()
@@ -126,7 +126,9 @@ func _on_action() -> void:
 	action.call()
 
 
-static func _body_text(details: Dictionary) -> String:
+## The body for details (from GameEngine.card_details / def_details) as BBCode: flavor, quote, rules, state and terms,
+## each only when it has something (also the identity modal's sections, 119).
+static func body_bbcode(details: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if details.get("flavor", "") != "":
 		parts.append("[i]%s[/i]" % details.flavor)
