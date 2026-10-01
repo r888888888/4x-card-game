@@ -2,7 +2,7 @@
 id: 132
 title: Break the early farm treadmill (no Irrigation, stronger Farms, wealth from Mines)
 type: feature
-status: review
+status: done
 branch: feat/132-farm-treadmill
 ---
 
@@ -65,3 +65,7 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
 - Sumer's opening stalled after the cost bump (no Farm in about 29% of opening hands; without one Sumer makes no food).
   Sumer now has `discounts: [{tag: farm, wealth: 1}]`, so its Farms cost 1 food + 1 wealth as before. Trace seed 1
   T15 score 27 → 37 (seeds 2, 3: 37, 42). The swingy start (no Farm, no food) is left to 133.
+- Merged with 133. Per-civilization bot run (ScriptedBot, seeds 1-20), mean final score before → after 132+133:
+  Egypt 332 → 320, Sumer 383 → 337, Phoenicia 387 → 334, Babylon 415 → 353, Greece 283 → 265, Persia 338 → 297.
+  Mean turn-15 score barely moves (Egypt 38 → 41, Sumer 39 → 39, Babylon 50 → 47). The late game is slower for every
+  civilization, most likely from the +1 wealth on techs and buildings; a balance item should look at it.

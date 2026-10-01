@@ -2,7 +2,7 @@
 id: 133
 title: A civilization can start with a building on its home (Sumer starts with a Farm)
 type: feature
-status: review
+status: done
 branch: feat/133-sumer-starts-with-a-farm
 ---
 
