@@ -2,7 +2,7 @@
 id: 117
 title: A dealt card lands without the squash-and-bounce
 type: feature
-status: red-review
+status: review
 branch: feat/117-no-bounce-on-dealt-cards
 ---
 
@@ -13,13 +13,13 @@ moving to a new slot) keep their landing squash.
 
 ## Acceptance criteria
 <!-- UI tests on CardView/CardMotion in a plain Control tree, stepping frames by hand. -->
-- [ ] AC1: Given a card dealt into a slot (`CardView.deal`), when it lands, then its scale is exactly 1 from the
+- [x] AC1: Given a card dealt into a slot (`CardView.deal`), when it lands, then its scale is exactly 1 from the
   moment it arrives and for `Anim.LAND_TIME` afterwards (no squash), and it rests in its slot.
-- [ ] AC2: Dealing still flies and fades: after `deal`, before landing the card is on the effects layer, and it
+- [x] AC2: Dealing still flies and fades: after `deal`, before landing the card is on the effects layer, and it
   fades in to full opacity and reaches its slot.
-- [ ] AC3: Other flights are unchanged: given a card at rest that is sent to another slot (`fly_to_slot`), when it
+- [x] AC3: Other flights are unchanged: given a card at rest that is sent to another slot (`fly_to_slot`), when it
   lands, then it squashes to `Anim.LAND_SQUASH` and returns to scale 1 over `Anim.LAND_TIME`.
-- [ ] AC4: A rejected card that returns to its slot still shakes on landing (guard).
+- [x] AC4: A rejected card that returns to its slot still shakes on landing (guard).
 
 ## Out of scope
 - The fly-in, fade and stagger of a deal; the hover lift; pop-in; Reduce motion (already no squash).
@@ -41,3 +41,5 @@ moving to a new slot) keep their landing squash.
   still squashes on landing.
 
 ## Log
+- `CardMotion.deal` sets `_dealt`; `_land` reads and clears it, skipping `squash()` for that landing (cleared with Reduce
+  motion too, so a later flight isn't affected).
