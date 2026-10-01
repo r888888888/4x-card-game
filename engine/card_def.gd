@@ -11,6 +11,8 @@ const EVENT := "event"  # from the event deck; drawn each event phase, active un
 const CIVILIZATION := "civilization"  # the civilization you play as; in its own zone all game, never in a deck
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT]
+## Each modifier key's noun in card text, [singular, plural] (129).
+const MODIFIER_NOUNS := {Modifiers.ACTIONS: ["action", "actions"]}
 
 var id: String = ""
 var name: String = ""
@@ -23,6 +25,7 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
+var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
@@ -81,6 +84,7 @@ func rules_text(card_db: Dictionary) -> String:
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
 		prev = e
+	parts.append_array(modifier_lines(false))
 	if type == BUILDING and housing > 0:
 		parts.append("+%d housing" % housing)
 	if famine_guard > 0:
@@ -113,6 +117,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
+	parts.append_array(modifier_lines(true))
 	if type == CITY and slots > 0:
 		parts.append("+%d building slots on its territory" % slots)
 	if type == BUILDING and housing > 0:
@@ -129,6 +134,16 @@ func rules_tooltip(card_db: Dictionary) -> String:
 ## A government's actions line (127): "2 actions each turn."
 func actions_text() -> String:
 	return "%d action%s each turn." % [actions, "" if actions == 1 else "s"]
+
+
+## One line per modifier (129): "+1 action each turn"; long (the tooltip) adds " while active" on an event.
+func modifier_lines(long: bool) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for key in modifiers:
+		var n: int = modifiers[key]
+		var line := "%s%d %s each turn" % ["+" if n > 0 else "−", absi(n), MODIFIER_NOUNS[key][0 if absi(n) == 1 else 1]]
+		out.append(line + (" while active" if long and type == EVENT else ""))
+	return out
 
 
 ## A territory's tooltip for a copy with these keywords (printed, plus any rolled resources).

@@ -292,6 +292,11 @@ func actions_per_turn() -> int:
 	return CardPlay.actions_per_turn(self)
 
 
+## key ("actions", …) summed over the `modifiers` of the working tableau cards, ALWAYS_ON_ZONES and active events (129).
+func modifier(key: String) -> int:
+	return Modifiers.total(self, key)
+
+
 ## Actions left this turn (playing a card from hand uses 1; nothing else does), or -1 for no limit.
 func actions_left() -> int:
 	return CardPlay.actions_left(self)

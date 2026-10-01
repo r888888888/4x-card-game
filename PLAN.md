@@ -37,6 +37,7 @@ res://
     research.gd          # Research: revealing, buying and declining techs, passes, eras
     supply.gd            # Supply: buying from the card supply
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
+    modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
     famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
     events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
@@ -124,6 +125,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Harmful ops (072), on any card type: `{ "op": "lose", "resource": "food", "amount": 2 }` takes a resource, never
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
+- Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
+  object of `DataLoader.MODIFIER_KEYS` (only `actions` so far) to non-zero ints, e.g. `"modifiers": {"actions": 1}`.
+  `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
+  (`Modifiers.total`); `actions_per_turn()` adds the `actions` modifier to the government's, never below 1. Text
+  "+1 action each turn" (an event's tooltip adds "while active"). 109 and 110 add `hand_size` and `housing`.
 - `gain_actions` (128, play only): `{ "op": "gain_actions", "amount": 1 }` (amount defaults to 1) gives that many more
   actions this turn (127), on top of the government's; they don't carry over, and the op does nothing while actions
   are unlimited. A load error on `start` or on an event (both resolve outside your plays): `Effect.needs_a_turn`.
