@@ -1,0 +1,58 @@
+---
+id: 152
+title: Run the balance sim on every CPU core
+type: feature
+status: ready
+branch: feat/152-parallel-sim
+---
+
+## Goal
+Faster balance iteration. `scripts/sim.sh 20` plays 600 games (5 strategies × 6 civilizations × 20 seeds) in one
+process: about 7 minutes on `main` after 143, and the balance skill runs it twice. The games are independent, so
+`spike/sim-speed` split them over one child Godot process per core and merged the results: 12 cores took a 4-seed
+run from 24s to 5s, with byte-identical output. (Threads in one process were slower than one process: the engine
+contends on shared objects.)
+
+## Acceptance criteria
+- [ ] AC1: Given seeds 1–3 with `--turns 5`, when `run_files` runs with strategy "all" and `procs` 1, 2 and 4, then
+  the three reports are identical line for line (same numbers, same metric order, era metrics included).
+- [ ] AC2: Given a single strategy (`baseline`, `--civ sumer`, 2 seeds, `--turns 4`), when it runs with `procs` 2, then
+  the report equals the one with `procs` 1.
+- [ ] AC3: Given more processes than games (3 games, `procs` 8), then it runs and the report equals `procs` 1.
+- [ ] AC4: Given `run_files` called with no `procs` option (as every existing test does), then it plays every game in
+  its own process and starts no child process.
+- [ ] AC5: Given a child process that writes no results (it failed), when the run finishes, then `run_files` returns
+  code 1 and a line naming the shard ("shard 2 of 4 wrote no results"), instead of a partial report or a hang.
+- [ ] AC6: After a run, with or without a failed shard, the temporary results directory is removed.
+
+## Out of scope
+- Caching `main`'s results between balance runs, and reporting standard error to stop at fewer seeds (both possible
+  follow-ups from the spike).
+- Parallel test runs.
+
+## Design notes
+- `run_files` gains an option `procs` (default 1). `sim/run.gd` sets it from `SIM_PROCS`, else
+  `OS.get_processor_count()`; `scripts/sim.sh` needs no change. `SIM_PROCS=1` keeps the single-process run.
+- Every game becomes a job `[seed, strategy, civ]` in a fixed order (strategy, civ, seed). Job i goes to child
+  i % procs (round-robin, so the slower strategies spread out). A child is the same `res://sim/run.gd` started with
+  `OS.create_process(OS.get_executable_path(), …)` and the parent's user args plus a last positional
+  `shard=<i>,<n>,<file>`. It isn't a `--` option, since `LaunchOptions.parse` and the `game.gd` autoload reject
+  unknown options. The child writes `{job index: metrics}` as JSON and quits without printing.
+- Pitfalls the spike hit:
+  - A child must still reach `quit()`. If the code after the games errors, `_initialize` aborts and the child idles
+    forever, so the parent hangs.
+  - `JSON.parse_string` sorts keys, so the parent rebuilds each game in metric order (METRICS, then era metrics by
+    era).
+  - Tests call `run_files` in-process, so they must never spawn children (AC4).
+- The parent polls `OS.is_process_running`; add a timeout per run so a hung child fails (AC5) rather than blocking.
+- Update the balance skill's timing note ("about 4 minutes at 20 seeds") once this lands.
+
+## Test plan
+| AC | Test |
+|---|---|
+
+## Manual check
+- [ ] `time scripts/sim.sh 20` on this machine: note the time against `SIM_PROCS=1 scripts/sim.sh 20`.
+
+## Log
+- 2026-10-01: from `spike/sim-speed`.

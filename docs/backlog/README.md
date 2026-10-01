@@ -49,4 +49,7 @@ The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.
 6. 147 renewal: trash from the discard during Anarchy (after 146)
 7. 148 revolution events: choose to revolt (after 147)
 
+Sim speed (from `spike/sim-speed`, independent of the game items above; any time, in this order): 150 linear working
+cards and eurekas, 151 bot tech pick without the tree, 152 parallel sim.
+
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
