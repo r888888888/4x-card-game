@@ -2,7 +2,7 @@
 id: 110
 title: Modifiers can add housing to every territory (Sumer houses +1 pop everywhere)
 type: feature
-status: review
+status: done
 branch: feat/110-modifier-housing
 ---
 
