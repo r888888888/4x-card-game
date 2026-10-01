@@ -2,7 +2,7 @@
 id: 122
 title: Hide the event deck's counts
 type: feature
-status: red-review
+status: review
 branch: feat/122-hide-event-deck-info
 ---
 
@@ -12,14 +12,14 @@ says "Events", and the section only shows when there is something in it.
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn on TEST_CARDS + TEST_EVENTS (test_event_panel's with_event_engine). -->
-- [ ] AC1: Given a config with an event deck, then the Events heading reads "Events" (no deck or discard counts) at the
+- [x] AC1: Given a config with an event deck, then the Events heading reads "Events" (no deck or discard counts) at the
   start and after events come and go, and its tooltip reads "One event is drawn at the end of each turn. It stays
   active until its turns run out." with no mention of events waiting for a later era.
-- [ ] AC2: Given no event is active, then the Events section is hidden; given one or more events are active, then it
+- [x] AC2: Given no event is active, then the Events section is hidden; given one or more events are active, then it
   is shown with its heading. (A Famine that can be relieved is itself an active event, so Relieve always shows inside it.)
-- [ ] AC3: An event leaving the board still flies to the Events heading (a point), and does not error when the section
+- [x] AC3: An event leaving the board still flies to the Events heading (a point), and does not error when the section
   is hidden at the end of the flight (guard).
-- [ ] AC4: No config event deck: no Events section, as today (guard).
+- [x] AC4: No config event deck: no Events section, as today (guard).
 
 ## Out of scope
 - The engine's `event_deck` / `event_discard` zones and their counts in tests; the log still says "Event: …" lines.
@@ -42,3 +42,7 @@ says "Events", and the section only shows when there is something in it.
 - [ ] A new game shows no Events section until an event is drawn; when it ends, the card flies up and the section goes.
 
 ## Log
+- `EventsSection.refresh` no longer writes counts or the waiting-events line; the section shows with an event deck and
+  at least one active event. `main.event_panel()`'s "info" is now just the heading ("Events").
+- Test fix, agreed with the user at green: the "no counts" check in `test_the_events_heading_names_no_pile_counts`
+  matched the Hand heading ("… D discards."); it now looks only at the Events heading.
