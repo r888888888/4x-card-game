@@ -402,6 +402,15 @@ func test_every_tech_prereq_is_in_the_research_deck() -> void:
 			check(r.config.research_deck.has(tech.prereq), "%s: prereq %s is not in research_deck" % [tech.id, tech.prereq])
 
 
+## Backlog 143: a prereq never sits in a later era than the tech that needs it.
+func test_every_tech_prereq_is_in_the_same_era_or_an_earlier_one() -> void:
+	var r := load_real()
+	for tech in techs_in_research_deck(r):
+		if tech.prereq != "" and r.cards.has(tech.prereq):
+			var prereq: CardDef = r.cards[tech.prereq]
+			check(prereq.era <= tech.era, "%s (era %d) needs %s from era %d" % [tech.id, tech.era, prereq.id, prereq.era])
+
+
 ## Techs in research_deck per era: {era: count}.
 func techs_per_era(r: Dictionary) -> Dictionary:
 	var out := {}
@@ -636,3 +645,22 @@ func test_every_gain_per_tag_tag_is_on_a_reachable_card() -> void:
 			if effect.op == "gain_per_tag" and not tags.has(effect.get("tag")):
 				missing.append("%s: %s" % [id, effect.get("tag")])
 	eq(missing, [] as Array[String], "gain_per_tag tags no reachable card carries")
+
+
+## Backlog 143: a eureka only counts cards the player can get: its card can reach a game, its tag is on such a card.
+func test_every_eureka_counts_cards_the_player_can_get() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var tags := {}
+	for id in reachable:
+		for tag in r.cards[id].tags:
+			tags[tag] = true
+	var missing: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		var eureka: Dictionary = tech.eureka
+		if eureka.has("card") and not reachable.has(eureka.card):
+			missing.append("%s: card %s" % [tech.id, eureka.card])
+		if eureka.has("tag") and not tags.has(eureka.tag):
+			missing.append("%s: tag %s" % [tech.id, eureka.tag])
+	eq(missing, [] as Array[String], "eurekas no card the player can get satisfies")
+

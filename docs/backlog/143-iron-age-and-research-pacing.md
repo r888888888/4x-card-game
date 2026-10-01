@@ -2,7 +2,7 @@
 id: 143
 title: Iron Age techs in the tech deck, and research pacing
 type: feature
-status: ready
+status: red-review
 branch: feat/143-iron-age-and-research-pacing
 ---
 
@@ -49,6 +49,10 @@ checked rather than guessed. Follows 139–142; the targets come from `spike/res
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_sim::test_sim_stats_report_when_each_era_opens_and_runs_out`, `test_an_era_never_finished_reports_the_turn_limit`, `test_sim_stats_have_no_era_metrics_without_techs` (guard) |
+| AC2 | `test_content::test_every_tech_prereq_is_in_the_research_deck` (existing), `test_every_tech_prereq_is_in_the_same_era_or_an_earlier_one` |
+| AC3 | `test_content::test_every_researchable_era_has_2_techs_and_is_added` (existing) |
+| AC4 | `test_content::test_every_eureka_counts_cards_the_player_can_get` |
 
 ## Manual check
 - [ ] `scripts/sim.sh 20`: averaged over growth, wealth, wide and tall, `era_1_done` is about 18 and `era_2_done`
