@@ -283,6 +283,18 @@ func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
 
 
+## The ruling Anarchy card's uid (145), or -1.
+func anarchy() -> int:
+	var card := Anarchy.active(self)
+	return card.uid if card != null else -1
+
+
+## The counters on the ruling Anarchy card (145): 0 the turn it falls, +1 each turn after; 0 without Anarchy.
+func anarchy_counters() -> int:
+	var card := Anarchy.active(self)
+	return card.counters if card != null else 0
+
+
 ## Whether unrest has reached a limit (144); false with no limit.
 func at_unrest_limit() -> bool:
 	var limit := unrest_limit()

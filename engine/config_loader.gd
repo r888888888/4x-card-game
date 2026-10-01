@@ -6,7 +6,7 @@ extends RefCounted
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -16,7 +16,8 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
-## civilizations: the civilization ids a game may start as, in order ([] when there is no list)}.
+## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
+## unrest: {anarchy, fallback, max_counters, era_unrest, allowed_tag}, {} when there is none (145)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -139,6 +140,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		var famine: String = config.famine.get("card", "")
 		if config.event_deck.has(famine):
 			errs.append("event_deck: '%s' is the famine card (it comes from hunger, never from the deck)" % famine)
+	config.unrest = _parse_unrest(raw.unrest, config, cards, errs, warnings, src) if raw.has("unrest") else {}
 
 	for key in raw:
 		if not CONFIG_FIELDS.has(key):
@@ -281,6 +283,50 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 	elif f_errs.is_empty():
 		return {"card": card, "max_counters": max_counters, "relief": relief}
 	return {}
+
+
+## Normalizes the unrest block (145) {anarchy, fallback, max_counters, era_unrest (default 0), allowed_tag (default
+## "")}: only with unrest in resources; anarchy and fallback are governments, and the anarchy card sets no
+## unrest_limit and isn't starting.government. Returns {} when invalid.
+static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
+	if not config.resources.has(GameEngine.UNREST):
+		errs.append("unrest: needs '%s' in resources" % GameEngine.UNREST)
+		return {}
+	if not (raw is Dictionary):
+		errs.append("unrest: must be an object like {\"anarchy\": \"anarchy\", \"fallback\": \"chiefdom\", \"max_counters\": 4}")
+		return {}
+	var u_errs: Array[String] = []
+	var out := {}
+	for key in ["anarchy", "fallback"]:
+		var id: Variant = raw.get(key)
+		if not raw.has(key):
+			u_errs.append("unrest.%s: missing (a government id)" % key)
+		elif not (id is String and cards.has(id)):
+			u_errs.append("unrest.%s: unknown card '%s'" % [key, id])
+		elif cards[id].type != CardDef.GOVERNMENT:
+			u_errs.append("unrest.%s: '%s' is not a government" % [key, id])
+		else:
+			out[key] = id
+	if out.has("anarchy") and cards[out.anarchy].unrest_limit > 0:
+		u_errs.append("unrest.anarchy: '%s' can't set unrest_limit (it rules whatever the unrest)" % out.anarchy)
+	if out.has("anarchy") and out.anarchy == config.starting.government:
+		u_errs.append("unrest.anarchy: '%s' can't be starting.government (unrest brings it)" % out.anarchy)
+	for key in [["max_counters", 1, null], ["era_unrest", 0, 0]]:
+		var n: Variant = Fields.as_int(raw.get(key[0], key[2]))
+		if typeof(n) != TYPE_INT or n < key[1]:
+			u_errs.append("unrest.%s: must be an integer >= %d" % [key[0], key[1]])
+		else:
+			out[key[0]] = n
+	var tag: Variant = raw.get("allowed_tag", "")
+	if tag is String:
+		out.allowed_tag = tag
+	else:
+		u_errs.append("unrest.allowed_tag: must be a string (a tag)")
+	for key in raw:
+		if not ["anarchy", "fallback", "max_counters", "era_unrest", "allowed_tag"].has(key):
+			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
+	errs.append_array(u_errs)
+	return out if u_errs.is_empty() else {}
 
 
 ## population.famine.relief as {resource: amount}: a non-empty object of known resources, amounts integers >= 1.

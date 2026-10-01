@@ -12,7 +12,8 @@ extends RefCounted
 ## first, wealth plays cards that make wealth first and buys one from the supply each turn, wide plays cards that
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
-## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok.
+## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it plays a
+## government first (145).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -83,10 +84,14 @@ static func learn_cheapest_tech(engine: GameEngine) -> bool:
 	return best != null and engine.buy_tech(best.uid)
 
 
-## Plays the first hand card that can be played, on its first valid target, in strategy's order. Returns whether one
-## was played.
+## Plays the first hand card that can be played, on its first valid target, in strategy's order (under Anarchy,
+## governments first: 145). Returns whether one was played.
 static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> bool:
-	for card in _hand_order(engine, strategy):
+	var order := _hand_order(engine, strategy)
+	if engine.anarchy() != -1:
+		var govs := order.filter(func(c): return c.def.type == CardDef.GOVERNMENT)
+		order = govs + order.filter(func(c): return c.def.type != CardDef.GOVERNMENT)
+	for card in order:
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
 		if not _unrest_ok(engine, card.def):

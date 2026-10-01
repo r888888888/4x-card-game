@@ -13,6 +13,9 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 		return "That card is not in your hand."
 	if actions_left(e) == 0:
 		return "No actions left this turn."
+	var anarchy := Anarchy.play_error(e, card)
+	if anarchy != "":
+		return anarchy
 	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
 		return "%s is already your government." % card.def.name
 	var cost := Discounts.cost(e, card.def)

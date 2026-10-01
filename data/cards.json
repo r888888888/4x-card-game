@@ -176,6 +176,12 @@
       ]
     },
     {
+      "id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
+      "vp": 0, "tags": [],
+      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. Order returns under Chiefdom after 4 turns.",
+      "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
       "id": "egypt", "name": "Egypt", "type": "civilization", "home": "desert_floodplain", "discounts": [{ "tag": "wonder", "wealth": 3 }],
       "vp": 0, "tags": [],
       "flavor": "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.",

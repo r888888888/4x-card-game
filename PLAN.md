@@ -436,7 +436,18 @@ Your people have one government at a time; its bonuses apply while it rules.
   `unrest_limit` modifier, never below 0, and -1 (no limit) while unrest is off or the government sets none;
   `at_unrest_limit()` says unrest has reached it. `gain` stops unrest at the limit and reports what it added. Unrest can't
   be paid: in a cost, a civilization discount, `population.famine.relief` or a `trade` it is a load error ("unrest can't
-  be paid (it is only gained and lost)", `Fields.unpayable`). Reaching the limit does nothing yet (Anarchy is 145).
+  be paid (it is only gained and lost)", `Fields.unpayable`).
+- Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, fallback, max_counters, era_unrest (0), allowed_tag
+  ("")}`, only with unrest listed; `anarchy` and `fallback` are governments, the anarchy card sets no `unrest_limit` and
+  doesn't start. A turn that starts (after upkeep, feeding and era unlocks, before the draw) with unrest at the limit
+  falls: the government is shuffled into the deck and the anarchy card rules (`anarchy()` its uid, so `unrest_limit()`
+  is -1). While it rules only governments and `allowed_tag` cards play ("Anarchy: only a government or an order card
+  can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."), and its
+  `actions` and upkeep apply as any government's. Each later turn start adds a counter (`anarchy_counters()`); at
+  `max_counters` the fallback is created as the government, the anarchy card goes to `removed` and unrest drops to at
+  most half the new limit. Each added era adds `era_unrest` (capped). Until 146, playing a government ends it too.
+  `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), fallback Chiefdom,
+  4 counters, era unrest 3, Feast is the `order` card.
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its
   stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
   unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.

@@ -126,6 +126,8 @@ static func buy_error(e: GameEngine, uid: int) -> String:
 	var busy := e._blocked_error("research")
 	if busy != "":
 		return busy
+	if Anarchy.build_error(e) != "":
+		return Anarchy.build_error(e)
 	var tech := e.zone("research_deck").find(uid)
 	if tech == null:
 		return "That tech isn't on offer."
@@ -166,6 +168,7 @@ static func add_era(e: GameEngine, n: int, source: CardInstance = null) -> void:
 	e.rng.shuffle(deck.cards)
 	e._notice("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
 	Events.add_era(e, n)
+	Anarchy.stir(e)
 
 
 ## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).

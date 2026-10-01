@@ -39,6 +39,8 @@ static func grow_error(e: GameEngine, territory_uid: int) -> String:
 	var famine := Famine.growth_error(e)
 	if famine != "":
 		return famine
+	if Anarchy.build_error(e) != "":
+		return Anarchy.build_error(e)
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return "Only a settled territory can grow."
