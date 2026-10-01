@@ -208,7 +208,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] 22-card fixed deck from 9 card types, plus Capital/City (event cards once threat is designed)
 - [x] UI: hand, tableau (headed "Realm" on screen, on top; 053; one wrapping row of cards, 078: each settled
   territory is a card with its slots and pop, then cards on no territory, 102; a click opens the territory view with
-  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization, government, Buy Cards, Knowledge, Log, Menu), the deck and discard counts and End turn beside the hand, the game log in a drawer (L; 115, no sidebar) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
+  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, Menu), the deck and discard counts and End turn beside the hand, the game log in a drawer (L; 115, no sidebar) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
@@ -363,7 +363,7 @@ A game is played as one civilization: a permanent card with a starting gift and 
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
-  "Playing as …" and the game-over text "Played as …". In play, the civilization is a button in the top bar (088, 115).
+  "Playing as …" and the game-over text "Played as …". In play, the civilization is named on the top bar's civilization and government button (088, 115, 119).
 
 ## Governments (backlog 065)
 Your people have one government at a time; its bonuses apply while it rules.
@@ -377,8 +377,8 @@ Your people have one government at a time; its bonuses apply while it rules.
 - The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
 - Real data: Chiefdom (no bonus; the start), Kingship (⟳ +1 wealth; from Code of Laws), Theocracy (⟳ +1 VP; from
   Priesthood). Techs that give a government create it in the discard; it has no supply pile.
-- UI: the civilization and the government are buttons naming the card in the top bar, before Buy Cards and Knowledge
-  (088, 115): hover shows the rules, a click opens the details, and a played government flies to its button.
+- UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
+  Knowledge (088, 115, 119); it opens a modal showing both (flavor, quote, rules), and a played government flies to it.
 
 ## Later
 - Smarter bots for the simulator (greedy, then search); starvation and era-timing stats

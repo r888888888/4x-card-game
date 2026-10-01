@@ -2,7 +2,7 @@
 id: 119
 title: One top-bar button opens a Civilization and Government modal
 type: feature
-status: red-review
+status: review
 branch: feat/119-civ-and-government-modal
 ---
 
@@ -12,18 +12,18 @@ with one button that opens a single modal showing both, freeing top-bar width.
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn on the real data (Egypt, Chiefdom at the start). Hook: main.identity_modal. -->
-- [ ] AC1: Given a game with a civilization and a government, then the top bar has one button, "<civ name> ·
+- [x] AC1: Given a game with a civilization and a government, then the top bar has one button, "<civ name> ·
   <government name>" (e.g. "Egypt · Chiefdom"), where the two buttons were (after the stats, before Buy Cards), and no
   separate civilization or government button. Its tooltip is "Your civilization and government."
-- [ ] AC2: Pressing it opens a modal with two sections, civilization then government. The civilization section shows
+- [x] AC2: Pressing it opens a modal with two sections, civilization then government. The civilization section shows
   what its details show today (name, flavor, quote with who said it, then rules; tooltip rules text is not repeated);
   the government section shows its name and rules ("No bonus." when it has none). Esc or Close closes it; it opens
   above the log drawer like the other modals, and the board's keys are blocked while it is open.
-- [ ] AC3: Given a game with only one of them (or neither), then the button names the one there is ("Egypt"), and with
+- [x] AC3: Given a game with only one of them (or neither), then the button names the one there is ("Egypt"), and with
   neither it is hidden; the modal shows only the section that exists.
-- [ ] AC4: Given a government is played (Kingship), then the button reads "Egypt · Kingship", the card flies to the
+- [x] AC4: Given a government is played (Kingship), then the button reads "Egypt · Kingship", the card flies to the
   button, and an open modal shows Kingship's rules.
-- [ ] AC5: A civilization or government with no flavor or quote shows no empty lines (guard).
+- [x] AC5: A civilization or government with no flavor or quote shows no empty lines (guard).
 
 ## Out of scope
 - Opening a card's full details from the modal; a government choice or swap UI.
@@ -50,3 +50,8 @@ with one button that opens a single modal showing both, freeing top-bar width.
 - [ ] A long civilization name plus government still fits the top bar at 1920×1080.
 
 ## Log
+- `IdentityModal` (`ui/identity_modal.gd`, `main.identity_modal`) builds each section with the details modal's body
+  (`CardDetailsModal.body_bbcode`, made public from `_body_text`), under the card's name and type; "No bonus." when a
+  card has no text. It refreshes while open. `TopBar` has one `_identity` button (`identity_button()`,
+  `identity_point()`); `main.identity_buttons()` / `identity_lines()` are gone.
+- The top bar is ~100 px narrower than after 115 (two buttons became one), which 120 (End turn) needs.
