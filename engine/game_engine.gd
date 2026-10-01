@@ -18,6 +18,7 @@ const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
+const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
 ## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
 ## in an era not added yet.
 const TECH_RESEARCHED := "researched"
@@ -153,10 +154,13 @@ func total_pop() -> int:
 
 ## The decision the player owes before the game can go on, or {} when none:
 ## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored} or
+## {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)} or
 ## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
 func pending() -> Dictionary:
 	if not pending_choice.is_empty():
 		return {"kind": PENDING_EXPLORE, "options": pending_choice.options, "source": pending_choice.source.uid}
+	if state.renewal_left > 0:
+		return {"kind": PENDING_RENEWAL, "count": state.renewal_left, "options": Anarchy.renewal_options(self)}
 	if state.discard_left > 0:
 		return {"kind": PENDING_DISCARD, "count": state.discard_left, "options": zone("hand").cards.map(func(c): return c.uid)}
 	return {}
@@ -287,6 +291,18 @@ func unrest_limit() -> int:
 func anarchy() -> int:
 	var card := Anarchy.active(self)
 	return card.uid if card != null else -1
+
+
+## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""
+## if it can.
+func renew_error(uid: int) -> String:
+	return Anarchy.renew_error(self, uid)
+
+
+## Trashes discard card uid for Anarchy's renewal: it leaves the game and unrest drops by 1 (147). False (and no
+## change) if renew_error says no.
+func renew(uid: int) -> bool:
+	return Anarchy.renew(self, uid)
 
 
 ## What restore_order pays (146): config unrest.relief ({resource: amount}), or {} when order can't be bought.
@@ -531,6 +547,8 @@ func _blocked_error(action: String) -> String:
 	match pending().get("kind", ""):
 		PENDING_EXPLORE:
 			return "Choose a territory first."
+		PENDING_RENEWAL:
+			return "Anarchy: trash %d card%s from your discard first." % [state.renewal_left, "" if state.renewal_left == 1 else "s"]
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""

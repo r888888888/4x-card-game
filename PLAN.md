@@ -451,6 +451,13 @@ Your people have one government at a time; its bonuses apply while it rules.
   (`order_relief()`, `restore_order_error()`) for the fallback to rule, unrest again at most half its limit. The
   Restore order button sits beside Relieve famine below the Realm; the bot pays after 2 counters with no government
   it can play. Real relief: 6 wealth.
+- Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
+  owes, after the draw, `pending()` `{kind: PENDING_RENEWAL, count, options}`: count = renewal + `anarchy_counters()` +
+  the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options, the discard's cards but governments.
+  `renew(uid)` / `renew_error(uid)` trash one (−1 unrest); until done every other action is refused ("Anarchy: trash
+  2 cards from your discard first."). The Renewal overlay shows the discard pile; a click renews. The bot trashes the
+  card worth least (cost + 2 × VP, +4 building, +3 calms unrest, +3 explores/settles while land remains, +3 gains
+  insight). Real data: renewal 1, Mysticism +1.
   `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), fallback Chiefdom,
   4 counters, era unrest 3, Feast is the `order` card.
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its

@@ -24,11 +24,11 @@ const ONLY_ORDER := "Anarchy: only a government or an order card can be played."
 const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."
 
 
-## TEST_CARDS, TEST_GOVS and FIXTURES, parsed with unrest a resource.
-func anarchy_db() -> Dictionary:
+## TEST_CARDS, TEST_GOVS, FIXTURES and extra, parsed with unrest a resource.
+func anarchy_db(extra := []) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + FIXTURES}, RESOURCES, "cards.json",
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + FIXTURES + extra}, RESOURCES, "cards.json",
 		errors, warnings, keywords())
 	check(errors.is_empty(), "test cards should load: %s" % [errors])
 	return cards
@@ -64,9 +64,9 @@ func config_errors(raw: Dictionary) -> Array[String]:
 	return errors
 
 
-## A new anarchy game (see anarchy_raw).
-func anarchy_engine(unrest := {}, overrides := {}) -> GameEngine:
-	var cards := anarchy_db()
+## A new anarchy game (see anarchy_raw), with extra cards in the card db.
+func anarchy_engine(unrest := {}, overrides := {}, extra := []) -> GameEngine:
+	var cards := anarchy_db(extra)
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var raw := anarchy_raw(unrest, overrides)

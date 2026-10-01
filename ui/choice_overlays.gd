@@ -1,14 +1,18 @@
 class_name ChoiceOverlays
 extends RefCounted
-## The choice overlay over the dimmed board: Explore (keep one revealed territory), shown while the engine waits for
-## that decision. (The Knowledge overlay went with reveal-2 research in 140: techs are learned in the tech tree.)
+## The choice overlays over the dimmed board: Explore (keep one revealed territory) and Renewal (147: trash cards from
+## the discard under Anarchy), each shown while the engine waits for that decision. (The Knowledge overlay went with
+## reveal-2 research in 140: techs are learned in the tech tree.)
 
 var reveal: HBoxContainer  # the revealed territories to choose from
+var renewal_row: HFlowContainer  # the discard pile, to trash from (147)
 var _explore: Control
 var _explore_panel: PanelContainer
+var _renewal: Control
+var _renewal_heading: Label
 
 
-## Builds the overlay on parent, hidden.
+## Builds the overlays on parent, hidden.
 func _init(parent: Control) -> void:
 	# Explore: a centred panel over the dimmed board, so the board keeps its layout.
 	_explore = UIKit.overlay(parent, CardView.TYPE_COLORS.territory)
@@ -21,21 +25,37 @@ func _init(parent: Control) -> void:
 	reveal.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	explore_box.add_child(reveal)
 
+	_renewal = UIKit.overlay(parent, Palette.UNREST)
+	_renewal.z_index = 5
+	var renewal_box := _renewal.get_meta("box") as VBoxContainer
+	renewal_box.add_child(UIKit.title("Renewal"))
+	_renewal_heading = UIKit.heading("")
+	renewal_box.add_child(_renewal_heading)
+	renewal_row = HFlowContainer.new()
+	renewal_row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
+	renewal_row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
+	renewal_row.custom_minimum_size.x = 900  # wraps a long discard pile
+	renewal_box.add_child(renewal_row)
 
-## Shows the overlay while engine e waits for an explore choice; e null hides it.
+
+## Shows the overlay for the decision engine e waits for (an explore choice or renewal); e null hides both.
 func refresh(e: GameEngine) -> void:
-	var pending_kind: String = e.pending().get("kind", "") if e != null else ""
-	_explore.visible = pending_kind == GameEngine.PENDING_EXPLORE
+	var pending: Dictionary = e.pending() if e != null else {}
+	_explore.visible = pending.get("kind", "") == GameEngine.PENDING_EXPLORE
+	_renewal.visible = pending.get("kind", "") == GameEngine.PENDING_RENEWAL
+	if _renewal.visible:
+		_renewal_heading.text = "Anarchy tears down the old ways: trash %d card%s from your discard pile. Each one calms 1 %s." % [
+			pending.count, "" if pending.count == 1 else "s", GameEngine.UNREST]
 
 
 ## Whether container holds cards to click on while a choice is open.
 func is_choice_row(container: Node) -> bool:
-	return container == reveal
+	return container == reveal or container == renewal_row
 
 
 ## The tooltip of a card in choice row container.
-func pick_hint(_container: Node) -> String:
-	return "Click to keep this territory."
+func pick_hint(container: Node) -> String:
+	return "Click to trash this card." if container == renewal_row else "Click to keep this territory."
 
 
 ## Where a territory put back in the territory deck flies: the right edge of the Explore panel.

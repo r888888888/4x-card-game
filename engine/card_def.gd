@@ -19,6 +19,7 @@ const MODIFIER_TEXT := {
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
 	Modifiers.HOUSING: ["Every territory houses %d more pop%.0s", "Every territory houses %d less pop%.0s"],
 	Modifiers.UNREST_LIMIT: ["Unrest limit +%d%.0s", "Unrest limit −%d%.0s"],
+	Anarchy.RENEWAL: ["Renewal trashes %d more card%s", "Renewal trashes %d fewer card%s"],
 }
 
 var id: String = ""
