@@ -2,7 +2,7 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a header ("← Realm", "Realm › River Meadow", 104),
 ## shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name and info, its stats and Grow, then its city and buildings and an outline per free slot; its card stays in
+## its name and info, its stats and pop meter, then its city and buildings and an outline per free slot; its card stays in
 ## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
 ## empty while a game is on,
 ## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
@@ -13,7 +13,8 @@ signal navigated
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
-var grow_button: Button
+var grow_button: Button  # the pop meter's first empty pip: Grow, showing its food cost (124)
+var grow_reason: Label  # why Grow can't be used, dim, beside the meter; hidden when it can (124)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 
@@ -21,6 +22,9 @@ var _name: Label
 var _info: RichTextLabel  # the territory card's info line (slots, housing, keywords, rolled resources)
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
+var _meter: HBoxContainer  # the pop meter (124): a pip per housing, Grow on the first empty one
+var _pips: Array[Panel] = []  # the meter's filled and empty pips, Grow not among them
+var _grow_cost := 0  # the food a grow from the meter is paying while it runs, so the next refresh animates it
 var _nav := Navigator.new()
 var _realm: Control
 var _board: MainScreen
@@ -61,8 +65,17 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.add_child(_stats)
-	grow_button = UIKit.button("", func(): Game.engine.grow(uid))
-	bar.add_child(grow_button)
+	_meter = HBoxContainer.new()
+	_meter.add_theme_constant_override("separation", 6)
+	bar.add_child(_meter)
+	grow_button = UIKit.button("", _grow)
+	grow_button.theme_type_variation = "GrowPip"
+	grow_button.icon = Icons.FOOD
+	grow_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_meter.add_child(grow_button)
+	grow_reason = UIKit.heading("")
+	grow_reason.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.add_child(grow_reason)
 	row = HFlowContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
@@ -157,7 +170,7 @@ func close_if_stale(e: GameEngine) -> void:
 		reset()
 
 
-## Lays out the open view: stats, Grow, and place(card, row, index) for each card.
+## Lays out the open view: stats, the pop meter, and place(card, row, index) for each card.
 func refresh(e: GameEngine, place: Callable) -> void:
 	if not is_open():
 		return
@@ -167,7 +180,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 			UIKit.pulse(_stats)
 		_stats.set_meta("source", line)
 		Icons.fill(_stats, line, 19, Palette.TEXT_DIM)
-	show_grow(grow_button, e, uid)
+	_show_meter(e)
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
 	_name.text = territory.def.name
@@ -212,11 +225,65 @@ static func stats(e: GameEngine, t: int) -> String:
 	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [s.free_slots, s.pop, s.housing, s.free_workers]
 
 
-## Shows button as territory t's Grow (with population on): its cost, disabled with the reason when it can't.
-static func show_grow(button: Button, e: GameEngine, t: int) -> void:
-	button.visible = e.population_on()
-	if button.visible:
-		var error := e.grow_error(t)
-		button.text = "Grow (%d food)" % e.grow_cost(t)
-		button.disabled = error != ""
-		button.tooltip_text = error
+## The pop meter's pips in order, Grow among them (124); none with population off.
+func pips() -> Array[Control]:
+	var out: Array[Control] = []
+	if _meter.visible:
+		for child in _meter.get_children():
+			if (child as Control).visible:
+				out.append(child)
+	return out
+
+
+## Grows the shown territory from the meter; the refresh that follows animates it (124).
+func _grow() -> void:
+	_grow_cost = Game.engine.grow_cost(uid)
+	Game.engine.grow(uid)
+	_grow_cost = 0
+
+
+## Shows the pop meter (with population on): a pip per housing, the first pop filled, Grow on the first empty one
+## (hidden at housing), and grow_error as a dim line when Grow can't be used. After a grow from the meter, the new
+## pip pops in and the board flies its tokens.
+func _show_meter(e: GameEngine) -> void:
+	_meter.visible = e.population_on()
+	var error := e.grow_error(uid) if _meter.visible else ""
+	grow_reason.visible = error != ""
+	grow_reason.text = error
+	if not _meter.visible:
+		return
+	var pop := e.pop(uid)
+	var room := pop < e.housing(uid)
+	grow_button.visible = room
+	grow_button.text = str(e.grow_cost(uid))
+	grow_button.disabled = error != ""
+	grow_button.tooltip_text = "Grow: +1 pop for %d food." % e.grow_cost(uid)
+	var plain := e.housing(uid) - (1 if room else 0)
+	while _pips.size() > plain:
+		_pips.pop_back().free()
+	while _pips.size() < plain:
+		var pip := Panel.new()
+		pip.custom_minimum_size = Vector2.ONE * GameTheme.PIP_SIZE
+		pip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_meter.add_child(pip)
+		_pips.append(pip)
+	for i in _pips.size():
+		_pips[i].theme_type_variation = "PipFilled" if i < pop else "PipEmpty"
+		_meter.move_child(_pips[i], i if i < pop else i + 1)
+	_meter.move_child(grow_button, pop)
+	if _grow_cost > 0:
+		_animate_grow(_pips[pop - 1], _grow_cost)
+
+
+## A grow from the meter: pip (the one just filled) pops in, then the board flies "+1 pop" from it and floats the
+## food cost up (124).
+func _animate_grow(pip: Panel, cost: int) -> void:
+	if not UIKit.calm():
+		pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
+		pip.scale = Vector2.ONE * 0.4
+		pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await get_tree().process_frame  # the meter lays out its pips
+	if is_instance_valid(pip):
+		_board.fly_grow(pip.get_global_rect().get_center(), cost)

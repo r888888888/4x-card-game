@@ -3,6 +3,8 @@ extends RefCounted
 ## Swaps the text glyphs the game uses (the engine's "⟳", the UI's type marks and so on) for icon
 ## images, in card labels and in the log. Icons are white SVGs in assets/icons/, tinted here.
 
+const FOOD := preload("res://assets/icons/food.svg")  # on the Grow pip, beside its food cost (124)
+
 ## Glyph -> [texture, tint, scale]. A null tint means the icon takes the colour of the text around
 ## it. scale is the icon's height as a fraction of the font size (the type marks sit small, like the
 ## glyphs they replace, so the type line still fits beside the cost).
