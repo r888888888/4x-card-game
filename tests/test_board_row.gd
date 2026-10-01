@@ -162,3 +162,29 @@ func test_relieve_shows_during_a_famine_with_no_events_heading() -> void:
 		await wait_frames()
 		check(relieve.is_visible_in_tree(), "Relieve shows during the Famine")
 		check(not heading_words(main).has("Events"), "no Events heading: %s" % [heading_words(main)]))
+
+
+func test_an_event_card_explains_events_in_its_tooltip() -> void:
+	await with_main(board_engine(), func(main: Node):
+		var e := Game.engine
+		var winds: CardInstance = e.create_card("trade_winds", "active_events", null)
+		e.changed.emit()
+		await wait_frames()
+		var tip: String = (main.views[winds.uid] as CardView).tooltip_text
+		check(tip.contains("One event is drawn at the end of each turn. It stays active until its turns run out."),
+			"event tooltip: '%s'" % tip))
+
+
+func test_a_settled_frontier_card_grows_to_tableau_size() -> void:
+	await with_main(board_engine(), func(main: Node):
+		var e := Game.engine
+		to_frontier(e, ["hills"])
+		var hills := uid_of(e.zone("frontier"), "hills")
+		var pioneer := put_in_hand(e, "pioneer")
+		e.resources.food = 5
+		e.changed.emit()
+		await wait_frames()
+		eq((main.views[hills] as CardView).slot_size(), CardView.COMPACT_SIZE, "compact on the frontier")
+		check(e.play_card(pioneer, hills), "settle: %s" % e.play_error(pioneer, hills))
+		await wait_frames()
+		eq((main.views[hills] as CardView).slot_size(), CardView.TABLEAU_SIZE, "tableau size once settled"))

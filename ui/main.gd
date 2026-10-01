@@ -5,7 +5,8 @@ extends Control
 ##
 ## Card views stay alive between refreshes (views, keyed by uid), so they can animate from where
 ## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
-## board; at rest they sit in slot Controls inside the hand, tableau, frontier and choice containers.
+## board; at rest they sit in slot Controls inside the hand, the Realm's row (events, frontier, territories) and the
+## choice containers.
 ## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, CardDetailsModal, TechTreeModal,
 ## StartScreen, NewGameScreen, SettingsScreen (opened and closed through the Navigator, nav), DragController
 ## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
@@ -16,7 +17,6 @@ var quit_hook := func(): get_tree().quit()
 var views := {}  # uid -> CardView
 var fx: Control  # effects layer: flying, dragged and leaving cards, resource tokens, errors
 var tableau: TableauView
-var frontier: HBoxContainer  # discovered, unsettled territories
 var hand: HBoxContainer
 var hand_scroll: ScrollContainer
 var actions_label: Label  # "Actions: 1 / 2" beside the hand's heading; hidden when actions are unlimited (127)
@@ -40,9 +40,8 @@ var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _row_sections := {}  # zone -> its heading and row (Frontier, Known), hidden while the zone is empty
-var _events: EventsSection  # the event piles' counts, the active events and Relieve
-var _play_area: VBoxContainer  # the sections, top to bottom: Realm, Frontier, Known, Events, Hand
+var _relief: ReliefButton  # below the Realm while a Famine can be relieved
+var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome: the next _refresh flies the played card to where it was played
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
@@ -177,12 +176,20 @@ func game_over_text() -> String:
 	return _game_over.text()
 
 
-## Test hook (068): the event panel as {visible, info, tooltip, views: [{uid, id, text}]}, views in row order.
+## Test hook (068): the active events' views as {visible, tooltip, views: [{uid, id, text}]}, views in row order (137:
+## they lead the Realm's row); visible while any shows; tooltip is the explanation every event card's tooltip ends with.
 func event_panel() -> Dictionary:
 	var shown := []
-	for view in views_in(_events.row):
-		shown.append({"uid": view.uid, "id": Game.engine.zone("active_events").find(view.uid).def.id, "text": view.event_info_text()})
-	return _events.info().merged({"views": shown})
+	for view in views_in(tableau.row):
+		var event := Game.engine.zone("active_events").find(view.uid)
+		if event != null:
+			shown.append({"uid": view.uid, "id": event.def.id, "text": view.event_info_text()})
+	return {"visible": not shown.is_empty(), "tooltip": TableauView.LEADING_ZONES.active_events, "views": shown}
+
+
+## Test hook (137): the Relieve button below the Realm (visible or not).
+func relieve_button() -> Button:
+	return _relief.button
 
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
@@ -376,12 +383,10 @@ func _refresh() -> void:
 	actions_label.visible = e.actions_per_turn() >= 0
 	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
 	var hand_cards := e.zone("hand").cards
-	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events.row}
-	for zone_name in _row_sections:
-		rows[zone_name] = _row_sections[zone_name].get_meta("row")
+	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row}
 	var viewed := territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}
-	for zone_name in ["hand"] + rows.keys():
+	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():
 		for card in e.zone(zone_name).cards:
 			shown[card.uid] = true
 	for uid in TableauView.realm_uids(e) + viewed:  # a city or building shows only in its territory's view (102)
@@ -409,11 +414,9 @@ func _refresh() -> void:
 		views[card.uid].set_tech_info(e.tech_cost(card.uid), card.def.cost.wealth, e.tech_passes(card.uid), GameEngine.MAX_PASSES)
 	for card in e.zone("active_events").cards:
 		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
-	for zone_name in _row_sections:
-		_row_sections[zone_name].visible = not e.zone(zone_name).is_empty()
 	choices.refresh(e)
 	log_drawer.refresh(e)
-	_events.refresh(e)
+	_relief.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
 	_outcome = {}
@@ -431,12 +434,15 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var e := Game.engine
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
-	var compact := container == _events.row or _row_sections.values().any(func(s): return s.get_meta("row") == container)
+	var leading := TableauView.leading_zone(e, card.uid) if container == tableau.row else ""
+	var compact := leading != ""  # an event or a frontier territory: name and info only
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error, compact)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
+		if leading != "":
+			view.set_hint(TableauView.LEADING_ZONES[leading])
 		view.drag_requested.connect(_on_drag_requested)
 		view.double_clicked.connect(on_double_clicked)
 		view.discard_requested.connect(discard)
@@ -457,12 +463,19 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		var old_slot := view.slot
 		view.setup(card, e.card_db, in_hand, error, compact)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
+		if leading != "":
+			view.set_hint(TableauView.LEADING_ZONES[leading])
 		view.fly_to_slot(_new_slot(view, container, index), fx)
 		_free_slot(old_slot)
 		return false
 	container.move_child(view.slot, index)
+	if not in_hand and view.rests_compact() != compact:  # a frontier territory settled: same row, full card
+		view.setup(card, e.card_db, in_hand, error, compact)
+		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
 		view.set_play_error(error)
+	elif leading != "":
+		view.set_hint(TableauView.LEADING_ZONES[leading])
 	else:
 		view.set_idle(e.is_idle(card.uid))
 	return false
@@ -493,8 +506,8 @@ func _remove_view(uid: int, at_once := false) -> void:
 	_free_slot(old_slot)
 
 
-## Where a card that left the board flies: the Log button for the deck or discard (121), the event counts, for a territory
-## put back in the territory deck the edge of the choice panel, or up off the table for a trashed card.
+## Where a card that left the board flies: the Log button for the deck or discard (121) and for an ended event, for a
+## territory put back in the territory deck the edge of the choice panel, or up off the table for a trashed card.
 func _leave_point(uid: int, view: CardView) -> Vector2:
 	var e := Game.engine
 	var card := e.zone("tableau").find(uid)
@@ -508,8 +521,6 @@ func _leave_point(uid: int, view: CardView) -> Vector2:
 		return _top_bar.pile_point()
 	if e.zone("government").find(uid) != null:
 		return _top_bar.identity_point()
-	if e.zone("event_discard").find(uid) != null:
-		return _events.heading_point()
 	return _top_bar.pile_point()
 
 
@@ -585,11 +596,7 @@ func _build_layout() -> void:
 		_quiet = true
 		_refresh()
 		_quiet = false)
-	_row_sections.frontier = UIKit.card_row_section(_play_area, "Frontier",
-		"Territories discovered, not yet settled. Play a city card on one to settle it.")
-	frontier = _row_sections.frontier.get_meta("row")
-	_row_sections.researched = UIKit.card_row_section(_play_area, "Known")
-	_events = EventsSection.new(_play_area)
+	_relief = ReliefButton.new(realm_section)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	var hand_heading := HBoxContainer.new()  # the heading, then the actions counter (127)
