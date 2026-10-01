@@ -2,7 +2,7 @@
 id: 141
 title: Eurekas: what you have built makes related techs cheaper
 type: feature
-status: in-progress
+status: review
 branch: feat/141-tech-eurekas
 ---
 
@@ -12,22 +12,22 @@ name a eureka, enough matching cards in the tableau, that takes Insight off its 
 tech, and it's realistic, since need drives invention. Follows 140; tried on `spike/research-insight`.
 
 ## Acceptance criteria
-- [ ] AC1: Given a tech with `"eureka": {"card": "farm", "count": 2, "off": 2}` or `{"tag": "city", "count": 2,
+- [x] AC1: Given a tech with `"eureka": {"card": "farm", "count": 2, "off": 2}` or `{"tag": "city", "count": 2,
   "off": 2}`, then it loads. Each of these fails to load with an error naming the card and `eureka`: both or neither
   of `tag` and `card`; `count` or `off` missing or below 1; a `card` that isn't a known card id
   (`"eureka: unknown card 'x'"`). A `eureka` on a non-tech card is ignored with the warning
   `"'eureka' only applies to techs (ignored)"`.
-- [ ] AC2: Given Writing (3 insight) in the research deck with eureka `{"card": "farm", "count": 2, "off": 2}`, then
+- [x] AC2: Given Writing (3 insight) in the research deck with eureka `{"card": "farm", "count": 2, "off": 2}`, then
   with 1 Farm in the tableau its `tech_cost` is 3, and with 2 Farms it is 1. Farms in the hand, deck or discard don't
   count; a Farm in the tableau that is idle (no free worker) does.
-- [ ] AC3: Given a tag eureka `{"tag": "city", "count": 2, "off": 2}` on Writing (3), then with the Capital alone its
+- [x] AC3: Given a tag eureka `{"tag": "city", "count": 2, "off": 2}` on Writing (3), then with the Capital alone its
   cost is 3, and with the Capital and a City it is 1. Given `"off": 5` with its condition met, its cost is 1 (never
   below 1).
-- [ ] AC4: `tech_tree()` entries carry `eureka`: true when the tech's eureka is met, else false (and false for a tech
+- [x] AC4: `tech_tree()` entries carry `eureka`: true when the tech's eureka is met, else false (and false for a tech
   without one). The card text has `"Eureka: -2 insight with 2 Farms"` (tag form: `"… with 2 city cards"`), the
   rules tooltip `"Eureka: -2 insight with 2 Farms."`, and a met eureka shows in the details as
   `"Costs 1 insight now (printed 3, −2 eureka)"`.
-- [ ] AC5: In the tech tree, a tech with a eureka that isn't researched shows a line `"Eureka: -2 insight with 2
+- [x] AC5: In the tech tree, a tech with a eureka that isn't researched shows a line `"Eureka: -2 insight with 2
   Farms"`, prefixed `"✔ "` when it is met; a researched tech shows no eureka line.
 
 ## Out of scope
@@ -58,3 +58,9 @@ tech, and it's realistic, since need drives invention. Follows 140; tried on `sp
   and the price drops by its `off`.
 
 ## Log
+- 2026-10-01: Built as designed: `eureka` in `TYPE_FIELDS` (techs), `DataLoader._parse_eureka` (errors say "eureka:
+  needs exactly one of 'card' and 'tag'", "'count' must be an integer >= 1", …, with an example), the unknown card in
+  the cross-card pass; `CardDef.eureka` and `eureka_text`; `Research.eureka_met` and the cost; `tech_tree`'s
+  `eureka`; "−N eureka" in the details; the tree's line (✔ when met, none once researched). No approved test changed.
+- No real data uses `eureka` yet: which techs get one, and how big, is 143. The Manual check waits for that content.
+
