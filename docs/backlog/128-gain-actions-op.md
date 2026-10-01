@@ -2,7 +2,7 @@
 id: 128
 title: A card can give actions this turn when played (Scout and Barter give +1 action)
 type: feature
-status: ready
+status: in-progress
 branch: feat/128-gain-actions-op
 ---
 
@@ -42,6 +42,12 @@ Fixtures: TEST `band` government (`actions: 2`, from 127); new free TEST action 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_gain_actions::test_gain_actions_loads`, `test_gain_actions_validation`, `test_gain_actions_amount_defaults_to_1`; `test_forecast::test_ops_that_change_more_than_the_forecast_restores_are_rejected_on_upkeep` (new row) |
+| AC2 | `test_gain_actions::test_a_plus_one_card_pays_back_its_action`, `test_a_plus_two_card_leaves_one_more` |
+| AC3 | `test_gain_actions::test_a_plus_one_card_cant_be_played_with_no_actions_left` |
+| AC4 | `test_gain_actions::test_gained_actions_dont_carry_over` |
+| AC5 | `test_gain_actions::test_gain_actions_does_nothing_with_unlimited_actions` |
+| AC6 | `test_gain_actions::test_gain_actions_text` |
 
 ## Manual check
 - [ ] As Chiefdom, playing Scout leaves the counter at 2 / 2; Scout, Barter and then two more cards can all be
