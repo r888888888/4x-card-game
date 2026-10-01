@@ -61,11 +61,6 @@ func twenty_techs() -> Array:
 	return out
 
 
-## ScriptedBot as an untyped script, so the file parses before learn_cheapest_tech exists (red phase).
-func bot() -> Variant:
-	return load("res://sim/bot.gd")
-
-
 func test_bot_breaks_a_cost_tie_by_the_lower_era() -> void:
 	var e: Object = tech_engine(["loom"], {"farm": 10}, {"research_deck": {"scribe": 1, "loom": 1},
 		"starting": {"resources": {"food": 2, "insight": 3}, "tableau": ["capital"], "territory": "homeland"}},
@@ -73,21 +68,21 @@ func test_bot_breaks_a_cost_tie_by_the_lower_era() -> void:
 	e.add_era(2)
 	eq([e.tech_cost(uid_of(e.zone("research_deck"), "scribe")), e.tech_cost(uid_of(e.zone("research_deck"), "loom"))],
 		[3, 3], "Scribe 3, and Loom 4 − 1 diffusion")
-	check(bot().learn_cheapest_tech(e), "learned one")
+	check(ScriptedBot.learn_cheapest_tech(e), "learned one")
 	eq(card_ids(e.zone("researched")), ["loom"], "Loom: era 1 before era 2, though Scribe is listed first")
 
 
 func test_bot_breaks_a_cost_tie_in_the_same_era_by_config_order() -> void:
 	var e: Object = tech_engine(["dye", "salt"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
-	check(bot().learn_cheapest_tech(e), "learned one")
+	check(ScriptedBot.learn_cheapest_tech(e), "learned one")
 	eq(card_ids(e.zone("researched")), ["dye"], "Dye, listed before Salt (both 4)")
 
 
 func test_bot_learns_nothing_it_cant_afford_or_lacks_the_prereq_for_and_plays_cards() -> void:
 	var e: Object = tech_engine(["iron", "bronze"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
-	eq(bot().learn_cheapest_tech(e), false, "Bronze (5) too dear, Iron (6) needs Bronze")
+	eq(ScriptedBot.learn_cheapest_tech(e), false, "Bronze (5) too dear, Iron (6) needs Bronze")
 	ScriptedBot.take_turn(e, "baseline")
 	eq(card_ids(e.zone("researched")), [], "nothing learned")
 	check(card_ids(e.zone("tableau")).has("farm"), "and went on to play Farms")
@@ -100,9 +95,8 @@ func test_a_bot_tech_pick_costs_under_half_a_tech_tree() -> void:
 	var e: Object = tech_engine(ids, {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital"], "territory": "homeland"}},
 		twenty_techs())
-	var b: Variant = bot()
-	eq(b.learn_cheapest_tech(e), false, "no insight: nothing learned")
-	var ratio := float(best_time_usec(func(): b.learn_cheapest_tech(e))) / best_time_usec(func(): e.tech_tree())
+	eq(ScriptedBot.learn_cheapest_tech(e), false, "no insight: nothing learned")
+	var ratio := float(best_time_usec(func(): ScriptedBot.learn_cheapest_tech(e))) / best_time_usec(func(): e.tech_tree())
 	check(ratio < 0.5, "a pick costs %.2f of a tech_tree() call" % ratio)
 
 
