@@ -52,6 +52,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; ratios of `best_time_usec` timings (test_case.gd), never absolute times |
 | `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
+| `tests/test_parallel_sim.gd` | The sim on several processes (152): `run_files`' `procs` gives the same report on 1, 2 and 4 processes (all strategies, or one), never more processes than games, in-process by default; `play_shard` / `read_shards` naming a shard with no results; no results directory left behind |
 | `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game; the sim's `--civ` / `--turns` |
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms |

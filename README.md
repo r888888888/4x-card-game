@@ -47,6 +47,7 @@ To see what an edit does to balance, run the headless simulator (a scripted bot 
 ```bash
 scripts/sim.sh 20          # mean / min / max of score, cities, pop, techs, supply buys, era over seeds 1-20
 ```
+It plays the games on one process per CPU core; `SIM_PROCS=1 scripts/sim.sh 20` plays them in one.
 In Claude Code, `/balance` runs it on `main` and on your changes and compares them.
 
 ## Tests

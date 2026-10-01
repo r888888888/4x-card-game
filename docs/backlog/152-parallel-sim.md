@@ -2,7 +2,7 @@
 id: 152
 title: Run the balance sim on every CPU core
 type: feature
-status: red-review
+status: review
 branch: feat/152-parallel-sim
 ---
 
@@ -14,16 +14,16 @@ run from 24s to 5s, with byte-identical output. (Threads in one process were slo
 contends on shared objects.)
 
 ## Acceptance criteria
-- [ ] AC1: Given seeds 1–3 with `--turns 5`, when `run_files` runs with strategy "all" and `procs` 1, 2 and 4, then
+- [x] AC1: Given seeds 1–3 with `--turns 5`, when `run_files` runs with strategy "all" and `procs` 1, 2 and 4, then
   the three reports are identical line for line (same numbers, same metric order, era metrics included).
-- [ ] AC2: Given a single strategy (`baseline`, `--civ sumer`, 2 seeds, `--turns 4`), when it runs with `procs` 2, then
+- [x] AC2: Given a single strategy (`baseline`, `--civ sumer`, 2 seeds, `--turns 4`), when it runs with `procs` 2, then
   the report equals the one with `procs` 1.
-- [ ] AC3: Given more processes than games (3 games, `procs` 8), then it runs and the report equals `procs` 1.
-- [ ] AC4: Given `run_files` called with no `procs` option (as every existing test does), then it plays every game in
+- [x] AC3: Given more processes than games (3 games, `procs` 8), then it runs and the report equals `procs` 1.
+- [x] AC4: Given `run_files` called with no `procs` option (as every existing test does), then it plays every game in
   its own process and starts no child process.
-- [ ] AC5: Given a child process that writes no results (it failed), when the run finishes, then `run_files` returns
+- [x] AC5: Given a child process that writes no results (it failed), when the run finishes, then `run_files` returns
   code 1 and a line naming the shard ("shard 2 of 4 wrote no results"), instead of a partial report or a hang.
-- [ ] AC6: After a run, with or without a failed shard, the temporary results directory is removed.
+- [x] AC6: After a run, with or without a failed shard, the temporary results directory is removed.
 
 ## Out of scope
 - Caching `main`'s results between balance runs, and reporting standard error to stop at fewer seeds (both possible
@@ -62,3 +62,13 @@ contends on shared objects.)
 
 ## Log
 - 2026-10-01: from `spike/sim-speed`.
+- 2026-10-01: built with 150 and 151 on the user's go-ahead (no separate red stop). Children don't get the parent's
+  raw args, so a run started from the tests works too. They get explicit ones: the seed count, the strategy,
+  `--civ` / `--turns`, then `cards=`, `config=`, `shard=i/n` and `out=` tokens at the end. `run.gd` strips those
+  tokens before `LaunchOptions.parse`; the `game.gd` autoload ignores them as positional args. The job list
+  (`_jobs`) is shared by the parent and `play_shard`, so a child plays exactly its slice. `run_files` reports
+  `procs` (the processes used) so AC3/AC4 are observable. `CHILD_TIMEOUT_MSEC` (1 h) kills a hung child; its shard then
+  fails the run. That timeout has no test.
+- Verified: `scripts/sim.sh 2` and `scripts/sim.sh 3 wealth --civ greece --turns 30` print exactly what `main` printed.
+  `scripts/sim.sh 20` took 14.7s on 12 cores (`main`: ~7 min serially before 150/151). `SIM_PROCS=1 scripts/sim.sh 4`
+  took 21.9s (84s on `main` before 150/151). The new test file adds ~5s to the suite (it starts child processes).

@@ -1,21 +1,17 @@
 extends "res://tests/lib/test_case.gd"
 ## The sim on several processes (backlog 152): run_files' `procs` option spreads the games over child Godot processes
 ## (sim/run.gd playing one shard each) and merges them into the same report; a shard with no results fails the run.
-## Real data with short games. SimStats is held untyped so the file parses before the API.
+## Real data with short games.
 
 const CARDS := "res://data/cards.json"
 const CONFIG := "res://data/config.json"
-
-
-func stats() -> Variant:
-	return load("res://sim/sim_stats.gd")
 
 
 ## run_files' result for seed_count seeds of strategy with these options merged over no civ and no seed.
 func run_with(seed_count: int, strategy: String, options: Dictionary) -> Dictionary:
 	var o := {"civ": "", "turns": 0, "seed": -1}
 	o.merge(options, true)
-	return stats().run_files(CARDS, CONFIG, seed_count, strategy, o)
+	return SimStats.run_files(CARDS, CONFIG, seed_count, strategy, o)
 
 
 ## This process's result directories under the temp dir (named sim-<pid>-…).
@@ -61,14 +57,13 @@ func test_run_files_plays_in_this_process_by_default() -> void:
 # --- AC5, AC6: a failed shard, and cleaning up ---
 
 func test_a_shard_with_no_results_fails_the_run_and_its_directory_goes() -> void:
-	var s: Variant = stats()
 	var dir := OS.get_temp_dir().path_join("test-152-%d" % OS.get_process_id())
 	DirAccess.make_dir_recursive_absolute(dir)
 	var options := {"civ": "sumer", "turns": 2, "seed": -1}
 	for i in [0, 2, 3]:  # shard 1 (the 2nd of 4) never writes
-		eq(s.play_shard(CARDS, CONFIG, 4, "baseline", options, i, 4, s.shard_path(dir, i)), 0, "shard %d played" % i)
+		eq(SimStats.play_shard(CARDS, CONFIG, 4, "baseline", options, i, 4, SimStats.shard_path(dir, i)), 0, "shard %d played" % i)
 	var data := DataLoader.load_all(CARDS, CONFIG)
-	var read: Dictionary = s.read_shards(dir, 4, 4, s.metric_names(data.cards, data.config))
+	var read: Dictionary = SimStats.read_shards(dir, 4, 4, SimStats.metric_names(data.cards, data.config))
 	eq(read.get("errors"), ["shard 2 of 4 wrote no results"], "the missing shard named")
 	eq(read.get("games", []).filter(func(g): return g != null).size(), 3, "the other 3 games read")
 	check(not DirAccess.dir_exists_absolute(dir), "the results directory is removed")
