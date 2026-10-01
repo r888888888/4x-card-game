@@ -10,7 +10,7 @@ signal closed
 
 var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the config has no supply
 var _overlay: Control
-var _row: HBoxContainer  # slots for the pile cards, in config order
+var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
 var _wealth: Label  # the screen's own counters: the top bar's sit under the dimmer
 var _discard: Label
@@ -37,8 +37,9 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
 	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
 	box.add_child(pad)
-	_row = HBoxContainer.new()
-	_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
+	_row = HFlowContainer.new()
+	_row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
+	_row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	pad.add_child(_row)
 	box.add_child(UIKit.button("Close (S / Esc)", close))
 	_fx = Control.new()
@@ -80,10 +81,21 @@ func open(e: GameEngine) -> void:
 		view.pop_in(slot, i * Anim.DEAL_STAGGER)
 		_views[id] = view
 		i += 1
+	_fit_row(i)
 	_overlay.show()
 	refresh(e)  # after show: it only fills in the cards while the screen is open
 	_overlay.modulate.a = 0.0
 	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
+
+
+## Fixes the row's width to as many whole cards as fit the window (at most count), so the piles wrap onto
+## further lines instead of running off the screen. The panel sits in a CenterContainer, which would
+## otherwise shrink the flow to a single column.
+func _fit_row(count: int) -> void:
+	var slot := CardView.TABLEAU_SIZE.x + UIKit.CARD_GAP
+	var room := _overlay.size.x - 120.0  # the panel's padding and a margin to the window edge
+	var per_line := clampi(int((room + UIKit.CARD_GAP) / slot), 1, maxi(count, 1))
+	_row.custom_minimum_size.x = per_line * slot - UIKit.CARD_GAP
 
 
 func close() -> void:
