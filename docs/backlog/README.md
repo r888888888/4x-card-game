@@ -41,9 +41,8 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-1. 145 Anarchy at the unrest limit (after 144; once-per-era pacing assumes 143)
-2. 146 leaving Anarchy: half-limit government, restore order (after 145)
-3. 147 renewal: trash from the discard during Anarchy (after 146)
-4. 148 revolution events: choose to revolt (after 147)
+1. 146 leaving Anarchy: half-limit government, restore order (after 145)
+2. 147 renewal: trash from the discard during Anarchy (after 146)
+3. 148 revolution events: choose to revolt (after 147)
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
