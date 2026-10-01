@@ -2,7 +2,7 @@
 id: 109
 title: Modifiers can change hand size (Greece draws up to 6)
 type: feature
-status: ready
+status: in-progress
 branch: feat/109-modifier-hand-size
 ---
 
@@ -43,6 +43,11 @@ tech with `modifiers: {"hand_size": 1}`; a test event with `modifiers: {"hand_si
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_hand_size::test_hand_size_is_a_modifier_key`, `test_a_hand_size_past_the_hand_limit_is_a_config_error` |
+| AC2 | `test_hand_size::test_hand_size_adds_the_modifier_within_1_and_the_hand_limit` |
+| AC3 | `test_hand_size::test_the_opening_hand_and_each_refill_draw_up_to_hand_size` |
+| AC4 | `test_hand_size::test_the_same_seed_deals_the_same_order_with_or_without_the_bonus` |
+| AC5 | `test_hand_size::test_hand_size_modifier_text` |
 
 ## Manual check
 - [ ] As Greece, each turn starts with 6 cards; the hand UI fits them.

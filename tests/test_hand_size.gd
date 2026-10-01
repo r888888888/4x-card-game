@@ -1,0 +1,104 @@
+extends "res://tests/lib/test_case.gd"
+## Hand size as a modifier (backlog 109): `modifiers: {"hand_size": n}` (129's field) raises or lowers the hand you
+## draw up to each turn. Config hand_size 5, hand_limit 7. Local fixtures, so other tests load while the key is
+## missing: Sages (civilization, +1), Scrolls (tech, +1), Archive (free building, +1), Drought (1-turn event, −1) and
+## Oracles (civilization, +3: too many for hand_limit 7). Engines are held as Object so the file parses before the API.
+
+const SAGES := {"id": "sages", "name": "Sages", "type": "civilization", "modifiers": {"hand_size": 1}}
+const SCROLLS := {"id": "scrolls", "name": "Scrolls", "type": "tech", "cost": {"wealth": 1}, "modifiers": {"hand_size": 1}}
+const ARCHIVE := {"id": "archive", "name": "Archive", "type": "building", "modifiers": {"hand_size": 1}}
+const DROUGHT := {"id": "drought", "name": "Drought", "type": "event", "discard": {"turns": 1}, "modifiers": {"hand_size": -1}}
+const ORACLES := {"id": "oracles", "name": "Oracles", "type": "civilization", "modifiers": {"hand_size": 3}}
+const FIXTURES := [SAGES, SCROLLS, ARCHIVE, DROUGHT]
+const DECK := {"farm": 4, "scout": 4, "shrine": 4, "temple": 4}
+
+
+## Loader result {errors, warnings, cards} for TEST_CARDS and extra.
+func load_cards(extra: Array) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors,
+		warnings, keywords())
+	return {"errors": errors, "warnings": warnings, "cards": cards}
+
+
+## A new game (seed 1, DECK) on TEST_CARDS and the fixtures, as civilization civ ("" for none).
+func game_as(civ: String) -> Object:
+	var r := load_cards(FIXTURES)
+	check(r.errors.is_empty(), "test data should load: %s" % [r.errors])
+	var starting := {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"}
+	if civ != "":
+		starting["civilization"] = civ
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var config := DataLoader.parse_config(raw_config(DECK, {"starting": starting}), resources(), r.cards, "config.json",
+		errors, warnings)
+	check(errors.is_empty(), "config should load: %s" % [errors])
+	var e := GameEngine.new(r.cards, config)
+	e.new_game(1)
+	return e
+
+
+# --- AC1: loading ---
+
+func test_hand_size_is_a_modifier_key() -> void:
+	var r := load_cards(FIXTURES)
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+
+
+func test_a_hand_size_past_the_hand_limit_is_a_config_error() -> void:
+	var r := load_cards(FIXTURES + [ORACLES])
+	eq(r.errors, [] as Array[String], "the card itself loads")
+	var errors := config_errors_for(r.cards, {})
+	check(has_message(errors, "card 'oracles'") and has_message(errors, "modifiers.hand_size"),
+		"names the card and the field: %s" % [errors])
+	eq(config_errors_for(load_cards(FIXTURES).cards, {}), [] as Array[String], "+1 fits")
+
+
+# --- AC2: the query ---
+
+func test_hand_size_adds_the_modifier_within_1_and_the_hand_limit() -> void:
+	eq(game_as("").hand_size(), 5, "no modifier")
+	var e: Object = game_as("sages")
+	eq(e.hand_size(), 6, "Sages +1")
+	e.create_card("scrolls", "researched", null)
+	eq(e.hand_size(), 7, "and Scrolls +1")
+	build_on(e, home_uid(e), ["archive"])
+	eq(e.hand_size(), 7, "never above hand_limit 7")
+	var d: Object = game_as("")
+	var drought: CardInstance = d.create_card("drought", "active_events", null)
+	drought.turns_left = 1
+	eq(d.hand_size(), 4, "Drought −1")
+
+
+# --- AC3: drawing ---
+
+func test_the_opening_hand_and_each_refill_draw_up_to_hand_size() -> void:
+	var e: Object = game_as("sages")
+	eq(e.zone("hand").size(), 6, "opening hand")
+	for i in 2:
+		e.discard_card(first_in_hand(e))
+	e.end_turn()
+	eq(e.zone("hand").size(), 6, "refilled to 6")
+
+
+# --- AC4: the deal ---
+
+func test_the_same_seed_deals_the_same_order_with_or_without_the_bonus() -> void:
+	var plain: Object = game_as("")
+	var sages: Object = game_as("sages")
+	eq(card_ids(sages.zone("hand")) + card_ids(sages.zone("deck")), card_ids(plain.zone("hand")) + card_ids(plain.zone("deck")),
+		"hand then deck, in order")
+	eq(sages.zone("hand").size(), plain.zone("hand").size() + 1, "only the number drawn differs")
+
+
+# --- AC5: text ---
+
+func test_hand_size_modifier_text() -> void:
+	var cards: Dictionary = load_cards(FIXTURES).cards
+	if not (cards.has("sages") and cards.has("drought")):
+		check(false, "Sages and Drought should load")
+		return
+	eq(cards.sages.rules_text(cards), "Draw up to 1 more card each turn", "Sages")
+	eq(cards.drought.rules_text(cards).split("\n")[0], "Draw up to 1 fewer card each turn", "Drought")
