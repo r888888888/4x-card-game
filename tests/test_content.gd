@@ -63,6 +63,35 @@ func test_every_keyword_is_on_a_territory_and_a_card() -> void:
 	eq(missing_card, [] as Array[String], "keywords used by no card")
 
 
+# --- Terrains and features (131) ---
+
+## The territory types in play: the starting territory and every territory_deck entry.
+func territories_in_play(r: Dictionary) -> Array[String]:
+	var out: Array[String] = [r.config.starting.territory]
+	for id in r.config.territory_deck:
+		if not out.has(id):
+			out.append(id)
+	return out
+
+
+func test_real_config_names_at_least_5_terrains() -> void:
+	var terrains: Array = load_real().config.get("terrains", [])
+	check(terrains.size() >= 5, "config names %d terrains (need >= 5): %s" % [terrains.size(), terrains])
+
+
+func test_every_keyword_is_on_at_least_2_territory_types() -> void:
+	var r := load_real()
+	var types := {}
+	for id in territories_in_play(r):
+		for k in r.cards[id].keywords:
+			types[k] = types.get(k, 0) + 1
+	var thin: Array[String] = []
+	for k in r.config.keywords:
+		if types.get(k, 0) < 2:
+			thin.append("%s (%d)" % [k, types.get(k, 0)])
+	eq(thin, [] as Array[String], "keywords on fewer than 2 territory types in play")
+
+
 # --- AC3: scripted smoke test (the bot is sim/bot.gd, backlog 042) ---
 
 ## Plays seeds 1-20 with the scripted bot and checks every game ends, wealth never goes below 0, and that
@@ -459,10 +488,8 @@ func test_every_locked_supply_pile_is_unlocked_by_a_tech() -> void:
 func test_every_resource_keyword_is_rolled_and_used() -> void:
 	var r := load_real()
 	var rolled := {}
-	for id in r.config.territory_resources:
-		if not r.config.territory_deck.has(id):
-			continue
-		for option in r.config.territory_resources[id]:
+	for id in r.config.territory_deck:
+		for option in Territories.resource_table(r.config, r.cards[id]):
 			for k in option.keywords:
 				rolled[k] = true
 	var used := {}
@@ -493,11 +520,10 @@ func keywords_in_play(r: Dictionary) -> Dictionary:
 	for id in [r.config.starting.territory] + r.config.territory_deck.keys():
 		for k in r.cards[id].keywords:
 			out[k] = true
-	for id in r.config.territory_resources:
-		if r.config.territory_deck.has(id):
-			for option in r.config.territory_resources[id]:
-				for k in option.keywords:
-					out[k] = true
+	for id in r.config.territory_deck:
+		for option in Territories.resource_table(r.config, r.cards[id]):
+			for k in option.keywords:
+				out[k] = true
 	return out
 
 
