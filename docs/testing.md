@@ -56,6 +56,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game; the sim's `--civ` / `--turns` |
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms |
+| `tests/test_modal_stack.gd` | The modal stack in the real `main.tscn` (153) on a seed-1 game with the tech tree and a tech's details over it: Esc, a click outside and the close keys close only the top modal, keys reach only the top, closing or reopening the tree closes the details above, the cascade, each modal on `main.modals`, a new game or the title screen closing them all; uses `main.modals` (`depth()`, `top()`) and a modal's `panel` |
 | `tests/test_details_modal.gd` | The details modal in the real `main.tscn`: I opens it for the focused card, Esc closes it, board keys blocked, supply piles; uses `main.details.shown()` |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`) and `era_name` / config `era_names` |
 | `tests/test_tech_tree_modal.gd` | The Knowledge modal in the real `main.tscn`: T and the Knowledge button open it, one column per era by name, T/Esc close; uses `main.tech_tree.shown()` |

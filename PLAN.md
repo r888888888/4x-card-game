@@ -74,7 +74,10 @@ res://
                          # buttons, fields, Heading/Title/Stat/DarkPanel variations),
                          # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
                          # tech_tree_modal.gd (Knowledge button or T: the tech tree),
-                         # event_modal.gd (each drawn event and what it did, 079)
+                         # event_modal.gd (each drawn event and what it did, 079), identity_modal.gd (119);
+                         # modal.gd (153: Modal, every modal's base: scrim, panel, close keys, click outside) and
+                         # modal_stack.gd (153: ModalStack, main.modals: the open modals, the top one takes input,
+                         # closing one closes those above it, each level cascaded from the one below)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per

@@ -1,8 +1,8 @@
 class_name CardDetailsModal
-extends ColorRect
+extends Modal
 ## The card details modal (backlog 056): a big card on the left and, on the right, the engine's full rules, live
 ## state and explanation of every mechanic the card uses (GameEngine.card_details / def_details). It sits on top of
-## the board and blocks no engine action; while open it takes every key. Esc, I or a click outside closes it.
+## the board and blocks no engine action; while on top it takes every key. Esc, I or a click outside closes it.
 
 var _card_slot: Control
 var _title: Label
@@ -13,21 +13,10 @@ var _action_button: Button  # an optional action beside Close, e.g. "Play as …
 var _action := Callable()
 
 
-## Builds the modal on parent, hidden.
-func _init(parent: Control) -> void:
-	color = Palette.SCRIM
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	z_index = 20  # above the menu, the supply screen and flying cards
-	visible = false
-	gui_input.connect(_on_dimmer_input)
-	parent.add_child(self)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # a click beside the panel reaches the dimmer and closes
-	add_child(center)
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"DarkPanel"
-	center.add_child(panel)
+## Builds the modal on stack's host, hidden.
+func _init(p_stack: ModalStack) -> void:
+	super(p_stack)
+	close_keys = [KEY_ESCAPE, KEY_I]
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
 	panel.add_child(row)
@@ -109,14 +98,10 @@ func _show(details: Dictionary, card_id: String) -> void:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_slot.custom_minimum_size = card.slot_size()
 	card.attach(_card_slot)
-	# Last among its siblings: input goes by tree order, not z_index, so a screen added later (the new game screen)
-	# would otherwise take the clicks and keys meant for the details (107).
-	get_parent().move_child(self, -1)
-	show()
+	present()  # last among its siblings, so a screen added later (the new game screen) can't take its input (107)
 
 
-func close() -> void:
-	hide()
+func closed() -> void:
 	_details = {}
 
 
@@ -145,18 +130,3 @@ static func body_bbcode(details: Dictionary) -> String:
 	if not terms.is_empty():
 		parts.append("[b]How it works[/b]\n" + "\n".join(terms))
 	return "\n\n".join(parts)
-
-
-## While open, every key stops here: Esc and I close, the rest do nothing.
-func _input(event: InputEvent) -> void:
-	if not visible or not event is InputEventKey:
-		return
-	get_viewport().set_input_as_handled()
-	if event.pressed and not event.echo and event.keycode in [KEY_ESCAPE, KEY_I]:
-		close()
-
-
-func _on_dimmer_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		accept_event()
-		close()

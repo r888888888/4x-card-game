@@ -33,6 +33,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
   e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
+- A modal extends `Modal` and opens on `main.modals` (`ModalStack`), over any modal already open; only the top one
+  takes keys and clicks, and Esc, Close or a click outside its panel closes just that one. Don't write a modal's own
+  scrim, key handling or z-order.
 - A screen you navigate to goes on an animated `Navigator` with a title, and carries a `ScreenHeader`: a breadcrumb
   naming where you are, whose parent title is the link back (118). It enters and leaves with a transition (it grows out of
   the card it opens, or fades; only a fade with Reduce motion), and counts as closed as soon as it starts leaving.
