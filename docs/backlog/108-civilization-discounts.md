@@ -2,7 +2,7 @@
 id: 108
 title: Civilizations can make some cards cheaper
 type: feature
-status: review
+status: done
 branch: feat/108-civilization-discounts
 ---
 
