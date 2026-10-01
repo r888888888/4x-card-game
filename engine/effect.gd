@@ -21,6 +21,12 @@ func upkeep_ok() -> bool:
 	return false
 
 
+## Whether this effect only means something during the player's turn, before it ends (gain_actions, 128): the loader
+## keeps it off start and off events, which resolve after the player's plays.
+func needs_a_turn() -> bool:
+	return false
+
+
 ## Whether this effect acts on its own card's territory, so it does nothing on a card that has none (a tech or
 ## an event).
 func needs_own_territory() -> bool:

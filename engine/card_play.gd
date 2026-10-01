@@ -99,10 +99,11 @@ static func actions_per_turn(e: GameEngine) -> int:
 	return gov.cards[0].def.actions
 
 
-## Actions left this turn: actions_per_turn less the cards played from hand, never below 0; -1 when unlimited.
+## Actions left this turn: actions_per_turn plus those gain_actions gave (128), less the cards played from hand, never
+## below 0; -1 when unlimited.
 static func actions_left(e: GameEngine) -> int:
 	var per_turn := actions_per_turn(e)
-	return -1 if per_turn < 0 else maxi(0, per_turn - e.state.actions_used)
+	return -1 if per_turn < 0 else maxi(0, per_turn + e.state.actions_gained - e.state.actions_used)
 
 
 ## Buildings target a territory; other cards need a target if a "play" effect does.
