@@ -125,6 +125,22 @@ func test_scripted_sweep_over_20_seeds() -> void:
 	check(bought_in >= 1, "a tech was bought in %d of 20 seeds (need >= 1)" % bought_in)
 
 
+## Backlog 145: every strategy plays real games with Anarchy to the end, and some game falls into it.
+func test_every_strategy_finishes_real_games_with_anarchy() -> void:
+	var fell := 0
+	for strategy in ScriptedBot.STRATEGIES:
+		for s in range(1, 21):
+			var e: Object = real_engine(s)
+			var state := {"fell": false}
+			var on_changed := func(): if e.has_method("anarchy") and e.anarchy() != -1: state.fell = true
+			e.changed.connect(on_changed)
+			check(ScriptedBot.play(e, strategy), "%s seed %d: the game finished" % [strategy, s])
+			e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
+			if state.fell:
+				fell += 1
+	check(fell >= 1, "a game fell into Anarchy (%d of 100)" % fell)
+
+
 func test_real_deck_has_growth_cards() -> void:
 	var r := load_real()
 	var counts: Dictionary = r.config.deck.duplicate()
@@ -477,7 +493,8 @@ func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
 	check(checked > 0, "some tech gives a card")
 
 
-## Backlog 065: the game starts with a government, and every other government comes from a researchable tech.
+## Backlog 065: the game starts with a government, and every other government comes from a researchable tech (but
+## the config's unrest.anarchy, 145).
 func test_starting_government_and_every_other_government_comes_from_a_tech() -> void:
 	var r := load_real()
 	var start: String = r.config.starting.government
@@ -487,8 +504,9 @@ func test_starting_government_and_every_other_government_comes_from_a_tech() -> 
 		for id in created_by(tech):
 			given[id] = true
 	var others := 0
+	var anarchy: String = r.config.get("unrest", {}).get("anarchy", "")  # 145: the rule creates it, no tech
 	for id in r.cards:
-		if r.cards[id].type == CardDef.GOVERNMENT and id != start:
+		if r.cards[id].type == CardDef.GOVERNMENT and id != start and id != anarchy:
 			others += 1
 			check(given.has(id), "a tech in research_deck creates government %s" % id)
 	check(others >= 2, "at least 2 governments besides the starting one (got %d)" % others)
@@ -603,9 +621,11 @@ func test_every_gain_per_keyword_keyword_is_on_a_territory_in_play() -> void:
 
 
 ## Card ids that can reach a game: the starting deck, tableau, territory, civilizations and government, the supply,
-## the territory, event and research decks, and every card those cards' effects create or settle.
+## the territory, event and research decks, the config's unrest.anarchy and fallback (145), and every card those
+## cards' effects create or settle.
 func reachable_cards(r: Dictionary) -> Dictionary:
 	var start: Array = [r.config.starting.territory, r.config.starting.government]
+	start += [r.config.get("unrest", {}).get("anarchy", ""), r.config.get("unrest", {}).get("fallback", "")]
 	start += r.config.starting.tableau + r.config.get("civilizations", [])
 	for key in ["deck", "supply", "territory_deck", "event_deck", "research_deck"]:
 		start += r.config.get(key, {}).keys()

@@ -2,7 +2,7 @@
 id: 145
 title: Anarchy when unrest reaches the limit
 type: feature
-status: ready
+status: red-review
 branch: feat/145-anarchy
 ---
 
@@ -64,6 +64,13 @@ comes about once per era (with 143's pacing). This item covers falling into Anar
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_anarchy::test_the_unrest_block_loads_with_its_defaults`, `test_unrest_block_validation` |
+| AC2 | `test_anarchy::test_a_turn_starting_at_the_limit_falls_into_anarchy`, `test_unrest_below_the_limit_doesnt_fall`, `test_an_upkeep_that_calms_below_the_limit_prevents_anarchy`, `test_without_an_unrest_block_the_limit_only_caps`, `test_unrest_has_no_limit_under_anarchy` |
+| AC3 | `test_anarchy::test_under_anarchy_only_governments_and_order_cards_play`, `test_anarchy_has_its_cards_actions`, `test_under_anarchy_nothing_is_grown_bought_or_researched`, `test_under_anarchy_discarding_and_ending_the_turn_work` |
+| AC4 | `test_anarchy::test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop`, `test_anarchy_burns_out_at_max_counters_and_the_fallback_restores_order`, `test_burning_out_keeps_unrest_below_half_the_limit` |
+| AC5 | `test_anarchy::test_a_new_era_adds_era_unrest_up_to_the_limit`, `test_era_unrest_0_adds_nothing` |
+| AC6 | `test_anarchy::test_the_bot_plays_a_government_first_under_anarchy`; `test_content::test_every_strategy_finishes_real_games_with_anarchy` |
+| content | `test_content::test_starting_government_and_every_other_government_comes_from_a_tech` (skips `unrest.anarchy`), `test_every_real_card_can_reach_a_game` (`reachable_cards` adds `unrest.anarchy` and `fallback`) |
 
 ## Manual check
 - [ ] Set `"unrest": 4` in `starting.resources`, play a Settler on turn 1 and end the turn: Anarchy shows as the
