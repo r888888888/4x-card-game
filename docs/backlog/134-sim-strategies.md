@@ -2,7 +2,7 @@
 id: 134
 title: The balance sim plays several strategies, per civilization
 type: feature
-status: review
+status: done
 branch: feat/134-sim-strategies
 ---
 
