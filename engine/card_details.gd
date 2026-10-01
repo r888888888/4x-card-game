@@ -117,7 +117,14 @@ static func _keyword_text(e: GameEngine, keyword: String) -> String:
 		if def.effects.any(func(effect): return effect.keyword == keyword):
 			bonus.append(def.name)
 	var resource: bool = e.config.get("resource_keywords", []).has(keyword)
-	var text := "A resource some territories have." if resource else "A territory keyword."
+	var terrains: Array = e.config.get("terrains", [])
+	var text := "A territory keyword."
+	if resource:
+		text = "A resource some territories have."
+	elif terrains.has(keyword):
+		text = "A terrain."
+	elif not terrains.is_empty():
+		text = "A territory feature."
 	if not needed.is_empty():
 		text += " Needed by: %s." % ", ".join(needed)
 	if not bonus.is_empty():

@@ -6,7 +6,7 @@ extends RefCounted
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -26,6 +26,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"resources": resources,
 		"keywords": DataLoader.parse_keywords(raw, src, errors),
 		"resource_keywords": DataLoader.parse_keywords(raw, src, errors, "resource_keywords"),
+		"terrains": DataLoader.parse_keywords(raw, src, errors, "terrains"),
 		"turn_limit": Fields.read_int(raw, "turn_limit", errs, 1, 20),
 		"hand_size": Fields.read_int(raw, "hand_size", errs, 1, 5),
 		"hand_limit": 0,
@@ -46,6 +47,10 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	for k in config.resource_keywords:
 		if config.keywords.has(k):
 			errs.append("resource_keywords: '%s' is also in 'keywords'" % k)
+	for k in config.terrains:
+		if not config.keywords.has(k):
+			errs.append("terrains: '%s' is not in 'keywords'" % k)
+	_check_terrains(cards, config.terrains, errs)
 
 	config.hand_limit = Fields.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
 	for id in cards:  # 109: one card's hand_size modifier alone must fit under hand_limit
@@ -121,7 +126,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
 	_check_unlocks(config, cards, errs)
-	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, errs)
+	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, config.terrains, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
 	config.era_names = _parse_era_names(raw.get("era_names", {}), errs)
@@ -251,18 +256,35 @@ static func _parse_relief(raw: Variant, resources: Array[String], errs: Array[St
 	return out
 
 
-## Normalizes territory_resources {territory_id: [{keywords, weight}]}: each key a territory, each table a
+## With terrains set (130), every territory card prints exactly one of them.
+static func _check_terrains(cards: Dictionary, terrains: Array[String], errs: Array[String]) -> void:
+	if terrains.is_empty():
+		return
+	for id in cards:
+		var def: CardDef = cards[id]
+		if def.type != CardDef.TERRITORY:
+			continue
+		var own: Array[String] = def.keywords.filter(func(k): return terrains.has(k))
+		if own.size() != 1:
+			var found := "none" if own.is_empty() else ", ".join(PackedStringArray(own.map(func(k): return "'%s'" % k)))
+			errs.append("card '%s': keywords: needs exactly one terrain (one of %s), found %s" % [id, ", ".join(terrains), found])
+
+
+## Normalizes territory_resources {key: [{keywords, weight}]}: each key a territory or a terrain (130), each table a
 ## non-empty array of options whose keywords are resource keywords and whose weight is an integer >= 1.
-static func _parse_territory_resources(raw: Variant, cards: Dictionary, resource_keywords: Array[String], errs: Array[String]) -> Dictionary:
+static func _parse_territory_resources(raw: Variant, cards: Dictionary, resource_keywords: Array[String], terrains: Array[String], errs: Array[String]) -> Dictionary:
 	var out := {}
 	if not (raw is Dictionary):
 		errs.append("'territory_resources' must be an object like {\"hills\": [{\"keywords\": [\"gold\"], \"weight\": 1}]}")
 		return out
 	for id in raw:
-		if not cards.has(id):
+		if cards.has(id) and terrains.has(id):
+			errs.append("territory_resources: '%s' is both a territory and a terrain" % id)
+			continue
+		if not cards.has(id) and not terrains.has(id):
 			errs.append("territory_resources: unknown card '%s'" % id)
 			continue
-		if cards[id].type != CardDef.TERRITORY:
+		if cards.has(id) and cards[id].type != CardDef.TERRITORY:
 			errs.append("territory_resources: '%s' is not a territory" % id)
 			continue
 		var table: Variant = raw[id]
