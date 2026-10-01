@@ -283,6 +283,12 @@ func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
 
 
+## Whether unrest has reached a limit (144); false with no limit.
+func at_unrest_limit() -> bool:
+	var limit := unrest_limit()
+	return limit >= 0 and resources.get(UNREST, 0) >= limit
+
+
 ## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).
 func hand_size() -> int:
 	return Modifiers.hand_size(self)

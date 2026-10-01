@@ -3,10 +3,8 @@ extends "res://tests/lib/test_case.gd"
 ## (the ruling government's unrest_limit plus the unrest_limit modifier; -1 for none). It can't be paid. The forecast
 ## and the top bar show it; ScriptedBot plays around the limit. Local fixtures, loaded with TEST_CARDS and TEST_GOVS:
 ## Chiefs (government, unrest limit 5), Riot (action, +3 unrest), Colonist (+1), Feast (−1), Brazier (building,
-## ⟳ +1 unrest); the modifier cards Altar (+1 limit) and Curse (−10) are in MODIFIER_FIXTURES. Engines are held as
-## Object so the file parses before the API.
+## ⟳ +1 unrest); the modifier cards Altar (+1 limit) and Curse (−10) are in MODIFIER_FIXTURES.
 
-var BOT: Variant = load("res://sim/bot.gd")
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
 const RIOT := {"id": "riot", "name": "Riot", "type": "action",
@@ -36,7 +34,7 @@ func load_cards(extra: Array) -> Dictionary:
 
 ## A game on load_cards(extra) with unrest listed, gov ruling ("" for none), population on (home pop 2), 10 food and
 ## unrest on hand, main deck deck; overrides replace config keys.
-func unrest_engine(gov: String, unrest: int, extra := [], deck := {"farm": 10}, overrides := {}) -> Object:
+func unrest_engine(gov: String, unrest: int, extra := [], deck := {"farm": 10}, overrides := {}) -> GameEngine:
 	var r := load_cards(extra)
 	check(r.errors.is_empty(), "test cards should load: %s" % [r.errors])
 	var starting := {"resources": {"food": 10, "unrest": unrest}, "tableau": ["capital"], "territory": "homeland"}
@@ -56,7 +54,7 @@ func unrest_engine(gov: String, unrest: int, extra := [], deck := {"farm": 10}, 
 
 
 ## Plays hand card uid in e and returns its card_played outcome ({} if it didn't play).
-func play_outcome(e: Object, uid: int) -> Dictionary:
+func play_outcome(e: GameEngine, uid: int) -> Dictionary:
 	var outcomes: Array[Dictionary] = []
 	var record := func(o: Dictionary): outcomes.append(o)
 	e.card_played.connect(record)
@@ -125,6 +123,14 @@ func test_no_unrest_limit_without_a_government_that_sets_one() -> void:
 	for gov in ["council", ""]:
 		var e := unrest_engine(gov, 0)
 		eq(e.unrest_limit(), -1, "%s: no limit" % gov)
+
+
+func test_at_unrest_limit_when_unrest_reaches_a_limit() -> void:
+	var e := unrest_engine("chiefs", 4)
+	eq(e.at_unrest_limit(), false, "4 of 5")
+	e.resources["unrest"] = 5
+	eq(e.at_unrest_limit(), true, "5 of 5")
+	eq(unrest_engine("council", 9).at_unrest_limit(), false, "no limit")
 
 
 ## Resolved at the red checkpoint: a game whose config doesn't list unrest has no limit, and no counter in the bar.
@@ -221,7 +227,7 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change() -> v
 	check(counter != null, "an Unrest counter in the top bar")
 	if counter != null:
 		eq(counter.text, "Unrest: 2 / 5 (+1)", "unrest, the limit and the forecast")
-		eq(counter.get_theme_color("font_color"), load("res://ui/palette.gd").get_script_constant_map().get("UNREST"),
+		eq(counter.get_theme_color("font_color"), Palette.UNREST,
 			"below the limit: Palette.UNREST")
 	set_unrest(5)
 	await wait_frames()
@@ -259,31 +265,31 @@ func test_the_top_bar_has_no_unrest_counter_when_unrest_is_off() -> void:
 # --- AC6: the bot plays around the limit ---
 
 ## An unrest_engine game with gov ruling, unrest on hand and a hand of unplayable Pioneers (no frontier) plus card_id.
-func bot_engine(gov: String, unrest: int, card_id: String) -> Object:
+func bot_engine(gov: String, unrest: int, card_id: String) -> GameEngine:
 	var e := unrest_engine(gov, unrest, [], {"pioneer": 10}, {"territory_deck": {"grassland": 2}})
 	put_in_hand(e, card_id)
 	return e
 
 
 func test_the_bot_doesnt_gain_unrest_that_would_reach_the_limit() -> void:
-	for strategy in BOT.STRATEGIES:
+	for strategy in ScriptedBot.STRATEGIES:
 		var near := bot_engine("chiefs", 3, "colonist")
-		BOT.take_turn(near, strategy)
+		ScriptedBot.take_turn(near, strategy)
 		eq(uid_of(near.zone("hand"), "colonist") != -1, true, "%s at 3 of 5: 3 + 0 + 1 + 1 reaches 5, Colonist kept" % strategy)
 		eq(near.resources.get("unrest"), 3, "%s at 3 of 5: unrest unchanged" % strategy)
 		var calm := bot_engine("chiefs", 2, "colonist")
-		BOT.take_turn(calm, strategy)
+		ScriptedBot.take_turn(calm, strategy)
 		eq(calm.resources.get("unrest"), 3, "%s at 2 of 5: 2 + 0 + 1 + 1 < 5, Colonist played" % strategy)
 		var unlimited := bot_engine("council", 3, "colonist")
-		BOT.take_turn(unlimited, strategy)
+		ScriptedBot.take_turn(unlimited, strategy)
 		eq(unlimited.resources.get("unrest"), 4, "%s with no limit: Colonist played" % strategy)
 
 
 func test_the_bot_doesnt_calm_unrest_far_below_the_limit() -> void:
-	for strategy in BOT.STRATEGIES:
+	for strategy in ScriptedBot.STRATEGIES:
 		var low := bot_engine("chiefs", 1, "feast")
-		BOT.take_turn(low, strategy)
+		ScriptedBot.take_turn(low, strategy)
 		eq(uid_of(low.zone("hand"), "feast") != -1, true, "%s at 1 of 5: 1 + 0 + 1 < 3, Feast kept" % strategy)
 		var high := bot_engine("chiefs", 2, "feast")
-		BOT.take_turn(high, strategy)
+		ScriptedBot.take_turn(high, strategy)
 		eq(high.resources.get("unrest"), 1, "%s at 2 of 5: 2 + 0 + 1 reaches 3, Feast played" % strategy)

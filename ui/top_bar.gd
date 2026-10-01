@@ -112,8 +112,7 @@ func _refresh_unrest(e: GameEngine, forecast: Dictionary) -> void:
 	var limit := e.unrest_limit()
 	UIKit.set_stat(_unrest_label, "Unrest: %d%s%s" % [unrest, " / %d" % limit if limit >= 0 else "",
 		_forecast_text(forecast, GameEngine.UNREST)])
-	var at_limit := limit >= 0 and unrest >= limit
-	_unrest_label.add_theme_color_override("font_color", CardView.WARN_COLOR if at_limit else Palette.UNREST)
+	_unrest_label.add_theme_color_override("font_color", CardView.WARN_COLOR if e.at_unrest_limit() else Palette.UNREST)
 	_unrest_label.tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
 		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
 
