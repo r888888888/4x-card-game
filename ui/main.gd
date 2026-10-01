@@ -394,7 +394,8 @@ func _refresh() -> void:
 	territory_view.refresh(e, place)
 	for group in e.territory_groups():
 		if views.has(group.territory):
-			views[group.territory].set_territory_info(TerritoryView.stats(e, group.territory))
+			var t: int = group.territory
+			views[t].show_settled(CardFace.keyword_line(e.zone("tableau").find(t)), TerritoryView.stats(e, t), e.territory_tooltip(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		for i in cards.size():

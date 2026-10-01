@@ -32,6 +32,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 
 	# Type line, with the cost at its right on a hand card.
 	var type_row := HBoxContainer.new()
+	type_row.name = "TypeRow"
 	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + def.type.capitalize()
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
@@ -63,12 +64,51 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 
 	if def.type == CardDef.TERRITORY:
 		var info_label := rich_label(territory_info(card), 18, color.lightened(0.5))  # "Hills + Gold": rolled last
+		info_label.name = "PrintedInfo"
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, 20, Palette.GAIN))
+
+
+## Turns a territory's face into a settled one's (123): its name, then keywords (its keyword line, "" for none),
+## then live (the "▢ 6   ⌂ 2/5   ⚒ 2" line, drawn with icons) at the bottom. The type line and printed info go.
+func show_settled(keywords: String, live: String) -> void:
+	for gone in ["TypeRow", "PrintedInfo"]:
+		var node := get_node_or_null(gone)
+		if node != null:
+			remove_child(node)
+			node.free()
+	var keyword_line := get_node_or_null("Keywords") as Label
+	if keyword_line == null:
+		keyword_line = label("", 18, CardView.HIGHLIGHT_COLOR.lightened(0.6))
+		keyword_line.name = "Keywords"
+		add_child(keyword_line)
+		move_child(keyword_line, 1)  # under the name
+	keyword_line.text = keywords
+	keyword_line.visible = keywords != ""
+	var line := get_node_or_null("LiveInfo") as RichTextLabel
+	if line == null:
+		line = rich_label("", 19, CardView.HIGHLIGHT_COLOR)
+		line.name = "LiveInfo"
+		line.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
+		line.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		add_child(line)
+	if line.get_meta("source", "") != live:
+		line.set_meta("source", live)
+		Icons.fill(line, live, 19, CardView.HIGHLIGHT_COLOR)
+
+
+## A settled territory's keyword line: "Grassland · Fresh Water", plus " + Gold" for rolled resources (123).
+static func keyword_line(card: CardInstance) -> String:
+	var names := card.def.keywords.map(func(k): return k.capitalize())
+	var text := " · ".join(PackedStringArray(names))
+	var rolled := card.keywords.slice(card.def.keywords.size())
+	if not rolled.is_empty():
+		text += (" + " if text != "" else "") + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
+	return text
 
 
 ## A territory's info: "▢3 ⌂5 · Grassland, Fresh Water", plus " + Gold" for rolled resources.
@@ -88,6 +128,8 @@ static func territory_info(card: CardInstance) -> String:
 func text() -> String:
 	var lines: PackedStringArray = []
 	for child in find_children("*", "", true, false):
+		if child is CanvasItem and not child.visible:  # e.g. a settled territory's empty keyword line
+			continue
 		if child is Label:
 			lines.append(child.text)
 		elif child is RichTextLabel:

@@ -19,7 +19,7 @@ var row: HFlowContainer  # the territory's city and buildings in tableau order, 
 
 var _name: Label
 var _info: RichTextLabel  # the territory card's info line (slots, housing, keywords, rolled resources)
-var _stats: Label
+var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _nav := Navigator.new()
 var _realm: Control
@@ -57,7 +57,8 @@ func _init(board: MainScreen, realm: Control) -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 16)
 	body.add_child(bar)
-	_stats = UIKit.heading("")
+	_stats = CardFace.rich_label("", 19, Palette.TEXT_DIM)
+	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.add_child(_stats)
 	grow_button = UIKit.button("", func(): Game.engine.grow(uid))
@@ -142,7 +143,7 @@ func title_text() -> String:
 
 
 func stats_text() -> String:
-	return _stats.text
+	return _stats.get_meta("source", "")
 
 
 ## The territory a drop at global point would target: this one anywhere on the open view, else -1.
@@ -160,7 +161,12 @@ func close_if_stale(e: GameEngine) -> void:
 func refresh(e: GameEngine, place: Callable) -> void:
 	if not is_open():
 		return
-	UIKit.set_stat(_stats, stats(e, uid))
+	var line := stats(e, uid)
+	if line != stats_text():
+		if stats_text() != "":
+			UIKit.pulse(_stats)
+		_stats.set_meta("source", line)
+		Icons.fill(_stats, line, 19, Palette.TEXT_DIM)
 	show_grow(grow_button, e, uid)
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
@@ -197,13 +203,13 @@ func _show_outlines(n: int) -> void:
 		row.move_child(outline, -1)
 
 
-## "U / S slots used", then "  ·  Pop P / H" with population on.
+## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W" (free slots, pop / housing, free workers), or "▢ F" with
+## population off. The card in the Realm and the view's header both show it.
 static func stats(e: GameEngine, t: int) -> String:
-	var slots := e.total_slots(t)
-	var text := "%d / %d slots used" % [slots - e.free_slots(t), slots]
-	if e.population_on():
-		text += "  ·  Pop %d / %d" % [e.pop(t), e.housing(t)]
-	return text
+	var s := e.territory_status(t)
+	if not e.population_on():
+		return "▢ %d" % s.free_slots
+	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [s.free_slots, s.pop, s.housing, s.free_workers]
 
 
 ## Shows button as territory t's Grow (with population on): its cost, disabled with the reason when it can't.

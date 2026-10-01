@@ -429,6 +429,16 @@ func territory_summary(uid: int) -> Dictionary:
 	return Territories.summary(self, uid)
 
 
+## Settled territory uid's {free_slots, total_slots, pop, housing, free_workers} (123), or {} for anything else.
+func territory_status(uid: int) -> Dictionary:
+	return Territories.status(self, uid)
+
+
+## Settled territory uid's tooltip (123): its slots, pop and free workers spelled out, then its keywords; "" if not one.
+func territory_tooltip(uid: int) -> String:
+	return Territories.tooltip(self, uid)
+
+
 ## Cards that must still be discarded before the turn can end (0 when none is pending).
 func discard_needed() -> int:
 	return state.discard_left

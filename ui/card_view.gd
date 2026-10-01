@@ -47,6 +47,7 @@ var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies th
 var _style: StyleBoxFlat
 var _color: Color
 var _face: CardFace
+var _hint := ""  # the tooltip's hint after the card text, kept so a new card text can be set under it
 var _motion := CardMotion.new(self)
 var _warning := false
 var _highlight := false
@@ -122,9 +123,12 @@ func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> voi
 	_face.replace_info("TechInfo", text)
 
 
-## Shows a settled territory's stats line ("2 / 5 slots used  ·  Pop 2 / 7", 102). The text comes from the board.
-func set_territory_info(text: String) -> void:
-	_face.update_info("TerritoryInfo", text)
+## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
+## all from the board.
+func show_settled(keywords: String, live: String, tip: String) -> void:
+	_face.show_settled(keywords, live)
+	_face.rules_tip = tip
+	_set_tip(_hint)
 
 
 ## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left"), or its counters when it has
@@ -192,6 +196,7 @@ func set_highlight(on: bool) -> void:
 
 ## Sets the tooltip: the full card text, a blank line, then hint (either part may be empty).
 func _set_tip(hint: String) -> void:
+	_hint = hint
 	var rules_tip := _face.rules_tip
 	if rules_tip == "" or hint == "":
 		tooltip_text = rules_tip + hint

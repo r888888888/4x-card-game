@@ -110,10 +110,9 @@ func test_the_view_shows_slots_and_pop_and_grow() -> void:
 		click(main, home)
 		await wait_frames()
 		var view: Object = main.territory_view
-		var used := e.total_slots(home) - e.free_slots(home)
 		var stats: String = view.stats_text()
-		check(stats.contains("%d / %d slots used" % [used, e.total_slots(home)]), "slots in '%s'" % stats)
-		check(stats.contains("Pop %d / %d" % [e.pop(home), e.housing(home)]), "pop in '%s'" % stats)
+		eq(stats, "▢ %d   ⌂ %d/%d   ⚒ %d" % [e.free_slots(home), e.pop(home), e.housing(home), e.free_workers(home)],
+			"the card's live line (123)")
 		var grow: Button = view.grow_button
 		check(shown(grow), "Grow shown")
 		eq(grow.text, "Grow (%d food)" % e.grow_cost(home), "Grow text")
@@ -134,7 +133,7 @@ func test_grow_in_the_view_adds_pop() -> void:
 		var pop := e.pop(home)
 		view.grow_button.pressed.emit()
 		eq(e.pop(home), pop + 1, "pop +1")
-		check(view.stats_text().contains("Pop %d / %d" % [pop + 1, e.housing(home)]), "stat updated: %s" % view.stats_text()), \
+		check(view.stats_text().contains("⌂ %d/%d" % [pop + 1, e.housing(home)]), "stat updated: %s" % view.stats_text()), \
 		{"farm": 10}, POP)
 
 
@@ -157,7 +156,7 @@ func test_without_population_there_is_no_pop_stat_or_grow() -> void:
 		click(main, home_uid(Game.engine))
 		await wait_frames()
 		var view: Object = main.territory_view
-		check(not view.stats_text().contains("Pop"), "no Pop in '%s'" % view.stats_text())
+		eq(view.stats_text(), "▢ %d" % Game.engine.free_slots(home_uid(Game.engine)), "free slots only (123)")
 		check(not shown(view.grow_button), "no Grow"))
 
 
@@ -364,7 +363,8 @@ func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() ->
 		eq(card.slot.get_parent(), main.tableau.row, "it stays in the Realm")
 		eq(view.card_uids(), group_cards(home).slice(1), "the view's cards: its city and buildings")
 		var top: float = view.row.get_global_rect().position.y
-		var stats: Array = view.find_children("*", "Label", true, false).filter(func(l): return l.text == view.stats_text())
+		var stats: Array = view.find_children("*", "RichTextLabel", true, false).filter(
+			func(l): return l.get_meta("source", "") == view.stats_text())  # drawn with icons since 123
 		check(not stats.is_empty(), "the stats line")
 		for c in stats + [view.grow_button]:
 			check(view.frame.is_ancestor_of(c), "%s in the box" % c)
