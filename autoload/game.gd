@@ -7,6 +7,8 @@ const CONFIG_PATH := "res://data/config.json"
 
 var engine: GameEngine
 var load_errors: Array[String] = []
+## The command-line options this run was launched with (LaunchOptions.parse, 135); their turn limit is applied.
+var launch := {}
 
 
 func _ready() -> void:
@@ -19,6 +21,10 @@ func _ready() -> void:
 			push_error(e)
 		return
 	engine = GameEngine.new(result.cards, result.config)
+	launch = LaunchOptions.parse(OS.get_cmdline_user_args(), result.config.get("civilizations", []))
+	for e in launch.errors:
+		push_error(e)
+	LaunchOptions.apply(engine, launch)
 
 
 ## Starts a game with seed_value as civilization civ_id ("" for the config's starting one).

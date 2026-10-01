@@ -5,7 +5,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 
 ## Commands
 - Run all tests: `scripts/test.sh` (exit 0 = green). Filter: `scripts/test.sh <substring of file::method>`
-- Run the game: `godot --path .`
+- Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
 
 ## Architecture rules
