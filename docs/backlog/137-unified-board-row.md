@@ -2,7 +2,7 @@
 id: 137
 title: One board row for events, frontier and realm; known techs leave the board
 type: feature
-status: review
+status: done
 branch: feat/137-unified-board-row
 ---
 
