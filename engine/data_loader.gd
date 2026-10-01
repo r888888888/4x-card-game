@@ -15,7 +15,6 @@ const TYPE_FIELDS := {
 	"famine_guard": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
-	"prereq_discount": [CardDef.TECH],
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION],
@@ -262,14 +261,6 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			def.era = era
 	if def.type == CardDef.TECH:
 		def.prereq = Fields.read_string(c, "prereq", errs, [], "")
-		if c.has("prereq_discount"):
-			var discount: Variant = Fields.as_int(c.prereq_discount)
-			if def.prereq == "":
-				warns.append("'prereq_discount' needs 'prereq' (ignored)")
-			elif typeof(discount) != TYPE_INT or discount < 1:
-				errs.append("prereq_discount: must be an integer >= 1")
-			else:
-				def.prereq_discount = discount
 
 	var requires: Variant = c.get("requires", [])
 	if requires is Array:

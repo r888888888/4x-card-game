@@ -154,12 +154,19 @@ func test_tech_tiles_fill_their_era_column() -> void:
 	main.start_game(1)
 	main.tech_tree.open()
 	await wait_frames()
-	var tiles := UIKit.buttons_in(main.tech_tree).filter(func(b): return b.is_visible_in_tree() and b.get_parent() is VBoxContainer \
-		and not b.text.begins_with("Close"))
+	# Each tech is a row in its era column: the tile, then (140) a Learn button while it can be learned.
+	var tiles := UIKit.buttons_in(main.tech_tree).filter(func(b): return b.is_visible_in_tree() \
+		and b.get_parent() is HBoxContainer and b.get_index() == 0)
 	check(not tiles.is_empty(), "tech tiles shown")
 	for b in tiles:
-		var column: Control = b.get_parent()
-		check(absf(b.size.x - column.size.x) <= TOLERANCE, "tile fills its column: %d, %d" % [b.size.x, column.size.x])
+		var row: HBoxContainer = b.get_parent()
+		var column: Control = row.get_parent()
+		check(absf(row.size.x - column.size.x) <= TOLERANCE, "row fills its column: %d, %d" % [row.size.x, column.size.x])
+		var rest := 0.0  # the Learn button and the gap before it
+		if row.get_child_count() > 1:
+			rest = (row.get_child(1) as Control).size.x + row.get_theme_constant("separation")
+		check(absf(b.size.x + rest - row.size.x) <= TOLERANCE, "tile takes the rest of its row: %d + %d, %d" % [
+			b.size.x, rest, row.size.x])
 	close_at_1080(main)
 
 

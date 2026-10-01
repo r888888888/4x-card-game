@@ -2,7 +2,7 @@
 id: 140
 title: Open tech tree: learn any tech whose prerequisite you have
 type: feature
-status: red-review
+status: in-progress
 branch: feat/140-open-tech-tree
 ---
 

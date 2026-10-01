@@ -36,8 +36,7 @@ var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
-var prereq: String = ""  # techs: id of the tech that makes this one cheaper when researched
-var prereq_discount := 2  # techs: insight off when prereq is researched
+var prereq: String = ""  # techs: id of the tech that must be researched first (140)
 var discard_turns := 1  # events: upkeeps the event stays active for
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
@@ -101,7 +100,7 @@ func rules_text(card_db: Dictionary) -> String:
 	if famine_guard > 0:
 		parts.append("Saves %d pop from famine" % famine_guard)
 	if prereq != "":
-		parts.append("-%d wealth with %s" % [prereq_discount, card_db[prereq].name])
+		parts.append("Needs %s" % card_db[prereq].name)
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
@@ -137,7 +136,7 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	if famine_guard > 0:
 		parts.append("Each upkeep, %d pop here that would starve survives" % famine_guard)
 	if prereq != "":
-		parts.append("Costs %d less wealth if you have %s." % [prereq_discount, card_db[prereq].name])
+		parts.append("Needs %s researched first." % card_db[prereq].name)
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)

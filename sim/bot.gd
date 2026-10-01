@@ -49,8 +49,8 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 		steps += 1
 		if not engine.pending_choice.is_empty():
 			engine.choose(engine.pending_choice.options[0])
-		elif not engine.research_options().is_empty():
-			_buy_cheapest_tech(engine)
+		elif _learn_cheapest_tech(engine):
+			pass
 		elif plays >= MAX_PLAYS_PER_TURN or not _play_first_playable(engine, strategy):
 			break
 		else:
@@ -62,16 +62,13 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 	return steps
 
 
-## Buys the cheapest revealed tech the engine allows, or declines when none is affordable.
-static func _buy_cheapest_tech(engine: GameEngine) -> void:
+## Learns the cheapest tech the engine allows (140: any tech in the open tree). Returns whether it learned one.
+static func _learn_cheapest_tech(engine: GameEngine) -> bool:
 	var best := -1
-	for uid in engine.research_options():
-		if engine.buy_tech_error(uid) == "" and (best == -1 or engine.tech_cost(uid) < engine.tech_cost(best)):
-			best = uid
-	if best == -1:
-		engine.decline_research()
-	else:
-		engine.buy_tech(best)
+	for tech in engine.tech_tree():
+		if tech.uid != -1 and engine.buy_tech_error(tech.uid) == "" and (best == -1 or tech.cost < engine.tech_cost(best)):
+			best = tech.uid
+	return best != -1 and engine.buy_tech(best)
 
 
 ## Plays the first hand card that can be played, on its first valid target, in strategy's order. Returns whether one
@@ -98,7 +95,7 @@ static func _hand_order(engine: GameEngine, strategy: String) -> Array:
 	var rest := []
 	var last := []
 	for card in hand:
-		if card.def.effects.any(func(e): return e.op == "research"):
+		if card.def.effects.any(func(e): return e.get("resource") == GameEngine.INSIGHT):
 			last.append(card)
 		elif _prefers(strategy, card.def):
 			first.append(card)

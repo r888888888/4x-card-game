@@ -16,7 +16,7 @@ var _wealth_label: Label
 var _insight_label: Label
 var _pop_label: Label
 var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
-var _knowledge: Button  # opens the tech tree (059); research itself is a card (034)
+var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
 var _shown := {}  # counter Label -> the value it last showed; empty for a fresh game, which floats nothing (126)
 
 
@@ -90,7 +90,7 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
 	if e.research_card_name() != "":
-		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
+		_knowledge.tooltip_text += "\nPlay %s card for more insight." % UIKit.with_article(e.research_card_name())
 	notification(NOTIFICATION_SORT_CHILDREN)  # lay the counters out at their new widths, so tokens start under them
 	_float_changes({_food_label: [e.resources.get(GameEngine.FOOD, 0), GameEngine.FOOD],
 		_wealth_label: [e.resources.get(GameEngine.WEALTH, 0), GameEngine.WEALTH],

@@ -121,19 +121,6 @@ func set_play_error(play_error: String) -> void:
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
 
-## Shows a revealed tech's price and passes: "Cost 4 insight (was 5)", pass markers (●○○), and
-## "last chance" on its final appearance. The numbers come from the engine.
-func set_tech_info(cost: int, printed: int, passes: int, max_passes: int) -> void:
-	var markers := "●".repeat(passes) + "○".repeat(max_passes - passes)
-	var text := "Cost %d insight" % cost
-	if cost != printed:
-		text += " (was %d)" % printed
-	text += "\nPassed %s" % markers
-	if passes == max_passes - 1:
-		text += " · last chance"
-	_face.replace_info("TechInfo", text)
-
-
 ## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
 ## all from the board.
 func show_settled(keywords: String, live: String, tip: String) -> void:
