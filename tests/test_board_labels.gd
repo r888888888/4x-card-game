@@ -121,7 +121,7 @@ func test_supply_button_reads_buy_cards_and_s_opens_the_supply_screen() -> void:
 	for c in controls_in(main):
 		if c is Button:
 			labels.append(c.text)
-	check(labels.has("Buy Cards (S)"), "a Buy Cards (S) button in %s" % [labels])
+	check(labels.has("Buy Cards"), "a Buy Cards button in %s" % [labels])
 	check(not labels.has("Supply (S)"), "no Supply (S) button")
 	var title := label_with_text(main, "Supply")
 	check(title != null and not title.is_visible_in_tree(), "the Supply screen starts closed")

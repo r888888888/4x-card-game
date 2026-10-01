@@ -29,7 +29,7 @@ a civilization card to play as it (your last choice is remembered) and "Start" s
 seed box, or a random one if it is empty (Enter works too). Settings holds "Reduce motion". "Back" or Esc returns
 to the title screen.
 
-"Menu (Esc)" in the top bar opens the menu: "Restart" replays the seed in the seed box (same shuffle),
+"Menu" in the top bar (or Esc) opens the menu: "Restart" replays the seed in the seed box (same shuffle),
 "New game" leaves the game for the new game screen, and "Reduce motion" turns off decorative animation, and "Exit" quits the game. Esc first cancels
 targeting or drops the card focus, then opens the menu; Esc again closes it.
 

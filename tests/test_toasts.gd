@@ -139,23 +139,23 @@ func end_turn_and_close_event(main: Node) -> void:
 
 func test_the_log_button_marks_lines_not_yet_seen() -> void:
 	await with_game(true, func(main: Node):
-		var button := shown_button(main, "Log (L)")
+		var button := shown_button(main, "Log")
 		check(button != null, "the Log button")
 		if button == null:
 			return
-		eq(button.text, "Log (L)", "a new game's own lines don't mark it")
+		eq(button.text, "Log", "a new game's own lines don't mark it")
 		end_turn_and_close_event(main)
-		eq(button.text, "Log (L) •", "a line while closed marks it")
+		eq(button.text, "Log •", "a line while closed marks it")
 		press_key(main, KEY_L)
-		eq(button.text, "Log (L)", "opening clears it")
+		eq(button.text, "Log", "opening clears it")
 		end_turn_and_close_event(main)
-		eq(button.text, "Log (L)", "lines while open don't mark it")
+		eq(button.text, "Log", "lines while open don't mark it")
 		press_key(main, KEY_L)
-		eq(button.text, "Log (L)", "closing doesn't mark it")
+		eq(button.text, "Log", "closing doesn't mark it")
 		end_turn_and_close_event(main)
-		eq(button.text, "Log (L) •", "a new line after closing marks it")
+		eq(button.text, "Log •", "a new line after closing marks it")
 		main.start_game(2)
-		eq(button.text, "Log (L)", "a new game clears it"))
+		eq(button.text, "Log", "a new game clears it"))
 
 
 # --- AC6: toasts never block play ---

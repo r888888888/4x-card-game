@@ -1,13 +1,14 @@
 class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food and wealth (with next upkeep's change), score and pop, then
-## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log and the Menu button. Costs float up from its counters; gains fly to them.
+## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Costs float up from its counters; gains fly to them.
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
 
 var score_label: Label
-var menu_button: Button  # "Menu (Esc)"
-var log_button: Button  # "Log (L)": opens the log drawer (115)
+var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
+var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in its tooltip (120)
+var end_turn_button: Button  # "End turn", or "Discard N (hand limit M)" while the hand is over its limit (120)
 var _turn_label: Label
 var _food_label: Label
 var _wealth_label: Label
@@ -33,13 +34,16 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_
 	_identity.tooltip_text = "Your civilization and government."
 	_identity.hide()
 	add_child(_identity)
-	_knowledge = UIKit.button("Knowledge (T)", on_knowledge)
+	_knowledge = UIKit.button("Knowledge", on_knowledge)
 	add_child(_knowledge)
-	log_button = UIKit.button("Log (L)", on_log)
-	log_button.tooltip_text = "The game log: everything that happened."
+	log_button = UIKit.button("Log", on_log)
+	log_button.tooltip_text = "Shortcut: L. The game log: everything that happened."
 	add_child(log_button)
-	menu_button = UIKit.button("Menu (Esc)", on_menu)
-	menu_button.tooltip_text = "New game, restart with a seed, reduce motion, exit."
+	end_turn_button = UIKit.button("End turn", func(): Game.engine.end_turn())
+	end_turn_button.theme_type_variation = "AccentButton"
+	add_child(end_turn_button)
+	menu_button = UIKit.button("Menu", on_menu)
+	menu_button.tooltip_text = "Shortcut: Esc. New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
 
 
@@ -62,16 +66,24 @@ func refresh(e: GameEngine) -> void:
 			names.append(e.zone(zone_name).cards[0].def.name)
 	_identity.text = " · ".join(names)
 	_identity.visible = not names.is_empty()
-	_knowledge.text = "Knowledge (T) · %s" % e.era_name(e.era())
+	var error := e.end_turn_error()
+	end_turn_button.disabled = error != ""
+	end_turn_button.tooltip_text = error if error != "" else "Shortcut: E. Upkeep, then draw up to your hand size."
+	var pending := e.pending()
+	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
+		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.config.hand_limit]
+	else:
+		end_turn_button.text = "End turn"
+	_knowledge.text = "Knowledge · %s" % e.era_name(e.era())
 	_knowledge.visible = e.config.research_deck.size() > 0
-	_knowledge.tooltip_text = "The tech tree: every tech by era, what it costs now and what it gives."
+	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives."
 	if e.research_card_name() != "":
 		_knowledge.tooltip_text += "\nPlay %s card to reveal 2 techs." % UIKit.with_article(e.research_card_name())
 
 
-## "Log (L) •" while the log has lines not yet seen (116).
+## "Log •" while the log has lines not yet seen (116).
 func set_log_unread(unread: bool) -> void:
-	log_button.text = "Log (L) •" if unread else "Log (L)"
+	log_button.text = "Log •" if unread else "Log"
 
 
 ## Puts the Supply button after the civilization and government.

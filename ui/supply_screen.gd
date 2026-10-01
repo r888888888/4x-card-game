@@ -1,14 +1,14 @@
 class_name SupplyScreen
 extends RefCounted
 ## The supply screen: dims the board and shows one card per supply pile to click and buy; stays open for several
-## buys. Also owns the "Buy Cards (S)" button that opens it.
+## buys. Also owns the "Buy Cards" button that opens it (S).
 
 ## A buy was refused; message is the engine's reason, for the log.
 signal refused(message: String)
 ## The screen closed (Close, S or Esc, or a new game).
 signal closed
 
-var button: Button  # "Buy Cards (S)", hidden when the config has no supply
+var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the config has no supply
 var _overlay: Control
 var _row: HBoxContainer  # slots for the pile cards, in config order
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
@@ -21,7 +21,7 @@ var _board: MainScreen
 ## Builds the screen on parent, hidden. on_open is the Supply button's action.
 func _init(parent: MainScreen, on_open: Callable) -> void:
 	_board = parent
-	button = UIKit.button("Buy Cards (S)", on_open)
+	button = UIKit.button("Buy Cards", on_open)
 	button.custom_minimum_size.y = 44
 	button.hide()
 	_overlay = UIKit.overlay(parent, CardView.HIGHLIGHT_COLOR)
@@ -133,7 +133,7 @@ func refresh(e: GameEngine) -> void:
 	var reason := e.supply_error()
 	button.visible = not e.supply().is_empty()
 	button.disabled = reason != ""
-	button.tooltip_text = reason if reason != "" else "Buy copies of cards into your discard."
+	button.tooltip_text = reason if reason != "" else "Shortcut: S. Buy copies of cards into your discard."
 	if not is_open():
 		return
 	UIKit.set_stat(_wealth, "Wealth: %d" % e.resources.get(GameEngine.WEALTH, 0))
