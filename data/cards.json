@@ -15,16 +15,11 @@
     },
     {
       "id": "farm", "name": "Farm", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain" }
       ]
-    },
-    {
-      "id": "irrigation", "name": "Irrigation", "type": "building",
-      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["fresh_water"],
-      "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" } ]
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
@@ -73,7 +68,7 @@
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
-      "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"],
+      "cost": { "wealth": 4 }, "vp": 1, "tags": ["culture"],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" }
@@ -81,31 +76,31 @@
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
-      "cost": { "wealth": 5 }, "vp": 3, "tags": ["culture"],
+      "cost": { "wealth": 6 }, "vp": 3, "tags": ["culture"],
       "effects": []
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "cost": { "wealth": 12 }, "vp": 10, "tags": ["wonder"],
+      "cost": { "wealth": 13 }, "vp": 10, "tags": ["wonder"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "pasture", "name": "Pasture", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
       ]
     },
     {
       "id": "harbor", "name": "Harbor", "type": "building",
-      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["coastal"],
+      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": [], "requires": ["coastal"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
       ]
     },
     {
       "id": "lumber_camp", "name": "Lumber Camp", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["forest"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1 }
@@ -113,29 +108,29 @@
     },
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["coastal", "marsh"],
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "quarry", "name": "Quarry", "type": "building",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [ { "op": "score", "amount": 1 } ]
     },
     {
       "id": "shrine", "name": "Shrine", "type": "building",
-      "cost": { "wealth": 2 }, "vp": 1, "tags": ["culture"],
+      "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"],
       "effects": []
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
-        { "op": "score", "amount": 1, "trigger": "upkeep" }
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
-      "cost": { "wealth": 4 }, "vp": 2, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 2, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "copper" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "tin" }
@@ -143,7 +138,7 @@
     },
     {
       "id": "market", "name": "Market", "type": "building",
-      "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
+      "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
@@ -151,7 +146,7 @@
     },
     {
       "id": "granary", "name": "Granary", "type": "building",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "housing": 1, "famine_guard": 1,
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 1, "famine_guard": 1,
       "effects": []
     },
     {
@@ -184,6 +179,7 @@
     },
     {
       "id": "sumer", "name": "Sumer", "type": "civilization", "home": "delta_marsh", "modifiers": { "housing": 1 },
+      "discounts": [ { "tag": "farm", "wealth": 1 } ],
       "vp": 0, "tags": [],
       "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
@@ -239,7 +235,7 @@
     },
     {
       "id": "library", "name": "Library", "type": "building",
-      "cost": { "wealth": 3 }, "vp": 1, "tags": [],
+      "cost": { "wealth": 4 }, "vp": 1, "tags": [],
       "effects": [ { "op": "create", "card": "research", "zone": "discard" } ]
     },
     {
@@ -285,97 +281,97 @@
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",
-      "cost": { "wealth": 2 }, "vp": 1, "tags": [],
+      "cost": { "wealth": 3 }, "vp": 1, "tags": [],
       "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
-      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "pasture", "zone": "discard" }, { "op": "unlock", "card": "pasture" } ]
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "mine", "zone": "discard" }, { "op": "unlock", "card": "mine" } ]
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
-      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
-      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
-      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2,
-      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" } ]
     },
     {
       "id": "currency", "name": "Currency", "type": "tech", "era": 2, "prereq": "bronze_working",
-      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
-      "cost": { "wealth": 4 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
-      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" } ]
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
-      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
-      "cost": { "wealth": 5 }, "vp": 3, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 3, "tags": [],
       "effects": []
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
-      "cost": { "wealth": 5 }, "vp": 2, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 2, "tags": [],
       "effects": []
     },
     {
       "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 3, "prereq": "bronze_working",
-      "cost": { "wealth": 5 }, "vp": 2, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 2, "tags": [],
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "currency",
-      "cost": { "wealth": 5 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 6 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
     },
     {
       "id": "monarchy", "name": "Monarchy", "type": "tech", "era": 3, "prereq": "philosophy",
-      "cost": { "wealth": 6 }, "vp": 3, "tags": [],
+      "cost": { "wealth": 7 }, "vp": 3, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
-      "cost": { "wealth": 6 }, "vp": 4, "tags": [],
+      "cost": { "wealth": 7 }, "vp": 4, "tags": [],
       "effects": []
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
-      "cost": { "wealth": 6 }, "vp": 0, "tags": [],
+      "cost": { "wealth": 7 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" } ]
     },
     {

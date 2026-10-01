@@ -587,3 +587,49 @@ func test_every_gain_per_keyword_keyword_is_on_a_territory_in_play() -> void:
 					if not in_play.has(k):
 						missing.append("%s: %s" % [id, k])
 	eq(missing, [] as Array[String], "gain_per_keyword keywords no territory in play has")
+
+
+## Card ids that can reach a game: the starting deck, tableau, territory, civilizations and government, the supply,
+## the territory, event and research decks, and every card those cards' effects create or settle.
+func reachable_cards(r: Dictionary) -> Dictionary:
+	var start: Array = [r.config.starting.territory, r.config.starting.government]
+	start += r.config.starting.tableau + r.config.get("civilizations", [])
+	for key in ["deck", "supply", "territory_deck", "event_deck", "research_deck"]:
+		start += r.config.get(key, {}).keys()
+	var out := {}
+	while not start.is_empty():
+		var id: String = start.pop_back()
+		if out.has(id) or not r.cards.has(id):
+			continue
+		out[id] = true
+		for effect in r.cards[id].effects:
+			start += effect.referenced_cards()
+	return out
+
+
+## Backlog 132: removing a card from the deck can't leave its definition behind (techs past the research deck and the
+## Famine, which hunger brings, aside).
+func test_every_real_card_can_reach_a_game() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var orphans: Array[String] = []
+	for id in r.cards:
+		if r.cards[id].type != CardDef.TECH and id != r.config.famine.get("card", "") and not reachable.has(id):
+			orphans.append(id)
+	eq(orphans, [] as Array[String], "cards nothing puts into a game")
+
+
+## Backlog 132: every tag a gain_per_tag counts is on a card that can reach a game.
+func test_every_gain_per_tag_tag_is_on_a_reachable_card() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var tags := {}
+	for id in reachable:
+		for tag in r.cards[id].tags:
+			tags[tag] = true
+	var missing: Array[String] = []
+	for id in reachable:
+		for effect in r.cards[id].effects:
+			if effect.op == "gain_per_tag" and not tags.has(effect.get("tag")):
+				missing.append("%s: %s" % [id, effect.get("tag")])
+	eq(missing, [] as Array[String], "gain_per_tag tags no reachable card carries")
