@@ -11,6 +11,8 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	var card := e.zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
+	if actions_left(e) == 0:
+		return "No actions left this turn."
 	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
 		return "%s is already your government." % card.def.name
 	for r in card.def.cost:
@@ -63,6 +65,7 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	var hand := e.zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
+	e.state.actions_used += 1
 	var to_zone := _destination(card)
 	e._outcome = _new_outcome(uid, to_zone, target)
 	e.play_target = target
@@ -86,6 +89,20 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e.card_played.emit(outcome)
 	e.changed.emit()
 	return true
+
+
+## Actions each turn from the ruling government's `actions` (127), or -1 (unlimited) when none rules or it sets none.
+static func actions_per_turn(e: GameEngine) -> int:
+	var gov := e.zone("government")
+	if gov.is_empty() or gov.cards[0].def.actions == 0:
+		return -1
+	return gov.cards[0].def.actions
+
+
+## Actions left this turn: actions_per_turn less the cards played from hand, never below 0; -1 when unlimited.
+static func actions_left(e: GameEngine) -> int:
+	var per_turn := actions_per_turn(e)
+	return -1 if per_turn < 0 else maxi(0, per_turn - e.state.actions_used)
 
 
 ## Buildings target a territory; other cards need a target if a "play" effect does.

@@ -287,6 +287,16 @@ func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
 
 
+## How many cards can be played from hand each turn: the ruling government's actions (127), or -1 for no limit.
+func actions_per_turn() -> int:
+	return CardPlay.actions_per_turn(self)
+
+
+## Actions left this turn (playing a card from hand uses 1; nothing else does), or -1 for no limit.
+func actions_left() -> int:
+	return CardPlay.actions_left(self)
+
+
 ## Why hand card uid can't be played on any target right now, or "" if it can. Unlike play_error, a card
 ## with several valid targets isn't blocked by the choice between them: it is checked on the first.
 func playable_error(uid: int) -> String:

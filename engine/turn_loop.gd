@@ -119,6 +119,7 @@ static func finish_turn(e: GameEngine) -> void:
 
 static func start_turn(e: GameEngine) -> void:
 	e.turn += 1
+	e.state.actions_used = 0
 	e._log("— Turn %d —" % e.turn)
 	resolve_upkeep(e)
 	if e.population_on():

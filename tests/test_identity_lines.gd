@@ -84,7 +84,8 @@ func test_pressing_it_opens_one_modal_with_the_civilization_then_the_government(
 		"flavor, then quote, then rules: %s" % body)
 	var gov_at := body.find("Chiefdom")
 	check(gov_at > body.find(civ.rules[0]), "the government after the civilization: %s" % body)
-	check(body.find("No bonus.", gov_at) != -1, "Chiefdom has no rules: 'No bonus.': %s" % body)
+	for line in Game.engine.def_details(id_in("government")).rules:  # since 127, at least its actions
+		check(body.find(line, gov_at) != -1, "the government's rules ('%s'): %s" % [line, body])
 	close_main(main)
 
 

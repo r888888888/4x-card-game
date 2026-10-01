@@ -50,7 +50,7 @@ func test_bad_government_actions_are_load_errors() -> void:
 	check_cases([
 		["below 1", [{"id": "x", "name": "X", "type": "government", "actions": 0}], ["'x'", "actions"]],
 		["not an int", [{"id": "x", "name": "X", "type": "government", "actions": "two"}], ["'x'", "actions"]],
-		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "unknown field 'actions'", "warning_only"],
+		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "'actions' only applies to governments", "warning_only"],
 	], load_cards)
 
 

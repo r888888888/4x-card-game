@@ -20,8 +20,9 @@ const TYPE_FIELDS := {
 	"discard": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION],
+	"actions": [CardDef.GOVERNMENT],
 }
-const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations"}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
 ## The keys of an event's discard object (its discard conditions). Only a duration so far.
@@ -221,6 +222,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	elif def.type == CardDef.BUILDING:
 		def.housing = Fields.read_int(c, "housing", errs, 1, 0)
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
+	elif def.type == CardDef.GOVERNMENT:
+		def.actions = Fields.read_int(c, "actions", errs, 1, 0)
 	for key in TYPE_FIELDS:
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):

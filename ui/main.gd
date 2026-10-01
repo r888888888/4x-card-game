@@ -19,6 +19,7 @@ var tableau: TableauView
 var frontier: HBoxContainer  # discovered, unsettled territories
 var hand: HBoxContainer
 var hand_scroll: ScrollContainer
+var actions_label: Label  # "Actions: 1 / 2" beside the hand's heading; hidden when actions are unlimited (127)
 var choices: ChoiceOverlays
 var supply: SupplyScreen
 var drag: DragController
@@ -200,7 +201,7 @@ func identity_button() -> Button:
 func section_headings() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for section in _play_area.get_children().filter(func(c): return c != territory_view):
-		var heading: Label = section.get_child(0)
+		var heading: Label = section.find_children("*", "Label", true, false)[0]  # the hand's shares a row (127)
 		out.append({"text": heading.text, "tooltip": heading.tooltip_text})
 	return out
 
@@ -369,6 +370,8 @@ func _refresh() -> void:
 	var e := Game.engine
 	territory_view.close_if_stale(e)
 	_top_bar.refresh(e, fx, supply.is_open())
+	actions_label.visible = e.actions_per_turn() >= 0
+	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
 	var hand_cards := e.zone("hand").cards
 	var rows := {"reveal": choices.reveal, "research_reveal": choices.research_row, "active_events": _events.row}
 	for zone_name in _row_sections:
@@ -586,6 +589,14 @@ func _build_layout() -> void:
 	_events = EventsSection.new(_play_area)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
+	var hand_heading := HBoxContainer.new()  # the heading, then the actions counter (127)
+	hand_heading.add_theme_constant_override("separation", 24)
+	hand_section.get_child(0).reparent(hand_heading)
+	actions_label = UIKit.stat(hand_heading)
+	actions_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	actions_label.tooltip_text = "Playing a card from your hand uses 1 action. Your government sets how many you get each turn."
+	hand_section.add_child(hand_heading)
+	hand_section.move_child(hand_heading, 0)
 	hand_scroll = ScrollContainer.new()
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20

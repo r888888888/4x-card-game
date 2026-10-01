@@ -22,6 +22,7 @@ var effects: Array[Effect] = []
 var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
+var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var keywords: Array[String] = []  # territories: keyword ids from config
 var requires: Array[String] = []  # buildings: the territory needs any of these keywords
 var era := 1  # techs: the era whose research deck holds this tech (see the add_era op)
@@ -62,6 +63,8 @@ func rules_text(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
+	if actions > 0:
+		parts.append(actions_text())
 	if not requires.is_empty():
 		parts.append("Needs " + "/".join(PackedStringArray(requires.map(func(k): return k.capitalize()))))
 	var prev: Effect = null
@@ -97,6 +100,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if type == TERRITORY:
 		return territory_text(keywords)
+	if actions > 0:
+		parts.append(actions_text())
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
@@ -119,6 +124,11 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	if type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
+
+
+## A government's actions line (127): "2 actions each turn."
+func actions_text() -> String:
+	return "%d action%s each turn." % [actions, "" if actions == 1 else "s"]
 
 
 ## A territory's tooltip for a copy with these keywords (printed, plus any rolled resources).
