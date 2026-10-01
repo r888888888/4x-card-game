@@ -2,7 +2,7 @@
 id: 150
 title: Make working cards and eureka checks scale linearly with the tableau
 type: feature
-status: red-review
+status: in-progress
 branch: feat/150-linear-modifiers-and-eurekas
 ---
 
