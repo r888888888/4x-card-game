@@ -2,7 +2,7 @@
 id: 138
 title: Fixed-height board cards with kind badges and a distinct frontier look
 type: feature
-status: review
+status: done
 branch: feat/138-board-card-faces
 ---
 
