@@ -2,7 +2,7 @@
 id: 146
 title: Leaving Anarchy: a government the people accept, or paying to restore order
 type: feature
-status: ready
+status: red-review
 branch: feat/146-leaving-anarchy
 ---
 
@@ -46,6 +46,12 @@ Follows 145. From `spike/unrest`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_leaving_anarchy::test_a_government_is_refused_above_half_its_limit`, `test_the_unrest_limit_modifier_counts_before_halving`, `test_a_government_at_half_its_limit_ends_anarchy`, `test_outside_anarchy_a_government_has_no_unrest_condition` |
+| AC2 | `test_leaving_anarchy::test_restore_order_pays_and_the_fallback_rules`, `test_order_relief_is_empty_without_relief`, `test_unrest_relief_validation` |
+| AC3 | `test_leaving_anarchy::test_restore_order_error_names_each_reason_and_a_refusal_changes_nothing`, `test_restore_order_waits_for_a_pending_discard` |
+| AC4 | `test_leaving_anarchy::test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine`, `test_the_restore_order_button_hides_without_relief` |
+| AC5 | `test_leaving_anarchy::test_the_bot_restores_order_after_2_counters` |
+| changed | `test_anarchy::test_under_anarchy_only_governments_and_order_cards_play` and `test_the_bot_plays_a_government_first_under_anarchy` lower unrest before Kings plays (AC1's condition); the 145 fixtures moved to `tests/lib/anarchy_case.gd` (Kings' limit 8 → 7, Altar added, relief 6 wealth in the block) |
 
 ## Manual check
 - [ ] In Anarchy with unrest above half Kingship's limit, Kingship in hand refuses with the reason; play Feast and it
