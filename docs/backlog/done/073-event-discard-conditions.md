@@ -2,7 +2,7 @@
 id: 073
 title: Event discard conditions beyond duration
 type: feature
-status: draft
+status: wontfix
 branch: feat/073-event-discard-conditions
 ---
 
@@ -43,3 +43,5 @@ events can be threats the player answers, not only weather to wait out.
 ## Log
 - From 039's follow-ups.
 - Deferred: discard conditions are event-specific; pick them with the harmful event content. Stays `draft`.
+- 2026-10-01: closed as `wontfix` while tidying the backlog. No event has asked for a discard condition since
+  harmful events shipped (072, 083). Re-spec from this file when one does.
