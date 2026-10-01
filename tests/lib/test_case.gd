@@ -275,6 +275,19 @@ func _move_territories(engine: Object, ids: Array, to_zone: String) -> void:
 			engine.zone(to_zone).add(card)
 
 
+## The fastest of runs timings, in microseconds, of calling f calls times (backlog 150). Compare two of these as a
+## ratio, never against a fixed time: the machine's speed cancels out, and best-of-runs drops a busy moment.
+func best_time_usec(f: Callable, calls := 20, runs := 5) -> int:
+	var best := -1
+	for r in runs:
+		var start := Time.get_ticks_usec()
+		for i in calls:
+			f.call()
+		var took := Time.get_ticks_usec() - start
+		best = took if best == -1 or took < best else best
+	return maxi(best, 1)
+
+
 ## Puts a new copy of card id in the hand and returns its uid.
 func put_in_hand(engine: Object, id: String) -> int:
 	var card: CardInstance = engine.create_card(id, "hand", null)

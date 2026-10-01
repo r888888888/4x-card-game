@@ -2,7 +2,7 @@
 id: 150
 title: Make working cards and eureka checks scale linearly with the tableau
 type: feature
-status: ready
+status: red-review
 branch: feat/150-linear-modifiers-and-eurekas
 ---
 
@@ -44,6 +44,11 @@ the whole tableau through a lambda per tech; since 143 put a eureka on every tec
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_engine_scaling::test_buildings_past_their_territorys_pop_are_idle_when_interleaved` (guard: passes before and after) |
+| AC2 | `test_engine_scaling::test_with_population_off_every_building_works` (guard) |
+| AC3 | `test_engine_scaling::test_modifiers_scale_linearly_with_the_tableau` |
+| AC4 | `test_engine_scaling::test_a_met_eureka_check_does_not_grow_with_the_tableau` |
+| AC5 | `test_eurekas` (unchanged) |
 
 ## Log
 - 2026-10-01: from `spike/sim-speed` (profiling and micro-benchmarks in `sim/spike/`).
