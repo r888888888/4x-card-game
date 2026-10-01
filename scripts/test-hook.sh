@@ -2,7 +2,8 @@
 # Claude Code Stop hook: runs the test suite when Claude finishes a turn, and sends
 # failures back to Claude (exit 2) so it keeps working until the suite is green.
 # Skips when nothing relevant changed since the last green run, and while a TDD red
-# checkpoint is waiting for review (.claude/tdd-red exists).
+# checkpoint is waiting for review (.claude/tdd-red exists). On a spike/ branch it only
+# reports failures: spikes are exploratory and carry no tests (docs/development-process.md).
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -25,6 +26,10 @@ if output="$(scripts/test.sh 2>&1)"; then
 fi
 
 summary="$(printf '%s\n' "$output" | tail -1)"
+if [[ "$(git branch --show-current 2>/dev/null)" == spike/* ]]; then
+	jq -n --arg m "Spike branch: tests failing ($summary); not blocking." '{systemMessage: $m}'
+	exit 0
+fi
 if [[ "$(printf '%s' "$input" | jq -r '.stop_hook_active // false')" == "true" ]]; then
 	# Already blocked once this turn: don't loop, just tell the user.
 	jq -n --arg m "Tests still failing ($summary). Run scripts/test.sh for details." '{systemMessage: $m}'

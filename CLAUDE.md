@@ -47,6 +47,14 @@ If the user asks for a behavior change with no backlog item, create one with the
 (a small one is fine) unless they say to skip it. Trivial non-behavioral edits (typos, comments,
 docs, renames with no behavior change) need no item and no new test.
 
+**Spikes** are the exception to all of the above: when the user asks for a spike (exploration, a
+prototype, "try X"), work on a `spike/<topic>` branch from `main` with no item, no spec and no tests;
+the TDD rules below don't apply there. End with a summary of what was tried and learned, plus a
+recommendation (in the item's Design notes if the spike came from an item). Spikes stay unmerged by
+default; real work is rebuilt test-first on an item branch. Merge a spike only when the user asks,
+the suite is green, and it changes nothing in `engine/`, `autoload/` or the loader. Details:
+[docs/development-process.md](docs/development-process.md#spikes).
+
 Balance is a separate, later step. A feature, bug or content item doesn't run the `balance` skill or the sim, and
 doesn't tune numbers beyond what its criteria set; note balance worries in the item's Log instead. Balancing happens
 in a dedicated balance item, or when the user asks.
@@ -82,7 +90,8 @@ in a dedicated balance item, or when the user asks.
 - Details: [docs/testing.md](docs/testing.md).
 
 ## Git
-- One branch per item: `feat/<id>-<slug>` or `fix/<id>-<slug>`, from `main`.
+- One branch per item: `feat/<id>-<slug>` or `fix/<id>-<slug>`, from `main`. Spikes: `spike/<topic>`;
+  commit on them freely (messages `spike: <summary>`).
 - You may create the item branch and commit on it without asking: once at the red checkpoint
   (the failing tests), then at each green point (suite green). Messages: `<id>: <summary>` plus the attribution trailer.
 - Ask before merging to `main`, pushing, rebasing, amending, or deleting branches.

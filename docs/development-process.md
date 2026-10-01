@@ -57,14 +57,15 @@ Ask in plain language:
 - *"Bug: with seed 42, playing Caravan on turn 3 gives 0 food."* → the `spec` skill, bug template.
 - *"Implement 004"* or `/tdd 004` → the `tdd` skill.
 - *"Spec and build it; I'll review at the red checkpoint."* → both, in sequence.
+- *"Spike: try a hex map."* → a `spike/` branch, no item (see [Spikes](#spikes)).
 
 ## Guardrails
 
 - **Stop hook** ([scripts/test-hook.sh](../scripts/test-hook.sh)): when Claude finishes a turn after
   changing code, tests, or data, the suite runs. Failures go back to Claude, which must fix them
   before it stops. The hook is skipped when nothing relevant changed, and it is paused while
-  `.claude/tdd-red` exists (the red checkpoint, where failures are expected). It blocks at most
-  once per turn, so it can't loop.
+  `.claude/tdd-red` exists (the red checkpoint, where failures are expected). On a `spike/` branch
+  it reports failures without blocking. It blocks at most once per turn, so it can't loop.
 - **The runner fails loudly**: parse errors, runtime errors inside a test, tests with no assertions,
   and filters that match nothing all count as failures.
 - **Approved tests are a contract**: Claude may not weaken them to get green; it has to stop and ask.
@@ -82,9 +83,25 @@ Ask in plain language:
 
 ## Spikes
 
-When the right design is unclear, Claude may prototype on a `spike/<topic>` branch without tests to
-learn. Spike code never merges: the findings go into the backlog item's Design notes, and the real
-change is rebuilt test-first.
+A spike is an exploratory branch for learning: trying a design, a library, a UI idea or a rule change
+to see how it feels. Ask for one in plain language (*"Spike: what would a hex map look like?"*).
+
+- **No spec, no tests.** A spike needs no backlog item and no acceptance criteria, and the TDD rules
+  don't apply on it. Claude branches `spike/<topic>` from `main` (in a worktree if another session is
+  live in the checkout) and commits on it freely.
+- **The Stop hook doesn't block.** On a `spike/` branch it still runs the suite but only reports
+  failures; it doesn't send Claude back to fix them.
+- **Findings, not code, are the output.** Claude ends a spike with a short summary: what was tried,
+  what was learned, and a recommendation. If the spike started from a backlog item, the summary goes
+  in that item's Design notes; otherwise it goes in a new item (via the `spec` skill) when you want
+  to pursue it, or nowhere if the idea is dropped.
+- **Merging is the exception.** Spike branches stay unmerged by default. When the work should land,
+  it's rebuilt on an item branch test-first (Claude may copy spike code across while doing so, but
+  the tests come first). You may still ask to merge a spike as-is when it changes no rules, e.g.
+  tooling, docs or a UI experiment you liked, provided the suite is green. Untested changes to
+  `engine/`, `autoload/` or the loader never merge.
+- **Cleanup.** Claude asks before deleting a spike branch, as with any branch. Keeping one around
+  for reference is fine.
 
 ## Files
 
