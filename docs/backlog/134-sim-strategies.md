@@ -2,7 +2,7 @@
 id: 134
 title: The balance sim plays several strategies, per civilization
 type: feature
-status: in-progress
+status: review
 branch: feat/134-sim-strategies
 ---
 
@@ -14,21 +14,21 @@ named strategies as every listed civilization and reports each, so a balance cha
 or hurts.
 
 ## Acceptance criteria
-- [ ] AC1: `ScriptedBot.STRATEGIES` is `["baseline", "growth", "wealth", "wide", "tall"]`. `ScriptedBot.play(engine)`
+- [x] AC1: `ScriptedBot.STRATEGIES` is `["baseline", "growth", "wealth", "wide", "tall"]`. `ScriptedBot.play(engine)`
   plays "baseline", which is today's bot: for the same seed and data, `play(e)` and `play(e2, "baseline")` end with
   the same score, resources and tableau. An unknown strategy name plays nothing and returns false.
-- [ ] AC2 (growth, safe): Given a strategy other than baseline, a settled territory with housing room and enough food
+- [x] AC2 (growth, safe): Given a strategy other than baseline, a settled territory with housing room and enough food
   to grow, when the bot is done playing cards for the turn, then it grows, one pop at a time, while the next upkeep
   would still feed everyone (`upkeep_forecast().starve` stays 0) — e.g. Homeland at 1 pop, 10 food, nobody's food
   upkeep: it grows to its housing. "baseline" never grows (pop stays at 1).
-- [ ] AC3 (growth): the growth strategy plays a card whose upkeep makes food before other playable cards (Farm before
+- [x] AC3 (growth): the growth strategy plays a card whose upkeep makes food before other playable cards (Farm before
   Shrine in the same hand), and grows the territory with the lowest grow cost first.
-- [ ] AC4 (wealth): the wealth strategy plays a card that makes wealth (on play or upkeep) before other playable
+- [x] AC4 (wealth): the wealth strategy plays a card that makes wealth (on play or upkeep) before other playable
   cards, and after its plays buys the cheapest affordable open supply card that makes wealth, once a turn.
-- [ ] AC5 (wide vs tall): the wide strategy plays a card that explores or settles before other playable cards and grows
+- [x] AC5 (wide vs tall): the wide strategy plays a card that explores or settles before other playable cards and grows
   the lowest-pop territory first. The tall strategy never plays a settling card once it has 2 settled territories, plays
   food-upkeep cards first, and grows the territory with the most housing first.
-- [ ] AC6 (report): `SimStats.run(cards, config, seeds, strategy := "baseline", civ := "")` plays each game with that
+- [x] AC6 (report): `SimStats.run(cards, config, seeds, strategy := "baseline", civ := "")` plays each game with that
   strategy as that civilization (`new_game(seed, civ)`; "" is the default). `scripts/sim.sh [seeds] [strategy]` with no
   strategy prints, for each strategy, the mean score per listed civilization and the strategy's mean of every metric
   over all civilizations; with a strategy, the current one-table output for it. The balance skill still works on it.
@@ -71,3 +71,8 @@ or hurts.
 - Green: two approved tests miscounted turn 1's upkeep (it runs in new_game); with the user's OK their starting food
   changed (starve test 10 -> 9, tall test 2 -> 0), assertions unchanged. A strategy whose first-choice territory
   can't grow (too expensive, or the next upkeep would starve) grows its next choice instead (user confirmed).
+- Real data, 20 seeds, mean score (all civilizations): baseline 318, growth 231, wealth 145, wide 289, tall 128;
+  baseline matches `main` exactly. ~4 minutes for the full report. Balance findings for a balance item:
+  growing pop scores less than spending the food on Settlers (growth < baseline, tall last with ~9 pop); the wealth
+  bot buys out the wealth piles (bought 17.7) and starves its own growth; baseline has a civilization/seed with 0
+  cities and score 28 (min), worth finding.
