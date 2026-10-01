@@ -2,7 +2,7 @@
 id: 148
 title: Revolution events: choose to start Anarchy
 type: feature
-status: ready
+status: red-review
 branch: feat/148-revolution-events
 ---
 
@@ -45,6 +45,11 @@ for unrest to boil over. Follows 145–147. From `spike/unrest`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_revolution::test_an_event_with_revolt_loads_and_says_so`, `test_revolt_validation` |
+| AC2 | `test_revolution::test_revolting_starts_anarchy_with_renewal_owed_at_once` |
+| AC3 | `test_revolution::test_revolt_error_names_each_reason_and_a_refusal_changes_nothing`, `test_revolt_waits_for_a_pending_discard` |
+| AC4 | `test_revolution::test_the_revolt_button_shows_while_you_may_revolt` |
+| AC5 | `test_revolution::test_the_bot_revolts_when_a_government_in_hand_ends_it_at_once`, `test_the_bot_doesnt_revolt_without_such_a_government` |
 
 ## Manual check
 - [ ] When Calls for Reform is drawn, the Revolt button appears below the Realm; clicking it starts Anarchy and opens
