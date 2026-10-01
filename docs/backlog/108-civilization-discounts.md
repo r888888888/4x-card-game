@@ -30,10 +30,16 @@ Fixtures: a test civilization with `discounts: [{"type": "tech", "wealth": 1}]`,
 ## Out of scope
 - Discounts from governments, techs or buildings (the lookup should make that easy later, but no content uses it).
 - Card text for discounts beyond one generated line per entry, e.g. "Techs cost 1 less wealth."
+- Discounting actions: a card played from hand always uses 1 action (127); `play_cost` covers resources only.
 
 ## Design notes
-- New `CardDef` field `discounts` (civilization only, via `TYPE_FIELDS`). New module (e.g. `engine/discounts.gd`),
-  since `game_engine.gd` is at 675/700 lines; `game_engine.gd` only gets the `play_cost` delegate.
+- New `CardDef` field `discounts` (civilization only, via `TYPE_FIELDS`). New module (e.g. `engine/discounts.gd`);
+  `game_engine.gd` only gets the `play_cost` delegate (after 125's split).
+- Discounts stay their own field, not a key of 129's `modifiers`: an entry needs a filter, not just a number. When
+  discounts spread to other card types, collect them over the same cards as `Modifiers.total` (working tableau,
+  `ALWAYS_ON_ZONES`, active events).
+- With the action economy (127), resources pile up and actions are the bottleneck, so a discount is worth less than
+  when this was written; note it for the balance item rather than raising the amounts here.
 - Card text is generated: "Techs cost 1 less wealth.", "Wonders cost 3 less wealth.", "Supply cards cost 1 less
   wealth."
 - UI shows the discounted cost where it shows a live cost (hand cards, supply prices, tech costs), by calling the
@@ -49,3 +55,4 @@ Fixtures: a test civilization with `discounts: [{"type": "tech", "wealth": 1}]`,
   Pyramids show 9 wealth in hand.
 
 ## Log
+- 2026-09-30: noted the action economy (127) and 129's `modifiers`; scope and criteria unchanged.
