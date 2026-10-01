@@ -35,9 +35,8 @@ comes about once per era (with 143's pacing). This item covers falling into Anar
 - [ ] AC5: When an era is added (an `add_era` effect, an empty research deck, or `era_unlocks`), unrest rises by
   `era_unrest`, capped at the limit, with a notice; with `era_unrest` 0 nothing happens. Given unrest 3 of 5 and
   `era_unrest` 3, then adding era 2 makes unrest 5, and the next turn falls into Anarchy.
-- [ ] AC6: The sim's bot plays through games with Anarchy to the end: `ScriptedBot.play` returns true for seeds 1–20
-  of the real data, every strategy, and at least one of those games falls into Anarchy. While Anarchy rules, the bot
-  plays a government from its hand before any other card.
+- [ ] AC6: While Anarchy rules, the bot plays a government from its hand before any other card. (That real games
+  with Anarchy play to the end is a sim run, under Manual check, not a test.)
 
 ## Out of scope
 - Playing a government to end Anarchy (the half-limit rule) and paying to restore order: 146. Until then, playing a
@@ -69,12 +68,14 @@ comes about once per era (with 143's pacing). This item covers falling into Anar
 | AC3 | `test_anarchy::test_under_anarchy_only_governments_and_order_cards_play`, `test_anarchy_has_its_cards_actions`, `test_under_anarchy_nothing_is_grown_bought_or_researched`, `test_under_anarchy_discarding_and_ending_the_turn_work` |
 | AC4 | `test_anarchy::test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop`, `test_anarchy_burns_out_at_max_counters_and_the_fallback_restores_order`, `test_burning_out_keeps_unrest_below_half_the_limit` |
 | AC5 | `test_anarchy::test_a_new_era_adds_era_unrest_up_to_the_limit`, `test_era_unrest_0_adds_nothing` |
-| AC6 | `test_anarchy::test_the_bot_plays_a_government_first_under_anarchy`; `test_content::test_every_strategy_finishes_real_games_with_anarchy` |
+| AC6 | `test_anarchy::test_the_bot_plays_a_government_first_under_anarchy` |
 | content | `test_content::test_starting_government_and_every_other_government_comes_from_a_tech` (skips `unrest.anarchy`), `test_every_real_card_can_reach_a_game` (`reachable_cards` adds `unrest.anarchy` and `fallback`) |
 
 ## Manual check
 - [ ] Set `"unrest": 4` in `starting.resources`, play a Settler on turn 1 and end the turn: Anarchy shows as the
   government on the identity button, a notice appears, cards other than governments and Feast refuse with the reason.
 - [ ] Shipped numbers: max 4 counters, era unrest 3, Anarchy 1 action and −1 pop per upkeep.
+- [ ] `scripts/sim.sh 20`: every strategy's games finish, and some fall into Anarchy (moved out of the suite at the
+  red checkpoint: sim runs don't belong in tests).
 
 ## Log

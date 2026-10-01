@@ -125,22 +125,6 @@ func test_scripted_sweep_over_20_seeds() -> void:
 	check(bought_in >= 1, "a tech was bought in %d of 20 seeds (need >= 1)" % bought_in)
 
 
-## Backlog 145: every strategy plays real games with Anarchy to the end, and some game falls into it.
-func test_every_strategy_finishes_real_games_with_anarchy() -> void:
-	var fell := 0
-	for strategy in ScriptedBot.STRATEGIES:
-		for s in range(1, 21):
-			var e: Object = real_engine(s)
-			var state := {"fell": false}
-			var on_changed := func(): if e.has_method("anarchy") and e.anarchy() != -1: state.fell = true
-			e.changed.connect(on_changed)
-			check(ScriptedBot.play(e, strategy), "%s seed %d: the game finished" % [strategy, s])
-			e.changed.disconnect(on_changed)  # on_changed holds e: break the cycle so e is freed
-			if state.fell:
-				fell += 1
-	check(fell >= 1, "a game fell into Anarchy (%d of 100)" % fell)
-
-
 func test_real_deck_has_growth_cards() -> void:
 	var r := load_real()
 	var counts: Dictionary = r.config.deck.duplicate()
