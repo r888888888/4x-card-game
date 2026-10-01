@@ -2,7 +2,7 @@
 id: 143
 title: Iron Age techs in the tech deck, and research pacing
 type: feature
-status: in-progress
+status: review
 branch: feat/143-iron-age-and-research-pacing
 ---
 
@@ -13,15 +13,15 @@ turn 18 and the Bronze Age around turn 50 of 100. The sim reports when each era 
 checked rather than guessed. Follows 139–142; the targets come from `spike/research-insight`.
 
 ## Acceptance criteria
-- [ ] AC1: `SimStats.run` reports, for each era with techs in the research deck, `era_<n>_open` (the turn era n was
+- [x] AC1: `SimStats.run` reports, for each era with techs in the research deck, `era_<n>_open` (the turn era n was
   added; 1 for era 1) and `era_<n>_done` (the turn its last tech was researched, or the turn limit if it never
   was), as mean / min / max like the other metrics. Given fixture data with a 2-tech era 1 and a bot that learns
   both on turn 1, then `era_1_done` min is 1; given a tech it can never afford, then `era_1_done` is the turn limit.
-- [ ] AC2 (content invariant): every tech in `research_deck` with a `prereq` has that prereq in `research_deck`, in
+- [x] AC2 (content invariant): every tech in `research_deck` with a `prereq` has that prereq in `research_deck`, in
   the same era or an earlier one.
-- [ ] AC3 (content invariant): every era above 1 that has techs in `research_deck` is added by an `add_era` effect on
+- [x] AC3 (content invariant): every era above 1 that has techs in `research_deck` is added by an `add_era` effect on
   a tech of an earlier era, or by `era_unlocks`.
-- [ ] AC4 (content invariant): every eureka's `card` is a card the player can get (in `deck` or `supply`, or created
+- [x] AC4 (content invariant): every eureka's `card` is a card the player can get (in `deck` or `supply`, or created
   by some card's effect), and every eureka's `tag` is on at least one such card.
 
 ## Out of scope
@@ -62,3 +62,17 @@ checked rather than guessed. Follows 139–142; the targets come from `spike/res
   its techs are locked until their prereqs are researched.
 
 ## Log
+- 2026-10-01: Built. `SimStats` reports `era_<n>_open` / `era_<n>_done` per era with techs (an era never opened or
+  finished reports the last turn played); `sim/tempo.gd` was not brought over. Data: the 6 era-3 techs join
+  `research_deck`; Writing adds era 3; every tech has the spike's eureka, sized by era as agreed at the red checkpoint
+  (−2 / −4 / −6); Engineering also unlocks the Monument pile (agreed: the gives-a-locked-pile invariant).
+  `test_tech_tree_modal`'s real-data column test now derives the columns from `tech_eras()` (agreed).
+- Pacing, `scripts/sim.sh 20`, mean turn each era ran out (growth / wealth / wide / tall; baseline):
+  - era-1 6–10, era-2 15–22 (the spike's): era 1 22.4 / 21.8 / 22.6 / 19.9 (avg 21.7), era 2 49.6 / 69.4 / 49.3 / 59.9
+    (avg 57.0); baseline 29.1 / 64.1.
+  - Shipped, era-1 5–8, era-2 13–19, era-3 27–32 unchanged: era 1 18.4 / 17.3 / 18.3 / 16.4 (avg 17.6), era 2 42.7 /
+    60.4 / 41.6 / 50.1 (avg 48.7), era 3 79.0 / 97.5 / 76.5 / 99.4; baseline 21.3 / 50.8 / 89.3. Era 2 opens around
+    turn 7 (the 8 pop / 15 wealth threshold), era 3 around 26–29.
+- Spread (Design notes): wealth and tall finish era 2 10–20 turns after growth and wide and rarely finish era 3: Insight
+  doesn't grow with the empire. A later item could add an Insight source tied to development (culture buildings).
+

@@ -12,7 +12,7 @@
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077) |
-| Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, buying a revealed tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
+| Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
 
 ## Architecture principle
@@ -279,14 +279,16 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 Techs never enter the main deck. Backlog: 025 (research deck; built; reveal-2 replaced by 140), 026 (passes and the
 prerequisite discount; built, removed by 140), 139 (Insight pays for techs; built), 140 (open tech tree; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
 Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built), 058 (Stone Age → Bronze
-Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 techs defined but not in the deck).
+Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141–142 (eurekas, diffusion; built), 143
+(Iron Age: 6 era-3 techs in the deck, opened by Writing; eurekas on every tech; pacing; built).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
   (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
   starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Lumber Camp 2,
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles
   with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
-- Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 6–10, era 2 15–22); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
+- Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 5–8, era 2 13–19, era 3 27–32, set by 143 so era 1 runs out around turn 18 and era 2
+  around 50 in the sim); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Open tree (140): every tech in `research_deck` whose `prereq` is researched can be learned at any time, with no card
   or action: `buy_tech(uid)` pays `tech_cost(uid)` insight, moves the tech to `researched` and resolves its `play`
@@ -301,7 +303,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
   learned; card text "Needs Bronze Working".
 - Eurekas (141): a tech's optional `eureka` (`{"card": "farm" | "tag": "city", "count": 2, "off": 2}`) takes `off`
   insight off while the tableau holds `count` matching cards (idle ones count). Card text "Eureka: -2 insight with 2
-  Farms"; `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.
+  Farms"; real eurekas take 2 insight in era 1, 4 in era 2 and 6 in era 3 (143). `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.
 - Diffusion (142): a tech costs 1 insight less per era added past its own (`Research.diffusion`); the details say
   "−1 older era". `tech_cost` = max(1, printed − civilization discount − eureka − diffusion).
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
