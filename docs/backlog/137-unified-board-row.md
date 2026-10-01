@@ -2,7 +2,7 @@
 id: 137
 title: One board row for events, frontier and realm; known techs leave the board
 type: feature
-status: ready
+status: red-review
 branch: feat/137-unified-board-row
 ---
 
@@ -52,6 +52,18 @@ them. Prototyped on `spike/unified-tableau` (commit d63e3e8 and the row order in
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_board_row::test_events_then_frontier_then_the_realm_share_one_row` |
+| AC2 | `test_board_row::test_the_only_section_headings_are_realm_and_hand` |
+| AC3 | `test_board_row::test_a_bought_tech_has_no_view_on_the_board` |
+| AC4 | `test_board_row::test_settling_a_frontier_territory_keeps_its_view_and_moves_it_into_the_realm` |
+| AC5 | `test_board_row::test_a_city_dropped_on_a_frontier_card_in_the_row_targets_it`, `test_board_row::test_a_frontier_card_explains_the_frontier_in_its_tooltip` |
+| AC6 | `test_board_row::test_relieve_shows_during_a_famine_with_no_events_heading`; turns left and row order: `test_event_panel::test_event_view_shows_its_turns_left`, `test_event_views_match_the_active_events_after_every_turn` (kept) |
+
+Removed as superseded (old layout): `test_board_labels::test_realm_frontier_known_and_hand_are_stacked_in_that_order`,
+`test_board_labels::test_frontier_heading_is_one_word_with_the_explanation_as_its_tooltip`,
+`test_event_panel::test_the_events_heading_names_no_pile_counts`, `test_event_panel::test_the_events_section_shows_only_while_an_event_is_active`,
+`test_card_slots::test_bug_075_known_slot_starts_at_compact_height`. Narrowed: `test_board_labels::test_research_choice_is_titled_knowledge`
+(was `…_and_the_researched_row_known`; the Known heading check goes).
 
 ## Manual check
 - [ ] Early game (seed 5, a few turns): events and frontier lead the row; settling a frontier territory moves it into
