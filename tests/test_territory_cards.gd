@@ -226,3 +226,69 @@ func test_many_territories_wrap_instead_of_widening_the_realm() -> void:
 		eq(realm_uids(main).size(), 9, "9 territory cards")
 		var after: float = main.tableau.get_combined_minimum_size().x
 		check(after <= before, "the Realm's minimum width (%d) is no greater than with 1 card (%d)" % [after, before]))
+
+
+
+# --- 123: a settled territory's card ---
+
+const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
+
+
+## The live line a settled territory's card should show (123): "▢ F   ⌂ P/H   ⚒ W", or "▢ F" with population off.
+func live_line(e: GameEngine, uid: int) -> String:
+	if not e.population_on():
+		return "▢ %d" % e.free_slots(uid)
+	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid)]
+
+
+func test_a_settled_territory_card_shows_its_name_keywords_and_live_line_only() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		settle(e, ["hills"])
+		var hills := uid_of(e.zone("tableau"), "hills")
+		e.changed.emit()
+		await wait_frames()
+		eq((main.views[home] as CardView).face_text(), "Homeland\n" + live_line(e, home), "Homeland: no keywords line")
+		eq((main.views[hills] as CardView).face_text(), "Hills\nMountain\n" + live_line(e, hills), "Hills")
+		for uid in [home, hills]:
+			var tip: String = (main.views[uid] as CardView).tooltip_text
+			check(tip.begins_with(e.call("territory_tooltip", uid)), "the tooltip spells it out: %s" % tip), \
+		{"farm": 10}, POP)
+
+
+func test_the_live_line_follows_building_and_growth() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		var farm := put_in_hand(e, "farm")
+		e.resources.food = 20
+		check(e.play_card(farm, home), "build a Farm on Homeland")
+		check(e.grow(home), "grow Homeland")
+		await wait_frames()
+		var text := (main.views[home] as CardView).face_text()
+		check(text.ends_with(live_line(e, home)), "the live line now: %s (want %s)" % [text, live_line(e, home)]), \
+		{"farm": 10}, POP)
+
+
+func test_without_population_the_live_line_is_free_slots_only() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d" % e.free_slots(home), "free slots only"))
+
+
+func test_the_worker_glyph_is_an_icon() -> void:
+	check(Icons.GLYPHS.has("⚒"), "⚒ is drawn as an icon like ▢ and ⌂")
+
+
+func test_frontier_cards_keep_their_printed_slots_and_housing() -> void:
+	await with_fixture_main(func(main: Node):
+		var e := Game.engine
+		to_frontier(e, ["grassland"])
+		var grass := uid_of(e.zone("frontier"), "grassland")
+		e.changed.emit()
+		await wait_frames()
+		var text := (main.views[grass] as CardView).face_text()
+		var def := e.card_db["grassland"] as CardDef
+		check(text.contains("▢%d ⌂%d" % [def.slots, def.housing]), "printed slots and housing: %s" % text))
