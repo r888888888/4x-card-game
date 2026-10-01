@@ -56,7 +56,7 @@ func test_the_realm_shows_one_card_per_territory() -> void:
 		await wait_frames()
 		eq(realm_uids(main), [home, grass] as Array[int], "the two territories, in tableau order")
 		for uid in [home, grass]:
-			eq((main.views[uid] as CardView).slot_size(), board_size(), "territory %d at board size (138)" % uid)
+			eq((main.views[uid] as CardView).slot_size(), CardView.BOARD_SIZE, "territory %d at board size (138)" % uid)
 		for id in ["capital", "farm"]:
 			check(not main.views.has(uid_of(e.zone("tableau"), id)), "no view for the %s" % id)
 		click(main, home)

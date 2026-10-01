@@ -300,8 +300,8 @@ func _draw() -> void:
 		ring.border_color = FOCUS_COLOR
 		ring.set_border_width_all(3)
 		ring.set_corner_radius_all(12)
-		# Outside a hand card; inside any other, where the frontier and tableau scroll boxes would
-		# clip a ring drawn outside it.
+		# Outside a hand card; inside any other, where the Realm's scroll box would clip a ring drawn
+		# outside it.
 		var gap := FOCUS_RING_GAP if in_hand else -FOCUS_RING_GAP
 		draw_style_box(ring, Rect2(Vector2.ZERO, size).grow(gap))
 

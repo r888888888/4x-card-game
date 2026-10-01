@@ -26,7 +26,7 @@ func test_bug_075_frontier_slot_starts_at_board_height() -> void:
 	var scout := e.create_card("scout", "hand", null)
 	check(e.play_card(scout.uid), "Scout played")
 	check(e.choose(e.pending().options[0]), "a territory kept")
-	eq(slot_heights(main, "frontier"), heights(board_size().y, 1), "frontier slot heights (138: board size)")
+	eq(slot_heights(main, "frontier"), heights(CardView.BOARD_SIZE.y, 1), "frontier slot heights (138: board size)")
 	close_main(main)
 
 

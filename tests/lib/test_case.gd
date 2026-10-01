@@ -390,12 +390,6 @@ func board_engine(overrides := {}) -> GameEngine:
 	return GameEngine.new(cards, config)
 
 
-## CardView.BOARD_SIZE (138), read through the script's constants while it doesn't exist yet (red phase; Vector2.ZERO
-## then). Replaced by the constant once it exists.
-func board_size() -> Vector2:
-	return (load("res://ui/card_view.gd") as GDScript).get_script_constant_map().get("BOARD_SIZE", Vector2.ZERO)
-
-
 ## Runs body(main) on the real main scene with Game.engine swapped for engine, started on seed 1 (which re-deals the
 ## same config) and laid out; then puts the real engine back. Use with await.
 func with_main(engine: GameEngine, body: Callable) -> void:

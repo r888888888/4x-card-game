@@ -69,6 +69,6 @@ a dashed border) and events carry a badge, so both are told apart from the realm
 ## Log
 - Red: the fixtures have 3 keyword ids, so "a territory with 4 keywords" is Grassland with 3 rolled keywords
   (Fresh Water, Flood Plain, Mountain). The frontier's printed line keeps 123's "▢N ⌂N" format so its approved test
-  stands. Tests read `CardView.BOARD_SIZE` through `board_size()` (test_case.gd) until it exists; the refactor step
-  replaces it with the constant.
+  stands. Tests read `CardView.BOARD_SIZE` through a `board_size()` helper while it didn't exist; the refactor step
+  replaced it with the constant and removed the helper.
 - `with_main` / `board_engine` (with `BOARD_TERRITORIES`, `HUNGRY_POP`) moved from test_board_row.gd to test_case.gd.

@@ -1,5 +1,5 @@
 extends "res://tests/lib/test_case.gd"
-## Board card faces (backlog 138): every card in the Realm's row rests at board_size() with one line per field
+## Board card faces (backlog 138): every card in the Realm's row rests at CardView.BOARD_SIZE with one line per field
 ## (the rest is in its details); frontier territories and events carry a badge naming what they are. Runs the real
 ## main scene on a board_engine game through with_main. Faces are read with CardView.face_text() (one line per label).
 
@@ -30,8 +30,8 @@ func test_every_card_in_the_row_rests_at_board_size() -> void:
 		var uids: Array[int] = [winds.uid, uid_of(e.zone("frontier"), "hills"), home_uid(e), grass.uid, paddy.uid]
 		for uid in uids:
 			var view: CardView = main.views[uid]
-			eq(view.slot_size(), board_size(), "%s at board size" % view.card_id)
-			eq(view.slot.custom_minimum_size, board_size(), "%s's slot" % view.card_id))
+			eq(view.slot_size(), CardView.BOARD_SIZE, "%s at board size" % view.card_id)
+			eq(view.slot.custom_minimum_size, CardView.BOARD_SIZE, "%s's slot" % view.card_id))
 
 
 # --- AC2: the frontier face ---
@@ -99,7 +99,7 @@ func test_a_settled_frontier_card_switches_to_the_settled_face_at_board_size() -
 		var text := face(main, hills)
 		check(not text.contains("Frontier"), "badge gone: %s" % text)
 		check(text.begins_with("Hills\nMountain\n▢ "), "name, keywords, then the live line: %s" % text)
-		eq((main.views[hills] as CardView).slot_size(), board_size(), "still at board size"))
+		eq((main.views[hills] as CardView).slot_size(), CardView.BOARD_SIZE, "still at board size"))
 
 
 # --- AC5: nothing clipped is lost ---
