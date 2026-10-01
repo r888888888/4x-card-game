@@ -30,6 +30,7 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
   `keyword: flood_plain` (3 on a flood plain). Mine: `gain` wealth 1 on upkeep, replacing its `score` 1 on upkeep.
 - `data/config.json`: drop `irrigation` from `deck`, and swap a Farm for a Barter (`farm` 4 → 3, `barter` 1 → 2):
   17 → 16 starting cards.
+- Every building and tech costs 1 more wealth to play (supply prices unchanged).
 - No engine or format change; card text is generated from the effects.
 
 ## Test plan
@@ -55,3 +56,7 @@ side, Irrigation is gone, a Farm in the starting deck becomes a second Barter, a
   wealth 10 → 23, food surplus at T15 3 → 3. Sumer score 57 → 55, wealth 13 → 41 (+7 a turn from Mines).
   Balance worry: wealth now piles up with too few things to spend it on, and with Mines no longer scoring, the bot's
   score dips. A balance item should look at wealth sinks.
+- The user asked to raise building and tech play costs to soak up the extra wealth: every building's and tech's wealth
+  cost +1 (Farm, Pasture, Lumber Camp, Fishing Huts 2; Quarry, Shrine, Mine, Granary 3; techs 3–7). Supply prices are
+  unchanged. Trace at T15: Egypt score 43 → 39, wealth 23 → 15; Sumer score 55 → 27, wealth 41 → 12. Sumer's opening
+  slows hard (Farms now cost 2 wealth against +1 a turn); a balance item should check whether that's too much.
