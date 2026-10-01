@@ -14,7 +14,7 @@ The bot is fixed and simple, so read the numbers as *relative*: compare against 
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.
 `scripts/sim.sh <seeds>` prints a block per strategy (its mean score per civilization, then its metrics over all of
-them) and takes about 4 minutes at 20 seeds; `scripts/sim.sh <seeds> <strategy>` prints one table for that strategy
+them) and takes about 15 seconds at 20 seeds on 12 cores (152: one process per core; `SIM_PROCS=n` to change); `scripts/sim.sh <seeds> <strategy>` prints one table for that strategy
 as the default civilization (seconds). `baseline` is the pre-134 bot: it never grows pop.
 
 ## Run it

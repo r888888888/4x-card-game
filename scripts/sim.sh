@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs the headless balance simulator on data/*.json. Usage: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n]  (default 20, all)
 # Prints mean, min and max per metric over seeds 1..N (a block per strategy, scored per civilization, 134); exits 1 if the data has loader errors.
+# Plays the games on one process per CPU core (152); SIM_PROCS=n sets how many, SIM_PROCS=1 plays them in one process.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
