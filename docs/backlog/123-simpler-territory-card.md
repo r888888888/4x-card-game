@@ -2,7 +2,7 @@
 id: 123
 title: A settled territory card shows only what you build with: free slots, pop, free workers
 type: feature
-status: red-review
+status: review
 branch: feat/123-simpler-territory-card
 ---
 
@@ -22,21 +22,21 @@ Grassland · Fresh Water
 
 ## Acceptance criteria
 <!-- AC1–AC2: engine tests with TEST_CARDS. AC3–AC6: UI tests in the real main.tscn on TEST_CARDS (territory fixtures). -->
-- [ ] AC1: `GameEngine.territory_status(uid)` for a settled territory returns {free_slots, total_slots, pop, housing,
+- [x] AC1: `GameEngine.territory_status(uid)` for a settled territory returns {free_slots, total_slots, pop, housing,
   free_workers} from the existing rules; {} for anything else. Given Homeland (5 slots) with a Capital (+slots) and
   pop 2, then free_slots and total_slots match `free_slots` / `total_slots`, and free_workers is 2; after building a
   Farm on it, free_slots and free_workers each drop by 1.
-- [ ] AC2: `GameEngine.territory_tooltip(uid)` for a settled territory is, one per line: "Building slots: F free of
+- [x] AC2: `GameEngine.territory_tooltip(uid)` for a settled territory is, one per line: "Building slots: F free of
   T", then with population on "Pop P, housing H" and "Free workers: W (each building needs one)", then "Keywords: …"
   when it has any (rolled resources included, as today). Population off: no pop or worker line.
-- [ ] AC3: A settled territory's card in the Realm shows its name, its keyword line ("Grassland · Fresh Water", rolled
+- [x] AC3: A settled territory's card in the Realm shows its name, its keyword line ("Grassland · Fresh Water", rolled
   resources after " + "; no line when it has none), and the live line "▢ F   ⌂ P/H   ⚒ W" (F free slots, P pop, H
   housing, W free workers), and nothing else: no type line, no printed "▢3 ⌂5", no "slots used". Its tooltip is
   `territory_tooltip`.
-- [ ] AC4: The live line follows the game: build a Farm there and it shows one fewer free slot and free worker; grow
+- [x] AC4: The live line follows the game: build a Farm there and it shows one fewer free slot and free worker; grow
   and P rises. With population off it is just "▢ F".
-- [ ] AC5: "⚒" is drawn as an icon like "▢" and "⌂" (`Icons.GLYPHS`, a new `assets/icons/worker.svg`).
-- [ ] AC6: The territory view's header shows the same live line (`stats_text()`); Frontier cards are unchanged:
+- [x] AC5: "⚒" is drawn as an icon like "▢" and "⌂" (`Icons.GLYPHS`, a new `assets/icons/worker.svg`).
+- [x] AC6: The territory view's header shows the same live line (`stats_text()`); Frontier cards are unchanged:
   "▢3 ⌂5 · keywords", the printed numbers you compare when choosing where to settle (guard).
 
 ## Out of scope
@@ -64,3 +64,12 @@ Grassland · Fresh Water
 - [ ] The worker icon reads as a worker next to the slot and housing icons.
 
 ## Log
+- Engine: `territory_status` / `territory_tooltip` live in `Territories` (`status`, `tooltip`), with one-line wrappers
+  on `GameEngine`, which is now at 694/700 lines: the next engine item should split it first.
+- UI: a territory's face is built as before (Frontier, explore choices keep "▢3 ⌂5 · keywords"); main turns each
+  settled Realm territory's face into the settled one with `CardView.show_settled(keywords, live, tooltip)`.
+  `CardFace.text()` skips hidden labels (Homeland's empty keyword line). The territory view's stats line is a
+  RichTextLabel drawing the icons. New `assets/icons/worker.svg` (a hammer) for "⚒".
+- Missed at the red checkpoint: two older tests in `test_territory_cards` (`test_a_territory_card_shows_its_slots_and_pop`,
+  `test_settling_adds_a_territory_card_that_opens_with_its_city`) checked the old "N / M slots" and "Pop P / H" text;
+  updated to the live line, which AC3 replaces it with.
