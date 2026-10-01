@@ -89,13 +89,13 @@ func test_a_territory_card_shows_its_slots_and_pop() -> void:
 		var e := Game.engine
 		var home := home_uid(e)
 		var text: String = main.views[home].face_text()
-		var used := e.total_slots(home) - e.free_slots(home)
-		check(text.contains("%d / %d slots" % [used, e.total_slots(home)]), "slots in: %s" % text)
-		check(text.contains("Pop %d / %d" % [e.pop(home), e.housing(home)]), "pop in: %s" % text)
+		var free := e.free_slots(home)
+		check(text.contains("▢ %d" % free), "free slots in: %s" % text)  # the live line since 123
+		check(text.contains("⌂ %d/%d" % [e.pop(home), e.housing(home)]), "pop in: %s" % text)
 		build_on(e, home, ["farm"])
 		e.changed.emit()
 		text = main.views[home].face_text()
-		check(text.contains("%d / %d slots" % [used + 1, e.total_slots(home)]), "one more slot used: %s" % text), \
+		check(text.contains("▢ %d" % (free - 1)), "one fewer free slot: %s" % text), \
 		{"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}})
 
 
@@ -202,7 +202,7 @@ func test_settling_adds_a_territory_card_that_opens_with_its_city() -> void:
 		check(e.play_card(pioneer, grass), "settle Grassland")
 		await wait_frames()
 		eq(realm_uids(main), [home, grass] as Array[int], "a new card for Grassland")
-		check(main.views[grass].face_text().contains("slots"), "with its stats")
+		check(main.views[grass].face_text().contains("▢ "), "with its live line (123)")
 		click(main, grass)
 		await wait_frames()
 		var city := -1

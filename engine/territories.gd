@@ -105,6 +105,27 @@ static func summary(e: GameEngine, uid: int) -> Dictionary:
 	return {"cities": cities, "buildings": buildings.size(), "idle": buildings.filter(func(b): return e.is_idle(b.uid)).size()}
 
 
+static func status(e: GameEngine, uid: int) -> Dictionary:
+	if summary(e, uid).is_empty():
+		return {}
+	return {"free_slots": e.free_slots(uid), "total_slots": e.total_slots(uid), "pop": e.pop(uid),
+		"housing": e.housing(uid), "free_workers": e.free_workers(uid)}
+
+
+static func tooltip(e: GameEngine, uid: int) -> String:
+	var s := status(e, uid)
+	if s.is_empty():
+		return ""
+	var lines: PackedStringArray = ["Building slots: %d free of %d" % [s.free_slots, s.total_slots]]
+	if e.population_on():
+		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
+		lines.append("Free workers: %d (each building needs one)" % s.free_workers)
+	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
+	if not keywords.is_empty():
+		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
+	return "\n".join(lines)
+
+
 static func groups(e: GameEngine) -> Array[Dictionary]:
 	var members := {}  # territory uid or -1 -> Array[int]
 	for card in e.zone("tableau").cards:
