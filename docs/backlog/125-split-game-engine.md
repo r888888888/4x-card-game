@@ -2,7 +2,7 @@
 id: 125
 title: Split the effect hooks and internals out of GameEngine
 type: feature
-status: review
+status: done
 branch: feat/125-split-game-engine
 ---
 
