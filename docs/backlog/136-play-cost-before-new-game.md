@@ -2,7 +2,7 @@
 id: 136
 title: Clicking a civilization on the new game screen errors in play_cost
 type: bug
-status: red-review
+status: in-progress
 branch: fix/136-play-cost-before-new-game
 ---
 
