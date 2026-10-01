@@ -159,10 +159,13 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or
   by terrain (130); a territory's own table wins over its terrain's, and a key can't be both. No table, no roll.
-  Iron counts as everywhere, so it isn't a keyword (036). Shipped: gold, tin and copper on Hills and
-  Highlands; Forge scores +1 VP each upkeep on copper and on tin (037).
+  Iron counts as everywhere, so it isn't a keyword (036). Shipped: gold, tin and copper on the hills
+  and mountain terrains; Forge scores +1 VP each upkeep on copper and on tin (037).
 - Territory slots and housing follow the land (038): fertile river land has high housing, flat land more
-  slots, and rough terrain (hills, mountain, jungle, desert) low on both, to be made up by keywords.
+  slots, and rough terrain (hills, mountain, marsh, desert) low on both, to be made up by keywords.
+- Shipped set (131): six terrains (grassland, forest, hills, mountain, desert, marsh) times the features fresh water,
+  flood plain (always with fresh water) and coastal; every keyword is on at least 2 territory types. Slots/housing come
+  from a terrain base plus +1 housing per feature (flood plain also −1 slot, min 1), until a balance pass.
 - Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
@@ -198,7 +201,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 002 done: explore, frontier, choice panel; 003 done: settle, card targets, targeting UI; 004 done: building slots; 005 done: keyword requires and bonuses; 006: content in, playtesting next).
 
 - **Territory cards**: `type: "territory"`, with `slots` (building capacity) and `keywords`
-  (Fresh Water, Flood Plain, Mountain, Jungle, …). They come from a separate `territory_deck` zone.
+  (a terrain such as Hills or Desert, plus features such as Fresh Water or Coastal). They come from a separate `territory_deck` zone.
 - **Explore** (`explore` op, e.g. on Scout): reveal the top 2 territories and pick 1. The pick goes
   to the **frontier** zone (discovered, unclaimed); the other goes to the bottom of the territory
   deck. Play and end turn are blocked while the choice is pending. With 1 territory left it is

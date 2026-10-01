@@ -2,7 +2,7 @@
 id: 131
 title: A realistic, orthogonal territory set (terrain × features)
 type: content
-status: in-progress
+status: review
 branch: feat/131-orthogonal-territory-set
 ---
 
@@ -16,11 +16,11 @@ Depends on 130 (`terrains`, terrain-keyed roll tables).
 ## Acceptance criteria
 Invariants of the real data in `tests/test_content.gd` (no card or keyword ids in the tests):
 
-- [ ] AC1: the real config sets `terrains` (at least 5) and the real data loads without errors or warnings (so every
+- [x] AC1: the real config sets `terrains` (at least 5) and the real data loads without errors or warnings (so every
   territory card prints exactly one terrain, by 130).
-- [ ] AC2: every keyword in config `keywords` (terrain or feature) is printed on at least 2 different territory types
+- [x] AC2: every keyword in config `keywords` (terrain or feature) is printed on at least 2 different territory types
   in play (the starting territory or a `territory_deck` entry).
-- [ ] AC3: the existing keyword invariants still hold on the new set: every keyword is on a territory and used by a
+- [x] AC3: the existing keyword invariants still hold on the new set: every keyword is on a territory and used by a
   card; every resource keyword is rolled and used; every territory can take a starting-deck or open-supply building;
   every building requirement and `gain_per_keyword` keyword is met by a territory in play.
 
@@ -75,7 +75,7 @@ slot (min 1); `coastal` +1 housing. Every type then has housing ≥ 2 (`populati
 - [ ] Slots/housing follow the provisional rule: Plains 3/4, River Meadow 3/5, Alluvial Plain 2/6, Coastal Plain 3/5,
   Dunes 1/2, Oasis 1/3, Desert Floodplain 1/4, Reed Marsh 1/4, Delta Marsh 1/6, Woodland 2/3, Lakeside Woods 2/4, Cedar
   Coast 2/5, Hill Country 2/3, Highland Valley 2/4, Coastal Hills 2/5, Mountains 1/2, Mountain Lake 1/3.
-- [ ] Territory deck: 3 of each type, 4 of Plains, Woodland, Hill Country and Mountains (52 cards).
+- [ ] Territory deck: 3 of each type, 4 of Plains, Woodland, Hill Country and Mountains (55 cards).
 - [ ] Every hills- and mountain-terrain copy in a game can roll metals; other terrains never do.
 - [ ] Explore still offers a mix: play a few games and note in the Log whether shared-terrain weighting (061) now
   clusters reveals too strongly.
@@ -87,3 +87,4 @@ slot (min 1); `coastal` +1 housing. Every type then has housing ≥ 2 (`populati
   `Territories.resource_table(config, def)` (extracted from `make`, no behavior change) so terrain-keyed tables count.
 - Balance worry: Egypt's per-fresh-water food bonus and Phoenicia's per-coastal wealth bonus count more territory
   types than before (fresh water is on 9 types, coastal on 4). Leave for the balance item.
+- Green: 891 → 893 tests. Deck is 55 cards, not the 52 first written (17 types: 13 × 3 + 4 × 4).
