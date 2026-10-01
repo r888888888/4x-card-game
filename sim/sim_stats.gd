@@ -1,32 +1,42 @@
 class_name SimStats
 extends RefCounted
-## Plays one ScriptedBot game per seed and summarizes the results (backlog 042). Used by sim/run.gd
+## Plays one ScriptedBot game per seed and summarizes the results (backlog 042); per strategy and civilization (134). Used by sim/run.gd
 ## (scripts/sim.sh) and the balance skill.
 
 const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored"]
 
 
-## Plays one game per seed and returns {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how
-## many turns the territory deck lasted: the turn it ran out, or the last turn played if it never did.
-static func run(cards: Dictionary, config: Dictionary, seeds: Array) -> Dictionary:
+## Plays one game per seed with strategy (a ScriptedBot.STRATEGIES name, 134) as civ ("" for the default) and returns
+## {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how many turns the territory deck lasted:
+## the turn it ran out, or the last turn played if it never did.
+static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := "baseline", civ := "") -> Dictionary:
+	return _summaries(_values(cards, config, seeds, strategy, civ))
+
+
+## {metric: [one value per seed]} for games with strategy as civ.
+static func _values(cards: Dictionary, config: Dictionary, seeds: Array, strategy: String, civ: String) -> Dictionary:
 	var values := {}
 	for m in METRICS:
 		values[m] = []
 	for s in seeds:
 		var engine := GameEngine.new(cards, config)
-		engine.new_game(s)
+		engine.new_game(s, civ)
 		var explored := [0]  # the turn the territory deck ran out (066); 0 until it does
 		var on_changed := func():
 			if explored[0] == 0 and engine.zone("territory_deck").is_empty():
 				explored[0] = engine.turn
 		engine.changed.connect(on_changed)
 		on_changed.call()  # an empty territory deck from the start
-		ScriptedBot.play(engine)
+		ScriptedBot.play(engine, strategy)
 		engine.changed.disconnect(on_changed)  # on_changed holds engine: break the cycle so it is freed
 		var game := game_metrics(engine, config)
 		game.explored = explored[0] if explored[0] > 0 else engine.turn
 		for m in METRICS:
 			values[m].append(game[m])
+	return values
+
+
+static func _summaries(values: Dictionary) -> Dictionary:
 	var stats := {}
 	for m in METRICS:
 		stats[m] = _summary(values[m])
@@ -49,18 +59,44 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 	}
 
 
-## Loads the data files and runs seeds 1..seed_count. Returns {code, lines}: code 0 and one line per metric,
-## or code 1 and the loader errors.
-static func run_files(cards_path: String, config_path: String, seed_count: int) -> Dictionary:
+## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines}: code 0 and one line per
+## metric; with strategy "all", a block per strategy: its mean score per listed civilization, then its metrics over all
+## of them. Code 1 and the loader errors (or an unknown strategy).
+static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline") -> Dictionary:
 	var data := DataLoader.load_all(cards_path, config_path)
 	if not data.errors.is_empty():
 		return {"code": 1, "lines": data.errors}
+	if strategy != "all" and not ScriptedBot.STRATEGIES.has(strategy):
+		return {"code": 1, "lines": ["unknown strategy '%s' (one of %s, or all)" % [strategy, ScriptedBot.STRATEGIES]]}
 	var seeds := range(1, seed_count + 1)
-	var stats := run(data.cards, data.config, seeds)
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
+	if strategy != "all":
+		lines.append_array(_metric_lines(run(data.cards, data.config, seeds, strategy)))
+		return {"code": 0, "lines": lines}
+	var civs: Array = data.config.get("civilizations", [])
+	if civs.is_empty():
+		civs = [""]
+	for s in ScriptedBot.STRATEGIES:
+		lines.append("== %s" % s)
+		var all := {}
+		for m in METRICS:
+			all[m] = []
+		var scores: PackedStringArray = []
+		for civ in civs:
+			var values := _values(data.cards, data.config, seeds, s, civ)
+			scores.append("%s %.1f" % [civ if civ != "" else "default", _summary(values.score).mean])
+			for m in METRICS:
+				all[m].append_array(values[m])
+		lines.append("score by civilization: " + ", ".join(scores))
+		lines.append_array(_metric_lines(_summaries(all)))
+	return {"code": 0, "lines": lines}
+
+
+static func _metric_lines(stats: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
 	for m in METRICS:
 		lines.append("%-8s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
-	return {"code": 0, "lines": lines}
+	return lines
 
 
 static func _summary(values: Array) -> Dictionary:

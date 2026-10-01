@@ -82,9 +82,10 @@ func test_strategies_grow_to_housing_when_nobody_eats() -> void:
 
 
 func test_strategies_stop_growing_before_the_next_upkeep_would_starve() -> void:
-	var e := strategy_engine(10, {"population": pop_block(1)})
+	var e := strategy_engine(9, {"population": pop_block(1)})
 	BOT.take_turn(e, "growth")
-	# Capital makes 2 food. Pop 1 -> 2 (food 8) -> 3 (food 5): next upkeep 5 + 2 feeds 3. Pop 4 would leave 1 + 2 for 4.
+	# Turn 1's upkeep: 9 + 2 (Capital) - 1 = 10 food. Pop 1 -> 2 (food 8) -> 3 (food 5): next upkeep 5 + 2 feeds 3.
+	# Pop 4 would leave 1 + 2 for 4.
 	eq(e.pop(home_uid(e)), 3, "home pop")
 	eq(e.upkeep_forecast().get("starve", -1), 0, "nobody starves next upkeep")
 
@@ -157,7 +158,7 @@ func test_tall_stops_settling_at_two_territories() -> void:
 
 
 func test_tall_plays_food_cards_first_and_grows_the_roomiest_territory() -> void:
-	var e := strategy_engine(2)
+	var e := strategy_engine(0)  # turn 1's upkeep: 2 food from the Capital, all spent on the Farm
 	var grassland := settle_grassland(e, 1)
 	put_in_hand(e, "shrine")
 	put_in_hand(e, "farm")

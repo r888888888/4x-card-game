@@ -2,7 +2,7 @@
 id: 134
 title: The balance sim plays several strategies, per civilization
 type: feature
-status: red-review
+status: in-progress
 branch: feat/134-sim-strategies
 ---
 
@@ -68,3 +68,6 @@ or hurts.
 - Red: tests drive the bot one turn at a time with a new `ScriptedBot.take_turn(engine, strategy)` (everything a turn
   does except discarding and ending it). `SimStats.run_files` keeps "baseline" as its default (the existing one-table
   test stays); `scripts/sim.sh` passes "all" when no strategy is given.
+- Green: two approved tests miscounted turn 1's upkeep (it runs in new_game); with the user's OK their starting food
+  changed (starve test 10 -> 9, tall test 2 -> 0), assertions unchanged. A strategy whose first-choice territory
+  can't grow (too expensive, or the next upkeep would starve) grows its next choice instead (user confirmed).
