@@ -2,7 +2,7 @@
 id: 126
 title: Every change to a top-bar counter floats its net change up from that counter
 type: feature
-status: red-review
+status: review
 branch: feat/126-counter-change-tokens
 ---
 
@@ -17,20 +17,20 @@ as it fades, whatever caused it.
 <!-- UI tests in the real main.tscn on TEST_CARDS; tokens are Labels on the fx layer, tweens stepped by hand
 (as test_resource_tokens). "Floats up" = 114 AC1: starts centred just below its counter, x fixed, rises
 Anim.TOKEN_FLOAT_PX, fades to transparent, freed. -->
-- [ ] AC1: Net change per counter. Given 10 food, when a refresh finds 12 food, then one "+2 food" token floats up
+- [x] AC1: Net change per counter. Given 10 food, when a refresh finds 12 food, then one "+2 food" token floats up
   from the food counter in the gain colour; 7 food gives one "−3 food" in the cost colour. A card that costs 2 food
   and gains 3 food shows one "+1 food" token, not two. The same holds for Wealth ("wealth"), Score ("VP") and Pop
   ("pop"); a counter whose value didn't change floats nothing.
-- [ ] AC2: Whatever the cause. Each of these floats its tokens up from the counters, and nothing flies from a card:
+- [x] AC2: Whatever the cause. Each of these floats its tokens up from the counters, and nothing flies from a card:
   a played card's costs and gains (farm: "−2 food"; caravan: "+N food"), its VP, a grow from the territory view's meter
   ("−3 food" and "+1 pop"), a card's `grow` effect (Festival: "+N pop", N the territories it grew), and end turn's
   upkeep (each resource's net change, and "−N pop" when pop starves).
-- [ ] AC3: Several at once. When one refresh changes more than one counter, their tokens start in the bar's order
+- [x] AC3: Several at once. When one refresh changes more than one counter, their tokens start in the bar's order
   (Food, Wealth, Score, Pop), each `Anim.TOKEN_STAGGER` after the one before.
-- [ ] AC4: No token for a fresh game. Starting a game, New game and Restart float nothing, though the counters change.
-- [ ] AC5: Supply screen. Buying in the supply screen floats "−N wealth" from the screen's own wealth counter (114
+- [x] AC4: No token for a fresh game. Starting a game, New game and Restart float nothing, though the counters change.
+- [x] AC5: Supply screen. Buying in the supply screen floats "−N wealth" from the screen's own wealth counter (114
   AC3) and none from the top bar's; closing the screen afterwards floats nothing.
-- [ ] AC6: Reduce motion. A token appears just below its counter, holds and fades without moving (114 AC6).
+- [x] AC6: Reduce motion. A token appears just below its counter, holds and fades without moving (114 AC6).
 
 ## Out of scope
 - The Turn counter, the forecast in brackets, and counters on other screens (the supply screen's Discard).
@@ -62,7 +62,7 @@ Anim.TOKEN_FLOAT_PX, fades to transparent, freed. -->
 | Changed | `test_resource_tokens::test_a_food_gain_still_flies_from_the_card_to_the_food_counter` → `test_a_food_gain_floats_up_from_the_food_counter`; `test_grow_meter`: the grow animation test and its Reduce motion twin now expect "+1 pop" below the Pop counter, and `test_pop_from_a_card_fills_pips_without_a_token` → `test_pop_from_a_card_fills_pips` (no pip pops in); `with_fixture_main` refreshes after setting 10 food and wealth and lets those tokens finish |
 
 ## Manual check
-- [ ] Play a few cards, grow, end a turn: every change to Food, Wealth, Score and Pop rises from its counter.
+- [ ] `godot --path .`, any seed. Play a few cards, grow, end a turn: every change to Food, Wealth, Score and Pop rises from its counter.
 - [ ] End a turn with several changes: the tokens ripple left to right, readable, not overlapping.
 - [ ] New game and Restart: no tokens.
 - [ ] Reduce motion: tokens fade in place.
@@ -74,3 +74,11 @@ Anim.TOKEN_FLOAT_PX, fades to transparent, freed. -->
 - 2026-09-30: Red. Starvation is a Famine now (083): the test starves pop on the second hungry upkeep. With 1 VP per
   pop, pop changes also float "±N VP". AC4 and AC5's closing test pass already (nothing floats today); they guard the
   baseline reset.
+- 2026-09-30: Green, 810 → 822 tests. `TopBar.refresh(e, layer, quiet)` remembers each counter's last value and
+  floats the difference (`_float_changes`); `reset_counters()` on a new game; quiet while the supply screen is open.
+  Gone: `TopBar.fly_outcome`, `fly_grow`, `resource_label`, `UIKit.fly_token`, `MainScreen.fly_grow`,
+  `_outcome_point`; the meter keeps only the pip pop-in.
+- To start each token under its counter's new width, the bar lays itself out at the end of its refresh instead of
+  next frame. Approved with the user: `test_log_drawer::test_dealt_cards_start_from_the_log_button…` now reads the Log
+  button's position after the end turn (it really moves when the counters change width). Also fixed in the AC3 test:
+  it read freed tokens' text and measured the stagger in rounded steps; it now compares seconds.
