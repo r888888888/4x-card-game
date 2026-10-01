@@ -1,7 +1,7 @@
 class_name ScriptedBot
 extends RefCounted
 ## A fixed-policy bot for smoke tests and the balance simulator (backlog 042). Each step it resolves an
-## explore choice with its first option, buys the cheapest revealed tech it can afford (or declines),
+## explore choice with its first option, learns the cheapest tech it can afford (140),
 ## otherwise plays the first playable hand card on its first valid target (Research cards last),
 ## otherwise relieves a Famine it can pay for when the next upkeep would still starve (084), discards the hand
 ## (dead cards never cycle otherwise, backlog 024) and ends the turn. After MAX_PLAYS_PER_TURN plays it ends the

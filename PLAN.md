@@ -34,7 +34,7 @@ res://
     turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
     card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
     population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
-    research.gd          # Research: revealing, buying and declining techs, passes, eras
+    research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
     discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
@@ -47,7 +47,7 @@ res://
     data_loader.gd       # JSON → CardDef; load_all reads both files; collects all errors/warnings
     config_loader.gd     # config.json → normalized config, checked against the cards (095)
     card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, passes, keywords, turns_left)
+    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, keywords, turns_left)
     zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
     effect.gd            # Effect base class
     fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
@@ -182,7 +182,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
 2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, and play Research cards (id `research`) to reveal techs. A hand card can be discarded for free at any time.
+3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
 
@@ -192,9 +192,9 @@ It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameSt
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight),
 with the food stat in the warning color when pop would starve.
 
-Pending decisions (050, `pending()`): an explore choice, open research or a hand-limit discard. While one is owed,
-every action is refused with the same message (`_blocked_error`), except that a discard still lets you discard and
-browse the supply. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
+Pending decisions (050, `pending()`): an explore choice or a hand-limit discard. While one is owed, every action is
+refused with the same message (`_blocked_error`), except that a discard still lets you discard, browse the supply and
+learn techs. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
@@ -276,8 +276,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)
-Techs never enter the main deck. Backlog: 025 (research deck, reveal 2, buy or decline; built), 026 (passes,
-stacking discount, prerequisite discount, removal; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
+Techs never enter the main deck. Backlog: 025 (research deck; built; reveal-2 replaced by 140), 026 (passes and the
+prerequisite discount; built, removed by 140), 139 (Insight pays for techs; built), 140 (open tech tree; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
 Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built), 058 (Stone Age → Bronze
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 techs defined but not in the deck).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
@@ -288,36 +288,37 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 
   culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
 - Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 6–10, era 2 15–22); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
-- Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2
-  techs (`reveal_techs`). There is no free research: the deck starts with 1 Research card and the supply sells 2,
-  with no limit per turn. With nothing to reveal the card can't be played ("The research deck is empty.").
-  `buy_tech(uid)` pays `tech_cost(uid)` insight, moves the tech to `researched`, resolves its `play` effects, and
-  shuffles the other back; `decline_research()` shuffles both back. Open options block play, grow, discard and end turn.
+- Open tree (140): every tech in `research_deck` whose `prereq` is researched can be learned at any time, with no card
+  or action: `buy_tech(uid)` pays `tech_cost(uid)` insight, moves the tech to `researched` and resolves its `play`
+  effects. `buy_tech_error` refuses when the game is over or an explore choice is open ("Choose a territory first.";
+  learning goes on while a discard is owed), when the tech isn't in the research deck ("That tech isn't on offer."),
+  when its prereq isn't researched ("Iron Working needs Bronze Working first.") or when insight is short. The Research
+  card (id `research`) just gains 3 insight; `research_card_name()` names the first deck-then-supply card that gains
+  insight, for hints. Nothing is ever pending for research.
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
-- Passes (026): buying one revealed tech gives the other a pass (`tech_passes(uid)`); declining passes nothing.
-  Each pass is -1 insight, and a third pass sends the tech to `lost_techs`. A tech's optional `prereq` (another
-  tech) with `prereq_discount` (default 2) lowers its cost while the prereq is in `researched`; it never blocks a
-  purchase. `tech_cost` = max(1, printed - passes - prereq discount).
+- Prerequisites (026, hard since 140): a tech's optional `prereq` (another tech) must be researched before it can be
+  learned; card text "Needs Bronze Working". `tech_cost` = max(1, printed − civilization discount).
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
-  techs into the research deck, once per era (`era()` is the highest added). Researching with an empty research
-  deck adds the lowest waiting era; it only errors when nothing waits. A tech with `add_era` is never lost
-  (its passes stop at 2). The Library creates a Research card in the discard when built (034; it used
-  to add research actions at upkeep).
+  techs into the research deck, once per era (`era()` is the highest added). Learning the last tech of the research
+  deck adds the lowest waiting era (140). The Library makes ⟳ +2 insight (139).
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
   already added isn't added again. `era_unlocks()` returns the thresholds; the tech tree shows them.
-- An effect can refuse its card in `play_error` (`Effect.play_block_error`), as Research does with an empty deck.
-- Code: research, passes and eras in `engine/research.gd`; `engine/effects/research_effect.gd`, `add_era_effect.gd`.
+- An effect can refuse its card in `play_error` (`Effect.play_block_error`).
+- Code: learning, prerequisites and eras in `engine/research.gd`; `engine/effects/add_era_effect.gd`.
 - Tech tree (059): `tech_tree()` lists every tech in `research_deck` by era, then config order, as
-  `{id, era, prereq, state, cost, passes, gives}`; `state` is `GameEngine.TECH_RESEARCHED` / `TECH_AVAILABLE` (research
-  deck or revealed) / `TECH_FUTURE` / `TECH_LOST`, `gives` the cards it creates or unlocks. Optional config
+  `{id, era, prereq, state, cost, gives, uid}`; `state` is `GameEngine.TECH_RESEARCHED` / `TECH_AVAILABLE` (in the
+  research deck, prereq met) / `TECH_LOCKED` (prereq not researched) / `TECH_FUTURE`, `gives` the cards it creates or
+  unlocks, `uid` −1 for a future tech. Optional config
   `era_names` (`{"1": "Stone Age"}`) feeds `era_name(n)`, default "Era n".
-- UI: a Knowledge button (T) in the top bar (with the current era's name; hidden when the config has no research
-  deck) opens the tech tree modal: one column per era with its thresholds, each tech's state as a mark and a word,
-  cost now, prereq ("after Mining") and what it gives; clicking a tech opens its details. A choice panel shows the
-  revealed techs (click one to buy) and Decline; researched techs show only in the tech tree (137).
+- UI: a Knowledge button (T) in the top bar (the current era's name in its tooltip; hidden when the config has no
+  research deck) opens the tech tree modal: "Insight N · play a Research card for more", then one column per era with
+  its thresholds, each tech's state as a mark and a word (🔒 Locked for a missing prereq), cost now, prereq ("after
+  Mining", or "needs Mining" while locked) and what it gives; clicking a tech opens its details. An available tech has
+  a Learn button beside it, disabled with `buy_tech_error` as its tooltip (140). Researched techs show only in the
+  tech tree (137).
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
@@ -327,7 +328,7 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
   (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
   There is no limit per turn; an empty pile can't be bought from. Blocked like grow (game over, explore
-  choice, research open, discard owed).
+  choice, discard owed).
 - Locked piles (057): `"locked": true` on a supply entry keeps the pile shut until an `unlock` effect
   (`{ "op": "unlock", "card": "guildhall" }`, play only) opens it, typically on a tech next to a `create` of the free
   copy. `supply()` still lists locked piles; `supply_locked(card_id)` tells them apart, `buy_error` says
@@ -336,7 +337,7 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
 - Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): a Supply (S) button above the Knowledge button opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
-  open during an explore or research choice or after the game ends. Buying squashes the card, flies a wealth
+  open during an explore choice or after the game ends. Buying squashes the card, flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Events (backlog 039)
