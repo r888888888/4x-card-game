@@ -120,5 +120,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 78. 141 eurekas (after 140)
 79. 142 diffusion: earlier-era techs get cheaper (after 140; independent of 141)
 80. 143 Iron Age techs in the deck, research pacing (after 139–142)
+81. 144 Unrest resource, government unrest limit (after 139: both add a top-bar counter; from `spike/unrest`)
+82. 145 Anarchy at the unrest limit (after 144; once-per-era pacing assumes 143)
+83. 146 leaving Anarchy: half-limit government, restore order (after 145)
+84. 147 renewal: trash from the discard during Anarchy (after 146)
+85. 148 revolution events: choose to revolt (after 147)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
