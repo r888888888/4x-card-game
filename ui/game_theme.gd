@@ -15,9 +15,22 @@ static func build() -> Theme:
 	_label(t, "Heading", 19, Palette.TEXT_DIM)
 	_label(t, "Title", 26, Color.WHITE)
 	_label(t, "Stat", 26, Color.WHITE)  # each stat also sets its own colour: what it counts
+	_link(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	return t
+
+
+## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
+static func _link(t: Theme) -> void:
+	t.set_type_variation("Link", "Button")
+	t.set_font_size("font_size", "Link", 26)
+	t.set_color("font_color", "Link", Palette.TEXT_DIM)
+	t.set_color("font_hover_color", "Link", Palette.ACCENT)
+	t.set_color("font_pressed_color", "Link", Palette.ACCENT)
+	t.set_color("font_focus_color", "Link", Palette.ACCENT)
+	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it sits in the breadcrumb's text
+		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.

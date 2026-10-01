@@ -22,13 +22,13 @@ func test_the_new_game_and_settings_screens_have_a_header() -> void:
 	var main := open_main()
 	main.start_screen.new_game_button.pressed.emit()
 	var header: Object = main.new_game_screen.header
-	eq(header.back_button.text, "← Main menu", "new game: back")
+	eq(header.back_button.text, "Main menu", "new game: the link back (118)")
 	eq(header.breadcrumb_text(), "Main menu › New game", "new game: path")
 	eq(main.new_game_screen.back_button, header.back_button, "its Back is the header's")
 	header.back_button.pressed.emit()
 	main.start_screen.settings_button.pressed.emit()
 	header = main.settings_screen.header
-	eq(header.back_button.text, "← Main menu", "settings: back")
+	eq(header.back_button.text, "Main menu", "settings: the link back (118)")
 	eq(header.breadcrumb_text(), "Main menu › Settings", "settings: path")
 	eq(main.settings_screen.back_button, header.back_button, "its Back is the header's")
 	close_main(main)
@@ -39,7 +39,7 @@ func test_the_territory_view_has_a_header() -> void:
 		var home := home_uid(Game.engine)
 		main.views[home].details_requested.emit(main.views[home])  # a click on the territory
 		var header: Object = main.territory_view.header
-		eq(header.back_button.text, "← Realm", "back")
+		eq(header.back_button.text, "Realm", "the link back (118)")
 		eq(header.breadcrumb_text(), "Realm › Homeland", "path")
 		eq(main.territory_view.back_button, header.back_button, "its Back is the header's")
 		header.back_button.pressed.emit()
@@ -66,3 +66,42 @@ func test_a_territory_view_grows_out_of_its_card_and_shrinks_back() -> void:
 			check(view.visible and view.scale.x <= 1.0, "still drawn while it shrinks")
 			await wait_screen_transition()
 			check(not view.visible, "then hidden")))
+
+
+
+# --- 118: the parent title is the way back ---
+
+## Checks header's link back: the parent's title as a flat link (hand cursor, "Back to …" tooltip), first in the
+## header, followed by the current title as plain text, and no "←" button anywhere in the header.
+func check_link_back(header: Control, parent_title: String, title: String) -> void:
+	var link: Button = header.back_button
+	eq(link.text, parent_title, "the link names the screen below")
+	check(link.flat, "a flat link, not a boxed button")
+	eq(link.mouse_default_cursor_shape, Control.CURSOR_POINTING_HAND, "a hand cursor")
+	eq(link.tooltip_text, "Back to %s" % parent_title, "tooltip")
+	eq(header.breadcrumb_text(), "%s › %s" % [parent_title, title], "the breadcrumb reads as before")
+	var buttons := UIKit.buttons_in(header)
+	eq(buttons, [link], "the link is the header's only button: the current title is plain text")
+	check(not buttons.any(func(b: Button): return b.text.contains("←")), "no ← button")
+
+
+func test_the_territory_header_goes_back_through_its_realm_link() -> void:
+	await with_fixture_main(func(main: Node):
+		var home := home_uid(Game.engine)
+		main.views[home].details_requested.emit(main.views[home])
+		check_link_back(main.territory_view.header, "Realm", "Homeland")
+		main.territory_view.header.back_button.pressed.emit()
+		check(not main.territory_view.is_open(), "the link closes the view"))
+
+
+func test_the_new_game_and_settings_headers_go_back_through_their_main_menu_link() -> void:
+	var main := open_main()
+	main.start_screen.new_game_button.pressed.emit()
+	check_link_back(main.new_game_screen.header, "Main menu", "New game")
+	main.new_game_screen.header.back_button.pressed.emit()
+	check(not main.new_game_screen.is_open(), "the link goes back to the title screen")
+	main.start_screen.settings_button.pressed.emit()
+	check_link_back(main.settings_screen.header, "Main menu", "Settings")
+	main.settings_screen.header.back_button.pressed.emit()
+	check(main.start_screen.is_open(), "back on the title screen")
+	close_main(main)

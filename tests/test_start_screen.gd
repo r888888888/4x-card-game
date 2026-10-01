@@ -131,7 +131,7 @@ func test_new_game_opens_the_new_game_screen_without_starting() -> void:
 	eq(screen.seed_edit.text, "", "seed field starts empty (random)")
 	eq(screen.start_button.text, "Start", "Start button")
 	check(screen.overlay.is_ancestor_of(screen.start_button), "Start on the screen")
-	eq(screen.back_button.text, "← Main menu", "Back button (104: the header's)")
+	eq(screen.back_button.text, "Main menu", "the header's link back (104, 118)")
 	check(screen.overlay.is_ancestor_of(screen.back_button), "Back on the screen")
 	close_main(main)
 
@@ -303,7 +303,7 @@ func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
 	eq(changes, 0, "no game started")
 	check(screen.motion_toggle.text.begins_with("Reduce motion"), "Reduce motion toggle")
 	check(screen.overlay.is_ancestor_of(screen.motion_toggle), "toggle on the screen")
-	eq(screen.back_button.text, "← Main menu", "Back button (104: the header's)")
+	eq(screen.back_button.text, "Main menu", "the header's link back (104, 118)")
 	check(screen.overlay.is_ancestor_of(screen.back_button), "Back on the screen")
 	close_main(main)
 

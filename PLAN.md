@@ -61,7 +61,7 @@ res://
                          # new_game_screen.gd (099: civilization cards, seed, Start, Back),
                          # settings_screen.gd (099: Reduce motion, Back),
                          # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav; 104:
-                         # titles and transitions), screen_header.gd (104: "← Realm", "Realm › River Meadow"),
+                         # titles and transitions), screen_header.gd (104, 118: "Realm › River Meadow", "Realm" a link back),
                          # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
                          # territory_view.gd (101: one territory in place of the Realm; its own Navigator; 105: framed
                          # in the territory colour and titled with the territory, outlines for free slots),
