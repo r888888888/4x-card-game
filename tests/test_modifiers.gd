@@ -18,7 +18,7 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 func load_cards(extra: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, tech_resources(), "cards.json",
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json",
 		errors, warnings, keywords())
 	return {"errors": errors, "warnings": warnings, "cards": cards}
 
@@ -40,7 +40,7 @@ func band_game() -> Object:
 	var o := {"starting": {"resources": {"food": 10, "wealth": 10}, "tableau": ["capital"], "territory": "homeland",
 		"government": "band"}}
 	o.merge(POP)
-	var config := DataLoader.parse_config(raw_config({"farm": 10}, o), tech_resources(), r.cards, "config.json", errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 10}, o), resources(), r.cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "config should load: %s" % [errors])
 	var e := GameEngine.new(r.cards, config)
 	e.new_game(1)
@@ -144,11 +144,10 @@ func test_a_tech_bought_mid_turn_counts_at_once() -> void:
 	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland",
 		"government": "band"}
 	var e: Object = tech_engine(["calendar", "pottery"], {"farm": 10}, {"starting": starting}, TEST_GOVS + [CALENDAR])
-	check(play_research(e), "research")
-	eq(e.actions_left(), 1, "Research used one")
-	var calendar := uid_of(e.zone("research_reveal"), "calendar")
-	check(e.buy_tech(calendar), "buy Calendar: %s" % e.buy_tech_error(calendar))
-	eq(e.actions_left(), 2, "3 − 1 used")
+	eq(e.actions_left(), 2, "Band: 2")
+	var calendar := uid_of(e.zone("research_deck"), "calendar")
+	check(e.buy_tech(calendar), "learn Calendar: %s" % e.buy_tech_error(calendar))
+	eq(e.actions_left(), 3, "2 + 1 from Calendar")
 
 
 # --- AC5: unlimited stays unlimited ---

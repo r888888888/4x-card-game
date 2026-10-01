@@ -1,5 +1,5 @@
 extends "res://tests/lib/tech_case.gd"
-## The tech tree (backlog 059): tech_tree() lists every tech in research_deck with its state, cost now, passes and
+## The tech tree (backlog 059): tech_tree() lists every tech in research_deck with its state, cost now, uid (140) and
 ## what it gives; era_name(n) names eras from config era_names. Engines are Object so this parses before the API.
 
 const ERA_2 := [
@@ -33,7 +33,7 @@ func era_names_config(era_names: Variant) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_names": era_names}), tech_resources(), cards,
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_names": era_names}), resources(), cards,
 		"config.json", errors, warnings)
 	return {"config": config, "errors": errors, "warnings": warnings}
 
@@ -49,7 +49,6 @@ func test_new_game_tree_has_era_1_available_and_era_2_future() -> void:
 	var pottery := entry(e, "pottery")
 	eq(pottery.get("state"), GameEngine.TECH_AVAILABLE, "pottery state")
 	eq(pottery.get("cost"), 2, "pottery printed cost")
-	eq(pottery.get("passes"), 0, "pottery passes")
 	eq(pottery.get("era"), 1, "pottery era")
 	eq(pottery.get("prereq"), "", "pottery prereq")
 	eq(entry(e, "writing").get("state"), GameEngine.TECH_AVAILABLE, "writing state")
@@ -58,38 +57,25 @@ func test_new_game_tree_has_era_1_available_and_era_2_future() -> void:
 		eq(entry(e, id).get("era"), 2, "%s era" % id)
 
 
-# --- AC2: buying one of two ---
+# --- AC2: learning one (140: the other is untouched) ---
 
-func test_bought_tech_is_researched_and_the_other_takes_a_pass() -> void:
+func test_a_learned_tech_is_researched_and_the_other_is_untouched() -> void:
 	var e := tree_engine(["pottery", "writing"])
-	check(play_research(e), "research opens")
-	check(e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), "buy Pottery")
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "pottery")), "learn Pottery")
 	eq(entry(e, "pottery").get("state"), GameEngine.TECH_RESEARCHED, "pottery researched")
 	var writing := entry(e, "writing")
 	eq(writing.get("state"), GameEngine.TECH_AVAILABLE, "writing still available")
-	eq(writing.get("passes"), 1, "writing passes")
-	eq(writing.get("cost"), 2, "writing 3 - 1 pass")
+	eq(writing.get("cost"), 3, "writing at its printed cost")
 
 
-# --- AC3: lost, and the prerequisite discount ---
+# --- AC3 (140: a prerequisite gates, it no longer discounts) ---
 
-func test_third_pass_makes_a_tech_lost() -> void:
-	var e := tree_engine(["bronze", "loom", "dye", "salt"])
-	pass_tech(e, "bronze", "loom")
-	pass_tech(e, "bronze", "dye")
-	pass_tech(e, "bronze", "salt")
-	eq(entry(e, "bronze").get("state"), GameEngine.TECH_LOST, "bronze lost")
-
-
-func test_researched_prerequisite_lowers_the_cost() -> void:
+func test_a_researched_prerequisite_no_longer_lowers_the_cost() -> void:
 	var e := tree_engine(["iron", "bronze"])
 	eq(entry(e, "iron").get("cost"), 6, "iron printed")
 	eq(entry(e, "iron").get("prereq"), "bronze", "iron prereq")
-	var deck: Zone = e.zone("research_deck")
-	var bronze := deck.find(uid_of(deck, "bronze"))
-	deck.remove(bronze)
-	e.zone("researched").add(bronze)
-	eq(entry(e, "iron").get("cost"), 4, "iron 6 - 2 with Bronze Working")
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "bronze")), "learn Bronze Working")
+	eq(entry(e, "iron").get("cost"), 6, "iron still 6 with Bronze Working")
 
 
 # --- AC4: a new era ---

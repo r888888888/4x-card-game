@@ -79,8 +79,6 @@ func test_start_effect_needing_a_target_or_choice_is_a_load_error() -> void:
 			"cards.json: card 'kin': effects[0]: 'settle' can't trigger on start"],
 		["explore", [one_effect("kin", "civilization", {"op": "explore", "trigger": "start"})],
 			"cards.json: card 'kin': effects[0]: 'explore' can't trigger on start"],
-		["research", [one_effect("kin", "civilization", {"op": "research", "trigger": "start"})],
-			"cards.json: card 'kin': effects[0]: 'research' can't trigger on start"],
 	], card_errors)
 
 
@@ -118,7 +116,7 @@ func test_civilization_upkeep_every_turn() -> void:
 
 func test_forecast_includes_the_civilization() -> void:
 	var e: Object = civ_engine("tribe")
-	eq(e.upkeep_forecast(), {"food": 2, "wealth": 1, "starve": 0}, "Capital +2 food, Tribe +1 wealth")
+	eq(e.upkeep_forecast(), {"food": 2, "wealth": 1, "insight": 0, "starve": 0}, "Capital +2 food, Tribe +1 wealth")
 
 
 func test_score_includes_civilization_vp_and_upkeep_score() -> void:

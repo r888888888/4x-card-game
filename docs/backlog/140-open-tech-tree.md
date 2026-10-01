@@ -2,7 +2,7 @@
 id: 140
 title: Open tech tree: learn any tech whose prerequisite you have
 type: feature
-status: ready
+status: red-review
 branch: feat/140-open-tech-tree
 ---
 
@@ -66,6 +66,13 @@ techs go. Follows 139; tried on `spike/research-insight`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_research::test_learning_a_tech_needs_no_card_and_no_action`, `test_learning_a_tech_resolves_its_play_effects`, `test_a_tech_scores_its_vp_and_works_at_upkeep`, `test_several_techs_can_be_learned_in_one_turn`; `test_actions::test_learning_a_tech_after_the_last_action_is_free`; `test_changed` (buy_tech emits once) |
+| AC2 | `test_research::test_a_tech_whose_prereq_isnt_researched_is_locked`, `test_learning_the_prereq_unlocks_the_tech`, `test_prerequisite_card_text`; `test_tech_tree::test_a_researched_prerequisite_no_longer_lowers_the_cost` |
+| AC3 | `test_research::test_a_tech_not_in_the_research_deck_isnt_on_offer`, `test_a_tech_needs_enough_insight`, `test_no_learning_after_the_game_is_over`, `test_no_learning_during_an_explore_choice`, `test_learning_is_allowed_while_a_discard_is_owed`; `test_pending::test_each_pending_kind_blocks_actions_as_before` (buy_tech_error row) |
+| AC4 | `test_research::test_learning_the_last_tech_adds_the_next_era`; `test_tech_eras::test_learning_the_last_era_tech_adds_the_next_era`, `test_learning_the_last_tech_with_no_eras_left_adds_nothing`, `test_an_era_added_by_an_empty_deck_is_not_added_again` |
+| AC5 | `test_research::test_the_research_op_is_unknown`, `test_prereq_discount_is_an_unknown_field`, `test_the_engine_has_no_reveal_passes_or_lost_techs`, `test_tech_tree_entries_carry_a_uid_and_no_passes`, `test_learning_never_leaves_a_choice_pending`, `test_the_research_card_gains_insight`, `test_research_card_name_*`; `test_card_details::test_a_tech_in_the_research_deck_explains_its_price_now` |
+| AC6 | `test_tech_tree_modal::test_an_available_tech_has_a_learn_button_that_learns_it`, `test_a_learn_button_you_cant_use_is_disabled_with_the_reason`, `test_a_locked_tech_says_what_it_needs_and_has_no_learn_button`, `test_the_tree_header_counts_insight_and_names_the_research_card`, `test_the_board_has_no_research_choice`, `test_hints_*` |
+| AC7 | `test_sim::test_bot_learns_the_cheapest_tech_it_can_afford` |
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`: play a Research card (+3 insight), open Knowledge (T), learn Pottery with its Learn

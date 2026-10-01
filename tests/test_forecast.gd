@@ -22,7 +22,7 @@ func build(e: GameEngine, card_ids: Array[String]) -> void:
 func test_forecast_is_production_minus_upkeep() -> void:
 	var e := forecast_engine(2)
 	build(e, ["farm", "stall"])
-	eq(e.upkeep_forecast(), {"food": 1, "wealth": 1, "starve": 0}, "2 + 1 made, 2 eaten; 1 wealth")
+	eq(e.upkeep_forecast(), {"food": 1, "wealth": 1, "insight": 0, "starve": 0}, "2 + 1 made, 2 eaten; 1 wealth")
 
 
 func test_forecast_changes_nothing() -> void:
@@ -37,7 +37,7 @@ func test_forecast_changes_nothing() -> void:
 	for z in GameEngine.ZONES:
 		zone_sizes[z] = e.zone(z).size()
 	e.upkeep_forecast()
-	eq(e.resources, {"food": 5, "wealth": 3}, "resources unchanged")
+	eq(e.resources, {"food": 5, "wealth": 3, "insight": 0}, "resources unchanged")
 	eq(e.pop(home_uid(e)), 3, "pop unchanged (Granary didn't grow it)")
 	eq(e.score(), score, "score unchanged")
 	eq(e.log_lines.size(), log_size, "nothing logged")
@@ -51,7 +51,7 @@ func test_forecast_changes_nothing() -> void:
 func test_forecast_skips_idle_buildings() -> void:
 	var e := forecast_engine(1)
 	build(e, ["farm", "stall"])
-	eq(e.upkeep_forecast(), {"food": 2, "wealth": 0, "starve": 0}, "Stall idle: 2 + 1 made, 1 eaten")
+	eq(e.upkeep_forecast(), {"food": 2, "wealth": 0, "insight": 0, "starve": 0}, "Stall idle: 2 + 1 made, 1 eaten")
 
 
 # --- AC3: pop added at upkeep eats that upkeep ---
@@ -72,12 +72,12 @@ func test_forecast_no_growth_at_housing_cap() -> void:
 
 func test_forecast_starve_with_no_food() -> void:
 	var e := forecast_engine(2, 0, 0, 2)
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "2 made, 4 needed, short: a new Famine kills 1 (083)")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "insight": 0, "starve": 1}, "2 made, 4 needed, short: a new Famine kills 1 (083)")
 
 
 func test_forecast_starve_with_some_food() -> void:
 	var e := forecast_engine(2, 1, 0, 2)
-	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "starve": 1}, "1 + 2 on hand, 4 needed, 1 short")
+	eq(e.upkeep_forecast(), {"food": -2, "wealth": 0, "insight": 0, "starve": 1}, "1 + 2 on hand, 4 needed, 1 short")
 
 
 # --- AC5: population off ---
@@ -131,7 +131,6 @@ const UPKEEP_UNSAFE := {
 	"explore": {"op": "explore"},
 	"settle": {"op": "settle", "card": "city"},
 	"add_era": {"op": "add_era", "era": 2},
-	"research": {"op": "research"},
 	"trade": {"op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2},
 	"unlock": {"op": "unlock", "card": "scout"},
 	"trash": {"op": "trash"},

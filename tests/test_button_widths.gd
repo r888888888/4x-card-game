@@ -129,18 +129,6 @@ func test_event_ok_fits_its_text() -> void:
 	Game.engine = real
 
 
-func test_research_decline_fits_its_text() -> void:
-	var real := Game.engine
-	Game.engine = tech_engine(["pottery", "writing"])
-	var main := open_at_1080()
-	main.start_game(1)
-	check(play_research(Game.engine), "research should open")
-	await wait_frames()
-	check_fits(shown_button(main, "Decline"), "Decline")
-	close_at_1080(main)
-	Game.engine = real
-
-
 # --- AC3: board buttons fit their text ---
 
 func test_board_buttons_fit_their_text() -> void:

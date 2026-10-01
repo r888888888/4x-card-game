@@ -55,11 +55,8 @@ func test_bug_048_each_successful_action_emits_changed_once() -> void:
 	e = tech_engine(["pottery", "writing"], {"farm": 10}, {"supply": {"scout": {"price": 2, "count": 2}}})
 	expect_changes("buy", e, func(): return e.buy("scout"), true, 1)
 
-	e = research_engine()
-	expect_changes("buy_tech", e, func(): return e.buy_tech(uid_of(e.zone("research_reveal"), "pottery")), true, 1)
-
-	e = research_engine()
-	expect_changes("decline_research", e, func(): return e.decline_research(), true, 1)
+	e = tech_engine(["pottery", "writing"])
+	expect_changes("buy_tech", e, func(): return e.buy_tech(uid_of(e.zone("research_deck"), "pottery")), true, 1)
 
 	e = make_engine({"farm": 10})
 	expect_changes("voluntary discard_card", e, func(): return e.discard_card(first_in_hand(e)), true, 1)
@@ -86,7 +83,6 @@ func test_bug_048_refused_actions_emit_no_changed() -> void:
 	e = tech_engine(["pottery", "writing"], {"farm": 10}, {"supply": {"scout": {"price": 2, "count": 2}}})
 	expect_changes("buy", e, func(): return e.buy("farm"), false, 0)
 	expect_changes("buy_tech", e, func(): return e.buy_tech(-1), false, 0)
-	expect_changes("decline_research", e, func(): return e.decline_research(), false, 0)
 
 	e = explore_engine()
 	var turn: int = e.turn
@@ -94,12 +90,12 @@ func test_bug_048_refused_actions_emit_no_changed() -> void:
 	eq(e.turn, turn, "turn unchanged")
 
 
-# --- Backlog 093: discard_card, choose and decline_research refuse through their error queries ---
+# --- Backlog 093: discard_card and choose refuse through their error queries ---
 
-## The sizes of the zones a refused discard, choose or decline could touch.
+## The sizes of the zones a refused discard or choose could touch.
 func zone_sizes(e: Object) -> Array[int]:
 	var out: Array[int] = []
-	for z in ["hand", "discard", "reveal", "frontier", "territory_deck", "research_reveal", "research_deck"]:
+	for z in ["hand", "discard", "reveal", "frontier", "territory_deck", "research_deck"]:
 		out.append(e.zone(z).size())
 	return out
 
@@ -112,14 +108,10 @@ func test_actions_refuse_exactly_when_their_error_query_says_why() -> void:
 		["discard, game over", over, func(e): return e.discard_error(-1), func(e): return e.discard_card(-1)],
 		["discard, explore open", explore_engine(),
 			func(e): return e.discard_error(first_in_hand(e)), func(e): return e.discard_card(first_in_hand(e))],
-		["discard, techs revealed", research_engine(),
-			func(e): return e.discard_error(first_in_hand(e)), func(e): return e.discard_card(first_in_hand(e))],
 		["discard, not in hand", make_engine({"farm": 10}),
 			func(e): return e.discard_error(-1), func(e): return e.discard_card(-1)],
 		["choose, no choice", make_engine({"farm": 10}), func(e): return e.choose_error(-1), func(e): return e.choose(-1)],
 		["choose, not an option", explore_engine(), func(e): return e.choose_error(-1), func(e): return e.choose(-1)],
-		["decline, nothing revealed", make_engine({"farm": 10}),
-			func(e): return e.decline_research_error(), func(e): return e.decline_research()],
 	]
 	for row in cases:
 		var e: Object = row[1]
