@@ -115,5 +115,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 73. 110 housing as a `modifiers` key (Sumer; after 129)
 74. 111 civilization home territory (after 107; last, since it shifts every civ's start)
 75. Balance pass for the action economy (to spec: 127–129 shift the game from resources to tempo)
+76. 139 Insight resource: techs cost Insight (research redesign, from `spike/research-insight`)
+77. 140 open tech tree: learn any tech whose prereq you have; reveal-2 and passes go (after 139)
+78. 141 eurekas (after 140)
+79. 142 diffusion: earlier-era techs get cheaper (after 140; independent of 141)
+80. 143 Iron Age techs in the deck, research pacing (after 139–142)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
