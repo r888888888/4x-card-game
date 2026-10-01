@@ -2,7 +2,7 @@
 id: 135
 title: Command-line options for the civilization, turn limit and seed (game and sim)
 type: feature
-status: review
+status: done
 branch: feat/135-launch-options
 ---
 
