@@ -40,8 +40,11 @@ static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 		e.rng.shuffle(research_deck.cards)
 	Events.setup(e)
 	var home: CardInstance = null
-	if e.config.starting.territory != "":
-		home = Territories.make(e, e.config.starting.territory)
+	var home_id: String = e.config.starting.territory
+	if civ_id != "" and e.card_db[civ_id].home != "":
+		home_id = e.card_db[civ_id].home
+	if home_id != "":
+		home = Territories.make_home(e, home_id)
 		if e.population_on():
 			home.pop = e.config.population.start
 		e.zone("tableau").add(home)

@@ -133,6 +133,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 
 	if raw.has("population"):
 		config.population = _parse_population(raw.population, cards, config.starting.territory, errs, warnings, src)
+		_check_homes_house_start(config, cards, errs)
 		config.famine = _parse_famine(raw.population.get("famine") if raw.population is Dictionary else null, cards, resources, errs)
 		var famine: String = config.famine.get("card", "")
 		if config.event_deck.has(famine):
@@ -213,6 +214,18 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 	if start_territory != "" and out.start > cards[start_territory].housing:
 		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
 	return out
+
+
+## population.start must fit the housing of each listed (or starting) civilization's home (111).
+static func _check_homes_house_start(config: Dictionary, cards: Dictionary, errs: Array[String]) -> void:
+	var civs: Array[String] = config.civilizations.duplicate()
+	if config.starting.civilization != "" and not civs.has(config.starting.civilization):
+		civs.append(config.starting.civilization)
+	for civ in civs:
+		var home: String = cards[civ].home if cards.has(civ) else ""
+		if home != "" and cards.has(home) and config.population.get("start", 0) > cards[home].housing:
+			errs.append("'population.start' (%d) is more than the housing of civilization '%s''s home '%s' (%d)" % [
+				config.population.start, civ, home, cards[home].housing])
 
 
 ## Normalizes population.famine {card, max_counters, relief} (083, 084): required with population on; card is an

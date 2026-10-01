@@ -76,9 +76,11 @@ func test_home_validation() -> void:
 			["cards.json: card 'lost'", "home", "'nowhere'"]],
 		["not a territory", [{"id": "farmers", "name": "Farmers", "type": "civilization", "home": "farm"}],
 			["cards.json: card 'farmers'", "home", "'farm'"]],
-		["on another card type", [{"id": "hut", "name": "Hut", "type": "building", "home": "river"}],
-			["card 'hut'", "home"]],
 	], card_errors)
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [{"id": "hut", "name": "Hut", "type": "building", "home": "river"}]},
+		resources(), "cards.json", [] as Array[String], warnings, keywords())
+	has_msg(warnings, "card 'hut': 'home' only applies to civilizations")
 
 
 func test_population_start_must_fit_each_listed_home() -> void:
