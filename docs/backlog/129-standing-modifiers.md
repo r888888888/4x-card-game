@@ -2,7 +2,7 @@
 id: 129
 title: Permanent cards can carry standing modifiers, starting with extra actions each turn
 type: feature
-status: in-progress
+status: review
 branch: feat/129-standing-modifiers
 ---
 
@@ -18,21 +18,21 @@ Fixtures: TEST `band` government (`actions: 2`, from 127); a TEST tech with `mod
 building (no cost) with `modifiers: {"actions": 1}`; a TEST event with `modifiers: {"actions": -1}` lasting 1 turn;
 a TEST civilization with `modifiers: {"actions": 1}`.
 
-- [ ] AC1 (loader): field `modifiers` is optional on buildings, cities, techs, civilizations, governments and
+- [x] AC1 (loader): field `modifiers` is optional on buildings, cities, techs, civilizations, governments and
   events: an object whose keys are in `DataLoader.MODIFIER_KEYS` (just `"actions"` here) and whose values are
   non-zero ints (negative allowed). An unknown key, a non-int or 0 is a load error naming the card and
   `modifiers.<key>`. On an action or territory card it's an unknown-field warning (`TYPE_FIELDS`).
-- [ ] AC2 (lookup): new `modifier(key) -> int` sums `key` over the tableau cards that aren't idle, the cards in
+- [x] AC2 (lookup): new `modifier(key) -> int` sums `key` over the tableau cards that aren't idle, the cards in
   `ALWAYS_ON_ZONES` (researched techs, civilization, government) and the active events; 0 when none has it. A
   building that goes idle stops counting; one staffed again counts again.
-- [ ] AC3 (actions): `actions_per_turn()` is the government's `actions` plus `modifier("actions")`, never below 1.
+- [x] AC3 (actions): `actions_per_turn()` is the government's `actions` plus `modifier("actions")`, never below 1.
   Given `band` with the tech researched it's 3; with the civilization as well, 4; with only the event active, 1;
   after the event ends, 2 again.
-- [ ] AC4 (mid-turn): given `band` and the +1 building in hand, playing it uses 1 action and leaves `actions_left()`
+- [x] AC4 (mid-turn): given `band` and the +1 building in hand, playing it uses 1 action and leaves `actions_left()`
   2 (3 − 1). Buying the +1 tech mid-turn likewise raises `actions_left()` by 1 at once.
-- [ ] AC5 (unlimited): with no `actions` on the government, modifiers don't limit anything: `actions_per_turn()`
+- [x] AC5 (unlimited): with no `actions` on the government, modifiers don't limit anything: `actions_per_turn()`
   stays -1.
-- [ ] AC6 (text): a card with `modifiers: {"actions": 1}` has the text "+1 action each turn"; with -1, "−1 action
+- [x] AC6 (text): a card with `modifiers: {"actions": 1}` has the text "+1 action each turn"; with -1, "−1 action
   each turn"; on an event the tooltip adds "while active".
 
 ## Out of scope
@@ -62,7 +62,13 @@ a TEST civilization with `modifiers: {"actions": 1}`.
 | AC6 | `test_modifiers::test_modifier_text` |
 
 ## Manual check
-- [ ] With a test data tweak (Calendar given `modifiers: {"actions": 1}`), researching it raises the top bar's
-  counter at once and every turn after.
+- [ ] With a local data tweak (not committed: Calendar given `"modifiers": {"actions": 1}`), researching Calendar
+  raises the hand's counter from "Actions: 1 / 2" to "Actions: 2 / 3" at once, and every turn after starts at 3 / 3.
+  Calendar's card reads "+1 action each turn".
 
 ## Log
+- `Modifiers.working_cards` is now the one walk for upkeep too (`TurnLoop.resolve_upkeep` calls it); the key is the
+  constant `Modifiers.ACTIONS`, and `CardDef.MODIFIER_NOUNS` holds each key's noun for the text.
+- A TYPE_FIELDS field on the wrong type gets the loader's "'modifiers' only applies to buildings (ignored)" warning,
+  which names only the first listed type; it reads oddly for a field on six types, but it's the existing wording.
+- Follow-up (from 127 as well): the "Actions" glossary term in card details isn't built; no criterion asked for it.
