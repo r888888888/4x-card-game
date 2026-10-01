@@ -2,14 +2,13 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Renewal (backlog 147): each turn that starts under Anarchy, after the draw, owes renewal: trash 1 + counters + the
 ## renewal modifier cards (config unrest.renewal is the base) from the discard, governments aside; each calms 1 unrest.
 ## Nothing else can be done until it is paid. Fixtures: tests/lib/anarchy_case.gd, plus Rites (a tech, renewal +1).
-## Engines are held as Object so the file parses before the API.
 
 const RITES := {"id": "rites", "name": "Rites", "type": "tech", "cost": {"insight": 1}, "modifiers": {"renewal": 1}}
 const RENEWAL := {"renewal": 1}
 
 
 ## A renewal game (unrest.renewal 1) whose discard holds discard_ids when it falls into Anarchy at the start of turn 2.
-func renewal_engine(discard_ids: Array, block := RENEWAL, extra := []) -> Object:
+func renewal_engine(discard_ids: Array, block := RENEWAL, extra := []) -> GameEngine:
 	var e := anarchy_engine(block, {}, extra)
 	for id in discard_ids:
 		e.create_card(id, "discard", null)
@@ -24,7 +23,7 @@ func test_renewal_is_owed_the_turn_anarchy_falls() -> void:
 	var e := renewal_engine(["farm", "kings", "scout"])
 	eq(ruling(e), "anarchy", "in Anarchy")
 	var p: Dictionary = e.pending()
-	eq(p.get("kind"), "renewal", "kind: PENDING_RENEWAL")
+	eq(p.get("kind"), GameEngine.PENDING_RENEWAL, "kind")
 	eq(p.get("count"), 1, "1 + 0 counters")
 	var discard: Zone = e.zone("discard")
 	eq(p.get("options"), [uid_of(discard, "farm"), uid_of(discard, "scout")], "the discard but the government, in order")
