@@ -24,6 +24,7 @@ var choices: ChoiceOverlays
 var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
+var modals: ModalStack  # the open modals, bottom to top (153)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
@@ -99,7 +100,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	log_drawer.clear()
 	log_drawer.close()
 	supply.close()
-	_event_modal.close()  # an old game's event
+	modals.close_all()  # an old game's event, details or tree
 	_drawn = {}
 	territory_view.reset()
 	_reset_views()
@@ -152,8 +153,7 @@ func _push_new_game_screen() -> void:
 func _leave_game() -> void:
 	nav.clear()
 	supply.close()
-	details.close()
-	_event_modal.close()
+	modals.close_all()
 	_reset_views()
 	choices.refresh(null)
 	_game_over.overlay.hide()
@@ -627,8 +627,7 @@ func _build_layout() -> void:
 	log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
 	add_child(log_drawer)
 	log_drawer.unread_changed.connect(_top_bar.set_log_unread)
-	toasts = Toasts.new(_top_bar, func(): return _menu.is_open() or nav.depth() > 0 or tech_tree.visible \
-		or details.visible or _event_modal.visible or identity_modal.visible)
+	toasts = Toasts.new(_top_bar, func(): return _menu.is_open() or nav.depth() > 0 or modals.is_open())
 	add_child(toasts)
 
 	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
@@ -642,10 +641,11 @@ func _build_layout() -> void:
 		show_new_game_screen())
 	_menu.close_requested.connect(_close_menu)
 	_menu.exit_requested.connect(func(): quit_hook.call())
-	tech_tree = TechTreeModal.new(self)  # before details, which opens over it and takes the keys first
-	_event_modal = EventModal.new(self)  # before details, so a details modal opened from it takes the keys first
-	identity_modal = IdentityModal.new(self)
-	details = CardDetailsModal.new(self)
+	modals = ModalStack.new(self)
+	details = CardDetailsModal.new(modals)
+	tech_tree = TechTreeModal.new(modals, details.open_def)
+	_event_modal = EventModal.new(modals)
+	identity_modal = IdentityModal.new(modals)
 	start_screen = StartScreen.new(self)
 	start_screen.new_game_requested.connect(_push_new_game_screen)
 	start_screen.settings_requested.connect(func():

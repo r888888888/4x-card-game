@@ -1,7 +1,7 @@
 class_name EventModal
-extends ColorRect
+extends Modal
 ## The drawn-event modal (backlog 079): when the event phase draws an event, a big card on the left and, on the right,
-## how long it lasts and what it just did (GameEngine.outcome_summary). While open it takes every key and click;
+## how long it lasts and what it just did (GameEngine.outcome_summary). While on top it takes every key and click;
 ## Esc, Enter, OK or a click outside closes it.
 
 var _card_slot: Control
@@ -12,22 +12,11 @@ var ok_button: Button
 var _shown := {}  # what is shown; {} while hidden
 
 
-## Builds the modal on parent, hidden.
-func _init(parent: Control) -> void:
-	color = Palette.SCRIM
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	z_index = 20  # above the board and flying cards, like the details modal
-	visible = false
-	gui_input.connect(_on_dimmer_input)
-	parent.add_child(self)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # a click beside the panel reaches the dimmer and closes
-	add_child(center)
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"DarkPanel"
+## Builds the modal on stack's host, hidden.
+func _init(p_stack: ModalStack) -> void:
+	super(p_stack)
+	close_keys = [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]
 	panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(Palette.EVENT))  # bordered in the event colour
-	center.add_child(panel)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
 	panel.add_child(row)
@@ -72,25 +61,9 @@ func open(outcome: Dictionary) -> void:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_slot.custom_minimum_size = card.slot_size()
 	card.attach(_card_slot)
-	show()
+	present()
 	ok_button.grab_focus()
 
 
-func close() -> void:
-	hide()
+func closed() -> void:
 	_shown = {}
-
-
-## While open, every key stops here: Esc and Enter close, the rest do nothing.
-func _input(event: InputEvent) -> void:
-	if not visible or not event is InputEventKey:
-		return
-	get_viewport().set_input_as_handled()
-	if event.pressed and not event.echo and event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]:
-		close()
-
-
-func _on_dimmer_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		accept_event()
-		close()

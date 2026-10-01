@@ -1,10 +1,10 @@
 class_name TechTreeModal
-extends ColorRect
+extends Modal
 ## The Knowledge modal (backlog 059): the tech tree from GameEngine.tech_tree, one column per era named with era_name.
 ## An era not reached yet shows its unlock thresholds. Each tech shows its state with a mark and a word (not colour
 ## alone), its cost now, its eureka (✔ when met, 141), its prerequisite and what it gives; clicking one opens its details. An available tech has a
-## Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be learned. While open it
-## takes every key; T, Esc or a click outside closes it.
+## Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be learned. While on top it
+## takes every key; T, Esc or a click outside closes it. A tech's details open over it.
 
 const STATE_LOOK := {  # state -> [mark, word, border colour, text alpha]
 	GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
@@ -18,24 +18,14 @@ var _columns: HBoxContainer
 var _titles: Array[String] = []  # the column titles on show
 
 
-## Builds the modal on parent (the board), hidden. Its techs open parent's details modal.
-func _init(parent: Control) -> void:
-	color = Palette.SCRIM
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	z_index = 15  # above the supply screen; the details modal (20) opens over it
-	visible = false
-	gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed:
-			accept_event()
-			close())
-	parent.add_child(self)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"DarkPanel"
-	center.add_child(panel)
+var _open_def: Callable  # opens a card definition's details over the tree
+
+
+## Builds the modal on stack's host, hidden. Its techs open their details with open_def(card_id).
+func _init(p_stack: ModalStack, open_def: Callable) -> void:
+	super(p_stack)
+	close_keys = [KEY_ESCAPE, KEY_T]
+	_open_def = open_def
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	panel.add_child(box)
@@ -67,11 +57,7 @@ func open() -> void:
 	for era in e.tech_eras():
 		_titles.append(era.name)
 		_columns.add_child(_column(e, era))
-	show()
-
-
-func close() -> void:
-	hide()
+	present()
 
 
 ## One era's column: its name, status and techs. era is a tech_eras() entry.
@@ -136,7 +122,7 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 		lines.append(("✔ " if tech.eureka else "") + eureka)
 	if tech.prereq != "":
 		lines.append(("needs " if tech.state == GameEngine.TECH_LOCKED else "after ") + e.card_db[tech.prereq].name)
-	var b := UIKit.button("\n".join(lines), func(): get_parent().details.open_def(tech.id))
+	var b := UIKit.button("\n".join(lines), func(): _open_def.call(tech.id))
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100) beside its Learn button
 	b.tooltip_text = "Click for the full details."
@@ -144,12 +130,3 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	b.add_theme_stylebox_override("normal", style)
 	b.modulate.a = look[3]
 	return b
-
-
-## While open, every key stops here: T and Esc close, the rest do nothing.
-func _input(event: InputEvent) -> void:
-	if not visible or not event is InputEventKey:
-		return
-	get_viewport().set_input_as_handled()
-	if event.pressed and not event.echo and event.keycode in [KEY_ESCAPE, KEY_T]:
-		close()
