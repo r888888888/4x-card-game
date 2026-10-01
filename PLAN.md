@@ -54,7 +54,8 @@ res://
     effect_registry.gd   # op name → effect script
     effects/             # one <op>_effect.gd per effect op
     rng.gd               # seeded RNG (reproducible games)
-  autoload/game.gd       # "Game" singleton: loads data, owns the engine
+  autoload/game.gd       # "Game" singleton: loads data, owns the engine, reads the launch options
+  autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
   autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
   ui/                    # main.tscn/main.gd (MainScreen: card views, refresh, layout built in code), card_view.gd,
@@ -79,7 +80,7 @@ res://
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
                          # strategy and civilization), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
-  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] (no strategy: all of them)
+  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all)
   docs/                  # development process, testing guide, backlog
 ```
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in

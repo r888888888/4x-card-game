@@ -10,6 +10,10 @@ Open the folder in Godot and press F5 (Play), or from a terminal:
 godot --path .
 ```
 
+For testing, options after `--` (135): `--civ <id>` and/or `--seed <n>` start a game straight away (skipping the title
+screen), and `--turns <n>` sets the turn limit, e.g. `godot --path . -- --civ sumer --turns 20`. The sim takes the same
+`--civ` and `--turns`: `scripts/sim.sh 20 all --civ sumer --turns 15`.
+
 Drag a card from your hand into the tableau (or double-click it) to play it; press E or "End turn" to
 end the turn. Click a territory in the Realm to see it on its own: a box titled with the territory, its slots, pop and Grow, then
 its city and buildings and an outline for each free slot.
