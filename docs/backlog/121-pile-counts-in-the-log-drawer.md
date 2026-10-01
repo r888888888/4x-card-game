@@ -2,7 +2,7 @@
 id: 121
 title: Deck and discard counts move into the log drawer
 type: feature
-status: review
+status: done
 branch: feat/121-pile-counts-in-the-log-drawer
 ---
 
