@@ -2,7 +2,7 @@
 id: 143
 title: Iron Age techs in the tech deck, and research pacing
 type: feature
-status: review
+status: done
 branch: feat/143-iron-age-and-research-pacing
 ---
 
