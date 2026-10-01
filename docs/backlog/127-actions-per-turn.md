@@ -2,7 +2,7 @@
 id: 127
 title: Playing a card from hand uses an action; your government sets how many you get each turn
 type: feature
-status: ready
+status: red-review
 branch: feat/127-actions-per-turn
 ---
 
@@ -68,6 +68,14 @@ Fixtures: two new TEST_GOVS, `band` (`actions: 2`, cost {}) and `court` (`action
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_actions::test_government_actions_load`, `test_bad_government_actions_are_load_errors`, `test_government_actions_text` |
+| AC2 | `test_actions::test_actions_per_turn_come_from_the_government`, `test_actions_are_unlimited_without_a_government_that_sets_them` |
+| AC3 | `test_actions::test_each_play_uses_an_action_until_none_are_left`, `test_no_actions_comes_after_game_over_and_a_pending_choice` (a guard: passes already) |
+| AC4 | `test_actions::test_other_actions_dont_use_or_need_actions`, `test_buying_a_revealed_tech_after_the_last_action_is_free`, `test_choosing_an_explored_territory_after_the_last_action_is_free` |
+| AC5 | `test_actions::test_actions_reset_each_turn_and_dont_carry_over` |
+| AC6 | `test_actions::test_a_new_government_counts_at_once`, `test_any_number_of_plays_without_actions` |
+| AC7 | `test_actions::test_top_bar_counts_actions_and_spent_hands_dim` |
+| AC8 | `test_content::test_every_government_sets_actions` |
 
 ## Manual check
 - [ ] As Chiefdom, after two plays the hand dims and the counter reads "Actions: 0 / 2"; growing and buying still
