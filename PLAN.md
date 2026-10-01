@@ -211,8 +211,8 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - **Slots**: a city card may add `slots` to its territory (the Capital gives +3, 113). A building must be placed in a settled territory with a free slot. The player picks
   the territory; if only one is valid, the engine picks it.
 - **Keywords are tags; card data gives them meaning:**
-  - Building `requires: [...]`: the territory must have any of the listed keywords (e.g. Farm and
-    Irrigation need Fresh Water, so the Capital starts on River Meadow, which has it).
+  - Building `requires: [...]`: the territory must have any of the listed keywords (e.g. Farm needs
+    Fresh Water, so the Capital starts on River Meadow, which has it).
   - Effect `keyword` condition: the effect applies only if the card's territory has that keyword
     (e.g. Farm +1 more food on Flood Plain).
   - Both check the territory copy's keywords (`CardInstance.keywords`: printed, then rolled resources).
@@ -277,10 +277,10 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs; era-3 techs defined but not in the deck).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
   (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
-  starting deck is the basics: Farm 4, Irrigation 1, Settler 2, Scout 2, Lumber Camp 2, Insight 2, Barter 1 (2 food →
-  2 wealth), Storyteller 1 (1 food: draw 2). Early buildings (080) are on sale from turn 1, in unlocked supply piles
+  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Lumber Camp 2,
+  Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles
   with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
-  culture), so every territory can take a building before any tech.
+  culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
 - Card type `tech`: cost is wealth only (≥ 1); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
 - Research is a card (034): the `research` op (`{ "op": "research" }`, play only, no fields) reveals the top 2
