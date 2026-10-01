@@ -2,7 +2,7 @@
 id: 108
 title: Civilizations can make some cards cheaper
 type: feature
-status: in-progress
+status: review
 branch: feat/108-civilization-discounts
 ---
 
@@ -14,18 +14,18 @@ This gives Babylon (astronomy and scholarship), Phoenicia (trade) and Egypt (mon
 Fixtures: a test civilization with `discounts: [{"type": "tech", "wealth": 1}]`, one with
 `[{"tag": "wonder", "wealth": 3}]`, and one with `[{"supply": true, "wealth": 1}]`.
 
-- [ ] AC1 (loader): civilization field `discounts` is optional: a list of {one filter, one or more resource amounts}.
+- [x] AC1 (loader): civilization field `discounts` is optional: a list of {one filter, one or more resource amounts}.
   The filter is `type` (a card type), `tag` (any tag) or `supply: true`. Amounts are ints ≥ 1 of known resources.
   An unknown type or resource, a missing filter, two filters in one entry, or an amount < 1 is a load error naming
   the card and `discounts`. On another card type it's an unknown-field warning (it's in `DataLoader.TYPE_FIELDS`).
-- [ ] AC2 (tech): with the tech discount, a tech with printed cost 4 has `tech_cost` 3; with the prereq discount and
+- [x] AC2 (tech): with the tech discount, a tech with printed cost 4 has `tech_cost` 3; with the prereq discount and
   passes it still stacks, and never goes below 1. `buy_tech` charges 3 and `buy_tech_error` uses 3.
-- [ ] AC3 (play): new query `play_cost(uid) -> Dictionary` returns a hand card's cost after discounts. With the wonder
+- [x] AC3 (play): new query `play_cost(uid) -> Dictionary` returns a hand card's cost after discounts. With the wonder
   discount, a wonder costing 12 wealth has `play_cost` {wealth: 9}; with 9 wealth `play_error` is "" and `play_card`
   leaves 0 wealth. A cost never goes below 0 per resource. A card without the tag is unchanged.
-- [ ] AC4 (supply): with the supply discount, a supply pile priced 3 has `buy_price` 2, `buy` charges 2, and a pile
+- [x] AC4 (supply): with the supply discount, a supply pile priced 3 has `buy_price` 2, `buy` charges 2, and a pile
   priced 1 costs 0 (still buyable, still limited by its count).
-- [ ] AC5: with no civilization, or a civilization with no `discounts`, every cost equals today's.
+- [x] AC5: with no civilization, or a civilization with no `discounts`, every cost equals today's.
 
 ## Out of scope
 - Discounts from governments, techs or buildings (the lookup should make that easy later, but no content uses it).
@@ -56,8 +56,15 @@ Fixtures: a test civilization with `discounts: [{"type": "tech", "wealth": 1}]`,
 | AC5 | `test_discounts::test_costs_are_unchanged_without_discounts` |
 
 ## Manual check
-- [ ] As Babylon, tech costs in the tech tree are 1 lower; as Phoenicia, supply prices are 1 lower; as Egypt, the
-  Pyramids show 9 wealth in hand.
+- [ ] As Babylon, tech costs in the tech tree and the research choice are 1 lower than printed (Mining 1 instead
+  of 2). As Phoenicia, the Buy Cards screen's prices are 1 lower (Scout 1 wealth). As Egypt, a Pyramids in hand
+  shows "9 wealth" on its face, and playing it with 9 wealth works. Each civilization's card (new game screen, the
+  civilization modal) lists its discount line.
 
 ## Log
+- A type or tag discount only lowers costs to play or research; only a `supply: true` entry lowers supply prices.
+- The hand card face asks `play_cost` (falling back to the printed cost when the card isn't in the hand yet); card
+  details still show the printed cost.
+- Balance worry (for the balance item): with actions the bottleneck (127), discounts may matter less; Egypt's −3 on
+  a 12-wealth wonder is the biggest.
 - 2026-09-30: noted the action economy (127) and 129's `modifiers`; scope and criteria unchanged.

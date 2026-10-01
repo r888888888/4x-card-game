@@ -37,6 +37,7 @@ res://
     research.gd          # Research: revealing, buying and declining techs, passes, eras
     supply.gd            # Supply: buying from the card supply
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
+    discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
     modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
     famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
     events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
@@ -368,6 +369,12 @@ A game is played as one civilization: a permanent card with a starting gift and 
   wealth; ⟳ +1 wealth per coastal territory), Babylon (Start: Kingship in the discard), Greece (Start: a Storyteller in
   the discard; ⟳ +1 VP), Persia (Start: a Caravan in the discard; ⟳ +1 wealth). A start gift is always a card the game
   also hands out otherwise.
+- Discounts (108): a civilization's optional `discounts` is a list of entries, each with one filter (`type`: a card
+  type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
+  or tag discount lowers a hand card's `play_cost(uid)` (what `play_error` checks and `play_card` charges, never below 0
+  per resource) and a tech's `tech_cost` (never below 1); a supply discount lowers `buy_price` (never below 0). Text
+  "Wonders cost 3 less wealth." Real data: Babylon techs −1 wealth, Phoenicia supply −1 wealth, Egypt wonders −3
+  wealth. Hand cards show their cost after discounts; card details show the printed cost.
 - Flavor (107): a civilization may set `flavor` (a paragraph) and `quote` ({"text", "by"}); both optional, non-empty
   strings. `def_details` / `card_details` return `flavor` ("" if none) and `quote` ({} if none) for every card, and
   the details modal shows them first (flavor in italics, then the quote and who said it), before the rules. On the
