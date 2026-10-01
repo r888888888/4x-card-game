@@ -2,7 +2,7 @@
 id: 108
 title: Civilizations can make some cards cheaper
 type: feature
-status: ready
+status: in-progress
 branch: feat/108-civilization-discounts
 ---
 
@@ -49,6 +49,11 @@ Fixtures: a test civilization with `discounts: [{"type": "tech", "wealth": 1}]`,
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_discounts::test_discounts_load`, `test_discounts_validation`, `test_discount_text` |
+| AC2 | `test_discounts::test_a_tech_discount_lowers_tech_cost_and_what_buy_tech_charges`, `test_a_tech_discount_stacks_with_passes_and_prereqs_but_never_below_1` |
+| AC3 | `test_discounts::test_a_tag_discount_lowers_play_cost_and_what_a_play_charges`, `test_a_discount_never_takes_a_cost_below_0_and_skips_other_cards` |
+| AC4 | `test_discounts::test_a_supply_discount_lowers_buy_price_and_what_buy_charges` |
+| AC5 | `test_discounts::test_costs_are_unchanged_without_discounts` |
 
 ## Manual check
 - [ ] As Babylon, tech costs in the tech tree are 1 lower; as Phoenicia, supply prices are 1 lower; as Egypt, the
