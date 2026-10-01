@@ -49,7 +49,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 		steps += 1
 		if not engine.pending_choice.is_empty():
 			engine.choose(engine.pending_choice.options[0])
-		elif _learn_cheapest_tech(engine):
+		elif learn_cheapest_tech(engine):
 			pass
 		elif plays >= MAX_PLAYS_PER_TURN or not _play_first_playable(engine, strategy):
 			break
@@ -62,13 +62,23 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 	return steps
 
 
-## Learns the cheapest tech the engine allows (140: any tech in the open tree). Returns whether it learned one.
-static func _learn_cheapest_tech(engine: GameEngine) -> bool:
-	var best := -1
-	for tech in engine.tech_tree():
-		if tech.uid != -1 and engine.buy_tech_error(tech.uid) == "" and (best == -1 or tech.cost < engine.tech_cost(best)):
-			best = tech.uid
-	return best != -1 and engine.buy_tech(best)
+## Learns the cheapest tech the engine allows (140: any tech in the open tree); a tie goes to the lower era, then the
+## one listed first in config research_deck (tech_tree()'s order). Returns whether it learned one. Looks only at the
+## research deck, without building tech_tree() (151).
+static func learn_cheapest_tech(engine: GameEngine) -> bool:
+	var listed: Array = engine.config.get("research_deck", {}).keys()
+	var insight: int = engine.resources.get(GameEngine.INSIGHT, 0)
+	var best: CardInstance = null
+	var best_key := []
+	for tech in engine.zone("research_deck").cards:
+		var cost := engine.tech_cost(tech.uid)
+		if cost > insight or engine.buy_tech_error(tech.uid) != "":  # the price first: most steps can't afford any
+			continue
+		var key := [cost, tech.def.era, listed.find(tech.def.id)]
+		if best == null or key < best_key:
+			best = tech
+			best_key = key
+	return best != null and engine.buy_tech(best.uid)
 
 
 ## Plays the first hand card that can be played, on its first valid target, in strategy's order. Returns whether one

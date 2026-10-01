@@ -2,7 +2,7 @@
 id: 151
 title: Let the bot pick a tech without building the tech tree
 type: feature
-status: red-review
+status: in-progress
 branch: feat/151-bot-tech-pick-without-tree
 ---
 
