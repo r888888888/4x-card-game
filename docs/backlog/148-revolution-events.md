@@ -57,7 +57,6 @@ for unrest to boil over. Follows 145–147. From `spike/unrest`.
 - [ ] Shipped events and numbers as listed in Design notes.
 
 ## Log
-
 - 2026-10-01: Built. Red checkpoint (agreed): the bot's "limit / 2 at least the unrest" uses 146's acceptance rule
   (`Anarchy.accept_error`, now shared with `play_error`: modifier included, a government with no limit accepted).
 - Green: `test_revolting_starts_anarchy_with_renewal_owed_at_once` compared `actions_left()` before (Chiefs:
