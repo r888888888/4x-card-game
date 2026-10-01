@@ -105,7 +105,7 @@
     },
     {
       "id": "lumber_camp", "name": "Lumber Camp", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["forest", "jungle"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1 }
@@ -113,7 +113,7 @@
     },
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
-      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["coastal"],
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": [], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -379,48 +379,72 @@
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" } ]
     },
     {
-      "id": "grassland", "name": "River Meadow", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland", "fresh_water"]
-    },
-    {
       "id": "plains", "name": "Plains", "type": "territory",
       "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 4, "keywords": ["grassland"]
     },
     {
-      "id": "river_valley", "name": "River Valley", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 6, "keywords": ["fresh_water", "flood_plain"]
+      "id": "river_meadow", "name": "River Meadow", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland", "fresh_water"]
     },
     {
-      "id": "lakeshore", "name": "Lakeshore", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 5, "keywords": ["fresh_water"]
+      "id": "alluvial_plain", "name": "Alluvial Plain", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 6, "keywords": ["grassland", "fresh_water", "flood_plain"]
     },
     {
-      "id": "floodplain_delta", "name": "Floodplain Delta", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 6, "keywords": ["fresh_water", "flood_plain", "coastal"]
+      "id": "coastal_plain", "name": "Coastal Plain", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 3, "housing": 5, "keywords": ["grassland", "coastal"]
     },
     {
-      "id": "bay", "name": "Bay", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["coastal"]
+      "id": "dunes", "name": "Dunes", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["desert"]
     },
     {
-      "id": "hills", "name": "Hills", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 3, "keywords": ["hills"]
+      "id": "oasis", "name": "Oasis", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 3, "keywords": ["desert", "fresh_water"]
     },
     {
-      "id": "highlands", "name": "Highlands", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["mountain"]
+      "id": "desert_floodplain", "name": "Desert Floodplain", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 4, "keywords": ["desert", "fresh_water", "flood_plain"]
+    },
+    {
+      "id": "reed_marsh", "name": "Reed Marsh", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 4, "keywords": ["marsh", "fresh_water"]
+    },
+    {
+      "id": "delta_marsh", "name": "Delta Marsh", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 6, "keywords": ["marsh", "fresh_water", "flood_plain", "coastal"]
     },
     {
       "id": "woodland", "name": "Woodland", "type": "territory",
       "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 3, "keywords": ["forest"]
     },
     {
-      "id": "rainforest", "name": "Rainforest", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["jungle"]
+      "id": "lakeside_woods", "name": "Lakeside Woods", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["forest", "fresh_water"]
     },
     {
-      "id": "dunes", "name": "Dunes", "type": "territory",
-      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["desert"]
+      "id": "cedar_coast", "name": "Cedar Coast", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 5, "keywords": ["forest", "fresh_water", "coastal"]
+    },
+    {
+      "id": "hill_country", "name": "Hill Country", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 3, "keywords": ["hills"]
+    },
+    {
+      "id": "highland_valley", "name": "Highland Valley", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 4, "keywords": ["hills", "fresh_water"]
+    },
+    {
+      "id": "coastal_hills", "name": "Coastal Hills", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 2, "housing": 5, "keywords": ["hills", "fresh_water", "coastal"]
+    },
+    {
+      "id": "mountains", "name": "Mountains", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 2, "keywords": ["mountain"]
+    },
+    {
+      "id": "mountain_lake", "name": "Mountain Lake", "type": "territory",
+      "cost": {}, "vp": 0, "tags": [], "slots": 1, "housing": 3, "keywords": ["mountain", "fresh_water"]
     }
   ]
 }

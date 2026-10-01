@@ -1,9 +1,10 @@
 {
   "resources": ["food", "wealth"],
   "keywords": [
-    "fresh_water", "flood_plain", "mountain", "jungle", "coastal", "forest",
-    "hills", "desert", "grassland"
+    "grassland", "forest", "hills", "mountain", "desert", "marsh",
+    "fresh_water", "coastal", "flood_plain"
   ],
+  "terrains": ["grassland", "forest", "hills", "mountain", "desert", "marsh"],
   "resource_keywords": ["gold", "tin", "copper"],
   "turn_limit": 100,
   "hand_size": 5,
@@ -13,7 +14,7 @@
   "starting": {
     "resources": { "food": 2, "wealth": 2 },
     "tableau": ["capital"],
-    "territory": "grassland",
+    "territory": "river_meadow",
     "civilization": "egypt",
     "government": "chiefdom"
   },
@@ -81,16 +82,23 @@
   "era_unlocks": { "2": { "pop": 8, "wealth": 15 } },
   "era_names": { "1": "Stone Age", "2": "Bronze Age", "3": "Iron Age" },
   "territory_deck": {
-    "plains": 5,
-    "river_valley": 5,
-    "lakeshore": 5,
-    "floodplain_delta": 5,
-    "bay": 5,
-    "hills": 10,
-    "highlands": 5,
-    "woodland": 5,
-    "rainforest": 5,
-    "dunes": 5
+    "plains": 4,
+    "river_meadow": 3,
+    "alluvial_plain": 3,
+    "coastal_plain": 3,
+    "dunes": 3,
+    "oasis": 3,
+    "desert_floodplain": 3,
+    "reed_marsh": 3,
+    "delta_marsh": 3,
+    "woodland": 4,
+    "lakeside_woods": 3,
+    "cedar_coast": 3,
+    "hill_country": 4,
+    "highland_valley": 3,
+    "coastal_hills": 3,
+    "mountains": 4,
+    "mountain_lake": 3
   },
   "territory_resources": {
     "hills": [
@@ -98,7 +106,7 @@
       { "keywords": ["tin", "copper"], "weight": 1 },
       { "keywords": [], "weight": 2 }
     ],
-    "highlands": [
+    "mountain": [
       { "keywords": ["tin"], "weight": 1 },
       { "keywords": ["copper"], "weight": 1 },
       { "keywords": ["tin", "copper"], "weight": 1 },
