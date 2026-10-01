@@ -10,22 +10,29 @@ The simulator plays one ScriptedBot game per seed (1..N) and reports mean, min a
 (founded beyond the starting ones), `pop` (at game end), `techs` (researched), `bought` (supply buys) and `era`.
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
+Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.
+`scripts/sim.sh <seeds>` prints a block per strategy (its mean score per civilization, then its metrics over all of
+them) and takes about 4 minutes at 20 seeds; `scripts/sim.sh <seeds> <strategy>` prints one table for that strategy
+as the default civilization (seconds). `baseline` is the pre-134 bot: it never grows pop.
+
 ## Run it
 
 1. Seeds: the argument, or 20.
-2. Current checkout: `scripts/sim.sh <seeds>`. If it exits 1, show the loader errors and stop.
+2. Current checkout: `scripts/sim.sh <seeds>` (all strategies), or `scripts/sim.sh <seeds> baseline` for a quick
+   check. If it exits 1, show the loader errors and stop.
 3. `main`, without touching the working tree:
    ```bash
    git worktree add --detach "$SCRATCH/balance-main" main
-   (cd "$SCRATCH/balance-main" && scripts/sim.sh <seeds>)
+   (cd "$SCRATCH/balance-main" && scripts/sim.sh <seeds>)   # same strategy argument as step 2
    git worktree remove --force "$SCRATCH/balance-main"
    ```
-   If `main` has no `scripts/sim.sh` yet (the branch that adds it), copy `sim/` and `scripts/sim.sh` from the
+   If `main` has no `scripts/sim.sh` yet, or no strategies (before 134), copy `sim/` and `scripts/sim.sh` from the
    checkout into the worktree before running, and say so.
    Use the session scratchpad directory for `$SCRATCH`. The worktree has no `.godot/` cache, so its first run
    imports the project (a few seconds). Always remove the worktree, also when the run fails.
    If the current branch *is* `main` with no changes, say so and show one table.
-4. Show one table: metric | main mean (min–max) | this mean (min–max) | Δ mean. Then two or three sentences
+4. Show one table: metric | main mean (min–max) | this mean (min–max) | Δ mean; with all strategies, one row per
+   strategy × civilization for score, then that table per strategy only where something moved. Then two or three sentences
    on what moved and the likely cause from the diff (`git diff main -- data/`). Flag any metric whose mean
    moved by more than ~10%, and any `min` of `cities` or `techs` that fell to 0.
 
