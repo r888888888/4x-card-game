@@ -1,5 +1,5 @@
 extends "res://tests/lib/test_case.gd"
-## The log drawer in the real main scene (backlog 115): closed at the start, L or the top bar's Log (L) button opens
+## The log drawer in the real main scene (backlog 115): closed at the start, L or the top bar's Log button opens
 ## it from the right edge over the board, L / Esc / the button / a click outside close it, lines append open or
 ## closed, a new game clears it. Hook: main.log_drawer (is_open(), text(): the log as plain text).
 
@@ -77,8 +77,8 @@ func test_with_reduce_motion_the_drawer_fades_in_place() -> void:
 func test_the_log_button_esc_and_a_click_outside_close_it() -> void:
 	await with_game(true, func(main: Node):
 		var drawer: Object = main.log_drawer
-		var button := shown_button(main, "Log (L)")
-		check(button != null, "a Log (L) button")
+		var button := shown_button(main, "Log")
+		check(button != null, "a Log button")
 		if button == null:
 			return
 		button.pressed.emit()

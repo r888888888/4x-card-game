@@ -125,7 +125,7 @@ func test_end_turn_is_in_the_top_bar_between_log_and_menu() -> void:
 	var main: Node = await open_game_at_1080()
 	var viewport: Vector2 = main.get_viewport_rect().size
 	var menu := shown_button(main, "Menu")
-	var log_button := shown_button(main, "Log (L)")
+	var log_button := shown_button(main, "Log")
 	var end_turns := buttons_starting(main, "End turn")
 	eq(end_turns.size(), 1, "one End turn button (none beside the hand)")
 	if end_turns.size() == 1 and menu != null and log_button != null:
@@ -151,6 +151,19 @@ func test_end_turn_is_disabled_with_the_reason_while_the_turn_cant_end() -> void
 	if end_turn != null:
 		check(end_turn.disabled, "disabled")
 		eq(end_turn.tooltip_text, error, "the reason as its tooltip")
+	close_at_1080(main)
+
+
+func test_top_bar_buttons_put_their_key_in_the_tooltip_not_the_text() -> void:
+	var main: Node = await open_game_at_1080()
+	var keys := {"Buy Cards": "S", "Knowledge": "T", "Log": "L", "End turn": "E", "Menu": "Esc"}
+	for prefix in keys:
+		var b := shown_button(main, prefix)
+		check(b != null, "a %s button" % prefix)
+		if b != null:
+			check(not b.text.contains("("), "'%s' names no key" % b.text)
+			check(b.tooltip_text.begins_with("Shortcut: %s." % keys[prefix]), "'%s' tooltip starts with its key: %s" % [
+				b.text, b.tooltip_text])
 	close_at_1080(main)
 
 
