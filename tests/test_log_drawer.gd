@@ -96,6 +96,62 @@ func test_the_log_button_esc_and_a_click_outside_close_it() -> void:
 		check(not drawer.is_open(), "a click outside closes it"))
 
 
+## The drawer's "Deck N · Discard M" label (121), or null.
+func pile_counts(main: Node) -> Label:
+	for node in (main.log_drawer as Node).find_children("*", "Label", true, false):
+		if (node as Label).text.begins_with("Deck "):
+			return node
+	return null
+
+
+func counts_now() -> String:
+	return "Deck %d · Discard %d" % [Game.engine.zone("deck").size(), Game.engine.zone("discard").size()]
+
+
+# --- 121: the pile counts ---
+
+func test_the_drawer_shows_the_deck_and_discard_counts() -> void:
+	await with_game(true, func(main: Node):
+		main.log_drawer.open()
+		await wait_frames()
+		var counts := pile_counts(main)
+		check(counts != null and counts.is_visible_in_tree(), "the counts in the open drawer")
+		if counts == null:
+			return
+		eq(counts.text, counts_now(), "the engine's counts")
+		var before := counts.text
+		Game.engine.end_turn()
+		eq(counts.text, counts_now(), "updated after a turn")
+		check(counts.text != before, "and they changed: %s, %s" % [before, counts.text]))
+
+
+func test_dealt_cards_start_from_the_log_button_and_it_pulses_as_cards_arrive() -> void:
+	await with_game(false, func(main: Node):
+		var button: Button = null
+		for b in UIKit.buttons_in(main):
+			if b.text.begins_with("Log"):
+				button = b
+		var origin := button.get_global_rect().get_center()
+		for i in 2:  # room in the hand, so the next turn deals cards; the discards fly to the Log button
+			check(Game.engine.discard_card(Game.engine.zone("hand").cards[0].uid), "discard a hand card")
+		var hand_before := Game.engine.zone("hand").cards.map(func(c): return c.uid)
+		Game.engine.end_turn()
+		if not main.event_modal().is_empty():
+			main.event_modal_ok_button().pressed.emit()
+		var dealt: Array = Game.engine.zone("hand").cards.filter(func(c): return not hand_before.has(c.uid))
+		check(not dealt.is_empty(), "cards dealt")
+		for card in dealt:
+			var view: CardView = main.views[card.uid]
+			var centre := view.global_position + view.size / 2
+			check(centre.distance_to(origin) < 2.0, "card %d starts at the Log button: %s vs %s" % [card.uid, centre, origin])
+		var pulsed := false
+		var timer := (Engine.get_main_loop() as SceneTree).create_timer(Anim.DISCARD_POP_TIME + Anim.DISCARD_FLY_TIME + 0.4)
+		while timer.time_left > 0.0:
+			await wait_frames(1)
+			pulsed = pulsed or button.scale.x > 1.01
+		check(pulsed, "the Log button pulses as discarded cards arrive"))
+
+
 func test_lines_append_while_closed_and_a_new_game_clears_it() -> void:
 	await with_game(true, func(main: Node):
 		var drawer: Object = main.log_drawer
