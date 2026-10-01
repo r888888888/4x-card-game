@@ -2,7 +2,7 @@
 id: 147
 title: Renewal: Anarchy makes you trash cards from your discard
 type: feature
-status: ready
+status: red-review
 branch: feat/147-renewal
 ---
 
@@ -50,6 +50,13 @@ is also the way back out (146). Techs can deepen it. Follows 145 and 146. From `
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_renewal::test_renewal_is_owed_the_turn_anarchy_falls`, `test_renewal_grows_with_the_counters`, `test_renewal_is_capped_at_the_options`, `test_nothing_is_owed_with_an_empty_discard_or_renewal_0`, `test_unrest_renewal_validation` |
+| AC2 | `test_renewal::test_renewing_trashes_the_card_and_calms_1_unrest` |
+| AC3 | `test_renewal::test_renew_error_names_each_reason_and_a_refusal_changes_nothing` |
+| AC4 | `test_renewal::test_renewal_blocks_everything_else` |
+| AC5 | `test_renewal::test_the_renewal_modifier_loads_with_its_text`, `test_a_researched_renewal_tech_raises_the_count` |
+| AC6 | `test_renewal::test_the_bot_renews_the_card_worth_least_to_keep`, `test_the_bot_breaks_renewal_ties_by_discard_order` |
+| UI (Design notes) | `test_renewal::test_the_renewal_overlay_shows_the_discard_and_a_click_trashes` |
 
 ## Manual check
 - [ ] In Anarchy, the Renewal overlay shows the discard pile at the start of each turn; clicking a card trashes it
