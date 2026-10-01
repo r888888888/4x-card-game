@@ -373,6 +373,36 @@ func with_event_engine(body: Callable, event_deck := {"windfall": 1, "trade_wind
 	Game.engine = real
 
 
+## The territory deck board_engine games use (137): two Grassland and two Hills.
+const BOARD_TERRITORIES := {"territory_deck": {"grassland": 2, "hills": 2}}
+## A population block where Homeland's pop eats more than the Capital makes, for a Famine at the first upkeep.
+const HUNGRY_POP := {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}
+
+
+## A game on TEST_CARDS + TEST_EVENTS with BOARD_TERRITORIES and overrides, not started (with_main starts it).
+func board_engine(overrides := {}) -> GameEngine:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := event_db(errors, warnings)
+	var config := DataLoader.parse_config(raw_config({"farm": 10}, BOARD_TERRITORIES.merged(overrides, true)),
+		resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	return GameEngine.new(cards, config)
+
+
+## Runs body(main) on the real main scene with Game.engine swapped for engine, started on seed 1 (which re-deals the
+## same config) and laid out; then puts the real engine back. Use with await.
+func with_main(engine: GameEngine, body: Callable) -> void:
+	var real := Game.engine
+	Game.engine = engine
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	await body.call(main)
+	close_main(main)
+	Game.engine = real
+
+
 ## Runs body with Reduce motion set to calm in a temp settings store, then puts the player's settings back (104: a
 ## transition test must know whether screens grow or only fade). Use with await.
 func with_reduce_motion(calm: bool, body: Callable) -> void:

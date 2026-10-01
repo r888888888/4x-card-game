@@ -435,11 +435,11 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 	var in_hand := container == hand
 	var error := e.playable_error(card.uid) if in_hand else ""
 	var leading := TableauView.leading_zone(e, card.uid) if container == tableau.row else ""
-	var compact := leading != ""  # an event or a frontier territory: name and info only
+	var kind := TableauView.board_kind(leading) if container == tableau.row else ""  # 138: a fixed-height board face
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, kind)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		if leading != "":
 			view.set_hint(TableauView.LEADING_ZONES[leading])
@@ -461,7 +461,7 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		if view == drag.dragging:
 			drag.end_drag()
 		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error, compact)
+		view.setup(card, e.card_db, in_hand, error, kind)
 		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
 		if leading != "":
 			view.set_hint(TableauView.LEADING_ZONES[leading])
@@ -469,8 +469,8 @@ func _place(card: CardInstance, container: Container, index: int, delay: float) 
 		_free_slot(old_slot)
 		return false
 	container.move_child(view.slot, index)
-	if not in_hand and view.rests_compact() != compact:  # a frontier territory settled: same row, full card
-		view.setup(card, e.card_db, in_hand, error, compact)
+	if not in_hand and view.board_kind != kind:  # a frontier territory settled: same row, settled face
+		view.setup(card, e.card_db, in_hand, error, kind)
 		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
 		view.set_play_error(error)

@@ -13,10 +13,16 @@ const TYPE_MARKS := {
 	CardDef.TECH: "✦",
 	CardDef.EVENT: "❖",
 }
+# The badge naming what a board card is (138); a Realm card has none.
+const BADGES := {
+	CardView.BOARD_FRONTIER: TYPE_MARKS[CardDef.TERRITORY] + " Frontier · unsettled",
+	CardView.BOARD_EVENT: TYPE_MARKS[CardDef.EVENT] + " Event",
+}
 const STRIP_BG := Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
 const STRIP_TEXT := Palette.STRIP_TEXT
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
+var board := false  # a board face (build_board, 138): one line per field, the rest in the details
 
 
 func _init() -> void:
@@ -24,9 +30,8 @@ func _init() -> void:
 	add_theme_constant_override("separation", 6)
 
 
-## Builds the content for card in color. in_hand adds the cost to the type line; compact leaves out the type line
-## and rules (for frontier territories, to save height).
-func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool, color: Color) -> void:
+## Builds the content for card in color. in_hand adds the cost to the type line.
+func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color) -> void:
 	var def := card.def
 	add_child(label(def.name, 22))  # the title gets the full width
 
@@ -47,17 +52,10 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		cost.name = "Cost"
 		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the type line wraps around it instead
 		type_row.add_child(cost)
-	if not compact:
-		add_child(type_row)
-	else:
-		type_row.free()
+	add_child(type_row)
 
-	rules_tip = def.rules_tooltip(card_db)
-	var rolled := card.keywords.slice(def.keywords.size())  # resource keywords rolled onto this copy
-	var rolled_names := ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
-	if not rolled.is_empty():
-		rules_tip += "\nResources: " + rolled_names
-	var rules_text := "" if compact else def.rules_text(card_db)
+	_set_rules_tip(card, card_db)
+	var rules_text := def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
 		var rules := rich_label(rules_text, 19)
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -74,6 +72,80 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, compact: bool
 		add_child(label("%d VP" % def.vp, 20, Palette.GAIN))
 
 
+## Builds the fixed-height face of a card in the Realm's row (138) for kind (CardView.BOARD_*), in color. A frontier
+## territory or an event starts with a badge naming what it is (an event's turns left go beside it, set_event_info);
+## then the name, and one line: a territory's keywords (a frontier one adds its printed slots and housing; a settled
+## one gets its live line from show_settled), any other card the first line of its rules other than how long it lasts.
+## Every line is clipped to the card's width; the details hold the rest.
+func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: Color) -> void:
+	board = true
+	var def := card.def
+	if kind != CardView.BOARD_REALM:
+		var badge_row := HBoxContainer.new()
+		badge_row.name = "BadgeRow"
+		badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge_row.add_child(badge(BADGES[kind], color))
+		add_child(badge_row)
+	add_child(one_line(label(def.name, 22)))
+	_set_rules_tip(card, card_db)
+	if def.type == CardDef.TERRITORY:
+		if kind == CardView.BOARD_FRONTIER:
+			var keywords := keyword_line(card)
+			if keywords != "":
+				add_child(one_line(rich_label(keywords, 17, color.lightened(0.5))))
+			var printed := rich_label("▢%d ⌂%d" % [def.slots, def.housing], 19, color.lightened(0.5))
+			printed.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
+			printed.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+			add_child(printed)
+		return
+	var rules := Array(def.rules_text(card_db).split("\n")).filter(func(line: String):
+		return line != "" and line != def.lasts_text())
+	if not rules.is_empty():
+		add_child(one_line(rich_label(rules[0], 17)))
+	if def.vp > 0:
+		add_child(label("%d VP" % def.vp, 18, Palette.GAIN))
+
+
+## A small pill in color naming what a board card is (138).
+static func badge(text: String, color: Color) -> PanelContainer:
+	var pill := PanelContainer.new()
+	pill.name = "Badge"
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 6
+	style.content_margin_right = 6
+	style.content_margin_top = 1
+	style.content_margin_bottom = 1
+	pill.add_theme_stylebox_override("panel", style)
+	var text_label := rich_label(text, 15, Palette.TEXT_ON_ACCENT)
+	text_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	pill.add_child(text_label)
+	return pill
+
+
+## Clips control (a card label) to one line: an ellipsis on a Label, a clip on a RichTextLabel (138).
+static func one_line(control: Control) -> Control:
+	if control is Label:
+		control.autowrap_mode = TextServer.AUTOWRAP_OFF
+		control.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	elif control is RichTextLabel:
+		control.fit_content = false
+		control.clip_contents = true
+		control.custom_minimum_size.y = control.get_theme_font_size("normal_font_size") + 8
+	return control
+
+
+## rules_tip: the card's full text, plus the resources rolled onto this copy.
+func _set_rules_tip(card: CardInstance, card_db: Dictionary) -> void:
+	rules_tip = card.def.rules_tooltip(card_db)
+	var rolled := card.keywords.slice(card.def.keywords.size())  # resource keywords rolled onto this copy
+	if not rolled.is_empty():
+		rules_tip += "\nResources: " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
+
+
 ## Turns a territory's face into a settled one's (123): its name, then keywords (its keyword line, "" for none),
 ## then live (the "▢ 6   ⌂ 2/5   ⚒ 2" line, drawn with icons) at the bottom. The type line and printed info go.
 func show_settled(keywords: String, live: String) -> void:
@@ -85,6 +157,8 @@ func show_settled(keywords: String, live: String) -> void:
 	var keyword_line := get_node_or_null("Keywords") as Label
 	if keyword_line == null:
 		keyword_line = label("", 18, CardView.HIGHLIGHT_COLOR.lightened(0.6))
+		if board:
+			one_line(keyword_line)
 		keyword_line.name = "Keywords"
 		add_child(keyword_line)
 		move_child(keyword_line, 1)  # under the name
@@ -140,12 +214,19 @@ func text() -> String:
 
 ## Replaces the gold info line called label_name at the bottom of the card with text.
 func replace_info(label_name: String, text: String) -> void:
-	var old := get_node_or_null(label_name)
+	var old := find_child(label_name, true, false)
 	if old != null:
-		remove_child(old)
+		old.get_parent().remove_child(old)
 		old.queue_free()
 	var info := label(text, 19, CardView.HIGHLIGHT_COLOR)
 	info.name = label_name
+	var badge_row := get_node_or_null("BadgeRow")
+	if badge_row != null:  # a board card's info (an event's turns left) sits beside its badge (138)
+		info.add_theme_font_size_override("font_size", 16)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		badge_row.add_child(info)
+		return
 	add_child(info)
 
 
@@ -161,7 +242,7 @@ func update_info(label_name: String, text: String) -> void:
 
 ## The text of the info line called label_name, or "" when there is none.
 func info_text(label_name: String) -> String:
-	var info := get_node_or_null(label_name) as Label
+	var info := find_child(label_name, true, false) as Label
 	return info.text if info != null else ""
 
 

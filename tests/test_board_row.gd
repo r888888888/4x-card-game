@@ -1,35 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## One board row (backlog 137): active events, then frontier territories, then the Realm's own cards share the Realm's
 ## wrapping row (main.tableau.row); there is no Frontier, Known or Events row, and known techs have no view on the
-## board. Runs the real main scene with Game.engine swapped for a fixture game. Test hooks: main.views_in(row),
+## board. Runs the real main scene on a board_engine game through with_main (test_case.gd). Test hooks: main.views_in(row),
 ## main.section_headings(), main.relieve_button().
-
-const TERRITORIES := {"territory_deck": {"grassland": 2, "hills": 2}}
-const POP := {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}
-
-
-## Runs body(main) on the real main scene with Game.engine swapped for engine, started on seed 1 (which re-deals the
-## same config); then puts the real engine back. Use with await.
-func with_main(engine: GameEngine, body: Callable) -> void:
-	var real := Game.engine
-	Game.engine = engine
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	await body.call(main)
-	close_main(main)
-	Game.engine = real
-
-
-## TEST_CARDS + TEST_EVENTS with the fixture territories and overrides, not started (main starts it).
-func board_engine(overrides := {}) -> GameEngine:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := event_db(errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 10}, TERRITORIES.merged(overrides, true)), resources(),
-		cards, "test", errors, warnings)
-	check(errors.is_empty(), "test data should load: %s" % [errors])
-	return GameEngine.new(cards, config)
 
 
 ## The uids of the cards in the board row, in order.
@@ -151,7 +124,7 @@ func test_a_frontier_card_explains_the_frontier_in_its_tooltip() -> void:
 
 func test_relieve_shows_during_a_famine_with_no_events_heading() -> void:
 	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
-	await with_main(board_engine({"population": POP.merged({"famine": famine})}), func(main: Node):
+	await with_main(board_engine({"population": HUNGRY_POP.merged({"famine": famine})}), func(main: Node):
 		var e := Game.engine
 		var relieve: Button = main.relieve_button()
 		check(not relieve.is_visible_in_tree(), "hidden with no Famine")
@@ -173,18 +146,3 @@ func test_an_event_card_explains_events_in_its_tooltip() -> void:
 		var tip: String = (main.views[winds.uid] as CardView).tooltip_text
 		check(tip.contains("One event is drawn at the end of each turn. It stays active until its turns run out."),
 			"event tooltip: '%s'" % tip))
-
-
-func test_a_settled_frontier_card_grows_to_tableau_size() -> void:
-	await with_main(board_engine(), func(main: Node):
-		var e := Game.engine
-		to_frontier(e, ["hills"])
-		var hills := uid_of(e.zone("frontier"), "hills")
-		var pioneer := put_in_hand(e, "pioneer")
-		e.resources.food = 5
-		e.changed.emit()
-		await wait_frames()
-		eq((main.views[hills] as CardView).slot_size(), CardView.COMPACT_SIZE, "compact on the frontier")
-		check(e.play_card(pioneer, hills), "settle: %s" % e.play_error(pioneer, hills))
-		await wait_frames()
-		eq((main.views[hills] as CardView).slot_size(), CardView.TABLEAU_SIZE, "tableau size once settled"))
