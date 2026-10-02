@@ -2,7 +2,7 @@
 id: 179
 title: Index-card faces and machined card motion
 type: feature
-status: ready
+status: red-review
 branch: feat/179-index-card-faces
 ---
 
@@ -47,6 +47,12 @@ the board feel like an app.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_card_faces::test_every_card_at_rest_is_a_raised_sheet_in_a_thin_rule`, `test_a_dimmed_card_uses_the_dim_colours`, `test_the_border_shows_hover_drag_warning_and_target` |
+| AC2 | `test_card_faces::test_a_band_of_the_type_colour_sits_under_the_name`, `test_a_dimmed_cards_band_is_the_dim_border`, `test_a_frontier_territory_has_no_band` |
+| AC3 | `test_card_faces::test_a_card_at_rest_has_no_shadow_and_a_lifted_one_a_hard_one` |
+| AC4 | `test_card_faces::test_a_hovered_hand_card_rises_eight_px_without_growing`, `test_a_dragged_card_keeps_its_size_and_tilts_at_most_three_degrees` |
+| AC5 | `test_card_faces::test_the_squash_is_gone`, `test_a_card_bought_on_the_supply_screen_doesnt_squash`, `test_card_landing::test_a_card_sent_to_another_slot_doesnt_squash_when_it_lands` (was "still squashes") |
+| AC6 | `test_ui_structure::test_no_tween_overshoots_or_bounces`, `test_the_pulses_pops_and_slides_ease_out_quartically` |
 
 ## Manual check
 - [ ] Seed 5, Egypt: hovering the hand slides each card up a little with a hard shadow and nothing grows; dragging a

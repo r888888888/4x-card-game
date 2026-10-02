@@ -1,9 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## How a card lands in its slot (backlog 117): a dealt card flies in, fades in and settles without the landing
-## squash-and-bounce; other flights still squash, and a rejected card still shakes. CardViews run in a plain Control
+## squash-and-bounce; since 179 no card squashes (it lands with a firm stop), and a rejected card still shakes. CardViews run in a plain Control
 ## tree (a slot and an effects layer) and are stepped frame by frame.
 
 const MAX_FRAMES := 900
+const AFTER_LANDING := 0.32  # s to watch a landed card's scale (the old squash took 0.22)
 
 
 ## A root holding a slot and an effects layer, and a CardView for the first hand card, not yet placed. Returns
@@ -35,10 +36,10 @@ func wait_until_landed(view: CardView) -> bool:
 	return false
 
 
-## The largest distance of view.fx_scale from 1 over the next frames (about LAND_TIME of them, by waiting real time).
+## The largest distance of view.fx_scale from 1 over the next AFTER_LANDING seconds (by waiting real time).
 func largest_squash_after_landing(view: CardView) -> float:
 	var largest := view.fx_scale.distance_to(Vector2.ONE)
-	var timer := (Engine.get_main_loop() as SceneTree).create_timer(Anim.LAND_TIME + 0.1)
+	var timer := (Engine.get_main_loop() as SceneTree).create_timer(AFTER_LANDING)
 	while timer.time_left > 0.0:
 		await wait_frames(1)
 		largest = maxf(largest, view.fx_scale.distance_to(Vector2.ONE))
@@ -71,7 +72,7 @@ func test_a_dealt_card_still_flies_and_fades_in() -> void:
 		(f.root as Node).free())
 
 
-func test_a_card_sent_to_another_slot_still_squashes_when_it_lands() -> void:
+func test_a_card_sent_to_another_slot_doesnt_squash_when_it_lands() -> void:
 	await with_reduce_motion(false, func():
 		var f := fixture()
 		var view: CardView = f.view
@@ -82,9 +83,15 @@ func test_a_card_sent_to_another_slot_still_squashes_when_it_lands() -> void:
 		other.position = Vector2(100, 100)
 		f.root.add_child(other)
 		view.fly_to_slot(other, f.layer)
-		check(await wait_until_landed(view), "the card lands")
-		check(view.fx_scale.distance_to(Vector2.ONE) > 0.01 or await largest_squash_after_landing(view) > 0.01,
-			"it squashes on landing: %s" % view.fx_scale)
+		var largest := 0.0
+		for i in MAX_FRAMES:
+			await wait_frames(1)
+			largest = maxf(largest, view.fx_scale.distance_to(Vector2.ONE))
+			if view.state == CardView.State.REST:
+				break
+		check(view.state == CardView.State.REST, "the card lands")
+		largest = maxf(largest, await largest_squash_after_landing(view))
+		check(largest < 0.001, "no squash in flight or on landing: scale strays %s" % largest)
 		(f.root as Node).free())
 
 

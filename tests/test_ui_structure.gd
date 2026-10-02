@@ -173,3 +173,20 @@ func test_no_test_finds_a_counter_by_its_text() -> void:
 				if text.contains(prefix):
 					found.append("%s/%s: %s" % [dir, file, prefix])
 	eq(found, [] as Array[String], "tests use counter(key) and counter_text(key), not a counter's text")
+
+
+# --- 179: machined motion ---
+
+func test_no_tween_overshoots_or_bounces() -> void:
+	var found: Array[String] = []
+	for path in ui_scripts():
+		for trans in ["TRANS_BACK", "TRANS_ELASTIC", "TRANS_BOUNCE"]:
+			if source(path).contains(trans):
+				found.append("%s: %s" % [path, trans])
+	eq(found, [] as Array[String], "tweens in ui/ that overshoot or bounce")
+
+
+func test_the_pulses_pops_and_slides_ease_out_quartically() -> void:
+	for path in ["res://ui/ui_kit.gd", "res://ui/territory_view.gd", "res://ui/card_motion.gd"]:
+		check(source(path).contains(".set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)"),
+			"%s eases out with TRANS_QUART" % path)
