@@ -106,15 +106,21 @@ func _build_board(main: MainScreen) -> void:
 	revolt = ActionButton.revolt(relief_row)
 
 
-## The hand section: its heading with the actions counter (127), and the hand's row in a sideways scroll.
+## The hand section: its "In Hand" heading (the how-to in its tooltip) with the actions count right-aligned on its line
+## (127, 204), and the hand's row in a sideways scroll.
 func _build_hand(main: MainScreen) -> void:
-	var hand_section := UIKit.section(play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
+	var hand_section := UIKit.section(play_area, "In Hand")
+	var heading := hand_section.get_child(0) as Label
+	heading.tooltip_text = "Drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards."
+	heading.mouse_filter = Control.MOUSE_FILTER_PASS  # so the tooltip shows
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var hand_heading := HBoxContainer.new()
-	hand_heading.add_theme_constant_override("separation", Tokens.SPACE_5)
-	hand_section.get_child(0).reparent(hand_heading)
+	heading.reparent(hand_heading)
 	main.actions_label = UIKit.stat(hand_heading)
+	main.actions_label.theme_type_variation = &"BarStat"
+	main.actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	main.actions_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	main.actions_label.tooltip_text = "Playing a card from your hand uses 1 action. Your government sets how many you get each turn."
+	main.actions_label.tooltip_text = "Actions left this turn"
 	hand_section.add_child(hand_heading)
 	hand_section.move_child(hand_heading, 0)
 	main.hand_scroll = ScrollContainer.new()
