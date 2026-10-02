@@ -2,7 +2,7 @@
 id: 172
 title: One pending-decision model
 type: feature
-status: review
+status: done
 branch: feat/172-one-pending-model
 ---
 

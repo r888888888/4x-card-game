@@ -2,7 +2,7 @@
 id: 176
 title: Split main.gd along the view-sync and layout boundaries
 type: feature
-status: review
+status: done
 branch: feat/176-split-main-gd
 ---
 

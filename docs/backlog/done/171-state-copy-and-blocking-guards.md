@@ -2,7 +2,7 @@
 id: 171
 title: Guard tests for state copies and the pending-decision block
 type: feature
-status: review
+status: done
 branch: feat/171-state-copy-and-blocking-guards
 ---
 

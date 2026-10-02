@@ -2,7 +2,7 @@
 id: 173
 title: One way to check and pay a price, and to add unrest
 type: feature
-status: review
+status: done
 branch: feat/173-price-and-unrest-helpers
 ---
 

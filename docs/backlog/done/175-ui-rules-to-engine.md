@@ -2,7 +2,7 @@
 id: 175
 title: The last small rules leave the UI; one action-button class
 type: feature
-status: review
+status: done
 branch: feat/175-ui-rules-to-engine
 ---
 

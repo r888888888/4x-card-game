@@ -2,7 +2,7 @@
 id: 169
 title: Bring the docs, skills and review scan in line with the code
 type: feature
-status: review
+status: done
 branch: feat/169-docs-and-housekeeping
 ---
 

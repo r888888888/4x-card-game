@@ -2,7 +2,7 @@
 id: 174
 title: Prerequisite cycles are a load error; the renewal modifier key lives on Modifiers
 type: feature
-status: review
+status: done
 branch: feat/174-loader-prereq-cycles
 ---
 
