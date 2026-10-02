@@ -9,6 +9,8 @@ Companion pages in this folder (open them in a browser):
 - [mcm-specimen.html](mcm-specimen.html): the tokens and core components, with motion.
 - [transitions.html](transitions.html): every screen transition in §10–11 on a mock game screen, with slow motion and
   Reduce motion.
+- [card-stacks.html](card-stacks.html): six designs for a stack of cards (discard, deck, research deck, hand) and how
+  each opens when clicked.
 - [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
   [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
   alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
