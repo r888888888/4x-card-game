@@ -2,7 +2,7 @@
 id: 206
 title: A Settings modal, opened from the menu and the title screen
 type: feature
-status: review
+status: done
 branch: feat/206-settings-modal
 ---
 
