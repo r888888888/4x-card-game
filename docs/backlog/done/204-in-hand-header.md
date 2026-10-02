@@ -2,7 +2,7 @@
 id: 204
 title: "In Hand" heading with the actions count on its line
 type: feature
-status: review
+status: done
 branch: feat/204-in-hand-header
 ---
 
