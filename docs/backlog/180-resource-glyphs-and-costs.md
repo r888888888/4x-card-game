@@ -2,7 +2,7 @@
 id: 180
 title: Resource glyphs in the top bar and glyph costs on cards
 type: feature
-status: ready
+status: red-review
 branch: feat/180-resource-glyphs-and-costs
 ---
 
@@ -52,6 +52,12 @@ first.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_ui_queries::test_play_shortfall_lists_the_resources_the_player_is_short_of_in_cost_order`, `test_play_shortfall_is_empty_for_a_card_not_in_the_hand` |
+| AC2 | `test_resource_glyphs::test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure`, `test_the_food_figure_warns_when_pop_would_starve`, `test_a_hidden_counter_hides_its_glyph`; `test_unrest::test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change` (figure now `TEXT` below the limit) |
+| AC3 | `test_resource_glyphs::test_the_counters_read_figures_only`; changed: `test_counters::test_the_food_counter_text_is_the_reading_the_bar_shows`, `test_unrest` (both top-bar tests), `test_insight::test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change`, `test_grow_meter::test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next` |
+| AC4 | `test_resource_glyphs::test_a_hand_cards_cost_is_glyphs_and_figures_on_its_name_line`, `test_a_free_card_shows_no_cost`, `test_cost_entries_go_food_wealth_insight_then_others_by_name` |
+| AC5 | `test_resource_glyphs::test_a_figure_the_player_is_short_of_is_red_until_they_have_it` |
+| AC6 | `test_resource_glyphs::test_the_grow_pip_uses_the_top_bars_food_glyph` |
 
 ## Manual check
 - [ ] Seed 5, Egypt: the six glyphs read at a glance in the top bar; Lumber Camp shows sprout 1, coin 2 at its top

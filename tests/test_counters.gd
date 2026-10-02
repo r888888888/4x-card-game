@@ -52,7 +52,7 @@ func test_the_food_counter_text_is_the_reading_the_bar_shows() -> void:
 		e.changed.emit()
 		await wait_frames()
 		eq(e.upkeep_forecast().get(GameEngine.FOOD), 1, "precondition: +1 food at the next upkeep")
-		eq(main.counter_text(GameEngine.FOOD), "Food: 3 (+1)", "food, with its forecast"))
+		eq(main.counter_text(GameEngine.FOOD), "3 (+1)", "food, with its forecast (180: no word)"))
 
 
 func test_each_counter_text_is_that_counters_text() -> void:
