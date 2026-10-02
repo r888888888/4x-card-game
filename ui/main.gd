@@ -5,7 +5,7 @@ extends Control
 ## BoardLayout builds the layout in code; BoardViews keeps the card views (views, keyed by uid) in line with the engine
 ## (176). Cards in motion live on fx, a layer above the board.
 ## The components: TopBar, Sidebar, TableauView, ChoiceOverlays, SupplyScreen, the modals (GameMenu, CardDetailsModal,
-## TechTreeModal, EventModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
+## EventModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
 ## StartScreen and NewGameScreen (opened and closed through the Navigator, nav), DragController (dragging and
 ## targeting) and CardFocus (the keyboard focus on the cards).
 
@@ -32,7 +32,7 @@ var new_game_screen: NewGameScreen  # the civilization and seed, from the title 
 var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
 var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
-var tech_tree: TechTreeModal
+var knowledge: KnowledgeScreen  # the techs by era, a screen over the Realm (208)
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
@@ -90,7 +90,7 @@ func _input(event: InputEvent) -> void:
 	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
 		get_viewport().set_input_as_handled()
 		return
-	if drag.handle_input(event) or (not supply.is_open() and territory_view.handle_key(event)):
+	if drag.handle_input(event) or (not supply.is_open() and (knowledge.handle_key(event) or territory_view.handle_key(event))):
 		get_viewport().set_input_as_handled()
 
 
@@ -216,7 +216,7 @@ func event_modal_ok_button() -> Button:
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
 func section_headings() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for section in _play_area.get_children().filter(func(c): return c != territory_view):
+	for section in _play_area.get_children().filter(func(c): return c != territory_view and c != knowledge):
 		var heading: Label = section.find_children("*", "Label", true, false)[0]  # the hand's shares a row (127)
 		out.append({"text": heading.text, "tooltip": heading.tooltip_text})
 	return out
@@ -422,6 +422,7 @@ func _refresh() -> void:
 	_restore.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
+	knowledge.refresh(e)
 	supply.refresh(e)
 	focus.sync()
 	_game_over.refresh(e)
