@@ -28,21 +28,18 @@ func _init(p_stack: ModalStack, open_def: Callable) -> void:
 	super(p_stack)
 	close_keys = [KEY_ESCAPE, KEY_T]
 	_open_def = open_def
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", Tokens.SPACE_4)
-	panel.add_child(box)
-	box.add_child(UIKit.title("Knowledge"))
+	title = "Knowledge"
 	_header = UIKit.heading("")
-	box.add_child(_header)
+	body.add_child(_header)
 	_columns = HBoxContainer.new()
 	_columns.add_theme_constant_override("separation", Tokens.SPACE_5)
-	box.add_child(_columns)
-	box.add_child(UIKit.button("Close (T / Esc)", close))
+	body.add_child(_columns)
+	add_footer_button(UIKit.button("Close (T / Esc)", close))
 
 
 ## Test hook: the era column titles on show, [] while hidden.
 func shown() -> Array[String]:
-	return _titles if visible else ([] as Array[String])
+	return _titles if is_open() else ([] as Array[String])
 
 
 func open() -> void:
