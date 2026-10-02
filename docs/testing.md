@@ -5,10 +5,16 @@ Dependency-free runner: no addon, just Godot headless.
 ## Running
 
 ```bash
-scripts/test.sh              # everything
+scripts/test.sh              # everything but tests/balance/
 scripts/test.sh rules        # files/tests whose "file::method" contains "rules"
 scripts/test.sh test_create  # a single test (or group) by name
+scripts/test.sh --balance    # only tests/balance/ (filter as above)
 ```
+
+**The balance suite** (`tests/balance/`): tests that play ScriptedBot games on the real data (`data/*.json`): the
+sim's report, its options and the parallel run. They grow with every bot change, so the main suite and the Stop hook
+leave them out; run `scripts/test.sh --balance` when touching `sim/`. Bot rules and `SimStats` stay in the main suite,
+tested on fixture games of a few turns.
 
 The script re-imports the project first when a `.gd` file changed, so a new `class_name` resolves
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
@@ -51,9 +57,10 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; ratios of `best_time_usec` timings (test_case.gd), never absolute times |
-| `tests/test_sim.gd` | The simulator: `ScriptedBot` policy, `SimStats.run` metrics, `SimStats.run_files` (what `scripts/sim.sh` prints) |
-| `tests/test_parallel_sim.gd` | The sim on several processes (152): `run_files`' `procs` gives the same report on 1, 2 and 4 processes (all strategies, or one), never more processes than games, in-process by default; `play_shard` / `read_shards` naming a shard with no results; no results directory left behind |
-| `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game; the sim's `--civ` / `--turns` |
+| `tests/test_sim.gd` | The simulator on fixtures: `ScriptedBot` policy, `SimStats.run` metrics, `run_files`' loader errors |
+| `tests/balance/test_sim_reports.gd` | Balance suite: `SimStats.run_files` on the real data (what `scripts/sim.sh` prints: a line per metric, every strategy and civilization, `--civ` / `--turns`) |
+| `tests/balance/test_parallel_sim.gd` | Balance suite: The sim on several processes (152): `run_files`' `procs` gives the same report on 1, 2 and 4 processes (all strategies, or one), never more processes than games, in-process by default; `play_shard` / `read_shards` naming a shard with no results; no results directory left behind |
+| `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game (the sim's options on real data: `tests/balance/`) |
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms |
 | `tests/test_modal_stack.gd` | The modal stack in the real `main.tscn` (153) on a seed-1 game with the tech tree and a tech's details over it: Esc, a click outside and the close keys close only the top modal, keys reach only the top, closing or reopening the tree closes the details above, the cascade, each modal on `main.modals`, a new game or the title screen closing them all; uses `main.modals` (`depth()`, `top()`) and a modal's `panel` |

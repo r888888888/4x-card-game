@@ -199,14 +199,3 @@ func test_sim_stats_plays_as_a_civilization() -> void:
 	var nomads: Dictionary = STATS.run(d.cards, d.config, [1], "baseline", "nomads")
 	# Nomads: vp 1 and +1 score each upkeep (3 turns).
 	eq(nomads.get("score", {}).get("min", 0) - plain.get("score", {}).get("min", 0), 4, "Nomads' score over no civ")
-
-
-func test_sim_run_files_reports_every_strategy_and_civilization() -> void:
-	var out: Dictionary = STATS.run_files("res://data/cards.json", "res://data/config.json", 1, "all")
-	eq(out.get("code"), 0, "exit code")
-	var text := "\n".join(out.get("lines", []))
-	for strategy in STRATEGIES:
-		check(strategy in text, "the report names %s" % strategy)
-	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
-	for civ in r.config.civilizations:
-		check(civ in text, "the report names %s" % civ)
