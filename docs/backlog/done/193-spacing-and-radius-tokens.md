@@ -2,7 +2,7 @@
 id: 193
 title: Spacing and corner radius come from the guide's scales
 type: feature
-status: review
+status: done
 branch: feat/193-spacing-and-radius-tokens
 ---
 
