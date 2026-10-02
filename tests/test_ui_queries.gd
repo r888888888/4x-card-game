@@ -281,11 +281,11 @@ func shortfall_game(food: int, wealth: int) -> Array:
 func test_play_shortfall_lists_the_resources_the_player_is_short_of_in_cost_order() -> void:
 	for case in [[1, 5, ["food"]], [0, 0, ["food", "wealth"]], [2, 2, []]]:
 		var g := shortfall_game(case[0], case[1])
-		var e: Object = g[0]
+		var e: GameEngine = g[0]
 		eq(e.play_shortfall(g[1]), case[2], "%d food, %d wealth" % [case[0], case[1]])
 
 
 func test_play_shortfall_is_empty_for_a_card_not_in_the_hand() -> void:
 	var g := shortfall_game(0, 0)
-	var e: Object = g[0]
+	var e: GameEngine = g[0]
 	eq(e.play_shortfall(9999), [], "no such hand card")

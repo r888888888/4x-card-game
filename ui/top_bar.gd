@@ -5,7 +5,7 @@ extends HBoxContainer
 ## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop floats its net change up from that counter (126).
 
-const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
+const GLYPH := 22  # a counter's glyph (180), about the height of its figure
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
 const SCORE := "score"
 const POP := "pop"
@@ -30,14 +30,14 @@ var _shown := {}  # counter Label -> the value it last showed; empty for a fresh
 func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
 	add_theme_constant_override("separation", 12)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
 	_turn_label = UIKit.stat(self)
-	_food_label = UIKit.stat(self, FOOD_COLOR)
-	_wealth_label = UIKit.stat(self, Palette.WEALTH)
-	_insight_label = UIKit.stat(self, Palette.INSIGHT)
-	_unrest_label = UIKit.stat(self, Palette.UNREST)
+	_food_label = _glyph_stat(GameEngine.FOOD)
+	_wealth_label = _glyph_stat(GameEngine.WEALTH)
+	_insight_label = _glyph_stat(GameEngine.INSIGHT)
+	_unrest_label = _glyph_stat(GameEngine.UNREST)
 	for label in [_food_label, _wealth_label, _insight_label, _unrest_label]:
 		label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the forecast tooltip
-	score_label = UIKit.stat(self, Palette.GAIN)
-	_pop_label = UIKit.stat(self, Palette.POP)
+	score_label = _glyph_stat(SCORE)
+	_pop_label = _glyph_stat(POP)
 	for label in [_turn_label, _food_label, _wealth_label, _insight_label, _unrest_label, score_label, _pop_label]:
 		label.theme_type_variation = &"BarStat"
 	var spacer := Control.new()
@@ -67,10 +67,26 @@ func counter(key: String) -> Control:
 		POP: _pop_label}.get(key)
 
 
-## The whole reading counter(key) shows ("Food: 3 (+1)"), or "" for an unknown key (177).
+## The whole reading counter(key) shows ("3 (+1)"), or "" for an unknown key (177).
 func counter_text(key: String) -> String:
 	var label := counter(key) as Label
 	return label.text if label != null else ""
+
+
+## A counter (180): its figure in ink with key's glyph (Icons.RESOURCES) in its hue in the label's left margin, so the
+## glyph shows and hides with the label.
+func _glyph_stat(key: String) -> Label:
+	var label := UIKit.stat(self, Palette.TEXT)
+	var room := StyleBoxEmpty.new()
+	room.content_margin_left = GLYPH + 6
+	label.add_theme_stylebox_override("normal", room)
+	var glyph := Icons.glyph(key, GLYPH)
+	glyph.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	glyph.offset_top = -GLYPH / 2.0
+	glyph.offset_bottom = GLYPH / 2.0
+	glyph.offset_right = GLYPH
+	label.add_child(glyph)
+	return label
 
 
 ## Forgets the values the counters showed, so a new game's first refresh floats nothing (126).
@@ -83,18 +99,18 @@ func reset_counters() -> void:
 func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	UIKit.set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	var forecast := e.upkeep_forecast()
-	UIKit.set_stat(_food_label, "Food: %d%s" % [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)])
-	UIKit.set_stat(_wealth_label, "Wealth: %d%s" % [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)])
+	UIKit.set_stat(_food_label, "%d%s" % [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)])
+	UIKit.set_stat(_wealth_label, "%d%s" % [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)])
 	var starve: int = forecast.get("starve", 0)
-	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else FOOD_COLOR)
+	_food_label.add_theme_color_override("font_color", CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
 	_food_label.tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
 	_wealth_label.tooltip_text = "In brackets: change at the next upkeep."
-	UIKit.set_stat(_insight_label, "Insight: %d%s" % [e.resources.get(GameEngine.INSIGHT, 0), _forecast_text(forecast, GameEngine.INSIGHT)])
+	UIKit.set_stat(_insight_label, "%d%s" % [e.resources.get(GameEngine.INSIGHT, 0), _forecast_text(forecast, GameEngine.INSIGHT)])
 	_insight_label.tooltip_text = "Pays for techs. In brackets: change at the next upkeep."
 	_refresh_unrest(e, forecast)
-	UIKit.set_stat(score_label, "Score: %d" % e.score())
+	UIKit.set_stat(score_label, "%d" % e.score())
 	_pop_label.visible = e.population_on()
-	UIKit.set_stat(_pop_label, "Pop: %d" % e.total_pop())
+	UIKit.set_stat(_pop_label, "%d" % e.total_pop())
 	var names: PackedStringArray = []
 	for zone_name in IdentityModal.ZONES:
 		if not e.zone(zone_name).is_empty():
@@ -122,14 +138,14 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 		_pop_label: [e.total_pop(), "pop"]}, layer, quiet)
 
 
-## "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; hidden while unrest is off.
+## "2 / 5 (+1)" ("2 (+1)" with no limit), in the warning colour at the limit; hidden while unrest is off.
 func _refresh_unrest(e: GameEngine, forecast: Dictionary) -> void:
 	_unrest_label.visible = e.unrest_on()
 	var unrest: int = e.resources.get(GameEngine.UNREST, 0)
 	var limit := e.unrest_limit()
-	UIKit.set_stat(_unrest_label, "Unrest: %d%s%s" % [unrest, " / %d" % limit if limit >= 0 else "",
+	UIKit.set_stat(_unrest_label, "%d%s%s" % [unrest, " / %d" % limit if limit >= 0 else "",
 		_forecast_text(forecast, GameEngine.UNREST)])
-	_unrest_label.add_theme_color_override("font_color", CardView.WARN_COLOR if e.at_unrest_limit() else Palette.UNREST)
+	_unrest_label.add_theme_color_override("font_color", CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
 	_unrest_label.tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
 		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
 

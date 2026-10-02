@@ -54,11 +54,9 @@ func test_one_top_bar_button_names_the_civilization_and_government() -> void:
 	for c in bar.get_children():
 		if c is Button and c != button:
 			check(not c.text in [name_in("civilization"), "Chiefdom"], "no separate '%s' button" % c.text)
-	var score := -1
+	var score: int = main.counter(TopBar.SCORE).get_index()
 	var supply := -1
 	for c in bar.get_children():
-		if c is Label and c.text.begins_with("Score"):
-			score = c.get_index()
 		if c is Button and c.text.begins_with("Buy Cards"):
 			supply = c.get_index()
 	check(score < button.get_index() and button.get_index() < supply, "after the stats, before Buy Cards: %d, %d, %d" % [

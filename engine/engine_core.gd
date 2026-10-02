@@ -76,10 +76,16 @@ func zone(zone_name: String) -> Zone:
 
 ## Whether the resources on hand cover cost ({resource: amount}) (173).
 func can_pay(cost: Dictionary) -> bool:
+	return shortfall(cost).is_empty()
+
+
+## The resources of cost ({resource: amount}) the player has less of than it asks, in cost's order (180).
+func shortfall(cost: Dictionary) -> Array[String]:
+	var short: Array[String] = []
 	for r in cost:
 		if resources.get(r, 0) < cost[r]:
-			return false
-	return true
+			short.append(r)
+	return short
 
 
 ## Takes cost ({resource: amount}) from the resources on hand (173): every price an action pays, and the food pop eats.
