@@ -2,7 +2,7 @@
 id: 154
 title: Government deck: choose your next government instead of drawing it
 type: feature
-status: ready
+status: red-review
 branch: feat/154-government-deck
 ---
 
@@ -56,6 +56,14 @@ cards no longer clog the hand or deck. First of the rework from `spike/revolutio
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_government_deck::test_a_created_government_goes_to_the_government_deck`, `test_a_known_government_isnt_created_again` |
+| AC2 | `test_anarchy::test_a_turn_starting_at_the_limit_falls_into_anarchy` (changed), `test_revolution::test_revolting_starts_anarchy_with_renewal_owed_at_once` (changed) |
+| AC3 | `test_government_deck::test_burning_out_owes_the_government_choice`, `test_while_the_choice_is_owed_everything_else_refuses`; `test_anarchy::test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed` (changed), `test_leaving_anarchy::test_restore_order_pays_and_a_government_is_chosen` (changed) |
+| AC4 | `test_government_deck::test_choosing_a_government_rules_it_and_calms_unrest`, `test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government`, `test_a_chosen_government_resolves_its_play_effects_without_paying`; `test_anarchy::test_burning_out_keeps_unrest_below_half_the_limit` (changed) |
+| AC5 | `test_government_deck::test_choose_government_error_names_each_reason_and_a_refusal_changes_nothing`, `test_choosing_uses_no_action` |
+| AC6 | `test_government_deck::test_the_government_overlay_shows_the_deck_and_a_click_chooses`, `test_the_identity_modal_lists_the_government_deck` |
+| AC7 | `test_government_deck::test_the_bot_chooses_the_government_with_most_actions_then_highest_limit`, `test_the_bot_breaks_government_ties_by_deck_order`; `test_leaving_anarchy::test_the_bot_restores_order_after_2_counters` (changed) |
+| Design notes (`fallback` dropped) | `test_anarchy::test_unrest_fallback_is_no_longer_read`, `test_the_unrest_block_loads_with_its_defaults` (changed), `test_unrest_block_validation` (fallback case removed) |
 
 ## Manual check
 - [ ] Research Priesthood: Theocracy appears in the top-bar modal's government deck, not in the discard.

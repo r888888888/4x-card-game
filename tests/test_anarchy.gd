@@ -1,7 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy, the config's unrest.anarchy
 ## government. While it rules only governments and allowed_tag cards play, nothing is grown, bought or researched, each
-## turn adds a counter, and at max_counters the fallback government restores order. Each new era adds era_unrest.
+## turn adds a counter, and at max_counters it burns out and a government is chosen from the government deck (154).
+## Each new era adds era_unrest.
 ## Fixtures: tests/lib/anarchy_case.gd.
 
 
@@ -11,11 +12,11 @@ func test_the_unrest_block_loads_with_its_defaults() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var raw := anarchy_raw()
-	raw.unrest = {"anarchy": "anarchy", "fallback": "chiefs", "max_counters": 4}
+	raw.unrest = {"anarchy": "anarchy", "max_counters": 4}
 	var config := DataLoader.parse_config(raw, RESOURCES, anarchy_db(), "config.json", errors, warnings)
 	eq(errors, [] as Array[String], "errors")
 	eq(warnings, [] as Array[String], "warnings")
-	eq(config.get("unrest"), {"anarchy": "anarchy", "fallback": "chiefs", "max_counters": 4, "era_unrest": 0,
+	eq(config.get("unrest"), {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 0,
 		"allowed_tag": ""}, "normalized, era_unrest 0 and allowed_tag \"\" by default")
 
 
@@ -24,7 +25,6 @@ func test_unrest_block_validation() -> void:
 	check_cases([
 		["anarchy not a government", with_block.call({"anarchy": "farm"}), ["config.json: unrest.anarchy:", "farm", "government"]],
 		["anarchy unknown", with_block.call({"anarchy": "nobody"}), ["config.json: unrest.anarchy:", "nobody"]],
-		["fallback not a government", with_block.call({"fallback": "farm"}), ["config.json: unrest.fallback:", "farm", "government"]],
 		["max_counters 0", with_block.call({"max_counters": 0}), ["config.json: unrest.max_counters:", ">= 1"]],
 		["era_unrest -1", with_block.call({"era_unrest": -1}), ["config.json: unrest.era_unrest:", ">= 0"]],
 		["allowed_tag not a string", with_block.call({"allowed_tag": 3}), ["config.json: unrest.allowed_tag:", "string"]],
@@ -37,6 +37,16 @@ func test_unrest_block_validation() -> void:
 	], config_errors)
 
 
+func test_unrest_fallback_is_no_longer_read() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var config := DataLoader.parse_config(anarchy_raw({"fallback": "chiefs"}), RESOURCES, anarchy_db(), "config.json",
+		errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	has_msg(warnings, "config.json: unrest: unknown field 'fallback'")
+	check(not config.unrest.has("fallback"), "not in the normalized block")
+
+
 # --- AC2: falling into Anarchy ---
 
 func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
@@ -47,8 +57,8 @@ func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
 	e.end_turn()
 	eq(ruling(e), "anarchy", "Anarchy rules")
 	eq(e.anarchy(), e.government(), "anarchy() is its uid")
-	check(uid_of(e.zone("deck"), "chiefs") != -1, "Chiefs is shuffled into the deck")
-	eq(e.zone("deck").size(), deck_before + 1, "the deck gains Chiefs (a full hand draws none)")
+	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs goes to the government deck (154)")
+	eq(e.zone("deck").size(), deck_before, "not into the deck (a full hand draws none)")
 	check_noticed(recorded, "Anarchy")
 
 
@@ -132,23 +142,25 @@ func test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop() -> void:
 	eq(e.pop(home), 4, "−1 pop again")
 
 
-func test_anarchy_burns_out_at_max_counters_and_the_fallback_restores_order() -> void:
-	var e := fallen_engine()
+func test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed() -> void:
+	var e: Object = fallen_engine()
 	var recorded := record_messages(e)
 	var anarchy_uid: int = e.anarchy()
 	for i in 3:
 		e.end_turn()
 	eq(ruling(e), "anarchy", "3 counters: still Anarchy")
 	e.end_turn()
-	eq(ruling(e), "chiefs", "the 4th counter: Chiefs restores order")
-	eq(e.anarchy(), -1, "no anarchy")
+	eq(e.anarchy(), -1, "the 4th counter: no anarchy")
 	check(e.zone("removed").find(anarchy_uid) != null, "the Anarchy card is removed")
+	eq(e.pending().get("kind"), "government", "a government is to be chosen (154)")
+	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
+	eq(ruling(e), "chiefs", "Chiefs restores order")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
 	check_noticed(recorded, "order")
 
 
 func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
-	var e := fallen_engine()
+	var e: Object = fallen_engine()
 	var feast := put_in_hand(e, "feast")
 	e.play_card(feast)
 	e.resources["unrest"] = 1
@@ -156,7 +168,8 @@ func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
 		e.end_turn()
 	eq(ruling(e), "anarchy", "3 counters: still Anarchy")
 	e.end_turn()
-	eq(ruling(e), "chiefs", "burned out")
+	e.choose_government(uid_of(e.zone("governments"), "chiefs"))
+	eq(ruling(e), "chiefs", "burned out, Chiefs chosen")
 	eq(e.resources.get("unrest"), 1, "min(1, 2)")
 
 

@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Leaving Anarchy (backlog 146): a government is accepted during Anarchy only at unrest of at most half its limit
-## (the unrest_limit modifier added before halving); restore_order() pays config unrest.relief and the fallback
-## government rules, with unrest at most half its limit. The Restore order button sits beside Relieve famine; the bot
+## (the unrest_limit modifier added before halving); restore_order() pays config unrest.relief and a government is
+## chosen from the government deck (154), with unrest at most half its limit. The Restore order button sits beside Relieve famine; the bot
 ## pays after 2 counters. Fixtures: tests/lib/anarchy_case.gd (relief 6 wealth).
 
 
@@ -49,14 +49,16 @@ func test_outside_anarchy_a_government_has_no_unrest_condition() -> void:
 
 # --- AC2: paying to restore order ---
 
-func test_restore_order_pays_and_the_fallback_rules() -> void:
-	var e := anarchy_with(5, 6)
+func test_restore_order_pays_and_a_government_is_chosen() -> void:
+	var e: Object = anarchy_with(5, 6)
 	var recorded := record_messages(e)
 	var anarchy: int = e.anarchy()
 	eq(e.order_relief(), {"wealth": 6}, "order_relief")
 	check(e.restore_order(), "restore_order: %s" % e.restore_order_error())
 	eq(e.resources.get("wealth"), 0, "6 − 6")
-	eq(ruling(e), "chiefs", "the fallback rules")
+	eq(e.pending().get("kind"), "government", "the government choice is owed (154)")
+	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
+	eq(ruling(e), "chiefs", "Chiefs rules")
 	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
 	check_noticed(recorded, "Order restored")
@@ -145,5 +147,5 @@ func test_the_bot_restores_order_after_2_counters() -> void:
 	var two := anarchy_with(5, 10)
 	two.zone("government").cards[0].counters = 2
 	ScriptedBot.take_turn(two, "baseline")
-	eq(ruling(two), "chiefs", "2 counters: the bot pays")
+	eq(two.anarchy(), -1, "2 counters: the bot pays")
 	eq(two.resources.get("wealth"), 4, "10 − 6")

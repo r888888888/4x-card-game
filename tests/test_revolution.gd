@@ -60,7 +60,7 @@ func test_revolting_starts_anarchy_with_renewal_owed_at_once() -> void:
 	eq(e.revolt_error(), "", "revolt_error")
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	eq(ruling(e), "anarchy", "Anarchy rules")
-	check(uid_of(e.zone("deck"), "chiefs") != -1, "Chiefs is shuffled into the deck")
+	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs goes to the government deck (154)")
 	eq(e.anarchy_counters(), 0, "0 counters")
 	check_noticed(recorded, "Anarchy")
 	var p: Dictionary = e.pending()

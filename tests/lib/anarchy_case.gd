@@ -17,7 +17,7 @@ const DAWN := {"id": "dawn", "name": "Dawn", "type": "action", "effects": [{"op"
 const LORE := {"id": "lore", "name": "Lore", "type": "tech", "cost": {"insight": 1}}
 const ALTAR := {"id": "altar", "name": "Altar", "type": "building", "modifiers": {"unrest_limit": 1}}
 const FIXTURES := [CHIEFS, KINGS, ANARCHY, FEAST, CALM, DAWN, LORE, ALTAR]
-const UNREST_BLOCK := {"anarchy": "anarchy", "fallback": "chiefs", "max_counters": 4, "era_unrest": 3,
+const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3,
 	"allowed_tag": "order", "relief": {"wealth": 6}}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 const ONLY_ORDER := "Anarchy: only a government or an order card can be played."
