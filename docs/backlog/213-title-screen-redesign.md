@@ -2,7 +2,7 @@
 id: 213
 title: The title screen as a ledger with large-format buttons
 type: feature
-status: red-review
+status: review
 branch: feat/213-title-screen-redesign
 ---
 
@@ -14,23 +14,23 @@ flush left; the right half holds the art (214). The large key is a new control d
 places that deserve a big press.
 
 ## Acceptance criteria
-- [ ] AC1: Given launch, then the title screen is split in two halves: the left holds a caps kicker ("Est. Turn 001"),
+- [x] AC1: Given launch, then the title screen is split in two halves: the left holds a caps kicker ("Est. Turn 001"),
   the game's title (the project name, `Display` variation, on two lines as the mock), a caps subtitle ("Civilizations
   in cards"), and the three keys New game, Settings and Exit in one column of one width (`UIKit.button_column`), all
   flush left; the right half is an empty `Control` named `Art` (214 fills it), with a 1 px `CONTROL_DISABLED_BORDER`
   rule on its left edge.
-- [ ] AC2: Each key is a `BigButton` (new control): its label in caps (the `BigLabel` variation, `LABEL_SEMIBOLD` at
+- [x] AC2: Each key is a `BigButton` (new control): its label in caps (the `BigLabel` variation, `LABEL_SEMIBOLD` at
   `Tokens.TYPE_TITLE`) over a one-line caption (`Caption` variation, `TEXT_DIM`): "Choose a civilization and a seed",
   "Motion, day mode, sound", "Close the game"; a "›" at its right; and a lamp edge `Tokens.SPACE_2` wide along its left
   side, `FIELD` normally and `ACCENT` on the primary key (New game). Its height and paddings are `Tokens` steps
   (judge the size against the mock at the manual check).
-- [ ] AC3: The `BigButton` box: `RAISED` fill (`CONTROL` on hover and focus), a 3 px `TEXT` border, `RADIUS_0` (an index
+- [x] AC3: The `BigButton` box: `RAISED` fill (`CONTROL` on hover and focus), a 3 px `TEXT` border, `RADIUS_0` (an index
   card), a `SHADOW` plinth offset 4,4. Pressed, it moves +4,+4 and loses the plinth (70 ms snap, as 178's buttons), and
   plays the key sounds of 187 (press on the way down, release on the way up).
-- [ ] AC4: New game, Settings and Exit emit `new_game_requested`, `settings_requested` and `exit_requested` as today
+- [x] AC4: New game, Settings and Exit emit `new_game_requested`, `settings_requested` and `exit_requested` as today
   (Settings opens 206's modal once it lands); focus starts on New game; the arrows and Tab move through the column in
   a focus loop; Enter or Space presses the focused key.
-- [ ] AC5: Day mode switches the screen at once (183): the keys' fill, border, lamp edge and captions take the Paper
+- [x] AC5: Day mode switches the screen at once (183): the keys' fill, border, lamp edge and captions take the Paper
   values while it stays open.
 
 ## Out of scope
@@ -70,3 +70,8 @@ New hooks: `StartScreen.art`, `kicker`, `title`, `subtitle`; `BigButton.label`, 
   to a bare green hill, with the low sun reading as a sunset rather than a dimmed scene
   (`title-screen-ledger-hill.html`); the user chose B1.1, one hill. The superseded pages were deleted. The art is its
   own item, 214; this item is the layout and the keys.
+- 2026-10-02: Built. `ui/big_button.gd` (`BigButton(text, caption, primary)`: lamp, caps label, caption, ›; its face
+  travels +4,+4 with the press) and `GameTheme`'s `BigButton`, `BigButtonPrimary` (index-card boxes, the Button's own
+  text clear) and `BigLabel`. `StartScreen` is a full-window sheet split in halves: the ledger (kicker, the title broken
+  at its last space, subtitle, the keys flush left) and `art` with its `Rule`. Size: 416 × 80 (`SPACE_9 * 4 + SPACE_6`,
+  `SPACE_8 + SPACE_4`), the nearest steps to the mock's 420 × 84.
