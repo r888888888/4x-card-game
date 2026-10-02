@@ -197,7 +197,7 @@ func test_the_identity_modal_opens_on_the_stack_and_hides_the_toasts() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	eq(depth(main), 1, "one modal")
 	check(top(main) == main.identity_modal, "the identity modal on top")
 	Game.engine.emit_signal("noticed", "Famine ends.", GameEngine.NOTICE_INFO)

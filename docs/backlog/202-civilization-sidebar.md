@@ -2,7 +2,7 @@
 id: 202
 title: A right sidebar with the civilization and government
 type: feature
-status: ready
+status: red-review
 branch: feat/202-civilization-sidebar
 ---
 
@@ -35,6 +35,16 @@ government, which open the civilization modal. It replaces the top bar's "Sumer 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_sidebar::test_the_sidebar_names_the_civilization_and_its_government`, `test_the_sidebar_runs_down_the_right_edge_with_the_realm_and_hand_to_its_left`; changed: `test_board_layout::test_no_side_panel_and_the_board_spans_the_window` → `…_reaches_the_sidebar` |
+| AC2 | `test_sidebar::test_the_name_or_the_government_opens_the_civilization_modal` |
+| AC3 | `test_sidebar::test_under_anarchy_the_sidebar_reads_anarchy`; changed: `test_identity_lines::test_choosing_a_government_updates_the_sidebar_and_an_open_modal` |
+| AC4 | `test_sidebar::test_the_top_bar_has_no_civilization_button`; changed: `test_board_layout::test_the_top_bar_holds_supply_and_knowledge_before_menu`; removed: `test_identity_lines::test_one_top_bar_button_names_the_civilization_and_government` (replaced by the sidebar tests) |
+| AC5 | `test_sidebar::test_tab_from_the_strips_last_button_reaches_the_sidebar` |
+| AC6 | `test_sidebar::test_the_sidebar_is_hidden_on_the_title_and_new_game_screens` |
+| — | `main.identity_button()` goes with the top-bar button: `test_identity_lines` (civilization-only, government-only, neither), `test_modal_stack`, `test_government_deck` press `main.sidebar.government_button` (or `name_button`) instead |
+
+Decisions made writing the tests: with no civilization the name is hidden, with no government the link is hidden (the
+sidebar itself stays, for End turn in 203); the name is a Button at `TYPE_TITLE`, the government a `Link` button.
 
 ## Manual check
 - [ ] Seed 5: the rail reads like the mock's (rule, caps heading, name, "Chiefdom ›") in both palettes; the Realm and
