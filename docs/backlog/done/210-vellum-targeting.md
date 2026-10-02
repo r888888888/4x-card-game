@@ -2,7 +2,7 @@
 id: 210
 title: Targeting lays vellum over the board, the targets above it
 type: feature
-status: review
+status: done
 branch: feat/210-vellum-targeting
 ---
 
