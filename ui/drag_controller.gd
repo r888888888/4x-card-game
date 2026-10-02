@@ -99,6 +99,11 @@ func begin_targeting(view: CardView) -> void:
 	_board.sfx.at_contact(Sfx.SELECTION, Anim.SELECT_TIME, Anim.MACHINED, true)  # the index tab clips on (188)
 	view.set_highlight(true)
 	_light_targets(view.uid, true)
+	var above: Array[CardView] = [view]  # the card, then its targets, above the vellum (210)
+	for target in lit:
+		if _board.views.has(target):
+			above.append(_board.views[target])
+	_board.vellum.lay(above)
 	# The engine's reason the card can't be played yet, e.g. "Choose a territory to settle." or "Choose a card to trash."
 	var hint := "%s Click one (or ←/→ then Enter); Esc cancels." % Game.engine.play_error(view.uid)
 	_board.log_note("[color=#ffd966]%s[/color]" % hint)
@@ -111,6 +116,17 @@ func end_targeting() -> void:
 	targeting = null
 	_board.toasts.clear_hint()
 	_unlight_targets()
+	_board.vellum.lift()
+
+
+## A click on the vellum at global point (210): on a lit target it picks it, anywhere else it cancels the targeting.
+func click_vellum(point: Vector2) -> void:
+	for target in lit:
+		var view: CardView = _board.views.get(target)
+		if view != null and view.get_global_rect().has_point(point):
+			_board.on_picked(view)
+			return
+	end_targeting()
 
 
 ## Lights up the valid targets of hand card uid; clickable makes them pickable (targeting mode).

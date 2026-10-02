@@ -379,7 +379,7 @@ func test_menu_new_game_opens_the_new_game_screen() -> void:
 	eq(open_screens(main), ["new game"] as Array[String], "the new game screen, not the title screen")
 	check(not main.board_shown(), "board hidden")
 	eq(main.views.size(), 0, "the old game's views are gone")
-	check(not main.menu_buttons()[0].is_visible_in_tree(), "menu closed")
+	check(not main.modals.is_open(), "menu closed")  # 207: a sheet on the stack, still lifting off
 	main.new_game_screen.seed_edit.text = "6"
 	main.new_game_screen.start_button.pressed.emit()
 	eq(Game.engine.seed_value, 6, "the next game starts from the screen")

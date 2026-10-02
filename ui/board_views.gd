@@ -161,7 +161,7 @@ func leave_point(uid: int, view: CardView) -> Vector2:
 		"territory_deck":
 			return _main.choices.explore_exit_point()
 		"government":
-			return _top_bar.identity_point()
+			return _main.sidebar.government_point()
 	return _top_bar.pile_point()
 
 
