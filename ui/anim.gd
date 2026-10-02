@@ -46,5 +46,19 @@ const LATCH := Vector4(0.5, -0.2, 0.1, 1)
 const RELEASE := Vector4(0.4, 0, 1, 1)
 
 
-static func contact(_duration: float, _curve: Vector4) -> float:
-	return 0.0
+## When a motion of duration (s) on curve reaches 90% of its travel: its contact point (§16.5), where its sound plays.
+static func contact(duration: float, curve: Vector4) -> float:
+	var lo := 0.0
+	var hi := 1.0
+	for i in 40:  # the bezier's parameter where its progress first reaches 0.9
+		var mid := (lo + hi) / 2
+		if _bezier(mid, curve.y, curve.w) < 0.9:
+			lo = mid
+		else:
+			hi = mid
+	return duration * _bezier(hi, curve.x, curve.z)
+
+
+## One coordinate of a cubic bezier from (0, 0) to (1, 1) with control points p1 and p2, at parameter s.
+static func _bezier(s: float, p1: float, p2: float) -> float:
+	return 3 * (1 - s) * (1 - s) * s * p1 + 3 * (1 - s) * s * s * p2 + s * s * s
