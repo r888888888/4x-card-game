@@ -15,6 +15,7 @@ const LABEL_SEMIBOLD := preload("res://assets/fonts/BarlowSemiCondensed-SemiBold
 const DISPLAY_FONT := preload("res://assets/fonts/Jost-Variable.ttf")
 const PLINTH := Vector2(2, 2)  # a control's hard shadow (guide shadow.plinth)
 const PRESS := 2  # px a pressed control travels into its shadow (guide travel.press)
+const SHEET_SHADOW := Vector2(8, 8)  # a modal sheet's hard shadow (207, guide §15.11)
 
 
 static func build() -> Theme:
@@ -37,6 +38,8 @@ static func build() -> Theme:
 	_link(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
+	t.set_type_variation("Sheet", "PanelContainer")
+	t.set_stylebox("panel", "Sheet", sheet())
 	_pips(t)
 	return t
 
@@ -70,6 +73,7 @@ static func _pips(t: Theme) -> void:
 
 
 ## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
+## "TitleLink": the same in ink.
 static func _link(t: Theme) -> void:
 	t.set_type_variation("Link", "Button")
 	t.set_font_size("font_size", "Link", Tokens.TYPE_TITLE)
@@ -80,6 +84,8 @@ static func _link(t: Theme) -> void:
 	t.set_color("font_focus_color", "Link", Palette.ACCENT)
 	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it sits in the breadcrumb's text
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
+	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)
+	t.set_color("font_color", "TitleLink", Palette.TEXT)
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.
@@ -88,6 +94,16 @@ static func dark_panel(border := Palette.EDGE) -> StyleBoxFlat:
 
 
 ## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.
+## A modal's sheet (207, guide §15.11): RAISED in a 2 px ink rule, cut square, on a hard SHEET_SHADOW shadow.
+static func sheet() -> StyleBoxFlat:
+	var style := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_5)
+	style.shadow_color = Palette.SHADOW
+	style.shadow_offset = SHEET_SHADOW
+	style.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
+	style.anti_aliasing = false
+	return style
+
+
 static func focus_ring() -> StyleBoxFlat:
 	var ring := StyleBoxFlat.new()
 	ring.draw_center = false
