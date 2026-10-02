@@ -2,7 +2,7 @@
 id: 199
 title: Settled territory cards in the Realm hide their keywords
 type: feature
-status: ready
+status: red-review
 branch: feat/199-realm-territory-cards-hide-keywords
 ---
 
@@ -30,6 +30,9 @@ show in the territory view, where there is room for them.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_territory_cards::test_a_settled_territory_card_in_the_realm_shows_no_keyword`; changed: `test_territory_cards::test_a_settled_territory_card_shows_its_name_and_live_line_only` (was `…_name_keywords_and_live_line_only`), `test_board_faces::test_a_settled_frontier_card_switches_to_the_settled_face_at_board_size` |
+| AC2, AC4 | `test_territory_cards::test_a_rolled_keyword_shows_in_the_view_but_not_on_the_realm_card` |
+| AC3 | `test_territory_cards::test_a_revealed_territory_still_shows_its_keywords` (guard); existing `test_board_faces::test_a_frontier_card_has_a_badge_its_keywords_and_printed_slots_and_housing` |
 
 ## Manual check
 - [ ] Seed 5: Delta Marsh in the Realm shows name, band and stats only; opening it shows its keywords.

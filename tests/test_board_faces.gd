@@ -98,7 +98,7 @@ func test_a_settled_frontier_card_switches_to_the_settled_face_at_board_size() -
 		await wait_frames()
 		var text := face(main, hills)
 		check(not text.contains("Frontier"), "badge gone: %s" % text)
-		check(text.begins_with("Hills\nMountain\n▢ "), "name, keywords, then the live line: %s" % text)
+		check(text.begins_with("Hills\n▢ "), "name, then the live line (no keywords since 199): %s" % text)
 		eq((main.views[hills] as CardView).slot_size(), CardView.BOARD_SIZE, "still at board size"))
 
 
