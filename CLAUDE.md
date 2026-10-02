@@ -5,6 +5,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 
 ## Commands
 - Run all tests: `scripts/test.sh` (exit 0 = green). Filter: `scripts/test.sh <substring of file::method>`
+- Balance suite: `scripts/test.sh --balance` runs only `tests/balance/` (real-data bot games; not in the main suite
+  or the Stop hook). Run it when you change `sim/`.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
 
@@ -89,6 +91,8 @@ in a dedicated balance item, or when the user asks.
   fixtures (`make_engine`, `TEST_CARDS`, `eq`, `check`, `has_msg`, …) live there.
 - Name tests after the behavior: `test_<what_happens>`; for bugs `test_bug_<id>_<what>`.
 - Rules tests use `TEST_CARDS` + `make_engine`, never `data/cards.json` (balance edits must not break them).
+- A test that plays ScriptedBot games on the real data goes in `tests/balance/`, never the main suite; bot rules are
+  tested on fixture games of a few turns.
 - Content tests (`tests/test_content.gd`) assert invariants of the real data, never exact numbers from `data/`.
   A test in `test_content.gd` that names a card id is a smell: assert the invariant and put per-card facts under
   the item's Manual check.
