@@ -93,5 +93,6 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 83. 146 leaving Anarchy: half-limit government, restore order (after 145)
 84. 147 renewal: trash from the discard during Anarchy (after 146)
 85. 148 revolution events: choose to revolt (after 147)
+86. 154 government deck: choose your next government instead of drawing it (after 148)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

@@ -42,12 +42,11 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
 Government and Anarchy rework (from `spike/revolution`):
-1. 154 government deck: choose your next government instead of drawing it
-2. 155 revolt any time; Anarchy's length follows unrest
-3. 156 Anarchy eats into stored food and wealth
-4. 157 Theocracy slows research: an insight-per-gain modifier
-5. 158 sim metrics for Anarchy, governments and famine
-6. 159 the bot chooses governments and revolts by looking ahead
+1. 155 revolt any time; Anarchy's length follows unrest (154 government deck is done)
+2. 156 Anarchy eats into stored food and wealth
+3. 157 Theocracy slows research: an insight-per-gain modifier
+4. 158 sim metrics for Anarchy, governments and famine
+5. 159 the bot chooses governments and revolts by looking ahead
 
 Then 149's balance pass can cover the reworked unrest.
 

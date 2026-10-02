@@ -2,7 +2,7 @@
 id: 154
 title: Government deck: choose your next government instead of drawing it
 type: feature
-status: review
+status: done
 branch: feat/154-government-deck
 ---
 
