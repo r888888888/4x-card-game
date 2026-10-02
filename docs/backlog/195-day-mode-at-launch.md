@@ -1,0 +1,50 @@
+---
+id: 195
+title: Launching with Day mode saved refreshes a board with no game, and the suite reads the player's settings
+type: bug
+status: ready
+branch: fix/195-day-mode-at-launch
+---
+
+## Reproduction
+- Seed: any; no game needs to start.
+- Steps:
+  1. Turn Day mode on (Settings or the game menu), so `user://settings.cfg` holds `day_mode=true`; quit.
+  2. Launch `godot --path .` (or `godot --headless --path . --quit-after 60`).
+- Expected: the title screen in the Paper palette, no errors.
+- Actual: 59 `SCRIPT ERROR`s before the title screen shows (`Invalid access to property or key 'tableau'` in
+  `GameEngine.zone`, then `population.gd`, `events.gd`, `modifiers.gd` on a nil zone). The title screen then shows.
+- Also: with the player's Day mode on, `scripts/test.sh` reports 1124 of 1201 tests failing with the same errors,
+  for every session (the Stop hook included), though the code is fine. `HOME=<empty dir> scripts/test.sh` is green.
+
+Found 2026-10-02 while merging 193; present since 183 (the commit before 192 shows the same 59 errors).
+
+## Acceptance criteria
+- [ ] AC1: Given Day mode on in a temp settings store and `Game.engine` swapped for an engine whose game hasn't
+  started (`board_engine()`, no `start`), when the main scene opens, then no script error is raised, the title screen
+  is open, the board isn't shown, and a Button in main draws the Day `CONTROL` fill (the theme was built in Paper).
+- [ ] AC2: Given the same, when a game starts on seed 1, then the board shows in Paper: `main.background_color()` is
+  `Palette.DAY["BACKGROUND"]` and a hand card's panel is `Palette.DAY["RAISED"]`.
+- [ ] AC3: Given the test runner, when any test starts, then `Settings.store` is not the player's store (its path isn't
+  `user://settings.cfg`), and Day mode and Reduce motion are off; so the player's settings can't change a test's
+  result.
+- [ ] AC4: Given a full suite run, then the player's `user://settings.cfg` is byte-for-byte unchanged (or still absent).
+
+## Test plan
+| AC | Test |
+|---|---|
+
+## Root cause
+<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+Likely (from reading, to confirm under TDD): `main._palette_day` starts false, so `_apply_settings()` during
+`_build_layout()` sees Day mode as a switch and calls `_refresh()` while `board_shown()` is still true (the title screen
+hides the board only later in `_ready`), on an engine with no game. 183's tests all switch Day mode after a game
+starts, and the suite runs on the player's real settings store, which had Day mode off until now.
+
+## Manual check
+- [ ] With Day mode saved, launch the game: no errors in the terminal, the title screen is Paper; start a game: the
+  board is Paper.
+
+## Log
+- Specced 2026-10-02 from the 193 merge. Workaround until fixed: turn Day mode off in the game, or run the suite with
+  `HOME` pointed at an empty folder.
