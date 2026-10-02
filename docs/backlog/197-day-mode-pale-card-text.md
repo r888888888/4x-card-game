@@ -2,7 +2,7 @@
 id: 197
 title: Day mode: card type lines and territory keywords are pale on paper
 type: bug
-status: ready
+status: red-review
 branch: fix/197-day-mode-pale-card-text
 ---
 
@@ -37,6 +37,10 @@ lightened 50% (`color.lightened(0.5)`, `ui/card_face.gd` lines 57 and 102), and 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_day_mode::test_bug_197_type_and_keyword_lines_read_on_paper_in_day_mode` (hand, Delta Marsh, a frontier card, every supply card) |
+| AC2 | `test_day_mode::test_bug_197_type_and_keyword_lines_read_on_night_sheets` |
+| AC3 | `test_day_mode::test_bug_197_type_and_keyword_lines_switch_with_day_mode_mid_game` |
+| AC4 | `test_ui_structure::test_bug_197_card_faces_derive_no_text_colour_by_lightening_or_darkening` |
 
 ## Root cause
 <!-- Filled in by Claude after the fix. -->

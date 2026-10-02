@@ -221,3 +221,13 @@ func test_no_ui_script_holds_a_palette_colour_in_a_constant() -> void:
 		if path != "res://ui/palette.gd":
 			found.append_array(palette_constants(path))
 	eq(found, [] as Array[String], "constants that freeze a Palette colour (read Palette when drawing instead)")
+
+
+func test_bug_197_card_faces_derive_no_text_colour_by_lightening_or_darkening() -> void:
+	var source := FileAccess.get_file_as_string("res://ui/card_face.gd")
+	var found: Array[String] = []
+	var lines := source.split("\n")
+	for i in lines.size():
+		if lines[i].contains(".lightened(") or lines[i].contains(".darkened("):
+			found.append("card_face.gd:%d" % (i + 1))
+	eq(found, [] as Array[String], "text colours lightened or darkened from a Palette colour (use a palette role)")
