@@ -35,7 +35,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var title_row := HBoxContainer.new()
 	title_row.name = "TitleRow"
 	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title := label(def.name, Tokens.TYPE_BODY)
+	var title := title_label(def.name)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)
 	if in_hand:
@@ -91,7 +91,7 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		badge_row.add_child(badge(BADGES[kind], color))
 		add_child(badge_row)
-	add_child(one_line(label(def.name, Tokens.TYPE_BODY)))
+	add_child(one_line(title_label(def.name)))
 	if kind != CardView.BOARD_FRONTIER:  # an unsettled territory keeps its hatching and dashed border instead
 		_add_band(color)
 	_set_rules_tip(card, card_db)
@@ -349,6 +349,16 @@ static func label(text: String, font_size: int, color := Palette.TEXT) -> Label:
 	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	result.add_theme_font_size_override("font_size", font_size)
 	result.add_theme_color_override("font_color", color)
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return result
+
+
+## A card's name (198): a wrapping label in the CardTitle variation (the semibold label face at body size).
+static func title_label(text: String) -> Label:
+	var result := Label.new()
+	result.text = text
+	result.theme_type_variation = &"CardTitle"
+	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return result
 
