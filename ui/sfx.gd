@@ -67,6 +67,8 @@ const EVENT_DUCK_DB := -6.0  # the player's input during a Level 3
 const L1_PITCH := 1.015  # ±25 cents of jitter on a Level 1
 const L1_VOLUME_DB := 1.0  # ±1 dB
 
+const GROUP := &"sfx"  # find() looks the player up by it
+
 static var _streams := {}  # token -> its loaded stream
 
 var _clock := -1.0  # set by set_clock; below 0, the real time
@@ -74,6 +76,15 @@ var _played: Array[Dictionary] = []
 var _voices: Array[Dictionary] = []  # scheduled or sounding: {token, bus, level, at, end, db, player}
 var _ticks: Array[float] = []  # when recent ticks are due
 var _last_notice := -INF
+
+
+func _init() -> void:
+	add_to_group(GROUP)
+
+
+## The sound player in node's tree (main's), or null when there is none (a component tested on its own).
+static func find(node: Node) -> Sfx:
+	return node.get_tree().get_first_node_in_group(GROUP) as Sfx if node.is_inside_tree() else null
 
 
 ## token's level: 1, 2 or 3 (0 for an unknown token).
@@ -168,7 +179,7 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 		_stop(oldest[0])
 	_voices.append({"token": token, "bus": on, "level": lvl, "at": at, "end": at + length(token), "db": gain_db,
 		"player": null})
-	_played.append({"token": token, "bus": on, "at": at, "db": gain_db})
+	_played.append({"token": token, "bus": on, "at": at, "db": gain_db, "input": input})
 	_start_due()
 	return true
 
@@ -180,7 +191,7 @@ func at_contact(token: StringName, duration: float, curve: Vector4, input := fal
 	return play(token, delay, input)
 
 
-## Every sound played, in order: {token, bus, at, db}.
+## Every sound played, in order: {token, bus, at, db, input}.
 func played() -> Array[Dictionary]:
 	return _played.duplicate(true)
 

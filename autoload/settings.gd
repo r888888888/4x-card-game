@@ -20,6 +20,7 @@ var interface_sounds: bool:
 	get:
 		return store.interface_sounds
 var _in_background := false
+var _interface_grace := false  # interface sounds were just turned off, but the Interface bus isn't muted yet (187)
 
 
 func _ready() -> void:
@@ -73,11 +74,20 @@ func volume(bus: StringName) -> int:
 	return store.get(_VOLUME_KEYS[bus])
 
 
-## Turns interface sounds on or off (the Interface bus mutes; its volume is kept), saves it, and tells the UI.
-func set_interface_sounds(on: bool) -> void:
+## Turns interface sounds on or off (the Interface bus mutes; its volume is kept), saves it, and tells the UI. Turned
+## off with mute_after > 0, the bus mutes that many seconds later, so a sound already on its way is heard (187).
+func set_interface_sounds(on: bool, mute_after := 0.0) -> void:
 	store.interface_sounds = on
+	_interface_grace = not on and mute_after > 0.0
 	_save()
 	changed.emit()
+	if _interface_grace:
+		get_tree().create_timer(mute_after).timeout.connect(_end_interface_grace)
+
+
+func _end_interface_grace() -> void:
+	_interface_grace = false
+	_apply_volumes()
 
 
 ## Mutes the Game and Interface buses while the window is in the background; back in front, they follow the settings.
@@ -93,7 +103,7 @@ func _apply_volumes() -> void:
 			continue
 		var percent := volume(bus)
 		AudioServer.set_bus_volume_db(index, linear_to_db(percent / 100.0))
-		var off := percent == 0 or (bus != MASTER and _in_background) or (bus == INTERFACE and not interface_sounds)
+		var off := percent == 0 or (bus != MASTER and _in_background) or (bus == INTERFACE and not interface_sounds and not _interface_grace)
 		AudioServer.set_bus_mute(index, off)
 
 
