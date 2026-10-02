@@ -147,7 +147,7 @@ never the only cue.
 
 | Game thing | Hue | Glyph (§8) |
 |---|---|---|
-| Food | Sage (green) | Wheat ear: a stem with three pairs of grains |
+| Food | Sage (green) | Sprout: a stem on a ground line with two leaves |
 | Wealth | Ochre (yellow) | Cash coin: a ring with a square hole |
 | Insight | Muted blue | Open book with curved pages |
 | Pop | Teal | Figure: a circle over a half-disc |
@@ -319,8 +319,8 @@ end. Rules text below a hairline. VP bottom-right with the starburst. No drop sh
 **Cost is always top-right**, on every card type, on the name's line: one `well` plate (1 px inner `rule`) holding
 one **cost entry per resource paid**, in a fixed order: food, wealth, insight. Each entry is the resource's glyph
 (`icon.m` 20, the resource's hue line) followed by its figure (`type.numeral-s`, `ink`); entries are divided by a
-1 px `rule`. A Granary costing 1 food and 2 wealth reads `[wheat 1 | coin 2]`. The **glyph's shape** tells food from
-wealth (wheat ear vs coin), and the hue repeats it, so the two never depend on colour; the plate's accessible name
+1 px `rule`. A Granary costing 1 food and 2 wealth reads `[sprout 1 | coin 2]`. The **glyph's shape** tells food from
+wealth (sprout vs coin), and the hue repeats it, so the two never depend on colour; the plate's accessible name
 spells it out ("Costs 1 food, 2 wealth"). A card with no cost shows no plate (never a 0). A resource the player is
 short of prints its figure in `danger`, underlined 2 px, so the reason a card is dimmed is visible on the cost itself.
 
@@ -698,7 +698,7 @@ state directly.
 | Plain warm off-white paper | Paper texture, coffee stains, wood grain, leather |
 | Plex Mono in a split-flap window | A pixel or LCD segment font |
 | Era change as a ceremonial sheet | Era change as confetti |
-| Cost top-right as `[wheat 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
+| Cost top-right as `[sprout 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
 | A latching legend key that says ON or OFF on its face | A rounded pill track with a circle thumb |
 
 ---

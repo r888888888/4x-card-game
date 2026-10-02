@@ -40,6 +40,7 @@
 	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
 	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
 	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
 	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
 	--knob: #57524A; --on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
 }
@@ -89,11 +90,11 @@ section { margin-bottom: var(--space-6); }
 const RES = [
 	{ id: "food", name: "Food", hue: "sage", cands: [
 		{ key: "wheat", name: "Wheat ear", svg: '<path d="M12 22V3M12 10L8 7M12 10l4-3M12 14l-4-3M12 14l4-3M12 18l-4-3M12 18l4-3"/>',
-			note: "The current pick, now green: young wheat in the field rather than the harvested grain.", pick: true },
+			note: "The first pick, now green: young wheat in the field rather than the harvested grain." },
 		{ key: "leaf", name: "Leaf", svg: '<path d="M5 19A12 12 0 0 1 19 5A12 12 0 0 1 5 19z"/><path d="M5 19L15 9M3 21l2-2"/>',
 			note: "A single leaf with its midrib. The simplest green-food mark; could also read as nature or ecology." },
 		{ key: "sprout", name: "Sprout", svg: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
-			note: "A seedling with two leaves: farming and growth at once, which is what food does in the game (it grows pop). Clear at 16 px." },
+			note: "A seedling with two leaves: farming and growth at once, which is what food does in the game (it grows pop). Clear at 16 px.", pick: true },
 		{ key: "apple", name: "Apple", svg: '<circle cx="12" cy="14" r="7"/><path d="M12 7V3"/><path d="M12 6A4 4 0 0 1 17 3A4 4 0 0 1 12 6z"/>',
 			note: "Fruit: a disc with a stem and leaf. Plainly food; the disc alone is the City mark, so the stem has to stay legible." },
 		{ key: "pea", name: "Pea pod", svg: '<path d="M2 12A14 14 0 0 1 22 12A14 14 0 0 1 2 12z"/><circle cx="7" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="17" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
@@ -194,7 +195,7 @@ document.getElementById("sections").innerHTML = RES.map((r) => `
 	<section>
 		<div class="titleblock"><h2>Chosen set, side by side</h2><span class="caps">distinct at 32 px</span></div>
 		<div class="lineup">
-			${RES.filter((r) => r.cands.some((x) => x.pick)).map((r) => { const c = r.cands.find((x) => x.pick); return `<figure>${icon(c.svg, r.hue, 32)}<figcaption>${r.name}</figcaption></figure>`; }).join("")}
+			${RES.filter((r) => r.cands.some((x) => x.pick)).map((r) => { const c = r.cands.find((x) => x.pick); return `<figure>${icon(c.svg, r.hue, 32)}<figcaption>${r.name.split(":")[0]}</figcaption></figure>`; }).join("")}
 			${OTHERS.map((o) => `<figure>${icon(o.svg, o.hue, 32)}<figcaption>${o.name}</figcaption></figure>`).join("")}
 		</div>
 		<div class="lineup" style="margin-top:4px">

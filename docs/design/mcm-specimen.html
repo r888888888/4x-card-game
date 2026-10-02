@@ -40,6 +40,7 @@
 	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
 	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
 	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
 	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
 	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
 }
@@ -457,7 +458,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, calm() ? 0 : ms));
 
 // Glyphs (§8): 24 grid, 2 px stroke, square caps, mitred joins, ≤ 5 primitives.
 const GLYPHS = {
-	food: '<path d="M12 22V3M12 10L8 7M12 10l4-3M12 14l-4-3M12 14l4-3M12 18l-4-3M12 18l4-3"/>',  // wheat ear
+	food: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',  // sprout
 	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',  // cash coin
 	insight: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',  // open book, curved pages
 	pop: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>',
