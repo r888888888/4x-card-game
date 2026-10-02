@@ -78,7 +78,8 @@ res://
                          # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
                          # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
-                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154),
+                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
+                         # cabinet_doors.gd, 209),
                          # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
                          # modal.gd (153: Modal, every modal's base: scrim, close keys, click outside; 207: the drafting
                          # sheet with its title block, body and footer, risen in and dropped off),
