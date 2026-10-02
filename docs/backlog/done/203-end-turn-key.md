@@ -2,7 +2,7 @@
 id: 203
 title: End turn as the specimen's key, at the sidebar's foot
 type: feature
-status: review
+status: done
 branch: feat/203-end-turn-key
 ---
 

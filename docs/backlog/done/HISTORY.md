@@ -140,5 +140,6 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 130. 213 the title screen as a ledger with large-format keys
 131. 206 a Settings modal, from the menu and the title screen
 132. 205 Revolt from the civilization modal, after a confirmation
+133. 203 End turn as the specimen's key at the sidebar's foot
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
