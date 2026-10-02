@@ -90,6 +90,8 @@ res://
   scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all)
   docs/                  # development process, testing guide, backlog
 ```
+Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on
+`EngineCore`; unrest is added or capped only through `set_unrest`, which stops at `unrest_limit()`.
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
 `engine/game_engine.gd`; the sections below give the rules and name the functions only where it helps.
 Buildings always target a settled territory with a free slot (`free_slots`).

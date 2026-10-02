@@ -119,6 +119,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_revolution.gd` | Revolution events (148): the event's `revolt` field and text, `revolt` and its error, the Revolt button, the bot's revolt |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
+| `tests/test_prices.gd` | Prices and unrest in one place (173): `can_pay` / `pay` / `price_error`, `Fields.amounts_text`, `set_unrest` stopping at the limit; only EngineCore lowers resources or writes unrest |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
 | `tests/test_terrains.gd` | Terrain keywords (130): config `terrains`, exactly one terrain per territory, terrain-keyed roll tables, terrain/feature keyword details |
 | `tests/test_territory_resources.gd` | Rolled resource keywords: `resource_keywords` / `territory_resources` config, rolling per copy, `territory_keywords` |

@@ -104,6 +104,16 @@ func test_relieve_famine_error_names_each_reason_and_relief_changes_nothing() ->
 
 # --- AC3: forecast ---
 
+## 173: a short price of several resources names each one you have.
+func test_relief_short_of_a_two_resource_price_names_both() -> void:
+	var e := relief_engine(4, 0, 0, {"food": 2, "wealth": 5})
+	e.end_turn()  # a hungry upkeep brings the Famine
+	e.resources.food = 0
+	e.resources.wealth = 1
+	eq(e.relieve_famine_error(), "Relieving the famine needs 2 food, 5 wealth (you have 0 food, 1 wealth).",
+		"two resources")
+
+
 func test_forecast_after_relief_is_0_when_fed_else_1() -> void:
 	var e := two_counter_engine(20)
 	check(e.relieve_famine(), "relieve")
