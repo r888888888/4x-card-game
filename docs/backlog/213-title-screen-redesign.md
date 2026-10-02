@@ -2,7 +2,7 @@
 id: 213
 title: The title screen as a ledger with large-format buttons
 type: feature
-status: ready
+status: red-review
 branch: feat/213-title-screen-redesign
 ---
 
@@ -47,6 +47,13 @@ places that deserve a big press.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_title_screen::test_the_title_screen_is_a_ledger_left_and_an_empty_art_half_right`; changed: `test_start_screen::test_title_screen_has_the_title_and_three_buttons` (the title may break onto two lines), `test_button_widths::test_title_settings_and_new_game_columns_share_one_width` (the title keys share a width flush left, not centred) |
+| AC2 | `test_each_key_is_a_big_button_with_caps_label_caption_chevron_and_lamp` |
+| AC3 | `test_the_big_button_is_an_index_card_on_a_plinth_that_sinks_when_pressed`, `test_a_big_buttons_press_plays_the_key_sounds` (a guard: `KeySounds` covers every Button) |
+| AC4 | Existing `test_start_screen` signal, focus, Tab / arrows and Enter tests (unchanged) |
+| AC5 | `test_day_mode_switches_the_keys_at_once` |
+
+New hooks: `StartScreen.art`, `kicker`, `title`, `subtitle`; `BigButton.label`, `caption`, `chevron`, `lamp`.
 
 ## Manual check
 - [ ] Launch at 1280×720 and 1920×1080 in Night and Day: the ledger matches the mock's left half (spacing, the keys'
