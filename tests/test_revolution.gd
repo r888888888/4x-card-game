@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
 ## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
-## The Revolt button sits below the Realm; the bot revolts to a better government when the Anarchy would last 1 turn.
+## The Revolt button sits below the Realm. The bot's revolts: test_bot_lookahead.gd (159).
 ## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
 
 
@@ -87,7 +87,7 @@ func test_an_events_revolt_field_is_unknown() -> void:
 	has_msg(warnings, "unknown field 'revolt'")
 
 
-# --- AC7: the bot revolts ---
+# --- AC7: the forecast (the bot's revolt rule moved to 159) ---
 
 func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
 	var e: Object = revolt_engine(2)
@@ -96,26 +96,6 @@ func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
 	build_on(with_altar, home_uid(with_altar), ["altar"])
 	var altar: Object = with_altar
 	eq(altar.revolt_forecast(), 2, "unrest 3 of 6")
-
-
-func test_the_bot_revolts_to_a_better_government_when_anarchy_would_last_1_turn() -> void:
-	var e := revolt_engine(1, ["kings"])
-	ScriptedBot.take_turn(e, "baseline")
-	eq(e.revolt_error(), "A revolution is already under way.", "Kings (limit 7) beats Chiefs (5): revolted")
-	ScriptedBot.play(e, "baseline")
-	check(e.is_over, "the game still plays to its end")
-
-
-func test_the_bot_doesnt_revolt_otherwise() -> void:
-	var restless := revolt_engine(3, ["kings"])
-	ScriptedBot.take_turn(restless, "baseline")
-	eq(restless.revolt_error(), "", "unrest 3: 3 counters, no revolt")
-	var worse := revolt_engine(1, ["council"])
-	ScriptedBot.take_turn(worse, "baseline")
-	eq(worse.revolt_error(), "", "Council ranks below Chiefs: no revolt")
-	var none := revolt_engine(1)
-	ScriptedBot.take_turn(none, "baseline")
-	eq(none.revolt_error(), "", "an empty government deck: no revolt")
 
 
 # --- AC8: the Revolt button ---

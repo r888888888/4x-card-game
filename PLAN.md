@@ -445,8 +445,14 @@ Your people have one government at a time; its bonuses apply while it rules.
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
   first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck,
-  a click chooses; the identity modal lists the deck ("Government deck: Kingship"). The bot chooses the most
-  `actions`, then the highest `unrest_limit`, then deck order.
+  a click chooses; the identity modal lists the deck ("Government deck: Kingship"). The bot chooses by lookahead (159).
+- Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
+  `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
+  owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every
+  `REVOLT_EVERY` (4) turns, at the end of the turn and not in the last 6, it revolts when a lookahead that revolts to
+  some government in the deck outscores staying. Inside a lookahead it never revolts and chooses the government the
+  fork was opened for, else `best_government` (154's ranking: most `actions`, then highest `unrest_limit`, then deck
+  order). It values score only, not research.
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
   turn; after `restore_order` the turn goes on.
@@ -489,9 +495,9 @@ Your people have one government at a time; its bonuses apply while it rules.
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",
   "There is no government to overthrow.". `revolt_forecast()` is the counters it would bring. The Revolt button sits
   beside Relieve famine and Restore order whenever you may revolt; its tooltip says Anarchy starts next turn and lasts
-  about N turns. The bot revolts at the end of a turn when the government deck holds one it ranks higher and the
-  forecast is 1. Real data: Calls for Reform (2 turns, renewal +1), Peasant Uprising (+1 unrest), Radical Thinkers
-  (era 2, 3 turns, renewal +2). Anarchy (1 action), 4 counters, era unrest 3, drain 20%, Feast is the `order` card.
+  about N turns. The bot weighs a revolt by lookahead (159, below). Real data: Calls for Reform (2 turns, renewal +1),
+  Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (1 action), 4 counters, era
+  unrest 3, drain 20%, Feast is the `order` card.
 - Anarchy's drain (156): config `unrest.drain_pct` (0–100, absent = 0). Each turn that starts under Anarchy (after any
   fall, before the draw) loses that share of stored food and wealth, rounded up (`Anarchy.drain`, logged as the Anarchy
   card's loss). `upkeep_forecast()` includes it on the stores after upkeep and feeding when Anarchy will rule next turn
