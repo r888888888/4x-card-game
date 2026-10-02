@@ -2,7 +2,7 @@
 id: 159
 title: The bot chooses governments and revolts by looking ahead
 type: feature
-status: red-review
+status: in-progress
 branch: feat/159-bot-government-lookahead
 ---
 

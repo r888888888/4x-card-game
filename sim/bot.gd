@@ -13,9 +13,8 @@ extends RefCounted
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
-## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), chooses the government with the most actions,
-## then the highest limit, when Anarchy ends (154), renews the card worth least to keep (147), and
-## revolts to a better government in the government deck when the Anarchy would last 1 turn (155).
+## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
+## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -24,6 +23,12 @@ const STRATEGIES: Array[String] = ["baseline", "growth", "wealth", "wide", "tall
 const TALL_TERRITORIES := 2
 ## How far below the unrest limit the bot still plays cards that calm unrest (144).
 const CALM_MARGIN := 2
+## How many turns a lookahead plays (159), and how often, in turns, the bot weighs a revolution.
+const LOOKAHEAD_TURNS := 12
+const REVOLT_EVERY := 4
+
+static var _depth := 0  # > 0 while a lookahead plays (159): no revolts, the forced government chosen
+static var _forced_government := ""  # the government a lookahead was opened for ("" for the ranking)
 
 
 ## Plays engine's game to the end with strategy. Returns whether it ended within MAX_STEPS; false, without playing,
@@ -36,13 +41,41 @@ static func play(engine: GameEngine, strategy := "baseline") -> bool:
 		steps += take_turn(engine, strategy)
 		if engine.is_over:
 			break
-		if engine.relieve_famine_error() == "" and engine.upkeep_forecast().get("starve", 0) > 0:
-			engine.relieve_famine()
-		for card in engine.zone("hand").cards.duplicate():
-			engine.discard_card(card.uid)
-		engine.end_turn()
+		_close_turn(engine)
 		steps += 1
 	return engine.is_over
+
+
+## Relieves a Famine the next upkeep would still starve under (084), discards the hand and ends the turn.
+static func _close_turn(engine: GameEngine) -> void:
+	if engine.relieve_famine_error() == "" and engine.upkeep_forecast().get("starve", 0) > 0:
+		engine.relieve_famine()
+	for card in engine.zone("hand").cards.duplicate():
+		engine.discard_card(card.uid)
+	engine.end_turn()
+
+
+## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its score then
+## (159). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
+## ("" for best_government), and never revolts; engine itself is untouched.
+static func lookahead(engine: GameEngine, strategy: String, government_id := "", revolt := false) -> int:
+	var f := engine.fork()
+	var saved := _forced_government
+	_depth += 1
+	_forced_government = government_id
+	if revolt:
+		f.revolt()
+	var end := mini(f.turn + LOOKAHEAD_TURNS, f.turn_limit())
+	var steps := 0
+	while not f.is_over and f.turn < end and steps < MAX_STEPS:
+		steps += take_turn(f, strategy)
+		if f.is_over or f.turn >= end:
+			break
+		_close_turn(f)
+		steps += 1
+	_depth -= 1
+	_forced_government = saved
+	return f.score()
 
 
 ## Plays one turn with strategy up to, not including, discarding and ending it: choices, techs and hand cards, then
@@ -53,7 +86,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 	while not engine.is_over and steps < MAX_STEPS:
 		steps += 1
 		if engine.pending().get("kind", "") == GameEngine.PENDING_GOVERNMENT:
-			engine.choose_government(_best_government(engine.zone("governments").cards).uid)
+			engine.choose_government(_pick_government(engine, strategy).uid)
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
 			engine.renew(_renewal_pick(engine))
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_EXPLORE:
@@ -70,7 +103,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 		_buy_wealth_card(engine)
 	if strategy != "baseline":
 		_grow(engine, strategy)
-	_revolt(engine)
+	_revolt(engine, strategy)
 	return steps
 
 
@@ -165,19 +198,45 @@ static func _restore_order(engine: GameEngine) -> bool:
 	return engine.restore_order()
 
 
-## At the end of a turn, revolts (155) when the government deck holds one ranked above the ruling one (_rank) and the
-## Anarchy would last 1 turn.
-static func _revolt(engine: GameEngine) -> void:
-	if engine.revolt_error() != "" or engine.revolt_forecast() != 1:
+## At the end of every REVOLT_EVERY-th turn, outside a lookahead and before the last LOOKAHEAD_TURNS ÷ 2 turns,
+## revolts (159) when a lookahead that revolts and then chooses some government in the deck outscores one that doesn't.
+static func _revolt(engine: GameEngine, strategy: String) -> void:
+	if _depth > 0 or engine.turn % REVOLT_EVERY != 0 or engine.revolt_error() != "":
 		return
-	var ruling := _rank(engine.zone("government").cards[0].def)
-	if engine.zone("governments").cards.any(func(c): return _rank(c.def) > ruling):
-		engine.revolt()
+	if engine.zone("governments").is_empty() or engine.turn > engine.turn_limit() - LOOKAHEAD_TURNS / 2:
+		return
+	var stay := lookahead(engine, strategy)
+	for g in engine.zone("governments").cards:
+		if lookahead(engine, strategy, g.def.id, true) > stay:
+			engine.revolt()
+			return
 
 
-## The government to choose when Anarchy ends (154): the most actions, then the highest unrest limit; ties go to the
-## first in the government deck.
-static func _best_government(govs: Array) -> CardInstance:
+## The government to choose when the choice is owed (159): the one whose lookahead scores most, ties to the first in
+## the government deck, and the only one without looking ahead. Inside a lookahead: the government it was opened for,
+## else best_government.
+static func _pick_government(engine: GameEngine, strategy: String) -> CardInstance:
+	var options: Array = engine.zone("governments").cards
+	if _depth > 0:
+		for g in options:
+			if g.def.id == _forced_government:
+				return g
+		return best_government(options)
+	if options.size() == 1:
+		return options[0]
+	var best: CardInstance = null
+	var best_score := 0
+	for g in options:
+		var score := lookahead(engine, strategy, g.def.id)
+		if best == null or score > best_score:
+			best = g
+			best_score = score
+	return best
+
+
+## 154's ranking of govs, used inside a lookahead: the most actions, then the highest unrest limit; ties go to the
+## first.
+static func best_government(govs: Array) -> CardInstance:
 	var best: CardInstance = null
 	for g in govs:
 		if best == null or _rank(g.def) > _rank(best.def):
@@ -185,7 +244,7 @@ static func _best_government(govs: Array) -> CardInstance:
 	return best
 
 
-## A government's rank for _best_government (154): its actions, then its unrest limit.
+## A government's rank for best_government (154): its actions, then its unrest limit.
 static func _rank(def: CardDef) -> Array:
 	return [def.actions, def.unrest_limit]
 
