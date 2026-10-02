@@ -34,9 +34,14 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main.fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main.add_child(main.fx)
+	main.vellum = Vellum.new(func():  # the play area and the sidebar, the window's full width (210)
+		var top: float = play_area.get_global_rect().position.y
+		return Rect2(0, top, main.size.x, main.size.y - top), func(point: Vector2): main.drag.click_vellum(point))
+	main.add_child(main.vellum)
 	main.drag = DragController.new(main)
 	main.focus = CardFocus.new(main)
 	main.choices = ChoiceOverlays.new(main)
+	main.doors = main.choices.doors
 	main.supply = SupplyScreen.new(main, main.open_supply)
 	main.supply.refused.connect(func(message: String): main.log_note("[color=#e88]%s[/color]" % message))
 	main.supply.closed.connect(func(): main.focus.clear())
@@ -44,28 +49,32 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
 	main.add_child(main.log_drawer)
 	main.log_drawer.unread_changed.connect(top_bar.set_log_unread)
-	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open())
+	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
+		or main.era_sheet.is_open())
 	main.add_child(main.toasts)
 
-	game_over = GameOverOverlay.new(main, func(): restart.call(Game.engine.seed_value), func(): restart.call(-1))
-	menu = GameMenu.new(main)
+	main.modals = ModalStack.new(main)
+	game_over = GameOverOverlay.new(main.modals, func(): restart.call(Game.engine.seed_value), func(): restart.call(-1))
+	menu = GameMenu.new(main.modals)
 	menu.start_requested.connect(func(seed_value: int):
 		close_menu.call(false)
 		restart.call(seed_value))
 	menu.new_game_requested.connect(func():
 		close_menu.call(false)
 		main.show_new_game_screen())
-	menu.close_requested.connect(close_menu)
 	menu.exit_requested.connect(func(): main.quit_hook.call())
-	main.modals = ModalStack.new(main)
 	main.details = CardDetailsModal.new(main.modals)
 	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	_build_screens(main, push_new_game_screen)
+	main.era_sheet = EraSheet.new()  # last: over everything, and first to take the input (211)
+	main.add_child(main.era_sheet)
+	if Game.engine != null:
+		Game.engine.milestone.connect(main.era_sheet.note)
 
 
-## The board: the top bar, then the Realm (the row, the territory view and the action buttons).
+## The board: the top bar, then the Realm (the row, the territory view and the action buttons) beside the sidebar.
 func _build_board(main: MainScreen) -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -77,14 +86,22 @@ func _build_board(main: MainScreen) -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", Tokens.SPACE_3)
 	margin.add_child(root)
-	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.identity_modal.open(),
-		func(): main.log_drawer.toggle())
+	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.log_drawer.toggle())
 	root.add_child(top_bar)
 
-	play_area = VBoxContainer.new()  # the whole width below the top bar (115)
+	var below := HBoxContainer.new()  # the play area, then the sidebar at the right edge (202)
+	below.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	below.add_theme_constant_override("separation", Tokens.SPACE_4)
+	root.add_child(below)
+	play_area = VBoxContainer.new()  # the width left of the sidebar below the top bar (115, 202)
 	play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	root.add_child(play_area)
+	below.add_child(play_area)
+	main.sidebar = Sidebar.new(func(): main.identity_modal.open())
+	below.add_child(main.sidebar)
+	top_bar.menu_button.focus_next = top_bar.menu_button.get_path_to(main.sidebar.name_button)  # the strip, then the rail
+	main.sidebar.name_button.focus_previous = main.sidebar.name_button.get_path_to(top_bar.menu_button)
 
 	var realm_section := UIKit.section(play_area, "Realm")
 	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -98,15 +115,21 @@ func _build_board(main: MainScreen) -> void:
 	revolt = ActionButton.revolt(relief_row)
 
 
-## The hand section: its heading with the actions counter (127), and the hand's row in a sideways scroll.
+## The hand section: its "In Hand" heading (the how-to in its tooltip) with the actions count right-aligned on its line
+## (127, 204), and the hand's row in a sideways scroll.
 func _build_hand(main: MainScreen) -> void:
-	var hand_section := UIKit.section(play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
+	var hand_section := UIKit.section(play_area, "In Hand")
+	var heading := hand_section.get_child(0) as Label
+	heading.tooltip_text = "Drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards."
+	heading.mouse_filter = Control.MOUSE_FILTER_PASS  # so the tooltip shows
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var hand_heading := HBoxContainer.new()
-	hand_heading.add_theme_constant_override("separation", Tokens.SPACE_5)
-	hand_section.get_child(0).reparent(hand_heading)
+	heading.reparent(hand_heading)
 	main.actions_label = UIKit.stat(hand_heading)
+	main.actions_label.theme_type_variation = &"BarStat"
+	main.actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	main.actions_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	main.actions_label.tooltip_text = "Playing a card from your hand uses 1 action. Your government sets how many you get each turn."
+	main.actions_label.tooltip_text = "Actions left this turn"
 	hand_section.add_child(hand_heading)
 	hand_section.move_child(hand_heading, 0)
 	main.hand_scroll = ScrollContainer.new()
@@ -131,7 +154,7 @@ func _build_screens(main: MainScreen, push_new_game_screen: Callable) -> void:
 		main.nav.push(main.settings_screen.overlay, main.settings_screen.back_button, "Settings"))
 	main.start_screen.exit_requested.connect(func(): main.quit_hook.call())
 	main.nav.animated = true
-	main.new_game_screen = NewGameScreen.new(main, main.nav, main.details.open)
+	main.new_game_screen = NewGameScreen.new(main, main.nav)
 	main.new_game_screen.start_requested.connect(func(seed_value: int):
 		main.start_game(seed_value, main.new_game_screen.selected))
 	main.settings_screen = SettingsScreen.new(main, main.nav)

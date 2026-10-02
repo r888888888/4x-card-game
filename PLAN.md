@@ -68,7 +68,8 @@ res://
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
                          # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
+                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, End turn, Menu), sidebar.gd (202: the
+                         # right rail, the civilization and government),
                          # counter.gd (181: Counter, a glyph, an odometer figure, a "+N" tag and the forecast),
                          # odometer.gd (181: Odometer, a figure whose digits roll),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
@@ -77,15 +78,17 @@ res://
                          # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
                          # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
-                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154),
-                         # supply_screen.gd (Buy Cards), game_menu.gd, game_over_overlay.gd,
-                         # modal.gd (153: Modal, every modal's base: scrim, panel, close keys, click outside),
+                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
+                         # cabinet_doors.gd, 209),
+                         # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
+                         # modal.gd (153: Modal, every modal's base: scrim, close keys, click outside; 207: the drafting
+                         # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I), tech_tree_modal.gd
                          # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
-                         # new_game_screen.gd (099: civilization cards, seed, Start), settings_screen.gd (099)
+                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_screen.gd (099)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
                          # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193, 194: the guide's spacing,

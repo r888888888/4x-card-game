@@ -71,6 +71,8 @@ var _hint := ""  # the tooltip's hint after the card text, kept so a new card te
 var _motion := CardMotion.new(self)
 var _warning := false
 var _highlight := false
+var _above_vellum := false  # lifted above the targeting vellum (210)
+var _vellum_outline := false  # and ringed in FOCUS: a target
 var _dimmed := false
 var _focused := false
 var _hover := false
@@ -95,7 +97,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
-	_color = TYPE_COLORS.get(def.type, Color.GRAY)
+	_color = type_color(def.type)
 	_target_size = HAND_SIZE if in_hand else (BOARD_SIZE if kind != "" else TABLEAU_SIZE)
 	custom_minimum_size = _target_size
 
@@ -128,6 +130,11 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_set_tip("")
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 	_update_border()
+
+
+## The colour of card type's band (a type with none of its own: grey).
+static func type_color(type: String) -> Color:
+	return TYPE_COLORS.get(type, Color.GRAY)
 
 
 ## Rebuilds the face in the palette's current colours (183): setup again with the same card, then everything shown on
@@ -224,13 +231,27 @@ func set_pickable(on: bool, tooltip := "") -> void:
 func set_focused(on: bool) -> void:
 	_focused = on
 	if state == State.REST:
-		z_index = 1 if (_hover or _focused) else 0
+		z_index = rest_z()
 	queue_redraw()
 
 
 ## Tints the card red while it is held over the play area but can't be played there.
 func set_warning(on: bool) -> void:
 	_warning = on
+	_update_border()
+
+
+## The z_index the card rests at: over its neighbours while hovered or focused, over the vellum while lifted above it.
+func rest_z() -> int:
+	return (1 if (_hover or _focused) else 0) + (Vellum.LIFT_Z if _above_vellum else 0)
+
+
+## Lifts the card above the targeting vellum (210), or lets it back down; outlined: a target, ringed in FOCUS.
+func set_above_vellum(on: bool, outlined := false) -> void:
+	_above_vellum = on
+	_vellum_outline = on and outlined
+	if state == State.REST:
+		z_index = rest_z()
 	_update_border()
 
 
@@ -390,7 +411,7 @@ func _on_details_timer(click: int) -> void:
 func _set_hover(on: bool) -> void:
 	_hover = on and (in_hand or pickable) and state == State.REST
 	if state == State.REST:
-		z_index = 1 if (_hover or _focused) else 0  # draw over the neighbours while lifted
+		z_index = rest_z()  # draw over the neighbours while lifted
 	_update_border()
 
 
@@ -418,6 +439,8 @@ func _update_border() -> void:
 		_style.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
 		_style.border_color = Palette.TEXT
+	elif _vellum_outline:
+		_style.border_color = FOCUS_COLOR  # a target above the vellum (210)
 	elif _highlight:
 		_style.border_color = HIGHLIGHT_COLOR
 	else:
@@ -425,7 +448,7 @@ func _update_border() -> void:
 	var dragged := state == State.DRAGGING
 	_style.shadow_size = 1 if (_hover or dragged) else 0
 	_style.shadow_offset = Vector2(8, 8) if dragged else Vector2(4, 4)
-	_style.set_border_width_all(3 if _highlight else 2)
+	_style.set_border_width_all(3 if _highlight and not _vellum_outline else 2)
 	if board_kind == BOARD_FRONTIER:  # its border is dashed, drawn in _draw_frontier
 		_style.bg_color = Palette.FRONTIER_BG
 		_style.set_border_width_all(0)

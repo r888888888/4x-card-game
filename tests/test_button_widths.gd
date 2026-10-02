@@ -80,19 +80,23 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 	main.settings_screen.back_button.pressed.emit()
 	title.new_game_button.pressed.emit()
 	await wait_frames()
-	check_column([main.new_game_screen.start_button], "new game screen")
+	check_fits(main.new_game_screen.start_button, "new game screen's Start")  # at the detail pane's foot (212)
 	check_fits(main.new_game_screen.back_button, "new game screen's header back")  # 104: Back moved to the header
 	close_at_1080(main)
 
 
-func test_menu_and_game_over_columns_share_one_width() -> void:
+func test_the_menu_column_shares_one_width_and_footer_buttons_fit_their_text() -> void:
 	var main := open_at_1080()
 	main.start_game(1)
 	main.open_menu()
 	await wait_frames()
 	var keys: Array = [main.menu_motion_toggle(), main.menu_day_toggle(), main.menu_sound_toggle()]
 	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the rows aren't
-	column.assign(main.menu_buttons().filter(func(b): return not keys.has(b)))
+	var footer: Array = main.menu_buttons().filter(func(b): return b.text in ["Close (Esc)", "Exit"])  # in the sheet's footer (207)
+	eq(footer.size(), 2, "Close and Exit in the menu's footer")
+	for b in footer:
+		check_fits(b, "menu footer %s" % b.text)
+	column.assign(main.menu_buttons().filter(func(b): return not keys.has(b) and not footer.has(b)))
 	column.insert(2, keys[0].get_parent())  # 182: the Reduce motion row stands where the toggle button was
 	column.insert(3, keys[1].get_parent())  # 183: the Day mode row under it
 	column.insert(4, keys[2].get_parent())  # 185: the Interface sounds row under that
@@ -101,7 +105,8 @@ func test_menu_and_game_over_columns_share_one_width() -> void:
 	play_seed_1(main, func(_m): pass)
 	await wait_frames()
 	check(Game.engine.is_over, "game over")
-	check_column(main.game_over_buttons(), "game over")
+	for b in main.game_over_buttons():  # in the sheet's footer since 207
+		check_fits(b, "game over %s" % b.text)
 	close_at_1080(main)
 
 
@@ -165,7 +170,7 @@ func test_tech_tiles_fill_their_era_column() -> void:
 	await wait_frames()
 	# Each tech is a row in its era column: the tile, then (140) a Learn button while it can be learned.
 	var tiles := UIKit.buttons_in(main.tech_tree).filter(func(b): return b.is_visible_in_tree() \
-		and b.get_parent() is HBoxContainer and b.get_index() == 0)
+		and b.get_parent() is HBoxContainer and b.get_index() == 0 and b.get_parent() != main.tech_tree.footer)  # 207: not the sheet's footer
 	check(not tiles.is_empty(), "tech tiles shown")
 	for b in tiles:
 		var row: HBoxContainer = b.get_parent()

@@ -43,8 +43,8 @@ func test_the_tableau_section_is_headed_realm_and_the_hand_hint_says_realm() -> 
 	main.start_game(1)
 	var texts := heading_texts(main)
 	check(texts.has("Realm"), "a Realm heading in %s" % [texts])
-	var hand := texts.filter(func(t): return t.begins_with("Hand"))
-	check(not hand.is_empty() and hand[0].contains("drag a card into the realm"), "hand hint says realm: %s" % [hand])
+	var hand: Array = main.section_headings().filter(func(h): return h.text == "In Hand")  # the hint is its tooltip (204)
+	check(not hand.is_empty() and hand[0].tooltip.contains("Drag a card into the realm"), "hand hint says realm: %s" % [hand])
 	close_main(main)
 
 
