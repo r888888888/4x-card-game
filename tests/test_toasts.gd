@@ -6,9 +6,9 @@ extends "res://tests/lib/test_case.gd"
 const TARGET_HINT := "Esc cancels."
 
 
-## Emits the engine's noticed signal, as the engine does for a notable log line.
+## Emits the engine's noticed signal, as the engine does for a notable log line (an information notice, 190).
 func notice(message: String) -> void:
-	Game.engine.emit_signal("noticed", message)
+	Game.engine.emit_signal("noticed", message, GameEngine.NOTICE_INFO)
 
 
 ## Anim.TOAST_TIME, read by name so this file parses before it exists (red phase).

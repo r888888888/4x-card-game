@@ -184,7 +184,7 @@ static func revolt(e: GameEngine) -> bool:
 	if revolt_error(e) != "":
 		return false
 	e.state.revolt_pending = true
-	e._notice("Revolution! Anarchy begins next turn.")
+	e._notice("Revolution! Anarchy begins next turn.", GameEngine.NOTICE_URGENT)
 	e.revolted.emit()
 	e.changed.emit()
 	return true
@@ -233,7 +233,7 @@ static func stir(e: GameEngine) -> void:
 	if n == 0:
 		return
 	var added := e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + n)
-	e._notice("  A new era stirs the people: +%d unrest." % added)
+	e._notice("  A new era stirs the people: +%d unrest." % added, GameEngine.NOTICE_CAUTION)
 
 
 ## The government falls into the government deck (154), to be chosen again, and the Anarchy card rules with its
@@ -251,7 +251,7 @@ static func _fall(e: GameEngine) -> void:
 	anarchy.counters = counters_for(e, e.state.anarchy_limit)
 	e.state.anarchy_turn = 1
 	e._notice("Anarchy!%s It lasts up to %d turn%s." % [" %s falls into your government deck." % fallen if fallen != ""
-		else "", anarchy.counters, "" if anarchy.counters == 1 else "s"])
+		else "", anarchy.counters, "" if anarchy.counters == 1 else "s"], GameEngine.NOTICE_URGENT)
 
 
 ## The Anarchy card leaves the game and no government rules until one is chosen from the government deck (154).

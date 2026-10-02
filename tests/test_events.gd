@@ -277,7 +277,7 @@ func test_an_event_ending_is_a_notice_and_drawing_one_is_not() -> void:
 	var e := event_engine(["windfall", "trade_winds", "omen"])
 	var recorded := record_messages(e)
 	e.end_turn()
-	check_noticed(recorded, "Windfall ends.")
+	check_noticed(recorded, "Windfall ends.", GameEngine.NOTICE_INFO)
 	check(recorded.has("log: Event: Windfall."), "Windfall drawn: %s" % [recorded])
 	check(not notices_in(recorded).has("Event: Windfall."), "drawing isn't a notice")
 

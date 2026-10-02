@@ -98,6 +98,7 @@ const TEST_GOVS := [
 var test_name := ""  # "file::method", set by the runner
 var failures: Array[String] = []  # shared with the runner
 var assertions := 0
+var noticed_priorities := {}  # record_messages: each notice's message -> its priority (190)
 var expected_errors: Array[String] = []  # expect_error's fragments; the runner checks them against the logged errors
 
 
@@ -678,11 +679,14 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 	e.changed.disconnect(on_changed)
 
 
-## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116).
+## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116), and each notice's
+## priority in noticed_priorities (190).
 func record_messages(e: GameEngine) -> Array[String]:
 	var out: Array[String] = []
 	e.connect("logged", func(m: String): out.append("log: " + m))
-	e.connect("noticed", func(m: String): out.append("notice: " + m))
+	e.connect("noticed", func(m: String, priority := &""):
+		out.append("notice: " + m)
+		noticed_priorities[m] = priority)
 	return out
 
 
@@ -695,12 +699,15 @@ func notices_in(recorded: Array[String]) -> Array[String]:
 	return out
 
 
-## Asserts recorded has a notice containing fragment, right after the log line with the same text (116).
-func check_noticed(recorded: Array[String], fragment: String) -> void:
+## Asserts recorded has a notice containing fragment, right after the log line with the same text (116), and, given a
+## priority, that it was noticed with it (190).
+func check_noticed(recorded: Array[String], fragment: String, priority := &"") -> void:
 	for i in recorded.size():
 		if recorded[i].begins_with("notice: ") and recorded[i].contains(fragment):
 			var text := recorded[i].trim_prefix("notice: ")
 			check(i > 0 and recorded[i - 1] == "log: " + text, "the notice '%s' follows its log line: %s" % [text, recorded])
+			if priority != &"":
+				eq(noticed_priorities.get(text), priority, "the priority of '%s'" % text)
 			return
 	check(false, "a notice containing '%s': %s" % [fragment, recorded])
 

@@ -63,7 +63,7 @@ func test_restore_order_pays_and_the_government_choice_is_owed_at_once() -> void
 	eq(e.resources.get("wealth"), 0, "12 − 12")
 	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")
 	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the government choice is owed (154)")
-	check_noticed(recorded, "Order restored")
+	check_noticed(recorded, "Order restored", GameEngine.NOTICE_INFO)
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
 	eq([e.turn, ruling(e)], [3, "chiefs"], "Chiefs rules and the turn goes on")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")

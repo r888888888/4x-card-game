@@ -44,10 +44,10 @@ func test_a_famine_arriving_and_ending_are_notices() -> void:
 	var e := famine_engine(4)
 	var recorded := record_messages(e)
 	e.end_turn()  # +2, 4 pop eat 2: short
-	check_noticed(recorded, "Famine!")
+	check_noticed(recorded, "Famine! Pop went hungry.", GameEngine.NOTICE_URGENT)
 	e.resources.food = 10
 	e.end_turn()  # fed
-	check_noticed(recorded, "Famine ends.")
+	check_noticed(recorded, "Famine ends.", GameEngine.NOTICE_INFO)
 
 
 ## Backlog 116: pop eating and fed upkeeps are not notices.
@@ -185,7 +185,7 @@ func test_a_guard_saving_pop_is_a_notice() -> void:
 	e.resources.food = 0
 	var recorded := record_messages(e)
 	e.end_turn()  # famine 2: first death saved
-	check_noticed(recorded, "1 pop saved from famine")
+	check_noticed(recorded, "1 pop saved from famine", GameEngine.NOTICE_CAUTION)
 
 
 # --- AC7: forecast ---

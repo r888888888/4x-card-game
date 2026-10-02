@@ -74,14 +74,14 @@ static func after_feeding(e: GameEngine, fed: bool) -> void:
 	if famine == null:
 		famine = e._make_card(e.config.famine.card)
 		e.zone("active_events").add(famine)
-		e._notice("Famine! Pop went hungry.")
+		e._notice("Famine! Pop went hungry.", GameEngine.NOTICE_URGENT)
 	famine.counters = mini(famine.counters + 1, e.config.famine.max_counters)
 	var guards := guards_by_territory(e)
 	for i in famine.counters:
 		var hit := Population.most_pop(e)
 		if hit != null and guards.get(hit.uid, 0) > 0:
 			guards[hit.uid] -= 1
-			e._notice("%s: 1 pop saved from famine." % hit.def.name)
+			e._notice("%s: 1 pop saved from famine." % hit.def.name, GameEngine.NOTICE_CAUTION)
 			continue
 		e._resolve(famine, "upkeep")
 

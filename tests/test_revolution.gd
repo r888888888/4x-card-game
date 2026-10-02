@@ -25,7 +25,7 @@ func test_revolting_needs_no_event_and_changes_nothing_this_turn() -> void:
 	eq([ruling(e), e.anarchy(), e.pending(), e.actions_left()], ["chiefs", -1, {}, actions],
 		"Chiefs still rules, nothing owed, no action used")
 	eq(card_ids(e.zone("governments")), [] as Array[String], "Chiefs hasn't fallen yet")
-	check_noticed(recorded, "Anarchy")
+	check_noticed(recorded, "Revolution! Anarchy begins next turn.", GameEngine.NOTICE_URGENT)
 
 
 func test_anarchy_falls_at_the_next_turns_start_before_upkeep() -> void:

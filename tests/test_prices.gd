@@ -77,7 +77,7 @@ func test_a_new_era_at_unrest_4_of_5_adds_1() -> void:
 	var dawn := put_in_hand(e, "dawn")
 	check(e.play_card(dawn), "Dawn: %s" % e.play_error(dawn))
 	eq(e.resources.get("unrest"), 5, "4 + 3, capped at 5")
-	check_noticed(recorded, "+1 unrest")
+	check_noticed(recorded, "+1 unrest", GameEngine.NOTICE_CAUTION)
 
 
 func test_only_engine_core_writes_unrest() -> void:

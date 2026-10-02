@@ -2,12 +2,21 @@ class_name Toasts
 extends Control
 ## Short messages centred under the top bar (backlog 116): the engine's notices, each for Anim.TOAST_TIME, and the
 ## targeting hint, until targeting ends. At most MAX show, newest on top. They never take the mouse or the focus, and
-## hide while covered (a modal, the menu or a start screen is open); they keep ageing meanwhile.
+## hide while covered (a modal, the menu or a start screen is open); they keep ageing meanwhile. A notice shows and
+## rings its priority (190): a bar on its left edge in its hue and the bell's pattern for it; an urgent one stays
+## twice as long.
 
 const MAX := 3
 const FADE_IN := 0.15
 const FADE_OUT := 0.3
 const DROP_PX := 12.0  # a new toast drops this far into place (not with Reduce motion)
+const BAR_WIDTH := Tokens.SPACE_1  # the priority's hue bar on a notice's left edge
+## Each priority's bell and its bar's Palette role.
+const PRIORITY_LOOKS := {
+	GameEngine.NOTICE_INFO: [Sfx.NOTIFICATION_INFO, &"INSIGHT"],
+	GameEngine.NOTICE_CAUTION: [Sfx.NOTIFICATION_CAUTION, &"WEALTH"],
+	GameEngine.NOTICE_URGENT: [Sfx.NOTIFICATION_URGENT, &"WARN"],
+}
 
 var _top_bar: Control
 var _covered: Callable  # -> bool: whether something covers the board
@@ -35,14 +44,19 @@ func _process(_delta: float) -> void:
 	_column.position = Vector2((size.x - _column.size.x) / 2, _top_bar.get_global_rect().end.y - global_position.y + 8)
 
 
-## Shows message for Anim.TOAST_TIME, then fades it out, ringing the notice's bell (189).
-func notice(message: String) -> void:
+## Shows message for Anim.TOAST_TIME (twice that when urgent), then fades it out, ringing the bell for its priority
+## (189, 190) and marking its edge with the priority's hue.
+func notice(message: String, priority := GameEngine.NOTICE_INFO) -> void:
+	var look: Array = PRIORITY_LOOKS.get(priority, PRIORITY_LOOKS[GameEngine.NOTICE_INFO])
 	var sfx := Sfx.find(self)
 	if sfx != null:
-		sfx.play(Sfx.NOTIFICATION_INFO)
+		sfx.play(look[0])
 	var toast := _add(message)
+	toast.set_meta("priority", priority)
+	toast.set_meta("bar_role", look[1])
+	toast.draw.connect(func(): toast.draw_rect(Rect2(0, 0, BAR_WIDTH, toast.size.y), Palette.color(look[1])))
 	var t := toast.create_tween()
-	t.tween_interval(Anim.TOAST_TIME)
+	t.tween_interval(Anim.TOAST_TIME * (2 if priority == GameEngine.NOTICE_URGENT else 1))
 	t.tween_callback(_leave.bind(toast))
 
 
@@ -65,6 +79,20 @@ func shown() -> Array[Control]:
 		if not slot.is_queued_for_deletion() and not slot.has_meta("leaving"):
 			out.append(slot.get_child(0))
 	return out
+
+
+## The priority of each notice showing, top to bottom (the hint has none).
+func priorities() -> Array[StringName]:
+	var out: Array[StringName] = []
+	for panel in shown():
+		if panel.has_meta("priority"):
+			out.append(panel.get_meta("priority"))
+	return out
+
+
+## The Palette role of toast's priority bar (&"" for the hint, which has none).
+func bar_role(toast: Control) -> StringName:
+	return toast.get_meta("bar_role", &"")
 
 
 ## The text of each toast showing, top to bottom.
