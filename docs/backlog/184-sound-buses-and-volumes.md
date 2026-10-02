@@ -2,7 +2,7 @@
 id: 184
 title: Sound buses and volume settings
 type: feature
-status: ready
+status: in-progress
 branch: feat/184-sound-buses-and-volumes
 ---
 
@@ -49,6 +49,12 @@ turn it down or off.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_sound_settings`: `test_missing_file_means_the_sound_defaults`, `test_a_file_without_a_sound_section_means_the_defaults`, `test_sound_settings_survive_save_and_load` |
+| AC2 | `test_an_out_of_range_volume_falls_back_with_a_warning`, `test_a_volume_that_isnt_a_whole_number_falls_back_with_a_warning`, `test_a_non_bool_interface_sounds_falls_back_with_a_warning` |
+| AC3 | `test_set_volume_clamps_saves_and_says_so`, `test_set_volume_on_an_unknown_bus_changes_nothing`, `test_set_interface_sounds_saves_and_says_so` |
+| AC4 | `test_game_and_interface_buses_send_to_master`, `test_each_bus_ends_in_a_hard_limiter`, `test_the_interface_bus_filters_before_its_limiter` |
+| AC5 | `test_bus_volumes_follow_the_settings`, `test_a_changed_store_is_applied_to_the_buses`, `test_a_bus_at_zero_is_muted`, `test_interface_sounds_off_mutes_only_the_interface_bus` |
+| AC6 | `test_in_the_background_game_and_interface_are_muted`, `test_back_in_the_foreground_interface_stays_off_when_its_sounds_are_off`, `test_losing_and_regaining_focus_goes_to_and_from_the_background` |
 
 ## Manual check
 - [ ] Delete `user://settings.cfg`, launch: the file written on the first change has the `[sound]` defaults.
