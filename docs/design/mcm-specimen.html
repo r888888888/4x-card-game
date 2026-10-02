@@ -111,7 +111,7 @@ section { margin-bottom: var(--space-7); }
 .btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
 .btn.primary:hover { background: var(--signal-hover); }
 .btn.primary:active { background: var(--signal-press); }
-.btn:disabled { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
+.btn:disabled, .btn[aria-disabled="true"] { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
 .link { background: none; border: 0; padding: 2px 0; cursor: pointer; font: 500 17px/20px var(--f-cond); color: var(--ink-2); position: relative; }
 .link::after { content: ""; position: absolute; left: 0; bottom: -2px; height: 2px; width: 0; background: var(--ink); transition: width var(--d-hover) var(--ease-machined); }
 .link:hover { color: var(--ink); }
@@ -289,9 +289,9 @@ section { margin-bottom: var(--space-7); }
 .end-turn .label { flex: 1; text-align: left; }
 .end-turn .plate { background: var(--well); color: var(--ink); padding: 4px 8px; font: 500 20px/1 var(--f-mono); letter-spacing: 0; display: inline-flex; }
 .end-turn.busy { background: var(--steel); color: var(--ink); cursor: progress; }
-.end-turn:disabled { background: var(--steel); color: var(--ink-2); box-shadow: none; cursor: not-allowed; }
+.end-turn[aria-disabled="true"] { background: var(--steel); color: var(--ink-2); box-shadow: none; cursor: not-allowed; transform: none; }
 .end-turn .lamp { --lamp: var(--p-sage); --lamp-line: var(--on-signal); }
-.end-turn.busy .lamp, .end-turn:disabled .lamp { --lamp-line: var(--rule); }
+.end-turn.busy .lamp, .end-turn[aria-disabled="true"] .lamp { --lamp-line: var(--rule); }
 .caption { font: 400 14px/18px var(--f-ui); color: var(--ink-2); margin-top: var(--space-2); min-height: 18px; }
 
 /* split-flap: each character flips through intermediate glyphs */
@@ -320,6 +320,19 @@ section { margin-bottom: var(--space-7); }
 	100% { opacity: 0; transform: rotate(var(--a)) translateY(9px) scaleY(1); }
 }
 
+/* ---- Sound board (§14.1, §16) ---- */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-5); }
+.board h3 { margin: 0 0 var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--ink); font: 600 15px/20px var(--f-cond); letter-spacing: 0.10em; text-transform: uppercase; }
+.board .tokens { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.btn.token { min-height: 32px; padding: 4px 10px; font: 500 13px/16px var(--f-mono); letter-spacing: 0; }
+.btn.token[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 -3px 0 var(--signal), 2px 2px 0 var(--shadow); }
+.mixer { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; margin-bottom: var(--space-5); }
+.fader { display: grid; grid-template-columns: auto 160px 3.5ch; gap: var(--space-3); align-items: center; }
+.fader input { width: 160px; accent-color: var(--ink); }
+.fader output { font: 600 15px/1 var(--f-cond); font-variant-numeric: tabular-nums; text-align: right; }
+.spec { font: 400 14px/18px var(--f-ui); color: var(--ink-2); min-height: 36px; margin-top: var(--space-3); max-width: 80ch; }
+.spec b { color: var(--ink); font: 500 14px/18px var(--f-mono); }
+
 @media (max-width: 640px) {
 	main { padding: var(--space-5) 16px 64px; }
 	.type-row { grid-template-columns: 1fr; gap: 0; }
@@ -339,6 +352,9 @@ section { margin-bottom: var(--space-7); }
 	</button>
 	<button class="toggle" id="calm-toggle" role="switch" aria-checked="false">
 		<span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span>
+	</button>
+	<button class="toggle lit" id="sound-toggle" role="switch" aria-checked="true">
+		<span>Interface sounds</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span>
 	</button>
 </header>
 
@@ -368,10 +384,10 @@ section { margin-bottom: var(--space-7); }
 			<button class="btn primary">Confirm</button>
 			<button class="btn">Buy cards</button>
 			<button class="btn">Knowledge</button>
-			<button class="btn" disabled title="Not enough wealth">Learn</button>
+			<button class="btn" aria-disabled="true" title="Not enough wealth">Learn</button>
 			<button class="link">View the log</button>
 		</div>
-		<p class="note">Press moves the face 2 px into its shadow in 70 ms and comes back in 120 ms. No scale, no ripple.</p>
+		<p class="note">Press moves the face 2 px into its shadow in 70 ms and comes back in 120 ms. No scale, no ripple. Every key sits on a clicky key switch: its snap at actuation, then the bottom-out as the face meets the desk (≈ 38 ms); a quieter snap and top-out on the way back. Hover is silent. The disabled key doesn't move and gives one dead tap; the link is printed, so it makes no sound.</p>
 
 		<div style="margin-top:var(--space-6); max-width:560px">
 			<div class="tabs" role="tablist" id="tabs">
@@ -399,13 +415,13 @@ section { margin-bottom: var(--space-7); }
 			<button class="btn" data-change="insight:12">Library +12 insight</button>
 			<button class="btn" data-change="unrest:1">Unrest +1</button>
 		</div>
-		<p class="note">Each changed digit column rolls in 60 ms steps (up for gain, down for loss, at most 8 steps). The tag snaps in, holds 600 ms and wipes out. The lamp pulses once; at a limit it stays lit and the caption says so.</p>
+		<p class="note">Each changed digit column rolls in 60 ms steps (up for gain, down for loss, at most 8 steps), ticking as each digit lands; the last step registers instead, with the lamp. The tag snaps in, holds 600 ms and wipes out, silently. The lamp pulses once; at a limit it stays lit and the caption says so.</p>
 	</section>
 
 	<section>
 		<div class="titleblock"><h2>Cards</h2><span class="caps">§15.6 · index cards, slide out of the row</span></div>
 		<div class="hand" id="hand"></div>
-		<p class="note">Hover slides a card 4 px up with a plinth shadow; selecting pulls it 12 px out of the row with the orange index tab. The dimmed card snaps sideways (±4 px) when you try to play it.</p>
+		<p class="note">Hover slides a card 4 px up with a plinth shadow, silently; selecting pulls it 12 px out of the row with the orange index tab, which clips on with a barely-there tick. The dimmed card snaps sideways (±4 px) when you try to play it, one low tap per stop.</p>
 	</section>
 
 	<section>
@@ -441,6 +457,24 @@ section { margin-bottom: var(--space-7); }
 			</div>
 		</div>
 	</section>
+
+	<section>
+		<div class="titleblock"><h2>Sound</h2><span class="caps">§14.1, §16 · tokens, levels, repetition</span></div>
+		<div class="mixer">
+			<label class="fader"><span class="caps">Interface</span><input type="range" id="vol-interface" min="0" max="100" value="70"><output id="vol-interface-out">70</output></label>
+			<label class="fader"><span class="caps">Game</span><input type="range" id="vol-game" min="0" max="100" value="80"><output id="vol-game-out">80</output></label>
+		</div>
+		<div class="board" id="board"></div>
+		<p class="spec" id="token-spec" aria-live="polite">Press a token to hear it alone. Every sound above is one of these, synthesized here as a placeholder and normalized to its level (0 dB = −26 dBFS peak).</p>
+		<div class="row" style="margin-top:var(--space-5); align-items:center">
+			<span class="caps">Repetition test (§16.8)</span>
+			<button class="btn" id="rep-token">Repeat the token at its rate</button>
+			<button class="btn" id="rep-upkeep">20 upkeeps</button>
+			<button class="btn" id="rep-select">40 selections</button>
+			<button class="btn" id="rep-stop">Stop</button>
+		</div>
+		<p class="note">Very-high-frequency tokens repeat 6 times a second for 4 s, high 2 a second, occasional once a second. A sound passes if you stop noticing it after a minute and it never grates; if it fails, shorten it, lower it, simplify it, or make it silent.</p>
+	</section>
 </main>
 
 <div class="scrim" id="scrim" hidden>
@@ -455,6 +489,274 @@ section { margin-bottom: var(--space-7); }
 const root = document.documentElement;
 const calm = () => root.dataset.calm === "true" || (root.dataset.calm !== "false" && matchMedia("(prefers-reduced-motion: reduce)").matches);
 const wait = (ms) => new Promise((r) => setTimeout(r, calm() ? 0 : ms));
+
+// ---- Sound (§16; tokens §14.1) ----
+// Placeholder synthesis: every token is built from a few mechanisms (a filtered noise click, a damped body, a run, a
+// paper whisper, a lamp tone, a bell, bars) and normalized offline to its level, so the levels are the spec's, not
+// the synth's. A sound is scheduled at its motion's contact point (90% of travel, §16.5), never at pointer-down.
+const bezier = (x1, y1, x2, y2) => (u) => {
+	const x = (t) => 3 * (1 - t) ** 2 * t * x1 + 3 * (1 - t) * t * t * x2 + t ** 3;
+	const y = (t) => 3 * (1 - t) ** 2 * t * y1 + 3 * (1 - t) * t * t * y2 + t ** 3;
+	let lo = 0, hi = 1;
+	for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (x(m) < u) lo = m; else hi = m; }
+	return y(lo);
+};
+const CURVES = { snap: bezier(0.3, 0, 0, 1), machined: bezier(0.2, 0, 0, 1), latch: bezier(0.5, -0.2, 0.1, 1), release: bezier(0.4, 0, 1, 1) };
+// The ms at which a motion of this duration and curve reaches 90% of its travel: its contact point.
+function contactMs(ms, curve) {
+	const f = CURVES[curve];
+	for (let i = 0; i <= 200; i++) if (f(i / 200) >= 0.9) return Math.round(ms * i / 200);
+	return ms;
+}
+
+const Sound = (() => {
+	const REF_DB = -26;  // ui.button.press peak at full volume; levels are dB from it
+	const db = (d) => 10 ** (d / 20);
+	const st = (n) => 2 ** (n / 12);
+	const NOTE = { A3: 220, B3: 247, Cs4: 277, D4: 294, E4: 330, Fs4: 370, A4: 440, B4: 494, D5: 587, E5: 659, Fs5: 740, A5: 880, B5: 988, D6: 1175, E6: 1319 };
+	const SR = 48000;
+	const noiseBuf = new AudioBuffer({ length: SR, sampleRate: SR });
+	{ const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+
+	// -- mechanisms: each writes into `out` starting at time t --
+	function env(c, t, peak, attack, dur) {
+		const g = c.createGain();
+		g.gain.setValueAtTime(0, t);
+		g.gain.linearRampToValueAtTime(peak, t + attack);
+		g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, attack + 0.005));
+		return g;
+	}
+	function noise(c, t, dur) { const n = c.createBufferSource(); n.buffer = noiseBuf; n.loop = true; n.start(t, Math.random() * 0.9); n.stop(t + dur + 0.03); return n; }
+	function filter(c, type, f, q = 0.7) { const b = c.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
+	// A click: a noise burst through a band-pass (the switch's contact), attack 1 ms.
+	function click(c, out, t, { f = 2000, q = 3, dur = 0.04, g = 1 } = {}) {
+		noise(c, t, dur).connect(filter(c, "bandpass", f, q)).connect(env(c, t, g, 0.001, dur)).connect(out);
+	}
+	// A body: the damped thump of the part that was struck.
+	function body(c, out, t, { f = 300, dur = 0.05, g = 1, to = 1 } = {}) {
+		const o = c.createOscillator();
+		o.frequency.setValueAtTime(f, t);
+		if (to !== 1) o.frequency.exponentialRampToValueAtTime(f * to, t + dur);
+		o.connect(env(c, t, g, 0.002, dur)).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	// A lamp's tone generator: sine or soft square, top rolled off, soft attack (§16.6).
+	function tone(c, out, t, { f = 880, dur = 0.2, g = 1, type = "sine", lp = 2500, attack = 0.006 } = {}) {
+		const o = c.createOscillator(); o.type = type; o.frequency.value = f;
+		o.connect(filter(c, "lowpass", lp, 0.5)).connect(env(c, t, g, attack, dur)).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	function partials(c, out, t, { f, dur, g = 1, ratios, amps, decays, attack = 0.005, lp = 8000 }) {
+		ratios.forEach((r, i) => tone(c, out, t, { f: f * r, dur: dur * decays[i], g: g * amps[i], lp, attack }));
+	}
+	const bell = (c, out, t, o) => partials(c, out, t, { ratios: [1, 2.76, 5.4], amps: [1, 0.2, 0.05], decays: [1, 0.45, 0.2], attack: 0.005, lp: 5000, ...o });
+	const vib = (c, out, t, o) => partials(c, out, t, { ratios: [1, 4, 10], amps: [1, 0.22, 0.04], decays: [1, 0.3, 0.1], attack: 0.005, lp: 6000, ...o });
+	const marimba = (c, out, t, o) => { partials(c, out, t, { ratios: [1, 3.9, 9.2], amps: [1, 0.16, 0.03], decays: [1, 0.25, 0.08], attack: 0.005, lp: 4000, ...o }); click(c, out, t, { f: 500, q: 1, dur: 0.02, g: 0.25 * (o.g || 1) }); };
+	const piano = (c, out, t, o) => partials(c, out, t, { ratios: [1, 2, 3, 4], amps: [1, 0.3, 0.12, 0.04], decays: [1, 0.6, 0.4, 0.25], attack: 0.005, lp: 1600, ...o });
+	const chord = (fn, c, out, t, notes, o) => notes.forEach((n) => fn(c, out, t, { ...o, f: NOTE[n], g: (o.g || 1) / notes.length ** 0.5 }));
+	// A run: a drawer or partition on its rail. "decel" fades as the motion slows; "accel" grows to a shut.
+	function run(c, out, t, { dur = 0.2, g = 1, lp = 1800, shape = "decel" } = {}) {
+		const e = c.createGain();
+		if (shape === "decel") { e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + 0.015); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+		else { e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + dur * 0.92); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+		noise(c, t, dur).connect(filter(c, "lowpass", lp)).connect(filter(c, "highpass", 250)).connect(e).connect(out);
+	}
+	// Paper: a sheet laid, lifted or run along a rule. Peaks at `peak` (a fraction of dur), with a slight flutter.
+	function paper(c, out, t, { dur = 0.15, g = 1, peak = 0.5, f = 2200 } = {}) {
+		const e = c.createGain(), flutter = c.createGain();
+		e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + Math.max(0.004, dur * peak)); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		for (let k = 0; k < dur / 0.012; k++) flutter.gain.setValueAtTime(0.65 + Math.random() * 0.35, t + k * 0.012);
+		noise(c, t, dur).connect(filter(c, "bandpass", f, 0.7)).connect(filter(c, "highpass", 500)).connect(flutter).connect(e).connect(out);
+	}
+	// A flutter: a split-flap word or a riffle of cards; one sound for the whole word.
+	function flutter(c, out, t, { n = 9, span = 0.17, g = 1, f = 3400 } = {}) {
+		for (let i = 0; i < n; i++) click(c, out, t + span * (i / n) ** 0.85 + Math.random() * 0.004, { f: f * (0.9 + Math.random() * 0.2), q: 3, dur: 0.008, g: g * (0.55 + Math.random() * 0.45) });
+	}
+	function motor(c, out, t, { dur = 0.3, g = 1 } = {}) {
+		const o = c.createOscillator(); o.type = "sawtooth";
+		o.frequency.setValueAtTime(70, t); o.frequency.linearRampToValueAtTime(95, t + dur);
+		const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + 0.04); e.gain.setValueAtTime(g, t + dur - 0.07); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		o.connect(filter(c, "lowpass", 450)).connect(e).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	// A relay: armature and contacts, two stages 12 ms apart.
+	function relay(c, out, t, { g = 1 } = {}) {
+		click(c, out, t, { f: 1200, q: 6, dur: 0.035, g }); body(c, out, t, { f: 300, dur: 0.1, g: 0.6 * g, to: 0.85 });
+		click(c, out, t + 0.012, { f: 3200, q: 8, dur: 0.02, g: 0.7 * g }); body(c, out, t + 0.012, { f: 260, dur: 0.09, g: 0.4 * g });
+	}
+	function brush(c, out, t, { dur = 0.45, g = 1 } = {}) {
+		const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + dur * 0.45); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		noise(c, t, dur).connect(filter(c, "bandpass", 4500, 0.5)).connect(e).connect(out);
+	}
+	// The key switch (chosen in click-options.html, option G): a clicky switch under ABS keycaps. Its click jacket
+	// snaps at actuation, then the stem bottoms out on the housing; on the way up it snaps again and tops out.
+	function jacket(c, out, t, v, g = 1) {
+		click(c, out, t, { f: 4500 * v, q: 1.5, dur: 0.012, g: 1.8 * g });  // as loud as the bottom-out
+		body(c, out, t, { f: 3300 * v, dur: 0.01, g: 0.5 * g });
+	}
+	function clack(c, out, t, v, { f, body: b, kase, g = 1, dur = 0.03 }) {  // the plastic clack, the cap's tone, the case
+		click(c, out, t, { f: f * v, q: 1.2, dur, g: 0.8 * g });
+		body(c, out, t, { f: b * v, dur: 0.02, g: 0.3 * g });
+		body(c, out, t, { f: kase * v, dur: 0.05, g: 0.35 * g, to: 0.95 });
+	}
+	const stop = (c, out, t, f = 240, g = 1) => { body(c, out, t, { f, dur: 0.09, g, to: 0.8 }); click(c, out, t, { f: 900, q: 1, dur: 0.035, g: 0.45 * g }); };
+	const tap = (c, out, t, g = 1) => { body(c, out, t, { f: 230, dur: 0.07, g, to: 0.9 }); click(c, out, t, { f: 700, q: 1.2, dur: 0.03, g: 0.45 * g }); };
+
+	// -- the tokens (§14.1): level in dB from REF, the level of the hierarchy, a family, a duration in s --
+	// p.v is the variant's pitch factor (L1 only), p.calm collapses travel into the stop (§9.5).
+	const T = {
+		// `lead` (ms): a two-stage sound starts this much early, so its last part (bottom-out, top-out) lands on contact.
+		"ui.button.press": { l: 1, level: 0, lead: 14, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { jacket(c, o, t, p.v); clack(c, o, t + 0.014, p.v, { f: 1800, body: 1100, kase: 380 }); } },
+		"ui.button.release": { l: 1, level: -4, lead: 18, freq: "very high", dur: 0.07, fn: (c, o, t, p) => { jacket(c, o, t, p.v * 1.06, 0.55); clack(c, o, t + 0.018, p.v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); } },
+		// The legend key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
+		// spring back with its upstroke snap and top-out, lower and muted.
+		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { clack(c, o, t, p.v, { f: 2400, body: 1500, kase: 420, g: 0.8 }); click(c, o, t + 0.008, { f: 3300 * p.v, q: 5, dur: 0.012, g: 0.5 }); } },
+		"ui.toggle.off": { l: 1, level: -2, lead: 18, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { const v = p.v * st(-3); jacket(c, o, t, v * 0.75, 0.4); clack(c, o, t + 0.018, v, { f: 1500, body: 1000, kase: 330, g: 0.7 }); } },
+		"ui.selection": { l: 1, level: -8, freq: "very high", dur: 0.04, fn: (c, o, t, p) => click(c, o, t, { f: 3000 * p.v, q: 5, dur: 0.04 }) },
+		"ui.card.lift": { l: 1, level: -6, freq: "high", dur: 0.06, fn: (c, o, t, p) => paper(c, o, t, { dur: 0.05, peak: 0.2, f: 2800 * p.v }) },
+		"ui.card.place": { l: 1, level: -3, freq: "high", dur: 0.09, fn: (c, o, t, p) => { paper(c, o, t, { dur: 0.07, peak: 0.12, f: 1800 * p.v }); body(c, o, t, { f: 300 * p.v, dur: 0.08, g: 0.5, to: 0.8 }); } },
+		"ui.counter.tick": { l: 1, level: -6, freq: "very high", dur: 0.03, fn: (c, o, t, p) => { click(c, o, t, { f: 3000 * p.v, q: 6, dur: 0.03 }); body(c, o, t, { f: 1000 * p.v, dur: 0.04, g: 0.2 }); } },
+		"ui.flap": { l: 1, level: -8, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => flutter(c, o, t, { f: 3400 * p.v }) },
+		"ui.resource.gain": { l: 1, level: -3, freq: "high", dur: 0.14, fn: (c, o, t, p) => { click(c, o, t, { f: 2600 * p.v, q: 4, dur: 0.02, g: 0.7 }); click(c, o, t + 0.018, { f: 1500 * p.v, q: 3, dur: 0.045 }); body(c, o, t + 0.018, { f: 380 * p.v, dur: 0.04, g: 0.4 }); tone(c, o, t + 0.018, { f: NOTE.A5, dur: 0.14, g: db(-12) }); } },
+		"ui.resource.loss": { l: 1, level: -3, freq: "high", dur: 0.12, fn: (c, o, t, p) => { const v = p.v * st(-3); click(c, o, t, { f: 2000 * v, q: 4, dur: 0.02, g: 0.6 }); click(c, o, t + 0.018, { f: 1200 * v, q: 2.5, dur: 0.05 }); body(c, o, t + 0.018, { f: 330 * v, dur: 0.1, g: 0.45, to: 0.85 }); } },
+		"ui.reject.locked": { l: 1, level: -4, freq: "occasional", dur: 0.05, fn: (c, o, t) => tap(c, o, t) },
+		"ui.panel.open": { l: 2, level: 3, freq: "occasional", dur: 0.26, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t); click(c, o, t, { f: 2200, q: 5, dur: 0.02, g: 0.35 }); run(c, o, t + 0.005, { dur: 0.15, g: 0.32 }); stop(c, o, t + 0.164); } },
+		"ui.panel.close": { l: 2, level: 3, freq: "occasional", dur: 0.22, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.187; if (!p.calm) run(c, o, t, { dur: 0.18, g: 0.32, shape: "accel" }); click(c, o, t + at, { f: 1700, q: 4, dur: 0.03, g: 0.8 }); body(c, o, t + at, { f: 260, dur: 0.04, g: 0.9 }); } },
+		"ui.sheet.open": { l: 2, level: 1, wet: 0.05, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => paper(c, o, t, p.calm ? { dur: 0.12, peak: 0.25, f: 2000 } : { dur: 0.2, peak: 0.65, f: 2000 }) },
+		"ui.sheet.close": { l: 2, level: -2, freq: "occasional", dur: 0.1, fn: (c, o, t) => paper(c, o, t, { dur: 0.12, peak: 0.1, f: 2600 }) },
+		"ui.nav.forward": { l: 2, level: 2, wet: 0.05, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t, 200, 0.9); paper(c, o, t, { dur: 0.3, peak: 0.45, f: 1900, g: 0.6 }); run(c, o, t, { dur: 0.25, g: 0.25, lp: 1400 }); stop(c, o, t + 0.172, 200, 0.9); } },
+		"ui.nav.back": { l: 2, level: 0, freq: "occasional", dur: 0.26, fn: (c, o, t) => paper(c, o, t, { dur: 0.26, peak: 0.12, f: 1700 }) },
+		"ui.cabinet.close": { l: 2, level: 3, wet: 0.05, freq: "occasional", dur: 0.22, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.108; if (!p.calm) run(c, o, t, { dur: 0.11, g: 0.35, shape: "accel" }); body(c, o, t + at, { f: 190, dur: 0.13, to: 0.85 }); click(c, o, t + at, { f: 700, q: 1, dur: 0.05, g: 0.5 }); } },
+		"ui.cabinet.part": { l: 2, level: 2, wet: 0.05, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t, 230, 0.7); click(c, o, t, { f: 1800, q: 4, dur: 0.03, g: 0.5 }); run(c, o, t, { dur: 0.16, g: 0.35 }); stop(c, o, t + 0.164, 230, 0.7); } },
+		"ui.pile.deal": { l: 2, level: 0, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return tap(c, o, t, 0.6); for (let i = 0; i < 7; i++) paper(c, o, t + i * 0.035, { dur: 0.05, peak: 0.2, f: 2400, g: 0.9 }); } },
+		"ui.pile.gather": { l: 2, level: -2, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.12; if (!p.calm) for (let i = 0; i < 4; i++) paper(c, o, t + i * 0.025, { dur: 0.05, peak: 0.2, f: 2400, g: 0.8 }); body(c, o, t + at, { f: 300, dur: 0.04, g: 0.8 }); click(c, o, t + at, { f: 1500, q: 2, dur: 0.02, g: 0.4 }); } },
+		"ui.confirm": { l: 2, level: 4, wet: 0.05, tonal: true, freq: "occasional", dur: 0.25, fn: (c, o, t, p) => { if (p.strong) { tone(c, o, t, { f: NOTE.E5, dur: 0.14, type: "square", g: 0.8 }); tone(c, o, t + 0.09, { f: NOTE.A5, dur: 0.2, type: "square" }); } else tone(c, o, t, { f: NOTE.A5, dur: 0.22, type: "square" }); } },
+		"ui.reject": { l: 2, level: 3, freq: "occasional", dur: 0.16, fn: (c, o, t, p) => { tap(c, o, t); if (!p.calm) tap(c, o, t + 0.08, 0.85); } },
+		"ui.notification.info": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.28, fn: (c, o, t) => bell(c, o, t, { f: NOTE.E5, dur: 0.28 }) },
+		"ui.notification.caution": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.4, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.E5, dur: 0.22 }); bell(c, o, t + 0.16, { f: NOTE.E5, dur: 0.28 }); } },
+		"ui.notification.urgent": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "rare", dur: 0.55, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.A5, dur: 0.25 }); bell(c, o, t + 0.17, { f: NOTE.D5, dur: 0.4 }); } },
+		// The same switch under the desk's biggest key: the snap, then a deeper bottom-out with more case.
+		"ui.endturn.press": { l: 2, level: 4, lead: 14, freq: "high", dur: 0.11, fn: (c, o, t) => { jacket(c, o, t, 0.92); clack(c, o, t + 0.014, 1, { f: 1300, body: 800, kase: 200, g: 1.2, dur: 0.045 }); body(c, o, t + 0.014, { f: 160, dur: 0.1, g: 0.35 }); } },
+		"ui.endturn.commit": { l: 2, level: 5, freq: "high", dur: 0.14, fn: (c, o, t) => relay(c, o, t) },
+		"ui.endturn.turn": { l: 2, level: -2, wet: 0.05, freq: "high", dur: 0.32, fn: (c, o, t) => { motor(c, o, t, { dur: 0.3, g: 0.5 }); flutter(c, o, t + 0.02, { n: 10, span: 0.22, g: 0.6 }); } },
+		"ui.milestone": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.0, fn: (c, o, t) => { relay(c, o, t, { g: 0.5 }); vib(c, o, t + 0.12, { f: NOTE.D5, dur: 0.9 }); } },
+		"ui.milestone.breakthrough": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.9, fn: (c, o, t) => { paper(c, o, t, { dur: 0.22, peak: 0.5, f: 3500, g: 0.25 }); ["D5", "Fs5", "A5"].forEach((n, i) => vib(c, o, t + 0.24 + i * 0.12, { f: NOTE[n], dur: 0.7 - i * 0.1, g: 0.8 })); } },
+		"ui.milestone.city": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.8, fn: (c, o, t) => { body(c, o, t, { f: 150, dur: 0.09, g: 0.4, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.05, g: 0.25 }); marimba(c, o, t + 0.12, { f: NOTE.D4, dur: 0.5 }); marimba(c, o, t + 0.3, { f: NOTE.A4, dur: 0.6 }); } },
+		"ui.milestone.wonder": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.2, fn: (c, o, t) => { relay(c, o, t, { g: 0.6 }); relay(c, o, t + 0.08, { g: 0.5 }); motor(c, o, t + 0.05, { dur: 0.35, g: 0.35 }); chord(vib, c, o, t + 0.42, ["D5", "Fs5", "A5", "E6"], { dur: 0.95 }); bell(c, o, t + 0.42, { f: NOTE.D6, dur: 0.6, g: 0.2 }); } },
+		"ui.milestone.accord": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 1.1, fn: (c, o, t) => { body(c, o, t, { f: 170, dur: 0.07, g: 0.3, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.04, g: 0.2 }); chord(piano, c, o, t + 0.08, ["A3", "Cs4", "E4"], { dur: 0.5, g: 0.8 }); chord(piano, c, o, t + 0.4, ["D4", "Fs4", "A4"], { dur: 0.75 }); } },
+		"ui.milestone.era": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 2.0, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.45, g: 0.5 }); flutter(c, o, t + 0.3, { n: 14, span: 0.35, g: 0.4 }); relay(c, o, t + 0.6, { g: 0.4 }); relay(c, o, t + 0.7, { g: 0.35 });
+			["D5", "A5", "D6"].forEach((n, i) => vib(c, o, t + 0.8 + i * 0.15, { f: NOTE[n], dur: 0.8, g: 0.6 }));
+			chord(piano, c, o, t + 1.25, ["D4", "Fs4", "A4"], { dur: 1.0 }); tone(c, o, t + 1.25, { f: NOTE.D4, dur: 1.2, type: "triangle", lp: 900, attack: 0.2, g: 0.15 }); } },
+		"ui.milestone.victory": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 2.6, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.5, g: 0.5 }); flutter(c, o, t + 0.3, { n: 16, span: 0.4, g: 0.4 }); relay(c, o, t + 0.65, { g: 0.4 }); relay(c, o, t + 0.75, { g: 0.35 });
+			["D5", "Fs5", "A5", "D6"].forEach((n, i) => vib(c, o, t + 0.85 + i * 0.15, { f: NOTE[n], dur: 0.8, g: 0.55 }));
+			chord(piano, c, o, t + 1.6, ["D4", "Fs4", "A4", "E5"], { dur: 1.2 }); chord(vib, c, o, t + 1.6, ["D5", "A5", "E6"], { dur: 1.2, g: 0.5 }); } },
+		"ui.milestone.defeat": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 2.4, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.5, g: 0.4 }); flutter(c, o, t + 0.3, { n: 14, span: 0.35, g: 0.35 }); relay(c, o, t + 0.65, { g: 0.35 });
+			["A5", "Fs5", "D5"].forEach((n, i) => vib(c, o, t + 0.8 + i * 0.16, { f: NOTE[n], dur: 0.7, g: 0.55 }));
+			chord(piano, c, o, t + 1.3, ["B3", "D4", "Fs4"], { dur: 0.6 }); chord(piano, c, o, t + 1.7, ["D4", "Fs4", "A4"], { dur: 1.0 }); } },
+	};
+	const VARIANTS = [1, 1.05, 0.96, 1.025];  // four L1 variants (§16.8); two for L2
+
+	// Normalize each token offline so its peak sits at its level: the levels are the spec's, not the synth's.
+	const norm = {};
+	const ready = (async () => {
+		for (const [name, tk] of Object.entries(T)) {
+			const off = new OfflineAudioContext(1, Math.ceil(SR * (tk.dur + 1.2)), SR);
+			tk.fn(off, off.destination, 0.01, { v: 1, calm: false });
+			const data = (await off.startRendering()).getChannelData(0);
+			let peak = 0; for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i]));
+			norm[name] = db(REF_DB + tk.level) / (peak || 1);
+		}
+	})();
+
+	let ctx = null, enabled = true, lastTick = 0, lastNote = 0, l3Until = 0, lastVariant = {};
+	const volume = { interface: 0.7, game: 0.8 };
+	const buses = {}, voices = [];
+	function impulse(c, seconds) {
+		const len = Math.ceil(c.sampleRate * seconds), b = c.createBuffer(2, len, c.sampleRate);
+		for (let ch = 0; ch < 2; ch++) {
+			const d = b.getChannelData(ch); let lp = 0;
+			for (let i = 0; i < len; i++) { lp = lp * 0.6 + (Math.random() * 2 - 1) * 0.4; d[i] = lp * Math.exp(-17.3 * i / c.sampleRate); }  // −60 dB at 0.4 s, top damped
+		}
+		return b;
+	}
+	function start() {
+		if (ctx) { if (ctx.state === "suspended") ctx.resume(); return ctx; }
+		ctx = new AudioContext({ sampleRate: SR });
+		for (const name of ["interface", "game"]) {
+			const input = ctx.createGain(), vol = ctx.createGain(), room = ctx.createConvolver();
+			room.buffer = impulse(ctx, 0.4);  // one shared small room (§16.6)
+			const shelf = filter(ctx, "highshelf", 6000); shelf.gain.value = -6;
+			const chain = name === "interface" ? [filter(ctx, "highpass", 150), shelf] : [shelf];
+			let node = input; for (const f of chain) node = node.connect(f);
+			node.connect(vol).connect(ctx.destination);
+			room.connect(input);
+			vol.gain.value = volume[name];
+			buses[name] = { input, vol, room };
+		}
+		return ctx;
+	}
+
+	// play(token, { at: ms from now to the contact point, input: did the player cause it, gainDb, pitch (st), run })
+	function play(name, { at = 0, input = false, gainDb = 0, pitch = 0, strong = false } = {}) {
+		const tk = T[name];
+		if (!enabled || !tk || norm[name] === undefined) return;
+		const c = start();
+		const calmNow = calm();
+		const lead = Math.min(c.baseLatency || 0, 0.01);  // land inside the window: never early, ≤ 30 ms late (§16.5)
+		let when = c.currentTime + Math.max(0, (calmNow ? 0 : at - (tk.lead || 0)) / 1000 - lead) + 0.005;
+		if (tk.l < 3 && when < l3Until) { if (!input) return; gainDb -= 6; }  // events aren't interrupted (§16.4)
+		if (name === "ui.counter.tick") { if (when - lastTick < 0.035) return; lastTick = when; }  // one tick stream
+		if (name.startsWith("ui.notification")) { when = Math.max(when, lastNote + 0.4); lastNote = when; }
+		const now = c.currentTime;
+		for (let i = voices.length - 1; i >= 0; i--) if (voices[i].end < now) voices.splice(i, 1);
+		if (tk.l === 1 && voices.filter((v) => v.bus === "interface").length >= 6) return;  // the oldest L1 gives way
+		let v = 1, jitterDb = 0;
+		if (tk.l < 3) {
+			const n = tk.l === 1 ? 4 : 2;
+			let k; do { k = Math.floor(Math.random() * n); } while (n > 1 && k === lastVariant[name]);
+			lastVariant[name] = k;
+			if (!tk.tonal) v = VARIANTS[k] * (tk.l === 1 ? 2 ** ((Math.random() * 50 - 25) / 1200) : 1);
+			if (tk.l === 1) jitterDb = Math.random() * 2 - 1;
+		}
+		const bus = buses[tk.l === 3 ? "game" : "interface"];
+		const out = c.createGain();
+		out.gain.value = norm[name] * db(gainDb + jitterDb);
+		out.connect(bus.input);
+		if (tk.wet) { const w = c.createGain(); w.gain.value = tk.wet; out.connect(w).connect(bus.room); }
+		tk.fn(c, out, when, { v: v * st(pitch), calm: calmNow, strong });
+		voices.push({ bus: tk.l === 3 ? "game" : "interface", end: when + tk.dur });
+		if (tk.l === 3) l3Until = when + tk.dur;
+	}
+	function setVolume(bus, value) { volume[bus] = value; if (buses[bus]) buses[bus].vol.gain.setTargetAtTime(value, ctx.currentTime, 0.02); }
+	function setEnabled(on) { enabled = on; }
+	document.addEventListener("visibilitychange", () => {  // the interface is muted in the background (§12 rule 16)
+		if (!ctx) return;
+		for (const [name, b] of Object.entries(buses)) b.vol.gain.setTargetAtTime(document.hidden ? 0 : volume[name], ctx.currentTime, 0.05);
+	});
+	return { play, setVolume, setEnabled, start, ready, tokens: T };
+})();
+
+// Keys (§10.1, §15.1): a click when the face meets the desk, a tick when it is back at its stop. Hover is silent.
+let pressedKey = null;
+function keyDown(el) {
+	if (el.closest("[data-audition]")) return;
+	if (el.getAttribute("aria-disabled") === "true") { Sound.play("ui.reject.locked", { input: true }); return; }  // a locked key doesn't travel
+	if (el.classList.contains("end-turn")) { if (!el.classList.contains("busy")) Sound.play("ui.endturn.press", { at: contactMs(70, "snap"), input: true }); }
+	else if (el.classList.contains("tab")) Sound.play("ui.button.press", { at: contactMs(60, "snap"), gainDb: -3, input: true });
+	else Sound.play("ui.button.press", { at: contactMs(70, "snap"), pitch: el.classList.contains("primary") ? -2 : 0, input: true });
+	pressedKey = el;
+}
+function keyUp() {
+	const el = pressedKey; pressedKey = null;
+	if (el && el.classList.contains("btn")) Sound.play("ui.button.release", { at: contactMs(120, "machined"), pitch: el.classList.contains("primary") ? -2 : 0, input: true });
+	// tabs become active (no return), legend keys latch or spring back (bindToggle), End turn commits (its click)
+}
+const KEYS = ".btn, .end-turn, .tab, .toggle";
+document.addEventListener("pointerdown", (e) => { const k = e.button === 0 && e.target.closest(KEYS); if (k) keyDown(k); });
+document.addEventListener("pointerup", keyUp);
+document.addEventListener("pointercancel", () => { pressedKey = null; });
+document.addEventListener("keydown", (e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat && e.target.matches && e.target.matches(KEYS)) keyDown(e.target); });
+document.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") keyUp(); });
 
 // Glyphs (§8): 24 grid, 2 px stroke, square caps, mitred joins, ≤ 5 primitives.
 const GLYPHS = {
@@ -478,7 +780,9 @@ function bindToggle(el, onChange) {
 	el.addEventListener("click", async () => {
 		const on = el.getAttribute("aria-checked") !== "true";
 		el.setAttribute("aria-checked", on);
-		await wait(70);  // the latch lands first
+		// ON: the latch catches at contact (≈ 38 ms) with the lamp. OFF: the key springs back to rest (≈ 65 ms).
+		Sound.play(on ? "ui.toggle.on" : "ui.toggle.off", { at: on ? contactMs(70, "snap") : contactMs(120, "machined"), input: true });
+		await wait(contactMs(70, "snap"));  // the latch lands first
 		el.classList.toggle("lit", on);
 		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
 		onChange && onChange(on);
@@ -486,11 +790,14 @@ function bindToggle(el, onChange) {
 }
 bindToggle(document.getElementById("theme-toggle"), (on) => { root.dataset.theme = on ? "night" : "paper"; });
 bindToggle(document.getElementById("calm-toggle"), (on) => { root.dataset.calm = on; });
+// Turning interface sounds OFF plays its own release first, then the bus goes quiet (§15.4).
+bindToggle(document.getElementById("sound-toggle"), (on) => { if (on) Sound.setEnabled(true); else setTimeout(() => Sound.setEnabled(false), 120); });
 document.querySelectorAll(".demo-toggle").forEach((t) => bindToggle(t));
 
 // ---- Split-flap (§10.3) ----
 const FLAP_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
-async function flapText(el, text) {
+async function flapText(el, text, quiet = false) {
+	if (!quiet) Sound.play("ui.flap");  // one flutter for the word, never one per character (§10.3)
 	if (calm()) { el.textContent = text; return; }
 	el.innerHTML = [...text].map(() => '<span class="flap"> </span>').join("");
 	const spans = [...el.children];
@@ -570,8 +877,16 @@ async function change(id, delta) {
 	const step = Math.sign(target - r.value);
 	const steps = Math.abs(target - r.value);
 	let v = steps > 8 ? target - step * 8 : r.value;  // roll only the last 8 steps
-	if (steps > 8) setOdo(id, v);
-	while (v !== target) { v += step; setOdo(id, v); await wait(70); }
+	if (steps > 8) setOdo(id, v);  // the jump is silent
+	let n = 0;
+	while (v !== target) {
+		v += step; setOdo(id, v);
+		// the digit lands at the end of its 60 ms step; each later tick in the run is 1 dB quieter
+		if (v !== target) Sound.play("ui.counter.tick", { at: 60, gainDb: -n, pitch: step < 0 ? -1 : 0 });
+		n++;
+		await wait(70);
+	}
+	if (steps) Sound.play(delta > 0 ? "ui.resource.gain" : "ui.resource.loss");  // registers with the lamp
 	r.value = target;
 	const lamp = cell.querySelector(".lamp");
 	const atLimit = r.limit && r.value >= r.limit;
@@ -616,6 +931,7 @@ document.getElementById("hand").innerHTML = CARDS.map((c, i) => `
 	</button>`).join("");
 document.querySelectorAll(".card").forEach((card) => card.addEventListener("click", () => {
 	if (card.classList.contains("dimmed")) {
+		Sound.play("ui.reject", { at: contactMs(80, "snap"), input: true });  // one tap at each lateral stop
 		card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
 		setTimeout(() => card.classList.remove("shake"), 4000);
 		return;
@@ -623,6 +939,7 @@ document.querySelectorAll(".card").forEach((card) => card.addEventListener("clic
 	const on = card.getAttribute("aria-pressed") !== "true";
 	document.querySelectorAll(".card").forEach((c) => c.setAttribute("aria-pressed", "false"));
 	card.setAttribute("aria-pressed", on);
+	if (on) Sound.play("ui.selection", { at: contactMs(120, "machined"), input: true });  // the index tab clips on; deselect is silent
 }));
 
 // ---- Segmented progress (§15.10) ----
@@ -635,6 +952,7 @@ document.getElementById("seg-step").addEventListener("click", async () => {
 	if (segValue === 0) cells.forEach((c) => c.classList.remove("full"));
 	else cells[segValue - 1].classList.add("full");
 	document.getElementById("seg-label").textContent = `${segValue} / 5`;
+	if (segValue === 5) Sound.play("ui.confirm", { at: 120 });  // silent while filling; the last cell's wipe confirms
 });
 
 // ---- Flags (§15.9) ----
@@ -653,6 +971,7 @@ document.querySelectorAll("[data-flag]").forEach((b) => b.addEventListener("clic
 		<span class="text">${f.text}<small>${f.sub}</small></span><button class="x" aria-label="Dismiss">×</button>`;
 	flagsEl.appendChild(el);
 	requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+	Sound.play(b.dataset.flag === "danger" ? "ui.notification.urgent" : "ui.notification.info", { at: contactMs(200, "machined") });  // at full extension
 	const close = async () => { el.classList.add("out"); el.classList.remove("in"); await wait(170); el.remove(); };
 	el.querySelector(".x").addEventListener("click", close);
 	if (f.time) setTimeout(close, f.time);
@@ -663,6 +982,7 @@ const burst = document.getElementById("burst");
 burst.innerHTML = Array.from({ length: 6 }, (_, i) => `<i style="--a:${i * 60}deg"></i>`).join("");
 document.getElementById("confirm").addEventListener("click", async () => {
 	document.getElementById("confirm-lamp").classList.add("on");
+	Sound.play("ui.confirm", { input: true });  // with lamp-on; the rays are silent
 	burst.classList.remove("go"); void burst.offsetWidth; burst.classList.add("go");
 });
 
@@ -683,16 +1003,20 @@ function showState() {
 	const s = STATES[state];
 	endCaption.textContent = s.caption;
 	endLamp.className = "lamp on " + s.lamp;
-	endBtn.disabled = s.disabled;
+	endBtn.setAttribute("aria-disabled", s.disabled);
 }
 document.getElementById("cycle-state").addEventListener("click", () => { state = (state + 1) % STATES.length; showState(); });
 endBtn.addEventListener("click", async () => {
-	if (endBtn.classList.contains("busy")) return;
+	if (endBtn.classList.contains("busy") || endBtn.getAttribute("aria-disabled") === "true") return;
+	// COMMIT: the relay latches as the key gets home and the lamp goes out (≈ 65 ms after release)
+	Sound.play("ui.endturn.commit", { at: contactMs(120, "machined"), input: true });
+	await wait(contactMs(120, "machined"));
 	endLamp.classList.remove("on");
 	endBtn.classList.add("busy");
 	endBtn.querySelector(".label").textContent = "Upkeep…";
 	turn += 1;
-	await flapText(plate, String(turn).padStart(3, "0"));
+	Sound.play("ui.endturn.turn");  // the drum advances; the plate's flutter rides on it
+	await flapText(plate, String(turn).padStart(3, "0"), true);
 	const deltas = [["food", 2], ["wealth", 1], ["insight", 3]];
 	for (const [id, d] of deltas) { change(id, d); await wait(60); }
 	await wait(400);
@@ -708,9 +1032,12 @@ document.getElementById("open-modal").addEventListener("click", () => {
 	lastFocus = document.activeElement;
 	scrim.hidden = false;
 	requestAnimationFrame(() => requestAnimationFrame(() => scrim.classList.add("open")));
+	Sound.play("ui.sheet.open");  // swells and peaks as the sheet settles; the scrim is silent
 	scrim.querySelector(".btn").focus({ preventScroll: true });
 });
 async function closeModal() {
+	if (scrim.classList.contains("closing")) return;
+	Sound.play("ui.sheet.close");  // at once: the lift
 	scrim.classList.add("closing");
 	scrim.classList.remove("open");
 	await wait(160);
@@ -720,6 +1047,51 @@ async function closeModal() {
 }
 scrim.addEventListener("click", (e) => { if (e.target === scrim || e.target.hasAttribute("data-close")) closeModal(); });
 addEventListener("keydown", (e) => { if (e.key === "Escape" && !scrim.hidden) closeModal(); });
+
+// ---- Sound board (§14.1): every token alone, by level, with its spec ----
+const LEVELS = [
+	[1, "Level 1 · micro-feedback", "Interface bus · dry"],
+	[2, "Level 2 · structural", "Interface bus · ≤ 5% room"],
+	[3, "Level 3 · event", "Game bus · ≤ 18% room"],
+];
+const board = document.getElementById("board");
+board.innerHTML = LEVELS.map(([l, title]) => `<div><h3>${title}</h3><div class="tokens">${Object.entries(Sound.tokens)
+	.filter(([, t]) => t.l === l).map(([name]) => `<button class="btn token" data-audition="${name}" aria-pressed="false">${name.replace(/^ui\./, "")}</button>`).join("")}</div></div>`).join("");
+let auditioned = null;
+const RATE = { "very high": [6, 24], high: [2, 8], occasional: [1, 4], rare: [0.25, 1] };  // per second, how many
+board.addEventListener("click", (e) => {
+	const b = e.target.closest("[data-audition]");
+	if (!b) return;
+	auditioned = b.dataset.audition;
+	board.querySelectorAll("[data-audition]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+	const t = Sound.tokens[auditioned];
+	const sign = (d) => (d > 0 ? "+" : d < 0 ? "−" : "") + Math.abs(d);
+	document.getElementById("token-spec").innerHTML = `<b>${auditioned}</b> · level ${sign(t.level)} dB (${REF_LABEL(t.level)}) · ${Math.round(t.dur * 1000)} ms · ${t.freq} · ${t.l === 3 ? "Game" : "Interface"} bus${t.wet ? ` · ${Math.round(t.wet * 100)}% room` : " · dry"}`;
+	Sound.play(auditioned, { input: true, strong: false });
+});
+const REF_LABEL = (d) => `${String(-26 + d).replace("-", "−")} dBFS peak`;
+for (const bus of ["interface", "game"]) {
+	const input = document.getElementById(`vol-${bus}`), out = document.getElementById(`vol-${bus}-out`);
+	input.addEventListener("input", () => { out.textContent = input.value; Sound.setVolume(bus, input.value / 100); });
+}
+
+// ---- Repetition test (§16.8) ----
+let repTimers = [];
+const stopReps = () => { repTimers.forEach(clearTimeout); repTimers = []; };
+function schedule(n, everyMs, fn) { stopReps(); for (let i = 0; i < n; i++) repTimers.push(setTimeout(() => fn(i), i * everyMs)); }
+document.getElementById("rep-token").addEventListener("click", () => {
+	if (!auditioned) { document.getElementById("token-spec").textContent = "Pick a token on the board first."; return; }
+	const [perSecond, count] = RATE[Sound.tokens[auditioned].freq];
+	schedule(count, 1000 / perSecond, () => Sound.play(auditioned, { input: true }));
+});
+document.getElementById("rep-upkeep").addEventListener("click", () => schedule(20, 1200, () => {
+	for (const [id, d, i] of [["food", 2, 0], ["wealth", 1, 1], ["insight", 3, 2], ["unrest", -1, 3]]) setTimeout(() => change(id, d), i * 60);
+}));
+document.getElementById("rep-select").addEventListener("click", () => {
+	const playable = [...document.querySelectorAll(".card:not(.dimmed)")];
+	schedule(40, 400, (i) => playable[i % playable.length].click());
+});
+document.getElementById("rep-stop").addEventListener("click", stopReps);
 </script>
 </body>
 </html>

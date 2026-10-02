@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --focus: #1F6A68; --l-blue: #35597C;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --focus: #6CC3BC; --l-blue: #86A9CC;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+/* .plain controls are page furniture: they make no sound, so only the keys under test click. */
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+.plain[aria-pressed="true"] { border-color: var(--ink); background: var(--well); }
+.chosen { font: 600 11px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--sheet); background: var(--ink); padding: 1px 5px; vertical-align: middle; margin-left: var(--space-2); }
+main { max-width: 1100px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 72ch; margin: 0 0 var(--space-6); }
+.option { display: grid; grid-template-columns: 56px 1fr 340px; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 54ch; }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.demo { display: flex; flex-direction: column; gap: var(--space-3); background: var(--sheet); border: 1px solid var(--rule); padding: var(--space-4); }
+.demo .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.spectrum { width: 100%; height: 56px; display: block; }
+.spectrum path { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.spectrum .grid { stroke: var(--rule-fine); stroke-width: 1; }
+.spectrum .ref { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.spectrum text { fill: var(--ink-3); font: 500 10px var(--f-cond); }
+.centroid { font: 500 14px/18px var(--f-mono); color: var(--ink-2); }
+
+/* The key under test: the guide's secondary button (§15.2), with its press travel. */
+.btn {
+	display: inline-flex; align-items: center; min-height: 40px; padding: var(--space-2) 20px; border-radius: var(--radius-1); cursor: pointer;
+	font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em; background: var(--steel); color: var(--ink); border: 2px solid var(--rule);
+	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
+	transition: background-color var(--d-hover) var(--ease-machined), border-color var(--d-hover) var(--ease-machined), transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined);
+}
+.btn:hover { background: color-mix(in srgb, var(--steel) 65%, var(--sheet)); border-color: var(--ink); }
+.btn:active, .btn.is-pressed { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+@media (max-width: 760px) { .option { grid-template-columns: 1fr; } .letter { font-size: 28px; } }
+</style>
+</head>
+<body>
+<header>
+	<h1>Click options</h1>
+	<button class="plain" id="cycle">Play all in turn</button>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Nine versions of <code>ui.button.press</code> and its <code>ui.button.release</code>: today's click (A) down to the darkest (F), then three two-stage clicky switches modeled on a blue-style mechanical keyboard switch (G–I). Press a key to hear the click as the face meets the desk and the tick as it comes back, with the same timing as the specimen. "×12" plays a burst at the rate a busy turn would (six presses a second) with the usual small variation between repeats. Every option goes through the interface bus's filters (high-pass at 150 Hz, −6 dB above 6 kHz) and is matched to A by energy, not by peak, so a darker click isn't simply quieter. Under each key is its <b>brightness</b>: the spectral centroid, where the spectrum balances. Lower reads warmer and heavier. The dashed line on each spectrum is A, for comparison.</p>
+	<div id="options"></div>
+</main>
+<script>
+const OPTIONS = [
+	{ id: "A", name: "Current", text: "Today's token: a narrow band of noise at 1.8 kHz with a quiet 420 Hz body. Crisp, but the energy sits high and the body is too weak to give it weight; that is the thin, high sound.",
+		meta: "Click 1.8 kHz, Q 3 · body 420 Hz at −10 dB · release +3 st" },
+	{ id: "B", name: "Lowered", text: "The same recipe, moved down and widened: the click band at 1 kHz and less narrow, the body at 300 Hz and twice as loud. The smallest change that fixes the pitch.",
+		meta: "Click 1 kHz, Q 2 · body 300 Hz at −6 dB · release +3 st" },
+	{ id: "C", name: "Keycap and switch", text: "Two parts, 5 ms apart: the molded cap bottoming out (a 220 Hz thump with dark noise), then the small switch underneath (a faint 2.4 kHz tick, 14 dB down). The weight comes from the cap and the crispness from the switch.",
+		meta: "Cap 220 Hz + noise below 900 Hz · switch tick 2.4 kHz at −14 dB, +5 ms" },
+	{ id: "D", name: "Thock", text: "A molded key landing on a felt stop: no band peak at all, just noise rolled off above 1.2 kHz over a 190 Hz body that drops in pitch as it dies. Round and soft, like a well-damped office machine.",
+		meta: "Noise low-passed at 1.2 kHz · body 190 Hz falling 15% · 70 ms" },
+	{ id: "E", name: "Phenolic knock", text: "A hard plastic block struck: two resonances at 520 Hz and 1.2 kHz (an inharmonic pair, like a small woodblock), very short, with a little dark noise. Warmer than A, but more pitched than C or D.",
+		meta: "Modes 520 Hz + 1.2 kHz · noise at 1.5 kHz · 50 ms" },
+	{ id: "F", name: "Muted damper", text: "The darkest: noise rolled off above 700 Hz over a 170 Hz body. Almost no click left, a soft thud. Likely too dull to read as a key, but it marks the other end of the range.",
+		meta: "Noise low-passed at 700 Hz · body 170 Hz · 50 ms" },
+	{ id: "G", name: "Clicky switch", text: "Modeled on a blue-style clicky switch under ABS keycaps. Pressing, the click jacket snaps at the actuation point (a sharp, bright snap near 4.5 kHz), and 14 ms later the stem bottoms out on the housing (a plastic clack at 1.8 kHz over a 380 Hz case). Releasing, the jacket clicks again, quieter, then the stem tops out. Timed so the bottom-out lands on the guide's contact point and the snap just before it, where actuation is.",
+		meta: "Jacket snap 4.5 kHz · bottom-out 1.8 kHz + case 380 Hz, +14 ms · upstroke snap, then top-out +18 ms" },
+	{ id: "H", name: "Clicky, PBT caps", text: "The same switch under thick PBT keycaps on a damped plate: the jacket's snap is unchanged, but the bottom-out drops to a deeper 1 kHz clack over a 260 Hz case. The click stays, and the weight comes back underneath it.",
+		meta: "Jacket snap 4.5 kHz · bottom-out 1 kHz + case 260 Hz, +14 ms" },
+	{ id: "I", name: "Click over a thock", text: "A softer jacket snap (3.6 kHz, 8 dB down) over D's felt thock for the bottom-out. Keeps the two-stage feel of a clicky switch while most of the energy stays low, which answers \"too high and thin\" most directly.",
+		meta: "Jacket snap 3.6 kHz at −8 dB · thock 190 Hz + dark noise, +14 ms" },
+];
+
+// ---- Synthesis (the specimen's mechanisms, §16.10) ----
+const SR = 48000;
+const st = (n) => 2 ** (n / 12);
+const db = (d) => 10 ** (d / 20);
+const noiseBuf = new AudioBuffer({ length: SR, sampleRate: SR });
+{ const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+function env(c, t, peak, attack, dur) {
+	const g = c.createGain();
+	g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+	return g;
+}
+function filter(c, type, f, q = 0.7) { const b = c.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
+function noise(c, out, t, { type = "bandpass", f, q = 1, dur, g = 1 }) {
+	const n = c.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+	n.connect(filter(c, type, f, q)).connect(env(c, t, g, 0.001, dur)).connect(out); n.start(t, Math.random() * 0.9); n.stop(t + dur + 0.03);
+}
+function body(c, out, t, { f, dur, g = 1, to = 1 }) {
+	const o = c.createOscillator(); o.frequency.setValueAtTime(f, t);
+	if (to !== 1) o.frequency.exponentialRampToValueAtTime(f * to, t + dur);
+	o.connect(env(c, t, g, 0.002, dur)).connect(out); o.start(t); o.stop(t + dur + 0.03);
+}
+// Each option: press(c, out, t, v) and release(c, out, t, v); v is the variant's pitch factor.
+const SOUNDS = {
+	A: {
+		press: (c, o, t, v) => { noise(c, o, t, { f: 1800 * v, q: 3, dur: 0.06 }); body(c, o, t, { f: 420 * v, dur: 0.08, g: 0.3 }); },
+		release: (c, o, t, v) => { noise(c, o, t, { f: 1800 * st(3) * v, q: 4, dur: 0.045 }); body(c, o, t, { f: 600 * v, dur: 0.05, g: 0.2 }); },
+	},
+	B: {
+		press: (c, o, t, v) => { noise(c, o, t, { f: 1000 * v, q: 2, dur: 0.06 }); body(c, o, t, { f: 300 * v, dur: 0.08, g: 0.5 }); },
+		release: (c, o, t, v) => { noise(c, o, t, { f: 1000 * st(3) * v, q: 2, dur: 0.045 }); body(c, o, t, { f: 300 * st(3) * v, dur: 0.05, g: 0.35 }); },
+	},
+	C: {
+		press: (c, o, t, v) => {
+			body(c, o, t, { f: 220 * v, dur: 0.07, g: 1, to: 0.9 }); noise(c, o, t, { type: "lowpass", f: 900 * v, q: 0.7, dur: 0.04, g: 0.6 });
+			noise(c, o, t + 0.005, { f: 2400 * v, q: 4, dur: 0.015, g: db(-14) * 2.5 });
+		},
+		release: (c, o, t, v) => {
+			body(c, o, t, { f: 220 * st(3) * v, dur: 0.045, g: 0.7, to: 0.92 }); noise(c, o, t, { type: "lowpass", f: 1100 * v, q: 0.7, dur: 0.03, g: 0.45 });
+			noise(c, o, t + 0.004, { f: 2600 * v, q: 4, dur: 0.012, g: db(-14) * 2 });
+		},
+	},
+	D: {
+		press: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 1200 * v, q: 0.5, dur: 0.05, g: 0.7 }); body(c, o, t, { f: 190 * v, dur: 0.07, g: 1, to: 0.85 }); },
+		release: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 1400 * v, q: 0.5, dur: 0.035, g: 0.6 }); body(c, o, t, { f: 190 * st(3) * v, dur: 0.045, g: 0.7, to: 0.88 }); },
+	},
+	E: {
+		press: (c, o, t, v) => { body(c, o, t, { f: 520 * v, dur: 0.05, g: 1 }); body(c, o, t, { f: 1200 * v, dur: 0.025, g: 0.45 }); noise(c, o, t, { f: 1500 * v, q: 1, dur: 0.02, g: 0.5 }); },
+		release: (c, o, t, v) => { body(c, o, t, { f: 520 * st(3) * v, dur: 0.035, g: 0.8 }); body(c, o, t, { f: 1200 * st(3) * v, dur: 0.018, g: 0.35 }); noise(c, o, t, { f: 1700 * v, q: 1, dur: 0.015, g: 0.4 }); },
+	},
+	F: {
+		press: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 700 * v, q: 0.5, dur: 0.04, g: 0.8 }); body(c, o, t, { f: 170 * v, dur: 0.05, g: 1, to: 0.9 }); },
+		release: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 800 * v, q: 0.5, dur: 0.03, g: 0.6 }); body(c, o, t, { f: 170 * st(3) * v, dur: 0.035, g: 0.7, to: 0.92 }); },
+	},
+	// G–I: two-stage clicky switches. `lead` moves each sound earlier so its last part (the bottom-out on press, the
+	// top-out on release) lands on the contact point, with the jacket's snap just before it.
+	G: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v); clack(c, o, t + 0.014, v, { f: 1800, body: 1100, kase: 380 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 1.06, 0.55); clack(c, o, t + 0.018, v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); },
+	},
+	H: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v); clack(c, o, t + 0.014, v, { f: 1000, body: 700, kase: 260, g: 1.1, dur: 0.04 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 1.06, 0.55); clack(c, o, t + 0.018, v, { f: 1200, body: 820, kase: 300, g: 0.6 }); },
+	},
+	I: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v * 0.8, 0.5); noise(c, o, t + 0.014, { type: "lowpass", f: 1200 * v, q: 0.5, dur: 0.05, g: 0.7 }); body(c, o, t + 0.014, { f: 190 * v, dur: 0.07, g: 1, to: 0.85 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 0.85, 0.33); noise(c, o, t + 0.018, { type: "lowpass", f: 1400 * v, q: 0.5, dur: 0.035, g: 0.6 }); body(c, o, t + 0.018, { f: 190 * st(3) * v, dur: 0.045, g: 0.7, to: 0.88 }); },
+	},
+};
+// The click jacket snapping: a very short, bright snap with a little ring.
+function jacket(c, o, t, v, g = 1) {
+	noise(c, o, t, { f: 4500 * v, q: 1.5, dur: 0.012, g: 1.8 * g });  // as loud as the bottom-out, as on the real switch
+	body(c, o, t, { f: 3300 * v, dur: 0.01, g: 0.5 * g });
+}
+// The stem bottoming (or topping) out: a plastic clack, the keycap's own tone, and the case under it.
+function clack(c, o, t, v, { f, body: b, kase, g = 1, dur = 0.03 }) {
+	noise(c, o, t, { f: f * v, q: 1.2, dur, g: 0.8 * g });
+	body(c, o, t, { f: b * v, dur: 0.02, g: 0.3 * g });
+	body(c, o, t, { f: kase * v, dur: 0.05, g: 0.35 * g, to: 0.95 });
+}
+// The interface bus's filters (§16.6), so every option is heard as the game would play it.
+function busChain(c, dest) {
+	const hp = filter(c, "highpass", 150), shelf = filter(c, "highshelf", 6000); shelf.gain.value = -6;
+	hp.connect(shelf).connect(dest);
+	return hp;
+}
+async function render(fn) {
+	const off = new OfflineAudioContext(1, SR / 4, SR);
+	fn(off, busChain(off, off.destination), 0.005, 1);
+	return (await off.startRendering()).getChannelData(0);
+}
+const rms = (d) => Math.sqrt(d.reduce((s, x) => s + x * x, 0) / d.length);
+// A plain radix-2 FFT, for the spectrum and the centroid.
+function spectrum(d, n = 4096) {
+	const re = new Float64Array(n), im = new Float64Array(n);
+	for (let i = 0; i < Math.min(n, d.length); i++) re[i] = d[i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / n));
+	for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+	for (let len = 2; len <= n; len <<= 1) {
+		const a = -2 * Math.PI / len;
+		for (let i = 0; i < n; i += len) for (let k = 0; k < len / 2; k++) {
+			const wr = Math.cos(a * k), wi = Math.sin(a * k), xr = re[i + k + len / 2], xi = im[i + k + len / 2];
+			const tr = xr * wr - xi * wi, ti = xr * wi + xi * wr;
+			re[i + k + len / 2] = re[i + k] - tr; im[i + k + len / 2] = im[i + k] - ti; re[i + k] += tr; im[i + k] += ti;
+		}
+	}
+	const mag = []; for (let k = 0; k < n / 2; k++) mag.push(Math.hypot(re[k], im[k]));
+	return mag;
+}
+// Brightness: the magnitude-weighted spectral centroid. (Weighting by power lets a long body hide a bright click.)
+function centroid(mag, n = 4096) { let num = 0, den = 0; mag.forEach((m, k) => { num += m * k * SR / n; den += m; }); return num / den; }
+// A log-frequency curve, 100 Hz to 10 kHz, smoothed into 48 bands, in dB from the loudest band of the page.
+function curve(mag, top, n = 4096) {
+	const pts = [];
+	for (let b = 0; b < 48; b++) {
+		const lo = 100 * 100 ** (b / 48), hi = 100 * 100 ** ((b + 1) / 48);
+		let s = 0, c = 0; for (let k = Math.floor(lo * n / SR); k <= Math.ceil(hi * n / SR); k++) { s += mag[k] ** 2; c++; }
+		pts.push(Math.max(-40, 10 * Math.log10(s / c / top)));
+	}
+	return pts;
+}
+const pathOf = (pts) => pts.map((v, i) => `${i ? "L" : "M"}${(i / 47 * 300).toFixed(1)},${(4 + -v / 40 * 40).toFixed(1)}`).join("");
+
+// ---- Measure, normalize and draw ----
+const gain = {};
+let refPeak = 1;
+const analysis = {};
+const ready = (async () => {
+	const refRender = await render(SOUNDS.A.press);
+	const ref = rms(refRender);
+	refPeak = refRender.reduce((m, x) => Math.max(m, Math.abs(x)), 0);
+	for (const o of OPTIONS) {
+		const press = await render(SOUNDS[o.id].press);
+		gain[o.id] = ref / rms(press);  // matched to A by energy
+		const mag = spectrum(press.map((x) => x * gain[o.id]));
+		analysis[o.id] = { mag, centroid: centroid(mag) };
+	}
+	let top = 0;
+	for (const a of Object.values(analysis)) for (let k = 0; k < a.mag.length; k++) top = Math.max(top, a.mag[k] ** 2);
+	const refPath = pathOf(curve(analysis.A.mag, top));
+	for (const o of OPTIONS) {
+		const el = document.querySelector(`[data-option="${o.id}"]`);
+		el.querySelector(".centroid").textContent = `Brightness ${Math.round(analysis[o.id].centroid)} Hz`;
+		el.querySelector(".spectrum").innerHTML = `
+			${[1000, 10000].map((f) => { const x = Math.log10(f / 100) / 2 * 300; return `<line class="grid" x1="${x}" x2="${x}" y1="0" y2="44"/><text x="${f === 10000 ? x : x + 3}" y="54" text-anchor="${f === 10000 ? "end" : "start"}">${f / 1000} kHz</text>`; }).join("")}
+			<text x="0" y="54">100 Hz</text>
+			${o.id === "A" ? "" : `<path class="ref" d="${refPath}"/>`}<path d="${pathOf(curve(analysis[o.id].mag, top))}"/>`;
+	}
+})();
+
+document.getElementById("options").innerHTML = OPTIONS.map((o) => `
+	<section class="option" data-option="${o.id}">
+		<div class="letter">${o.id}</div>
+		<div><h2>${o.name}${o.id === "G" ? ' <span class="chosen">Chosen</span>' : ""}</h2><p>${o.text}</p><div class="meta">${o.meta}</div></div>
+		<div class="demo">
+			<div class="row"><button class="btn" data-key="${o.id}">Buy cards</button><button class="plain" data-burst="${o.id}">×12</button><span class="centroid"></span></div>
+			<svg class="spectrum" viewBox="0 0 300 56" preserveAspectRatio="none" role="img" aria-label="Spectrum of option ${o.id}"></svg>
+		</div>
+	</section>`).join("");
+
+// ---- Playback, timed like the specimen: the click at contact, the tick back at the stop (§16.5) ----
+let ctx = null, bus = null;
+const VARIANTS = [1, 1.05, 0.96, 1.025];
+let lastVariant = -1;
+function audio() {
+	if (!ctx) {
+		ctx = new AudioContext({ sampleRate: SR });
+		const out = ctx.createGain();
+		out.gain.value = db(-26) / refPeak * 0.7;  // A at −26 dBFS peak, Interface at 70%
+		out.connect(ctx.destination);
+		bus = busChain(ctx, out);
+	}
+	if (ctx.state === "suspended") ctx.resume();
+	return ctx;
+}
+function play(id, part, atMs = 0, varied = true) {
+	const c = audio();
+	let v = 1, jitter = 0;
+	if (varied) {  // four variants, never the same twice running, ±25 cents, ±1 dB (§16.8)
+		let k; do { k = Math.floor(Math.random() * 4); } while (k === lastVariant); lastVariant = k;
+		v = VARIANTS[k] * 2 ** ((Math.random() * 50 - 25) / 1200); jitter = Math.random() * 2 - 1;
+	}
+	const g = c.createGain(); g.gain.value = gain[id] * db(jitter + (part === "release" ? -4 : 0)); g.connect(bus);
+	const lead = (SOUNDS[id].lead || {})[part] || 0;  // a two-stage sound starts early so its last part lands on contact
+	SOUNDS[id][part](c, g, c.currentTime + 0.005 + Math.max(0, atMs - lead) / 1000, v);
+}
+const PRESS_AT = 38, RELEASE_AT = 65;
+let held = null;
+document.addEventListener("pointerdown", (e) => { const k = e.button === 0 && e.target.closest("[data-key]"); if (k) { held = k.dataset.key; play(held, "press", PRESS_AT); } });
+document.addEventListener("pointerup", () => { if (held) { play(held, "release", RELEASE_AT); held = null; } });
+document.addEventListener("keydown", (e) => { const k = e.target.closest && e.target.closest("[data-key]"); if (k && (e.key === " " || e.key === "Enter") && !e.repeat) { held = k.dataset.key; play(held, "press", PRESS_AT); } });
+document.addEventListener("keyup", (e) => { if (held && (e.key === " " || e.key === "Enter")) { play(held, "release", RELEASE_AT); held = null; } });
+
+let timers = [];
+const stopAll = () => { timers.forEach(clearTimeout); timers = []; };
+function animatePress(key, at) {
+	timers.push(setTimeout(() => key.classList.add("is-pressed"), at));
+	timers.push(setTimeout(() => key.classList.remove("is-pressed"), at + 90));
+}
+document.addEventListener("click", async (e) => {
+	const b = e.target.closest("[data-burst]");
+	if (!b) return;
+	await ready; stopAll();
+	const id = b.dataset.burst, key = document.querySelector(`[data-key="${id}"]`);
+	for (let i = 0; i < 12; i++) {
+		const t = i * 167;  // six a second
+		animatePress(key, t);
+		timers.push(setTimeout(() => { play(id, "press", PRESS_AT); play(id, "release", 90 + RELEASE_AT); }, t));
+	}
+});
+document.getElementById("cycle").addEventListener("click", async () => {
+	await ready; stopAll();
+	OPTIONS.forEach((o, i) => {
+		const t = i * 900, key = document.querySelector(`[data-key="${o.id}"]`);
+		timers.push(setTimeout(() => { key.scrollIntoView({ block: "nearest", behavior: "smooth" }); play(o.id, "press", PRESS_AT, false); play(o.id, "release", 150 + RELEASE_AT, false); }, t));
+		animatePress(key, t); timers.push(setTimeout(() => key.classList.remove("is-pressed"), t + 150));
+	});
+});
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>
