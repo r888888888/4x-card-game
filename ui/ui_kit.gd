@@ -200,7 +200,7 @@ static func pulse(node: Control) -> void:
 	node.pivot_offset = node.size / 2
 	node.scale = Vector2.ONE * Anim.PULSE_SCALE
 	node.create_tween().tween_property(node, "scale", Vector2.ONE, Anim.PULSE_TIME) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 
 
 ## A counter's token on layer ("−2 food", "+1 pop"), centred at from (just below its counter), floating straight up

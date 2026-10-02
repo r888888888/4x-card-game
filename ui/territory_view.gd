@@ -281,4 +281,4 @@ static func _pop_in(pip: Panel) -> void:
 	pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
 	pip.scale = Vector2.ONE * 0.4
 	pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)

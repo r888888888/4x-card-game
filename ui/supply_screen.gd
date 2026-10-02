@@ -138,7 +138,6 @@ func pick(view: CardView) -> void:
 		return
 	var price := e.buy_price(id)
 	e.buy(id)
-	view.squash()
 	var wealth_from := _wealth.get_global_rect().get_center() + Vector2(0, _wealth.size.y)
 	UIKit.float_token(_fx, "−%d wealth" % price, wealth_from, UIKit.COST_COLOR, 0.0)
 	# A copy flies to the screen's Discard counter, which pulses as it lands.
