@@ -146,10 +146,7 @@ static func restore_error(e: GameEngine) -> String:
 	var price := relief(e)
 	if price.is_empty():
 		return "Order can't be bought."
-	for r in price:
-		if e.resources.get(r, 0) < price[r]:
-			return "Restoring order needs %s (you have %d)." % [Famine._amounts(price), e.resources.get(r, 0)]
-	return ""
+	return e.price_error("Restoring order", price)
 
 
 ## Pays unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if restore_error
@@ -158,10 +155,9 @@ static func restore(e: GameEngine) -> bool:
 	if restore_error(e) != "":
 		return false
 	var price := relief(e)
-	for r in price:
-		e.resources[r] -= price[r]
+	e.pay(price)
 	_end(e, active(e))
-	e._notice("Order restored (%s): choose a government." % Famine._amounts(price))
+	e._notice("Order restored (%s): choose a government." % Fields.amounts_text(price))
 	e.changed.emit()
 	return true
 
@@ -171,10 +167,7 @@ static func stir(e: GameEngine) -> void:
 	var n: int = e.config.get("unrest", {}).get("era_unrest", 0)
 	if n == 0:
 		return
-	var have: int = e.resources.get(GameEngine.UNREST, 0)
-	var limit := e.unrest_limit()
-	var added := n if limit < 0 else clampi(limit - have, 0, n)
-	e.resources[GameEngine.UNREST] = have + added
+	var added := e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + n)
 	e._notice("  A new era stirs the people: +%d unrest." % added)
 
 
@@ -222,7 +215,7 @@ static func choose_government(e: GameEngine, uid: int) -> bool:
 	e.state.pending = {}
 	var limit := e.unrest_limit()
 	if limit >= 0:
-		e.resources[GameEngine.UNREST] = mini(e.resources.get(GameEngine.UNREST, 0), limit / 2)
+		e.set_unrest(mini(e.resources.get(GameEngine.UNREST, 0), limit / 2))
 	e._resolve(card, "play")
 	e._notice("%s rules." % card.def.name)
 	e.changed.emit()
