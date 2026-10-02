@@ -66,6 +66,9 @@ func _input(event: InputEvent) -> void:
 	if not visible or not event is InputEventKey or stack.top() != self:
 		return
 	get_viewport().set_input_as_handled()
+	var sfx := Sfx.find(self)
+	if sfx != null:
+		sfx.note_input()  # the top modal takes its keys before the player could hear them (189)
 	if event.pressed and not event.echo:
 		key_pressed(event.keycode)
 

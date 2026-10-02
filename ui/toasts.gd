@@ -35,8 +35,11 @@ func _process(_delta: float) -> void:
 	_column.position = Vector2((size.x - _column.size.x) / 2, _top_bar.get_global_rect().end.y - global_position.y + 8)
 
 
-## Shows message for Anim.TOAST_TIME, then fades it out.
+## Shows message for Anim.TOAST_TIME, then fades it out, ringing the notice's bell (189).
 func notice(message: String) -> void:
+	var sfx := Sfx.find(self)
+	if sfx != null:
+		sfx.play(Sfx.NOTIFICATION_INFO)
 	var toast := _add(message)
 	var t := toast.create_tween()
 	t.tween_interval(Anim.TOAST_TIME)

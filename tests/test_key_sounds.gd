@@ -103,11 +103,12 @@ func test_a_modals_buttons_click_too() -> void:
 	var main: Node = await open_game()
 	main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
 	await wait_frames()
+	var before: int = main.sfx.played().size()  # the sheet it laid down (189)
 	var close := shown_button(main.details, "Close")
 	check(close != null, "the details' Close")
 	if close != null:
 		mouse(main, centre(close), true)
-		eq(tokens(main), [Sfx.BUTTON_PRESS], "it clicks")
+		eq(tokens(main).slice(before), [Sfx.BUTTON_PRESS], "it clicks")
 		mouse(main, centre(close), false)
 	close_game(main)
 
@@ -179,7 +180,8 @@ func test_end_turn_that_owes_a_discard_comes_up_like_any_key() -> void:
 		mouse(main, centre(end_turn), true)
 		mouse(main, centre(end_turn), false)
 		eq(e.turn, 1, "the turn didn't end: a discard is owed")
-		eq(heard(main), [[Sfx.ENDTURN_PRESS, 0.024], [Sfx.BUTTON_RELEASE, 0.047]], "press, then a plain release")
+		var keys := heard(main).filter(func(h): return h[0] != Sfx.SHEET_OPEN)  # the turn's event modal lays its sheet (189)
+		eq(keys, [[Sfx.ENDTURN_PRESS, 0.024], [Sfx.BUTTON_RELEASE, 0.047]], "press, then a plain release")
 		close_game(main))
 
 

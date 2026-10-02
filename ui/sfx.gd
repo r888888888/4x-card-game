@@ -76,10 +76,34 @@ var _played: Array[Dictionary] = []
 var _voices: Array[Dictionary] = []  # scheduled or sounding: {token, bus, level, at, end, db, player}
 var _ticks: Array[float] = []  # when recent ticks are due
 var _last_notice := -INF
+var _notice_frame := -1  # the frame a notification last played in
+var _input_frame := -1  # the frame the player last pressed or released a key or mouse button in
 
 
 func _init() -> void:
 	add_to_group(GROUP)
+
+
+## Notes the frame of the player's last key or mouse button (before any control handles it), for player_acted.
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey or event is InputEventMouseButton:
+		note_input()
+
+
+## The player pressed or released a key or button this frame (for a node that takes keys before this player's _input).
+func note_input() -> void:
+	_input_frame = Engine.get_process_frames()
+
+
+## Whether the player pressed or released a key or button this frame: a sheet or screen that changes now is their input
+## (189).
+func player_acted() -> bool:
+	return _input_frame == Engine.get_process_frames()
+
+
+## Whether a notification played this frame (a modal opening with it steps back, 189).
+func notified() -> bool:
+	return _notice_frame == Engine.get_process_frames()
 
 
 ## The sound player in node's tree (main's), or null when there is none (a component tested on its own).
@@ -169,6 +193,7 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 	if NOTIFICATIONS.has(token):
 		at = maxf(at, _last_notice + NOTICE_GAP)
 		_last_notice = at
+		_notice_frame = Engine.get_process_frames()
 	var on := bus(token)
 	var sounding := _voices.filter(func(v): return v.bus == on and v.at <= at and at < v.end)
 	if on == Settings.INTERFACE and sounding.size() >= INTERFACE_VOICES:
