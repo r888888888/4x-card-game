@@ -24,6 +24,7 @@ var drag: DragController
 var focus: CardFocus
 var modals: ModalStack  # the open modals, bottom to top (153)
 var sfx: Sfx  # every sound the UI makes (186)
+var key_sounds: KeySounds  # every button's click (187)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
@@ -237,6 +238,11 @@ func menu_motion_toggle() -> LegendKey:
 
 func menu_day_toggle() -> LegendKey:
 	return _menu.day_toggle
+
+
+## Test hook (187): the locked tip, a disabled key's reason shown at once.
+func locked_tip() -> Control:
+	return key_sounds.tip()
 
 
 ## Test hook (185): the menu's Interface sounds key.

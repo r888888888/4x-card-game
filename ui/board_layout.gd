@@ -22,6 +22,8 @@ var event_modal: EventModal
 func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_game_screen: Callable) -> void:
 	main.sfx = Sfx.new()  # first, so every component can play through it (186)
 	main.add_child(main.sfx)
+	main.key_sounds = KeySounds.new(main.sfx)  # every button main gets clicks (187)
+	main.add_child(main.key_sounds)
 	_build_board(main)
 	_build_hand(main)
 

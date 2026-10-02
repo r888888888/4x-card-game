@@ -39,6 +39,12 @@ const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fadi
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
 
+# A key's travel (§9.4, §15.1), for timing its sounds (187): down on SNAP, back up on MACHINED.
+const KEY_PRESS_TIME := 0.07
+const KEY_RELEASE_TIME := 0.12
+const ENDTURN_TURN_DELAY := 0.12  # the turn drum advances this long after End turn's relay closes
+const SOUND_OFF_GRACE := 0.25  # turning interface sounds off mutes them after this, so the key's OFF is heard
+
 # The style guide's easing curves (§9.3) as cubic-bezier control points (x1, y1, x2, y2), for timing sounds (186).
 const SNAP := Vector4(0.3, 0, 0, 1)
 const MACHINED := Vector4(0.2, 0, 0, 1)

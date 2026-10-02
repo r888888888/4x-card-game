@@ -184,22 +184,27 @@ func test_end_turn_that_owes_a_discard_comes_up_like_any_key() -> void:
 
 
 func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
-	var main: Node = await open_game()
-	var e := Game.engine
-	e.play_card(put_in_hand(e, "scout"))  # an explore choice is pending
-	await wait_frames()
-	main.sfx.set_clock(5.0)
-	var played_before: int = main.sfx.played().size()
-	var end_turn: Button = null
-	for b in UIKit.buttons_in(main):
-		if b.is_visible_in_tree() and b.disabled and b.theme_type_variation == &"AccentButton":
-			end_turn = b
-	check(end_turn != null, "End turn, disabled")
-	if end_turn != null:
-		mouse(main, centre(end_turn), true)
-		mouse(main, centre(end_turn), false)
-		eq(tokens(main).slice(played_before), [Sfx.REJECT_LOCKED], "a dead tap")
-	close_game(main)
+	await with_reduce_motion(true, func():  # the cards put in hand jump in, not fly over the top bar
+		var main: Node = await open_game()
+		var e := Game.engine
+		for i in e.config.hand_limit + 2 - e.zone("hand").size():
+			put_in_hand(e, e.zone("hand").cards[0].def.id)
+		e.end_turn()  # a discard is owed: End turn waits, disabled
+		if not main.event_modal().is_empty():  # the turn's event, drawn before the discard
+			main.event_modal_ok_button().pressed.emit()
+		await wait_frames()
+		main.sfx.set_clock(5.0)
+		var played_before: int = main.sfx.played().size()
+		var end_turn: Button = null
+		for b in UIKit.buttons_in(main):
+			if b.is_visible_in_tree() and b.disabled and b.theme_type_variation == &"AccentButton":
+				end_turn = b
+		check(end_turn != null, "End turn, disabled")
+		if end_turn != null:
+			mouse(main, centre(end_turn), true)
+			mouse(main, centre(end_turn), false)
+			eq(tokens(main).slice(played_before), [Sfx.REJECT_LOCKED], "a dead tap")
+		close_game(main))
 
 
 # --- AC4: the legend key ---
@@ -261,8 +266,8 @@ func test_with_reduce_motion_keys_sound_at_the_press_and_release() -> void:
 		mouse(main, centre(log_button), true)
 		mouse(main, centre(log_button), false)
 		var end_turn := shown_button(main, "End turn")
-		mouse(main, centre(end_turn), true)
-		mouse(main, centre(end_turn), false)
+		end_turn.grab_focus()  # by key: the open log covers it
+		press_key(main, KEY_SPACE)
 		var sounds := heard(main)
 		for s in [[Sfx.BUTTON_PRESS, 0.0], [Sfx.BUTTON_RELEASE, 0.0], [Sfx.ENDTURN_PRESS, 0.0], [Sfx.ENDTURN_COMMIT, 0.0],
 				[Sfx.ENDTURN_TURN, 0.12]]:

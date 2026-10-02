@@ -193,7 +193,7 @@ static func day_toggle() -> LegendKey:
 static func sound_toggle() -> LegendKey:
 	var key := LegendKey.new()
 	key.tooltip_text = "Clicks, panels and confirmations; event sounds stay on. Saved."
-	key.toggled.connect(Settings.set_interface_sounds)
+	key.toggled.connect(func(on: bool): Settings.set_interface_sounds(on, Anim.SOUND_OFF_GRACE))
 	return key
 
 
