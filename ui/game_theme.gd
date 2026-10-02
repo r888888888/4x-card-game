@@ -29,6 +29,7 @@ static func build() -> Theme:
 	_label(t, "BodySmall", Tokens.TYPE_BODY_S, Palette.TEXT)
 	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
 	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
+	_label(t, "CardTitle", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a card's name, bold beside its rules (198)
 	_label(t, "BarStat", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # body size like the bar's buttons, so it fits 1920 px (144)
 	t.set_type_variation("RichBody", "RichTextLabel")  # modal text and the log (194)
 	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:

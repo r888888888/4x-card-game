@@ -61,7 +61,7 @@ variation; set it with `theme_type_variation`.
 | `type.display` | 40 | `Display` (Jost): the start screen's title, game over |
 | `type.title` | 28 | `Title` (Jost), `UIKit.title()`; the header's `Link` |
 | `type.heading` | 15 | `Heading` (SemiCondensed SemiBold, tracked), `UIKit.heading()` sets capitals; text stays as written |
-| `type.body` | 20 | theme default, `Body`, `RichBody` (modal text, the log), `BarStat`, card names and rules |
+| `type.body` | 20 | theme default, `Body`, `RichBody` (modal text, the log), `BarStat`, `CardTitle` (card names, semibold: 198), card rules |
 | `type.body-s` | 17 | `BodySmall`; card subtitles, keywords, the reason strip |
 | `type.label-caps` / `caption` | 14 | `Caption`; the card badge, the legend key |
 | `type.numeral` / `numeral-s` | 26 / 17 | `Stat`; small card figures (VP on a frontier card) |

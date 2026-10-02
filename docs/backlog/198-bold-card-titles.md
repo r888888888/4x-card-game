@@ -2,7 +2,7 @@
 id: 198
 title: Card names in bold
 type: feature
-status: red-review
+status: review
 branch: feat/198-bold-card-titles
 ---
 
@@ -11,11 +11,11 @@ A card's name stands out from its rules at a glance, as on the specimen's index 
 `.mh`: Barlow Semi Condensed 600).
 
 ## Acceptance criteria
-- [ ] AC1: Given any card face (a hand card, a Realm card, a frontier territory, a supply card, a choice overlay's
+- [x] AC1: Given any card face (a hand card, a Realm card, a frontier territory, a supply card, a choice overlay's
   card), then its name label uses the `CardTitle` theme variation, whose font is `GameTheme`'s semibold label face
   (`BarlowSemiCondensed-SemiBold.ttf`) at `Tokens.TYPE_BODY`.
-- [ ] AC2: The rest of the face (type line, rules, cost figures, info line) keeps its current font.
-- [ ] AC3: Card details (`CardDetailsModal`) and the territory view's box title are unchanged (they already use the
+- [x] AC2: The rest of the face (type line, rules, cost figures, info line) keeps its current font.
+- [x] AC3: Card details (`CardDetailsModal`) and the territory view's box title are unchanged (they already use the
   Title variation).
 
 ## Out of scope
@@ -37,3 +37,5 @@ A card's name stands out from its rules at a glance, as on the specimen's index 
 
 ## Log
 - Specced 2026-10-02 from the notes list.
+- 2026-10-02: `GameTheme`'s `CardTitle` variation; `CardFace.title_label` builds every face's name with it (hand and tableau
+  faces, board faces), so the details modal's card, the supply and the choice overlays follow.
