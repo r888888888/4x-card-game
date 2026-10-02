@@ -6,7 +6,7 @@ extends RefCounted
 
 var overlay: Control
 var header: ScreenHeader
-var motion_toggle: Button
+var motion_toggle: LegendKey
 var back_button: Button  # the header's
 
 
@@ -20,7 +20,7 @@ func _init(parent: Control, nav: Navigator) -> void:
 	box.add_child(header)
 	back_button = header.back_button
 	motion_toggle = UIKit.motion_toggle()
-	UIKit.button_column(box, [motion_toggle])
+	UIKit.button_column(box, [UIKit.setting_row("Reduce motion", motion_toggle)])
 	UIKit.focus_loop([back_button, motion_toggle])
 
 

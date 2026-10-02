@@ -146,19 +146,30 @@ static func button_column(parent: Control, controls: Array[Control]) -> VBoxCont
 	return column
 
 
-## The Reduce motion toggle: a button that says its state in words (a checkbox's box is hard to read on this
-## background). Toggling it sets and saves the setting; show_motion matches it to the setting.
-static func motion_toggle() -> Button:
-	var toggle := button("", func(): pass)
-	toggle.toggle_mode = true
-	toggle.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
-	toggle.toggled.connect(Settings.set_reduce_motion)
-	return toggle
+## The Reduce motion key (182): a LegendKey that latches while the setting is on. Toggling it sets and saves the
+## setting; show_motion matches it to the setting. Put it on screen with setting_row.
+static func motion_toggle() -> LegendKey:
+	var key := LegendKey.new()
+	key.tooltip_text = "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
+	key.toggled.connect(Settings.set_reduce_motion)
+	return key
 
 
-static func show_motion(toggle: Button, calm: bool) -> void:
-	toggle.set_pressed_no_signal(calm)
-	toggle.text = "Reduce motion: %s" % ("on" if calm else "off")
+static func show_motion(key: LegendKey, calm: bool) -> void:
+	key.set_pressed_no_signal(calm)
+
+
+## A setting's row (182): its name on the left and key on the right, filling the width it is given (a button column's).
+static func setting_row(text: String, key: Control) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	var label := Label.new()
+	label.text = text
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(label)
+	row.add_child(key)
+	return row
 
 
 ## Keeps keyboard focus inside controls: Tab/Shift+Tab and Up/Down wrap around them; Left/Right stay put.

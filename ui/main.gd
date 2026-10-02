@@ -228,6 +228,11 @@ func menu_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_menu.overlay)
 
 
+## Test hook (182): the menu's Reduce motion key.
+func menu_motion_toggle() -> LegendKey:
+	return _menu.motion_toggle
+
+
 ## Test hook (067): the game-over overlay's buttons, in order.
 func game_over_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_game_over.overlay)

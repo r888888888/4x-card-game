@@ -2,7 +2,7 @@
 id: 182
 title: The legend key for Reduce motion
 type: feature
-status: red-review
+status: in-progress
 branch: feat/182-legend-key-toggle
 ---
 

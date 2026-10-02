@@ -88,7 +88,8 @@ func test_menu_and_game_over_columns_share_one_width() -> void:
 	main.open_menu()
 	await wait_frames()
 	var key: Control = main.menu_motion_toggle()
-	var column: Array = main.menu_buttons().filter(func(b): return b != key)
+	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the row isn't one
+	column.assign(main.menu_buttons().filter(func(b): return b != key))
 	column.insert(2, key.get_parent())  # 182: the Reduce motion row stands where the toggle button was
 	check_column(column, "menu")
 	press_key(main, KEY_ESCAPE)
