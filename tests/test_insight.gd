@@ -114,7 +114,8 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_tags_its_change() -> v
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.INSIGHT)
 	check(counter != null and counter.is_visible_in_tree(), "an Insight counter in the top bar")
-	eq(main.counter_text(GameEngine.INSIGHT), "0 (+1)", "insight and its forecast")
+	eq(main.counter_text(GameEngine.INSIGHT), "0", "insight")
+	eq(forecast(main, GameEngine.INSIGHT), "+1", "its forecast apart (201)")
 	Game.engine.resources["insight"] = 3
 	Game.engine.changed.emit()
 	await wait_frames()
@@ -122,3 +123,8 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_tags_its_change() -> v
 	eq(tag.text if tag != null else "", "+3", "a +3 tag beside Insight (181)")
 	close_main(main)
 	Game.engine = real
+
+
+## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
+func forecast(main: Node, key: String) -> String:
+	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"

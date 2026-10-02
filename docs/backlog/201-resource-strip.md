@@ -2,7 +2,7 @@
 id: 201
 title: The resource strip in the specimen's style
 type: feature
-status: ready
+status: red-review
 branch: feat/201-resource-strip
 ---
 
@@ -36,6 +36,16 @@ a large glyph and figure, with next upkeep's change beside it as a separate, qui
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_counters::test_the_turn_shows_as_a_plate_with_the_limit_in_its_tooltip`; changed: `test_counters::test_each_counter_text_is_that_counters_text`, `test_resource_glyphs::test_the_counters_read_figures_only` ("T 001") |
+| AC2 | `test_counters::test_each_resource_shows_its_forecast_as_a_separate_quieter_figure`; changed to figure + `forecast_text`: `test_counters::test_the_food_counter_text_is_the_reading_the_bar_shows`, `test_resource_glyphs::test_the_counters_read_figures_only`, `test_insight::test_the_top_bar_shows_insight_with_its_forecast_and_tags_its_change`, `test_resource_tokens::test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once` |
+| AC3 | changed: `test_unrest::test_the_top_bar_shows_unrest_out_of_the_limit_and_tags_its_change` ("2 / 5", "+1"), `test_the_top_bar_shows_unrest_alone_without_a_limit` |
+| AC4 | `test_counters::test_score_and_pop_show_no_forecast` |
+| AC5 | `test_counters::test_the_figures_are_numerals_beside_20_px_glyphs`; the roll and tags: existing `test_odometer`, `test_resource_tokens` |
+| AC6 | `test_counters::test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right` (passes once 203 has moved End turn) |
+
+Decisions: the plate is a Label in a new `Plate` variation (tabular numerals on a FIELD well) and is
+`counter(TopBar.TURN)`; `main.forecast_text(key)` is "" for a counter with no forecast; tests read it through a
+`forecast(main, key)` helper so a missing hook fails the test without crashing the rest of the run.
 
 ## Manual check
 - [ ] Compare with `docs/design/transitions.html`'s strip in both palettes: plate, figure size, forecast spacing.
