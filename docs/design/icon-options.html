@@ -79,7 +79,7 @@ section { margin-bottom: var(--space-6); }
 	<button class="plain" id="theme">Paper / Night</button>
 </header>
 <main>
-	<p class="intro">Candidates for food, wealth, insight and unrest, drawn to the guide's icon rules (§8): a 24 grid, one 2 px stroke scaled with size, square caps and mitred joins, circles, arcs, squares and straight lines only, five primitives at most. Each is shown large, at the resource bar's 32 px beside a value window, and at the cost plate's 20 px. The current glyph is first in each row, on a darker tile. The last section puts the recommended set beside pop, score and the card-type marks to check they stay distinct.</p>
+	<p class="intro">Candidates for food, wealth, insight and unrest, drawn to the guide's icon rules (§8): a 24 grid, one 2 px stroke scaled with size, square caps and mitred joins, circles, arcs, squares and straight lines only, five primitives at most. Each is shown large, at the resource bar's 32 px beside a value window, and at the cost plate's 20 px. The current glyph is first in each row, on a darker tile. The last section puts the chosen set beside pop, score and the card-type marks to check they stay distinct.</p>
 	<div id="sections"></div>
 </main>
 <script>
@@ -108,22 +108,30 @@ const RES = [
 	{ id: "insight", name: "Insight", hue: "blue", cands: [
 		{ key: "current", name: "Current: lens", svg: '<circle cx="12" cy="12" r="7"/><rect x="11" y="11" width="2" height="2" fill="currentColor"/>',
 			note: "Reads as a radio button or a target." },
-		{ key: "book", name: "Open book", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/>',
-			note: "Learning and record-keeping, which is what insight buys (techs). Clear at every size.", pick: true },
-		{ key: "compass", name: "Drafting compass", svg: '<circle cx="12" cy="5" r="2"/><path d="M11 7L6 21M13 7l5 14M8 15h8"/>',
-			note: "Science and design; fits the drafting-desk theme. A little thin at 20 px." },
-		{ key: "bulb", name: "Lamp", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
-			note: "The universal 'idea' sign. Anachronistic for early eras, and close to the UI's indicator lamps." },
+		{ key: "bulb", name: "Bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
+			note: "The current pick: a bulb on a two-step base. Plain and universal. Indicator lamps stay plain discs so the two never meet.", pick: true },
+		{ key: "bulb-rays", name: "Lit bulb", svg: '<circle cx="12" cy="12" r="5"/><path d="M10 17.5V20h4v-2.5M12 2v3M4.9 4.9l2.1 2.1M19.1 4.9L17 7M2 12h3M19 12h3"/>',
+			note: "The bulb with five short rays: the 'idea' sign in full. Clearest meaning, busiest shape; the rays crowd it at 20 px." },
+		{ key: "oil", name: "Oil lamp", svg: '<path d="M4 13h12a6 6 0 0 1-12 0z"/><path d="M16 13l5-3M7 22h6"/><path d="M20 2l2.2 3.8a2.2 2.2 0 1 1-4.4 0z"/>',
+			note: "The lamp of learning from the ancient world: a bowl, a spout and its flame. Fits a civilization game's early eras; the flame is small at 20 px." },
+		{ key: "pendant", name: "Pendant lamp", svg: '<path d="M12 2v5"/><path d="M3 16a9 9 0 0 1 18 0z"/><circle cx="12" cy="19" r="2"/>',
+			note: "A mid-century dome pendant (Poul Henningsen, Nelson): a cord, a shade and the bulb beneath. Ties insight to the style itself; bold and clear at every size." },
+		{ key: "desk", name: "Drafting lamp", svg: '<path d="M3 21h9M7 21L5 12l8-6"/><path d="M13 6l6 4-4 4z"/>',
+			note: "An architect's anglepoise: base, two arms and a shade. Belongs on the planning desk; the most detailed of the set and the hardest to read small." },
+		{ key: "filament", name: "Filament bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4M9.5 10l1.25 2 1.25-2 1.25 2 1.25-2"/>',
+			note: "The bulb with a zigzag filament inside: says 'lit' without rays. Holds its outline at 20 px, though the filament fills in." },
+		{ key: "lantern", name: "Lantern", svg: '<circle cx="12" cy="3.5" r="1.5"/><rect x="7" y="7" width="10" height="12"/><path d="M5 21h14"/><path d="M12 9.5l1.8 3a1.8 1.8 0 1 1-3.6 0z"/>',
+			note: "A square lantern with a flame inside: era-neutral light carried into the dark. Reads as a lantern at 32 px; at 20 px the flame is a speck." },
 	] },
 	{ id: "unrest", name: "Unrest", hue: "brick", cands: [
 		{ key: "current", name: "Current: zigzag triangle", svg: '<path d="M12 3l9 17H3z"/><path d="M9 15l2-3 2 3 2-3"/>',
 			note: "Reads as a generic warning sign, which the UI already uses for caution." },
-		{ key: "flame", name: "Flame", svg: '<path d="M12 3l5.5 9a6 6 0 1 1-11 0z"/><path d="M12 13l2.5 4a2.8 2.8 0 1 1-5 0z"/>',
-			note: "Fire in the streets. Distinct from every other glyph; the inner tongue keeps it from reading as a drop.", pick: true },
-		{ key: "torch", name: "Torch", svg: '<path d="M12 22v-9M8 13h8M12 3l3 6a3 3 0 0 1-6 0z"/>',
-			note: "A raised torch: revolt more than discontent. Small flame at 20 px." },
-		{ key: "fracture", name: "Fracture", svg: '<rect x="4" y="4" width="16" height="16"/><path d="M13 4l-3 6 4 3-3 7"/>',
-			note: "Order cracking. Abstract and fits the anarchy mechanic; could read as 'broken image'." },
+		{ key: "bolt", name: "Bolt", svg: '<path d="M13 2L5 13h6l-1 9 8-11h-6z"/>',
+			note: "The classic outlined bolt. Reads as agitation and danger; could also read as power or energy." },
+		{ key: "bolt-line", name: "Single-stroke bolt", svg: '<path d="M15 2L8 12h8l-7 10"/>',
+			note: "One zigzag line, like a signage bolt. Lightest of the three; strong at 20 px, thin at 48." },
+		{ key: "bolt-solid", name: "Solid bolt", svg: '<path d="M13 2L5 13h6l-1 9 8-11h-6z" fill="currentColor"/>',
+			note: "The outlined bolt filled. Heaviest presence: unrest is the one resource that's bad to have, and the solid shape says so. The guide's one solid resource glyph.", pick: true },
 	] },
 ];
 const OTHERS = [
@@ -144,7 +152,7 @@ document.getElementById("sections").innerHTML = RES.map((r) => `
 		<div class="titleblock"><h2>${r.name}</h2><span class="caps">${r.hue}</span></div>
 		<div class="cands">${r.cands.map((c) => `
 			<div class="cand ${c.key === "current" ? "current" : ""}">
-				<h3>${c.name}${c.pick ? '<span class="pick">Recommended</span>' : ""}</h3>
+				<h3>${c.name}${c.pick ? '<span class="pick">Chosen</span>' : ""}</h3>
 				<div class="sizes">
 					<span class="big">${icon(c.svg, r.hue, 48)}</span>
 					<span class="window">${icon(c.svg, r.hue, 32)}<span class="val">12</span></span>
@@ -155,7 +163,7 @@ document.getElementById("sections").innerHTML = RES.map((r) => `
 		</div>
 	</section>`).join("") + `
 	<section>
-		<div class="titleblock"><h2>Recommended set, side by side</h2><span class="caps">distinct at 32 px</span></div>
+		<div class="titleblock"><h2>Chosen set, side by side</h2><span class="caps">distinct at 32 px</span></div>
 		<div class="lineup">
 			${RES.map((r) => { const c = r.cands.find((x) => x.pick); return `<figure>${icon(c.svg, r.hue, 32)}<figcaption>${r.name}</figcaption></figure>`; }).join("")}
 			${OTHERS.map((o) => `<figure>${icon(o.svg, o.hue, 32)}<figcaption>${o.name}</figcaption></figure>`).join("")}

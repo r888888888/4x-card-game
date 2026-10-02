@@ -148,11 +148,11 @@ never the only cue.
 
 | Game thing | Hue | Glyph (§8) |
 |---|---|---|
-| Food | Ochre | Sheaf: a circle split by a vertical line, three short ticks |
-| Wealth | Olive | Ledger: a square with one horizontal bar |
-| Insight | Muted blue | Lens: a ring with a centred dot |
+| Food | Ochre | Wheat ear: a stem with three pairs of grains |
+| Wealth | Olive | Cash coin: a ring with a square hole |
+| Insight | Muted blue | Lamp: a bulb on a two-step base (indicator lamps stay plain discs so the two never meet) |
 | Pop | Teal | Figure: a circle over a half-disc |
-| Unrest | Brick | Zigzag in a triangle |
+| Unrest | Brick | Lightning bolt, solid: the one solid resource glyph, because unrest is the one resource that is bad to have |
 | Score (VP) | Ink | Eight-point starburst |
 | Action card | Muted blue | Diamond ◆ |
 | Building card | Olive | Square ■ |
@@ -314,8 +314,8 @@ end. Rules text below a hairline. VP bottom-right with the starburst. No drop sh
 **Cost is always top-right**, on every card type, on the name's line: one `well` plate (1 px inner `rule`) holding
 one **cost entry per resource paid**, in a fixed order: food, wealth, insight. Each entry is the resource's glyph
 (`icon.m` 20, the resource's hue line) followed by its figure (`type.numeral-s`, `ink`); entries are divided by a
-1 px `rule`. A Granary costing 1 food and 2 wealth reads `[⊕ 1 | ▭ 2]`. The **glyph's shape** tells food from
-wealth (sheaf vs ledger), and the hue repeats it, so the two never depend on colour; the plate's accessible name
+1 px `rule`. A Granary costing 1 food and 2 wealth reads `[wheat 1 | coin 2]`. The **glyph's shape** tells food from
+wealth (wheat ear vs coin), and the hue repeats it, so the two never depend on colour; the plate's accessible name
 spells it out ("Costs 1 food, 2 wealth"). A card with no cost shows no plate (never a 0). A resource the player is
 short of prints its figure in `danger`, underlined 2 px, so the reason a card is dimmed is visible on the cost itself.
 
@@ -386,7 +386,7 @@ Icons are drawn on a **24 px grid with a 2 px live-area margin** (20 px live are
 | Corners | Sharp. Curves are true circular arcs only (compass-and-ruler geometry). |
 | Primitives | Circle, square, equilateral triangle, straight lines at 0°/45°/90°. No freehand. |
 | Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration, not an icon. |
-| Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". |
+| Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". One standing exception: the unrest bolt is always solid, so the one harmful resource never looks like the others. |
 | Active / inactive | Active: `ink` (or its hue line), filled where the icon has a fill state. Inactive: `ink-2`, outlined. Disabled: `ink-3`, outlined, never with a strike-through unless it means "blocked" (⊘). |
 | Colour | Single colour. Icons take the colour of their text unless they *are* the key (resource glyphs). |
 | Animation | Icons don't animate by themselves. They may: switch outline→fill in one frame (snap); rotate a part about a centre in 90° steps (a dial, a refresh); pulse their lamp. Never morph, never bounce. |
@@ -692,7 +692,7 @@ state directly.
 | Plain warm off-white paper | Paper texture, coffee stains, wood grain, leather |
 | Plex Mono in a split-flap window | A pixel or LCD segment font |
 | Era change as a ceremonial sheet | Era change as confetti |
-| Cost top-right as `[⊕ 1 \| ▭ 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
+| Cost top-right as `[wheat 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
 | A drawn slide switch with a ribbed thumb and a flag | A rounded pill track with a circle thumb |
 
 ---

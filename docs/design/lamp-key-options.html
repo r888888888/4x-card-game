@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lamp Key Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--knob: #FBF8F2; --on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--knob: #57524A; --on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.group { display: inline-flex; align-items: center; gap: var(--space-2); }
+.group .caps { margin-right: var(--space-1); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 10px; cursor: pointer; }
+.plain[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 74ch; margin: 0 0 var(--space-6); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 4px; padding: 4px; background: var(--shadow); }
+.opt { background: var(--sheet); padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.opt h2 { margin: 0; font: 500 22px/28px var(--f-display); display: flex; gap: var(--space-3); align-items: baseline; }
+.opt h2 b { font-weight: 500; color: var(--ink-2); }
+.opt p { margin: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
+.demo { border-top: 1px solid var(--rule-fine); }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 52px; border-bottom: 1px solid var(--rule-fine); }
+.setting > span { font: 500 17px/20px var(--f-cond); }
+.state { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); width: 30px; }
+button.sw { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); display: inline-flex; align-items: center; gap: var(--space-3); font: inherit; }
+
+/* Lamp hue, chosen at the top of the page. */
+:root { --lamp: var(--p-sage); --lamp-line: var(--l-sage); }
+:root[data-lamp="amber"] { --lamp: var(--p-ochre); --lamp-line: var(--l-ochre); }
+:root[data-lamp="teal"] { --lamp: var(--p-teal); --lamp-line: var(--l-teal); }
+
+/* ---- The key every variant shares ----
+   REST: up on a 2 px plinth. While held: 3 px over-travel onto the shadow. Released ON: latches at 2 px (the shadow
+   stays hidden, so it reads as held down). Released OFF: springs back to 0. */
+.key {
+	position: relative; display: inline-grid; place-items: center; flex: none;
+	width: 32px; height: 32px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1);
+	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), background-color 40ms linear;
+}
+[aria-checked="true"] .key { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.sw:active .key { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+
+/* A lamp element: off is a recessed window, on is the plane colour with its line edge. */
+.lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ease-lamp-off), box-shadow 160ms var(--ease-lamp-off); }
+[aria-checked="true"] .lamp { background: var(--lamp); box-shadow: inset 0 0 0 1px var(--lamp-line); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+
+/* 1 · Window bar (the original C) */
+.v-bar .lamp { width: 14px; height: 6px; }
+
+/* 2 · Pilot dot: a round lamp in the face's top-left corner */
+.v-dot .key { place-items: start; padding: 5px; }
+.v-dot .lamp { width: 8px; height: 8px; border-radius: 50%; }
+
+/* 3 · Lit face: the whole key face is the lamp; legend printed on it */
+.v-face .key { width: 52px; font: 600 12px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
+.v-face [aria-checked="true"] .key { background: var(--lamp); color: var(--on-plane); }
+
+/* 4 · Legend key: a lamp strip across the top of a wider key, the legend below it on the face */
+.v-legend .key { width: 56px; height: 36px; grid-template-rows: 6px 1fr; place-items: stretch; padding: 4px; gap: 3px; }
+.v-legend .lamp { height: 6px; }
+.v-legend .legend { display: grid; place-items: center; font: 600 12px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
+.v-legend [aria-checked="true"] .legend { color: var(--ink); }
+
+/* 5 · Collar: the key sits in a recessed collar; latching sinks it into the collar */
+.v-collar .collar { display: inline-grid; place-items: center; width: 44px; height: 44px; background: var(--well); box-shadow: inset 2px 2px 0 var(--shadow), inset 0 0 0 1px var(--rule); }
+.v-collar .key { width: 30px; height: 30px; transform: translate(-2px, -2px); }
+.v-collar [aria-checked="true"] .key { transform: translate(0, 0); }
+.v-collar .sw:active .key { transform: translate(1px, 1px); }
+.v-collar .lamp { width: 12px; height: 5px; }
+
+/* 6 · Key and pilot lamp: a plain key; the lamp sits in the panel beside it */
+.v-pilot .lamp { width: 12px; height: 12px; border-radius: 50%; }
+.v-pilot .key::after { content: ""; width: 12px; height: 2px; background: var(--ink-2); }
+
+/* 7 · Sill: a lamp strip along the key's bottom edge, full width */
+.v-sill .key { place-items: end stretch; padding: 0; overflow: hidden; }
+.v-sill .lamp { height: 6px; box-shadow: inset 0 1px 0 var(--rule); }
+.v-sill [aria-checked="true"] .lamp { box-shadow: inset 0 1px 0 var(--lamp-line); }
+
+/* 9 · Centre lens: a round lamp lens in the middle of the face */
+.v-lens .lamp { width: 12px; height: 12px; border-radius: 50%; }
+
+/* 8 · Lit legend: the legend itself is the lamp; the key face stays steel */
+.v-glyph .key { width: 44px; }
+.v-glyph .legend { font: 600 13px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-3); transition: color 160ms var(--ease-lamp-off); }
+.v-glyph [aria-checked="true"] .legend { color: var(--lamp-line); transition-duration: 40ms; }
+.v-glyph [aria-checked="true"] .key { border-color: var(--lamp-line); }
+</style>
+</head>
+<body>
+<header>
+	<h1>Latching lamp key</h1>
+	<span class="group"><span class="caps">Lamp</span>
+		<button class="plain" data-lamp="sage" aria-pressed="true">Sage</button>
+		<button class="plain" data-lamp="amber" aria-pressed="false">Amber</button>
+		<button class="plain" data-lamp="teal" aria-pressed="false">Teal</button></span>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Nine takes on one square push key that latches down when ON and lights a lamp. They share the same mechanism: at rest it stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays latched 2 px down with its shadow hidden; released OFF it springs back. They differ in where the light is and how much of the key it takes. Press and hold one to feel the over-travel. The lamp colour is chosen at the top.</p>
+	<div class="grid" id="grid"></div>
+</main>
+<script>
+const VARIANTS = [
+	{ cls: "v-bar", name: "Window bar", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
+		text: "The original: a small lamp window across the middle of the face. Balanced; the light is the key's only mark." },
+	{ cls: "v-dot", name: "Pilot dot", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
+		text: "A round pilot lamp in the face's top-left corner, the rest of the face blank. The quietest; the dot matches the indicator lamps elsewhere." },
+	{ cls: "v-face", name: "Lit face", words: false, body: (on) => `<span class="key">${on ? "ON" : "OFF"}</span>`,
+		text: "The whole face lights, with the legend printed on it: Mission Control's illuminated keys. The boldest; a lit key reads from across the room, but a column of them is loud." },
+	{ cls: "v-legend", name: "Legend key", words: false, body: (on) => `<span class="key"><span class="lamp"></span><span class="legend">${on ? "ON" : "OFF"}</span></span>`,
+		text: "A wider key with a lamp strip across the top and the legend below it. Self-describing, no state word beside it; the most information per key." },
+	{ cls: "v-collar", name: "Collar", words: true, body: () => '<span class="collar"><span class="key"><span class="lamp"></span></span></span>',
+		text: "The key stands in a recessed collar and sinks into it when latched. The depth is the clearest of all, at the cost of a larger footprint." },
+	{ cls: "v-pilot", name: "Key and pilot lamp", words: true, body: () => '<span class="lamp"></span><span class="key"></span>',
+		text: "A plain key with one engraved line, and a separate lamp in the panel beside it. Splits control from indicator, as a real panel would." },
+	{ cls: "v-sill", name: "Sill", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
+		text: "A lamp strip along the key's bottom edge, the full width. Reads like a lit sill under the key; distinctive without being loud." },
+	{ cls: "v-glyph", name: "Lit legend", words: false, body: (on) => `<span class="key"><span class="legend">${on ? "ON" : "OFF"}</span></span>`,
+		text: "The legend is the lamp: printed dim when OFF, lit in the lamp colour when ON, with the key's edge lit to match. No separate light at all." },
+	{ cls: "v-lens", name: "Centre lens", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
+		text: "A round lens in the middle of the face, like a panel indicator built into the key. Uses the same disc as the indicator lamps elsewhere, so a lit key and a lit lamp mean the same thing." },
+];
+const control = (v, on) => `<button class="sw" role="switch" aria-checked="${on}">${v.body(on)}${v.words ? `<span class="state">${on ? "ON" : "OFF"}</span>` : ""}</button>`;
+document.getElementById("grid").innerHTML = VARIANTS.map((v, i) => `
+	<div class="opt ${v.cls}" data-i="${i}">
+		<h2><b>${i + 1}</b>${v.name}</h2>
+		<p>${v.text}</p>
+		<div class="demo">
+			<div class="setting"><span>Reduce motion</span>${control(v, false)}</div>
+			<div class="setting"><span>Show forecasts</span>${control(v, true)}</div>
+		</div>
+	</div>`).join("");
+document.addEventListener("click", (e) => {
+	const sw = e.target.closest("button.sw");
+	if (sw) {
+		const on = sw.getAttribute("aria-checked") !== "true";
+		sw.setAttribute("aria-checked", on);
+		sw.querySelectorAll(".state, .legend").forEach((el) => { el.textContent = on ? "ON" : "OFF"; });
+		const face = sw.closest(".v-face") && sw.querySelector(".key");
+		if (face) face.textContent = on ? "ON" : "OFF";
+		return;
+	}
+	const hue = e.target.closest("[data-lamp]");
+	if (hue) {
+		document.documentElement.dataset.lamp = hue.dataset.lamp;
+		document.querySelectorAll("[data-lamp]").forEach((b) => b.setAttribute("aria-pressed", b === hue));
+	}
+});
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>
