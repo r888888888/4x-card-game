@@ -177,11 +177,11 @@ func test_top_bar_counts_actions_and_spent_hands_dim() -> void:
 	main.start_game(1)
 	await wait_frames()
 	var e: GameEngine = Game.engine
-	eq(label_text(main, "Actions:"), "Actions: 2 / 2", "at the start")
+	eq(main.actions_label.text, "2 / 2", "at the start (204: on the heading's line)")
 	var uids := shrines(e, 3)
 	e.play_card(uids[0])
 	await wait_frames()
-	eq(label_text(main, "Actions:"), "Actions: 1 / 2", "after a play")
+	eq(main.actions_label.text, "1 / 2", "after a play")
 	e.play_card(uids[1])
 	await wait_frames()
 	var view: CardView = main.views.get(uids[2])
@@ -191,6 +191,45 @@ func test_top_bar_counts_actions_and_spent_hands_dim() -> void:
 	main = open_main()
 	main.start_game(1)
 	await wait_frames()
-	eq(labels_starting(main, "Actions:").size(), 0, "no counter with unlimited actions")
+	check(not main.actions_label.is_visible_in_tree(), "no counter with unlimited actions")
+	close_main(main)
+	Game.engine = real
+
+
+# --- 204: "In Hand" with the count on its line ---
+
+const HOW_TO := "Drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards."
+
+
+func test_the_hand_is_headed_in_hand_with_the_how_to_as_its_tooltip() -> void:
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	var hand: Array = main.section_headings().filter(func(h): return h.text == "In Hand")
+	eq(hand.size(), 1, "an In Hand heading: %s" % [main.section_headings()])
+	if hand.size() == 1:
+		eq(hand[0].tooltip, HOW_TO, "the how-to is its tooltip")
+	close_main(main)
+
+
+func test_the_actions_count_sits_right_on_the_headings_line() -> void:
+	var real := Game.engine
+	Game.engine = gov_engine("band")
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	var count: Label = main.actions_label
+	eq(count.text, "2 / 2", "actions left / per turn")
+	eq(count.tooltip_text, "Actions left this turn", "its tooltip")
+	var headings: Array = main.find_children("*", "Label", true, false).filter(func(l): return l.text == "In Hand")
+	check(headings.size() == 1, "one In Hand heading")
+	var heading: Label = headings[0] if headings.size() == 1 else null
+	var hand: Rect2 = main.hand_scroll.get_global_rect()
+	var r := count.get_global_rect()
+	check(absf(r.end.x - hand.end.x) <= 1.0, "right-aligned to the hand: ends %d, hand ends %d" % [r.end.x, hand.end.x])
+	if heading != null:
+		var h := heading.get_global_rect()
+		check(absf(r.get_center().y - h.get_center().y) <= 4.0, "on the heading's line: %d vs %d" % [r.get_center().y, h.get_center().y])
+	eq(labels_starting(main, "Actions:").size(), 0, "no 'Actions: N / M' label")
 	close_main(main)
 	Game.engine = real

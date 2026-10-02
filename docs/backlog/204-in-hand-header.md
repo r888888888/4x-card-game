@@ -2,7 +2,7 @@
 id: 204
 title: "In Hand" heading with the actions count on its line
 type: feature
-status: ready
+status: red-review
 branch: feat/204-in-hand-header
 ---
 
@@ -25,6 +25,10 @@ tooltip, and the actions count sits right-aligned on the same line as "2 / 2".
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_actions::test_the_hand_is_headed_in_hand_with_the_how_to_as_its_tooltip`; changed: `test_board_row::test_the_only_section_headings_are_realm_and_hand` (whole heading texts), `test_board_labels::test_the_tableau_section_is_headed_realm_and_the_hand_hint_says_realm` (the hint is the tooltip) |
+| AC2 | `test_actions::test_the_actions_count_sits_right_on_the_headings_line`; changed: `test_actions::test_top_bar_counts_actions_and_spent_hands_dim` ("2 / 2", "1 / 2") |
+| AC3 | `test_actions::test_top_bar_counts_actions_and_spent_hands_dim` (Council: the count hidden) |
+| AC4 | `test_actions::test_the_actions_count_sits_right_on_the_headings_line` (no "Actions:" label) |
 
 ## Manual check
 - [ ] The count lines up with the hand's right edge (left of the sidebar) at 1280×720 and 1920×1080.
