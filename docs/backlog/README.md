@@ -60,5 +60,6 @@ Mid-century restyle (UI only, from [docs/design/mcm-style-guide.md](../design/mc
 4. 180 resource glyphs and glyph costs
 5. 181 odometer counters and +N tags
 6. 182 the legend key for Reduce motion
+7. 183 Day mode: the Paper palette, switched at once (needs 178 and 182)
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
