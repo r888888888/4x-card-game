@@ -2,7 +2,7 @@
 id: 157
 title: Theocracy slows research: an insight-per-gain modifier
 type: feature
-status: ready
+status: red-review
 branch: feat/157-insight-per-gain-modifier
 ---
 
@@ -31,6 +31,10 @@ VP it gives cost research. From `spike/revolution`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_insight_per_gain_loads_with_its_text`, `test_insight_per_gain_validation` |
+| AC2 | `test_a_gain_of_3_insight_adds_2_and_a_gain_of_1_adds_0`, `test_an_upkeep_gain_of_insight_is_lowered_too`, `test_the_log_reports_what_was_added` |
+| AC3 | `test_two_modifiers_add_up`, `test_gain_per_tag_per_keyword_and_trade_are_one_gain_each` |
+| AC4 | `test_the_forecast_reflects_the_modifier`, `test_other_resources_and_insight_losses_are_unchanged` |
 
 ## Manual check
 - [ ] Real data: Theocracy's card text says "Each insight gain −1."; under it a Library's ⟳ +2 insight gives +1.
