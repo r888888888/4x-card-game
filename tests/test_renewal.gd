@@ -157,3 +157,18 @@ func test_the_bot_breaks_renewal_ties_by_discard_order() -> void:
 	var e := renewal_engine(["shrine", "scout"])
 	ScriptedBot.take_turn(e, "baseline")
 	eq(card_ids(e.zone("trashed")), ["shrine"] as Array[String], "Shrine and Scout both 0: the first")
+
+
+# --- 175 AC1: no hand card can be picked up while renewal is owed ---
+
+func test_a_hand_card_cant_be_dragged_while_renewal_is_owed() -> void:
+	await with_main(anarchy_engine(RENEWAL), func(main: Node):
+		var e := Game.engine
+		e.create_card("farm", "discard", null)
+		e.resources["unrest"] = 5
+		e.end_turn()
+		await wait_frames()
+		eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
+		var view: CardView = main.views[first_in_hand(e)]
+		view.drag_requested.emit(view, Vector2.ZERO)
+		check(main.drag.dragging == null, "no drag started"))

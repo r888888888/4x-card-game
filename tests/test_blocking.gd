@@ -172,3 +172,20 @@ func test_every_action_sits_under_actions_beside_its_error_query() -> void:
 		check(at != -1, "%s under # --- Actions ---" % name)
 		check(at != -1 and (funcs.find(query) == at - 1 or funcs.find(query) == at + 1),
 			"%s beside %s: %s" % [query, name, funcs])
+
+
+# --- 175 AC1: whether hand cards can be picked up ---
+
+func test_hand_input_error_names_what_blocks_picking_up_a_hand_card() -> void:
+	var expected := {
+		"explore": "Choose a territory first.",
+		"discard": "",
+		"renewal": "Anarchy: trash 1 card from your discard first.",
+		"government": "Choose a government first.",
+		"game over": "The game is over.",
+	}
+	var free := blocking_engine()
+	eq(free.hand_input_error(), "", "nothing owed")
+	for scenario in scenarios():
+		var e: GameEngine = scenario[1]
+		eq(e.hand_input_error(), expected[scenario[0]], "while %s" % scenario[0])

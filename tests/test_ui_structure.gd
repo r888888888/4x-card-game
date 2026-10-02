@@ -19,6 +19,7 @@ const COMPONENTS := {
 	"res://ui/navigator.gd": "Navigator",
 	"res://ui/palette.gd": "Palette",
 	"res://ui/game_theme.gd": "GameTheme",
+	"res://ui/action_button.gd": "ActionButton",  # 175: Relieve famine, Restore order and Revolt
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.
@@ -27,8 +28,8 @@ const CARD_VIEW_PARTS := {
 	"res://ui/card_motion.gd": "CardMotion",
 }
 ## Engine state the UI must reach through a query instead: the raw GameState (state; its pending is read with pending()),
-## the RNG and the log lines (the logged signal).
-const INTERNALS := [".state.", ".rng", "log_lines"]
+## the RNG, the log lines (the logged signal) and the config (175: hand_limit(), research_on()).
+const INTERNALS := [".state.", ".rng", "log_lines", ".config."]
 
 
 func source(path: String) -> String:
@@ -120,3 +121,14 @@ func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
 	var supply := source("res://ui/supply_screen.gd")
 	check(supply.contains("open_supply_piles()") and not supply.contains("supply_locked"),
 		"supply_screen.gd shows open_supply_piles() and filters nothing itself")
+
+
+# --- Backlog 175: one action-button class; hand cards picked up through the engine ---
+
+func test_the_board_action_buttons_share_one_class() -> void:
+	for path in ["res://ui/relieve_button.gd", "res://ui/restore_order_button.gd", "res://ui/revolt_button.gd"]:
+		check(not FileAccess.file_exists(path), "%s is gone" % path)
+
+
+func test_main_asks_the_engine_whether_a_hand_card_can_be_picked_up() -> void:
+	check(source(MAIN_PATH).contains("hand_input_error()"), "main.gd asks hand_input_error")

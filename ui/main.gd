@@ -41,9 +41,9 @@ var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _relief: ReliefButton  # below the Realm while a Famine can be relieved
-var _restore: RestoreOrderButton  # beside it while Anarchy rules and order can be bought (146)
-var _revolt: RevoltButton  # beside them while a revolutionary event is active (148)
+var _relief: ActionButton  # below the Realm while a Famine can be relieved
+var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
+var _revolt: ActionButton  # beside them while a revolutionary event is active (148)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _outcome := {}  # the last card_played outcome: the next _refresh flies the played card to where it was played
@@ -284,9 +284,9 @@ func _refuse(view: CardView, error: String) -> void:
 func on_double_clicked(view: CardView) -> void:
 	if drag.targeting != null:
 		drag.end_targeting()
-	if drag.dragging != null or pending_kind() == GameEngine.PENDING_EXPLORE:
-		return
 	var e := Game.engine
+	if drag.dragging != null or e.hand_input_error() != "":
+		return
 	if pending_kind() == GameEngine.PENDING_DISCARD:
 		discard(view)
 		return
@@ -310,32 +310,34 @@ func discard(view: CardView) -> void:
 	Game.engine.discard_card(view.uid)
 
 
-## A click on a lit target, a revealed territory or a card to renew (147).
+## A click on a lit target, or on a card in a choice row: a revealed territory, a card to renew (147) or a government
+## (154). A choice goes through its error query, so a pick on a view left over from an earlier choice is refused.
 func on_picked(view: CardView) -> void:
 	if drag.targeting != null:
 		var card := drag.targeting
 		drag.end_targeting()
 		try_play(card, view.uid)
-	elif pending_kind() == GameEngine.PENDING_RENEWAL:
-		var refused := Game.engine.renew_error(view.uid)
-		if refused != "":
-			_refuse(view, refused)
-		else:
-			Game.engine.renew(view.uid)
-	elif pending_kind() == GameEngine.PENDING_GOVERNMENT:
-		Game.engine.choose_government(view.uid)  # every card in the row can be chosen
+		return
+	var e := Game.engine
+	var error: Callable = e.choose_error
+	var action: Callable = e.choose
+	if e.zone("governments").find(view.uid) != null:
+		error = e.choose_government_error
+		action = e.choose_government
+	elif e.zone("discard").find(view.uid) != null:
+		error = e.renew_error
+		action = e.renew
+	var refused: String = error.call(view.uid)
+	if refused != "":
+		_refuse(view, refused)
 	else:
-		var error := Game.engine.choose_error(view.uid)
-		if error != "":
-			_refuse(view, error)
-		else:
-			Game.engine.choose(view.uid)
+		action.call(view.uid)
 
 
 func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
 	if drag.targeting != null:
 		drag.end_targeting()
-	if drag.dragging == null and not Game.engine.is_over and pending_kind() != GameEngine.PENDING_EXPLORE:
+	if drag.dragging == null and Game.engine.hand_input_error() == "":
 		drag.begin_drag(view, grab_offset)
 
 
@@ -614,9 +616,9 @@ func _build_layout() -> void:
 		_quiet = false)
 	var relief_row := HBoxContainer.new()  # Relieve famine, Restore order (146) and Revolt (148), each when it applies
 	realm_section.add_child(relief_row)
-	_relief = ReliefButton.new(relief_row)
-	_restore = RestoreOrderButton.new(relief_row)
-	_revolt = RevoltButton.new(relief_row)
+	_relief = ActionButton.relieve_famine(relief_row)
+	_restore = ActionButton.restore_order(relief_row)
+	_revolt = ActionButton.revolt(relief_row)
 
 	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	var hand_heading := HBoxContainer.new()  # the heading, then the actions counter (127)
