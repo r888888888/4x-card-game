@@ -642,6 +642,15 @@ func open_main() -> Node:
 	return main
 
 
+## Opens the menu on main's game and presses its Settings (206): the Settings modal on top. Use with await.
+func open_settings_modal(main: Node) -> void:
+	main.open_menu()
+	for b in main.menu_buttons():
+		if b.text == "Settings":
+			b.pressed.emit()
+	await wait_frames()
+
+
 ## Presses and releases keycode on main's viewport.
 func press_key(main: Node, keycode: Key) -> void:
 	for pressed in [true, false]:

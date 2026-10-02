@@ -80,60 +80,57 @@ func test_the_key_sits_on_the_themes_boxes_with_room_for_the_lamp() -> void:
 	close_main(main)
 
 
-# --- AC3: a row on the settings screen and in the menu ---
+# --- AC3: a row in the Settings modal (206: it replaced the settings screen's and the menu's rows) ---
 
-func test_both_screens_show_a_reduce_motion_row_with_a_legend_key() -> void:
+func test_the_settings_modal_shows_a_reduce_motion_row_with_a_legend_key() -> void:
 	await with_reduce_motion(true, func():
 		var main := open_main()
 		main.start_screen.settings_button.pressed.emit()
 		await wait_frames()
-		var keys: Array = [main.settings_screen.motion_toggle, main.menu_motion_toggle()]
-		for key: Object in keys:
-			check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH,
-				"a LegendKey: %s" % key)
-			check(row_label(key) != null, "a 'Reduce motion' label in its row")
-			eq(key.text if key != null else "", "ON", "shows the setting: on")
-			eq(key.tooltip_text if key != null else "", TIP, "the old toggle's tooltip")
+		var key: Object = main.settings_modal.motion_toggle
+		check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH, "a LegendKey: %s" % key)
+		check(row_label(key) != null, "a 'Reduce motion' label in its row")
+		eq(key.text if key != null else "", "ON", "shows the setting: on")
+		eq(key.tooltip_text if key != null else "", TIP, "the old toggle's tooltip")
 		close_main(main))
 
 
-func test_toggling_either_key_sets_saves_and_shows_on_the_other() -> void:
+func test_toggling_the_key_sets_saves_and_shows_it() -> void:
 	await with_reduce_motion(false, func():
 		var main := open_main()
 		main.start_screen.settings_button.pressed.emit()
 		await wait_frames()
-		var screen_key: Button = main.settings_screen.motion_toggle
-		var menu_key: Button = main.menu_motion_toggle()
-		screen_key.button_pressed = true
+		var key: Button = main.settings_modal.motion_toggle
+		key.button_pressed = true
 		await wait_frames()
-		check(Settings.reduce_motion, "the settings screen's key turns it on")
+		check(Settings.reduce_motion, "the key turns it on")
 		check(saved_calm(), "saved on")
-		eq(menu_key.text, "ON", "the menu's key follows")
-		menu_key.button_pressed = false
+		eq(key.text, "ON", "and shows it")
+		key.button_pressed = false
 		await wait_frames()
-		check(not Settings.reduce_motion, "the menu's key turns it off")
+		check(not Settings.reduce_motion, "and off")
 		check(not saved_calm(), "saved off")
-		eq(screen_key.text, "OFF", "the settings screen's key follows")
+		eq(key.text, "OFF", "and shows it")
 		close_main(main))
 
 
-# --- AC4: the row in the menu's column ---
+# --- AC4: the row in the modal's column ---
 
-func test_the_menu_row_spans_the_column_label_left_key_right() -> void:
+func test_the_row_spans_the_column_label_left_key_right() -> void:
 	var window := (Engine.get_main_loop() as SceneTree).root
 	var old := window.size
 	window.size = Vector2i(1920, 1080)
 	var main := open_main()
 	main.start_game(1)
-	main.open_menu()
-	await wait_frames()
-	var key: Control = main.menu_motion_toggle()
+	await open_settings_modal(main)
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the sheet's rise (207)
+	var key: Control = main.settings_modal.motion_toggle
 	var label := row_label(key)
 	check(label != null, "the row's label")
 	if label != null:
 		var row := key.get_parent() as Control
-		var restart: Button = main.menu_buttons()[0]
-		check(absf(row.size.x - restart.size.x) <= 1.0, "the row is the column's width: %s vs %s" % [row.size.x, restart.size.x])
+		var day_row := (main.settings_modal.day_toggle as Control).get_parent() as Control
+		check(absf(row.size.x - day_row.size.x) <= 1.0, "the rows share the column's width: %s vs %s" % [row.size.x, day_row.size.x])
 		check(label.get_global_rect().position.x < key.get_global_rect().position.x, "label left, key right")
 		check(absf(key.get_global_rect().end.x - row.get_global_rect().end.x) <= 1.0, "the key at the row's right")
 	close_main(main)
@@ -142,25 +139,18 @@ func test_the_menu_row_spans_the_column_label_left_key_right() -> void:
 
 # --- AC5: keys ---
 
-func test_the_menu_key_is_in_the_focus_loop_and_space_toggles_it() -> void:
+func test_the_key_is_in_the_focus_loop_and_space_toggles_it() -> void:
 	await with_reduce_motion(false, func():
 		var main := open_main()
 		main.start_game(1)
-		main.open_menu()
-		await wait_frames()
-		var new_game: Button = main.menu_buttons().filter(func(b): return b.text == "New game")[0]
-		new_game.grab_focus()
-		press_key(main, KEY_TAB)
-		var key: Control = main.menu_motion_toggle()
-		eq(main.get_viewport().gui_get_focus_owner(), key, "Tab from New game reaches the key")
+		await open_settings_modal(main)
+		var key: Control = main.settings_modal.motion_toggle
+		key.grab_focus()
 		press_key(main, KEY_SPACE)
 		await wait_frames()
 		check(Settings.reduce_motion, "Space toggles the setting")
 		press_key(main, KEY_TAB)
-		eq(main.get_viewport().gui_get_focus_owner(), main.menu_day_toggle(), "Tab from the key reaches Day mode (183)")
+		eq(main.get_viewport().gui_get_focus_owner(), main.settings_modal.day_toggle, "Tab from the key reaches Day mode (183)")
 		press_key(main, KEY_TAB)
-		eq(main.get_viewport().gui_get_focus_owner(), main.menu_sound_toggle(), "then Interface sounds (185)")
-		press_key(main, KEY_TAB)
-		var owner := main.get_viewport().gui_get_focus_owner()
-		eq(owner.get("text") if owner != null else null, "Close (Esc)", "then Close")
+		eq(main.get_viewport().gui_get_focus_owner(), main.settings_modal.sound_toggle, "then Interface sounds (185)")
 		close_main(main))

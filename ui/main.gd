@@ -4,9 +4,10 @@ extends Control
 ##
 ## BoardLayout builds the layout in code; BoardViews keeps the card views (views, keyed by uid) in line with the engine
 ## (176). Cards in motion live on fx, a layer above the board.
-## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, the modals (CardDetailsModal,
-## TechTreeModal, EventModal, IdentityModal, stacked on a ModalStack, modals), StartScreen, NewGameScreen, SettingsScreen (opened and closed through the Navigator, nav), DragController
-## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
+## The components: TopBar, Sidebar, TableauView, ChoiceOverlays, SupplyScreen, the modals (GameMenu, CardDetailsModal,
+## TechTreeModal, EventModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
+## StartScreen and NewGameScreen (opened and closed through the Navigator, nav), DragController (dragging and
+## targeting) and CardFocus (the keyboard focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
@@ -28,7 +29,7 @@ var key_sounds: KeySounds  # every button's click (187)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
-var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099)
+var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
@@ -230,23 +231,9 @@ func menu_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_menu)
 
 
-## Test hooks (182, 183): the menu's Reduce motion and Day mode keys.
-func menu_motion_toggle() -> LegendKey:
-	return _menu.motion_toggle
-
-
-func menu_day_toggle() -> LegendKey:
-	return _menu.day_toggle
-
-
 ## Test hook (187): the locked tip, a disabled key's reason shown at once.
 func locked_tip() -> Control:
 	return key_sounds.tip()
-
-
-## Test hook (185): the menu's Interface sounds key.
-func menu_sound_toggle() -> LegendKey:
-	return _menu.sound_toggle
 
 
 ## Test hook (067): the game-over overlay's buttons, in order.
@@ -388,7 +375,7 @@ func open_menu() -> void:
 	var card := focus.focused if focus.focused != null else _card_before_menu_button
 	drag.end_targeting()
 	focus.set_card(null)
-	_menu.open(Game.engine.seed_value, card)
+	_menu.open(card)
 
 
 ## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
@@ -480,10 +467,7 @@ func _build_layout() -> void:
 ## Matches the menu's and settings screen's keys and the looping drop-zone pulse to the settings; when Day mode
 ## changed, rebuilds the theme and repaints everything open in the new palette, the game untouched (183).
 func _apply_settings() -> void:
-	_menu.show_settings(UIKit.calm(), Palette.day)
-	UIKit.show_setting(settings_screen.motion_toggle, UIKit.calm())
-	UIKit.show_setting(settings_screen.day_toggle, Palette.day)
-	settings_screen.show_sound()
+	settings_modal.show_settings()
 	drag.apply_motion(UIKit.calm())
 	if _palette_day == Palette.day:
 		return
