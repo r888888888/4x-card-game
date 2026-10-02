@@ -184,8 +184,8 @@ func test_hand_input_error_names_what_blocks_picking_up_a_hand_card() -> void:
 		"government": "Choose a government first.",
 		"game over": "The game is over.",
 	}
-	var free: Object = blocking_engine()  # red phase: hand_input_error is new
+	var free := blocking_engine()
 	eq(free.hand_input_error(), "", "nothing owed")
 	for scenario in scenarios():
-		var e: Object = scenario[1]
+		var e: GameEngine = scenario[1]
 		eq(e.hand_input_error(), expected[scenario[0]], "while %s" % scenario[0])

@@ -68,7 +68,8 @@ res://
                          # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
                          # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
-                         # relieve_button.gd (084), restore_order_button.gd (146), revolt_button.gd (148): below the Realm,
+                         # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
+                         # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
                          # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
                          # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154),

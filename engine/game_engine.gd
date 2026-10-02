@@ -388,6 +388,22 @@ func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
 
 
+## The most cards the hand may hold at the end of a turn (config hand_limit).
+func hand_limit() -> int:
+	return config.hand_limit
+
+
+## Whether the game has techs to learn (the config has a research deck).
+func research_on() -> bool:
+	return not config.research_deck.is_empty()
+
+
+## Why hand cards can't be picked up (dragged or double-clicked) now, or "" (175): the game is over, or a decision
+## other than a hand-limit discard is owed.
+func hand_input_error() -> String:
+	return _blocked_error("discard")
+
+
 ## Cards that must still be discarded before the turn can end (0 when none is pending).
 func discard_needed() -> int:
 	return state.pending.get("count", 0) if state.pending.get("kind", "") == PENDING_DISCARD else 0
