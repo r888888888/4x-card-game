@@ -1,8 +1,8 @@
 class_name Sidebar
 extends PanelContainer
 ## The board's right rail (backlog 202, the mock's .rail): under a rule, a "Civilization" heading, the civilization's
-## name and its government as a link ("Chiefdom ›"), each opening the civilization modal. A name with no card is
-## hidden. End turn sits at its foot (203).
+## name and its government as a link ("Chiefdom ›"), each opening the civilization modal (a name with no card is
+## hidden), and End turn's key at its foot (203).
 
 const WIDTH := Tokens.SPACE_9 * 3
 
@@ -10,6 +10,7 @@ var heading: Label
 var name_button: Button  # the civilization's name
 var government_button: Button  # "Chiefdom ›"
 var column: VBoxContainer  # the rail's contents, top to bottom
+var end_turn: EndTurnKey  # at its foot (203), its caption under it
 
 
 ## Builds the rail; on_open opens the civilization modal.
@@ -38,12 +39,20 @@ func _init(on_open: Callable) -> void:
 	government_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	government_button.tooltip_text = "Your government: what it allows, and the government deck."
 	column.add_child(government_button)
+	var room := Control.new()  # End turn sits at the foot (203)
+	room.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	room.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(room)
+	end_turn = EndTurnKey.new()
+	column.add_child(end_turn)
+	column.add_child(end_turn.caption)
 	name_button.focus_next = name_button.get_path_to(government_button)
 	government_button.focus_previous = government_button.get_path_to(name_button)
 
 
-## Shows engine e's civilization and government; a missing one's control is hidden.
+## Shows engine e's civilization and government (a missing one's control is hidden) and End turn's state.
 func refresh(e: GameEngine) -> void:
+	end_turn.refresh(e)
 	var civ := e.zone("civilization")
 	name_button.text = civ.cards[0].def.name if not civ.is_empty() else ""
 	name_button.visible = not civ.is_empty()
