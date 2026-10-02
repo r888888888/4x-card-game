@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Civic Planning Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* ---- Tokens (mcm-style-guide.md §14) ---- */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+/* Reduce motion (§9.5): moves become instant; fades stay at 120 ms. */
+:root[data-calm="true"] {
+	--d-tick: 0ms; --d-snap: 0ms; --d-hover: 0ms; --d-toggle: 0ms; --d-small: 0ms; --d-panel: 0ms; --d-screen: 0ms;
+	--d-emphasis: 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+	:root:not([data-calm="false"]) { --d-tick: 0ms; --d-snap: 0ms; --d-hover: 0ms; --d-toggle: 0ms; --d-small: 0ms; --d-panel: 0ms; --d-screen: 0ms; --d-emphasis: 0ms; }
+}
+
+* { box-sizing: border-box; }
+body {
+	margin: 0; background: var(--board); color: var(--ink);
+	font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.num { font-family: var(--f-cond); font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
+
+/* ---- Page frame: the instrument strip and a title block per section ---- */
+.strip {
+	position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4);
+	padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink);
+}
+.strip h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+main { max-width: 1200px; margin: 0 auto; padding: var(--space-7) var(--space-5) 96px; }
+section { margin-bottom: var(--space-7); }
+.titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding-top: var(--space-3); margin-bottom: var(--space-5); }
+.titleblock h2 { margin: 0; font: 500 28px/34px var(--f-display); letter-spacing: 0.01em; }
+.titleblock .caps { margin-left: auto; }
+.row { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start; }
+.sheet { background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-5); }
+.note { color: var(--ink-2); font-size: 15px; max-width: 62ch; margin: var(--space-3) 0 0; }
+
+/* ---- Swatches ---- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; padding: 4px; background: var(--shadow); }
+.swatch { background: var(--sheet); padding: var(--space-3); min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
+.swatch .chip { height: 36px; border: 1px solid var(--ink); }
+.swatch span { font: 500 13px/1.2 var(--f-cond); color: var(--ink-2); }
+
+/* ---- Type specimen ---- */
+.type-row { display: grid; grid-template-columns: 150px 1fr; gap: var(--space-4); align-items: baseline; padding: var(--space-2) 0; border-bottom: 1px solid var(--rule-fine); }
+.t-display-xl { font: 500 56px/60px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.t-display { font: 500 40px/44px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.t-title { font: 500 28px/34px var(--f-display); }
+.t-heading { font: 600 15px/20px var(--f-cond); letter-spacing: 0.10em; text-transform: uppercase; }
+.t-body { font: 400 20px/28px var(--f-ui); }
+.t-label { font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em; }
+.t-numeral-xl { font: 500 44px/44px var(--f-mono); }
+
+/* ---- Buttons (§15.1, §15.2): press = sit into the shadow ---- */
+.btn {
+	position: relative; display: inline-flex; align-items: center; gap: var(--space-2);
+	min-height: 40px; padding: var(--space-2) 20px; border-radius: var(--radius-1); cursor: pointer;
+	font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em;
+	background: var(--steel); color: var(--ink); border: 2px solid var(--rule);
+	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
+	transition: background-color var(--d-hover) var(--ease-machined), border-color var(--d-hover) var(--ease-machined),
+		transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined);
+}
+.btn:hover { background: color-mix(in srgb, var(--steel) 65%, var(--sheet)); border-color: var(--ink); }
+.btn:active, .btn.is-pressed {
+	transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow);
+	transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap);
+}
+.btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
+.btn.primary:hover { background: var(--signal-hover); }
+.btn.primary:active { background: var(--signal-press); }
+.btn:disabled { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
+.link { background: none; border: 0; padding: 2px 0; cursor: pointer; font: 500 17px/20px var(--f-cond); color: var(--ink-2); position: relative; }
+.link::after { content: ""; position: absolute; left: 0; bottom: -2px; height: 2px; width: 0; background: var(--ink); transition: width var(--d-hover) var(--ease-machined); }
+.link:hover { color: var(--ink); }
+.link:hover::after { width: 100%; }
+
+/* ---- Lamp (§7.11) ---- */
+.lamp {
+	--lamp: var(--p-sage); --lamp-line: var(--l-sage);
+	width: 12px; height: 12px; border-radius: 50%; flex: none; position: relative;
+	background: var(--well); box-shadow: inset 0 0 0 1px var(--rule);
+	transition: background-color var(--d-quick) var(--ease-lamp-off), box-shadow var(--d-quick) var(--ease-lamp-off);
+}
+.lamp.on {
+	background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--lamp) 40%, white) 0 18%, var(--lamp) 22%);
+	box-shadow: inset 0 0 0 2px var(--lamp-line);
+	transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on);
+}
+.lamp.ochre { --lamp: var(--p-ochre); --lamp-line: var(--l-ochre); }
+.lamp.brick { --lamp: var(--p-brick); --lamp-line: var(--l-brick); }
+.lamp.teal { --lamp: var(--p-teal); --lamp-line: var(--l-teal); }
+.lamp.blue { --lamp: var(--p-blue); --lamp-line: var(--l-blue); }
+.lamp.olive { --lamp: var(--p-olive); --lamp-line: var(--l-olive); }
+
+/* ---- Tabs with a sliding rail (§15.3) ---- */
+.tabs { position: relative; display: flex; border-bottom: 1px solid var(--ink); }
+.tab {
+	height: 36px; padding: 0 var(--space-4); border: 1px solid var(--ink); border-bottom: 0; margin-right: -1px;
+	background: var(--steel); color: var(--ink-2); cursor: pointer;
+	font: 600 13px/1 var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em;
+	transition: color var(--d-hover) var(--ease-machined), background-color var(--d-small) var(--ease-machined);
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--sheet); color: var(--ink); position: relative; }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--sheet); }
+.rail { position: absolute; top: 0; height: 3px; background: var(--ink); transition: left var(--d-small) var(--ease-machined), width var(--d-small) var(--ease-machined); }
+.tabpanel { background: var(--sheet); border: 1px solid var(--ink); border-top: 0; padding: var(--space-5); min-height: 96px; }
+.tabpanel p { margin: 0; animation: tab-in var(--d-quick) var(--ease-machined); }
+@keyframes tab-in { from { opacity: 0; transform: translateX(var(--from, 12px)); } }
+
+/* ---- Toggle rocker (§15.4) ---- */
+.toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 17px var(--f-cond); }
+.track { position: relative; width: 44px; height: 24px; background: var(--well); border: 2px solid var(--rule); border-radius: var(--radius-1); }
+.thumb {
+	position: absolute; top: 0; left: 0; width: 20px; height: 20px; background: var(--steel); border: 2px solid var(--ink);
+	border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); transition: left var(--d-toggle) var(--ease-latch);
+}
+.toggle[aria-checked="true"] .thumb { left: 20px; }
+.toggle:active .thumb { box-shadow: none; transform: translateY(1px); }
+.state { width: 28px; text-align: left; }
+
+/* ---- Resource bar: instrument cells with odometers (§11.2, §15.5) ---- */
+.bar { display: flex; flex-wrap: wrap; background: var(--sheet); border: 2px solid var(--ink); }
+.cell { position: relative; min-width: 150px; padding: var(--space-3) var(--space-4); border-right: 1px solid var(--rule-fine); }
+.cell:last-child { border-right: 0; }
+.cell .lamp { position: absolute; top: var(--space-3); right: var(--space-3); }
+.cell .value { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 var(--space-1); }
+.glyph { width: 20px; height: 20px; flex: none; }
+.window { display: inline-flex; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); padding: 2px 6px; }
+.odo { display: inline-flex; font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums lining-nums; }
+.digit { display: inline-block; height: 28px; overflow: hidden; width: 0.62em; text-align: center; }
+.digit .reel { display: flex; flex-direction: column; transition: transform var(--d-tick) linear; }
+.digit .reel span { height: 28px; }
+.forecast { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
+.forecast.bad { color: var(--danger); }
+.tag {
+	position: absolute; left: 118px; top: 38px; font: 600 17px/20px var(--f-cond); font-variant-numeric: tabular-nums;
+	opacity: 0; transform: translateX(-4px); pointer-events: none;
+}
+.tag.show { opacity: 1; transform: none; transition: opacity var(--d-snap) var(--ease-snap), transform var(--d-snap) var(--ease-snap); }
+.tag.hide { opacity: 0; clip-path: inset(0 100% 0 0); transition: clip-path var(--d-quick) var(--ease-release), opacity 0ms linear var(--d-quick); }
+.tag.gain { color: var(--positive); }
+.tag.loss { color: var(--danger); }
+
+/* ---- Cards: index cards (§6.7, §15.6) ---- */
+.hand { display: flex; gap: var(--space-3); padding-top: 16px; }
+.card {
+	position: relative; width: 180px; height: 240px; background: var(--sheet); border: 2px solid var(--ink);
+	display: flex; flex-direction: column; cursor: pointer; text-align: left; padding: 0; color: var(--ink); font: inherit;
+	transform: translateY(0); box-shadow: 0 0 0 var(--shadow);
+	transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined);
+}
+.card:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); }
+.card[aria-pressed="true"] { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border-width: 3px; transition-duration: 140ms; }
+.card .index-tab { position: absolute; top: -9px; left: 12px; height: 6px; width: 0; background: var(--signal); transition: width var(--d-quick) var(--ease-machined); }
+.card[aria-pressed="true"] .index-tab { width: 24px; }
+.card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+.card .name { font: 600 17px/20px var(--f-cond); }
+.card .cost { background: var(--well); padding: 0 6px; font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums; }
+.card .band { height: 6px; background: var(--band); display: flex; justify-content: flex-end; }
+.card .type { display: flex; justify-content: space-between; padding: var(--space-1) var(--space-3); border-bottom: 1px solid var(--rule-fine); }
+.card .rules { padding: var(--space-2) var(--space-3); font: 400 15px/21px var(--f-ui); flex: 1; }
+.card .vp { display: flex; align-items: center; gap: 4px; justify-content: flex-end; padding: var(--space-2) var(--space-3); font: 600 17px var(--f-cond); }
+.card.dimmed .band { background: repeating-linear-gradient(-45deg, var(--ink-3) 0 1px, transparent 1px 5px); }
+.card.dimmed { border-color: var(--rule); cursor: not-allowed; }
+.card.dimmed:hover { transform: none; box-shadow: none; }
+.card .reason { margin: 0 var(--space-3) var(--space-3); background: var(--well); padding: var(--space-1) var(--space-2); font: 500 14px/18px var(--f-cond); display: flex; gap: 6px; align-items: center; }
+.card.shake { animation: snap-shake 240ms var(--ease-snap); border-color: var(--danger); }
+@keyframes snap-shake { 0%, 100% { transform: translateX(0); } 33% { transform: translateX(-4px); } 66% { transform: translateX(4px); } }
+:root[data-calm="true"] .card.shake { animation: none; }
+
+/* ---- Segmented progress (§15.10) ---- */
+.progress { display: flex; align-items: center; gap: var(--space-3); }
+.segments { display: flex; gap: 2px; padding: 2px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.seg { width: 22px; height: 8px; background: transparent; background-image: linear-gradient(var(--p-teal), var(--p-teal)); background-repeat: no-repeat; background-size: 0% 100%; transition: background-size var(--d-quick) var(--ease-machined); }
+.seg.full { background-size: 100% 100%; }
+
+/* ---- Tooltip (§15.8) ---- */
+.tip-host { position: relative; display: inline-block; }
+.tooltip {
+	position: absolute; left: 0; top: calc(100% + 10px); width: max-content; max-width: 320px; z-index: 3;
+	background: var(--ink); color: var(--sheet); padding: var(--space-2) var(--space-3);
+	opacity: 0; transform: translateY(4px); pointer-events: none;
+	transition: opacity 80ms var(--ease-release), transform 80ms var(--ease-release);
+}
+.tooltip::before { content: ""; position: absolute; top: -6px; left: 16px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
+.tip-host:hover .tooltip, .tip-host:focus-within .tooltip { opacity: 1; transform: none; transition: opacity var(--d-hover) var(--ease-machined) 400ms, transform var(--d-hover) var(--ease-machined) 400ms; }
+.tooltip .caps { color: var(--board); opacity: 0.8; }
+.ledger { display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-5); font: 400 15px/22px var(--f-ui); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.ledger .r { text-align: right; }
+.ledger .total { border-top: 1px solid var(--board); font-weight: 600; }
+
+/* ---- Notification flags (§15.9) ---- */
+.flags { position: fixed; left: 0; top: 96px; z-index: 6; display: flex; flex-direction: column; gap: var(--space-2); pointer-events: none; }
+.flag {
+	pointer-events: auto; display: flex; align-items: center; gap: var(--space-3); width: 360px; max-width: calc(100vw - 16px);
+	min-height: 48px; padding: var(--space-2) var(--space-3) var(--space-2) 0; background: var(--sheet);
+	border: 2px solid var(--ink); border-left: 0; box-shadow: 2px 2px 0 var(--shadow);
+	transform: translateX(-105%); transition: transform var(--d-small) var(--ease-machined);
+}
+.flag.in { transform: translateX(0); }
+.flag.out { transform: translateX(-105%); transition: transform 160ms var(--ease-release); }
+.flag .hue { align-self: stretch; width: 4px; background: var(--hue); margin-right: var(--space-1); }
+.flag .text { flex: 1; font: 500 17px/20px var(--f-cond); }
+.flag .text small { display: block; font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
+.flag .x { background: none; border: 0; color: var(--ink-2); font-size: 20px; cursor: pointer; }
+:root[data-calm="true"] .flag { transition: opacity 120ms linear; transform: none; opacity: 0; }
+:root[data-calm="true"] .flag.in { opacity: 1; }
+
+/* ---- Modal (§15.11) ---- */
+.scrim { position: fixed; inset: 0; z-index: 10; background: var(--scrim); opacity: 0; transition: opacity 160ms linear; display: grid; place-items: center; padding: 16px; }
+.scrim[hidden] { display: none; }
+.scrim.open { opacity: 1; }
+.modal {
+	width: min(640px, 100%); background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow);
+	transform: translateY(24px); opacity: 0;
+	transition: transform 240ms var(--ease-machined), opacity 120ms linear;
+}
+.scrim.open .modal { transform: none; opacity: 1; }
+.scrim.closing .modal { transform: translateY(12px); opacity: 0; transition: transform 160ms var(--ease-release), opacity 160ms var(--ease-release); }
+.modal .titleblock { margin: 0; padding: var(--space-3) var(--space-5) 0; border-top-width: 4px; }
+.modal .body { padding: var(--space-4) var(--space-5) var(--space-5); font-size: 18px; line-height: 1.45; }
+.modal footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--rule-fine); }
+
+/* ---- End turn (§15.12) ---- */
+.end-turn {
+	display: inline-flex; align-items: center; gap: var(--space-3); width: 240px; height: 64px; padding: 0 var(--space-3) 0 var(--space-4);
+	background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); border-radius: var(--radius-1);
+	box-shadow: 4px 4px 0 var(--shadow); cursor: pointer; transform: translate(0, 0);
+	font: 600 17px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase;
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), background-color var(--d-hover) var(--ease-machined);
+}
+.end-turn:hover { background: var(--signal-hover); }
+.end-turn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.end-turn .label { flex: 1; text-align: left; }
+.end-turn .plate { background: var(--well); color: var(--ink); padding: 4px 8px; font: 500 20px/1 var(--f-mono); letter-spacing: 0; display: inline-flex; }
+.end-turn.busy { background: var(--steel); color: var(--ink); cursor: progress; }
+.end-turn:disabled { background: var(--steel); color: var(--ink-2); box-shadow: none; cursor: not-allowed; }
+.end-turn .lamp { --lamp: var(--p-sage); --lamp-line: var(--on-signal); }
+.end-turn.busy .lamp, .end-turn:disabled .lamp { --lamp-line: var(--rule); }
+.caption { font: 400 14px/18px var(--f-ui); color: var(--ink-2); margin-top: var(--space-2); min-height: 18px; }
+
+/* split-flap: each character flips through intermediate glyphs */
+.flap { display: inline-block; width: 0.62em; text-align: center; }
+.flap.flip { animation: flap var(--d-tick) linear; }
+@keyframes flap { 50% { transform: scaleY(0.1); } }
+
+/* starburst (§10.8) */
+.burst-host { position: relative; display: inline-flex; align-items: center; gap: var(--space-3); }
+.burst { position: absolute; left: 6px; top: 50%; width: 0; height: 0; pointer-events: none; }
+.burst i { position: absolute; left: 0; top: 0; width: 2px; height: 0; background: var(--positive); transform-origin: 50% 0; }
+.burst.go i { animation: ray var(--d-emphasis) var(--ease-machined) forwards; }
+@keyframes ray { 0% { height: 0; opacity: 1; translate: 0 8px; } 60% { height: 8px; opacity: 1; translate: 0 10px; } 100% { height: 8px; opacity: 0; translate: 0 14px; } }
+:root[data-calm="true"] .burst.go i { animation: none; height: 8px; translate: 0 10px; }
+
+@media (max-width: 640px) {
+	main { padding: var(--space-5) 16px 64px; }
+	.type-row { grid-template-columns: 1fr; gap: 0; }
+	.t-display-xl { font-size: 36px; line-height: 40px; }
+	.t-display { font-size: 28px; line-height: 32px; }
+	.cell { min-width: 50%; border-bottom: 1px solid var(--rule-fine); }
+	.hand { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<header class="strip">
+	<h1>Civic Planning Desk</h1>
+	<button class="toggle" id="theme-toggle" role="switch" aria-checked="true">
+		<span>Night shift</span><span class="track"><span class="thumb"></span></span>
+		<span class="lamp on teal"></span><span class="state caps">ON</span>
+	</button>
+	<button class="toggle" id="calm-toggle" role="switch" aria-checked="false">
+		<span>Reduce motion</span><span class="track"><span class="thumb"></span></span>
+		<span class="lamp"></span><span class="state caps">OFF</span>
+	</button>
+</header>
+
+<div class="flags" id="flags" aria-live="polite"></div>
+
+<main>
+	<section>
+		<div class="titleblock"><h2>Colour</h2><span class="caps">§4 · neutrals, signal, support hues</span></div>
+		<div class="swatches" id="swatches"></div>
+		<p class="note">Flat planes held in a dark frame (the 4 px gaps are the frame). One signal orange per view. Every hue has a glyph and a word; colour is never the only cue.</p>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Typography</h2><span class="caps">§5 · Jost · Barlow · IBM Plex Mono</span></div>
+		<div class="type-row"><span class="caps">display-xl 56</span><span class="t-display-xl">Bronze Age</span></div>
+		<div class="type-row"><span class="caps">display 40</span><span class="t-display">Knowledge</span></div>
+		<div class="type-row"><span class="caps">title 28</span><span class="t-title">Choose a government</span></div>
+		<div class="type-row"><span class="caps">heading 15</span><span class="t-heading">The Realm</span></div>
+		<div class="type-row"><span class="caps">body 20</span><span class="t-body">Settle a territory you have explored. Its first city holds two pop and opens one building slot.</span></div>
+		<div class="type-row"><span class="caps">label 17</span><span class="t-label">Buy cards · Knowledge · Log</span></div>
+		<div class="type-row"><span class="caps">numeral-xl 44</span><span class="t-numeral-xl">0118</span></div>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, rocker</span></div>
+		<div class="row" style="align-items:center">
+			<button class="btn primary">Confirm</button>
+			<button class="btn">Buy cards</button>
+			<button class="btn">Knowledge</button>
+			<button class="btn" disabled title="Not enough wealth">Learn</button>
+			<button class="link">View the log</button>
+		</div>
+		<p class="note">Press moves the face 2 px into its shadow in 70 ms and comes back in 120 ms. No scale, no ripple.</p>
+
+		<div style="margin-top:var(--space-6); max-width:560px">
+			<div class="tabs" role="tablist" id="tabs">
+				<button class="tab" role="tab" aria-selected="true" data-text="Ancient era: Pottery, Writing, Bronze Working. Learned techs fill their band and light their lamp.">Ancient</button>
+				<button class="tab" role="tab" aria-selected="false" data-text="Classical era: Philosophy, Currency, Mathematics. Locked until an Ancient tech is learned.">Classical</button>
+				<button class="tab" role="tab" aria-selected="false" data-text="Medieval era: under the vellum overlay until the era opens.">Medieval</button>
+				<span class="rail" id="rail"></span>
+			</div>
+			<div class="tabpanel" role="tabpanel"><p id="tabtext"></p></div>
+		</div>
+
+		<div class="row" style="margin-top:var(--space-6); align-items:center">
+			<button class="toggle demo-toggle" role="switch" aria-checked="false">
+				<span>Show forecasts</span><span class="track"><span class="thumb"></span></span>
+				<span class="lamp"></span><span class="state caps">OFF</span>
+			</button>
+		</div>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Resource bar</h2><span class="caps">§11.2 · odometer, delta tag, lamp</span></div>
+		<div class="bar" id="bar"></div>
+		<div class="row" style="margin-top:var(--space-4)">
+			<button class="btn" data-change="food:3">Harvest +3 food</button>
+			<button class="btn" data-change="wealth:-2">Pay 2 wealth</button>
+			<button class="btn" data-change="insight:12">Library +12 insight</button>
+			<button class="btn" data-change="unrest:1">Unrest +1</button>
+		</div>
+		<p class="note">Each changed digit column rolls in 60 ms steps (up for gain, down for loss, at most 8 steps). The tag snaps in, holds 600 ms and wipes out. The lamp pulses once; at a limit it stays lit and the caption says so.</p>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Cards</h2><span class="caps">§15.6 · index cards, slide out of the row</span></div>
+		<div class="hand" id="hand"></div>
+		<p class="note">Hover slides a card 4 px up with a plinth shadow; selecting pulls it 12 px out of the row with the orange index tab. The dimmed card snaps sideways (±4 px) when you try to play it.</p>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Feedback</h2><span class="caps">§15.8–15.10 · tooltip, progress, flags, confirm</span></div>
+		<div class="row" style="align-items:center">
+			<span class="tip-host">
+				<button class="btn">Food forecast</button>
+				<span class="tooltip" role="tooltip">
+					<span class="caps">Next upkeep</span>
+					<span class="ledger"><span>Capital</span><span class="r">+2</span><span>Farm</span><span class="r">+1</span><span>Feeding 4 pop</span><span class="r">−4</span><span class="total">Net</span><span class="r total">−1</span></span>
+				</span>
+			</span>
+			<div class="progress"><span class="caps">Research</span><span class="segments" id="segments"></span><span class="num" id="seg-label">2 / 5</span></div>
+			<button class="btn" id="seg-step">Add insight</button>
+		</div>
+		<div class="row" style="margin-top:var(--space-5); align-items:center">
+			<button class="btn" data-flag="info">Notify: event drawn</button>
+			<button class="btn" data-flag="danger">Notify: famine</button>
+			<span class="burst-host"><span class="lamp" id="confirm-lamp"></span><span class="burst" id="burst"></span><button class="btn" id="confirm">Learn Pottery</button></span>
+		</div>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Turn</h2><span class="caps">§15.11–15.12 · modal sheet, end turn</span></div>
+		<div class="row" style="align-items:flex-start">
+			<div>
+				<button class="end-turn" id="end-turn"><span class="lamp on"></span><span class="label">End turn</span><span class="plate" id="turn-plate"></span></button>
+				<div class="caption" id="end-caption">Ready</div>
+			</div>
+			<div class="row" style="gap:var(--space-3)">
+				<button class="btn" id="cycle-state">Cycle state</button>
+				<button class="btn" id="open-modal">Open a modal</button>
+			</div>
+		</div>
+	</section>
+</main>
+
+<div class="scrim" id="scrim" hidden>
+	<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+		<div class="titleblock"><h2 id="modal-title">Choose a government</h2><span class="caps">Turn 12 · Ancient</span></div>
+		<div class="body">Your Chiefdom has fallen to anarchy. The next government sets how many actions each turn has and how much unrest the realm can hold.</div>
+		<footer><button class="btn" data-close>Later</button><button class="btn primary" data-close>Choose Kingship</button></footer>
+	</div>
+</div>
+
+<script>
+const root = document.documentElement;
+const calm = () => root.dataset.calm === "true" || (root.dataset.calm !== "false" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const wait = (ms) => new Promise((r) => setTimeout(r, calm() ? 0 : ms));
+
+// Glyphs (§8): 24 grid, 2 px stroke, square caps, mitred joins, ≤ 5 primitives.
+const GLYPHS = {
+	food: '<circle cx="12" cy="13" r="7"/><path d="M12 4v16M8 9l4 3 4-3"/>',
+	wealth: '<rect x="4" y="5" width="16" height="14"/><path d="M4 10h16"/>',
+	insight: '<circle cx="12" cy="12" r="7"/><rect x="11" y="11" width="2" height="2" fill="currentColor"/>',
+	pop: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>',
+	unrest: '<path d="M12 3l9 17H3z"/><path d="M9 15l2-3 2 3 2-3"/>',
+	score: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
+	blocked: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',
+};
+const glyph = (name, color) => `<svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" style="color:${color}" aria-hidden="true">${GLYPHS[name]}</svg>`;
+
+// ---- Swatches ----
+const SWATCHES = [["board", "Board"], ["sheet", "Sheet"], ["well", "Well"], ["steel", "Steel"], ["ink", "Ink"], ["ink-2", "Ink 2"],
+	["signal", "Signal"], ["p-teal", "Teal"], ["p-ochre", "Ochre"], ["p-olive", "Olive"], ["p-blue", "Muted blue"], ["p-brick", "Brick"], ["p-sage", "Sage"]];
+document.getElementById("swatches").innerHTML = SWATCHES.map(([v, n]) => `<div class="swatch"><div class="chip" style="background:var(--${v})"></div><span>${n}<br>--${v}</span></div>`).join("");
+
+// ---- Toggles (§15.4): thumb slides, lamp lights at 60% of travel, word flips ----
+function bindToggle(el, onChange) {
+	el.addEventListener("click", async () => {
+		const on = el.getAttribute("aria-checked") !== "true";
+		el.setAttribute("aria-checked", on);
+		await wait(96);  // 60% of the 160 ms travel
+		el.querySelector(".lamp").classList.toggle("on", on);
+		flapText(el.querySelector(".state"), on ? "ON" : "OFF");
+		onChange && onChange(on);
+	});
+}
+bindToggle(document.getElementById("theme-toggle"), (on) => { root.dataset.theme = on ? "night" : "paper"; });
+bindToggle(document.getElementById("calm-toggle"), (on) => { root.dataset.calm = on; });
+document.querySelectorAll(".demo-toggle").forEach((t) => bindToggle(t));
+
+// ---- Split-flap (§10.3) ----
+const FLAP_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+async function flapText(el, text) {
+	if (calm()) { el.textContent = text; return; }
+	el.innerHTML = [...text].map(() => '<span class="flap"> </span>').join("");
+	const spans = [...el.children];
+	await Promise.all([...text].map(async (ch, i) => {
+		await wait(i * 25);
+		for (let s = 0; s < 3; s++) {
+			spans[i].textContent = FLAP_CHARS[Math.floor(Math.random() * 36)];
+			spans[i].classList.remove("flip"); void spans[i].offsetWidth; spans[i].classList.add("flip");
+			await wait(60);
+		}
+		spans[i].textContent = ch;
+	}));
+	el.textContent = text;
+}
+
+// ---- Tabs (§15.3): the rail slides; content slides 12 px in the direction of travel ----
+const tabs = [...document.querySelectorAll(".tab")];
+const rail = document.getElementById("rail");
+const tabtext = document.getElementById("tabtext");
+let activeTab = 0;
+function selectTab(i) {
+	const dir = i >= activeTab ? 1 : -1;
+	activeTab = i;
+	tabs.forEach((t, j) => t.setAttribute("aria-selected", j === i));
+	rail.style.left = tabs[i].offsetLeft + "px";
+	rail.style.width = tabs[i].offsetWidth + "px";
+	tabtext.style.setProperty("--from", (calm() ? 0 : 12 * dir) + "px");
+	tabtext.textContent = tabs[i].dataset.text;
+	tabtext.style.animation = "none"; void tabtext.offsetWidth; tabtext.style.animation = "";
+}
+tabs.forEach((t, i) => t.addEventListener("click", () => selectTab(i)));
+document.fonts.ready.then(() => selectTab(0));
+addEventListener("resize", () => selectTab(activeTab));
+
+// ---- Resource bar with odometers (§15.5) ----
+const RESOURCES = [
+	{ id: "food", caption: "Food", hue: "ochre", value: 7, forecast: "+2 next" },
+	{ id: "wealth", caption: "Wealth", hue: "olive", value: 12, forecast: "+1 next" },
+	{ id: "insight", caption: "Insight", hue: "blue", value: 4, forecast: "+3 next" },
+	{ id: "pop", caption: "Pop", hue: "teal", value: 5, forecast: "of 6 housing" },
+	{ id: "unrest", caption: "Unrest", hue: "brick", value: 2, limit: 4, forecast: "limit 4" },
+	{ id: "score", caption: "Score", hue: "ink", value: 23, forecast: "VP on the tableau" },
+];
+const bar = document.getElementById("bar");
+const DIGITS = 3;
+bar.innerHTML = RESOURCES.map((r) => `
+	<div class="cell" id="cell-${r.id}">
+		<span class="caps">${r.caption}</span><span class="lamp ${r.hue}"></span>
+		<div class="value">${glyph(r.id, r.hue === "ink" ? "var(--ink)" : `var(--l-${r.hue})`)}
+			<span class="window"><span class="odo" aria-label="${r.value}">${Array.from({ length: DIGITS }, () => '<span class="digit"><span class="reel"></span></span>').join("")}</span></span></div>
+		<div class="forecast">${r.forecast}</div>
+		<span class="tag"></span>
+	</div>`).join("");
+const reels = {};
+for (const r of RESOURCES) {
+	reels[r.id] = [...document.querySelectorAll(`#cell-${r.id} .reel`)];
+	reels[r.id].forEach((reel) => { reel.innerHTML = "0123456789".split("").map((d) => `<span>${d}</span>`).join(""); });
+	setOdo(r.id, r.value);
+}
+function setOdo(id, value) {
+	const s = String(value).padStart(DIGITS, " ");
+	reels[id].forEach((reel, i) => {
+		const ch = s[i];
+		reel.parentElement.style.visibility = ch === " " ? "hidden" : "visible";
+		reel.style.transform = `translateY(${-(ch === " " ? 0 : +ch) * 28}px)`;
+	});
+	document.querySelector(`#cell-${id} .odo`).setAttribute("aria-label", value);
+}
+async function change(id, delta) {
+	const r = RESOURCES.find((x) => x.id === id);
+	const cell = document.getElementById(`cell-${id}`);
+	const tag = cell.querySelector(".tag");
+	const target = Math.max(0, r.limit ? Math.min(r.limit, r.value + delta) : r.value + delta);
+	tag.textContent = (delta > 0 ? "+" : "−") + Math.abs(delta);
+	tag.className = "tag " + (delta > 0 ? "gain" : "loss");
+	void tag.offsetWidth; tag.classList.add("show");
+	await wait(60);
+	const step = Math.sign(target - r.value);
+	const steps = Math.abs(target - r.value);
+	let v = steps > 8 ? target - step * 8 : r.value;  // roll only the last 8 steps
+	if (steps > 8) setOdo(id, v);
+	while (v !== target) { v += step; setOdo(id, v); await wait(70); }
+	r.value = target;
+	const lamp = cell.querySelector(".lamp");
+	const atLimit = r.limit && r.value >= r.limit;
+	cell.querySelector(".forecast").textContent = atLimit ? "AT LIMIT" : r.forecast;
+	cell.querySelector(".forecast").classList.toggle("bad", !!atLimit);
+	lamp.classList.add("on");
+	await wait(calm() ? 1500 : 300);
+	if (!atLimit) lamp.classList.remove("on");
+	await wait(calm() ? 0 : 300);
+	tag.classList.add("hide");
+	await wait(120);
+	tag.className = "tag";
+}
+document.querySelectorAll("[data-change]").forEach((b) => b.addEventListener("click", () => {
+	const [id, d] = b.dataset.change.split(":");
+	change(id, +d);
+}));
+
+// ---- Cards ----
+const CARDS = [
+	{ name: "Granary", type: "Building", hue: "olive", cost: 3, rules: "⟳ +1 food. Needs a city with a free slot.", vp: 1 },
+	{ name: "Settlers", type: "Action", hue: "blue", cost: 2, rules: "Settle an explored territory: it becomes a city.", vp: 0 },
+	{ name: "Pottery", type: "Tech", hue: "teal", cost: 4, rules: "Granaries cost 1 less wealth.", vp: 2 },
+	{ name: "Monument", type: "Building", hue: "olive", cost: 6, rules: "Worth 3 VP. Needs a city.", vp: 3, dimmed: "Not enough wealth" },
+];
+document.getElementById("hand").innerHTML = CARDS.map((c, i) => `
+	<button class="card ${c.dimmed ? "dimmed" : ""}" style="--band:var(--p-${c.hue})" aria-pressed="false" data-i="${i}">
+		<span class="index-tab"></span>
+		<span class="head"><span class="name">${c.name}</span><span class="cost">${c.cost}</span></span>
+		<span class="band"></span>
+		<span class="type"><span class="caps">${c.type}</span></span>
+		<span class="rules">${c.rules}</span>
+		${c.dimmed ? `<span class="reason">${glyph("blocked", "var(--ink)")}${c.dimmed}</span>` : ""}
+		<span class="vp">${glyph("score", "var(--ink)")}${c.vp}</span>
+	</button>`).join("");
+document.querySelectorAll(".card").forEach((card) => card.addEventListener("click", () => {
+	if (card.classList.contains("dimmed")) {
+		card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+		setTimeout(() => card.classList.remove("shake"), 4000);
+		return;
+	}
+	const on = card.getAttribute("aria-pressed") !== "true";
+	document.querySelectorAll(".card").forEach((c) => c.setAttribute("aria-pressed", "false"));
+	card.setAttribute("aria-pressed", on);
+}));
+
+// ---- Segmented progress (§15.10) ----
+const segs = document.getElementById("segments");
+let segValue = 2;
+segs.innerHTML = Array.from({ length: 5 }, (_, i) => `<span class="seg ${i < segValue ? "full" : ""}"></span>`).join("");
+document.getElementById("seg-step").addEventListener("click", async () => {
+	segValue = segValue >= 5 ? 0 : segValue + 1;
+	const cells = [...segs.children];
+	if (segValue === 0) cells.forEach((c) => c.classList.remove("full"));
+	else cells[segValue - 1].classList.add("full");
+	document.getElementById("seg-label").textContent = `${segValue} / 5`;
+});
+
+// ---- Flags (§15.9) ----
+const flagsEl = document.getElementById("flags");
+const FLAGS = {
+	info: { hue: "var(--l-blue)", glyph: "insight", text: "Event drawn: Good harvest", sub: "+1 food at each upkeep for 3 turns", time: 3000 },
+	danger: { hue: "var(--l-brick)", glyph: "food", text: "Famine", sub: "Pop can't grow until the realm is fed", time: 0 },
+};
+document.querySelectorAll("[data-flag]").forEach((b) => b.addEventListener("click", async () => {
+	if (flagsEl.children.length >= 3) return;
+	const f = FLAGS[b.dataset.flag];
+	const el = document.createElement("div");
+	el.className = "flag";
+	el.style.setProperty("--hue", f.hue);
+	el.innerHTML = `<span class="hue"></span>${glyph(f.glyph, f.hue).replace('class="glyph"', 'class="glyph" style="width:28px;height:28px"')}
+		<span class="text">${f.text}<small>${f.sub}</small></span>${f.time ? "" : '<span class="lamp brick on"></span>'}<button class="x" aria-label="Dismiss">×</button>`;
+	flagsEl.appendChild(el);
+	requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+	const close = async () => { el.classList.add("out"); el.classList.remove("in"); await wait(170); el.remove(); };
+	el.querySelector(".x").addEventListener("click", close);
+	if (f.time) setTimeout(close, f.time);
+}));
+
+// ---- Confirmation burst (§10.8) ----
+const burst = document.getElementById("burst");
+burst.innerHTML = Array.from({ length: 6 }, (_, i) => `<i style="rotate:${i * 60}deg"></i>`).join("");
+document.getElementById("confirm").addEventListener("click", async () => {
+	document.getElementById("confirm-lamp").classList.add("on");
+	burst.classList.remove("go"); void burst.offsetWidth; burst.classList.add("go");
+});
+
+// ---- End turn (§15.12) ----
+const endBtn = document.getElementById("end-turn");
+const plate = document.getElementById("turn-plate");
+const endCaption = document.getElementById("end-caption");
+const endLamp = endBtn.querySelector(".lamp");
+let turn = 12;
+plate.textContent = String(turn).padStart(3, "0");
+const STATES = [
+	{ caption: "Ready", lamp: "", disabled: false },
+	{ caption: "2 actions left", lamp: "ochre", disabled: false },
+	{ caption: "Choose a government first", lamp: "brick", disabled: true },
+];
+let state = 0;
+function showState() {
+	const s = STATES[state];
+	endCaption.textContent = s.caption;
+	endLamp.className = "lamp on " + s.lamp;
+	endBtn.disabled = s.disabled;
+}
+document.getElementById("cycle-state").addEventListener("click", () => { state = (state + 1) % STATES.length; showState(); });
+endBtn.addEventListener("click", async () => {
+	if (endBtn.classList.contains("busy")) return;
+	endLamp.classList.remove("on");
+	endBtn.classList.add("busy");
+	endBtn.querySelector(".label").textContent = "Upkeep…";
+	turn += 1;
+	await flapText(plate, String(turn).padStart(3, "0"));
+	const deltas = [["food", 2], ["wealth", 1], ["insight", 3]];
+	for (const [id, d] of deltas) { change(id, d); await wait(60); }
+	await wait(400);
+	endBtn.classList.remove("busy");
+	endBtn.querySelector(".label").textContent = "End turn";
+	state = 0; showState();
+});
+
+// ---- Modal (§15.11) ----
+const scrim = document.getElementById("scrim");
+let lastFocus = null;
+document.getElementById("open-modal").addEventListener("click", () => {
+	lastFocus = document.activeElement;
+	scrim.hidden = false;
+	requestAnimationFrame(() => requestAnimationFrame(() => scrim.classList.add("open")));
+	scrim.querySelector(".btn").focus({ preventScroll: true });
+});
+async function closeModal() {
+	scrim.classList.add("closing");
+	scrim.classList.remove("open");
+	await wait(160);
+	scrim.classList.remove("closing");
+	scrim.hidden = true;
+	lastFocus && lastFocus.focus({ preventScroll: true });
+}
+scrim.addEventListener("click", (e) => { if (e.target === scrim || e.target.hasAttribute("data-close")) closeModal(); });
+addEventListener("keydown", (e) => { if (e.key === "Escape" && !scrim.hidden) closeModal(); });
+</script>
+</body>
+</html>
