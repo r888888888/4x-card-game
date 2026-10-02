@@ -29,13 +29,13 @@ func _init(p_stack: ModalStack, open_def: Callable) -> void:
 	close_keys = [KEY_ESCAPE, KEY_T]
 	_open_def = open_def
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
+	box.add_theme_constant_override("separation", Tokens.SPACE_4)
 	panel.add_child(box)
 	box.add_child(UIKit.title("Knowledge"))
 	_header = UIKit.heading("")
 	box.add_child(_header)
 	_columns = HBoxContainer.new()
-	_columns.add_theme_constant_override("separation", 24)
+	_columns.add_theme_constant_override("separation", Tokens.SPACE_5)
 	box.add_child(_columns)
 	box.add_child(UIKit.button("Close (T / Esc)", close))
 
@@ -65,7 +65,7 @@ func open() -> void:
 ## One era's column: its name, status and techs. era is a tech_eras() entry.
 func _column(e: GameEngine, era: Dictionary) -> VBoxContainer:
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 6)
+	column.add_theme_constant_override("separation", Tokens.SPACE_2)
 	column.custom_minimum_size.x = 320
 	column.add_child(UIKit.title(era.name))
 	var status := UIKit.heading(_era_status(era))
@@ -129,6 +129,6 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100) beside its Learn button
 	b.tooltip_text = "Click for the full details."
 	var state: String = tech.state
-	UIKit.painted(b, func(): b.add_theme_stylebox_override("normal", UIKit.panel_style(Palette.TILE, STATE_LOOK[state][2], 6)))
+	UIKit.painted(b, func(): b.add_theme_stylebox_override("normal", UIKit.panel_style(Palette.TILE, STATE_LOOK[state][2], Tokens.SPACE_2)))
 	b.modulate.a = look[3]
 	return b

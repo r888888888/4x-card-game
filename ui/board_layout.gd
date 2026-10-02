@@ -64,12 +64,12 @@ func _build_board(main: MainScreen) -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 18)
+		margin.add_theme_constant_override("margin_" + side, Tokens.SPACE_4)
 	main.add_child(margin)
 	board = margin
 
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 12)
+	root.add_theme_constant_override("separation", Tokens.SPACE_3)
 	margin.add_child(root)
 	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.identity_modal.open(),
 		func(): main.log_drawer.toggle())
@@ -96,7 +96,7 @@ func _build_board(main: MainScreen) -> void:
 func _build_hand(main: MainScreen) -> void:
 	var hand_section := UIKit.section(play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
 	var hand_heading := HBoxContainer.new()
-	hand_heading.add_theme_constant_override("separation", 24)
+	hand_heading.add_theme_constant_override("separation", Tokens.SPACE_5)
 	hand_section.get_child(0).reparent(hand_heading)
 	main.actions_label = UIKit.stat(hand_heading)
 	main.actions_label.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -113,7 +113,7 @@ func _build_hand(main: MainScreen) -> void:
 	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
 	main.hand_scroll.add_child(hand_pad)
 	main.hand = HBoxContainer.new()
-	main.hand.add_theme_constant_override("separation", 12)
+	main.hand.add_theme_constant_override("separation", Tokens.SPACE_3)
 	hand_pad.add_child(main.hand)
 
 

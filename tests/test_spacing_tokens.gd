@@ -7,6 +7,7 @@ const TOKENS_PATH := "res://ui/tokens.gd"
 const SPACE_SCALE := [0, 4, 8, 12, 16, 24, 32, 48, 64, 96]
 const RADIUS_SCALE := [0, 2, 4]
 const RADIUS_FULL := 9999
+const GLYPH_GAP := 3  # §6.7: a cost's glyph and its figure; the guide's one spacing off its scale
 ## Container constants that space things out, by the container class that reads them.
 const SPACING := {
 	"BoxContainer": ["separation"],
@@ -123,6 +124,7 @@ func test_the_tokens_hold_the_guides_scales() -> void:
 	for i in RADIUS_SCALE.size():
 		eq(tokens.get("RADIUS_%d" % i), RADIUS_SCALE[i], "Tokens.RADIUS_%d" % i)
 	eq(tokens.get("RADIUS_FULL"), RADIUS_FULL, "Tokens.RADIUS_FULL (radius.full)")
+	eq(tokens.get("GLYPH_GAP"), GLYPH_GAP, "Tokens.GLYPH_GAP (§6.7)")
 
 
 func test_the_board_gaps_are_on_the_scale() -> void:
@@ -142,7 +144,7 @@ func test_every_spacing_on_screen_is_on_the_scale() -> void:
 					continue
 				for constant: String in SPACING[type]:
 					var value := c.get_theme_constant(constant)
-					if not SPACE_SCALE.has(value):
+					if not SPACE_SCALE.has(value) and value != GLYPH_GAP:
 						off.append("%s: %s %s %d" % [screen, main.get_path_to(c), constant, value]))
 	eq(off, [] as Array[String], "spacings off the space scale")
 

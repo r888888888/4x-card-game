@@ -26,7 +26,7 @@ var board := false  # a board face (build_board, 138): one line per field, the r
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_theme_constant_override("separation", 6)
+	add_theme_constant_override("separation", Tokens.SPACE_2)
 
 
 ## Builds the content for card in color. in_hand adds the cost at the right of the name (180).
@@ -138,11 +138,11 @@ static func badge(text: String, color: Color) -> PanelContainer:
 	pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
-	style.set_corner_radius_all(4)
-	style.content_margin_left = 6
-	style.content_margin_right = 6
-	style.content_margin_top = 1
-	style.content_margin_bottom = 1
+	style.set_corner_radius_all(Tokens.RADIUS_2)  # a badge
+	style.content_margin_left = Tokens.SPACE_2
+	style.content_margin_right = Tokens.SPACE_2
+	style.content_margin_top = Tokens.SPACE_0
+	style.content_margin_bottom = Tokens.SPACE_0
 	pill.add_theme_stylebox_override("panel", style)
 	var text_label := rich_label(text, 15, Palette.TEXT_ON_ACCENT)
 	text_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -284,8 +284,8 @@ func set_reason(reason: String) -> void:
 		strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var style := StyleBoxFlat.new()
 		style.bg_color = Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
-		style.set_corner_radius_all(4)
-		style.set_content_margin_all(6)
+		style.set_corner_radius_all(Tokens.RADIUS_0)
+		style.set_content_margin_all(Tokens.SPACE_2)
 		strip.add_theme_stylebox_override("panel", style)
 		strip.add_child(rich_label("", 18, Palette.STRIP_TEXT))
 		add_child(strip)
@@ -299,7 +299,7 @@ static func cost_glyphs(cost: Dictionary) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.name = "Cost"
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", Tokens.SPACE_3)
 	var order: Array = [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT]
 	order.append_array(cost.keys().filter(func(r): return not order.has(r)))
 	for r: String in order:
@@ -308,7 +308,7 @@ static func cost_glyphs(cost: Dictionary) -> HBoxContainer:
 		var entry := HBoxContainer.new()
 		entry.name = r
 		entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		entry.add_theme_constant_override("separation", 3)
+		entry.add_theme_constant_override("separation", Tokens.GLYPH_GAP)
 		var glyphed := Icons.RESOURCES.has(r)
 		if glyphed:
 			var glyph := Icons.glyph(r, 20)

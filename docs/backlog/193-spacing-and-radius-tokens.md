@@ -2,7 +2,7 @@
 id: 193
 title: Spacing and corner radius come from the guide's scales
 type: feature
-status: red-review
+status: in-progress
 branch: feat/193-spacing-and-radius-tokens
 ---
 
@@ -16,12 +16,12 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 
 ## Acceptance criteria
 - [ ] AC1: Given the token constants, then `SPACE_0`…`SPACE_9` are 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 and `RADIUS_0`,
-  `RADIUS_1`, `RADIUS_2` are 0, 2, 4 and `RADIUS_FULL` is 9999 (the guide's `radius.full`); and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
+  `RADIUS_1`, `RADIUS_2` are 0, 2, 4 and `RADIUS_FULL` is 9999 (the guide's `radius.full`) and `GLYPH_GAP` is 3 (§6.7); and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
   (§6.1: "SECTION_GAP 22, CARD_GAP 10 become 24 and 12").
 - [ ] AC2: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
   card details, identity, event, game menu, settings, new game, game over, start), when every visible container is
   walked, then each `separation`, `h_separation`, `v_separation` and `margin_*` constant it resolves is on the space
-  scale; the failure names the node path, the constant and the value.
+  scale or is `GLYPH_GAP`; the failure names the node path, the constant and the value.
 - [ ] AC3: Given the same screens, when every visible control's `panel` / `normal` stylebox that is a `StyleBoxFlat`
   is read, then its corner radius is 0, 2 or 4, or half its control's smaller side (a pip, `radius.full`), and its
   four content margins are on the space scale. Pressed and hover-pressed boxes are exempt (press travel shifts them
@@ -78,3 +78,9 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
   `test_the_accent_button_is_signal_orange`, `test_fields_and_card_colours_look_as_before`), and the pressed box's
   margins from [16, 8, 12, 4] to [18, 10, 14, 6] (`check_sunk`, used by `test_a_pressed_button_sinks_into_its_shadow`),
   as the Design notes state.
+- Green: `test_resource_glyphs` pins a cost's glyph-to-figure gap at 3 px, which the guide sets itself (§6.7) against
+  its own scale rule (§6.1). The user chose to keep 3 px: `Tokens.GLYPH_GAP`, accepted by the screen walk (AC1, AC2
+  amended), and item 180's test is unchanged.
+- Green: AC5's call list misses `UIKit.panel_style`'s padding argument; the screen walk caught the tech tree tiles'
+  6, and four more callers (dark panel 24, log 12, territory frame 18, tiles 6) now pass tokens. Follow-up: add
+  `panel_style(` to AC5's calls so a literal padding fails statically too (the territory view isn't in the walk).

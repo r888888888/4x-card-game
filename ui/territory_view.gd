@@ -43,13 +43,13 @@ func _init(board: MainScreen, realm: Control) -> void:
 	frame = PanelContainer.new()
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	UIKit.painted(frame, func(): frame.add_theme_stylebox_override("panel", UIKit.panel_style(
-		Palette.RAISED.lerp(Palette.TERRITORY, 0.12), Palette.TERRITORY, 18)))
+		Palette.RAISED.lerp(Palette.TERRITORY, 0.12), Palette.TERRITORY, Tokens.SPACE_4)))
 	add_child(frame)
 	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", 12)
+	body.add_theme_constant_override("separation", Tokens.SPACE_3)
 	frame.add_child(body)
 	var title := HBoxContainer.new()
-	title.add_theme_constant_override("separation", 16)
+	title.add_theme_constant_override("separation", Tokens.SPACE_4)
 	body.add_child(title)
 	_name = UIKit.title("")
 	title.add_child(_name)
@@ -59,7 +59,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	title.add_child(_info)
 	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 16)
+	bar.add_theme_constant_override("separation", Tokens.SPACE_4)
 	body.add_child(bar)
 	_stats = CardFace.rich_label("", 19, Palette.TEXT_DIM)
 	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -69,7 +69,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 			line.add_theme_color_override("default_color", Palette.TEXT_DIM))
 	bar.add_child(_stats)
 	_meter = HBoxContainer.new()
-	_meter.add_theme_constant_override("separation", 6)
+	_meter.add_theme_constant_override("separation", Tokens.SPACE_2)
 	bar.add_child(_meter)
 	grow_button = UIKit.button("", _grow)
 	grow_button.theme_type_variation = "GrowPip"

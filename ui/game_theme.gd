@@ -40,17 +40,17 @@ static func _pips(t: Theme) -> void:
 		var filled := variation == "PipFilled"
 		var pip := UIKit.panel_style(Palette.POP if filled else Color.TRANSPARENT, Palette.POP.darkened(0.0 if filled else 0.45), 0)
 		pip.set_border_width_all(2)
-		pip.set_corner_radius_all(PIP_SIZE / 2)
+		pip.set_corner_radius_all(Tokens.RADIUS_FULL)
 		t.set_type_variation(variation, "Panel")
 		t.set_stylebox("panel", variation, pip)
 	t.set_type_variation("GrowPip", "Button")
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var box := _box(Palette.CONTROL, Palette.POP)
-		box.set_corner_radius_all(PIP_SIZE / 2)
-		box.content_margin_left = 10
-		box.content_margin_right = 12
-		box.content_margin_top = 2
-		box.content_margin_bottom = 2
+		box.set_corner_radius_all(Tokens.RADIUS_FULL)
+		box.content_margin_left = Tokens.SPACE_3
+		box.content_margin_right = Tokens.SPACE_3
+		box.content_margin_top = Tokens.SPACE_1
+		box.content_margin_bottom = Tokens.SPACE_1
 		if state == "hover":
 			box.bg_color = Palette.CONTROL.lightened(0.08)
 			box.border_color = Palette.TEXT
@@ -76,7 +76,7 @@ static func _link(t: Theme) -> void:
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.
 static func dark_panel(border := Palette.EDGE) -> StyleBoxFlat:
-	return UIKit.panel_style(Palette.RAISED, border, 24)
+	return UIKit.panel_style(Palette.RAISED, border, Tokens.SPACE_5)
 
 
 ## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.
@@ -140,11 +140,11 @@ static func display() -> FontVariation:
 static func _box(bg: Color, border: Color) -> StyleBoxFlat:
 	var style := UIKit.panel_style(bg, border, 0)
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(2)
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
+	style.set_corner_radius_all(Tokens.RADIUS_1)
+	style.content_margin_left = Tokens.SPACE_4
+	style.content_margin_right = Tokens.SPACE_4
+	style.content_margin_top = Tokens.SPACE_2
+	style.content_margin_bottom = Tokens.SPACE_2
 	style.shadow_color = Palette.SHADOW
 	style.shadow_offset = PLINTH
 	style.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset

@@ -4,9 +4,9 @@ extends RefCounted
 ## effects (pulses, error pop-ups) several components use. Colours come from Palette and the looks
 ## (Heading, Title, Stat, DarkPanel) from GameTheme (106).
 
-const SECTION_GAP := 22  # between the Realm and hand sections
-const HEADING_GAP := 6  # from a heading to its content
-const CARD_GAP := 10  # between cards in a row
+const SECTION_GAP := Tokens.SPACE_5  # between the Realm and hand sections
+const HEADING_GAP := Tokens.SPACE_2  # from a heading to its content
+const CARD_GAP := Tokens.SPACE_3  # between cards in a row
 const PAINTED := &"painted"  # the group of nodes with colours set in code, repainted when Day mode changes (183)
 
 static var COST_COLOR: Color:  # tags for resources paid (181), and error text
@@ -43,7 +43,7 @@ static func calm() -> bool:
 static func slot_outline() -> Panel:
 	var style := StyleBoxFlat.new()
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
+	style.set_corner_radius_all(Tokens.RADIUS_0)  # cards are cut square
 	var outline := Panel.new()
 	painted(outline, func(): style.bg_color = Palette.GHOST_BG; style.border_color = Palette.GHOST_EDGE)
 	outline.add_theme_stylebox_override("panel", style)
@@ -81,7 +81,7 @@ static func overlay(parent: Control, border_role := &"EDGE") -> Control:
 		painted(panel, func(): panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(Palette.color(border_role))))
 	center.add_child(panel)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
+	box.add_theme_constant_override("separation", Tokens.SPACE_3)
 	panel.add_child(box)
 	dimmer.set_meta("panel", panel)
 	dimmer.set_meta("box", box)
@@ -161,7 +161,7 @@ static func button(text: String, on_pressed: Callable) -> Button:
 static func button_column(parent: Control, controls: Array[Control]) -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	column.add_theme_constant_override("separation", 12)
+	column.add_theme_constant_override("separation", Tokens.SPACE_3)
 	for c in controls:
 		c.size_flags_horizontal = Control.SIZE_FILL
 		column.add_child(c)
@@ -194,7 +194,7 @@ static func show_setting(key: LegendKey, on: bool) -> void:
 ## A setting's row (182): its name on the left and key on the right, filling the width it is given (a button column's).
 static func setting_row(text: String, key: Control) -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
+	row.add_theme_constant_override("separation", Tokens.SPACE_4)
 	var label := Label.new()
 	label.text = text
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -253,8 +253,8 @@ static func show_error(layer: Control, view: CardView, text: String, width: floa
 	style.bg_color = Palette.HINT_BG
 	style.border_color = COST_COLOR
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(10)
+	style.set_corner_radius_all(Tokens.RADIUS_0)
+	style.set_content_margin_all(Tokens.SPACE_3)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.z_index = 3  # above flying cards

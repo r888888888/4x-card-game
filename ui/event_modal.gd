@@ -18,13 +18,13 @@ func _init(p_stack: ModalStack) -> void:
 	close_keys = [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]
 	UIKit.painted(panel, func(): panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(Palette.EVENT)))  # bordered in the event colour
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 28)
+	row.add_theme_constant_override("separation", Tokens.SPACE_6)
 	panel.add_child(row)
 	_card_slot = Control.new()
 	_card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(_card_slot)
 	var text := VBoxContainer.new()
-	text.add_theme_constant_override("separation", 10)
+	text.add_theme_constant_override("separation", Tokens.SPACE_3)
 	text.custom_minimum_size.x = 420
 	row.add_child(text)
 	text.add_child(UIKit.heading("A new event"))
