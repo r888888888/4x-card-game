@@ -13,7 +13,8 @@ extends RefCounted
 ## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it plays a
-## government first (145), after 2 counters pays to restore order (146), renews the card worth least to keep (147), and
+## government first (145), after 2 counters pays to restore order (146), chooses the government with the most actions,
+## then the highest limit, when Anarchy ends (154), renews the card worth least to keep (147), and
 ## revolts when a government in hand would end the Anarchy at once (148).
 
 const MAX_STEPS := 2000
@@ -52,7 +53,9 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 	_revolt(engine)
 	while not engine.is_over and steps < MAX_STEPS:
 		steps += 1
-		if engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
+		if engine.pending().get("kind", "") == GameEngine.PENDING_GOVERNMENT:
+			engine.choose_government(_best_government(engine.zone("governments").cards).uid)
+		elif engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
 			engine.renew(_renewal_pick(engine))
 		elif not engine.pending_choice.is_empty():
 			engine.choose(engine.pending_choice.options[0])
@@ -169,6 +172,16 @@ static func _revolt(engine: GameEngine) -> void:
 		return
 	if engine.zone("hand").cards.any(func(c): return c.def.type == CardDef.GOVERNMENT and Anarchy.accept_error(engine, c.def) == ""):
 		engine.revolt()
+
+
+## The government to choose when Anarchy ends (154): the most actions, then the highest unrest limit; ties go to the
+## first in the government deck.
+static func _best_government(govs: Array) -> CardInstance:
+	var best: CardInstance = null
+	for g in govs:
+		if best == null or [g.def.actions, g.def.unrest_limit] > [best.def.actions, best.def.unrest_limit]:
+			best = g
+	return best
 
 
 ## The renewal option worth least to keep (147, see _keep_value); a tie goes to the first in discard order.

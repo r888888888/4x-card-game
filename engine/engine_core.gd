@@ -123,8 +123,14 @@ func draw(n: int) -> int:
 
 
 ## Adds a new copy of card_id to zone_name. source is the card whose effect made it, or null
-## (the log then names no source).
+## (the log then names no source). A government goes to the government deck instead, unless one with its id is
+## already there or rules: then nothing is created and it returns null (154).
 func create_card(card_id: String, zone_name: String, source: CardInstance) -> CardInstance:
+	if card_db[card_id].type == CardDef.GOVERNMENT:
+		var known := zone("governments").cards + zone("government").cards
+		if known.any(func(c): return c.def.id == card_id):
+			return null
+		zone_name = "governments"
 	var card := _make_card(card_id)
 	zone(zone_name).add(card)
 	if not _outcome.is_empty():

@@ -1,11 +1,12 @@
 class_name Anarchy
 extends RefCounted
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy. The config's unrest.anarchy
-## government takes over and the fallen government is shuffled into the deck. While it rules only governments and
+## government takes over and the fallen government goes to the government deck (154). While it rules only governments and
 ## cards tagged unrest.allowed_tag can be played, nothing is grown, bought or researched, and each turn that starts
-## under it adds a counter; at unrest.max_counters the unrest.fallback government restores order and unrest drops to
-## half its limit. Each new era adds unrest.era_unrest. Ways out sooner (146): a government the people accept (unrest
-## at most half its limit), or paying unrest.relief to restore order under the fallback. Static functions on the
+## under it adds a counter; at unrest.max_counters it burns out. Each new era adds unrest.era_unrest. Ways out sooner
+## (146): a government the people accept (unrest at most half its limit), or paying unrest.relief to restore order.
+## When it burns out or order is restored, a government is chosen from the government deck and unrest drops to at
+## most half its limit (154). Static functions on the
 ## engine's state. Revolution (148): while an event with revolt is active you may revolt, falling into Anarchy at once
 ## with renewal owed. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
 ## counters + the renewal modifier cards from the discard (governments aside), each calming 1 unrest.
@@ -57,6 +58,8 @@ static func renewal_options(e: GameEngine) -> Array[int]:
 
 
 static func renew_error(e: GameEngine, uid: int) -> String:
+	if e.state.choosing_government:
+		return e._blocked_error("renew")
 	if e.state.renewal_left <= 0:
 		return "Nothing to renew."
 	return "" if renewal_options(e).has(uid) else RENEW_ERROR
@@ -147,15 +150,16 @@ static func restore_error(e: GameEngine) -> String:
 	return ""
 
 
-## Pays unrest.relief and the fallback government restores order (146). False (and no change) if restore_error says no.
+## Pays unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if restore_error
+## says no.
 static func restore(e: GameEngine) -> bool:
 	if restore_error(e) != "":
 		return false
 	var price := relief(e)
 	for r in price:
 		e.resources[r] -= price[r]
-	var fallback := _install_fallback(e, active(e))
-	e._notice("Order restored (%s): %s rules." % [Famine._amounts(price), fallback.def.name])
+	_end(e, active(e))
+	e._notice("Order restored (%s): choose a government." % Famine._amounts(price))
 	e.changed.emit()
 	return true
 
@@ -172,33 +176,51 @@ static func stir(e: GameEngine) -> void:
 	e._notice("  A new era stirs the people: +%d unrest." % added)
 
 
-## The government falls: it is shuffled into the deck, to be drawn again, and the Anarchy card rules.
+## The government falls into the government deck (154), to be chosen again, and the Anarchy card rules.
 static func _fall(e: GameEngine) -> void:
 	var gov := e.zone("government")
 	var fallen := ""
 	for old in gov.take_all():
 		fallen = old.def.name
-		e.zone("deck").add(old)
-	e.rng.shuffle(e.zone("deck").cards)
+		e.zone("governments").add(old)
 	gov.add(e._make_card(e.config.unrest.anarchy))
-	e._notice("Unrest boils over: Anarchy!%s" % (" %s falls and goes into your deck." % fallen if fallen != "" else ""))
+	e._notice("Unrest boils over: Anarchy!%s" % (" %s falls into your government deck." % fallen if fallen != "" else ""))
 
 
-## Anarchy burns out: the fallback government restores order.
+## Anarchy burns out: order returns and a government is to be chosen (154).
 static func _burn_out(e: GameEngine, anarchy: CardInstance) -> void:
-	var fallback := _install_fallback(e, anarchy)
-	e._notice("Anarchy burns out and order returns: %s rules." % fallback.def.name)
+	_end(e, anarchy)
+	e._notice("Anarchy burns out and order returns: choose a government.")
 
 
-## The fallback government rules, the Anarchy card leaves the game, and unrest drops to at most half the new limit.
-## Returns the fallback card.
-static func _install_fallback(e: GameEngine, anarchy: CardInstance) -> CardInstance:
-	var gov := e.zone("government")
-	gov.remove(anarchy)
+## The Anarchy card leaves the game and no government rules until one is chosen from the government deck (154).
+static func _end(e: GameEngine, anarchy: CardInstance) -> void:
+	e.zone("government").remove(anarchy)
 	e.zone("removed").add(anarchy)
-	var fallback := e._make_card(e.config.unrest.fallback)
-	gov.add(fallback)
+	e.state.choosing_government = true
+
+
+## Why choose_government(uid) would refuse, or "" (154).
+static func choose_government_error(e: GameEngine, uid: int) -> String:
+	if not e.state.choosing_government:
+		return "No government to choose."
+	return "" if e.zone("governments").find(uid) != null else "That government isn't in your government deck."
+
+
+## Government uid rules: it leaves the government deck, its play effects resolve (its cost isn't paid), and unrest
+## drops to at most half its limit (the unrest_limit modifier added first). False (and no change) if
+## choose_government_error says no.
+static func choose_government(e: GameEngine, uid: int) -> bool:
+	if choose_government_error(e, uid) != "":
+		return false
+	var card := e.zone("governments").find(uid)
+	e.zone("governments").remove(card)
+	e.zone("government").add(card)
+	e.state.choosing_government = false
 	var limit := e.unrest_limit()
 	if limit >= 0:
 		e.resources[GameEngine.UNREST] = mini(e.resources.get(GameEngine.UNREST, 0), limit / 2)
-	return fallback
+	e._resolve(card, "play")
+	e._notice("%s rules." % card.def.name)
+	e.changed.emit()
+	return true

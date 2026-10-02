@@ -572,11 +572,11 @@ func test_every_gain_per_keyword_keyword_is_on_a_territory_in_play() -> void:
 
 
 ## Card ids that can reach a game: the starting deck, tableau, territory, civilizations and government, the supply,
-## the territory, event and research decks, the config's unrest.anarchy and fallback (145), and every card those
+## the territory, event and research decks, the config's unrest.anarchy (145), and every card those
 ## cards' effects create or settle.
 func reachable_cards(r: Dictionary) -> Dictionary:
 	var start: Array = [r.config.starting.territory, r.config.starting.government]
-	start += [r.config.get("unrest", {}).get("anarchy", ""), r.config.get("unrest", {}).get("fallback", "")]
+	start.append(r.config.get("unrest", {}).get("anarchy", ""))
 	start += r.config.starting.tableau + r.config.get("civilizations", [])
 	for key in ["deck", "supply", "territory_deck", "event_deck", "research_deck"]:
 		start += r.config.get(key, {}).keys()

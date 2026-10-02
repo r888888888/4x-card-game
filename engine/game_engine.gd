@@ -10,7 +10,7 @@ extends EngineCore
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, and Events. The modules may call the
 ## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "removed", "trashed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
@@ -19,6 +19,7 @@ const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
+const PENDING_GOVERNMENT := "government"  # Anarchy has ended: choose a government from the government deck (154)
 ## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
 ## in an era not added yet.
 const TECH_RESEARCHED := "researched"
@@ -153,10 +154,13 @@ func total_pop() -> int:
 
 
 ## The decision the player owes before the game can go on, or {} when none:
+## {kind: PENDING_GOVERNMENT, options: the government deck's uids (154)} or
 ## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored} or
 ## {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)} or
 ## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
 func pending() -> Dictionary:
+	if state.choosing_government:
+		return {"kind": PENDING_GOVERNMENT, "options": zone("governments").cards.map(func(c): return c.uid)}
 	if not pending_choice.is_empty():
 		return {"kind": PENDING_EXPLORE, "options": pending_choice.options, "source": pending_choice.source.uid}
 	if state.renewal_left > 0:
@@ -327,7 +331,7 @@ func restore_order_error() -> String:
 	return Anarchy.restore_error(self)
 
 
-## Pays the config's unrest.relief and the fallback government replaces Anarchy (146). False (and no change) if
+## Pays the config's unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if
 ## restore_order_error says no.
 func restore_order() -> bool:
 	return Anarchy.restore(self)
@@ -337,6 +341,17 @@ func restore_order() -> bool:
 func anarchy_counters() -> int:
 	var card := Anarchy.active(self)
 	return card.counters if card != null else 0
+
+
+## Why choose_government(uid) would refuse (154): no choice is owed, or uid isn't in the government deck. "" if it can.
+func choose_government_error(uid: int) -> String:
+	return Anarchy.choose_government_error(self, uid)
+
+
+## Government uid leaves the government deck and rules, its play effects resolving (its cost unpaid), and unrest
+## drops to at most half its limit (154). Uses no action. False (and no change) if choose_government_error says no.
+func choose_government(uid: int) -> bool:
+	return Anarchy.choose_government(self, uid)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.
@@ -556,6 +571,8 @@ func _blocked_error(action: String) -> String:
 	if is_over:
 		return "The game is over."
 	match pending().get("kind", ""):
+		PENDING_GOVERNMENT:
+			return "Choose a government first."
 		PENDING_EXPLORE:
 			return "Choose a territory first."
 		PENDING_RENEWAL:

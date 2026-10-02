@@ -290,8 +290,19 @@ func best_time_usec(f: Callable, calls := 20, runs := 5) -> int:
 
 ## Puts a new copy of card id in the hand and returns its uid.
 func put_in_hand(engine: Object, id: String) -> int:
-	var card: CardInstance = engine.create_card(id, "hand", null)
-	return card.uid
+	return put_in(engine, id, "hand")
+
+
+## Puts a new copy of card id in zone_name and returns its uid. A government is placed there directly, where
+## create_card would send it to the government deck (154): tests of rules for governments in the hand or discard.
+func put_in(engine: Object, id: String, zone_name: String) -> int:
+	if engine.card_db[id].type != CardDef.GOVERNMENT:
+		var card: CardInstance = engine.create_card(id, zone_name, null)
+		return card.uid
+	var gov := CardInstance.new(engine.state.next_uid, engine.card_db[id])
+	engine.state.next_uid += 1
+	engine.zone(zone_name).add(gov)
+	return gov.uid
 
 
 ## TEST_CARDS plus TEST_CIVS, parsed.

@@ -11,7 +11,7 @@ const RENEWAL := {"renewal": 1}
 func renewal_engine(discard_ids: Array, block := RENEWAL, extra := []) -> GameEngine:
 	var e := anarchy_engine(block, {}, extra)
 	for id in discard_ids:
-		e.create_card(id, "discard", null)
+		put_in(e, id, "discard")
 	e.resources["unrest"] = 5
 	e.end_turn()
 	return e
@@ -125,7 +125,7 @@ func test_the_renewal_overlay_shows_the_discard_and_a_click_trashes() -> void:
 	await with_main(anarchy_engine(RENEWAL), func(main: Node):
 		var e := Game.engine
 		e.create_card("farm", "discard", null)
-		e.create_card("kings", "discard", null)
+		put_in(e, "kings", "discard")
 		e.resources["unrest"] = 5
 		e.end_turn()
 		await wait_frames()
