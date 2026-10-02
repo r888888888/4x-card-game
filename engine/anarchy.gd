@@ -38,6 +38,34 @@ static func start_of_turn(e: GameEngine) -> void:
 		_fall(e)
 
 
+## A turn that starts under Anarchy, after any fall, before the draw (156): it loses drain_of of its stores.
+static func drain(e: GameEngine) -> void:
+	var anarchy := active(e)
+	if anarchy == null:
+		return
+	var lost := drain_of(e, e.resources)
+	for r in lost:
+		e.lose(r, lost[r], anarchy)
+
+
+## What Anarchy's drain takes from stores ({resource: amount}) (156): config unrest.drain_pct % of food and wealth,
+## rounded up; {} with no drain.
+static func drain_of(e: GameEngine, stores: Dictionary) -> Dictionary:
+	var pct: int = e.config.get("unrest", {}).get("drain_pct", 0)
+	var out := {}
+	for r in [GameEngine.FOOD, GameEngine.WEALTH]:
+		var n := ceili(maxi(0, stores.get(r, 0)) * pct / 100.0)
+		if n > 0:
+			out[r] = n
+	return out
+
+
+## Whether Anarchy will rule at the next turn's start (156): a revolution is pending, or it rules with 2+ counters
+## left.
+static func rules_next_turn(e: GameEngine) -> bool:
+	return e.state.revolt_pending or (active(e) != null and counters_left(e) >= 2)
+
+
 ## The end of a turn under Anarchy, after any hand-limit discard (155): one counter comes off; at 0 Anarchy ends and
 ## the government choice is owed before the next turn. Returns whether it is owed.
 static func end_of_turn(e: GameEngine) -> bool:

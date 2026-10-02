@@ -160,7 +160,8 @@ func era() -> int:
 
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
-## "starve": the pop that food shortfall would starve, after famine guards. {} on the last turn or after game over.
+## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
+## includes the drain on the stores after upkeep and feeding (156). {} on the last turn or after game over.
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
@@ -176,6 +177,13 @@ func upkeep_forecast() -> Dictionary:
 	if population_on():
 		Population.feed(f)
 	forecast.starve = pop_before - f.total_pop()
+	if Anarchy.rules_next_turn(self):
+		var stores := {}
+		for r in [FOOD, WEALTH]:
+			stores[r] = resources.get(r, 0) + forecast.get(r, 0)
+		var lost := Anarchy.drain_of(self, stores)
+		for r in lost:
+			forecast[r] -= lost[r]
 	return forecast
 
 

@@ -489,7 +489,11 @@ Your people have one government at a time; its bonuses apply while it rules.
   beside Relieve famine and Restore order whenever you may revolt; its tooltip says Anarchy starts next turn and lasts
   about N turns. The bot revolts at the end of a turn when the government deck holds one it ranks higher and the
   forecast is 1. Real data: Calls for Reform (2 turns, renewal +1), Peasant Uprising (+1 unrest), Radical Thinkers
-  (era 2, 3 turns, renewal +2). Anarchy (1 action, ⟳ −1 pop), 4 counters, era unrest 3, Feast is the `order` card.
+  (era 2, 3 turns, renewal +2). Anarchy (1 action), 4 counters, era unrest 3, drain 20%, Feast is the `order` card.
+- Anarchy's drain (156): config `unrest.drain_pct` (0–100, absent = 0). Each turn that starts under Anarchy (after any
+  fall, before the draw) loses that share of stored food and wealth, rounded up (`Anarchy.drain`, logged as the Anarchy
+  card's loss). `upkeep_forecast()` includes it on the stores after upkeep and feeding when Anarchy will rule next turn
+  (a revolution pending, or 2+ counters left).
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its
   stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
   unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.

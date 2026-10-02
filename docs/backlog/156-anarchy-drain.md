@@ -2,7 +2,7 @@
 id: 156
 title: Anarchy eats into stored food and wealth
 type: feature
-status: red-review
+status: review
 branch: feat/156-anarchy-drain
 ---
 
@@ -12,13 +12,13 @@ to disorder. Stockpiles become insurance against revolution. Replaces the Anarch
 From `spike/revolution`.
 
 ## Acceptance criteria
-- [ ] AC1: Config `unrest.drain_pct` is optional (absent = 0, no drain); an integer from 0 to 100, otherwise the load
+- [x] AC1: Config `unrest.drain_pct` is optional (absent = 0, no drain); an integer from 0 to 100, otherwise the load
   error `unrest.drain_pct: must be an integer from 0 to 100`.
-- [ ] AC2: Given drain 20 and a turn that starts under Anarchy (after any fall that turn, before the draw) with
+- [x] AC2: Given drain 20 and a turn that starts under Anarchy (after any fall that turn, before the draw) with
   10 food and 7 wealth after upkeep and feeding, then 2 food and 2 wealth are lost (20%, rounded up), with a log line
   naming Anarchy. With 0 food nothing is lost. Insight and other resources are untouched.
-- [ ] AC3: Given no Anarchy at the turn's start, nothing is drained, also with drain 20.
-- [ ] AC4: `upkeep_forecast()` includes the drain (on the forecast's stores after upkeep and feeding) when Anarchy will
+- [x] AC3: Given no Anarchy at the turn's start, nothing is drained, also with drain 20.
+- [x] AC4: `upkeep_forecast()` includes the drain (on the forecast's stores after upkeep and feeding) when Anarchy will
   rule next turn: a revolution is pending, or Anarchy rules with 2+ counters left.
 
 ## Out of scope
@@ -45,5 +45,8 @@ From `spike/revolution`.
   drain during a multi-turn Anarchy.
 
 ## Log
+- 2026-10-01: Built on 155's branch (`Anarchy.drain`, `drain_of`, `rules_next_turn`). At green, the AC4 tests' expected
+  value was computed from the no-drain twin's stores, but the drain game had already lost 20% on the fallen turn; the
+  helper now uses each game's own stores (same assertion). Real data: drain 20, Anarchy's ⟳ −1 pop gone.
 - 2026-10-01: Specced from `spike/revolution`. Spike: drain 20% alone scored within ~4% of income shut off alone; famine
   turns barely moved, since Anarchy averages ~2 turns.

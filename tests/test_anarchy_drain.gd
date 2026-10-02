@@ -76,24 +76,26 @@ func test_no_drain_with_drain_0() -> void:
 
 # --- AC4: the forecast ---
 
-## The forecast's food and wealth on two otherwise equal games, one with drain 20 and one without, after prepare.
+## [food, wealth] forecasts on two otherwise equal games after prepare: [with drain 20, without it, with drain 20
+## worked out from the game without it: its upkeep, then 20% of the drain game's own stores after that upkeep].
 func forecasts(prepare: Callable) -> Array:
-	var out := []
-	for block in [DRAIN, {}]:
-		var e := anarchy_engine(block)
-		prepare.call(e)
-		var f := e.upkeep_forecast()
-		out.append([f.food, f.wealth, e.resources.food + f.food, e.resources.wealth + f.wealth])
-	return out
+	var drained := anarchy_engine(DRAIN)
+	var plain := anarchy_engine()
+	prepare.call(drained)
+	prepare.call(plain)
+	var d := drained.upkeep_forecast()
+	var p := plain.upkeep_forecast()
+	var expected := []
+	for r in ["food", "wealth"]:
+		expected.append(p[r] - ceili((drained.resources[r] + p[r]) * 0.2))
+	return [[d.food, d.wealth], [p.food, p.wealth], expected]
 
 
 func test_the_forecast_includes_the_drain_when_a_revolution_is_pending() -> void:
 	var r := forecasts(func(e: GameEngine):
 		e.resources["unrest"] = 2
 		e.revolt())
-	var plain: Array = r[1]
-	eq([r[0][0], r[0][1]], [plain[0] - ceili(plain[2] * 0.2), plain[1] - ceili(plain[3] * 0.2)],
-		"the drain on the stores after upkeep")
+	eq(r[0], r[2], "the drain on the stores after upkeep")
 
 
 func test_the_forecast_includes_the_drain_while_anarchy_has_2_counters_left() -> void:
@@ -101,8 +103,7 @@ func test_the_forecast_includes_the_drain_while_anarchy_has_2_counters_left() ->
 		e.resources["unrest"] = 5
 		e.end_turn()
 	var r := forecasts(fallen)
-	var plain: Array = r[1]
-	eq([r[0][0], r[0][1]], [plain[0] - ceili(plain[2] * 0.2), plain[1] - ceili(plain[3] * 0.2)], "4 counters left")
+	eq(r[0], r[2], "4 counters left")
 	var last := forecasts(func(e: GameEngine):
 		fallen.call(e)
 		e.set_unrest(1))
