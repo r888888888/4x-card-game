@@ -2,7 +2,7 @@
 id: 155
 title: Revolt any time; Anarchy's length follows unrest
 type: feature
-status: in-progress
+status: review
 branch: feat/155-revolution-and-anarchy-length
 ---
 
@@ -13,33 +13,33 @@ collapse at the limit is long. Calming shortens it, and wealth buys the rest off
 turn left. Follows 154. From `spike/revolution`.
 
 ## Acceptance criteria
-- [ ] AC1: When Anarchy falls, it gets ⌈max_counters × unrest ÷ L⌉ counters, between 1 and max_counters, where L is
+- [x] AC1: When Anarchy falls, it gets ⌈max_counters × unrest ÷ L⌉ counters, between 1 and max_counters, where L is
   the fallen government's `unrest_limit()` (modifiers included). With Chiefs (5) and max_counters 4: unrest 5 → 4,
   unrest 2 → 2, unrest 1 → 1, unrest 0 → 1; with an Altar (limit 6), unrest 3 → 2.
-- [ ] AC2: `anarchy_counters()` is the counters left, lowered live by calming: never more than the AC1 formula on the
+- [x] AC2: `anarchy_counters()` is the counters left, lowered live by calming: never more than the AC1 formula on the
   current unrest (same L), never below 1 while Anarchy rules. Given 4 counters, L 5 and unrest 5, when unrest drops to
   2, then `anarchy_counters()` is 2, and it doesn't rise again when unrest goes back up.
-- [ ] AC3: At the end of each Anarchy turn (after any hand-limit discard), one counter comes off; at 0 Anarchy ends
+- [x] AC3: At the end of each Anarchy turn (after any hand-limit discard), one counter comes off; at 0 Anarchy ends
   and the government choice (154) is owed before the next turn starts. A 1-counter Anarchy lasts exactly one turn.
   The next turn's upkeep runs under the chosen government.
-- [ ] AC4: Given a government ruling and no Anarchy, `revolt_error()` is "" (no event needed). `revolt()` uses no
+- [x] AC4: Given a government ruling and no Anarchy, `revolt_error()` is "" (no event needed). `revolt()` uses no
   action, changes nothing else this turn, and at the next turn's start (before upkeep) Anarchy falls as in AC1, the
   fallen government going to the government deck. `revolt_error()` is `"Anarchy already rules."`, `"A revolution is
   already under way."` after a revolt this turn, `"There is no government to overthrow."` with none ruling, the
   pending-decision message while one is owed, and `"The game is over."` after the end; `revolt()` then returns false
   and changes nothing.
-- [ ] AC5: `order_relief()` is `{wealth: c × (c + 1)}` for c = `anarchy_counters()` (2, 6, 12, 20 for 1–4), `{}`
+- [x] AC5: `order_relief()` is `{wealth: c × (c + 1)}` for c = `anarchy_counters()` (2, 6, 12, 20 for 1–4), `{}`
   without Anarchy. `restore_order_error()` is `"Order can't be restored on Anarchy's first turn."` on the turn it
   fell, and names the price when wealth is short. `restore_order()` pays, ends Anarchy, drops any renewal still owed
   this turn, and owes the government choice at once.
-- [ ] AC6: Renewal (147) asks for `unrest.renewal` + (the Anarchy's turn − 1) + the `renewal` modifier cards: 1 on its
+- [x] AC6: Renewal (147) asks for `unrest.renewal` + (the Anarchy's turn − 1) + the `renewal` modifier cards: 1 on its
   first turn with renewal 1, 2 on its second.
-- [ ] AC7 (bot): `ScriptedBot` revolts at the end of a turn when the government deck holds one it ranks higher (154's
+- [x] AC7 (bot): `ScriptedBot` revolts at the end of a turn when the government deck holds one it ranks higher (154's
   ranking) than the ruling one and `anarchy_counters` would be 1 (AC1 on current unrest); under Anarchy it restores
   order from the second turn when it can pay and 2+ counters are left or the next upkeep would starve.
-- [ ] AC8: The Revolt button below the Realm shows whenever `revolt_error()` is ""; its tooltip says Anarchy starts
+- [x] AC8: The Revolt button below the Realm shows whenever `revolt_error()` is ""; its tooltip says Anarchy starts
   next turn and lasts about N turns (N from the engine: AC1 on current unrest).
-- [ ] AC9 (154 leftovers): a government is never played from hand. Given a government card put straight into the hand,
+- [x] AC9 (154 leftovers): a government is never played from hand. Given a government card put straight into the hand,
   `play_error` is `"A government is chosen, not played."`, with or without Anarchy. The play-a-government path goes:
   `CardPlay`'s government destination and `_replace_government`, the same-government error, `Anarchy.accept_error` and
   the government branch of `Anarchy.play_error` (whose message becomes `"Anarchy: only an order card can be
@@ -89,5 +89,13 @@ turn left. Follows 154. From `spike/revolution`.
 - [ ] Hit the unrest limit: 4 turns of Anarchy; renewal shortens it; Restore order shows the price falling.
 
 ## Log
+- 2026-10-01: Built. Countdown in `TurnLoop.finish_turn` via `Anarchy.end_of_turn`; the end-of-turn choice is
+  `pending.ends_turn` (stripped from `pending()`), and `choose_government` then finishes the turn. Calming ratchets
+  through `EngineCore._unrest_lowered` (set_unrest, lose). Added "Without unrest there is no revolution." (with no
+  unrest block revolt would crash at the fall; test added). On the last turn no countdown runs: the game just ends.
+  AC5's "drops any renewal still owed" is unreachable (renewal blocks restore_order) and wasn't built.
+  A revolt from a government with no limit uses L = 1 (max counters unless unrest is 0). Balance worry: the bot's
+  restore rule pays 12–20 wealth for long Anarchies; measure in 158's sim metrics.
+  The AC8 button test set unrest before `start_game` restarted the game; moved inside the body (setup only).
 - 2026-10-01: Specced from `spike/revolution`. Spike: counters by share of the limit cost 7–9% score against ⌈unrest ÷ 2⌉
   on baseline and wide; about 4 Anarchies and 1–2 revolts a game with the lookahead bot.
