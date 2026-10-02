@@ -16,7 +16,7 @@ var _center: CenterContainer
 ## Builds the modal on stack's host, hidden.
 func _init(p_stack: ModalStack) -> void:
 	stack = p_stack
-	color = Palette.SCRIM
+	UIKit.painted(self, func(): color = Palette.SCRIM)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	z_index = 20  # above the board, the drawer, the menu and flying cards; tree order stacks modals among themselves
 	visible = false

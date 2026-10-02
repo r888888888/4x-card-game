@@ -18,9 +18,14 @@ func _init() -> void:
 
 
 ## The theme's boxes are only reachable once the key is in the tree: copy them with room above the legend for the
-## lamp strip.
+## lamp strip, and again when Day mode rebuilds the theme (183).
 func _ready() -> void:
+	UIKit.painted(self, _copy_boxes)
+
+
+func _copy_boxes() -> void:
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		remove_theme_stylebox_override(state)
 		var box := get_theme_stylebox(state).duplicate() as StyleBoxFlat
 		if box == null:
 			continue

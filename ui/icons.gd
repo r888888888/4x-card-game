@@ -33,22 +33,24 @@ static func glyph(key: String, size: float) -> TextureRect:
 	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return g
 
-## Glyph -> [texture, tint, scale]. A null tint means the icon takes the colour of the text around
-## it. scale is the icon's height as a fraction of the font size (the type marks sit small, like the
-## glyphs they replace, so the type line still fits beside the cost).
-const GLYPHS := {
-	"⟳": [preload("res://assets/icons/upkeep.svg"), Palette.GAIN, 1.0],
-	"▢": [preload("res://assets/icons/slot.svg"), null, 1.0],
-	"⌂": [preload("res://assets/icons/housing.svg"), null, 1.0],
-	"⚒": [preload("res://assets/icons/worker.svg"), null, 1.0],  # a free worker (123)
-	"◆": [preload("res://assets/icons/action.svg"), null, 0.6],
-	"■": [preload("res://assets/icons/building.svg"), null, 0.6],
-	"●": [preload("res://assets/icons/city.svg"), null, 0.6],
-	"▲": [preload("res://assets/icons/territory.svg"), null, 0.6],
-	"✦": [preload("res://assets/icons/tech.svg"), null, 0.6],
-	"❖": [preload("res://assets/icons/event.svg"), null, 0.6],
-	"⊘": [preload("res://assets/icons/blocked.svg"), null, 1.0],
-}
+## Glyph -> [texture, tint, scale], as the palette reads now (183: the tint can't be a constant). A null tint means
+## the icon takes the colour of the text around it. scale is the icon's height as a fraction of the font size (the
+## type marks sit small, like the glyphs they replace, so the type line still fits beside the cost).
+static var GLYPHS: Dictionary:
+	get:
+		return {
+			"⟳": [preload("res://assets/icons/upkeep.svg"), Palette.GAIN, 1.0],
+			"▢": [preload("res://assets/icons/slot.svg"), null, 1.0],
+			"⌂": [preload("res://assets/icons/housing.svg"), null, 1.0],
+			"⚒": [preload("res://assets/icons/worker.svg"), null, 1.0],  # a free worker (123)
+			"◆": [preload("res://assets/icons/action.svg"), null, 0.6],
+			"■": [preload("res://assets/icons/building.svg"), null, 0.6],
+			"●": [preload("res://assets/icons/city.svg"), null, 0.6],
+			"▲": [preload("res://assets/icons/territory.svg"), null, 0.6],
+			"✦": [preload("res://assets/icons/tech.svg"), null, 0.6],
+			"❖": [preload("res://assets/icons/event.svg"), null, 0.6],
+			"⊘": [preload("res://assets/icons/blocked.svg"), null, 1.0],
+		}
 
 
 ## Replaces label's content with text, drawing each known glyph as an icon sized to font_size.
@@ -56,13 +58,14 @@ const GLYPHS := {
 static func fill(label: RichTextLabel, text: String, font_size: int, color: Color) -> void:
 	label.clear()
 	var run := ""
+	var glyphs := GLYPHS
 	for ch in text:
-		if GLYPHS.has(ch):
+		if glyphs.has(ch):
 			label.add_text(run)
 			run = ""
-			var tint: Variant = GLYPHS[ch][1]
-			var height := roundi(font_size * GLYPHS[ch][2])
-			label.add_image(GLYPHS[ch][0], 0, height, color if tint == null else tint, INLINE_ALIGNMENT_CENTER)
+			var tint: Variant = glyphs[ch][1]
+			var height := roundi(font_size * glyphs[ch][2])
+			label.add_image(glyphs[ch][0], 0, height, color if tint == null else tint, INLINE_ALIGNMENT_CENTER)
 		else:
 			run += ch
 	label.add_text(run)
@@ -70,10 +73,11 @@ static func fill(label: RichTextLabel, text: String, font_size: int, color: Colo
 
 ## text with each known glyph turned into an [img] tag, for BBCode output such as the log.
 static func bbcode(text: String, font_size: int) -> String:
-	for ch in GLYPHS:
+	var glyphs := GLYPHS
+	for ch in glyphs:
 		if ch in text:
-			var tint: Variant = GLYPHS[ch][1]
+			var tint: Variant = glyphs[ch][1]
 			var color := "" if tint == null else " color=#%s" % (tint as Color).to_html(false)
-			var height := roundi(font_size * GLYPHS[ch][2])
-			text = text.replace(ch, "[img height=%d valign=center%s]%s[/img]" % [height, color, GLYPHS[ch][0].resource_path])
+			var height := roundi(font_size * glyphs[ch][2])
+			text = text.replace(ch, "[img height=%d valign=center%s]%s[/img]" % [height, color, glyphs[ch][0].resource_path])
 	return text

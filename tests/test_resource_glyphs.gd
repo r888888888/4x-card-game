@@ -3,11 +3,11 @@ extends "res://tests/lib/test_case.gd"
 ## shows its cost at the top right as glyph + figure per resource, red where the player is short (play_shortfall).
 
 const POP_ON := {"population": {"start": 1, "food_upkeep": 1, "vp_per_pop": 1}}
-## Counter key -> [glyph file in assets/icons/, tint].
+## Counter key -> [glyph file in assets/icons/, tint's Palette name] (183: read when the test runs).
 const GLYPHS := {
-	GameEngine.FOOD: ["food.svg", Palette.GAIN], GameEngine.WEALTH: ["wealth.svg", Palette.WEALTH],
-	GameEngine.INSIGHT: ["insight.svg", Palette.INSIGHT], GameEngine.UNREST: ["unrest.svg", Palette.UNREST],
-	TopBar.SCORE: ["score.svg", Palette.TEXT], TopBar.POP: ["pop.svg", Palette.POP],
+	GameEngine.FOOD: ["food.svg", &"GAIN"], GameEngine.WEALTH: ["wealth.svg", &"WEALTH"],
+	GameEngine.INSIGHT: ["insight.svg", &"INSIGHT"], GameEngine.UNREST: ["unrest.svg", &"UNREST"],
+	TopBar.SCORE: ["score.svg", &"TEXT"], TopBar.POP: ["pop.svg", &"POP"],
 }
 
 
@@ -58,7 +58,7 @@ func test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure() -> voi
 			if glyph == null:
 				continue
 			eq(glyph.texture.resource_path, "res://assets/icons/" + GLYPHS[key][0], "'%s' glyph" % key)
-			eq(glyph.self_modulate.to_html(), GLYPHS[key][1].to_html(), "'%s' glyph tint" % key)
+			eq(glyph.self_modulate.to_html(), Palette.color(GLYPHS[key][1]).to_html(), "'%s' glyph tint" % key)
 			check(glyph.get_global_rect().position.x - counter.get_global_rect().position.x < 2.0,
 				"'%s' glyph at the counter's left" % key)
 			if key != GameEngine.UNREST:  # unrest is off in this game

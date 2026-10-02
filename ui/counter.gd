@@ -19,8 +19,9 @@ var _tag_tween: Tween
 func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	add_theme_constant_override("separation", 0)
 	mouse_filter = Control.MOUSE_FILTER_PASS  # for the tooltip
+	var glyph: TextureRect = null
 	if glyph_key != "":
-		var glyph := Icons.glyph(glyph_key, TopBar.GLYPH)
+		glyph = Icons.glyph(glyph_key, TopBar.GLYPH)
 		glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		add_child(glyph)
 		var gap := Control.new()
@@ -40,6 +41,10 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	_tag.add_theme_stylebox_override("normal", room)
 	_tag.hide()
 	_suffix = _text(variation)
+	UIKit.painted(self, func():  # 183: a refresh or the owner sets any other colour after this
+		if glyph != null:
+			glyph.self_modulate = Icons.hue(glyph_key)
+		set_color(Palette.TEXT))
 
 
 ## The counter's figure.

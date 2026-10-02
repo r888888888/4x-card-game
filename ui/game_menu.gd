@@ -16,6 +16,7 @@ var overlay: Control
 var _seed_edit: LineEdit
 var _civ_label: Label  # "Playing as <civilization>", hidden when the game has none (064)
 var motion_toggle: LegendKey  # Reduce motion, in its row (182)
+var day_toggle: LegendKey  # Day mode, in its row under it (183)
 
 
 ## Builds the menu on parent, hidden.
@@ -49,12 +50,13 @@ func _init(parent: Control) -> void:
 	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
 	new_game.tooltip_text = "Leave this game and choose a civilization and seed."
 	motion_toggle = UIKit.motion_toggle()
+	day_toggle = UIKit.day_toggle()
 	var close := UIKit.button("Close (Esc)", func(): close_requested.emit())
 	var exit := UIKit.button("Exit", func(): exit_requested.emit())
 	exit.tooltip_text = "Quit the game. It isn't saved."
-	UIKit.button_column(box, [restart, new_game, UIKit.setting_row("Reduce motion", motion_toggle), HSeparator.new(),
-		close, exit])
-	UIKit.focus_loop([_seed_edit, restart, new_game, motion_toggle, close, exit])
+	UIKit.button_column(box, [restart, new_game, UIKit.setting_row("Reduce motion", motion_toggle),
+		UIKit.setting_row("Day mode", day_toggle), HSeparator.new(), close, exit])
+	UIKit.focus_loop([_seed_edit, restart, new_game, motion_toggle, day_toggle, close, exit])
 
 
 func is_open() -> bool:
@@ -91,6 +93,7 @@ func _restart() -> void:
 	start_requested.emit(text.to_int() if text.is_valid_int() else -1)
 
 
-## Matches the Reduce motion toggle to the setting.
-func show_motion_setting(calm: bool) -> void:
-	UIKit.show_motion(motion_toggle, calm)
+## Matches the Reduce motion and Day mode keys to the settings.
+func show_settings(calm: bool, day: bool) -> void:
+	UIKit.show_setting(motion_toggle, calm)
+	UIKit.show_setting(day_toggle, day)

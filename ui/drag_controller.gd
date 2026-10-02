@@ -20,8 +20,6 @@ var _hint_label: Label
 func _init(board: MainScreen) -> void:
 	_board = board
 	_drop_style = StyleBoxFlat.new()
-	_drop_style.bg_color = Palette.DROP_BG
-	_drop_style.border_color = Palette.GAIN
 	_drop_style.set_border_width_all(3)
 	_drop_style.set_corner_radius_all(10)
 	_drop_highlight = Panel.new()
@@ -29,10 +27,9 @@ func _init(board: MainScreen) -> void:
 	_drop_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_drop_highlight.hide()
 	board.fx.add_child(_drop_highlight)
+	UIKit.painted(_drop_highlight, func(): _drop_style.bg_color = Palette.DROP_BG; _drop_style.border_color = Palette.GAIN)
 	_hint = PanelContainer.new()
 	var hint_style := StyleBoxFlat.new()
-	hint_style.bg_color = Palette.HINT_BG
-	hint_style.border_color = CardView.WARN_COLOR
 	hint_style.set_border_width_all(1)
 	hint_style.set_corner_radius_all(6)
 	hint_style.set_content_margin_all(8)
@@ -41,6 +38,11 @@ func _init(board: MainScreen) -> void:
 	_hint.z_index = 3  # above the dragged card
 	_hint_label = UIKit.fx_label("", 19, UIKit.COST_COLOR)
 	_hint.add_child(_hint_label)
+	UIKit.painted(_hint, func():
+		hint_style.bg_color = Palette.HINT_BG
+		hint_style.border_color = Palette.WARN
+		_hint_label.add_theme_color_override("font_color", Palette.COST)
+		_hint_label.add_theme_color_override("font_outline_color", Palette.OUTLINE))
 	_hint.hide()
 	board.fx.add_child(_hint)
 	_drop_pulse = _drop_highlight.create_tween().set_loops()

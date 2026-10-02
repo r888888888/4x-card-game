@@ -58,7 +58,7 @@ res://
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine, reads the launch options
   autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
-  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
+  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion, day mode), saved via SettingsStore
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
   ui/                    # main.tscn/main.gd (MainScreen: actions, menu, refresh, test hooks), board_layout.gd
                          # (176: BoardLayout builds the layout and components in code), board_views.gd (176:
@@ -85,7 +85,8 @@ res://
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
                          # new_game_screen.gd (099: civilization cards, seed, Start), settings_screen.gd (099)
-                         # look: palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in
+                         # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
+                         # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
                          # code, with Heading/Title/Stat/DarkPanel variations)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)

@@ -7,6 +7,7 @@ extends RefCounted
 var overlay: Control
 var header: ScreenHeader
 var motion_toggle: LegendKey
+var day_toggle: LegendKey  # Day mode, under Reduce motion (183)
 var back_button: Button  # the header's
 
 
@@ -20,8 +21,9 @@ func _init(parent: Control, nav: Navigator) -> void:
 	box.add_child(header)
 	back_button = header.back_button
 	motion_toggle = UIKit.motion_toggle()
-	UIKit.button_column(box, [UIKit.setting_row("Reduce motion", motion_toggle)])
-	UIKit.focus_loop([back_button, motion_toggle])
+	day_toggle = UIKit.day_toggle()
+	UIKit.button_column(box, [UIKit.setting_row("Reduce motion", motion_toggle), UIKit.setting_row("Day mode", day_toggle)])
+	UIKit.focus_loop([back_button, motion_toggle, day_toggle])
 
 
 func is_open() -> bool:

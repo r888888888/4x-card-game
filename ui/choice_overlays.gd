@@ -19,7 +19,7 @@ var _government: Control
 ## Builds the overlays on parent, hidden.
 func _init(parent: Control) -> void:
 	# Explore: a centred panel over the dimmed board, so the board keeps its layout.
-	_explore = UIKit.overlay(parent, CardView.TYPE_COLORS.territory)
+	_explore = UIKit.overlay(parent, &"TERRITORY")
 	_explore.z_index = 5  # above lifted cards, below the game-over overlay
 	_explore_panel = _explore.get_meta("panel")
 	var explore_box := _explore.get_meta("box") as VBoxContainer
@@ -29,7 +29,7 @@ func _init(parent: Control) -> void:
 	reveal.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	explore_box.add_child(reveal)
 
-	_renewal = UIKit.overlay(parent, Palette.UNREST)
+	_renewal = UIKit.overlay(parent, &"UNREST")
 	_renewal.z_index = 5
 	var renewal_box := _renewal.get_meta("box") as VBoxContainer
 	renewal_box.add_child(UIKit.title("Renewal"))
@@ -41,7 +41,7 @@ func _init(parent: Control) -> void:
 	renewal_row.custom_minimum_size.x = 900  # wraps a long discard pile
 	renewal_box.add_child(renewal_row)
 
-	_government = UIKit.overlay(parent, Palette.UNREST)
+	_government = UIKit.overlay(parent, &"UNREST")
 	_government.z_index = 5
 	var government_box := _government.get_meta("box") as VBoxContainer
 	government_box.add_child(UIKit.title("Government"))
