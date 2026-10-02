@@ -2,7 +2,7 @@
 id: 181
 title: Odometer counters and +N tags instead of floating tokens
 type: feature
-status: red-review
+status: in-progress
 branch: feat/181-odometer-counters
 ---
 

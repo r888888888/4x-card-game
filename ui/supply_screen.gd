@@ -12,9 +12,10 @@ var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the conf
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
-var _wealth: Label  # the screen's own counters: the top bar's sit under the dimmer
+var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer and tag)
 var _discard: Label
-var _fx: Control  # tokens, flying copies and errors above the panel
+var _fresh := true  # the next refresh shows the wealth at once: the screen just opened
+var _fx: Control  # flying copies and errors above the panel
 var _board: MainScreen
 
 
@@ -35,7 +36,9 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 36)
 	box.add_child(stats)
-	_wealth = UIKit.stat(stats, Palette.WEALTH)
+	_wealth = Counter.new("", "Wealth: ", &"Stat")
+	_wealth.set_color(Palette.WEALTH)
+	stats.add_child(_wealth)
 	_discard = UIKit.stat(stats, Palette.PILES)
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
 	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
@@ -58,8 +61,10 @@ func counter(key: String) -> Control:
 
 ## counter(key)'s text ("Wealth: 10"), or "" for an unknown key (177).
 func counter_text(key: String) -> String:
-	var label := counter(key) as Label
-	return label.text if label != null else ""
+	var c := counter(key)
+	if c is Counter:
+		return (c as Counter).text()
+	return (c as Label).text if c is Label else ""
 
 
 func is_open() -> bool:
@@ -116,7 +121,7 @@ func close() -> void:
 	if not is_open():
 		return
 	_overlay.hide()
-	_wealth.text = ""  # so the next open doesn't pulse it
+	_fresh = true  # so the next open shows the wealth at once, with no tag
 	_views.clear()
 	for slot in _row.get_children():
 		_row.remove_child(slot)
@@ -136,10 +141,7 @@ func pick(view: CardView) -> void:
 		UIKit.show_error(_fx, view, error, _overlay.size.x)
 		view.reject()
 		return
-	var price := e.buy_price(id)
-	e.buy(id)
-	var wealth_from := _wealth.get_global_rect().get_center() + Vector2(0, _wealth.size.y)
-	UIKit.float_token(_fx, "−%d wealth" % price, wealth_from, UIKit.COST_COLOR, 0.0)
+	e.buy(id)  # the refresh that follows rolls the wealth down and tags it (181)
 	# A copy flies to the screen's Discard counter, which pulses as it lands.
 	var copy := CardView.new()
 	copy.setup(CardInstance.new(-100, e.card_db[id]), e.card_db, false)
@@ -157,7 +159,10 @@ func refresh(e: GameEngine) -> void:
 	button.tooltip_text = reason if reason != "" else "Shortcut: S. Buy copies of cards into your discard."
 	if not is_open():
 		return
-	UIKit.set_stat(_wealth, "Wealth: %d" % e.resources.get(GameEngine.WEALTH, 0))
+	var change := _wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), "", _fresh)
+	_fresh = false
+	if change != 0:
+		_wealth.show_tag(change, 0.0)
 	_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _views:
 		_views[id].set_buy_info(e.buy_price(id), e.supply_left(id), e.buy_error(id))

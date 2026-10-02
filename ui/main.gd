@@ -13,7 +13,7 @@ var quit_hook := func(): get_tree().quit()
 
 var views: Dictionary:  # uid -> CardView, kept by BoardViews
 	get: return _views.views
-var fx: Control  # effects layer: flying, dragged and leaving cards, resource tokens, errors
+var fx: Control  # effects layer: flying, dragged and leaving cards, errors
 var tableau: TableauView
 var hand: HBoxContainer
 var hand_scroll: ScrollContainer
@@ -103,7 +103,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_drawn = {}
 	territory_view.reset()
 	_views.reset()
-	_top_bar.reset_counters()  # a new game's counters float nothing (126)
+	_top_bar.reset_counters()  # a new game's counters show no tags (126, 181)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
 	_menu.set_game(seed_value, _civilization_name())
@@ -406,7 +406,7 @@ func _on_card_played(outcome: Dictionary) -> void:
 func _refresh() -> void:
 	var e := Game.engine
 	territory_view.close_if_stale(e)
-	_top_bar.refresh(e, fx, supply.is_open())
+	_top_bar.refresh(e, supply.is_open())
 	actions_label.visible = e.actions_per_turn() >= 0
 	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
 	_views.sync(e)
