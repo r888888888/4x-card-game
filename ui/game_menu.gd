@@ -15,7 +15,7 @@ signal exit_requested
 var overlay: Control
 var _seed_edit: LineEdit
 var _civ_label: Label  # "Playing as <civilization>", hidden when the game has none (064)
-var _motion_toggle: Button  # "Reduce motion: on/off"
+var motion_toggle: LegendKey  # Reduce motion, in its row (182)
 
 
 ## Builds the menu on parent, hidden.
@@ -48,12 +48,13 @@ func _init(parent: Control) -> void:
 	restart.tooltip_text = "Start again with the seed above."
 	var new_game := UIKit.button("New game", func(): new_game_requested.emit())
 	new_game.tooltip_text = "Leave this game and choose a civilization and seed."
-	_motion_toggle = UIKit.motion_toggle()
+	motion_toggle = UIKit.motion_toggle()
 	var close := UIKit.button("Close (Esc)", func(): close_requested.emit())
 	var exit := UIKit.button("Exit", func(): exit_requested.emit())
 	exit.tooltip_text = "Quit the game. It isn't saved."
-	UIKit.button_column(box, [restart, new_game, _motion_toggle, HSeparator.new(), close, exit])
-	UIKit.focus_loop([_seed_edit, restart, new_game, _motion_toggle, close, exit])
+	UIKit.button_column(box, [restart, new_game, UIKit.setting_row("Reduce motion", motion_toggle), HSeparator.new(),
+		close, exit])
+	UIKit.focus_loop([_seed_edit, restart, new_game, motion_toggle, close, exit])
 
 
 func is_open() -> bool:
@@ -92,4 +93,4 @@ func _restart() -> void:
 
 ## Matches the Reduce motion toggle to the setting.
 func show_motion_setting(calm: bool) -> void:
-	UIKit.show_motion(_motion_toggle, calm)
+	UIKit.show_motion(motion_toggle, calm)

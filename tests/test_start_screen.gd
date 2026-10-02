@@ -60,7 +60,7 @@ func with_temp_settings(body: Callable) -> void:
 		DirAccess.remove_absolute(SETTINGS_PATH)
 	var original: SettingsStore = Settings.store
 	Settings.store = SettingsStore.new(SETTINGS_PATH)
-	body.call()
+	await body.call()
 	Settings.store = original
 	Settings.changed.emit()
 	if FileAccess.file_exists(SETTINGS_PATH):
@@ -301,7 +301,9 @@ func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
 	var screen: Object = main.settings_screen
 	eq(open_screens(main), ["settings"] as Array[String], "title hidden, settings screen open")
 	eq(changes, 0, "no game started")
-	check(screen.motion_toggle.text.begins_with("Reduce motion"), "Reduce motion toggle")
+	var toggle_row: Node = screen.motion_toggle.get_parent()
+	check(toggle_row.get_children().any(func(c): return c is Label and c.text == "Reduce motion"),
+		"Reduce motion: a labelled key (182)")
 	check(screen.overlay.is_ancestor_of(screen.motion_toggle), "toggle on the screen")
 	eq(screen.back_button.text, "Main menu", "the header's link back (104, 118)")
 	check(screen.overlay.is_ancestor_of(screen.back_button), "Back on the screen")
@@ -309,17 +311,19 @@ func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
 
 
 func test_settings_and_menu_toggles_share_the_setting() -> void:
-	with_temp_settings(func():
+	await with_temp_settings(func():
 		var main := open_main()
 		main.start_screen.settings_button.pressed.emit()
 		var screen_toggle: Button = main.settings_screen.motion_toggle
 		Settings.set_reduce_motion(true)
 		check(screen_toggle.button_pressed, "settings screen toggle on")
-		eq(screen_toggle.text, "Reduce motion: on", "settings screen toggle text")
-		check(menu_button(main, "Reduce motion").button_pressed, "menu toggle on")
+		await wait_frames()
+		eq(screen_toggle.text, "ON", "settings screen key's legend (182)")
+		check(main.menu_motion_toggle().button_pressed, "menu toggle on")
 		screen_toggle.button_pressed = false  # the player turns it off on the settings screen
 		eq(Settings.reduce_motion, false, "setting off")
-		eq(menu_button(main, "Reduce motion").text, "Reduce motion: off", "menu toggle follows")
+		await wait_frames()
+		eq(main.menu_motion_toggle().text, "OFF", "menu toggle follows")
 		var saved := SettingsStore.new(SETTINGS_PATH)
 		saved.reduce_motion = true
 		saved.load()

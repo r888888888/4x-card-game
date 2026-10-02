@@ -48,7 +48,7 @@ func check_column(buttons: Array, what: String) -> void:
 		widest = maxf(widest, b.get_combined_minimum_size().x)
 	for b in buttons:
 		check(absf(b.size.x - widest) <= TOLERANCE, "%s: '%s' is %d wide, the widest button's minimum is %d" % [
-			what, b.text, b.size.x, widest])
+			what, b.get("text") if b is Button else b.name, b.size.x, widest])
 	var panel := panel_of(buttons[0])
 	var centre: float = buttons[0].get_global_rect().get_center().x
 	var panel_centre := panel.get_global_rect().get_center().x
@@ -72,7 +72,7 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 	check_column([title.new_game_button, title.settings_button, title.exit_button], "title screen")
 	title.settings_button.pressed.emit()
 	await wait_frames()
-	check_column([main.settings_screen.motion_toggle], "settings screen")
+	check_column([main.settings_screen.motion_toggle.get_parent()], "settings screen")  # 182: the Reduce motion row
 	check_fits(main.settings_screen.back_button, "settings screen's header back")  # 104: Back moved to the header
 	main.settings_screen.back_button.pressed.emit()
 	title.new_game_button.pressed.emit()
@@ -87,7 +87,11 @@ func test_menu_and_game_over_columns_share_one_width() -> void:
 	main.start_game(1)
 	main.open_menu()
 	await wait_frames()
-	check_column(main.menu_buttons(), "menu")
+	var key: Control = main.menu_motion_toggle()
+	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the row isn't one
+	column.assign(main.menu_buttons().filter(func(b): return b != key))
+	column.insert(2, key.get_parent())  # 182: the Reduce motion row stands where the toggle button was
+	check_column(column, "menu")
 	press_key(main, KEY_ESCAPE)
 	play_seed_1(main, func(_m): pass)
 	await wait_frames()
