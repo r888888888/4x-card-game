@@ -63,4 +63,7 @@ func _fill(e: GameEngine) -> void:
 		var text := CardDetailsModal.body_bbcode(details)
 		var heading := "[font_size=30][b]%s[/b][/font_size]\n%s" % [details.name, zone_name.capitalize()]
 		sections.append(heading + "\n\n" + (text if text != "" else "No bonus."))
+	var deck: Array = e.zone("governments").cards.map(func(c): return c.def.name)
+	if not deck.is_empty():
+		sections.append("Government deck: %s" % ", ".join(deck))  # 154
 	_body.text = "\n\n\n".join(sections)

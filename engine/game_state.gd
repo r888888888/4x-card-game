@@ -16,6 +16,7 @@ var era := 1  # the highest era of techs added to the research deck
 var eras_added: Array[int] = []  # eras add_era has already shuffled in
 var discard_left := 0  # cards still to discard before the turn can end; 0 = none pending
 var renewal_left := 0  # discard cards Anarchy's renewal still asks to trash this turn (147); 0 = none pending
+var choosing_government := false  # Anarchy has ended and a government is to be chosen (154)
 var actions_used := 0  # cards played from hand this turn (127)
 var actions_gained := 0  # actions gain_actions effects gave this turn (128)
 var supply: Dictionary = {}  # card_id -> copies left to buy, in config order
@@ -48,6 +49,7 @@ func copy() -> GameState:
 	s.eras_added = eras_added.duplicate()
 	s.discard_left = discard_left
 	s.renewal_left = renewal_left
+	s.choosing_government = choosing_government
 	s.actions_used = actions_used
 	s.actions_gained = actions_gained
 	s.supply = supply.duplicate()

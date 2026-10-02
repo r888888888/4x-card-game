@@ -17,7 +17,7 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
-## unrest: {anarchy, fallback, max_counters, era_unrest, allowed_tag}, {} when there is none (145)}.
+## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145)}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -285,19 +285,19 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 	return {}
 
 
-## Normalizes the unrest block (145) {anarchy, fallback, max_counters, era_unrest (default 0), allowed_tag (default
-## ""), relief (146, only when given: what restore_order pays), renewal (147, only when given; 0 when absent)}: only with unrest in resources; anarchy and fallback are governments, and the anarchy card sets no
+## Normalizes the unrest block (145) {anarchy, max_counters, era_unrest (default 0), allowed_tag (default
+## ""), relief (146, only when given: what restore_order pays), renewal (147, only when given; 0 when absent)}: only with unrest in resources; anarchy is a government (154: no fallback), and the anarchy card sets no
 ## unrest_limit and isn't starting.government. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
 		errs.append("unrest: needs '%s' in resources" % GameEngine.UNREST)
 		return {}
 	if not (raw is Dictionary):
-		errs.append("unrest: must be an object like {\"anarchy\": \"anarchy\", \"fallback\": \"chiefdom\", \"max_counters\": 4}")
+		errs.append("unrest: must be an object like {\"anarchy\": \"anarchy\", \"max_counters\": 4}")
 		return {}
 	var u_errs: Array[String] = []
 	var out := {}
-	for key in ["anarchy", "fallback"]:
+	for key in ["anarchy"]:
 		var id: Variant = raw.get(key)
 		if not raw.has(key):
 			u_errs.append("unrest.%s: missing (a government id)" % key)
@@ -334,7 +334,7 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 		for m in r_errs:
 			u_errs.append("unrest" + m)
 	for key in raw:
-		if not ["anarchy", "fallback", "max_counters", "era_unrest", "allowed_tag", "relief", "renewal"].has(key):
+		if not ["anarchy", "max_counters", "era_unrest", "allowed_tag", "relief", "renewal"].has(key):
 			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
 	errs.append_array(u_errs)
 	return out if u_errs.is_empty() else {}

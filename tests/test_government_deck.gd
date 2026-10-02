@@ -106,7 +106,7 @@ func test_choosing_a_government_rules_it_and_calms_unrest() -> void:
 
 func test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government() -> void:
 	var e: Object = choosing_engine()
-	e.create_card("altar", "tableau", null)
+	build_on(e, home_uid(e), ["altar"])
 	e.resources["unrest"] = 6
 	e.choose_government(uid_of(e.zone("governments"), "kings"))
 	eq(e.resources.get("unrest"), 4, "at most (7 + 1) / 2")
