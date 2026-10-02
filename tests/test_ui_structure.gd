@@ -15,7 +15,7 @@ const COMPONENTS := {
 	"res://ui/tech_tree_modal.gd": "TechTreeModal",
 	"res://ui/event_modal.gd": "EventModal",
 	"res://ui/new_game_screen.gd": "NewGameScreen",
-	"res://ui/settings_screen.gd": "SettingsScreen",
+	"res://ui/settings_modal.gd": "SettingsModal",  # 206: replaced the settings screen
 	"res://ui/navigator.gd": "Navigator",
 	"res://ui/palette.gd": "Palette",
 	"res://ui/game_theme.gd": "GameTheme",
