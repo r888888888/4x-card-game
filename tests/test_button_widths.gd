@@ -77,7 +77,7 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 	main.settings_screen.back_button.pressed.emit()
 	title.new_game_button.pressed.emit()
 	await wait_frames()
-	check_column([main.new_game_screen.start_button], "new game screen")
+	check_fits(main.new_game_screen.start_button, "new game screen's Start")  # at the detail pane's foot (212)
 	check_fits(main.new_game_screen.back_button, "new game screen's header back")  # 104: Back moved to the header
 	close_at_1080(main)
 

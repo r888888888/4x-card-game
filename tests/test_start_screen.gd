@@ -2,7 +2,8 @@ extends "res://tests/lib/test_case.gd"
 ## The title, new game and settings screens in the real main scene (backlog 063, 064, 099).
 ## main.start_screen is the title screen (is_open, overlay, new_game_button, settings_button, exit_button);
 ## main.new_game_screen picks the civilization and seed (is_open, overlay, seed_edit, start_button, back_button,
-## selected, select, civilization_ids); main.settings_screen holds Reduce motion (is_open, overlay, motion_toggle,
+## selected, select, civilization_ids, civilization_row, detail_pane, detail_title, detail_text; 212);
+## main.settings_screen holds Reduce motion (is_open, overlay, motion_toggle,
 ## back_button). main.board_shown() says whether the board is visible.
 ## Game.engine is shared by every UI test, so "no game started" is checked as "no engine changed signal".
 
@@ -187,96 +188,122 @@ func test_selecting_a_civilization_saves_it_and_start_uses_it() -> void:
 		close_main(main))
 
 
-## Backlog 107 (AC9): a click on a civilization card selects it and opens its details: flavor first, then every bonus.
-func test_clicking_a_civilization_selects_it_and_shows_its_flavor_and_bonuses() -> void:
+# --- 212: a list of civilizations and the selected one's detail ---
+
+## The visible text of the new game screen's detail pane, without markup.
+func detail_text(main: Node) -> String:
+	return main.new_game_screen.detail_text()
+
+
+func test_the_list_has_a_row_per_civilization_with_its_band_and_the_preselected_one_pressed() -> void:
 	with_temp_settings(func():
 		var civs: Array[String] = Game.engine.civilizations()
+		Settings.store.civilization = civs[1]
 		var main := open_new_game_screen()
-		var view: CardView = main.new_game_screen.civilization_view(civs[1])
-		check(view != null, "a card for %s" % civs[1])
-		if view != null:
-			view.picked.emit(view)
-			eq(main.new_game_screen.selected, civs[1], "selected")
-			var def: CardDef = Game.engine.card_db[civs[1]]
-			eq(main.details.shown().get("name", ""), def.name, "its details are open")
-			var body: String = main.details.body_text()
-			check(body.begins_with(def.flavor), "the details start with the flavor: %s" % body)
-			for line in def.rules_tooltip(Game.engine.card_db).split("\n"):
-				check(line in body, "the details show the bonus '%s': %s" % [line, body])
+		var screen: Object = main.new_game_screen
+		eq(screen.civilization_ids(), civs, "one row per civilization, in config order")
+		for i in civs.size():
+			var row: Button = screen.civilization_row(civs[i])
+			check(row != null and row.is_visible_in_tree(), "a row for %s" % civs[i])
+			if row == null:
+				continue
+			eq(row.text, Game.engine.card_db[civs[i]].name, "%s: its name" % civs[i])
+			check(row.toggle_mode, "%s: a list row (toggle)" % civs[i])
+			eq(row.button_pressed, i == 1, "%s: pressed only when selected" % civs[i])
+			var edge := row.find_child("Edge", true, false) as ColorRect
+			check(edge != null and edge.is_visible_in_tree(), "%s: a band at its left edge" % civs[i])
+			if edge != null:
+				var card := CardView.new()
+				card.setup(CardInstance.new(-1, Game.engine.card_db[civs[i]]), Game.engine.card_db, false)
+				eq(edge.color, (card.find_child("Band", true, false) as ColorRect).color, "%s: the type band's colour" % civs[i])
+				card.free()
+				check(edge.get_global_rect().position.x <= row.get_global_rect().position.x + 1.0, "%s: on the left" % civs[i])
+		eq(focus_owner(main), screen.civilization_row(civs[1]), "the preselected row has the focus")
 		close_main(main))
 
 
-## A real left click (press and release) at the centre of c, in viewport coordinates.
-func mouse_click(main: Node, c: Control) -> void:
-	var at: Vector2 = c.get_global_rect().get_center()
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = pressed
-		event.position = at
-		event.global_position = at
-		main.get_viewport().push_input(event, true)
+func test_the_detail_pane_shows_the_selected_civilizations_story_rules_and_home() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		var main := open_new_game_screen()
+		main.new_game_screen.select(civs[2])
+		var def: CardDef = Game.engine.card_db[civs[2]]
+		var details := Game.engine.def_details(civs[2])
+		eq(main.new_game_screen.detail_title(), def.name, "its name as the pane's title")
+		var text := detail_text(main)
+		check(def.flavor != "" and text.contains(def.flavor), "its flavor: %s" % text)
+		check(text.contains(details.quote.text) and text.contains(details.quote.by), "its quote, attributed: %s" % text)
+		for line in details.rules:
+			check(text.contains(line), "its rule '%s': %s" % [line, text])
+		if def.home != "":
+			var home: CardDef = Game.engine.card_db[def.home]
+			check(text.contains(home.name), "its home territory: %s" % text)
+			for k in home.keywords:
+				check(text.contains(k.capitalize()), "its home's keyword %s: %s" % [k.capitalize(), text])
+		close_main(main))
 
 
-## The details modal's Close button, or null.
-func details_close_button(main: Node) -> Button:
-	for b in UIKit.buttons_in(main.details):
-		if b.text.begins_with("Close"):
-			return b
-	return null
+func test_a_click_or_the_arrows_select_without_opening_details() -> void:
+	with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		Settings.store.civilization = civs[0]
+		var main := open_new_game_screen()
+		var screen: Object = main.new_game_screen
+		(screen.civilization_row(civs[3]) as Button).pressed.emit()
+		eq(screen.selected, civs[3], "a click selects")
+		eq(screen.detail_title(), Game.engine.card_db[civs[3]].name, "the pane follows")
+		eq(main.details.shown(), {}, "no details modal")
+		check((screen.civilization_row(civs[3]) as Button).button_pressed, "its row pressed")
+		check(not (screen.civilization_row(civs[0]) as Button).button_pressed, "the old row released")
+		(screen.civilization_row(civs[3]) as Button).grab_focus()
+		press_key(main, KEY_DOWN)
+		eq(focus_owner(main), screen.civilization_row(civs[4]), "Down moves to the next row")
+		eq(screen.selected, civs[4], "and selects it")
+		press_key(main, KEY_UP)
+		eq(screen.selected, civs[3], "Up selects the one above")
+		eq(Settings.store.civilization, civs[3], "the choice is remembered")
+		close_main(main))
 
 
-## Backlog 107 (AC11, bug): the details open over the new game screen, and a real click on Close closes them (the
-## screen, later in the tree, took the click).
-func test_a_click_on_close_closes_the_details_over_the_new_game_screen() -> void:
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(SETTINGS_PATH)  # the click saves the choice (with_temp_settings can't await)
+func test_the_seed_field_and_start_sit_at_the_foot_of_the_pane() -> void:
 	var main := open_new_game_screen()
-	var civs: Array[String] = Game.engine.civilizations()
-	var view: CardView = main.new_game_screen.civilization_view(civs[0])
-	view.picked.emit(view)
 	await wait_frames()
-	check(not main.details.shown().is_empty(), "the details are open")
-	var close := details_close_button(main)
-	check(close != null, "a Close button")
-	if close != null:
-		mouse_click(main, close)
-		await wait_frames()
-		eq(main.details.shown(), {}, "a click on Close closes the details")
+	var screen: Object = main.new_game_screen
+	var pane: Control = screen.detail_pane
+	check(pane.is_ancestor_of(screen.seed_edit) and pane.is_ancestor_of(screen.start_button), "in the detail pane")
+	var list_rect: Rect2 = (screen.civilization_row(Game.engine.civilizations()[0]) as Control).get_global_rect()
+	check(screen.start_button.get_global_rect().position.x > list_rect.end.x, "right of the list")
+	check(screen.start_button.get_global_rect().position.y >= screen.detail_body.get_global_rect().end.y - 1.0, "under the text")
 	close_main(main)
-	Settings.store = original
-	Settings.changed.emit()
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
 
 
-## Backlog 107 (AC12): the details of a civilization on the new game screen offer "Play as <name>", which selects it
-## and starts a game as it with the seed in the field.
-func test_play_as_in_the_details_starts_a_game_as_that_civilization() -> void:
-	with_temp_settings(func():
-		var civs: Array[String] = Game.engine.civilizations()
-		var main := open_new_game_screen()
-		main.new_game_screen.seed_edit.text = "42"
-		var view: CardView = main.new_game_screen.civilization_view(civs[2])
-		view.picked.emit(view)
-		var play: Button = main.details.action_button()
-		var civ_name: String = Game.engine.card_db[civs[2]].name
-		check(play.visible and civ_name in play.text, "a visible Play as %s button (got '%s')" % [civ_name, play.text])
-		play.pressed.emit()
-		eq(civ_now(), [civs[2]] as Array[String], "the game is played as it")
-		eq(Game.engine.seed_value, 42, "with the seed in the field")
-		eq(Settings.store.civilization, civs[2], "the choice is remembered")
-		eq(main.details.shown(), {}, "the details closed")
-		check(not main.new_game_screen.is_open(), "the new game screen closed")
-		close_main(main))
+func test_with_no_civilizations_the_pane_says_so_and_start_still_works() -> void:
+	var real := Game.engine
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw_config({"farm": 5}), resources(), cards, "test", errors, warnings)
+	Game.engine = GameEngine.new(cards, config)
+	var main := open_new_game_screen()
+	var screen: Object = main.new_game_screen
+	eq(screen.civilization_ids(), [] as Array[String], "no rows")
+	var list: Control = screen.get("civilization_list")  # read by name: the test must put the real engine back
+	check(list != null and not list.is_visible_in_tree(), "the list hidden")
+	var text: String = detail_text(main) if screen.has_method("detail_text") else ""
+	check(text.contains("offers no civilizations"), "the pane says so: %s" % text)
+	eq(screen.selected, "", "nothing selected")
+	screen.start_button.pressed.emit()
+	eq(Game.engine.turn, 1, "Start still starts")
+	close_main(main)
+	Game.engine = real
 
 
-## Backlog 107 (AC12): details opened anywhere else have no Play as button.
-func test_details_in_play_have_no_play_as_button() -> void:
-	var main := open_main()
-	main.start_game(1)
-	main.details.open(main.views[first_in_hand(Game.engine)])  # a hand card's details (the identity has its own modal, 119)
-	check(not main.details.action_button().visible, "no action button in play")
+func test_the_new_game_screen_opens_no_details_modal() -> void:
+	var main := open_new_game_screen()
+	for id in Game.engine.civilizations():
+		(main.new_game_screen.civilization_row(id) as Button).pressed.emit()
+	eq(main.details.shown(), {}, "no details opened from the list")
+	check(main.new_game_screen.overlay.find_children("*", "CardView", true, false).is_empty(), "no civilization cards")
 	close_main(main)
 
 
@@ -428,7 +455,7 @@ func test_each_screen_focuses_its_first_button() -> void:
 	var main := open_main()
 	eq(focus_owner(main), main.start_screen.new_game_button, "title: New game focused")
 	main.start_screen.new_game_button.pressed.emit()
-	eq(focus_owner(main), main.new_game_screen.start_button, "new game: Start focused")
+	eq(focus_owner(main), main.new_game_screen.civilization_row(main.new_game_screen.selected), "new game: the selected row focused (212)")
 	main.new_game_screen.back_button.pressed.emit()
 	eq(focus_owner(main), main.start_screen.new_game_button, "back on the title: New game focused")
 	main.start_screen.settings_button.pressed.emit()
@@ -441,6 +468,7 @@ func test_enter_presses_the_focused_button() -> void:
 	var changes := engine_changes(func(): press_key(main, KEY_ENTER))
 	eq(changes, 0, "Enter on New game starts no game")
 	eq(open_screens(main), ["new game"] as Array[String], "Enter on New game: the new game screen")
+	main.new_game_screen.start_button.grab_focus()  # the selected row has the focus first (212)
 	changes = engine_changes(func(): press_key(main, KEY_ENTER))
 	check(changes > 0, "Enter on Start started a game")
 	eq(open_screens(main), [] as Array[String], "no screen open")
@@ -464,9 +492,12 @@ func test_tab_and_arrows_stay_on_the_open_screen_and_wrap() -> void:
 		eq(seen, [title.settings_button, title.exit_button, title.new_game_button], "title: %s wraps" % OS.get_keycode_string(key))
 	title.new_game_button.pressed.emit()
 	var ng: Object = main.new_game_screen
-	var seen := focus_after(main, KEY_TAB, 6)
+	var stops: int = ng.civilization_ids().size() + 3  # the rows, the seed field, Start and Back (212)
+	var seen := focus_after(main, KEY_TAB, stops * 2)
 	check(seen.has(ng.seed_edit), "Tab reaches the seed field")
 	check(seen.has(ng.back_button), "Tab reaches Back")
+	for id in ng.civilization_ids():
+		check(seen.has(ng.civilization_row(id)), "Tab reaches the %s row" % id)
 	check(seen.all(func(c): return c != null and ng.overlay.is_ancestor_of(c)), "focus stays on the new game screen")
 	eq(seen.count(ng.start_button), 2, "Tab wraps back to Start")
 	ng.back_button.pressed.emit()
