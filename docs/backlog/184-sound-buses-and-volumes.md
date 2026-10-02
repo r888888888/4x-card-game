@@ -2,7 +2,7 @@
 id: 184
 title: Sound buses and volume settings
 type: feature
-status: ready
+status: review
 branch: feat/184-sound-buses-and-volumes
 ---
 
@@ -14,23 +14,23 @@ a sound yet (186 onward); this item makes sure that when something does, it is a
 turn it down or off.
 
 ## Acceptance criteria
-- [ ] AC1: The settings file keeps a `[sound]` section: `master`, `game` and `interface` (whole numbers 0–100) and
+- [x] AC1: The settings file keeps a `[sound]` section: `master`, `game` and `interface` (whole numbers 0–100) and
   `interface_sounds` (true or false). With no file, or no `[sound]` section, they are 80, 80, 70 and true. They save
   and load like `reduce_motion`.
-- [ ] AC2: A bad value falls back to its default with a warning naming the file, section and key, for example
+- [x] AC2: A bad value falls back to its default with a warning naming the file, section and key, for example
   "settings file '<path>': [sound] 'game' must be a whole number from 0 to 100, got 140; using 80" and
   "settings file '<path>': [sound] 'interface_sounds' must be true or false, got \"yes\"; using true".
-- [ ] AC3: `Settings.set_volume(bus, percent)` for `Settings.MASTER`, `Settings.GAME` or `Settings.INTERFACE` clamps
+- [x] AC3: `Settings.set_volume(bus, percent)` for `Settings.MASTER`, `Settings.GAME` or `Settings.INTERFACE` clamps
   percent to 0–100, saves, emits `changed` and returns true; for any other bus name it returns false and changes and
   saves nothing. `Settings.set_interface_sounds(on)` saves and emits `changed`. `Settings.volume(bus)` and
   `Settings.interface_sounds` read them back.
-- [ ] AC4: The bus layout has `Game` and `Interface`, both sending to `Master`. Each of the three ends in an
+- [x] AC4: The bus layout has `Game` and `Interface`, both sending to `Master`. Each of the three ends in an
   `AudioEffectHardLimiter` with ceiling −1 dB (Master), −10 dB (Game) and −18 dB (Interface); Interface also has a
   high-pass filter at 150 Hz and a high-shelf filter at 6 kHz, −6 dB, before its limiter.
-- [ ] AC5: At start and on every change, each bus's volume is `linear_to_db(percent / 100)` (given game 50, the Game
+- [x] AC5: At start and on every change, each bus's volume is `linear_to_db(percent / 100)` (given game 50, the Game
   bus is −6.02 dB ± 0.01) and a bus at 0% is muted. `interface_sounds` false mutes the Interface bus and leaves its
   saved volume and the Game bus alone; turning it back on unmutes it at its saved volume.
-- [ ] AC6: `Settings.set_in_background(true)` mutes Interface and Game (the window lost focus) and `false` restores
+- [x] AC6: `Settings.set_in_background(true)` mutes Interface and Game (the window lost focus) and `false` restores
   them as the settings say (Interface stays muted if `interface_sounds` is false). The autoload calls it on
   `NOTIFICATION_APPLICATION_FOCUS_OUT` / `FOCUS_IN`.
 
@@ -49,6 +49,12 @@ turn it down or off.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_sound_settings`: `test_missing_file_means_the_sound_defaults`, `test_a_file_without_a_sound_section_means_the_defaults`, `test_sound_settings_survive_save_and_load` |
+| AC2 | `test_an_out_of_range_volume_falls_back_with_a_warning`, `test_a_volume_that_isnt_a_whole_number_falls_back_with_a_warning`, `test_a_non_bool_interface_sounds_falls_back_with_a_warning` |
+| AC3 | `test_set_volume_clamps_saves_and_says_so`, `test_set_volume_on_an_unknown_bus_changes_nothing`, `test_set_interface_sounds_saves_and_says_so` |
+| AC4 | `test_game_and_interface_buses_send_to_master`, `test_each_bus_ends_in_a_hard_limiter`, `test_the_interface_bus_filters_before_its_limiter` |
+| AC5 | `test_bus_volumes_follow_the_settings`, `test_a_changed_store_is_applied_to_the_buses`, `test_a_bus_at_zero_is_muted`, `test_interface_sounds_off_mutes_only_the_interface_bus` |
+| AC6 | `test_in_the_background_game_and_interface_are_muted`, `test_back_in_the_foreground_interface_stays_off_when_its_sounds_are_off`, `test_losing_and_regaining_focus_goes_to_and_from_the_background` |
 
 ## Manual check
 - [ ] Delete `user://settings.cfg`, launch: the file written on the first change has the `[sound]` defaults.
@@ -56,3 +62,4 @@ turn it down or off.
 ## Log
 - 2026-10-02: Specced from the style guide's sound system (§16, merged from `spike/mcm-sound`). Decided 2026-10-02:
   sounds are on by default at the guide's levels (Master 80, Game 80, Interface 70).
+- 2026-10-02: Built. `default_bus_layout.tres` (Game, Interface → Master); `SettingsStore.SOUND_SECTION` and `SOUND_DEFAULTS`; `Settings.MASTER/GAME/INTERFACE`, `set_volume`, `volume`, `set_interface_sounds`, `interface_sounds`, `set_in_background`. Volumes are applied on `changed`, so a test swapping the store and emitting `changed` re-applies them.
