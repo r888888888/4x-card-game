@@ -17,13 +17,16 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
    the changes.
 3. Branch from an up-to-date `main`: `git switch main && git switch -c <branch from the item>`.
    If the branch already exists, switch to it and read the item's Log to resume.
+   Other sessions work in this checkout: when it's shared (another item's branch or edits are live, or other
+   sessions are running), build in a worktree instead: `git worktree add -b <branch> ../<dir> main`, and run
+   everything there.
 4. Run `scripts/test.sh`. It must be green before you start; if not, report it and stop.
 5. Set `status: in-progress`.
 
 ## 1. Red: write failing tests
 
 1. Read `docs/testing.md` and the test file(s) you'll add to. Pick the file by area, or create
-   `tests/test_<area>.gd` for a new area.
+   `tests/test_<area>.gd` for a new area, and add its row to `docs/testing.md`'s table.
 2. For each acceptance criterion, write one or more tests that express it exactly, named after
    the behavior (`test_bug_<id>_<what>` for bugs). Add any cards you need to `TEST_CARDS`.
    Call the engine API **as you want it to exist**: the tests design the interface.

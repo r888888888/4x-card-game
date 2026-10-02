@@ -65,7 +65,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing their reasons (093) |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094) |
-| `tests/test_pending.gd` | `pending()` for each decision kind (explore, research, discard) and the one blocking rule every action follows |
+| `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
@@ -75,6 +75,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep, and a first shortfall's one death |
 | `tests/test_famine.gd` | The Famine (083): arrives, escalates to max_counters, one at a time, ends when fed and leaves the game, blocks growth, guards, forecast, `event_counters`, config |
+| `tests/test_famine_relief.gd` | Relieving a Famine (084): `relieve_famine` and its error, the notice, a new Famine after relief, the forecast, `population.famine.relief` validation and price |
 | `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060): loading, housing cap, saving starving pop, forecast, card text; uses the Silo fixture and `build_on` |
 | `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |
@@ -91,9 +92,20 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion` and `civilization`, `civilization_in` fallback, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
+| `tests/test_hand_size.gd` | Hand size as a modifier (109): the `hand_size` modifier key, past the hand limit a config error, the opening hand and refills, the same deal order |
 | `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per end turn, active events' upkeep and discard, reshuffling |
+| `tests/test_event_eras.gd` | Event decks by era (074): an event's `era`, later-era events in `future_events`, shuffled in once when their era is added, the notice, the event tooltip |
 | `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
+| `tests/test_civ_flavor.gd` | Civilization `flavor` and `quote` (107): loading and validation, optional, in `def_details` / `card_details` |
+| `tests/test_civ_home.gd` | A civilization's `home` territory (111): loading and validation, population start fitting each home, card text, the home settled at new game, the same decks with or without a home, its roll |
+| `tests/test_civ_start_building.gd` | A civilization's start building (133): a start `create` into the tableau puts the building on the home, works from turn 1, must be a building fitting the home's keywords and slots |
+| `tests/test_discounts.gd` | Civilization `discounts` (108): loading and validation, card text, type and tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors |
 | `tests/test_government.gd` | Government cards (065): the type, `starting.government`, `government()`, playing one to replace the ruling one (to `removed`), upkeep, forecast, score, the same-government error, fork; uses `TEST_GOVS` / `gov_engine` |
+| `tests/test_government_deck.gd` | The government deck (154): created and fallen governments in `governments`, the government choice owed when Anarchy ends (`PENDING_GOVERNMENT`, `choose_government` and its error), unrest halved, the Government overlay, the identity modal's deck line, the bot's choice; uses `anarchy_case.gd` |
+| `tests/test_actions.gd` | Actions per turn (127): the government's `actions`, unlimited without one, each play using one, what needs none, the reset each turn; uses `TEST_GOVS` |
+| `tests/test_gain_actions.gd` | The `gain_actions` op (128): loading, the default amount, +N actions this turn, none carried over, nothing with unlimited actions, card text |
+| `tests/test_modifiers.gd` | Standing `modifiers` (129): loading and validation, `modifier(key)` over working cards, always-on zones and active events, the `actions` key, card text |
+| `tests/test_housing_modifier.gd` | The `housing` modifier key (110): added to every settled territory, never below 1, the growth cap, idle buildings, population start against printed housing, card text |
 | `tests/test_choose_civilization.gd` | Choosing a civilization (064): config `civilizations`, `civilizations()`, `new_game(seed, civ_id)`, `new_game_error`, the same seed dealing the same game for any civilization |
 | `tests/test_research.gd` | Techs: the `tech` card type and `prereq`, `research_deck` config, learning from the open tree (140: `buy_tech` / `buy_tech_error`, locked techs, the next era), the reveal gone, `research_card_name` |
 | `tests/test_diffusion.gd` | Diffusion (142): 1 insight off per later era, none in a tech's own era, stacking with discounts and eurekas, the details |

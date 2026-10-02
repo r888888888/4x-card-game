@@ -36,14 +36,16 @@ together, so the op's behavior reads in one place.
      "unknown field" warning);
    - `configure()` reads fields with `Fields.read_int` / `Fields.read_string`, validating against
      `ctx.resources` / `ctx.zones` where relevant;
-   - `apply(engine, source)` calls a **public helper on `GameEngine`**. Don't manipulate zones or
+   - `apply(engine, source)` calls a **public helper on the engine**. Don't manipulate zones or
      resources directly from the effect, so that logging, signals and the play outcome stay in one place.
-     Add the helper to `game_engine.gd` under "Helpers called by effects" if none fits; if the op changes
+     Add the helper to `engine/engine_core.gd` (`EngineCore`, `GameEngine`'s parent since 125) under
+     "Helpers called by effects" if none fits; if the op changes
      something the `card_played` outcome reports (gained, vp, drawn, created, trashed), the helper records it
      there (`if not _outcome.is_empty(): …`, as `gain` and `create_card` do);
    - `describe()` returns short rules text, without the trigger prefix; override `describe_long()`
      if the tooltip needs fuller wording (it defaults to `describe()`);
-   - `referenced_cards()` if the op names other cards;
+   - `referenced_cards()` if the op names other cards, and `check_references(card_db, errors)` to check them once
+     every card is loaded (e.g. their type);
    - `upkeep_ok()` returns `true` only if the op changes nothing but resources, bonus score and pop:
      nobody can choose or target during upkeep, and `upkeep_forecast` reports only resources and `starve`.
      Ops that move or make cards, use the RNG or open a choice keep the default `false`, and the loader
@@ -54,6 +56,8 @@ together, so the op's behavior reads in one place.
        or several and none was given;
      - `opens_choice()`: true if the op may leave a `pending()` decision (the loader then keeps it off
        `start`);
+     - `needs_a_turn()`: true if the op only means something during the player's turn (`gain_actions`): the
+       loader keeps it off `start` and off events, which resolve after the player's plays;
      - `needs_own_territory()`: true if the op acts on its own card's territory; the loader rejects it on
        techs, events and governments, which have none (and `start` triggers check targets and choices);
      - `play_block_error(engine, card)`: why the card can't be played right now (e.g. nothing to research);
@@ -63,6 +67,8 @@ together, so the op's behavior reads in one place.
 
 ## Afterwards
 
-- Add the op to the card data format section of `PLAN.md` if it introduces a new field shape.
-- If a new trigger is needed (beyond `play` / `upkeep`), that's a turn-loop change. Add it to
+- Add the op to the card data format section of `PLAN.md` if it introduces a new field shape. If `upkeep_ok()` is
+  true, add it to that section's list of ops that may use `upkeep`.
+- Triggers are `play`, `upkeep` and `start` (062: civilizations only, once at `new_game`; no op that needs a target,
+  opens a choice or needs a turn). If a new trigger is needed, that's a turn-loop change. Add it to
   `Effect.TRIGGERS`, test where in the turn it fires, and update the turn loop section of `PLAN.md`.

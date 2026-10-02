@@ -13,7 +13,7 @@
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
-| Threat effects | Event deck framework built (039): one event drawn per turn, active until it lasts out; harmful ops and real events come later |
+| Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074) and revolutionary events (148); barbarians are specced (160–168) |
 
 ## Architecture principle
 The rules engine is plain GDScript (`RefCounted`/`Resource` classes, no scene nodes).
@@ -40,6 +40,8 @@ res://
     discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
     modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
     famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
+    anarchy.gd           # Anarchy (145–148, 154): falling at the unrest limit, counters, restore order, renewal, revolt,
+                         # the government deck and choice
     events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
     glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated;
@@ -58,26 +60,28 @@ res://
   autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
   autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
-  ui/                    # main.tscn/main.gd (MainScreen: card views, refresh, layout built in code), card_view.gd,
-                         # anim.gd (animation tuning), icons.gd (text glyphs → icon images in cards and the log),
-                         # ui_kit.gd (shared styles, labels, overlays, tokens); components: top_bar.gd, side_panel.gd,
-                         # tableau_view.gd, choice_overlays.gd, supply_screen.gd, game_menu.gd, game_over_overlay.gd,
-                         # start_screen.gd (063, 099: the title screen, shown on launch: New game, Settings, Exit),
-                         # new_game_screen.gd (099: civilization cards, seed, Start, Back),
-                         # settings_screen.gd (099: Reduce motion, Back),
-                         # navigator.gd (103: the screen stack: push, back/Esc, focus given back; main.nav; 104:
-                         # titles and transitions), screen_header.gd (104, 118: "Realm › River Meadow", "Realm" a link back),
-                         # drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys),
-                         # territory_view.gd (101: one territory in place of the Realm; its own Navigator; 105: framed
-                         # in the territory colour and titled with the territory, outlines for free slots),
-                         # palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in code:
-                         # buttons, fields, Heading/Title/Stat/DarkPanel variations),
-                         # card_details_modal.gd (click, right-click in choices and supply, or I: full card details),
-                         # tech_tree_modal.gd (Knowledge button or T: the tech tree),
-                         # event_modal.gd (each drawn event and what it did, 079), identity_modal.gd (119);
-                         # modal.gd (153: Modal, every modal's base: scrim, panel, close keys, click outside) and
-                         # modal_stack.gd (153: ModalStack, main.modals: the open modals, the top one takes input,
-                         # closing one closes those above it, each level cascaded from the one below)
+  ui/                    # main.tscn/main.gd (MainScreen: card views, refresh, layout built in code)
+                         # cards: card_view.gd (CardView: panel, tooltip, border), card_face.gd (086: its content),
+                         # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
+                         # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
+                         # labels, overlays, tokens, button columns)
+                         # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
+                         # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
+                         # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
+                         # relieve_button.gd (084), restore_order_button.gd (146), revolt_button.gd (148): below the Realm,
+                         # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
+                         # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
+                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154),
+                         # supply_screen.gd (Buy Cards), game_menu.gd, game_over_overlay.gd,
+                         # modal.gd (153: Modal, every modal's base: scrim, panel, close keys, click outside),
+                         # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
+                         # those above it), card_details_modal.gd (click, right-click or I), tech_tree_modal.gd
+                         # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119)
+                         # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
+                         # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
+                         # new_game_screen.gd (099: civilization cards, seed, Start), settings_screen.gd (099)
+                         # look: palette.gd (106: every UI colour, named), game_theme.gd (106: the Theme built in
+                         # code, with Heading/Title/Stat/DarkPanel variations)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
@@ -188,7 +192,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
-5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After turn 20, show final score.
+5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After the last turn (`turn_limit`, 100 in the real data), show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
@@ -196,9 +200,9 @@ It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameSt
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 / 5 (+1)", 144),
 with the food stat in the warning color when pop would starve.
 
-Pending decisions (050, `pending()`): an explore choice or a hand-limit discard. While one is owed, every action is
-refused with the same message (`_blocked_error`), except that a discard still lets you discard, browse the supply and
-learn techs. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
+Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147) or the government
+choice (154). While one is owed, every action is refused with the same message (`_blocked_error`), except the
+decision's own action, and a discard still lets you discard, browse the supply and learn techs. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
@@ -240,7 +244,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   territory as a card with its slots and pop, then cards on no territory, 102; every card in the row one fixed height
   with one line per field, the rest in its details, frontier territories hatched with a dashed border and a badge,
   events badged with their turns left, 138; a click opens the territory view with
-  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017) (event panel waits on threat design)
+  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
@@ -263,8 +267,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   up to their total `famine_guard` of the Famine's deaths there each upkeep; `upkeep_forecast().starve` counts only
   the pop that die. A guard save skips one counter's upkeep effects (096).
 - Relief (084): `famine.relief` (optional cost, e.g. `{ "wealth": 5 }`; real data 5 wealth) lets the player pay to
-  end an active Famine at once (`relieve_famine()` / `relieve_famine_error()`, the Relieve button under the Events
-  row; `famine_relief()` gives the price). A later hungry upkeep brings a new Famine with 1 counter. The sim bot
+  end an active Famine at once (`relieve_famine()` / `relieve_famine_error()`, the Relieve button below the
+  Realm; `famine_relief()` gives the price). A later hungry upkeep brings a new Famine with 1 counter. The sim bot
   relieves before ending a turn when it can pay and `upkeep_forecast().starve` is still above 0.
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
   capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every settled territory
@@ -346,13 +350,13 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
   "X isn't unlocked yet.", and the Supply screen hides them. Every `unlock` on a card the config uses must name a
   supply pile. The lock state is in `GameState.locked_supply` and copied by `fork()`.
 - Code: supply and `buy` in `engine/supply.gd`.
-- UI (033): a Supply (S) button above the Knowledge button opens the supply screen, an overlay with one card per pile
+- UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore choice or after the game ends. Buying squashes the card, flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Events (backlog 039)
-The framework for solo opposition; real events, harmful ops and the event UI come later.
+The framework for solo opposition. Harmful ops (072), the Famine (083), eras (074) and the event modal (079) build on it.
 - Card type `event`: no `cost`, `vp` 0, no `keyword` and no targeting effects. Optional `discard`, the condition
   that ends it; for now only `{"turns": n}` (int ≥ 1, default 1), an unknown condition is a loader error. Card text
   and tooltip add "Lasts n turns" (tooltip: 070). Config `event_deck` ({event_id: count}, default {}); events are not allowed in `deck` or `supply`.
@@ -375,9 +379,8 @@ The framework for solo opposition; real events, harmful ops and the event UI com
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
   supply's Granary pile grew to 3 to keep growth cards available.
-- UI (068): an Events row below Researched shows the active events as compact cards with "N turns left", and an
-  "Events: deck N · discard M" label sits under the Knowledge button (tooltip: one event is drawn at the end of each
-  turn). Both are hidden when the config has no event deck. An ending event flies to that label.
+- UI (068, 137, 138): the active events lead the Realm's row as board cards with their turns left (a Famine shows its
+  counters); the row's tooltip says one event is drawn at the end of each turn. None show without an event deck.
 
 ## Civilizations (backlog 062)
 A game is played as one civilization: a permanent card with a starting gift and ongoing bonuses.
