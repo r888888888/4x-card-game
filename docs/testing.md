@@ -66,6 +66,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094) |
 | `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows |
+| `tests/test_state_copy.gd` | Guards (171): `GameState.copy()` and `CardInstance.copy()` carry every script variable (read from the property list) and share nothing that can change |
+| `tests/test_blocking.gd` | Guards (171): while each decision is owed (explore, discard, renewal, government) and after game over, every other action refuses with a reason and changes nothing; the table of actions is checked against `GameEngine`'s methods with an error query |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
@@ -183,6 +185,8 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `with_event_engine(body, event_deck, overrides)` | UI tests: runs `body` with `Game.engine` swapped for a game on `TEST_CARDS` + `TEST_EVENTS`, then puts the real engine back (moved from `test_event_panel` in 079) |
 | `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A real-data game is cut to `SEED_1_TURNS` (20) turns, and `close_main` restores the limit (066: 100 turns through the UI is too slow). A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
 | `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI tests: run `body(main)` on the real main scene started on seed 1: on `engine`; on a `make_engine` game with Grassland and Hills to explore; on the real game with Reduce motion `calm` |
+| `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text (script objects by their variables, a CardDef by id, an RNG by seed and state), equality on it, and the variables of two objects that differ (171) |
+| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | An object's script variables; the paths where a value and its copy share an array, dictionary or object; change everything reachable in place (171) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before

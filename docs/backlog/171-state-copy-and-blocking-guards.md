@@ -2,7 +2,7 @@
 id: 171
 title: Guard tests for state copies and the pending-decision block
 type: feature
-status: ready
+status: red-review
 branch: feat/171-state-copy-and-blocking-guards
 ---
 
@@ -45,6 +45,18 @@ lookahead, and an action added without the pending-decision block would act whil
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_state_copy::test_game_state_copy_carries_every_variable_and_shares_nothing` |
+| AC2 | `test_state_copy::test_card_instance_copy_carries_every_variable_and_shares_nothing` |
+| AC3 | `test_blocking::test_every_action_refuses_while_a_decision_is_owed_or_the_game_is_over` |
+| AC4 | `test_blocking::test_the_action_table_names_every_action_with_an_error_query` |
+| AC5 | CLAUDE.md line (at close) |
 
 ## Log
 - 2026-10-01: Specced from the project review.
+- 2026-10-01: Guards written; they pass on today's code. Shown failing for the right reason with the engine
+  temporarily changed, then restored: dropping `s.turn = turn` / `c.counters = counters` ("copy of turn expected 1, got
+  0"); sharing `supply` / `keywords` with the copy ("nothing shared … got [.keywords]"); dropping grow_error's
+  `_blocked_error` ("explore: grow_error gives a reason", "grow changes nothing; changed … zones, resources,
+  log_lines"); adding a `fortify` / `fortify_error` pair (the table check lists `fortify`). `end_turn` returns nothing,
+  so for it the test checks only the reason and the unchanged state. The supply screen has a row (`supply_error`, no
+  action) because `supply` has an error query; `new_game` is the one action no decision blocks.
