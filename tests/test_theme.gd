@@ -80,7 +80,7 @@ func test_labels_look_as_before() -> void:
 	var title: Label = in_main(main, UIKit.title("t"))
 	eq(title.get_theme_font_size("font_size"), 26, "title size")
 	eq(title.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "title colour: ink, not white")
-	var stat := UIKit.stat(main, Palette.POP)
+	var stat := UIKit.stat(main, &"POP")
 	eq(stat.get_theme_font_size("font_size"), 26, "stat size")
 	eq(stat.get_theme_color("font_color").to_html(), Palette.POP.to_html(), "stat colour: its own")
 	close_main(main)
@@ -299,7 +299,7 @@ func test_ui_kit_labels_use_the_variations() -> void:
 	var title := UIKit.title("t")
 	eq(title.theme_type_variation, &"Title", "title")
 	var parent := Control.new()
-	var stat := UIKit.stat(parent, Color.WHITE)
+	var stat := UIKit.stat(parent, &"TEXT")
 	eq(stat.theme_type_variation, &"Stat", "stat")
 	for label in [heading, title, stat]:
 		check(not label.has_theme_font_size_override("font_size"), "%s: no font size override" % label.theme_type_variation)

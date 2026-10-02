@@ -2,7 +2,7 @@
 id: 192
 title: Palette roles can't be misspelt or frozen by mistake
 type: feature
-status: ready
+status: red-review
 branch: feat/192-palette-role-guards
 ---
 
@@ -45,6 +45,15 @@ into most easily.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_palette_roles::test_stat_takes_a_role_name_not_a_colour` |
+| AC2 | `test_palette_roles::test_a_stat_follows_a_day_mode_switch` |
+| AC3 | `test_palette_roles::test_every_role_name_in_the_ui_is_a_palette_role` |
+| AC4 | `test_palette_roles::test_night_and_day_name_the_palettes_colours` |
 
 ## Log
 - Specced from the design-system review (2026-10-02).
+- Red: AC2–AC4 already hold today (guards). Each was checked against a deliberate break (stat set once without
+  `painted`, `&"TERRITROY"` in choice_overlays, `HINT_BG` dropped from `DAY`): each test failed on its break.
+- `get_script_property_list()` leaves out static vars, so AC4 reads Palette's `static var X: Color` lines from source.
+- `test_theme`'s two `UIKit.stat` calls take `&"POP"` and `&"TEXT"` now (stated in Design notes), so the file still
+  parses once the parameter is typed.
