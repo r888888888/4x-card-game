@@ -192,3 +192,24 @@ func test_the_bot_breaks_government_ties_by_deck_order() -> void:
 	e.zone("governments").remove(e.zone("governments").find(uid_of(e.zone("governments"), "chiefs")))
 	ScriptedBot.take_turn(e, "baseline")
 	eq(ruling(e), "council", "Council first of two equals")
+
+
+# --- 175 AC3: a pick in the government overlay is refused with choose_government_error's reason ---
+
+func test_a_stale_government_pick_is_refused_with_its_reason() -> void:
+	await with_main(deck_engine(), func(main: Node):
+		var e := Game.engine
+		e.resources["unrest"] = 5
+		e.end_turn()
+		e.create_card("kings", "discard", null)
+		for i in 4:
+			e.end_turn()
+		await wait_frames()
+		var kings := uid_of(e.zone("governments"), "kings")
+		var stale: CardView = main.views.get(uid_of(e.zone("governments"), "chiefs"))
+		main.on_picked(main.views[kings])
+		eq(ruling(e), "kings", "Kings chosen")
+		var before := e.state.copy()
+		main.on_picked(stale)
+		check(main.log_drawer.text().contains("No government to choose."), "the refusal's reason in the log")
+		eq(state_diff(e.state, before), "", "a stale pick changes nothing; changed"))

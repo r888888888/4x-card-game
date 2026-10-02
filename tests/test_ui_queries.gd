@@ -243,3 +243,13 @@ func test_supply_screen_does_not_open_when_every_pile_is_locked() -> void:
 	close_main(main)
 	Game.engine = real
 	check(not opened, "the supply screen stays closed")
+
+
+# --- 175 AC2: the hand limit and whether there is research ---
+
+func test_hand_limit_and_research_on_are_engine_queries() -> void:
+	var limited: Object = make_engine({"farm": 10}, {"hand_limit": 6})  # red phase: the queries are new
+	eq(limited.hand_limit(), 6, "config hand_limit")
+	eq(limited.research_on(), false, "no research deck")
+	var researching: Object = tech_engine(["pottery"])
+	eq(researching.research_on(), true, "a research deck")
