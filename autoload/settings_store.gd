@@ -4,11 +4,18 @@ extends RefCounted
 ## The Settings autoload holds one for user://settings.cfg; tests point it at a temp file.
 
 const SECTION := "ui"
+const SOUND_SECTION := "sound"
+## The [sound] keys' defaults (184): volumes in percent, and whether interface sounds are on.
+const SOUND_DEFAULTS := {"master": 80, "game": 80, "interface": 70, "interface_sounds": true}
 
 var path: String
 var reduce_motion := false
 var day_mode := false  # the Paper palette (183)
 var civilization := ""  # the civilization id last chosen on the start screen (064); "" for none yet
+var master: int = SOUND_DEFAULTS.master  # bus volumes in percent, 0–100 (184)
+var game: int = SOUND_DEFAULTS.game
+var interface: int = SOUND_DEFAULTS.interface
+var interface_sounds: bool = SOUND_DEFAULTS.interface_sounds
 
 
 func _init(p_path := "user://settings.cfg") -> void:
@@ -22,6 +29,8 @@ func load() -> Array[String]:
 	reduce_motion = false
 	day_mode = false
 	civilization = ""
+	for key in SOUND_DEFAULTS:
+		set(key, SOUND_DEFAULTS[key])
 	if not FileAccess.file_exists(path):
 		return warnings
 	var file := ConfigFile.new()
@@ -51,7 +60,24 @@ func load() -> Array[String]:
 	else:
 		warnings.append("settings file '%s': [%s] 'civilization' must be a civilization id, got %s; using none"
 			% [path, SECTION, var_to_str(civ)])
+	_load_sound(file, warnings)
 	return warnings
+
+
+func _load_sound(file: ConfigFile, warnings: Array[String]) -> void:
+	for key in ["master", "game", "interface"]:
+		var value: Variant = file.get_value(SOUND_SECTION, key, SOUND_DEFAULTS[key])
+		if value is int and value >= 0 and value <= 100:
+			set(key, value)
+		else:
+			warnings.append("settings file '%s': [%s] '%s' must be a whole number from 0 to 100, got %s; using %d"
+				% [path, SOUND_SECTION, key, var_to_str(value), SOUND_DEFAULTS[key]])
+	var on: Variant = file.get_value(SOUND_SECTION, "interface_sounds", true)
+	if on is bool:
+		interface_sounds = on
+	else:
+		warnings.append("settings file '%s': [%s] 'interface_sounds' must be true or false, got %s; using true"
+			% [path, SOUND_SECTION, var_to_str(on)])
 
 
 func save() -> Error:
@@ -59,6 +85,8 @@ func save() -> Error:
 	file.set_value(SECTION, "reduce_motion", reduce_motion)
 	file.set_value(SECTION, "day_mode", day_mode)
 	file.set_value(SECTION, "civilization", civilization)
+	for key in SOUND_DEFAULTS:
+		file.set_value(SOUND_SECTION, key, get(key))
 	return file.save(path)
 
 
