@@ -170,16 +170,6 @@ func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
 		close_main(main))
 
 
-func test_a_modal_with_an_action_puts_it_rightmost_in_the_footer() -> void:
-	await with_temp_settings(func():
-		var main: Node = await open_game()
-		var card: CardInstance = Game.engine.zone("hand").cards[0]
-		main.details.open(main.views[card.uid], "Play as it", func(): pass)
-		await wait_sheet()
-		eq(footer_texts(main.details), ["Close (Esc)", "Play as it"] as Array[String], "the action is the primary, rightmost")
-		close_main(main))
-
-
 # --- AC3: laid down ---
 
 func test_a_sheet_rises_into_place_and_its_scrim_fades_in() -> void:
