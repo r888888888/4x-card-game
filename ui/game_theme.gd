@@ -32,11 +32,13 @@ static func build() -> Theme:
 	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
 	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
 	_label(t, "CardTitle", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a card's name, bold beside its rules (198)
+	_label(t, "BigLabel", Tokens.TYPE_TITLE, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a BigButton's caps label (213)
 	_label(t, "BarStat", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # body size like the bar's buttons, so it fits 1920 px (144)
 	t.set_type_variation("RichBody", "RichTextLabel")  # modal text and the log (194)
 	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:
 		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
 	_link(t)
+	_big_buttons(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	t.set_type_variation("Sheet", "PanelContainer")
@@ -95,6 +97,41 @@ static func dark_panel(border := Palette.EDGE) -> StyleBoxFlat:
 
 
 ## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.
+## BigButton and BigButtonPrimary (213, guide §15.12): an index card on a hard plinth; RAISED at rest, CONTROL under
+## the pointer or the focus, pressed TRAVEL px into the plinth. The label children draw the text, so the Button's own is
+## clear.
+static func _big_buttons(t: Theme) -> void:
+	var travel := int(BigButton.TRAVEL)
+	for type in ["BigButton", "BigButtonPrimary"]:
+		t.set_type_variation(type, "Button")
+		t.set_stylebox("normal", type, _card(Palette.RAISED))
+		t.set_stylebox("hover", type, _card(Palette.CONTROL))
+		t.set_stylebox("focus", type, _card(Palette.CONTROL))
+		var pressed := _card(Palette.CONTROL)
+		pressed.shadow_size = 0
+		pressed.expand_margin_left = -travel
+		pressed.expand_margin_top = -travel
+		pressed.expand_margin_right = travel
+		pressed.expand_margin_bottom = travel
+		t.set_stylebox("pressed", type, pressed)
+		t.set_stylebox("hover_pressed", type, pressed)
+		t.set_stylebox("disabled", type, _card(Palette.CONTROL_DISABLED))
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color",
+				"font_disabled_color"]:
+			t.set_color(state, type, Color.TRANSPARENT)
+
+
+## A BigButton's card in fill: a 3 px ink border, square, on a 4,4 shadow.
+static func _card(fill: Color) -> StyleBoxFlat:
+	var style := UIKit.panel_style(fill, Palette.TEXT, Tokens.SPACE_0)
+	style.set_border_width_all(3)
+	style.shadow_color = Palette.SHADOW
+	style.shadow_offset = Vector2(BigButton.TRAVEL, BigButton.TRAVEL)
+	style.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
+	style.anti_aliasing = false
+	return style
+
+
 ## A modal's sheet (207, guide §15.11): RAISED in a 2 px ink rule, cut square, on a hard SHEET_SHADOW shadow.
 static func sheet() -> StyleBoxFlat:
 	var style := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_5)
