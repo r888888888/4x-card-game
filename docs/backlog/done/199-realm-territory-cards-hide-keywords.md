@@ -2,7 +2,7 @@
 id: 199
 title: Settled territory cards in the Realm hide their keywords
 type: feature
-status: review
+status: done
 branch: feat/199-realm-territory-cards-hide-keywords
 ---
 

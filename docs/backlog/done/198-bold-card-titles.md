@@ -2,7 +2,7 @@
 id: 198
 title: Card names in bold
 type: feature
-status: review
+status: done
 branch: feat/198-bold-card-titles
 ---
 

@@ -126,5 +126,9 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 116. 189 sheet, screen and notice sounds
 117. 190 notice priorities, heard as a pattern and seen as a hue bar
 118. 191 event sounds for techs, cities, eras and the end of the game (`milestone`)
+119. 197 Day-mode card type and keyword lines in `TEXT_DIM`
+120. 198 card names in bold (`CardTitle`)
+121. 199 settled Realm territory cards without keywords
+122. 200 a click outside the territory box closes the view
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

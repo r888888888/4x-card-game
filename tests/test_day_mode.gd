@@ -282,7 +282,7 @@ func secondary_lines(view: CardView) -> Array:
 	return found
 
 
-## Checks every hand card's type line, the home territory's and a frontier territory's keyword lines and every supply
+## Checks every hand card's type line, a frontier territory's keyword line (the home territory has none since 199) and every supply
 ## card's type line contrast at least 4.5:1 with RAISED in the current mode (seed 5, Sumer).
 func check_secondary_lines(main: Node, mode: String) -> void:
 	var e := Game.engine
@@ -299,7 +299,8 @@ func check_secondary_lines(main: Node, mode: String) -> void:
 	var lines := []
 	for view in views:
 		lines.append_array(secondary_lines(view))
-	check(lines.size() >= views.size(), "%s: precondition: a type or keyword line on every card (%d lines)" % [mode, lines.size()])
+	# every card but the settled home territory, which shows no keywords since 199
+	check(lines.size() >= views.size() - 1, "%s: precondition: a type or keyword line on every card (%d lines)" % [mode, lines.size()])
 	for pair in lines:
 		var r := contrast(line_color(pair[1]), palette("RAISED"))
 		check(r >= 4.5, "%s: %s is %.2f:1 on RAISED, needs 4.5" % [mode, pair[0], r])

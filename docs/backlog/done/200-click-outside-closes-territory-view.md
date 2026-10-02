@@ -2,7 +2,7 @@
 id: 200
 title: A click outside the territory box closes the territory view
 type: feature
-status: review
+status: done
 branch: feat/200-click-outside-closes-territory-view
 ---
 

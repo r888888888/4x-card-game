@@ -2,7 +2,7 @@
 id: 197
 title: Day mode: card type lines and territory keywords are pale on paper
 type: bug
-status: review
+status: done
 branch: fix/197-day-mode-pale-card-text
 ---
 
