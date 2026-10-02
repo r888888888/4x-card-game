@@ -185,6 +185,7 @@ static func revolt(e: GameEngine) -> bool:
 		return false
 	e.state.revolt_pending = true
 	e._notice("Revolution! Anarchy begins next turn.")
+	e.revolted.emit()
 	e.changed.emit()
 	return true
 
@@ -221,6 +222,7 @@ static func restore(e: GameEngine) -> bool:
 	e.pay(price)
 	_end(e, active(e))
 	e._notice("Order restored (%s): choose a government." % Fields.amounts_text(price))
+	e.order_restored.emit()
 	e.changed.emit()
 	return true
 
