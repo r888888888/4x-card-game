@@ -69,7 +69,10 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 	var main := open_at_1080()
 	await wait_frames()
 	var title: Object = main.start_screen
-	check_column([title.new_game_button, title.settings_button, title.exit_button], "title screen")
+	var keys: Array = [title.new_game_button, title.settings_button, title.exit_button]  # flush left since 213
+	for b in keys:
+		eq(b.size.x, keys[0].size.x, "title screen: '%s' shares the column's width" % b.text)
+		eq(b.get_global_rect().position.x, keys[0].get_global_rect().position.x, "title screen: '%s' flush left" % b.text)
 	title.settings_button.pressed.emit()
 	await wait_frames()
 	check_column(main.settings_screen.motion_toggle.get_parent().get_parent().get_children(), "settings screen")  # 182, 185: its rows
