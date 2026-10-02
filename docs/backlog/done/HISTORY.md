@@ -107,5 +107,12 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 97. 156 Anarchy eats into stored food and wealth
 98. 159 the bot chooses governments and revolts by looking ahead (with the balance suite, `scripts/test.sh --balance`)
 99. 158 sim metrics for Anarchy, governments and famine
+100. 177 counters found by name in tests (mid-century restyle, from `spike/mcm-godot`)
+101. 178 Night shift palette, typefaces and machined controls
+102. 179 index-card faces and machined card motion
+103. 180 resource glyphs and glyph costs (`play_shortfall`)
+104. 182 the legend key for Reduce motion
+105. 181 odometer counters and +N tags
+106. 183 Day mode: the Paper palette, switched at once
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

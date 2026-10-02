@@ -52,17 +52,7 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
-Mid-century restyle (UI only, from [docs/design/mcm-style-guide.md](../design/mcm-style-guide.md) and the
-`spike/mcm-godot` spike; independent of the military items):
-1. 177 counter accessors (no visible change; frees the tests from the counters' text)
-2. 178 Night shift palette, typefaces and machined controls
-3. 179 index-card faces and machined card motion
-4. 180 resource glyphs and glyph costs
-5. 181 odometer counters and +N tags
-6. 182 the legend key for Reduce motion
-7. 183 Day mode: the Paper palette, switched at once (needs 178 and 182)
-
-Sound (the guide's §16 and §14.1 tokens; after the restyle items each one names):
+Sound (the guide's §16 and §14.1 tokens; the restyle items they name, 177–183, are done):
 1. 184 sound buses and volume settings
 2. 185 sound rows in Settings and the game menu (needs 182)
 3. 186 the sound player, its tokens and placeholder sounds
