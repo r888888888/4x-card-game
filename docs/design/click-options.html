@@ -71,11 +71,11 @@ main { max-width: 1100px; margin: 0 auto; padding: var(--space-6) var(--space-5)
 <body>
 <header>
 	<h1>Click options</h1>
-	<button class="plain" id="cycle">Play A–F in turn</button>
+	<button class="plain" id="cycle">Play all in turn</button>
 	<button class="plain" id="theme">Paper / Night</button>
 </header>
 <main>
-	<p class="intro">Six versions of <code>ui.button.press</code> and its <code>ui.button.release</code>, from today's click (A) down to the darkest (F). Press a key to hear the click as the face meets the desk and the tick as it comes back, with the same timing as the specimen. "×12" plays a burst at the rate a busy turn would (six presses a second) with the usual small variation between repeats. Every option goes through the interface bus's filters (high-pass at 150 Hz, −6 dB above 6 kHz) and is matched to A by energy, not by peak, so a darker click isn't simply quieter. Under each key is its <b>brightness</b>: the spectral centroid, where the spectrum balances. Lower reads warmer and heavier. The dashed line on each spectrum is A, for comparison.</p>
+	<p class="intro">Nine versions of <code>ui.button.press</code> and its <code>ui.button.release</code>: today's click (A) down to the darkest (F), then three two-stage clicky switches modeled on a blue-style mechanical keyboard switch (G–I). Press a key to hear the click as the face meets the desk and the tick as it comes back, with the same timing as the specimen. "×12" plays a burst at the rate a busy turn would (six presses a second) with the usual small variation between repeats. Every option goes through the interface bus's filters (high-pass at 150 Hz, −6 dB above 6 kHz) and is matched to A by energy, not by peak, so a darker click isn't simply quieter. Under each key is its <b>brightness</b>: the spectral centroid, where the spectrum balances. Lower reads warmer and heavier. The dashed line on each spectrum is A, for comparison.</p>
 	<div id="options"></div>
 </main>
 <script>
@@ -92,6 +92,12 @@ const OPTIONS = [
 		meta: "Modes 520 Hz + 1.2 kHz · noise at 1.5 kHz · 50 ms" },
 	{ id: "F", name: "Muted damper", text: "The darkest: noise rolled off above 700 Hz over a 170 Hz body. Almost no click left, a soft thud. Likely too dull to read as a key, but it marks the other end of the range.",
 		meta: "Noise low-passed at 700 Hz · body 170 Hz · 50 ms" },
+	{ id: "G", name: "Clicky switch", text: "Modeled on a blue-style clicky switch under ABS keycaps. Pressing, the click jacket snaps at the actuation point (a sharp, bright snap near 4.5 kHz), and 14 ms later the stem bottoms out on the housing (a plastic clack at 1.8 kHz over a 380 Hz case). Releasing, the jacket clicks again, quieter, then the stem tops out. Timed so the bottom-out lands on the guide's contact point and the snap just before it, where actuation is.",
+		meta: "Jacket snap 4.5 kHz · bottom-out 1.8 kHz + case 380 Hz, +14 ms · upstroke snap, then top-out +18 ms" },
+	{ id: "H", name: "Clicky, PBT caps", text: "The same switch under thick PBT keycaps on a damped plate: the jacket's snap is unchanged, but the bottom-out drops to a deeper 1 kHz clack over a 260 Hz case. The click stays, and the weight comes back underneath it.",
+		meta: "Jacket snap 4.5 kHz · bottom-out 1 kHz + case 260 Hz, +14 ms" },
+	{ id: "I", name: "Click over a thock", text: "A softer jacket snap (3.6 kHz, 8 dB down) over D's felt thock for the bottom-out. Keeps the two-stage feel of a clicky switch while most of the energy stays low, which answers \"too high and thin\" most directly.",
+		meta: "Jacket snap 3.6 kHz at −8 dB · thock 190 Hz + dark noise, +14 ms" },
 ];
 
 // ---- Synthesis (the specimen's mechanisms, §16.10) ----
@@ -147,7 +153,35 @@ const SOUNDS = {
 		press: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 700 * v, q: 0.5, dur: 0.04, g: 0.8 }); body(c, o, t, { f: 170 * v, dur: 0.05, g: 1, to: 0.9 }); },
 		release: (c, o, t, v) => { noise(c, o, t, { type: "lowpass", f: 800 * v, q: 0.5, dur: 0.03, g: 0.6 }); body(c, o, t, { f: 170 * st(3) * v, dur: 0.035, g: 0.7, to: 0.92 }); },
 	},
+	// G–I: two-stage clicky switches. `lead` moves each sound earlier so its last part (the bottom-out on press, the
+	// top-out on release) lands on the contact point, with the jacket's snap just before it.
+	G: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v); clack(c, o, t + 0.014, v, { f: 1800, body: 1100, kase: 380 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 1.06, 0.55); clack(c, o, t + 0.018, v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); },
+	},
+	H: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v); clack(c, o, t + 0.014, v, { f: 1000, body: 700, kase: 260, g: 1.1, dur: 0.04 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 1.06, 0.55); clack(c, o, t + 0.018, v, { f: 1200, body: 820, kase: 300, g: 0.6 }); },
+	},
+	I: {
+		lead: { press: 14, release: 18 },
+		press: (c, o, t, v) => { jacket(c, o, t, v * 0.8, 0.5); noise(c, o, t + 0.014, { type: "lowpass", f: 1200 * v, q: 0.5, dur: 0.05, g: 0.7 }); body(c, o, t + 0.014, { f: 190 * v, dur: 0.07, g: 1, to: 0.85 }); },
+		release: (c, o, t, v) => { jacket(c, o, t, v * 0.85, 0.33); noise(c, o, t + 0.018, { type: "lowpass", f: 1400 * v, q: 0.5, dur: 0.035, g: 0.6 }); body(c, o, t + 0.018, { f: 190 * st(3) * v, dur: 0.045, g: 0.7, to: 0.88 }); },
+	},
 };
+// The click jacket snapping: a very short, bright snap with a little ring.
+function jacket(c, o, t, v, g = 1) {
+	noise(c, o, t, { f: 4500 * v, q: 1.5, dur: 0.012, g: 1.8 * g });  // as loud as the bottom-out, as on the real switch
+	body(c, o, t, { f: 3300 * v, dur: 0.01, g: 0.5 * g });
+}
+// The stem bottoming (or topping) out: a plastic clack, the keycap's own tone, and the case under it.
+function clack(c, o, t, v, { f, body: b, kase, g = 1, dur = 0.03 }) {
+	noise(c, o, t, { f: f * v, q: 1.2, dur, g: 0.8 * g });
+	body(c, o, t, { f: b * v, dur: 0.02, g: 0.3 * g });
+	body(c, o, t, { f: kase * v, dur: 0.05, g: 0.35 * g, to: 0.95 });
+}
 // The interface bus's filters (§16.6), so every option is heard as the game would play it.
 function busChain(c, dest) {
 	const hp = filter(c, "highpass", 150), shelf = filter(c, "highshelf", 6000); shelf.gain.value = -6;
@@ -250,7 +284,8 @@ function play(id, part, atMs = 0, varied = true) {
 		v = VARIANTS[k] * 2 ** ((Math.random() * 50 - 25) / 1200); jitter = Math.random() * 2 - 1;
 	}
 	const g = c.createGain(); g.gain.value = gain[id] * db(jitter + (part === "release" ? -4 : 0)); g.connect(bus);
-	SOUNDS[id][part](c, g, c.currentTime + 0.005 + atMs / 1000, v);
+	const lead = (SOUNDS[id].lead || {})[part] || 0;  // a two-stage sound starts early so its last part lands on contact
+	SOUNDS[id][part](c, g, c.currentTime + 0.005 + Math.max(0, atMs - lead) / 1000, v);
 }
 const PRESS_AT = 38, RELEASE_AT = 65;
 let held = null;

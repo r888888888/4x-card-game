@@ -15,8 +15,9 @@ Companion pages in this folder (open them in a browser):
 - [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
   [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
   alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
-- [click-options.html](click-options.html): six versions of the key click (`ui.button.press` / `.release`), from the
-  current one down to the darkest, matched for loudness, with bursts at a busy turn's rate.
+- [click-options.html](click-options.html): nine versions of the key click (`ui.button.press` / `.release`): the
+  current one down to the darkest, then three two-stage clicky switches; matched for loudness, with bursts at a busy
+  turn's rate.
 
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
 names it, and §17 maps every token onto the existing code.
