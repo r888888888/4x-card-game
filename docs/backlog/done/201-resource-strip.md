@@ -2,7 +2,7 @@
 id: 201
 title: The resource strip in the specimen's style
 type: feature
-status: review
+status: done
 branch: feat/201-resource-strip
 ---
 
