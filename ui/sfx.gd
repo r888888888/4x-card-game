@@ -4,7 +4,8 @@ extends Node
 ## else. Main owns one, like the ModalStack. It knows each token's level, bus and files, and keeps the guide's rules
 ## (§16.4, §16.8): ticks no closer than TICK_GAP, notifications NOTICE_GAP apart, INTERFACE_VOICES voices on the
 ## Interface bus (a Level 1 gives way, the oldest Level 1 is stolen for a Level 2), and nothing the system plays talks
-## over a Level 3 (the player's own input plays EVENT_DUCK_DB quieter). A sound may be delayed (play's delay, or
+## over a Level 3 (the player's own input plays EVENT_DUCK_DB quieter; a system sound the same frame already scheduled
+## under it gives way, 191). A sound may be delayed (play's delay, or
 ## at_contact: when its motion makes contact, §16.5); clock() is the time source, which tests set by hand.
 
 const BUTTON_PRESS := &"ui.button.press"
@@ -203,9 +204,12 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 		if oldest.is_empty():
 			return false
 		_stop(oldest[0])
+	var record := {"token": token, "bus": on, "at": at, "db": gain_db, "input": input}
+	if lvl == 3:
+		_give_way(at, at + length(token))
 	_voices.append({"token": token, "bus": on, "level": lvl, "at": at, "end": at + length(token), "db": gain_db,
-		"player": null})
-	_played.append({"token": token, "bus": on, "at": at, "db": gain_db, "input": input})
+		"player": null, "input": input, "frame": Engine.get_process_frames(), "record": record})
+	_played.append(record)
 	_start_due()
 	return true
 
@@ -234,6 +238,15 @@ func playing(on: StringName) -> Array[StringName]:
 
 func _process(_delta: float) -> void:
 	_start_due()
+
+
+## The system's Level 1 and 2 sounds this frame scheduled between from and to give way to the Level 3 starting at
+## from: an action's counters and notices don't talk over its event, whichever was heard first.
+func _give_way(from: float, to: float) -> void:
+	var frame := Engine.get_process_frames()
+	for v in _voices.filter(func(v): return v.level < 3 and not v.input and v.frame == frame and from <= v.at and v.at < to):
+		_stop(v)
+		_played.erase(v.record)
 
 
 func _during_event(at: float) -> bool:

@@ -7,6 +7,7 @@ extends RefCounted
 
 ## Sets up a game with seed p_seed played as civilization civ_id ("" for none) and starts turn 1.
 static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
+	e._setting_up = true  # whatever eras or cities the setup adds, they are no milestones (191)
 	e.state = GameState.new()
 	e.seed_value = p_seed
 	e.rng = SeededRng.new(p_seed)
@@ -65,6 +66,7 @@ static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 
 	e._log("New game — seed %d, %d cards in deck." % [p_seed, deck.size()])
 	start_turn(e)
+	e._setting_up = false
 	e.changed.emit()
 
 

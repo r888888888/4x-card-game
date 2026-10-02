@@ -24,6 +24,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.add_child(main.sfx)
 	main.key_sounds = KeySounds.new(main.sfx)  # every button main gets clicks (187)
 	main.add_child(main.key_sounds)
+	if Game.engine != null:  # before main hears changed, so an event sound comes first (191)
+		main.add_child(EventSounds.new(Game.engine, main.sfx))
 	_build_board(main)
 	_build_hand(main)
 

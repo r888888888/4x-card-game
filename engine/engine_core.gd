@@ -15,6 +15,10 @@ const UNREST := "unrest"
 const NOTICE_INFO := &"info"
 const NOTICE_CAUTION := &"caution"
 const NOTICE_URGENT := &"urgent"
+## The game's rare, important moments (191): a tech learned, a territory settled into a city, an era added.
+const MILESTONE_TECH := &"tech"
+const MILESTONE_CITY := &"city"
+const MILESTONE_ERA := &"era"
 
 signal changed
 signal logged(message: String)
@@ -34,6 +38,9 @@ signal card_played(outcome: Dictionary)
 signal event_drawn(outcome: Dictionary)
 ## Emitted when revolt() declares a revolution (155), before changed; the sim counts them (158).
 signal revolted
+## Emitted for one of the game's rare, important moments (191), before changed: MILESTONE_TECH when a tech is learned,
+## MILESTONE_CITY when a territory is settled into a city, MILESTONE_ERA for each era added. Never during new_game.
+signal milestone(kind: StringName)
 ## Emitted when restore_order() buys order (155), before changed; the sim counts them (158).
 signal order_restored
 
@@ -42,6 +49,7 @@ var config: Dictionary  # normalized by DataLoader.parse_config
 var state := GameState.new()
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
+var _setting_up := false  # new_game is setting the game up: no milestones; false outside new_game
 
 var seed_value: int:
 	get: return state.seed_value
@@ -276,6 +284,12 @@ func _make_card(card_id: String) -> CardInstance:
 func _log(message: String) -> void:
 	log_lines.append(message)
 	logged.emit(message)
+
+
+## Emits milestone(kind), unless new_game is setting the game up (191).
+func _milestone(kind: StringName) -> void:
+	if not _setting_up:
+		milestone.emit(kind)
 
 
 ## Logs a notable message, then emits noticed with it and its priority (116, 190).

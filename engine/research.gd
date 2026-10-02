@@ -145,6 +145,7 @@ static func buy(e: GameEngine, uid: int) -> bool:
 	e.pay({GameEngine.INSIGHT: price})
 	e.zone("researched").add(tech)
 	e._log("Learned %s (%d insight)." % [tech.def.name, price])
+	e._milestone(GameEngine.MILESTONE_TECH)
 	e._resolve(tech, "play")
 	if e.zone("research_deck").is_empty() and not e.zone("future_techs").is_empty():
 		add_era(e, _lowest_future_era(e))
@@ -165,6 +166,7 @@ static func add_era(e: GameEngine, n: int, source: CardInstance = null) -> void:
 	e._notice("  %sEra %d techs added to the tech deck." % [source.def.name + ": " if source != null else "", n])
 	Events.add_era(e, n)
 	Anarchy.stir(e)
+	e._milestone(GameEngine.MILESTONE_ERA)
 
 
 ## Adds each era whose pop or wealth threshold is met (add_era ignores an era added before).
