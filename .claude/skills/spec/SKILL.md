@@ -19,10 +19,13 @@ one maps directly to a test. Don't write code or tests in this skill.
 
 2. **Ask clarifying questions** (AskUserQuestion, at most 4 at a time) only about decisions that
    change behavior: edge cases, numbers, interaction with existing rules, what's out of scope.
-   Propose a recommended answer for each. Skip questions the code or PLAN.md already answers.
+   For a new mechanic, also ask how `ScriptedBot` (`sim/bot.gd`) handles it (ignores it, or a rule for when to use
+   it), so the sim stays meaningful. Propose a recommended answer for each. Skip questions the code or PLAN.md
+   already answers.
 
-3. **Pick the id**: highest `NNN` in `docs/backlog/` and `docs/backlog/done/` + 1, zero-padded to 3 digits. Slug is a short
-   kebab-case summary.
+3. **Pick the id**: right before writing each file (other sessions add items in parallel), re-list
+   `ls docs/backlog docs/backlog/done` and take the highest `NNN` in either + 1, zero-padded to 3 digits. Slug is a
+   short kebab-case summary.
 
 4. **Write the item** from `docs/backlog/_templates/feature.md` or `bug.md`:
    - Acceptance criteria are Given/When/Then with concrete numbers. Cover the main path, each

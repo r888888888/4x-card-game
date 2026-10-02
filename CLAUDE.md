@@ -29,7 +29,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
   stretch; build such a column with `UIKit.button_column`). Buttons that are really list
-  rows or content tiles (the side panel's civilization and government lines, the tech tree's techs) may fill.
+  rows or content tiles (the government overlay's cards, the tech tree's techs) may fill.
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
   e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
@@ -49,6 +49,8 @@ Every feature or bug is a backlog item in `docs/backlog/` (see its README).
 If the user asks for a behavior change with no backlog item, create one with the `spec` skill first
 (a small one is fine) unless they say to skip it. Trivial non-behavioral edits (typos, comments,
 docs, renames with no behavior change) need no item and no new test.
+
+When a rule change makes a path unreachable, remove its code and tests in the same item, or name the item that will.
 
 **Spikes** are the exception to all of the above: when the user asks for a spike (exploration, a
 prototype, "try X"), work on a `spike/<topic>` branch from `main` with no item, no spec and no tests;
@@ -98,6 +100,7 @@ in a dedicated balance item, or when the user asks.
 - You may create the item branch and commit on it without asking: once at the red checkpoint
   (the failing tests), then at each green point (suite green). Messages: `<id>: <summary>` plus the attribution trailer.
 - Ask before merging to `main`, pushing, rebasing, amending, or deleting branches.
+- Other sessions work in this checkout: build items in a worktree.
 
 ## Style
 - Match the surrounding GDScript: tabs, static types, `##` doc comments on classes and public

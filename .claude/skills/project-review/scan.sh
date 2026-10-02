@@ -44,11 +44,10 @@ for f in $(grep -ho '^func [a-z][a-z0-9_]*' $(ls engine/*.gd | grep -v 'engine/e
 	grep -qw "$f" tests/*.gd tests/lib/*.gd sim/*.gd || echo "$f"
 done
 
-section "Public actions without a \`*_error\` query (GameEngine, under # --- Actions ---)"
+section "Public GameEngine methods returning bool with no \`*_error\` partner (actions need one; bool queries are fine)"
 # Actions whose query doesn't follow the foo/foo_error naming.
-ACTION_ERROR_PAIRS="play_card:play_error buy_tech:buy_tech_error new_game:new_game_error end_turn:end_turn_error buy:buy_error grow:grow_error discard_card:discard_error"
-sed -n '/^# --- Actions ---/,/^# --- /p' engine/game_engine.gd \
-	| grep -oE '^func [a-z][a-z0-9_]*\(.*\) -> (bool|void)' | awk '{print $2}' | sed 's/(.*//' | grep -v '_error$' \
+ACTION_ERROR_PAIRS="play_card:play_error discard_card:discard_error"
+grep -oE '^func [a-z][a-z0-9_]*\(.*\) -> bool' engine/game_engine.gd | awk '{print $2}' | sed 's/(.*//' \
 	| while read -r action; do
 		query="${action}_error"
 		for pair in $ACTION_ERROR_PAIRS; do [ "${pair%%:*}" = "$action" ] && query="${pair#*:}"; done
@@ -62,8 +61,22 @@ grep -rnE '(==|!=) *"(action|building|city|territory|tech|event|civilization|gov
 section "UI code that may hold rules (conditions on engine state)"
 grep -nE 'if .*(e|Game\.engine)\.(resources|zone\(|pending|turn|is_over|config)' ui/*.gd | head -20
 
-section "Tracked files that shouldn't be"
-git ls-files | grep -E '\.DS_Store$|~$|\.orig$' || echo "(none)"
+section "Tracked files that shouldn't be (junk, orphan .uid files, empty files)"
+{
+	git ls-files | grep -E '\.DS_Store$|~$|\.orig$'
+	git ls-files '*.uid' | while read -r f; do [ -e "${f%.uid}" ] || echo "$f (no ${f%.uid} beside it)"; done
+	git ls-files | while read -r f; do [ -f "$f" ] && [ ! -s "$f" ] && echo "$f (empty)"; done
+	true
+} | grep . || echo "(none)"
+
+section "Test files missing from docs/testing.md"
+for f in tests/test_*.gd; do grep -qw "$(basename "$f" .gd)" docs/testing.md || echo "$f"; done
+
+section "Test files holding an engine as Object (0 outside a red phase)"
+grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
+	tests/test_*.gd tests/lib/*.gd | sed 's/^/  /'
+grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
+	tests/test_*.gd tests/lib/*.gd | wc -l | sed 's/^ */count: /'
 
 section "Local permissions that contradict CLAUDE.md's Git rules"
 grep -nE 'git (merge|push|rebase|reset|branch -D)' .claude/settings*.json 2>/dev/null || echo "(none)"
