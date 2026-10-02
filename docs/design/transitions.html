@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screen Transitions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;  /* glyph-only gold: 3.8:1 on sheet, enough for an icon, not for text */
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 16px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 12px/14px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header.page { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+main { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5) 64px; }
+
+/* Page controls: the specimen's buttons and legend key */
+.btn {
+	display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 14px; border-radius: var(--radius-1); cursor: pointer;
+	font: 500 15px/18px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule);
+	box-shadow: 2px 2px 0 var(--shadow); transition: transform 120ms var(--ease-machined), box-shadow 120ms var(--ease-machined), background-color 90ms;
+}
+.btn:hover { background: color-mix(in srgb, var(--steel) 65%, var(--sheet)); border-color: var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: 70ms; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); transform: translate(2px, 2px); box-shadow: none; }
+.btn .n { font: 500 12px/1 var(--f-mono); color: var(--ink-3); }
+.btn[aria-pressed="true"] .n { color: var(--board); }
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+.controls2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
+.group { display: inline-flex; align-items: center; gap: var(--space-2); }
+.toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 16px var(--f-cond); }
+.lkey { display: inline-grid; grid-template-rows: 5px 1fr; gap: 3px; width: 52px; height: 32px; padding: 4px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); transition: transform 120ms var(--ease-machined), box-shadow 120ms; }
+.toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: none; }
+.toggle:active .lkey { transform: translate(3px, 3px); box-shadow: none; }
+.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.toggle[aria-checked="true"] .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); }
+.lkey-legend { display: grid; place-items: center; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
+.toggle[aria-checked="true"] .lkey-legend { color: var(--ink); }
+.caption { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--space-4); align-items: baseline; margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--sheet); border: 1px solid var(--rule); min-height: 72px; }
+.caption b { font: 500 20px/26px var(--f-display); grid-row: span 2; }
+.caption .what { color: var(--ink); font-size: 15px; }
+.caption .spec { color: var(--ink-2); font: 500 14px/18px var(--f-cond); letter-spacing: 0.02em; }
+
+/* ---- The stage: a 16:10 game window ---- */
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: var(--board); border: 2px solid var(--ink); font-size: 14px; }
+.desk { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr; background: var(--board); }
+.dstrip { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--sheet); border-bottom: 3px solid var(--ink); position: relative; z-index: 7; }
+.turnplate { font: 500 15px/1 var(--f-mono); background: var(--well); padding: 4px 6px; }
+.res { display: inline-flex; align-items: center; gap: 4px; font: 600 17px/1 var(--f-cond); font-variant-numeric: tabular-nums; }
+.spacer { flex: 1; }
+.dbtn { font: 500 13px/1 var(--f-cond); padding: 6px 10px; background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; }
+.dbtn:active { transform: translate(2px, 2px); box-shadow: none; }
+.dbtn.end { background: var(--signal); color: var(--on-signal); border: 2px solid var(--ink); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; padding: 7px 12px; }
+.dbody { position: relative; display: grid; grid-template-columns: 190px 1fr; min-height: 0; }
+.rail { padding: 14px; border-right: 1px solid var(--rule-fine); display: flex; flex-direction: column; gap: 10px; }
+.civ { border-top: 3px solid var(--ink); padding-top: 8px; }
+.civ h3 { margin: 0; font: 500 22px/26px var(--f-display); }
+.gov { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font: 600 12px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); border-bottom: 2px solid transparent; }
+.gov:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.work { position: relative; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; gap: 10px; align-items: flex-end; }
+.row.hand { margin-top: auto; }
+.mcard {
+	position: relative; width: 104px; height: 140px; background: var(--sheet); border: 2px solid var(--ink); display: flex; flex-direction: column;
+	cursor: pointer; text-align: left; padding: 0; font: inherit; color: var(--ink); flex: none;
+	transition: transform 100ms var(--ease-machined), box-shadow 100ms var(--ease-machined);
+}
+.mcard.wide { width: 168px; }
+.mcard:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); }
+.mcard .mh { display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 5px 6px; font: 600 13px/15px var(--f-cond); }
+.mcard .cost { display: inline-flex; gap: 6px; } .mcard .cost span { display: inline-flex; align-items: center; gap: 2px; font: 600 12px/1 var(--f-cond); }
+.mcard .band { height: 5px; background: var(--band); }
+.mcard.frontier { border-style: dashed; border-color: var(--rule); background: var(--board); }
+.mcard.frontier .band { background: repeating-linear-gradient(-45deg, var(--ink-3) 0 1px, transparent 1px 5px); }
+.mcard .mt { padding: 3px 6px; font: 600 9px/11px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--rule-fine); }
+.mcard .mr { padding: 4px 6px; font: 400 11px/14px var(--f-ui); color: var(--ink-2); }
+.mcard .tab { position: absolute; top: -8px; left: 8px; height: 5px; width: 0; background: var(--signal); }
+.mcard.selected { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border-width: 3px; z-index: 5; }
+.mcard.selected .tab { width: 22px; }
+.mcard.target { z-index: 5; outline: 2px dashed var(--ink); outline-offset: 4px; }
+.mcard .tlamp { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--p-sage); box-shadow: inset 0 0 0 2px var(--l-sage); display: none; }
+.mcard.target .tlamp { display: block; }
+.glyph { flex: none; display: block; }
+
+/* overlays */
+.screen { position: absolute; inset: 0; background: var(--sheet); display: flex; flex-direction: column; z-index: 10; }
+.screen.from-right { box-shadow: -6px 0 0 var(--shadow); }
+.shead { padding: 0 18px; }
+.sbar { height: 4px; background: var(--ink); }
+.crumbs { display: flex; align-items: baseline; gap: 10px; padding: 10px 0 12px; font: 500 22px/28px var(--f-display); }
+.crumb { background: none; border: 0; padding: 0; font: inherit; color: var(--ink-2); cursor: pointer; border-bottom: 2px solid transparent; }
+.crumb:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.crumbs .sep { color: var(--ink-3); }
+.crumbs .meta { margin-left: auto; }
+.sbody { flex: 1; padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.era { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; border-top: 1px solid var(--rule-fine); padding-top: 10px; }
+.era .tiles { display: flex; gap: 10px; }
+.tile { width: 120px; height: 62px; border: 2px solid var(--ink); background: var(--sheet); padding: 6px 8px; font: 600 13px/16px var(--f-cond); display: flex; flex-direction: column; justify-content: space-between; }
+.tile.done { background: var(--p-teal); color: var(--on-plane); }
+.tile.locked { background: var(--well); color: var(--ink-3); border-color: var(--rule); }
+.era.future { position: relative; }
+.era.future::after { content: "MEDIEVAL · OPENS IN ERA III"; position: absolute; inset: 6px 0 0 0; background: var(--vellum); display: grid; place-items: center; font: 600 12px/1 var(--f-cond); letter-spacing: 0.14em; color: var(--ink-2); }
+.rooms { display: flex; gap: 12px; }
+.room { width: 150px; height: 96px; border: 1px solid var(--ink); position: relative; padding: 6px 8px; font: 600 12px/14px var(--f-cond); }
+.room.empty { border-style: dashed; color: var(--ink-3); }
+.room .fig { position: absolute; right: 8px; bottom: 6px; }
+.pips { display: flex; gap: 6px; align-items: center; }
+.pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--l-teal); }
+.pip.on { background: var(--p-teal); }
+.drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 34%; background: var(--sheet); border-right: 2px solid var(--ink); box-shadow: 4px 0 0 var(--shadow); z-index: 9; display: flex; flex-direction: column; }
+.drawer .rows { padding: 4px 16px; }
+.drawer .lr { display: grid; grid-template-columns: 54px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--rule-fine); font-size: 13px; }
+.drawer .lr span:first-child { font: 500 12px/18px var(--f-mono); color: var(--ink-3); }
+.scrim { position: absolute; inset: 0; background: var(--scrim); display: grid; place-items: center; z-index: 12; }
+.msheet { grid-area: 1 / 1; width: 400px; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); }
+.msheet .mb { padding: 10px 16px 14px; font-size: 14px; color: var(--ink-2); }
+.msheet footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--rule-fine); }
+.msheet .crumbs { font-size: 19px; padding: 8px 0 4px; }
+.cabinet { position: absolute; inset: 0; z-index: 11; overflow: hidden; }
+.choices { position: absolute; inset: 0; background: var(--board); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+.choices h2 { margin: 0; font: 500 26px/30px var(--f-display); }
+.choices .row { gap: 16px; align-items: flex-end; }
+.gcard { width: 170px; height: 220px; background: var(--sheet); border: 2px solid var(--ink); display: flex; flex-direction: column; cursor: pointer; padding: 0; text-align: left; font: inherit; color: var(--ink); position: relative; transition: transform 100ms var(--ease-machined), box-shadow 100ms; }
+.gcard:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); }
+.gcard.selected { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border-width: 3px; }
+.gcard .band { height: 6px; background: var(--p-brick); }
+.gcard .mh { padding: 8px 10px; font: 600 16px/18px var(--f-cond); }
+.gcard .mr { padding: 6px 10px; font-size: 13px; line-height: 18px; color: var(--ink-2); border-top: 1px solid var(--rule-fine); }
+.gcard .tab { position: absolute; top: -9px; left: 10px; height: 6px; width: 0; background: var(--signal); }
+.gcard.selected .tab { width: 24px; }
+.door { position: absolute; top: 0; bottom: 0; width: 50%; background: var(--steel); display: flex; align-items: center; }
+.door.l { left: 0; border-right: 1px solid var(--ink); justify-content: flex-end; }
+.door.r { right: 0; border-left: 1px solid var(--ink); justify-content: flex-start; }
+.door span { font: 500 28px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 22px; }
+.door i { position: absolute; top: calc(50% + 34px); width: 6px; height: 44px; background: var(--ink); }
+.door.l i { right: 14px; } .door.r i { left: 14px; }
+.vellum { position: absolute; inset: 0; background: var(--vellum); z-index: 4; }
+.ribbon { position: absolute; top: 12px; left: 50%; translate: -50% 0; z-index: 6; display: flex; gap: 16px; align-items: center; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--shadow); padding: 6px 14px; font: 500 15px/18px var(--f-cond); white-space: nowrap; }
+.ceremony { position: absolute; inset: 0; z-index: 13; background: var(--sheet); display: grid; place-items: center; cursor: pointer; }
+.ceremony svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ceremony .ring { fill: none; stroke: var(--rule); stroke-width: 1.5; }
+.ceremony .ring.hi { stroke: var(--p-ochre); stroke-width: 3; }
+.ceremony .ctext { position: relative; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.ceremony .ctitle { font: 500 52px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; background: var(--sheet); padding: 6px 16px; }
+.straightedge { position: absolute; top: 0; bottom: 0; left: 0; width: 4px; background: var(--ink); z-index: 14; pointer-events: none; }
+.wipeframe { position: absolute; z-index: 11; border: 2px solid var(--ink); border-top: 6px solid var(--band); pointer-events: none; }
+.ceremony .ctitle span { display: inline-block; min-width: 0.4em; }
+.ceremony .hint { color: var(--ink-3); font: 500 13px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<header class="page">
+	<h1>Screen transitions</h1>
+	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span></button>
+</header>
+<main>
+	<div class="controls" id="controls"></div>
+	<div class="controls2">
+		<span class="group"><span class="caps">Speed</span>
+			<button class="btn" data-speed="1" aria-pressed="true">1×</button>
+			<button class="btn" data-speed="4" aria-pressed="false">¼×</button>
+			<button class="btn" data-speed="10" aria-pressed="false">1/10×</button></span>
+		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span></button>
+		<span class="caps">Esc or the breadcrumb goes back · click things in the mock too</span>
+	</div>
+	<div class="stage" id="stage">
+		<div class="desk" id="desk">
+			<div class="dstrip">
+				<span class="turnplate">T 012</span>
+				<span class="res" data-g="food"></span><span class="res" data-g="wealth"></span><span class="res" data-g="insight"></span><span class="res" data-g="unrest"></span><span class="res" data-g="score"></span>
+				<span class="spacer"></span>
+				<button class="dbtn" data-go="modal">Buy cards</button>
+				<button class="dbtn" data-go="knowledge">Knowledge</button>
+				<button class="dbtn" data-go="log">Log</button>
+				<button class="dbtn end" data-go="era">End turn</button>
+			</div>
+			<div class="dbody" id="dbody">
+				<aside class="rail">
+					<div class="civ"><span class="caps">Civilization</span><h3>Egypt</h3><button class="gov" data-go="cabinet">Chiefdom ›</button></div>
+				</aside>
+				<section class="work" id="work">
+					<span class="caps">The Realm</span>
+					<div class="row" id="realm"></div>
+					<span class="caps" style="margin-top:auto">In hand</span>
+					<div class="row" id="hand" style="margin-top:0"></div>
+				</section>
+			</div>
+		</div>
+	</div>
+	<div class="caption" id="caption"><b>—</b><span class="what">Pick a transition above, or click the Knowledge button, a territory, Settlers, Chiefdom or End turn in the mock.</span><span class="spec"></span></div>
+</main>
+<script>
+// ---------- glyphs (the chosen set) ----------
+const GLYPHS = {
+	food: ["sage", '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>'],
+	wealth: ["ochre", '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>'],
+	insight: ["blue", '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>'],
+	unrest: ["brick", '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>'],
+	score: ["ink", '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>'],
+};
+const gcol = (h) => (h === "ink" ? "var(--ink)" : `var(--g-${h}, var(--l-${h}))`);
+const glyph = (name, size) => { const [h, svg] = GLYPHS[name]; return `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${gcol(h)}" style="color:${gcol(h)}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${svg}</svg>`; };
+const VALUES = { food: 7, wealth: 12, insight: 4, unrest: 2, score: 23 };
+document.querySelectorAll(".res").forEach((el) => { el.innerHTML = glyph(el.dataset.g, 20) + VALUES[el.dataset.g]; });
+const cost = (c) => `<span class="cost">${Object.entries(c).map(([r, n]) => `<span>${glyph(r, 13)}${n}</span>`).join("")}</span>`;
+const card = (o) => `<button class="mcard ${o.cls || ""}" style="--band:var(--p-${o.band})" ${o.go ? `data-go="${o.go}"` : ""} data-name="${o.name}">
+	<span class="tab"></span><span class="tlamp"></span>
+	<span class="mh"><span>${o.name}</span>${o.cost ? cost(o.cost) : ""}</span><span class="band"></span>
+	<span class="mt">${o.type}</span><span class="mr">${o.rules}</span></button>`;
+document.getElementById("realm").innerHTML = [
+	{ name: "Nile Delta", type: "Territory · City", band: "sage", rules: "2 pop · Granary, Market", cls: "wide", go: "territory" },
+	{ name: "Highlands", type: "Territory", band: "sage", rules: "1 pop · Mine", cls: "wide", go: "territory" },
+	{ name: "Frontier", type: "Explored", band: "sage", rules: "Unsettled land", cls: "wide frontier" },
+].map(card).join("");
+document.getElementById("hand").innerHTML = [
+	{ name: "Granary", type: "Building", band: "olive", cost: { food: 1, wealth: 2 }, rules: "⟳ +1 food" },
+	{ name: "Settlers", type: "Action", band: "blue", cost: { food: 2 }, rules: "Settle an explored territory", go: "vellum" },
+	{ name: "Pottery", type: "Tech", band: "teal", cost: { insight: 4 }, rules: "Granaries cost 1 less" },
+	{ name: "Monument", type: "Building", band: "olive", cost: { wealth: 6 }, rules: "Worth 3 VP" },
+	{ name: "Scout", type: "Action", band: "blue", cost: { food: 1 }, rules: "Explore a territory" },
+].map(card).join("");
+
+// ---------- timing ----------
+const root = document.documentElement;
+const stage = document.getElementById("stage");
+const desk = document.getElementById("desk");
+const E = {
+	machined: "cubic-bezier(0.2, 0, 0, 1)", release: "cubic-bezier(0.4, 0, 1, 1)", snap: "cubic-bezier(0.3, 0, 0, 1)",
+	latch: "cubic-bezier(0.5, -0.2, 0.1, 1)", lampOn: "cubic-bezier(0, 0, 0.2, 1)", linear: "linear",
+};
+let slow = 1;
+const calm = () => root.dataset.calm === "true";
+const ms = (n) => n * slow;
+const sleep = (n) => new Promise((r) => setTimeout(r, ms(n)));
+// Resolves when the animation ends, or after its duration if the page can't render it (a hidden tab), so a
+// transition can never leave the page stuck.
+const go = (el, frames, dur, easing, opts = {}) => {
+	const a = el.animate(frames, { duration: ms(dur), easing, fill: "both", ...opts });
+	const late = new Promise((r) => setTimeout(() => { if (a.playState !== "finished") a.finish(); r(); }, ms(dur) + (opts.delay || 0) + 60));
+	return Promise.race([a.finished.catch(() => {}), late]);
+};
+const fadeIn = (el) => go(el, [{ opacity: 0 }, { opacity: 1 }], 120, E.linear);
+const fadeOut = (el) => go(el, [{ opacity: 1 }, { opacity: 0 }], 120, E.linear);
+const make = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+const rectIn = (el) => { const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(); return { t: r.top - s.top, l: r.left - s.left, b: s.bottom - r.bottom, r: s.right - r.right }; };
+const inset = (q) => `inset(${q.t}px ${q.r}px ${q.b}px ${q.l}px)`;
+
+let busy = false;
+const stack = [];  // close functions, top last
+async function run(fn) { if (busy) return; busy = true; try { await fn(); } finally { busy = false; } }
+function say(title, what, spec) {
+	const c = document.getElementById("caption");
+	c.innerHTML = `<b>${title}</b><span class="what">${what}</span><span class="spec">${calm() ? "Reduce motion: a 120 ms crossfade, no movement." : spec}</span>`;
+}
+const header = (crumbs, meta, barColour) => `<div class="shead"><div class="sbar" style="${barColour ? `background:${barColour}` : ""}"></div>
+	<div class="crumbs">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<button class="crumb" data-back>${c}</button><span class="sep">/</span>` : `<span>${c}</span>`).join("")}<span class="caps meta">${meta}</span></div></div>`;
+
+// ---------- 1 · Knowledge: a sheet on rails from the right ----------
+async function knowledge() {
+	say("Navigation · slide on rails", "The Knowledge sheet slides in from the right along its rail; the Realm shifts 24 px left under it, so the two read as neighbours. Back slides it out the way it came.",
+		"In 320 ms machined · out 260 ms release · old screen 24 px · hard shadow on the leading edge");
+	const s = make(`<div class="screen from-right">${header(["The Realm", "Knowledge"], "Turn 12 · Ancient era")}
+		<div class="sbody">
+			<div class="era"><span class="caps">Ancient</span><div class="tiles"><div class="tile done">Pottery<span>✓</span></div><div class="tile done">Writing<span>✓</span></div><div class="tile">Bronze Working<span>4</span></div><div class="tile">Masonry<span>3</span></div></div></div>
+			<div class="era"><span class="caps">Classical</span><div class="tiles"><div class="tile">Philosophy<span>6</span></div><div class="tile locked">Currency<span>needs Bronze</span></div><div class="tile locked">Mathematics<span>needs Masonry</span></div></div></div>
+			<div class="era future"><span class="caps">Medieval</span><div class="tiles"><div class="tile">Feudalism</div><div class="tile">Theology</div></div></div>
+		</div></div>`);
+	stage.append(s);
+	if (calm()) await fadeIn(s);
+	else await Promise.all([
+		go(s, [{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], 320, E.machined),
+		go(desk, [{ transform: "translateX(0)" }, { transform: "translateX(-24px)" }], 320, E.machined),
+	]);
+	stack.push(async () => {
+		if (calm()) await fadeOut(s);
+		else await Promise.all([
+			go(s, [{ transform: "translateX(0)" }, { transform: "translateX(100%)" }], 260, E.release),
+			go(desk, [{ transform: "translateX(-24px)" }, { transform: "translateX(0)" }], 260, E.machined),
+		]);
+		s.remove(); desk.getAnimations().forEach((a) => a.cancel());
+	});
+}
+
+// ---------- 2 · Territory: wipe out of the card's own rectangle ----------
+async function territory(cardEl) {
+	cardEl = cardEl || document.querySelector('[data-go="territory"]');
+	const name = cardEl.dataset.name;
+	say("Navigation · wipe from the card", `${name} opens out of its own card: the sheet's clip grows from the card's rectangle to the full screen, with the card's outline (its band on top) growing along the edge, and the title bar carries the band colour for the first 120 ms. Back closes it into the card again.`,
+		"In 300 ms machined (clip-path), the card's outline growing with it · contents fade in from 40% · bar colour → ink at 120 ms · out 240 ms release");
+	const box = rectIn(cardEl), from = inset(box);
+	const W = stage.clientWidth, H = stage.clientHeight;
+	const fromBox = { left: box.l + "px", top: box.t + "px", width: W - box.l - box.r + "px", height: H - box.t - box.b + "px" };
+	const toBox = { left: "0px", top: "0px", width: W + "px", height: H + "px" };
+	const s = make(`<div class="screen">${header(["The Realm", name], "Territory · 2 pop of 3", "var(--p-sage)")}
+		<div class="sbody">
+			<span class="caps">Building slots</span>
+			<div class="rooms"><div class="room">Granary<span class="fig">${glyph("food", 18)}</span></div><div class="room">Market<span class="fig">${glyph("wealth", 18)}</span></div><div class="room empty">Empty slot</div></div>
+			<span class="caps">Pop</span><div class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span></div>
+		</div></div>`);
+	const body = s.querySelector(".sbody"), bar = s.querySelector(".sbar");
+	stage.append(s);
+	if (calm()) { bar.style.background = ""; await fadeIn(s); }
+	else {
+		body.style.opacity = 0;
+		const frame = make(`<div class="wipeframe" style="--band:var(--p-sage)"></div>`);
+		stage.append(frame);
+		go(frame, [fromBox, toBox], 300, E.machined).then(() => go(frame, [{ opacity: 1 }, { opacity: 0 }], 120, E.linear)).then(() => frame.remove());
+		await Promise.all([
+			go(s, [{ clipPath: from }, { clipPath: "inset(0px 0px 0px 0px)" }], 300, E.machined),
+			go(bar, [{ background: "var(--p-sage)" }, { background: "var(--p-sage)", offset: 0.4 }, { background: "var(--ink)" }], 300, E.linear),
+			go(body, [{ opacity: 0 }, { opacity: 1 }], 160, E.linear, { delay: ms(120) }),
+		]);
+	}
+	stack.push(async () => {
+		if (calm()) await fadeOut(s);
+		else {
+			await go(body, [{ opacity: 1 }, { opacity: 0 }], 80, E.linear);
+			const frame = make(`<div class="wipeframe" style="--band:var(--p-sage)"></div>`);
+			stage.append(frame);
+			await Promise.all([go(s, [{ clipPath: "inset(0px 0px 0px 0px)" }, { clipPath: from }], 240, E.release), go(frame, [toBox, fromBox], 240, E.release)]);
+			frame.remove();
+		}
+		s.remove();
+	});
+}
+
+// ---------- 3 · Log drawer ----------
+async function log() {
+	say("Panel · drawer on its rail", "The log slides out of the left edge with a 3 px pull-back first (the latch releasing); its rows arrive from 40% of the travel, 20 ms apart. It closes back into the rail with no reverse stagger.",
+		"Open 260 ms latch · rows 120 ms machined, stagger 20 ms (≤ 6) · close 200 ms release");
+	const lines = [["T 012", "Harvest: +3 food"], ["T 012", "Played Granary in Nile Delta"], ["T 012", "Event: Good harvest"], ["T 011", "Learned Writing"], ["T 011", "Pop grew in Nile Delta"], ["T 010", "Settled Highlands"], ["T 010", "Paid 2 wealth"]];
+	const d = make(`<div class="drawer">${header(["Log"], "Newest first")}<div class="rows">${lines.map(([t, x]) => `<div class="lr"><span>${t}</span><span>${x}</span></div>`).join("")}</div></div>`);
+	stage.append(d);
+	const rows = [...d.querySelectorAll(".lr")];
+	if (calm()) await fadeIn(d);
+	else {
+		rows.forEach((r) => (r.style.opacity = 0));
+		const slide = go(d, [{ transform: "translateX(-100%)" }, { transform: "translateX(0)" }], 260, E.latch);
+		await sleep(104);
+		await Promise.all([slide, ...rows.map((r, i) => go(r, [{ opacity: 0, transform: "translateX(-8px)" }, { opacity: 1, transform: "translateX(0)" }], 120, E.machined, { delay: ms(Math.min(i, 5) * 20) }))]);
+	}
+	stack.push(async () => {
+		if (calm()) await fadeOut(d);
+		else { rows.forEach((r) => r.getAnimations().forEach((a) => a.cancel())); await go(d, [{ transform: "translateX(0)" }, { transform: "translateX(-100%)" }], 200, E.release); }
+		d.remove();
+	});
+}
+
+// ---------- 4 · Modal, and one stacked on it ----------
+async function modal() {
+	say("Modal · drafting sheet", "The scrim fades and the sheet rises 24 px into place. Opening a second modal lays it on the first, offset 8 px right and down, like paper on paper. Each closes on its own.",
+		"Sheet 240 ms machined, opacity over the first 120 ms · scrim 160 ms · close 160 ms release, sinks 12 px · stacked +8, +8");
+	const sc = make(`<div class="scrim"></div>`);
+	stage.append(sc);
+	await openSheet(sc, `${header(["Buy cards"], "Supply")}<div class="mb">Buy a card from the supply. It goes to your discard pile.</div>
+		<footer><button class="btn" data-stack>Card details…</button><button class="btn" data-back>Close</button></footer>`, 0, true);
+}
+async function openSheet(sc, html, offset, withScrim) {
+	const m = make(`<div class="msheet">${html}</div>`);
+	sc.append(m);
+	const at = `translate(${offset}px, ${offset}px)`;
+	if (calm()) await Promise.all([withScrim ? fadeIn(sc) : null, fadeIn(m)]);
+	else await Promise.all([
+		withScrim ? go(sc, [{ opacity: 0 }, { opacity: 1 }], 160, E.linear) : null,
+		go(m, [{ transform: `translate(${offset}px, ${offset + 24}px)` }, { transform: at }], 240, E.machined),
+		go(m, [{ opacity: 0 }, { opacity: 1 }], 120, E.linear),
+	]);
+	stack.push(async () => {
+		if (calm()) await Promise.all([fadeOut(m), withScrim ? fadeOut(sc) : null]);
+		else await Promise.all([
+			go(m, [{ transform: at, opacity: 1 }, { transform: `translate(${offset}px, ${offset + 12}px)`, opacity: 0 }], 160, E.release),
+			withScrim ? go(sc, [{ opacity: 1 }, { opacity: 0 }], 160, E.linear) : null,
+		]);
+		m.remove(); if (withScrim) sc.remove();
+	});
+}
+async function stacked(sc) {
+	await openSheet(sc, `${header(["Granary"], "Building")}<div class="mb">⟳ +1 food. Needs a city with a free slot. Costs 1 food and 2 wealth.</div><footer><button class="btn" data-back>Close</button></footer>`, 8, false);
+}
+
+// ---------- 5 · Government: cabinet doors ----------
+async function cabinet() {
+	say("Choice · cabinet doors", "Two steel doors slide shut over the Realm from the sides and meet at a seam, then part again to reveal the choice beneath, like a sliding cabinet. Choosing closes the doors over the choice and opens them on the Realm.",
+		"Close 200 ms machined · hold 60 ms · part 260 ms latch · choice cards: select slides 12 px out with the index tab");
+	const c = make(`<div class="cabinet">
+		<div class="choices" style="visibility:hidden"><span class="caps">Anarchy ends · choose a government</span><h2>The next government</h2>
+			<div class="row">${[["Kingship", "3 actions a turn · unrest limit 5"], ["Theocracy", "3 actions · unrest −1 each upkeep"], ["Republic", "2 actions · +1 wealth per city"]].map(([n, r]) => `<button class="gcard"><span class="tab"></span><span class="mh">${n}</span><span class="band"></span><span class="mr">${r}</span></button>`).join("")}</div></div>
+		<div class="door l"><span>Choose a</span><i></i></div><div class="door r"><span>Government</span><i></i></div></div>`);
+	stage.append(c);
+	const [L, R] = c.querySelectorAll(".door"), choices = c.querySelector(".choices");
+	if (calm()) { L.remove(); R.remove(); choices.style.visibility = "visible"; await fadeIn(c); }
+	else {
+		await Promise.all([go(L, [{ transform: "translateX(-100%)" }, { transform: "translateX(0)" }], 200, E.machined), go(R, [{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], 200, E.machined)]);
+		choices.style.visibility = "visible";
+		await sleep(60);
+		await Promise.all([go(L, [{ transform: "translateX(0)" }, { transform: "translateX(-100%)" }], 260, E.latch), go(R, [{ transform: "translateX(0)" }, { transform: "translateX(100%)" }], 260, E.latch)]);
+	}
+	c.querySelectorAll(".gcard").forEach((g) => g.addEventListener("click", () => {
+		if (busy) return;
+		c.querySelectorAll(".gcard").forEach((x) => x.classList.toggle("selected", x === g));
+		document.querySelector(".gov").textContent = g.querySelector(".mh").textContent + " ›";
+		run(async () => { await sleep(260); await closeTop(); });
+	}));
+	stack.push(async () => {
+		if (calm()) { await fadeOut(c); c.remove(); return; }
+		await Promise.all([go(L, [{ transform: "translateX(-100%)" }, { transform: "translateX(0)" }], 200, E.machined), go(R, [{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], 200, E.machined)]);
+		choices.remove();
+		await sleep(60);
+		await Promise.all([go(L, [{ transform: "translateX(0)" }, { transform: "translateX(-100%)" }], 260, E.latch), go(R, [{ transform: "translateX(0)" }, { transform: "translateX(100%)" }], 260, E.latch)]);
+		c.remove();
+	});
+}
+
+// ---------- 6 · Targeting: a vellum overlay ----------
+async function vellum() {
+	say("Overlay · drafting vellum", "Settlers slides out of the hand, then a sheet of vellum wipes across the board from the left. Only the valid target, the Frontier, stays above it, outlined and lit. Cancelling wipes the vellum on off the right.",
+		"Card select 140 ms machined · vellum wipe 180 ms machined (clip-path) · target lamp on 40 ms · cancel 160 ms release");
+	const settlers = document.querySelector('[data-name="Settlers"]'), frontier = document.querySelector(".frontier");
+	const body = document.getElementById("dbody");
+	settlers.classList.add("selected");
+	await sleep(calm() ? 0 : 140);
+	const v = make(`<div class="vellum"></div>`), rib = make(`<div class="ribbon">Choose a territory to settle <span class="caps">Esc to cancel</span></div>`);
+	body.append(v, rib);
+	frontier.classList.add("target");
+	if (calm()) await Promise.all([fadeIn(v), fadeIn(rib)]);
+	else await Promise.all([
+		go(v, [{ clipPath: "inset(0px 100% 0px 0px)" }, { clipPath: "inset(0px 0% 0px 0px)" }], 180, E.machined),
+		go(rib, [{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "translateY(0)" }], 160, E.machined, { delay: ms(80) }),
+	]);
+	stack.push(async () => {
+		frontier.classList.remove("target");
+		if (calm()) await Promise.all([fadeOut(v), fadeOut(rib)]);
+		else await Promise.all([go(v, [{ clipPath: "inset(0px 0px 0px 0%)" }, { clipPath: "inset(0px 0px 0px 100%)" }], 160, E.release), go(rib, [{ opacity: 1 }, { opacity: 0 }], 100, E.linear)]);
+		v.remove(); rib.remove(); settlers.classList.remove("selected");
+	});
+}
+
+// ---------- 7 · Era change: the ceremonial sheet ----------
+const FLAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+async function era() {
+	say("Milestone · ceremonial sheet", "The only centred, big moment: the sheet wipes across the whole screen, concentric rings draw out from the middle, and the era's name split-flaps in letter by letter. Click anywhere to skip to the end; click again to continue.",
+		"Wipe 400 ms machined, a straightedge on its leading edge · rings 400 ms each, 80 ms apart · letters 3 flips × 60 ms, 25 ms stagger · out 260 ms release");
+	const W = stage.clientWidth, H = stage.clientHeight, cx = W / 2, cy = H / 2;
+	const radii = [70, 120, 180, 250, 330, 420];
+	const c = make(`<div class="ceremony"><svg viewBox="0 0 ${W} ${H}">${radii.map((r, i) => `<circle class="ring ${i === 1 ? "hi" : ""}" cx="${cx}" cy="${cy}" r="${r}"/>`).join("")}</svg>
+		<div class="ctext"><span class="caps">Era II · Turn 34</span><span class="ctitle" id="ctitle"></span><span class="hint">Click to continue</span></div></div>`);
+	stage.append(c);
+	const title = c.querySelector(".ctitle"), words = "THE BRONZE AGE";
+	title.innerHTML = [...words].map(() => "<span>&nbsp;</span>").join("");
+	const spans = [...title.children];
+	let skipped = false;
+	// One click handler: while it plays, a click skips to the end; after that, a click continues. A click that
+	// arrives before the sequence has settled is remembered and acted on as soon as it has.
+	let opening = true, wantClose = false;
+	const finish = () => {
+		skipped = true;
+		[...c.getAnimations({ subtree: true }), ...stage.querySelectorAll(".straightedge")].forEach((x) => (x.getAnimations ? x.getAnimations().forEach((a) => a.finish()) : x.finish()));
+		spans.forEach((s, i) => (s.textContent = words[i] === " " ? "\u00a0" : words[i]));
+	};
+	c.addEventListener("click", () => {
+		if (opening && !skipped) finish();
+		else if (opening) wantClose = true;
+		else run(closeTop);
+	});
+	const rings = [...c.querySelectorAll(".ring")];
+	if (calm()) { finish(); await fadeIn(c); }
+	else {
+		rings.forEach((r) => { const L = 2 * Math.PI * r.r.baseVal.value; r.style.strokeDasharray = L; r.style.strokeDashoffset = L; });
+		const edge = make(`<div class="straightedge"></div>`);
+		stage.append(edge);
+		await Promise.all([
+			go(c, [{ clipPath: "inset(0px 100% 0px 0px)" }, { clipPath: "inset(0px 0% 0px 0px)" }], 400, E.machined),
+			go(edge, [{ transform: "translateX(0)" }, { transform: `translateX(${W - 4}px)` }], 400, E.machined),
+		]);
+		go(edge, [{ opacity: 1 }, { opacity: 0 }], 120, E.linear).then(() => edge.remove());
+		rings.forEach((r, i) => go(r, [{ strokeDashoffset: r.style.strokeDashoffset }, { strokeDashoffset: 0 }], 400, E.machined, { delay: ms(i * 80) }).catch(() => {}));
+		await Promise.all(spans.map(async (s, i) => {
+			if (words[i] === " ") { s.innerHTML = "&nbsp;"; return; }
+			await sleep(i * 25);
+			if (skipped) return;
+			for (let k = 0; k < 3 && !skipped; k++) {
+				s.textContent = FLAP[Math.floor(Math.random() * 26)];
+				go(s, [{ transform: "scaleY(1)" }, { transform: "scaleY(0.1)", offset: 0.5 }, { transform: "scaleY(1)" }], 60, E.linear);
+				await sleep(60);
+			}
+			s.textContent = words[i];
+		}));
+		if (!skipped) await sleep(500);
+	}
+	opening = false;
+	if (wantClose) setTimeout(() => run(closeTop), 0);  // after this run releases the lock
+	stack.push(async () => {
+		if (calm()) await fadeOut(c);
+		else {
+			const edge = make(`<div class="straightedge"></div>`);
+			stage.append(edge);
+			await Promise.all([
+				go(c, [{ clipPath: "inset(0px 0px 0px 0%)" }, { clipPath: "inset(0px 0px 0px 100%)" }], 260, E.release),
+				go(edge, [{ transform: "translateX(0)" }, { transform: `translateX(${stage.clientWidth - 4}px)` }], 260, E.release),
+			]);
+			edge.remove();
+		}
+		c.remove();
+		document.querySelector(".turnplate").textContent = "T 013";
+	});
+}
+
+// ---------- wiring ----------
+const ACTIONS = {
+	knowledge: ["Knowledge", "slide", knowledge], territory: ["Territory", "wipe from card", territory], log: ["Log", "drawer", log],
+	modal: ["Buy cards", "modal + stacked", modal], cabinet: ["Government", "cabinet doors", cabinet], vellum: ["Settlers", "vellum targeting", vellum],
+	era: ["End turn", "era change", era],
+};
+document.getElementById("controls").innerHTML = Object.entries(ACTIONS).map(([k, [name, kind]], i) =>
+	`<button class="btn" data-go="${k}"><span class="n">${i + 1}</span>${name} <span class="caps">${kind}</span></button>`).join("");
+async function closeTop() { const f = stack.pop(); if (f) await f(); }
+async function closeAll() { while (stack.length) await closeTop(); }
+document.addEventListener("click", (e) => {
+	const t = e.target.closest("[data-go], [data-back], [data-stack]");
+	if (!t) return;
+	if (t.hasAttribute("data-back")) return run(closeTop);
+	if (t.hasAttribute("data-stack")) return run(() => stacked(t.closest(".scrim")));
+	const k = t.dataset.go;
+	run(async () => {
+		const insideStage = stage.contains(t);
+		if (!insideStage || stack.length) await closeAll();
+		await ACTIONS[k][2](t.classList.contains("mcard") ? t : null);
+	});
+});
+addEventListener("keydown", (e) => {
+	if (e.key === "Escape") run(closeTop);
+	const n = parseInt(e.key, 10);
+	const keys = Object.keys(ACTIONS);
+	if (n >= 1 && n <= keys.length && !e.metaKey && !e.ctrlKey) run(async () => { await closeAll(); await ACTIONS[keys[n - 1]][2](null); });
+});
+document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
+	slow = +b.dataset.speed;
+	document.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+}));
+function bindKey(el, onChange) {
+	el.addEventListener("click", () => {
+		const on = el.getAttribute("aria-checked") !== "true";
+		el.setAttribute("aria-checked", on);
+		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
+		onChange(on);
+	});
+}
+bindKey(document.getElementById("theme"), (on) => { root.dataset.theme = on ? "night" : "paper"; });
+bindKey(document.getElementById("calm"), (on) => { root.dataset.calm = on; });
+</script>
+</body>
+</html>

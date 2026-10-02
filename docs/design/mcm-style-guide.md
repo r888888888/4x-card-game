@@ -5,6 +5,14 @@ designer or a Godot developer can build it without reinterpreting adjectives. A 
 core components (with motion and a Reduce motion switch) is in [mcm-specimen.html](mcm-specimen.html); open it in a
 browser.
 
+Companion pages in this folder (open them in a browser):
+- [mcm-specimen.html](mcm-specimen.html): the tokens and core components, with motion.
+- [transitions.html](transitions.html): every screen transition in §10–11 on a mock game screen, with slow motion and
+  Reduce motion.
+- [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
+  [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
+  alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
+
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
 names it, and §16 maps every token onto the existing code.
 
