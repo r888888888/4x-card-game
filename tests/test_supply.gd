@@ -263,7 +263,7 @@ func test_an_unlocked_pile_is_a_notice_but_learning_and_buying_are_not() -> void
 	check(e.buy_tech(uid_of(e.zone("research_deck"), "guilds")), "learn Guilds")
 	check(e.buy("guildhall"), "buy a Guildhall")
 	eq(notices_in(recorded).size(), 1, "one notice: %s" % [recorded])
-	check_noticed(recorded, "can now be bought")
+	check_noticed(recorded, "can now be bought", GameEngine.NOTICE_INFO)
 
 
 # AC5: idempotent

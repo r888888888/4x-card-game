@@ -200,7 +200,7 @@ func test_the_identity_modal_opens_on_the_stack_and_hides_the_toasts() -> void:
 	main.identity_button().pressed.emit()
 	eq(depth(main), 1, "one modal")
 	check(top(main) == main.identity_modal, "the identity modal on top")
-	Game.engine.emit_signal("noticed", "Famine ends.")
+	Game.engine.emit_signal("noticed", "Famine ends.", GameEngine.NOTICE_INFO)
 	await wait_frames()
 	check(not (main.toasts as Control).is_visible_in_tree(), "toasts hidden under it")
 	main.identity_modal.close_button.pressed.emit()

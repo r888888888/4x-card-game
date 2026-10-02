@@ -58,7 +58,7 @@ func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
 	eq(e.anarchy(), e.government(), "anarchy() is its uid")
 	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs goes to the government deck (154)")
 	eq(e.zone("deck").size(), deck_before, "not into the deck (a full hand draws none)")
-	check_noticed(recorded, "Anarchy")
+	check_noticed(recorded, "Anarchy!", GameEngine.NOTICE_URGENT)
 
 
 func test_unrest_below_the_limit_doesnt_fall() -> void:
@@ -159,7 +159,8 @@ func test_when_anarchy_burns_out_the_government_choice_is_owed() -> void:
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
 	eq([e.turn, ruling(e)], [6, "chiefs"], "Chiefs restores order and turn 6 starts")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
-	check_noticed(recorded, "order")
+	check_noticed(recorded, "order returns", GameEngine.NOTICE_INFO)
+	check_noticed(recorded, "Chiefs rules.", GameEngine.NOTICE_INFO)
 
 
 func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
@@ -180,7 +181,7 @@ func test_a_new_era_adds_era_unrest_up_to_the_limit() -> void:
 	var dawn := put_in_hand(e, "dawn")
 	check(e.play_card(dawn), "Dawn: %s" % e.play_error(dawn))
 	eq(e.resources.get("unrest"), 5, "3 + 3, capped at 5")
-	check_noticed(recorded, "unrest")
+	check_noticed(recorded, "unrest", GameEngine.NOTICE_CAUTION)
 	e.end_turn()
 	eq(ruling(e), "anarchy", "the next turn falls into Anarchy")
 

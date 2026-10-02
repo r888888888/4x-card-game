@@ -11,6 +11,10 @@ const FOOD := "food"
 const WEALTH := "wealth"
 const INSIGHT := "insight"
 const UNREST := "unrest"
+## How serious a notice is (190): information, a caution, or urgent. The UI rings and colours a notice by it.
+const NOTICE_INFO := &"info"
+const NOTICE_CAUTION := &"caution"
+const NOTICE_URGENT := &"urgent"
 
 signal changed
 signal logged(message: String)

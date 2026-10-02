@@ -86,7 +86,7 @@ func test_an_eras_events_added_is_a_notice() -> void:
 	var e := event_era_engine()
 	var recorded := record_messages(e)
 	e.add_era(2)
-	check_noticed(recorded, "events added to the event deck")
+	check_noticed(recorded, "events added to the event deck", GameEngine.NOTICE_INFO)
 
 
 func test_era_2_events_are_shuffled_in_by_seed() -> void:

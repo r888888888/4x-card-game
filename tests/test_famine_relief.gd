@@ -66,7 +66,7 @@ func test_relieving_the_famine_is_a_notice() -> void:
 	var e := two_counter_engine(7)
 	var recorded := record_messages(e)
 	check(e.relieve_famine(), "relieve_famine")
-	check_noticed(recorded, "Relieved the famine")
+	check_noticed(recorded, "Relieved the famine", GameEngine.NOTICE_INFO)
 
 
 func test_a_short_upkeep_after_relief_brings_a_new_famine_with_1_counter() -> void:

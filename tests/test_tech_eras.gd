@@ -95,7 +95,7 @@ func test_an_eras_techs_added_is_a_notice() -> void:
 	var e := era_engine(["philosophy", "pottery"])
 	var recorded := record_messages(e)
 	check(e.buy_tech(uid_of(e.zone("research_deck"), "philosophy")), "learn Philosophy")
-	check_noticed(recorded, "techs added to the tech deck")
+	check_noticed(recorded, "techs added to the tech deck", GameEngine.NOTICE_INFO)
 
 
 func test_an_era_is_only_added_once() -> void:
