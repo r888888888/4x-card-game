@@ -10,6 +10,11 @@ static func unpayable(resource: String) -> String:
 	return "%s can't be paid (it is only gained and lost)" % resource if resource == GameEngine.UNREST else ""
 
 
+## A price ({resource: amount}) as text, in its order: "5 wealth", "2 food, 5 wealth" (173).
+static func amounts_text(cost: Dictionary) -> String:
+	return ", ".join(PackedStringArray(cost.keys().map(func(r): return "%d %s" % [cost[r], r])))
+
+
 ## JSON numbers are floats; accept whole numbers as ints. Returns null otherwise.
 static func as_int(v: Variant) -> Variant:
 	if v is int:

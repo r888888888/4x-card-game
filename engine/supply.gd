@@ -34,9 +34,8 @@ static func buy_error(e: GameEngine, card_id: String) -> String:
 	if e.state.supply[card_id] <= 0:
 		return "No %ss left in the supply." % card_name
 	var cost := price(e, card_id)
-	var have: int = e.resources.get(GameEngine.WEALTH, 0)
-	if have < cost:
-		return "%s costs %d wealth (you have %d)." % [card_name, cost, have]
+	if not e.can_pay({GameEngine.WEALTH: cost}):
+		return "%s costs %d wealth (you have %d)." % [card_name, cost, e.resources.get(GameEngine.WEALTH, 0)]
 	return ""
 
 
@@ -44,7 +43,7 @@ static func buy(e: GameEngine, card_id: String) -> bool:
 	if buy_error(e, card_id) != "":
 		return false
 	var cost := price(e, card_id)
-	e.resources.wealth -= cost
+	e.pay({GameEngine.WEALTH: cost})
 	e.state.supply[card_id] -= 1
 	var card := e._make_card(card_id)
 	e.zone("discard").add(card)

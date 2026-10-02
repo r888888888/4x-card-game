@@ -57,8 +57,8 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			engine.choose_government(_best_government(engine.zone("governments").cards).uid)
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
 			engine.renew(_renewal_pick(engine))
-		elif not engine.pending_choice.is_empty():
-			engine.choose(engine.pending_choice.options[0])
+		elif engine.pending().get("kind", "") == GameEngine.PENDING_EXPLORE:
+			engine.choose(engine.pending().options[0])
 		elif learn_cheapest_tech(engine):
 			pass
 		elif plays >= MAX_PLAYS_PER_TURN or not _play_first_playable(engine, strategy):

@@ -4,11 +4,13 @@ extends RefCounted
 ## engine's state; GameEngine.modifier calls total.
 
 ## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn, and more cards drawn
-## each turn (109), housing on every settled territory (110), and a higher (or lower) unrest limit (144).
+## each turn (109), housing on every settled territory (110), a higher (or lower) unrest limit (144), and more (or
+## fewer) cards Anarchy's renewal trashes (147).
 const ACTIONS := "actions"
 const HAND_SIZE := "hand_size"
 const HOUSING := "housing"
 const UNREST_LIMIT := "unrest_limit"
+const RENEWAL := "renewal"
 
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES

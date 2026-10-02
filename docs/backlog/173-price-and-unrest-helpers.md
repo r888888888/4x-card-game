@@ -2,7 +2,7 @@
 id: 173
 title: One way to check and pay a price, and to add unrest
 type: feature
-status: red-review
+status: review
 branch: feat/173-price-and-unrest-helpers
 ---
 
@@ -12,21 +12,21 @@ limit. 155 (an order price that rises per counter) and 156 (the drain) add more 
 review.
 
 ## Acceptance criteria
-- [ ] AC1: A short message for a price of several resources names each one you have. Given `unrest.relief`
+- [x] AC1: A short message for a price of several resources names each one you have. Given `unrest.relief`
   `{"food": 2, "wealth": 6}` and 0 food and 1 wealth under Anarchy, `restore_order_error()` is
   "Restoring order needs 2 food, 6 wealth (you have 0 food, 1 wealth)."; the same for `relieve_famine_error()` with `population.famine.relief`
   `{"food": 2, "wealth": 5}` ("Relieving the famine needs 2 food, 5 wealth (you have 0 food, 1
   wealth)."). A one-resource price keeps today's text ("Restoring order needs 6 wealth (you have 1).").
-- [ ] AC2: One `EngineCore` helper pays a price and one gives the afford check: `play_card`, `buy`, `grow`, `buy_tech`,
+- [x] AC2: One `EngineCore` helper pays a price and one gives the afford check: `play_card`, `buy`, `grow`, `buy_tech`,
   `relieve_famine` and `restore_order` use them. No `engine/` script but the helper subtracts from `resources` for a
   price, and `resources.wealth` / `resources.food` aren't written in `engine/` (supply.gd:47, population.gd:62 and
   99–100 use the constants).
-- [ ] AC3: The amounts text ("2 food, 5 wealth") is a public helper (e.g. `Fields.amounts_text`); `Anarchy` no longer
+- [x] AC3: The amounts text ("2 food, 5 wealth") is a public helper (e.g. `Fields.amounts_text`); `Anarchy` no longer
   calls `Famine._amounts`.
-- [ ] AC4: Unrest added by `gain`, by a new era (`Anarchy.stir`) and capped by `choose_government` goes through one
+- [x] AC4: Unrest added by `gain`, by a new era (`Anarchy.stir`) and capped by `choose_government` goes through one
   helper that stops at `unrest_limit()`. Given limit 5, unrest 4 and era unrest 3, a new era leaves unrest at 5 and the
   notice says "+1 unrest" (as today).
-- [ ] AC5: Behavior is pinned: `scripts/sim.sh 20` prints the same before and after, and every existing test passes
+- [x] AC5: Behavior is pinned: `scripts/sim.sh 20` prints the same before and after, and every existing test passes
   unedited.
 
 ## Out of scope
@@ -43,7 +43,7 @@ review.
 | AC5 | Every existing test unedited; `scripts/sim.sh 20` before and after (Manual check) |
 
 ## Manual check
-- [ ] `scripts/sim.sh 20` prints the same on `main` and on this branch (Claude runs both and pastes the comparison in
+- [x] `scripts/sim.sh 20` prints the same on `main` and on this branch (Claude runs both and pastes the comparison in
   the Log).
 
 ## Log
@@ -53,3 +53,7 @@ review.
   it), `Fields.amounts_text(cost)`. The structure test also counts feeding (`population.gd`'s `food -= eaten`): pop's
   food goes through `pay` too, so only EngineCore lowers resources. The 4-of-5 era test passes today (it pins AC4's
   example; test_anarchy's checked only 3 → 5).
+- 2026-10-01: Green. `EngineCore.price_error(what, cost)` builds the "needs … (you have …)" message for relief, order,
+  growing and techs; `play_error` keeps naming its first short resource and `buy_error` its "costs" wording, both
+  checking with `can_pay`. `set_unrest` never lifts unrest that is already past a lowered limit, as `gain` did.
+  `scripts/sim.sh 20` is identical to `main`'s (diffed).

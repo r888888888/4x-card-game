@@ -102,8 +102,7 @@ func test_the_state_holds_one_pending_decision() -> void:
 	check(names.has("pending"), "GameState.pending")
 	for old in ["pending_choice", "discard_left", "renewal_left", "choosing_government"]:
 		check(not names.has(old), "GameState.%s is gone" % old)
-	var fresh: Object = GameState.new()  # red phase: pending is new
-	eq(fresh.get("pending"), {}, "nothing owed on a new state")
+	eq(GameState.new().pending, {}, "nothing owed on a new state")
 	var e := pending_engine()
 	var explorer := put_in_hand(e, "explorer")
 	check(e.play_card(explorer), "play Explorer")
