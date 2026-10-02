@@ -4,16 +4,10 @@ extends "res://tests/lib/anarchy_case.gd"
 ## (PENDING_GOVERNMENT, choose_government), and unrest drops to at most half its limit. The Government overlay, the
 ## identity modal's deck line, and the bot's choice. Fixtures: tests/lib/anarchy_case.gd plus Charter (an action that
 ## creates Kings in the discard); TEST_GOVS' Kingdom (cost 2 food, play +1 wealth), Band (2 actions), Court (3).
-## Engines are held as Object in the red phase so the file parses before the API.
 
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action",
 	"effects": [{"op": "create", "card": "kings", "zone": "discard"}]}
 const CHOOSE_FIRST := "Choose a government first."
-
-
-## GameEngine.PENDING_GOVERNMENT, looked up so the file parses before it exists.
-func pending_government() -> Variant:
-	return (GameEngine as Script).get_script_constant_map().get("PENDING_GOVERNMENT")
 
 
 ## An anarchy game (Charter in the card db).
@@ -73,7 +67,7 @@ func test_burning_out_owes_the_government_choice() -> void:
 	eq(ruling(e), "", "no government rules")
 	eq(e.anarchy(), -1, "no Anarchy")
 	eq(card_ids(e.zone("removed")), ["anarchy"] as Array[String], "the Anarchy card is removed")
-	eq(e.pending(), {"kind": pending_government(), "options": [chiefs, kings]}, "the choice is owed")
+	eq(e.pending(), {"kind": GameEngine.PENDING_GOVERNMENT, "options": [chiefs, kings]}, "the choice is owed")
 
 
 func test_while_the_choice_is_owed_everything_else_refuses() -> void:
@@ -94,7 +88,7 @@ func test_while_the_choice_is_owed_everything_else_refuses() -> void:
 # --- AC4: choosing ---
 
 func test_choosing_a_government_rules_it_and_calms_unrest() -> void:
-	var e: Object = choosing_engine()
+	var e := choosing_engine()
 	var kings := uid_of(e.zone("governments"), "kings")
 	e.resources["unrest"] = 6
 	check(e.choose_government(kings), "choose Kings: %s" % e.choose_government_error(kings))
@@ -105,7 +99,7 @@ func test_choosing_a_government_rules_it_and_calms_unrest() -> void:
 
 
 func test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government() -> void:
-	var e: Object = choosing_engine()
+	var e := choosing_engine()
 	build_on(e, home_uid(e), ["altar"])
 	e.resources["unrest"] = 6
 	e.choose_government(uid_of(e.zone("governments"), "kings"))
@@ -113,7 +107,7 @@ func test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government() 
 
 
 func test_a_chosen_government_resolves_its_play_effects_without_paying() -> void:
-	var e: Object = choosing_engine(["kingdom"])
+	var e := choosing_engine(["kingdom"])
 	var food: int = e.resources.food
 	var wealth: int = e.resources.wealth
 	e.resources["unrest"] = 6
@@ -126,22 +120,22 @@ func test_a_chosen_government_resolves_its_play_effects_without_paying() -> void
 # --- AC5: errors ---
 
 func test_choose_government_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
-	var quiet: Object = deck_engine()
+	var quiet := deck_engine()
 	play_outcome(quiet, put_in_hand(quiet, "charter"))
 	var kings := uid_of(quiet.zone("governments"), "kings")
 	eq(quiet.choose_government_error(kings), "No government to choose.", "no choice owed")
 	check(not quiet.choose_government(kings), "choose_government refuses")
 	eq(ruling(quiet), "chiefs", "Chiefs still rules")
-	var e: Object = choosing_engine()
+	var e := choosing_engine()
 	var farm := put_in_hand(e, "farm")
 	eq(e.choose_government_error(farm), "That government isn't in your government deck.", "not in the deck")
 	check(not e.choose_government(farm), "refuses")
-	eq([ruling(e), e.pending().get("kind")], ["", pending_government()], "still owed")
+	eq([ruling(e), e.pending().get("kind")], ["", GameEngine.PENDING_GOVERNMENT], "still owed")
 	eq(e.choose_government_error(uid_of(e.zone("governments"), "kings")), "", "Kings can be chosen")
 
 
 func test_choosing_uses_no_action() -> void:
-	var e: Object = choosing_engine(["court"])
+	var e := choosing_engine(["court"])
 	e.choose_government(uid_of(e.zone("governments"), "court"))
 	eq(e.actions_left(), 3, "Court's 3 actions, none used")
 
@@ -185,16 +179,16 @@ func test_the_identity_modal_lists_the_government_deck() -> void:
 # --- AC7: the bot ---
 
 func test_the_bot_chooses_the_government_with_most_actions_then_highest_limit() -> void:
-	var by_actions: Object = choosing_engine(["kings", "band", "court"])
+	var by_actions := choosing_engine(["kings", "band", "court"])
 	ScriptedBot.take_turn(by_actions, "baseline")
 	eq(ruling(by_actions), "court", "Court's 3 actions beat Band's 2 and the limits")
-	var by_limit: Object = choosing_engine(["kings"])
+	var by_limit := choosing_engine(["kings"])
 	ScriptedBot.take_turn(by_limit, "baseline")
 	eq(ruling(by_limit), "kings", "Kings' limit 7 beats Chiefs' 5")
 
 
 func test_the_bot_breaks_government_ties_by_deck_order() -> void:
-	var e: Object = choosing_engine(["council", "kingdom"])
+	var e := choosing_engine(["council", "kingdom"])
 	e.zone("governments").remove(e.zone("governments").find(uid_of(e.zone("governments"), "chiefs")))
 	ScriptedBot.take_turn(e, "baseline")
 	eq(ruling(e), "council", "Council first of two equals")

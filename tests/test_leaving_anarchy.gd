@@ -50,13 +50,13 @@ func test_outside_anarchy_a_government_has_no_unrest_condition() -> void:
 # --- AC2: paying to restore order ---
 
 func test_restore_order_pays_and_a_government_is_chosen() -> void:
-	var e: Object = anarchy_with(5, 6)
+	var e := anarchy_with(5, 6)
 	var recorded := record_messages(e)
 	var anarchy: int = e.anarchy()
 	eq(e.order_relief(), {"wealth": 6}, "order_relief")
 	check(e.restore_order(), "restore_order: %s" % e.restore_order_error())
 	eq(e.resources.get("wealth"), 0, "6 − 6")
-	eq(e.pending().get("kind"), "government", "the government choice is owed (154)")
+	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the government choice is owed (154)")
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
 	eq(ruling(e), "chiefs", "Chiefs rules")
 	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")

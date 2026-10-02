@@ -178,7 +178,7 @@
     {
       "id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
       "vp": 0, "tags": [],
-      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. A government is accepted once unrest is at most half its limit. Pay 6 wealth, or wait 4 turns, and order returns under Chiefdom. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
+      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. A government is accepted once unrest is at most half its limit. Pay 6 wealth, or wait 4 turns, and order returns: choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
       "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
     },
     {

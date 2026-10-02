@@ -18,4 +18,4 @@ func refresh(e: GameEngine) -> void:
 	button.text = "Restore order (%s)" % CardFace.cost_text(relief)
 	var error := e.restore_order_error()
 	button.disabled = error != ""
-	button.tooltip_text = error if error != "" else "Pay to end the Anarchy now: your fallback government rules."
+	button.tooltip_text = error if error != "" else "Pay to end the Anarchy now, then choose a government."

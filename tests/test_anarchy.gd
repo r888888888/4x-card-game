@@ -143,7 +143,7 @@ func test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop() -> void:
 
 
 func test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var recorded := record_messages(e)
 	var anarchy_uid: int = e.anarchy()
 	for i in 3:
@@ -152,7 +152,7 @@ func test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed() 
 	e.end_turn()
 	eq(e.anarchy(), -1, "the 4th counter: no anarchy")
 	check(e.zone("removed").find(anarchy_uid) != null, "the Anarchy card is removed")
-	eq(e.pending().get("kind"), "government", "a government is to be chosen (154)")
+	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "a government is to be chosen (154)")
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
 	eq(ruling(e), "chiefs", "Chiefs restores order")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
@@ -160,7 +160,7 @@ func test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed() 
 
 
 func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	var feast := put_in_hand(e, "feast")
 	e.play_card(feast)
 	e.resources["unrest"] = 1

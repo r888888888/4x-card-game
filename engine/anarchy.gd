@@ -3,9 +3,10 @@ extends RefCounted
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy. The config's unrest.anarchy
 ## government takes over and the fallen government goes to the government deck (154). While it rules only governments and
 ## cards tagged unrest.allowed_tag can be played, nothing is grown, bought or researched, and each turn that starts
-## under it adds a counter; at unrest.max_counters the unrest.fallback government restores order and unrest drops to
-## half its limit. Each new era adds unrest.era_unrest. Ways out sooner (146): a government the people accept (unrest
-## at most half its limit), or paying unrest.relief to restore order under the fallback. Static functions on the
+## under it adds a counter; at unrest.max_counters it burns out. Each new era adds unrest.era_unrest. Ways out sooner
+## (146): a government the people accept (unrest at most half its limit), or paying unrest.relief to restore order.
+## When it burns out or order is restored, a government is chosen from the government deck and unrest drops to at
+## most half its limit (154). Static functions on the
 ## engine's state. Revolution (148): while an event with revolt is active you may revolt, falling into Anarchy at once
 ## with renewal owed. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
 ## counters + the renewal modifier cards from the discard (governments aside), each calming 1 unrest.
