@@ -2,7 +2,7 @@
 id: 190
 title: Notices carry a priority, heard as a pattern and seen as a hue bar
 type: feature
-status: review
+status: done
 branch: feat/190-notice-priorities
 ---
 

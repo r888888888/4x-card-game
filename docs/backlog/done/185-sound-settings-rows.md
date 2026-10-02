@@ -2,7 +2,7 @@
 id: 185
 title: Sound rows in Settings and the game menu
 type: feature
-status: review
+status: done
 branch: feat/185-sound-settings-rows
 ---
 

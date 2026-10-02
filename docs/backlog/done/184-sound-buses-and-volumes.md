@@ -2,7 +2,7 @@
 id: 184
 title: Sound buses and volume settings
 type: feature
-status: review
+status: done
 branch: feat/184-sound-buses-and-volumes
 ---
 

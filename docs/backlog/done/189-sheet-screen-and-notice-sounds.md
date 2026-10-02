@@ -2,7 +2,7 @@
 id: 189
 title: Sheet, screen and notice sounds
 type: feature
-status: review
+status: done
 branch: feat/189-sheet-screen-and-notice-sounds
 ---
 

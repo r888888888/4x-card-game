@@ -118,5 +118,13 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 108. 193 spacing and corner radius from the guide's scales (`Tokens`)
 109. 195 Day mode saved at launch; the suite runs on a fresh settings store
 110. 194 text sizes from the guide's type scale (`Tokens.TYPE_*`, theme variations)
+111. 184 sound buses and volume settings
+112. 185 sound rows in Settings and the game menu
+113. 186 the sound player (`Sfx`), its tokens and placeholder sounds (`docs/design/sound-export.html`)
+114. 187 key sounds: buttons, the legend key and End turn
+115. 188 counter and card sounds
+116. 189 sheet, screen and notice sounds
+117. 190 notice priorities, heard as a pattern and seen as a hue bar
+118. 191 event sounds for techs, cities, eras and the end of the game (`milestone`)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

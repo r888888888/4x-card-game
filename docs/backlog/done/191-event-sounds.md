@@ -2,7 +2,7 @@
 id: 191
 title: Event sounds for techs, cities, eras and the end of the game
 type: feature
-status: review
+status: done
 branch: feat/191-event-sounds
 ---
 

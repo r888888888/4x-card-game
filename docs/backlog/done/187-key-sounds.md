@@ -2,7 +2,7 @@
 id: 187
 title: Key sounds: buttons, the legend key and End turn
 type: feature
-status: review
+status: done
 branch: feat/187-key-sounds
 ---
 

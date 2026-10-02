@@ -52,14 +52,4 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
-Sound (the guide's §16 and §14.1 tokens; the restyle items they name, 177–183, are done):
-1. 184 sound buses and volume settings
-2. 185 sound rows in Settings and the game menu (needs 182)
-3. 186 the sound player, its tokens and placeholder sounds
-4. 187 key sounds: buttons, the legend key and End turn (needs 178, 182)
-5. 188 counter and card sounds (needs 179, 181)
-6. 189 sheet, screen and notice sounds
-7. 190 notice priorities, heard as a pattern and seen as a hue bar (engine)
-8. 191 event sounds for techs, cities, eras and the end of the game (engine)
-
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).

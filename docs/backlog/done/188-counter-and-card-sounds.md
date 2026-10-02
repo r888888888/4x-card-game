@@ -2,7 +2,7 @@
 id: 188
 title: Counter and card sounds
 type: feature
-status: review
+status: done
 branch: feat/188-counter-and-card-sounds
 ---
 

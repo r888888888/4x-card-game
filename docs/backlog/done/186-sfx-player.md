@@ -2,7 +2,7 @@
 id: 186
 title: The sound player, its tokens and placeholder sounds
 type: feature
-status: review
+status: done
 branch: feat/186-sfx-player
 ---
 
