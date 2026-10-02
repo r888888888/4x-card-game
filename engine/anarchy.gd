@@ -13,7 +13,6 @@ extends RefCounted
 
 const PLAY_ERROR := "Anarchy: only a government or an order card can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
-const RENEWAL := "renewal"  # the modifier key: more (or fewer) cards renewal trashes (147)
 const RENEW_ERROR := "Trash a card from your discard (not a government)."
 
 
@@ -43,7 +42,7 @@ static func start_renewal(e: GameEngine) -> void:
 	var anarchy := active(e)
 	if anarchy == null or not e.config.unrest.has("renewal"):
 		return
-	var n: int = e.config.unrest.renewal + anarchy.counters + e.modifier(RENEWAL)
+	var n: int = e.config.unrest.renewal + anarchy.counters + e.modifier(Modifiers.RENEWAL)
 	n = clampi(n, 0, renewal_options(e).size())
 	if n > 0:
 		e.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": n}

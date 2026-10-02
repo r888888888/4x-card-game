@@ -313,7 +313,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
 - Prerequisites (026, hard since 140): a tech's optional `prereq` (another tech) must be researched before it can be
-  learned; card text "Needs Bronze Working".
+  learned; card text "Needs Bronze Working". Techs that need each other are one load error per cycle (174), on its
+  first tech in card order ("prereq: cycle a → b → a").
 - Eurekas (141): a tech's optional `eureka` (`{"card": "farm" | "tag": "city", "count": 2, "off": 2}`) takes `off`
   insight off while the tableau holds `count` matching cards (idle ones count). Card text "Eureka: -2 insight with 2
   Farms"; real eurekas take 2 insight in era 1, 4 in era 2 and 6 in era 3 (143). `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.

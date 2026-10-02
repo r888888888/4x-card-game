@@ -167,3 +167,13 @@ func test_modifier_text() -> void:
 	check(cards.unrest.rules_tooltip(cards).begins_with("−1 action each turn while active"), "Unrest's tooltip: %s" %
 		cards.unrest.rules_tooltip(cards))
 	eq(cards.riot.rules_text(cards).split("\n")[0], "−3 actions each turn", "plural")
+
+
+# --- 174 AC2: every modifier key is a Modifiers constant ---
+
+func test_every_modifier_key_is_a_modifiers_constant() -> void:
+	var constants := (Modifiers as Script).get_script_constant_map()
+	eq(constants.get("RENEWAL"), "renewal", "Modifiers.RENEWAL")
+	check(not (Anarchy as Script).get_script_constant_map().has("RENEWAL"), "Anarchy.RENEWAL is gone")
+	for key in DataLoader.MODIFIER_KEYS:
+		check(constants.values().has(key), "modifier key '%s' is a Modifiers constant" % key)
