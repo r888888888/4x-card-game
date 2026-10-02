@@ -1529,6 +1529,9 @@ None. Removing a sound is always an acceptable fix.
 
 ## 17. Mapping onto this codebase (spike findings)
 
+> **History.** This section is the spike's plan from before the restyle (items 177–183, done). It is not the
+> current state of the code: for that, see [tokens.md](tokens.md).
+
 How the guide lands in the existing UI without touching `engine/`:
 
 | Guide | Code today | Change |

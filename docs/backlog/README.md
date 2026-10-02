@@ -52,6 +52,11 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
+Design tokens (from the design-system review; 192 stands alone, 194 needs 193's token file):
+1. 192 Palette role guards
+2. 193 spacing and radius tokens
+3. 194 type scale tokens
+
 Sound (the guide's §16 and §14.1 tokens; the restyle items they name, 177–183, are done):
 1. 184 sound buses and volume settings
 2. 185 sound rows in Settings and the game menu (needs 182)

@@ -31,6 +31,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   `upkeep_forecast` reports only resources and `starve`.
 
 ## UI design
+- Design tokens, which file holds each, and the style guide's names for the code's: [docs/design/tokens.md](docs/design/tokens.md).
+  Read the full guide (`docs/design/mcm-style-guide.md`) only for its section on your task's topic.
 - Buttons are generally not full width: a `Button` sizes to its text plus padding and doesn't stretch across its
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't

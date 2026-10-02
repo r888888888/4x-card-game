@@ -1,0 +1,68 @@
+---
+id: 193
+title: Spacing and corner radius come from the guide's scales
+type: feature
+status: ready
+branch: feat/193-spacing-and-radius-tokens
+---
+
+## Goal
+Colour is tokenized and guarded (106, 178); spacing and corner radius are not. `ui/` passes about 50 numeric
+literals to separations, margins, content margins and corner radii, 12 distinct separation values, several off the
+guide's 4 px scale (3, 6, 10, 14, 22, 28, 36), and radii the guide forbids (6, 8, 10: "nothing between 6 and 24 px").
+New code copies whatever literal is nearby, so the drift grows. After this, every spacing and radius on screen is a
+step of the guide's scale (docs/design/mcm-style-guide.md §6.1, §6.3), named after the guide's token, and the suite
+fails on a new literal. The user chose to snap to the guide's values (a visible change), not just name today's.
+
+## Acceptance criteria
+- [ ] AC1: Given the token constants, then `SPACE_0`…`SPACE_9` are 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 and `RADIUS_0`,
+  `RADIUS_1`, `RADIUS_2` are 0, 2, 4; and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
+  (§6.1: "SECTION_GAP 22, CARD_GAP 10 become 24 and 12").
+- [ ] AC2: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
+  card details, identity, event, game menu, settings, new game, game over, start), when every visible container is
+  walked, then each `separation`, `h_separation`, `v_separation` and `margin_*` constant it resolves is on the space
+  scale; the failure names the node path, the constant and the value.
+- [ ] AC3: Given the same screens, when every visible control's `panel` / `normal` stylebox that is a `StyleBoxFlat`
+  is read, then its corner radius is 0, 2 or 4, or half its control's smaller side (a pip, `radius.full`), and its
+  four content margins are on the space scale. Pressed and hover-pressed boxes are exempt (press travel shifts them
+  by `GameTheme.PRESS`).
+- [ ] AC4: Given the drop zone lit during a drag, the drag hint, the error pop-up (`UIKit.show_error`) and an empty
+  slot outline (`UIKit.slot_outline`), then each stylebox's corner radius is 0 (§6.3: zones, tooltips and cards are
+  cut square).
+- [ ] AC5: Given every `ui/` script except the one defining the tokens, when its source is scanned, then no call to
+  `add_theme_constant_override` for a separation or margin, `set_content_margin_all`, `content_margin_* =`,
+  `set_corner_radius_all` or `set_corner_radius` passes a numeric literal other than 0; the failure lists `file:line`.
+
+## Out of scope
+- Border widths (`border.*`), shadows (already tokens: `GameTheme.PLINTH`, `PRESS`), the 12-column grid and the
+  8 px baseline (§6.2), and motion distances in `Anim` (`HOVER_LIFT`, `LIFT_ROOM`, … are travel, not spacing).
+- Font sizes: item 194.
+- Layout changes beyond snapping a value to its step (no new rail, no title block).
+
+## Design notes
+- Where: a new `ui/tokens.gd` (`class_name Tokens`, constants only), or constants on `GameTheme` beside `PLINTH`.
+  Recommendation: `Tokens`, named exactly as the guide (`Tokens.SPACE_2`, `Tokens.RADIUS_1`) so a model reading the
+  guide finds them by name; `UIKit`'s role aliases (`SECTION_GAP`, …) stay and point at them.
+- Snapping: each literal goes to its nearest step; a tie goes up (6→8, 10→12, 14→16, 22→24, 28→32, 36→32, 3→4).
+  Inside a control the guide says `space.2` vertical × `space.4` horizontal, so the button box (`_box`, 14×6 today)
+  becomes 16×8 and `GrowPip` 10/12×2 becomes 12×4 (or 8×0 if the pip row grows too tall: judge by eye).
+  The card badge (radius 4, `radius.2`: "badges and keycaps") keeps 4; the dimmed card's reason strip (4) becomes 0.
+- Values derived from tokens are fine (`HOVER_LIFT + SPACE_2` is 16). `Counter.TAG_GAP` becomes a token.
+- 0 stays a legal literal in AC5 (no gap is not a design decision).
+- Snapping the button box from 14×6 to 16×8 widens the top bar's six buttons by 4 px each; the bar is tight at
+  1920 px (144). If it no longer fits, say so in the Log rather than shrinking the tokens.
+- Approved guards that change: `test_theme`'s button content margins (14×6). Rewrite them to the new values as
+  this item's stated change, as 178 did.
+
+## Test plan
+<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+| AC | Test |
+|---|---|
+
+## Manual check
+- [ ] The board at 1920×1080 in both Night and Day: the top bar still fits, the hand and Realm rows don't clip a
+  hovered card, the territory view's pop meter row isn't taller than before.
+- [ ] Each screen and modal from AC2: nothing overlaps or clips; the drag hint and error pop-up read as square tags.
+
+## Log
+- Specced from the design-system review (2026-10-02). The user chose to snap values to the guide.
