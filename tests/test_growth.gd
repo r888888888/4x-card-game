@@ -93,7 +93,7 @@ func test_grow_refused_on_non_settled_targets() -> void:
 func test_grow_refused_while_a_choice_is_pending() -> void:
 	var e := grow_engine(2, 50, {"explorer": 10}, {"territory_deck": {"grassland": 2}})
 	check(e.play_card(first_in_hand(e)), "explore")
-	check(not e.pending_choice.is_empty(), "choice pending")
+	check(e.pending().get("kind") == GameEngine.PENDING_EXPLORE, "choice pending")
 	assert_refused(e, home_uid(e), "pending choice")
 
 

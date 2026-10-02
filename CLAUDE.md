@@ -22,6 +22,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
+- A decision the player owes is one `PENDING_*` kind in `pending()`; every action's `*_error` starts with
+  `_blocked_error`. New decision kind: follow the `add-decision` skill.
 - New effect op: follow the `add-effect` skill. Only ops whose `upkeep_ok()` is true may trigger on `upkeep`: ops that
   change nothing but resources, bonus score and pop. Nobody can choose or target during upkeep, and
   `upkeep_forecast` reports only resources and `starve`.

@@ -26,9 +26,9 @@ const CARD_VIEW_PARTS := {
 	"res://ui/card_face.gd": "CardFace",
 	"res://ui/card_motion.gd": "CardMotion",
 }
-## Engine state the UI must reach through a query instead: pending_choice and discard_left (pending()), the raw
-## GameState (state), the RNG and the log lines (the logged signal).
-const INTERNALS := ["pending_choice", "discard_left", ".state.", ".rng", "log_lines"]
+## Engine state the UI must reach through a query instead: the raw GameState (state; its pending is read with pending()),
+## the RNG and the log lines (the logged signal).
+const INTERNALS := [".state.", ".rng", "log_lines"]
 
 
 func source(path: String) -> String:

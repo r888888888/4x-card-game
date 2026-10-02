@@ -18,7 +18,7 @@ func grassland_engine(hills: bool) -> GameEngine:
 func choice_engine() -> GameEngine:
 	var e: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
-	check(not e.pending_choice.is_empty(), "a choice is open")
+	check(e.pending().get("kind") == GameEngine.PENDING_EXPLORE, "a choice is open")
 	return e
 
 

@@ -27,12 +27,11 @@ func test_explore_reveals_top_two_as_a_choice() -> void:
 	var grassland := uid_of(e.zone("territory_deck"), "grassland")
 	var explorer := first_in_hand(e)
 	check(e.play_card(explorer), "play Explorer")
-	eq(sorted(e.pending_choice.get("options", [])), sorted([hills, grassland]), "options")
+	eq(sorted(e.pending().get("options", [])), sorted([hills, grassland]), "options")
 	eq(sorted(card_ids(e.zone("reveal"))), ["grassland", "hills"], "reveal zone")
 	eq(top_first(e.zone("territory_deck")), ["jungle"] as Array[String], "territory deck")
 	eq(card_ids(e.zone("discard")), ["explorer"] as Array[String], "Explorer discarded")
-	var source: CardInstance = e.pending_choice.get("source")
-	eq(source.uid if source != null else -1, explorer, "pending_choice source")
+	eq(e.pending().get("source", -1), explorer, "pending source")
 
 
 # --- AC2: choose ---
@@ -43,7 +42,7 @@ func test_choose_keeps_pick_in_frontier_and_buries_the_rest() -> void:
 	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "frontier")
 	eq(e.zone("reveal").size(), 0, "reveal empty")
 	eq(top_first(e.zone("territory_deck")), ["jungle", "grassland"] as Array[String], "Grassland at the bottom")
-	eq(e.pending_choice, {}, "nothing pending")
+	eq(e.pending(), {}, "nothing pending")
 
 
 func test_choose_emits_changed_but_not_card_played() -> void:
@@ -80,10 +79,10 @@ func test_pending_choice_blocks_end_turn() -> void:
 
 func test_choose_non_option_is_refused() -> void:
 	var e := explore_engine()
-	var options: Array = e.pending_choice.get("options", []).duplicate()
+	var options: Array = e.pending().get("options", []).duplicate()
 	check(not e.choose(uid_of(e.zone("territory_deck"), "jungle")), "choosing Jungle refused")
 	check(not e.choose(first_in_hand(e)), "choosing a hand card refused")
-	eq(e.pending_choice.get("options", []), options, "still pending")
+	eq(e.pending().get("options", []), options, "still pending")
 	eq(sorted(card_ids(e.zone("reveal"))), ["grassland", "hills"], "reveal unchanged")
 	eq(top_first(e.zone("territory_deck")), ["jungle"] as Array[String], "territory deck unchanged")
 	eq(e.zone("frontier").size(), 0, "frontier empty")
@@ -103,7 +102,7 @@ func test_explore_last_territory_goes_straight_to_frontier() -> void:
 	var e := explorer_engine(["hills"])
 	check(e.play_card(first_in_hand(e)), "play Explorer")
 	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "frontier")
-	eq(e.pending_choice, {}, "nothing pending")
+	eq(e.pending(), {}, "nothing pending")
 	eq(e.zone("reveal").size(), 0, "reveal empty")
 	eq(e.zone("territory_deck").size(), 0, "territory deck empty")
 
@@ -111,7 +110,7 @@ func test_explore_last_territory_goes_straight_to_frontier() -> void:
 func test_explore_empty_territory_deck_does_nothing() -> void:
 	var e := explorer_engine([])
 	check(e.play_card(first_in_hand(e)), "play Explorer")
-	eq(e.pending_choice, {}, "nothing pending")
+	eq(e.pending(), {}, "nothing pending")
 	eq(e.zone("reveal").size(), 0, "reveal empty")
 	eq(e.zone("frontier").size(), 0, "frontier empty")
 	eq(e.play_error(first_in_hand(e)), "", "play continues")
