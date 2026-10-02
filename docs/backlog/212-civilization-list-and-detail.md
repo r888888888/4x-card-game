@@ -2,7 +2,7 @@
 id: 212
 title: The new game screen as a civilization list and a detail pane
 type: feature
-status: red-review
+status: review
 branch: feat/212-civilization-list-and-detail
 ---
 
@@ -12,18 +12,18 @@ the selected one's full story and rules on the right, with Start beside them. Th
 without opening a details modal for each.
 
 ## Acceptance criteria
-- [ ] AC1: Given the new game screen opens with the six civilizations, then the left pane lists one row per
+- [x] AC1: Given the new game screen opens with the six civilizations, then the left pane lists one row per
   civilization in config order (`civilization_ids()` unchanged), each a list-row button with its name (and the
   civilization type band colour as a left edge); the preselected one's row is selected (pressed look) and focused.
-- [ ] AC2: The right pane shows the selected civilization: its name (Title), its flavor paragraph and quote
+- [x] AC2: The right pane shows the selected civilization: its name (Title), its flavor paragraph and quote
   (attributed), its rules as card details give them (`CardDetailsModal.body_bbcode`: discounts, modifiers), and its
   home territory's name and keywords.
-- [ ] AC3: When another row is clicked, or the arrows move through the list, then `selected` becomes that civilization
+- [x] AC3: When another row is clicked, or the arrows move through the list, then `selected` becomes that civilization
   and the right pane shows it; no modal opens (the click no longer opens card details with Play as, 107).
-- [ ] AC4: The seed field and Start sit at the foot of the right pane; Start (or Enter in the seed field) starts a game
+- [x] AC4: The seed field and Start sit at the foot of the right pane; Start (or Enter in the seed field) starts a game
   as the selected civilization, as today (`start_requested`); an empty or non-numeric seed behaves as today.
-- [ ] AC5: The list and the pane are in one focus loop with the seed field, Start and the header's Back.
-- [ ] AC6: With no civilizations offered (a config without them), the list is hidden and the pane says the game
+- [x] AC5: The list and the pane are in one focus loop with the seed field, Start and the header's Back.
+- [x] AC6: With no civilizations offered (a config without them), the list is hidden and the pane says the game
   offers none; Start still works (`selected` "").
 
 ## Out of scope
@@ -56,3 +56,8 @@ New hooks: `civilization_row(id)` (a toggle Button with an `Edge` band), `civili
 
 ## Log
 - Specced 2026-10-02 from the notes list.
+- 2026-10-02: Built. `NewGameScreen` builds the list (toggle rows with an `Edge` band, Up/Down select) and the pane
+  (title, `CardDetailsModal.body_bbcode` plus a Home line, the seed field, Start under it); `first_focus()` gives main the
+  selected row. `CardView.type_color(type)` names the band colour. The details modal's "Play as" action went with 107's
+  click-to-details (no other caller). Balance/content note: a civilization has no type colour of its own, so the band
+  is the grey fallback; worth a palette role if the manual check finds it too faint.
