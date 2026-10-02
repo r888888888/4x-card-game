@@ -105,9 +105,10 @@ static func buttons_in(node: Node) -> Array[Button]:
 	return Array(node.find_children("*", "Button", true, false), TYPE_OBJECT, "Button", null)
 
 
-## An overlay's title: bigger and white.
+## An overlay's or a modal's title: the display face at type.title, in its own case (194).
 static func title(text: String) -> Label:
-	var label := heading(text)
+	var label := Label.new()
+	label.text = text
 	label.theme_type_variation = &"Title"
 	return label
 
@@ -136,9 +137,11 @@ static func with_article(word: String) -> String:
 	return ("an " if "AEIOUaeiou".contains(word.left(1)) else "a ") + word
 
 
+## A section's label: small capitals, tracked (194, guide type.heading); its text stays as written.
 static func heading(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
+	label.uppercase = true
 	label.theme_type_variation = &"Heading"
 	return label
 
@@ -259,7 +262,7 @@ static func show_error(layer: Control, view: CardView, text: String, width: floa
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.z_index = 3  # above flying cards
 	panel.add_theme_stylebox_override("panel", style)
-	panel.add_child(fx_label(text, 20, COST_COLOR))
+	panel.add_child(fx_label(text, Tokens.TYPE_BODY, COST_COLOR))
 	layer.add_child(panel)
 	panel.reset_size()
 	var home := view.slot.get_global_rect() if is_instance_valid(view.slot) else view.get_global_rect()

@@ -35,7 +35,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var title_row := HBoxContainer.new()
 	title_row.name = "TitleRow"
 	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title := label(def.name, 22)
+	var title := label(def.name, Tokens.TYPE_BODY)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)
 	if in_hand:
@@ -54,7 +54,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
-	var subtitle_label := rich_label(subtitle, 18, color.lightened(0.5))
+	var subtitle_label := rich_label(subtitle, Tokens.TYPE_BODY_S, color.lightened(0.5))
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
 	add_child(type_row)
@@ -62,19 +62,19 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	_set_rules_tip(card, card_db)
 	var rules_text := def.rules_text(card_db)
 	if rules_text != "":  # territories have none; an empty label would still take a line
-		var rules := rich_label(rules_text, 19)
+		var rules := rich_label(rules_text, Tokens.TYPE_BODY)
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		add_child(rules)
 
 	if def.type == CardDef.TERRITORY:
-		var info_label := rich_label(territory_info(card), 18, color.lightened(0.5))  # "Hills + Gold": rolled last
+		var info_label := rich_label(territory_info(card), Tokens.TYPE_BODY_S, color.lightened(0.5))  # "Hills + Gold": rolled last
 		info_label.name = "PrintedInfo"
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
 	if def.vp > 0:
-		add_child(label("%d VP" % def.vp, 20, Palette.GAIN))
+		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
 
 
 ## Builds the fixed-height face of a card in the Realm's row (138) for kind (CardView.BOARD_*), in color. A frontier
@@ -91,7 +91,7 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		badge_row.add_child(badge(BADGES[kind], color))
 		add_child(badge_row)
-	add_child(one_line(label(def.name, 22)))
+	add_child(one_line(label(def.name, Tokens.TYPE_BODY)))
 	if kind != CardView.BOARD_FRONTIER:  # an unsettled territory keeps its hatching and dashed border instead
 		_add_band(color)
 	_set_rules_tip(card, card_db)
@@ -99,8 +99,8 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		if kind == CardView.BOARD_FRONTIER:
 			var keywords := keyword_line(card)
 			if keywords != "":
-				add_child(one_line(rich_label(keywords, 17, color.lightened(0.5))))
-			var printed := rich_label("▢%d ⌂%d" % [def.slots, def.housing], 19, color.lightened(0.5))
+				add_child(one_line(rich_label(keywords, Tokens.TYPE_BODY_S, color.lightened(0.5))))
+			var printed := rich_label("▢%d ⌂%d" % [def.slots, def.housing], Tokens.TYPE_BODY, color.lightened(0.5))
 			printed.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 			printed.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 			add_child(printed)
@@ -108,9 +108,9 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 	var rules := Array(def.rules_text(card_db).split("\n")).filter(func(line: String):
 		return line != "" and line != def.lasts_text())
 	if not rules.is_empty():
-		add_child(one_line(rich_label(rules[0], 17)))
+		add_child(one_line(rich_label(rules[0], Tokens.TYPE_BODY_S)))
 	if def.vp > 0:
-		add_child(label("%d VP" % def.vp, 18, Palette.GAIN))
+		add_child(label("%d VP" % def.vp, Tokens.TYPE_NUMERAL_S, Palette.GAIN))
 
 
 ## The card's type as a BAND px strip of color under its name (179).
@@ -144,7 +144,7 @@ static func badge(text: String, color: Color) -> PanelContainer:
 	style.content_margin_top = Tokens.SPACE_0
 	style.content_margin_bottom = Tokens.SPACE_0
 	pill.add_theme_stylebox_override("panel", style)
-	var text_label := rich_label(text, 15, Palette.TEXT_ON_ACCENT)
+	var text_label := rich_label(text, Tokens.TYPE_LABEL_CAPS, Palette.TEXT_ON_ACCENT)
 	text_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	pill.add_child(text_label)
 	return pill
@@ -180,7 +180,7 @@ func show_settled(keywords: String, live: String) -> void:
 			node.free()
 	var keyword_line := get_node_or_null("Keywords") as Label
 	if keyword_line == null:
-		keyword_line = label("", 18, CardView.HIGHLIGHT_COLOR.lightened(0.6))
+		keyword_line = label("", Tokens.TYPE_BODY_S, CardView.HIGHLIGHT_COLOR.lightened(0.6))
 		if board:
 			one_line(keyword_line)
 		keyword_line.name = "Keywords"
@@ -190,14 +190,14 @@ func show_settled(keywords: String, live: String) -> void:
 	keyword_line.visible = keywords != ""
 	var line := get_node_or_null("LiveInfo") as RichTextLabel
 	if line == null:
-		line = rich_label("", 19, CardView.HIGHLIGHT_COLOR)
+		line = rich_label("", Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
 		line.name = "LiveInfo"
 		line.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		line.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(line)
 	if line.get_meta("source", "") != live:
 		line.set_meta("source", live)
-		Icons.fill(line, live, 19, CardView.HIGHLIGHT_COLOR)
+		Icons.fill(line, live, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
 
 
 ## A settled territory's keyword line: "Grassland · Fresh Water", plus " + Gold" for rolled resources (123).
@@ -242,11 +242,11 @@ func replace_info(label_name: String, text: String) -> void:
 	if old != null:
 		old.get_parent().remove_child(old)
 		old.queue_free()
-	var info := label(text, 19, CardView.HIGHLIGHT_COLOR)
+	var info := label(text, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
 	info.name = label_name
 	var badge_row := get_node_or_null("BadgeRow")
 	if badge_row != null:  # a board card's info (an event's turns left) sits beside its badge (138)
-		info.add_theme_font_size_override("font_size", 16)
+		info.add_theme_font_size_override("font_size", Tokens.TYPE_BODY_S)
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		badge_row.add_child(info)
@@ -258,7 +258,7 @@ func replace_info(label_name: String, text: String) -> void:
 func update_info(label_name: String, text: String) -> void:
 	var info := get_node_or_null(label_name) as Label
 	if info == null:
-		info = label("", 19, CardView.HIGHLIGHT_COLOR)
+		info = label("", Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
 		info.name = label_name
 		add_child(info)
 	info.text = text
@@ -287,9 +287,9 @@ func set_reason(reason: String) -> void:
 		style.set_corner_radius_all(Tokens.RADIUS_0)
 		style.set_content_margin_all(Tokens.SPACE_2)
 		strip.add_theme_stylebox_override("panel", style)
-		strip.add_child(rich_label("", 18, Palette.STRIP_TEXT))
+		strip.add_child(rich_label("", Tokens.TYPE_BODY_S, Palette.STRIP_TEXT))
 		add_child(strip)
-	Icons.fill(strip.get_child(0) as RichTextLabel, reason, 18, Palette.STRIP_TEXT)
+	Icons.fill(strip.get_child(0) as RichTextLabel, reason, Tokens.TYPE_BODY_S, Palette.STRIP_TEXT)
 
 
 ## A hand card's cost (180) as a row named Cost: per resource above 0, food, wealth and insight first, an entry
@@ -314,7 +314,7 @@ static func cost_glyphs(cost: Dictionary) -> HBoxContainer:
 			var glyph := Icons.glyph(r, 20)
 			glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			entry.add_child(glyph)
-		var figure := label(str(cost[r]) if glyphed else "%d %s" % [cost[r], r], 20)
+		var figure := label(str(cost[r]) if glyphed else "%d %s" % [cost[r], r], Tokens.TYPE_BODY)
 		figure.autowrap_mode = TextServer.AUTOWRAP_OFF
 		entry.add_child(figure)
 		row.add_child(entry)

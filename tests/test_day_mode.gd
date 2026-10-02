@@ -64,18 +64,6 @@ func test_both_modes_keep_the_guides_contrast() -> void:
 
 # --- AC3: switched mid-game ---
 
-## Opens main on a seed-1 game played to turn 3, laid out.
-func mid_game() -> Node:
-	var main := open_main()
-	main.start_game(1)
-	for i in 2:
-		Game.engine.end_turn()
-		if not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
-	await wait_frames()
-	return main
-
-
 ## What switching mustn't change: the turn, the hand, the resources and the log's text.
 func game_now(main: Node) -> Array:
 	var e := Game.engine

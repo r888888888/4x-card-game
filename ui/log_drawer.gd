@@ -32,8 +32,7 @@ func _init() -> void:
 	_log.bbcode_enabled = true
 	_log.scroll_following = true
 	_log.selection_enabled = true
-	_log.add_theme_font_size_override("normal_font_size", 19)
-	_log.add_theme_font_size_override("bold_font_size", 20)
+	_log.theme_type_variation = &"RichBody"
 	box.add_child(_log)
 	UIKit.painted(self, func():
 		add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, Tokens.SPACE_3))
@@ -112,7 +111,7 @@ func note(bbcode: String) -> void:
 
 ## Adds an engine log message: turn headers bold, game over gold.
 func append_log(message: String) -> void:
-	message = Icons.bbcode(message, 19)  # the log's font size
+	message = Icons.bbcode(message, Tokens.TYPE_BODY)  # the log's font size (RichBody)
 	if message.begins_with("—"):
 		_log.append_text("\n[b]%s[/b]\n" % message)
 	elif message.begins_with("Game over"):

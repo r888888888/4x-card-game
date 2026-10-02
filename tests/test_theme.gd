@@ -75,10 +75,10 @@ func test_the_palette_holds_the_night_shift_values() -> void:
 func test_labels_look_as_before() -> void:
 	var main := open_main()
 	var heading: Label = in_main(main, UIKit.heading("h"))
-	eq(heading.get_theme_font_size("font_size"), 19, "heading size")
+	eq(heading.get_theme_font_size("font_size"), 15, "heading size (194: type.heading)")
 	eq(heading.get_theme_color("font_color").to_html(), Palette.TEXT_DIM.to_html(), "heading colour")
 	var title: Label = in_main(main, UIKit.title("t"))
-	eq(title.get_theme_font_size("font_size"), 26, "title size")
+	eq(title.get_theme_font_size("font_size"), 28, "title size (194: type.title)")
 	eq(title.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "title colour: ink, not white")
 	var stat := UIKit.stat(main, &"POP")
 	eq(stat.get_theme_font_size("font_size"), 26, "stat size")

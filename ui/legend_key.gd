@@ -12,7 +12,7 @@ func _init() -> void:
 	toggle_mode = true
 	custom_minimum_size = MIN_SIZE
 	alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_theme_font_size_override("font_size", 16)
+	add_theme_font_size_override("font_size", Tokens.TYPE_LABEL_CAPS)
 	toggled.connect(func(_on: bool): _legend())
 	_legend()
 

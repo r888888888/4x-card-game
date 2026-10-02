@@ -74,7 +74,7 @@ func texts() -> Array[String]:
 
 ## A new toast on top, fading (and, without Reduce motion, dropping) in; the oldest leaves past MAX.
 func _add(text: String) -> Control:
-	var label := UIKit.fx_label(text.strip_edges(), 22, Palette.TEXT)
+	var label := UIKit.fx_label(text.strip_edges(), Tokens.TYPE_BODY, Palette.TEXT)
 	label.z_index = 0
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"DarkPanel"

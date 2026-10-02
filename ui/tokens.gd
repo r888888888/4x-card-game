@@ -19,6 +19,21 @@ const SPACE_9 := 96
 # The guide's one spacing off the scale (§6.7): a cost's glyph and its figure, close enough to read as one.
 const GLYPH_GAP := 3
 
+# Type (§5.2): sizes in px. A look the UI repeats is a GameTheme variation at one of these (Display, Title, Heading, Body,
+# BodySmall, Caption, Stat, RichBody); code that needs a number (a card face, a glyph's height) passes one of these.
+const TYPE_DISPLAY_XL := 56  # victory, era change
+const TYPE_DISPLAY := 40  # screen titles, game over
+const TYPE_TITLE := 28  # modal titles, card names in details
+const TYPE_HEADING := 15  # section labels, in capitals, tracked
+const TYPE_BODY := 20  # rules text, modal text, the log
+const TYPE_BODY_S := 17  # tooltips, secondary rules
+const TYPE_LABEL := 17  # buttons, tabs, list rows
+const TYPE_LABEL_CAPS := 14  # stat captions, lamp labels
+const TYPE_CAPTION := 14  # footnotes
+const TYPE_NUMERAL_XL := 44
+const TYPE_NUMERAL := 26  # resource values
+const TYPE_NUMERAL_S := 17  # small figures
+
 # Corner radius is meaning, not softness.
 const RADIUS_0 := 0  # panels, sheets, cards, modals, tabs, tooltips, zones: paper is cut square
 const RADIUS_1 := 2  # buttons and fields: a machined edge

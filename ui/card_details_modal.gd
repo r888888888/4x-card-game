@@ -34,9 +34,7 @@ func _init(p_stack: ModalStack) -> void:
 	_body.bbcode_enabled = true
 	_body.fit_content = true
 	_body.custom_minimum_size = Vector2(620, 0)
-	_body.add_theme_font_size_override("normal_font_size", 19)
-	_body.add_theme_font_size_override("bold_font_size", 19)
-	_body.add_theme_font_size_override("italics_font_size", 19)
+	_body.theme_type_variation = &"RichBody"
 	text.add_child(_body)
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", Tokens.SPACE_3)
