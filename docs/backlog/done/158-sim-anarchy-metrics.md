@@ -2,7 +2,7 @@
 id: 158
 title: Sim metrics for Anarchy, governments and famine
 type: feature
-status: review
+status: done
 branch: feat/158-sim-anarchy-metrics
 ---
 
