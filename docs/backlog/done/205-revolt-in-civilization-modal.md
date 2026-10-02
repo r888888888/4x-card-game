@@ -2,7 +2,7 @@
 id: 205
 title: Revolt from the civilization modal, after a confirmation that says what follows
 type: feature
-status: review
+status: done
 branch: feat/205-revolt-in-civilization-modal
 ---
 
