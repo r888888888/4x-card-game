@@ -20,6 +20,7 @@ const BADGES := {
 }
 const STRIP_BG := Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
 const STRIP_TEXT := Palette.STRIP_TEXT
+const BAND := 5.0  # the type band's height, under the name (179)
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 var board := false  # a board face (build_board, 138): one line per field, the rest in the details
@@ -34,6 +35,7 @@ func _init() -> void:
 func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color) -> void:
 	var def := card.def
 	add_child(label(def.name, 22))  # the title gets the full width
+	_add_band(color)
 
 	# Type line, with the cost at its right on a hand card.
 	var type_row := HBoxContainer.new()
@@ -87,6 +89,8 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		badge_row.add_child(badge(BADGES[kind], color))
 		add_child(badge_row)
 	add_child(one_line(label(def.name, 22)))
+	if kind != CardView.BOARD_FRONTIER:  # an unsettled territory keeps its hatching and dashed border instead
+		_add_band(color)
 	_set_rules_tip(card, card_db)
 	if def.type == CardDef.TERRITORY:
 		if kind == CardView.BOARD_FRONTIER:
@@ -104,6 +108,23 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		add_child(one_line(rich_label(rules[0], 17)))
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, 18, Palette.GAIN))
+
+
+## The card's type as a BAND px strip of color under its name (179).
+func _add_band(color: Color) -> void:
+	var band := ColorRect.new()
+	band.name = "Band"
+	band.color = color
+	band.custom_minimum_size.y = BAND
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(band)
+
+
+## Recolours the type band (a dimmed card's is CardView.DIM_BORDER); nothing on a card without one.
+func set_band_color(color: Color) -> void:
+	var band := get_node_or_null("Band") as ColorRect
+	if band != null:
+		band.color = color
 
 
 ## A small pill in color naming what a board card is (138).

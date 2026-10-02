@@ -2,7 +2,7 @@
 id: 179
 title: Index-card faces and machined card motion
 type: feature
-status: red-review
+status: in-progress
 branch: feat/179-index-card-faces
 ---
 

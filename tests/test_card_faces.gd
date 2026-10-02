@@ -191,7 +191,7 @@ func test_a_card_bought_on_the_supply_screen_doesnt_squash() -> void:
 		await with_main(make_engine({"scout": 10}, {"supply": {"scout": {"price": 3, "count": 2}}}), func(main: Node):
 			Game.engine.resources[GameEngine.WEALTH] = 10
 			main.supply.open(Game.engine)
-			await wait_frames(30)
+			await (Engine.get_main_loop() as SceneTree).create_timer(Anim.POP_IN_TIME + 0.2).timeout  # piles popped in
 			var pile: CardView = main.supply.views()[0]
 			main.supply.pick(pile)
 			var largest := 0.0
