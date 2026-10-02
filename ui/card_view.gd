@@ -46,10 +46,10 @@ var card_id := ""
 var in_hand := false
 var board_kind := ""  # a card in the Realm's row: BOARD_REALM, BOARD_FRONTIER or BOARD_EVENT; "" elsewhere
 var pickable := false  # an option of a pending choice or a target: a click picks it
-var lift_on_hover := false  # lift and grow under the mouse like a hand card (supply cards, which have room)
+var lift_on_hover := false  # lift under the mouse like a hand card (supply cards, which have room)
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
-var fx_scale := Vector2.ONE  # tweened for squash, pop and shrink; multiplies the chased scale
+var fx_scale := Vector2.ONE  # tweened for pop-in and shrink; the card's scale
 
 var _style: StyleBoxFlat
 var _color: Color
@@ -84,9 +84,10 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	if _style == null:
 		_style = StyleBoxFlat.new()
 		_style.set_border_width_all(2)
-		_style.set_corner_radius_all(8)
+		_style.set_corner_radius_all(0)  # an index card, cut square (179)
 		_style.set_content_margin_all(12)
 		_style.shadow_color = Palette.SHADOW
+		_style.anti_aliasing = false  # a hard shadow and a crisp rule
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))
 		mouse_exited.connect(_set_hover.bind(false))
@@ -119,6 +120,11 @@ func set_play_error(play_error: String) -> void:
 	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else play_error)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
+
+
+## Shows which of a hand card's cost figures the player is short of (180; GameEngine.play_shortfall).
+func set_shortfall(short: Array[String]) -> void:
+	_face.show_shortfall(short)
 
 
 ## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
@@ -213,6 +219,7 @@ func _set_tip(hint: String) -> void:
 func _set_dimmed(on: bool, reason: String) -> void:
 	_dimmed = on
 	_face.set_reason(reason)
+	_face.set_band_color(DIM_BORDER if on else _color)
 	_update_border()
 
 
@@ -226,11 +233,6 @@ func attach(p_slot: Control) -> void:
 ## Starts at rest in slot, growing in from nothing (a card created on the tableau) after delay.
 func pop_in(p_slot: Control, delay := 0.0) -> void:
 	_motion.pop_in(p_slot, delay)
-
-
-## A quick squash and bounce back, the same as landing in a slot (nothing with reduce motion).
-func squash() -> void:
-	_motion.squash()
 
 
 ## Appears at from_point (the deck) on layer, fading in, and after delay flies to slot.
@@ -285,8 +287,8 @@ func _draw() -> void:
 		var ring := StyleBoxFlat.new()
 		ring.draw_center = false
 		ring.border_color = FOCUS_COLOR
-		ring.set_border_width_all(3)
-		ring.set_corner_radius_all(12)
+		ring.set_border_width_all(2)
+		ring.set_corner_radius_all(0)
 		# Outside a hand card; inside any other, where the Realm's scroll box would clip a ring drawn
 		# outside it.
 		var gap := FOCUS_RING_GAP if in_hand else -FOCUS_RING_GAP
@@ -366,8 +368,10 @@ func _draw_frontier() -> void:
 		draw_dashed_line(corners[i], corners[(i + 1) % 4], _style.border_color, 4.0 if _highlight else 2.0, DASH)
 
 
+## An index card (179): one sheet for every type in a thin rule (its type is the band under the name), standing on a
+## hard shadow only while lifted: hovered (4, 4), dragged (8, 8).
 func _update_border() -> void:
-	_style.bg_color = DIM_BG if _dimmed else _color.darkened(0.65)
+	_style.bg_color = DIM_BG if _dimmed else Palette.RAISED
 	if _warning:
 		_style.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
@@ -375,10 +379,11 @@ func _update_border() -> void:
 	elif _highlight:
 		_style.border_color = HIGHLIGHT_COLOR
 	else:
-		_style.border_color = DIM_BORDER if _dimmed else _color
-	_style.shadow_size = 14 if (_hover or state == State.DRAGGING) else 0
-	_style.set_border_width_all(4 if _highlight else 2)
-	_style.shadow_offset = Vector2(0, 8)
+		_style.border_color = DIM_BORDER if _dimmed else Palette.CONTROL_BORDER
+	var dragged := state == State.DRAGGING
+	_style.shadow_size = 1 if (_hover or dragged) else 0
+	_style.shadow_offset = Vector2(8, 8) if dragged else Vector2(4, 4)
+	_style.set_border_width_all(3 if _highlight else 2)
 	if board_kind == BOARD_FRONTIER:  # its border is dashed, drawn in _draw_frontier
 		_style.bg_color = Palette.FRONTIER_BG
 		_style.set_border_width_all(0)

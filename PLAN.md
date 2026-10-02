@@ -363,7 +363,7 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
 - Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
-  open during an explore choice or after the game ends. Buying squashes the card, flies a wealth
+  open during an explore choice or after the game ends. Buying flies a wealth
   token and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Events (backlog 039)

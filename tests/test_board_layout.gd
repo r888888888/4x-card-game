@@ -86,11 +86,8 @@ func test_the_top_bar_holds_identity_supply_and_knowledge_before_menu() -> void:
 		eq(b.get_parent(), bar, "'%s' is in the top bar" % b.text)
 	var indices := order.map(func(b: Button): return b.get_index())
 	eq(indices, sorted(indices), "civilization and government, Buy Cards, Knowledge, then Menu")
-	var score: Label = null
-	for c in bar.get_children():
-		if c is Label and (c as Label).text.begins_with("Score"):
-			score = c
-	check(score != null and score.get_index() < identity.get_index(), "after the stats")
+	var score: Control = main.counter(TopBar.SCORE)
+	check(score.get_parent() == bar and score.get_index() < identity.get_index(), "after the stats")
 	close_at_1080(main)
 
 

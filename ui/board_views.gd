@@ -106,6 +106,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
 		view.set_play_error(error)
+		view.set_shortfall(e.play_shortfall(card.uid))
 	elif leading != "":
 		view.set_hint(TableauView.LEADING_ZONES[leading])
 	else:

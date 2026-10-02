@@ -216,10 +216,10 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change() -> v
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "Unrest: 2 / 5 (+1)", "unrest, the limit and the forecast")
+	eq(main.counter_text(GameEngine.UNREST), "2 / 5 (+1)", "unrest, the limit and the forecast")
 	if counter != null:
-		eq(counter.get_theme_color("font_color"), Palette.UNREST,
-			"below the limit: Palette.UNREST")
+		eq(counter.get_theme_color("font_color"), Palette.TEXT,
+			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST)")
 	set_unrest(5)
 	await wait_frames()
 	check(shown_label(main, "+3 unrest") != null, "a +3 unrest token floats up")
@@ -235,7 +235,7 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "Unrest: 2 (+1)", "unrest and the forecast, no limit")
+	eq(main.counter_text(GameEngine.UNREST), "2 (+1)", "unrest and the forecast, no limit")
 	close_main(main)
 	Game.engine = real
 

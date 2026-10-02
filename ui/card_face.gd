@@ -20,6 +20,7 @@ const BADGES := {
 }
 const STRIP_BG := Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
 const STRIP_TEXT := Palette.STRIP_TEXT
+const BAND := 5.0  # the type band's height, under the name (179)
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 var board := false  # a board face (build_board, 138): one line per field, the rest in the details
@@ -30,12 +31,24 @@ func _init() -> void:
 	add_theme_constant_override("separation", 6)
 
 
-## Builds the content for card in color. in_hand adds the cost to the type line.
+## Builds the content for card in color. in_hand adds the cost at the right of the name (180).
 func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color) -> void:
 	var def := card.def
-	add_child(label(def.name, 22))  # the title gets the full width
+	var title_row := HBoxContainer.new()
+	title_row.name = "TitleRow"
+	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := label(def.name, 22)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(title)
+	if in_hand:
+		var e := Game.engine
+		var now: Dictionary = e.play_cost(card.uid) if e != null else {}  # after discounts (108)
+		title_row.add_child(cost_glyphs(now if not now.is_empty() else def.cost))
+	add_child(title_row)
+	if in_hand and Game.engine != null:
+		show_shortfall(Game.engine.play_shortfall(card.uid))
+	_add_band(color)
 
-	# Type line, with the cost at its right on a hand card.
 	var type_row := HBoxContainer.new()
 	type_row.name = "TypeRow"
 	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -46,12 +59,6 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var subtitle_label := rich_label(subtitle, 18, color.lightened(0.5))
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
-	if in_hand:
-		var now: Dictionary = Game.engine.play_cost(card.uid) if Game.engine != null else {}  # after discounts (108)
-		var cost := label(cost_text(now if not now.is_empty() else def.cost), 19, CardView.HIGHLIGHT_COLOR)
-		cost.name = "Cost"
-		cost.autowrap_mode = TextServer.AUTOWRAP_OFF  # the type line wraps around it instead
-		type_row.add_child(cost)
 	add_child(type_row)
 
 	_set_rules_tip(card, card_db)
@@ -87,6 +94,8 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		badge_row.add_child(badge(BADGES[kind], color))
 		add_child(badge_row)
 	add_child(one_line(label(def.name, 22)))
+	if kind != CardView.BOARD_FRONTIER:  # an unsettled territory keeps its hatching and dashed border instead
+		_add_band(color)
 	_set_rules_tip(card, card_db)
 	if def.type == CardDef.TERRITORY:
 		if kind == CardView.BOARD_FRONTIER:
@@ -104,6 +113,23 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		add_child(one_line(rich_label(rules[0], 17)))
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, 18, Palette.GAIN))
+
+
+## The card's type as a BAND px strip of color under its name (179).
+func _add_band(color: Color) -> void:
+	var band := ColorRect.new()
+	band.name = "Band"
+	band.color = color
+	band.custom_minimum_size.y = BAND
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(band)
+
+
+## Recolours the type band (a dimmed card's is CardView.DIM_BORDER); nothing on a card without one.
+func set_band_color(color: Color) -> void:
+	var band := get_node_or_null("Band") as ColorRect
+	if band != null:
+		band.color = color
 
 
 ## A small pill in color naming what a board card is (138).
@@ -268,7 +294,46 @@ func set_reason(reason: String) -> void:
 	Icons.fill(strip.get_child(0) as RichTextLabel, reason, 18, STRIP_TEXT)
 
 
-## A cost as text: "2 food, 1 wealth", or "Free".
+## A hand card's cost (180) as a row named Cost: per resource above 0, food, wealth and insight first, an entry
+## named for the resource holding its glyph (20 px) and figure 3 px apart, entries 12 px apart, no box; any other
+## resource reads "N name". Empty for a free card.
+static func cost_glyphs(cost: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "Cost"
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 12)
+	var order: Array = [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT]
+	order.append_array(cost.keys().filter(func(r): return not order.has(r)))
+	for r: String in order:
+		if cost.get(r, 0) <= 0:
+			continue
+		var entry := HBoxContainer.new()
+		entry.name = r
+		entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		entry.add_theme_constant_override("separation", 3)
+		var glyphed := Icons.RESOURCES.has(r)
+		if glyphed:
+			var glyph := Icons.glyph(r, 20)
+			glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			entry.add_child(glyph)
+		var figure := label(str(cost[r]) if glyphed else "%d %s" % [cost[r], r], 20)
+		figure.autowrap_mode = TextServer.AUTOWRAP_OFF
+		entry.add_child(figure)
+		row.add_child(entry)
+	return row
+
+
+## Colours each cost figure (cost_glyphs) WARN for a resource in short (GameEngine.play_shortfall), else TEXT.
+func show_shortfall(short: Array[String]) -> void:
+	var row := find_child("Cost", true, false)
+	if row == null:
+		return
+	for entry in row.get_children():
+		var figure := entry.get_child(entry.get_child_count() - 1) as Label
+		figure.add_theme_color_override("font_color", Palette.WARN if short.has(String(entry.name)) else Palette.TEXT)
+
+
+## A cost as text: "2 food, 1 wealth", or "Free" (the details, Relieve famine, Restore order).
 static func cost_text(cost: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for r in cost:

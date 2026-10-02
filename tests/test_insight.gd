@@ -114,7 +114,7 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change() ->
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.INSIGHT)
 	check(counter != null and counter.is_visible_in_tree(), "an Insight counter in the top bar")
-	eq(main.counter_text(GameEngine.INSIGHT), "Insight: 0 (+1)", "insight and its forecast")
+	eq(main.counter_text(GameEngine.INSIGHT), "0 (+1)", "insight and its forecast")
 	Game.engine.resources["insight"] = 3
 	Game.engine.changed.emit()
 	await wait_frames()

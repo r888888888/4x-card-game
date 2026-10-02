@@ -265,3 +265,27 @@ func test_zone_of_names_the_zone_holding_a_card() -> void:
 	var gone := put_in(e, "farm", "trashed")
 	eq(e.zone_of(gone), "trashed", "a trashed card")
 	eq(e.zone_of(9999), "", "an unknown uid")
+
+
+# --- 180: play_shortfall ---
+
+## A game with food and wealth on hand and a Guildhall (2 food, 2 wealth) in hand; returns [engine, its uid].
+func shortfall_game(food: int, wealth: int) -> Array:
+	var e := make_engine({"farm": 10})
+	var uid := put_in_hand(e, "guildhall")
+	e.resources[GameEngine.FOOD] = food
+	e.resources[GameEngine.WEALTH] = wealth
+	return [e, uid]
+
+
+func test_play_shortfall_lists_the_resources_the_player_is_short_of_in_cost_order() -> void:
+	for case in [[1, 5, ["food"]], [0, 0, ["food", "wealth"]], [2, 2, []]]:
+		var g := shortfall_game(case[0], case[1])
+		var e: GameEngine = g[0]
+		eq(e.play_shortfall(g[1]), case[2], "%d food, %d wealth" % [case[0], case[1]])
+
+
+func test_play_shortfall_is_empty_for_a_card_not_in_the_hand() -> void:
+	var g := shortfall_game(0, 0)
+	var e: GameEngine = g[0]
+	eq(e.play_shortfall(9999), [], "no such hand card")
