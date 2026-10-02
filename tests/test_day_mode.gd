@@ -142,16 +142,16 @@ func test_open_modals_and_screens_switch_and_stay_open() -> void:
 		close_main(main))
 
 
-func test_the_settings_screen_switches_and_stays_open() -> void:
+func test_the_settings_modal_switches_and_stays_open() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
-		main.start_screen.settings_button.pressed.emit()
+		main.start_screen.settings_button.pressed.emit()  # the Settings modal since 206
 		await wait_frames()
 		set_day(true)
 		await wait_frames()
-		check(main.settings_screen.is_open(), "still open")
-		var back: Button = main.settings_screen.back_button
-		eq(back.get_theme_color("font_color"), palette("TEXT_DIM"), "its link back reads the day ink")
+		check(main.settings_modal.is_open(), "still open")
+		eq((main.settings_modal.panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"),
+			"its sheet reads the day paper")
 		close_main(main))
 
 
@@ -167,61 +167,35 @@ func row_text(key: Control) -> String:
 	return ""
 
 
-func test_both_screens_show_a_day_mode_key_under_reduce_motion() -> void:
+func test_the_settings_modal_shows_a_day_mode_key_under_reduce_motion() -> void:
 	await with_temp_settings(func():
 		set_day(true)
 		var main := open_main()
 		main.start_screen.settings_button.pressed.emit()
 		await wait_frames()
-		var pairs := [[main.settings_screen.day_toggle, main.settings_screen.motion_toggle],
-			[main.menu_day_toggle(), main.menu_motion_toggle()]]
-		for pair in pairs:
-			var key: Control = pair[0]
-			check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH, "a LegendKey")
-			eq(row_text(key), "Day mode", "labelled Day mode")
-			eq(key.text, "ON", "shows the setting")
-			var motion_row: Control = pair[1].get_parent()
-			check(key.get_parent().get_index() == motion_row.get_index() + 1 and key.get_parent().get_parent() == motion_row.get_parent(),
-				"right under Reduce motion")
+		var key: Control = main.settings_modal.day_toggle  # one set of keys since 206: the Settings modal's
+		check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH, "a LegendKey")
+		eq(row_text(key), "Day mode", "labelled Day mode")
+		eq(key.text, "ON", "shows the setting")
+		var motion_row: Control = main.settings_modal.motion_toggle.get_parent()
+		check(key.get_parent().get_index() == motion_row.get_index() + 1 and key.get_parent().get_parent() == motion_row.get_parent(),
+			"right under Reduce motion")
 		close_main(main))
 
 
-func test_toggling_either_day_key_sets_it_and_shows_on_the_other() -> void:
-	await with_temp_settings(func():
-		var main := open_main()
-		main.start_screen.settings_button.pressed.emit()
-		await wait_frames()
-		var screen_key: Button = main.settings_screen.day_toggle
-		var menu_key: Button = main.menu_day_toggle()
-		screen_key.button_pressed = true
-		await wait_frames()
-		check(Settings.store.get("day_mode"), "the settings screen's key turns day mode on")
-		eq(menu_key.text, "ON", "the menu's key follows")
-		menu_key.button_pressed = false
-		await wait_frames()
-		check(not Settings.store.get("day_mode"), "the menu's key turns it off")
-		eq(screen_key.text, "OFF", "the settings screen's key follows")
-		close_main(main))
-
-
-func test_the_day_keys_are_in_the_focus_loops() -> void:
+func test_the_day_key_is_in_the_focus_loop() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
 		main.start_game(1)
 		main.open_menu()
 		await wait_frames()
-		(main.menu_motion_toggle() as Control).grab_focus()
-		press_key(main, KEY_TAB)
-		eq(main.get_viewport().gui_get_focus_owner(), main.menu_day_toggle(), "menu: Tab from Reduce motion to Day mode")
-		press_key(main, KEY_ESCAPE)
+		for b in main.menu_buttons():
+			if b.text == "Settings":
+				b.pressed.emit()
 		await wait_frames()
-		main.show_title_screen()
-		main.start_screen.settings_button.pressed.emit()
-		await wait_frames()
-		(main.settings_screen.motion_toggle as Control).grab_focus()
+		(main.settings_modal.motion_toggle as Control).grab_focus()
 		press_key(main, KEY_TAB)
-		eq(main.get_viewport().gui_get_focus_owner(), main.settings_screen.day_toggle,
-			"settings: Tab from Reduce motion to Day mode")
+		eq(main.get_viewport().gui_get_focus_owner(), main.settings_modal.day_toggle, "Tab from Reduce motion to Day mode")
 		close_main(main))
 
 

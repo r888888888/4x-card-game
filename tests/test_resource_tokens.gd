@@ -341,7 +341,7 @@ func test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once() -> void:
 		e.changed.emit()
 		var figure: Object = main.counter(GameEngine.FOOD).figure()
 		eq(figure.value, 5, "the odometer's value is 5")
-		check(main.counter_text(GameEngine.FOOD).begins_with("5 "), "the reading is new at once: %s" % main.counter_text(GameEngine.FOOD))
+		eq(main.counter_text(GameEngine.FOOD), "5", "the reading is new at once")
 		eq(figure.shown(), 3, "while the digits still show 3")
 		step_tweens(main, 0.5)
 		eq(figure.shown(), 5, "and roll to 5"))

@@ -90,3 +90,22 @@ func test_cards_without_flavor_have_empty_flavor_and_quote() -> void:
 	eq(d.get("flavor"), "", "no flavor")
 	eq(d.get("quote"), {}, "no quote")
 	eq(e.def_details("farm").get("flavor"), "", "a farm has no flavor")
+
+
+# --- 205: a government may have flavor too ---
+
+const ELDERS := {"id": "elders", "name": "Elders", "type": "government", "actions": 2,
+	"flavor": "The old decided.", "quote": {"text": "Listen.", "by": "A grandmother"}}
+
+
+func test_a_government_may_have_flavor_and_a_quote() -> void:
+	var m := card_messages(ELDERS)
+	eq(m.errors, [] as Array[String], "errors")
+	eq(m.warnings, [] as Array[String], "no 'only applies to civilizations' warning")
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + [ELDERS]}, resources(), "cards.json",
+		errors, warnings, keywords())
+	var def: CardDef = cards["elders"]
+	eq(def.flavor, "The old decided.", "its flavor")
+	eq([def.quote_text, def.quote_by], ["Listen.", "A grandmother"], "its quote")

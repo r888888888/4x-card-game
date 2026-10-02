@@ -80,13 +80,11 @@ func test_the_turn_counter_shows_turn_37_of_100_untruncated() -> void:
 	for i in 36:
 		Game.engine.end_turn()
 	await wait_frames()
-	var turn: Label = null
-	for label in main.find_children("*", "Label", true, false):
-		if label.text.begins_with("Turn "):
-			turn = label
+	var turn: Label = main.counter(TopBar.TURN)  # the turn plate since 201
 	check(turn != null, "a turn label")
 	if turn != null:
-		eq(turn.text, "Turn 37 / 100", "turn label")
+		eq(turn.text, "T 037", "turn plate")
+		eq(turn.tooltip_text, "Turn 37 of 100", "the limit in its tooltip")
 		check(turn.get_minimum_size().x <= turn.size.x + 0.5, "not truncated (%d <= %d)" % [turn.get_minimum_size().x, turn.size.x])
 		check(turn.get_global_rect().end.x <= 1920, "on screen")
 	close_main(main)

@@ -266,6 +266,12 @@ func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
 
 
+## The id of the government Anarchy plays as (the config's unrest.anarchy), or "" without unrest (205: the
+## revolution's confirmation shows its flavor).
+func anarchy_id() -> String:
+	return config.get("unrest", {}).get("anarchy", "")
+
+
 ## The ruling Anarchy card's uid (145), or -1.
 func anarchy() -> int:
 	var card := Anarchy.active(self)
@@ -571,6 +577,12 @@ func revolt_error() -> String:
 ## change) if revolt_error says no.
 func revolt() -> bool:
 	return Anarchy.revolt(self)
+
+
+## The lines that describe the Anarchy a revolution now would bring, with this game's numbers (205); [] when
+## revolt_error says no.
+func revolt_summary() -> Array[String]:
+	return Anarchy.revolt_summary(self)
 
 
 ## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""

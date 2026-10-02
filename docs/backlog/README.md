@@ -52,12 +52,11 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
-Board and screens redesign (from `docs/design/transitions.html` and `mcm-specimen.html`; specced 2026-10-02):
-1. 207 modals as the specimen's sheets (before 205 and 206, which add modals)
-2. 206 Settings modal, then 205 Revolt in the civilization modal with its confirmation
-3. 202 the right sidebar, then 203 End turn at its foot, then 201 the resource strip, and 204 the In Hand heading
-4. 208 Knowledge screen (after 202, so the Realm's shift includes the sidebar's layout)
-5. 209 cabinet doors, 210 vellum targeting, 211 era ceremony (any order)
-6. 212 civilization list and detail; 213 title screen ledger and large keys, then 214 its sunrise art
+Board and screens redesign (from `docs/design/transitions.html` and `mcm-specimen.html`; specced 2026-10-02; 197–200,
+202, 204, 207 and 209–213 are done):
+1. 206 Settings modal, then 205 Revolt in the civilization modal with its confirmation
+2. 203 End turn at the sidebar's foot, then 201 the resource strip
+3. 208 Knowledge screen
+4. 214 the title screen's sunrise art
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).

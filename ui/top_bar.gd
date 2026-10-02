@@ -2,11 +2,11 @@ class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food, wealth, insight (139) and unrest (144, out of its limit) (with next upkeep's change), score
 ## and pop, then
-## (115) Buy Cards, Knowledge, Log, End turn (120) and Menu (the civilization and government are in the Sidebar, 202). Any
+## (115) Buy Cards, Knowledge, Log and Menu (the civilization, the government and End turn are in the Sidebar: 202, 203). Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure and tags it with its net change
 ## (126, 181).
 
-const GLYPH := 22  # a counter's glyph (180), about the height of its figure
+const GLYPH := 20  # a counter's glyph (180; 20 px since 201, the mock's strip)
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
 const SCORE := "score"
 const POP := "pop"
@@ -14,25 +14,22 @@ const TURN := "turn"
 
 var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
 var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in its tooltip (120)
-var end_turn_button: Button  # "End turn", or "Discard N (hand limit M)" while the hand is over its limit (120)
-var _turn_label: Label
+var _turn_label: Label  # the turn plate, "T 001" (201)
 var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden while off, 144), score, pop (hidden while off)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
-# End turn's key (187): its release sounds wait for both the key coming up and its action (a mouse release sends
-# button_up before pressed, a key sends them the other way round).
-var _key_up := false
-var _acted := false  # the press ran end_turn; _turn_ended: and it ended the turn
-var _turn_ended := false
 var _fresh := true  # a new game's first refresh shows its values at once, with no tags (126)
 
 
 ## on_knowledge opens the tech tree, on_log toggles the log drawer.
 func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	add_theme_constant_override("separation", Tokens.SPACE_3)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
-	_turn_label = UIKit.stat(self)
-	_turn_label.theme_type_variation = &"BarStat"
+	_turn_label = Label.new()
+	_turn_label.theme_type_variation = &"Plate"  # the mono numerals on a well (201)
+	_turn_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_turn_label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the tooltip
+	add_child(_turn_label)
 	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, SCORE, POP]:
-		var counter := Counter.new(key)
+		var counter := Counter.new(key, "", &"Stat")  # figures at TYPE_NUMERAL (201)
 		add_child(counter)
 		_counters[key] = counter
 	_counters[SCORE].tooltip_text = "Score: victory points."
@@ -44,63 +41,9 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	log_button = UIKit.button("Log", on_log)
 	log_button.tooltip_text = "Shortcut: L. The game log: everything that happened."
 	add_child(log_button)
-	end_turn_button = UIKit.button("End turn", _end_turn)
-	end_turn_button.theme_type_variation = "AccentButton"
-	end_turn_button.add_to_group(KeySounds.OWN_SOUNDS)
-	end_turn_button.button_down.connect(_end_turn_down)
-	end_turn_button.button_up.connect(_end_turn_up)
-	add_child(end_turn_button)
 	menu_button = UIKit.button("Menu", on_menu)
 	menu_button.tooltip_text = "Shortcut: Esc. New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
-
-
-func _end_turn() -> void:
-	var turn := Game.engine.turn
-	Game.engine.end_turn()
-	_turn_ended = Game.engine.turn != turn
-	_acted = true
-	if _key_up:
-		_end_turn_released()
-
-
-## End turn's sounds (187): the desk's biggest key going down; coming up, a relay and the turn drum when its press
-## ended the turn, else the plain key's release (a discard is owed).
-func _end_turn_down() -> void:
-	_key_up = false
-	_acted = false
-	_turn_ended = false
-	var sfx := Sfx.find(self)
-	if sfx != null:
-		sfx.at_contact(Sfx.ENDTURN_PRESS, Anim.KEY_PRESS_TIME, Anim.SNAP, true)
-
-
-func _end_turn_up() -> void:
-	_key_up = true
-	if _acted:
-		_end_turn_released()
-	else:
-		_released_without_action.call_deferred()
-
-
-## A release that ran no action by the end of the frame (dragged off the key) only comes back up.
-func _released_without_action() -> void:
-	if not _acted:
-		_end_turn_released()
-
-
-func _end_turn_released() -> void:
-	_acted = true  # sound once
-	_key_up = false
-	var sfx := Sfx.find(self)
-	if sfx == null:
-		return
-	if not _turn_ended:
-		sfx.at_contact(Sfx.BUTTON_RELEASE, Anim.KEY_RELEASE_TIME, Anim.MACHINED, true)
-		return
-	var commit := 0.0 if UIKit.calm() else Anim.contact(Anim.KEY_RELEASE_TIME, Anim.MACHINED)
-	sfx.play(Sfx.ENDTURN_COMMIT, commit, true)
-	sfx.play(Sfx.ENDTURN_TURN, commit + Anim.ENDTURN_TURN_DELAY, true)
 
 
 ## The counter for key (a resource, SCORE, POP or TURN), or null for an unknown key (177).
@@ -126,19 +69,21 @@ func reset_counters() -> void:
 ## roll one after another, left to right, each starting as the one before registers, so their ticks make one tidy
 ## run and their registrations come in order (188); quiet, they roll in silence.
 func refresh(e: GameEngine, quiet := false) -> void:
-	UIKit.set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
+	_turn_label.text = "T %03d" % e.turn
+	_turn_label.tooltip_text = "Turn %d of %d" % [e.turn, e.turn_limit()] if e.turn_limit() > 0 else "Turn %d" % e.turn
 	var forecast := e.upkeep_forecast()
 	var starve: int = forecast.get("starve", 0)
 	var limit := e.unrest_limit()
-	var readings := {  # key -> [value, the text after the figure]
-		GameEngine.FOOD: [e.resources.get(GameEngine.FOOD, 0), _forecast_text(forecast, GameEngine.FOOD)],
-		GameEngine.WEALTH: [e.resources.get(GameEngine.WEALTH, 0), _forecast_text(forecast, GameEngine.WEALTH)],
-		GameEngine.INSIGHT: [e.resources.get(GameEngine.INSIGHT, 0), _forecast_text(forecast, GameEngine.INSIGHT)],
-		GameEngine.UNREST: [e.resources.get(GameEngine.UNREST, 0),
-			(" / %d" % limit if limit >= 0 else "") + _forecast_text(forecast, GameEngine.UNREST)],
+	var readings := {  # key -> [value, the words after the figure]
+		GameEngine.FOOD: [e.resources.get(GameEngine.FOOD, 0), ""],
+		GameEngine.WEALTH: [e.resources.get(GameEngine.WEALTH, 0), ""],
+		GameEngine.INSIGHT: [e.resources.get(GameEngine.INSIGHT, 0), ""],
+		GameEngine.UNREST: [e.resources.get(GameEngine.UNREST, 0), " / %d" % limit if limit >= 0 else ""],
 		SCORE: [e.score(), ""],
 		POP: [e.total_pop(), ""],
 	}
+	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST]:
+		(_counters[key] as Counter).set_forecast("%+d" % forecast[key] if forecast.has(key) else "")
 	_counters[GameEngine.UNREST].visible = e.unrest_on()
 	_counters[POP].visible = e.population_on()
 	var n := 0
@@ -152,20 +97,12 @@ func refresh(e: GameEngine, quiet := false) -> void:
 			n += 1
 	_fresh = false
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
-	_counters[GameEngine.FOOD].tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "In brackets: change at the next upkeep, after pop eats."
-	_counters[GameEngine.WEALTH].tooltip_text = "In brackets: change at the next upkeep."
-	_counters[GameEngine.INSIGHT].tooltip_text = "Pays for techs. In brackets: change at the next upkeep."
+	_counters[GameEngine.FOOD].tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "Beside it: the change at the next upkeep, after pop eats."
+	_counters[GameEngine.WEALTH].tooltip_text = "Beside it: the change at the next upkeep."
+	_counters[GameEngine.INSIGHT].tooltip_text = "Pays for techs. Beside it: the change at the next upkeep."
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
 	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
-		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
-	var error := e.end_turn_error()
-	end_turn_button.disabled = error != ""
-	end_turn_button.tooltip_text = error if error != "" else "Shortcut: E. Upkeep, then draw up to your hand size."
-	var pending := e.pending()
-	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
-		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.hand_limit()]
-	else:
-		end_turn_button.text = "End turn"
+		"" if limit >= 0 else " (it sets no limit)")) + "Beside it: the change at the next upkeep."
 	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
@@ -190,8 +127,6 @@ func add_supply_button(button: Button) -> void:
 	move_child(button, _knowledge.get_index())
 
 
-## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.
-func _forecast_text(forecast: Dictionary, resource: String) -> String:
-	if not forecast.has(resource):
-		return ""
-	return " (%+d)" % forecast[resource]
+## Next upkeep's change counter key shows beside its figure ("+1"), or "" (none, or no such counter) (201).
+func forecast_text(key: String) -> String:
+	return (_counters[key] as Counter).forecast_text() if _counters.has(key) else ""

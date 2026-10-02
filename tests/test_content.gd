@@ -636,3 +636,12 @@ func test_every_eureka_counts_cards_the_player_can_get() -> void:
 			missing.append("%s: tag %s" % [tech.id, eureka.tag])
 	eq(missing, [] as Array[String], "eurekas no card the player can get satisfies")
 
+
+
+func test_the_anarchy_government_has_flavor_and_a_quote() -> void:
+	var anarchy: String = Game.engine.config.get("unrest", {}).get("anarchy", "")
+	check(anarchy != "", "the config names an Anarchy government")
+	if anarchy != "":
+		var def: CardDef = Game.engine.card_db[anarchy]
+		check(def.flavor != "", "Anarchy has flavor (205: the revolution's confirmation shows it)")
+		check(def.quote_text != "" and def.quote_by != "", "and a quote")

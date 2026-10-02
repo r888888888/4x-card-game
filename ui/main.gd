@@ -4,9 +4,10 @@ extends Control
 ##
 ## BoardLayout builds the layout in code; BoardViews keeps the card views (views, keyed by uid) in line with the engine
 ## (176). Cards in motion live on fx, a layer above the board.
-## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, the modals (CardDetailsModal,
-## TechTreeModal, EventModal, IdentityModal, stacked on a ModalStack, modals), StartScreen, NewGameScreen, SettingsScreen (opened and closed through the Navigator, nav), DragController
-## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
+## The components: TopBar, Sidebar, TableauView, ChoiceOverlays, SupplyScreen, the modals (GameMenu, CardDetailsModal,
+## TechTreeModal, EventModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
+## StartScreen and NewGameScreen (opened and closed through the Navigator, nav), DragController (dragging and
+## targeting) and CardFocus (the keyboard focus on the cards).
 
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
@@ -28,7 +29,8 @@ var key_sounds: KeySounds  # every button's click (187)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
-var settings_screen: SettingsScreen  # Reduce motion, from the title screen (099)
+var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
+var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
@@ -47,7 +49,6 @@ var _menu: GameMenu
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var _revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
@@ -197,13 +198,9 @@ func relieve_button() -> Button:
 	return _relief.button
 
 
-## Test hooks (146, 148): the Restore order and Revolt buttons beside Relieve (visible or not).
+## Test hook (146): the Restore order button beside Relieve (visible or not). Revolt is in the civilization modal (205).
 func restore_order_button() -> Button:
 	return _restore.button
-
-
-func revolt_button() -> Button:
-	return _revolt.button
 
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
@@ -230,23 +227,9 @@ func menu_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_menu)
 
 
-## Test hooks (182, 183): the menu's Reduce motion and Day mode keys.
-func menu_motion_toggle() -> LegendKey:
-	return _menu.motion_toggle
-
-
-func menu_day_toggle() -> LegendKey:
-	return _menu.day_toggle
-
-
 ## Test hook (187): the locked tip, a disabled key's reason shown at once.
 func locked_tip() -> Control:
 	return key_sounds.tip()
-
-
-## Test hook (185): the menu's Interface sounds key.
-func menu_sound_toggle() -> LegendKey:
-	return _menu.sound_toggle
 
 
 ## Test hook (067): the game-over overlay's buttons, in order.
@@ -260,6 +243,11 @@ func counter(key: String) -> Control:
 
 
 ## The top bar's reading for key (TopBar.counter_text, 177).
+func forecast_text(key: String) -> String:
+	return _top_bar.forecast_text(key)
+
+
+## The top bar's reading for key (TopBar.counter_text, 177): the figure and its words, not the forecast (201).
 func counter_text(key: String) -> String:
 	return _top_bar.counter_text(key)
 
@@ -388,7 +376,7 @@ func open_menu() -> void:
 	var card := focus.focused if focus.focused != null else _card_before_menu_button
 	drag.end_targeting()
 	focus.set_card(null)
-	_menu.open(Game.engine.seed_value, card)
+	_menu.open(card)
 
 
 ## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
@@ -432,7 +420,6 @@ func _refresh() -> void:
 	log_drawer.refresh(e)
 	_relief.refresh(e)
 	_restore.refresh(e)
-	_revolt.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
@@ -462,7 +449,6 @@ func _build_layout() -> void:
 	_play_area = layout.play_area
 	_relief = layout.relief
 	_restore = layout.restore
-	_revolt = layout.revolt
 	_menu = layout.menu
 	_menu.closed_giving_back.connect(_on_menu_closed)
 	era_sheet.closed.connect(func(): if board_shown(): _refresh())
@@ -480,10 +466,7 @@ func _build_layout() -> void:
 ## Matches the menu's and settings screen's keys and the looping drop-zone pulse to the settings; when Day mode
 ## changed, rebuilds the theme and repaints everything open in the new palette, the game untouched (183).
 func _apply_settings() -> void:
-	_menu.show_settings(UIKit.calm(), Palette.day)
-	UIKit.show_setting(settings_screen.motion_toggle, UIKit.calm())
-	UIKit.show_setting(settings_screen.day_toggle, Palette.day)
-	settings_screen.show_sound()
+	settings_modal.show_settings()
 	drag.apply_motion(UIKit.calm())
 	if _palette_day == Palette.day:
 		return

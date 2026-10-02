@@ -33,12 +33,14 @@ static func build() -> Theme:
 	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
 	_label(t, "CardTitle", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a card's name, bold beside its rules (198)
 	_label(t, "BigLabel", Tokens.TYPE_TITLE, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a BigButton's caps label (213)
+	_label(t, "Forecast", Tokens.TYPE_NUMERAL_S, Palette.TEXT_DIM, tabular(LABEL_SEMIBOLD))  # a counter's next change (201)
 	_label(t, "BarStat", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # body size like the bar's buttons, so it fits 1920 px (144)
 	t.set_type_variation("RichBody", "RichTextLabel")  # modal text and the log (194)
 	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:
 		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
 	_link(t)
 	_big_buttons(t)
+	_end_turn_key(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	t.set_type_variation("Sheet", "PanelContainer")
@@ -119,6 +121,44 @@ static func _big_buttons(t: Theme) -> void:
 		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color",
 				"font_disabled_color"]:
 			t.set_color(state, type, Color.TRANSPARENT)
+
+
+## End turn's key (203, guide §15.12): EndTurnKey an ACCENT key in a 3 px ink border on a 4,4 plinth, pressed into it,
+## disabled flat; EndTurnKeyBusy the same in CONTROL while the turn resolves. KeyLabel is its caps label; Plate the turn
+## on a FIELD well, in tabular numerals (also the strip's turn, 201).
+static func _end_turn_key(t: Theme) -> void:
+	var travel := int(BigButton.TRAVEL)
+	for type in ["EndTurnKey", "EndTurnKeyBusy"]:
+		var fill := Palette.ACCENT if type == "EndTurnKey" else Palette.CONTROL
+		t.set_type_variation(type, "Button")
+		for state in ["normal", "hover", "focus"]:
+			var box := _card(fill.lightened(0.08) if state == "hover" else fill)
+			box.set_corner_radius_all(Tokens.RADIUS_1)
+			t.set_stylebox(state, type, box)
+		var pressed := _card(fill.darkened(0.1))
+		pressed.set_corner_radius_all(Tokens.RADIUS_1)
+		pressed.shadow_size = 0
+		pressed.expand_margin_left = -travel
+		pressed.expand_margin_top = -travel
+		pressed.expand_margin_right = travel
+		pressed.expand_margin_bottom = travel
+		t.set_stylebox("pressed", type, pressed)
+		t.set_stylebox("hover_pressed", type, pressed)
+		var flat := _card(Palette.CONTROL_DISABLED)
+		flat.set_corner_radius_all(Tokens.RADIUS_1)
+		flat.border_color = Palette.CONTROL_DISABLED_BORDER
+		flat.shadow_size = 0
+		t.set_stylebox("disabled", type, flat)
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color",
+				"font_disabled_color"]:
+			t.set_color(state, type, Color.TRANSPARENT)
+	_label(t, "KeyLabel", Tokens.TYPE_LABEL, Palette.TEXT_ON_ACCENT, heading_font())
+	_label(t, "Plate", Tokens.TYPE_NUMERAL_S, Palette.TEXT, tabular(LABEL_SEMIBOLD))
+	var well := UIKit.panel_style(Palette.FIELD, Palette.CONTROL_BORDER, Tokens.SPACE_1)
+	well.set_border_width_all(1)
+	well.content_margin_left = Tokens.SPACE_2
+	well.content_margin_right = Tokens.SPACE_2
+	t.set_stylebox("normal", "Plate", well)
 
 
 ## A BigButton's card in fill: a 3 px ink border, square, on a 4,4 shadow.

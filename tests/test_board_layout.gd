@@ -1,7 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The board without a sidebar (backlog 115), in the real main scene on the real data at 1920×1080: the play area
-## reaches the sidebar (202), the top bar carries Buy Cards and Knowledge, and End turn sits
-## right of the hand.
+## reaches the sidebar (202), the top bar carries Buy Cards and Knowledge; End turn sits at the sidebar's foot (203).
 
 const EDGE := 40.0  # px from the window's right edge that counts as reaching it
 const TOLERANCE := 1.0
@@ -105,7 +104,7 @@ func test_top_bar_controls_are_on_screen_and_buttons_fit_their_text() -> void:
 	close_at_1080(main)
 
 
-# --- 120: End turn in the top bar ---
+# --- 120: End turn (in the sidebar since 203: test_end_turn_key) ---
 
 ## Every button under root whose text starts with prefix, shown or not.
 func buttons_starting(root: Node, prefix: String) -> Array[Button]:
@@ -114,24 +113,6 @@ func buttons_starting(root: Node, prefix: String) -> Array[Button]:
 		if b.text.begins_with(prefix):
 			out.append(b)
 	return out
-
-
-func test_end_turn_is_in_the_top_bar_between_log_and_menu() -> void:
-	var main: Node = await open_game_at_1080()
-	var viewport: Vector2 = main.get_viewport_rect().size
-	var menu := shown_button(main, "Menu")
-	var log_button := shown_button(main, "Log")
-	var end_turns := buttons_starting(main, "End turn")
-	eq(end_turns.size(), 1, "one End turn button (none beside the hand)")
-	if end_turns.size() == 1 and menu != null and log_button != null:
-		var end_turn := end_turns[0]
-		eq(end_turn.get_parent(), menu.get_parent(), "in the top bar")
-		check(log_button.get_index() < end_turn.get_index() and end_turn.get_index() < menu.get_index(),
-			"right of Log, left of Menu: %d, %d, %d" % [log_button.get_index(), end_turn.get_index(), menu.get_index()])
-		check(Rect2(Vector2.ZERO, viewport).encloses(end_turn.get_global_rect()), "on screen: %s" % end_turn.get_global_rect())
-		eq(end_turn.theme_type_variation, &"AccentButton", "the accent look")
-		check_fits_or_wider(end_turn)
-	close_at_1080(main)
 
 
 func test_end_turn_is_disabled_with_the_reason_while_the_turn_cant_end() -> void:
@@ -163,7 +144,7 @@ func test_top_bar_buttons_put_their_key_in_the_tooltip_not_the_text() -> void:
 
 
 ## Starts seed 1 again as the civilization with the longest name and puts the hand 3 over its limit at the end of
-## the turn, so End turn reads "Discard 3 (hand limit M)", with unrest at 10 (144): the top bar's texts at their longest.
+## the turn, so a discard is owed, with unrest at 10 (144): the top bar's texts at their longest.
 func longest_top_bar(main: Node) -> void:
 	var e := Game.engine
 	var longest := ""
@@ -186,7 +167,7 @@ func test_the_top_bar_fits_with_its_longest_texts() -> void:
 	var main: Node = await open_game_at_1080()
 	await longest_top_bar(main)
 	var viewport: Vector2 = main.get_viewport_rect().size
-	check(shown_button(main, "Discard 3 (hand limit") != null, "End turn asks for 3 discards")
+	check(Game.engine.end_turn_error() != "", "a discard is owed")
 	check(main.counter(GameEngine.INSIGHT).is_visible_in_tree(), "the Insight counter is in the bar (139)")
 	check(main.counter(GameEngine.UNREST).is_visible_in_tree(), "the Unrest counter is in the bar (144)")
 	var bar: Control = shown_button(main, "Menu").get_parent()
@@ -216,7 +197,8 @@ func test_end_turn_still_ends_the_turn_and_shows_a_pending_discard() -> void:
 	await wait_frames()
 	var pending := e.pending()
 	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
-		check(shown_button(main, "Discard %d (hand limit" % pending.count) != null, "End turn asks for the discard")
+		var key: Object = main.sidebar.get("end_turn")
+		eq(key.caption_text() if key != null else "", e.end_turn_error(), "End turn's caption asks for the discard (203)")
 	else:
 		check(false, "a discard is pending with the hand over its limit: %s" % [pending])
 	close_at_1080(main)

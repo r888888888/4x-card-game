@@ -18,19 +18,14 @@ func with_farm_main(body: Callable) -> void:
 
 # --- AC3: every navigated screen has the header ---
 
-func test_the_new_game_and_settings_screens_have_a_header() -> void:
+func test_the_new_game_screen_has_a_header() -> void:
 	var main := open_main()
 	main.start_screen.new_game_button.pressed.emit()
 	var header: Object = main.new_game_screen.header
 	eq(header.back_button.text, "Main menu", "new game: the link back (118)")
 	eq(header.breadcrumb_text(), "Main menu › New game", "new game: path")
 	eq(main.new_game_screen.back_button, header.back_button, "its Back is the header's")
-	header.back_button.pressed.emit()
-	main.start_screen.settings_button.pressed.emit()
-	header = main.settings_screen.header
-	eq(header.back_button.text, "Main menu", "settings: the link back (118)")
-	eq(header.breadcrumb_text(), "Main menu › Settings", "settings: path")
-	eq(main.settings_screen.back_button, header.back_button, "its Back is the header's")
+	header.back_button.pressed.emit()  # Settings is a modal since 206: no screen, no header
 	close_main(main)
 
 
@@ -94,14 +89,11 @@ func test_the_territory_header_goes_back_through_its_realm_link() -> void:
 		check(not main.territory_view.is_open(), "the link closes the view"))
 
 
-func test_the_new_game_and_settings_headers_go_back_through_their_main_menu_link() -> void:
+func test_the_new_game_header_goes_back_through_its_main_menu_link() -> void:
 	var main := open_main()
 	main.start_screen.new_game_button.pressed.emit()
 	check_link_back(main.new_game_screen.header, "Main menu", "New game")
 	main.new_game_screen.header.back_button.pressed.emit()
 	check(not main.new_game_screen.is_open(), "the link goes back to the title screen")
-	main.start_screen.settings_button.pressed.emit()
-	check_link_back(main.settings_screen.header, "Main menu", "Settings")
-	main.settings_screen.header.back_button.pressed.emit()
 	check(main.start_screen.is_open(), "back on the title screen")
 	close_main(main)

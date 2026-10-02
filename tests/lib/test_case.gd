@@ -633,6 +633,8 @@ func counter_tag(counter: Control) -> Label:
 	var tag := RegEx.create_from_string("^[+−][0-9]+$")
 	for node in counter.find_children("*", "Label", true, false):
 		var l := node as Label
+		if l.name == "Forecast":  # next upkeep's change sits beside the figure too (201), not a tag
+			continue
 		if is_instance_valid(l) and l.is_visible_in_tree() and l.modulate.a > 0.0 and tag.search(l.text) != null:
 			return l
 	return null
@@ -643,6 +645,15 @@ func open_main() -> Node:
 	var main: Node = load("res://ui/main.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(main)
 	return main
+
+
+## Opens the menu on main's game and presses its Settings (206): the Settings modal on top. Use with await.
+func open_settings_modal(main: Node) -> void:
+	main.open_menu()
+	for b in main.menu_buttons():
+		if b.text == "Settings":
+			b.pressed.emit()
+	await wait_frames()
 
 
 ## Presses and releases keycode on main's viewport.

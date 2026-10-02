@@ -74,10 +74,11 @@ func test_title_settings_and_new_game_columns_share_one_width() -> void:
 		eq(b.size.x, keys[0].size.x, "title screen: '%s' shares the column's width" % b.text)
 		eq(b.get_global_rect().position.x, keys[0].get_global_rect().position.x, "title screen: '%s' flush left" % b.text)
 	title.settings_button.pressed.emit()
-	await wait_frames()
-	check_column(main.settings_screen.motion_toggle.get_parent().get_parent().get_children(), "settings screen")  # 182, 185: its rows
-	check_fits(main.settings_screen.back_button, "settings screen's header back")  # 104: Back moved to the header
-	main.settings_screen.back_button.pressed.emit()
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the sheet's rise (207)
+	var settings: Object = main.settings_modal  # the Settings modal since 206
+	check_column(settings.motion_toggle.get_parent().get_parent().get_children(), "Settings modal")  # 182, 185: its rows
+	check_fits(settings.close_button, "Settings modal's Close")
+	settings.close_button.pressed.emit()
 	title.new_game_button.pressed.emit()
 	await wait_frames()
 	check_fits(main.new_game_screen.start_button, "new game screen's Start")  # at the detail pane's foot (212)
@@ -90,16 +91,12 @@ func test_the_menu_column_shares_one_width_and_footer_buttons_fit_their_text() -
 	main.start_game(1)
 	main.open_menu()
 	await wait_frames()
-	var keys: Array = [main.menu_motion_toggle(), main.menu_day_toggle(), main.menu_sound_toggle()]
-	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the rows aren't
+	var column: Array = []  # untyped: menu_buttons() is Array[Button]
 	var footer: Array = main.menu_buttons().filter(func(b): return b.text in ["Close (Esc)", "Exit"])  # in the sheet's footer (207)
 	eq(footer.size(), 2, "Close and Exit in the menu's footer")
 	for b in footer:
 		check_fits(b, "menu footer %s" % b.text)
-	column.assign(main.menu_buttons().filter(func(b): return not keys.has(b) and not footer.has(b)))
-	column.insert(2, keys[0].get_parent())  # 182: the Reduce motion row stands where the toggle button was
-	column.insert(3, keys[1].get_parent())  # 183: the Day mode row under it
-	column.insert(4, keys[2].get_parent())  # 185: the Interface sounds row under that
+	column.assign(main.menu_buttons().filter(func(b): return not footer.has(b)))  # Restart, New game, Settings (206)
 	check_column(column, "menu")
 	press_key(main, KEY_ESCAPE)
 	play_seed_1(main, func(_m): pass)
@@ -169,12 +166,9 @@ func test_seed_fields_still_fill_their_row() -> void:
 	await wait_frames()
 	check_fills_row(main.new_game_screen.seed_edit, "new game screen")
 	main.start_game(1)
-	main.open_menu()
-	await wait_frames()
-	var fields := main.find_children("*", "LineEdit", true, false).filter(func(l): return l.is_visible_in_tree())
-	eq(fields.size(), 1, "the menu's seed field")
-	for field in fields:
-		check_fills_row(field, "menu")
+	await open_settings_modal(main)  # the seed field is in the Settings modal's Game section since 206
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
+	check_fills_row(main.settings_modal.seed_edit, "Settings modal")
 	close_at_1080(main)
 
 
