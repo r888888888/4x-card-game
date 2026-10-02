@@ -2,7 +2,7 @@
 id: 193
 title: Spacing and corner radius come from the guide's scales
 type: feature
-status: in-progress
+status: review
 branch: feat/193-spacing-and-radius-tokens
 ---
 
@@ -15,21 +15,21 @@ step of the guide's scale (docs/design/mcm-style-guide.md §6.1, §6.3), named a
 fails on a new literal. The user chose to snap to the guide's values (a visible change), not just name today's.
 
 ## Acceptance criteria
-- [ ] AC1: Given the token constants, then `SPACE_0`…`SPACE_9` are 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 and `RADIUS_0`,
+- [x] AC1: Given the token constants, then `SPACE_0`…`SPACE_9` are 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 and `RADIUS_0`,
   `RADIUS_1`, `RADIUS_2` are 0, 2, 4 and `RADIUS_FULL` is 9999 (the guide's `radius.full`) and `GLYPH_GAP` is 3 (§6.7); and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
   (§6.1: "SECTION_GAP 22, CARD_GAP 10 become 24 and 12").
-- [ ] AC2: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
+- [x] AC2: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
   card details, identity, event, game menu, settings, new game, game over, start), when every visible container is
   walked, then each `separation`, `h_separation`, `v_separation` and `margin_*` constant it resolves is on the space
   scale or is `GLYPH_GAP`; the failure names the node path, the constant and the value.
-- [ ] AC3: Given the same screens, when every visible control's `panel` / `normal` stylebox that is a `StyleBoxFlat`
+- [x] AC3: Given the same screens, when every visible control's `panel` / `normal` stylebox that is a `StyleBoxFlat`
   is read, then its corner radius is 0, 2 or 4, or half its control's smaller side (a pip, `radius.full`), and its
   four content margins are on the space scale. Pressed and hover-pressed boxes are exempt (press travel shifts them
   by `GameTheme.PRESS`).
-- [ ] AC4: Given the drop zone lit during a drag, the drag hint, the error pop-up (`UIKit.show_error`) and an empty
+- [x] AC4: Given the drop zone lit during a drag, the drag hint, the error pop-up (`UIKit.show_error`) and an empty
   slot outline (`UIKit.slot_outline`), then each stylebox's corner radius is 0 (§6.3: zones, tooltips and cards are
   cut square).
-- [ ] AC5: Given every `ui/` script except the one defining the tokens, when its source is scanned, then no call to
+- [x] AC5: Given every `ui/` script except the one defining the tokens, when its source is scanned, then no call to
   `add_theme_constant_override` for a separation or margin, `set_content_margin_all`, `content_margin_* =`,
   `set_corner_radius_all` or `set_corner_radius` passes a numeric literal other than 0; the failure lists `file:line`.
 
@@ -65,9 +65,13 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 | AC5 | `test_spacing_tokens::test_no_ui_script_passes_a_spacing_or_radius_literal` |
 
 ## Manual check
-- [ ] The board at 1920×1080 in both Night and Day: the top bar still fits, the hand and Realm rows don't clip a
+- [ ] `godot --path . -- --civ sumer --turns 20 --seed 5`. The board at 1920×1080 in both Night and Day (Day mode
+  key in the game menu): the top bar still fits, the hand and Realm rows don't clip a
   hovered card, the territory view's pop meter row isn't taller than before.
 - [ ] Each screen and modal from AC2: nothing overlaps or clips; the drag hint and error pop-up read as square tags.
+- [ ] Drag a card you can't afford onto the Realm: the lit drop zone is square, the hint under it is a square tag.
+- [ ] A card cost: glyph and figure still sit close (3 px), entries 12 px apart; the card badge keeps its 4 px corners.
+- [ ] Buttons are 2 px roomier each way; the pop meter's grow button (a territory's view) isn't taller than its pips.
 
 ## Log
 - Specced from the design-system review (2026-10-02). The user chose to snap values to the guide.
@@ -89,3 +93,4 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 - Follow-up: `Counter.GLYPH_GAP` (6, a `custom_minimum_size` gap in the top bar's counters) shares a name with
   `Tokens.GLYPH_GAP` (3) and is off the scale; minimum-size gaps aren't covered by AC5. Worth a small item with the
   `panel_style(` gap above.
+- Verify: suite 1195 → 1201, green; the game launches headless on seed 5 with no errors.
