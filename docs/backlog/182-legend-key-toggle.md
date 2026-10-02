@@ -2,7 +2,7 @@
 id: 182
 title: The legend key for Reduce motion
 type: feature
-status: ready
+status: red-review
 branch: feat/182-legend-key-toggle
 ---
 
@@ -41,6 +41,11 @@ an action rather than a setting. Proven in Godot in the `spike/mcm-godot` spike 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_legend_key::test_the_key_reads_on_with_a_lit_lamp_and_off_with_a_dark_one` |
+| AC2 | `test_legend_key::test_the_key_sits_on_the_themes_boxes_with_room_for_the_lamp` |
+| AC3 | `test_legend_key::test_both_screens_show_a_reduce_motion_row_with_a_legend_key`, `test_toggling_either_key_sets_saves_and_shows_on_the_other`; changed: `test_start_screen::test_settings_opens_the_settings_screen_with_the_motion_toggle`, `test_settings_and_menu_toggles_share_the_setting` |
+| AC4 | `test_legend_key::test_the_menu_row_spans_the_column_label_left_key_right`; changed: `test_button_widths::test_menu_and_game_over_columns_share_one_width`, `test_title_settings_and_new_game_columns_share_one_width` (the row in place of the toggle) |
+| AC5 | `test_legend_key::test_the_menu_key_is_in_the_focus_loop_and_space_toggles_it`, the tooltip in `test_both_screens_show_a_reduce_motion_row_with_a_legend_key`; `test_start_screen::test_tab_and_arrows_stay_on_the_open_screen_and_wrap` (unchanged: Tab reaches the settings screen's key) |
 
 ## Manual check
 - [ ] Menu → Reduce motion: the key latches down and its strip lights green; pressing it again pops it back up.
