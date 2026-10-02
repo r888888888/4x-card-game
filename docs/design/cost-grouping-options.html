@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost Grouping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;  /* glyph-only gold: 3.8:1 on sheet, enough for an icon, not for text */
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 74ch; margin: 0 0 var(--space-6); }
+.opt { display: grid; grid-template-columns: 48px 300px 1fr; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
+.opt:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 36px/1 var(--f-display); }
+.opt h2 { margin: 0 0 var(--space-1); font: 500 22px/28px var(--f-display); }
+.opt p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 21px; }
+.demos { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
+@media (max-width: 900px) { .opt { grid-template-columns: 1fr; } }
+
+/* A card's head row, as on the index cards */
+.cardhead { width: 220px; background: var(--sheet); border: 2px solid var(--ink); }
+.cardhead .row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); min-height: 40px; }
+.cardhead .name { font: 600 17px/20px var(--f-cond); }
+.cardhead .band { height: 6px; background: var(--band); }
+.cardhead.dimmed .band { background: repeating-linear-gradient(-45deg, var(--ink-3) 0 1px, transparent 1px 5px); }
+.cardhead.dimmed { border-color: var(--rule); }
+/* A resource bar cell */
+.cell { width: 170px; background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-3) var(--space-4); }
+.cell .value { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.glyph { flex: none; display: block; }
+.fig { font-weight: 600; font-family: var(--f-cond); font-variant-numeric: tabular-nums lining-nums; }
+.short .fig, .fig.short { color: var(--danger); }
+
+/* Each option's cost group (.cost) and bar value (.bv) */
+.cost { display: inline-flex; align-items: center; flex: none; }
+.cost .e { display: inline-flex; align-items: center; }
+.cost .fig { font-size: 17px; line-height: 22px; }
+.bv .fig { font-size: 26px; line-height: 28px; }
+
+/* A · current: a well plate with a rule and dividers */
+.oA .cost { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.oA .cost .e { gap: 2px; padding: 1px 6px 1px 3px; }
+.oA .cost .e + .e { border-left: 1px solid var(--rule); }
+.oA .short .fig { text-decoration: underline 2px; text-underline-offset: 3px; }
+.oA .bv .fig { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); padding: 2px 6px; }
+
+/* B · padding only: glyph and figure tight, entries apart */
+.oB .cost { gap: 12px; }
+.oB .cost .e { gap: 3px; }
+.oB .short .fig { text-decoration: underline 2px; text-underline-offset: 3px; }
+.oB .bv .fig { padding: 0 2px; }
+
+/* C · tint only: each entry on the recessed tint, no stroke */
+.oC .cost { gap: 3px; }
+.oC .cost .e { gap: 3px; background: var(--well); padding: 1px 6px 1px 4px; }
+.oC .short { background: color-mix(in srgb, var(--danger) 18%, var(--well)) !important; }
+.oC .bv .fig { background: var(--well); padding: 2px 8px; }
+
+/* D · hairline dividers: no box, a rule between entries */
+.oD .cost .e { gap: 3px; padding: 0 8px; }
+.oD .cost .e:last-child { padding-right: 0; }
+.oD .cost .e + .e { border-left: 1px solid var(--rule); }
+.oD .short .fig { text-decoration: underline 2px; text-underline-offset: 3px; }
+
+/* E · interpunct: entries separated by a middle dot */
+.oE .cost .e { gap: 3px; }
+.oE .cost .e + .e::before { content: "·"; color: var(--ink-3); font: 600 17px/1 var(--f-cond); margin: 0 7px; order: -1; }
+.oE .short .fig { text-decoration: underline 2px; text-underline-offset: 3px; }
+
+/* F · colour chips: each entry on its resource's flat plane, ink glyph and figure */
+.oF .cost { gap: 3px; }
+.oF .cost .e { gap: 3px; background: var(--chip); color: var(--on-plane); padding: 1px 6px 1px 4px; }
+.oF .cost .e .glyph { stroke: var(--on-plane) !important; }
+.oF .short { box-shadow: inset 0 0 0 2px var(--danger); }
+.oF .short .fig { color: var(--on-plane); }
+.oF .bv { gap: 0 !important; }
+.oF .bv .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--chip); color: var(--on-plane); padding: 2px 10px 2px 6px; }
+.oF .bv .chip .glyph { stroke: var(--on-plane) !important; }
+.oF .bv .chip .fig { color: var(--on-plane); }
+
+/* G · figure first, glyph as its unit */
+.oG .cost { gap: 12px; }
+.oG .cost .e { gap: 2px; flex-direction: row-reverse; }
+.oG .short .fig { text-decoration: underline 2px; text-underline-offset: 3px; }
+.oG .bv { flex-direction: row-reverse; justify-content: flex-end; }
+
+/* H · hue rule: a 2 px rule in the resource's hue under each entry, like a tab rail */
+.oH .cost { gap: 10px; }
+.oH .cost .e { gap: 3px; padding-bottom: 2px; border-bottom: 2px solid var(--hueline); }
+.oH .short { border-bottom-color: var(--danger) !important; border-bottom-style: dashed !important; }
+.oH .bv .fig { border-bottom: 3px solid var(--hueline); padding: 0 2px; }
+</style>
+</head>
+<body>
+<header>
+	<h1>Cost grouping</h1>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Ways to pair a resource glyph with its figure without the bordered plate. Each option shows two cards' head rows (a two-resource cost and a single one), a card the player can't afford (the short resource has to stay obvious), and a resource bar cell, where the odometer's window would follow the same idea.</p>
+	<div id="opts"></div>
+</main>
+<script>
+const GLYPHS = {
+	food: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
+	insight: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',
+};
+const HUE = { food: "sage", wealth: "ochre", insight: "blue" };
+const line = (res) => `var(--g-${HUE[res]}, var(--l-${HUE[res]}))`;
+const glyph = (res, size) => `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${line(res)}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${GLYPHS[res]}</svg>`;
+const entry = (res, n, short) => `<span class="e ${short ? "short" : ""}" style="--chip:var(--p-${HUE[res]});--hueline:${line(res)}">${glyph(res, 20)}<span class="fig">${n}</span></span>`;
+const cost = (c, short) => `<span class="cost" role="img" aria-label="Costs ${Object.entries(c).map(([r, n]) => `${n} ${r}`).join(", ")}">${Object.entries(c).map(([r, n]) => entry(r, n, short === r)).join("")}</span>`;
+const card = (name, band, c, short) => `<div class="cardhead ${short ? "dimmed" : ""}" style="--band:var(--p-${band})"><div class="row"><span class="name">${name}</span>${cost(c, short)}</div><div class="band"></div></div>`;
+const cell = () => `<div class="cell"><span class="caps">Wealth</span><div class="value bv" style="--chip:var(--p-ochre);--hueline:${line("wealth")}">${"FCHIP"}</div></div>`;
+const barValue = (opt) => opt === "F"
+	? `<span class="chip">${glyph("wealth", 32).replace(/stroke="[^"]*"/, 'stroke="var(--on-plane)"')}<span class="fig">12</span></span>`
+	: `${glyph("wealth", 32)}<span class="fig">12</span>`;
+
+const OPTIONS = [
+	["A", "Current: bordered plate", "A recessed plate with a rule around it and between entries. Clear grouping, but it's a box inside the card's box, which the guide otherwise avoids."],
+	["B", "Padding only", "Glyph and figure sit 3 px apart; entries 12 px apart. Proximity alone does the grouping. Cleanest; relies on the glyph's colour and shape to start each entry."],
+	["C", "Tint, no stroke", "Each entry on the recessed tint with no outline, 3 px apart. Keeps a sense of a plate (a printed tint block) without the hard edge; the short entry tints toward red."],
+	["D", "Hairline dividers", "No box; a 1 px rule between entries, as in a ledger column. Quiet, and the rule only appears when there are two or more resources."],
+	["E", "Interpunct", "Entries separated by a middle dot, as type would set it: '2 · 4'. Purely typographic; the lightest separator that still reads as a list."],
+	["F", "Colour chips", "Each entry on its resource's flat plane, with the glyph and figure in ink. The most mid-century (flat planes of colour) and the fastest to scan by colour; also the loudest, and a card with three costs becomes three coloured tiles."],
+	["G", "Figure first, glyph as unit", "'1 [sprout] 2 [coin]': the figure leads and the glyph follows like a unit, as the guide sets other units (12 ⌂). Reads like a price; no container at all."],
+	["H", "Hue rule", "A 2 px rule in the resource's hue under each entry, like the tab rail. Groups each pair and repeats its colour without filling anything; a short resource gets a dashed red rule."],
+];
+document.getElementById("opts").innerHTML = OPTIONS.map(([id, name, text]) => `
+	<section class="opt o${id}">
+		<div class="letter">${id}</div>
+		<div><h2>${name}</h2><p>${text}</p></div>
+		<div class="demos">
+			${card("Granary", "olive", { food: 1, wealth: 2 })}
+			${card("Pottery", "teal", { insight: 4 })}
+			${card("Monument", "olive", { wealth: 6 }, "wealth")}
+			${cell().replace("FCHIP", barValue(id))}
+		</div>
+	</section>`).join("");
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>
