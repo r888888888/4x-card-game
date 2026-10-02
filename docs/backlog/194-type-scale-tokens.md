@@ -2,7 +2,7 @@
 id: 194
 title: Text sizes come from the guide's type scale
 type: feature
-status: ready
+status: red-review
 branch: feat/194-type-scale-tokens
 ---
 
@@ -56,6 +56,11 @@ theme variations, and the suite fails on a new literal size. The user chose to s
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_type_tokens::test_the_tokens_hold_the_guides_type_scale`, `test_the_theme_has_a_label_variation_per_type_role` |
+| AC2 | `test_type_tokens::test_a_heading_is_capitals_at_15_tracked` |
+| AC3 | `test_type_tokens::test_every_text_size_on_screen_is_on_the_scale` |
+| AC4 | `test_type_tokens::test_every_text_size_on_a_card_face_is_on_the_scale` |
+| AC5 | `test_type_tokens::test_no_ui_script_passes_a_literal_text_size` |
 
 ## Manual check
 - [ ] Card faces in hand and on the tableau, both modes: the name fits on one line for the longest card names, rules
@@ -66,3 +71,8 @@ theme variations, and the suite fails on a new literal size. The user chose to s
 ## Log
 - Specced from the design-system review (2026-10-02). The user chose to snap values to the guide. Depends on 193
   (the token file).
+- Red: AC1 also checks `Tokens.TYPE_*` (the Design notes' token constants), named as the guide's type tokens
+  (`TYPE_BODY`, `TYPE_LABEL_CAPS`, …). `mid_game`, `each_screen` and `visible_controls` moved from
+  `test_spacing_tokens` / `test_day_mode` into `test_case.gd` (shared with 193's walk). `test_theme::test_labels_look_as_before`
+  changes Heading 19 → 15 and Title 26 → 28, as the Design notes state. AC5 flags 41 lines today (literal sizes in
+  calls that take a size, and the identity modal's `[font_size=30]`).
