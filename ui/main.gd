@@ -34,7 +34,8 @@ var tech_tree: TechTreeModal
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
-var identity_modal: IdentityModal  # the civilization and government, from the top bar's button (119)
+var identity_modal: IdentityModal  # the civilization and government, from the sidebar (119, 202)
+var sidebar: Sidebar  # the right rail: the civilization and government (202)
 
 var _views: BoardViews  # syncs the card views with the engine (176)
 var _board: Control  # the top bar and the play area
@@ -207,11 +208,6 @@ func event_modal() -> Dictionary:
 ## Test hook (079): the drawn-event modal's OK button.
 func event_modal_ok_button() -> Button:
 	return _event_modal.ok_button
-
-
-## Test hook (119): the top bar's civilization and government button (visible or not).
-func identity_button() -> Button:
-	return _top_bar.identity_button()
 
 
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
@@ -435,6 +431,7 @@ func _refresh() -> void:
 	_relief.refresh(e)
 	_restore.refresh(e)
 	_revolt.refresh(e)
+	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
 	focus.sync()

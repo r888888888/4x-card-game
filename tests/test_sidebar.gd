@@ -95,9 +95,8 @@ func test_under_anarchy_the_sidebar_reads_anarchy() -> void:
 
 func test_the_top_bar_has_no_civilization_button() -> void:
 	var main: Node = await open_at(Vector2i(1920, 1080))
-	var top_bar := TopBar.new(func(): pass, func(): pass, func(): pass, func(): pass)
-	check(not top_bar.has_method("identity_button"), "TopBar.identity_button() is gone")
-	top_bar.free()
+	var methods: Array = (load("res://ui/top_bar.gd") as Script).get_script_method_list().map(func(m): return m.name)
+	check(not methods.has("identity_button"), "TopBar.identity_button() is gone")
 	var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
 	for b in UIKit.buttons_in(strip):
 		check(not b.text.contains(civ_name()) and not b.text.contains(gov_name()), "no '%s' in the top strip" % b.text)
