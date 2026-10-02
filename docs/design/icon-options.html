@@ -66,6 +66,7 @@ section { margin-bottom: var(--space-6); }
 .window .val { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); padding: 2px 6px; font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums; }
 .cost { display: inline-flex; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
 .cost span { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px 1px 3px; font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums; }
+.tiny { display: inline-flex; align-items: center; gap: 4px; font: 500 12px/1 var(--f-cond); color: var(--ink-3); }
 .cost span + span { border-left: 1px solid var(--rule); }
 .lineup { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-4) var(--space-5); }
 .lineup figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
@@ -79,7 +80,7 @@ section { margin-bottom: var(--space-6); }
 	<button class="plain" id="theme">Paper / Night</button>
 </header>
 <main>
-	<p class="intro">Candidates for food, wealth, insight and unrest, drawn to the guide's icon rules (§8): a 24 grid, one 2 px stroke scaled with size, square caps and mitred joins, circles, arcs, squares and straight lines only, five primitives at most. Each is shown large, at the resource bar's 32 px beside a value window, and at the cost plate's 20 px. The current glyph is first in each row, on a darker tile. The last section puts the chosen set beside pop, score and the card-type marks to check they stay distinct.</p>
+	<p class="intro">Candidates for food, wealth, insight and unrest, drawn to the guide's icon rules (§8): a 24 grid, one 2 px stroke scaled with size, square caps and mitred joins, circles, arcs, squares and straight lines only, five primitives at most. Each is shown large, at the resource bar's 32 px beside a value window, at the cost plate's 20 px, and at 16 px, the smallest any resource glyph is drawn. The current glyph is first in each row, on a darker tile. The last section puts the chosen set beside pop, score and the card-type marks to check they stay distinct.</p>
 	<div id="sections"></div>
 </main>
 <script>
@@ -106,22 +107,22 @@ const RES = [
 			note: "Two stacked bars. Treasury rather than income; the shape echoes the territory triangle." },
 	] },
 	{ id: "insight", name: "Insight", hue: "blue", cands: [
-		{ key: "current", name: "Current: lens", svg: '<circle cx="12" cy="12" r="7"/><rect x="11" y="11" width="2" height="2" fill="currentColor"/>',
-			note: "Reads as a radio button or a target." },
-		{ key: "bulb", name: "Bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
-			note: "The current pick: a bulb on a two-step base. Plain and universal. Indicator lamps stay plain discs so the two never meet.", pick: true },
-		{ key: "bulb-rays", name: "Lit bulb", svg: '<circle cx="12" cy="12" r="5"/><path d="M10 17.5V20h4v-2.5M12 2v3M4.9 4.9l2.1 2.1M19.1 4.9L17 7M2 12h3M19 12h3"/>',
-			note: "The bulb with five short rays: the 'idea' sign in full. Clearest meaning, busiest shape; the rays crowd it at 20 px." },
-		{ key: "oil", name: "Oil lamp", svg: '<path d="M4 13h12a6 6 0 0 1-12 0z"/><path d="M16 13l5-3M7 22h6"/><path d="M20 2l2.2 3.8a2.2 2.2 0 1 1-4.4 0z"/>',
-			note: "The lamp of learning from the ancient world: a bowl, a spout and its flame. Fits a civilization game's early eras; the flame is small at 20 px." },
-		{ key: "pendant", name: "Pendant lamp", svg: '<path d="M12 2v5"/><path d="M3 16a9 9 0 0 1 18 0z"/><circle cx="12" cy="19" r="2"/>',
-			note: "A mid-century dome pendant (Poul Henningsen, Nelson): a cord, a shade and the bulb beneath. Ties insight to the style itself; bold and clear at every size." },
-		{ key: "desk", name: "Drafting lamp", svg: '<path d="M3 21h9M7 21L5 12l8-6"/><path d="M13 6l6 4-4 4z"/>',
-			note: "An architect's anglepoise: base, two arms and a shade. Belongs on the planning desk; the most detailed of the set and the hardest to read small." },
-		{ key: "filament", name: "Filament bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4M9.5 10l1.25 2 1.25-2 1.25 2 1.25-2"/>',
-			note: "The bulb with a zigzag filament inside: says 'lit' without rays. Holds its outline at 20 px, though the filament fills in." },
-		{ key: "lantern", name: "Lantern", svg: '<circle cx="12" cy="3.5" r="1.5"/><rect x="7" y="7" width="10" height="12"/><path d="M5 21h14"/><path d="M12 9.5l1.8 3a1.8 1.8 0 1 1-3.6 0z"/>',
-			note: "A square lantern with a flame inside: era-neutral light carried into the dark. Reads as a lantern at 32 px; at 20 px the flame is a speck." },
+		{ key: "current", name: "Current: bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
+			note: "The base's neck, step and bar crowd together and blur below 20 px.", pick: true },
+		{ key: "eye", name: "Eye", svg: '<path d="M2 12a13 13 0 0 1 20 0a13 13 0 0 1-20 0z"/><circle cx="12" cy="12" r="3"/>',
+			note: "Insight as seeing into things. Two arcs and a pupil; the almond holds its shape at every size." },
+		{ key: "magnifier", name: "Magnifier", svg: '<circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6"/>',
+			note: "Inquiry and study, in two strokes. The most legible small, but every app uses it for search." },
+		{ key: "spiral", name: "Spiral", svg: '<path d="M13 11a2 2 0 0 0-4 0a4 4 0 0 0 8 0a6 6 0 0 0-12 0a8 8 0 0 0 16 0"/>',
+			note: "Understanding that grows: four half-turns, each wider than the last. A Bauhaus-era geometry motif; open enough to read at 16 px." },
+		{ key: "sun", name: "Rising sun", svg: '<path d="M2 19h20M6 19a6 6 0 0 1 12 0M12 5v4M5.5 8.5l2.5 2.5M18.5 8.5L16 11"/>',
+			note: "Dawn, enlightenment: a half-disc on the horizon with three rays. Reads like a 1960s corporate mark; optimistic." },
+		{ key: "prism", name: "Prism", svg: '<path d="M12 4l8 14H4z"/><path d="M1 13.5l6.5-1.5M16.5 12l6.5-3M16.5 12h6.5M16.5 12l6.5 3"/>',
+			note: "Light entering a prism and splitting: insight breaking things into parts. The rays crowd at 16 px." },
+		{ key: "book", name: "Open book", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/>',
+			note: "From the first set, for comparison. Learning and record-keeping; clear at every size." },
+		{ key: "bulb-plain", name: "Bulb, one-bar base", svg: '<circle cx="12" cy="10" r="7"/><path d="M9 21h6"/>',
+			note: "Your critique fixed directly: the base is one bar, so nothing at the bottom can blur. Two primitives." },
 	] },
 	{ id: "unrest", name: "Unrest", hue: "brick", cands: [
 		{ key: "current", name: "Current: zigzag triangle", svg: '<path d="M12 3l9 17H3z"/><path d="M9 15l2-3 2 3 2-3"/>',
@@ -157,6 +158,7 @@ document.getElementById("sections").innerHTML = RES.map((r) => `
 					<span class="big">${icon(c.svg, r.hue, 48)}</span>
 					<span class="window">${icon(c.svg, r.hue, 32)}<span class="val">12</span></span>
 					<span class="cost"><span>${icon(c.svg, r.hue, 20)}3</span></span>
+					<span class="tiny">${icon(c.svg, r.hue, 16)}<span>16</span></span>
 				</div>
 				<p>${c.note}</p>
 			</div>`).join("")}
