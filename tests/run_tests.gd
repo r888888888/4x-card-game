@@ -62,7 +62,11 @@ func _initialize() -> void:
 			collector.errors.clear()
 			await t.call(method_name)  # a test may await frames (for layout); a plain one returns at once
 			for e in collector.errors:
-				failures.append("%s: error: %s" % [test_name, e])
+				if not t.expected_errors.any(func(fragment: String): return fragment in e):
+					failures.append("%s: error: %s" % [test_name, e])
+			for fragment: String in t.expected_errors:
+				if not collector.errors.any(func(e: String): return fragment in e):
+					failures.append("%s: expected an error containing '%s'" % [test_name, fragment])
 			if t.assertions == 0:
 				failures.append("%s: made no assertions (empty, or crashed before the first check)" % test_name)
 			for node in root.get_children():  # a test that crashed before close_main leaves its scene in the tree

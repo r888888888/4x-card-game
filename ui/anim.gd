@@ -38,3 +38,13 @@ const HIGHLIGHT_PULSE_TIME := 0.7
 const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fading, in and out (104)
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
+
+# The style guide's easing curves (§9.3) as cubic-bezier control points (x1, y1, x2, y2), for timing sounds (186).
+const SNAP := Vector4(0.3, 0, 0, 1)
+const MACHINED := Vector4(0.2, 0, 0, 1)
+const LATCH := Vector4(0.5, -0.2, 0.1, 1)
+const RELEASE := Vector4(0.4, 0, 1, 1)
+
+
+static func contact(_duration: float, _curve: Vector4) -> float:
+	return 0.0

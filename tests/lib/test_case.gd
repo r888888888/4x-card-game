@@ -98,6 +98,14 @@ const TEST_GOVS := [
 var test_name := ""  # "file::method", set by the runner
 var failures: Array[String] = []  # shared with the runner
 var assertions := 0
+var expected_errors: Array[String] = []  # expect_error's fragments; the runner checks them against the logged errors
+
+
+## Expects an error containing fragment to be logged (push_error) during this test: it doesn't fail the test, and the
+## test fails if no such error is logged. Counts as an assertion.
+func expect_error(fragment: String) -> void:
+	assertions += 1
+	expected_errors.append(fragment)
 
 
 # --- Assertions ---
