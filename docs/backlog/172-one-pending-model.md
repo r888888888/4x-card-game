@@ -2,7 +2,7 @@
 id: 172
 title: One pending-decision model
 type: feature
-status: red-review
+status: in-progress
 branch: feat/172-one-pending-model
 ---
 

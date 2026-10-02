@@ -85,9 +85,10 @@ static func discard_card(e: GameEngine, uid: int) -> bool:
 	e.zone("hand").remove(card)
 	e.zone("discard").add(card)
 	e._log("Discarded %s." % card.def.name)
-	if e.state.discard_left > 0:
-		e.state.discard_left -= 1
-		if e.state.discard_left == 0:
+	if e.state.pending.get("kind", "") == GameEngine.PENDING_DISCARD:
+		e.state.pending.count -= 1
+		if e.state.pending.count == 0:
+			e.state.pending = {}
 			finish_turn(e)  # emits changed
 			return true
 	e.changed.emit()
@@ -101,7 +102,7 @@ static func end_turn(e: GameEngine) -> void:
 	if e.turn < e.turn_limit():
 		var over: int = e.zone("hand").size() - e.config.hand_limit
 		if over > 0:
-			e.state.discard_left = over
+			e.state.pending = {"kind": GameEngine.PENDING_DISCARD, "count": over}
 			e._log("Hand limit is %d: discard %d." % [e.config.hand_limit, over])
 			e.changed.emit()
 			return

@@ -57,9 +57,6 @@ var is_over: bool:
 var log_lines: Array[String]:
 	get: return state.log_lines
 	set(v): state.log_lines = v
-var pending_choice: Dictionary:  # {options: Array[int], source: CardInstance}; empty = none
-	get: return state.pending_choice
-	set(v): state.pending_choice = v
 
 
 func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:

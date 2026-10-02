@@ -42,10 +42,11 @@ static func start_of_turn(e: GameEngine) -> void:
 static func start_renewal(e: GameEngine) -> void:
 	var anarchy := active(e)
 	if anarchy == null or not e.config.unrest.has("renewal"):
-		e.state.renewal_left = 0
 		return
 	var n: int = e.config.unrest.renewal + anarchy.counters + e.modifier(RENEWAL)
-	e.state.renewal_left = clampi(n, 0, renewal_options(e).size())
+	n = clampi(n, 0, renewal_options(e).size())
+	if n > 0:
+		e.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": n}
 
 
 ## The discard cards renewal may trash, in discard order: all but governments.
@@ -58,10 +59,9 @@ static func renewal_options(e: GameEngine) -> Array[int]:
 
 
 static func renew_error(e: GameEngine, uid: int) -> String:
-	if e.state.choosing_government:
-		return e._blocked_error("renew")
-	if e.state.renewal_left <= 0:
-		return "Nothing to renew."
+	var owed := e._owed_error(GameEngine.PENDING_RENEWAL, "Nothing to renew.")
+	if owed != "":
+		return owed
 	return "" if renewal_options(e).has(uid) else RENEW_ERROR
 
 
@@ -71,7 +71,9 @@ static func renew(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("discard").find(uid)
 	e.zone("discard").remove(card)
 	e.zone("trashed").add(card)
-	e.state.renewal_left -= 1
+	e.state.pending.count -= 1
+	if e.state.pending.count == 0:
+		e.state.pending = {}
 	e._log("Renewal: trashed %s." % card.def.name)
 	e.lose(GameEngine.UNREST, 1, card)
 	e.changed.emit()
@@ -197,13 +199,14 @@ static func _burn_out(e: GameEngine, anarchy: CardInstance) -> void:
 static func _end(e: GameEngine, anarchy: CardInstance) -> void:
 	e.zone("government").remove(anarchy)
 	e.zone("removed").add(anarchy)
-	e.state.choosing_government = true
+	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 
 
 ## Why choose_government(uid) would refuse, or "" (154).
 static func choose_government_error(e: GameEngine, uid: int) -> String:
-	if not e.state.choosing_government:
-		return "No government to choose."
+	var owed := e._owed_error(GameEngine.PENDING_GOVERNMENT, "No government to choose.")
+	if owed != "":
+		return owed
 	return "" if e.zone("governments").find(uid) != null else "That government isn't in your government deck."
 
 
@@ -216,7 +219,7 @@ static func choose_government(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("governments").find(uid)
 	e.zone("governments").remove(card)
 	e.zone("government").add(card)
-	e.state.choosing_government = false
+	e.state.pending = {}
 	var limit := e.unrest_limit()
 	if limit >= 0:
 		e.resources[GameEngine.UNREST] = mini(e.resources.get(GameEngine.UNREST, 0), limit / 2)
