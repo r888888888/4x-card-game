@@ -54,7 +54,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
-	var subtitle_label := rich_label(subtitle, Tokens.TYPE_BODY_S, color.lightened(0.5))
+	var subtitle_label := rich_label(subtitle, Tokens.TYPE_BODY_S, Palette.TEXT_DIM)
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
 	add_child(type_row)
@@ -67,7 +67,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		add_child(rules)
 
 	if def.type == CardDef.TERRITORY:
-		var info_label := rich_label(territory_info(card), Tokens.TYPE_BODY_S, color.lightened(0.5))  # "Hills + Gold": rolled last
+		var info_label := rich_label(territory_info(card), Tokens.TYPE_BODY_S, Palette.TEXT_DIM)  # "Hills + Gold": rolled last
 		info_label.name = "PrintedInfo"
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -99,8 +99,10 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		if kind == CardView.BOARD_FRONTIER:
 			var keywords := keyword_line(card)
 			if keywords != "":
-				add_child(one_line(rich_label(keywords, Tokens.TYPE_BODY_S, color.lightened(0.5))))
-			var printed := rich_label("▢%d ⌂%d" % [def.slots, def.housing], Tokens.TYPE_BODY, color.lightened(0.5))
+				var keyword_label := one_line(label(keywords, Tokens.TYPE_BODY_S, Palette.TEXT_DIM))
+				keyword_label.name = "Keywords"
+				add_child(keyword_label)
+			var printed := rich_label("▢%d ⌂%d" % [def.slots, def.housing], Tokens.TYPE_BODY, Palette.TEXT_DIM)
 			printed.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 			printed.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 			add_child(printed)
@@ -180,7 +182,7 @@ func show_settled(keywords: String, live: String) -> void:
 			node.free()
 	var keyword_line := get_node_or_null("Keywords") as Label
 	if keyword_line == null:
-		keyword_line = label("", Tokens.TYPE_BODY_S, CardView.HIGHLIGHT_COLOR.lightened(0.6))
+		keyword_line = label("", Tokens.TYPE_BODY_S, Palette.TEXT_DIM)
 		if board:
 			one_line(keyword_line)
 		keyword_line.name = "Keywords"

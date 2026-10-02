@@ -2,7 +2,7 @@
 id: 197
 title: Day mode: card type lines and territory keywords are pale on paper
 type: bug
-status: red-review
+status: review
 branch: fix/197-day-mode-pale-card-text
 ---
 
@@ -21,13 +21,13 @@ lightened 50% (`color.lightened(0.5)`, `ui/card_face.gd` lines 57 and 102), and 
 `CardView.HIGHLIGHT_COLOR.lightened(0.6)` (line 183). Lightening reads on Night's dark sheets and washes out on Paper.
 
 ## Acceptance criteria
-- [ ] AC1: Given Day mode on and seed 5 (Sumer), when the hand and the Realm show, then every card face's type line and
+- [x] AC1: Given Day mode on and seed 5 (Sumer), when the hand and the Realm show, then every card face's type line and
   keyword line (hand cards, the settled Delta Marsh, a frontier territory, a supply card) is drawn in a colour with
   at least 4.5:1 contrast on the card's panel colour (`Palette.RAISED`), measured with `test_theme`'s contrast helper.
-- [ ] AC2: Given Night mode, the same lines also have at least 4.5:1 on the card's panel colour.
-- [ ] AC3: Given a game in progress, when Day mode is switched on and off, then the type and keyword lines take the new
+- [x] AC2: Given Night mode, the same lines also have at least 4.5:1 on the card's panel colour.
+- [x] AC3: Given a game in progress, when Day mode is switched on and off, then the type and keyword lines take the new
   mode's colour at once (183's AC3), without a restart.
-- [ ] AC4: No `ui/` script derives a text colour by lightening or darkening a `Palette` colour (`.lightened(`,
+- [x] AC4: No `ui/` script derives a text colour by lightening or darkening a `Palette` colour (`.lightened(`,
   `.darkened(` on a colour passed as a font or `default_color`); `test_ui_structure` checks for `lightened(` /
   `darkened(` in `card_face.gd` text colours. (If a palette role is missing, add one, e.g. `TEXT_DIM`.)
 
@@ -42,9 +42,18 @@ lightened 50% (`color.lightened(0.5)`, `ui/card_face.gd` lines 57 and 102), and 
 | AC3 | `test_day_mode::test_bug_197_type_and_keyword_lines_switch_with_day_mode_mid_game` |
 | AC4 | `test_ui_structure::test_bug_197_card_faces_derive_no_text_colour_by_lightening_or_darkening` |
 
+## Manual check
+- [ ] Day mode, seed 5 Sumer: the hand's type lines, Delta Marsh's keywords and a frontier card's keywords and "▢N ⌂N"
+  read as grey ink on paper; in Night they read as before (a little less tinted).
+
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`CardFace` derived its secondary text colours from the card type's plane colour (`color.lightened(0.5)`) and the
+gold highlight (`HIGHLIGHT_COLOR.lightened(0.6)`). Lightening a mid-tone keeps contrast on Night's dark sheet but
+lands near white on Paper. They now use the palette's secondary ink, `Palette.TEXT_DIM` (4.5:1 on `RAISED` in both
+modes, guarded by 183's contrast test), and repaint with the face on a mode switch. The frontier keyword line is now a
+Label named `Keywords`, like the settled one.
 
 ## Log
 - Specced 2026-10-02 from the notes list ("white text on beige background in day mode"). Found the cause by rendering
   the board in Day mode offscreen (`--write-movie` under a scratch `HOME`).
+- 2026-10-02: Fixed with `TEXT_DIM`; the frontier's printed "▢N ⌂N" line was lightened too and moved to it as well.
