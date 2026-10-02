@@ -88,6 +88,7 @@ control room) is the dark mode the game ships by default today. Every value belo
 | `color.sheet` | Panels, cards, modals (paper laid on the desk) | `#F8F4EC` | `#2A2825` |
 | `color.well` | Recessed areas: fields, tracks, sunken trays | `#E3DACA` | `#171614` |
 | `color.steel` | Control faces (secondary buttons, tabs) | `#DCD3C2` | `#3A3733` |
+| `color.knob` | The raised part of a drawn control (a switch thumb): the lightest surface | `#FBF8F2` | `#57524A` |
 | `color.ink` | Primary text, heavy rules, the frame | `#22211F` | `#EDE6D6` |
 | `color.ink-2` | Secondary text, labels, captions | `#57534B` | `#B9B1A1` |
 | `color.ink-3` | Disabled text and decoration only (never information) | `#7A7468` | `#8E877A` |
@@ -307,17 +308,28 @@ Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in
 
 Cards are **index cards**, not app tiles: square corners, `sheet` face, 2 px `ink` border (Night: `rule`), and
 a **type band**: a 6 px plane-coloured strip across the top under the name, carrying the type glyph at its right
-end. Cost sits top-right as a numeral on a `well` plate. Rules text below a hairline. VP bottom-right with the
-starburst. No drop shadow at rest (cards lie flat); `shadow.lift` when lifted.
+end. Rules text below a hairline. VP bottom-right with the starburst. No drop shadow at rest (cards lie flat);
+`shadow.lift` when lifted.
+
+**Cost is always top-right**, on every card type, on the name's line: one `well` plate (1 px inner `rule`) holding
+one **cost entry per resource paid**, in a fixed order: food, wealth, insight. Each entry is the resource's glyph
+(`icon.m` 20, the resource's hue line) followed by its figure (`type.numeral-s`, `ink`); entries are divided by a
+1 px `rule`. A Granary costing 1 food and 2 wealth reads `[⊕ 1 | ▭ 2]`. The **glyph's shape** tells food from
+wealth (sheaf vs ledger), and the hue repeats it, so the two never depend on colour; the plate's accessible name
+spells it out ("Costs 1 food, 2 wealth"). A card with no cost shows no plate (never a 0). A resource the player is
+short of prints its figure in `danger`, underlined 2 px, so the reason a card is dimmed is visible on the cost itself.
 
 A dimmed (unplayable) card keeps full-contrast text, swaps the band for a 45° hatch in `ink-3` and adds its reason
 strip as a `well` plate with ⊘ and `ink` text, not a red banner.
 
 ### 6.8 Icon sizing
 
-`icon.xs` 12 (inline in captions) · `icon.s` 16 (in body text, in buttons) · `icon.m` 20 (resource bar, tabs) ·
-`icon.l` 28 (card type mark, notifications) · `icon.xl` 48 (modal headers, era change). Icons sit on the text
+`icon.xs` 12 (inline in captions) · `icon.s` 16 (in body text, in buttons) · `icon.m` 20 (card costs, tabs) ·
+`icon.l` 32 (resource bar, notifications) · `icon.xl` 48 (modal headers, era change). Icons sit on the text
 baseline when inline (`Icons.fill` already scales to the font size); in controls they're centred on the cap height.
+**A glyph beside a value window or plate takes that box's height**: the resource bar's windows are 32 px, so its
+glyphs are 32; a card's cost plate line is 22 px, so its glyphs are 20. A small glyph beside a tall box reads as an
+afterthought.
 
 ### 6.9 Alignment rules
 
@@ -339,9 +351,11 @@ Each component lists anatomy, then states. Detailed state-transition specs are i
 3. **Tertiary / link** — no box. `ink-2` label; hover draws a 2 px underline in from the left (wipe).
 4. **Tab** — a folder tab: square top, its rail below. Inactive tabs are `steel`; the active tab is `sheet`, joins
    the sheet below (no border between them) and carries a 3 px `ink` rail on top that slides between tabs.
-5. **Toggle** — a rocker switch: a 44×24 `well` track, a square-ish thumb (`radius.1`) and an indicator lamp beside
-   it with ON/OFF printed in `type.label-caps`. The label always states the state.
-6. **Resource counter** — glyph, value in a **window** (a `well` inset with a 1 px inner `rule`), caption below.
+5. **Toggle** — a drawn slide switch (a graphic, not a styled box): an enamelled plate with printed `0` and `1`
+   marks, a recessed slot, a ribbed thumb on a hard shadow, and a lit flag the thumb uncovers when ON. The state
+   word (ON/OFF) is printed beside it in `type.label-caps`. §15.4.
+6. **Resource counter** — caption with its lamp on the same line, then glyph + value in a **window** (a `well` inset
+   with a 1 px inner `rule`), forecast below.
 7. **Card** — §6.7.
 8. **Panel / drawer** — `sheet`, square, title block, `shadow.lift` when it overlaps content, none when docked.
 9. **Tooltip** — a printed tab: `ink` fill, `sheet` text (inverse) in Night and Paper alike, `radius.0`, a 6 px
@@ -507,7 +521,9 @@ the rail. Each flag has a hue bar, glyph and one line; urgent ones (famine, anar
 lit brick lamp until resolved.
 
 ### 10.8 Success / confirmation
-The lamp next to the control lights, then a small starburst (6 rays, 8 px) draws out from it and fades. For
+The lamp next to the control lights, then a small starburst (6 rays, 8 px) draws out from it and fades. The burst
+is centred on the lamp: each ray rotates about the lamp's centre and grows outward from 1 px beyond its rim
+(radius 9 → 17 px), so the lamp sits exactly in the middle of the rays. For
 bigger confirmations (tech learned) the tech's tile gets a full 12-ray burst behind its glyph for 400 ms and the
 tile's band fills in with a left→right wipe. Large sequences only for era changes and victory.
 
@@ -528,7 +544,8 @@ Motion at rest: nothing. The only animation the player sees between actions is t
 
 ### 11.2 Resource bar
 A row of **instrument cells**, each 160 px wide, divided by 1 px vertical `rule-fine` lines (like a Braun radio's
-dials). Each cell: `type.label-caps` caption top-left ("FOOD"), glyph + odometer value in a recessed window, and
+dials). Each cell: `type.label-caps` caption top-left ("FOOD") with the cell's lamp at the right end of the same
+line, centred on it; glyph (32 px, the window's height) + odometer value in a recessed window; and
 the next-upkeep forecast in `type.caption` below (`+2 next`, sage; `−1 next`, brick with ◆ caution glyph if it would
 starve). Unrest shows as a small half-gauge against its limit instead of a number when the limit is ≤ 10.
 Hover a cell → the forecast tooltip (the existing one). A cell whose value is at a limit or dangerous lights its
@@ -675,6 +692,8 @@ state directly.
 | Plain warm off-white paper | Paper texture, coffee stains, wood grain, leather |
 | Plex Mono in a split-flap window | A pixel or LCD segment font |
 | Era change as a ceremonial sheet | Era change as confetti |
+| Cost top-right as `[⊕ 1 \| ▭ 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
+| A drawn slide switch with a ribbed thumb and a flag | A rounded pill track with a circle thumb |
 
 ---
 
@@ -722,16 +741,16 @@ type:                         # size / line-height, px
   label:      [17, 20]   label-caps: [14, 16] caption: [14, 18]
   numeral-xl: [44, 44]   numeral: [26, 28]   numeral-s: [17, 20]
 tracking: { display: 0.06em, caps: 0.12em, heading: 0.10em, body: 0, numeral: 0 }
-icon:    { xs: 12, s: 16, m: 20, l: 28, xl: 48, stroke-at-24: 2 }
+icon:    { xs: 12, s: 16, m: 20, l: 32, xl: 48, stroke-at-24: 2 }  # beside a box: the box's height
 lamp:    { s: 10, m: 14, l: 20 }
 color.paper:
-  board: "#EFE8DA"  sheet: "#F8F4EC"  well: "#E3DACA"  steel: "#DCD3C2"
+  board: "#EFE8DA"  sheet: "#F8F4EC"  well: "#E3DACA"  steel: "#DCD3C2"  knob: "#FBF8F2"
   ink: "#22211F"  ink-2: "#57534B"  ink-3: "#7A7468"  rule-fine: "#CFC6B5"  rule: "#6F685C"
   shadow: "#22211F"  signal: "#A8401B"  on-signal: "#FBF6EC"
   positive: "#4E6B47"  caution: "#7C5810"  danger: "#9B3424"  info: "#35597C"  focus: "#1F6A68"
   plane: { teal: "#5E9C97", ochre: "#D9A441", olive: "#A3AA6A", blue: "#8AA7C4", brick: "#C9705C", sage: "#9DB592" }
 color.night:
-  board: "#1F1E1C"  sheet: "#2A2825"  well: "#171614"  steel: "#3A3733"
+  board: "#1F1E1C"  sheet: "#2A2825"  well: "#171614"  steel: "#3A3733"  knob: "#57524A"
   ink: "#EDE6D6"  ink-2: "#B9B1A1"  ink-3: "#8E877A"  rule-fine: "#3A3733"  rule: "#857D70"
   shadow: "#0D0C0B"  signal: "#E0703F"  on-signal: "#1F1E1C"
   positive: "#93B585"  caution: "#D9A441"  danger: "#E07A63"  info: "#86A9CC"  focus: "#6CC3BC"
@@ -764,7 +783,9 @@ optional 16 px icon left with 8 px gap.
 
 ### 15.3 Tab
 Anatomy: 36 px tall, padding 0 × 16, `type.label-caps`, square top, sits on a 1 px `ink` baseline. Group has one
-shared 3 px `ink` **rail** that sits on the active tab's top edge.
+shared 3 px `ink` **rail** that sits on the active tab's top edge. The panel's content starts on the same vertical
+line as the first tab's label text (panel border + padding = tab border + padding: 1 + 16), and its top padding
+equals its side padding (16), so the label and the text under it read as one column.
 
 | Transition | Duration | Change | Curve |
 |---|---|---|---|
@@ -773,20 +794,37 @@ shared 3 px `ink` **rail** that sits on the active tab's top edge.
 | PRESSED → ACTIVE | 200 ms | the rail **slides** to this tab (x and width); fill `steel` → `sheet`; the baseline under it opens (tab joins the sheet); content below crossfades 120 ms with a 12 px slide in the direction of travel | `machined` |
 | ACTIVE (rest) | — | `sheet` fill, `ink` label 600, rail on top | |
 
-### 15.4 Toggle (rocker)
-Anatomy: 44×24 `well` track, 2 px `rule` border, `radius.1`; 20×20 thumb, `steel`, 2 px `ink` border, `radius.1`,
-`shadow.plinth`; lamp (10 px) right of the track; state word ("ON"/"OFF") in `type.label-caps` beside the lamp; the
-setting's name to the left.
+### 15.4 Toggle (slide switch)
+A styled box (a track and a square thumb) reads as a cheap web control. The toggle is a **drawn graphic**, like a
+Braun slide switch: one SVG (in Godot, a small `Control` that draws it in `_draw()`, or an SVG per part) on a 76×32
+grid, so it scales with the UI.
 
-`OFF → (press) → ON`: thumb PRESSED (+0, +1, shadow none, 60 ms `snap`) → thumb slides 20 px right (160 ms `latch`,
-2 px anticipation left) → at 60% of travel the lamp turns on (40 ms `lamp-on`, sage plane) and the word flips
-OFF→ON (one split-flap step, 60 ms). The track stays `well` in both states: state is carried by thumb position, lamp
-and word, never by a filled track. Reverse for ON → OFF, lamp off 160 ms `lamp-off`.
+Anatomy, back to front:
+- **Plate** 76×32: `steel`, 1.5 px `ink` edge, `radius.1`. Printed marks at its ends: `0` (a 3 px-radius ring) left,
+  `1` (an 8 px bar) right, 1.5 px `ink-3`; the mark for the current state prints in `ink` at 2 px.
+- **Slot** 42×22, centred: `well`, 1 px `ink` edge, with a 2.5 px hard **recess** along its top and left inside edges
+  (`shadow` at 35%) so it reads as cut into the plate.
+- **Flag** 16×16 at the slot's left end: the `sage` plane with a 1 px sage line edge. The thumb covers it when OFF;
+  sliding ON uncovers it, like a mechanical indicator flag.
+- **Thumb** 18×16: `knob` (the lightest surface: Paper `#FBF8F2`, Night `#57524A`), 1.25 px `ink` edge, 1.5 px corners,
+  three vertical 1.25 px `ink-2` grip ridges, on a solid 2,2 `shadow`.
+- **State word** ("ON"/"OFF", `type.label-caps`) right of the plate; the setting's name left of it. No separate lamp:
+  the flag is the lamp.
+
+| Transition | Duration | Change | Curve |
+|---|---|---|---|
+| REST → PRESSED | 70 ms | thumb face moves +2, +2 onto its shadow | `snap` |
+| OFF → ON | 160 ms | thumb slides 17 px right (2 px anticipation left), uncovering the flag; at 60% of travel the word flips (one split-flap step) and the `1` mark prints in ink | `latch` |
+| ON → OFF | 160 ms | the reverse; the thumb covers the flag | `latch` |
+| RELEASED | 120 ms | face back to 0, 0 | `machined` |
+| DISABLED | — | plate `well`, marks and ridges `ink-3`, no shadow | |
+| Reduce motion | — | the thumb jumps; the word swaps | |
 
 ### 15.5 Resource counter
-Anatomy: caption (`type.label-caps`, `ink-2`) above; glyph (`icon.m`, resource hue line) left of a window; the window is
-`well`, 1 px inner `rule`, 4 × 8 padding, value in `type.numeral` `ink`, fixed width for 3 digits; forecast caption
-below; a 10 px lamp in the cell's top-right corner.
+Anatomy: a head line with the caption (`type.label-caps`, `ink-2`) at its left and a 12 px lamp at its right,
+vertically centred on the caption; glyph (`icon.l` 32, the window's height, resource hue line) left of a window; the
+window is `well`, 1 px inner `rule`, 2 × 6 padding (32 px tall), value in `type.numeral` `ink`, fixed width for 3
+digits; forecast caption below.
 
 `IDLE → CHANGED(+n)`:
 1. 0 ms: delta tag "+3" appears right of the window, offset −4, 0 → 0, 0, 90 ms `snap`, colour sage (or brick "−2").
@@ -798,7 +836,8 @@ below; a 10 px lamp in the cell's top-right corner.
 Reduce motion: value swaps, tag and lamp hold 1.5 s.
 
 ### 15.6 Card
-Anatomy: §6.7. 2 px border; 6 px type band; name `type.label` 600; cost `type.numeral-s` on a `well` plate top-right;
+Anatomy: §6.7. 2 px border; 6 px type band; name `type.label` 600; cost plate top-right, one glyph + figure entry
+per resource (§6.7);
 rules `type.body-s`; VP with starburst bottom-right.
 
 | Transition | Duration | Offset | Shadow | Border | Other |
