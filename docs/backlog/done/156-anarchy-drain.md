@@ -2,7 +2,7 @@
 id: 156
 title: Anarchy eats into stored food and wealth
 type: feature
-status: review
+status: done
 branch: feat/156-anarchy-drain
 ---
 
