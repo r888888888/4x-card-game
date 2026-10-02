@@ -12,7 +12,7 @@ This file says what is in the code **now**. When an item changes a token, it upd
 | What | Where | Rule |
 |---|---|---|
 | Colours | `ui/palette.gd` (`Palette`) | Named for their use. Read when drawing; never copy into a `const` (suite checks). No colour literal elsewhere in `ui/` (suite checks). |
-| Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets. |
+| Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets (suite checks, 192). |
 | Looks (fonts, sizes, boxes) | `ui/game_theme.gd` (`GameTheme`) | A look used twice is a theme type variation, set with `theme_type_variation`. |
 | Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
@@ -25,6 +25,7 @@ A colour must follow a Day mode switch. How depends on where it is set:
 2. **Set in code each refresh** (a refresh reads `Palette.X`): follows by itself.
 3. **Set in code once, at build time**: wrap it in `UIKit.painted(node, func(): …)`, or pass a role name
    (`UIKit.stat(parent, &"GAIN")`, `UIKit.overlay(parent, &"WARN")`), never a `Color` read at build time.
+   `UIKit.stat` takes only a role name, and every all-caps `&"ROLE"` in `ui/` must be a Palette role (suite checks, 192).
 
 ## Colour roles: Palette name → guide token (§4)
 

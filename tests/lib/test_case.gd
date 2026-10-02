@@ -510,6 +510,20 @@ func with_reduce_motion(calm: bool, body: Callable) -> void:
 		DirAccess.remove_absolute(path)
 
 
+## Runs body with the Settings autoload saving to a temp file at path (Day mode and Reduce motion off), then puts the
+## player's store and palette back. Use with await.
+func with_temp_settings(body: Callable, path := "user://test_temp_settings.cfg") -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+	var original: SettingsStore = Settings.store
+	Settings.store = SettingsStore.new(path)
+	await body.call()
+	Settings.store = original
+	Settings.changed.emit()  # back to the player's palette
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+
 ## Waits until a navigated screen's transition (Anim.SCREEN_TIME, 104) is over. Use with await.
 func wait_screen_transition() -> void:
 	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.SCREEN_TIME + 0.15).timeout

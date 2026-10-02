@@ -2,7 +2,7 @@
 id: 192
 title: Palette roles can't be misspelt or frozen by mistake
 type: feature
-status: ready
+status: review
 branch: feat/192-palette-role-guards
 ---
 
@@ -16,13 +16,13 @@ these mistakes fails the suite. The design-system review (LLM-friendliness) foun
 into most easily.
 
 ## Acceptance criteria
-- [ ] AC1: Given `UIKit.stat`, when its parameters are inspected, then its colour parameter is typed `StringName`
+- [x] AC1: Given `UIKit.stat`, when its parameters are inspected, then its colour parameter is typed `StringName`
   (a role name, default `&"TEXT"`); it no longer accepts a `Color`.
-- [ ] AC2: Given `UIKit.stat(parent, &"POP")` in the main scene, when Day mode is switched on and the UI repaints, then
+- [x] AC2: Given `UIKit.stat(parent, &"POP")` in the main scene, when Day mode is switched on and the UI repaints, then
   the label's font colour is `Palette.DAY["POP"]`; switched back, it is `Palette.NIGHT["POP"]`.
-- [ ] AC3: Given every `ui/` script, when its source is scanned for all-caps StringName literals (`&"[A-Z][A-Z_]*"`),
+- [x] AC3: Given every `ui/` script, when its source is scanned for all-caps StringName literals (`&"[A-Z][A-Z_]*"`),
   then each one names a key of `Palette.NIGHT`; the failure lists `file:line` and the unknown name.
-- [ ] AC4: Given `Palette.NIGHT` and `Palette.DAY`, then they have exactly the same keys, and each key is a static
+- [x] AC4: Given `Palette.NIGHT` and `Palette.DAY`, then they have exactly the same keys, and each key is a static
   `Color` var on `Palette`; and each `Color` static var on `Palette` is a key of both.
 
 ## Out of scope
@@ -45,6 +45,18 @@ into most easily.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_palette_roles::test_stat_takes_a_role_name_not_a_colour` |
+| AC2 | `test_palette_roles::test_a_stat_follows_a_day_mode_switch` |
+| AC3 | `test_palette_roles::test_every_role_name_in_the_ui_is_a_palette_role` |
+| AC4 | `test_palette_roles::test_night_and_day_name_the_palettes_colours` |
 
 ## Log
 - Specced from the design-system review (2026-10-02).
+- Red: AC2–AC4 already hold today (guards). Each was checked against a deliberate break (stat set once without
+  `painted`, `&"TERRITROY"` in choice_overlays, `HINT_BG` dropped from `DAY`): each test failed on its break.
+- `get_script_property_list()` leaves out static vars, so AC4 reads Palette's `static var X: Color` lines from source.
+- `test_theme`'s two `UIKit.stat` calls take `&"POP"` and `&"TEXT"` now (stated in Design notes), so the file still
+  parses once the parameter is typed.
+- Green: `UIKit.stat(parent, role: StringName = &"TEXT")`, always painted. Refactor: `with_temp_settings(body, path)`
+  moved into `test_case.gd` (three copies: day mode, start screen, this file). Suite 1191 → 1195. No UI-visible
+  change, so no manual check.
