@@ -122,14 +122,11 @@ static func section(parent: Control, text: String) -> VBoxContainer:
 	return box
 
 
-## A stat label in color: a Palette role name (kept through a Day mode switch, 183) or a fixed Color.
-static func stat(parent: Control, color: Variant = &"TEXT") -> Label:
+## A stat label in role's colour: a Palette role name, never a Color, so it follows a Day mode switch (183, 192).
+static func stat(parent: Control, role: StringName = &"TEXT") -> Label:
 	var label := Label.new()
 	label.theme_type_variation = &"Stat"
-	if color is Color:
-		label.add_theme_color_override("font_color", color)
-	else:
-		painted(label, func(): label.add_theme_color_override("font_color", Palette.color(color)))
+	painted(label, func(): label.add_theme_color_override("font_color", Palette.color(role)))
 	parent.add_child(label)
 	return label
 
