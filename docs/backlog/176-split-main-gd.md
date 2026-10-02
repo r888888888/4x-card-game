@@ -2,7 +2,7 @@
 id: 176
 title: Split main.gd along the view-sync and layout boundaries
 type: feature
-status: ready
+status: red-review
 branch: feat/176-split-main-gd
 ---
 
@@ -30,6 +30,10 @@ military items' UI. From the 2026-10-01 project review.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_ui_structure::test_each_ui_component_has_its_own_script` / `test_main_uses_each_component` (`BoardViews` in `ui/board_views.gd`, `BoardLayout` in `ui/board_layout.gd` added to `COMPONENTS`) |
+| AC2 | `test_ui_structure::test_main_is_under_the_soft_limit` |
+| AC3 | `test_ui_queries::test_zone_of_names_the_zone_holding_a_card`, `test_ui_structure::test_the_ui_asks_the_engine_which_zone_holds_a_card` |
+| AC4 | Every existing test unedited (main's hooks: test_board_row, test_territory_view, test_modal_stack, …) |
 
 ## Manual check
 - [ ] Seed 1: dealing, playing onto a territory, a card flying to the Log button, a trashed card leaving, opening and
@@ -37,3 +41,6 @@ military items' UI. From the 2026-10-01 project review.
 
 ## Log
 - 2026-10-01: Specced from the project review.
+- 2026-10-01: Red. Names: `BoardViews` (`ui/board_views.gd`) and `BoardLayout` (`ui/board_layout.gd`); `zone_of(uid) ->
+  String` on `GameEngine`. AC2 is a test of its own (main.gd at most 500 lines, counted as `wc -l` does), so the
+  limit holds after the WARN line scrolls by.
