@@ -140,6 +140,7 @@ static func start_turn(e: GameEngine) -> void:
 		Population.feed(e)
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
+	Anarchy.drain(e)
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 	Anarchy.start_renewal(e)
 

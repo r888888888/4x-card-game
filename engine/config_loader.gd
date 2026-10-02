@@ -286,7 +286,7 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 
 
 ## Normalizes the unrest block (145) {anarchy, max_counters, era_unrest (default 0), allowed_tag (default
-## ""), renewal (147, only when given; 0 when absent)}: only with unrest in resources; anarchy is a government (154: no fallback), and the anarchy card sets no
+## ""), renewal (147, only when given; 0 when absent), drain_pct (156, only when given: 0 to 100)}: only with unrest in resources; anarchy is a government (154: no fallback), and the anarchy card sets no
 ## unrest_limit and isn't starting.government. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
@@ -328,8 +328,14 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 			u_errs.append("unrest.renewal: must be an integer >= 0")
 		else:
 			out.renewal = renewal
+	if raw.has("drain_pct"):
+		var pct: Variant = Fields.as_int(raw.drain_pct)
+		if typeof(pct) != TYPE_INT or pct < 0 or pct > 100:
+			u_errs.append("unrest.drain_pct: must be an integer from 0 to 100")
+		else:
+			out.drain_pct = pct
 	for key in raw:
-		if not ["anarchy", "max_counters", "era_unrest", "allowed_tag", "renewal"].has(key):
+		if not ["anarchy", "max_counters", "era_unrest", "allowed_tag", "renewal", "drain_pct"].has(key):
 			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
 	errs.append_array(u_errs)
 	return out if u_errs.is_empty() else {}
