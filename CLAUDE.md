@@ -15,6 +15,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   and have the UI call it.
 - UI text never names content (card names, counts); ask the engine.
 - Content lives in `data/*.json`; the loader validates it. Card text is generated from effects.
+- State that lasts between actions lives in `GameState` or `CardInstance`, never on the engine or a module, and `copy()`
+  copies it (the suite checks).
 - Card types and the built-in resources are constants (`CardDef.TERRITORY`, `GameEngine.FOOD`, …); never write
   their strings in `engine/` or `ui/`. A field only some card types use goes in `DataLoader.TYPE_FIELDS`.
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
