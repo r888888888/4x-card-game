@@ -37,4 +37,4 @@ government is worth (Theocracy's research cost included) and the bot revolts whe
 |---|---|
 
 ## Log
-- 2026-10-01: Specced from `spike/revolution` (`sim/bot.gd` there has a working version).
+- 2026-10-01: Specced from `spike/revolution` (`sim/bot.gd` at commit d8b7a75 has a working version; the branch is deleted: `git show d8b7a75:sim/bot.gd`).

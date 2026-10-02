@@ -32,4 +32,4 @@ government changes can be balanced with numbers. From `spike/revolution`.
 |---|---|
 
 ## Log
-- 2026-10-01: Specced from `spike/revolution` (`sim/sim_stats.gd` there has a working version).
+- 2026-10-01: Specced from `spike/revolution` (`sim/sim_stats.gd` at commit d8b7a75 has a working version; the branch is deleted: `git show d8b7a75:sim/sim_stats.gd`).
