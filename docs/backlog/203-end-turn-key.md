@@ -2,7 +2,7 @@
 id: 203
 title: End turn as the specimen's key, at the sidebar's foot
 type: feature
-status: ready
+status: red-review
 branch: feat/203-end-turn-key
 ---
 
@@ -39,6 +39,15 @@ state while the turn resolves.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1, AC6 | `test_end_turn_key::test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar`; removed: `test_board_layout::test_end_turn_is_in_the_top_bar_between_log_and_menu`; E still ends the turn: existing `test_board_layout::test_end_turn_still_ends_the_turn_and_shows_a_pending_discard` |
+| AC2 | `test_the_lamp_is_ochre_with_actions_left_and_sage_when_spent`, `test_with_unlimited_actions_the_lamp_is_sage_without_a_caption`, `test_a_discard_owed_lights_brick_and_disables_the_key_with_the_reason`; changed: `test_board_layout`'s discard checks read the key's caption (it no longer reads "Discard N (hand limit M)") |
+| AC3 | `test_pressing_it_shows_upkeep_until_the_new_turn_then_its_plate`, `test_the_plate_flaps_to_the_new_turn_or_changes_at_once_with_reduce_motion` |
+| AC4 | `test_pressed_it_sinks_into_its_plinth`; the sounds: existing `test_key_sounds` End turn tests (changed: the dead-tap test finds the key on the sidebar, not by `AccentButton`) |
+| AC5 | `test_game_over_disables_it_with_a_brick_lamp` |
+
+Decisions made writing the tests: the key keeps "End turn" as its Button text (tests and the shortcut tooltip find it
+by it) and draws "END TURN" in caps; a discard owed shows the engine's reason ("Discard down to 7 cards first.") as
+the caption instead of "Discard N (hand limit M)"; the lamp is off while busy.
 
 ## Manual check
 - [ ] Compare with the specimen's Turn section in both palettes: plinth, lamp, plate, press travel, the flap.

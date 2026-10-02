@@ -197,11 +197,8 @@ func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
 		await wait_frames()
 		main.sfx.set_clock(5.0)
 		var played_before: int = main.sfx.played().size()
-		var end_turn: Button = null
-		for b in UIKit.buttons_in(main):
-			if b.is_visible_in_tree() and b.disabled and b.theme_type_variation == &"AccentButton":
-				end_turn = b
-		check(end_turn != null, "End turn, disabled")
+		var end_turn: Button = main.sidebar.get("end_turn")  # the sidebar's key since 203
+		check(end_turn != null and end_turn.disabled, "End turn, disabled")
 		if end_turn != null:
 			mouse(main, centre(end_turn), true)
 			mouse(main, centre(end_turn), false)
