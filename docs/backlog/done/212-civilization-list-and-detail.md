@@ -2,7 +2,7 @@
 id: 212
 title: The new game screen as a civilization list and a detail pane
 type: feature
-status: review
+status: done
 branch: feat/212-civilization-list-and-detail
 ---
 
