@@ -2,7 +2,7 @@
 id: 213
 title: The title screen as a ledger with large-format buttons
 type: feature
-status: review
+status: done
 branch: feat/213-title-screen-redesign
 ---
 

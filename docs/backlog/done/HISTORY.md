@@ -137,5 +137,6 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 127. 210 targeting under vellum, the targets lifted above it
 128. 211 the era ceremony: a sheet, rings and the era's name
 129. 212 the new game screen as a civilization list and a detail pane
+130. 213 the title screen as a ledger with large-format keys
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
