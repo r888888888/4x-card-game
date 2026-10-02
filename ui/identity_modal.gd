@@ -8,7 +8,7 @@ const ZONES: Array[String] = ["civilization", "government"]
 
 var close_button: Button
 
-var _body: RichTextLabel
+var _sections: VBoxContainer  # per section a Title (its name) and a RichBody (zone, details); then the deck line
 var _names: Array[String] = []  # the names shown, top to bottom
 
 
@@ -18,14 +18,9 @@ func _init(p_stack: ModalStack) -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", Tokens.SPACE_4)
 	panel.add_child(column)
-	_body = RichTextLabel.new()
-	_body.bbcode_enabled = true
-	_body.fit_content = true
-	_body.custom_minimum_size = Vector2(620, 0)
-	_body.add_theme_font_size_override("normal_font_size", 19)
-	_body.add_theme_font_size_override("bold_font_size", 19)
-	_body.add_theme_font_size_override("italics_font_size", 19)
-	column.add_child(_body)
+	_sections = VBoxContainer.new()
+	_sections.add_theme_constant_override("separation", Tokens.SPACE_5)
+	column.add_child(_sections)
 	close_button = UIKit.button("Close (Esc)", close)
 	column.add_child(close_button)
 
@@ -35,9 +30,15 @@ func shown() -> Array[String]:
 	return _names if visible else ([] as Array[String])
 
 
-## Test hook: the text shown, without markup.
+## Test hook: the text shown, without markup: each section's name, then its text, sections three lines apart.
 func body_text() -> String:
-	return _body.get_parsed_text()
+	var parts: PackedStringArray = []
+	for section in _sections.get_children():
+		var lines: PackedStringArray = []
+		for c in section.get_children():
+			lines.append(c.text if c is Label else (c as RichTextLabel).get_parsed_text())
+		parts.append("\n".join(lines))
+	return "\n\n\n".join(parts)
 
 
 func open() -> void:
@@ -53,7 +54,9 @@ func refresh(e: GameEngine) -> void:
 
 func _fill(e: GameEngine) -> void:
 	_names = []
-	var sections: PackedStringArray = []
+	for section in _sections.get_children():
+		_sections.remove_child(section)
+		section.queue_free()
 	for zone_name in ZONES:
 		var z := e.zone(zone_name)
 		if z.is_empty():
@@ -61,9 +64,23 @@ func _fill(e: GameEngine) -> void:
 		var details := e.def_details(z.cards[0].def.id)
 		_names.append(details.name)
 		var text := CardDetailsModal.body_bbcode(details)
-		var heading := "[font_size=30][b]%s[/b][/font_size]\n%s" % [details.name, zone_name.capitalize()]
-		sections.append(heading + "\n\n" + (text if text != "" else "No bonus."))
+		_add_section(details.name, zone_name.capitalize() + "\n\n" + (text if text != "" else "No bonus."))
 	var deck: Array = e.zone("governments").cards.map(func(c): return c.def.name)
 	if not deck.is_empty():
-		sections.append("Government deck: %s" % ", ".join(deck))  # 154
-	_body.text = "\n\n\n".join(sections)
+		_add_section("", "Government deck: %s" % ", ".join(deck))  # 154
+
+
+## A section: title (a Title label, 194; none when "") over bbcode in the modal's body text.
+func _add_section(title: String, bbcode: String) -> void:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", Tokens.SPACE_0)
+	if title != "":
+		section.add_child(UIKit.title(title))
+	var body := RichTextLabel.new()
+	body.bbcode_enabled = true
+	body.fit_content = true
+	body.custom_minimum_size = Vector2(620, 0)
+	body.theme_type_variation = &"RichBody"
+	body.text = bbcode
+	section.add_child(body)
+	_sections.add_child(section)

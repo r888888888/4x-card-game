@@ -53,7 +53,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	body.add_child(title)
 	_name = UIKit.title("")
 	title.add_child(_name)
-	_info = CardFace.rich_label("", 19, Palette.TEXT_DIM)
+	_info = CardFace.rich_label("", Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_info.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -61,7 +61,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", Tokens.SPACE_4)
 	body.add_child(bar)
-	_stats = CardFace.rich_label("", 19, Palette.TEXT_DIM)
+	_stats = CardFace.rich_label("", Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	UIKit.painted(_stats, func():
@@ -182,14 +182,14 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		if stats_text() != "":
 			UIKit.pulse(_stats)
 		_stats.set_meta("source", line)
-		Icons.fill(_stats, line, 19, Palette.TEXT_DIM)
+		Icons.fill(_stats, line, Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_show_meter(e)
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
 	_name.text = territory.def.name
 	var info := CardFace.territory_info(territory)
 	_info.set_meta("source", info)
-	Icons.fill(_info, info, 19, Palette.TEXT_DIM)
+	Icons.fill(_info, info, Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	var cards := card_uids()
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)

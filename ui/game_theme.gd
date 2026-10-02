@@ -2,11 +2,11 @@ class_name GameTheme
 extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
-## Heading, Title, Stat and BarStat labels, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
+## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
 ## and GrowPip (124). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
-const DEFAULT_FONT_SIZE := 20  # everything without a size of its own (log, buttons, inputs)
+const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
 const PIP_SIZE := 22  # a pop meter pip's width and height (124)
 # The style guide's typefaces (178, §5): each is used through tabular(), so figures never shift width as they change.
 const BODY_FONT := preload("res://assets/fonts/Barlow-Regular.ttf")
@@ -22,10 +22,17 @@ static func build() -> Theme:
 	t.default_font = tabular(BODY_FONT)
 	t.default_font_size = DEFAULT_FONT_SIZE
 	_controls(t)
-	_label(t, "Heading", 19, Palette.TEXT_DIM)
-	_label(t, "Title", 26, Palette.TEXT, display())
-	_label(t, "Stat", 26, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
-	_label(t, "BarStat", 20, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # 20 like the bar's buttons, so it fits 1920 px (144)
+	_label(t, "Display", Tokens.TYPE_DISPLAY, Palette.TEXT, display())
+	_label(t, "Title", Tokens.TYPE_TITLE, Palette.TEXT, display())
+	_label(t, "Heading", Tokens.TYPE_HEADING, Palette.TEXT_DIM, heading_font())  # UIKit.heading sets the capitals
+	_label(t, "Body", Tokens.TYPE_BODY, Palette.TEXT)
+	_label(t, "BodySmall", Tokens.TYPE_BODY_S, Palette.TEXT)
+	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
+	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
+	_label(t, "BarStat", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # body size like the bar's buttons, so it fits 1920 px (144)
+	t.set_type_variation("RichBody", "RichTextLabel")  # modal text and the log (194)
+	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:
+		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
 	_link(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
@@ -64,7 +71,7 @@ static func _pips(t: Theme) -> void:
 ## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
 static func _link(t: Theme) -> void:
 	t.set_type_variation("Link", "Button")
-	t.set_font_size("font_size", "Link", 26)
+	t.set_font_size("font_size", "Link", Tokens.TYPE_TITLE)
 	t.set_font("font", "Link", display())
 	t.set_color("font_color", "Link", Palette.TEXT_DIM)
 	t.set_color("font_hover_color", "Link", Palette.ACCENT)
@@ -125,6 +132,13 @@ static func tabular(base: Font) -> FontVariation:
 	var f := FontVariation.new()
 	f.base_font = base
 	f.opentype_features = {"tnum": 1, "lnum": 1}
+	return f
+
+
+## The heading face (§5.2 type.heading): Barlow SemiCondensed SemiBold, tracked +10% for its capitals (194).
+static func heading_font() -> FontVariation:
+	var f := tabular(LABEL_SEMIBOLD)
+	f.spacing_glyph = roundi(Tokens.TYPE_HEADING * 0.1)
 	return f
 
 

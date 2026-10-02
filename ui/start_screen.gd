@@ -21,7 +21,7 @@ func _init(parent: Control) -> void:
 	var box := overlay.get_meta("box") as VBoxContainer
 	box.custom_minimum_size.x = 320
 	var title := UIKit.title(ProjectSettings.get_setting("application/config/name"))
-	title.add_theme_font_size_override("font_size", 40)
+	title.theme_type_variation = &"Display"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
 	new_game_button = UIKit.button("New game", func(): new_game_requested.emit())

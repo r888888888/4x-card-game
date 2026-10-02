@@ -36,7 +36,7 @@ func _init(board: MainScreen) -> void:
 	_hint.add_theme_stylebox_override("panel", hint_style)
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint.z_index = 3  # above the dragged card
-	_hint_label = UIKit.fx_label("", 19, UIKit.COST_COLOR)
+	_hint_label = UIKit.fx_label("", Tokens.TYPE_BODY, UIKit.COST_COLOR)
 	_hint.add_child(_hint_label)
 	UIKit.painted(_hint, func():
 		hint_style.bg_color = Palette.HINT_BG

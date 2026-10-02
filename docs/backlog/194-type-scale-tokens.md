@@ -2,7 +2,7 @@
 id: 194
 title: Text sizes come from the guide's type scale
 type: feature
-status: red-review
+status: in-progress
 branch: feat/194-type-scale-tokens
 ---
 

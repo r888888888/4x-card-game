@@ -11,8 +11,8 @@ var _replay_button: Button
 func _init(parent: Control, on_replay: Callable, on_new_game: Callable) -> void:
 	overlay = UIKit.overlay(parent)
 	var box := overlay.get_meta("box") as VBoxContainer
-	_label = UIKit.heading("")
-	_label.add_theme_font_size_override("font_size", 32)
+	_label = UIKit.title("")
+	_label.theme_type_variation = &"Display"
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_label)
 	_replay_button = UIKit.button("Replay this seed", on_replay)
