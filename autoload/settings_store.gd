@@ -7,6 +7,7 @@ const SECTION := "ui"
 
 var path: String
 var reduce_motion := false
+var day_mode := false  # the Paper palette (183)
 var civilization := ""  # the civilization id last chosen on the start screen (064); "" for none yet
 
 
@@ -19,6 +20,7 @@ func _init(p_path := "user://settings.cfg") -> void:
 func load() -> Array[String]:
 	var warnings: Array[String] = []
 	reduce_motion = false
+	day_mode = false
 	civilization = ""
 	if not FileAccess.file_exists(path):
 		return warnings
@@ -37,6 +39,12 @@ func load() -> Array[String]:
 	else:
 		warnings.append("settings file '%s': [%s] 'reduce_motion' must be true or false, got %s; using false"
 			% [path, SECTION, var_to_str(value)])
+	var day: Variant = file.get_value(SECTION, "day_mode", false)
+	if day is bool:
+		day_mode = day
+	else:
+		warnings.append("settings file '%s': [%s] 'day_mode' must be true or false, got %s; using false"
+			% [path, SECTION, var_to_str(day)])
 	var civ: Variant = file.get_value(SECTION, "civilization", "")
 	if civ is String:
 		civilization = civ
@@ -49,6 +57,7 @@ func load() -> Array[String]:
 func save() -> Error:
 	var file := ConfigFile.new()
 	file.set_value(SECTION, "reduce_motion", reduce_motion)
+	file.set_value(SECTION, "day_mode", day_mode)
 	file.set_value(SECTION, "civilization", civilization)
 	return file.save(path)
 

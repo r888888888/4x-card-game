@@ -18,8 +18,6 @@ const BADGES := {
 	CardView.BOARD_FRONTIER: TYPE_MARKS[CardDef.TERRITORY] + " Frontier · unsettled",
 	CardView.BOARD_EVENT: TYPE_MARKS[CardDef.EVENT] + " Event",
 }
-const STRIP_BG := Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
-const STRIP_TEXT := Palette.STRIP_TEXT
 const BAND := 5.0  # the type band's height, under the name (179)
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
@@ -285,13 +283,13 @@ func set_reason(reason: String) -> void:
 		strip.name = "Reason"
 		strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var style := StyleBoxFlat.new()
-		style.bg_color = STRIP_BG
+		style.bg_color = Palette.STRIP_BG  # the reason strip at the bottom of a dimmed card
 		style.set_corner_radius_all(4)
 		style.set_content_margin_all(6)
 		strip.add_theme_stylebox_override("panel", style)
-		strip.add_child(rich_label("", 18, STRIP_TEXT))
+		strip.add_child(rich_label("", 18, Palette.STRIP_TEXT))
 		add_child(strip)
-	Icons.fill(strip.get_child(0) as RichTextLabel, reason, 18, STRIP_TEXT)
+	Icons.fill(strip.get_child(0) as RichTextLabel, reason, 18, Palette.STRIP_TEXT)
 
 
 ## A hand card's cost (180) as a row named Cost: per resource above 0, food, wealth and insight first, an entry

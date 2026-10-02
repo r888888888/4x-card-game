@@ -28,7 +28,7 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	button = UIKit.button("Buy Cards", on_open)
 	button.custom_minimum_size.y = 44
 	button.hide()
-	_overlay = UIKit.overlay(parent, CardView.HIGHLIGHT_COLOR)
+	_overlay = UIKit.overlay(parent, &"GAIN")
 	_overlay.z_index = 5
 	var box := _overlay.get_meta("box") as VBoxContainer
 	box.add_child(UIKit.title("Supply"))
@@ -37,9 +37,9 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	stats.add_theme_constant_override("separation", 36)
 	box.add_child(stats)
 	_wealth = Counter.new("", "Wealth: ", &"Stat")
-	_wealth.set_color(Palette.WEALTH)
+	UIKit.painted(_wealth, func(): _wealth.set_color(Palette.WEALTH))
 	stats.add_child(_wealth)
-	_discard = UIKit.stat(stats, Palette.PILES)
+	_discard = UIKit.stat(stats, &"PILES")
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
 	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
 	box.add_child(pad)

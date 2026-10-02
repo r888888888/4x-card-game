@@ -16,7 +16,7 @@ var _shown := {}  # what is shown; {} while hidden
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	close_keys = [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]
-	panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(Palette.EVENT))  # bordered in the event colour
+	UIKit.painted(panel, func(): panel.add_theme_stylebox_override("panel", GameTheme.dark_panel(Palette.EVENT)))  # bordered in the event colour
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
 	panel.add_child(row)

@@ -47,6 +47,7 @@ var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, fro
 var _game_over: GameOverOverlay
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
 var _event_modal: EventModal
+var _palette_day := false  # the palette main's theme was built in (183)
 
 
 func _ready() -> void:
@@ -228,9 +229,13 @@ func menu_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_menu.overlay)
 
 
-## Test hook (182): the menu's Reduce motion key.
+## Test hooks (182, 183): the menu's Reduce motion and Day mode keys.
 func menu_motion_toggle() -> LegendKey:
 	return _menu.motion_toggle
+
+
+func menu_day_toggle() -> LegendKey:
+	return _menu.day_toggle
 
 
 ## Test hook (067): the game-over overlay's buttons, in order.
@@ -431,7 +436,8 @@ func _refresh() -> void:
 func _build_layout() -> void:
 	theme = GameTheme.build()
 	var bg := ColorRect.new()
-	bg.color = Palette.BACKGROUND
+	bg.name = "Background"
+	UIKit.painted(bg, func(): bg.color = Palette.BACKGROUND)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var layout := BoardLayout.new(self, _restart, _close_menu, _push_new_game_screen)
@@ -449,12 +455,27 @@ func _build_layout() -> void:
 		_views.quiet = true
 		_refresh()
 		_views.quiet = false)
-	_apply_motion_setting()
-	Settings.changed.connect(_apply_motion_setting)
+	_apply_settings()
+	Settings.changed.connect(_apply_settings)
 
 
-## Matches the menu's and settings screen's toggles and the looping drop-zone pulse to the reduce motion setting.
-func _apply_motion_setting() -> void:
-	_menu.show_motion_setting(UIKit.calm())
-	UIKit.show_motion(settings_screen.motion_toggle, UIKit.calm())
+## Matches the menu's and settings screen's keys and the looping drop-zone pulse to the settings; when Day mode
+## changed, rebuilds the theme and repaints everything open in the new palette, the game untouched (183).
+func _apply_settings() -> void:
+	_menu.show_settings(UIKit.calm(), Palette.day)
+	UIKit.show_setting(settings_screen.motion_toggle, UIKit.calm())
+	UIKit.show_setting(settings_screen.day_toggle, Palette.day)
 	drag.apply_motion(UIKit.calm())
+	if _palette_day == Palette.day:
+		return
+	_palette_day = Palette.day
+	theme = GameTheme.build()
+	UIKit.repaint(get_tree())
+	get_tree().call_group(CardView.GROUP, "restyle")
+	if board_shown():
+		_refresh()
+
+
+## Test hook (183): the board's background colour.
+func background_color() -> Color:
+	return (get_node("Background") as ColorRect).color

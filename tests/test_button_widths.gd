@@ -87,10 +87,11 @@ func test_menu_and_game_over_columns_share_one_width() -> void:
 	main.start_game(1)
 	main.open_menu()
 	await wait_frames()
-	var key: Control = main.menu_motion_toggle()
-	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the row isn't one
-	column.assign(main.menu_buttons().filter(func(b): return b != key))
-	column.insert(2, key.get_parent())  # 182: the Reduce motion row stands where the toggle button was
+	var keys: Array = [main.menu_motion_toggle(), main.menu_day_toggle()]
+	var column: Array = []  # untyped: menu_buttons() is Array[Button] and the rows aren't
+	column.assign(main.menu_buttons().filter(func(b): return not keys.has(b)))
+	column.insert(2, keys[0].get_parent())  # 182: the Reduce motion row stands where the toggle button was
+	column.insert(3, keys[1].get_parent())  # 183: the Day mode row under it
 	check_column(column, "menu")
 	press_key(main, KEY_ESCAPE)
 	play_seed_1(main, func(_m): pass)

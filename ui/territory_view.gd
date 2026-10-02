@@ -42,8 +42,8 @@ func _init(board: MainScreen, realm: Control) -> void:
 	back_button = header.back_button
 	frame = PanelContainer.new()
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	frame.add_theme_stylebox_override("panel", UIKit.panel_style(Palette.RAISED.lerp(Palette.TERRITORY, 0.12),
-		Palette.TERRITORY, 18))
+	UIKit.painted(frame, func(): frame.add_theme_stylebox_override("panel", UIKit.panel_style(
+		Palette.RAISED.lerp(Palette.TERRITORY, 0.12), Palette.TERRITORY, 18)))
 	add_child(frame)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
@@ -64,6 +64,9 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_stats = CardFace.rich_label("", 19, Palette.TEXT_DIM)
 	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UIKit.painted(_stats, func():
+		for line: RichTextLabel in [_info, _stats]:
+			line.add_theme_color_override("default_color", Palette.TEXT_DIM))
 	bar.add_child(_stats)
 	_meter = HBoxContainer.new()
 	_meter.add_theme_constant_override("separation", 6)

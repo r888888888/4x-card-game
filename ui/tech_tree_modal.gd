@@ -6,12 +6,14 @@ extends Modal
 ## Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be learned. While on top it
 ## takes every key; T, Esc or a click outside closes it. A tech's details open over it.
 
-const STATE_LOOK := {  # state -> [mark, word, border colour, text alpha]
-	GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
-	GameEngine.TECH_AVAILABLE: ["○", "Available", Palette.AVAILABLE, 1.0],
-	GameEngine.TECH_LOCKED: ["🔒", "Locked", Palette.LOCKED, 0.8],
-	GameEngine.TECH_FUTURE: ["…", "Later era", Palette.FUTURE, 0.6],
-}
+static var STATE_LOOK: Dictionary:  # state -> [mark, word, border colour, text alpha], as the palette reads now (183)
+	get:
+		return {
+			GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
+			GameEngine.TECH_AVAILABLE: ["○", "Available", Palette.AVAILABLE, 1.0],
+			GameEngine.TECH_LOCKED: ["🔒", "Locked", Palette.LOCKED, 0.8],
+			GameEngine.TECH_FUTURE: ["…", "Later era", Palette.FUTURE, 0.6],
+		}
 
 var _header: Label
 var _columns: HBoxContainer
@@ -126,7 +128,7 @@ func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its era column (100) beside its Learn button
 	b.tooltip_text = "Click for the full details."
-	var style := UIKit.panel_style(Palette.TILE, look[2], 6)
-	b.add_theme_stylebox_override("normal", style)
+	var state: String = tech.state
+	UIKit.painted(b, func(): b.add_theme_stylebox_override("normal", UIKit.panel_style(Palette.TILE, STATE_LOOK[state][2], 6)))
 	b.modulate.a = look[3]
 	return b

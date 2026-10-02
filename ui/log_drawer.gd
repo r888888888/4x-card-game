@@ -17,7 +17,7 @@ var _unread := false
 func _init() -> void:
 	z_index = 10  # above the board and flying cards, below the modals (20)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, 12))
+
 	set_anchors_preset(Control.PRESET_RIGHT_WIDE)
 	offset_left = -WIDTH
 	offset_right = 0
@@ -26,7 +26,6 @@ func _init() -> void:
 	add_child(box)
 	box.add_child(UIKit.heading("Log"))
 	_piles = UIKit.heading("")
-	_piles.add_theme_color_override("font_color", Palette.PILES)
 	box.add_child(_piles)
 	_log = RichTextLabel.new()
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -35,8 +34,11 @@ func _init() -> void:
 	_log.selection_enabled = true
 	_log.add_theme_font_size_override("normal_font_size", 19)
 	_log.add_theme_font_size_override("bold_font_size", 20)
-	_log.add_theme_color_override("default_color", Palette.LOG_TEXT)
 	box.add_child(_log)
+	UIKit.painted(self, func():
+		add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, 12))
+		_piles.add_theme_color_override("font_color", Palette.PILES)
+		_log.add_theme_color_override("default_color", Palette.LOG_TEXT))
 	hide()
 
 

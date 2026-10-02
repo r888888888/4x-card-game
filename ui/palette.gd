@@ -1,72 +1,199 @@
 class_name Palette
 extends RefCounted
-## Every colour the UI uses (backlog 106), named for what it's for rather than its hue, so a look changes in one place
-## (and a later light theme can swap values). Colours derived at run time (lightened, darkened) stay derived where
-## they're used. GameTheme builds the controls' theme from these.
-## The values are the style guide's Night shift set (178, docs/design/mcm-style-guide.md §4).
+## Every colour the UI uses (backlog 106), named for what it's for rather than its hue, so a look changes in one place.
+## Each name has two values (183): the style guide's Night shift set (178, docs/design/mcm-style-guide.md §4), the
+## default, and its Paper set for Day mode. use() switches every name at once (Settings calls it at start-up and when
+## Day mode changes), so read a colour when drawing; never copy one into a constant (test_ui_structure checks). Colours
+## derived at run time (lightened, darkened) stay derived where they're used. GameTheme builds the theme from these.
+
+static var day := false  # Day mode: the Paper values
+
 
 # Surfaces, darkest first.
-const BACKGROUND := Color("1f1e1c")  # the board behind everything
-const FIELD := Color("171614")  # a text field
-const PANEL := Color("171614")  # the side panel's log
-const TILE := Color("2a2825")  # a tech in the tech tree
-const RAISED := Color("2a2825")  # an overlay's or a modal's panel
-const CONTROL := Color("3a3733")  # a button
-const CONTROL_DISABLED := Color("171614")
-const CONTROL_BORDER := Color("857d70")
-const CONTROL_DISABLED_BORDER := Color("4a463f")
+static var BACKGROUND: Color = NIGHT["BACKGROUND"]  # the board behind everything
+static var FIELD: Color = NIGHT["FIELD"]  # a text field
+static var PANEL: Color = NIGHT["PANEL"]  # the side panel's log
+static var TILE: Color = NIGHT["TILE"]  # a tech in the tech tree
+static var RAISED: Color = NIGHT["RAISED"]  # an overlay's or a modal's panel
+static var CONTROL: Color = NIGHT["CONTROL"]  # a button
+static var CONTROL_DISABLED: Color = NIGHT["CONTROL_DISABLED"]
+static var CONTROL_BORDER: Color = NIGHT["CONTROL_BORDER"]
+static var CONTROL_DISABLED_BORDER: Color = NIGHT["CONTROL_DISABLED_BORDER"]
 
 # Text.
-const TEXT := Color("ede6d6")
-const TEXT_DIM := Color("b9b1a1")  # headings
-const TEXT_DISABLED := Color("8e877a")
-const TEXT_ON_ACCENT := Color("1f1e1c")
-const LOG_TEXT := Color("ddd5c5")
+static var TEXT: Color = NIGHT["TEXT"]
+static var TEXT_DIM: Color = NIGHT["TEXT_DIM"]  # headings
+static var TEXT_DISABLED: Color = NIGHT["TEXT_DISABLED"]
+static var TEXT_ON_ACCENT: Color = NIGHT["TEXT_ON_ACCENT"]
+static var LOG_TEXT: Color = NIGHT["LOG_TEXT"]
 
 # Meaning.
-const ACCENT := Color("e0703f")  # the main action's button (End turn)
-const GAIN := Color("93b585")  # resources and VP gained, food, score, lit targets, the upkeep mark
-const COST := Color("e07a63")  # resources paid, error text
-const WARN := Color("e07a63")  # a failing drop, food that would starve
-const FOCUS := Color("6cc3bc")  # the keyboard focus ring; distinct from gold (target) and red (warning)
-const WEALTH := Color("d9a441")
-const INSIGHT := Color("86a9cc")
-const UNREST := Color("e07a63")  # the unrest stat (144); at the limit it turns WARN
-const POP := Color("5fb0a9")
-const PILES := Color("b9b1a1")  # deck, discard and pile counts
+static var ACCENT: Color = NIGHT["ACCENT"]  # the main action's button (End turn)
+static var GAIN: Color = NIGHT["GAIN"]  # resources and VP gained, food, score, lit targets, the upkeep mark
+static var COST: Color = NIGHT["COST"]  # resources paid, error text
+static var WARN: Color = NIGHT["WARN"]  # a failing drop, food that would starve
+static var FOCUS: Color = NIGHT["FOCUS"]  # the keyboard focus ring; distinct from gold (target) and red (warning)
+static var WEALTH: Color = NIGHT["WEALTH"]
+static var INSIGHT: Color = NIGHT["INSIGHT"]
+static var UNREST: Color = NIGHT["UNREST"]  # the unrest stat (144); at the limit it turns WARN
+static var POP: Color = NIGHT["POP"]
+static var PILES: Color = NIGHT["PILES"]  # deck, discard and pile counts
 
 # A dimmed card (can't be played, idle) and its reason strip.
-const DIM_BG := Color("232220")
-const DIM_BORDER := Color("5a554d")
-const STRIP_BG := Color("171614")
-const STRIP_TEXT := Color("ede6d6")
+static var DIM_BG: Color = NIGHT["DIM_BG"]
+static var DIM_BORDER: Color = NIGHT["DIM_BORDER"]
+static var STRIP_BG: Color = NIGHT["STRIP_BG"]
+static var STRIP_TEXT: Color = NIGHT["STRIP_TEXT"]
 
 # Card types (the card border and type marks).
-const ACTION := Color("86a9cc")
-const BUILDING := Color("a9b26c")
-const CITY := Color("d9a441")
-const TERRITORY := Color("93b585")
-const TECH := Color("5fb0a9")
-const EVENT := Color("e07a63")
+static var ACTION: Color = NIGHT["ACTION"]
+static var BUILDING: Color = NIGHT["BUILDING"]
+static var CITY: Color = NIGHT["CITY"]
+static var TERRITORY: Color = NIGHT["TERRITORY"]
+static var TECH: Color = NIGHT["TECH"]
+static var EVENT: Color = NIGHT["EVENT"]
 
 # An unsettled territory on the board (138): open land, not yet yours.
-const FRONTIER_BG := Color("1f1e1c")  # barely off the board
-const FRONTIER_HATCH := Color(1, 1, 1, 0.05)  # its diagonal lines
+static var FRONTIER_BG: Color = NIGHT["FRONTIER_BG"]  # barely off the board
+static var FRONTIER_HATCH: Color = NIGHT["FRONTIER_HATCH"]  # its diagonal lines
 
 # Tech tree states.
-const RESEARCHED := Color("5fb0a9")
-const AVAILABLE := Color("ede6d6")
-const FUTURE := Color("8e877a")
-const LOCKED := Color("857d70")  # a tech whose prerequisite isn't researched (140)
+static var RESEARCHED: Color = NIGHT["RESEARCHED"]
+static var AVAILABLE: Color = NIGHT["AVAILABLE"]
+static var FUTURE: Color = NIGHT["FUTURE"]
+static var LOCKED: Color = NIGHT["LOCKED"]  # a tech whose prerequisite isn't researched (140)
 
 # See-through layers.
-const DIMMER := Color(0, 0, 0, 0.65)  # behind an overlay
-const SCRIM := Color(0, 0, 0, 0.6)  # behind a modal
-const SHADOW := Color("0d0c0b")  # hard offset shadows under controls and lifted cards: solid, never blurred (guide §6.5)
-const OUTLINE := Color(0, 0, 0, 0.8)  # around effect text
-const EDGE := Color("ede6d6")  # an overlay's or a modal's frame: ink
-const FAINT_EDGE := Color(1, 1, 1, 0.08)  # the log panel's border
-const GHOST_BG := Color(1, 1, 1, 0.04)  # the slot a dragged card will land in
-const GHOST_EDGE := Color(1, 1, 1, 0.35)
-const DROP_BG := Color(1, 0.85, 0.4, 0.03)  # the lit drop zone
-const HINT_BG := Color(0.08, 0.09, 0.11, 0.92)  # behind a hint or an error message
+static var DIMMER: Color = NIGHT["DIMMER"]  # behind an overlay
+static var SCRIM: Color = NIGHT["SCRIM"]  # behind a modal
+static var SHADOW: Color = NIGHT["SHADOW"]  # hard offset shadows under controls and lifted cards: solid, never blurred (guide §6.5)
+static var OUTLINE: Color = NIGHT["OUTLINE"]  # around effect text
+static var EDGE: Color = NIGHT["EDGE"]  # an overlay's or a modal's frame: ink
+static var FAINT_EDGE: Color = NIGHT["FAINT_EDGE"]  # the log panel's border
+static var GHOST_BG: Color = NIGHT["GHOST_BG"]  # the slot a dragged card will land in
+static var GHOST_EDGE: Color = NIGHT["GHOST_EDGE"]
+static var DROP_BG: Color = NIGHT["DROP_BG"]  # the lit drop zone
+static var HINT_BG: Color = NIGHT["HINT_BG"]  # behind a hint or an error message
+
+
+## 178's Night shift values.
+const NIGHT := {
+	"BACKGROUND": Color("1f1e1c"),
+	"FIELD": Color("171614"),
+	"PANEL": Color("171614"),
+	"TILE": Color("2a2825"),
+	"RAISED": Color("2a2825"),
+	"CONTROL": Color("3a3733"),
+	"CONTROL_DISABLED": Color("171614"),
+	"CONTROL_BORDER": Color("857d70"),
+	"CONTROL_DISABLED_BORDER": Color("4a463f"),
+	"TEXT": Color("ede6d6"),
+	"TEXT_DIM": Color("b9b1a1"),
+	"TEXT_DISABLED": Color("8e877a"),
+	"TEXT_ON_ACCENT": Color("1f1e1c"),
+	"LOG_TEXT": Color("ddd5c5"),
+	"ACCENT": Color("e0703f"),
+	"GAIN": Color("93b585"),
+	"COST": Color("e07a63"),
+	"WARN": Color("e07a63"),
+	"FOCUS": Color("6cc3bc"),
+	"WEALTH": Color("d9a441"),
+	"INSIGHT": Color("86a9cc"),
+	"UNREST": Color("e07a63"),
+	"POP": Color("5fb0a9"),
+	"PILES": Color("b9b1a1"),
+	"DIM_BG": Color("232220"),
+	"DIM_BORDER": Color("5a554d"),
+	"STRIP_BG": Color("171614"),
+	"STRIP_TEXT": Color("ede6d6"),
+	"ACTION": Color("86a9cc"),
+	"BUILDING": Color("a9b26c"),
+	"CITY": Color("d9a441"),
+	"TERRITORY": Color("93b585"),
+	"TECH": Color("5fb0a9"),
+	"EVENT": Color("e07a63"),
+	"FRONTIER_BG": Color("1f1e1c"),
+	"FRONTIER_HATCH": Color(1, 1, 1, 0.05),
+	"RESEARCHED": Color("5fb0a9"),
+	"AVAILABLE": Color("ede6d6"),
+	"FUTURE": Color("8e877a"),
+	"LOCKED": Color("857d70"),
+	"DIMMER": Color(0, 0, 0, 0.65),
+	"SCRIM": Color(0, 0, 0, 0.6),
+	"SHADOW": Color("0d0c0b"),
+	"OUTLINE": Color(0, 0, 0, 0.8),
+	"EDGE": Color("ede6d6"),
+	"FAINT_EDGE": Color(1, 1, 1, 0.08),
+	"GHOST_BG": Color(1, 1, 1, 0.04),
+	"GHOST_EDGE": Color(1, 1, 1, 0.35),
+	"DROP_BG": Color(1, 0.85, 0.4, 0.03),
+	"HINT_BG": Color(0.08, 0.09, 0.11, 0.92),
+}
+
+## The guide's Paper values (§4); the see-through layers take ink at low alpha instead of white (the scrim: ink at 40%).
+const DAY := {
+	"BACKGROUND": Color("efe8da"),
+	"FIELD": Color("e3daca"),
+	"PANEL": Color("e3daca"),
+	"TILE": Color("f8f4ec"),
+	"RAISED": Color("f8f4ec"),
+	"CONTROL": Color("dcd3c2"),
+	"CONTROL_DISABLED": Color("e3daca"),
+	"CONTROL_BORDER": Color("6f685c"),
+	"CONTROL_DISABLED_BORDER": Color("cfc6b5"),
+	"TEXT": Color("22211f"),
+	"TEXT_DIM": Color("57534b"),
+	"TEXT_DISABLED": Color("7a7468"),
+	"TEXT_ON_ACCENT": Color("fbf6ec"),
+	"LOG_TEXT": Color("22211f"),
+	"ACCENT": Color("a8401b"),
+	"GAIN": Color("4e6b47"),
+	"COST": Color("9b3424"),
+	"WARN": Color("9b3424"),
+	"FOCUS": Color("1f6a68"),
+	"WEALTH": Color("a07514"),
+	"INSIGHT": Color("35597c"),
+	"UNREST": Color("9b3424"),
+	"POP": Color("1f6a68"),
+	"PILES": Color("57534b"),
+	"DIM_BG": Color("e8e1d3"),
+	"DIM_BORDER": Color("b9af9c"),
+	"STRIP_BG": Color("e3daca"),
+	"STRIP_TEXT": Color("22211f"),
+	"ACTION": Color("8aa7c4"),
+	"BUILDING": Color("a3aa6a"),
+	"CITY": Color("d9a441"),
+	"TERRITORY": Color("9db592"),
+	"TECH": Color("5e9c97"),
+	"EVENT": Color("c9705c"),
+	"FRONTIER_BG": Color("efe8da"),
+	"FRONTIER_HATCH": Color("22211f1a"),
+	"RESEARCHED": Color("1f6a68"),
+	"AVAILABLE": Color("22211f"),
+	"FUTURE": Color("7a7468"),
+	"LOCKED": Color("6f685c"),
+	"DIMMER": Color("22211f66"),
+	"SCRIM": Color("22211f66"),
+	"SHADOW": Color("22211f"),
+	"OUTLINE": Color("f8f4eccc"),
+	"EDGE": Color("22211f"),
+	"FAINT_EDGE": Color("22211f1f"),
+	"GHOST_BG": Color("22211f0a"),
+	"GHOST_EDGE": Color("22211f59"),
+	"DROP_BG": Color("a8401b0d"),
+	"HINT_BG": Color("f8f4ecf0"),
+}
+
+
+## Switches every colour to the Day (Paper) values, or back to Night (183).
+static func use(p_day: bool) -> void:
+	day = p_day
+	var script: GDScript = load("res://ui/palette.gd")
+	var values: Dictionary = DAY if p_day else NIGHT
+	for name: String in values:
+		script.set(name, values[name])
+
+
+## The colour called name as it reads now (a Palette role, e.g. "TEXT").
+static func color(name: StringName) -> Color:
+	return (DAY if day else NIGHT)[String(name)]

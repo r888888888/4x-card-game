@@ -16,14 +16,17 @@ signal details_requested(view: CardView)
 
 enum State { REST, FLYING, DRAGGING, LEAVING }
 
-const TYPE_COLORS := {
-	CardDef.ACTION: Palette.ACTION,
-	CardDef.BUILDING: Palette.BUILDING,
-	CardDef.CITY: Palette.CITY,
-	CardDef.TERRITORY: Palette.TERRITORY,
-	CardDef.TECH: Palette.TECH,
-	CardDef.EVENT: Palette.EVENT,
-}
+const GROUP := &"card_views"  # every CardView, restyled when Day mode changes (183)
+static var TYPE_COLORS: Dictionary:  # card type -> its colour, as the palette reads now (183)
+	get:
+		return {
+			CardDef.ACTION: Palette.ACTION,
+			CardDef.BUILDING: Palette.BUILDING,
+			CardDef.CITY: Palette.CITY,
+			CardDef.TERRITORY: Palette.TERRITORY,
+			CardDef.TECH: Palette.TECH,
+			CardDef.EVENT: Palette.EVENT,
+		}
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)
 const BOARD_SIZE := Vector2(245, 150)  # every card in the Realm's row (138): one line per field, the rest in details
@@ -33,12 +36,22 @@ const BOARD_FRONTIER := "frontier"
 const BOARD_EVENT := "event"
 const DASH := 9.0  # an unsettled territory's dashed border
 const HATCH_STEP := 14.0  # the spacing of its diagonal lines
-const WARN_COLOR := Palette.WARN
-const HIGHLIGHT_COLOR := Palette.GAIN
+static var WARN_COLOR: Color:
+	get:
+		return Palette.WARN
+static var HIGHLIGHT_COLOR: Color:
+	get:
+		return Palette.GAIN
 # A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
-const DIM_BG := Palette.DIM_BG
-const DIM_BORDER := Palette.DIM_BORDER
-const FOCUS_COLOR := Palette.FOCUS  # keyboard focus ring; distinct from gold (target) and red (warning)
+static var DIM_BG: Color:
+	get:
+		return Palette.DIM_BG
+static var DIM_BORDER: Color:
+	get:
+		return Palette.DIM_BORDER
+static var FOCUS_COLOR: Color:  # keyboard focus ring; distinct from gold (target) and red (warning)
+	get:
+		return Palette.FOCUS
 const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
@@ -65,12 +78,17 @@ var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
+var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
+var _replays := {}
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
 ## (shown on the card and as tooltip). Ignored for tableau cards. kind: a board face for the Realm's row (BOARD_*,
 ## 138), at BOARD_SIZE; "" for the full face.
 func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error := "", kind := "") -> void:
+	_setup_args = [card, card_db, p_in_hand, play_error, kind]
+	_replays = {}
+	add_to_group(GROUP)
 	board_kind = kind
 	uid = card.uid
 	card_id = card.def.id
@@ -86,7 +104,6 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_style.set_border_width_all(2)
 		_style.set_corner_radius_all(0)  # an index card, cut square (179)
 		_style.set_content_margin_all(12)
-		_style.shadow_color = Palette.SHADOW
 		_style.anti_aliasing = false  # a hard shadow and a crisp rule
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))
@@ -113,9 +130,21 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_update_border()
 
 
+## Rebuilds the face in the palette's current colours (183): setup again with the same card, then everything shown on
+## the face since (play error, settled line, event and buy info, hint, idle, pickable, shortfall).
+func restyle() -> void:
+	if _setup_args.is_empty():
+		return
+	var replays := _replays.duplicate()
+	callv("setup", _setup_args)
+	for replay: Callable in replays.values():
+		replay.call()
+
+
 ## Updates the playable look of a hand card: tooltip, cursor, dimming, and a strip at the bottom
 ## saying why it can't be played.
 func set_play_error(play_error: String) -> void:
+	_replays["play_error"] = set_play_error.bind(play_error)
 	var playable := play_error == ""
 	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else play_error)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
@@ -124,12 +153,14 @@ func set_play_error(play_error: String) -> void:
 
 ## Shows which of a hand card's cost figures the player is short of (180; GameEngine.play_shortfall).
 func set_shortfall(short: Array[String]) -> void:
+	_replays["shortfall"] = set_shortfall.bind(short)
 	_face.show_shortfall(short)
 
 
 ## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
 ## all from the board.
 func show_settled(keywords: String, live: String, tip: String) -> void:
+	_replays["settled"] = show_settled.bind(keywords, live, tip)
 	_face.show_settled(keywords, live)
 	_face.rules_tip = tip
 	_set_tip(_hint)
@@ -138,6 +169,7 @@ func show_settled(keywords: String, live: String, tip: String) -> void:
 ## Shows how many upkeeps an active event has left ("1 turn left" / "2 turns left"), or its counters when it has
 ## any ("2 counters", the Famine).
 func set_event_info(turns_left: int, counters := 0) -> void:
+	_replays["event_info"] = set_event_info.bind(turns_left, counters)
 	if counters > 0:  # the Famine: it lasts until pop is fed, so it shows how bad it is (083)
 		_face.replace_info("EventInfo", "%d counter%s" % [counters, "" if counters == 1 else "s"])
 	else:
@@ -152,6 +184,7 @@ func event_info_text() -> String:
 ## Shows a supply pile's price and copies left ("2 wealth · 1 left"). error: "" if it can be bought,
 ## otherwise the reason, which dims the card and leads its tooltip.
 func set_buy_info(price: int, left: int, error: String) -> void:
+	_replays["buy_info"] = set_buy_info.bind(price, left, error)
 	_face.update_info("BuyInfo", "%d wealth · %d left" % [price, left])
 	_set_dimmed(error != "", "" if error == "" else "⊘ " + error)
 	if error == "":
@@ -163,18 +196,21 @@ func set_buy_info(price: int, left: int, error: String) -> void:
 
 ## Ends the tooltip with hint after the card text (137: what an event or a frontier territory in the Realm's row is).
 func set_hint(hint: String) -> void:
+	_replays["hint"] = set_hint.bind(hint)
 	_set_tip(hint)
 
 
 
 ## Dims a tableau building with no worker and marks it "Idle" (or clears that).
 func set_idle(idle: bool) -> void:
+	_replays["idle"] = set_idle.bind(idle)
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
 	_set_tip("Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else "")
 
 
 ## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.
 func set_pickable(on: bool, tooltip := "") -> void:
+	_replays["pickable"] = set_pickable.bind(on, tooltip)
 	pickable = on
 	if in_hand:
 		return
@@ -371,6 +407,7 @@ func _draw_frontier() -> void:
 ## An index card (179): one sheet for every type in a thin rule (its type is the band under the name), standing on a
 ## hard shadow only while lifted: hovered (4, 4), dragged (8, 8).
 func _update_border() -> void:
+	_style.shadow_color = Palette.SHADOW
 	_style.bg_color = DIM_BG if _dimmed else Palette.RAISED
 	if _warning:
 		_style.border_color = WARN_COLOR

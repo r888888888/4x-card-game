@@ -1,5 +1,6 @@
 extends Node
-## Global "Settings" singleton: the player's settings, loaded at start and saved when changed.
+## Global "Settings" singleton: the player's settings, loaded at start and saved when changed. The palette follows
+## the Day mode setting (183): it switches before anything else hears changed.
 
 signal changed
 
@@ -12,6 +13,20 @@ var reduce_motion: bool:
 func _ready() -> void:
 	for w in store.load():
 		push_warning(w)
+	changed.connect(_use_palette)  # first, so every other listener reads the new colours
+	_use_palette()
+
+
+## Turns Day mode (the Paper palette, 183) on or off, saves it, and tells the UI.
+func set_day_mode(on: bool) -> void:
+	store.day_mode = on
+	_save()
+	changed.emit()
+
+
+func _use_palette() -> void:
+	if Palette.day != store.day_mode:
+		Palette.use(store.day_mode)
 
 
 ## Turns reduce motion on or off, saves it, and tells the UI.
