@@ -387,7 +387,7 @@ section { margin-bottom: var(--space-7); }
 			<button class="btn" aria-disabled="true" title="Not enough wealth">Learn</button>
 			<button class="link">View the log</button>
 		</div>
-		<p class="note">Press moves the face 2 px into its shadow in 70 ms and comes back in 120 ms. No scale, no ripple. It clicks when the face meets the desk (≈ 38 ms) and ticks when it is back at its stop; hover is silent. The disabled key doesn't move and gives one dead tap; the link is printed, so it makes no sound.</p>
+		<p class="note">Press moves the face 2 px into its shadow in 70 ms and comes back in 120 ms. No scale, no ripple. Every key sits on a clicky key switch: its snap at actuation, then the bottom-out as the face meets the desk (≈ 38 ms); a quieter snap and top-out on the way back. Hover is silent. The disabled key doesn't move and gives one dead tap; the link is printed, so it makes no sound.</p>
 
 		<div style="margin-top:var(--space-6); max-width:560px">
 			<div class="tabs" role="tablist" id="tabs">
@@ -585,16 +585,30 @@ const Sound = (() => {
 		const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + dur * 0.45); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 		noise(c, t, dur).connect(filter(c, "bandpass", 4500, 0.5)).connect(e).connect(out);
 	}
+	// The key switch (chosen in click-options.html, option G): a clicky switch under ABS keycaps. Its click jacket
+	// snaps at actuation, then the stem bottoms out on the housing; on the way up it snaps again and tops out.
+	function jacket(c, out, t, v, g = 1) {
+		click(c, out, t, { f: 4500 * v, q: 1.5, dur: 0.012, g: 1.8 * g });  // as loud as the bottom-out
+		body(c, out, t, { f: 3300 * v, dur: 0.01, g: 0.5 * g });
+	}
+	function clack(c, out, t, v, { f, body: b, kase, g = 1, dur = 0.03 }) {  // the plastic clack, the cap's tone, the case
+		click(c, out, t, { f: f * v, q: 1.2, dur, g: 0.8 * g });
+		body(c, out, t, { f: b * v, dur: 0.02, g: 0.3 * g });
+		body(c, out, t, { f: kase * v, dur: 0.05, g: 0.35 * g, to: 0.95 });
+	}
 	const stop = (c, out, t, f = 240, g = 1) => { body(c, out, t, { f, dur: 0.09, g, to: 0.8 }); click(c, out, t, { f: 900, q: 1, dur: 0.035, g: 0.45 * g }); };
 	const tap = (c, out, t, g = 1) => { body(c, out, t, { f: 230, dur: 0.07, g, to: 0.9 }); click(c, out, t, { f: 700, q: 1.2, dur: 0.03, g: 0.45 * g }); };
 
 	// -- the tokens (§14.1): level in dB from REF, the level of the hierarchy, a family, a duration in s --
 	// p.v is the variant's pitch factor (L1 only), p.calm collapses travel into the stop (§9.5).
 	const T = {
-		"ui.button.press": { l: 1, level: 0, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { click(c, o, t, { f: 1800 * p.v, q: 3, dur: 0.06 }); body(c, o, t, { f: 420 * p.v, dur: 0.08, g: 0.3 }); } },
-		"ui.button.release": { l: 1, level: -4, freq: "very high", dur: 0.05, fn: (c, o, t, p) => { click(c, o, t, { f: 1800 * st(3) * p.v, q: 4, dur: 0.045 }); body(c, o, t, { f: 600 * p.v, dur: 0.05, g: 0.2 }); } },
-		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.1, fn: (c, o, t, p) => { click(c, o, t, { f: 2400 * p.v, q: 3, dur: 0.045 }); body(c, o, t, { f: 520 * p.v, dur: 0.11, g: 0.3 }); click(c, o, t + 0.014, { f: 3000 * p.v, q: 4, dur: 0.02, g: 0.45 }); } },
-		"ui.toggle.off": { l: 1, level: -2, freq: "occasional", dur: 0.09, fn: (c, o, t, p) => { click(c, o, t, { f: 1350 * p.v, q: 2.5, dur: 0.055 }); body(c, o, t, { f: 330 * p.v, dur: 0.1, g: 0.35 }); } },
+		// `lead` (ms): a two-stage sound starts this much early, so its last part (bottom-out, top-out) lands on contact.
+		"ui.button.press": { l: 1, level: 0, lead: 14, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { jacket(c, o, t, p.v); clack(c, o, t + 0.014, p.v, { f: 1800, body: 1100, kase: 380 }); } },
+		"ui.button.release": { l: 1, level: -4, lead: 18, freq: "very high", dur: 0.07, fn: (c, o, t, p) => { jacket(c, o, t, p.v * 1.06, 0.55); clack(c, o, t + 0.018, p.v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); } },
+		// The legend key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
+		// spring back with its upstroke snap and top-out, lower and muted.
+		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { clack(c, o, t, p.v, { f: 2400, body: 1500, kase: 420, g: 0.8 }); click(c, o, t + 0.008, { f: 3300 * p.v, q: 5, dur: 0.012, g: 0.5 }); } },
+		"ui.toggle.off": { l: 1, level: -2, lead: 18, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { const v = p.v * st(-3); jacket(c, o, t, v * 0.75, 0.4); clack(c, o, t + 0.018, v, { f: 1500, body: 1000, kase: 330, g: 0.7 }); } },
 		"ui.selection": { l: 1, level: -8, freq: "very high", dur: 0.04, fn: (c, o, t, p) => click(c, o, t, { f: 3000 * p.v, q: 5, dur: 0.04 }) },
 		"ui.card.lift": { l: 1, level: -6, freq: "high", dur: 0.06, fn: (c, o, t, p) => paper(c, o, t, { dur: 0.05, peak: 0.2, f: 2800 * p.v }) },
 		"ui.card.place": { l: 1, level: -3, freq: "high", dur: 0.09, fn: (c, o, t, p) => { paper(c, o, t, { dur: 0.07, peak: 0.12, f: 1800 * p.v }); body(c, o, t, { f: 300 * p.v, dur: 0.08, g: 0.5, to: 0.8 }); } },
@@ -618,7 +632,8 @@ const Sound = (() => {
 		"ui.notification.info": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.28, fn: (c, o, t) => bell(c, o, t, { f: NOTE.E5, dur: 0.28 }) },
 		"ui.notification.caution": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.4, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.E5, dur: 0.22 }); bell(c, o, t + 0.16, { f: NOTE.E5, dur: 0.28 }); } },
 		"ui.notification.urgent": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "rare", dur: 0.55, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.A5, dur: 0.25 }); bell(c, o, t + 0.17, { f: NOTE.D5, dur: 0.4 }); } },
-		"ui.endturn.press": { l: 2, level: 4, freq: "high", dur: 0.11, fn: (c, o, t) => { click(c, o, t, { f: 1800 * st(-5), q: 2.5, dur: 0.09 }); body(c, o, t, { f: 600, dur: 0.1, g: 0.45 }); body(c, o, t, { f: 160, dur: 0.12, g: 0.4 }); } },
+		// The same switch under the desk's biggest key: the snap, then a deeper bottom-out with more case.
+		"ui.endturn.press": { l: 2, level: 4, lead: 14, freq: "high", dur: 0.11, fn: (c, o, t) => { jacket(c, o, t, 0.92); clack(c, o, t + 0.014, 1, { f: 1300, body: 800, kase: 200, g: 1.2, dur: 0.045 }); body(c, o, t + 0.014, { f: 160, dur: 0.1, g: 0.35 }); } },
 		"ui.endturn.commit": { l: 2, level: 5, freq: "high", dur: 0.14, fn: (c, o, t) => relay(c, o, t) },
 		"ui.endturn.turn": { l: 2, level: -2, wet: 0.05, freq: "high", dur: 0.32, fn: (c, o, t) => { motor(c, o, t, { dur: 0.3, g: 0.5 }); flutter(c, o, t + 0.02, { n: 10, span: 0.22, g: 0.6 }); } },
 		"ui.milestone": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.0, fn: (c, o, t) => { relay(c, o, t, { g: 0.5 }); vib(c, o, t + 0.12, { f: NOTE.D5, dur: 0.9 }); } },
@@ -688,7 +703,7 @@ const Sound = (() => {
 		const c = start();
 		const calmNow = calm();
 		const lead = Math.min(c.baseLatency || 0, 0.01);  // land inside the window: never early, ≤ 30 ms late (§16.5)
-		let when = c.currentTime + Math.max(0, (calmNow ? 0 : at) / 1000 - lead) + 0.005;
+		let when = c.currentTime + Math.max(0, (calmNow ? 0 : at - (tk.lead || 0)) / 1000 - lead) + 0.005;
 		if (tk.l < 3 && when < l3Until) { if (!input) return; gainDb -= 6; }  // events aren't interrupted (§16.4)
 		if (name === "ui.counter.tick") { if (when - lastTick < 0.035) return; lastTick = when; }  // one tick stream
 		if (name.startsWith("ui.notification")) { when = Math.max(when, lastNote + 0.4); lastNote = when; }

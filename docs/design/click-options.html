@@ -39,6 +39,7 @@ header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacin
 /* .plain controls are page furniture: they make no sound, so only the keys under test click. */
 .plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
 .plain[aria-pressed="true"] { border-color: var(--ink); background: var(--well); }
+.chosen { font: 600 11px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--sheet); background: var(--ink); padding: 1px 5px; vertical-align: middle; margin-left: var(--space-2); }
 main { max-width: 1100px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
 .intro { color: var(--ink-2); max-width: 72ch; margin: 0 0 var(--space-6); }
 .option { display: grid; grid-template-columns: 56px 1fr 340px; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
@@ -254,7 +255,7 @@ const ready = (async () => {
 document.getElementById("options").innerHTML = OPTIONS.map((o) => `
 	<section class="option" data-option="${o.id}">
 		<div class="letter">${o.id}</div>
-		<div><h2>${o.name}</h2><p>${o.text}</p><div class="meta">${o.meta}</div></div>
+		<div><h2>${o.name}${o.id === "G" ? ' <span class="chosen">Chosen</span>' : ""}</h2><p>${o.text}</p><div class="meta">${o.meta}</div></div>
 		<div class="demo">
 			<div class="row"><button class="btn" data-key="${o.id}">Buy cards</button><button class="plain" data-burst="${o.id}">×12</button><span class="centroid"></span></div>
 			<svg class="spectrum" viewBox="0 0 300 56" preserveAspectRatio="none" role="img" aria-label="Spectrum of option ${o.id}"></svg>

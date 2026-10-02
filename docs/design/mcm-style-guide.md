@@ -97,7 +97,7 @@ Look at these for *principles*, not for things to copy:
   work beside all day. Colour and sound obey the same economy.
 
 **Mood words, measured:** warm (backgrounds have hue 35–45°, saturation 15–25%; sound energy centred in 300 Hz–3 kHz
-with the top rolled off above 6 kHz), optimistic (accents are saturated but never neon: chroma capped at ~0.15 in
+with the top rolled off above 6 kHz; the key switch's short snap is the one bright sound), optimistic (accents are saturated but never neon: chroma capped at ~0.15 in
 OKLCH), tactile (every control shows press travel and clicks when it lands), quiet (≤ 1 moving thing at rest; no
 sound at all at rest; routine sounds ≤ 100 ms and ≤ −26 dBFS).
 
@@ -472,7 +472,7 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 | Primitive | Physical model | Property | Typical travel | Curve | Sound partner (§16.3) |
 |---|---|---|---|---|---|
 | **Slide** | A drawer or cabinet door on rails | position on one axis | 8–24 px for elements; panel width for panels | `ease.machined` in, `ease.release` out | Element slides: silent, or the stop only. Panel slides: a quiet rail run under the travel, a felt stop or latch at the end. |
-| **Snap** | A switch or latch hitting its detent | position or state, very short | 1–4 px | `ease.snap` | A dry click or detent at contact. The most common sound in the game. |
+| **Snap** | A switch or latch hitting its detent | position or state, very short | 1–4 px | `ease.snap` | A key switch's snap and bottom-out, the bottom-out at contact; a latch's detent. The most common sound in the game. |
 | **Roll** | An odometer drum or split flap | a digit's vertical offset, flap rotation | one digit height per step | `ease.linear-step` per step | A tick as each digit lands (≤ 8 per roll); one flutter per split-flap word, not one per character. |
 | **Wipe** | A drafting sheet or blind drawn across | clip rect / underline width | full element | `ease.machined` | Paper on paper, only for sheet-sized wipes (navigation, ceremonies). Underlines and tags wipe silently. |
 | **Rotate** | A rotary control or gauge needle | rotation | ≤ 90° for controls; any for needles | `ease.machined`, needle `ease.damped` | A control: one detent per step. A needle: silent. |
@@ -507,8 +507,8 @@ travel (§16.5).
 | Interaction | Duration | Primitive & values | Curve | Sound @ sync |
 |---|---|---|---|---|
 | Hover feedback | in 90 ms, out 140 ms | Background one value step; shadow unchanged. Links: underline wipe 0→100%. | in `machined`, out `release` | None |
-| Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` | `ui.button.press` @ contact, ≈ 38 ms |
-| Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` | `ui.button.release` @ back at rest, ≈ 65 ms |
+| Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` | `ui.button.press`: snap ≈ 24 ms, bottom-out at contact ≈ 38 ms |
+| Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` | `ui.button.release`: upstroke snap ≈ 47 ms, top-out back at rest ≈ 65 ms |
 | Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp strip and legend change as the latch lands. | `snap` key, `lamp` | `ui.button.press` @ held contact; `ui.toggle.on` @ latch lands with the lamp, ≈ 38 ms; `ui.toggle.off` @ back at rest, ≈ 65 ms |
 | Navigation transition | 280–360 ms | New screen wipes in from the side of its origin (left rail → right), old slides 24 px and fades out under it. | `machined` / `release` | `ui.nav.forward`: paper texture from 0, stop @ ≈ 172 ms; back: `ui.nav.back` |
 | Panel opening (drawer) | 220–280 ms open, 180–220 ms close | Slide from its rail edge; contents fade in after 40% (stagger rows 20 ms, max 6 rows). | `latch` / `release` | `ui.panel.open`: latch tick @ 0, stop @ ≈ 164 ms; `ui.panel.close`: catch @ ≈ 187 ms |
@@ -545,9 +545,10 @@ it reads as depressing into the desk. No scale, no ripple, no colour flash. Rele
 activation (Space/Enter) plays the same press/release. A held button (End turn's hold-to-skip-confirm if added)
 shows a fill wiping left→right across its face.
 
-**Sound.** A dry, muted click of a molded key on a snap-action switch, `ui.button.press`, when the face reaches the
-desk (≈ 38 ms in), and a lighter, higher return tick, `ui.button.release`, as it comes back to its stop (≈ 65 ms
-after release). The action still fires on release; whatever it starts makes its own sound with its own motion. Hover
+**Sound.** Every key sits on a clicky key switch (chosen in [click-options.html](click-options.html), option G).
+`ui.button.press` is two-stage, like the switch: the click jacket snaps at actuation (≈ 24 ms in), then the stem
+bottoms out on the housing as the face reaches the desk (≈ 38 ms). `ui.button.release` is the switch coming back up,
+quieter: the upstroke snap, then the top-out as the face reaches its stop (≈ 65 ms after release). The action still fires on release; whatever it starts makes its own sound with its own motion. Hover
 and focus are silent. A press that is dragged off the button before release plays the press and
 a release, but nothing fires, as the eye sees. A press on a disabled button doesn't travel and plays the dead tap of a
 locked key, `ui.reject.locked`, while its reason tooltip appears at once instead of after the hover delay, so the
@@ -768,7 +769,7 @@ Sound, the one sequence the player hears every turn, so it is firm but never cin
 
 | Moment | Visual / motion | Sound | Sync |
 |---|---|---|---|
-| PRESS | face travels 4 px into its plinth, 70 ms `snap` | `ui.endturn.press`: firmer, deeper engagement than any other key | contact, ≈ 38 ms |
+| PRESS | face travels 4 px into its plinth, 70 ms `snap` | `ui.endturn.press`: the same key switch, with a deeper bottom-out than any other key | snap ≈ 24 ms, bottom-out at contact ≈ 38 ms |
 | COMMIT | release; the lamp goes out; BUSY | `ui.endturn.commit`: a two-stage relay closing behind the panel | key back at rest, ≈ 65 ms after release |
 | TURN | the turn plate flaps to N+1; the event card slides in | `ui.endturn.turn`: a short drum-advance with the plate's flap flutter riding on it; the event card's `ui.card.place` as it lands | first flap |
 | UPKEEP | delta tags and rolls, 60 ms apart | the shared tick stream and one registration per resource (§10.3–10.4) | per step |
@@ -922,7 +923,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Era change as a ceremonial sheet | Era change as confetti |
 | Cost top-right as `[sprout 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
 | A latching legend key that says ON or OFF on its face | A rounded pill track with a circle thumb |
-| A dry 60 ms click when the key meets the desk | A sound on hover, or on every pointer move |
+| A key switch's snap, then its bottom-out as the key meets the desk | A sound on hover, or on every pointer move |
 | A drawer's rail run and felt stop, as long as its slide | A digital whoosh, or a sound that outlasts the motion |
 | ≤ 8 ticks for a roll, then one registration | A tick per unit when wealth jumps by 40; a coin shower |
 | A low double tap, one per error snap | A buzzer or a "wrong answer" honk |
@@ -1000,6 +1001,7 @@ sound:                        # §16; per-token specs in §14.1
   ceiling: { interface: -18, game: -10, master: -1 }                  # dBFS peak, limiter per bus
   duration: { l1: [30, 140], l2: [100, 600], l3: [500, 2600] }        # ms
   sync:    { contact: 0.9, lead-max: 10, lag-max: 30 }               # fraction of travel; ms around the visual event
+  key-switch: { snap-to-bottom-out: 14, snap-to-top-out: 18 }        # ms; the snap leads so the last stage lands on contact
   attack:  { mechanical: 1, tonal: 5, event-open: 20 }               # ms; a Level 3 stays ≥ 6 dB under its peak for event-open
   rate:    { tick-gap: 35, button-gap: 40, flag-gap: 400, voices-interface: 6, voices-game: 3 }  # ms; voices
   run:     { max-ticks: 8, tick-decay-db: 1 }                         # = the roll's 8 visible steps
@@ -1025,10 +1027,10 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 
 | Token | Metaphor · character | Duration | Level | Pitch / timbre | Reverb | Sync point | Frequency |
 |---|---|---|---|---|---|---|---|
-| `ui.button.press` | Molded-plastic key bottoming on a snap-action switch · muted, dry click | 60–100 ms | low (0) | neutral-low; body ≈ 1.8 kHz, no ring; primary button −2 st (a heavier cap) | none | face reaches +2 px, ≈ 38 ms into the 70 ms press | very high |
-| `ui.button.release` | The switch's spring returning · a lighter, shorter tick | 40–70 ms | very low (−4) | +3 st over the press, thinner | none | face back at rest, ≈ 65 ms into the 120 ms release | very high |
-| `ui.toggle.on` | The legend key's latch catching · an over-travel tap, then a firm detent | 80–120 ms | low (0) | activation: brighter, body ≈ 2.4 kHz, more 2–4 kHz | none | latch lands at +2 px with the lamp strip, ≈ 38 ms after release | occasional |
-| `ui.toggle.off` | The latch letting go, the key springing back · one duller detent | 70–110 ms | low (−2) | deactivation: −3 st, top rolled off above 2 kHz | none | key back at rest, ≈ 65 ms after release | occasional |
+| `ui.button.press` | A clicky key switch under ABS keycaps · two-stage: the click jacket's snap, then the stem's bottom-out 14 ms later | 50–80 ms | low (0) | a bright snap ≈ 4.5 kHz (12 ms), as loud as the bottom-out: a plastic clack ≈ 1.8 kHz over a ≈ 380 Hz case; primary button −2 st (a heavier cap) | none | bottom-out as the face reaches +2 px, ≈ 38 ms into the 70 ms press; the snap 14 ms before, at actuation | very high |
+| `ui.button.release` | The switch coming back up · the upstroke snap, then the top-out 18 ms later | 40–70 ms | very low (−4) | the snap 5 dB under the press's; a lighter clack ≈ 2.2 kHz | none | top-out as the face is back at rest, ≈ 65 ms into the 120 ms release; the snap 18 ms before | very high |
+| `ui.toggle.on` | The legend key's latch catching, after the switch's press · a short, bright catch, no snap | 40–70 ms | low (0) | activation: brighter, a clack ≈ 2.4 kHz with a ≈ 3.3 kHz tick | none | latch lands at +2 px with the lamp strip, ≈ 38 ms after release | occasional |
+| `ui.toggle.off` | The latch letting go, the switch springing back · a soft upstroke snap, then the top-out | 50–80 ms | low (−2) | deactivation: −3 st, the snap 8 dB down, a duller clack ≈ 1.5 kHz | none | top-out as the key is back at rest, ≈ 65 ms after release; the snap 18 ms before | occasional |
 | `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
 | `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
 | `ui.card.place` | An index card laid on the blotter · a soft, flat pat with a little body | 60–100 ms | low (−3) | neutral-low; ≈ 300 Hz body under paper | none | the card lands (start of its 60 ms landing snap) | high |
@@ -1055,7 +1057,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.confirm` | An indicator lamp with a tone generator · one warm, restrained tone; strong form: a rising fourth, E5 → A5 | 150–250 ms | low-mid (+4) | slightly elevated: A5, a soft square wave with the top rolled off above 2.5 kHz | minimal | the lamp lights (lamp-on, 0 ms) | occasional |
 | `ui.reject` | A part meeting its stop twice · a muted, low double tap | 120–180 ms (taps 80 ms apart) | low-mid (+3) | slightly lower: body ≈ 200–300 Hz, no tone | none | each lateral stop of the error snap, ≈ 44 and ≈ 124 ms | occasional |
 | `ui.notification` | A desk indicator lamp with a small bell · bell pulses in three patterns | info ● 200–300 ms; caution ●● 350–450 ms; urgent ●↘● 400–600 ms | mid (+6), the same for all three | info E5; caution E5, E5; urgent A5 → D5; a small bell's partials, soft attack | minimal (≤ 5%) | the flag reaches full extension with the rail lamp, ≈ 108 ms of 200 | occasional (urgent: rare) |
-| `ui.endturn.press` | The desk's biggest key bottoming · a firm engagement | 90–130 ms | mid (+4) | neutral-low: 5 st under `ui.button.press`, more body (≈ 600 Hz) | none | contact at +4 px, ≈ 38 ms | high (once a turn) |
+| `ui.endturn.press` | The same key switch under the desk's biggest key · the snap, then a firm, deep bottom-out | 80–120 ms | mid (+4) | the snap slightly lower; a deeper clack ≈ 1.3 kHz over a ≈ 200 Hz case and a 160 Hz thump | none | bottom-out at +4 px, ≈ 38 ms; the snap 14 ms before | high (once a turn) |
 | `ui.endturn.commit` | A relay closing behind the panel · a two-stage clack, 12 ms apart | 80–140 ms | mid (+5) | low-mid: armature ≈ 300 Hz, contacts ≈ 1.2 kHz | none | the key back at rest and its lamp out, ≈ 65 ms after release | high (once a turn) |
 | `ui.endturn.turn` | The turn drum advancing · a short motor-advance carrying the plate's flutter | 250–400 ms | low (−2) | motor below 600 Hz; flaps neutral-high | minimal | the turn plate's first flap | high (once a turn); optional, the first thing cut if turns feel busy |
 
@@ -1088,7 +1090,7 @@ optional 16 px icon left with 8 px gap.
 |---|---|---|---|---|---|---|
 | REST | signal | 0, 0 | plinth (2, 2) | 3 ink | | None |
 | HOVER | signal lightened 8% (Paper) / darkened 8% (Night) | 0, 0 | plinth | 3 ink | 90 ms `machined` in, 140 ms `release` out | None |
-| PRESSED | signal darkened 10% | +2, +2 | none | 3 ink | 70 ms `snap`. Sits into its shadow. | `ui.button.press` −2 st, @ ≈ 38 ms |
+| PRESSED | signal darkened 10% | +2, +2 | none | 3 ink | 70 ms `snap`. Sits into its shadow. | `ui.button.press` −2 st: snap ≈ 24 ms, bottom-out ≈ 38 ms |
 | RELEASED | → HOVER (pointer still over) | 0, 0 | plinth | | 120 ms `machined`; action fires on release | `ui.button.release` −2 st, @ ≈ 65 ms |
 | FOCUS | as REST + teal 2 px ring offset 2 px | | | | ring appears instantly | None |
 | DISABLED | `well`, text `ink-3` | 0, 0 | none | 2 dashed `rule` | reason in tooltip (the `*_error` string) | on press: `ui.reject.locked` @ 0, and the tooltip shows at once |
@@ -1099,8 +1101,8 @@ The press as one event, sight and sound together:
 |---|---|---|---|
 | Visual | fill one value step | fill darkens 10%; the plinth shadow disappears | shadow returns; fill back to HOVER |
 | Motion | none | +2, +2 px in 70 ms, `snap` | back to 0, 0 in 120 ms, `machined` |
-| Sound | None | `ui.button.press`: a muted molded-plastic click | `ui.button.release`: a lighter return tick |
-| Timing | — | the click when the face reaches the desk (90% of travel, ≈ 38 ms), never at pointer-down | the action fires on release; the tick as the face reaches its stop (≈ 65 ms), so the sound marks the key, not the result |
+| Sound | None | `ui.button.press`: a clicky key switch, the jacket's snap then the bottom-out | `ui.button.release`: the quieter upstroke snap, then the top-out |
+| Timing | — | the bottom-out when the face reaches the desk (90% of travel, ≈ 38 ms), the snap 14 ms before it (actuation); never at pointer-down | the action fires on release; the top-out as the face reaches its stop (≈ 65 ms), the snap 18 ms before, so the sound marks the key, not the result |
 
 Keyboard activation runs the same sequence. A press dragged off the button plays both sounds and fires nothing.
 
@@ -1138,16 +1140,16 @@ two rows 3 px apart:
 
 | Transition | Duration | Change | Curve | Sound |
 |---|---|---|---|---|
-| REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` | `ui.button.press` @ ≈ 38 ms |
+| REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` | `ui.button.press`: snap ≈ 24 ms, bottom-out ≈ 38 ms |
 | HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp strip lights (40 ms) and the legend changes to ON | `snap`, `lamp-on` | `ui.toggle.on`, brighter, @ ≈ 38 ms, with the lamp |
-| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` | `ui.toggle.off`, lower and muted, @ ≈ 65 ms as the key reaches rest; the fading lamp is silent |
+| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` | `ui.toggle.off`, lower and muted: snap ≈ 47 ms, top-out ≈ 65 ms as the key reaches rest; the fading lamp is silent |
 | HOVER | 90 ms | border stays `ink`; face one value step toward `sheet` | `machined` | None |
 | FOCUS | instant | teal focus ring, offset 2 px | | None |
 | DISABLED | — | face `well`, legend `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | | on press: `ui.reject.locked` |
 | Reduce motion | — | position and lamp switch in one frame | | unchanged: the press on press, the latch or release on release |
 
-ON and OFF differ the way the mechanism does: ON is a catch (a brighter detent after the over-travel), OFF is a
-spring-back (one duller detent). The difference is small but always audible side by side.
+ON and OFF differ the way the mechanism does: the press is the key switch's (snap and bottom-out); ON adds the latch
+catching (a short, bright catch), OFF lets the switch spring back (its upstroke snap and top-out, lower and muted). The difference is small but always audible side by side.
 
 Accessibility: `role="switch"` with `aria-checked`; the legend and the latched position both carry the state, so
 neither the lamp colour, the motion nor the sound is needed to read it. The **Interface sounds** setting is itself a
@@ -1256,7 +1258,7 @@ caption below the button for "2 actions left" (from the engine).
 | REST (ready) | — | lamp sage on | | None |
 | REST (actions left) | — | lamp ochre on; caption visible | | None |
 | → HOVER | 90 ms | fill one step; caption ink-2 → ink | `machined` | None |
-| → PRESSED | 70 ms | offset +4, +4; shadow → none | `snap` | `ui.endturn.press` @ contact, ≈ 38 ms: firm engagement |
+| → PRESSED | 70 ms | offset +4, +4; shadow → none | `snap` | `ui.endturn.press`: snap ≈ 24 ms, deep bottom-out at contact ≈ 38 ms |
 | → RELEASED / COMMITTED | 120 ms | offset → 0; lamp off (160 ms `lamp-off`); button enters BUSY | `machined` | `ui.endturn.commit` @ ≈ 65 ms: the relay latches as the lamp goes out |
 | BUSY (turn resolving) | ≤ 1.2 s | `steel` fill; the turn plate split-flaps to N+1; label "UPKEEP…" | | `ui.endturn.turn` at the first flap (optional); then the upkeep's ticks and registrations (§11.9) |
 | → REST | 160 ms | fill → signal; lamp on (40 ms) | `lamp-on` | None |
@@ -1303,7 +1305,7 @@ would make of those mechanisms today, cleaner and quieter than any real machine,
 | Crisp | transients start within 1–2 ms; no smeared attack | the waveform peaks in the first 3 ms |
 | Tactile | each control has a contact sound tied to its press travel | mute and unmute: the press feels lighter without it |
 | Restrained | Level 1 peaks ≤ −26 dBFS; nothing on the Interface bus above −18 dBFS | the meter |
-| Warm | energy in 300 Hz–3 kHz; −6 dB shelf above 6 kHz; no harshness at 2–5 kHz | the spectrum |
+| Warm | energy in 300 Hz–3 kHz; −6 dB shelf above 6 kHz; no harshness at 2–5 kHz. One exception: the key switch's snap (≈ 4.5 kHz, ≤ 12 ms), kept short and never louder than its bottom-out | the spectrum |
 | Mechanical | built from clicks, detents, runs, stops, ticks and lamp tones | name the mechanism in one phrase; if you can't, cut the sound |
 | Slightly analogue | small differences between repeats (§16.8), a little body and felt | no bit-crush, tape hiss or vinyl crackle |
 | Short | Level 1 ≤ 140 ms, Level 2 ≤ 600 ms, Level 3 ≤ 2.6 s | the file length |
@@ -1321,7 +1323,7 @@ Signal family when it reports news.
 
 | Family | Imagined mechanism | Materials | Used by | Signature | Never |
 |---|---|---|---|---|---|
-| **Keys** (primary controls) | molded keys on compact snap-action switches; latching legend keys | molded plastic, small springs | buttons, tabs, legend keys, the Grow pip, End turn (the heaviest key) | dry click, attack ≤ 1 ms, body 1.5–2.5 kHz, ≤ 100 ms, no ring | a metallic ring, a hollow clack |
+| **Keys** (primary controls) | ABS keycaps on clicky key switches (a click jacket that snaps at actuation); latching legend keys | molded plastic, small springs | buttons, tabs, legend keys, the Grow pip, End turn (the heaviest key) | two-stage: a bright snap, then a plastic bottom-out clack 14 ms later; attack ≤ 1 ms, ≤ 80 ms, no ring | a metallic ring, a hollow clack, a typewriter's bell |
 | **Rails and sheets** (navigation) | ball-bearing drawer runners, sliding partitions, drafting sheets, index cards | aluminium rails, felt stops, paper and card stock | drawers, cabinet doors, screens, modals, cards, piles | a soft run below 4 kHz, a damped stop, a paper whisper | a whoosh, any pitch sweep |
 | **Counters** | drum counters, split-flap units, adding-machine registers | steel pawls, plastic drums and flaps | odometers, flaps, tallies, gain and loss | tiny ticks ≈ 3 kHz; a registration clack | coins, bells, slot-machine rolls |
 | **Signals** (notifications) | indicator lamps with a tone generator, a small desk bell | sine and soft-square oscillators, a small bell | confirm, notifications, gain's whisper | pure tones from the tone ladder, soft attack, ≤ 600 ms | sirens, buzzers, chiptune |
@@ -1337,7 +1339,7 @@ Sound and motion imply the same imaginary mechanism. Change one and you change t
 
 | Physical metaphor | Components | Motion (§9.2) | Sound | Never |
 |---|---|---|---|---|
-| Mechanical push-button | buttons, tabs, the Grow pip | snap in, machined out | a muted plastic click; a lighter return tick | a beep |
+| Mechanical push-button | buttons, tabs, the Grow pip | snap in, machined out | a clicky switch: the snap, then the bottom-out; a quieter snap and top-out on return | a beep |
 | Latching key | the legend key (toggle) | snap, latch | a firm detent: a catch for ON, a spring-back for OFF | an electric "zap" |
 | Sliding panel on a rail | drawers, cabinet doors | slide, `latch` curve | a quiet rail run, a felt stop or latch at the end | a whoosh |
 | Drafting sheet | screens, modals | wipe, slide | a soft paper lay or run | a page-turn flourish |
@@ -1387,15 +1389,17 @@ Sound occurs at the perceived physical event.
    30 ms.
 7. **Reduce motion.** Contact and stop share one frame: the stop plays alone (§9.5).
 8. **Files are cut to the transient.** Every file's transient sits at 0 ms (≤ 1 ms of pre-roll), so scheduling a sound
-   at the contact frame puts its click at the contact. The player compensates for the platform's output latency so
+   at the contact frame puts its click at the contact. A two-stage sound (the key switch) carries a `lead`: it is
+   scheduled that much early, so its last stage (the bottom-out or top-out) lands on contact and the snap just before,
+   where actuation is. The player compensates for the platform's output latency so
    that the sound *arrives* inside the window.
 
 | Event | Motion | Physical event | Token | Onset (ms from the motion's start) |
 |---|---|---|---|---|
-| Button press | 70 ms `snap`, 2 px | the face meets the desk | `ui.button.press` | ≈ 38 |
-| Button release | 120 ms `machined` | the face returns to its stop | `ui.button.release` | ≈ 65 |
+| Button press | 70 ms `snap`, 2 px | actuation; the face meets the desk | `ui.button.press`: snap, bottom-out | ≈ 24; ≈ 38 |
+| Button release | 120 ms `machined` | the switch resets; the face returns to its stop | `ui.button.release`: snap, top-out | ≈ 47; ≈ 65 |
 | Toggle ON | 70 ms latch, `snap` | the latch catches; the lamp lights | `ui.toggle.on` | ≈ 38 |
-| Toggle OFF | 120 ms return, `machined` | the key reaches rest | `ui.toggle.off` | ≈ 65 |
+| Toggle OFF | 120 ms return, `machined` | the switch resets; the key reaches rest | `ui.toggle.off`: snap, top-out | ≈ 47; ≈ 65 |
 | Tab | 60 ms `snap`, 1 px | contact | `ui.button.press` −3 dB | ≈ 33 |
 | Selection | 120 ms tab wipe, `machined` | the index tab lands | `ui.selection` | ≈ 65 |
 | Drag pick-up | 60 ms `snap`, 2 px | the card leaves its row | `ui.card.lift` | ≈ 33 |
@@ -1412,11 +1416,12 @@ Sound occurs at the perceived physical event.
 | Flag | 200 ms `machined` | the flag is fully out; the rail lamp lights | `ui.notification` | ≈ 108 |
 | Confirmation | lamp-on, 40 ms | the lamp lights | `ui.confirm` | 0 |
 | Error | three 80 ms `snap` legs | each lateral stop | `ui.reject` | ≈ 44 and ≈ 124 |
-| End turn | 70 ms `snap`, 4 px; release 120 ms | contact; the key home and its lamp out | `ui.endturn.press`, `.commit` | ≈ 38; ≈ 65 after release |
+| End turn | 70 ms `snap`, 4 px; release 120 ms | actuation and contact; the key home and its lamp out | `ui.endturn.press` (snap, bottom-out), `.commit` | ≈ 24 and ≈ 38; ≈ 65 after release |
 
 ### 16.6 Pitch, timbre and space
 - **Spectrum.** High-pass Levels 1–2 at 150 Hz (the low end belongs to music and events); a −6 dB shelf above 6 kHz;
-  nothing above 10 kHz at Level 1. Energy centred in 300 Hz–3 kHz: warm midrange, muted highs.
+  nothing above 10 kHz at Level 1. Energy centred in 300 Hz–3 kHz: warm midrange, muted highs. The key switch's snap
+  is the one deliberate exception: a 12 ms transient near 4.5 kHz that makes a key read as a key.
 - **Transients and resonance.** Mechanical attacks ≤ 1 ms; tonal attacks ≥ 5 ms; a Level 3 opens quietly (its first
   20 ms ≥ 6 dB under its peak). Decays are
   short and exponential; no Level 1 body rings longer than 80 ms (low resonance).
@@ -1504,8 +1509,8 @@ None. Removing a sound is always an acceptable fix.
   for LUFS and are set by their peak level.
 
 ### 16.10 Production
-- **Sources**: record real mechanisms or synthesize, but stay inside the material map: small-key microswitches,
-  latching push keys, relays, a drawer on ball-bearing runners with a felt stop, card stock and drafting vellum, a
+- **Sources**: record real mechanisms or synthesize, but stay inside the material map: clicky key switches under ABS
+  keycaps, latching push keys, relays, a drawer on ball-bearing runners with a felt stop, card stock and drafting vellum, a
   drum counter, split-flap units, a small desk bell, a vibraphone. Don't sample or recreate recognisable proprietary
   sounds (a named product's chime, a famous projector's advance, a typewriter's bell).
 - **Processing**: trim to the transient (≤ 1 ms of pre-roll), high-pass at 150 Hz (Levels 1–2), shelf the top,
@@ -1517,7 +1522,8 @@ None. Removing a sound is always an acceptable fix.
   `assets/sounds/ui/`; Level 3 in `assets/sounds/events/`.
 - **Prototype**: the specimen synthesizes every token in the browser (filtered noise bursts for clicks and ticks,
   shaped noise for runs and paper, partial sums for the bell and the vibraphone). Those fix timing, level and
-  character, and serve as placeholders; final assets are recorded or designed to the same specs.
+  character, and serve as placeholders; final assets are recorded or designed to the same specs. The key switch was
+  chosen by ear from the options in [click-options.html](click-options.html): option G.
 
 ---
 
@@ -1577,6 +1583,13 @@ How the guide lands in the existing UI without touching `engine/`:
   to its level offline; recorded assets need the same discipline (§16.10).
 - Two event cues (accord, city) first opened within 3 dB of their peak, a sudden loud start. The rule that a Level 3
   opens with its quiet mechanism (§12 rule 12) came from measuring that.
+- The first key click was a narrow band at 1.8 kHz over a weak body, and in listening it sounded high and thin. Nine
+  versions went side by side in [click-options.html](click-options.html), loudness-matched, from a lowered click to a
+  dark felt thock and three two-stage clicky switches. The choice was G, the clicky switch: a bright snap and a plastic
+  bottom-out 14 ms apart. It isn't darker than the first click (both centre near 2.4 kHz); what changed is that it
+  is a recognisable mechanism with two stages instead of one band of noise. Its snap is the guide's one bright sound,
+  so it is the first thing to check in the repetition test (§16.8). The legend key and End turn now use the same
+  switch, so every key on the desk belongs to one family.
 - What the measurements don't cover is taste: nobody has listened to these sounds in this spike. The synthesized
   clicks are placeholders that fix timing, length and level. The repetition test (§16.8) with real listeners, on
   recorded mechanisms, is the gate before any of this ships.
