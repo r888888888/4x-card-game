@@ -630,6 +630,8 @@ func counter_tag(counter: Control) -> Label:
 	var tag := RegEx.create_from_string("^[+−][0-9]+$")
 	for node in counter.find_children("*", "Label", true, false):
 		var l := node as Label
+		if l.name == "Forecast":  # next upkeep's change sits beside the figure too (201), not a tag
+			continue
 		if is_instance_valid(l) and l.is_visible_in_tree() and l.modulate.a > 0.0 and tag.search(l.text) != null:
 			return l
 	return null

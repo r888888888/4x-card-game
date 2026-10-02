@@ -216,7 +216,8 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_tags_its_change() -> voi
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "2 / 5 (+1)", "unrest, the limit and the forecast")
+	eq(main.counter_text(GameEngine.UNREST), "2 / 5", "unrest and the limit")
+	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	if counter != null:
 		eq(counter.figure().color, Palette.TEXT,
 			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST; 181: an odometer)")
@@ -236,7 +237,8 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "2 (+1)", "unrest and the forecast, no limit")
+	eq(main.counter_text(GameEngine.UNREST), "2", "unrest, no limit")
+	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	close_main(main)
 	Game.engine = real
 
@@ -284,3 +286,8 @@ func test_the_bot_doesnt_calm_unrest_far_below_the_limit() -> void:
 		var high := bot_engine("chiefs", 2, "feast")
 		ScriptedBot.take_turn(high, strategy)
 		eq(high.resources.get("unrest"), 1, "%s at 2 of 5: 2 + 0 + 1 reaches 3, Feast played" % strategy)
+
+
+## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
+func forecast(main: Node, key: String) -> String:
+	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"

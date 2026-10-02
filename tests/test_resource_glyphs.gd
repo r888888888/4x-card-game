@@ -94,10 +94,10 @@ func test_the_counters_read_figures_only() -> void:
 		e.resources[GameEngine.FOOD] = 3
 		e.changed.emit()
 		await wait_frames()
-		eq(main.counter_text(GameEngine.FOOD), "3 (+1)", "food")
+		eq(main.counter_text(GameEngine.FOOD), "3", "food (its forecast apart since 201)")
 		eq(main.counter_text(TopBar.SCORE), str(e.score()), "score")
 		eq(main.counter_text(TopBar.POP), str(e.total_pop()), "pop")
-		eq(main.counter_text(TopBar.TURN), "Turn 1 / 20", "the turn keeps its word"))
+		eq(main.counter_text(TopBar.TURN), "T 001", "the turn: its plate (201)"))
 
 
 # --- AC4: the cost at the top right of a hand card ---
