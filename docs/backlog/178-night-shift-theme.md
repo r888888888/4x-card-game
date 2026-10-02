@@ -2,7 +2,7 @@
 id: 178
 title: Night shift palette, typefaces and machined controls
 type: feature
-status: ready
+status: red-review
 branch: feat/178-night-shift-theme
 ---
 
@@ -54,6 +54,12 @@ and `GameTheme`, so every screen changes at once. Proven in the `spike/mcm-godot
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_theme::test_the_palette_holds_the_night_shift_values`, `test_labels_look_as_before`, `test_fields_and_card_colours_look_as_before` (106's guard, rewritten) |
+| AC2 | `test_theme::test_the_theme_uses_the_guides_typefaces`, `test_the_fonts_ship_with_their_licences` |
+| AC3 | `test_theme::test_buttons_stand_on_a_hard_shadow` |
+| AC4 | `test_theme::test_a_pressed_button_sinks_into_its_shadow` |
+| AC5 | `test_theme::test_the_accent_button_is_signal_orange`, `test_only_the_accent_button_is_filled_with_the_accent` |
+| AC6 | `test_theme::test_panels_are_cut_square`, `test_the_focus_ring_is_square_and_outside_the_control` |
 
 ## Manual check
 - [ ] Seed 5, Egypt: the board, the menu, the tech tree, the supply screen, a modal and the game-over sheet all read in
