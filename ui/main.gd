@@ -36,6 +36,7 @@ var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log butt
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
 var identity_modal: IdentityModal  # the civilization and government, from the sidebar (119, 202)
 var sidebar: Sidebar  # the right rail: the civilization and government (202)
+var doors: CabinetDoors  # shut over the board while the government choice comes and goes (209)
 
 var _views: BoardViews  # syncs the card views with the engine (176)
 var _board: Control  # the top bar and the play area
@@ -80,6 +81,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if doors.moving() and event is InputEventKey:  # nothing gets through the cabinet doors (209)
+		get_viewport().set_input_as_handled()
+		return
 	if _menu.is_open():  # a sheet on the stack: it takes its own keys (207)
 		return
 	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
@@ -105,6 +109,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_drawn = {}
 	territory_view.reset()
 	_views.reset()
+	choices.refresh(null)  # an old game's choice goes at once, without doors (209)
 	_top_bar.reset_counters()  # a new game's counters show no tags (126, 181)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
