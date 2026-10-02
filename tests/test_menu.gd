@@ -41,7 +41,7 @@ func test_pressing_exit_calls_the_quit_hook_once() -> void:
 
 # --- AC3: keyboard ---
 
-func test_tab_from_close_reaches_exit_then_wraps_to_the_seed_field() -> void:
+func test_tab_from_close_reaches_exit_then_wraps_to_restart() -> void:
 	var main := open_main_counting_quits([0])
 	press_key(main, KEY_ESCAPE)  # nothing focused: opens the menu
 	var buttons: Array = main.menu_buttons()
@@ -51,7 +51,8 @@ func test_tab_from_close_reaches_exit_then_wraps_to_the_seed_field() -> void:
 	var owner := main.get_viewport().gui_get_focus_owner()
 	eq(owner.get("text") if owner != null else null, "Exit", "focus after Tab from Close")
 	press_key(main, KEY_TAB)
-	check(main.get_viewport().gui_get_focus_owner() is LineEdit, "Tab from Exit wraps to the seed field")
+	owner = main.get_viewport().gui_get_focus_owner()
+	eq(owner.get("text") if owner != null else null, "Restart", "Tab from Exit wraps to Restart (206: no seed field)")
 	close_main(main)
 
 

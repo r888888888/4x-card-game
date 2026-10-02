@@ -3,7 +3,8 @@ extends "res://tests/lib/test_case.gd"
 ## main.start_screen is the title screen (is_open, overlay, new_game_button, settings_button, exit_button);
 ## main.new_game_screen picks the civilization and seed (is_open, overlay, seed_edit, start_button, back_button,
 ## selected, select, civilization_ids, civilization_row, detail_pane, detail_title, detail_text; 212);
-## main.settings_screen holds Reduce motion (is_open, overlay, motion_toggle,
+## main.settings_modal (206: a Modal over the title screen, replacing the settings screen) holds Reduce motion (is_open,
+## motion_toggle, close_button;
 ## back_button). main.board_shown() says whether the board is visible.
 ## Game.engine is shared by every UI test, so "no game started" is checked as "no engine changed signal".
 
@@ -62,14 +63,14 @@ func button_texts(root: Node) -> Array[String]:
 	return texts
 
 
-## Which of the three screens are open, as "title", "new game", "settings" in that order.
+## Which of the three are open, as "title", "new game", "settings" (the Settings modal, over the title screen) in order.
 func open_screens(main: Node) -> Array[String]:
 	var out: Array[String] = []
 	if main.start_screen.is_open():
 		out.append("title")
 	if main.new_game_screen.is_open():
 		out.append("new game")
-	if main.settings_screen.is_open():
+	if main.settings_modal.is_open():
 		out.append("settings")
 	return out
 
@@ -309,35 +310,33 @@ func test_the_new_game_screen_opens_no_details_modal() -> void:
 
 # --- AC4: Settings, and Back ---
 
-func test_settings_opens_the_settings_screen_with_the_motion_toggle() -> void:
+func test_settings_opens_the_settings_modal_with_the_motion_toggle() -> void:
 	var main := open_main()
 	var changes := engine_changes(func(): main.start_screen.settings_button.pressed.emit())
-	var screen: Object = main.settings_screen
-	eq(open_screens(main), ["settings"] as Array[String], "title hidden, settings screen open")
+	var modal: Object = main.settings_modal
+	eq(open_screens(main), ["title", "settings"] as Array[String], "the Settings modal over the title screen (206)")
 	eq(changes, 0, "no game started")
-	var toggle_row: Node = screen.motion_toggle.get_parent()
+	var toggle_row: Node = modal.motion_toggle.get_parent()
 	check(toggle_row.get_children().any(func(c): return c is Label and c.text == "Reduce motion"),
 		"Reduce motion: a labelled key (182)")
-	check(screen.overlay.is_ancestor_of(screen.motion_toggle), "toggle on the screen")
-	eq(screen.back_button.text, "Main menu", "the header's link back (104, 118)")
-	check(screen.overlay.is_ancestor_of(screen.back_button), "Back on the screen")
+	check(modal.is_ancestor_of(modal.motion_toggle), "the key on the modal")
+	eq(modal.close_button.text, "Close (Esc)", "its Close")
 	close_main(main)
 
 
-func test_settings_and_menu_toggles_share_the_setting() -> void:
+func test_the_settings_modals_toggle_is_the_setting() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
 		main.start_screen.settings_button.pressed.emit()
-		var screen_toggle: Button = main.settings_screen.motion_toggle
+		var toggle: Button = main.settings_modal.motion_toggle
 		Settings.set_reduce_motion(true)
-		check(screen_toggle.button_pressed, "settings screen toggle on")
+		check(toggle.button_pressed, "the key follows the setting on")
 		await wait_frames()
-		eq(screen_toggle.text, "ON", "settings screen key's legend (182)")
-		check(main.menu_motion_toggle().button_pressed, "menu toggle on")
-		screen_toggle.button_pressed = false  # the player turns it off on the settings screen
+		eq(toggle.text, "ON", "its legend (182)")
+		toggle.button_pressed = false  # the player turns it off
 		eq(Settings.reduce_motion, false, "setting off")
 		await wait_frames()
-		eq(main.menu_motion_toggle().text, "OFF", "menu toggle follows")
+		eq(toggle.text, "OFF", "its legend follows")
 		var saved := SettingsStore.new(Settings.store.path)  # the temp file with_temp_settings saves to
 		saved.reduce_motion = true
 		saved.load()
@@ -345,15 +344,15 @@ func test_settings_and_menu_toggles_share_the_setting() -> void:
 		close_main(main))
 
 
-func test_back_returns_to_the_title_screen_from_both_screens() -> void:
+func test_back_returns_to_the_title_screen_from_both() -> void:
 	var main := open_main()
 	var changes := engine_changes(func():
 		main.start_screen.new_game_button.pressed.emit()
 		main.new_game_screen.back_button.pressed.emit()
 		eq(open_screens(main), ["title"] as Array[String], "Back from new game: the title screen")
 		main.start_screen.settings_button.pressed.emit()
-		main.settings_screen.back_button.pressed.emit()
-		eq(open_screens(main), ["title"] as Array[String], "Back from settings: the title screen"))
+		main.settings_modal.close_button.pressed.emit()
+		eq(open_screens(main), ["title"] as Array[String], "Close on Settings: the title screen"))
 	eq(changes, 0, "no game started")
 	check(not main.board_shown(), "board hidden")
 	close_main(main)
@@ -459,7 +458,7 @@ func test_each_screen_focuses_its_first_button() -> void:
 	main.new_game_screen.back_button.pressed.emit()
 	eq(focus_owner(main), main.start_screen.new_game_button, "back on the title: New game focused")
 	main.start_screen.settings_button.pressed.emit()
-	eq(focus_owner(main), main.settings_screen.back_button, "settings: Back focused")
+	eq(focus_owner(main), main.settings_modal.motion_toggle, "settings: its first key focused (206)")
 	close_main(main)
 
 
@@ -502,10 +501,10 @@ func test_tab_and_arrows_stay_on_the_open_screen_and_wrap() -> void:
 	eq(seen.count(ng.start_button), 2, "Tab wraps back to Start")
 	ng.back_button.pressed.emit()
 	title.settings_button.pressed.emit()
-	var st: Object = main.settings_screen
-	seen = focus_after(main, KEY_TAB, 4)
-	check(seen.has(st.motion_toggle), "Tab reaches the toggle")
-	check(seen.all(func(c): return c != null and st.overlay.is_ancestor_of(c)), "focus stays on the settings screen")
+	var st: Object = main.settings_modal
+	seen = focus_after(main, KEY_TAB, 7)  # three keys, three sliders and Close (206)
+	check(seen.has(st.motion_toggle), "Tab wraps back to the toggle")
+	check(seen.all(func(c): return c != null and st.is_ancestor_of(c)), "focus stays on the Settings modal")
 	close_main(main)
 
 
@@ -517,7 +516,7 @@ func test_esc_goes_back_from_the_new_game_and_settings_screens() -> void:
 		eq(open_screens(main), ["title"] as Array[String], "Esc on new game: the title screen")
 		main.start_screen.settings_button.pressed.emit()
 		press_key(main, KEY_ESCAPE)
-		eq(open_screens(main), ["title"] as Array[String], "Esc on settings: the title screen"))
+		eq(open_screens(main), ["title"] as Array[String], "Esc on Settings: the title screen alone"))
 	eq(changes, 0, "no game started")
 	close_main(main)
 

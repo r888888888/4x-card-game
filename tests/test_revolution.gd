@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
 ## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
-## The Revolt button sits below the Realm. The bot's revolts: test_bot_lookahead.gd (159).
+## The summary the civilization modal's confirmation shows (205). The bot's revolts: test_bot_lookahead.gd (159).
 ## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
 
 
@@ -98,19 +98,39 @@ func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
 	eq(altar.revolt_forecast(), 2, "unrest 3 of 6")
 
 
-# --- AC8: the Revolt button ---
+# --- 205: the summary the confirmation shows (the board's Revolt button went to the civilization modal) ---
 
-func test_the_revolt_button_shows_while_you_may_revolt_and_forecasts_the_anarchy() -> void:
-	await with_main(revolt_engine(2), func(main: Node):
-		var e := Game.engine
-		var revolt: Button = main.revolt_button()
-		e.resources["unrest"] = 2  # start_game restarted the game
-		e.changed.emit()
-		await wait_frames()
-		check(revolt.is_visible_in_tree(), "shown with Chiefs ruling and no event")
-		check(revolt.tooltip_text.contains("next turn"), "Anarchy starts next turn: %s" % revolt.tooltip_text)
-		check(revolt.tooltip_text.contains("about 2 turns"), "unrest 2 of 5: about 2 turns: %s" % revolt.tooltip_text)
-		revolt.pressed.emit()
-		await wait_frames()
-		eq(e.revolt_error(), "A revolution is already under way.", "pressing it revolts")
-		check(not revolt.is_visible_in_tree(), "hidden once a revolution is under way"))
+const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts up to 3 turns; calming shortens it.",
+	"1 action each turn; only order cards can be played.", "Nothing can be grown, bought or researched.",
+	"Each turn it eats 20% of stored food and wealth.",
+	"Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
+	"When it ends, choose a government from your government deck."]
+
+
+func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() -> void:
+	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	e.resources["unrest"] = 3  # of Chiefs' 5: 3 counters
+	e.resources["food"] = 6
+	e.resources["wealth"] = 3
+	eq(e.revolt_forecast(), 3, "precondition: 3 turns")
+	eq(e.revolt_summary(), SUMMARY, "the lines, in order")
+
+
+func test_a_summary_leaves_out_what_the_config_lacks() -> void:
+	var e: Object = anarchy_engine({"drain_pct": null, "renewal": null})
+	e.resources["unrest"] = 3
+	var lines: Array = e.revolt_summary()
+	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[6]], "no drain, no renewal")
+
+
+func test_no_summary_while_revolt_is_refused() -> void:
+	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	check(e.revolt(), "revolt")
+	check(e.revolt_error() != "", "precondition: refused now")
+	eq(e.revolt_summary(), [], "nothing to confirm")
+
+
+func test_anarchy_id_names_the_configs_anarchy_government() -> void:
+	var e: Object = anarchy_engine()
+	eq(e.anarchy_id(), "anarchy", "the config's unrest.anarchy (the revolution's confirmation shows its flavor, 205)")
+	eq(make_engine({"farm": 5}).anarchy_id(), "", "none without an unrest block")

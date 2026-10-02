@@ -211,10 +211,10 @@ func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
 func test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_game()
-		main.open_menu()
-		await wait_frames()
-		var from: int = main.sfx.played().size()  # after the menu's sheet laid down (207): this test hears its key
-		var key: Button = main.menu_day_toggle()
+		await open_settings_modal(main)  # the keys are in the Settings modal since 206
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
+		var from: int = main.sfx.played().size()  # after the sheets laid down (207): this test hears its key
+		var key: Button = main.settings_modal.day_toggle
 		mouse(main, centre(key), true)
 		mouse(main, centre(key), false)
 		await wait_frames()
@@ -233,10 +233,10 @@ func test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds() -> void:
 func test_turning_interface_sounds_off_is_heard_before_the_bus_mutes() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_game()
-		main.open_menu()
-		await wait_frames()
-		var from: int = main.sfx.played().size()  # after the menu's sheet laid down (207): this test hears its key
-		var key: Button = main.call("menu_sound_toggle")
+		await open_settings_modal(main)  # the keys are in the Settings modal since 206
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
+		var from: int = main.sfx.played().size()  # after the sheets laid down (207): this test hears its key
+		var key: Button = main.settings_modal.sound_toggle
 		mouse(main, centre(key), true)
 		mouse(main, centre(key), false)
 		eq(Settings.interface_sounds, false, "turned off")
