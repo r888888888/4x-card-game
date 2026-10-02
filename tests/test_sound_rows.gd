@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
-## The sound rows (185) in the real main.tscn: the settings screen's Interface sounds key and Master, Game and
-## Interface sliders, the menu's Interface sounds key, mirroring each other and the settings, in the focus loops.
+## The sound rows (185) in the real main.tscn: the Interface sounds key and Master, Game and Interface sliders, in the
+## Settings modal since 206 (they were on the settings screen and, the key, in the menu), showing the settings, in its
+## focus loop.
 
 const KEY_PATH := "res://ui/legend_key.gd"
 const SETTINGS_PATH := "user://test_sound_rows_settings.cfg"
@@ -18,12 +19,12 @@ func row_text(control: Control) -> String:
 
 
 func slider(main: Node, bus: StringName) -> HSlider:
-	var sliders: Dictionary = main.settings_screen.get("sliders") if main.settings_screen.get("sliders") != null else {}
+	var sliders: Dictionary = main.settings_modal.get("sliders") if main.settings_modal.get("sliders") != null else {}
 	return sliders.get(bus)
 
 
 func figure(main: Node, bus: StringName) -> Label:
-	var figures: Dictionary = main.settings_screen.get("figures") if main.settings_screen.get("figures") != null else {}
+	var figures: Dictionary = main.settings_modal.get("figures") if main.settings_modal.get("figures") != null else {}
 	return figures.get(bus)
 
 
@@ -32,20 +33,20 @@ func open_settings(main: Node) -> void:
 	await wait_frames()
 
 
-# --- AC1: the rows on the settings screen ---
+# --- AC1: the rows in the Settings modal ---
 
-func test_the_settings_screen_shows_the_sound_rows_under_day_mode() -> void:
+func test_the_settings_modal_shows_the_sound_rows_under_day_mode() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
 		await open_settings(main)
-		var key: Control = main.settings_screen.get("sound_toggle")
+		var key: Control = main.settings_modal.get("sound_toggle")
 		check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH,
 			"an Interface sounds LegendKey")
 		if key == null:
 			close_main(main)
 			return
 		eq(row_text(key), "Interface sounds", "its label")
-		var day_row: Control = main.settings_screen.day_toggle.get_parent()
+		var day_row: Control = main.settings_modal.day_toggle.get_parent()
 		eq(key.get_parent().get_parent(), day_row.get_parent(), "in the same column as Day mode")
 		eq(key.get_parent().get_index(), day_row.get_index() + 1, "right under Day mode")
 		for i in BUS_ROWS.size():
@@ -63,7 +64,7 @@ func test_the_settings_screen_shows_the_sound_rows_under_day_mode() -> void:
 
 # --- AC2: the current settings ---
 
-func test_the_settings_screen_shows_the_current_sound_settings() -> void:
+func test_the_settings_modal_shows_the_current_sound_settings() -> void:
 	await with_temp_settings(func():
 		Settings.store.set("master", 80)
 		Settings.store.set("game", 50)
@@ -81,7 +82,7 @@ func test_the_settings_screen_shows_the_current_sound_settings() -> void:
 			figures.append(f.text if f != null else "")
 		eq(values, [80.0, 50.0, 70.0], "the sliders")
 		eq(figures, ["80%", "50%", "70%"], "the figures")
-		var key: Button = main.settings_screen.get("sound_toggle")
+		var key: Button = main.settings_modal.get("sound_toggle")
 		eq(key.text if key != null else "", "OFF", "the Interface sounds key")
 		close_main(main), SETTINGS_PATH)
 
@@ -112,7 +113,7 @@ func test_the_interface_sounds_key_sets_the_setting() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
 		await open_settings(main)
-		var key: Button = main.settings_screen.get("sound_toggle")
+		var key: Button = main.settings_modal.get("sound_toggle")
 		check(key != null, "the key")
 		if key != null:
 			eq(key.text, "ON", "on by default")
@@ -125,72 +126,22 @@ func test_the_interface_sounds_key_sets_the_setting() -> void:
 		close_main(main), SETTINGS_PATH)
 
 
-# --- AC4: the menu's row ---
-
-func test_the_menu_shows_the_interface_sounds_row_at_the_columns_width() -> void:
-	var window := (Engine.get_main_loop() as SceneTree).root
-	var old := window.size
-	window.size = Vector2i(1920, 1080)
-	await with_temp_settings(func():
-		var main := open_main()
-		main.start_game(1)
-		main.open_menu()
-		await wait_frames()
-		var key: Control = main.call("menu_sound_toggle") if main.has_method("menu_sound_toggle") else null
-		check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH, "a LegendKey")
-		if key != null:
-			eq(row_text(key), "Interface sounds", "its label")
-			var day_row: Control = main.menu_day_toggle().get_parent()
-			eq(key.get_parent().get_index(), day_row.get_index() + 1, "under the motion and day rows")
-			var restart: Button = main.menu_buttons()[0]
-			var row := key.get_parent() as Control
-			check(absf(row.size.x - restart.size.x) <= 1.0, "the column's width: %s vs %s" % [row.size.x, restart.size.x])
-			check(not main.menu_buttons().any(func(b): return b is Range), "no sliders in the menu")
-		close_main(main), SETTINGS_PATH)
-	window.size = old
-
-
-func test_the_menu_and_settings_keys_mirror_each_other() -> void:
-	await with_temp_settings(func():
-		var main := open_main()
-		await open_settings(main)
-		var screen_key: Button = main.settings_screen.get("sound_toggle")
-		var menu_key: Button = main.call("menu_sound_toggle") if main.has_method("menu_sound_toggle") else null
-		check(screen_key != null and menu_key != null, "both keys")
-		if screen_key != null and menu_key != null:
-			menu_key.button_pressed = false
-			await wait_frames()
-			eq(screen_key.text, "OFF", "the settings screen follows the menu")
-			screen_key.button_pressed = true
-			await wait_frames()
-			eq(menu_key.text, "ON", "the menu follows the settings screen")
-		close_main(main), SETTINGS_PATH)
-
-
 # --- AC5: focus and tooltips ---
 
-func test_the_sound_rows_are_in_the_focus_loops_in_reading_order() -> void:
+func test_the_sound_rows_are_in_the_focus_loop_in_reading_order() -> void:
 	await with_temp_settings(func():
 		var main := open_main()
 		await open_settings(main)
-		var order: Array = [main.settings_screen.day_toggle, main.settings_screen.get("sound_toggle")]
+		var order: Array = [main.settings_modal.day_toggle, main.settings_modal.get("sound_toggle")]
 		for row in BUS_ROWS:
 			order.append(slider(main, row[1]))
-		order.append(main.settings_screen.back_button)
+		order.append(main.settings_modal.close_button)  # the modal's Close follows (206)
 		check(not order.has(null), "every control: %s" % [order])
 		if not order.has(null):
 			(order[0] as Control).grab_focus()
 			for i in range(1, order.size()):
 				press_key(main, KEY_TAB)
 				eq(main.get_viewport().gui_get_focus_owner(), order[i], "settings: Tab to step %d" % i)
-		main.show_title_screen()
-		main.start_game(1)
-		main.open_menu()
-		await wait_frames()
-		var menu_key: Control = main.call("menu_sound_toggle") if main.has_method("menu_sound_toggle") else null
-		(main.menu_day_toggle() as Control).grab_focus()
-		press_key(main, KEY_TAB)
-		eq(main.get_viewport().gui_get_focus_owner(), menu_key, "menu: Tab from Day mode to Interface sounds")
 		close_main(main), SETTINGS_PATH)
 
 
