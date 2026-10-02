@@ -2,7 +2,7 @@
 id: 155
 title: Revolt any time; Anarchy's length follows unrest
 type: feature
-status: red-review
+status: in-progress
 branch: feat/155-revolution-and-anarchy-length
 ---
 

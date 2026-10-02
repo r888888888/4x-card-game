@@ -106,6 +106,8 @@ func set_unrest(n: int) -> int:
 		n = maxi(limit, mini(n, have))
 	n = maxi(n, 0)
 	resources[UNREST] = n
+	if n < have:
+		_unrest_lowered()
 	return n - have
 
 
@@ -127,6 +129,8 @@ func gain(resource: String, amount: int, source: CardInstance) -> void:
 func lose(resource: String, amount: int, source: CardInstance) -> void:
 	var lost: int = mini(amount, resources.get(resource, 0))
 	resources[resource] = resources.get(resource, 0) - lost
+	if resource == UNREST and lost > 0:
+		_unrest_lowered()
 	if not _outcome.is_empty() and lost > 0:
 		_outcome.lost[resource] = _outcome.lost.get(resource, 0) + lost
 	_log("  %s: −%d %s" % [source.def.name, lost, resource])
@@ -260,3 +264,8 @@ func _log(message: String) -> void:
 func _notice(message: String) -> void:
 	_log(message)
 	noticed.emit(message)
+
+
+## Called whenever unrest drops (set_unrest, lose); GameEngine lets a ruling Anarchy shorten (155).
+func _unrest_lowered() -> void:
+	pass

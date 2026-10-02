@@ -8,10 +8,10 @@ var button: Button
 var _text: Callable  # (e: GameEngine) -> String
 var _shown: Callable  # (e: GameEngine) -> bool
 var _error: Callable  # (e: GameEngine) -> String
-var _tooltip: String
+var _tooltip: Variant  # a String, or a Callable (e: GameEngine) -> String
 
 
-func _init(parent: Control, text: Callable, shown: Callable, error: Callable, action: Callable, tooltip: String) -> void:
+func _init(parent: Control, text: Callable, shown: Callable, error: Callable, action: Callable, tooltip: Variant) -> void:
 	_text = text
 	_shown = shown
 	_error = error
@@ -41,14 +41,17 @@ static func restore_order(parent: Control) -> ActionButton:
 		"Pay to end the Anarchy now, then choose a government.")
 
 
-## Revolt (148): while a revolutionary event lets you start Anarchy now.
+## Revolt (148, 155): whenever you may revolt; the tooltip forecasts the Anarchy's length.
 static func revolt(parent: Control) -> ActionButton:
 	return ActionButton.new(parent,
 		func(_e: GameEngine): return "Revolt",
 		func(e: GameEngine): return e.revolt_error() == "",
 		func(e: GameEngine): return e.revolt_error(),
 		func(e: GameEngine): e.revolt(),
-		"Start Anarchy now: your government falls into your deck, and you trash cards from your discard. Play a government the people accept to end it.")
+		func(e: GameEngine):
+			var n := e.revolt_forecast()
+			return ("Anarchy starts next turn and lasts about %d turn%s: your government falls into your government deck. "
+				+ "Calming shortens it; when it ends, choose a government.") % [n, "" if n == 1 else "s"])
 
 
 func refresh(e: GameEngine) -> void:
@@ -56,4 +59,4 @@ func refresh(e: GameEngine) -> void:
 	button.text = _text.call(e)
 	var error: String = _error.call(e)
 	button.disabled = error != ""
-	button.tooltip_text = error if error != "" else _tooltip
+	button.tooltip_text = error if error != "" else (_tooltip.call(e) if _tooltip is Callable else _tooltip)

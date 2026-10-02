@@ -1,17 +1,17 @@
 class_name Anarchy
 extends RefCounted
-## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy. The config's unrest.anarchy
-## government takes over and the fallen government goes to the government deck (154). While it rules only governments and
-## cards tagged unrest.allowed_tag can be played, nothing is grown, bought or researched, and each turn that starts
-## under it adds a counter; at unrest.max_counters it burns out. Each new era adds unrest.era_unrest. Ways out sooner
-## (146): a government the people accept (unrest at most half its limit), or paying unrest.relief to restore order.
-## When it burns out or order is restored, a government is chosen from the government deck and unrest drops to at
-## most half its limit (154). Static functions on the
-## engine's state. Revolution (148): while an event with revolt is active you may revolt, falling into Anarchy at once
-## with renewal owed. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash unrest.renewal +
-## counters + the renewal modifier cards from the discard (governments aside), each calming 1 unrest.
+## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy (after upkeep), and a revolution
+## declared any time falls at the next turn's start, before upkeep (155). The config's unrest.anarchy government takes
+## over and the fallen government goes to the government deck (154). While it rules only cards tagged
+## unrest.allowed_tag can be played, and nothing is grown, bought or researched. It gets ⌈max_counters × unrest ÷ L⌉
+## counters (1 to max_counters, L the fallen government's limit); calming lowers the counters left for good, and one
+## comes off at the end of each Anarchy turn (155). At 0, or when order is bought from its second turn for c × (c + 1)
+## wealth, a government is chosen from the government deck and unrest drops to at most half its limit (154). Each new
+## era adds unrest.era_unrest. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash
+## unrest.renewal + (its turn − 1) + the renewal modifier cards from the discard (governments aside), each calming 1
+## unrest. Static functions on the engine's state.
 
-const PLAY_ERROR := "Anarchy: only a government or an order card can be played."
+const PLAY_ERROR := "Anarchy: only an order card can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
 const RENEW_ERROR := "Trash a card from your discard (not a government)."
 
@@ -23,17 +23,63 @@ static func active(e: GameEngine) -> CardInstance:
 	return gov.cards[0] if id != "" and not gov.is_empty() and gov.cards[0].def.id == id else null
 
 
-## The start of a turn, after upkeep, feeding and era unlocks, before the draw: a turn under Anarchy adds a counter
-## (burning out at max_counters); otherwise unrest at the limit falls into Anarchy.
+## The start of a turn, before upkeep (155): a turn under Anarchy counts as its next; otherwise a revolution declared
+## last turn falls now.
+static func before_upkeep(e: GameEngine) -> void:
+	if active(e) != null:
+		e.state.anarchy_turn += 1
+	elif e.state.revolt_pending:
+		_fall(e)
+
+
+## The start of a turn, after upkeep, feeding and era unlocks, before the draw: unrest at the limit falls into Anarchy.
 static func start_of_turn(e: GameEngine) -> void:
+	if active(e) == null and not e.config.get("unrest", {}).is_empty() and e.at_unrest_limit():
+		_fall(e)
+
+
+## The end of a turn under Anarchy, after any hand-limit discard (155): one counter comes off; at 0 Anarchy ends and
+## the government choice is owed before the next turn. Returns whether it is owed.
+static func end_of_turn(e: GameEngine) -> bool:
+	var anarchy := active(e)
+	if anarchy == null:
+		return false
+	anarchy.counters = counters_left(e) - 1
+	if anarchy.counters > 0:
+		return false
+	_end(e, anarchy)
+	e.state.pending.ends_turn = true
+	e._notice("Anarchy burns out and order returns: choose a government.")
+	return true
+
+
+## The counters left on the ruling Anarchy, 0 without one (155): never more than its counters for the unrest now
+## (calming shortens it), never below 1 while it rules.
+static func counters_left(e: GameEngine) -> int:
+	var anarchy := active(e)
+	if anarchy == null:
+		return 0
+	return maxi(1, mini(anarchy.counters, counters_for(e, e.state.anarchy_limit)))
+
+
+## Unrest dropped: the ruling Anarchy keeps the counters left for good (155).
+static func calm(e: GameEngine) -> void:
 	var anarchy := active(e)
 	if anarchy != null:
-		anarchy.counters += 1
-		if anarchy.counters >= e.config.unrest.max_counters:
-			_burn_out(e, anarchy)
-		return
-	if not e.config.get("unrest", {}).is_empty() and e.at_unrest_limit():
-		_fall(e)
+		anarchy.counters = counters_left(e)
+
+
+## The counters an Anarchy gets at the unrest now against limit (155): ⌈max_counters × unrest ÷ limit⌉, between 1 and
+## max_counters.
+static func counters_for(e: GameEngine, limit: int) -> int:
+	var most: int = e.config.unrest.max_counters
+	var unrest: int = e.resources.get(GameEngine.UNREST, 0)
+	return clampi(ceili(most * unrest / float(maxi(1, limit))), 1, most)
+
+
+## The counters a revolution declared now would bring (155), 0 when revolt_error says no.
+static func revolt_forecast(e: GameEngine) -> int:
+	return counters_for(e, e.unrest_limit()) if revolt_error(e) == "" else 0
 
 
 ## After the draw: how many cards renewal asks for this turn, capped at the options (0 outside Anarchy, and with no
@@ -42,7 +88,7 @@ static func start_renewal(e: GameEngine) -> void:
 	var anarchy := active(e)
 	if anarchy == null or not e.config.unrest.has("renewal"):
 		return
-	var n: int = e.config.unrest.renewal + anarchy.counters + e.modifier(Modifiers.RENEWAL)
+	var n: int = e.config.unrest.renewal + e.state.anarchy_turn - 1 + e.modifier(Modifiers.RENEWAL)
 	n = clampi(n, 0, renewal_options(e).size())
 	if n > 0:
 		e.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": n}
@@ -79,48 +125,38 @@ static func renew(e: GameEngine, uid: int) -> bool:
 	return true
 
 
-## Why hand card can't be played under Anarchy, or "": only a government or an allowed_tag card can, and a government
-## only while unrest is at most half its limit (146; the unrest_limit modifier added before halving).
+## Why hand card can't be played under Anarchy, or "": only an allowed_tag card can.
 static func play_error(e: GameEngine, card: CardInstance) -> String:
 	if active(e) == null:
 		return ""
-	if card.def.type == CardDef.GOVERNMENT:
-		return accept_error(e, card.def)
 	var tag: String = e.config.unrest.allowed_tag
 	return "" if tag != "" and card.def.tags.has(tag) else PLAY_ERROR
 
 
-## Why government def wouldn't be accepted to end an Anarchy now, or "" (146): unrest must be at most half its limit,
-## the unrest_limit modifier added before halving; one with no limit is always accepted.
-static func accept_error(e: GameEngine, def: CardDef) -> String:
-	if def.unrest_limit == 0:
-		return ""
-	var accepts := (def.unrest_limit + e.modifier(Modifiers.UNREST_LIMIT)) / 2
-	if e.resources.get(GameEngine.UNREST, 0) > accepts:
-		return "The people won't accept %s until unrest is %d or less." % [def.name, accepts]
-	return ""
-
-
-## Why revolt would refuse, or "" (148): game over or a pending decision, Anarchy already ruling, or no active event
-## with revolt.
+## Why revolt would refuse, or "" (148, 155): game over or a pending decision, no unrest block in the config, Anarchy
+## already ruling, a revolution already declared, or no government to overthrow.
 static func revolt_error(e: GameEngine) -> String:
 	var blocked := e._blocked_error("revolt")
 	if blocked != "":
 		return blocked
+	if e.config.get("unrest", {}).is_empty():
+		return "Without unrest there is no revolution."
 	if active(e) != null:
 		return "Anarchy already rules."
-	if not e.zone("active_events").cards.any(func(c): return c.def.revolt):
-		return "Only a revolutionary event lets you revolt."
+	if e.state.revolt_pending:
+		return "A revolution is already under way."
+	if e.government() == -1:
+		return "There is no government to overthrow."
 	return ""
 
 
-## Falls into Anarchy now, by choice, with renewal owed at once (148). Uses no action. False (and no change) if
-## revolt_error says no.
+## Declares a revolution (155): Anarchy falls at the next turn's start. Uses no action and changes nothing else this
+## turn. False (and no change) if revolt_error says no.
 static func revolt(e: GameEngine) -> bool:
 	if revolt_error(e) != "":
 		return false
-	_fall(e)
-	start_renewal(e)
+	e.state.revolt_pending = true
+	e._notice("Revolution! Anarchy begins next turn.")
 	e.changed.emit()
 	return true
 
@@ -130,9 +166,10 @@ static func build_error(e: GameEngine) -> String:
 	return BUILD_ERROR if active(e) != null else ""
 
 
-## What restore_order pays (146): config unrest.relief, {} when order can't be bought.
+## What restore_order pays (155): c × (c + 1) wealth for c counters left; {} without Anarchy.
 static func relief(e: GameEngine) -> Dictionary:
-	return e.config.get("unrest", {}).get("relief", {}).duplicate()
+	var c := counters_left(e)
+	return {} if c == 0 else {GameEngine.WEALTH: c * (c + 1)}
 
 
 ## Why restore_order would refuse, or "".
@@ -142,14 +179,13 @@ static func restore_error(e: GameEngine) -> String:
 		return blocked
 	if active(e) == null:
 		return "There is no anarchy."
-	var price := relief(e)
-	if price.is_empty():
-		return "Order can't be bought."
-	return e.price_error("Restoring order", price)
+	if e.state.anarchy_turn <= 1:
+		return "Order can't be restored on Anarchy's first turn."
+	return e.price_error("Restoring order", relief(e))
 
 
-## Pays unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if restore_error
-## says no.
+## Pays relief and Anarchy ends: a government is to be chosen at once, the turn going on (146, 154, 155). False (and
+## no change) if restore_error says no.
 static func restore(e: GameEngine) -> bool:
 	if restore_error(e) != "":
 		return false
@@ -170,27 +206,29 @@ static func stir(e: GameEngine) -> void:
 	e._notice("  A new era stirs the people: +%d unrest." % added)
 
 
-## The government falls into the government deck (154), to be chosen again, and the Anarchy card rules.
+## The government falls into the government deck (154), to be chosen again, and the Anarchy card rules with its
+## counters by the unrest share of the fallen government's limit (155).
 static func _fall(e: GameEngine) -> void:
+	e.state.revolt_pending = false
+	e.state.anarchy_limit = e.unrest_limit()
 	var gov := e.zone("government")
 	var fallen := ""
 	for old in gov.take_all():
 		fallen = old.def.name
 		e.zone("governments").add(old)
-	gov.add(e._make_card(e.config.unrest.anarchy))
-	e._notice("Unrest boils over: Anarchy!%s" % (" %s falls into your government deck." % fallen if fallen != "" else ""))
-
-
-## Anarchy burns out: order returns and a government is to be chosen (154).
-static func _burn_out(e: GameEngine, anarchy: CardInstance) -> void:
-	_end(e, anarchy)
-	e._notice("Anarchy burns out and order returns: choose a government.")
+	var anarchy := e._make_card(e.config.unrest.anarchy)
+	gov.add(anarchy)
+	anarchy.counters = counters_for(e, e.state.anarchy_limit)
+	e.state.anarchy_turn = 1
+	e._notice("Anarchy!%s It lasts up to %d turn%s." % [" %s falls into your government deck." % fallen if fallen != ""
+		else "", anarchy.counters, "" if anarchy.counters == 1 else "s"])
 
 
 ## The Anarchy card leaves the game and no government rules until one is chosen from the government deck (154).
 static func _end(e: GameEngine, anarchy: CardInstance) -> void:
 	e.zone("government").remove(anarchy)
 	e.zone("removed").add(anarchy)
+	e.state.anarchy_turn = 0
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 
 
@@ -203,19 +241,23 @@ static func choose_government_error(e: GameEngine, uid: int) -> String:
 
 
 ## Government uid rules: it leaves the government deck, its play effects resolve (its cost isn't paid), and unrest
-## drops to at most half its limit (the unrest_limit modifier added first). False (and no change) if
-## choose_government_error says no.
+## drops to at most half its limit (the unrest_limit modifier added first). When Anarchy ran out at the end of a turn,
+## the turn then finishes (155). False (and no change) if choose_government_error says no.
 static func choose_government(e: GameEngine, uid: int) -> bool:
 	if choose_government_error(e, uid) != "":
 		return false
 	var card := e.zone("governments").find(uid)
 	e.zone("governments").remove(card)
 	e.zone("government").add(card)
+	var ends_turn: bool = e.state.pending.get("ends_turn", false)
 	e.state.pending = {}
 	var limit := e.unrest_limit()
 	if limit >= 0:
 		e.set_unrest(mini(e.resources.get(GameEngine.UNREST, 0), limit / 2))
 	e._resolve(card, "play")
 	e._notice("%s rules." % card.def.name)
-	e.changed.emit()
+	if ends_turn:
+		TurnLoop.finish_turn(e)  # emits changed
+	else:
+		e.changed.emit()
 	return true

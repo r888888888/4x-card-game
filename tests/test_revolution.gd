@@ -69,6 +69,13 @@ func test_bug_155_no_revolt_without_a_government_to_overthrow() -> void:
 	eq([e.turn, e.anarchy(), e.pending()], [2, -1, {}], "no Anarchy, no government choice from an empty deck")
 
 
+func test_without_an_unrest_block_there_is_no_revolution() -> void:
+	var e := anarchy_engine({}, {"unrest": null})
+	eq(e.revolt_error(), "Without unrest there is no revolution.", "revolt_error")
+	check(not e.revolt(), "revolt refuses")
+	eq(e.revolt_forecast(), 0, "nothing to forecast")
+
+
 # --- The revolt field is gone (Design notes) ---
 
 func test_an_events_revolt_field_is_unknown() -> void:
@@ -117,6 +124,7 @@ func test_the_revolt_button_shows_while_you_may_revolt_and_forecasts_the_anarchy
 	await with_main(revolt_engine(2), func(main: Node):
 		var e := Game.engine
 		var revolt: Button = main.revolt_button()
+		e.resources["unrest"] = 2  # start_game restarted the game
 		e.changed.emit()
 		await wait_frames()
 		check(revolt.is_visible_in_tree(), "shown with Chiefs ruling and no event")
