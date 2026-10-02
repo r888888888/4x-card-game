@@ -124,13 +124,13 @@ func test_day_mode_switches_a_game_in_progress_and_back() -> void:
 func test_open_modals_and_screens_switch_and_stay_open() -> void:
 	await with_temp_settings(func():
 		var main: Node = await mid_game()
-		main.tech_tree.open()
+		main.identity_modal.open()  # a modal (the tech tree is a screen since 208)
 		await wait_frames()
 		var depth: int = main.modals.depth()
-		var panel := main.tech_tree.find_children("*", "PanelContainer", true, false)[0] as PanelContainer
+		var panel: PanelContainer = main.identity_modal.panel
 		set_day(true)
 		await wait_frames()
-		eq(main.modals.depth(), depth, "the tech tree stays open")
+		eq(main.modals.depth(), depth, "the civilization modal stays open")
 		eq((panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"), "its panel is paper")
 		main.open_menu()
 		await wait_frames()

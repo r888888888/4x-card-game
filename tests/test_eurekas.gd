@@ -138,7 +138,10 @@ func test_a_met_eureka_shows_in_the_price_details() -> void:
 
 ## The tile text of the tech named tech_name in the open tree, or "".
 func tile_text(main: Node, tech_name: String) -> String:
-	for b in main.tech_tree.find_children("*", "Button", true, false):
+	var screen: Node = main.get("knowledge")  # read by name: a missing hook mustn't strand the fixture engine
+	if screen == null:
+		return ""
+	for b in screen.find_children("*", "Button", true, false):
 		var first: String = b.text.split("\n")[0]
 		if b.is_visible_in_tree() and (first.ends_with(" " + tech_name) or first.contains(" %s ·" % tech_name)):
 			return b.text

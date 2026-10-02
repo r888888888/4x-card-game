@@ -553,7 +553,7 @@ func each_screen(visit: Callable) -> void:
 		visit.call(main, "board")
 		var openers := {
 			"supply": func(): main.open_supply(),
-			"tech tree": func(): main.tech_tree.open(),
+			"knowledge": func(): main.knowledge.open(),
 			"card details": func(): main.details.open(main.views[first_in_hand(Game.engine)]),
 			"identity": func(): main.identity_modal.open(),
 			"log": func(): main.log_drawer.open(),
@@ -566,6 +566,9 @@ func each_screen(visit: Callable) -> void:
 			main.modals.close_all()
 			if main.log_drawer.is_open():
 				main.log_drawer.close()
+			if main.knowledge.is_open():  # a screen since 208
+				main.knowledge.close()
+				await wait_screen_transition()
 		close_main(main)
 
 		main = open_main()
