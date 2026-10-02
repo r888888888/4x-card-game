@@ -85,7 +85,8 @@ res://
                          # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I), tech_tree_modal.gd
-                         # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119)
+                         # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
+                         # revolt_modal.gd (205: the revolution's confirmation)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
                          # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)

@@ -7,6 +7,10 @@ extends Modal
 const ZONES: Array[String] = ["civilization", "government"]
 
 var close_button: Button
+var revolt_button: Button  # "Revolt…", at the end of the government section (205); disabled with revolt_error
+
+## Revolt… pressed: the board opens the revolution's confirmation.
+signal revolt_requested
 
 var _sections: VBoxContainer  # per section a Title (its name) and a RichBody (zone, details); then the deck line
 var _names: Array[String] = []  # the names shown, top to bottom
@@ -20,6 +24,7 @@ func _init(p_stack: ModalStack) -> void:
 	_sections.add_theme_constant_override("separation", Tokens.SPACE_5)
 	body.add_child(_sections)
 	close_button = add_footer_button(UIKit.button("Close (Esc)", close))
+	revolt_button = UIKit.button("Revolt…", func(): revolt_requested.emit())
 
 
 ## Test hook: the names shown, top to bottom; [] while closed.
@@ -33,7 +38,10 @@ func body_text() -> String:
 	for section in _sections.get_children():
 		var lines: PackedStringArray = []
 		for c in section.get_children():
-			lines.append(c.text if c is Label else (c as RichTextLabel).get_parsed_text())
+			if c is Label:
+				lines.append(c.text)
+			elif c is RichTextLabel:
+				lines.append((c as RichTextLabel).get_parsed_text())
 		parts.append("\n".join(lines))
 	return "\n\n\n".join(parts)
 
@@ -51,6 +59,8 @@ func refresh(e: GameEngine) -> void:
 
 func _fill(e: GameEngine) -> void:
 	_names = []
+	if revolt_button.get_parent() != null:  # kept: it moves to the new government section
+		revolt_button.get_parent().remove_child(revolt_button)
 	for section in _sections.get_children():
 		_sections.remove_child(section)
 		section.queue_free()
@@ -61,23 +71,31 @@ func _fill(e: GameEngine) -> void:
 		var details := e.def_details(z.cards[0].def.id)
 		_names.append(details.name)
 		var text := CardDetailsModal.body_bbcode(details)
-		_add_section(details.name, zone_name.capitalize() + "\n\n" + (text if text != "" else "No bonus."))
+		var section := _add_section(details.name, zone_name.capitalize() + "\n\n" + (text if text != "" else "No bonus."))
+		if zone_name == "government":  # the government ends with Revolt… (205)
+			if revolt_button.get_parent() != null:
+				revolt_button.get_parent().remove_child(revolt_button)
+			section.add_child(revolt_button)
+			var error := e.revolt_error()
+			revolt_button.disabled = error != ""
+			revolt_button.tooltip_text = error if error != "" else "Overthrow %s: see what follows first." % details.name
 	var deck: Array = e.zone("governments").cards.map(func(c): return c.def.name)
 	if not deck.is_empty():
 		_add_section("", "Government deck: %s" % ", ".join(deck))  # 154
 
 
-## A section: title (a Title label, 194; none when "") over bbcode in the modal's body text.
-func _add_section(title: String, bbcode: String) -> void:
+## A section: heading (a Title label, 194; none when "") over bbcode in the modal's body text. Returns it.
+func _add_section(heading: String, bbcode: String) -> VBoxContainer:
 	var section := VBoxContainer.new()
 	section.add_theme_constant_override("separation", Tokens.SPACE_0)
-	if title != "":
-		section.add_child(UIKit.title(title))
-	var body := RichTextLabel.new()
-	body.bbcode_enabled = true
-	body.fit_content = true
-	body.custom_minimum_size = Vector2(BODY_MAX_WIDTH - Tokens.SPACE_6, 0)
-	body.theme_type_variation = &"RichBody"
-	body.text = bbcode
-	section.add_child(body)
+	if heading != "":
+		section.add_child(UIKit.title(heading))
+	var text := RichTextLabel.new()
+	text.bbcode_enabled = true
+	text.fit_content = true
+	text.custom_minimum_size = Vector2(BODY_MAX_WIDTH - Tokens.SPACE_6, 0)
+	text.theme_type_variation = &"RichBody"
+	text.text = bbcode
+	section.add_child(text)
 	_sections.add_child(section)
+	return section
