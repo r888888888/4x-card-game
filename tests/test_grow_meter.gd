@@ -1,13 +1,13 @@
 extends "res://tests/lib/test_case.gd"
 ## The territory view's pop meter (backlog 124): one pip per housing, the first `pop` filled; the first empty pip is
 ## Grow (main.territory_view.grow_button), showing its food cost with the food icon; a dim reason line
-## (territory_view.grow_reason) says why Grow can't be used. A grow from the meter pops the new pip in, and (126) its
-## "+1 pop" and food cost float up from the top bar's Pop and Food counters. Hooks: territory_view.pips()
+## (territory_view.grow_reason) says why Grow can't be used. A grow from the meter pops the new pip in, and (126, 181)
+## its "+1" pop and "−3" food show as tags beside the top bar's Pop and Food figures. Hooks: territory_view.pips()
 ## (the meter's pips in order, the Grow pip among them); a pip is filled when its theme_type_variation is
 ## "PipFilled". Tweens are stepped by hand (step_tweens) to read positions and scales along the way.
 
 const STEP := 0.05  # seconds per tween step
-const STEPS := 30  # 1.5 s: longer than any token's life
+const STEPS := 40  # 2 s: longer than any tag's life
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 var _calm := false  # Reduce motion for with_meter
@@ -154,41 +154,27 @@ func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
 
 # --- AC5: the grow animation ---
 
-func test_a_grow_pops_the_pip_in_and_floats_plus_one_pop_up_from_the_pop_counter() -> void:
+func test_a_grow_pops_the_pip_in_and_tags_the_pop_and_food_counters() -> void:
 	await with_meter(func(main: Node, _home: int):
 		var view: Object = main.territory_view
-		var counter: Control = main.counter(TopBar.POP)
 		view.grow_button.pressed.emit()
 		await wait_frames()
 		var pip: Control = (view.pips() as Array)[2]
 		check(pip.scale.x < 1.0, "the new pip starts small: %s" % pip.scale)
-		var tokens := labels_starting(main, "+1 pop")
-		eq(tokens.size(), 1, "one +1 pop token")
-		var food_tokens := labels_starting(main, "−3 food")
-		eq(food_tokens.size(), 1, "one −3 food token")
-		if tokens.is_empty() or food_tokens.is_empty() or counter == null:
-			return
-		var token := tokens[0]
-		var food := food_tokens[0]
-		var below := counter.get_global_rect().get_center() + Vector2(0, counter.size.y)
-		var path: Array[Vector2] = [token.get_global_rect().get_center()]
-		var food_ys: Array[float] = [food.global_position.y]
-		var food_x := food.global_position.x
+		var tags := {"pop": [], "food": []}  # every tag text seen while the tweens run
 		await step_tweens(main, func():
-			if is_instance_valid(token):
-				path.append(token.get_global_rect().get_center())
-				eq(token.get_global_rect().get_center().x, path[0].x, "+1 pop stays in x")
-			if is_instance_valid(food):
-				food_ys.append(food.global_position.y)
-				eq(food.global_position.x, food_x, "the food token stays in x"))
-		check(path[0].distance_to(below) < 1.0, "+1 pop starts just below the Pop counter: %s vs %s" % [path[0], below])
-		check(path.back().y < path[0].y, "+1 pop floats up")
-		check(food_ys.back() < food_ys[0], "−3 food floats up")
+			for key in [TopBar.POP, GameEngine.FOOD]:
+				var tag := counter_tag(main.counter(key))
+				if tag != null and not tags[key].has(tag.text):
+					tags[key].append(tag.text))
+		eq(tags[TopBar.POP], ["+1"], "a +1 tag beside Pop")
+		eq(tags[GameEngine.FOOD], ["−3"], "a −3 tag beside Food")
 		eq(pip.scale, Vector2.ONE, "the pip ends full size")
-		check(not is_instance_valid(token), "+1 pop freed"))
+		check(counter_tag(main.counter(TopBar.POP)) == null, "the +1 tag is gone")
+		eq(labels_starting(main, "+1 pop").size(), 0, "nothing floats"))
 
 
-func test_with_reduce_motion_the_pip_doesnt_scale_and_plus_one_pop_fades_below_the_counter() -> void:
+func test_with_reduce_motion_the_pip_doesnt_scale_and_the_pop_tag_appears_in_place() -> void:
 	_calm = true
 	await with_meter(func(main: Node, _home: int):
 		var view: Object = main.territory_view
@@ -197,18 +183,17 @@ func test_with_reduce_motion_the_pip_doesnt_scale_and_plus_one_pop_fades_below_t
 		await wait_frames()
 		var pip: Control = (view.pips() as Array)[2]
 		eq(pip.scale, Vector2.ONE, "no pop-in")
-		var tokens := labels_starting(main, "+1 pop")
-		eq(tokens.size(), 1, "one +1 pop token")
-		if tokens.is_empty() or counter == null:
+		var tag := counter_tag(counter)
+		eq(tag.text if tag != null else "", "+1", "the +1 tag shows at once")
+		if tag == null:
 			return
-		var token := tokens[0]
-		var at := counter.get_global_rect().get_center() + Vector2(0, counter.size.y)  # just below it (126)
+		var at := tag.get_global_rect().position
 		var moved := [0.0]
 		await step_tweens(main, func():
-			if is_instance_valid(token):
-				moved[0] = maxf(moved[0], token.get_global_rect().get_center().distance_to(at)))
-		check(moved[0] < 1.0, "+1 pop stays just below the Pop counter (off by %s)" % moved[0])
-		check(not is_instance_valid(token), "and fades out"))
+			if is_instance_valid(tag):
+				moved[0] = maxf(moved[0], tag.get_global_rect().position.distance_to(at)))
+		check(moved[0] < 0.5, "the tag stays in place (off by %s)" % moved[0])
+		check(counter_tag(counter) == null, "and is gone"))
 	_calm = false
 
 
@@ -233,5 +218,5 @@ func test_a_refresh_that_changes_nothing_starts_no_animation() -> void:
 		var view: Object = main.territory_view
 		Game.engine.changed.emit()
 		await wait_frames()
-		eq(labels_starting(main, "+1 pop").size(), 0, "no +1 pop token")
+		eq(counter_tag(main.counter(TopBar.POP)), null, "no +1 tag")
 		eq((view.pips() as Array).filter(func(p: Control): return p.scale != Vector2.ONE).size(), 0, "no pip scaling"))

@@ -2,7 +2,7 @@
 id: 181
 title: Odometer counters and +N tags instead of floating tokens
 type: feature
-status: ready
+status: red-review
 branch: feat/181-odometer-counters
 ---
 
@@ -54,6 +54,12 @@ transfers only. The odometer was proven in Godot in the `spike/mcm-godot` spike 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_odometer::test_the_constants`, `test_rolling_up_shows_each_value_in_turn`, `test_rolling_down_shows_each_value_in_turn` |
+| AC2 | `test_odometer::test_a_long_change_rolls_only_the_last_eight_steps`, `test_a_change_mid_roll_rolls_on_from_where_it_was_heading`, `test_with_reduce_motion_the_new_value_shows_at_once` |
+| AC3 | `test_resource_tokens::test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once`, `test_every_counters_figure_is_an_odometer`, `test_a_figure_sits_against_its_glyph_and_grows_rightward`; figure colours now read `counter(key).figure().color` in `test_resource_glyphs` and `test_unrest` |
+| AC4 | `test_resource_tokens::test_the_tag_constants`, `test_a_change_shows_one_net_tag_per_counter_in_its_colour`, `test_wealth_score_and_pop_changes_tag_their_counters`, the cause tests (played cards, grow effect, grow from the meter, upkeep, starving), `test_several_tags_appear_left_to_right_a_stagger_apart`, `test_with_reduce_motion_a_tag_appears_in_place_and_holds_longer` |
+| AC5 | `test_resource_tokens::test_a_refresh_that_changes_no_counter_shows_no_tag`, `test_starting_and_restarting_a_game_shows_no_tags`, `test_closing_the_supply_screen_after_buying_shows_no_top_bar_tag`, `test_buying_rolls_the_supply_screens_wealth_down_with_a_tag` |
+| AC6 | `test_resource_tokens::test_the_floating_tokens_are_gone` and "nothing floats" in every tag test; changed to tag tests: `test_grow_meter` (grow, Reduce motion, no-change), `test_insight` (+3), `test_unrest` (+3) |
 
 ## Manual check
 - [ ] Seed 5, Egypt: playing Barter rolls wealth up by 2 with a "+2" tag beside it; End turn rolls several counters

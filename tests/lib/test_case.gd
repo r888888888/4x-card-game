@@ -521,6 +521,18 @@ func wait_frames(n := 2) -> void:
 		await (Engine.get_main_loop() as SceneTree).process_frame
 
 
+## counter's tag (181): a visible Label inside it reading "+N" or "−N" (a real minus), or null.
+func counter_tag(counter: Control) -> Label:
+	if counter == null:
+		return null
+	var tag := RegEx.create_from_string("^[+−][0-9]+$")
+	for node in counter.find_children("*", "Label", true, false):
+		var l := node as Label
+		if is_instance_valid(l) and l.is_visible_in_tree() and l.modulate.a > 0.0 and tag.search(l.text) != null:
+			return l
+	return null
+
+
 ## Adds a fresh main scene to the running tree. Typed Node so calls to its test hooks parse before they exist.
 func open_main() -> Node:
 	var main: Node = load("res://ui/main.tscn").instantiate()
