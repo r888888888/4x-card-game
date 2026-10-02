@@ -199,3 +199,49 @@ func test_a_card_bought_on_the_supply_screen_doesnt_squash() -> void:
 				largest = maxf(largest, pile.fx_scale.distance_to(Vector2.ONE))
 				await wait_frames(1)
 			check(largest < 0.001, "the pile card's scale stays (1, 1): strays %s" % largest)))
+
+
+# --- 198: card names in bold ---
+
+## The Labels on view's face reading text.
+func labels_reading(view: CardView, text: String) -> Array:
+	return view.find_children("*", "Label", true, false).filter(func(l: Label): return l.text == text)
+
+
+func test_the_theme_has_a_semibold_card_title_variation() -> void:
+	var t := GameTheme.build()
+	eq(t.get_type_variation_base("CardTitle"), &"Label", "CardTitle varies Label")
+	eq(t.get_font_size("font_size", "CardTitle"), Tokens.TYPE_BODY, "CardTitle size")
+	var font := t.get_font("font", "CardTitle")
+	while font is FontVariation:
+		font = (font as FontVariation).base_font
+	eq(font, GameTheme.LABEL_SEMIBOLD, "CardTitle uses the semibold label face")
+
+
+func test_every_card_face_names_its_card_in_the_card_title_variation() -> void:
+	var cases := [["farm", true, ""], ["farm", false, ""], ["bazaar", true, ""], ["grassland", false, CardView.BOARD_REALM],
+		["grassland", false, CardView.BOARD_FRONTIER], ["famine", false, CardView.BOARD_EVENT], ["capital", false, ""]]
+	for case in cases:
+		var f := fixture(case[0], case[1], case[2])
+		var what := "%s (%s)" % [case[0], "hand" if case[1] else case[2] if case[2] != "" else "tableau"]
+		var name: String = _engine.card_db[case[0]].name
+		var titles := labels_reading(f.view, name)
+		eq(titles.size(), 1, "%s: one label names the card" % what)
+		for title: Label in titles:
+			eq(title.theme_type_variation, &"CardTitle", "%s: its name is a CardTitle" % what)
+			check(not title.has_theme_font_override("font"), "%s: no font override on its name" % what)
+			check(not title.has_theme_font_size_override("font_size"), "%s: no size override on its name" % what)
+		f.root.free()
+
+
+func test_the_rest_of_a_card_face_keeps_its_font() -> void:
+	for case in [["farm", true, ""], ["grassland", false, CardView.BOARD_FRONTIER], ["famine", false, CardView.BOARD_EVENT]]:
+		var f := fixture(case[0], case[1], case[2])
+		var name: String = _engine.card_db[case[0]].name
+		var others: Array[String] = []
+		for c in f.view.find_children("*", "Control", true, false):
+			if (c is Label or c is RichTextLabel) and not (c is Label and c.text == name):
+				if c.theme_type_variation == &"CardTitle":
+					others.append(String(c.name))
+		eq(others, [] as Array[String], "%s: only the name is a CardTitle" % case[0])
+		f.root.free()
