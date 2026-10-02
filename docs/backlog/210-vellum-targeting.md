@@ -2,7 +2,7 @@
 id: 210
 title: Targeting lays vellum over the board, the targets above it
 type: feature
-status: ready
+status: red-review
 branch: feat/210-vellum-targeting
 ---
 
@@ -29,6 +29,14 @@ transition 6), so the choice is obvious. Cancelling wipes it off.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_vellum::test_targeting_wipes_vellum_in_from_the_left_with_the_targets_above_it` |
+| AC2 | `test_a_click_on_a_target_plays_there_and_the_vellum_wipes_off_right`, `test_a_click_on_a_non_target_card_reaches_only_the_vellum` |
+| AC3 | `test_esc_right_click_or_a_click_on_the_vellum_cancel_and_wipe_it_off` |
+| AC4 | `test_with_reduce_motion_the_vellum_fades_in_and_out` |
+| AC5 | `test_a_drag_lights_targets_without_vellum` |
+
+Decision made writing the tests: a click on a non-target card lands on the vellum, so it cancels targeting (AC3's
+click on the vellum) rather than doing nothing.
 
 ## Manual check
 - [ ] A card with two targets (e.g. a building with two eligible territories): the vellum and outlines read in both
