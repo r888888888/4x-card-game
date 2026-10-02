@@ -39,6 +39,13 @@ turn left. Follows 154. From `spike/revolution`.
   order from the second turn when it can pay and 2+ counters are left or the next upkeep would starve.
 - [ ] AC8: The Revolt button below the Realm shows whenever `revolt_error()` is ""; its tooltip says Anarchy starts
   next turn and lasts about N turns (N from the engine: AC1 on current unrest).
+- [ ] AC9 (154 leftovers): a government is never played from hand. Given a government card put straight into the hand,
+  `play_error` is `"A government is chosen, not played."`, with or without Anarchy. The play-a-government path goes:
+  `CardPlay`'s government destination and `_replace_government`, the same-government error, `Anarchy.accept_error` and
+  the government branch of `Anarchy.play_error` (whose message becomes `"Anarchy: only an order card can be
+  played."`), and `ScriptedBot`'s governments-first play and 148 revolt rule. The 11 tests that put a government in hand
+  (test_government 3, test_leaving_anarchy 4, test_anarchy 2, test_revolution 2) are removed or rewritten on the
+  government deck, and listed at the red checkpoint.
 
 ## Out of scope
 - The drain on stores (156); the lookahead bot (159).
@@ -54,6 +61,13 @@ turn left. Follows 154. From `spike/revolution`.
   `unrest.relief` (dropped from the config) and 145's count-up counters.
 - API: `anarchy_counters()` (now counters left), `revolt_forecast()` → expected counters, for the tooltip.
 - The Anarchy card's hand-written text must follow these rules.
+- AC9 was folded in from the 2026-10-01 project review: since 154 `create_card` sends a government to the government
+  deck and the loader keeps governments out of the deck and supply, so no real game has one in hand (8 seeds checked:
+  never). AC4's "There is no government to overthrow." also closes a soft-lock the review reproduced on today's code:
+  with no government ruling, revolt → Anarchy burns out → a government choice from an empty deck that refuses every
+  action. Its AC4 test is the regression test. The item now has 9 criteria.
+- Builds on 169–176: the end-of-turn government choice is set in 172's `state.pending`, the new `GameState` fields are
+  covered by 171's copy guard, and the order price uses 173's helpers.
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
