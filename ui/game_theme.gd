@@ -117,6 +117,21 @@ static func _controls(t: Theme) -> void:
 	t.set_stylebox("normal", "LineEdit", _box(Palette.FIELD, Palette.CONTROL_BORDER))
 	t.set_stylebox("focus", "LineEdit", focus_ring())
 	t.set_color("font_color", "LineEdit", Palette.TEXT)
+	_slider(t)
+
+
+## A volume slider (185): a field-coloured slot with the travelled part filled like a lit lamp.
+static func _slider(t: Theme) -> void:
+	var slot := UIKit.panel_style(Palette.FIELD, Palette.CONTROL_BORDER, 0)
+	slot.set_corner_radius_all(Tokens.RADIUS_1)
+	slot.content_margin_top = Tokens.SPACE_1
+	slot.content_margin_bottom = Tokens.SPACE_1
+	t.set_stylebox("slider", "HSlider", slot)
+	var filled := slot.duplicate() as StyleBoxFlat
+	filled.bg_color = Palette.GAIN
+	t.set_stylebox("grabber_area", "HSlider", filled)
+	t.set_stylebox("grabber_area_highlight", "HSlider", filled)
+	t.set_stylebox("focus", "HSlider", focus_ring())
 
 
 static func _label(t: Theme, variation: String, font_size: int, color: Color, font: Font = null) -> void:

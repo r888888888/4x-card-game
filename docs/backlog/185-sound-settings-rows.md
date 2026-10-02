@@ -2,7 +2,7 @@
 id: 185
 title: Sound rows in Settings and the game menu
 type: feature
-status: ready
+status: review
 branch: feat/185-sound-settings-rows
 ---
 
@@ -13,17 +13,17 @@ Interface, and the game menu gets the Interface sounds key, so a player annoyed 
 in two presses without losing the event sounds.
 
 ## Acceptance criteria
-- [ ] AC1: The settings screen shows, below Reduce motion (and Day mode once 183 is in), an "Interface sounds" row (a
+- [x] AC1: The settings screen shows, below Reduce motion (and Day mode once 183 is in), an "Interface sounds" row (a
   label and a `LegendKey`, as 182's row) and then "Master", "Game" and "Interface" rows, each a label, an `HSlider`
   (0–100, step 10) and a figure reading the value with a percent sign ("70%").
-- [ ] AC2: Opening the screen shows the current settings: given master 80, game 50, interface 70 and interface sounds
+- [x] AC2: Opening the screen shows the current settings: given master 80, game 50, interface 70 and interface sounds
   off, the sliders sit at 80, 50 and 70, the figures read "80%", "50%", "70%" and the key reads "OFF".
-- [ ] AC3: Moving a slider calls `Settings.set_volume` for its bus with the new value and updates its figure at once;
+- [x] AC3: Moving a slider calls `Settings.set_volume` for its bus with the new value and updates its figure at once;
   given the Game slider at 50, pressing Right sets it to 60, calls `Settings.set_volume(Settings.GAME, 60)` and the
   figure reads "60%". Toggling the key calls `Settings.set_interface_sounds`.
-- [ ] AC4: The game menu shows the "Interface sounds" row (no sliders) under its Reduce motion row, at the column's
+- [x] AC4: The game menu shows the "Interface sounds" row (no sliders) under its Reduce motion row, at the column's
   width as 182's row. Changing the setting on the menu shows on the settings screen and the other way round.
-- [ ] AC5: The new rows are in each screen's focus loop in reading order (key, then Master, Game, Interface); each
+- [x] AC5: The new rows are in each screen's focus loop in reading order (key, then Master, Game, Interface); each
   slider has a tooltip naming what it sets ("Clicks, panels and confirmations." for Interface, "Events: techs,
   cities, eras." for Game, "Everything." for Master).
 
@@ -40,6 +40,11 @@ in two presses without losing the event sounds.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_sound_rows::test_the_settings_screen_shows_the_sound_rows_under_day_mode` |
+| AC2 | `test_the_settings_screen_shows_the_current_sound_settings` |
+| AC3 | `test_pressing_right_on_a_slider_sets_its_volume`, `test_the_interface_sounds_key_sets_the_setting` |
+| AC4 | `test_the_menu_shows_the_interface_sounds_row_at_the_columns_width`, `test_the_menu_and_settings_keys_mirror_each_other` |
+| AC5 | `test_the_sound_rows_are_in_the_focus_loops_in_reading_order`, `test_each_slider_says_what_it_sets` |
 
 ## Manual check
 - [ ] Settings: the three sliders line up under the key, with their figures right-aligned; dragging one moves in
@@ -49,3 +54,4 @@ in two presses without losing the event sounds.
 ## Log
 - 2026-10-02: Specced from the style guide (§12 rule 11). Decided 2026-10-02: sliders in steps of 10% for Master,
   Game and Interface, plus the Interface sounds legend key.
+- 2026-10-02: Built. `UIKit.sound_toggle()`, `volume_row(label, bus, tooltip)` and `show_volume`; `SettingsScreen.sound_toggle`, `sliders`, `figures`, `show_sound()`; the menu's row sits under Day mode (183 came first). `GameTheme` styles `HSlider`. Changed existing tests for the new row: `test_button_widths` (the settings column is now all its rows; the menu column gains the row) and `test_legend_key`'s focus walk (Day mode → Interface sounds → Close).
