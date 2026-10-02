@@ -2,7 +2,7 @@
 id: 173
 title: One way to check and pay a price, and to add unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/173-price-and-unrest-helpers
 ---
 
@@ -36,6 +36,20 @@ review.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_prices::test_restoring_order_short_of_a_two_resource_price_names_both`, `test_famine_relief::test_relief_short_of_a_two_resource_price_names_both` (one resource: also test_leaving_anarchy's and test_famine_relief's existing error tables) |
+| AC2 | `test_prices::test_can_pay_and_pay_a_price`, `test_prices::test_only_engine_core_takes_resources_away_or_names_food_and_wealth_as_fields` |
+| AC3 | `test_prices::test_amounts_text_names_each_resource_of_a_price` |
+| AC4 | `test_prices::test_set_unrest_stops_at_the_limit_and_returns_the_change`, `test_prices::test_only_engine_core_writes_unrest`, `test_prices::test_a_new_era_at_unrest_4_of_5_adds_1` (a pin: passes today) |
+| AC5 | Every existing test unedited; `scripts/sim.sh 20` before and after (Manual check) |
+
+## Manual check
+- [ ] `scripts/sim.sh 20` prints the same on `main` and on this branch (Claude runs both and pastes the comparison in
+  the Log).
 
 ## Log
 - 2026-10-01: Specced from the project review.
+- 2026-10-01: Red. API: `EngineCore.can_pay(cost) -> bool`, `pay(cost)`, `set_unrest(n) -> int` (sets unrest to n,
+  between 0 and the limit, returning the change; `gain`, `Anarchy.stir` and `choose_government`'s halving go through
+  it), `Fields.amounts_text(cost)`. The structure test also counts feeding (`population.gd`'s `food -= eaten`): pop's
+  food goes through `pay` too, so only EngineCore lowers resources. The 4-of-5 era test passes today (it pins AC4's
+  example; test_anarchy's checked only 3 → 5).
