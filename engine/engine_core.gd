@@ -57,9 +57,6 @@ var is_over: bool:
 var log_lines: Array[String]:
 	get: return state.log_lines
 	set(v): state.log_lines = v
-var pending_choice: Dictionary:  # {options: Array[int], source: CardInstance}; empty = none
-	get: return state.pending_choice
-	set(v): state.pending_choice = v
 
 
 func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:
@@ -73,15 +70,54 @@ func zone(zone_name: String) -> Zone:
 	return zones[zone_name]
 
 
+## Whether the resources on hand cover cost ({resource: amount}) (173).
+func can_pay(cost: Dictionary) -> bool:
+	for r in cost:
+		if resources.get(r, 0) < cost[r]:
+			return false
+	return true
+
+
+## Takes cost ({resource: amount}) from the resources on hand (173): every price an action pays, and the food pop eats.
+## Callers check can_pay first.
+func pay(cost: Dictionary) -> void:
+	for r in cost:
+		resources[r] = resources.get(r, 0) - cost[r]
+
+
+## "" when cost can be paid, else "<what> needs <cost> (you have <what you have of each>)." (173): "Restoring order
+## needs 2 food, 6 wealth (you have 0 food, 1 wealth).", or "… needs 6 wealth (you have 1)." for one resource.
+func price_error(what: String, cost: Dictionary) -> String:
+	if can_pay(cost):
+		return ""
+	var have := {}
+	for r in cost:
+		have[r] = resources.get(r, 0)
+	var have_text: String = str(have.values()[0]) if cost.size() == 1 else Fields.amounts_text(have)
+	return "%s needs %s (you have %s)." % [what, Fields.amounts_text(cost), have_text]
+
+
+## Sets unrest to n, never below 0, and returns the change (173): the one way unrest is added or capped. Raising it
+## stops at unrest_limit(), and never lifts it when it is already past the limit (a lowered limit); lowering it is free.
+func set_unrest(n: int) -> int:
+	var have: int = resources.get(UNREST, 0)
+	var limit := Modifiers.unrest_limit(self)
+	if limit >= 0 and n > limit:
+		n = maxi(limit, mini(n, have))
+	n = maxi(n, 0)
+	resources[UNREST] = n
+	return n - have
+
+
 # --- Helpers called by effects ---
 
-## Adds amount of resource; unrest stops at the unrest limit (144). The outcome and the log report what was added.
+## Adds amount of resource; unrest stops at the unrest limit (144, set_unrest). The outcome and the log report what
+## was added.
 func gain(resource: String, amount: int, source: CardInstance) -> void:
 	if resource == UNREST:
-		var limit := Modifiers.unrest_limit(self)
-		if limit >= 0:
-			amount = clampi(limit - resources.get(UNREST, 0), 0, amount)
-	resources[resource] = resources.get(resource, 0) + amount
+		amount = set_unrest(resources.get(UNREST, 0) + amount)
+	else:
+		resources[resource] = resources.get(resource, 0) + amount
 	if not _outcome.is_empty():
 		_outcome.gained[resource] = _outcome.gained.get(resource, 0) + amount
 	_log("  %s: +%d %s" % [source.def.name, amount, resource])

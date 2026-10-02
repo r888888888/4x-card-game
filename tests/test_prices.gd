@@ -35,7 +35,7 @@ func test_restoring_order_short_of_a_two_resource_price_names_both() -> void:
 # --- AC2: one helper checks a price, one pays it ---
 
 func test_can_pay_and_pay_a_price() -> void:
-	var e: Object = anarchy_engine()  # red phase: can_pay and pay are new
+	var e := anarchy_engine()
 	e.resources["food"] = 2
 	e.resources["wealth"] = 1
 	check(e.can_pay({"food": 2}), "2 food with 2")
@@ -55,16 +55,15 @@ func test_only_engine_core_takes_resources_away_or_names_food_and_wealth_as_fiel
 # --- AC3: the amounts text is public ---
 
 func test_amounts_text_names_each_resource_of_a_price() -> void:
-	var fields: Object = Fields  # red phase: amounts_text is new
-	eq(fields.amounts_text({"food": 2, "wealth": 5}), "2 food, 5 wealth", "two resources")
-	eq(fields.amounts_text({"wealth": 5}), "5 wealth", "one")
+	eq(Fields.amounts_text({"food": 2, "wealth": 5}), "2 food, 5 wealth", "two resources")
+	eq(Fields.amounts_text({"wealth": 5}), "5 wealth", "one")
 	eq(engine_lines_matching("_amounts\\("), [] as Array[String], "calls to Famine._amounts")
 
 
 # --- AC4: one helper adds or caps unrest, stopping at the limit ---
 
 func test_set_unrest_stops_at_the_limit_and_returns_the_change() -> void:
-	var e: Object = anarchy_engine()  # red phase: set_unrest is new
+	var e := anarchy_engine()
 	e.resources["unrest"] = 4
 	eq(e.set_unrest(9), 1, "4 → 5 of 5")
 	eq(e.resources.unrest, 5, "capped at the limit")

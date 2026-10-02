@@ -19,11 +19,10 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
 		return "%s is already your government." % card.def.name
 	var cost := Discounts.cost(e, card.def)
-	for r in cost:
-		var need: int = cost[r]
-		var have: int = e.resources.get(r, 0)
-		if have < need:
-			return "%s needs %d %s (you have %d)." % [card.def.name, need, r, have]
+	if not e.can_pay(cost):  # names the first resource it is short of
+		for r in cost:
+			if not e.can_pay({r: cost[r]}):
+				return "%s needs %d %s (you have %d)." % [card.def.name, cost[r], r, e.resources.get(r, 0)]
 	for effect in card.def.effects:
 		if effect.trigger == "play":
 			var blocked := effect.play_block_error(e, card)
@@ -74,8 +73,8 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e._outcome = _new_outcome(uid, to_zone, target)
 	e.play_target = target
 	var cost := Discounts.cost(e, card.def)
+	e.pay(cost)
 	for r in cost:
-		e.resources[r] -= cost[r]
 		if cost[r] > 0:
 			e._outcome.paid[r] = cost[r]
 	e._log("Played %s." % card.def.name)

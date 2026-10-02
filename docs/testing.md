@@ -33,7 +33,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_event_panel.gd` | The active events in the real `main.tscn` (in the Realm's row since 137): event views match `active_events`, turns left, none without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
 | `tests/test_board_row.gd` | One board row (137) in the real `main.tscn` on a TEST_CARDS + TEST_EVENTS game (`with_main`, `board_engine`): events, then frontier, then the Realm in `main.tableau.row`; only Realm and Hand headings; no view for a known tech; a settled frontier card keeps its view and moves into the Realm; drops on frontier cards; the frontier and event explanations in their cards' tooltips; Relieve (`relieve_button()`) during a Famine |
 | `tests/test_board_faces.gd` | Board card faces (138) in the real `main.tscn` on a `board_engine` game: every card in the Realm's row at `CardView.BOARD_SIZE`; the frontier face (badge, name, keywords, "▢N ⌂N"), the event face (badge, turns left or a Famine's counters, name, first rules line, no "Lasts"), settling switches to the settled face, the details name clipped keywords, hand cards unchanged; read with `face_text()` |
-| `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`pending_choice`, `state`, …) read in `ui/` |
+| `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`state`, the RNG, the log lines; 175: the config) read in `ui/` |
 | `tests/test_board_labels.gd` | The board's game words in the real `main.tscn`: no "tableau" on screen, no seed in the top bar, Buy Cards, Knowledge; uses the `section_headings()` hook |
 | `tests/test_card_slots.gd` | Card slots in the real `main.tscn` start at the height their card rests at (frontier cards while still flying, at `BOARD_SIZE`; hand slots) |
 | `tests/test_start_screen.gd` | The title, new game and settings screens in the real `main.tscn` (063, 099): the title screen on launch with no game started and three buttons, New game → Start with a seed or a random one, Settings with the shared Reduce motion setting (saved to a temp file), Back and Esc to the title, Exit, the menu's New game to the new game screen, Restart and Replay skipping the screens, keyboard focus and wrapping; the civilization cards (064: listed, preselected, selecting saves, Restart keeps, named in the menu and at game over); uses `main.start_screen`, `main.new_game_screen`, `main.settings_screen` and `main.board_shown()` |
@@ -65,14 +65,14 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing their reasons (093) |
 | `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094) |
-| `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows |
+| `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows; 172: one `GameState.pending`, `pending()` a copy |
 | `tests/test_state_copy.gd` | Guards (171): `GameState.copy()` and `CardInstance.copy()` carry every script variable (read from the property list) and share nothing that can change |
-| `tests/test_blocking.gd` | Guards (171): while each decision is owed (explore, discard, renewal, government) and after game over, every other action refuses with a reason and changes nothing; the table of actions is checked against `GameEngine`'s methods with an error query |
+| `tests/test_blocking.gd` | Guards (171): while each decision is owed (explore, discard, renewal, government) and after game over, every other action refuses with a reason and changes nothing; the table of actions is checked against `GameEngine`'s methods with an error query; 172: each decision action's message order, every action under `# --- Actions ---` beside its query |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
-| `tests/test_explore.gd` | The `explore` op: loading, reveal, `pending_choice`, `choose`, blocking play and end turn |
+| `tests/test_explore.gd` | The `explore` op: loading, reveal, the explore `pending()`, `choose`, blocking play and end turn |
 | `tests/test_settle.gd` | The `settle` op (loading and play) and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
 | `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep, and a first shortfall's one death |
@@ -119,6 +119,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_revolution.gd` | Revolution events (148): the event's `revolt` field and text, `revolt` and its error, the Revolt button, the bot's revolt |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
+| `tests/test_prices.gd` | Prices and unrest in one place (173): `can_pay` / `pay` / `price_error`, `Fields.amounts_text`, `set_unrest` stopping at the limit; only EngineCore lowers resources or writes unrest |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
 | `tests/test_terrains.gd` | Terrain keywords (130): config `terrains`, exactly one terrain per territory, terrain-keyed roll tables, terrain/feature keyword details |
 | `tests/test_territory_resources.gd` | Rolled resource keywords: `resource_keywords` / `territory_resources` config, rolling per copy, `territory_keywords` |

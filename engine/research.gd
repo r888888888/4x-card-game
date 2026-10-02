@@ -133,11 +133,7 @@ static func buy_error(e: GameEngine, uid: int) -> String:
 		return "That tech isn't on offer."
 	if not prereq_met(e, tech.def):
 		return "%s needs %s first." % [tech.def.name, e.card_db[tech.def.prereq].name]
-	var price := cost(e, uid)
-	var have: int = e.resources.get(GameEngine.INSIGHT, 0)
-	if have < price:
-		return "%s needs %d insight (you have %d)." % [tech.def.name, price, have]
-	return ""
+	return e.price_error(tech.def.name, {GameEngine.INSIGHT: cost(e, uid)})
 
 
 static func buy(e: GameEngine, uid: int) -> bool:
@@ -146,7 +142,7 @@ static func buy(e: GameEngine, uid: int) -> bool:
 	var tech := e.zone("research_deck").find(uid)
 	var price := cost(e, uid)
 	e.zone("research_deck").remove(tech)
-	e.resources[GameEngine.INSIGHT] -= price
+	e.pay({GameEngine.INSIGHT: price})
 	e.zone("researched").add(tech)
 	e._log("Learned %s (%d insight)." % [tech.def.name, price])
 	e._resolve(tech, "play")
