@@ -371,7 +371,7 @@ func _update_border() -> void:
 	if _warning:
 		_style.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
-		_style.border_color = Color.WHITE
+		_style.border_color = Palette.TEXT
 	elif _highlight:
 		_style.border_color = HIGHLIGHT_COLOR
 	else:
