@@ -2,7 +2,7 @@
 id: 192
 title: Palette roles can't be misspelt or frozen by mistake
 type: feature
-status: review
+status: done
 branch: feat/192-palette-role-guards
 ---
 
