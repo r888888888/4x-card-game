@@ -15,6 +15,10 @@ const UNREST := "unrest"
 const NOTICE_INFO := &"info"
 const NOTICE_CAUTION := &"caution"
 const NOTICE_URGENT := &"urgent"
+## The game's rare, important moments (191): a tech learned, a territory settled into a city, an era added.
+const MILESTONE_TECH := &"tech"
+const MILESTONE_CITY := &"city"
+const MILESTONE_ERA := &"era"
 
 signal changed
 signal logged(message: String)
