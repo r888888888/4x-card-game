@@ -1,12 +1,13 @@
 # Mid-Century Modern Style Guide — "The Civic Planning Desk"
 
-Spike `spike/mcm-style-guide`. A visual and interaction design system for the 4X card game, written so a UI
-designer or a Godot developer can build it without reinterpreting adjectives. A live specimen of the tokens and the
-core components (with motion and a Reduce motion switch) is in [mcm-specimen.html](mcm-specimen.html); open it in a
-browser.
+Spikes `spike/mcm-style-guide` and `spike/mcm-sound`. A visual, motion, interaction and sound design system for the
+4X card game, written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
+adjectives. A live specimen of the tokens and the core components (with motion, synthesized sound, and Reduce motion
+and Sound switches) is in [mcm-specimen.html](mcm-specimen.html); open it in a browser.
 
 Companion pages in this folder (open them in a browser):
-- [mcm-specimen.html](mcm-specimen.html): the tokens and core components, with motion.
+- [mcm-specimen.html](mcm-specimen.html): the tokens and core components, with motion and sound, plus an audition
+  board of every sound token (§14.1) and a repetition test (§16.8).
 - [transitions.html](transitions.html): every screen transition in §10–11 on a mock game screen, with slow motion and
   Reduce motion.
 - [card-stacks.html](card-stacks.html): six designs for a stack of cards (discard, deck, research deck, hand) and how
@@ -16,7 +17,7 @@ Companion pages in this folder (open them in a browser):
   alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
 
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
-names it, and §16 maps every token onto the existing code.
+names it, and §17 maps every token onto the existing code.
 
 ---
 
@@ -24,7 +25,9 @@ names it, and §16 maps every token onto the existing code.
 
 **The premise.** The player sits at a planning desk built in 1962 for running a civilization. Whoever made it had
 worked for Braun, Herman Miller and a national rail authority; the control room down the hall was built by the
-same team. Everything is printed, machined, or lit. Nothing glows, floats or melts.
+same team. Everything is printed, machined, or lit. Nothing glows, floats or melts. Everything you hear is one of
+its mechanisms at work: a key meeting its stop, a drawer on its runners, a counter's drum, a lamp's tone generator.
+Nothing bleeps, whooshes or plays a jingle.
 
 Five tenets, in order of precedence when they conflict:
 
@@ -32,15 +35,18 @@ Five tenets, in order of precedence when they conflict:
    never costs legibility.
 2. **Things are made of something.** Every surface is paper, enamelled steel, or a lamp. Paper holds information,
    steel holds controls, lamps signal state. A surface never mixes roles.
-3. **Motion is mechanism.** Anything that moves does so the way a mechanism would: it accelerates quickly, travels
-   a short, fixed distance, and stops firmly against a detent. Nothing wobbles, bounces or drifts.
+3. **Motion and sound are mechanism.** Anything that moves does so the way a mechanism would: it accelerates
+   quickly, travels a short, fixed distance, and stops firmly against a detent. Nothing wobbles, bounces or drifts.
+   What you hear is that same mechanism, at the moment it makes contact: the detent, not the travel (§16).
 4. **One loud thing.** At rest, at most one element on screen uses the signal colour (usually End turn). Emphasis is
-   a budget.
+   a budget, in sound as in colour: routine feedback is quiet so the rare event can be heard (§16.4).
 5. **Restraint is the period.** Mid-century design is defined by what it left out. When in doubt, remove the
-   ornament, keep the grid.
+   ornament, keep the grid. Silence is part of the design: when in doubt, a sound is removed (§16.8).
 
 **What it is not.** Not "retro": no CRT scanlines, chrome, boomerang wallpaper, diner turquoise, or fake wear. A
-player who never saw 1960 should read it as simply *well designed*, with a warm, analogue character.
+player who never saw 1960 should read it as simply *well designed*, with a warm, analogue character. The same holds for
+the ear: no typewriter bells, cash registers, sci-fi bleeps, arcade chirps or lounge music. It should sound like a
+well-made machine, not like a period piece.
 
 ---
 
@@ -56,6 +62,7 @@ player who never saw 1960 should read it as simply *well designed*, with a warm,
 | Generous negative space | Density comes from type scale and alignment, not from reduced padding. Panels breathe; tables are tight. | Panel padding never below `space.4` (16). |
 | Information as print | Labels look set in type: small caps tracking, column alignment, tabular figures. | Every number column is right-aligned on tabular figures. |
 | Period motif, sparingly | Starburst, radial lines, concentric rings, a split circle. One motif per screen, only at moments that earn it. | Count motifs on a screen: ≤ 1 at rest. |
+| Sight and sound agree | A thing sounds like the mechanism it looks like: a key clicks, a drawer runs and stops, a sheet of paper whispers. Sound never adds a mechanism the eye can't see (§16.2). | Mute the game: every state still reads. Look away: every sound names the thing that moved. |
 
 ---
 
@@ -77,10 +84,19 @@ Look at these for *principles*, not for things to copy:
   state is shown by discrete, legible mechanisms.
 - **Architecture.** Blueprints and diazo prints, title blocks on drawings, Case Study Houses, sliding shoji and
   room dividers. Lesson: layered translucent sheets; panels slide in their own track.
+- **Sound.** Listen to these for *behaviour and timbre*, never to sample or imitate a recognisable product sound:
+  Braun consumer electronics (the dry, short click of a well-damped key), rotary telephones (a dial's even detents),
+  mechanical adding machines (Facit, Olivetti Divisumma: a registration clack after a run), Veeder-Root counters and
+  split-flap boards (tiny ticks; a flutter that stops on the word), slide projectors (a motor-advance and a
+  seat), drafting equipment (a parallel rule on its wires, vellum laid on a sheet), early computer consoles and
+  control-room panels (relays behind the panel, a lamp with a tone), NASA-era instrumentation (sparse, purposeful
+  tones). Lesson: every sound is the by-product of a well-made mechanism: short, damped, specific, and quiet enough to
+  work beside all day. Colour and sound obey the same economy.
 
-**Mood words, measured:** warm (backgrounds have hue 35–45°, saturation 15–25%), optimistic (accents are saturated
-but never neon: chroma capped at ~0.15 in OKLCH), tactile (every control shows press travel), quiet (≤ 1 moving
-thing at rest).
+**Mood words, measured:** warm (backgrounds have hue 35–45°, saturation 15–25%; sound energy centred in 300 Hz–3 kHz
+with the top rolled off above 6 kHz), optimistic (accents are saturated but never neon: chroma capped at ~0.15 in
+OKLCH), tactile (every control shows press travel and clicks when it lands), quiet (≤ 1 moving thing at rest; no
+sound at all at rest; routine sounds ≤ 100 ms and ≤ −26 dBFS).
 
 ---
 
@@ -311,7 +327,7 @@ Shadows are solid, unblurred offsets down and to the right (light from top-left,
 
 Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in Night. In Godot:
 `StyleBoxFlat.shadow_size = 0` won't draw; use `shadow_size = 1` with `shadow_offset` = the token and a
-`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §16.)
+`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §17.)
 
 ### 6.6 Panel density
 
@@ -361,36 +377,50 @@ afterthought.
 
 ## 7. Components
 
-Each component lists anatomy, then states. Detailed state-transition specs are in §15; motion tokens in §14.
+Each component lists anatomy, then states, then its sound. Detailed state-transition specs (visual, motion and
+sound together) are in §15; motion and sound tokens in §14; the sound system in §16. "Sound: None" means silence is
+the specification, not an omission.
 
 1. **Primary button** — signal fill, `on-signal` label, 3 px `ink` border, `radius.1`, `shadow.plinth`. Max one per
-   view.
-2. **Secondary button** — `steel` fill, `ink` label, 2 px `rule` border, `shadow.plinth`.
-3. **Tertiary / link** — no box. `ink-2` label; hover draws a 2 px underline in from the left (wipe).
+   view. Sound: `ui.button.press` / `ui.button.release`, a key one size heavier (pitched 2 semitones lower).
+2. **Secondary button** — `steel` fill, `ink` label, 2 px `rule` border, `shadow.plinth`. Sound: `ui.button.press`
+   / `ui.button.release`.
+3. **Tertiary / link** — no box. `ink-2` label; hover draws a 2 px underline in from the left (wipe). Sound: None (it
+   is printed, not machined: no key, no travel).
 4. **Tab** — a folder tab: square top, its rail below. Inactive tabs are `steel`; the active tab is `sheet`, joins
-   the sheet below (no border between them) and carries a 3 px `ink` rail on top that slides between tabs.
+   the sheet below (no border between them) and carries a 3 px `ink` rail on top that slides between tabs. Sound: a
+   shallow key, `ui.button.press` at −3 dB; the rail and the content change are silent (sub-navigation).
 5. **Toggle** — a **legend key**: a latching push key with a lamp strip across its top and its state printed on its
    face (ON/OFF). ON latches it down and lights the strip. It reuses the button's press, so the UI has one kind of
-   key, not a separate switch control. §15.4.
+   key, not a separate switch control. Sound: `ui.button.press`, then the latch: `ui.toggle.on` or `ui.toggle.off`.
+   §15.4.
 6. **Resource counter** — caption with its lamp on the same line, then glyph + value grouped by spacing (no box),
-   forecast below.
+   forecast below. Sound: `ui.counter.tick` per rolled step, `ui.resource.gain` / `ui.resource.loss` as the lamp
+   pulses.
 7. **Card** — §6.7. A pile of cards (deck, discard, a supply pile) is an **index pile** that deals out into a grid
-   when clicked (§15.13).
+   when clicked (§15.13). Sound: card stock and paper: `ui.selection`, `ui.card.lift`, `ui.card.place`; a pile
+   `ui.pile.deal` / `ui.pile.gather`. Hover: None.
 8. **Panel / drawer** — `sheet`, square, title block, `shadow.lift` when it overlaps content, none when docked.
+   Sound: runners and a felt stop, `ui.panel.open` / `ui.panel.close`.
 9. **Tooltip** — a printed tab: `ink` fill, `sheet` text (inverse) in Night and Paper alike, `radius.0`, a 6 px
-   triangle notch toward the target, max 320 px wide.
+   triangle notch toward the target, max 320 px wide. Sound: None (it answers a hover, and hover is silent).
 10. **Notification flag** — a pennant that slides out from the left rail: a `sheet` strip, 4 px hue bar on its left
-    edge, glyph, one line of text.
+    edge, glyph, one line of text. Sound: the rail lamp's bell, `ui.notification`, in one of three patterns.
 11. **Indicator lamp** — a 10–14 px disc. OFF: `well` with 1 px `rule` ring. ON: the hue's plane colour plus a 2 px
     ring of its line colour and a single small highlight dot (the only permitted radial). Lamps always sit beside a
-    printed label.
+    printed label. Sound: None of its own; a lamp that lights to report news carries that news's tone
+    (`ui.confirm`, `ui.notification`), and a lamp going out is always silent.
 12. **Progress indicator** — segmented: a `well` track divided into discrete cells (one per unit when ≤ 12, else
-    percentage blocks of 10%) that fill with the hue plane. Never a smooth gradient bar.
+    percentage blocks of 10%) that fill with the hue plane. Never a smooth gradient bar. Sound: None while it fills;
+    completion plays `ui.confirm`, unless the completion is itself a game event with its own sound.
 13. **Gauge** — a half-dial for bounded values (unrest vs limit): a 180° arc in `rule`, coloured zones (sage / ochre /
-    brick) on its outer edge, a single `ink` needle with a 2 px hub.
+    brick) on its outer edge, a single `ink` needle with a 2 px hub. Sound: None (the counter it mirrors already
+    ticks).
 14. **Modal** — a drafting sheet: `sheet`, `shadow.sheet`, title block, footer rule above its actions (primary
-    right, secondary left of it), Esc / Close closes.
-15. **End-turn control** — §11.9 and §15.12.
+    right, secondary left of it), Esc / Close closes. Sound: a drafting sheet laid down and lifted,
+    `ui.sheet.open` / `ui.sheet.close`; the scrim is silent.
+15. **End-turn control** — §11.9 and §15.12. Sound: the desk's heaviest key and a relay behind the panel,
+    `ui.endturn.press`, `ui.endturn.commit`, `ui.endturn.turn`.
 
 ---
 
@@ -428,22 +458,26 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 - **One thing moves at a time** in the player's attention. Stagger siblings by 30–60 ms instead of moving them
   together.
 - **No overshoot** except the `settle` curve, reserved for major milestones (era change, victory), max 4%.
+- **Sound marks contact, not travel.** A moving part is heard where it meets something: the key bottoming, the
+  latch catching, the drawer reaching its stop, the digit landing. Travel itself is silent, or at most a quiet rail
+  texture under a panel-sized move. Sound never precedes the motion it belongs to (§16.5).
 - **Never wait on a frame that won't come.** Every transition also has a timer for its own duration; if the animation
   hasn't finished by then (a hidden or minimised window), it jumps to its end state, so input is never left locked.
 
 ### 9.2 The six primitives
 
-| Primitive | Physical model | Property | Typical travel | Curve |
-|---|---|---|---|---|
-| **Slide** | A drawer or cabinet door on rails | position on one axis | 8–24 px for elements; panel width for panels | `ease.machined` in, `ease.release` out |
-| **Snap** | A switch or latch hitting its detent | position or state, very short | 1–4 px | `ease.snap` |
-| **Roll** | An odometer drum or split flap | a digit's vertical offset, flap rotation | one digit height per step | `ease.linear-step` per step |
-| **Wipe** | A drafting sheet or blind drawn across | clip rect / underline width | full element | `ease.machined` |
-| **Rotate** | A rotary control or gauge needle | rotation | ≤ 90° for controls; any for needles | `ease.machined`, needle `ease.damped` |
-| **Pulse** | A lamp switching on | brightness of a lamp; a 1–2 px ring | none | `ease.lamp` (fast on, slow decay) |
+| Primitive | Physical model | Property | Typical travel | Curve | Sound partner (§16.3) |
+|---|---|---|---|---|---|
+| **Slide** | A drawer or cabinet door on rails | position on one axis | 8–24 px for elements; panel width for panels | `ease.machined` in, `ease.release` out | Element slides: silent, or the stop only. Panel slides: a quiet rail run under the travel, a felt stop or latch at the end. |
+| **Snap** | A switch or latch hitting its detent | position or state, very short | 1–4 px | `ease.snap` | A dry click or detent at contact. The most common sound in the game. |
+| **Roll** | An odometer drum or split flap | a digit's vertical offset, flap rotation | one digit height per step | `ease.linear-step` per step | A tick as each digit lands (≤ 8 per roll); one flutter per split-flap word, not one per character. |
+| **Wipe** | A drafting sheet or blind drawn across | clip rect / underline width | full element | `ease.machined` | Paper on paper, only for sheet-sized wipes (navigation, ceremonies). Underlines and tags wipe silently. |
+| **Rotate** | A rotary control or gauge needle | rotation | ≤ 90° for controls; any for needles | `ease.machined`, needle `ease.damped` | A control: one detent per step. A needle: silent. |
+| **Pulse** | A lamp switching on | brightness of a lamp; a 1–2 px ring | none | `ease.lamp` (fast on, slow decay) | Silent, unless the lamp reports news; then that news's tone, at lamp-on. Lamps go out silently. |
 
 Scale is **not** a primitive. Nothing scales on hover. Scale is allowed only for a lamp "on" bloom (ring 1.0→1.4,
 fading) and for the Navigator's existing "grow out of the card" transition, which should become a wipe (§11).
+Likewise, no sound exists without a primitive under it: if nothing moves or lights, nothing is heard.
 
 ### 9.3 Easing curves
 
@@ -452,7 +486,7 @@ fading) and for the Navigator's existing "grow out of the card" transition, whic
 | `ease.machined` | (0.2, 0, 0, 1) | Fast start, long controlled deceleration, firm stop. The default. | `TRANS_QUART`, `EASE_OUT` |
 | `ease.release` | (0.4, 0, 1, 1) | Exit: accelerates away, no decel. | `TRANS_CUBIC`, `EASE_IN` |
 | `ease.snap` | (0.3, 0, 0, 1) at ≤ 90 ms | A detent. | `TRANS_EXPO`, `EASE_OUT` |
-| `ease.latch` | (0.5, -0.2, 0.1, 1) | A small anticipation then travel. For drawers and the end-turn release. | custom interpolator (§16) |
+| `ease.latch` | (0.5, -0.2, 0.1, 1) | A small anticipation then travel. For drawers and the end-turn release. | custom interpolator (§17) |
 | `ease.linear-step` | linear | Each odometer/flap step; the curve is in the *sequence* timing, not the step. | `TRANS_LINEAR` |
 | `ease.damped` | (0.3, 0.8, 0.4, 1) | Gauge needle: ~2% overshoot, one settle. | custom, or `TRANS_QUART` `EASE_OUT` |
 | `ease.lamp` | on: (0, 0, 0.2, 1) 40 ms; off: (0.4, 0, 0.6, 1) | Filament: on instantly, cools slowly. | on `TRANS_EXPO` out; off `TRANS_SINE` in-out |
@@ -464,21 +498,24 @@ The current code uses `TRANS_BACK` for the pulse, the landing squash and the pip
 
 ### 9.4 Timing table
 
-| Interaction | Duration | Primitive & values | Curve |
-|---|---|---|---|
-| Hover feedback | in 90 ms, out 140 ms | Background one value step; shadow unchanged. Links: underline wipe 0→100%. | in `machined`, out `release` |
-| Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` |
-| Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` |
-| Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp strip and legend change as the latch lands. | `snap` key, `lamp` |
-| Navigation transition | 280–360 ms | New screen wipes in from the side of its origin (left rail → right), old slides 24 px and fades out under it. | `machined` / `release` |
-| Panel opening (drawer) | 220–280 ms open, 180–220 ms close | Slide from its rail edge; contents fade in after 40% (stagger rows 20 ms, max 6 rows). | `latch` / `release` |
-| Modal appearance | 220–260 ms | Sheet slides up 24 px + opacity 0→1 over the first 120 ms; scrim fades 160 ms. Close: 160 ms, down 12 px. | `machined` / `release` |
-| Resource gain | 600–900 ms total | Delta tag (+3) snaps in beside the counter (90 ms), the counter rolls, the lamp pulses once, tag holds 600 ms then wipes out (120 ms). | `snap`, `linear-step`, `lamp` |
-| Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for |Δ| > 8, roll the last 8 steps only. | `linear-step` |
-| Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` |
-| Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` |
-| Error feedback | 240 ms | One lateral **snap**: −4, +4, 0 px (80 ms each), border turns `danger`, ⊘ appears; message stays until the cause changes or 4 s. No shaking > 4 px. | `snap` |
-| Major milestone | 1.2–2.0 s, skippable | Ceremonial sheet wipes across, display type split-flaps in by character (25 ms stagger), concentric-ring or 16-ray starburst motif draws, one `settle`. Click/Esc skips to the end state. | `machined`, `settle` |
+Sound onsets are milliseconds from the start of the motion; "contact" is the frame the part reaches 90% of its
+travel (§16.5).
+
+| Interaction | Duration | Primitive & values | Curve | Sound @ sync |
+|---|---|---|---|---|
+| Hover feedback | in 90 ms, out 140 ms | Background one value step; shadow unchanged. Links: underline wipe 0→100%. | in `machined`, out `release` | None |
+| Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` | `ui.button.press` @ contact, ≈ 38 ms |
+| Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` | `ui.button.release` @ back at rest, ≈ 65 ms |
+| Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp strip and legend change as the latch lands. | `snap` key, `lamp` | `ui.button.press` @ held contact; `ui.toggle.on` @ latch lands with the lamp, ≈ 38 ms; `ui.toggle.off` @ back at rest, ≈ 65 ms |
+| Navigation transition | 280–360 ms | New screen wipes in from the side of its origin (left rail → right), old slides 24 px and fades out under it. | `machined` / `release` | `ui.nav.forward`: paper texture from 0, stop @ ≈ 172 ms; back: `ui.nav.back` |
+| Panel opening (drawer) | 220–280 ms open, 180–220 ms close | Slide from its rail edge; contents fade in after 40% (stagger rows 20 ms, max 6 rows). | `latch` / `release` | `ui.panel.open`: latch tick @ 0, stop @ ≈ 164 ms; `ui.panel.close`: catch @ ≈ 187 ms |
+| Modal appearance | 220–260 ms | Sheet slides up 24 px + opacity 0→1 over the first 120 ms; scrim fades 160 ms. Close: 160 ms, down 12 px. | `machined` / `release` | `ui.sheet.open` peaks as the sheet settles, ≈ 130 ms; `ui.sheet.close` @ 0 (the lift) |
+| Resource gain | 600–900 ms total | Delta tag (+3) snaps in beside the counter (90 ms), the counter rolls, the lamp pulses once, tag holds 600 ms then wipes out (120 ms). | `snap`, `linear-step`, `lamp` | ticks during the roll; `ui.resource.gain` / `.loss` @ lamp-on. The tag is silent. |
+| Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for \|Δ\| > 8, roll the last 8 steps only. | `linear-step` | `ui.counter.tick` @ each step's landing; the jump past the first steps is silent |
+| Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` | `ui.selection` @ index tab lands, ≈ 65 ms. Deselect: None |
+| Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` | `ui.confirm` @ lamp-on (0 ms); the rays are silent |
+| Error feedback | 240 ms | One lateral **snap**: −4, +4, 0 px (80 ms each), border turns `danger`, ⊘ appears; message stays until the cause changes or 4 s. No shaking > 4 px. | `snap` | `ui.reject`: one tap per lateral stop, ≈ 44 and ≈ 124 ms |
+| Major milestone | 1.2–2.0 s, skippable | Ceremonial sheet wipes across, display type split-flaps in by character (25 ms stagger), concentric-ring or 16-ray starburst motif draws, one `settle`. Click/Esc skips to the end state. | `machined`, `settle` | `ui.milestone.*`: sheet @ 0, flutter with the type, musical accent @ the motif's completion; a skip fades it in 30 ms |
 
 ### 9.5 Reduce motion
 
@@ -490,6 +527,10 @@ The game has Reduce motion (`Settings.reduce_motion`). With it on:
 - Press feedback remains (it is 2 px and instant feedback, not decoration), but its tween becomes a frame switch.
 - Milestones skip to their end state; the starburst is drawn static.
 - Looping animation of any kind (the drop-zone pulse) stops; a static 3 px outline replaces it.
+- **Sound is unchanged** in kind and level. Where a motion becomes instant, its contact and its stop are the same
+  frame, so it plays the stop sound only (the drawer's felt stop, the latch, the sheet settling) and drops any travel
+  texture; an instant counter plays one tick and its registration, not a run. A player who reduces motion may lean on
+  sound for confirmation, so Reduce motion never silences feedback (§12).
 
 ---
 
@@ -501,6 +542,15 @@ it reads as depressing into the desk. No scale, no ripple, no colour flash. Rele
 activation (Space/Enter) plays the same press/release. A held button (End turn's hold-to-skip-confirm if added)
 shows a fill wiping left→right across its face.
 
+**Sound.** A dry, muted click of a molded key on a snap-action switch, `ui.button.press`, when the face reaches the
+desk (≈ 38 ms in), and a lighter, higher return tick, `ui.button.release`, as it comes back to its stop (≈ 65 ms
+after release). The action still fires on release; whatever it starts makes its own sound with its own motion. Hover
+and focus are silent. A press that is dragged off the button before release plays the press and
+a release, but nothing fires, as the eye sees. A press on a disabled button doesn't travel and plays the dead tap of a
+locked key, `ui.reject.locked`, while its reason tooltip appears at once instead of after the hover delay, so the
+sound never explains anything the screen doesn't. A held button is silent while its fill wipes, and plays the release
+when it commits.
+
 ### 10.2 Navigation
 Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, the Supply from the right as well,
 the log drawer from the left rail. Each sheet carries the `ScreenHeader` breadcrumb in its title block; going back
@@ -511,6 +561,12 @@ colour flashing in the title block bar for the first 120 ms — continuity witho
 growing clip shows only blank sheet, because the title bar sits outside the clip until the end. Closing reverses
 both into the card.
 
+**Sound.** A screen is a sheet run along a straightedge, so it sounds like paper on a rail: `ui.nav.forward`, a
+soft texture that starts with the wipe and a quiet stop as the sheet lands (≈ 172 ms); `ui.nav.back`, the sheet run
+back with no stop, since it slides away out of sight. Only primary screens (Knowledge, Supply, a territory) have this
+sound. Moving within a screen (tabs, an era band, scrolling the tech tree) is silent apart from the key that was
+pressed. There is no whoosh: the sound is never louder or longer than the sheet's motion.
+
 ### 10.3 Counters
 Every changing number uses a discrete mechanism:
 - **Odometer** for resources and score (digits roll vertically, increasing rolls up, decreasing rolls down).
@@ -520,6 +576,12 @@ Every changing number uses a discrete mechanism:
 No smooth numeric interpolation (no 4.37 frames). The final value appears no later than 600 ms after the action
 so a fast player is never waiting.
 
+**Sound.** Each mechanism ticks the way it moves. An odometer plays `ui.counter.tick` as each digit lands, at most 8
+per roll (the roll shows at most 8 steps; the jump before them is silent), each tick 1 dB quieter than the last, so
+a run reads as one gesture; the last step doesn't tick but registers (§10.4). A split-flap word plays one `ui.flap` flutter for the whole word, never one per
+character. A tally plays one tick per pip, 60 ms apart. When several counters move at once (upkeep), they share one
+tick stream capped at one tick per 35 ms (§16.8). No coins, no cash-register bell.
+
 ### 10.4 Resource gain/loss
 `+3` snaps in to the right of the counter in `type.numeral-s`, sage for gain, brick for loss with a `−` sign
 (U+2212); the counter rolls; the resource's lamp pulses once. Several changes from one action **merge** into one
@@ -527,11 +589,22 @@ tag per resource (the engine already reports a net change, 126). Tokens flying a
 the rare, important transfer (paying a cost from a card to the bar, buying a Wonder); the current per-change
 floating tokens (114, 126) become delta tags.
 
+**Sound.** The roll ticks (§10.3), then the counter registers its new total as its lamp pulses: `ui.resource.gain`,
+a drum locking in with a whisper of the lamp's tone, or `ui.resource.loss`, the same lock a little lower and duller,
+with no tone. The two differ as much as + and − do: enough to tell apart, not so much that losing sounds like a
+punishment. A loss that matters (starving, unrest at its limit) is announced by its notification flag, not by a louder
+loss. The delta tag is silent. One registration per resource per action, because the tags already merge.
+
 ### 10.5 Selection
 A selected card **slides 12 px out of its row** (out of a stack, like pulling an index card up from a file),
 gains `shadow.lift` and a 3 px `ink` border, and a signal-orange **index tab** (24×6 px) wipes in on its top edge.
 Hover (not selected) only gives `shadow.plinth` + 4 px slide. Nothing scales. (Today's hand hover scales 1.08 and
 lifts 20 px; it becomes 0 scale and 8 px.)
+
+**Sound.** Selection is the most frequent act in the game, so it is nearly silent: `ui.selection`, the tiny
+plastic tick of an index tab clipped onto the card, as the tab lands. Deselecting, hovering and moving the keyboard
+focus across cards are silent. A drag plays `ui.card.lift` as the card leaves its row (the "click before lifting" in
+§15.6), nothing while it travels, then `ui.card.place` as it lands, or `ui.reject` if the drop is refused.
 
 ### 10.6 Panels
 Drawers (log, notifications history) slide from a rail with `ease.latch`. Cabinet-door panels (government overlay,
@@ -541,6 +614,13 @@ choice runs the same two moves the other way: close over the choices, part onto 
 Layered plans (tech tree eras) stack as offset sheets, 8 px right and down per layer; bringing one forward slides
 it out of the stack and back on top.
 
+**Sound.** A drawer runs on ball-bearing runners and stops against felt: `ui.panel.open` is a small latch tick as
+the `latch` curve's anticipation lets go, a quiet rail run that fades as the drawer decelerates, and a soft stop at
+≈ 164 ms; `ui.panel.close` runs and catches with a latch as it shuts. The sound lasts as long as the slide, never
+longer. Cabinet doors are heavier partitions: `ui.cabinet.close` runs both doors and lands one damped meeting at the
+seam (≈ 108 ms); after the 60 ms hold, `ui.cabinet.part` lets the latch go and stops the doors at their sides. Bringing
+an era sheet forward is silent (sub-navigation).
+
 ### 10.7 Notifications
 A **flag** slides out of the left rail (from x −100% to 0 in 200 ms, `machined`), holds, then slides back in
 (160 ms). One at a time; queued flags stack below at 8 px gaps, max 3, older ones collapse into a count badge on
@@ -549,12 +629,31 @@ until resolved. Flags carry no indicator lamp; the **rail** does: one lamp per n
 (40 ms `lamp-on`) as a flag of that category arrives and stays lit while an urgent one is unresolved, so a dismissed
 or collapsed flag still leaves its trace on the rail.
 
+**Sound.** The rail lamp has a small bell and a tone generator behind it: `ui.notification` sounds once as the flag
+reaches full extension, with the lamp. Priority is told by **pattern**, never by volume: information is one pulse
+(●), a caution two even pulses (●●), an urgent flag a falling pair (●↘●). Queued flags sound one at a time, at least
+400 ms apart; a flag that collapses into the count badge is silent; flags leaving are silent. An urgent flag sounds
+once, not again while it persists: its lit lamp and its persistence are the reminder.
+
 ### 10.8 Success / confirmation
 The lamp next to the control lights, then a small starburst (6 rays, 8 px) draws out from it and fades. The burst
 is centred on the lamp: each ray rotates about the lamp's centre and grows outward from 1 px beyond its rim
 (radius 9 → 17 px), so the lamp sits exactly in the middle of the rays. For
 bigger confirmations (tech learned) the tech's tile gets a full 12-ray burst behind its glyph for 400 ms and the
 tile's band fills in with a left→right wipe. Large sequences only for era changes and victory.
+
+**Sound.** `ui.confirm`, one warm, restrained tone from the lamp's tone generator, as the lamp lights; the rays are
+silent. A stronger routine confirmation (choosing a government, a treaty signed) may use the two-note form, a rising
+fourth. Neither is ever layered, musical or longer than 250 ms, so a confirmation can't be mistaken for an
+achievement. Learning a tech is an event, not a confirmation: it plays `ui.milestone.breakthrough` (§11.3).
+
+### 10.9 Errors and refusals
+An action the engine refuses (an invalid drop, a play the `*_error` query forbids) is refused the way a mechanism
+refuses: the thing tries to go, meets a stop, and returns. Visual: border to `danger`, ⊘ and the engine's reason in
+words. Motion: the error snap, −4, +4, 0 px. Sound: `ui.reject`, a muted, low double tap, one tap at each lateral
+stop (≈ 44 and ≈ 124 ms), with no buzzer, no tone and nothing louder than a button press. A control that can't move
+at all (disabled) plays the single dead tap `ui.reject.locked` (§10.1). The reason stays on screen until the cause
+changes or 4 s pass; the sound plays once.
 
 ---
 
@@ -570,6 +669,8 @@ A desk, not a cockpit. Three zones:
 - **Work area** (9 columns): the Realm (territory cards laid on a `well` blotter, frontier hatched) above, the hand
   below, separated by a 1 px rule and `space.7`.
 Motion at rest: nothing. The only animation the player sees between actions is the feedback to their action.
+Sound at rest: nothing. The interface has no ambient bed, hum or clock tick; the desk is silent while the player
+thinks, and every sound is the answer to something they did or something the turn did.
 
 ### 11.2 Resource bar
 A row of **instrument cells**, each 160 px wide, divided by 1 px vertical `rule-fine` lines (like a Braun radio's
@@ -580,6 +681,9 @@ the next-upkeep forecast in `type.caption` below (`+2 next`, sage; `−1 next`, 
 starve). Unrest shows as a small half-gauge against its limit instead of a number when the limit is ≤ 10.
 Hover a cell → the forecast tooltip (the existing one). A cell whose value is at a limit or dangerous lights its
 lamp (brick) and its caption reads "AT LIMIT", so the state is in words too.
+Sound: each cell ticks and registers (§10.3–10.4); cells changing together share one tick stream, and their
+registrations follow the same 60 ms left-to-right tally as their tags. A lamp lighting for AT LIMIT is silent; the
+state that matters arrives as a caution flag with its own sound. The tooltip is silent.
 
 ### 11.3 Technology / research (Knowledge)
 A **drafting sheet / chart plotter**. Eras are horizontal bands like floors on an architectural section, each with
@@ -591,13 +695,19 @@ orthogonal lines with 90° corners (a circuit/plot, never curves), terminating i
 - Future era: the band is covered by a **vellum overlay** (`sheet` at 88%) with the era name printed on it.
 Learning a tech: the lines from its prerequisites draw in (wipe along the path, 240 ms), the band fills, the lamp
 lights, a 12-ray burst. Newly available techs light their lamps in sequence (tally, 60 ms).
+Sound: learning a tech is the game's most frequent event, so it gets the shortest Level 3 cue,
+`ui.milestone.breakthrough`: a plotter pen's soft scratch under the drawing lines, then a three-note vibraphone
+figure rising as the lamp lights (≈ 240 ms in), ≤ 900 ms in all. The newly available lamps light silently. If
+playtests show techs arriving most turns, breakthrough steps down to Level 2 (`ui.confirm` in its two-note form) and
+Level 3 is kept for eras (§16.4).
 
 ### 11.4 Production queue (Supply / building slots)
 The game has no city production queue; its equivalents are the **Supply** (Buy Cards) and building slots. Treat
 both as a **filing system**: a horizontal rack of slots drawn as `well` recesses with 1 px `rule` edges; filled
 slots hold index cards standing upright; empty slots show a dashed outline and "EMPTY SLOT" caption. Buying a card
 slides it out of the supply rack (up 16 px), then it travels (one direct slide, 300 ms) to the discard/deck counter,
-which rolls. If a queue is ever added: a vertical list of numbered rows (`01`, `02` in Plex Mono), the active row
+which rolls. Sound: the Buy key's press and release, `ui.card.lift` as the card leaves the rack, silence in flight,
+`ui.card.place` as it lands on the pile, and the pile's count tick; the wealth paid registers as a loss. If a queue is ever added: a vertical list of numbered rows (`01`, `02` in Plex Mono), the active row
 with a progress segment bar and a lit lamp, reordering by drag with a 2 px ink insertion rule.
 
 ### 11.5 Diplomacy (future)
@@ -606,6 +716,9 @@ monogram in a circle) and its attitude as a lamp + word ("CORDIAL", "WARY", "HOS
 between the seats. Proposals open as a two-column **memorandum** modal: "WE OFFER" / "WE ASK", each a ledger list
 with right-aligned values, a hairline total, and a signature line where the primary button (signal) sits. A
 response arrives as a split-flap stamp on the memo ("ACCEPTED" sage / "DECLINED" brick) — the word is the state.
+Sound: the memo is a modal (`ui.sheet.open`); the response flaps in with one `ui.flap`; a treaty accepted is a major
+diplomatic event, `ui.milestone.accord`, two muted-piano chords; a refusal is a caution flag's pattern (●●), never a
+rejection buzz, since the player made no error.
 
 ### 11.6 City / settlement management (territory view)
 The territory replaces the Realm (105). Present it as a **site plan**: a title block (territory name, its keywords as
@@ -613,6 +726,9 @@ small caps tags), the building slots as a row of plan rooms (rectangles with 1 p
 and the pop meter (§11.7). Entering: a wipe from the territory card's rect (§10.2). Workers assigned to a building
 appear as filled teal figures in the room's corner; idle buildings get a hatched floor and an ochre caution lamp
 with "IDLE".
+Sound: entering is navigation (`ui.nav.forward`). Placing a worker plays `ui.selection` (a marker set on a plan) as
+the figure fills; the idle lamp is silent. Founding a city (settling a territory) is an event: `ui.milestone.city`, a
+heavier latch, like a plan being stamped, and two marimba notes.
 
 ### 11.7 Population
 Pop is a **tally counter** of pips (the existing PipFilled/PipEmpty/GrowPip meter, 124). Pips are 14 px discs in a
@@ -620,6 +736,8 @@ Pop is a **tally counter** of pips (the existing PipFilled/PipEmpty/GrowPip mete
 first empty position labelled with its food cost. Growing: the button presses (§10.1), then the pip turns into a
 lit disc (lamp on 40 ms) and the food counter rolls down. Starvation risk: the rightmost pips get a brick ring and
 the meter caption reads "WILL STARVE".
+Sound: the Grow pip's press and release, one `ui.counter.tick` as the pip lights, then the food counter's roll and
+`ui.resource.loss`. The starvation ring is silent here; the famine flag carries the alarm.
 
 ### 11.8 Map overlays (the Realm)
 The Realm is a tableau, not a map, but overlays apply to it: targeting, frontier, and explanation modes are
@@ -628,6 +746,8 @@ The Realm is a tableau, not a map, but overlays apply to it: targeting, frontier
 - Valid targets: 2 px `ink` dashed outline (dash 6/4) + a lit lamp on each; invalid: unchanged under the vellum.
 - Frontier (unsettled land): the existing 45° hatch, in `rule-fine`, 8 px pitch.
 - Overlay in/out: the vellum wipes across from the side the drag started (180 ms).
+- Sound: None. The vellum arrives because a card was picked up, and the pick-up already spoke; the target lamps light
+  silently. One gesture, one sound.
 
 ### 11.9 End-turn control
 The one **signal** control. Bottom-right of the instrument strip (or the work area's bottom-right corner):
@@ -641,16 +761,34 @@ Press: travel 4 px (twice a normal button), 70 ms; release triggers the turn. Th
 to the next, the event card for the turn slides in from the event deck, upkeep deltas appear as tags per resource
 in a tally sequence (60 ms apart, left to right). Total turn-change choreography ≤ 1.2 s, and any click skips it.
 
+Sound, the one sequence the player hears every turn, so it is firm but never cinematic:
+
+| Moment | Visual / motion | Sound | Sync |
+|---|---|---|---|
+| PRESS | face travels 4 px into its plinth, 70 ms `snap` | `ui.endturn.press`: firmer, deeper engagement than any other key | contact, ≈ 38 ms |
+| COMMIT | release; the lamp goes out; BUSY | `ui.endturn.commit`: a two-stage relay closing behind the panel | key back at rest, ≈ 65 ms after release |
+| TURN | the turn plate flaps to N+1; the event card slides in | `ui.endturn.turn`: a short drum-advance with the plate's flap flutter riding on it; the event card's `ui.card.place` as it lands | first flap |
+| UPKEEP | delta tags and rolls, 60 ms apart | the shared tick stream and one registration per resource (§10.3–10.4) | per step |
+| READY | fill back to signal, lamp on | None: the lamp says ready; a sound here would nag | — |
+
+The sequence never exceeds the motion's 1.2 s and peaks at the commit, not later. A click that skips the
+choreography drops the sounds still to come and fades those playing in 30 ms. Pressing a BLOCKED End turn plays
+`ui.reject.locked` and the reason caption is already showing.
+
 ### 11.10 Modal dialogs
 Drafting sheets. Title block (4 px bar, title left, context right), body in `type.body` at max 640 px, footer above
 a hairline: secondary actions right-aligned, primary rightmost. Esc and a click on the scrim close (ModalStack, 153).
 A modal opened over a modal is offset +8, +8 px from the one beneath, so the stack reads as stacked paper.
+Sound: `ui.sheet.open`, a sheet laid on the desk, peaking as it settles; `ui.sheet.close`, the sheet lifted, at once.
+A stacked modal plays the same lay, 1 dB quieter (it lands on paper, not on the desk). The scrim is silent. Choosing in
+a cabinet-door overlay plays the doors (§10.6) and the choice's `ui.confirm`.
 
 ### 11.11 Tooltips
 Printed tabs: `ink` fill, inverse text, square corners, a 6 px notch. Appear after **400 ms** hover delay (0 ms when
 moving between adjacent tooltip targets), with a 90 ms opacity + 4 px slide from the target. Content: a
 `type.label-caps` heading, then `type.body-s`. Numbers in a tooltip line up in a small two-column ledger
 (the upkeep forecast: one row per source, a hairline, the net).
+Sound: None, in every state. A tooltip answers a hover, and hover is silent.
 
 ### 11.12 Victory / progression
 Era change and game over are **ceremonial sheets**: full-screen `sheet` (lighter than the board, so the wipe reads)
@@ -661,6 +799,12 @@ digits settling right-to-left. Below, a ledger of the score breakdown (category 
 double rule above the total. One primary button ("New game"). A click while it plays skips to the end state; the
 next click continues (a click that lands before the sequence settles is remembered, never dropped). Reduce motion shows
 the end state directly.
+Sound: these are the Level 3 sequences, `ui.milestone.era` and `ui.milestone.victory` (§14.1, §16.7). Each layers
+the mechanism under the music, in step with the picture: a brushed swish under the sheet's wipe, a flap flutter as the
+title types in, a relay bank as the motif draws, then a vibraphone and muted-piano figure resolving as the `settle`
+lands; the score's odometer ticks are dropped (the music carries it). Music ducks 6 dB beneath it. A skip fades the
+sequence in 30 ms and plays only the final chord's tail. With Reduce motion, the final chord plays with the end state.
+Defeat uses the same mechanism and a falling cadence: dignified, never mournful.
 
 ### 11.13 Deck, discard and supply piles
 Every pile is an **index pile** (§15.13): face-up cards squared on the desk with up to four edges stepping out 3 px
@@ -670,6 +814,9 @@ is hidden; a supply pile shows its top copy. Clicking a face-up pile **deals it 
 staying put and the rest sliding to their places 30 ms apart; clicking again gathers them back. A pile too big for the
 space it deals into (past about eight cards) **unfolds into a sheet** instead: a panel wiping out of the pile's own
 rectangle with every card as a header tile (the same wipe as §10.2).
+Sound: `ui.pile.deal`, one short riffle of card stock across the whole deal (never one sound per card), ending as the
+last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile squaring. The unfolding sheet plays
+`ui.nav.forward`. The count ticks when it changes.
 
 ---
 
@@ -700,7 +847,8 @@ rectangle with every card as a header tile (the same wipe as §10.2).
 3. **Reduce motion** (§9.5) is honoured everywhere, including milestone sequences; it is available on the title
    screen and in Settings (as today).
 4. **Frequent interactions are quiet.** Hover, press, select and resource changes move ≤ 12 px and never loop.
-   Nothing on screen animates while the player is idle (the drop-zone pulse only runs during a drag).
+   Nothing on screen animates while the player is idle (the drop-zone pulse only runs during a drag). Their sounds,
+   if any, are Level 1: ≤ 100 ms, the quietest in the game, and hover has none.
 5. **Type floor**: nothing below 14 px; body is 20 px at 1080p. UI scale setting multiplies the whole type and
    spacing scale together (offer 90/100/115/130%).
 6. **Focus** is always visible for keyboard play (teal ring, offset 2 px, square), never removed on mouse click.
@@ -709,6 +857,42 @@ rectangle with every card as a header tile (the same wipe as §10.2).
 8. **Flicker**: no lamp blinks faster than 2 Hz, and no blinking at all for more than 3 cycles.
 9. **Colour-vision check**: the support hues differ in lightness as well as hue (sage vs brick, teal vs ochre). Test
    with deuteranopia and protanopia simulations; danger vs positive must still separate by glyph *and* value.
+10. **Never sound alone.** No information is carried by sound only. Every sound token has a visual twin that says the
+    same thing, and that twin lasts at least as long as the sound (table below). A deaf player, or one playing muted,
+    misses nothing.
+11. **Separate volumes.** Settings (and the title screen, beside Reduce motion) offer Master, Music, Game (events) and
+    Interface (clicks, panels, confirmations) levels, plus an **Interface sounds** legend key (ON/OFF) that silences
+    Levels 1 and 2 while keeping the event sounds. All four persist between launches.
+12. **No sudden loud sounds.** Every bus has a limiter: Interface peaks never pass −18 dBFS, Game −10 dBFS, Master −1
+    dBFS. Any musical or tonal layer attacks over ≥ 5 ms (no click at onset); a Level 3 cue opens with its quiet
+    mechanism and stays ≥ 6 dB under its own peak for its first 20 ms, so an event never starts at full force.
+    The first sound after launch, or after unmuting, can't be a Level 3 at full level: it ramps in over 300 ms.
+13. **Reduce motion keeps sound; sound never needs motion.** Reduce motion changes no sound (§9.5). Sound is likewise
+    never needed to understand a change: the static end state (rule 2) tells the whole story.
+14. **Pattern before pitch.** Cues that must be told apart differ in rhythm and texture first (one pulse, two pulses,
+    a falling pair; a tap, a double tap), and in pitch only second, for players who hear pitch poorly or have
+    high-frequency loss. Nothing important lives above 4 kHz.
+15. **Mono-safe.** Interface sounds are mono and centred; no information is in panning, so a player with one earbud
+    or hearing in one ear hears everything.
+16. **Nothing loops, nothing nags.** No interface sound loops or repeats on its own; an urgent flag sounds once and
+    its lamp persists. Nothing sounds while the player is idle (rule 4's rule for motion, for the ear). The interface
+    is muted while the window is in the background (a setting, on by default).
+
+**Every sound's visual twin**
+
+| Sound | Visual twin that carries the same information |
+|---|---|
+| `ui.button.press` / `.release` | press travel and shadow; the action's own result |
+| `ui.toggle.on` / `.off` | the latched key position and its printed ON/OFF legend |
+| `ui.selection`, `ui.card.lift` / `.place` | the index tab and 12 px slide; the card's new place |
+| `ui.counter.tick`, `ui.flap` | the rolled digits, the flapped word |
+| `ui.resource.gain` / `.loss` | the delta tag (with its sign and hue), the lamp pulse, the log line |
+| `ui.panel.*`, `ui.sheet.*`, `ui.nav.*`, `ui.cabinet.*`, `ui.pile.*` | the panel, sheet, screen, doors or dealt cards themselves |
+| `ui.confirm` | the lit lamp and starburst; the new state |
+| `ui.reject`, `ui.reject.locked` | the error snap, `danger` border, ⊘ and the engine's reason in words |
+| `ui.notification` (info / caution / urgent) | the flag (hue bar, glyph, words), the lit rail lamp; urgent flags persist |
+| `ui.endturn.*` | the button's travel, its lamp, the BUSY label, the turn plate's new number |
+| `ui.milestone.*` | the ceremonial sheet, the tile's burst and band, the log line |
 
 ---
 
@@ -735,12 +919,21 @@ rectangle with every card as a header tile (the same wipe as §10.2).
 | Era change as a ceremonial sheet | Era change as confetti |
 | Cost top-right as `[sprout 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
 | A latching legend key that says ON or OFF on its face | A rounded pill track with a circle thumb |
+| A dry 60 ms click when the key meets the desk | A sound on hover, or on every pointer move |
+| A drawer's rail run and felt stop, as long as its slide | A digital whoosh, or a sound that outlasts the motion |
+| ≤ 8 ticks for a roll, then one registration | A tick per unit when wealth jumps by 40; a coin shower |
+| A low double tap, one per error snap | A buzzer or a "wrong answer" honk |
+| Priority by pattern: ●, ●●, a falling pair | Priority by volume |
+| A vibraphone figure for an era or a breakthrough | A jingle for every confirmation |
+| Dry Level 1 sounds; one small room for any reverb | Hall reverb on a button |
+| Silence while the player thinks | An ambient UI hum or a ticking clock |
+| Sounds implied by the mechanism on screen | Typewriter bells, cash registers, sci-fi bleeps, lounge music |
 
 ---
 
 ## 14. Design tokens
 
-Values as they'd go into a token file. Godot equivalents in §16.
+Values as they'd go into a token file. Godot equivalents in §17.
 
 ```yaml
 space:   { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48, 8: 64, 9: 96 }  # px
@@ -796,31 +989,122 @@ color.night:
   shadow: "#0D0C0B"  signal: "#E0703F"  on-signal: "#1F1E1C"
   positive: "#93B585"  caution: "#D9A441"  danger: "#E07A63"  info: "#86A9CC"  focus: "#6CC3BC"
   plane: { teal: "#5FB0A9", ochre: "#D9A441", olive: "#A9B26C", blue: "#86A9CC", brick: "#E07A63", sage: "#93B585" }
+sound:                        # §16; per-token specs in §14.1
+  ref: -26                    # dBFS peak of ui.button.press at full volume; levels are dB from it
+  level:   { very-low: -8, low: 0, low-mid: 3, mid: 6, event: 12 }   # tokens may sit between steps
+  bus:     { interface: [L1, L2], game: [L3], music: [] }
+  volume-default: { master: 0.8, music: 0.6, game: 0.8, interface: 0.7 }
+  ceiling: { interface: -18, game: -10, master: -1 }                  # dBFS peak, limiter per bus
+  duration: { l1: [30, 140], l2: [100, 600], l3: [500, 2600] }        # ms
+  sync:    { contact: 0.9, lead-max: 10, lag-max: 30 }               # fraction of travel; ms around the visual event
+  attack:  { mechanical: 1, tonal: 5, event-open: 20 }               # ms; a Level 3 stays ≥ 6 dB under its peak for event-open
+  rate:    { tick-gap: 35, button-gap: 40, flag-gap: 400, voices-interface: 6, voices-game: 3 }  # ms; voices
+  run:     { max-ticks: 8, tick-decay-db: 1 }                         # = the roll's 8 visible steps
+  variation: { l1-variants: 4, l2-variants: 2, pitch-jitter-cents: 25, level-jitter-db: 1 }  # L1 only; never on tones
+  filter:  { highpass: 150, shelf: 6000, shelf-db: -6, lowpass-l1: 10000 }  # Hz
+  reverb:  { room-rt60: 400, wet: { l1: 0, l2: 0.05, l3: 0.18 }, tail-max: 800 }  # ms; one shared room
+  duck:    { music-under-l3: -6, attack: 50, release: 400 }           # dB; ms
+  tone:                       # D major pentatonic, so any two cues that overlap agree
+    D4: 294  A4: 440  D5: 587  E5: 659  F#5: 740  A5: 880  B5: 988   # Hz
+    home: E5                  # neutral (notification.info)
+    up: A5                    # confirmation, activation, gain's whisper
+    down: D5                  # where the urgent pair falls
 ```
+
+### 14.1 Sound tokens
+
+Every sound in the game is one of these tokens; nothing plays a file directly. Level is relative to `ui.button.press`
+(0 dB = −26 dBFS peak). "st" is semitones. Duration runs from the transient to −60 dB. Sync times are for the full-motion durations of §9.4; with Reduce motion a
+token plays at the instant change (§9.5). Frequency: **very high** = several per action, **high** = about once per
+action or turn, **occasional** = a few per turn or fewer, **rare** = a few per game. File naming and variants: §16.10.
+
+**Level 1 — micro-feedback** (Interface bus; dry; L1 variants and jitter apply)
+
+| Token | Metaphor · character | Duration | Level | Pitch / timbre | Reverb | Sync point | Frequency |
+|---|---|---|---|---|---|---|---|
+| `ui.button.press` | Molded-plastic key bottoming on a snap-action switch · muted, dry click | 60–100 ms | low (0) | neutral-low; body ≈ 1.8 kHz, no ring; primary button −2 st (a heavier cap) | none | face reaches +2 px, ≈ 38 ms into the 70 ms press | very high |
+| `ui.button.release` | The switch's spring returning · a lighter, shorter tick | 40–70 ms | very low (−4) | +3 st over the press, thinner | none | face back at rest, ≈ 65 ms into the 120 ms release | very high |
+| `ui.toggle.on` | The legend key's latch catching · an over-travel tap, then a firm detent | 80–120 ms | low (0) | activation: brighter, body ≈ 2.4 kHz, more 2–4 kHz | none | latch lands at +2 px with the lamp strip, ≈ 38 ms after release | occasional |
+| `ui.toggle.off` | The latch letting go, the key springing back · one duller detent | 70–110 ms | low (−2) | deactivation: −3 st, top rolled off above 2 kHz | none | key back at rest, ≈ 65 ms after release | occasional |
+| `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
+| `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
+| `ui.card.place` | An index card laid on the blotter · a soft, flat pat with a little body | 60–100 ms | low (−3) | neutral-low; ≈ 300 Hz body under paper | none | the card lands (start of its 60 ms landing snap) | high |
+| `ui.counter.tick` | A drum counter's pawl advancing · a compact electromechanical tick | 30–60 ms | very low (−6; each later tick in a run −1) | neutral; ≈ 3 kHz click on a ≈ 1 kHz body; a downward roll −1 st | none | each digit lands on its next value (the last step registers instead) | very high |
+| `ui.flap` | A split-flap word turning over · one short riffle of light flaps | 120–250 ms, one per word | very low (−8) | neutral-high, dry rattle | none | the first flap falls | occasional |
+| `ui.resource.gain` | The counter's drum locking in, with the lamp's faint tone · "tk-clack" and a whisper of A5 | 80–140 ms | low (−3) | slightly elevated; the A5 tone 12 dB under the click | none | the last step lands, with the lamp pulse, in place of its tick | high |
+| `ui.resource.loss` | The same lock, felted · lower and duller, no tone | 80–140 ms | low (−3) | −3 st; top rolled off above 2.5 kHz | none | as gain | high |
+| `ui.reject.locked` | A key that won't go down · a single dead tap | 40–60 ms | very low (−4) | low; ≈ 250 Hz body, no click on top | none | pointer down (there is no travel to wait for) | occasional |
+
+**Level 2 — structural feedback** (Interface bus; clearer identity, still restrained)
+
+| Token | Metaphor · character | Duration | Level | Pitch / timbre | Reverb | Sync point | Frequency |
+|---|---|---|---|---|---|---|---|
+| `ui.panel.open` | A drawer on ball-bearing runners · latch tick, a quiet rail run, a felt stop | 220–280 ms | low-mid (+3 at the stop; the run 10 dB under it) | neutral-low; run below 4 kHz, stop ≈ 250 Hz | none | latch tick at 0 (the `latch` anticipation); stop at ≈ 164 ms of 260 | occasional |
+| `ui.panel.close` | The drawer pushed shut · an accelerating run, a latch catch | 180–220 ms | low-mid (+3) | a little lower than open | none | the catch at ≈ 187 ms of 200 | occasional |
+| `ui.sheet.open` | A drafting sheet laid on the desk · a soft paper lay | 120–200 ms | low (+1; a stacked sheet 1 dB less) | broadband paper, 300 Hz–4 kHz | minimal (≤ 5%) | swells from 0, peaks as the sheet settles, ≈ 130 ms of 240 | occasional |
+| `ui.sheet.close` | The sheet lifted off · short and light | 80–140 ms | very low (−2) | thinner than open | none | at once: the lift starts the 160 ms close | occasional |
+| `ui.nav.forward` | A sheet run along a straightedge · paper on a rail, a soft stop | 250–340 ms | low-mid (+2) | paper and a light rail; no whoosh, no pitch sweep | minimal | texture from 0; stop at ≈ 172 ms of 320 | occasional |
+| `ui.nav.back` | The sheet slid back under the stack · a run with no stop | 200–280 ms | low (0) | slightly lower than forward | none | texture from 0, fading as the sheet leaves | occasional |
+| `ui.cabinet.close` | Two partitions running to a centre seam · run, then one damped meeting | 200–260 ms | low-mid (+3) | low-mid body ≈ 200 Hz at the seam | minimal | the seam at ≈ 108 ms of 200 | occasional |
+| `ui.cabinet.part` | The partitions released apart · latch, run, soft stops | 230–300 ms | low-mid (+2) | as close, lighter stops | minimal | latch at 0; stops at ≈ 164 ms of 260 | occasional |
+| `ui.pile.deal` | Cards dealt out of a file · one riffle of card stock | 200–350 ms | low (0) | paper, 1–4 kHz | none | the first card leaves; ends as the last lands | occasional |
+| `ui.pile.gather` | Cards squared back into a pile · a short riffle and a tap | 150–250 ms | low (−2) | paper; tap ≈ 300 Hz | none | the tap as the last card is home | occasional |
+| `ui.confirm` | An indicator lamp with a tone generator · one warm, restrained tone; strong form: a rising fourth, E5 → A5 | 150–250 ms | low-mid (+4) | slightly elevated: A5, a soft square wave with the top rolled off above 2.5 kHz | minimal | the lamp lights (lamp-on, 0 ms) | occasional |
+| `ui.reject` | A part meeting its stop twice · a muted, low double tap | 120–180 ms (taps 80 ms apart) | low-mid (+3) | slightly lower: body ≈ 200–300 Hz, no tone | none | each lateral stop of the error snap, ≈ 44 and ≈ 124 ms | occasional |
+| `ui.notification` | A desk indicator lamp with a small bell · bell pulses in three patterns | info ● 200–300 ms; caution ●● 350–450 ms; urgent ●↘● 400–600 ms | mid (+6), the same for all three | info E5; caution E5, E5; urgent A5 → D5; a small bell's partials, soft attack | minimal (≤ 5%) | the flag reaches full extension with the rail lamp, ≈ 108 ms of 200 | occasional (urgent: rare) |
+| `ui.endturn.press` | The desk's biggest key bottoming · a firm engagement | 90–130 ms | mid (+4) | neutral-low: 5 st under `ui.button.press`, more body (≈ 600 Hz) | none | contact at +4 px, ≈ 38 ms | high (once a turn) |
+| `ui.endturn.commit` | A relay closing behind the panel · a two-stage clack, 12 ms apart | 80–140 ms | mid (+5) | low-mid: armature ≈ 300 Hz, contacts ≈ 1.2 kHz | none | the key back at rest and its lamp out, ≈ 65 ms after release | high (once a turn) |
+| `ui.endturn.turn` | The turn drum advancing · a short motor-advance carrying the plate's flutter | 250–400 ms | low (−2) | motor below 600 Hz; flaps neutral-high | minimal | the turn plate's first flap | high (once a turn); optional, the first thing cut if turns feel busy |
+
+**Level 3 — event feedback** (Game bus; layered, may be musical; ducks the music)
+
+| Token | Metaphor · character | Duration | Level | Pitch / timbre | Reverb | Sync point | Frequency |
+|---|---|---|---|---|---|---|---|
+| `ui.milestone` | The base for every event: a relay bank, a mechanism moving, then a restrained musical accent | 500–1200 ms | event (+12) | D major pentatonic; vibraphone, marimba or muted piano over the mechanism | small room, ≤ 18% wet, ≤ 0.8 s tail | mechanism with the motion; the accent at the visual climax | rare |
+| `ui.milestone.breakthrough` | A plotter pen, then a vibraphone triad rising D5–F♯5–A5 | 600–900 ms | event (+10) | vibraphone, motor off (no tremolo) | as base | pen with the prerequisite lines; triad as the lamp lights | the most frequent event (a few per era) |
+| `ui.milestone.city` | A plan being stamped (a heavy latch), then two marimba notes, D4–A4 | 500–800 ms | event (+10) | marimba: wood, short decay | as base | the latch as the card becomes a city | rare |
+| `ui.milestone.wonder` | A relay bank and motor, then a vibraphone chord with a small bell | 900–1200 ms | event (+12) | vibraphone D–F♯–A–E | as base | relays as the card travels; the chord as it lands | rare |
+| `ui.milestone.accord` | Two muted-piano chords on the memo's stamp | 800–1200 ms | event (+10) | muted piano, A then D (a cadence) | as base | with the ACCEPTED flap | rare |
+| `ui.milestone.era` | A brushed swish under the wipe, a flutter for the title, relays with the motif, vibraphone and muted piano rising to D | 1600–2000 ms (+ ≤ 0.8 s tail) | event (+12) | brushes, vibraphone, muted piano, a soft organ under the last chord | as base | swish at 0; flutter with the type; chord on the `settle` | a few per game |
+| `ui.milestone.victory` | The era sequence, extended; closes on D major (add 9) | 2000–2600 ms (+ tail) | event (+12) | as era | as base | as era | once |
+| `ui.milestone.defeat` | The same mechanism; a falling cadence, dignified | 2000–2600 ms (+ tail) | event (+10) | as era, ending on B minor → D | as base | as era | once |
 
 ---
 
 ## 15. Example component specifications
 
-Notation: `REST → HOVER → PRESSED → RELEASED`; each transition gives duration, property changes and curve.
-Offsets are (x, y) px from rest. "Shadow" is the hard offset shadow token.
+Notation: `REST → HOVER → PRESSED → RELEASED`; each transition gives duration, property changes, curve and sound.
+Offsets are (x, y) px from rest. "Shadow" is the hard offset shadow token. A sound cell names the token (§14.1) and
+when it starts, in ms from the start of that transition; "None" means silence is the specification.
 
 ### 15.1 Primary button
 Anatomy: signal fill, 3 px `ink` border, `radius.1`, padding 8 × 20, `type.label` 600, `on-signal`, min height 40,
 optional 16 px icon left with 8 px gap.
 
-| State | Fill | Offset | Shadow | Border | Notes |
-|---|---|---|---|---|---|
-| REST | signal | 0, 0 | plinth (2, 2) | 3 ink | |
-| HOVER | signal lightened 8% (Paper) / darkened 8% (Night) | 0, 0 | plinth | 3 ink | 90 ms `machined` in, 140 ms `release` out |
-| PRESSED | signal darkened 10% | +2, +2 | none | 3 ink | 70 ms `snap`. Sits into its shadow. |
-| RELEASED | → HOVER (pointer still over) | 0, 0 | plinth | | 120 ms `machined`; action fires on release |
-| FOCUS | as REST + teal 2 px ring offset 2 px | | | | ring appears instantly |
-| DISABLED | `well`, text `ink-3` | 0, 0 | none | 2 dashed `rule` | reason in tooltip (the `*_error` string) |
+| State | Fill | Offset | Shadow | Border | Notes | Sound |
+|---|---|---|---|---|---|---|
+| REST | signal | 0, 0 | plinth (2, 2) | 3 ink | | None |
+| HOVER | signal lightened 8% (Paper) / darkened 8% (Night) | 0, 0 | plinth | 3 ink | 90 ms `machined` in, 140 ms `release` out | None |
+| PRESSED | signal darkened 10% | +2, +2 | none | 3 ink | 70 ms `snap`. Sits into its shadow. | `ui.button.press` −2 st, @ ≈ 38 ms |
+| RELEASED | → HOVER (pointer still over) | 0, 0 | plinth | | 120 ms `machined`; action fires on release | `ui.button.release` −2 st, @ ≈ 65 ms |
+| FOCUS | as REST + teal 2 px ring offset 2 px | | | | ring appears instantly | None |
+| DISABLED | `well`, text `ink-3` | 0, 0 | none | 2 dashed `rule` | reason in tooltip (the `*_error` string) | on press: `ui.reject.locked` @ 0, and the tooltip shows at once |
+
+The press as one event, sight and sound together:
+
+| | REST → HOVER | HOVER → PRESSED | PRESSED → RELEASED |
+|---|---|---|---|
+| Visual | fill one value step | fill darkens 10%; the plinth shadow disappears | shadow returns; fill back to HOVER |
+| Motion | none | +2, +2 px in 70 ms, `snap` | back to 0, 0 in 120 ms, `machined` |
+| Sound | None | `ui.button.press`: a muted molded-plastic click | `ui.button.release`: a lighter return tick |
+| Timing | — | the click when the face reaches the desk (90% of travel, ≈ 38 ms), never at pointer-down | the action fires on release; the tick as the face reaches its stop (≈ 65 ms), so the sound marks the key, not the result |
+
+Keyboard activation runs the same sequence. A press dragged off the button plays both sounds and fires nothing.
 
 ### 15.2 Secondary button
 `steel` fill, 2 px `rule` border, `ink` label, otherwise as 15.1. HOVER: `steel` one step toward `sheet`, border →
-`ink`. PRESSED: +2, +2, shadow none, fill one step toward `well`. Same timings.
+`ink`. PRESSED: +2, +2, shadow none, fill one step toward `well`. Same timings. Same sounds at the reference pitch (a
+lighter key than the primary's); a row of secondary buttons sounds identical, because they are one product's keys.
 
 ### 15.3 Tab
 Anatomy: 36 px tall, padding 0 × 16, `type.label-caps`, square top, sits on a 1 px `ink` baseline. Group has one
@@ -828,12 +1112,14 @@ shared 3 px `ink` **rail** that sits on the active tab's top edge. The panel's c
 line as the first tab's label text (panel border + padding = tab border + padding: 1 + 16), and its top padding
 equals its side padding (16), so the label and the text under it read as one column.
 
-| Transition | Duration | Change | Curve |
-|---|---|---|---|
-| REST → HOVER | 90 ms | label `ink-2` → `ink`; 2 px underline wipes in from left | `machined` |
-| HOVER → PRESSED | 60 ms | offset 0, +1 | `snap` |
-| PRESSED → ACTIVE | 200 ms | the rail **slides** to this tab (x and width); fill `steel` → `sheet`; the baseline under it opens (tab joins the sheet); content below crossfades 120 ms with a 12 px slide in the direction of travel | `machined` |
-| ACTIVE (rest) | — | `sheet` fill, `ink` label 600, rail on top | |
+| Transition | Duration | Change | Curve | Sound |
+|---|---|---|---|---|
+| REST → HOVER | 90 ms | label `ink-2` → `ink`; 2 px underline wipes in from left | `machined` | None |
+| HOVER → PRESSED | 60 ms | offset 0, +1 | `snap` | `ui.button.press` −3 dB (a shallow key), @ ≈ 33 ms |
+| PRESSED → ACTIVE | 200 ms | the rail **slides** to this tab (x and width); fill `steel` → `sheet`; the baseline under it opens (tab joins the sheet); content below crossfades 120 ms with a 12 px slide in the direction of travel | `machined` | None: the rail and the content change are sub-navigation |
+| ACTIVE (rest) | — | `sheet` fill, `ink` label 600, rail on top | | None |
+
+Switching tabs with the arrow keys is silent; only a press on a tab clicks.
 
 ### 15.4 Toggle (legend key)
 A latching push key, like a control-room key with a lit legend. It is the button's press made to stay down, so the UI
@@ -847,18 +1133,22 @@ two rows 3 px apart:
   with a 1 px inset sage line. (Sage is the default; a setting whose ON state is a warning may use the caution lamp.)
 - **Legend**, "ON" / "OFF" in `type.label-caps` at 12 px, centred. OFF prints `ink-2`, ON prints `ink`.
 
-| Transition | Duration | Change | Curve |
-|---|---|---|---|
-| REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` |
-| HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp strip lights (40 ms) and the legend changes to ON | `snap`, `lamp-on` |
-| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` |
-| HOVER | 90 ms | border stays `ink`; face one value step toward `sheet` | `machined` |
-| FOCUS | instant | teal focus ring, offset 2 px | |
-| DISABLED | — | face `well`, legend `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | |
-| Reduce motion | — | position and lamp switch in one frame | |
+| Transition | Duration | Change | Curve | Sound |
+|---|---|---|---|---|
+| REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` | `ui.button.press` @ ≈ 38 ms |
+| HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp strip lights (40 ms) and the legend changes to ON | `snap`, `lamp-on` | `ui.toggle.on`, brighter, @ ≈ 38 ms, with the lamp |
+| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` | `ui.toggle.off`, lower and muted, @ ≈ 65 ms as the key reaches rest; the fading lamp is silent |
+| HOVER | 90 ms | border stays `ink`; face one value step toward `sheet` | `machined` | None |
+| FOCUS | instant | teal focus ring, offset 2 px | | None |
+| DISABLED | — | face `well`, legend `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | | on press: `ui.reject.locked` |
+| Reduce motion | — | position and lamp switch in one frame | | unchanged: the press on press, the latch or release on release |
+
+ON and OFF differ the way the mechanism does: ON is a catch (a brighter detent after the over-travel), OFF is a
+spring-back (one duller detent). The difference is small but always audible side by side.
 
 Accessibility: `role="switch"` with `aria-checked`; the legend and the latched position both carry the state, so
-neither the lamp colour nor the motion is needed to read it.
+neither the lamp colour, the motion nor the sound is needed to read it. The **Interface sounds** setting is itself a
+legend key: turning it OFF plays `ui.toggle.off` before the bus goes quiet, so the player hears what they switched off.
 
 ### 15.5 Resource counter
 Anatomy: a head line with the caption (`type.label-caps`, `ink-2`) at its left and a 12 px lamp at its right,
@@ -869,86 +1159,110 @@ shares a box with); tabular figures keep each digit's width fixed. Forecast capt
 
 `IDLE → CHANGED(+n)`:
 1. 0 ms: delta tag "+3" appears right of the value, offset −4, 0 → 0, 0, 90 ms `snap`, colour sage (or brick "−2").
+   Sound: None.
 2. 60 ms: changed digit columns roll; each step 60–80 ms `linear-step`; ones column first, carries roll the next
-   column on the same tick (odometer). Up for gain, down for loss. Max 8 steps, then jump.
-3. Last step: the lamp pulses (on 40 ms, off 300 ms) in the resource's hue.
-4. +600 ms: tag wipes out right→left, 120 ms.
-`WARNING` (forecast would starve / at limit): lamp stays lit brick, caption text changes, no motion.
-Reduce motion: value swaps, tag and lamp hold 1.5 s.
+   column on the same tick (odometer). Up for gain, down for loss. Max 8 steps, then jump. Sound: `ui.counter.tick`
+   as each step but the last lands (a carry is one tick, not two), each 1 dB quieter than the last; the jump is
+   silent. Counters rolling together share one tick stream, ticks at least 35 ms apart.
+3. Last step: the lamp pulses (on 40 ms, off 300 ms) in the resource's hue. Sound: `ui.resource.gain` or
+   `ui.resource.loss` at lamp-on, in place of the last step's tick.
+4. +600 ms: tag wipes out right→left, 120 ms. Sound: None.
+`WARNING` (forecast would starve / at limit): lamp stays lit brick, caption text changes, no motion. Sound: None
+here; the caution or urgent flag that reports it sounds (§15.9).
+Reduce motion: value swaps, tag and lamp hold 1.5 s. Sound: one tick and the registration, at the swap.
 
 ### 15.6 Card
 Anatomy: §6.7. 2 px border; 6 px type band; name `type.label` 600; cost top-right, one glyph + figure entry per
 resource, grouped by spacing (§6.7);
 rules `type.body-s`; VP with starburst bottom-right.
 
-| Transition | Duration | Offset | Shadow | Border | Other |
-|---|---|---|---|---|---|
-| REST | — | 0, 0 | none | 2 ink/rule | |
-| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale |
-| → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting |
-| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | sheet (8, 8) | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) |
-| → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms |
-| → PLAYED | 280 ms `release` | slides to target/discard | lift → none | | lands with a 60 ms `snap` (no squash) |
-| DIMMED | instant | | none | 2 `rule` | band → hatch, reason plate |
-| INVALID DROP | 240 ms | −4, +4, 0 lateral snaps | | danger | ⊘ + reason message |
+| Transition | Duration | Offset | Shadow | Border | Other | Sound |
+|---|---|---|---|---|---|---|
+| REST | — | 0, 0 | none | 2 ink/rule | | None |
+| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale | None |
+| → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting | `ui.card.lift` @ ≈ 33 ms, once the press becomes a drag; a click that selects plays `ui.selection` instead |
+| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | sheet (8, 8) | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
+| → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms | `ui.selection` @ the tab lands, ≈ 65 ms. Deselect: None |
+| → PLAYED | 280 ms `release` | slides to target/discard | lift → none | | lands with a 60 ms `snap` (no squash) | `ui.card.place` @ landing (≈ 280 ms) |
+| DIMMED | instant | | none | 2 `rule` | band → hatch, reason plate | None |
+| INVALID DROP | 240 ms | −4, +4, 0 lateral snaps | | danger | ⊘ + reason message | `ui.reject` @ ≈ 44 and ≈ 124 ms, one tap per stop |
 
 ### 15.7 Panel (drawer)
 Anatomy: `sheet`, `radius.0`, title block (4 px bar), `space.5` padding, attached to a rail edge with a 1 px `ink` edge
 on that side; `shadow.lift` on the open edge only while it overlaps content.
 
 `CLOSED → OPENING → OPEN`: slide from −width to 0 along its rail, 260 ms `latch` (anticipation 3 px); contents fade
-in starting at 40% of the slide, rows staggered 20 ms (≤ 6 rows). `OPEN → CLOSING → CLOSED`: 200 ms `release`,
-contents vanish at once (no reverse stagger). Reduce motion: instant, 120 ms fade.
+in starting at 40% of the slide, rows staggered 20 ms (≤ 6 rows). Sound: `ui.panel.open`, the latch tick at 0 as the
+anticipation lets go, a quiet rail run fading as the drawer decelerates, the felt stop at ≈ 164 ms; the rows fading in
+are silent. `OPEN → CLOSING → CLOSED`: 200 ms `release`, contents vanish at once (no reverse stagger). Sound:
+`ui.panel.close`, the run accelerating and the latch catch at ≈ 187 ms. Reduce motion: instant, 120 ms fade; Sound:
+only the stop (open) or the catch (close), at the change.
 
 ### 15.8 Tooltip
 `ink` fill, `sheet` text, `radius.0`, 6 px notch, padding 8 × 12, max width 320.
 `HIDDEN → (hover 400 ms) → SHOWN`: opacity 0→1 and offset toward the target 4 px → 0, 90 ms `machined`.
 Moving to an adjacent target within 300 ms: swap content and slide to the new target, 120 ms, no fade.
 `SHOWN → HIDDEN`: 80 ms opacity `release`.
+Sound: None, in every state. A tooltip shown at once on a disabled control's press (§10.1) stays silent too: the
+press already played `ui.reject.locked`.
 
 ### 15.9 Notification (flag)
 Anatomy: 360 × 48 `sheet` strip from the left rail, 4 px hue bar at its left, `icon.l` glyph, one line
 `type.label`, optional `type.caption` second line, close × right; `shadow.plinth`.
 
-`QUEUED → ENTERING`: slide x −100% → 0, 200 ms `machined`; the rail's lamp for this category lights (lamp-on).
+`QUEUED → ENTERING`: slide x −100% → 0, 200 ms `machined`; the rail's lamp for this category lights (lamp-on) as
+the flag reaches full extension.
+Sound: `ui.notification` in the flag's pattern (info ●, caution ●●, urgent ●↘●) as the flag reaches full
+extension, ≈ 108 ms, with the lamp. A queued flag waits for the previous one's sound (≥ 400 ms apart).
 `SHOWN`: holds `TOAST_TIME` (3 s) for info; urgent ones (famine, anarchy) persist until resolved. A flag carries no
 lamp of its own: its hue bar, glyph and words already say what it is, and persisting says it's urgent.
 `→ LEAVING`: slide back into the rail, 160 ms `release`; the stack below slides up 8 px per removed flag (120 ms).
-Reduce motion: appear/disappear with a 120 ms fade.
+Sound: None; the stack's shift is silent.
+Reduce motion: appear/disappear with a 120 ms fade. Sound unchanged, at the appearance.
 
 ### 15.10 Progress indicator (segmented)
 A `well` track, 8 px tall, 1 px `rule` border; N cells with 2 px gaps (N = units when ≤ 12, else 10 cells of 10%).
 Filling a cell: the cell's plane colour **wipes** left→right in 120 ms `machined`; consecutive cells tick 60 ms apart.
 The value in words/numbers sits right of the track ("3 / 5"). Indeterminate progress: a single lit cell steps along
 the track every 120 ms (like a chaser lamp) — off with Reduce motion (show "Working…").
+Sound: None while cells fill; progress is never audible as a continuous tick. The last cell filling plays
+`ui.confirm` with the value label's final number, unless that completion is itself a game event (research complete
+plays `ui.milestone.breakthrough`, not both). The chaser is silent.
 
 ### 15.11 Modal
 Anatomy: `sheet`, `radius.0`, `shadow.sheet`, 4 px title-block bar, title `type.title` left, context
 `type.label-caps` right, body ≤ 640 px, footer rule, buttons right (primary rightmost).
 
-| Transition | Duration | Change | Curve |
-|---|---|---|---|
-| CLOSED → OPENING | 240 ms | sheet offset 0, +24 → 0, 0; opacity 0 → 1 over the first 120 ms; scrim 0 → full over 160 ms | `machined` |
-| OPENING → OPEN | — | focus moves to the first control | |
-| stacked open | 240 ms | new sheet sits +8, +8 from the one beneath | `machined` |
-| OPEN → CLOSING | 160 ms | offset → 0, +12; opacity → 0; scrim fades 160 ms | `release` |
+| Transition | Duration | Change | Curve | Sound |
+|---|---|---|---|---|
+| CLOSED → OPENING | 240 ms | sheet offset 0, +24 → 0, 0; opacity 0 → 1 over the first 120 ms; scrim 0 → full over 160 ms | `machined` | `ui.sheet.open`, swelling from 0 and peaking as the sheet settles, ≈ 130 ms; the scrim is silent |
+| OPENING → OPEN | — | focus moves to the first control | | None |
+| stacked open | 240 ms | new sheet sits +8, +8 from the one beneath | `machined` | `ui.sheet.open` 1 dB quieter (paper on paper) |
+| OPEN → CLOSING | 160 ms | offset → 0, +12; opacity → 0; scrim fades 160 ms | `release` | `ui.sheet.close` @ 0 (the lift) |
+
+A modal that opens because of an event (the event card, the government choice after anarchy) lets that event's own
+sound lead: the sheet's lay plays 3 dB quieter under a notification or a milestone, never instead of it.
 
 ### 15.12 End-turn button
 Anatomy: 220 × 64, signal fill, 3 px `ink` border, `radius.1`, `shadow.lift` (4, 4) plinth; lamp (14 px) left; label
 "END TURN" in `type.label-caps` 17 px +12%; a turn plate (Plex Mono, `type.numeral-s`) on a `well` inset at right;
 caption below the button for "2 actions left" (from the engine).
 
-| Transition | Duration | Change | Curve |
-|---|---|---|---|
-| REST (ready) | — | lamp sage on | |
-| REST (actions left) | — | lamp ochre on; caption visible | |
-| → HOVER | 90 ms | fill one step; caption ink-2 → ink | `machined` |
-| → PRESSED | 70 ms | offset +4, +4; shadow → none | `snap` |
-| → RELEASED / COMMITTED | 120 ms | offset → 0; lamp off (160 ms `lamp-off`); button enters BUSY | `machined` |
-| BUSY (turn resolving) | ≤ 1.2 s | `steel` fill; the turn plate split-flaps to N+1; label "UPKEEP…" | |
-| → REST | 160 ms | fill → signal; lamp on (40 ms) | `lamp-on` |
-| BLOCKED (pending decision) | instant | `steel`, ⊘, reason caption; disabled; focus skips to the decision | |
-| REDUCED MOTION | | all of the above as instant swaps; lamp states are the record | |
+| Transition | Duration | Change | Curve | Sound |
+|---|---|---|---|---|
+| REST (ready) | — | lamp sage on | | None |
+| REST (actions left) | — | lamp ochre on; caption visible | | None |
+| → HOVER | 90 ms | fill one step; caption ink-2 → ink | `machined` | None |
+| → PRESSED | 70 ms | offset +4, +4; shadow → none | `snap` | `ui.endturn.press` @ contact, ≈ 38 ms: firm engagement |
+| → RELEASED / COMMITTED | 120 ms | offset → 0; lamp off (160 ms `lamp-off`); button enters BUSY | `machined` | `ui.endturn.commit` @ ≈ 65 ms: the relay latches as the lamp goes out |
+| BUSY (turn resolving) | ≤ 1.2 s | `steel` fill; the turn plate split-flaps to N+1; label "UPKEEP…" | | `ui.endturn.turn` at the first flap (optional); then the upkeep's ticks and registrations (§11.9) |
+| → REST | 160 ms | fill → signal; lamp on (40 ms) | `lamp-on` | None |
+| BLOCKED (pending decision) | instant | `steel`, ⊘, reason caption; disabled; focus skips to the decision | | on press: `ui.reject.locked` |
+| REDUCED MOTION | | all of the above as instant swaps; lamp states are the record | | unchanged: press, commit, then the end state's registrations |
+
+Press, commit and turn form one gesture that rises to the commit and then gets quieter: the press is a firmer key than
+any other, the commit is the loudest sound of a routine turn, and nothing after it is louder. No musical sting, no
+fanfare: a turn happens a hundred times a game.
 
 ---
 
@@ -956,19 +1270,255 @@ caption below the button for "2 actions left" (from the engine).
 Anatomy: the top card at full size; up to four card edges behind it, each offset +3, +3 px (2 px `ink` border,
 `sheet` fill, stacked bottom-up); the count beneath in `type.label-caps` with a Plex Mono figure. No shadow at rest.
 
-| Transition | Duration | Change | Curve |
-|---|---|---|---|
-| REST → HOVER | 100 ms | the top card slides 4 px up with `shadow.plinth`; the edges stay | `machined` |
-| HOVER → DEALT | 260 ms per card, 30 ms apart | the top card stays; each card below slides from its edge offset to its grid cell (4 across, 12 px gaps), in pile order; the count hides | `machined` |
-| DEALT → REST | 200 ms per card, 20 ms apart, last card first | each card slides back to its edge offset; the count returns | `release` |
-| COUNT CHANGE | per §15.5 | the figure rolls; a card added lands on top with a 60 ms `snap` | `snap` |
-| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§10.2), cards as header tiles | `machined` |
-| Reduce motion | — | cards jump to their cells and back | |
+| Transition | Duration | Change | Curve | Sound |
+|---|---|---|---|---|
+| REST → HOVER | 100 ms | the top card slides 4 px up with `shadow.plinth`; the edges stay | `machined` | None |
+| HOVER → DEALT | 260 ms per card, 30 ms apart | the top card stays; each card below slides from its edge offset to its grid cell (4 across, 12 px gaps), in pile order; the count hides | `machined` | `ui.pile.deal`: one riffle for the whole deal, from the first card leaving to the last landing |
+| DEALT → REST | 200 ms per card, 20 ms apart, last card first | each card slides back to its edge offset; the count returns | `release` | `ui.pile.gather`: the tap as the last card is home |
+| COUNT CHANGE | per §15.5 | the figure rolls; a card added lands on top with a 60 ms `snap` | `snap` | `ui.card.place` as the card lands; the count's tick |
+| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§10.2), cards as header tiles | `machined` | `ui.nav.forward` |
+| Reduce motion | — | cards jump to their cells and back | | the riffle's last tap only (`ui.pile.gather`'s tap) at the change |
 
 Dealt cards are ordinary cards: hover, select and details work on them as anywhere else. The grid never overlaps the
 cards so a name is never hidden.
 
-## 16. Mapping onto this codebase (spike findings)
+---
+
+## 16. Sound design
+
+The desk makes sound the way it moves: every sound is a mechanism the player can see, heard at the moment it makes
+contact. This section is the system. The tokens are in §14.1, and each component's sounds sit beside its look and
+motion in §7, §9.4, §10, §11 and §15.
+
+### 16.1 Direction
+The sound belongs to the same imagined machine as the picture: a civic planning desk of 1955–1970, built by people who
+made industrial controls, office equipment and instruments. It is an *interpretation*: what a careful sound designer
+would make of those mechanisms today, cleaner and quieter than any real machine, not a recording from a museum.
+
+| Character | Means | Test |
+|---|---|---|
+| Crisp | transients start within 1–2 ms; no smeared attack | the waveform peaks in the first 3 ms |
+| Tactile | each control has a contact sound tied to its press travel | mute and unmute: the press feels lighter without it |
+| Restrained | Level 1 peaks ≤ −26 dBFS; nothing on the Interface bus above −18 dBFS | the meter |
+| Warm | energy in 300 Hz–3 kHz; −6 dB shelf above 6 kHz; no harshness at 2–5 kHz | the spectrum |
+| Mechanical | built from clicks, detents, runs, stops, ticks and lamp tones | name the mechanism in one phrase; if you can't, cut the sound |
+| Slightly analogue | small differences between repeats (§16.8), a little body and felt | no bit-crush, tape hiss or vinyl crackle |
+| Short | Level 1 ≤ 140 ms, Level 2 ≤ 600 ms, Level 3 ≤ 2.6 s | the file length |
+| Distinct | any two tokens of one level are told apart without looking | blind A/B, three listeners |
+| Repetition-tolerant | passes the repetition test (§16.8) | |
+
+**Avoid**: futuristic bleeps, arcade chirps, cartoon effects, loud cinematic impacts, glitches, digital distortion,
+long reverb, sound on hover, typewriter bells and cash registers, casino-style rewards, and overly literal retro
+effects. If a sound would make a player say "how retro", it is wrong; if they don't notice it until it is gone, it is
+right.
+
+### 16.2 One product family: the material map
+All of the desk's controls come from one product family. Each component takes its sound from **one** family, plus the
+Signal family when it reports news.
+
+| Family | Imagined mechanism | Materials | Used by | Signature | Never |
+|---|---|---|---|---|---|
+| **Keys** (primary controls) | molded keys on compact snap-action switches; latching legend keys | molded plastic, small springs | buttons, tabs, legend keys, the Grow pip, End turn (the heaviest key) | dry click, attack ≤ 1 ms, body 1.5–2.5 kHz, ≤ 100 ms, no ring | a metallic ring, a hollow clack |
+| **Rails and sheets** (navigation) | ball-bearing drawer runners, sliding partitions, drafting sheets, index cards | aluminium rails, felt stops, paper and card stock | drawers, cabinet doors, screens, modals, cards, piles | a soft run below 4 kHz, a damped stop, a paper whisper | a whoosh, any pitch sweep |
+| **Counters** | drum counters, split-flap units, adding-machine registers | steel pawls, plastic drums and flaps | odometers, flaps, tallies, gain and loss | tiny ticks ≈ 3 kHz; a registration clack | coins, bells, slot-machine rolls |
+| **Signals** (notifications) | indicator lamps with a tone generator, a small desk bell | sine and soft-square oscillators, a small bell | confirm, notifications, gain's whisper | pure tones from the tone ladder, soft attack, ≤ 600 ms | sirens, buzzers, chiptune |
+| **Machinery** | relays, small motors, heavy latches | steel armatures and contacts | End turn's commit and turn, the cabinet doors' latch, the base of every milestone | two-stage clacks, short motor runs below 600 Hz | engines, servos, hydraulics, sci-fi doors |
+| **Ceremony** (Level 3 only) | vibraphone, marimba, muted piano, brushes, a soft organ | wood and aluminium bars, wire brushes | `ui.milestone.*` | musical, in D, in a small room | orchestral hits, choirs, fanfares, lounge grooves |
+
+A component never borrows another family's mechanism: a button never slides, a drawer never beeps, a counter never
+rings a bell. A Signal tone joins a mechanism only when the mechanism reports a result (the confirm lamp has a tone; the
+toggle's lamp strip doesn't). Ceremony appears only at Level 3.
+
+### 16.3 Mechanisms: what the eye sees, the ear hears
+Sound and motion imply the same imaginary mechanism. Change one and you change the other.
+
+| Physical metaphor | Components | Motion (§9.2) | Sound | Never |
+|---|---|---|---|---|
+| Mechanical push-button | buttons, tabs, the Grow pip | snap in, machined out | a muted plastic click; a lighter return tick | a beep |
+| Latching key | the legend key (toggle) | snap, latch | a firm detent: a catch for ON, a spring-back for OFF | an electric "zap" |
+| Sliding panel on a rail | drawers, cabinet doors | slide, `latch` curve | a quiet rail run, a felt stop or latch at the end | a whoosh |
+| Drafting sheet | screens, modals | wipe, slide | a soft paper lay or run | a page-turn flourish |
+| Index card | cards, piles | slide, snap | a card-stock flick, a pat, one riffle | a playing-card snap |
+| Mechanical counter | odometers, tallies | roll | an electromechanical tick, then a registration | coins |
+| Split-flap | the turn plate, titles, the memo's stamp | roll | one flutter per word | a clatter per character |
+| Indicator lamp | confirm, the rail lamps | pulse | a short tone at lamp-on (news only) | a chime with a long tail |
+| Rotary control (if one is added) | a stepped dial | rotate in steps | one detent per step, ≤ 8 per turn | a smooth whirr |
+| Notification flag | flags | slide | the rail lamp's bell, in a pattern | an alarm |
+| Relay and motor | End turn, milestones | snap, slide | a two-stage clack; a short motor-advance | an engine |
+
+### 16.4 Hierarchy
+
+| Level | Used for | How often | Duration | Loudness | Reverb | Tonal | Bus |
+|---|---|---|---|---|---|---|---|
+| **1 · Micro-feedback** | presses, toggles, selection, card moves, ticks, flaps, registrations | very high to high | 30–140 ms | very low to low (−8 to 0 dB; peaks ≤ −26 dBFS) | none | no (gain's 12 dB-down whisper aside) | Interface |
+| **2 · Structural** | drawers, sheets, screens, cabinet doors, piles, confirm, reject, notifications, End turn | occasional; End turn once a turn | 100–600 ms | low to mid (0 to +6 dB) | ≤ 5% | confirm and notifications only | Interface |
+| **3 · Event** | breakthrough, city, wonder, accord, era, victory, defeat | rare | 0.5–2.6 s | event (+10 to +12 dB) | ≤ 18%, ≤ 0.8 s tail | yes, musical | Game |
+
+1. **Frequent never competes with important.** A Level 1 never cuts off a Level 2 or 3, and a Level 2 never cuts off a
+   Level 3. While a Level 3 plays, sounds the system makes (counters rolling, flags arriving) wait for it or are
+   dropped, and the music ducks 6 dB; sounds the player makes (a press) still play, 6 dB lower, because input is
+   always acknowledged.
+2. **The levels are audibly apart.** Level 3 peaks at least 4 dB above any Level 2 and is longer and layered, so it
+   reads ≥ 8 LU louder. Level 2 sits 3–6 dB above Level 1.
+3. **The more often, the smaller.** Very high frequency: ≤ 100 ms, ≤ 0 dB, one layer. High: ≤ 140 ms. Occasional:
+   ≤ 600 ms, two layers at most. Rare: may be layered and musical.
+4. **Routine never sounds like a reward.** No Level 1 or 2 sound is musical, holds a tone longer than 250 ms, or
+   rises more than a fourth. Melody, chords and intervals belong to Level 3.
+5. **A level follows meaning and frequency, not the component.** An event that turns out to be common in play moves
+   down a level (§11.3) rather than getting quieter in place.
+
+### 16.5 Timing synchronization
+Sound occurs at the perceived physical event.
+
+1. **Contact, not input.** A sound plays when the moving part reaches 90% of its travel (`sound.sync.contact`), not
+   when the pointer goes down. On the `snap` and `machined` curves that is ≈ 55% of the duration, on `latch` ≈ 63%,
+   on `release` ≈ 94%.
+2. **Never ahead.** A sound may lag its visual event by up to 30 ms and lead it by at most 10 ms. Late audio is
+   forgiven; early audio reads as a fault.
+3. **Stops, not travel.** Sound emphasizes contact and stopping points. A travel texture is allowed only under a
+   panel-sized move (drawers, cabinet doors, screens), 10 dB under its stop, fading as the motion decelerates.
+4. **As long as the motion.** A movement sound ends with its motion (± 30 ms, plus ≤ 60 ms of natural decay).
+5. **Leaving sounds at the start.** Something that leaves (a sheet lifted, a screen slid back) sounds as it breaks
+   contact, at 0 ms, and has no stop, because it hits nothing.
+6. **Skipping stops sound too.** Skipping a choreography drops its pending sounds and fades the playing ones over
+   30 ms.
+7. **Reduce motion.** Contact and stop share one frame: the stop plays alone (§9.5).
+8. **Files are cut to the transient.** Every file's transient sits at 0 ms (≤ 1 ms of pre-roll), so scheduling a sound
+   at the contact frame puts its click at the contact. The player compensates for the platform's output latency so
+   that the sound *arrives* inside the window.
+
+| Event | Motion | Physical event | Token | Onset (ms from the motion's start) |
+|---|---|---|---|---|
+| Button press | 70 ms `snap`, 2 px | the face meets the desk | `ui.button.press` | ≈ 38 |
+| Button release | 120 ms `machined` | the face returns to its stop | `ui.button.release` | ≈ 65 |
+| Toggle ON | 70 ms latch, `snap` | the latch catches; the lamp lights | `ui.toggle.on` | ≈ 38 |
+| Toggle OFF | 120 ms return, `machined` | the key reaches rest | `ui.toggle.off` | ≈ 65 |
+| Tab | 60 ms `snap`, 1 px | contact | `ui.button.press` −3 dB | ≈ 33 |
+| Selection | 120 ms tab wipe, `machined` | the index tab lands | `ui.selection` | ≈ 65 |
+| Drag pick-up | 60 ms `snap`, 2 px | the card leaves its row | `ui.card.lift` | ≈ 33 |
+| Card played | 280 ms `release` slide, 60 ms landing | the card lands | `ui.card.place` | ≈ 280 |
+| Counter step | 60–80 ms linear | the digit lands | `ui.counter.tick` | each step's end, but the last |
+| Gain / loss | the last step | lamp-on | `ui.resource.gain` / `.loss` | the last step's end, instead of its tick |
+| Drawer open | 260 ms `latch` | the latch lets go; the drawer hits its stop | `ui.panel.open` | 0 and ≈ 164 |
+| Drawer close | 200 ms `release` | the drawer shuts | `ui.panel.close` | ≈ 187 |
+| Modal open | 240 ms `machined` | the sheet settles | `ui.sheet.open` | swells from 0, peaks ≈ 130 |
+| Modal close | 160 ms `release` | the sheet lifts | `ui.sheet.close` | 0 |
+| Screen | 320 ms `machined` wipe | the sheet lands | `ui.nav.forward` | texture 0, stop ≈ 172 |
+| Cabinet close | 200 ms `machined` | the doors meet | `ui.cabinet.close` | ≈ 108 |
+| Cabinet part | 260 ms `latch` | the latch; the doors stop | `ui.cabinet.part` | 0 and ≈ 164 |
+| Flag | 200 ms `machined` | the flag is fully out; the rail lamp lights | `ui.notification` | ≈ 108 |
+| Confirmation | lamp-on, 40 ms | the lamp lights | `ui.confirm` | 0 |
+| Error | three 80 ms `snap` legs | each lateral stop | `ui.reject` | ≈ 44 and ≈ 124 |
+| End turn | 70 ms `snap`, 4 px; release 120 ms | contact; the key home and its lamp out | `ui.endturn.press`, `.commit` | ≈ 38; ≈ 65 after release |
+
+### 16.6 Pitch, timbre and space
+- **Spectrum.** High-pass Levels 1–2 at 150 Hz (the low end belongs to music and events); a −6 dB shelf above 6 kHz;
+  nothing above 10 kHz at Level 1. Energy centred in 300 Hz–3 kHz: warm midrange, muted highs.
+- **Transients and resonance.** Mechanical attacks ≤ 1 ms; tonal attacks ≥ 5 ms; a Level 3 opens quietly (its first
+  20 ms ≥ 6 dB under its peak). Decays are
+  short and exponential; no Level 1 body rings longer than 80 ms (low resonance).
+- **Space.** One shared room for every sound that has any reverb: a small, damped room like a control room with
+  acoustic tile (RT60 400 ms). Level 1 dry, Level 2 ≤ 5% wet, Level 3 ≤ 18% wet with a tail ≤ 0.8 s. No halls, plate
+  shimmer or echoes.
+- **Stereo.** Levels 1–2 are mono and centred. Level 3 may be stereo but never pans information.
+- **Semantic pitch, used sparingly.** Most sounds aren't notes; only the confirm, the notifications, gain's whisper and
+  the milestones are pitched.
+
+| Meaning | Treatment |
+|---|---|
+| Neutral interaction | centred: the reference key's pitch; the home tone E5 |
+| Confirmation | slightly higher: A5, or E5 → A5 |
+| Rejection | slightly lower and untuned: a low body, no note |
+| Gain / loss | gain adds A5's whisper; loss is 3 st lower and duller, with no tone |
+| Activation (ON) | a brighter timbre (more 2–4 kHz) |
+| Deactivation (OFF) | a more muted timbre (3 st lower, top rolled off) |
+| Priority | pattern (●, ●●, ●↘●), never pitch or volume alone |
+
+- **Tone ladder.** Every tonal cue uses D major pentatonic (`sound.tone`), so two cues that overlap (a confirmation
+  under a notification, a flag during a breakthrough) always agree. Tones are sine or soft square with the top rolled
+  off: a lamp's tone generator, not a synthesizer lead.
+
+### 16.7 Musical treatment
+- Routine interaction is non-musical. Music enters only at Level 3.
+- **Palette**: vibraphone (motor off, or a slow tremolo at most), marimba, muted piano, brushes on a snare, a soft
+  electric organ only under the era's final chord, and restrained analogue electronics (a sine with a slow attack) as
+  glue. Used subtly: two or three of them per event, never all.
+- **Not**: strings, brass fanfares, choirs, a drum kit, a groove, swing. No 1950s lounge pastiche.
+- **Harmony**: D major and its pentatonic; figures of two to four notes; rising for gains (breakthrough, city, era),
+  a falling cadence for defeat; resolve on D.
+- **Rhythm**: free, tied to the motion rather than to a tempo. The chord at the climax lands with the motion's
+  `settle`.
+- **Shape**: every Level 3 begins with its mechanism (a relay, a latch, a pen, a brush) and ends in music. The machine
+  performs the ceremony; the music says it mattered.
+- A soundtrack, if one is added, lives on the Music bus, ducks under Level 3 and shares the restraint; the UI tones
+  are soft enough not to fight its key.
+
+### 16.8 Silence, density and repetition
+Silence is an intentional part of the system. Every sound earns its place; the default is none.
+
+**Silent by design**: hover on every component, keyboard focus moving, tooltips, links, the scrim, lamps going out,
+lamps lighting for status (AT LIMIT, IDLE, target lamps), the vellum overlay, gauge needles, the tab rail, delta
+tags, a card's drag travel, deselecting, progress cells filling, the chaser, flags leaving and restacking, the READY
+lamp after a turn, and idle time.
+
+**Density**
+- **One gesture, one voice per mechanism.** A click that selects plays `ui.selection`, not `ui.card.lift` and
+  `ui.selection`; the vellum that a drag brings is silent because the pick-up already spoke.
+- **Rate caps.** `ui.counter.tick`: at most one per 35 ms across the whole bus (extra ticks are dropped, not queued).
+  A button's sounds: at most one per 40 ms. Notifications: ≥ 400 ms apart. Voices: 6 on Interface, 3 on Game; the
+  oldest Level 1 voice is stolen first, never a Level 2 or 3.
+- **Runs.** ≤ 8 ticks per roll, each 1 dB quieter, mirroring the roll's ≤ 8 visible steps; large changes never become
+  dozens of sounds.
+- **Variation.** Level 1 tokens have four variants played in random order without an immediate repeat, with ±25 cents
+  and ±1 dB of jitter, so fifty presses don't sound like a machine gun. Level 2 has two variants and no pitch jitter
+  (its tones mean something). Level 3 has one.
+
+**Repetition test.** Every Level 1 and 2 token passes this before it ships (the specimen has a board for it):
+
+| Scenario | Rate and length |
+|---|---|
+| Repeated button presses | 1 press/s for 2 minutes, then bursts of 5 at 6/s |
+| Rapid resource changes | 20 upkeeps back to back, 3–4 counters each |
+| Menu navigation | open and close a drawer, a modal and a screen, 20 cycles |
+| Changing production values | step a value up and down 30 times in 15 s (a stepper or dial, once one exists) |
+| Frequent card and unit selection | select across a hand of 8 cards, 40 selections |
+| Repeated turn actions | 30 End turns in a row, with upkeep |
+
+Run each at the default mix with music on, with three listeners, after an hour of play where possible. Pass: no
+listener notices the sound as a sound after the first minute, and none finds it irritating. On a fail, simplify in
+this order: shorten it, lower it 3 dB, remove its tonal or travel layer, darken it; if it still fails, it becomes
+None. Removing a sound is always an acceptable fix.
+
+### 16.9 Mix, buses and controls
+- **Buses**: Master → Music, Game (Level 3 and any future gameplay sounds), Interface (Levels 1–2). Each has a volume
+  in Settings (§12 rule 11) and a limiter at its ceiling (`sound.ceiling`); Interface also has an ON/OFF legend key.
+  Turning interface sounds off keeps the events: a player who dislikes clicks still hears the era change.
+- **Defaults**: Master 80%, Music 60%, Game 80%, Interface 70%.
+- **Ducking**: Level 3 ducks Music by 6 dB (50 ms attack, 400 ms release). Interface isn't ducked, but its
+  system-driven sounds wait for the Level 3 to finish (§16.4).
+- **Background**: when the window loses focus, Interface and Game fade out over 200 ms (a setting, on by default).
+- **Loudness**: Level 3 cues ≈ −23 LUFS short-term at full volume, music ≈ −23 LUFS integrated; clicks are too short
+  for LUFS and are set by their peak level.
+
+### 16.10 Production
+- **Sources**: record real mechanisms or synthesize, but stay inside the material map: small-key microswitches,
+  latching push keys, relays, a drawer on ball-bearing runners with a felt stop, card stock and drafting vellum, a
+  drum counter, split-flap units, a small desk bell, a vibraphone. Don't sample or recreate recognisable proprietary
+  sounds (a named product's chime, a famous projector's advance, a typewriter's bell).
+- **Processing**: trim to the transient (≤ 1 ms of pre-roll), high-pass at 150 Hz (Levels 1–2), shelf the top,
+  de-click, no saturation, normalise to the token's level. No reverb printed into Level 1–2 files: the room is applied
+  on the bus, so every sound shares it.
+- **Format**: 48 kHz, 16-bit, mono WAV for Levels 1–2 (imported uncompressed, no loop); stereo OGG for Level 3 and
+  music.
+- **Naming**: the token with dots as underscores, plus a variant letter: `ui_button_press_a.wav` … `_d.wav` in
+  `assets/sounds/ui/`; Level 3 in `assets/sounds/events/`.
+- **Prototype**: the specimen synthesizes every token in the browser (filtered noise bursts for clicks and ticks,
+  shaped noise for runs and paper, partial sums for the bell and the vibraphone). Those fix timing, level and
+  character, and serve as placeholders; final assets are recorded or designed to the same specs.
+
+---
+
+## 17. Mapping onto this codebase (spike findings)
 
 How the guide lands in the existing UI without touching `engine/`:
 
@@ -987,6 +1537,14 @@ How the guide lands in the existing UI without touching `engine/`:
 | Resource glyphs | `assets/icons/food.svg` etc., tinted by `Icons` | New SVGs on the 24 grid: sprout, cash coin, open book, solid bolt; wealth tinted with `glyph-ochre` in Paper. |
 | Costs | the card face's cost text (`CardFace`) | One glyph + figure per resource, top-right, grouped by spacing (§6.7); the engine already reports the costs, the face only lays them out. |
 | Piles | `LogDrawer`'s deck and discard counts (115, 121) | Index piles (§15.13) on the board; the deck face down, the discard dealing out on click. |
+| Sound buses | None: the game has no audio today | A `default_bus_layout.tres` with Music, Game and Interface under Master, an `AudioEffectHardLimiter` on each at its ceiling (§14), and one small `AudioEffectReverb` on a send bus as the shared room (§16.6). |
+| Sound tokens | — | A `Sfx` node in `ui/` (owned by `main`, like `ModalStack`) that maps each token to an `AudioStreamRandomizer`. Godot's randomizer already does §16.8's variation: `PLAYBACK_RANDOM_NO_REPEATS`, `random_pitch`, `random_volume_offset_db`. A small pool of `AudioStreamPlayer`s per bus enforces the voice caps, the tick limiter and the level rules (§16.4). Token names are constants (`Sfx.BUTTON_PRESS`), never strings at call sites, like the card types. |
+| Sync | `Anim` tweens | `Anim.sound_at(tween, token, duration, curve)`: a `tween_callback` at the contact time of §16.5, computed from the duration and curve, so a sound lives in the same tween as its motion and a skipped or killed tween drops it. Output latency from `AudioServer.get_output_latency()`. |
+| Keys | `UIKit.button`, `ActionButton`, the settings screen's buttons, `LegendKey` | `button_down` → press at contact; `button_up` → release; a disabled press → `ui.reject.locked`; `LegendKey.toggled` → `ui.toggle.on`/`.off`. |
+| Counters, cards, piles | `OdometerLabel` (Godot spike), `CardMotion`, `DragController` | A tick per rolled step through the shared limiter, the registration with the lamp pulse; lift, selection and place in the card tweens. |
+| Sheets, screens, flags | `Modal` / `ModalStack`, `Navigator`, `Toasts` | Sheet, nav and notification tokens in their open and close tweens; `Toasts` passes the flag's priority so it can choose the pattern. |
+| Events | The engine's signals the UI already shows (tech learned, era, game over) | The UI plays `ui.milestone.*` where it shows them. `engine/` stays silent: sound is presentation. |
+| Sound settings | `SettingsStore` (`reduce_motion`, `civilization`) | Add `volume_master`, `volume_music`, `volume_game`, `volume_interface` and `interface_sounds`, saved and validated like `reduce_motion`; sliders and the legend key on the Settings and title screens. This touches `autoload/`, so it is a test-first item. |
 
 **What I learned**
 - The existing architecture is well placed for this: colours are already semantic (`Palette`), looks are already
@@ -1003,15 +1561,35 @@ How the guide lands in the existing UI without touching `engine/`:
   and the rail lamp. Glyphs had to match the height of the figure beside them, and a solid glyph had to be drawn
   smaller than an outlined one to look the same size.
 - Yellow can't be a text colour on warm paper; an icon-only gold (3:1, not 4.5:1) is the honest fix.
+- Sound (spike `mcm-sound`): tying every sound to a motion primitive's contact point removed most of the questions
+  before they were asked. "When does it play?" has one answer (90% of travel), and "what does it sound like?" follows
+  from the mechanism the eye already sees. The tokens fell out of the components, not the other way round.
+- The motion system's own limits did most of the density work. In the specimen, +12 insight plays 7 ticks and a
+  registration (the roll shows 8 steps; the last registers), and an upkeep over three counters plays 3 ticks and 3
+  registrations. Sound needed one limit of its own, the shared 35 ms tick stream, for counters that roll together.
+- Measured in the specimen (offline renders): the first synthesized clicks decayed to −60 dB in 14–37 ms, under the
+  30–100 ms the tokens specify. What makes a click last is its damped body, not its transient; lengthening the body
+  (≤ 80 ms, low resonance) brought every token inside its range without softening the attack.
+- Raw synthesized peaks ranged from −17 to +9 dB. The levels stay the spec's only because each token is normalized
+  to its level offline; recorded assets need the same discipline (§16.10).
+- Two event cues (accord, city) first opened within 3 dB of their peak, a sudden loud start. The rule that a Level 3
+  opens with its quiet mechanism (§12 rule 12) came from measuring that.
+- What the measurements don't cover is taste: nobody has listened to these sounds in this spike. The synthesized
+  clicks are placeholders that fix timing, length and level. The repetition test (§16.8) with real listeners, on
+  recorded mechanisms, is the gate before any of this ships.
 
 **Recommendation**
 First a short Godot spike to prove the parts HTML can't: hard offset shadows and press travel in `StyleBoxFlat`,
 tabular figures through a `FontVariation`, an odometer that clips its digits, and the legend key as a theme
-variation. Then adopt it in three items, each UI-only (no `engine/` changes):
+variation. Then adopt it in four items, UI-only except the sound settings (no `engine/` changes):
 1. **Tokens & theme** — new `Palette` values (Night), fonts with `tnum`, `GameTheme` radius/border/shadow, `Anim`
    timings and the easing swap. Biggest visual change for the least code.
 2. **Mechanical feedback** — odometer counter + delta tags replacing floating tokens, lamps on the resource bar and
    End turn, card hover/select without scale, press travel on buttons.
 3. **Sheets and rails** — title blocks, modal/drawer/navigation motion, notification flags on a left rail, the
    Knowledge screen as a drafting sheet.
-Paper mode and the milestone sequences (era change, victory) come after, once the Night mode has been played.
+4. **Sound** — the buses, the `Sfx` node with the Level 1–2 tokens, `Anim.sound_at`, and the volume settings (the
+   settings part is test-first). Recorded placeholder assets for the dozen most frequent tokens; then the repetition
+   test (§16.8) before anything else is added.
+Paper mode and the milestone sequences (era change, victory, and their Level 3 sounds) come after, once the Night mode
+has been played.
