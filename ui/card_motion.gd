@@ -198,7 +198,7 @@ func _play(token: StringName, input := false) -> void:
 
 func _come_to_rest() -> void:
 	view.state = CardView.State.REST
-	view.z_index = 1 if view._focused else 0
+	view.z_index = view.rest_z()
 	_rest_offset = Vector2.ZERO
 	_lift = 0.0
 	view.rotation = 0.0

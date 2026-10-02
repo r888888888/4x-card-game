@@ -34,6 +34,10 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main.fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main.add_child(main.fx)
+	main.vellum = Vellum.new(func():  # the play area and the sidebar, the window's full width (210)
+		var top: float = play_area.get_global_rect().position.y
+		return Rect2(0, top, main.size.x, main.size.y - top), func(point: Vector2): main.drag.click_vellum(point))
+	main.add_child(main.vellum)
 	main.drag = DragController.new(main)
 	main.focus = CardFocus.new(main)
 	main.choices = ChoiceOverlays.new(main)
@@ -57,7 +61,6 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	menu.new_game_requested.connect(func():
 		close_menu.call(false)
 		main.show_new_game_screen())
-	menu.close_requested.connect(func(): close_menu.call(true))
 	menu.exit_requested.connect(func(): main.quit_hook.call())
 	main.details = CardDetailsModal.new(main.modals)
 	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)

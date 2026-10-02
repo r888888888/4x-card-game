@@ -36,14 +36,13 @@ var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log butt
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
 var identity_modal: IdentityModal  # the civilization and government, from the sidebar (119, 202)
 var sidebar: Sidebar  # the right rail: the civilization and government (202)
+var vellum: Vellum  # over the play area while a card waits for one of several targets (210)
 var doors: CabinetDoors  # shut over the board while the government choice comes and goes (209)
 
 var _views: BoardViews  # syncs the card views with the engine (176)
 var _board: Control  # the top bar and the play area
 var _top_bar: TopBar
 var _menu: GameMenu
-var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
-var _menu_give_back := true  # whether the menu, as it closes, gives the focus back (not for Restart or New game)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
@@ -384,24 +383,20 @@ func open_supply() -> void:
 func open_menu() -> void:
 	if drag.dragging != null:
 		return
-	_menu_return = focus.focused if focus.focused != null else _card_before_menu_button
+	var card := focus.focused if focus.focused != null else _card_before_menu_button
 	drag.end_targeting()
 	focus.set_card(null)
-	_menu.open(Game.engine.seed_value)
+	_menu.open(Game.engine.seed_value, card)
 
 
-## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button. The menu's own close
-## (Close, Esc, a click outside) comes back here through close_requested once it has closed (207).
+## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
 func _close_menu(give_back := true) -> void:
-	if _menu.is_open():
-		_menu_give_back = give_back
-		_menu.close()
-		return
+	_menu.dismiss(give_back)
+
+
+## The menu closed (207): the focus goes back to card if it is still in the row, else to the Menu button.
+func _on_menu_closed(card: CardView, give_back: bool) -> void:
 	get_viewport().gui_release_focus()
-	var card := _menu_return
-	_menu_return = null
-	give_back = _menu_give_back
-	_menu_give_back = true
 	if not give_back:
 		return
 	if is_instance_valid(card) and focus.row().has(card):
@@ -466,6 +461,7 @@ func _build_layout() -> void:
 	_restore = layout.restore
 	_revolt = layout.revolt
 	_menu = layout.menu
+	_menu.closed_giving_back.connect(_on_menu_closed)
 	_game_over = layout.game_over
 	_event_modal = layout.event_modal
 	_views = BoardViews.new(self, _top_bar)
