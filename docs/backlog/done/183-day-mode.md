@@ -2,7 +2,7 @@
 id: 183
 title: Day mode: the Paper palette, switched at once
 type: feature
-status: review
+status: done
 branch: feat/183-day-mode
 ---
 
