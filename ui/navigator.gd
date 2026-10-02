@@ -5,7 +5,8 @@ extends RefCounted
 ## ScreenHeader can name where you are and where Back goes (104). An animated navigator also transitions (104): a
 ## screen pushed from a rect (the card it opens) grows out of it and shrinks back into it; others fade; with Reduce
 ## motion everything only fades. A leaving screen no longer counts as shown and takes no clicks while it goes. It knows
-## nothing about the game; a screen is any Control, shown and hidden as it comes and goes.
+## nothing about the game; a screen is any Control, shown and hidden as it comes and goes. A screen is a sheet run along
+## a rail (189): push runs it in, back runs it out; set_root and clear are silent.
 
 ## After each push, back, set_root and clear.
 signal changed
@@ -35,6 +36,7 @@ func push(screen: Control, focus: Control = null, title := "", from := Rect2()) 
 		_screens.back().hide()
 	_add(screen, title, from)
 	_enter(screen, from)
+	_sound(screen, Sfx.NAV_FORWARD)
 	if focus != null:
 		focus.grab_focus()
 	changed.emit()
@@ -51,6 +53,7 @@ func back() -> bool:
 	var focus: Control = _return_focus.pop_back()
 	_screens.back().show()
 	_leave(screen, from)
+	_sound(screen, Sfx.NAV_BACK)
 	if is_instance_valid(focus) and focus.is_visible_in_tree():
 		focus.grab_focus()
 	elif screen.is_inside_tree():
@@ -89,6 +92,12 @@ func depth() -> int:
 ## The screens' titles, bottom first.
 func titles() -> Array[String]:
 	return _titles.duplicate()
+
+
+static func _sound(screen: Control, token: StringName) -> void:
+	var sfx := Sfx.find(screen)
+	if sfx != null:
+		sfx.play(token, 0.0, sfx.player_acted())
 
 
 ## Esc goes back when there is a screen to go back from. Returns whether the key was used.
