@@ -2,7 +2,7 @@
 id: 154
 title: Government deck: choose your next government instead of drawing it
 type: feature
-status: in-progress
+status: review
 branch: feat/154-government-deck
 ---
 
@@ -12,25 +12,25 @@ Anarchy ends you choose any of them. Changing government becomes a plan rather t
 cards no longer clog the hand or deck. First of the rework from `spike/revolution` (154–159).
 
 ## Acceptance criteria
-- [ ] AC1: Given Chiefs ruling, when a card `create`s Kings (into any zone), then Kings is in the new `governments`
+- [x] AC1: Given Chiefs ruling, when a card `create`s Kings (into any zone), then Kings is in the new `governments`
   zone and not in that zone, and the play outcome's `created` lists it. When Kings is created again (already in
   `governments`), or Chiefs is created (ruling), then nothing is created and `created` doesn't list it.
-- [ ] AC2: Given Chiefs ruling, when Anarchy falls (unrest at the limit, 145), then Chiefs is in `governments`, not in
+- [x] AC2: Given Chiefs ruling, when Anarchy falls (unrest at the limit, 145), then Chiefs is in `governments`, not in
   the deck, and the deck's size is unchanged.
-- [ ] AC3: Given Anarchy ruling with Chiefs and Kings in `governments`, when Anarchy burns out (its last counter) or
+- [x] AC3: Given Anarchy ruling with Chiefs and Kings in `governments`, when Anarchy burns out (its last counter) or
   `restore_order()` succeeds, then no government rules, the Anarchy card is in `removed`, and `pending()` is
   `{kind: PENDING_GOVERNMENT, options: [the uids in governments, in zone order]}`. Every other action (play, grow,
   buy, research, renew, revolt, restore order, end turn) refuses with `"Choose a government first."`.
-- [ ] AC4: Given that choice owed and unrest 6, when `choose_government(kings_uid)` is called, then Kings rules, it
+- [x] AC4: Given that choice owed and unrest 6, when `choose_government(kings_uid)` is called, then Kings rules, it
   has left `governments`, Chiefs stays there, the choice is no longer owed, unrest is 3 (at most half Kings' 7, the
   `unrest_limit` modifier added before halving), and Kings' `play` effects resolve (its `cost` isn't paid).
-- [ ] AC5: `choose_government_error(uid)` is `"No government to choose."` when no choice is owed and
+- [x] AC5: `choose_government_error(uid)` is `"No government to choose."` when no choice is owed and
   `"That government isn't in your government deck."` for any other uid; `choose_government` then returns false and
   changes nothing. Choosing uses no action.
-- [ ] AC6: A Government overlay opens while the choice is owed, showing the government deck's cards (heading from
+- [x] AC6: A Government overlay opens while the choice is owed, showing the government deck's cards (heading from
   the engine: "Order returns: choose your government."); a click chooses. The top-bar civilization and government
   modal lists the government deck below the ruling government.
-- [ ] AC7 (bot): `ScriptedBot` chooses the government with the most `actions`, then the highest `unrest_limit`, then
+- [x] AC7 (bot): `ScriptedBot` chooses the government with the most `actions`, then the highest `unrest_limit`, then
   the first in zone order.
 
 ## Out of scope
@@ -66,8 +66,25 @@ cards no longer clog the hand or deck. First of the rework from `spike/revolutio
 | Design notes (`fallback` dropped) | `test_anarchy::test_unrest_fallback_is_no_longer_read`, `test_the_unrest_block_loads_with_its_defaults` (changed), `test_unrest_block_validation` (fallback case removed) |
 
 ## Manual check
-- [ ] Research Priesthood: Theocracy appears in the top-bar modal's government deck, not in the discard.
-- [ ] Fall into Anarchy and wait it out: the Government overlay offers the fallen government and any unlocked one.
+- [ ] `godot --path . -- --civ egypt --seed 5`: open the top-bar civilization and government button; the modal ends
+  with "Government deck: Kingship" (Egypt's start gives it), and Kingship is not in the discard or hand.
+- [ ] Raise unrest to the limit (play Settlers) and end turns through the Anarchy (or pay Restore order on its
+  button, whose tooltip now says "…then choose a government."): the Government overlay opens over the board with the
+  heading "Order returns: choose your government.", showing Chiefdom and Kingship; clicking Kingship closes it and the
+  top-bar button reads "Egypt · Kingship", unrest at most 3.
+- [ ] Research Priesthood: Theocracy joins the government deck in the modal.
 
 ## Log
 - 2026-10-01: Specced from `spike/revolution` (worktree `../4x-spike-revolution`, commits 0573e9c, 65fe287, d8b7a75).
+- 2026-10-01: Red (approved): playing a government from hand stays for now (unreachable in real games; 155 retires it
+  with the half-limit gate and the bot's government-first play). Changed approved tests on purpose (Test plan, "changed").
+- Green: `put_in_hand` went through `create_card`, which now sends governments to the government deck; the helper
+  gained `put_in(engine, id, zone)`, which places a government directly, so the kept hand-play tests and 147's
+  governments-in-the-discard renewal tests keep their Givens (setup only, assertions unchanged). The Altar in
+  `test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government` is built on the home with `build_on` (a
+  loose `create_card` Altar isn't working, so its modifier didn't count; setup only).
+- `create_card` returns null for a government it doesn't create; nothing in the engine used the return for one.
+  A fall no longer shuffles the deck, so seeded games after an Anarchy draw differently.
+- `ui/main.gd` is at 694 of 700 lines: 155's Revolt button changes will likely need the split first.
+- Follow-ups for 155: the bot's 148 revolt rule needs a government in hand, so it never revolts in real games now;
+  Egypt's start Kingship now waits in the government deck until an Anarchy. Balance worry, not simmed (feature item).

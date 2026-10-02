@@ -421,11 +421,19 @@ A game is played as one civilization: a permanent card with a starting gift and 
 
 ## Governments (backlog 065)
 Your people have one government at a time; its bonuses apply while it rules.
-- Card type `government`: never in `deck`, `supply`, `territory_deck`, `research_deck` or `event_deck`, but a `create`
-  may put one in the discard, so it's drawn and played like any hand card. Its effects can't need a target, use
+- Card type `government`: never in `deck`, `supply`, `territory_deck`, `research_deck` or `event_deck`. A `create`
+  of one (any zone) puts it in the government deck, the `governments` zone, unless one with its id is already there or
+  rules (then nothing is created; 154). Its effects can't need a target, use
   `keyword` or act on their own territory (like a tech's). Config `starting.government` (optional, a government id)
   puts it in the `government` zone at `new_game`. `government()` is its uid, or -1.
-- Playing one pays its cost, moves it to `government` and moves the ruling one to `removed` (out of the game); then its
+- Government deck (154): when Anarchy ends (burning out or `restore_order`), no government rules and `pending()` is
+  `{kind: PENDING_GOVERNMENT, options: the deck's uids}`; every other action refuses ("Choose a government first.").
+  `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
+  your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
+  first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck,
+  a click chooses; the identity modal lists the deck ("Government deck: Kingship"). The bot chooses the most
+  `actions`, then the highest `unrest_limit`, then deck order.
+- Playing one from hand (no longer reachable in a real game since 154; 155 retires it) pays its cost, moves it to `government` and moves the ruling one to `removed` (out of the game); then its
   `play` effects resolve. The outcome's `to_zone` is `government`. `play_error` refuses a government with the same id
   as the ruling one ("X is already your government.").
 - The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
@@ -440,18 +448,18 @@ Your people have one government at a time; its bonuses apply while it rules.
   `at_unrest_limit()` says unrest has reached it. `gain` stops unrest at the limit and reports what it added. Unrest can't
   be paid: in a cost, a civilization discount, `population.famine.relief` or a `trade` it is a load error ("unrest can't
   be paid (it is only gained and lost)", `Fields.unpayable`).
-- Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, fallback, max_counters, era_unrest (0), allowed_tag
-  ("")}`, only with unrest listed; `anarchy` and `fallback` are governments, the anarchy card sets no `unrest_limit` and
-  doesn't start. A turn that starts (after upkeep, feeding and era unlocks, before the draw) with unrest at the limit
-  falls: the government is shuffled into the deck and the anarchy card rules (`anarchy()` its uid, so `unrest_limit()`
+- Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, max_counters, era_unrest (0), allowed_tag
+  ("")}`, only with unrest listed (`fallback` dropped in 154: an unknown field); `anarchy` is a government that sets no
+  `unrest_limit` and doesn't start. A turn that starts (after upkeep, feeding and era unlocks, before the draw) with
+  unrest at the limit falls: the government goes to the government deck (154) and the anarchy card rules (`anarchy()` its uid, so `unrest_limit()`
   is -1). While it rules only governments and `allowed_tag` cards play ("Anarchy: only a government or an order card
   can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."), and its
   `actions` and upkeep apply as any government's. Each later turn start adds a counter (`anarchy_counters()`); at
-  `max_counters` the fallback is created as the government, the anarchy card goes to `removed` and unrest drops to at
-  most half the new limit. Each added era adds `era_unrest` (capped). Ways out sooner (146): a government played
+  `max_counters` it burns out: the anarchy card goes to `removed` and a government is chosen from the government deck
+  (154). Each added era adds `era_unrest` (capped). Ways out sooner (146): a government played
   during Anarchy is accepted only while unrest is at most half its limit (plus the `unrest_limit` modifier, halved:
   "The people won't accept Kingship until unrest is 3 or less."), and `restore_order()` pays config `unrest.relief`
-  (`order_relief()`, `restore_order_error()`) for the fallback to rule, unrest again at most half its limit. The
+  (`order_relief()`, `restore_order_error()`) to end it, a government then chosen from the deck (154). The
   Restore order button sits beside Relieve famine below the Realm; the bot pays after 2 counters with no government
   it can play. Real relief: 6 wealth.
 - Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
@@ -467,8 +475,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   Relieve famine and Restore order. The bot revolts at the start of a turn with an action left, a discard to renew and
   a government in hand the people would accept (`Anarchy.accept_error`). Real data: Calls for Reform (2 turns,
   renewal +1), Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2).
-  `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), fallback Chiefdom,
-  4 counters, era unrest 3, Feast is the `order` card.
+  `ScriptedBot` plays a government first under Anarchy. Real data: Anarchy (1 action, ⟳ −1 pop), 4 counters, era unrest 3, Feast is the `order` card.
   The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its
   stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
   unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.
@@ -476,7 +483,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Omen of Doom
   (+2) and Bandit Raids (⟳ +1, 2 turns), the only events that harm.
 - Real data: Chiefdom (2 actions, unrest limit 5; no other bonus; the start), Kingship (3 actions, limit 7, ⟳ +1 wealth; from Code of Laws),
-  Theocracy (3 actions, limit 10, ⟳ +1 VP; from Priesthood). Techs that give a government create it in the discard; it has no supply pile.
+  Theocracy (3 actions, limit 10, ⟳ +1 VP; from Priesthood). Techs that give a government add it to the government deck (154); it has no supply pile.
 - UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
   Knowledge (088, 115, 119); it opens a modal showing both (flavor, quote, rules), and a played government flies to it.
 

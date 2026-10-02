@@ -157,6 +157,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
 | `wait_frames(n)` | `await wait_frames()` lets containers lay out before a UI test measures sizes or positions (088); headless starts at 1920×1920, so set the window size first if the test depends on it |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
+| `put_in(engine, id, zone)` | Same, into any zone; a government is placed directly, as `create_card` sends it to the government deck (154) |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order (no cost or slot check; the last go idle first) |
 | `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
 | `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations (Tribe, Nomads; backlog 062), kept out of `TEST_CARDS`; `civ_engine` starts a game with `starting.civilization` civ (`""` for none) |
