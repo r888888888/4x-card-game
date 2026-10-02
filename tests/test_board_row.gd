@@ -13,11 +13,11 @@ func row_uids(main: Node) -> Array[int]:
 	return out
 
 
-## The first word of each play-area heading ("Hand — drag …" → "Hand").
+## Each play-area heading's text ("Realm", "In Hand" since 204).
 func heading_words(main: Node) -> Array[String]:
 	var out: Array[String] = []
 	for h in main.section_headings():
-		out.append(h.text.split(" ")[0])
+		out.append(h.text)
 	return out
 
 
@@ -53,7 +53,7 @@ func test_the_only_section_headings_are_realm_and_hand() -> void:
 		e.create_card("trade_winds", "active_events", null)
 		e.changed.emit()
 		await wait_frames()
-		eq(heading_words(main), ["Realm", "Hand"] as Array[String], "play area headings"))
+		eq(heading_words(main), ["Realm", "In Hand"] as Array[String], "play area headings"))
 
 
 # --- AC3: known techs leave the board ---

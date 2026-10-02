@@ -15,19 +15,16 @@ var _names: Array[String] = []  # the names shown, top to bottom
 ## Builds the modal on stack's host, hidden.
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", Tokens.SPACE_4)
-	panel.add_child(column)
+	title = "Civilization"
 	_sections = VBoxContainer.new()
 	_sections.add_theme_constant_override("separation", Tokens.SPACE_5)
-	column.add_child(_sections)
-	close_button = UIKit.button("Close (Esc)", close)
-	column.add_child(close_button)
+	body.add_child(_sections)
+	close_button = add_footer_button(UIKit.button("Close (Esc)", close))
 
 
 ## Test hook: the names shown, top to bottom; [] while closed.
 func shown() -> Array[String]:
-	return _names if visible else ([] as Array[String])
+	return _names if is_open() else ([] as Array[String])
 
 
 ## Test hook: the text shown, without markup: each section's name, then its text, sections three lines apart.
@@ -48,7 +45,7 @@ func open() -> void:
 
 ## Shows engine e's civilization and government again, if open.
 func refresh(e: GameEngine) -> void:
-	if visible:
+	if is_open():
 		_fill(e)
 
 
@@ -79,7 +76,7 @@ func _add_section(title: String, bbcode: String) -> void:
 	var body := RichTextLabel.new()
 	body.bbcode_enabled = true
 	body.fit_content = true
-	body.custom_minimum_size = Vector2(620, 0)
+	body.custom_minimum_size = Vector2(BODY_MAX_WIDTH - Tokens.SPACE_6, 0)
 	body.theme_type_variation = &"RichBody"
 	body.text = bbcode
 	section.add_child(body)

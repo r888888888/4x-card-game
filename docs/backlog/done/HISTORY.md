@@ -130,5 +130,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 120. 198 card names in bold (`CardTitle`)
 121. 199 settled Realm territory cards without keywords
 122. 200 a click outside the territory box closes the view
+123. 207 modals as drafting sheets (title block, footer, rise and drop); the menu and game over on the stack
+124. 202 the civilization and government in a right sidebar
+125. 204 the In Hand heading with the actions count on its line
+126. 209 the government choice behind cabinet doors
+127. 210 targeting under vellum, the targets lifted above it
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

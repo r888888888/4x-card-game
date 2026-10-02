@@ -4,7 +4,7 @@ extends "res://tests/lib/test_case.gd"
 ## above, and each level's panel is cascaded from the one below. "Tree + details": the tech tree open with a tech's
 ## details over it. Hooks: main.modals (depth(), top()) and a modal's panel.
 
-const CASCADE := Vector2(36, 28)
+const CASCADE := Vector2(8, 8)  # a stacked sheet sits +8,+8 on the one below (207)
 
 var _old_window_size := Vector2i.ZERO
 
@@ -145,7 +145,7 @@ func test_a_modal_alone_is_centred() -> void:
 	var main := open_main()
 	main.start_game(1)
 	main.details.open_def(first_tech_id())
-	await wait_frames()
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the sheet's rise (207)
 	var rect := panel_rect(main.details)
 	check(rect.has_area(), "the details have a panel")
 	check(rect.get_center().distance_to(screen_center(main)) <= 1.0, "centred: %s, screen centre %s" % [
@@ -155,13 +155,14 @@ func test_a_modal_alone_is_centred() -> void:
 
 func test_a_modal_over_another_is_one_cascade_step_from_centre() -> void:
 	await with_tree_and_details(func(main: Node):
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the sheets' rise (207)
 		var tree := panel_rect(main.tech_tree)
 		var details := panel_rect(main.details)
 		check(tree.has_area() and details.has_area(), "both have panels")
 		check(tree.get_center().distance_to(screen_center(main)) <= 1.0, "the tree, below, is centred: %s" % [
 			tree.get_center()])
 		var expected := screen_center(main) + CASCADE
-		check(details.get_center().distance_to(expected) <= 1.0, "the details sit 36 px right, 28 down: %s, want %s" % [
+		check(details.get_center().distance_to(expected) <= 1.0, "the details sit 8 px right, 8 down (207): %s, want %s" % [
 			details.get_center(), expected]))
 
 
@@ -197,7 +198,7 @@ func test_the_identity_modal_opens_on_the_stack_and_hides_the_toasts() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	eq(depth(main), 1, "one modal")
 	check(top(main) == main.identity_modal, "the identity modal on top")
 	Game.engine.emit_signal("noticed", "Famine ends.", GameEngine.NOTICE_INFO)

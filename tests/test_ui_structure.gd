@@ -22,6 +22,9 @@ const COMPONENTS := {
 	"res://ui/action_button.gd": "ActionButton",  # 175: Relieve famine, Restore order and Revolt
 	"res://ui/board_views.gd": "BoardViews",  # 176: syncing card views with the engine
 	"res://ui/board_layout.gd": "BoardLayout",  # 176: building the board's layout
+	"res://ui/sidebar.gd": "Sidebar",  # 202: the right rail
+	"res://ui/cabinet_doors.gd": "CabinetDoors",  # 209: the government choice's doors
+	"res://ui/vellum.gd": "Vellum",  # 210: targeting under vellum
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.
