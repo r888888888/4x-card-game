@@ -17,7 +17,7 @@ var fx: Control  # effects layer: flying, dragged and leaving cards, errors
 var tableau: TableauView
 var hand: HBoxContainer
 var hand_scroll: ScrollContainer
-var actions_label: Label  # "Actions: 1 / 2" beside the hand's heading; hidden when actions are unlimited (127)
+var actions_label: Label  # "1 / 2" right on the hand's heading line (204); hidden when actions are unlimited (127)
 var choices: ChoiceOverlays
 var supply: SupplyScreen
 var drag: DragController
@@ -424,7 +424,7 @@ func _refresh() -> void:
 	territory_view.close_if_stale(e)
 	_top_bar.refresh(e, supply.is_open())
 	actions_label.visible = e.actions_per_turn() >= 0
-	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
+	UIKit.set_stat(actions_label, "%d / %d" % [e.actions_left(), e.actions_per_turn()])
 	_views.sync(e)
 	choices.refresh(e)
 	log_drawer.refresh(e)
