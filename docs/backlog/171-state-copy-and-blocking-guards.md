@@ -2,7 +2,7 @@
 id: 171
 title: Guard tests for state copies and the pending-decision block
 type: feature
-status: ready
+status: review
 branch: feat/171-state-copy-and-blocking-guards
 ---
 
@@ -13,21 +13,21 @@ lookahead, and an action added without the pending-decision block would act whil
 2026-10-01 project review.
 
 ## Acceptance criteria
-- [ ] AC1: Given a `GameState` with every script variable set to a value other than its default (the test reads the
+- [x] AC1: Given a `GameState` with every script variable set to a value other than its default (the test reads the
   variables from `get_property_list()`, naming none), `copy()` returns equal values for each, and changing the copy's
   zones, cards, dictionaries and arrays leaves the original unchanged. A variable added to `GameState` without a copy
   line fails the test.
-- [ ] AC2: The same for `CardInstance.copy()` (`uid`, `def`, `territory_uid`, `pop`, `keywords`, `turns_left`,
+- [x] AC2: The same for `CardInstance.copy()` (`uid`, `def`, `territory_uid`, `pop`, `keywords`, `turns_left`,
   `counters`, read from the property list).
-- [ ] AC3: For each owed decision (explore, hand-limit discard, renewal, government choice) and for game over, every
+- [x] AC3: For each owed decision (explore, hand-limit discard, renewal, government choice) and for game over, every
   player action refuses with a non-empty `*_error` and returns false with the game unchanged (compared with a copy taken
   before), except the decision's own actions: `choose` for explore; `discard_card`, `buy`, `buy_tech` and the supply
   screen for a discard; `renew` for renewal; `choose_government` for the government choice. The actions: `play_card`,
   `grow`, `buy`, `buy_tech`, `end_turn`, `discard_card`, `choose`, `renew`, `choose_government`, `relieve_famine`,
   `restore_order`, `revolt`.
-- [ ] AC4: AC3's action list is checked against `GameEngine`'s public methods that have a `<name>_error` partner, so a
+- [x] AC4: AC3's action list is checked against `GameEngine`'s public methods that have a `<name>_error` partner, so a
   new action with no row fails the table.
-- [ ] AC5: CLAUDE.md, Architecture rules: "State that lasts between actions lives in `GameState` or `CardInstance`,
+- [x] AC5: CLAUDE.md, Architecture rules: "State that lasts between actions lives in `GameState` or `CardInstance`,
   never on the engine or a module, and `copy()` copies it (the suite checks)."
 
 ## Out of scope
@@ -45,6 +45,19 @@ lookahead, and an action added without the pending-decision block would act whil
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_state_copy::test_game_state_copy_carries_every_variable_and_shares_nothing` |
+| AC2 | `test_state_copy::test_card_instance_copy_carries_every_variable_and_shares_nothing` |
+| AC3 | `test_blocking::test_every_action_refuses_while_a_decision_is_owed_or_the_game_is_over` |
+| AC4 | `test_blocking::test_the_action_table_names_every_action_with_an_error_query` |
+| AC5 | CLAUDE.md line (docs) |
 
 ## Log
 - 2026-10-01: Specced from the project review.
+- 2026-10-01: Guards written; they pass on today's code. Shown failing for the right reason with the engine
+  temporarily changed, then restored: dropping `s.turn = turn` / `c.counters = counters` ("copy of turn expected 1, got
+  0"); sharing `supply` / `keywords` with the copy ("nothing shared … got [.keywords]"); dropping grow_error's
+  `_blocked_error` ("explore: grow_error gives a reason", "grow changes nothing; changed … zones, resources,
+  log_lines"); adding a `fortify` / `fortify_error` pair (the table check lists `fortify`). `end_turn` returns nothing,
+  so for it the test checks only the reason and the unchanged state. The supply screen has a row (`supply_error`, no
+  action) because `supply` has an error query; `new_game` is the one action no decision blocks.
+- 2026-10-01: Approved; the CLAUDE.md rule added. No engine change.

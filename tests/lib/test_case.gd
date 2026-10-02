@@ -590,3 +590,122 @@ func check_noticed(recorded: Array[String], fragment: String) -> void:
 			check(i > 0 and recorded[i - 1] == "log: " + text, "the notice '%s' follows its log line: %s" % [text, recorded])
 			return
 	check(false, "a notice containing '%s': %s" % [fragment, recorded])
+
+
+# --- State guards (backlog 171) ---
+
+## v as text, deeply: script objects by their script variables, a CardDef by its id (defs are shared and never
+## change), a RandomNumberGenerator by its seed and state. Two values are equal state when their dumps are equal.
+func state_dump(v: Variant) -> String:
+	match typeof(v):
+		TYPE_ARRAY:
+			return "[%s]" % ", ".join(v.map(func(x): return state_dump(x)))
+		TYPE_DICTIONARY:
+			var parts: Array[String] = []
+			for k in v:
+				parts.append("%s: %s" % [state_dump(k), state_dump(v[k])])
+			return "{%s}" % ", ".join(parts)
+		TYPE_OBJECT:
+			if v == null:
+				return "null"
+			if v is CardDef:
+				return "CardDef(%s)" % v.id
+			if v is RandomNumberGenerator:
+				return "Rng(%d, %d)" % [v.seed, v.state]
+			var parts: Array[String] = []
+			for name in script_vars(v):
+				parts.append("%s: %s" % [name, state_dump(v.get(name))])
+			return "%s(%s)" % [v.get_script().get_global_name(), ", ".join(parts)]
+	return var_to_str(v)
+
+
+## Whether a and b hold the same state (state_dump).
+func state_equal(a: Variant, b: Variant) -> bool:
+	return state_dump(a) == state_dump(b)
+
+
+## The script variables of a and b (two objects of one class) whose state differs, joined: "" when none does.
+func state_diff(a: Object, b: Object) -> String:
+	var names: Array[String] = []
+	for name in script_vars(a):
+		if state_dump(a.get(name)) != state_dump(b.get(name)):
+			names.append(name)
+	return ", ".join(names)
+
+
+## The names of o's script variables (its own and its script parents'), in declaration order.
+func script_vars(o: Object) -> Array[String]:
+	var out: Array[String] = []
+	if o.get_script() == null:
+		return out
+	for p in o.get_property_list():
+		if p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			out.append(p.name)
+	return out
+
+
+## The paths at which a and b (a value and its copy) share an array, a dictionary or an object other than a CardDef,
+## so a change through one would show in the other.
+func shared_refs(a: Variant, b: Variant, path := "") -> Array[String]:
+	var out: Array[String] = []
+	if typeof(a) != typeof(b):
+		return out
+	match typeof(a):
+		TYPE_ARRAY:
+			if is_same(a, b):
+				out.append(path)
+			for i in mini(a.size(), b.size()):
+				out.append_array(shared_refs(a[i], b[i], "%s[%d]" % [path, i]))
+		TYPE_DICTIONARY:
+			if is_same(a, b):
+				out.append(path)
+			for k in a:
+				if b.has(k):
+					out.append_array(shared_refs(a[k], b[k], "%s[%s]" % [path, k]))
+		TYPE_OBJECT:
+			if a == null or b == null or a is CardDef:
+				return out
+			if is_same(a, b):
+				out.append(path)
+				return out
+			for name in script_vars(a):
+				out.append_array(shared_refs(a.get(name), b.get(name), "%s.%s" % [path, name]))
+	return out
+
+
+## Changes everything reachable from v in place: ints and strings on objects, every array (cleared, or given an
+## element when empty) and dictionary (a new key), an RNG advanced. CardDefs are left alone.
+func scribble(v: Variant) -> void:
+	match typeof(v):
+		TYPE_ARRAY:
+			for x in v:
+				scribble(x)
+			if not v.is_empty():
+				v.clear()
+			elif v.get_typed_builtin() == TYPE_INT:
+				v.append(99)
+			elif v.get_typed_builtin() == TYPE_STRING:
+				v.append("scribbled")
+			elif not v.is_typed():
+				v.append(99)
+		TYPE_DICTIONARY:
+			for k in v:
+				scribble(v[k])
+			v["scribbled"] = 99
+		TYPE_OBJECT:
+			if v == null or v is CardDef:
+				return
+			if v is RandomNumberGenerator:
+				v.randi()
+				return
+			for name in script_vars(v):
+				var x: Variant = v.get(name)
+				match typeof(x):
+					TYPE_INT:
+						v.set(name, x + 1)
+					TYPE_BOOL:
+						v.set(name, not x)
+					TYPE_STRING:
+						v.set(name, x + "z")
+					_:
+						scribble(x)
