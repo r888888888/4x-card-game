@@ -123,11 +123,11 @@ func test_play_records_the_token_its_bus_and_when() -> void:
 	sfx.set_clock(10.0)
 	eq(sfx.clock(), 10.0, "the clock")
 	eq(sfx.play(Sfx.BUTTON_PRESS, 0.05), true, "plays")
-	eq(sfx.play(Sfx.MILESTONE_CITY), true, "plays")
+	eq(sfx.play(Sfx.MILESTONE_CITY, 5.0), true, "plays")  # after the press: not over it (191's giving way)
 	var press := record_of(sfx, Sfx.BUTTON_PRESS)
 	eq([press.get("bus"), snappedf(press.get("at", 0.0), 0.0001)], [Settings.INTERFACE, 10.05], "the press")
 	var city := record_of(sfx, Sfx.MILESTONE_CITY)
-	eq([city.get("bus"), city.get("at")], [Settings.GAME, 10.0], "the city")
+	eq([city.get("bus"), city.get("at")], [Settings.GAME, 15.0], "the city")
 	free_sfx(sfx)
 
 

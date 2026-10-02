@@ -58,7 +58,8 @@ res://
     rng.gd               # seeded RNG (reproducible games)
   autoload/game.gd       # "Game" singleton: loads data, owns the engine, reads the launch options
   autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
-  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion, day mode), saved via SettingsStore
+  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion, day mode, sound volumes and interface
+                         # sounds, 184), saved via SettingsStore; it sets the audio buses' volumes and mutes
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
   ui/                    # main.tscn/main.gd (MainScreen: actions, menu, refresh, test hooks), board_layout.gd
                          # (176: BoardLayout builds the layout and components in code), board_views.gd (176:
@@ -89,7 +90,14 @@ res://
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
                          # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193, 194: the guide's spacing,
                          # corner radius and type scales, Tokens.SPACE_*, RADIUS_* and TYPE_*)
+                         # sound: sfx.gd (186: Sfx, main.sfx: every sound token, its level, bus, files and rules),
+                         # key_sounds.gd (187: every button's click and a disabled key's dead tap), event_sounds.gd (191:
+                         # the engine's milestones as Level 3 sounds); legend_key.gd, top_bar.gd (End turn), odometer.gd,
+                         # card_motion.gd, modal_stack.gd, navigator.gd and toasts.gd play their own tokens (187–190)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
+  assets/sounds/         # ui/ (Levels 1–2, variants _a…_d) and events/ (Level 3) WAVs, placeholders rendered by
+                         # docs/design/sound-export.html from the specimen's synthesis (186)
+  default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
                          # strategy and civilization), run.gd (CLI)

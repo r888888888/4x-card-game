@@ -28,6 +28,9 @@ func text() -> String:
 func refresh(e: GameEngine) -> void:
 	if e.is_over and not overlay.visible:
 		_replay_button.grab_focus()
+		var sfx := Sfx.find(overlay)
+		if sfx != null:
+			sfx.play(Sfx.MILESTONE_VICTORY)  # the closing ceremony (191)
 	overlay.visible = e.is_over
 	if e.is_over:
 		_label.text = "Game over\n\nFinal score: %d\nSeed: %d" % [e.score(), e.seed_value]

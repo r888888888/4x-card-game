@@ -214,6 +214,7 @@ static func settle(e: GameEngine, territory_uid: int, city_id: String, source: C
 	var city := e.create_card(city_id, "tableau", source)
 	city.territory_uid = territory.uid
 	e._log("  %s: settled %s." % [source.def.name, territory.def.name])
+	e._milestone(GameEngine.MILESTONE_CITY)
 
 
 ## The territory_resources table territory def rolls from: its own, else its terrain's (130); [] if neither.
