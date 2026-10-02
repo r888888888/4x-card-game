@@ -37,6 +37,7 @@ func test_an_odometer_ticks_each_step_and_registers_the_last() -> void:
 		var step := Anim.ODOMETER_STEP
 		eq(heard(main), [[Sfx.COUNTER_TICK, snappedf(step, 0.001), 0.0], [Sfx.COUNTER_TICK, snappedf(2 * step, 0.001), -1.0],
 			[Sfx.RESOURCE_GAIN, snappedf(3 * step, 0.001), 0.0]], "3 → 6: the 4 and the 5 tick, each a dB quieter; the 6 registers")
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the roll ends
 		main.sfx.set_clock(10.0)
 		odo.set_value(3)
 		eq(heard(main, 3).map(func(h): return h[0]), [Sfx.COUNTER_TICK, Sfx.COUNTER_TICK, Sfx.RESOURCE_LOSS], "6 → 3: two ticks and a loss")
@@ -211,10 +212,11 @@ func test_a_refused_drop_taps_twice_as_the_card_shakes() -> void:
 			e.resources[GameEngine.FOOD] = 0
 			e.resources[GameEngine.WEALTH] = 0
 			e.changed.emit()
-			await wait_frames()
+			await (Engine.get_main_loop() as SceneTree).create_timer(1.0).timeout  # dealt in: at rest in the hand
 			main.sfx.set_clock(0.0)
+			var before: int = main.sfx.played().size()
 			main.try_play(main.views[hall])
-			eq(heard(main), [[Sfx.REJECT, 0.0, 0.0]], "the refusal's double tap, as the shake starts")))
+			eq(heard(main, before), [[Sfx.REJECT, 0.0, 0.0]], "the refusal's double tap, as the shake starts")))
 
 
 # --- AC6: click-to-target ---

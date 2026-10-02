@@ -170,10 +170,11 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 		at = maxf(at, _last_notice + NOTICE_GAP)
 		_last_notice = at
 	var on := bus(token)
-	if on == Settings.INTERFACE and playing(on).size() >= INTERFACE_VOICES:
+	var sounding := _voices.filter(func(v): return v.bus == on and v.at <= at and at < v.end)
+	if on == Settings.INTERFACE and sounding.size() >= INTERFACE_VOICES:
 		if lvl == 1:
 			return false
-		var oldest := _voices.filter(func(v): return v.bus == on and v.level == 1)
+		var oldest := sounding.filter(func(v): return v.level == 1)
 		if oldest.is_empty():
 			return false
 		_stop(oldest[0])

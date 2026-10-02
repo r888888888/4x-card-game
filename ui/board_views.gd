@@ -93,6 +93,8 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		if view == m.drag.dragging:
 			m.drag.end_drag()
 		var old_slot := view.slot
+		if old_slot.get_parent() == m.hand and not in_hand:  # played: it pats down where it lands (188)
+			view.place_on_land()
 		view.setup(card, e.card_db, in_hand, error, kind)
 		view.set_pickable(m.choices.is_choice_row(container), m.choices.pick_hint(container))
 		if leading != "":
@@ -135,8 +137,13 @@ func remove_view(uid: int, at_once := false) -> void:
 		via = (views[outcome.target] as CardView).get_global_rect().get_center()
 	var trashed := Game.engine.zone_of(uid) == "trashed"
 	var point := leave_point(uid, view)
-	var pulse := UIKit.pulse.bind(_top_bar.log_button) if point == _top_bar.pile_point() else Callable()
-	view.leave(_main.fx, point, just_played or trashed, via, pulse)  # the Log button pulses as a card reaches the piles (121)
+	var arrival := UIKit.pulse.bind(_top_bar.log_button) if point == _top_bar.pile_point() else Callable()
+	if just_played and Game.engine.zone_of(uid) == "tableau":  # a building or city goes onto its territory's card: a pat (188)
+		if UIKit.calm():  # it fades where it is, with no arrival
+			_main.sfx.play(Sfx.CARD_PLACE)
+		else:
+			arrival = func(): _main.sfx.play(Sfx.CARD_PLACE)
+	view.leave(_main.fx, point, just_played or trashed, via, arrival)  # the Log button pulses as a card reaches the piles (121)
 	free_slot(old_slot)
 
 
