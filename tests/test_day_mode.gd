@@ -259,3 +259,90 @@ func test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper() -> void:
 		check(fill in [Palette.DAY["RAISED"].to_html(false), Palette.DAY["DIM_BG"].to_html(false)], "a hand card's panel is paper: %s" % fill)
 		close_main(main)
 		Game.engine = real)
+
+
+# --- 197: card type lines and keyword lines read on paper ---
+
+## The colour a face line is drawn in: a Label's font colour, a RichTextLabel's default colour.
+func line_color(line: Control) -> Color:
+	return line.get_theme_color("font_color") if line is Label else line.get_theme_color("default_color")
+
+
+## view's type line and keyword lines (TypeRow's text, PrintedInfo, Keywords), each as [what, Control].
+func secondary_lines(view: CardView) -> Array:
+	var found := []
+	var type_row := view.find_child("TypeRow", true, false)
+	if type_row != null:
+		for line in type_row.get_children():
+			found.append(["%s's type line" % view.card_id, line])
+	for line_name in ["PrintedInfo", "Keywords"]:
+		var line := view.find_child(line_name, true, false) as Control
+		if line != null and line.visible:
+			found.append(["%s's %s" % [view.card_id, line_name], line])
+	return found
+
+
+## Checks every hand card's type line, the home territory's and a frontier territory's keyword lines and every supply
+## card's type line contrast at least 4.5:1 with RAISED in the current mode (seed 5, Sumer).
+func check_secondary_lines(main: Node, mode: String) -> void:
+	var e := Game.engine
+	var views: Array[CardView] = []
+	for c in e.zone("hand").cards:
+		views.append(main.views[c.uid])
+	views.append(main.views[home_uid(e)])
+	var frontier: CardView = main.views[e.zone("frontier").cards[0].uid]
+	views.append(frontier)
+	check(frontier.find_child("Keywords", true, false) != null, "%s: the frontier card's keyword line is its Keywords" % mode)
+	main.open_supply()
+	await wait_frames()
+	views.append_array(main.supply.views())
+	var lines := []
+	for view in views:
+		lines.append_array(secondary_lines(view))
+	check(lines.size() >= views.size(), "%s: precondition: a type or keyword line on every card (%d lines)" % [mode, lines.size()])
+	for pair in lines:
+		var r := contrast(line_color(pair[1]), palette("RAISED"))
+		check(r >= 4.5, "%s: %s is %.2f:1 on RAISED, needs 4.5" % [mode, pair[0], r])
+	main.supply.close()
+	await wait_frames()
+
+
+## A seed-5 Sumer game with the territory deck's first card on the frontier, laid out.
+func sumer_with_frontier() -> Node:
+	var main := open_main()
+	main.start_game(5, "sumer")
+	var e := Game.engine
+	var deck: Zone = e.zone("territory_deck")
+	var card: CardInstance = deck.cards[0]
+	deck.remove(card)
+	e.zone("frontier").add(card)
+	e.changed.emit()
+	await wait_frames()
+	return main
+
+
+func test_bug_197_type_and_keyword_lines_read_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		set_day(true)
+		var main: Node = await sumer_with_frontier()
+		await check_secondary_lines(main, "day")
+		close_main(main))
+
+
+func test_bug_197_type_and_keyword_lines_read_on_night_sheets() -> void:
+	await with_temp_settings(func():
+		var main: Node = await sumer_with_frontier()
+		await check_secondary_lines(main, "night")
+		close_main(main))
+
+
+func test_bug_197_type_and_keyword_lines_switch_with_day_mode_mid_game() -> void:
+	await with_temp_settings(func():
+		var main: Node = await sumer_with_frontier()
+		set_day(true)
+		await wait_frames()
+		await check_secondary_lines(main, "switched to day")
+		set_day(false)
+		await wait_frames()
+		await check_secondary_lines(main, "switched back to night")
+		close_main(main))
