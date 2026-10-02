@@ -120,13 +120,13 @@ func check_sunk(box: StyleBoxFlat, what: String) -> void:
 	eq([box.expand_margin_left, box.expand_margin_top, box.expand_margin_right, box.expand_margin_bottom],
 		[-2.0, -2.0, 2.0, 2.0], "%s expand margins (left, top, right, bottom)" % what)
 	eq([box.content_margin_left, box.content_margin_top, box.content_margin_right, box.content_margin_bottom],
-		[16.0, 8.0, 12.0, 4.0], "%s content margins (left, top, right, bottom)" % what)
+		[18.0, 10.0, 14.0, 6.0], "%s content margins (left, top, right, bottom)" % what)
 
 
 func test_buttons_stand_on_a_hard_shadow() -> void:
 	var main := open_main()
 	var plain := button(main)
-	var m := Vector2(14, 6)
+	var m := Vector2(16, 8)  # 193: space.4 across, space.2 down (guide §6.1)
 	check_box(stylebox(plain, "normal"), Palette.CONTROL, Palette.CONTROL_BORDER, 2, 2, m, "Button normal")
 	check_plinth(stylebox(plain, "normal"), "Button normal")
 	check_box(stylebox(plain, "hover"), Palette.CONTROL.lightened(0.08), Palette.TEXT, 2, 2, m, "Button hover")
@@ -152,7 +152,7 @@ func test_a_pressed_button_sinks_into_its_shadow() -> void:
 func test_the_accent_button_is_signal_orange() -> void:
 	var main := open_main()
 	var accent := button(main, "AccentButton")
-	check_box(stylebox(accent, "normal"), Palette.ACCENT, Palette.TEXT, 2, 2, Vector2(14, 6), "AccentButton normal")
+	check_box(stylebox(accent, "normal"), Palette.ACCENT, Palette.TEXT, 2, 2, Vector2(16, 8), "AccentButton normal")
 	check_plinth(stylebox(accent, "normal"), "AccentButton normal")
 	eq(accent.get_theme_color("font_color").to_html(), Palette.TEXT_ON_ACCENT.to_html(), "AccentButton text")
 	close_main(main)
@@ -185,7 +185,7 @@ func test_the_focus_ring_is_square_and_outside_the_control() -> void:
 func test_fields_and_card_colours_look_as_before() -> void:
 	var main := open_main()
 	var field: LineEdit = in_main(main, LineEdit.new())
-	check_box(stylebox(field, "normal"), Palette.FIELD, Palette.CONTROL_BORDER, 2, 2, Vector2(14, 6), "LineEdit")
+	check_box(stylebox(field, "normal"), Palette.FIELD, Palette.CONTROL_BORDER, 2, 2, Vector2(16, 8), "LineEdit")
 	eq(field.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "LineEdit text")
 	var expected := {
 		CardDef.ACTION: "86a9cc", CardDef.BUILDING: "a9b26c", CardDef.CITY: "d9a441",

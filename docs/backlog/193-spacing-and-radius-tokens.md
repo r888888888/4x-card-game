@@ -2,7 +2,7 @@
 id: 193
 title: Spacing and corner radius come from the guide's scales
 type: feature
-status: ready
+status: red-review
 branch: feat/193-spacing-and-radius-tokens
 ---
 
@@ -16,7 +16,7 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 
 ## Acceptance criteria
 - [ ] AC1: Given the token constants, then `SPACE_0`…`SPACE_9` are 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 and `RADIUS_0`,
-  `RADIUS_1`, `RADIUS_2` are 0, 2, 4; and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
+  `RADIUS_1`, `RADIUS_2` are 0, 2, 4 and `RADIUS_FULL` is 9999 (the guide's `radius.full`); and `UIKit.SECTION_GAP` is 24, `UIKit.CARD_GAP` 12, `UIKit.HEADING_GAP` 8
   (§6.1: "SECTION_GAP 22, CARD_GAP 10 become 24 and 12").
 - [ ] AC2: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
   card details, identity, event, game menu, settings, new game, game over, start), when every visible container is
@@ -58,6 +58,11 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_spacing_tokens::test_the_tokens_hold_the_guides_scales`, `test_the_board_gaps_are_on_the_scale` |
+| AC2 | `test_spacing_tokens::test_every_spacing_on_screen_is_on_the_scale` |
+| AC3 | `test_spacing_tokens::test_every_box_on_screen_has_a_radius_and_margins_on_the_scales` |
+| AC4 | `test_spacing_tokens::test_drop_zone_hint_error_and_slot_outline_are_square` |
+| AC5 | `test_spacing_tokens::test_no_ui_script_passes_a_spacing_or_radius_literal` |
 
 ## Manual check
 - [ ] The board at 1920×1080 in both Night and Day: the top bar still fits, the hand and Realm rows don't clip a
@@ -66,3 +71,10 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 
 ## Log
 - Specced from the design-system review (2026-10-02). The user chose to snap values to the guide.
+- Red: AC1 gained `RADIUS_FULL` (9999, the guide's `radius.full`): the pips' `PIP_SIZE / 2` is a literal under AC5,
+  and a token is the honest fix. The screen walk (AC2, AC3) also covers the log drawer, and the board's outer margin
+  (18, `board_layout.gd:67`), which the spec's inventory missed. Default container constants (4) are on the scale.
+- Red: `test_theme`'s button and field padding goes from 14x6 to 16x8 (`test_buttons_stand_on_a_hard_shadow`,
+  `test_the_accent_button_is_signal_orange`, `test_fields_and_card_colours_look_as_before`), and the pressed box's
+  margins from [16, 8, 12, 4] to [18, 10, 14, 6] (`check_sunk`, used by `test_a_pressed_button_sinks_into_its_shadow`),
+  as the Design notes state.
