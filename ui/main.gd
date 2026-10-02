@@ -153,7 +153,7 @@ func _push_new_game_screen() -> void:
 	for w in warnings:
 		push_warning(w)
 	new_game_screen.show_civilizations(Game.engine, civs, preselect)
-	nav.push(new_game_screen.overlay, new_game_screen.start_button, "New game")
+	nav.push(new_game_screen.overlay, new_game_screen.first_focus(), "New game")
 
 
 ## Hides the board and every screen: the board's cards and any open choice go away.

@@ -7,12 +7,10 @@ extends Modal
 var _subtitle: Label
 var _body: RichTextLabel
 var _details := {}  # what is shown; {} while hidden
-var _action_button: Button  # an optional action beside Close, e.g. "Play as …" on the new game screen (107)
-var _action := Callable()
 
 
-## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close (and the
-## optional action, primary) in the footer (207).
+## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close in the
+## footer (207).
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	close_keys = [KEY_ESCAPE, KEY_I]
@@ -26,7 +24,6 @@ func _init(p_stack: ModalStack) -> void:
 	_body.theme_type_variation = &"RichBody"
 	body.add_child(_body)
 	add_footer_button(UIKit.button("Close (Esc)", close))
-	_action_button = add_footer_button(UIKit.button("", _on_action), true)
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -39,26 +36,15 @@ func body_text() -> String:
 	return _body.get_parsed_text()
 
 
-## Test hook: the optional action button (hidden when the details were opened without an action).
-func action_button() -> Button:
-	return _action_button
-
-
-## Opens the details of the card view shows: its live copy, or its definition for a supply pile. With an action,
-## a button labelled action_text closes the details and calls it.
-func open(view: CardView, action_text := "", action := Callable()) -> void:
+## Opens the details of the card view shows: its live copy, or its definition for a supply pile.
+func open(view: CardView) -> void:
 	var details := Game.engine.card_details(view.uid)
 	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id)
-	_action = action
-	_action_button.text = action_text
-	_action_button.visible = action.is_valid()
 
 
 ## Opens the details of card definition card_id (a tech in the tree).
 func open_def(card_id: String) -> void:
 	_show(Game.engine.def_details(card_id), card_id)
-	_action = Callable()
-	_action_button.visible = false
 
 
 func _show(details: Dictionary, card_id: String) -> void:
@@ -88,12 +74,6 @@ func _show(details: Dictionary, card_id: String) -> void:
 
 func closed() -> void:
 	_details = {}
-
-
-func _on_action() -> void:
-	var action := _action
-	close()
-	action.call()
 
 
 ## The body for details (from GameEngine.card_details / def_details) as BBCode: flavor, quote, rules, state and terms,
