@@ -6,6 +6,10 @@ extends HBoxContainer
 ## change to Food, Wealth, Insight, Unrest, Score or Pop floats its net change up from that counter (126).
 
 const FOOD_COLOR := Palette.GAIN  # the food stat; CardView.WARN_COLOR when pop would starve
+# Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
+const SCORE := "score"
+const POP := "pop"
+const TURN := "turn"
 
 var score_label: Label
 var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
@@ -54,6 +58,19 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_
 	menu_button = UIKit.button("Menu", on_menu)
 	menu_button.tooltip_text = "Shortcut: Esc. New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
+
+
+## The counter for key (a resource, SCORE, POP or TURN), or null for an unknown key (177).
+func counter(key: String) -> Control:
+	return {TURN: _turn_label, GameEngine.FOOD: _food_label, GameEngine.WEALTH: _wealth_label,
+		GameEngine.INSIGHT: _insight_label, GameEngine.UNREST: _unrest_label, SCORE: score_label,
+		POP: _pop_label}.get(key)
+
+
+## The whole reading counter(key) shows ("Food: 3 (+1)"), or "" for an unknown key (177).
+func counter_text(key: String) -> String:
+	var label := counter(key) as Label
+	return label.text if label != null else ""
 
 
 ## Forgets the values the counters showed, so a new game's first refresh floats nothing (126).

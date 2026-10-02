@@ -233,6 +233,16 @@ func game_over_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_game_over.overlay)
 
 
+## The top bar's counter for key (TopBar.counter, 177).
+func counter(key: String) -> Control:
+	return _top_bar.counter(key)
+
+
+## The top bar's reading for key (TopBar.counter_text, 177).
+func counter_text(key: String) -> String:
+	return _top_bar.counter_text(key)
+
+
 ## The kind of decision the engine is waiting for (GameEngine.PENDING_*), or "".
 func pending_kind() -> String:
 	return Game.engine.pending().get("kind", "")

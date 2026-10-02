@@ -2,7 +2,7 @@
 id: 177
 title: Find the top bar's counters by name, not by their text
 type: feature
-status: red-review
+status: in-progress
 branch: feat/177-counter-accessors
 ---
 

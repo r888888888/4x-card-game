@@ -18,6 +18,9 @@ var _fx: Control  # tokens, flying copies and errors above the panel
 var _board: MainScreen
 
 
+const DISCARD := "discard"  # counter()'s key for the discard count, beside GameEngine.WEALTH (177)
+
+
 ## Builds the screen on parent, hidden. on_open is the Supply button's action.
 func _init(parent: MainScreen, on_open: Callable) -> void:
 	_board = parent
@@ -46,6 +49,17 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.add_child(_fx)
+
+
+## The screen's own counter for key (GameEngine.WEALTH or DISCARD), or null (177).
+func counter(key: String) -> Control:
+	return {GameEngine.WEALTH: _wealth, DISCARD: _discard}.get(key)
+
+
+## counter(key)'s text ("Wealth: 10"), or "" for an unknown key (177).
+func counter_text(key: String) -> String:
+	var label := counter(key) as Label
+	return label.text if label != null else ""
 
 
 func is_open() -> bool:

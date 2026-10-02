@@ -45,13 +45,6 @@ func shown(c: Control) -> bool:
 	return c != null and c.is_visible_in_tree()
 
 
-## The one visible label under root whose text starts with prefix, or null (fails the test if not exactly one).
-func only_label(root: Node, prefix: String) -> Label:
-	var found := labels_starting(root, prefix)
-	eq(found.size(), 1, "labels starting '%s'" % prefix)
-	return found[0] if not found.is_empty() else null
-
-
 func labels_starting(root: Node, prefix: String) -> Array[Label]:
 	var found: Array[Label] = []
 	for node in root.find_children("*", "Label", true, false):
@@ -156,9 +149,7 @@ func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
 		eq(filled_count(pips), 3, "3 filled")
 		eq(pips[3], view.grow_button, "Grow on the fourth pip")
 		eq(view.grow_button.text, "4", "costing 4")
-		var counter := only_label(main, "Pop:")
-		if counter != null:
-			eq(counter.text, "Pop: %d" % e.total_pop(), "the top bar's Pop reads the new total"))
+		eq(main.counter_text(TopBar.POP), "Pop: %d" % e.total_pop(), "the top bar's Pop reads the new total"))
 
 
 # --- AC5: the grow animation ---
@@ -166,7 +157,7 @@ func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
 func test_a_grow_pops_the_pip_in_and_floats_plus_one_pop_up_from_the_pop_counter() -> void:
 	await with_meter(func(main: Node, _home: int):
 		var view: Object = main.territory_view
-		var counter := only_label(main, "Pop:")
+		var counter: Control = main.counter(TopBar.POP)
 		view.grow_button.pressed.emit()
 		await wait_frames()
 		var pip: Control = (view.pips() as Array)[2]
@@ -201,7 +192,7 @@ func test_with_reduce_motion_the_pip_doesnt_scale_and_plus_one_pop_fades_below_t
 	_calm = true
 	await with_meter(func(main: Node, _home: int):
 		var view: Object = main.territory_view
-		var counter := only_label(main, "Pop:")
+		var counter: Control = main.counter(TopBar.POP)
 		view.grow_button.pressed.emit()
 		await wait_frames()
 		var pip: Control = (view.pips() as Array)[2]

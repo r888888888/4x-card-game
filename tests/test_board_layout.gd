@@ -192,8 +192,8 @@ func test_the_top_bar_fits_with_its_longest_texts() -> void:
 	await longest_top_bar(main)
 	var viewport: Vector2 = main.get_viewport_rect().size
 	check(shown_button(main, "Discard 3 (hand limit") != null, "End turn asks for 3 discards")
-	check(shown_label(main, "Insight:") != null, "the Insight counter is in the bar (139)")
-	check(shown_label(main, "Unrest:") != null, "the Unrest counter is in the bar (144)")
+	check(main.counter(GameEngine.INSIGHT).is_visible_in_tree(), "the Insight counter is in the bar (139)")
+	check(main.counter(GameEngine.UNREST).is_visible_in_tree(), "the Unrest counter is in the bar (144)")
 	var bar: Control = shown_button(main, "Menu").get_parent()
 	for c in bar.get_children():
 		if not (c is Control and c.visible):
