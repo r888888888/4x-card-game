@@ -160,7 +160,7 @@ never the only cue.
 | Tech card | Teal | Four-point star ✦ |
 | Event card | Brick | Diamond in square ❖ |
 
-Food is sage, not olive: olive is a yellowish green that sits too close to wealth's yellow in a cost plate. Sage is
+Food is sage, not olive: olive is a yellowish green that sits too close to wealth's yellow in a card's cost. Sage is
 also the gain colour, so a `+3` beside the food glyph is green too; the glyph, not the hue, says which resource it is.
 In Paper, ochre's line value is a dark mustard (yellow can't reach 4.5:1 on warm paper), so the **wealth glyph** uses
 a brighter gold, `glyph-ochre` `#A07514` (3.8:1 on `sheet`, past the 3:1 icons need). It is for icons only, never
@@ -316,13 +316,16 @@ a **type band**: a 6 px plane-coloured strip across the top under the name, carr
 end. Rules text below a hairline. VP bottom-right with the starburst. No drop shadow at rest (cards lie flat);
 `shadow.lift` when lifted.
 
-**Cost is always top-right**, on every card type, on the name's line: one `well` plate (1 px inner `rule`) holding
-one **cost entry per resource paid**, in a fixed order: food, wealth, insight. Each entry is the resource's glyph
-(`icon.m` 20, the resource's hue line) followed by its figure (`type.numeral-s`, `ink`); entries are divided by a
-1 px `rule`. A Granary costing 1 food and 2 wealth reads `[sprout 1 | coin 2]`. The **glyph's shape** tells food from
-wealth (sprout vs coin), and the hue repeats it, so the two never depend on colour; the plate's accessible name
-spells it out ("Costs 1 food, 2 wealth"). A card with no cost shows no plate (never a 0). A resource the player is
-short of prints its figure in `danger`, underlined 2 px, so the reason a card is dimmed is visible on the cost itself.
+**Cost is always top-right**, on every card type, on the name's line: one **cost entry per resource paid**, in a
+fixed order: food, wealth, insight. Each entry is the resource's glyph (`icon.m` 20, the resource's hue line)
+followed by its figure (`type.numeral-s`, `ink`), **grouped by spacing alone**: 3 px between a glyph and its figure,
+12 px (`space.3`) between entries, and no box, tint or rule around them. The glyph starts each entry, so it does the
+work a plate would. A Granary costing 1 food and 2 wealth reads `sprout 1   coin 2`. The **glyph's shape** tells food
+from wealth (sprout vs coin), and the hue repeats it, so the two never depend on colour; the group's accessible name
+spells it out ("Costs 1 food, 2 wealth"). A card with no cost shows nothing there (never a 0). A resource the player
+is short of prints its figure in `danger`, underlined 2 px, so the reason a card is dimmed is visible on the cost
+itself. If a card ever costs three resources and the entries run together, add a 1 px `rule` between entries, never a
+box.
 
 A dimmed (unplayable) card keeps full-contrast text, swaps the band for a 45° hatch in `ink-3` and adds its reason
 strip as a `well` plate with ⊘ and `ink` text, not a red banner.
@@ -332,8 +335,8 @@ strip as a `well` plate with ⊘ and `ink` text, not a red banner.
 `icon.xs` 12 (inline in captions) · `icon.s` 16 (in body text, in buttons) · `icon.m` 20 (card costs, tabs) ·
 `icon.l` 32 (resource bar, notifications) · `icon.xl` 48 (modal headers, era change). Icons sit on the text
 baseline when inline (`Icons.fill` already scales to the font size); in controls they're centred on the cap height.
-**A glyph beside a value window or plate takes that box's height**: the resource bar's windows are 32 px, so its
-glyphs are 32; a card's cost plate line is 22 px, so its glyphs are 20. A small glyph beside a tall box reads as an
+**A glyph beside a figure takes the figure's line height**: the resource bar's figures sit on a 28–32 px line, so its
+glyphs are 32; a card's cost line is 22 px, so its glyphs are 20. A small glyph beside a tall figure reads as an
 afterthought.
 
 ### 6.9 Alignment rules
@@ -359,8 +362,8 @@ Each component lists anatomy, then states. Detailed state-transition specs are i
 5. **Toggle** — a **legend key**: a latching push key with a lamp strip across its top and its state printed on its
    face (ON/OFF). ON latches it down and lights the strip. It reuses the button's press, so the UI has one kind of
    key, not a separate switch control. §15.4.
-6. **Resource counter** — caption with its lamp on the same line, then glyph + value in a **window** (a `well` inset
-   with a 1 px inner `rule`), forecast below.
+6. **Resource counter** — caption with its lamp on the same line, then glyph + value grouped by spacing (no box),
+   forecast below.
 7. **Card** — §6.7.
 8. **Panel / drawer** — `sheet`, square, title block, `shadow.lift` when it overlaps content, none when docked.
 9. **Tooltip** — a printed tab: `ink` fill, `sheet` text (inverse) in Night and Paper alike, `radius.0`, a 6 px
@@ -391,7 +394,7 @@ Icons are drawn on a **24 px grid with a 2 px live-area margin** (20 px live are
 | Corners | Sharp. Curves are true circular arcs only (compass-and-ruler geometry). |
 | Primitives | Circle, square, equilateral triangle, straight lines at 0°/45°/90°. No freehand. |
 | Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration, not an icon. |
-| Optical size | A solid glyph carries more weight than an outlined one, so it is drawn about 20% smaller on the grid (the unrest bolt spans 16 of the 24 units, not 20) to sit at the same visual height as its neighbours and the value window beside it. |
+| Optical size | A solid glyph carries more weight than an outlined one, so it is drawn about 20% smaller on the grid (the unrest bolt spans 16 of the 24 units, not 20) to sit at the same visual height as its neighbours and the figure beside it. |
 | Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". One standing exception: the unrest bolt is always solid, so the one harmful resource never looks like the others. |
 | Active / inactive | Active: `ink` (or its hue line), filled where the icon has a fill state. Inactive: `ink-2`, outlined. Disabled: `ink-3`, outlined, never with a strike-through unless it means "blocked" (⊘). |
 | Colour | Single colour. Icons take the colour of their text unless they *are* the key (resource glyphs). |
@@ -551,7 +554,8 @@ Motion at rest: nothing. The only animation the player sees between actions is t
 ### 11.2 Resource bar
 A row of **instrument cells**, each 160 px wide, divided by 1 px vertical `rule-fine` lines (like a Braun radio's
 dials). Each cell: `type.label-caps` caption top-left ("FOOD") with the cell's lamp at the right end of the same
-line, centred on it; glyph (32 px, the window's height) + odometer value in a recessed window; and
+line, centred on it; glyph (32 px) + odometer value, 8 px apart with no box around the figure (the odometer clips
+its digits invisibly); and
 the next-upkeep forecast in `type.caption` below (`+2 next`, sage; `−1 next`, brick with ◆ caution glyph if it would
 starve). Unrest shows as a small half-gauge against its limit instead of a number when the limit is ≤ 10.
 Hover a cell → the forecast tooltip (the existing one). A cell whose value is at a limit or dangerous lights its
@@ -562,7 +566,7 @@ A **drafting sheet / chart plotter**. Eras are horizontal bands like floors on a
 an era title block at its left. Techs are index-card tiles on the grid; prerequisites are drawn as 1 px `ink`
 orthogonal lines with 90° corners (a circuit/plot, never curves), terminating in a 4 px dot.
 - Researched: filled band in teal plane, filled glyph, lamp on.
-- Available: `sheet` tile, 2 px `ink` border, cost in a well plate; hover slides it 4 px and adds `shadow.plinth`.
+- Available: `sheet` tile, 2 px `ink` border, cost top-right as on cards; hover slides it 4 px and adds `shadow.plinth`.
 - Locked: `well` tile, `ink-3` text, prerequisite lines dashed, the ⊘ glyph with "Needs Pottery".
 - Future era: the band is covered by a **vellum overlay** (`sheet` at 88%) with the era name printed on it.
 Learning a tech: the lines from its prerequisites draw in (wipe along the path, 240 ms), the band fills, the lamp
@@ -827,12 +831,13 @@ neither the lamp colour nor the motion is needed to read it.
 
 ### 15.5 Resource counter
 Anatomy: a head line with the caption (`type.label-caps`, `ink-2`) at its left and a 12 px lamp at its right,
-vertically centred on the caption; glyph (`icon.l` 32, the window's height, resource hue line) left of a window; the
-window is `well`, 1 px inner `rule`, 2 × 6 padding (32 px tall), value in `type.numeral` `ink`, fixed width for 3
-digits; forecast caption below.
+vertically centred on the caption; glyph (`icon.l` 32, resource hue line) then, 8 px to its right, the value in
+`type.numeral` `ink`, with no box: the odometer's digit columns clip their reels invisibly. The figure is
+left-aligned against its glyph and grows rightward (a right-aligned figure would drift away from a glyph it no longer
+shares a box with); tabular figures keep each digit's width fixed. Forecast caption below.
 
 `IDLE → CHANGED(+n)`:
-1. 0 ms: delta tag "+3" appears right of the window, offset −4, 0 → 0, 0, 90 ms `snap`, colour sage (or brick "−2").
+1. 0 ms: delta tag "+3" appears right of the value, offset −4, 0 → 0, 0, 90 ms `snap`, colour sage (or brick "−2").
 2. 60 ms: changed digit columns roll; each step 60–80 ms `linear-step`; ones column first, carries roll the next
    column on the same tick (odometer). Up for gain, down for loss. Max 8 steps, then jump.
 3. Last step: the lamp pulses (on 40 ms, off 300 ms) in the resource's hue.
@@ -841,8 +846,8 @@ digits; forecast caption below.
 Reduce motion: value swaps, tag and lamp hold 1.5 s.
 
 ### 15.6 Card
-Anatomy: §6.7. 2 px border; 6 px type band; name `type.label` 600; cost plate top-right, one glyph + figure entry
-per resource (§6.7);
+Anatomy: §6.7. 2 px border; 6 px type band; name `type.label` 600; cost top-right, one glyph + figure entry per
+resource, grouped by spacing (§6.7);
 rules `type.body-s`; VP with starburst bottom-right.
 
 | Transition | Duration | Offset | Shadow | Border | Other |
@@ -922,7 +927,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Guide | Code today | Change |
 |---|---|---|
 | Colour tokens | `ui/palette.gd` (`Palette`), semantic names already | Replace values with the Night set; rename toward the guide's roles (`BACKGROUND`→board, `RAISED`→sheet, `FIELD`→well, `CONTROL`→steel, `ACCENT`→signal, `GAIN`→positive…). Paper mode becomes a second const set behind a setting — `Palette`'s doc comment already anticipates "a later light theme". |
-| Type scale, buttons, panels | `ui/game_theme.gd` (`GameTheme`): `Heading`, `Title`, `Stat`, `BarStat`, `DarkPanel`, `AccentButton` | Add the fonts and a `tnum` `FontVariation`; set the scale; `_box`: radius 6 → 2, add `shadow_offset` (2,2), `shadow_size` 1, pressed box with no shadow and `content_margin` shifted 2 px to fake travel (Godot styleboxes can't translate, so pressed = shadow removed + content offset; real travel needs `ActionButton`-style `position` tweens). `dark_panel` radius 24 → 0. Add `TitleBlock`, `Lamp`, `Window` variations. |
+| Type scale, buttons, panels | `ui/game_theme.gd` (`GameTheme`): `Heading`, `Title`, `Stat`, `BarStat`, `DarkPanel`, `AccentButton` | Add the fonts and a `tnum` `FontVariation`; set the scale; `_box`: radius 6 → 2, add `shadow_offset` (2,2), `shadow_size` 1, pressed box with no shadow and `content_margin` shifted 2 px to fake travel (Godot styleboxes can't translate, so pressed = shadow removed + content offset; real travel needs `ActionButton`-style `position` tweens). `dark_panel` radius 24 → 0. Add `TitleBlock` and `Lamp` variations. |
 | Motion tokens | `ui/anim.gd` (`Anim`): durations and sharpness | Add the duration and travel tokens; set `HOVER_SCALE`/`DRAG_SCALE` 1.0, `HOVER_LIFT` 4, `MAX_TILT` 3°; replace `LAND_SQUASH` with a 60 ms snap; `PULSE_SCALE` → lamp pulse. |
 | Easing | `TRANS_BACK` in `card_motion.gd`, `ui_kit.gd`, `territory_view.gd` | `TRANS_QUART`/`EASE_OUT` (machined), `TRANS_EXPO`/`EASE_OUT` (snap). `ease.latch`/`settle` via `PropertyTweener.set_custom_interpolator` with a cubic-bezier helper in `Anim`. |
 | Counters | `TopBar` stats + `UIKit.float_token` (126) | An `OdometerLabel` control (a clip `Control` with one digit strip per column) and a `DeltaTag`; tokens stop flying. |
