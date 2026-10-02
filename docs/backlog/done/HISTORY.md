@@ -114,5 +114,9 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 104. 182 the legend key for Reduce motion
 105. 181 odometer counters and +N tags
 106. 183 Day mode: the Paper palette, switched at once
+107. 192 Palette roles can't be misspelt or frozen (design-system review, for LLM use)
+108. 193 spacing and corner radius from the guide's scales (`Tokens`)
+109. 195 Day mode saved at launch; the suite runs on a fresh settings store
+110. 194 text sizes from the guide's type scale (`Tokens.TYPE_*`, theme variations)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
