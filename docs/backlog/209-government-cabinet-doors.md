@@ -2,7 +2,7 @@
 id: 209
 title: The government choice opens behind cabinet doors
 type: feature
-status: ready
+status: red-review
 branch: feat/209-government-cabinet-doors
 ---
 
@@ -32,6 +32,13 @@ Choosing a government after Anarchy is a moment: two steel doors slide shut over
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_cabinet_doors::test_the_doors_close_then_part_on_the_government_choice` (edges at 0, met at 0.20 s, overlay shown and parted by 0.52 s; the sounds at 0.20 and 0.26 s, ±0.06 s of real time) |
+| AC2 | `test_keys_and_clicks_do_not_reach_the_board_while_the_doors_move` (E and T ignored; the doors a full-window click stop) |
+| AC3 | `test_choosing_closes_the_doors_then_parts_them_on_the_realm` |
+| AC4 | `test_with_reduce_motion_the_overlay_fades_with_no_doors` |
+| AC5 | `test_the_doors_play_once_however_often_the_board_refreshes`, `test_a_restart_while_the_choice_is_owed_shows_it_once` |
+
+New hooks: `main.doors` (`left`, `right`, `moving()`) and `ChoiceOverlays.government` (the overlay, public).
 
 ## Manual check
 - [ ] Revolt, play through Anarchy to its end: the doors close, part, and close/part again after choosing; compare
