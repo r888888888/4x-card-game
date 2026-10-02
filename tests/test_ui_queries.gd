@@ -253,3 +253,15 @@ func test_hand_limit_and_research_on_are_engine_queries() -> void:
 	eq(limited.research_on(), false, "no research deck")
 	var researching := tech_engine(["pottery"])
 	eq(researching.research_on(), true, "a research deck")
+
+
+# --- 176 AC3: the zone a card is in ---
+
+func test_zone_of_names_the_zone_holding_a_card() -> void:
+	var e := make_engine({"farm": 10})
+	var farm := first_in_hand(e)
+	eq(e.zone_of(farm), "hand", "a hand card")
+	eq(e.zone_of(home_uid(e)), "tableau", "the home territory")
+	var gone := put_in(e, "farm", "trashed")
+	eq(e.zone_of(gone), "trashed", "a trashed card")
+	eq(e.zone_of(9999), "", "an unknown uid")

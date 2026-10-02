@@ -1,12 +1,9 @@
 class_name MainScreen
 extends Control
-## Main game screen. The layout is built in code so the prototype is easy to
-## change. It holds no game state: it renders Game.engine and forwards player actions.
+## Main game screen. It holds no game state: it renders Game.engine and forwards player actions.
 ##
-## Card views stay alive between refreshes (views, keyed by uid), so they can animate from where
-## they were to where the engine now says they are. Cards in motion live on fx, a layer above the
-## board; at rest they sit in slot Controls inside the hand, the Realm's row (events, frontier, territories) and the
-## choice containers.
+## BoardLayout builds the layout in code; BoardViews keeps the card views (views, keyed by uid) in line with the engine
+## (176). Cards in motion live on fx, a layer above the board.
 ## The components: TopBar, TableauView, ChoiceOverlays, SupplyScreen, GameMenu, the modals (CardDetailsModal,
 ## TechTreeModal, EventModal, IdentityModal, stacked on a ModalStack, modals), StartScreen, NewGameScreen, SettingsScreen (opened and closed through the Navigator, nav), DragController
 ## (dragging and targeting) and CardFocus (the keyboard focus on the cards).
@@ -14,7 +11,8 @@ extends Control
 ## Menu Exit calls this. Tests swap it so pressing Exit doesn't end the test run.
 var quit_hook := func(): get_tree().quit()
 
-var views := {}  # uid -> CardView
+var views: Dictionary:  # uid -> CardView, kept by BoardViews
+	get: return _views.views
 var fx: Control  # effects layer: flying, dragged and leaving cards, resource tokens, errors
 var tableau: TableauView
 var hand: HBoxContainer
@@ -36,7 +34,8 @@ var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log butt
 var toasts: Toasts  # notices and the targeting hint under the top bar (116)
 var identity_modal: IdentityModal  # the civilization and government, from the top bar's button (119)
 
-var _board: Control  # the top bar and the body (play area and side panel)
+var _views: BoardViews  # syncs the card views with the engine (176)
+var _board: Control  # the top bar and the play area
 var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
@@ -46,10 +45,8 @@ var _restore: ActionButton  # beside it while Anarchy rules and order can be bou
 var _revolt: ActionButton  # beside them while a revolutionary event is active (148)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
-var _outcome := {}  # the last card_played outcome: the next _refresh flies the played card to where it was played
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
 var _event_modal: EventModal
-var _quiet := false  # refreshing after a navigation: cards appear and go at once, with no pop or flight (105)
 
 
 func _ready() -> void:
@@ -105,7 +102,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	modals.close_all()  # an old game's event, details or tree
 	_drawn = {}
 	territory_view.reset()
-	_reset_views()
+	_views.reset()
 	_top_bar.reset_counters()  # a new game's counters float nothing (126)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
@@ -156,14 +153,13 @@ func _leave_game() -> void:
 	nav.clear()
 	supply.close()
 	modals.close_all()
-	_reset_views()
+	_views.reset()
 	choices.refresh(null)
 	_game_over.overlay.hide()
 	_board.hide()
 
 
-
-## Test hook (063): whether the board (top bar, play area, side panel) is showing.
+## Test hook (063): whether the board (top bar and play area) is showing.
 func board_shown() -> bool:
 	return _board.visible
 
@@ -268,7 +264,7 @@ func try_play(view: CardView, target_uid := -1) -> void:
 
 
 ## A single click on a board card: a Realm territory opens its view (101), anything else shows its details.
-func _on_clicked(view: CardView) -> void:
+func on_clicked(view: CardView) -> void:
 	if not territory_view.is_open() and TerritoryView.is_territory(Game.engine, view.uid):
 		territory_view.open(view.uid)
 	else:
@@ -321,12 +317,13 @@ func on_picked(view: CardView) -> void:
 	var e := Game.engine
 	var error: Callable = e.choose_error
 	var action: Callable = e.choose
-	if e.zone("governments").find(view.uid) != null:
-		error = e.choose_government_error
-		action = e.choose_government
-	elif e.zone("discard").find(view.uid) != null:
-		error = e.renew_error
-		action = e.renew
+	match e.zone_of(view.uid):
+		"governments":
+			error = e.choose_government_error
+			action = e.choose_government
+		"discard":
+			error = e.renew_error
+			action = e.renew
 	var refused: String = error.call(view.uid)
 	if refused != "":
 		_refuse(view, refused)
@@ -334,7 +331,8 @@ func on_picked(view: CardView) -> void:
 		action.call(view.uid)
 
 
-func _on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
+## A hand card asks to be dragged: it is, unless a drag is on or hand cards can't be picked up now (175).
+func on_drag_requested(view: CardView, grab_offset: Vector2) -> void:
 	if drag.targeting != null:
 		drag.end_targeting()
 	if drag.dragging == null and Game.engine.hand_input_error() == "":
@@ -386,50 +384,17 @@ func _on_gui_focus_changed(control: Control) -> void:
 # --- Rendering ---
 
 func _on_card_played(outcome: Dictionary) -> void:
-	_outcome = outcome
+	_views.outcome = outcome
 
 
-## Brings the views in line with the engine: new cards are dealt in from the deck or pop into place,
-## cards that changed zone fly to their new place, and cards that left fly towards where they went.
+## Brings the screen in line with the engine: the top bar, the card views (BoardViews.sync), the overlays and buttons.
 func _refresh() -> void:
 	var e := Game.engine
 	territory_view.close_if_stale(e)
 	_top_bar.refresh(e, fx, supply.is_open())
 	actions_label.visible = e.actions_per_turn() >= 0
 	UIKit.set_stat(actions_label, "Actions: %d / %d" % [e.actions_left(), e.actions_per_turn()])
-	var hand_cards := e.zone("hand").cards
-	var rows := {"reveal": choices.reveal}
-	if pending_kind() == GameEngine.PENDING_RENEWAL:
-		rows["discard"] = choices.renewal_row  # the discard pile, to trash from (147)
-	rows["governments"] = choices.government_row  # the government deck, shown while one is to be chosen (154)
-	var viewed := territory_view.card_uids()  # these rest in the territory view instead of the Realm
-	var shown := {}
-	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():
-		for card in e.zone(zone_name).cards:
-			shown[card.uid] = true
-	for uid in TableauView.realm_uids(e) + viewed:  # a city or building shows only in its territory's view (102)
-		shown[uid] = true
-	for uid in views.keys():
-		if not shown.has(uid):
-			_remove_view(uid, _quiet)
-	var dealt := 0
-	for i in hand_cards.size():
-		if _place(hand_cards[i], hand, i, 0.0 if UIKit.calm() else dealt * Anim.DEAL_STAGGER):
-			dealt += 1
-	var place := func(card: CardInstance, row: Container, index: int): _place(card, row, index, 0.0)
-	tableau.refresh(e, place, viewed)
-	territory_view.refresh(e, place)
-	for group in e.territory_groups():
-		if views.has(group.territory):
-			var t: int = group.territory
-			views[t].show_settled(CardFace.keyword_line(e.zone("tableau").find(t)), TerritoryView.stats(e, t), e.territory_tooltip(t))
-	for zone_name in rows:
-		var cards := e.zone(zone_name).cards
-		for i in cards.size():
-			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
-			_place(card, rows[zone_name], i, 0.0)
-	for card in e.zone("active_events").cards:
-		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
+	_views.sync(e)
 	choices.refresh(e)
 	log_drawer.refresh(e)
 	_relief.refresh(e)
@@ -437,7 +402,6 @@ func _refresh() -> void:
 	_revolt.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
-	_outcome = {}
 	focus.sync()
 	_game_over.refresh(e)
 	if not _drawn.is_empty():
@@ -446,245 +410,30 @@ func _refresh() -> void:
 		_drawn = {}
 
 
-## Makes sure card has a view resting in (or flying to) a slot at index in container.
-## Returns true if the card was newly dealt into the hand.
-func _place(card: CardInstance, container: Container, index: int, delay: float) -> bool:
-	var e := Game.engine
-	var in_hand := container == hand
-	var error := e.playable_error(card.uid) if in_hand else ""
-	var leading := TableauView.leading_zone(e, card.uid) if container == tableau.row else ""
-	var kind := TableauView.board_kind(leading) if container == tableau.row else ""  # 138: a fixed-height board face
-	var view: CardView = views.get(card.uid)
-	if view == null:
-		view = CardView.new()
-		view.setup(card, e.card_db, in_hand, error, kind)
-		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
-		if leading != "":
-			view.set_hint(TableauView.LEADING_ZONES[leading])
-		view.drag_requested.connect(_on_drag_requested)
-		view.double_clicked.connect(on_double_clicked)
-		view.discard_requested.connect(discard)
-		view.picked.connect(on_picked)
-		view.details_requested.connect(_on_clicked)
-		views[card.uid] = view
-		var slot := _new_slot(view, container, index)
-		if in_hand:
-			view.deal(slot, fx, _top_bar.pile_point(), delay)
-		elif _quiet:
-			view.attach(slot)
-		else:
-			view.pop_in(slot)
-		return in_hand
-	if view.slot.get_parent() != container:
-		if view == drag.dragging:
-			drag.end_drag()
-		var old_slot := view.slot
-		view.setup(card, e.card_db, in_hand, error, kind)
-		view.set_pickable(choices.is_choice_row(container), choices.pick_hint(container))
-		if leading != "":
-			view.set_hint(TableauView.LEADING_ZONES[leading])
-		view.fly_to_slot(_new_slot(view, container, index), fx)
-		_free_slot(old_slot)
-		return false
-	container.move_child(view.slot, index)
-	if not in_hand and view.board_kind != kind:  # a frontier territory settled: same row, settled face
-		view.setup(card, e.card_db, in_hand, error, kind)
-		view.slot.custom_minimum_size = view.slot_size()
-	if in_hand:
-		view.set_play_error(error)
-	elif leading != "":
-		view.set_hint(TableauView.LEADING_ZONES[leading])
-	else:
-		view.set_idle(e.is_idle(card.uid))
-	return false
-
-
-## The card is no longer shown: it flies towards the zone it went to and fades (popping first if it
-## was just played, so the player sees it resolve).
-func _remove_view(uid: int, at_once := false) -> void:
-	var view: CardView = views[uid]
-	views.erase(uid)
-	if view == drag.dragging:
-		drag.end_drag()
-	if view == drag.targeting:
-		drag.end_targeting()
-	var old_slot := view.slot
-	if at_once:
-		_free_slot(old_slot)
-		view.queue_free()
-		return
-	var just_played: bool = not _outcome.is_empty() and _outcome.uid == uid
-	var via: Variant = null
-	if just_played and views.has(_outcome.target):  # fly to where it was played, e.g. the settled territory
-		via = (views[_outcome.target] as CardView).get_global_rect().get_center()
-	var trashed := Game.engine.zone("trashed").find(uid) != null
-	var point := _leave_point(uid, view)
-	var pulse := UIKit.pulse.bind(_top_bar.log_button) if point == _top_bar.pile_point() else Callable()
-	view.leave(fx, point, just_played or trashed, via, pulse)  # the Log button pulses as a card reaches the piles (121)
-	_free_slot(old_slot)
-
-
-## Where a card that left the board flies: the Log button for the deck or discard (121) and for an ended event, for a
-## territory put back in the territory deck the edge of the choice panel, or up off the table for a trashed card.
-func _leave_point(uid: int, view: CardView) -> Vector2:
-	var e := Game.engine
-	var card := e.zone("tableau").find(uid)
-	if card != null and views.has(card.territory_uid):  # a city or building goes onto its territory's card (102)
-		return views[card.territory_uid].get_global_rect().get_center()
-	if e.zone("trashed").find(uid) != null:
-		return view.get_global_rect().get_center() - Vector2(0, view.size.y)
-	if e.zone("territory_deck").find(uid) != null:
-		return choices.explore_exit_point()
-	if e.zone("deck").find(uid) != null:
-		return _top_bar.pile_point()
-	if e.zone("government").find(uid) != null:
-		return _top_bar.identity_point()
-	return _top_bar.pile_point()
-
-
-## A slot for view at index in container, already the size view rests at, so the row doesn't change height
-## when a flying card lands (075).
-func _new_slot(view: CardView, container: Container, index: int) -> Control:
-	var slot := Control.new()
-	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	slot.custom_minimum_size = view.slot_size()
-	container.add_child(slot)
-	container.move_child(slot, index)
-	return slot
-
-
-## Removes a slot now (so the container relayouts this frame) and frees it.
-func _free_slot(slot: Control) -> void:
-	if is_instance_valid(slot):
-		slot.get_parent().remove_child(slot)
-		slot.queue_free()
-
-
-## Drops every view without animating (new game or restart).
-func _reset_views() -> void:
-	if drag.dragging != null:
-		drag.end_drag()
-	drag.end_targeting()
-	for uid in views:
-		var view: CardView = views[uid]
-		_free_slot(view.slot)
-		view.queue_free()
-	views.clear()
-	focus.focused = null
-	_outcome = {}
-	for child in fx.get_children():
-		if not drag.owns(child):
-			child.queue_free()
-
-
 # --- Layout ---
 
+## The theme and background, then the board and components (BoardLayout) and the view syncing (BoardViews, 176).
 func _build_layout() -> void:
 	theme = GameTheme.build()
-
 	var bg := ColorRect.new()
 	bg.color = Palette.BACKGROUND
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 18)
-	add_child(margin)
-	_board = margin
-
-	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 12)
-	margin.add_child(root)
-	_top_bar = TopBar.new(open_menu, func(): tech_tree.open(), func(): identity_modal.open(), func(): log_drawer.toggle())
-	root.add_child(_top_bar)
-
-	_play_area = VBoxContainer.new()  # the whole width below the top bar (115)
-	_play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	root.add_child(_play_area)
-
-	var realm_section := UIKit.section(_play_area, "Realm")
-	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tableau = TableauView.new()
-	realm_section.add_child(tableau)
-	territory_view = TerritoryView.new(self, realm_section)
+	var layout := BoardLayout.new(self, _restart, _close_menu, _push_new_game_screen)
+	_board = layout.board
+	_top_bar = layout.top_bar
+	_play_area = layout.play_area
+	_relief = layout.relief
+	_restore = layout.restore
+	_revolt = layout.revolt
+	_menu = layout.menu
+	_game_over = layout.game_over
+	_event_modal = layout.event_modal
+	_views = BoardViews.new(self, _top_bar)
 	territory_view.navigated.connect(func():  # the view carries its cards as it grows or shrinks (105)
-		_quiet = true
+		_views.quiet = true
 		_refresh()
-		_quiet = false)
-	var relief_row := HBoxContainer.new()  # Relieve famine, Restore order (146) and Revolt (148), each when it applies
-	realm_section.add_child(relief_row)
-	_relief = ActionButton.relieve_famine(relief_row)
-	_restore = ActionButton.restore_order(relief_row)
-	_revolt = ActionButton.revolt(relief_row)
-
-	var hand_section := UIKit.section(_play_area, "Hand — drag a card into the realm, double-click it, or ←/→ then Enter. Right-click or D discards.")
-	var hand_heading := HBoxContainer.new()  # the heading, then the actions counter (127)
-	hand_heading.add_theme_constant_override("separation", 24)
-	hand_section.get_child(0).reparent(hand_heading)
-	actions_label = UIKit.stat(hand_heading)
-	actions_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	actions_label.tooltip_text = "Playing a card from your hand uses 1 action. Your government sets how many you get each turn."
-	hand_section.add_child(hand_heading)
-	hand_section.move_child(hand_heading, 0)
-	hand_scroll = ScrollContainer.new()
-	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
-	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	hand_section.add_child(hand_scroll)
-	var hand_pad := MarginContainer.new()
-	hand_pad.add_theme_constant_override("margin_left", int(Anim.HAND_SIDE_ROOM))
-	hand_pad.add_theme_constant_override("margin_right", int(Anim.HAND_SIDE_ROOM))
-	hand_scroll.add_child(hand_pad)
-	hand = HBoxContainer.new()
-	hand.add_theme_constant_override("separation", 12)
-	hand_pad.add_child(hand)
-
-	# Effects layer, above the board and below the overlays.
-	fx = Control.new()
-	fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(fx)
-	drag = DragController.new(self)
-	focus = CardFocus.new(self)
-	choices = ChoiceOverlays.new(self)
-	supply = SupplyScreen.new(self, open_supply)
-	supply.refused.connect(func(message: String): log_note("[color=#e88]%s[/color]" % message))
-	supply.closed.connect(func(): focus.clear())
-	_top_bar.add_supply_button(supply.button)
-	log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
-	add_child(log_drawer)
-	log_drawer.unread_changed.connect(_top_bar.set_log_unread)
-	toasts = Toasts.new(_top_bar, func(): return _menu.is_open() or nav.depth() > 0 or modals.is_open())
-	add_child(toasts)
-
-	_game_over = GameOverOverlay.new(self, func(): _restart(Game.engine.seed_value), func(): _restart(-1))
-
-	_menu = GameMenu.new(self)
-	_menu.start_requested.connect(func(seed_value: int):
-		_close_menu(false)
-		_restart(seed_value))
-	_menu.new_game_requested.connect(func():
-		_close_menu(false)
-		show_new_game_screen())
-	_menu.close_requested.connect(_close_menu)
-	_menu.exit_requested.connect(func(): quit_hook.call())
-	modals = ModalStack.new(self)
-	details = CardDetailsModal.new(modals)
-	tech_tree = TechTreeModal.new(modals, details.open_def)
-	_event_modal = EventModal.new(modals)
-	identity_modal = IdentityModal.new(modals)
-	start_screen = StartScreen.new(self)
-	start_screen.new_game_requested.connect(_push_new_game_screen)
-	start_screen.settings_requested.connect(func():
-		nav.push(settings_screen.overlay, settings_screen.back_button, "Settings"))
-	start_screen.exit_requested.connect(func(): quit_hook.call())
-	nav.animated = true
-	new_game_screen = NewGameScreen.new(self, nav, details.open)
-	new_game_screen.start_requested.connect(func(seed_value: int): start_game(seed_value, new_game_screen.selected))
-	settings_screen = SettingsScreen.new(self, nav)
+		_views.quiet = false)
 	_apply_motion_setting()
 	Settings.changed.connect(_apply_motion_setting)
 

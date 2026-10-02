@@ -20,6 +20,8 @@ const COMPONENTS := {
 	"res://ui/palette.gd": "Palette",
 	"res://ui/game_theme.gd": "GameTheme",
 	"res://ui/action_button.gd": "ActionButton",  # 175: Relieve famine, Restore order and Revolt
+	"res://ui/board_views.gd": "BoardViews",  # 176: syncing card views with the engine
+	"res://ui/board_layout.gd": "BoardLayout",  # 176: building the board's layout
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.
@@ -132,3 +134,19 @@ func test_the_board_action_buttons_share_one_class() -> void:
 
 func test_main_asks_the_engine_whether_a_hand_card_can_be_picked_up() -> void:
 	check(source(MAIN_PATH).contains("hand_input_error()"), "main.gd asks hand_input_error")
+
+
+# --- Backlog 176: main.gd split along the view-sync and layout boundaries ---
+
+## The soft script-size limit (test_script_size.gd): past it the suite prints a WARN line.
+const SOFT_LIMIT := 500
+
+
+func test_main_is_under_the_soft_limit() -> void:
+	var lines := source(MAIN_PATH).count("\n")  # as wc -l counts, like tests/lib/script_sizes.gd
+	check(lines <= SOFT_LIMIT, "ui/main.gd: %d lines (soft limit %d)" % [lines, SOFT_LIMIT])
+
+
+func test_the_ui_asks_the_engine_which_zone_holds_a_card() -> void:
+	check(source("res://ui/tableau_view.gd").contains("zone_of("), "TableauView.leading_zone uses zone_of")
+	check(source("res://ui/board_views.gd").contains("zone_of("), "the leave point uses zone_of")
