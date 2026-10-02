@@ -20,7 +20,9 @@ signal changed
 signal logged(message: String)
 ## Emitted after logged for a notable line the player should see even with the log closed (116): a famine arriving,
 ## ending, saving pop or relieved, a tech lost, a pile unlocked, an era's techs or events added, an event ending.
-signal noticed(message: String)
+## priority (190): NOTICE_URGENT for a famine striking, a revolution or Anarchy beginning; NOTICE_CAUTION for a loss
+## averted or unrest an era adds; NOTICE_INFO for everything else.
+signal noticed(message: String, priority: StringName)
 signal game_over(final_score: int)
 ## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, lost, vp, drawn, created};
 ## target is the uid the card was played on (-1 if none), paid and gained map resource -> amount,
@@ -276,10 +278,10 @@ func _log(message: String) -> void:
 	logged.emit(message)
 
 
-## Logs a notable message, then emits noticed with it (116).
-func _notice(message: String) -> void:
+## Logs a notable message, then emits noticed with it and its priority (116, 190).
+func _notice(message: String, priority := NOTICE_INFO) -> void:
 	_log(message)
-	noticed.emit(message)
+	noticed.emit(message, priority)
 
 
 ## Called whenever unrest drops (set_unrest, lose); GameEngine lets a ruling Anarchy shorten (155).
