@@ -25,7 +25,7 @@ func _init(top_bar: Control, covered: Callable) -> void:
 	z_index = 5  # above the board and flying cards, below the log drawer
 	_column = VBoxContainer.new()
 	_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_column.add_theme_constant_override("separation", 8)
+	_column.add_theme_constant_override("separation", Tokens.SPACE_2)
 	add_child(_column)
 
 

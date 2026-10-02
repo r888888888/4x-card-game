@@ -31,7 +31,7 @@ func _init(parent: Control) -> void:
 	box.custom_minimum_size.x = 320
 	box.add_child(UIKit.title("Menu"))
 	var seed_row := HBoxContainer.new()
-	seed_row.add_theme_constant_override("separation", 10)
+	seed_row.add_theme_constant_override("separation", Tokens.SPACE_3)
 	box.add_child(seed_row)
 	var seed_label := Label.new()
 	seed_label.text = "Seed"

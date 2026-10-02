@@ -16,7 +16,7 @@ var _names: Array[String] = []  # the names shown, top to bottom
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", Tokens.SPACE_4)
 	panel.add_child(column)
 	_body = RichTextLabel.new()
 	_body.bbcode_enabled = true

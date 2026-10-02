@@ -30,14 +30,14 @@ func _init(parent: Control, nav: Navigator, on_details: Callable) -> void:
 	box.add_child(header)
 	back_button = header.back_button
 	var pad := MarginContainer.new()  # room above the cards for their hover lift
-	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + 8)
+	pad.add_theme_constant_override("margin_top", int(Anim.HOVER_LIFT) + Tokens.SPACE_2)
 	box.add_child(pad)
 	_civ_row = HBoxContainer.new()
 	_civ_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
 	_civ_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	pad.add_child(_civ_row)
 	var seed_row := HBoxContainer.new()
-	seed_row.add_theme_constant_override("separation", 10)
+	seed_row.add_theme_constant_override("separation", Tokens.SPACE_3)
 	box.add_child(seed_row)
 	var seed_label := Label.new()
 	seed_label.text = "Seed"

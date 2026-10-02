@@ -21,7 +21,7 @@ func _init(board: MainScreen) -> void:
 	_board = board
 	_drop_style = StyleBoxFlat.new()
 	_drop_style.set_border_width_all(3)
-	_drop_style.set_corner_radius_all(10)
+	_drop_style.set_corner_radius_all(Tokens.RADIUS_0)
 	_drop_highlight = Panel.new()
 	_drop_highlight.add_theme_stylebox_override("panel", _drop_style)
 	_drop_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -31,8 +31,8 @@ func _init(board: MainScreen) -> void:
 	_hint = PanelContainer.new()
 	var hint_style := StyleBoxFlat.new()
 	hint_style.set_border_width_all(1)
-	hint_style.set_corner_radius_all(6)
-	hint_style.set_content_margin_all(8)
+	hint_style.set_corner_radius_all(Tokens.RADIUS_0)
+	hint_style.set_content_margin_all(Tokens.SPACE_2)
 	_hint.add_theme_stylebox_override("panel", hint_style)
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint.z_index = 3  # above the dragged card

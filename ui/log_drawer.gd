@@ -36,7 +36,7 @@ func _init() -> void:
 	_log.add_theme_font_size_override("bold_font_size", 20)
 	box.add_child(_log)
 	UIKit.painted(self, func():
-		add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, 12))
+		add_theme_stylebox_override("panel", UIKit.panel_style(Palette.PANEL, Palette.FAINT_EDGE, Tokens.SPACE_3))
 		_piles.add_theme_color_override("font_color", Palette.PILES)
 		_log.add_theme_color_override("default_color", Palette.LOG_TEXT))
 	hide()

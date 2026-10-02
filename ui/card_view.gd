@@ -103,7 +103,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_style = StyleBoxFlat.new()
 		_style.set_border_width_all(2)
 		_style.set_corner_radius_all(0)  # an index card, cut square (179)
-		_style.set_content_margin_all(12)
+		_style.set_content_margin_all(Tokens.SPACE_3)
 		_style.anti_aliasing = false  # a hard shadow and a crisp rule
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))

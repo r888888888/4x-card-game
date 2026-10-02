@@ -24,7 +24,7 @@ var _fresh := true  # a new game's first refresh shows its values at once, with 
 
 ## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
 func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
-	add_theme_constant_override("separation", 12)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
+	add_theme_constant_override("separation", Tokens.SPACE_3)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
 	_turn_label = UIKit.stat(self)
 	_turn_label.theme_type_variation = &"BarStat"
 	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, SCORE, POP]:

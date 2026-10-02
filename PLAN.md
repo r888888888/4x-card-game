@@ -87,7 +87,8 @@ res://
                          # new_game_screen.gd (099: civilization cards, seed, Start), settings_screen.gd (099)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
-                         # code, with Heading/Title/Stat/DarkPanel variations)
+                         # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193: the guide's spacing and
+                         # corner radius scales, Tokens.SPACE_* and RADIUS_*)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
