@@ -8,11 +8,14 @@ extends Modal
 signal start_requested(seed_value: int)
 ## New game: to the new game screen (099).
 signal new_game_requested
-## The menu closed (Close, Esc, a click outside, or the board closing it): the board gives the focus back.
-signal close_requested
+## The menu closed (Close, Esc, a click outside, or the board's dismiss): give_back says whether the focus goes back,
+## to card (the one that had it when the menu opened) or, for null, the Menu button.
+signal closed_giving_back(card: CardView, give_back: bool)
 signal exit_requested
 
 var _seed_edit: LineEdit
+var _return_to: CardView  # the card that had the focus when the menu opened
+var _give_back := true  # whether closing gives the focus back (not for Restart or New game)
 var _civ_label: Label  # "Playing as <civilization>", hidden when the game has none (064)
 var motion_toggle: LegendKey  # Reduce motion, in its row (182)
 var day_toggle: LegendKey  # Day mode, in its row under it (183)
@@ -67,16 +70,27 @@ func set_game(seed_value: int, civ_name: String) -> void:
 	_civ_label.visible = civ_name != ""
 
 
-## Shows the menu with the seed field focused and holding seed_value.
-func open(seed_value: int) -> void:
+## Shows the menu with the seed field focused and holding seed_value; return_to gets the focus back when it closes.
+func open(seed_value: int, return_to: CardView) -> void:
+	_return_to = return_to
 	set_seed(seed_value)
 	present()
 	_seed_edit.grab_focus()
 	_seed_edit.select_all()
 
 
+## Closes it; give_back false: the focus goes nowhere (the board is restarting or leaving).
+func dismiss(give_back: bool) -> void:
+	_give_back = give_back
+	close()
+
+
 func closed() -> void:
-	close_requested.emit()
+	var card := _return_to
+	var give_back := _give_back
+	_return_to = null
+	_give_back = true
+	closed_giving_back.emit(card, give_back)
 
 
 ## Restart: the seed in the field, or a random one if it isn't a whole number.
