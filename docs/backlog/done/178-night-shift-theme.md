@@ -2,7 +2,7 @@
 id: 178
 title: Night shift palette, typefaces and machined controls
 type: feature
-status: review
+status: done
 branch: feat/178-night-shift-theme
 ---
 
