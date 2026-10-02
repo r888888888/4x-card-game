@@ -31,7 +31,7 @@
 	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
 	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
 	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
-	--knob: #FBF8F2; --on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
 }
 :root[data-theme="night"] {
 	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
@@ -40,7 +40,7 @@
 	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
 	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
 	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
-	--knob: #57524A; --on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
 }
 /* Reduce motion (§9.5): moves become instant; fades stay at 120 ms. */
 :root[data-calm="true"] {
@@ -149,26 +149,22 @@ section { margin-bottom: var(--space-7); }
 .tabpanel p { margin: 0; animation: tab-in var(--d-quick) var(--ease-machined); }
 @keyframes tab-in { from { opacity: 0; transform: translateX(var(--from, 12px)); } }
 
-/* ---- Toggle rocker (§15.4) ---- */
+/* ---- Toggle: the legend key (§15.4) ----
+   A push key that latches. It stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays latched
+   2 px down with its shadow hidden and its lamp strip lit; released OFF it springs back. Its legend prints the state. */
 .toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 17px var(--f-cond); }
-/* A slide switch on an enamelled plate: printed 0 / 1 marks, a recessed slot, a ribbed thumb on a hard shadow.
-   ON slides the thumb right and uncovers the lit flag in the slot; the active mark prints in ink. */
-.switch { display: block; width: 76px; height: 32px; overflow: visible; }
-.switch .sw-plate { fill: var(--steel); stroke: var(--ink); stroke-width: 1.5; }
-.switch .sw-slot { fill: var(--well); stroke: var(--ink); stroke-width: 1; }
-.switch .sw-recess { fill: var(--shadow); opacity: 0.35; }
-.switch .sw-flag { fill: var(--p-sage); }
-.switch .sw-flag-edge { stroke: var(--l-sage); stroke-width: 1; fill: none; }
-.switch .sw-mark { stroke: var(--ink-3); stroke-width: 1.5; fill: none; transition: stroke var(--d-quick) linear; }
-.switch .sw-thumb { transform: translateX(0); transition: transform var(--d-toggle) var(--ease-latch); }
-.switch .sw-face { transition: transform var(--d-quick) var(--ease-machined); }
-.switch .sw-knob { fill: var(--knob); stroke: var(--ink); stroke-width: 1.25; }
-.switch .sw-ridge { stroke: var(--ink-2); stroke-width: 1.25; }
-.switch .sw-thumb-shadow { fill: var(--shadow); }
-.toggle[aria-checked="true"] .switch .sw-thumb { transform: translateX(17px); }
-.toggle[aria-checked="false"] .switch .sw-mark-off, .toggle[aria-checked="true"] .switch .sw-mark-on { stroke: var(--ink); stroke-width: 2; }
-.toggle:active .switch .sw-face { transform: translate(2px, 2px); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
-.state { width: 28px; text-align: left; }
+.lkey {
+	display: inline-grid; grid-template-rows: 6px 1fr; gap: 3px; flex: none; width: 56px; height: 36px; padding: 4px;
+	background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1);
+	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined);
+}
+.toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.toggle:active .lkey { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ease-lamp-off), box-shadow 160ms var(--ease-lamp-off); }
+.toggle.lit .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+.lkey-legend { display: grid; place-items: center; font: 600 12px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
+.toggle.lit .lkey-legend { color: var(--ink); }
 
 /* ---- Resource bar: instrument cells with odometers (§11.2, §15.5) ---- */
 .bar { display: flex; flex-wrap: wrap; background: var(--sheet); border: 2px solid var(--ink); }
@@ -336,11 +332,11 @@ section { margin-bottom: var(--space-7); }
 
 <header class="strip">
 	<h1>Civic Planning Desk</h1>
-	<button class="toggle" id="theme-toggle" role="switch" aria-checked="true">
-		<span>Night shift</span><span class="switch-slot"></span><span class="state caps">ON</span>
+	<button class="toggle lit" id="theme-toggle" role="switch" aria-checked="true">
+		<span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span>
 	</button>
 	<button class="toggle" id="calm-toggle" role="switch" aria-checked="false">
-		<span>Reduce motion</span><span class="switch-slot"></span><span class="state caps">OFF</span>
+		<span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span>
 	</button>
 </header>
 
@@ -365,7 +361,7 @@ section { margin-bottom: var(--space-7); }
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, rocker</span></div>
+		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, legend key</span></div>
 		<div class="row" style="align-items:center">
 			<button class="btn primary">Confirm</button>
 			<button class="btn">Buy cards</button>
@@ -387,7 +383,7 @@ section { margin-bottom: var(--space-7); }
 
 		<div class="row" style="margin-top:var(--space-6); align-items:center">
 			<button class="toggle demo-toggle" role="switch" aria-checked="false">
-				<span>Show forecasts</span><span class="switch-slot"></span><span class="state caps">OFF</span>
+				<span>Show forecasts</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span>
 			</button>
 		</div>
 	</section>
@@ -464,7 +460,7 @@ const GLYPHS = {
 	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',  // cash coin
 	insight: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',  // lamp
 	pop: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>',
-	unrest: '<path d="M13 2L5 13h6l-1 9 8-11h-6z" fill="currentColor"/>',  // solid lightning bolt
+	unrest: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',  // solid lightning bolt
 	score: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
 	blocked: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',
 };
@@ -475,33 +471,14 @@ const SWATCHES = [["board", "Board"], ["sheet", "Sheet"], ["well", "Well"], ["st
 	["signal", "Signal"], ["p-teal", "Teal"], ["p-ochre", "Ochre"], ["p-olive", "Olive"], ["p-blue", "Muted blue"], ["p-brick", "Brick"], ["p-sage", "Sage"]];
 document.getElementById("swatches").innerHTML = SWATCHES.map(([v, n]) => `<div class="swatch"><div class="chip" style="background:var(--${v})"></div><span>${n}<br>--${v}</span></div>`).join("");
 
-// ---- Toggles (§15.4): the thumb slides, uncovering the flag; the word flips at 60% of travel ----
-const switchSvg = (id) => `<svg class="switch" viewBox="0 0 76 32" aria-hidden="true">
-	<defs><clipPath id="${id}"><rect x="17.5" y="5.5" width="41" height="21"/></clipPath></defs>
-	<rect class="sw-plate" x="0.75" y="0.75" width="74.5" height="30.5" rx="2"/>
-	<circle class="sw-mark sw-mark-off" cx="8.5" cy="16" r="3"/>
-	<path class="sw-mark sw-mark-on" d="M67.5 12v8"/>
-	<rect class="sw-slot" x="17" y="5" width="42" height="22"/>
-	<g clip-path="url(#${id})">
-		<rect class="sw-flag" x="21" y="9" width="16" height="16"/>
-		<path class="sw-flag-edge" d="M21.5 9.5h15v15h-15z"/>
-		<path class="sw-recess" d="M17.5 5.5h41v2.5h-38.5v18.5h-2.5z"/>
-		<g class="sw-thumb">
-			<rect class="sw-thumb-shadow" x="23" y="11" width="18" height="16"/>
-			<g class="sw-face">
-				<rect class="sw-knob" x="21" y="9" width="18" height="16" rx="1.5"/>
-				<path class="sw-ridge" d="M26 13v8M30 13v8M34 13v8"/>
-			</g>
-		</g>
-	</g>
-</svg>`;
-document.querySelectorAll(".switch-slot").forEach((slot, i) => { slot.outerHTML = switchSvg(`slot-clip-${i}`); });
+// ---- Toggles (§15.4): the key latches (70 ms), then its lamp lights and its legend flips ----
 function bindToggle(el, onChange) {
 	el.addEventListener("click", async () => {
 		const on = el.getAttribute("aria-checked") !== "true";
 		el.setAttribute("aria-checked", on);
-		await wait(96);  // 60% of the 160 ms travel
-		flapText(el.querySelector(".state"), on ? "ON" : "OFF");
+		await wait(70);  // the latch lands first
+		el.classList.toggle("lit", on);
+		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
 		onChange && onChange(on);
 	});
 }

@@ -88,7 +88,6 @@ control room) is the dark mode the game ships by default today. Every value belo
 | `color.sheet` | Panels, cards, modals (paper laid on the desk) | `#F8F4EC` | `#2A2825` |
 | `color.well` | Recessed areas: fields, tracks, sunken trays | `#E3DACA` | `#171614` |
 | `color.steel` | Control faces (secondary buttons, tabs) | `#DCD3C2` | `#3A3733` |
-| `color.knob` | The raised part of a drawn control (a switch thumb): the lightest surface | `#FBF8F2` | `#57524A` |
 | `color.ink` | Primary text, heavy rules, the frame | `#22211F` | `#EDE6D6` |
 | `color.ink-2` | Secondary text, labels, captions | `#57534B` | `#B9B1A1` |
 | `color.ink-3` | Disabled text and decoration only (never information) | `#7A7468` | `#8E877A` |
@@ -351,9 +350,9 @@ Each component lists anatomy, then states. Detailed state-transition specs are i
 3. **Tertiary / link** — no box. `ink-2` label; hover draws a 2 px underline in from the left (wipe).
 4. **Tab** — a folder tab: square top, its rail below. Inactive tabs are `steel`; the active tab is `sheet`, joins
    the sheet below (no border between them) and carries a 3 px `ink` rail on top that slides between tabs.
-5. **Toggle** — a drawn slide switch (a graphic, not a styled box): an enamelled plate with printed `0` and `1`
-   marks, a recessed slot, a ribbed thumb on a hard shadow, and a lit flag the thumb uncovers when ON. The state
-   word (ON/OFF) is printed beside it in `type.label-caps`. §15.4.
+5. **Toggle** — a **legend key**: a latching push key with a lamp strip across its top and its state printed on its
+   face (ON/OFF). ON latches it down and lights the strip. It reuses the button's press, so the UI has one kind of
+   key, not a separate switch control. §15.4.
 6. **Resource counter** — caption with its lamp on the same line, then glyph + value in a **window** (a `well` inset
    with a 1 px inner `rule`), forecast below.
 7. **Card** — §6.7.
@@ -386,6 +385,7 @@ Icons are drawn on a **24 px grid with a 2 px live-area margin** (20 px live are
 | Corners | Sharp. Curves are true circular arcs only (compass-and-ruler geometry). |
 | Primitives | Circle, square, equilateral triangle, straight lines at 0°/45°/90°. No freehand. |
 | Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration, not an icon. |
+| Optical size | A solid glyph carries more weight than an outlined one, so it is drawn about 20% smaller on the grid (the unrest bolt spans 16 of the 24 units, not 20) to sit at the same visual height as its neighbours and the value window beside it. |
 | Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". One standing exception: the unrest bolt is always solid, so the one harmful resource never looks like the others. |
 | Active / inactive | Active: `ink` (or its hue line), filled where the icon has a fill state. Inactive: `ink-2`, outlined. Disabled: `ink-3`, outlined, never with a strike-through unless it means "blocked" (⊘). |
 | Colour | Single colour. Icons take the colour of their text unless they *are* the key (resource glyphs). |
@@ -447,7 +447,7 @@ The current code uses `TRANS_BACK` for the pulse, the landing squash and the pip
 | Hover feedback | in 90 ms, out 140 ms | Background one value step; shadow unchanged. Links: underline wipe 0→100%. | in `machined`, out `release` |
 | Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` |
 | Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` |
-| Toggle change | 140–180 ms | Thumb slides track width; lamp switches at 60% of travel (lamp on 40 ms). | `latch` thumb, `lamp` |
+| Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp strip and legend change as the latch lands. | `snap` key, `lamp` |
 | Navigation transition | 280–360 ms | New screen wipes in from the side of its origin (left rail → right), old slides 24 px and fades out under it. | `machined` / `release` |
 | Panel opening (drawer) | 220–280 ms open, 180–220 ms close | Slide from its rail edge; contents fade in after 40% (stagger rows 20 ms, max 6 rows). | `latch` / `release` |
 | Modal appearance | 220–260 ms | Sheet slides up 24 px + opacity 0→1 over the first 120 ms; scrim fades 160 ms. Close: 160 ms, down 12 px. | `machined` / `release` |
@@ -693,7 +693,7 @@ state directly.
 | Plex Mono in a split-flap window | A pixel or LCD segment font |
 | Era change as a ceremonial sheet | Era change as confetti |
 | Cost top-right as `[wheat 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
-| A drawn slide switch with a ribbed thumb and a flag | A rounded pill track with a circle thumb |
+| A latching legend key that says ON or OFF on its face | A rounded pill track with a circle thumb |
 
 ---
 
@@ -744,13 +744,13 @@ tracking: { display: 0.06em, caps: 0.12em, heading: 0.10em, body: 0, numeral: 0 
 icon:    { xs: 12, s: 16, m: 20, l: 32, xl: 48, stroke-at-24: 2 }  # beside a box: the box's height
 lamp:    { s: 10, m: 14, l: 20 }
 color.paper:
-  board: "#EFE8DA"  sheet: "#F8F4EC"  well: "#E3DACA"  steel: "#DCD3C2"  knob: "#FBF8F2"
+  board: "#EFE8DA"  sheet: "#F8F4EC"  well: "#E3DACA"  steel: "#DCD3C2"
   ink: "#22211F"  ink-2: "#57534B"  ink-3: "#7A7468"  rule-fine: "#CFC6B5"  rule: "#6F685C"
   shadow: "#22211F"  signal: "#A8401B"  on-signal: "#FBF6EC"
   positive: "#4E6B47"  caution: "#7C5810"  danger: "#9B3424"  info: "#35597C"  focus: "#1F6A68"
   plane: { teal: "#5E9C97", ochre: "#D9A441", olive: "#A3AA6A", blue: "#8AA7C4", brick: "#C9705C", sage: "#9DB592" }
 color.night:
-  board: "#1F1E1C"  sheet: "#2A2825"  well: "#171614"  steel: "#3A3733"  knob: "#57524A"
+  board: "#1F1E1C"  sheet: "#2A2825"  well: "#171614"  steel: "#3A3733"
   ink: "#EDE6D6"  ink-2: "#B9B1A1"  ink-3: "#8E877A"  rule-fine: "#3A3733"  rule: "#857D70"
   shadow: "#0D0C0B"  signal: "#E0703F"  on-signal: "#1F1E1C"
   positive: "#93B585"  caution: "#D9A441"  danger: "#E07A63"  info: "#86A9CC"  focus: "#6CC3BC"
@@ -794,31 +794,30 @@ equals its side padding (16), so the label and the text under it read as one col
 | PRESSED → ACTIVE | 200 ms | the rail **slides** to this tab (x and width); fill `steel` → `sheet`; the baseline under it opens (tab joins the sheet); content below crossfades 120 ms with a 12 px slide in the direction of travel | `machined` |
 | ACTIVE (rest) | — | `sheet` fill, `ink` label 600, rail on top | |
 
-### 15.4 Toggle (slide switch)
-A styled box (a track and a square thumb) reads as a cheap web control. The toggle is a **drawn graphic**, like a
-Braun slide switch: one SVG (in Godot, a small `Control` that draws it in `_draw()`, or an SVG per part) on a 76×32
-grid, so it scales with the UI.
+### 15.4 Toggle (legend key)
+A latching push key, like a control-room key with a lit legend. It is the button's press made to stay down, so the UI
+has one physical idea for "a thing you press" and no separate switch control. The key prints its own state, so it
+needs no ON/OFF word beside it; the setting's name sits to its left in `type.label`, and the key aligns right in its
+row.
 
-Anatomy, back to front:
-- **Plate** 76×32: `steel`, 1.5 px `ink` edge, `radius.1`. Printed marks at its ends: `0` (a 3 px-radius ring) left,
-  `1` (an 8 px bar) right, 1.5 px `ink-3`; the mark for the current state prints in `ink` at 2 px.
-- **Slot** 42×22, centred: `well`, 1 px `ink` edge, with a 2.5 px hard **recess** along its top and left inside edges
-  (`shadow` at 35%) so it reads as cut into the plate.
-- **Flag** 16×16 at the slot's left end: the `sage` plane with a 1 px sage line edge. The thumb covers it when OFF;
-  sliding ON uncovers it, like a mechanical indicator flag.
-- **Thumb** 18×16: `knob` (the lightest surface: Paper `#FBF8F2`, Night `#57524A`), 1.25 px `ink` edge, 1.5 px corners,
-  three vertical 1.25 px `ink-2` grip ridges, on a solid 2,2 `shadow`.
-- **State word** ("ON"/"OFF", `type.label-caps`) right of the plate; the setting's name left of it. No separate lamp:
-  the flag is the lamp.
+Anatomy: 56×36 key, `steel` face, 2 px `ink` border, `radius.1`, 4 px padding, `shadow.plinth` (2, 2) at rest. Inside,
+two rows 3 px apart:
+- **Lamp strip**, 6 px tall, the key's full inner width. OFF: `well` with a 1 px inset `rule`. ON: the `sage` plane
+  with a 1 px inset sage line. (Sage is the default; a setting whose ON state is a warning may use the caution lamp.)
+- **Legend**, "ON" / "OFF" in `type.label-caps` at 12 px, centred. OFF prints `ink-2`, ON prints `ink`.
 
 | Transition | Duration | Change | Curve |
 |---|---|---|---|
-| REST → PRESSED | 70 ms | thumb face moves +2, +2 onto its shadow | `snap` |
-| OFF → ON | 160 ms | thumb slides 17 px right (2 px anticipation left), uncovering the flag; at 60% of travel the word flips (one split-flap step) and the `1` mark prints in ink | `latch` |
-| ON → OFF | 160 ms | the reverse; the thumb covers the flag | `latch` |
-| RELEASED | 120 ms | face back to 0, 0 | `machined` |
-| DISABLED | — | plate `well`, marks and ridges `ink-3`, no shadow | |
-| Reduce motion | — | the thumb jumps; the word swaps | |
+| REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` |
+| HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp strip lights (40 ms) and the legend changes to ON | `snap`, `lamp-on` |
+| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` |
+| HOVER | 90 ms | border stays `ink`; face one value step toward `sheet` | `machined` |
+| FOCUS | instant | teal focus ring, offset 2 px | |
+| DISABLED | — | face `well`, legend `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | |
+| Reduce motion | — | position and lamp switch in one frame | |
+
+Accessibility: `role="switch"` with `aria-checked`; the legend and the latched position both carry the state, so
+neither the lamp colour nor the motion is needed to read it.
 
 ### 15.5 Resource counter
 Anatomy: a head line with the caption (`type.label-caps`, `ink-2`) at its left and a 12 px lamp at its right,
