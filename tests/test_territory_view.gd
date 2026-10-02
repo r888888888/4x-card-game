@@ -454,3 +454,103 @@ func test_a_card_played_in_the_view_still_flies_in() -> void:
 		await wait_screen_transition()
 		main.on_double_clicked(main.views[temple])
 		eq(main.views[temple].state, CardView.State.FLYING, "the Temple flies to its slot"))
+
+
+# --- 200: a click outside the box closes the view ---
+
+## A real mouse press and release of button at global point on main's viewport.
+func mouse_at(main: Node, point: Vector2, button_index := MOUSE_BUTTON_LEFT) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button_index
+		event.pressed = pressed
+		event.position = point
+		event.global_position = point
+		main.get_viewport().push_input(event, true)
+
+
+## A point on the open view's area outside the territory box: its bottom-right corner, inset.
+func outside_box(main: Node) -> Vector2:
+	var point: Vector2 = main.territory_view.get_global_rect().end - Vector2(8, 8)
+	check(not main.territory_view.frame.get_global_rect().has_point(point), "precondition: the box leaves room beside or below it")
+	return point
+
+
+func test_a_click_outside_the_box_goes_back_to_the_realm() -> void:
+	await with_territories_main(func(main: Node):
+		var home: int = await open_home(main)
+		main.sfx.set_clock(0.0)
+		var from: int = main.sfx.played().size()
+		mouse_at(main, outside_box(main))
+		await wait_frames()
+		check(not main.territory_view.is_open(), "closed")
+		await wait_screen_transition()
+		check(shown(main.tableau), "the Realm is back")
+		check(shown(main.views[home]), "the territory's card is back")
+		var played: Array = main.sfx.played().slice(from).map(func(r): return r.token)
+		eq(played.filter(func(t): return t == Sfx.NAV_BACK).size(), 1, "the back sound, once: %s" % [played]))
+
+
+func test_a_click_inside_the_box_leaves_the_view_open() -> void:
+	await with_territories_main(func(main: Node):
+		await open_home(main)
+		var view: TerritoryView = main.territory_view
+		var title_rect: Rect2 = view.frame.get_global_rect()
+		for point in [title_rect.position + Vector2(12, 12), title_rect.get_center(), title_rect.end - Vector2(12, 12)]:
+			mouse_at(main, point)
+			await wait_frames()
+			check(view.is_open(), "a click in the box at %s leaves it open" % point)
+		var outline: Panel = view.outlines()[0]
+		mouse_at(main, outline.get_global_rect().get_center())
+		await wait_frames()
+		check(view.is_open(), "a click on an empty slot outline leaves it open"), \
+		{"farm": 10}, POP)
+
+
+func test_a_click_on_the_hand_or_top_bar_or_a_modal_leaves_the_view_open() -> void:
+	await with_territories_main(func(main: Node):
+		await open_home(main)
+		var view: TerritoryView = main.territory_view
+		mouse_at(main, main.hand_scroll.get_global_rect().end - Vector2(8, 8))
+		await wait_frames()
+		check(view.is_open(), "a click on the hand's area")
+		mouse_at(main, (main.counter(GameEngine.FOOD) as Control).get_global_rect().get_center())
+		await wait_frames()
+		check(view.is_open(), "a click on the top bar")
+		var point := outside_box(main)
+		main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
+		await wait_frames()
+		mouse_at(main, point)
+		await wait_frames()
+		check(view.is_open(), "a click outside the box while a modal is open closes only the modal")
+		check(not main.details.shown(), "the modal closed"))
+
+
+func test_a_drop_or_right_click_outside_the_box_leaves_the_view_open() -> void:
+	await with_territories_main(func(main: Node):
+		var home: int = await open_home(main)
+		var view: TerritoryView = main.territory_view
+		var point := outside_box(main)
+		eq(view.target_at(point), home, "a drop there targets the territory (101)")
+		var card: CardView = main.views[first_in_hand(Game.engine)]
+		main.drag.begin_drag(card, Vector2.ZERO)
+		mouse_at(main, point)
+		await wait_frames()
+		check(view.is_open(), "a drop outside the box leaves it open")
+		mouse_at(main, point, MOUSE_BUTTON_RIGHT)
+		await wait_frames()
+		check(view.is_open(), "a right-click there does nothing"))
+
+
+func test_a_second_outside_click_while_leaving_does_nothing() -> void:
+	await with_territories_main(func(main: Node):
+		await open_home(main)
+		var view: TerritoryView = main.territory_view
+		var point := outside_box(main)
+		var steps := [0]
+		view.navigated.connect(func(): steps[0] += 1)
+		mouse_at(main, point)
+		mouse_at(main, point)
+		await wait_screen_transition()
+		eq(steps[0], 1, "one step back")
+		check(shown(main.tableau), "the Realm is shown"))

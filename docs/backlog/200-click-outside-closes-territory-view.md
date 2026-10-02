@@ -2,7 +2,7 @@
 id: 200
 title: A click outside the territory box closes the territory view
 type: feature
-status: ready
+status: red-review
 branch: feat/200-click-outside-closes-territory-view
 ---
 
@@ -27,6 +27,14 @@ without reaching for the breadcrumb or Esc.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_territory_view::test_a_click_outside_the_box_goes_back_to_the_realm` (closes, Realm back, one `NAV_BACK`) |
+| AC2 | `test_territory_view::test_a_click_inside_the_box_leaves_the_view_open` (box corners and centre, an empty slot outline) |
+| AC3 | `test_territory_view::test_a_click_on_the_hand_or_top_bar_or_a_modal_leaves_the_view_open` (the sidebar doesn't exist yet: 202) |
+| AC4 | `test_territory_view::test_a_drop_or_right_click_outside_the_box_leaves_the_view_open` |
+| AC5 | `test_territory_view::test_a_second_outside_click_while_leaving_does_nothing` (one `navigated`) |
+
+Every test checks first that the box leaves room beside or below it (the frame no longer fills the view): today the
+frame expands to fill the view, so there is no outside to click.
 
 ## Manual check
 - [ ] Open Delta Marsh, click the empty board to its right: it shrinks back into its card.
