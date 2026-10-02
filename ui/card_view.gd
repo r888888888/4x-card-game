@@ -122,6 +122,11 @@ func set_play_error(play_error: String) -> void:
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
 
+## Shows which of a hand card's cost figures the player is short of (180; GameEngine.play_shortfall).
+func set_shortfall(short: Array[String]) -> void:
+	_face.show_shortfall(short)
+
+
 ## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
 ## all from the board.
 func show_settled(keywords: String, live: String, tip: String) -> void:

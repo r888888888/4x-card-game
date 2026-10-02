@@ -149,7 +149,7 @@ func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
 		eq(filled_count(pips), 3, "3 filled")
 		eq(pips[3], view.grow_button, "Grow on the fourth pip")
 		eq(view.grow_button.text, "4", "costing 4")
-		eq(main.counter_text(TopBar.POP), "Pop: %d" % e.total_pop(), "the top bar's Pop reads the new total"))
+		eq(main.counter_text(TopBar.POP), str(e.total_pop()), "the top bar's Pop reads the new total"))
 
 
 # --- AC5: the grow animation ---

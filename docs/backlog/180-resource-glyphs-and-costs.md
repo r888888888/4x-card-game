@@ -2,7 +2,7 @@
 id: 180
 title: Resource glyphs in the top bar and glyph costs on cards
 type: feature
-status: ready
+status: review
 branch: feat/180-resource-glyphs-and-costs
 ---
 
@@ -14,24 +14,24 @@ the warning colour. The shapes tell food from wealth without relying on colour, 
 first.
 
 ## Acceptance criteria
-- [ ] AC1: `GameEngine.play_shortfall(uid)` lists the resources of hand card uid's play cost (after discounts, as
+- [x] AC1: `GameEngine.play_shortfall(uid)` lists the resources of hand card uid's play cost (after discounts, as
   `play_cost`) that the player has less of than that cost, in the cost's order. Given 1 food and 5 wealth and a
   Guildhall (2 food, 2 wealth) in hand, it is `["food"]`; given 0 food and 0 wealth, `["food", "wealth"]`; given 2 food
   and 2 wealth, `[]`; for a uid not in the hand, `[]`.
-- [ ] AC2: The top bar's food, wealth, insight, unrest, score and pop counters each show their glyph left of the figure
+- [x] AC2: The top bar's food, wealth, insight, unrest, score and pop counters each show their glyph left of the figure
   (`assets/icons/` food sprout, wealth cash coin, insight open book, unrest solid bolt, score starburst, pop figure),
   tinted `GAIN`, `WEALTH`, `INSIGHT`, `UNREST`, `TEXT` and `POP`; the figure is `TEXT` (or `WARN` as today when food
   would starve or unrest is at its limit). A counter's glyph hides with its counter (unrest off, population off).
-- [ ] AC3: The counters drop their words: given 3 food with +1 forecast, `counter_text(GameEngine.FOOD)` is "3 (+1)";
+- [x] AC3: The counters drop their words: given 3 food with +1 forecast, `counter_text(GameEngine.FOOD)` is "3 (+1)";
   unrest 2 of 5 with +1 forecast is "2 / 5 (+1)"; score 4 is "4"; pop 2 is "2". The turn counter stays "Turn 1 / 100".
-- [ ] AC4: A hand card's cost sits on its name's line, at the right: one entry per resource with a cost above 0, in the
+- [x] AC4: A hand card's cost sits on its name's line, at the right: one entry per resource with a cost above 0, in the
   order food, wealth, insight (any other resource after them as "N name"), each a 20 px glyph then its figure, 3 px
   apart, entries 12 px apart, no box. Given a Guildhall in hand, the entries are a food glyph with "2" then a wealth
   glyph with "2"; a Scout (no cost) shows no entries and no "Free". The type line no longer holds the cost.
-- [ ] AC5: Each figure of a resource in `play_shortfall` is `WARN`, the rest `TEXT`: given 1 food, 5 wealth and a
+- [x] AC5: Each figure of a resource in `play_shortfall` is `WARN`, the rest `TEXT`: given 1 food, 5 wealth and a
   Guildhall in hand, the food "2" is `WARN` and the wealth "2" is `TEXT`; when food rises to 2, after the refresh both
   are `TEXT`.
-- [ ] AC6: The Grow pip's food icon (124) is the new sprout, so food has one glyph everywhere.
+- [x] AC6: The Grow pip's food icon (124) is the new sprout, so food has one glyph everywhere.
 
 ## Out of scope
 - The card details modal, the Relieve famine / Restore order buttons and supply prices keep their text costs
@@ -52,6 +52,12 @@ first.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_ui_queries::test_play_shortfall_lists_the_resources_the_player_is_short_of_in_cost_order`, `test_play_shortfall_is_empty_for_a_card_not_in_the_hand` |
+| AC2 | `test_resource_glyphs::test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure`, `test_the_food_figure_warns_when_pop_would_starve`, `test_a_hidden_counter_hides_its_glyph`; `test_unrest::test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change` (figure now `TEXT` below the limit) |
+| AC3 | `test_resource_glyphs::test_the_counters_read_figures_only`; changed: `test_counters::test_the_food_counter_text_is_the_reading_the_bar_shows`, `test_unrest` (both top-bar tests), `test_insight::test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change`, `test_grow_meter::test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next` |
+| AC4 | `test_resource_glyphs::test_a_hand_cards_cost_is_glyphs_and_figures_on_its_name_line`, `test_a_free_card_shows_no_cost`, `test_cost_entries_go_food_wealth_insight_then_others_by_name` |
+| AC5 | `test_resource_glyphs::test_a_figure_the_player_is_short_of_is_red_until_they_have_it` |
+| AC6 | `test_resource_glyphs::test_the_grow_pip_uses_the_top_bars_food_glyph` |
 
 ## Manual check
 - [ ] Seed 5, Egypt: the six glyphs read at a glance in the top bar; Lumber Camp shows sprout 1, coin 2 at its top
@@ -60,3 +66,10 @@ first.
 ## Log
 - 2026-10-01: Specced from the mid-century style guide and the `spike/mcm-godot` spike. Assumption: the forecast stays
   inline as "(+1)" (decided 2026-10-01; the guide's two-line cells can come later).
+- 2026-10-02: Built. Engine: `shortfall(cost)` in `EngineCore` (now behind `can_pay`) and `play_shortfall(uid)`. UI:
+  `Icons.RESOURCES`, `Icons.hue` and `Icons.glyph`; the six glyph SVGs from the spike in `assets/icons/` (the sprout
+  replaces `food.svg`); `TopBar` counters carry their glyph in the label's left margin; `CardFace.cost_glyphs` and
+  `show_shortfall`, refreshed by `BoardViews` through `CardView.set_shortfall`. Two more tests still found the score
+  counter by its text ("Score", without the colon, so 177's guard missed them): `test_board_layout` and
+  `test_identity_lines` (the latter would have passed vacuously); both now use `main.counter(TopBar.SCORE)`.
+  Follow-up idea: widen 177's guard to `begins_with("<Word>")` lookups.

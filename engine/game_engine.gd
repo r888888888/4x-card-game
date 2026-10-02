@@ -319,6 +319,12 @@ func play_cost(uid: int) -> Dictionary:
 	return Discounts.cost(self, card.def) if card != null else {}
 
 
+## The resources of hand card uid's play_cost the player is short of, in the cost's order (180); [] if uid isn't in
+## the hand.
+func play_shortfall(uid: int) -> Array[String]:
+	return shortfall(play_cost(uid))
+
+
 ## Why hand card uid can't be played on any target right now, or "" if it can. Unlike play_error, a card
 ## with several valid targets isn't blocked by the choice between them: it is checked on the first.
 func playable_error(uid: int) -> String:

@@ -3,7 +3,35 @@ extends RefCounted
 ## Swaps the text glyphs the game uses (the engine's "⟳", the UI's type marks and so on) for icon
 ## images, in card labels and in the log. Icons are white SVGs in assets/icons/, tinted here.
 
-const FOOD := preload("res://assets/icons/food.svg")  # on the Grow pip, beside its food cost (124)
+const FOOD := preload("res://assets/icons/food.svg")  # the sprout: food everywhere, the Grow pip included (124, 180)
+## The resource glyphs (180), by counter key: the top bar's counters and a hand card's cost.
+const RESOURCES := {
+	GameEngine.FOOD: FOOD,
+	GameEngine.WEALTH: preload("res://assets/icons/wealth.svg"),  # a cash coin
+	GameEngine.INSIGHT: preload("res://assets/icons/insight.svg"),  # an open book
+	GameEngine.UNREST: preload("res://assets/icons/unrest.svg"),  # a solid bolt
+	TopBar.SCORE: preload("res://assets/icons/score.svg"),  # a starburst
+	TopBar.POP: preload("res://assets/icons/pop.svg"),  # a figure
+}
+
+
+## The hue a resource's glyph is tinted (180): food GAIN, wealth WEALTH, insight INSIGHT, unrest UNREST, pop POP;
+## TEXT for anything else (score).
+static func hue(key: String) -> Color:
+	return {GameEngine.FOOD: Palette.GAIN, GameEngine.WEALTH: Palette.WEALTH, GameEngine.INSIGHT: Palette.INSIGHT,
+		GameEngine.UNREST: Palette.UNREST, TopBar.POP: Palette.POP}.get(key, Palette.TEXT)
+
+
+## A glyph for key (a RESOURCES key) at size px, tinted its hue, taking no mouse input.
+static func glyph(key: String, size: float) -> TextureRect:
+	var g := TextureRect.new()
+	g.texture = RESOURCES[key]
+	g.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	g.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	g.custom_minimum_size = Vector2(size, size)
+	g.self_modulate = hue(key)
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return g
 
 ## Glyph -> [texture, tint, scale]. A null tint means the icon takes the colour of the text around
 ## it. scale is the icon's height as a fraction of the font size (the type marks sit small, like the
