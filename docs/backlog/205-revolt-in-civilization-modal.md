@@ -2,7 +2,7 @@
 id: 205
 title: Revolt from the civilization modal, after a confirmation that says what follows
 type: feature
-status: red-review
+status: review
 branch: feat/205-revolt-in-civilization-modal
 ---
 
@@ -12,24 +12,24 @@ overthrows, and asks first: a confirmation sheet explains what Anarchy will do t
 numbers) under a line of flavor, so nobody revolts by a stray click.
 
 ## Acceptance criteria
-- [ ] AC1 (engine): Given a game where revolt is legal (Chiefdom, unrest 3 of limit 5, food 6, wealth 3), when
+- [x] AC1 (engine): Given a game where revolt is legal (Chiefdom, unrest 3 of limit 5, food 6, wealth 3), when
   `revolt_summary()` is called, then it returns the lines that describe the coming Anarchy with live numbers, in order:
   when it falls ("Anarchy falls at the start of next turn."), how long (`revolt_forecast()` turns: "It lasts up to N
   turns; calming shortens it."), the actions it allows ("1 action each turn; only order cards can be played."), what
   stops ("Nothing can be grown, bought or researched."), the drain ("Each turn it eats 20% of stored food and wealth."
   from `unrest.drain_pct`), renewal (from `unrest.renewal`) and the end ("When it ends, choose a government from your
   government deck."). With a config block missing (no drain, no renewal), its line is left out.
-- [ ] AC2 (engine): Given revolt is not legal (`revolt_error()` non-empty), `revolt_summary()` returns [].
-- [ ] AC3 (loader): A government card may have `flavor` (paragraph and quote, as civilizations, 107); the shipped
+- [x] AC2 (engine): Given revolt is not legal (`revolt_error()` non-empty), `revolt_summary()` returns [].
+- [x] AC3 (loader): A government card may have `flavor` (paragraph and quote, as civilizations, 107); the shipped
   Anarchy card has one. Flavor on any other non-civilization type is still a load error naming file, card and field.
-- [ ] AC4: Given the civilization modal is open and revolt is legal, then the government section ends with a "Revolt…"
+- [x] AC4: Given the civilization modal is open and revolt is legal, then the government section ends with a "Revolt…"
   button; given `revolt_error()` is non-empty, the button is disabled with the error as its tooltip. The board no
   longer has a Revolt button (`BoardLayout.revolt` goes; Relieve famine and Restore order stay).
-- [ ] AC5: When "Revolt…" is pressed, then a confirmation modal opens stacked on the civilization modal: title
+- [x] AC5: When "Revolt…" is pressed, then a confirmation modal opens stacked on the civilization modal: title
   "Revolution", context caps "Turn N · <government>", the Anarchy card's flavor (italic, quote attributed), then
   `revolt_summary()`'s lines as a list, and a footer with "Keep <government>" (closes it, nothing changes) and
   "Revolt" (primary, rightmost).
-- [ ] AC6: When "Revolt" is pressed, then `revolt()` runs once (state `revolt_pending` true), the confirmation closes,
+- [x] AC6: When "Revolt" is pressed, then `revolt()` runs once (state `revolt_pending` true), the confirmation closes,
   and the civilization modal stays open showing the revolution under way (its Revolt… button disabled with "A
   revolution is already under way."). Esc or a click outside the confirmation closes it without revolting.
 
@@ -69,3 +69,10 @@ Decisions made writing the tests:
 ## Log
 - Specced 2026-10-02 from the notes list. Decided 2026-10-02: the engine writes the summary; the flavor is the Anarchy
   card's (it has none yet, so this item adds it).
+- 2026-10-02: Built. Engine: `revolt_summary()` (`Anarchy.revolt_summary`) and `anarchy_id()` (added test-first in
+  the green phase, so the confirmation needn't read the config: `test_revolution::test_anarchy_id_names_the_configs_anarchy_government`).
+  Loader: `flavor` and `quote` apply to governments too. Data: Anarchy's flavor and a Yeats quote (review them). UI:
+  `IdentityModal.revolt_button` ends the government section; `ui/revolt_modal.gd` (`RevoltModal`, `main.revolt_modal`);
+  the board's Revolt button, `ActionButton.revolt` and `main.revolt_button()` are gone.
+- Manual-check notes: the flavor's `[i]` shows upright (RichBody has no italic face); at 1280×720 the civilization
+  modal under the confirmation is taller than the window (as before this item).
