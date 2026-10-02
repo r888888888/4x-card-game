@@ -170,7 +170,7 @@ func test_the_identity_modal_lists_the_government_deck() -> void:
 	await with_main(deck_engine(), func(main: Node):
 		var e := Game.engine
 		e.create_card("kings", "discard", null)
-		main.identity_button().pressed.emit()
+		main.sidebar.government_button.pressed.emit()
 		var body: String = main.identity_modal.body_text()
 		check(body.contains("Government deck: Kings"), "the deck line: %s" % body)
 		check(body.find("Government deck") > body.find("Chiefs"), "below the ruling government: %s" % body))

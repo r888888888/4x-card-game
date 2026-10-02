@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The board without a sidebar (backlog 115), in the real main scene on the real data at 1920×1080: the play area
-## spans the window, the top bar carries the civilization and government, Buy Cards and Knowledge, and End turn sits
+## reaches the sidebar (202), the top bar carries Buy Cards and Knowledge, and End turn sits
 ## right of the hand.
 
 const EDGE := 40.0  # px from the window's right edge that counts as reaching it
@@ -53,41 +53,39 @@ func has_script_class(root: Node, class_name_: String) -> bool:
 
 # --- AC1: no sidebar ---
 
-func test_no_side_panel_and_the_board_spans_the_window() -> void:
+func test_no_side_panel_and_the_board_reaches_the_sidebar() -> void:
 	var main: Node = await open_game_at_1080()
 	var width: float = main.get_viewport_rect().size.x
 	check(not has_script_class(main, "SidePanel"), "no SidePanel")
+	var rail: float = (main.sidebar as Control).get_global_rect().position.x  # the Realm and hand stop at the sidebar (202)
 	var realm_end: float = main.tableau.row.get_global_rect().end.x
-	check(realm_end >= width - EDGE, "the Realm row reaches the right edge: ends at %d of %d" % [realm_end, width])
+	check(realm_end >= rail - EDGE, "the Realm row reaches the sidebar: ends at %d, sidebar at %d of %d" % [realm_end, rail, width])
 	check(not has_script_class(main, "TurnBox"), "no TurnBox beside the hand (121)")
 	check(shown_label(main, "Deck ") == null, "no Deck/Discard counts on the board: they are in the log drawer (121)")
 	var hand_end: float = main.hand_scroll.get_global_rect().end.x
-	check(hand_end >= width - EDGE, "the hand reaches the right edge: ends at %d of %d" % [hand_end, width])
+	check(hand_end >= rail - EDGE, "the hand reaches the sidebar: ends at %d, sidebar at %d" % [hand_end, rail])
 	close_at_1080(main)
 
 
 # --- AC2: the top bar ---
 
-func test_the_top_bar_holds_identity_supply_and_knowledge_before_menu() -> void:
+func test_the_top_bar_holds_supply_and_knowledge_before_menu() -> void:
 	var main: Node = await open_game_at_1080()
 	var menu := shown_button(main, "Menu")
 	var bar: Control = menu.get_parent()
-	var identity: Button = main.identity_button()  # civilization and government in one button since 119
 	var supply := shown_button(main, "Buy Cards")
 	var knowledge := shown_button(main, "Knowledge")
 	check(supply != null and knowledge != null, "Buy Cards and Knowledge shown")
 	if supply == null or knowledge == null:
 		close_at_1080(main)
 		return
-	var civ_name: String = Game.engine.card_db[Game.engine.zone("civilization").cards[0].def.id].name
-	eq(identity.text, "%s · Chiefdom" % civ_name, "the button names the cards")
-	var order: Array = [identity, supply, knowledge, menu]
+	var order: Array = [supply, knowledge, menu]  # the civilization moved to the sidebar (202)
 	for b: Button in order:
 		eq(b.get_parent(), bar, "'%s' is in the top bar" % b.text)
 	var indices := order.map(func(b: Button): return b.get_index())
-	eq(indices, sorted(indices), "civilization and government, Buy Cards, Knowledge, then Menu")
+	eq(indices, sorted(indices), "Buy Cards, Knowledge, then Menu")
 	var score: Control = main.counter(TopBar.SCORE)
-	check(score.get_parent() == bar and score.get_index() < identity.get_index(), "after the stats")
+	check(score.get_parent() == bar and score.get_index() < supply.get_index(), "after the stats")
 	close_at_1080(main)
 
 

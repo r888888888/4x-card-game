@@ -65,7 +65,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	_build_screens(main, push_new_game_screen)
 
 
-## The board: the top bar, then the Realm (the row, the territory view and the action buttons).
+## The board: the top bar, then the Realm (the row, the territory view and the action buttons) beside the sidebar.
 func _build_board(main: MainScreen) -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -77,14 +77,22 @@ func _build_board(main: MainScreen) -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", Tokens.SPACE_3)
 	margin.add_child(root)
-	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.identity_modal.open(),
-		func(): main.log_drawer.toggle())
+	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.log_drawer.toggle())
 	root.add_child(top_bar)
 
-	play_area = VBoxContainer.new()  # the whole width below the top bar (115)
+	var below := HBoxContainer.new()  # the play area, then the sidebar at the right edge (202)
+	below.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	below.add_theme_constant_override("separation", Tokens.SPACE_4)
+	root.add_child(below)
+	play_area = VBoxContainer.new()  # the width left of the sidebar below the top bar (115, 202)
 	play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	root.add_child(play_area)
+	below.add_child(play_area)
+	main.sidebar = Sidebar.new(func(): main.identity_modal.open())
+	below.add_child(main.sidebar)
+	top_bar.menu_button.focus_next = top_bar.menu_button.get_path_to(main.sidebar.name_button)  # the strip, then the rail
+	main.sidebar.name_button.focus_previous = main.sidebar.name_button.get_path_to(top_bar.menu_button)
 
 	var realm_section := UIKit.section(play_area, "Realm")
 	realm_section.size_flags_vertical = Control.SIZE_EXPAND_FILL

@@ -73,6 +73,7 @@ static func _pips(t: Theme) -> void:
 
 
 ## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
+## "TitleLink": the same in ink.
 static func _link(t: Theme) -> void:
 	t.set_type_variation("Link", "Button")
 	t.set_font_size("font_size", "Link", Tokens.TYPE_TITLE)
@@ -83,6 +84,8 @@ static func _link(t: Theme) -> void:
 	t.set_color("font_focus_color", "Link", Palette.ACCENT)
 	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it sits in the breadcrumb's text
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
+	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)
+	t.set_color("font_color", "TitleLink", Palette.TEXT)
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.

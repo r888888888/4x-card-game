@@ -68,7 +68,8 @@ res://
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
                          # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
+                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, End turn, Menu), sidebar.gd (202: the
+                         # right rail, the civilization and government),
                          # counter.gd (181: Counter, a glyph, an odometer figure, a "+N" tag and the forecast),
                          # odometer.gd (181: Odometer, a figure whose digits roll),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
