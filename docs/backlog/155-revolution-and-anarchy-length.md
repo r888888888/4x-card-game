@@ -2,7 +2,7 @@
 id: 155
 title: Revolt any time; Anarchy's length follows unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/155-revolution-and-anarchy-length
 ---
 
@@ -73,6 +73,16 @@ turn left. Follows 154. From `spike/revolution`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | test_anarchy_length: `test_anarchy_gets_counters_by_its_share_of_the_fallen_limit`, `test_a_forced_anarchy_at_the_limit_gets_max_counters` |
+| AC2 | test_anarchy_length: `test_calming_lowers_the_counters_left_for_good` |
+| AC3 | test_anarchy_length: `test_a_counter_comes_off_at_the_end_of_each_anarchy_turn`, `test_a_1_counter_anarchy_lasts_one_turn_and_the_next_upkeep_runs_under_the_chosen_government`, `test_the_counter_comes_off_after_the_hand_limit_discard`; test_anarchy: `test_when_anarchy_burns_out_the_government_choice_is_owed`, `test_burning_out_keeps_unrest_below_half_the_limit` |
+| AC4 | test_revolution: `test_revolting_needs_no_event_and_changes_nothing_this_turn`, `test_anarchy_falls_at_the_next_turns_start_before_upkeep`, `test_revolt_error_names_each_reason_and_a_refusal_changes_nothing`, `test_revolt_waits_for_a_pending_discard`, `test_bug_155_no_revolt_without_a_government_to_overthrow`, `test_an_events_revolt_field_is_unknown` |
+| AC5 | test_leaving_anarchy: `test_order_relief_is_c_times_c_plus_1_wealth_for_the_counters_left`, `test_unrest_relief_is_no_longer_read`, `test_restore_order_error_names_each_reason_and_a_refusal_changes_nothing`, `test_restore_order_waits_for_a_pending_discard`, `test_restore_order_pays_and_the_government_choice_is_owed_at_once`, `test_a_government_chosen_mid_turn_counts_its_actions_at_once`, `test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine` |
+| AC6 | test_renewal: `test_renewal_grows_with_anarchys_turn`, `test_renewal_counts_anarchys_turn_not_its_counters_left` |
+| AC7 | test_revolution: `test_revolt_forecast_is_the_counters_a_revolution_would_bring`, `test_the_bot_revolts_to_a_better_government_when_anarchy_would_last_1_turn`, `test_the_bot_doesnt_revolt_otherwise`; test_leaving_anarchy: `test_the_bot_restores_order_from_the_second_turn_with_2_counters_left`, `test_with_1_counter_left_the_bot_pays_only_to_avoid_starving` |
+| AC8 | test_revolution: `test_the_revolt_button_shows_while_you_may_revolt_and_forecasts_the_anarchy` |
+| AC9 | test_government: `test_a_government_in_hand_cant_be_played`; test_anarchy: `test_under_anarchy_a_government_in_hand_cant_be_played`, `test_under_anarchy_only_order_cards_play` |
+| (changed) | test_government_deck: `test_a_chosen_government_resolves_its_play_effects_without_paying` (the next turn's upkeep now runs); test_blocking scenarios (restore on Anarchy's 2nd turn); test_prices: `test_a_short_price_of_two_resources_names_both` (calls `price_error`, no config relief); test_identity_lines: `test_choosing_a_government_updates_the_button_and_an_open_modal` |
 
 ## Manual check
 - [ ] Revolt at low unrest: Anarchy next turn lasts 1 turn; the Government overlay opens at its end.

@@ -1,9 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy, the config's unrest.anarchy
-## government. While it rules only governments and allowed_tag cards play, nothing is grown, bought or researched, each
-## turn adds a counter, and at max_counters it burns out and a government is chosen from the government deck (154).
-## Each new era adds era_unrest.
-## Fixtures: tests/lib/anarchy_case.gd.
+## government. While it rules only allowed_tag cards play, nothing is grown, bought or researched, and when it ends a
+## government is chosen from the government deck (154; its length: 155, test_anarchy_length.gd). Each new era adds
+## era_unrest. Fixtures: tests/lib/anarchy_case.gd.
 
 
 # --- AC1: the config block ---
@@ -92,17 +91,23 @@ func test_unrest_has_no_limit_under_anarchy() -> void:
 
 # --- AC3: what Anarchy locks ---
 
-func test_under_anarchy_only_governments_and_order_cards_play() -> void:
+func test_under_anarchy_only_order_cards_play() -> void:
 	var e := fallen_engine()
 	var shrine := put_in_hand(e, "shrine")
 	eq(e.play_error(shrine), ONLY_ORDER, "Shrine")
 	check(not e.play_card(shrine), "play_card refuses")
-	e.resources["unrest"] = 3  # 146: Kings (limit 7) is accepted at 3 or less
-	eq(e.play_error(put_in_hand(e, "kings")), "", "a government plays")
-	e.resources["unrest"] = 5
 	var feast := put_in_hand(e, "feast")
 	check(e.play_card(feast), "Feast (order) plays: %s" % e.play_error(feast))
 	eq(e.resources.get("unrest"), 3, "5 − 2")
+
+
+func test_under_anarchy_a_government_in_hand_cant_be_played() -> void:
+	var e := fallen_engine()
+	e.resources["unrest"] = 0
+	var kings := put_in_hand(e, "kings")
+	eq(e.play_error(kings), "A government is chosen, not played.", "155 AC9")
+	check(not e.play_card(kings), "play_card refuses")
+	eq(ruling(e), "anarchy", "Anarchy still rules")
 
 
 func test_anarchy_has_its_cards_actions() -> void:
@@ -127,49 +132,42 @@ func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
 	eq(e.end_turn_error(), "", "end_turn_error")
 
 
-# --- AC4: counters and burning out ---
+# --- AC4: Anarchy's upkeep and its end (counters: 155) ---
 
-func test_each_turn_of_anarchy_adds_a_counter_and_takes_a_pop() -> void:
+func test_each_turn_of_anarchy_takes_a_pop() -> void:
 	var e := fallen_engine()
 	var home := home_uid(e)
-	eq(e.anarchy_counters(), 0, "the turn it falls")
-	eq(e.pop(home), 6, "no Anarchy upkeep yet")
+	eq(e.pop(home), 6, "no Anarchy upkeep the turn it falls at the limit")
 	e.end_turn()
-	eq(e.anarchy_counters(), 1, "next turn")
 	eq(e.pop(home), 5, "Anarchy ⟳ −1 pop")
 	e.end_turn()
-	eq(e.anarchy_counters(), 2, "the turn after")
 	eq(e.pop(home), 4, "−1 pop again")
 
 
-func test_anarchy_burns_out_at_max_counters_and_the_government_choice_is_owed() -> void:
+func test_when_anarchy_burns_out_the_government_choice_is_owed() -> void:
 	var e := fallen_engine()
 	var recorded := record_messages(e)
 	var anarchy_uid: int = e.anarchy()
 	for i in 3:
 		e.end_turn()
-	eq(ruling(e), "anarchy", "3 counters: still Anarchy")
+	eq(ruling(e), "anarchy", "3 turns ended: still Anarchy")
 	e.end_turn()
-	eq(e.anarchy(), -1, "the 4th counter: no anarchy")
+	eq(e.anarchy(), -1, "the 4th: no anarchy")
 	check(e.zone("removed").find(anarchy_uid) != null, "the Anarchy card is removed")
 	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "a government is to be chosen (154)")
+	eq(e.turn, 5, "owed at the end of turn 5 (155)")
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
-	eq(ruling(e), "chiefs", "Chiefs restores order")
+	eq([e.turn, ruling(e)], [6, "chiefs"], "Chiefs restores order and turn 6 starts")
 	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
 	check_noticed(recorded, "order")
 
 
 func test_burning_out_keeps_unrest_below_half_the_limit() -> void:
 	var e := fallen_engine()
-	var feast := put_in_hand(e, "feast")
-	e.play_card(feast)
-	e.resources["unrest"] = 1
-	for i in 3:
-		e.end_turn()
-	eq(ruling(e), "anarchy", "3 counters: still Anarchy")
+	e.set_unrest(1)  # 1 counter left
 	e.end_turn()
-	e.choose_government(uid_of(e.zone("governments"), "chiefs"))
-	eq(ruling(e), "chiefs", "burned out, Chiefs chosen")
+	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "burned out, Chiefs chosen")
+	eq(ruling(e), "chiefs", "Chiefs rules")
 	eq(e.resources.get("unrest"), 1, "min(1, 2)")
 
 
@@ -192,19 +190,3 @@ func test_era_unrest_0_adds_nothing() -> void:
 	e.resources["unrest"] = 3
 	e.play_card(put_in_hand(e, "dawn"))
 	eq(e.resources.get("unrest"), 3, "no era unrest")
-
-
-# --- AC6: the bot ---
-
-func test_the_bot_plays_a_government_first_under_anarchy() -> void:
-	var e := fallen_engine()
-	e.resources["unrest"] = 2  # 146: low enough for Kings (limit 7) to be accepted
-	put_in_hand(e, "feast")
-	put_in_hand(e, "kings")
-	var played: Array[String] = []
-	var ids := {}
-	for c in e.zone("hand").cards:
-		ids[c.uid] = c.def.id
-	e.card_played.connect(func(o: Dictionary): played.append(ids.get(o.uid, "?")))
-	ScriptedBot.take_turn(e, "baseline")
-	check(not played.is_empty() and played[0] == "kings", "Kings before Feast: %s" % [played])

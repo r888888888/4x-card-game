@@ -2,7 +2,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Prices and unrest in one place (backlog 173): EngineCore's can_pay and pay check and pay a price ({resource:
 ## amount}) for every action that costs something; Fields.amounts_text names a price ("2 food, 5 wealth"); set_unrest
 ## is the one way unrest is added or capped, stopping at unrest_limit(). Games from tests/lib/anarchy_case.gd (Chiefs,
-## limit 5; relief 6 wealth; era unrest 3).
+## limit 5; era unrest 3).
 
 
 ## The lines of engine scripts (effects included) other than engine_core.gd matching pattern, as "file:line: text".
@@ -22,14 +22,13 @@ func engine_lines_matching(pattern: String) -> Array[String]:
 
 # --- AC1: a short price of several resources names each one you have ---
 
-func test_restoring_order_short_of_a_two_resource_price_names_both() -> void:
-	var e := fallen_engine({"relief": {"food": 2, "wealth": 6}})
+func test_a_short_price_of_two_resources_names_both() -> void:
+	var e := anarchy_engine()
 	e.resources["food"] = 0
 	e.resources["wealth"] = 1
-	eq(e.restore_order_error(), "Restoring order needs 2 food, 6 wealth (you have 0 food, 1 wealth).", "two resources")
-	var one := fallen_engine()
-	one.resources["wealth"] = 1
-	eq(one.restore_order_error(), "Restoring order needs 6 wealth (you have 1).", "one resource, as before")
+	eq(e.price_error("Restoring order", {"food": 2, "wealth": 6}),
+		"Restoring order needs 2 food, 6 wealth (you have 0 food, 1 wealth).", "two resources")
+	eq(e.price_error("Restoring order", {"wealth": 6}), "Restoring order needs 6 wealth (you have 1).", "one resource")
 
 
 # --- AC2: one helper checks a price, one pays it ---

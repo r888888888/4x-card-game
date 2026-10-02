@@ -146,20 +146,6 @@ func test_actions_reset_each_turn_and_dont_carry_over() -> void:
 	eq(one.actions_left(), 2, "an unused action doesn't carry over")
 
 
-# --- AC6: changing government mid-turn ---
-
-func test_a_new_government_counts_at_once() -> void:
-	var e: GameEngine = gov_engine("band")
-	play_all(e, shrines(e, 1))
-	play_all(e, [put_in_hand(e, "court")] as Array[int])
-	eq(e.actions_per_turn(), 3, "Court's actions")
-	eq(e.actions_left(), 1, "3 - 2 used")
-	var c: GameEngine = gov_engine("court")
-	play_all(c, shrines(c, 2))
-	play_all(c, [put_in_hand(c, "band")] as Array[int])
-	eq(c.actions_left(), 0, "2 - 3 used, never below 0")
-
-
 func test_any_number_of_plays_without_actions() -> void:
 	var e: GameEngine = gov_engine("council")
 	play_all(e, shrines(e, 6))

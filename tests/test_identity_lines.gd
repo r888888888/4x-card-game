@@ -145,18 +145,43 @@ func test_with_neither_the_button_is_hidden() -> void:
 
 # --- 119 AC4: a new government ---
 
-func test_playing_a_government_updates_the_button_and_an_open_modal() -> void:
+## Plays engine from a revolution at unrest 0 (a 1-turn Anarchy, 155) to the government choice, paying renewal, the
+## hand-limit discard and any explore with their first options.
+func to_government_choice(e: GameEngine) -> void:
+	e.resources["unrest"] = 0
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	e.end_turn()
+	for i in 30:
+		var p := e.pending()
+		var first: int = p.get("options", [-1])[0] if not p.get("options", []).is_empty() else -1
+		match p.get("kind", ""):
+			GameEngine.PENDING_GOVERNMENT:
+				return
+			GameEngine.PENDING_RENEWAL:
+				e.renew(first)
+			GameEngine.PENDING_DISCARD:
+				e.discard_card(first)
+			GameEngine.PENDING_EXPLORE:
+				e.choose(first)
+			_:
+				e.end_turn()
+	check(false, "the government choice never came: %s" % [e.pending()])
+
+
+func test_choosing_a_government_updates_the_button_and_an_open_modal() -> void:
 	var main := open_main()
 	main.start_game(1)
+	var e := Game.engine
+	e.create_card("kingship", "discard", null)  # into the government deck (154)
+	to_government_choice(e)
 	main.identity_button().pressed.emit()
-	var kingship := put_in_hand(Game.engine, "kingship")
-	check(Game.engine.play_card(kingship), "play Kingship: %s" % Game.engine.play_error(kingship))
+	var kingship := uid_of(e.zone("governments"), "kingship")
+	check(e.choose_government(kingship), "choose Kingship: %s" % e.choose_government_error(kingship))
 	eq(main.identity_button().text, "%s · Kingship" % name_in("civilization"), "the button")
 	eq(main.identity_modal.shown(), [name_in("civilization"), "Kingship"], "the open modal")
 	var body: String = main.identity_modal.body_text()
-	for line in Game.engine.def_details("kingship").rules:
+	for line in e.def_details("kingship").rules:
 		check(body.contains(line), "Kingship's rules ('%s'): %s" % [line, body])
-	check(not main.views.has(kingship), "no view left for Kingship")
 	close_main(main)
 
 

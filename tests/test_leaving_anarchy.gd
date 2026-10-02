@@ -1,110 +1,85 @@
 extends "res://tests/lib/anarchy_case.gd"
-## Leaving Anarchy (backlog 146): a government is accepted during Anarchy only at unrest of at most half its limit
-## (the unrest_limit modifier added before halving); restore_order() pays config unrest.relief and a government is
-## chosen from the government deck (154), with unrest at most half its limit. The Restore order button sits beside Relieve famine; the bot
-## pays after 2 counters. Fixtures: tests/lib/anarchy_case.gd (relief 6 wealth).
+## Restoring order (backlogs 146, 155): from Anarchy's second turn restore_order() buys the rest of it off for
+## c × (c + 1) wealth, c the counters left, and the government choice is owed at once (154). The Restore order button
+## sits beside Relieve famine; the bot pays from the second turn with 2+ counters left or a starving upkeep ahead.
+## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; max_counters 4).
 
 
-## A game in Anarchy (fallen_engine) with unrest and wealth set.
-func anarchy_with(unrest: int, wealth := 10, block := {}) -> GameEngine:
-	var e := fallen_engine(block)
-	e.resources["unrest"] = unrest
-	e.resources["wealth"] = wealth
-	return e
+# --- AC5: the price ---
+
+func test_order_relief_is_c_times_c_plus_1_wealth_for_the_counters_left() -> void:
+	eq(anarchy_engine().order_relief(), {}, "no Anarchy")
+	var e := fallen_engine()
+	eq(e.order_relief(), {"wealth": 20}, "4 counters")
+	for row in [[3, 12], [2, 6], [1, 2]]:
+		e.set_unrest(row[0])  # calming lowers the counters left to row[0]
+		eq(e.order_relief(), {"wealth": row[1]}, "%d counters" % row[0])
 
 
-# --- AC1: a government the people accept ---
-
-func test_a_government_is_refused_above_half_its_limit() -> void:
-	var e := anarchy_with(4)
-	var kings := put_in_hand(e, "kings")
-	eq(e.play_error(kings), "The people won't accept Kings until unrest is 3 or less.", "7 / 2 = 3")
-	check(not e.play_card(kings), "play_card refuses")
-	eq(ruling(e), "anarchy", "Anarchy still rules")
-
-
-func test_the_unrest_limit_modifier_counts_before_halving() -> void:
-	var e := anarchy_with(4)
-	build_on(e, home_uid(e), ["altar"])
-	eq(e.play_error(put_in_hand(e, "kings")), "", "(7 + 1) / 2 = 4")
+func test_unrest_relief_is_no_longer_read() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var config := DataLoader.parse_config(anarchy_raw({"relief": {"wealth": 6}}), RESOURCES, anarchy_db(),
+		"config.json", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	has_msg(warnings, "config.json: unrest: unknown field 'relief'")
+	check(not config.unrest.has("relief"), "not in the normalized block")
 
 
-func test_a_government_at_half_its_limit_ends_anarchy() -> void:
-	var e := anarchy_with(3)
-	var anarchy: int = e.anarchy()
-	var kings := put_in_hand(e, "kings")
-	check(e.play_card(kings), "Kings at 3: %s" % e.play_error(kings))
-	eq(ruling(e), "kings", "Kings rules")
-	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")
-	eq(e.resources.get("unrest"), 3, "unrest stays 3")
-
-
-func test_outside_anarchy_a_government_has_no_unrest_condition() -> void:
-	var e := anarchy_engine()
-	e.resources["unrest"] = 5
-	var kings := put_in_hand(e, "kings")
-	check(e.play_card(kings), "Kings at 5 outside Anarchy: %s" % e.play_error(kings))
-	eq(ruling(e), "kings", "Kings rules")
-
-
-# --- AC2: paying to restore order ---
-
-func test_restore_order_pays_and_a_government_is_chosen() -> void:
-	var e := anarchy_with(5, 6)
-	var recorded := record_messages(e)
-	var anarchy: int = e.anarchy()
-	eq(e.order_relief(), {"wealth": 6}, "order_relief")
-	check(e.restore_order(), "restore_order: %s" % e.restore_order_error())
-	eq(e.resources.get("wealth"), 0, "6 − 6")
-	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the government choice is owed (154)")
-	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
-	eq(ruling(e), "chiefs", "Chiefs rules")
-	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")
-	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
-	check_noticed(recorded, "Order restored")
-
-
-func test_order_relief_is_empty_without_relief() -> void:
-	var e := anarchy_engine({"relief": null})
-	eq(e.order_relief(), {}, "no relief configured")
-
-
-func test_unrest_relief_validation() -> void:
-	var with_relief := func(relief: Variant) -> Dictionary: return anarchy_raw({"relief": relief})
-	check_cases([
-		["not an object", with_relief.call(6), "config.json: unrest.relief"],
-		["empty", with_relief.call({}), "config.json: unrest.relief"],
-		["unknown resource", with_relief.call({"gold": 6}), "config.json: unrest.relief: unknown resource 'gold'"],
-		["0", with_relief.call({"wealth": 0}), "config.json: unrest.relief: 'wealth' must be an integer >= 1"],
-		["unrest", with_relief.call({"unrest": 1}), "config.json: unrest.relief: unrest can't be paid"],
-	], raw_config_errors)
-
-
-# --- AC3: restore_order_error ---
+# --- AC5: restore_order_error ---
 
 func test_restore_order_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
 	eq(anarchy_engine().restore_order_error(), "There is no anarchy.", "outside Anarchy")
-	var short := anarchy_with(5, 5)
-	eq(short.restore_order_error(), "Restoring order needs 6 wealth (you have 5).", "short")
+	var first := fallen_engine()
+	first.resources["wealth"] = 30
+	eq(first.restore_order_error(), "Order can't be restored on Anarchy's first turn.", "the turn it fell")
+	check(not first.restore_order(), "refuses on the first turn")
+	var short := second_turn_engine(5, 11)
+	eq(short.restore_order_error(), "Restoring order needs 12 wealth (you have 11).", "3 counters left: 12")
+	var before := short.state.copy()
 	check(not short.restore_order(), "restore_order refuses")
-	eq([short.resources.get("wealth"), ruling(short), short.resources.get("unrest")], [5, "anarchy", 5], "unchanged")
-	var over := anarchy_with(5)
+	eq(state_diff(short.state, before), "", "a refusal changes nothing")
+	var over := second_turn_engine(5)
 	over.is_over = true
 	eq(over.restore_order_error(), "The game is over.", "game over")
-	var none := anarchy_with(5, 10, {"relief": null})
-	eq(none.restore_order_error(), "Order can't be bought.", "no relief configured")
-	eq(anarchy_with(5, 6).restore_order_error(), "", "can pay")
+	eq(second_turn_engine(5, 12).restore_order_error(), "", "can pay")
 
 
 func test_restore_order_waits_for_a_pending_discard() -> void:
-	var e := anarchy_with(5)
+	var e := second_turn_engine(5)
 	for i in e.config.hand_limit + 1 - e.zone("hand").size():
 		put_in_hand(e, "farm")
 	e.end_turn()  # the hand is over its limit: a discard is owed
 	eq(e.restore_order_error(), "Discard down to %d cards first." % e.config.hand_limit, "pending discard")
 
 
-# --- AC4: the Restore order button ---
+# --- AC5: restoring ---
+
+func test_restore_order_pays_and_the_government_choice_is_owed_at_once() -> void:
+	var e := second_turn_engine(5, 12)
+	var recorded := record_messages(e)
+	var anarchy: int = e.anarchy()
+	check(e.restore_order(), "restore_order: %s" % e.restore_order_error())
+	eq(e.resources.get("wealth"), 0, "12 − 12")
+	check(e.zone("removed").find(anarchy) != null, "the Anarchy card is removed")
+	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the government choice is owed (154)")
+	check_noticed(recorded, "Order restored")
+	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
+	eq([e.turn, ruling(e)], [3, "chiefs"], "Chiefs rules and the turn goes on")
+	eq(e.resources.get("unrest"), 2, "min(5, 5 / 2)")
+
+
+func test_a_government_chosen_mid_turn_counts_its_actions_at_once() -> void:
+	var e := second_turn_engine(5, 12)
+	e.create_card("court", "discard", null)  # into the government deck (154)
+	var feast := put_in_hand(e, "feast")
+	check(e.play_card(feast), "Feast uses Anarchy's 1 action: %s" % e.play_error(feast))
+	check(e.restore_order(), "restore_order: %s" % e.restore_order_error())
+	check(e.choose_government(uid_of(e.zone("governments"), "court")), "choose Court")
+	eq([e.actions_per_turn(), e.actions_left()], [3, 2], "Court's 3, 1 used (127 AC6)")
+
+
+# --- AC5: the Restore order button ---
 
 func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> void:
 	await with_main(anarchy_engine(), func(main: Node):
@@ -113,39 +88,50 @@ func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> v
 		await wait_frames()
 		check(not restore.is_visible_in_tree(), "hidden outside Anarchy")
 		e.resources["unrest"] = 5
-		e.resources["wealth"] = 6
 		e.end_turn()
+		e.resources["wealth"] = 30
+		e.changed.emit()
 		await wait_frames()
 		check(restore.is_visible_in_tree(), "shown in Anarchy")
-		eq(restore.text, "Restore order (6 wealth)", "text")
-		check(not restore.disabled, "enabled when it can pay")
+		check(restore.disabled, "disabled on its first turn")
+		eq(restore.tooltip_text, "Order can't be restored on Anarchy's first turn.", "the reason in the tooltip")
 		eq(restore.get_parent(), main.relieve_button().get_parent(), "beside Relieve famine")
+		e.end_turn()
+		await wait_frames()
+		eq(restore.text, "Restore order (12 wealth)", "3 counters left: 12")
+		check(not restore.disabled, "enabled when it can pay")
 		e.resources["wealth"] = 5
 		e.changed.emit()
 		await wait_frames()
 		check(restore.disabled, "disabled when short")
-		eq(restore.tooltip_text, "Restoring order needs 6 wealth (you have 5).", "the reason in the tooltip"))
+		eq(restore.tooltip_text, "Restoring order needs 12 wealth (you have 5).", "the reason in the tooltip"))
 
 
-func test_the_restore_order_button_hides_without_relief() -> void:
-	await with_main(anarchy_engine({"relief": null}), func(main: Node):
-		var e := Game.engine
-		e.resources["unrest"] = 5
-		e.end_turn()
-		await wait_frames()
-		check(e.anarchy() != -1, "in Anarchy")
-		check(not main.restore_order_button().is_visible_in_tree(), "no relief, no button"))
+# --- AC7: the bot restores order ---
+
+func test_the_bot_restores_order_from_the_second_turn_with_2_counters_left() -> void:
+	var first := fallen_engine()
+	first.resources["wealth"] = 30
+	ScriptedBot.take_turn(first, "baseline")
+	eq(ruling(first), "anarchy", "first turn: the bot can't")
+	var second := second_turn_engine(5, 30)
+	ScriptedBot.take_turn(second, "baseline")
+	eq(second.anarchy(), -1, "3 counters left on the second turn: the bot pays")
+	eq(second.resources.get("wealth"), 18, "30 − 12")
+	eq(second.pending(), {}, "and chooses a government")
+	var poor := second_turn_engine(5, 11)
+	ScriptedBot.take_turn(poor, "baseline")
+	eq(ruling(poor), "anarchy", "short of 12: the bot waits")
 
 
-# --- AC5: the bot pays after 2 counters ---
-
-func test_the_bot_restores_order_after_2_counters() -> void:
-	var one := anarchy_with(5, 10)
-	one.zone("government").cards[0].counters = 1
-	ScriptedBot.take_turn(one, "baseline")
-	eq(ruling(one), "anarchy", "1 counter: the bot waits")
-	var two := anarchy_with(5, 10)
-	two.zone("government").cards[0].counters = 2
-	ScriptedBot.take_turn(two, "baseline")
-	eq(two.anarchy(), -1, "2 counters: the bot pays")
-	eq(two.resources.get("wealth"), 4, "10 − 6")
+func test_with_1_counter_left_the_bot_pays_only_to_avoid_starving() -> void:
+	var calm := second_turn_engine(2, 30)
+	eq(calm.anarchy_counters(), 1, "1 counter left")
+	ScriptedBot.take_turn(calm, "baseline")
+	eq(ruling(calm), "anarchy", "it ends this turn anyway: the bot waits")
+	var hungry := second_turn_engine(2, 30, {"population": {"start": 6, "food_upkeep": 1, "vp_per_pop": 0,
+		"famine": FAMINE}})
+	hungry.resources["food"] = 0
+	check(hungry.upkeep_forecast().get("starve", 0) > 0, "the next upkeep would starve")
+	ScriptedBot.take_turn(hungry, "baseline")
+	eq(hungry.anarchy(), -1, "the bot pays 2 wealth")
