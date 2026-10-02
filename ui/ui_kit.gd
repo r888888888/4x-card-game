@@ -52,7 +52,7 @@ static func slot_outline() -> Panel:
 	return outline
 
 
-## A flat panel: bg with a border (1 wide when see-through, else 2), round corners and padding all round.
+## A flat panel: bg with a border (1 wide when see-through, else 2), square corners (178) and padding all round (a Tokens.SPACE_* step, 193).
 static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg

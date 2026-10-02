@@ -84,3 +84,8 @@ fails on a new literal. The user chose to snap to the guide's values (a visible 
 - Green: AC5's call list misses `UIKit.panel_style`'s padding argument; the screen walk caught the tech tree tiles'
   6, and four more callers (dark panel 24, log 12, territory frame 18, tiles 6) now pass tokens. Follow-up: add
   `panel_style(` to AC5's calls so a literal padding fails statically too (the territory view isn't in the walk).
+- Refactor: docs (CLAUDE.md, PLAN.md, docs/design/tokens.md) and `UIKit.panel_style`'s stale "round corners".
+  The top bar still fits 1920 px (`test_board_layout::test_top_bar_controls_are_on_screen_and_buttons_fit_their_text`).
+- Follow-up: `Counter.GLYPH_GAP` (6, a `custom_minimum_size` gap in the top bar's counters) shares a name with
+  `Tokens.GLYPH_GAP` (3) and is off the scale; minimum-size gaps aren't covered by AC5. Worth a small item with the
+  `panel_style(` gap above.
