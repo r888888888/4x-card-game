@@ -2,7 +2,7 @@
 id: 183
 title: Day mode: the Paper palette, switched at once
 type: feature
-status: in-progress
+status: review
 branch: feat/183-day-mode
 ---
 
@@ -13,25 +13,25 @@ with a Day mode legend key beside Reduce motion. The switch takes effect at once
 Night shift (178) stays the default.
 
 ## Acceptance criteria
-- [ ] AC1: The settings file keeps `day_mode` (default false) under `[ui]`, saved and loaded like `reduce_motion`; a
+- [x] AC1: The settings file keeps `day_mode` (default false) under `[ui]`, saved and loaded like `reduce_motion`; a
   value that isn't true or false falls back to false with the warning "settings file '<path>': [ui] 'day_mode' must
   be true or false, got <value>; using false". `Settings.set_day_mode(on)` saves it and emits `changed`.
-- [ ] AC2: Every `Palette` colour has a Night value (178's) and a Day value (the guide's Paper column, mapped in Design
+- [x] AC2: Every `Palette` colour has a Night value (178's) and a Day value (the guide's Paper column, mapped in Design
   notes), and reads the Day value while day mode is on: given day mode on, `BACKGROUND` is efe8da, `RAISED` f8f4ec,
   `CONTROL` dcd3c2, `TEXT` 22211f, `ACCENT` a8401b; given it off, 178's values. In both modes `test_theme` checks the
   guide's contrast: `TEXT` and `TEXT_DIM` on `RAISED` and on `BACKGROUND` at least 4.5:1, `TEXT_ON_ACCENT` on `ACCENT`
   at least 4.5:1, and `CONTROL_BORDER` and each glyph hue (`GAIN`, `WEALTH`, `INSIGHT`, `UNREST`, `POP`) on `RAISED`
   at least 3:1.
-- [ ] AC3: Given a game in progress (turn 3, five cards in hand, the top bar showing), when day mode is turned on, then
+- [x] AC3: Given a game in progress (turn 3, five cards in hand, the top bar showing), when day mode is turned on, then
   without a restart main's theme is rebuilt from the Day values (a `Button`'s normal box fill is dcd3c2), the board's
   background, every card view's panel and band, the top bar's glyphs and figures and the log use Day values; the turn,
   the hand, the resources and the log's lines are unchanged. Turning it off brings back every Night value the same way.
-- [ ] AC4: Screens and modals open when the switch happens (the game menu, the settings screen, a card's details, the
+- [x] AC4: Screens and modals open when the switch happens (the game menu, the settings screen, a card's details, the
   tech tree) take the new values at once too, and stay open.
-- [ ] AC5: The settings screen and the game menu show a "Day mode" row (a label and a `LegendKey`, as 182's Reduce
+- [x] AC5: The settings screen and the game menu show a "Day mode" row (a label and a `LegendKey`, as 182's Reduce
   motion row) under Reduce motion; it shows the current setting when opened, toggling it calls `Settings.set_day_mode`,
   and changing it on one shows on the other. It is in both focus loops.
-- [ ] AC6: Nothing under `ui/` keeps a colour from before a switch: no script holds a `Palette` colour in a constant
+- [x] AC6: Nothing under `ui/` keeps a colour from before a switch: no script holds a `Palette` colour in a constant
   (`const X := Palette.Y`), which `test_ui_structure` checks; the colours read at the time of drawing (or are reapplied
   on the switch).
 
@@ -77,3 +77,16 @@ Night shift (178) stays the default.
 ## Log
 - 2026-10-01: Specced. Decided 2026-10-01: chosen with a Day mode legend key (not Day / Night / Follow system), and the
   switch applies at once, mid-game, rather than on the next screen.
+- 2026-10-02: Built. `Palette`: one `static var` per role, set from its `NIGHT` or `DAY` table by `Palette.use(day)`;
+  `Palette.color(name)` reads a role by name. `Settings` switches the palette first on `changed` (connected in its
+  `_ready`, before any other listener) and at start-up. Main, on a switch, rebuilds its theme, runs `UIKit.repaint`
+  (every colour set in code at build time is now registered with `UIKit.painted(node, apply)` and rerun), restyles
+  every `CardView` (setup again from its remembered arguments, then replays what was shown on its face since) and
+  refreshes. The constant aliases became static getters (`CardView.TYPE_COLORS`, `WARN_COLOR`, …, `UIKit.GAIN_COLOR`,
+  `Icons.GLYPHS`, `TechTreeModal.STATE_LOOK`), so callers keep their names. `UIKit.overlay` and `UIKit.stat` take a
+  Palette role name (`&"WARN"`) where they used to take a colour. Day see-through layers: dimmer and scrim ink at 40%,
+  hatch, ghost and faint edge ink at low alpha, the drop zone accent at 5%, outline and hint backing paper. Tests
+  changed by AC5: 182's menu width test and Tab test (the Day mode row now follows Reduce motion), and
+  `test_resource_glyphs`' tint table (Palette colours can't sit in a test constant either; it names them). The guide's
+  contrast check lives in `test_day_mode` (it needs the switch), not `test_theme`. Log lines already written keep the
+  colours they were written in (BBCode).
