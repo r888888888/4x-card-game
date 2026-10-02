@@ -3,7 +3,10 @@ extends RefCounted
 ## The choice overlays over the dimmed board: Explore (keep one revealed territory), Renewal (147: trash cards from
 ## the discard under Anarchy) and Government (154: choose one from the government deck when Anarchy ends), each shown
 ## while the engine waits for that decision. (The Knowledge overlay went with
-## reveal-2 research in 140: techs are learned in the tech tree.)
+## reveal-2 research in 140: techs are learned in the tech tree.) The government choice comes and goes behind cabinet
+## doors (209), or fades with Reduce motion.
+
+const GOVERNMENT_FADE := 0.12  # the government overlay in and out with Reduce motion (209)
 
 var reveal: HBoxContainer  # the revealed territories to choose from
 var renewal_row: HFlowContainer  # the discard pile, to trash from (147)
@@ -13,7 +16,10 @@ var _explore: Control
 var _explore_panel: PanelContainer
 var _renewal: Control
 var _renewal_heading: Label
-var _government: Control
+var government: Control  # the government overlay (154)
+var doors: CabinetDoors  # shut over the board while the government choice comes and goes (209)
+var _government_wanted := false  # the engine waits for the government choice: the overlay is (or is going) up
+var _fade: Tween
 
 
 ## Builds the overlays on parent, hidden.
@@ -41,15 +47,17 @@ func _init(parent: Control) -> void:
 	renewal_row.custom_minimum_size.x = 900  # wraps a long discard pile
 	renewal_box.add_child(renewal_row)
 
-	_government = UIKit.overlay(parent, &"UNREST")
-	_government.z_index = 5
-	var government_box := _government.get_meta("box") as VBoxContainer
+	government = UIKit.overlay(parent, &"UNREST")
+	government.z_index = 5
+	var government_box := government.get_meta("box") as VBoxContainer
 	government_box.add_child(UIKit.title("Government"))
 	government_heading = UIKit.heading("Order returns: choose your government.")
 	government_box.add_child(government_heading)
 	government_row = HFlowContainer.new()
 	government_row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
 	government_box.add_child(government_row)
+	doors = CabinetDoors.new()
+	parent.add_child(doors)
 
 
 ## Shows the overlay for the decision engine e waits for (an explore choice, renewal or a government); e null hides
@@ -58,10 +66,36 @@ func refresh(e: GameEngine) -> void:
 	var pending: Dictionary = e.pending() if e != null else {}
 	_explore.visible = pending.get("kind", "") == GameEngine.PENDING_EXPLORE
 	_renewal.visible = pending.get("kind", "") == GameEngine.PENDING_RENEWAL
-	_government.visible = pending.get("kind", "") == GameEngine.PENDING_GOVERNMENT
+	_show_government(pending.get("kind", "") == GameEngine.PENDING_GOVERNMENT, e != null)
 	if _renewal.visible:
 		_renewal_heading.text = "Anarchy tears down the old ways: trash %d card%s from your discard pile. Each one calms 1 %s." % [
 			pending.count, "" if pending.count == 1 else "s", GameEngine.UNREST]
+
+
+## Puts the government overlay up or takes it down: behind the doors, or a fade with Reduce motion; at once when
+## animated is false (no game: a new game or leaving one).
+func _show_government(wanted: bool, animated: bool) -> void:
+	if wanted == _government_wanted and animated:
+		return
+	_government_wanted = wanted
+	if _fade != null and _fade.is_valid():
+		_fade.kill()
+	if not animated:
+		doors.stop()
+		government.visible = wanted
+		government.modulate.a = 1.0
+		return
+	if not UIKit.calm():
+		doors.close_over(func():
+			government.visible = wanted
+			government.modulate.a = 1.0)
+		return
+	government.visible = true
+	government.modulate.a = 0.0 if wanted else 1.0
+	_fade = government.create_tween()
+	_fade.tween_property(government, "modulate:a", 1.0 if wanted else 0.0, GOVERNMENT_FADE)
+	if not wanted:
+		_fade.tween_callback(government.hide)
 
 
 ## Whether container holds cards to click on while a choice is open.

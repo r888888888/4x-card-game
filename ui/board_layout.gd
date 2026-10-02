@@ -37,6 +37,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.drag = DragController.new(main)
 	main.focus = CardFocus.new(main)
 	main.choices = ChoiceOverlays.new(main)
+	main.doors = main.choices.doors
 	main.supply = SupplyScreen.new(main, main.open_supply)
 	main.supply.refused.connect(func(message: String): main.log_note("[color=#e88]%s[/color]" % message))
 	main.supply.closed.connect(func(): main.focus.clear())
