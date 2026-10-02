@@ -52,4 +52,13 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
+Mid-century restyle (UI only, from [docs/design/mcm-style-guide.md](../design/mcm-style-guide.md) and the
+`spike/mcm-godot` spike; independent of the military items):
+1. 177 counter accessors (no visible change; frees the tests from the counters' text)
+2. 178 Night shift palette, typefaces and machined controls
+3. 179 index-card faces and machined card motion
+4. 180 resource glyphs and glyph costs
+5. 181 odometer counters and +N tags
+6. 182 the legend key for Reduce motion
+
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
