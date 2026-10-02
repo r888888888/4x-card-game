@@ -2,7 +2,7 @@
 id: 195
 title: Launching with Day mode saved refreshes a board with no game, and the suite reads the player's settings
 type: bug
-status: review
+status: done
 branch: fix/195-day-mode-at-launch
 ---
 
