@@ -2,7 +2,7 @@
 id: 157
 title: Theocracy slows research: an insight-per-gain modifier
 type: feature
-status: review
+status: done
 branch: feat/157-insight-per-gain-modifier
 ---
 
