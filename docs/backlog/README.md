@@ -50,4 +50,13 @@ Government and Anarchy rework (from `spike/revolution`):
 
 Then 149's balance pass can cover the reworked unrest.
 
+Barbarians and military (units are homed on a territory, using a worker there, and stationed where they defend):
+1. 160 unit cards garrisoned on a home territory
+2. 161 territory defence from units, walls, cities and terrain
+3. 162 barbarian raids, announced a turn ahead
+4. 163 move and disband units
+5. 168 the sim bot meets raids (before more military, so the sim stays meaningful)
+6. 164 Barracks training, then 165 veterans, then 166 upgrades
+7. 167 era units and era 2–3 raids
+
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
