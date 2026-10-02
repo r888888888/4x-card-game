@@ -41,19 +41,6 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-Project review cleanup (2026-10-01), before the rework, which builds on this code:
-1. 169 docs, skills and the review scan in line with the code (first: later items have less to keep in sync)
-2. 170 shared test fixtures, engines typed `GameEngine` (test helpers before the items that add tests)
-3. 171 guard tests for state copies and the pending-decision block (guards before the refactors they guard)
-4. 172 one pending-decision model (155 adds a decision and moves the government choice; written once, on this model)
-5. 173 one way to check and pay a price, and to add unrest (before 155's and 156's new prices)
-6. 174 prerequisite cycles a load error; the renewal modifier key on `Modifiers` (small loader fix, any time here)
-7. 175 the last small rules leave the UI; one action-button class (rules leave `ui/` before it's split)
-8. 176 split `main.gd` (694/700 lines: before 155 and the military items need room in it)
-
-Trade-off: the rework and the military items wait for eight small items; done after them instead, each refactor would
-also have to rework 155's and the military items' new state, decisions and prices.
-
 Government and Anarchy rework (from `spike/revolution`; 155 also retires playing a government from hand):
 1. 155 revolt any time; Anarchy's length follows unrest (154 government deck is done)
 2. 156 Anarchy eats into stored food and wealth

@@ -94,5 +94,13 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 84. 147 renewal: trash from the discard during Anarchy (after 146)
 85. 148 revolution events: choose to revolt (after 147)
 86. 154 government deck: choose your next government instead of drawing it (after 148)
+87. 169 docs, skills and the review scan in line with the code (project review cleanup, 2026-10-01)
+88. 170 shared test fixtures, engines typed `GameEngine` in tests
+89. 171 guard tests for state copies and the pending-decision block
+90. 172 one pending-decision model (`GameState.pending`)
+91. 173 one way to check and pay a price, and to add unrest
+92. 174 prerequisite cycles a load error; the renewal modifier key on `Modifiers`
+93. 175 the last small rules leave the UI; one action-button class
+94. 176 split `main.gd` (`BoardViews`, `BoardLayout`)
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
