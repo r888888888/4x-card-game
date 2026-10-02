@@ -97,7 +97,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	in_hand = p_in_hand
 	pickable = false
 	var def := card.def
-	_color = TYPE_COLORS.get(def.type, Color.GRAY)
+	_color = type_color(def.type)
 	_target_size = HAND_SIZE if in_hand else (BOARD_SIZE if kind != "" else TABLEAU_SIZE)
 	custom_minimum_size = _target_size
 
@@ -130,6 +130,11 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_set_tip("")
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 	_update_border()
+
+
+## The colour of card type's band (a type with none of its own: grey).
+static func type_color(type: String) -> Color:
+	return TYPE_COLORS.get(type, Color.GRAY)
 
 
 ## Rebuilds the face in the palette's current colours (183): setup again with the same card, then everything shown on

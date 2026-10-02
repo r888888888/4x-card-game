@@ -154,7 +154,7 @@ func _build_screens(main: MainScreen, push_new_game_screen: Callable) -> void:
 		main.nav.push(main.settings_screen.overlay, main.settings_screen.back_button, "Settings"))
 	main.start_screen.exit_requested.connect(func(): main.quit_hook.call())
 	main.nav.animated = true
-	main.new_game_screen = NewGameScreen.new(main, main.nav, main.details.open)
+	main.new_game_screen = NewGameScreen.new(main, main.nav)
 	main.new_game_screen.start_requested.connect(func(seed_value: int):
 		main.start_game(seed_value, main.new_game_screen.selected))
 	main.settings_screen = SettingsScreen.new(main, main.nav)
