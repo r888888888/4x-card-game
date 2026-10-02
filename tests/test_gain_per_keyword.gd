@@ -14,7 +14,7 @@ func action(effect: Dictionary) -> Dictionary:
 
 ## Loader result for one action x with effect.
 func load_action(effect: Dictionary) -> Dictionary:
-	return load_with([action(effect)], GOLD)
+	return fixture_load([action(effect)], [], [], GOLD)
 
 
 ## HUNT with key set to value (or removed when value is null).
@@ -28,8 +28,8 @@ func hunt_with(key: String, value: Variant) -> Dictionary:
 
 
 ## A game on TEST_CARDS plus extra, with territory_deck hills and river, a deck of farms, and 0 food.
-func engine_with(extra: Array) -> GameEngine:
-	var r := load_with(extra, GOLD)
+func gold_engine(extra: Array) -> GameEngine:
+	var r := fixture_load(extra, [], [], GOLD)
 	check(r.errors.is_empty(), "test data should load: %s" % [r.errors])
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
@@ -44,8 +44,8 @@ func engine_with(extra: Array) -> GameEngine:
 
 
 ## Plays a new copy of action x (effect) in a game with territories settled; returns the engine.
-func play_x(effect: Dictionary, settled: Array) -> Object:
-	var e: Object = engine_with([action(effect)])
+func play_x(effect: Dictionary, settled: Array) -> GameEngine:
+	var e: GameEngine = gold_engine([action(effect)])
 	settle(e, settled)
 	e.resources.food = 0
 	var uid := put_in_hand(e, "x")
@@ -61,7 +61,7 @@ func test_gains_amount_per_settled_territory_with_a_keyword() -> void:
 
 
 func test_count_territories_with_query() -> void:
-	var e: Object = engine_with([])
+	var e: GameEngine = gold_engine([])
 	settle(e, ["hills", "river"])
 	eq(e.count_territories_with(["mountain", "fresh_water"] as Array[String]), 2, "hills and river")
 	eq(e.count_territories_with(["flood_plain"] as Array[String]), 1, "river")
@@ -78,7 +78,7 @@ func test_a_territory_with_several_listed_keywords_counts_once() -> void:
 # --- AC3: only settled territories ---
 
 func test_frontier_territories_do_not_count() -> void:
-	var e: Object = engine_with([action(HUNT)])
+	var e: GameEngine = gold_engine([action(HUNT)])
 	to_frontier(e, ["hills"])
 	var uid := put_in_hand(e, "x")
 	check(e.play_card(uid), "the play succeeds with nothing to count: %s" % e.play_error(uid))
@@ -89,7 +89,7 @@ func test_frontier_territories_do_not_count() -> void:
 # --- AC4: rolled resource keywords ---
 
 func test_rolled_resource_keywords_count() -> void:
-	var e: Object = engine_with([action(hunt_with("keywords", ["gold"]))])
+	var e: GameEngine = gold_engine([action(hunt_with("keywords", ["gold"]))])
 	settle(e, ["hills"])
 	var hills: CardInstance = e.zone("tableau").find(uid_of(e.zone("tableau"), "hills"))
 	hills.keywords.append("gold")  # as if rolled at setup
@@ -103,7 +103,7 @@ func test_rolled_resource_keywords_count() -> void:
 func test_upkeep_gain_per_keyword_is_forecast_and_given() -> void:
 	var upkeep := {"op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["mountain"], "trigger": "upkeep"}
 	var hut := {"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}
-	var e: Object = engine_with([hut])
+	var e: GameEngine = gold_engine([hut])
 	settle(e, ["hills"])
 	build_on(e, home_uid(e), ["hut"])
 	eq(e.upkeep_forecast().wealth, 1, "forecast: 1 mountain territory")
@@ -140,7 +140,7 @@ func test_gain_per_keyword_validation() -> void:
 func test_gain_per_keyword_may_trigger_on_upkeep() -> void:
 	var upkeep := HUNT.duplicate(true)
 	upkeep["trigger"] = "upkeep"
-	var r := load_with([{"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}], GOLD)
+	var r := fixture_load([{"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}], [], [], GOLD)
 	eq(r.errors, [] as Array[String], "errors")
 
 

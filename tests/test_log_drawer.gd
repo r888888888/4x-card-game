@@ -4,16 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## closed, a new game clears it. Hook: main.log_drawer (is_open(), text(): the log as plain text).
 
 
-## Runs body(main) on a seed 1 game of the real data, with Reduce motion set to calm.
-func with_game(calm: bool, body: Callable) -> void:
-	await with_reduce_motion(calm, func():
-		var main := open_main()
-		main.start_game(1)
-		await wait_frames()
-		await body.call(main)
-		close_main(main))
-
-
 ## The first visible button under root whose text starts with prefix, or null.
 func shown_button(root: Node, prefix: String) -> Button:
 	for b in UIKit.buttons_in(root):

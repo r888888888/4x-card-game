@@ -6,19 +6,6 @@ extends "res://tests/lib/test_case.gd"
 ## a drop there targets) and main.try_play, and a lit card's click through main.on_picked.
 
 
-## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game (deck, overrides) started on
-## seed 1 and laid out; then puts the real engine back.
-func with_fixture_main(body: Callable, deck := {"farm": 10}, overrides := {}) -> void:
-	var real := Game.engine
-	Game.engine = make_engine(deck, {"territory_deck": {"grassland": 1, "hills": 1}}.merged(overrides))
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	await body.call(main)
-	close_main(main)
-	Game.engine = real
-
-
 ## The uids of the Realm's card views, in order.
 func realm_uids(main: Node) -> Array[int]:
 	var out: Array[int] = []
@@ -46,7 +33,7 @@ func territory_of(e: GameEngine, uid: int) -> int:
 # --- AC1: one card per territory ---
 
 func test_the_realm_shows_one_card_per_territory() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -72,7 +59,7 @@ func test_the_realm_shows_one_card_per_territory() -> void:
 # --- AC2: cards on no territory ---
 
 func test_a_card_on_no_territory_follows_the_territories() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var shrine: CardInstance = e.create_card("shrine", "tableau", null)  # on no territory
@@ -85,7 +72,7 @@ func test_a_card_on_no_territory_follows_the_territories() -> void:
 # --- AC3: stats on the card ---
 
 func test_a_territory_card_shows_its_slots_and_pop() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var text: String = main.views[home].face_text()
@@ -102,7 +89,7 @@ func test_a_territory_card_shows_its_slots_and_pop() -> void:
 # --- AC4: playing onto a territory card ---
 
 func test_dragging_a_building_lights_its_targets_and_a_drop_plays_it_there() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		settle(e, ["grassland"])
@@ -121,7 +108,7 @@ func test_dragging_a_building_lights_its_targets_and_a_drop_plays_it_there() -> 
 
 
 func test_dropping_on_a_territory_that_cannot_take_it_says_why() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
@@ -140,7 +127,7 @@ func test_dropping_on_a_territory_that_cannot_take_it_says_why() -> void:
 
 
 func test_clicking_a_lit_territory_card_while_targeting_plays_there() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
@@ -155,7 +142,7 @@ func test_clicking_a_lit_territory_card_while_targeting_plays_there() -> void:
 
 
 func test_keyboard_targeting_moves_between_territory_cards() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		settle(e, ["grassland"])
@@ -176,7 +163,7 @@ func test_keyboard_targeting_moves_between_territory_cards() -> void:
 # --- AC5: no collapse and no Grow in the Realm ---
 
 func test_the_realm_has_no_collapse_toggles_or_grow() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		for b in UIKit.buttons_in(main):
 			if b.is_visible_in_tree():
 				check(not (b.text.begins_with("Collapse all") or b.text.begins_with("Expand all")), "no '%s'" % b.text)
@@ -190,7 +177,7 @@ func test_the_realm_has_no_collapse_toggles_or_grow() -> void:
 # --- AC6: a new territory ---
 
 func test_settling_adds_a_territory_card_that_opens_with_its_city() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		to_frontier(e, ["grassland"])
@@ -216,7 +203,7 @@ func test_settling_adds_a_territory_card_that_opens_with_its_city() -> void:
 # --- 078 kept: many cards don't widen the Realm ---
 
 func test_many_territories_wrap_instead_of_widening_the_realm() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var before: float = main.tableau.get_combined_minimum_size().x
 		for i in 8:
@@ -226,7 +213,6 @@ func test_many_territories_wrap_instead_of_widening_the_realm() -> void:
 		eq(realm_uids(main).size(), 9, "9 territory cards")
 		var after: float = main.tableau.get_combined_minimum_size().x
 		check(after <= before, "the Realm's minimum width (%d) is no greater than with 1 card (%d)" % [after, before]))
-
 
 
 # --- 123: a settled territory's card ---
@@ -242,7 +228,7 @@ func live_line(e: GameEngine, uid: int) -> String:
 
 
 func test_a_settled_territory_card_shows_its_name_keywords_and_live_line_only() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		settle(e, ["hills"])
@@ -258,7 +244,7 @@ func test_a_settled_territory_card_shows_its_name_keywords_and_live_line_only() 
 
 
 func test_the_live_line_follows_building_and_growth() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var farm := put_in_hand(e, "farm")
@@ -272,7 +258,7 @@ func test_the_live_line_follows_building_and_growth() -> void:
 
 
 func test_without_population_the_live_line_is_free_slots_only() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d" % e.free_slots(home), "free slots only"))
@@ -283,7 +269,7 @@ func test_the_worker_glyph_is_an_icon() -> void:
 
 
 func test_frontier_cards_keep_their_printed_slots_and_housing() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		to_frontier(e, ["grassland"])
 		var grass := uid_of(e.zone("frontier"), "grassland")

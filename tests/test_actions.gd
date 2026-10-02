@@ -1,22 +1,14 @@
 extends "res://tests/lib/tech_case.gd"
 ## Actions per turn (backlog 127): playing a card from hand uses 1 action; the ruling government's `actions` sets how
 ## many a turn has (-1, unlimited, when it sets none). Fixtures in TEST_GOVS: Band (2 actions), Court (3), Council and
-## Kingdom (none). Shrine (free, +1 VP) fills the hand. Engines are held as Object so the file parses before the API.
+## Kingdom (none). Shrine (free, +1 VP) fills the hand.
 
 const NO_ACTIONS := "No actions left this turn."
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 
-## Loader result {errors, warnings} for gov_db's cards plus extra.
-func load_cards(extra: Array) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json", errors, warnings, keywords())
-	return {"errors": errors, "warnings": warnings}
-
-
 ## Puts n Shrines in e's hand and returns their uids.
-func shrines(e: Object, n: int) -> Array[int]:
+func shrines(e: GameEngine, n: int) -> Array[int]:
 	var out: Array[int] = []
 	for i in n:
 		out.append(put_in_hand(e, "shrine"))
@@ -24,14 +16,14 @@ func shrines(e: Object, n: int) -> Array[int]:
 
 
 ## Plays each uid, checking that it played.
-func play_all(e: Object, uids: Array[int]) -> void:
+func play_all(e: GameEngine, uids: Array[int]) -> void:
 	for uid in uids:
 		check(e.play_card(uid), "play: %s" % e.play_error(uid))
 
 
 ## A Band game with both actions used.
-func spent_band(overrides := {}) -> Object:
-	var e: Object = gov_engine("band", {"farm": 10}, overrides)
+func spent_band(overrides := {}) -> GameEngine:
+	var e: GameEngine = gov_engine("band", {"farm": 10}, overrides)
 	play_all(e, shrines(e, 2))
 	return e
 
@@ -39,7 +31,7 @@ func spent_band(overrides := {}) -> Object:
 # --- AC1: the government field and its text ---
 
 func test_government_actions_load() -> void:
-	var r := load_cards([])
+	var r := fixture_load([], [TEST_GOVS])
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
 	eq(gov_db().band.actions, 2, "Band's actions")
@@ -51,7 +43,7 @@ func test_bad_government_actions_are_load_errors() -> void:
 		["below 1", [{"id": "x", "name": "X", "type": "government", "actions": 0}], ["'x'", "actions"]],
 		["not an int", [{"id": "x", "name": "X", "type": "government", "actions": "two"}], ["'x'", "actions"]],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "'actions' only applies to governments", "warning_only"],
-	], load_cards)
+	], func(extra): return fixture_load(extra, [TEST_GOVS]))
 
 
 func test_government_actions_text() -> void:
@@ -63,18 +55,18 @@ func test_government_actions_text() -> void:
 # --- AC2: the queries ---
 
 func test_actions_per_turn_come_from_the_government() -> void:
-	var e: Object = gov_engine("band")
+	var e: GameEngine = gov_engine("band")
 	eq(e.actions_per_turn(), 2, "actions_per_turn")
 	eq(e.actions_left(), 2, "actions_left")
 	eq(e.fork().actions_left(), 2, "fork's actions_left")
-	var used: Object = gov_engine("band")
+	var used: GameEngine = gov_engine("band")
 	play_all(used, shrines(used, 1))
 	eq(used.fork().actions_left(), 1, "a fork copies the actions used")
 
 
 func test_actions_are_unlimited_without_a_government_that_sets_them() -> void:
 	for gov in ["council", ""]:
-		var e: Object = gov_engine(gov)
+		var e: GameEngine = gov_engine(gov)
 		eq(e.actions_per_turn(), -1, "%s: actions_per_turn" % gov)
 		eq(e.actions_left(), -1, "%s: actions_left" % gov)
 
@@ -82,7 +74,7 @@ func test_actions_are_unlimited_without_a_government_that_sets_them() -> void:
 # --- AC3: each play from hand uses one ---
 
 func test_each_play_uses_an_action_until_none_are_left() -> void:
-	var e: Object = gov_engine("band")
+	var e: GameEngine = gov_engine("band")
 	var uids := shrines(e, 3)
 	e.play_card(uids[0])
 	eq(e.actions_left(), 1, "after one play")
@@ -96,11 +88,11 @@ func test_each_play_uses_an_action_until_none_are_left() -> void:
 
 
 func test_no_actions_comes_after_game_over_and_a_pending_choice() -> void:
-	var over: Object = spent_band()
+	var over: GameEngine = spent_band()
 	var shrine: int = shrines(over, 1)[0]
 	over.is_over = true
 	eq(over.play_error(shrine), "The game is over.", "game over wins")
-	var e: Object = gov_engine("band", {"farm": 10}, {"territory_deck": {"grassland": 1, "hills": 1}})
+	var e: GameEngine = gov_engine("band", {"farm": 10}, {"territory_deck": {"grassland": 1, "hills": 1}})
 	play_all(e, shrines(e, 1))
 	play_all(e, [put_in_hand(e, "explorer")] as Array[int])
 	eq(e.play_error(shrines(e, 1)[0]), "Choose a territory first.", "the pending choice wins")
@@ -109,7 +101,7 @@ func test_no_actions_comes_after_game_over_and_a_pending_choice() -> void:
 # --- AC4: nothing else uses an action ---
 
 func test_other_actions_dont_use_or_need_actions() -> void:
-	var e: Object = spent_band(POP.merged({"supply": {"shrine": {"price": 1, "count": 2}}}))
+	var e: GameEngine = spent_band(POP.merged({"supply": {"shrine": {"price": 1, "count": 2}}}))
 	e.resources[GameEngine.FOOD] = 10
 	e.resources[GameEngine.WEALTH] = 10
 	var home := home_uid(e)
@@ -125,7 +117,7 @@ func test_other_actions_dont_use_or_need_actions() -> void:
 func test_learning_a_tech_after_the_last_action_is_free() -> void:
 	var starting := {"resources": {"food": 2, "wealth": 20, "insight": 20}, "tableau": ["capital"], "territory": "homeland",
 		"government": "band"}
-	var e: Object = tech_engine(["pottery", "writing"], {"farm": 10}, {"starting": starting}, TEST_GOVS)
+	var e: GameEngine = tech_engine(["pottery", "writing"], {"farm": 10}, {"starting": starting}, TEST_GOVS)
 	play_all(e, shrines(e, 2))
 	eq(e.actions_left(), 0, "no actions left")
 	var pottery := uid_of(e.zone("research_deck"), "pottery")
@@ -134,7 +126,7 @@ func test_learning_a_tech_after_the_last_action_is_free() -> void:
 
 
 func test_choosing_an_explored_territory_after_the_last_action_is_free() -> void:
-	var e: Object = gov_engine("band", {"farm": 10}, {"territory_deck": {"grassland": 1, "hills": 1}})
+	var e: GameEngine = gov_engine("band", {"farm": 10}, {"territory_deck": {"grassland": 1, "hills": 1}})
 	play_all(e, shrines(e, 1))
 	play_all(e, [put_in_hand(e, "explorer")] as Array[int])
 	eq(e.actions_left(), 0, "no actions left")
@@ -145,10 +137,10 @@ func test_choosing_an_explored_territory_after_the_last_action_is_free() -> void
 # --- AC5: a new turn, new actions ---
 
 func test_actions_reset_each_turn_and_dont_carry_over() -> void:
-	var e: Object = spent_band()
+	var e: GameEngine = spent_band()
 	e.end_turn()
 	eq(e.actions_left(), 2, "after using both")
-	var one: Object = gov_engine("band")
+	var one: GameEngine = gov_engine("band")
 	play_all(one, shrines(one, 1))
 	one.end_turn()
 	eq(one.actions_left(), 2, "an unused action doesn't carry over")
@@ -157,19 +149,19 @@ func test_actions_reset_each_turn_and_dont_carry_over() -> void:
 # --- AC6: changing government mid-turn ---
 
 func test_a_new_government_counts_at_once() -> void:
-	var e: Object = gov_engine("band")
+	var e: GameEngine = gov_engine("band")
 	play_all(e, shrines(e, 1))
 	play_all(e, [put_in_hand(e, "court")] as Array[int])
 	eq(e.actions_per_turn(), 3, "Court's actions")
 	eq(e.actions_left(), 1, "3 - 2 used")
-	var c: Object = gov_engine("court")
+	var c: GameEngine = gov_engine("court")
 	play_all(c, shrines(c, 2))
 	play_all(c, [put_in_hand(c, "band")] as Array[int])
 	eq(c.actions_left(), 0, "2 - 3 used, never below 0")
 
 
 func test_any_number_of_plays_without_actions() -> void:
-	var e: Object = gov_engine("council")
+	var e: GameEngine = gov_engine("council")
 	play_all(e, shrines(e, 6))
 	eq(e.actions_left(), -1, "still unlimited")
 
@@ -198,7 +190,7 @@ func test_top_bar_counts_actions_and_spent_hands_dim() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	var e: Object = Game.engine
+	var e: GameEngine = Game.engine
 	eq(label_text(main, "Actions:"), "Actions: 2 / 2", "at the start")
 	var uids := shrines(e, 3)
 	e.play_card(uids[0])

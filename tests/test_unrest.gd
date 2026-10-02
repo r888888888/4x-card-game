@@ -23,19 +23,10 @@ const POP := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 const UNPAYABLE := "unrest can't be paid (it is only gained and lost)"
 
 
-## Loader result {cards, errors, warnings} for TEST_CARDS, TEST_GOVS, FIXTURES and extra, with unrest a resource.
-func load_cards(extra: Array) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + FIXTURES + extra}, RESOURCES,
-		"cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors, "warnings": warnings}
-
-
-## A game on load_cards(extra) with unrest listed, gov ruling ("" for none), population on (home pop 2), 10 food and
+## A game on fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES) with unrest listed, gov ruling ("" for none), population on (home pop 2), 10 food and
 ## unrest on hand, main deck deck; overrides replace config keys.
 func unrest_engine(gov: String, unrest: int, extra := [], deck := {"farm": 10}, overrides := {}) -> GameEngine:
-	var r := load_cards(extra)
+	var r := fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES)
 	check(r.errors.is_empty(), "test cards should load: %s" % [r.errors])
 	var starting := {"resources": {"food": 10, "unrest": unrest}, "tableau": ["capital"], "territory": "homeland"}
 	if gov != "":
@@ -66,7 +57,7 @@ func play_outcome(e: GameEngine, uid: int) -> Dictionary:
 # --- AC1: the government field, the modifier key and their text ---
 
 func test_a_government_unrest_limit_loads_and_shows_in_its_text() -> void:
-	var r := load_cards([])
+	var r := fixture_load([], [TEST_GOVS, FIXTURES], RESOURCES)
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
 	var chiefs: CardDef = r.cards.chiefs
@@ -83,11 +74,11 @@ func test_unrest_limit_validation() -> void:
 		["a string", [{"id": "x", "name": "X", "type": "government", "unrest_limit": "5"}], message, "one_error"],
 		["on a building", [{"id": "x", "name": "X", "type": "building", "unrest_limit": 5}],
 			"'unrest_limit' only applies to governments (ignored)", "warning_only"],
-	], load_cards)
+	], func(extra): return fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES))
 
 
 func test_the_unrest_limit_modifier_loads_with_its_text() -> void:
-	var r := load_cards(MODIFIER_FIXTURES + [{"id": "x", "name": "X", "type": "building", "modifiers": {"unrest_limit": -1}}])
+	var r := fixture_load(MODIFIER_FIXTURES + [{"id": "x", "name": "X", "type": "building", "modifiers": {"unrest_limit": -1}}], [TEST_GOVS, FIXTURES], RESOURCES)
 	eq(r.errors, [] as Array[String], "errors")
 	if not r.cards.has("altar"):
 		return
@@ -174,7 +165,7 @@ func test_unrest_cant_be_paid() -> void:
 		["traded", [{"id": "x", "name": "X", "type": "action", "effects": [
 			{"op": "trade", "resource": "unrest", "per_root_city": 2, "pop_per": 5, "min_cities": 2}]}],
 			"cards.json: card 'x': effects[0]: " + UNPAYABLE, "one_error"],
-	], load_cards)
+	], func(extra): return fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES))
 
 
 func test_unrest_cant_be_famine_relief() -> void:
@@ -182,7 +173,7 @@ func test_unrest_cant_be_famine_relief() -> void:
 	var warnings: Array[String] = []
 	var famine := {"card": "famine", "max_counters": 3, "relief": {"unrest": 1}}
 	var raw := raw_config({"farm": 1}, {"resources": RESOURCES, "population": POP.merged({"famine": famine}, true)})
-	DataLoader.parse_config(raw, RESOURCES, load_cards([]).cards, "config.json", errors, warnings)
+	DataLoader.parse_config(raw, RESOURCES, fixture_load([], [TEST_GOVS, FIXTURES], RESOURCES).cards, "config.json", errors, warnings)
 	eq(errors, ["config.json: population.famine.relief: " + UNPAYABLE] as Array[String], "errors")
 
 

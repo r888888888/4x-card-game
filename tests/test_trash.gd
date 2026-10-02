@@ -1,20 +1,15 @@
 extends "res://tests/lib/test_case.gd"
 ## The trash op (backlog 082): the first effect that targets a card in hand, moving it to the `trashed` zone for the
 ## rest of the game. The fixture Purge (cost 1 food, trash) is local, not in TEST_CARDS, so other tests load while
-## the op is missing. Engines are held as Object so the file parses before the API.
+## the op is missing.
 
 const PURGE := {"id": "purge", "name": "Purge", "type": "action", "cost": {"food": 1}, "effects": [{"op": "trash"}]}
-
-
-## A card "x" of type with effect.
-func card_with(type: String, effect: Dictionary) -> Dictionary:
-	return {"id": "x", "name": "X", "type": type, "effects": [effect]}
 
 
 ## A game on TEST_CARDS plus Purge whose hand holds exactly ids (in order, as new copies) and 1 food. Returns
 ## [engine, uids in the order of ids].
 func hand_of(ids: Array) -> Array:
-	var r := load_with([PURGE])
+	var r := fixture_load([PURGE])
 	check(r.errors.is_empty(), "test data should load: %s" % [r.errors])
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
@@ -32,7 +27,7 @@ func hand_of(ids: Array) -> Array:
 
 
 ## Zone name -> ids in it, for the zones a play can change.
-func snapshot(e: Object) -> Dictionary:
+func snapshot(e: GameEngine) -> Dictionary:
 	var out := {"food": e.resources.food}
 	for z in ["hand", "deck", "discard", "trashed"]:
 		out[z] = card_ids(e.zone(z))
@@ -43,7 +38,7 @@ func snapshot(e: Object) -> Dictionary:
 
 func test_trash_moves_the_target_to_trashed() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	var purge: int = h[1][0]
 	var scout: int = h[1][1]
 	check(e.play_card(purge, scout), "play Purge on the Scout: %s" % e.play_error(purge, scout))
@@ -57,7 +52,7 @@ func test_trash_moves_the_target_to_trashed() -> void:
 
 func test_trash_outcome_names_the_trashed_card() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	var outcomes: Array = []
 	e.card_played.connect(func(o): outcomes.append(o))
 	e.play_card(h[1][0], h[1][1])
@@ -70,7 +65,7 @@ func test_trash_outcome_names_the_trashed_card() -> void:
 
 func test_valid_targets_are_the_other_hand_cards() -> void:
 	var h := hand_of(["purge", "scout", "farm"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	eq(sorted(e.valid_targets(h[1][0])), sorted([h[1][1], h[1][2]]), "Scout and Farm, not Purge")
 	check(e.needs_target(h[1][0]), "Purge needs a target")
 
@@ -79,7 +74,7 @@ func test_valid_targets_are_the_other_hand_cards() -> void:
 
 func test_trash_with_no_other_hand_card_is_refused() -> void:
 	var h := hand_of(["purge"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	var before := snapshot(e)
 	eq(e.play_error(h[1][0]), "There is no other card in hand to trash.", "play_error")
 	check(not e.play_card(h[1][0]), "play_card refuses")
@@ -88,7 +83,7 @@ func test_trash_with_no_other_hand_card_is_refused() -> void:
 
 func test_trash_with_several_choices_needs_a_target() -> void:
 	var h := hand_of(["purge", "scout", "farm"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	var before := snapshot(e)
 	eq(e.play_error(h[1][0]), "Choose a card to trash.", "play_error")
 	check(not e.play_card(h[1][0]), "play_card refuses")
@@ -97,7 +92,7 @@ func test_trash_with_several_choices_needs_a_target() -> void:
 
 func test_trash_refuses_itself_or_a_card_not_in_hand() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	var purge: int = h[1][0]
 	var in_deck: int = e.zone("deck").cards[0].uid
 	var before := snapshot(e)
@@ -111,7 +106,7 @@ func test_trash_refuses_itself_or_a_card_not_in_hand() -> void:
 
 func test_the_only_other_hand_card_is_picked() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	eq(e.play_error(h[1][0]), "", "no target needed")
 	check(e.play_card(h[1][0]), "play Purge without a target")
 	eq(card_ids(e.zone("trashed")), ["scout"] as Array[String], "the Scout was trashed")
@@ -121,7 +116,7 @@ func test_the_only_other_hand_card_is_picked() -> void:
 
 func test_trashed_card_is_not_reshuffled() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	e.play_card(h[1][0], h[1][1])
 	for card in e.zone("deck").take_all():
 		e.zone("discard").add(card)
@@ -133,9 +128,9 @@ func test_trashed_card_is_not_reshuffled() -> void:
 
 func test_fork_copies_the_trashed_zone() -> void:
 	var h := hand_of(["purge", "scout"])
-	var e: Object = h[0]
+	var e: GameEngine = h[0]
 	e.play_card(h[1][0], h[1][1])
-	var f: Object = e.fork()
+	var f: GameEngine = e.fork()
 	eq(card_ids(f.zone("trashed")), ["scout"] as Array[String], "fork trashed zone")
 	check(f.zone("trashed").cards[0] != e.zone("trashed").cards[0], "a copy, not the same card")
 
@@ -143,7 +138,7 @@ func test_fork_copies_the_trashed_zone() -> void:
 # --- AC6: loader and text ---
 
 func test_trash_loads() -> void:
-	var r := load_with([PURGE])
+	var r := fixture_load([PURGE])
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
 
@@ -155,12 +150,12 @@ func test_trash_validation() -> void:
 			prefix + "'trash' only works on play (got trigger 'upkeep')"],
 		["on a tech", [card_with("tech", {"op": "trash"})], prefix + "a tech effect can't need a target"],
 		["on an event", [card_with("event", {"op": "trash"})], prefix + "an event effect can't need a target"],
-	], func(extra): return load_with(extra).errors)
-	has_msg(load_with([card_with("action", {"op": "trash", "amount": 2})]).warnings, "unknown field 'amount' in 'trash' effect")
+	], func(extra): return fixture_load(extra).errors)
+	has_msg(fixture_load([card_with("action", {"op": "trash", "amount": 2})]).warnings, "unknown field 'amount' in 'trash' effect")
 
 
 func test_trash_card_text() -> void:
-	var cards: Dictionary = load_with([PURGE]).cards
+	var cards: Dictionary = fixture_load([PURGE]).cards
 	if not cards.has("purge"):
 		check(false, "purge should load")
 		return

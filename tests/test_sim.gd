@@ -42,7 +42,7 @@ func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> vo
 
 ## Backlog 140: the tree is open, so the bot learns the cheapest tech it can afford at the start of its turn.
 func test_bot_learns_the_cheapest_tech_it_can_afford() -> void:
-	var e: Object = tech_engine(["writing", "pottery", "bronze"], {"farm": 10},
+	var e: GameEngine = tech_engine(["writing", "pottery", "bronze"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 2}, "tableau": ["capital"], "territory": "homeland"}})
 	ScriptedBot.take_turn(e, "baseline")
 	eq(card_ids(e.zone("researched")), ["pottery"], "Pottery (2) learned; Writing (3) and Bronze (5) too dear")
@@ -62,7 +62,7 @@ func twenty_techs() -> Array:
 
 
 func test_bot_breaks_a_cost_tie_by_the_lower_era() -> void:
-	var e: Object = tech_engine(["loom"], {"farm": 10}, {"research_deck": {"scribe": 1, "loom": 1},
+	var e: GameEngine = tech_engine(["loom"], {"farm": 10}, {"research_deck": {"scribe": 1, "loom": 1},
 		"starting": {"resources": {"food": 2, "insight": 3}, "tableau": ["capital"], "territory": "homeland"}},
 		[ERA_2_SCRIBE])
 	e.add_era(2)
@@ -73,14 +73,14 @@ func test_bot_breaks_a_cost_tie_by_the_lower_era() -> void:
 
 
 func test_bot_breaks_a_cost_tie_in_the_same_era_by_config_order() -> void:
-	var e: Object = tech_engine(["dye", "salt"], {"farm": 10},
+	var e: GameEngine = tech_engine(["dye", "salt"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
 	check(ScriptedBot.learn_cheapest_tech(e), "learned one")
 	eq(card_ids(e.zone("researched")), ["dye"], "Dye, listed before Salt (both 4)")
 
 
 func test_bot_learns_nothing_it_cant_afford_or_lacks_the_prereq_for_and_plays_cards() -> void:
-	var e: Object = tech_engine(["iron", "bronze"], {"farm": 10},
+	var e: GameEngine = tech_engine(["iron", "bronze"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
 	eq(ScriptedBot.learn_cheapest_tech(e), false, "Bronze (5) too dear, Iron (6) needs Bronze")
 	ScriptedBot.take_turn(e, "baseline")
@@ -92,7 +92,7 @@ func test_a_bot_tech_pick_costs_under_half_a_tech_tree() -> void:
 	var ids := []
 	for t in twenty_techs():
 		ids.append(t.id)
-	var e: Object = tech_engine(ids, {"farm": 10},
+	var e: GameEngine = tech_engine(ids, {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital"], "territory": "homeland"}},
 		twenty_techs())
 	eq(ScriptedBot.learn_cheapest_tech(e), false, "no insight: nothing learned")
@@ -103,7 +103,7 @@ func test_a_bot_tech_pick_costs_under_half_a_tech_tree() -> void:
 ## Backlog 084: before ending a turn the bot relieves a Famine it can pay for when the next upkeep would still starve.
 func test_bot_relieves_a_famine_only_when_the_next_upkeep_would_starve() -> void:
 	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
-	var e: Object = make_engine({"shrine": 10}, {"turn_limit": 3,
+	var e: GameEngine = make_engine({"shrine": 10}, {"turn_limit": 3,
 		"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": famine}})
 	e.zone("tableau").find(home_uid(e)).pop = 4
 	e.resources.food = 0

@@ -1,7 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Flavor for civilizations (backlog 107): an optional `flavor` paragraph and `quote` {text, by} on a civilization card,
-## validated by the loader, returned by def_details / card_details, and shown in the details modal. Engines are held
-## as Object so the file parses before the API.
+## validated by the loader, returned by def_details / card_details, and shown in the details modal.
 
 const SAGES := {"id": "sages", "name": "Sages", "type": "civilization",
 	"flavor": "They counted the stars.", "quote": {"text": "Know thyself.", "by": "Temple of Delphi"},
@@ -28,7 +27,7 @@ func sages_with(key: String, value: Variant) -> Dictionary:
 
 
 ## A new game as Sages (loaded next to civ_db's cards).
-func sages_engine() -> Object:
+func sages_engine() -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + [SAGES]}, resources(), "cards.json",
@@ -37,7 +36,7 @@ func sages_engine() -> Object:
 	var config := DataLoader.parse_config(raw_config({"farm": 10}, {"starting": starting}), resources(), cards,
 		"config.json", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, config)
+	var e: GameEngine = GameEngine.new(cards, config)
 	e.new_game(1)
 	return e
 

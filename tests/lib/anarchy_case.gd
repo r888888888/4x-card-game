@@ -26,12 +26,7 @@ const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."
 
 ## TEST_CARDS, TEST_GOVS, FIXTURES and extra, parsed with unrest a resource.
 func anarchy_db(extra := []) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + FIXTURES + extra}, RESOURCES, "cards.json",
-		errors, warnings, keywords())
-	check(errors.is_empty(), "test cards should load: %s" % [errors])
-	return cards
+	return fixture_db(extra, [TEST_GOVS, FIXTURES], RESOURCES)
 
 
 ## The raw config for an anarchy game: Chiefs ruling, unrest listed, the unrest block (merged with unrest), population
@@ -54,8 +49,8 @@ func anarchy_raw(unrest := {}, overrides := {}) -> Dictionary:
 	return raw
 
 
-## The errors from parsing raw against anarchy_db.
-func config_errors(raw: Dictionary) -> Array[String]:
+## The errors from parsing the raw config raw against anarchy_db.
+func raw_config_errors(raw: Dictionary) -> Array[String]:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var listed: Array[String] = []

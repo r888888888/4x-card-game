@@ -2,7 +2,6 @@ extends "res://tests/lib/test_case.gd"
 ## Civilization home territories (backlog 111): a civilization's optional `home` names the territory it starts on in
 ## place of config `starting.territory`. Fixtures: Settlers start on River (housing 4), Highlanders on Hills (housing 5,
 ## rolls gold half the time), Tribe (TEST_CIVS) has no home and starts on Homeland (housing 7).
-## Engines are held as Object so the file parses before the API exists.
 
 const HOME_CIVS := [
 	{"id": "settlers", "name": "Settlers", "type": "civilization", "home": "river"},
@@ -30,14 +29,14 @@ func home_config(overrides := {}) -> Dictionary:
 
 
 ## A game on home_db as civilization civ with seed_value.
-func home_engine(civ: String, seed_value := 1, overrides := {}) -> Object:
+func home_engine(civ: String, seed_value := 1, overrides := {}) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := home_db()
 	var config := DataLoader.parse_config(raw_config({"farm": 3, "scout": 3, "temple": 3, "settler": 3}, home_config(overrides)),
 		resources(), cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, config)
+	var e: GameEngine = GameEngine.new(cards, config)
 	e.new_game(seed_value, civ)
 	return e
 
@@ -48,16 +47,8 @@ func card_errors(extra: Array) -> Array[String]:
 	return errors
 
 
-func config_errors(overrides: Dictionary) -> Array[String]:
+func home_config_errors(overrides: Dictionary) -> Array[String]:
 	return config_errors_for(home_db(), home_config(overrides))
-
-
-## The territory on the tableau the Capital sits on, or null.
-func capital_land(e: Object) -> CardInstance:
-	for c in e.zone("tableau").cards:
-		if c.def.id == "capital":
-			return e.zone("tableau").find(c.territory_uid)
-	return null
 
 
 # --- AC1: the home field ---
@@ -84,7 +75,7 @@ func test_home_validation() -> void:
 
 
 func test_population_start_must_fit_each_listed_home() -> void:
-	var errors := config_errors({"population": {"start": 5, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}})
+	var errors := home_config_errors({"population": {"start": 5, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}})
 	has_msg(errors, "config.json")
 	check(errors.any(func(m): return "population.start" in m and "settlers" in m),
 		"an error names population.start and Settlers (River houses 4): %s" % [errors])

@@ -6,7 +6,7 @@ const CITY := {"id": "city", "name": "City", "type": "city"}
 
 
 ## Loads the given cards (plus a City) and returns them by id; fails the test on loader errors.
-func load_cards(cards: Array) -> Dictionary:
+func text_db(cards: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var db := DataLoader.parse_cards({"cards": [CITY] + cards}, resources(), "t", errors, warnings, KEYWORDS)
@@ -19,7 +19,7 @@ func short_text(effects: Array, requires: Array = [], type := "building") -> Str
 	var card := {"id": "x", "name": "X", "type": type, "effects": effects}
 	if not requires.is_empty():
 		card.requires = requires
-	var db := load_cards([card])
+	var db := text_db([card])
 	return db.x.rules_text(db) if db.has("x") else "<not loaded>"
 
 
@@ -27,7 +27,7 @@ func long_text(effects: Array, requires: Array = [], type := "building") -> Stri
 	var card := {"id": "x", "name": "X", "type": type, "effects": effects}
 	if not requires.is_empty():
 		card.requires = requires
-	var db := load_cards([card])
+	var db := text_db([card])
 	return db.x.rules_tooltip(db) if db.has("x") else "<not loaded>"
 
 
@@ -121,7 +121,7 @@ func test_tooltip_long_forms() -> void:
 
 
 func test_text_override_is_used_for_both() -> void:
-	var db := load_cards([{"id": "x", "name": "X", "type": "action", "text": "Something odd",
+	var db := text_db([{"id": "x", "name": "X", "type": "action", "text": "Something odd",
 		"effects": [{"op": "draw", "amount": 1}]}])
 	if db.has("x"):
 		eq(db.x.rules_text(db), "Something odd", "short")
@@ -131,7 +131,7 @@ func test_text_override_is_used_for_both() -> void:
 # --- AC5: territories ---
 
 func test_territory_tooltip_explains_slots_housing_keywords() -> void:
-	var db := load_cards([
+	var db := text_db([
 		{"id": "river", "name": "River", "type": "territory", "slots": 2, "housing": 4, "keywords": ["fresh_water", "flood_plain"]},
 		{"id": "rock", "name": "Rock", "type": "territory", "slots": 1, "housing": 3},
 	])
@@ -142,7 +142,7 @@ func test_territory_tooltip_explains_slots_housing_keywords() -> void:
 
 
 func test_city_with_slots_tooltip_mentions_them() -> void:
-	var db := load_cards([{"id": "hub", "name": "Hub", "type": "city", "slots": 4,
+	var db := text_db([{"id": "hub", "name": "Hub", "type": "city", "slots": 4,
 		"effects": [{"op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep"}]}])
 	if db.has("hub"):
 		eq(db.hub.rules_tooltip(db), "Each upkeep: +2 food\n+4 building slots on its territory", "tooltip")

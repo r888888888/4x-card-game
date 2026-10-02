@@ -1,8 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Government cards (backlog 065): the `government` type, config `starting.government`, playing one to replace the
 ## ruling government, and the ruling government's upkeep, VP and forecast. Fixtures in TEST_GOVS: Council (no effects)
-## and Kingdom (cost 2 food, 1 VP, play +1 wealth, upkeep +1 food). Engines are held as Object so the file parses
-## before the API.
+## and Kingdom (cost 2 food, 1 VP, play +1 wealth, upkeep +1 food).
 
 
 ## Loader errors for gov_db() plus extra cards.
@@ -13,18 +12,13 @@ func card_errors(extra: Array) -> Array[String]:
 	return errors
 
 
-## Loader errors for a config (on gov_db) with overrides.
-func config_errors(overrides: Dictionary) -> Array[String]:
-	return config_errors_for(gov_db(), overrides)
-
-
 func starting_with(gov: Variant) -> Dictionary:
 	return {"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": gov}}
 
 
 ## A Council game with Kingdom in hand; returns [engine, Kingdom's uid].
 func with_kingdom_in_hand() -> Array:
-	var e: Object = gov_engine("council")
+	var e: GameEngine = gov_engine("council")
 	return [e, put_in_hand(e, "kingdom")]
 
 
@@ -46,7 +40,7 @@ func test_government_outside_its_place_is_a_load_error() -> void:
 		["in supply", {"supply": {"kingdom": {"price": 1, "count": 1}}}, "config.json: supply: 'kingdom' is a government"],
 		["in territory_deck", {"territory_deck": {"kingdom": 1}}, "config.json: territory_deck: 'kingdom' is not a territory"],
 		["in research_deck", {"research_deck": {"kingdom": 1}}, "config.json: research_deck: 'kingdom' is not a tech"],
-	], config_errors)
+	], func(overrides): return config_errors(overrides, [TEST_GOVS]))
 
 
 func test_starting_government_validation() -> void:
@@ -54,12 +48,12 @@ func test_starting_government_validation() -> void:
 		["unknown id", starting_with("zzz"), "config.json: starting.government: unknown card 'zzz'", "one_error"],
 		["not a government", starting_with("farm"), "config.json: starting.government: 'farm' is not a government", "one_error"],
 		["not a string", starting_with(3), "config.json: starting.government", "one_error"],
-	], config_errors)
+	], func(overrides): return config_errors(overrides, [TEST_GOVS]))
 
 
 func test_starting_government_is_optional() -> void:
-	eq(config_errors({}), [] as Array[String], "no starting.government")
-	eq(config_errors(starting_with("council")), [] as Array[String], "starting.government council")
+	eq(config_errors({}, [TEST_GOVS]), [] as Array[String], "no starting.government")
+	eq(config_errors(starting_with("council"), [TEST_GOVS]), [] as Array[String], "starting.government council")
 
 
 func test_government_effect_needing_a_target_is_a_load_error() -> void:
@@ -70,14 +64,14 @@ func test_government_effect_needing_a_target_is_a_load_error() -> void:
 # --- AC2: setup ---
 
 func test_starting_government_is_in_the_government_zone() -> void:
-	var e: Object = gov_engine("council")
+	var e: GameEngine = gov_engine("council")
 	eq(card_ids(e.zone("government")), ["council"] as Array[String], "government zone")
 	eq(e.government(), uid_of(e.zone("government"), "council"), "government() is Council's uid")
 	check(e.government() >= 0, "a real uid")
 
 
 func test_without_a_starting_government_the_zone_is_empty() -> void:
-	var e: Object = gov_engine("")
+	var e: GameEngine = gov_engine("")
 	eq(e.zone("government").size(), 0, "government zone empty")
 	eq(e.government(), -1, "government()")
 
@@ -86,7 +80,7 @@ func test_without_a_starting_government_the_zone_is_empty() -> void:
 
 func test_playing_a_government_replaces_the_ruling_one() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	var kingdom: int = setup[1]
 	eq(e.resources.food, 4, "2 starting + 2 Capital upkeep")
 	check(e.play_card(kingdom), "play Kingdom: %s" % e.play_error(kingdom))
@@ -101,7 +95,7 @@ func test_playing_a_government_replaces_the_ruling_one() -> void:
 
 func test_playing_a_government_reports_the_government_zone() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	var outcomes: Array = []
 	e.card_played.connect(func(o): outcomes.append(o))
 	e.play_card(setup[1])
@@ -114,7 +108,7 @@ func test_playing_a_government_reports_the_government_zone() -> void:
 
 func test_ruling_government_gives_its_upkeep_and_forecast() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	e.play_card(setup[1])
 	eq(e.upkeep_forecast().food, 3, "Capital +2, Kingdom +1")
 	e.end_turn()
@@ -123,7 +117,7 @@ func test_ruling_government_gives_its_upkeep_and_forecast() -> void:
 
 func test_score_counts_the_ruling_government_vp() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	eq(e.score(), 2, "Capital 2, Council 0")
 	e.play_card(setup[1])
 	eq(e.score(), 3, "Capital 2 + Kingdom 1")
@@ -131,7 +125,7 @@ func test_score_counts_the_ruling_government_vp() -> void:
 
 func test_replaced_government_bonuses_stop() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	e.play_card(setup[1])
 	var council := put_in_hand(e, "council")
 	check(e.play_card(council), "play Council: %s" % e.play_error(council))
@@ -144,7 +138,7 @@ func test_replaced_government_bonuses_stop() -> void:
 
 func test_playing_the_ruling_government_again_is_an_error() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	e.play_card(setup[1])
 	e.resources.food = 10
 	var again := put_in_hand(e, "kingdom")
@@ -155,7 +149,7 @@ func test_playing_the_ruling_government_again_is_an_error() -> void:
 
 func test_government_cost_is_checked_like_any_card() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	e.resources.food = 1
 	eq(e.play_error(setup[1]), "Kingdom needs 2 food (you have 1).", "play_error")
 	check(not e.play_card(setup[1]), "play_card refuses")
@@ -166,9 +160,9 @@ func test_government_cost_is_checked_like_any_card() -> void:
 
 func test_fork_copies_government_and_removed() -> void:
 	var setup := with_kingdom_in_hand()
-	var e: Object = setup[0]
+	var e: GameEngine = setup[0]
 	e.play_card(setup[1])
-	var f: Object = e.fork()
+	var f: GameEngine = e.fork()
 	eq(card_ids(f.zone("government")), ["kingdom"] as Array[String], "fork government zone")
 	eq(card_ids(f.zone("removed")), ["council"] as Array[String], "fork removed zone")
 	eq(f.government(), e.government(), "same uid")

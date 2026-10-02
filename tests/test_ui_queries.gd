@@ -1,11 +1,11 @@
 extends "res://tests/lib/tech_case.gd"
 ## Engine queries for rules the UI used to work out itself (backlog 049): playable_error, end_turn_error,
-## supply_error, upcoming_era_unlocks and territory_groups. Engines are held as Object (see tech_case).
+## supply_error, upcoming_era_unlocks and territory_groups.
 
 
 ## A game on Grassland (2 slots) with plenty of food and a hand of Farms. With hills, Hills is settled too.
-func grassland_engine(hills: bool) -> Object:
-	var e: Object = make_engine({"farm": 10}, {
+func grassland_engine(hills: bool) -> GameEngine:
+	var e: GameEngine = make_engine({"farm": 10}, {
 		"starting": {"resources": {"food": 20}, "tableau": ["capital"], "territory": "grassland"},
 		"territory_deck": {"hills": 1},
 	})
@@ -15,28 +15,20 @@ func grassland_engine(hills: bool) -> Object:
 
 
 ## A game with an explore choice open (Hills and Grassland revealed).
-func choice_engine() -> Object:
-	var e: Object = make_engine({"farm": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
+func choice_engine() -> GameEngine:
+	var e: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 	check(not e.pending_choice.is_empty(), "a choice is open")
 	return e
 
 
 ## A game on turn 1 with 1 card to discard (hand 8, limit 7).
-func discard_engine() -> Object:
-	var e: Object = make_engine({"scout": 10})
+func discard_engine() -> GameEngine:
+	var e: GameEngine = make_engine({"scout": 10})
 	for i in 3:
 		check(e.play_card(first_in_hand(e)), "play Scout %d" % i)
 	e.end_turn()
 	eq(e.discard_needed(), 1, "1 to discard")
-	return e
-
-
-## A finished game (turn limit 1).
-func over_engine() -> Object:
-	var e: Object = make_engine({"farm": 10}, {"turn_limit": 1})
-	e.end_turn()
-	check(e.is_over, "game over")
 	return e
 
 
@@ -75,7 +67,7 @@ func test_end_turn_error_names_what_blocks_it_and_end_turn_does_nothing() -> voi
 		["game over", over_engine(), "The game is over."],
 	]
 	for row in cases:
-		var e: Object = row[1]
+		var e: GameEngine = row[1]
 		eq(e.end_turn_error(), row[2], "%s: end_turn_error" % row[0])
 		var turn: int = e.turn
 		var hand := card_ids(e.zone("hand"))
@@ -99,7 +91,7 @@ func test_supply_error_blocks_during_choices_and_after_the_game() -> void:
 # --- AC4: upcoming_era_unlocks ---
 
 func test_upcoming_era_unlocks_drops_eras_already_reached() -> void:
-	var e: Object = make_engine({"farm": 10}, {"era_unlocks": {"2": {"pop": 8}, "3": {"wealth": 30}}})
+	var e: GameEngine = make_engine({"farm": 10}, {"era_unlocks": {"2": {"pop": 8}, "3": {"wealth": 30}}})
 	eq(e.upcoming_era_unlocks(), {2: {"pop": 8}, 3: {"wealth": 30}}, "at the start")
 	e.add_era(2)
 	eq(e.upcoming_era_unlocks(), {3: {"wealth": 30}}, "after era 2")
@@ -108,12 +100,12 @@ func test_upcoming_era_unlocks_drops_eras_already_reached() -> void:
 # --- AC5: territory_groups ---
 
 ## territory_groups as [[territory uid, [card uids]], ...] with plain arrays, for comparing.
-func groups(e: Object) -> Array:
+func groups(e: GameEngine) -> Array:
 	return e.territory_groups().map(func(g): return [g.territory, Array(g.cards)])
 
 
 func test_territory_groups_put_each_territory_first_with_its_cards() -> void:
-	var e: Object = make_engine({"farm": 10}, {"territory_deck": {"river": 1}})
+	var e: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"river": 1}})
 	e.resources.food = 10
 	check(e.play_card(first_in_hand(e)), "play Farm on Homeland")
 	to_frontier(e, ["river"])
@@ -128,7 +120,7 @@ func test_territory_groups_put_each_territory_first_with_its_cards() -> void:
 
 
 func test_territory_groups_put_cards_with_no_territory_last() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	e.resources.food = 10
 	check(e.play_card(put_in_hand(e, "settler")), "Settler creates a City with no territory")
 	var t: Zone = e.zone("tableau")
@@ -142,11 +134,11 @@ func test_territory_groups_put_cards_with_no_territory_last() -> void:
 # --- territory_summary (backlog 087) ---
 
 ## A game on Homeland with the Capital and 3 Farms built on it; population on with 2 pop when pop is true.
-func summary_engine(pop: bool) -> Object:
+func summary_engine(pop: bool) -> GameEngine:
 	var o := {"territory_deck": {"hills": 1}}
 	if pop:
 		o["population"] = {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
-	var e: Object = make_engine({"farm": 10}, o)
+	var e: GameEngine = make_engine({"farm": 10}, o)
 	build_on(e, home_uid(e), ["farm", "farm", "farm"])
 	return e
 
@@ -189,7 +181,7 @@ const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"ins
 
 
 ## The tech_case fixture with Optics (era 2) waiting in future_techs; era_unlocks as given.
-func era_engine(era_unlocks: Dictionary) -> GameEngine:
+func era_unlocks_engine(era_unlocks: Dictionary) -> GameEngine:
 	return tech_engine(["pottery", "writing"], {"farm": 10},
 		{"research_deck": {"pottery": 1, "writing": 1, "optics": 1}, "era_unlocks": era_unlocks}, [OPTICS])
 
@@ -200,7 +192,7 @@ func tree_of_era(e: GameEngine, n: int) -> Array:
 
 
 func test_tech_eras_list_each_era_with_its_status_and_techs() -> void:
-	var e := era_engine({"2": {"pop": 8}})
+	var e := era_unlocks_engine({"2": {"pop": 8}})
 	eq(e.tech_eras(), [
 		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "techs": tree_of_era(e, 1)},
 		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "techs": tree_of_era(e, 2)},
@@ -209,9 +201,9 @@ func test_tech_eras_list_each_era_with_its_status_and_techs() -> void:
 
 
 func test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era() -> void:
-	var e := era_engine({})
+	var e := era_unlocks_engine({})
 	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, false, {}]], "no era_unlocks")
-	e = era_engine({"2": {"pop": 8}})
+	e = era_unlocks_engine({"2": {"pop": 8}})
 	e.add_era(2)
 	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, true, {}]], "era 2 reached")
 

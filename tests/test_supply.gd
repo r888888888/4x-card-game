@@ -7,7 +7,7 @@ extends "res://tests/lib/tech_case.gd"
 
 ## A game whose supply sells Scout (price 2, 2 left), with wealth set to the given amount.
 ## Extends tech_case so a research deck is available for the blocked-state tests.
-func supply_engine(wealth: int, deck := {"farm": 10}, overrides := {}) -> Object:
+func supply_engine(wealth: int, deck := {"farm": 10}, overrides := {}) -> GameEngine:
 	var config := {"supply": {"scout": {"price": 2, "count": 2}}}
 	config.merge(overrides, true)
 	var e := tech_engine(["pottery", "writing", "bronze"], deck, config)
@@ -25,7 +25,7 @@ func supply_errors(supply: Variant) -> Array[String]:
 
 
 ## Asserts buy("scout") is refused with message and changes nothing.
-func assert_buy_refused(e: Object, card_id: String, message: String) -> void:
+func assert_buy_refused(e: GameEngine, card_id: String, message: String) -> void:
 	var wealth_before: int = e.resources.wealth
 	var discard_before := card_ids(e.zone("discard"))
 	var left_before: int = e.supply_left(card_id)
@@ -89,7 +89,7 @@ func test_cannot_buy_a_card_not_in_the_supply() -> void:
 func test_cannot_buy_without_a_supply() -> void:
 	var e := make_engine({"farm": 10})
 	e.resources.wealth = 10
-	var o: Object = e
+	var o: GameEngine = e
 	eq(o.supply(), {}, "empty supply")
 	eq(o.supply_left("scout"), 0, "nothing left")
 	assert_buy_refused(o, "scout", "Scout isn't in the supply.")
@@ -167,7 +167,7 @@ const LOCKED_SUPPLY := {"scout": {"price": 2, "count": 2}, "guildhall": {"price"
 
 
 ## A game with LOCKED_SUPPLY, Guilds on top of the research deck and the given wealth.
-func locked_engine(wealth: int, deck := {"farm": 10}) -> Object:
+func locked_engine(wealth: int, deck := {"farm": 10}) -> GameEngine:
 	var e := tech_engine(["guilds", "pottery", "writing"], deck, {"supply": LOCKED_SUPPLY}, [GUILDS, CHARTER, SCOUT_CHARTER])
 	e.resources.wealth = wealth
 	return e
@@ -281,7 +281,7 @@ func test_unlocking_twice_or_an_unlocked_pile_changes_nothing() -> void:
 
 func test_a_fork_copies_the_locks_and_unlocks_on_its_own() -> void:
 	var e := locked_engine(0, {"charter": 5})
-	var f: Object = e.fork()
+	var f: GameEngine = e.fork()
 	check(f.supply_locked("guildhall"), "the fork starts locked")
 	check(f.play_card(uid_of(f.zone("hand"), "charter")), "play Charter on the fork")
 	check(not f.supply_locked("guildhall"), "the fork's pile is unlocked")

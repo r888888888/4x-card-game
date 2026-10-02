@@ -12,7 +12,7 @@ func action_engine() -> GameEngine:
 
 
 ## action_engine with an Explorer played: hills and grassland are revealed to choose from.
-func explore_engine() -> GameEngine:
+func action_explore_engine() -> GameEngine:
 	var e := action_engine()
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 	return e
@@ -27,14 +27,6 @@ func owed_engine() -> GameEngine:
 	return e
 
 
-## A finished game.
-func over_engine() -> GameEngine:
-	var e: GameEngine = make_engine({"farm": 10}, {"turn_limit": 1})
-	e.end_turn()
-	check(e.is_over, "the game is over")
-	return e
-
-
 # --- AC1: discard_error ---
 
 func test_discard_error() -> void:
@@ -43,7 +35,7 @@ func test_discard_error() -> void:
 	e = owed_engine()
 	eq(e.discard_error(first_in_hand(e)), "", "a hand card while a discard is owed")
 	eq(over_engine().discard_error(-1), "The game is over.", "game over comes first")
-	e = explore_engine()
+	e = action_explore_engine()
 	eq(e.discard_error(first_in_hand(e)), "Choose a territory first.", "explore choice open")
 	eq(e.discard_error(-1), "Choose a territory first.", "the choice comes before the hand check")
 	e = action_engine()
@@ -54,7 +46,7 @@ func test_discard_error() -> void:
 # --- AC2: choose_error ---
 
 func test_choose_error() -> void:
-	var e := explore_engine()
+	var e := action_explore_engine()
 	var options: Array = e.pending().options
 	eq(e.choose_error(options[0]), "", "a revealed territory")
 	eq(e.choose_error(-1), "That territory isn't an option.", "an unknown uid")

@@ -2,7 +2,6 @@ extends "res://tests/lib/test_case.gd"
 ## A civilization's start building (backlog 133): a start `create` into the tableau puts a building on the home, the
 ## territory the starting tableau sits on. Fixtures: Farmers start on River (2 slots) with a Farm; Settlers start on
 ## River with nothing (as in test_civ_home.gd). The fixture Capital adds no slots.
-## Engines are held as Object so the file parses before the API exists.
 
 const START_CIVS := [
 	{"id": "farmers", "name": "Farmers", "type": "civilization", "home": "river", "effects": [
@@ -19,7 +18,7 @@ func start_db(extra: Array = [], errors: Array[String] = []) -> Dictionary:
 
 
 ## A game on start_db as civ: population on (start 2, nobody eats), seed 1.
-func start_engine(civ: String) -> Object:
+func start_engine(civ: String) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := start_db()
@@ -28,17 +27,9 @@ func start_engine(civ: String) -> Object:
 		"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE},
 	}), resources(), cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, config)
+	var e: GameEngine = GameEngine.new(cards, config)
 	e.new_game(1, civ)
 	return e
-
-
-## The territory on the tableau the Capital sits on, or null.
-func capital_land(e: Object) -> CardInstance:
-	for c in e.zone("tableau").cards:
-		if c.def.id == "capital":
-			return e.zone("tableau").find(c.territory_uid)
-	return null
 
 
 ## Config errors for start_db + extra cards with the civilizations listed.

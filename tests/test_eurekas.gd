@@ -1,7 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
 ## Eurekas (backlog 141): a tech's `eureka` ({card | tag, count, off}) takes `off` insight off its price while the
 ## tableau holds `count` matching cards. Local fixture: Lore, a 3-insight tech given whichever eureka a test needs.
-## Engines are held as Object so the file parses before the API.
 
 const FARMS := {"card": "farm", "count": 2, "off": 2}
 const CITIES := {"tag": "city", "count": 2, "off": 2}
@@ -24,26 +23,26 @@ func load_x(fields: Dictionary, type := "tech") -> Dictionary:
 
 
 ## A game with Lore (eureka as given) and Pottery in the research deck, 20 food and a deck of Farms.
-func lore_engine(eureka: Dictionary, overrides := {}) -> Object:
+func lore_engine(eureka: Dictionary, overrides := {}) -> GameEngine:
 	var o := {"starting": {"resources": {"food": 20, "wealth": 20, "insight": 20}, "tableau": ["capital"],
 		"territory": "homeland"}}
 	o.merge(overrides, true)
 	return tech_engine(["lore", "pottery"], {"farm": 10}, o, [lore(eureka)])
 
 
-func lore_uid(e: Object) -> int:
+func lore_uid(e: GameEngine) -> int:
 	return uid_of(e.zone("research_deck"), "lore")
 
 
 ## Plays n Farms from the hand onto the home territory.
-func build_farms(e: Object, n: int) -> void:
+func build_farms(e: GameEngine, n: int) -> void:
 	for i in n:
 		var farm := put_in_hand(e, "farm")
 		check(e.play_card(farm, home_uid(e)), "Farm %d: %s" % [i + 1, e.play_error(farm, home_uid(e))])
 
 
 ## The tech_tree() entry for id ({} if missing).
-func entry(e: Object, id: String) -> Dictionary:
+func entry(e: GameEngine, id: String) -> Dictionary:
 	for t in e.tech_tree():
 		if t.id == id:
 			return t

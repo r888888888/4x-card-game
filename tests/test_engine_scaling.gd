@@ -2,7 +2,7 @@ extends "res://tests/lib/tech_case.gd"
 ## How engine queries scale with the tableau (backlog 150): which cards work (Modifiers.working_cards, behind
 ## modifier(), upkeep and the forecast) is one pass over the tableau, and a eureka check stops once its count is met.
 ## Scaling is a ratio of two best_time_usec timings, so it holds on any machine. Local fixture: Mill, a building with
-## +1 hand_size and +1 food on upkeep. Engines are held as Object so the file parses before the API.
+## +1 hand_size and +1 food on upkeep.
 
 const MILL := {"id": "mill", "name": "Mill", "type": "building", "modifiers": {"hand_size": 1},
 	"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}
@@ -10,7 +10,7 @@ const POP := {"start": 1, "food_upkeep": 0, "vp_per_pop": 0}
 
 
 ## A game with Mill loaded, Hills in the territory deck and population as given ({} for off).
-func mill_engine(population: Dictionary) -> Object:
+func mill_engine(population: Dictionary) -> GameEngine:
 	var o := {"territory_deck": {"hills": 1}}
 	if not population.is_empty():
 		o["population"] = population
@@ -19,7 +19,7 @@ func mill_engine(population: Dictionary) -> Object:
 
 ## Settles Hills, then places Mills in the order A1, B1, A2, B2, B3 (A the home territory with pop 1, B Hills with
 ## pop 2 when population is on). Returns the Mills' uids in that order.
-func interleaved_mills(e: Object) -> Array[int]:
+func interleaved_mills(e: GameEngine) -> Array[int]:
 	settle(e, ["hills"])
 	var a := home_uid(e)
 	var b := uid_of(e.zone("tableau"), "hills")
@@ -34,7 +34,7 @@ func interleaved_mills(e: Object) -> Array[int]:
 
 
 ## A game with n more settled territories (Grassland, pop 1 with population on), each with one Mill.
-func wide_engine(n: int) -> Object:
+func wide_engine(n: int) -> GameEngine:
 	var e := mill_engine(POP)
 	for i in n:
 		var land: CardInstance = e.create_card("grassland", "tableau", null)
@@ -79,7 +79,7 @@ func test_a_met_eureka_check_does_not_grow_with_the_tableau() -> void:
 		"eureka": {"card": "farm", "count": 1, "off": 1}}
 	var engines := []
 	for extra in [50, 400]:
-		var e: Object = tech_engine(["lore"], {"farm": 10}, {}, [lore])
+		var e: GameEngine = tech_engine(["lore"], {"farm": 10}, {}, [lore])
 		var tableau: Zone = e.zone("tableau")
 		var farm: CardInstance = e.create_card("farm", "tableau", null)
 		tableau.cards.erase(farm)
@@ -88,9 +88,9 @@ func test_a_met_eureka_check_does_not_grow_with_the_tableau() -> void:
 			e.create_card("village", "tableau", null)
 		eq(e.tech_cost(uid_of(e.zone("research_deck"), "lore")), 2, "the eureka is met (+%d cards)" % extra)
 		engines.append(e)
-	var lore_of := func(e: Object) -> int: return uid_of(e.zone("research_deck"), "lore")
-	var small: Object = engines[0]
-	var large: Object = engines[1]
+	var lore_of := func(e: GameEngine) -> int: return uid_of(e.zone("research_deck"), "lore")
+	var small: GameEngine = engines[0]
+	var large: GameEngine = engines[1]
 	var small_uid: int = lore_of.call(small)
 	var large_uid: int = lore_of.call(large)
 	var ratio := float(best_time_usec(func(): large.tech_cost(large_uid))) / best_time_usec(func(): small.tech_cost(small_uid))
