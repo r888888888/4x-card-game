@@ -2,17 +2,20 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Sim metrics for Anarchy, governments and famine (backlog 158): per game, anarchies, revolts, anarchy_turns, restored,
 ## gov_changes, famine_turns, trashed, and <id>_turns per government a game can have. Counted from the engine's
 ## changed signal and its revolted and order_restored signals. Fixture games from tests/lib/anarchy_case.gd plus
-## Charter (an order card that creates Kings into the government deck).
+## Charter (an order card that creates Glory into the government deck) and Glory (government, ⟳ +3 VP, limit 5), which
+## the lookahead bot (159) prefers to Chiefs. The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
 
+const GLORY := {"id": "glory", "name": "Glory", "type": "government", "unrest_limit": 5,
+	"effects": [{"op": "score", "amount": 3, "trigger": "upkeep"}]}
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action", "tags": ["order"],
-	"effects": [{"op": "create", "card": "kings", "zone": "discard"}]}
+	"effects": [{"op": "create", "card": "glory", "zone": "discard"}]}
 const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
 
 
 ## SimStats.run on one seed of a game with a deck of Charters, block merged into the unrest block, starting resources
 ## starting (food, wealth and insight 10 unless given) and overrides: {metric: value}.
 func sim_game(block := {}, starting := {}, overrides := {}) -> Dictionary:
-	var cards := anarchy_db([CHARTER])
+	var cards := anarchy_db([GLORY, CHARTER])
 	var resources := {"food": 10, "wealth": 10, "insight": 10}
 	resources.merge(starting, true)
 	var o := {"deck": {"charter": 10}, "turn_limit": 5, "starting": {"resources": resources, "tableau": ["capital"],
@@ -36,7 +39,7 @@ func sim_game(block := {}, starting := {}, overrides := {}) -> Dictionary:
 # --- AC1, AC2: the metric names ---
 
 func test_the_new_metrics_and_one_per_government_in_order() -> void:
-	var cards := anarchy_db([CHARTER])
+	var cards := anarchy_db([GLORY, CHARTER])
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var config := DataLoader.parse_config(anarchy_raw(), RESOURCES, cards, "config.json", errors, warnings)
@@ -44,24 +47,24 @@ func test_the_new_metrics_and_one_per_government_in_order() -> void:
 	for m in NEW_METRICS:
 		check(names.has(m), "%s in %s" % [m, names])
 	var govs := names.filter(func(n): return n.ends_with("_turns") and n != "anarchy_turns" and n != "famine_turns")
-	eq(govs, ["chiefs_turns", "kings_turns"], "the starting government, then those a card creates; no Anarchy")
+	eq(govs, ["chiefs_turns", "glory_turns"], "the starting government, then those a card creates; no Anarchy")
 
 
 # --- AC3: a known script ---
 
-func test_a_forced_anarchy_of_2_turns_then_kings() -> void:
+func test_a_forced_anarchy_of_2_turns_then_glory() -> void:
 	var m := sim_game({"max_counters": 2}, {"unrest": 5})
 	eq([m.get("anarchies"), m.get("anarchy_turns"), m.get("revolts"), m.get("restored")], [1, 2, 0, 0],
 		"turn 1 starts at the limit: Anarchy for turns 1 and 2, burning out")
-	eq([m.get("gov_changes"), m.get("kings_turns"), m.get("chiefs_turns")], [1, 3, 0],
-		"Kings chosen at the end of turn 2 rules turns 3 to 5; Chiefs never started a turn")
+	eq([m.get("gov_changes"), m.get("glory_turns"), m.get("chiefs_turns")], [1, 3, 0],
+		"Glory chosen at the end of turn 2 rules turns 3 to 5; Chiefs never started a turn")
 
 
 func test_a_revolution_counts_as_a_revolt_and_an_anarchy() -> void:
-	var m := sim_game({}, {"unrest": 1})
+	var m := sim_game({}, {"unrest": 1}, {"turn_limit": 16})
 	eq([m.get("revolts"), m.get("anarchies"), m.get("anarchy_turns")], [1, 1, 1],
-		"Charter makes Kings on turn 1, the bot revolts; a 1-turn Anarchy on turn 2")
-	eq([m.get("chiefs_turns"), m.get("kings_turns"), m.get("gov_changes")], [1, 3, 1], "Chiefs turn 1, Kings 3 to 5")
+		"Charter makes Glory on turn 1, the bot revolts at the end of turn 4; a 1-turn Anarchy on turn 5")
+	eq([m.get("chiefs_turns"), m.get("glory_turns"), m.get("gov_changes")], [4, 11, 1], "Chiefs turns 1–4, Glory 6–16")
 
 
 func test_buying_order_counts_as_restored() -> void:
@@ -97,16 +100,3 @@ func test_restoring_order_emits_order_restored_once() -> void:
 	e.restore_order()
 	e.restore_order()
 	eq(count[0], 1, "once, the refusal silent")
-
-
-# --- AC4: a parallel run ---
-
-func test_the_metrics_come_through_a_parallel_run() -> void:
-	var o := {"civ": "sumer", "turns": 6, "seed": -1}
-	var one: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
-		o.merged({"procs": 1}))
-	var two: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
-		o.merged({"procs": 2}))
-	for m in NEW_METRICS + ["chiefdom_turns"]:
-		check(one.get("lines", []).any(func(l): return l.begins_with(m + " ")), "%s in the report" % m)
-	eq(two.get("lines"), one.get("lines"), "the same report on 2 processes")
