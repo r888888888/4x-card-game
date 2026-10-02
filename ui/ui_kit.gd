@@ -189,6 +189,46 @@ static func day_toggle() -> LegendKey:
 	return key
 
 
+## The Interface sounds key (185): a LegendKey that latches while interface sounds are on; toggling it sets and saves it.
+static func sound_toggle() -> LegendKey:
+	var key := LegendKey.new()
+	key.tooltip_text = "Clicks, panels and confirmations; event sounds stay on. Saved."
+	key.toggled.connect(Settings.set_interface_sounds)
+	return key
+
+
+## A bus's volume row (185): its name, a slider from 0 to 100 in steps of 10 that sets and saves the bus's volume,
+## and the figure ("70%"). The row's metas "slider" and "figure" hold them; show_volume matches them to the setting.
+static func volume_row(text: String, bus: StringName, tooltip: String) -> HBoxContainer:
+	var slider := HSlider.new()
+	slider.min_value = 0
+	slider.max_value = 100
+	slider.step = 10
+	slider.custom_minimum_size.x = 160
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.focus_mode = Control.FOCUS_ALL
+	slider.tooltip_text = tooltip
+	var figure := Label.new()
+	figure.custom_minimum_size.x = 56
+	figure.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	figure.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slider.value_changed.connect(func(value: float):
+		figure.text = "%d%%" % roundi(value)
+		Settings.set_volume(bus, roundi(value)))
+	var row := setting_row(text, slider)
+	row.add_child(figure)
+	row.set_meta("slider", slider)
+	row.set_meta("figure", figure)
+	show_volume(row, Settings.volume(bus))
+	return row
+
+
+## Sets a volume_row's slider and figure to percent without telling Settings.
+static func show_volume(row: HBoxContainer, percent: int) -> void:
+	(row.get_meta("slider") as HSlider).set_value_no_signal(percent)
+	(row.get_meta("figure") as Label).text = "%d%%" % percent
+
+
 ## Latches key to on (the Reduce motion or Day mode key) without telling Settings.
 static func show_setting(key: LegendKey, on: bool) -> void:
 	key.set_pressed_no_signal(on)

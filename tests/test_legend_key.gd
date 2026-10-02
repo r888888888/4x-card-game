@@ -159,6 +159,8 @@ func test_the_menu_key_is_in_the_focus_loop_and_space_toggles_it() -> void:
 		press_key(main, KEY_TAB)
 		eq(main.get_viewport().gui_get_focus_owner(), main.menu_day_toggle(), "Tab from the key reaches Day mode (183)")
 		press_key(main, KEY_TAB)
+		eq(main.get_viewport().gui_get_focus_owner(), main.menu_sound_toggle(), "then Interface sounds (185)")
+		press_key(main, KEY_TAB)
 		var owner := main.get_viewport().gui_get_focus_owner()
 		eq(owner.get("text") if owner != null else null, "Close (Esc)", "then Close")
 		close_main(main))

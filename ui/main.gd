@@ -238,6 +238,11 @@ func menu_day_toggle() -> LegendKey:
 	return _menu.day_toggle
 
 
+## Test hook (185): the menu's Interface sounds key.
+func menu_sound_toggle() -> LegendKey:
+	return _menu.sound_toggle
+
+
 ## Test hook (067): the game-over overlay's buttons, in order.
 func game_over_buttons() -> Array[Button]:
 	return UIKit.buttons_in(_game_over.overlay)
@@ -466,6 +471,7 @@ func _apply_settings() -> void:
 	_menu.show_settings(UIKit.calm(), Palette.day)
 	UIKit.show_setting(settings_screen.motion_toggle, UIKit.calm())
 	UIKit.show_setting(settings_screen.day_toggle, Palette.day)
+	settings_screen.show_sound()
 	drag.apply_motion(UIKit.calm())
 	if _palette_day == Palette.day:
 		return
