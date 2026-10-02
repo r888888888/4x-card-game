@@ -650,7 +650,7 @@ document.querySelectorAll("[data-flag]").forEach((b) => b.addEventListener("clic
 	el.className = "flag";
 	el.style.setProperty("--hue", f.hue);
 	el.innerHTML = `<span class="hue"></span>${glyph(f.glyph, f.hue, 32)}
-		<span class="text">${f.text}<small>${f.sub}</small></span>${f.time ? "" : '<span class="lamp brick on"></span>'}<button class="x" aria-label="Dismiss">×</button>`;
+		<span class="text">${f.text}<small>${f.sub}</small></span><button class="x" aria-label="Dismiss">×</button>`;
 	flagsEl.appendChild(el);
 	requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
 	const close = async () => { el.classList.add("out"); el.classList.remove("in"); await wait(170); el.remove(); };

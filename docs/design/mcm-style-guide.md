@@ -526,8 +526,8 @@ it out of the stack and back on top.
 ### 10.7 Notifications
 A **flag** slides out of the left rail (from x −100% to 0 in 200 ms, `machined`), holds, then slides back in
 (160 ms). One at a time; queued flags stack below at 8 px gaps, max 3, older ones collapse into a count badge on
-the rail. Each flag has a hue bar, glyph and one line; urgent ones (famine, anarchy) don't auto-dismiss and have a
-lit brick lamp until resolved.
+the rail. Each flag has a hue bar, glyph and one line; urgent ones (famine, anarchy) don't auto-dismiss and stay
+until resolved. Flags carry no indicator lamp.
 
 ### 10.8 Success / confirmation
 The lamp next to the control lights, then a small starburst (6 rays, 8 px) draws out from it and fades. The burst
@@ -880,7 +880,8 @@ Anatomy: 360 × 48 `sheet` strip from the left rail, 4 px hue bar at its left, `
 `type.label`, optional `type.caption` second line, close × right; `shadow.plinth`.
 
 `QUEUED → ENTERING`: slide x −100% → 0, 200 ms `machined`; the rail's lamp for this category lights (lamp-on).
-`SHOWN`: holds `TOAST_TIME` (3 s) for info; urgent ones (famine, anarchy) persist with a lit brick lamp.
+`SHOWN`: holds `TOAST_TIME` (3 s) for info; urgent ones (famine, anarchy) persist until resolved. A flag carries no
+lamp of its own: its hue bar, glyph and words already say what it is, and persisting says it's urgent.
 `→ LEAVING`: slide back into the rail, 160 ms `release`; the stack below slides up 8 px per removed flag (120 ms).
 Reduce motion: appear/disappear with a 120 ms fade.
 
