@@ -171,6 +171,7 @@
     {
       "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3, "unrest_limit": 10,
       "vp": 0, "tags": [],
+      "modifiers": { "insight_per_gain": -1 },
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" }
       ]

@@ -111,9 +111,11 @@ func set_unrest(n: int) -> int:
 
 # --- Helpers called by effects ---
 
-## Adds amount of resource; unrest stops at the unrest limit (144, set_unrest). The outcome and the log report what
-## was added.
+## Adds amount of resource; unrest stops at the unrest limit (144, set_unrest), and each insight gain adds the
+## insight_per_gain modifier, never below 0 (157). The outcome and the log report what was added.
 func gain(resource: String, amount: int, source: CardInstance) -> void:
+	if resource == INSIGHT:
+		amount = maxi(0, amount + Modifiers.total(self, Modifiers.INSIGHT_PER_GAIN))
 	if resource == UNREST:
 		amount = set_unrest(resources.get(UNREST, 0) + amount)
 	else:
