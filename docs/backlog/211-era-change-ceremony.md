@@ -2,7 +2,7 @@
 id: 211
 title: A new era opens with a ceremonial sheet
 type: feature
-status: red-review
+status: review
 branch: feat/211-era-change-ceremony
 ---
 
@@ -11,17 +11,17 @@ Reaching a new era is the game's one centred, big moment (`docs/design/transitio
 across the screen, rings draw out from the middle, and the era's name split-flaps in.
 
 ## Acceptance criteria
-- [ ] AC1: Given the engine emits `milestone(MILESTONE_ERA)` (an era is added, at a turn's start), then after the
+- [x] AC1: Given the engine emits `milestone(MILESTONE_ERA)` (an era is added, at a turn's start), then after the
   board's refresh an era sheet covers the whole window: caps "A NEW ERA", the era's name from `era_name(era())` at
   `Tokens.TYPE_DISPLAY_XL`, and the turn ("Turn N").
-- [ ] AC2: Reduce motion off: the sheet wipes in from the left over 0.40 s, three concentric rings draw out from the
+- [x] AC2: Reduce motion off: the sheet wipes in from the left over 0.40 s, three concentric rings draw out from the
   centre, then the name appears letter by letter (one character per 0.06 s, each flapping). With Reduce motion: the
   finished sheet fades in over 0.12 s.
-- [ ] AC3: A click or key while it animates jumps to its finished state; a click or key on the finished sheet closes it
+- [x] AC3: A click or key while it animates jumps to its finished state; a click or key on the finished sheet closes it
   (0.16 s fade) and play continues. Nothing else takes clicks or keys while it shows.
-- [ ] AC4: Two eras added on the same turn show one sheet, naming the later era.
-- [ ] AC5: It never shows during `new_game` (the engine sends no milestone then) or in a headless sim.
-- [ ] AC6: An event modal or notice that arrives the same turn opens after the sheet closes.
+- [x] AC4: Two eras added on the same turn show one sheet, naming the later era.
+- [x] AC5: It never shows during `new_game` (the engine sends no milestone then) or in a headless sim.
+- [x] AC6: An event modal or notice that arrives the same turn opens after the sheet closes.
 
 ## Out of scope
 - Sound beyond the existing era milestone sound (191).
@@ -44,3 +44,8 @@ New hook: `main.era_sheet` (`is_open()`, `finished()`, `covered_rect()`, `kicker
 
 ## Log
 - Specced 2026-10-02 from the notes list.
+- 2026-10-02: Built. `ui/era_sheet.gd` (`EraSheet`, `main.era_sheet`, z 30 over the modals) hears the engine's
+  `milestone` (wired in `BoardLayout`), opens on the next refresh with the latest era, and holds the turn's event until
+  it closes (main refreshes on `closed`). New `DisplayXL` theme variation. Each letter appears in turn; the per-letter
+  flap is left to the manual check. Fixed my own AC3 key test: after the sheet closes, the turn's event sheet (AC6)
+  takes the next E, so the test closes it first.
