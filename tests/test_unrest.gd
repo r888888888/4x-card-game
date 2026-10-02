@@ -210,7 +210,7 @@ func set_unrest(n: int) -> void:
 	Game.engine.changed.emit()
 
 
-func test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change() -> void:
+func test_the_top_bar_shows_unrest_out_of_the_limit_and_tags_its_change() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 2)
 	await wait_frames()
@@ -218,13 +218,14 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change() -> v
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
 	eq(main.counter_text(GameEngine.UNREST), "2 / 5 (+1)", "unrest, the limit and the forecast")
 	if counter != null:
-		eq(counter.get_theme_color("font_color"), Palette.TEXT,
-			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST)")
+		eq(counter.figure().color, Palette.TEXT,
+			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST; 181: an odometer)")
 	set_unrest(5)
 	await wait_frames()
-	check(shown_label(main, "+3 unrest") != null, "a +3 unrest token floats up")
+	var tag := counter_tag(counter)
+	eq(tag.text if tag != null else "", "+3", "a +3 tag beside Unrest (181)")
 	if counter != null:
-		eq(counter.get_theme_color("font_color"), Palette.WARN, "at the limit: the warning colour")
+		eq(counter.figure().color, Palette.WARN, "at the limit: the warning colour")
 	close_main(main)
 	Game.engine = real
 

@@ -64,7 +64,7 @@ func test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure() -> voi
 			if key != GameEngine.UNREST:  # unrest is off in this game
 				check(glyph.is_visible_in_tree(), "'%s' glyph shown" % key)
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, TopBar.SCORE, TopBar.POP]:
-			eq((main.counter(key) as Control).get_theme_color("font_color").to_html(), Palette.TEXT.to_html(),
+			eq((main.counter(key).figure().color as Color).to_html(), Palette.TEXT.to_html(),
 				"'%s' figure in ink" % key))
 
 
@@ -75,7 +75,7 @@ func test_the_food_figure_warns_when_pop_would_starve() -> void:
 			Game.engine.changed.emit()
 			await wait_frames()
 			check(Game.engine.upkeep_forecast().get("starve", 0) > 0, "precondition: pop would starve")
-			eq((main.counter(GameEngine.FOOD) as Control).get_theme_color("font_color").to_html(), Palette.WARN.to_html(),
+			eq((main.counter(GameEngine.FOOD).figure().color as Color).to_html(), Palette.WARN.to_html(),
 				"food figure: WARN"))
 
 

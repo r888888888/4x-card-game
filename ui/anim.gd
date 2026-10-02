@@ -25,14 +25,16 @@ const DISCARD_POP_TIME := 0.12
 const DISCARD_FLY_TIME := 0.45
 const TARGET_FLY_TIME := 0.3  # a played action flying to its target before it is discarded
 const DEAL_STAGGER := 0.06  # delay between cards dealt into the hand
-const TOKEN_FLY_TIME := 0.55
-const TOKEN_FLOAT_PX := 40.0  # how far a cost token rises from its counter (114)
-const TOKEN_STAGGER := 0.08
+const ODOMETER_STEP := 0.07  # a counter's digits roll one value this often (181)
+const ODOMETER_MAX_STEPS := 8  # a longer change jumps, then rolls only its last steps
+const TAG_HOLD := 0.6  # a counter's "+N" tag shows this long (181)
+const TAG_STAGGER := 0.06  # between the tags of several counters changed at once, left to right
+const CALM_TAG_HOLD := 1.5  # a tag's hold with Reduce motion, where it appears in place
 const PULSE_SCALE := 1.18
 const PULSE_TIME := 0.25
 const ERROR_SHOW_TIME := 1.8
 const TOAST_TIME := 3.0  # a notice's toast shows this long before it fades (116)
 const HIGHLIGHT_PULSE_TIME := 0.7
 const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fading, in and out (104)
-# Reduce motion: cards and tokens jump to where they are going and fade in over this time instead.
+# Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15

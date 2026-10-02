@@ -66,8 +66,10 @@ res://
                          # cards: card_view.gd (CardView: panel, tooltip, border), card_face.gd (086: its content),
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
-                         # labels, overlays, tokens, button columns)
+                         # labels, overlays, button columns)
                          # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
+                         # counter.gd (181: Counter, a glyph, an odometer figure, a "+N" tag and the forecast),
+                         # odometer.gd (181: Odometer, a figure whose digits roll),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
                          # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
                          # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
@@ -363,8 +365,8 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
 - Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
-  open during an explore choice or after the game ends. Buying flies a wealth
-  token and sends a copy to the screen's Discard counter (all off with Reduce motion).
+  open during an explore choice or after the game ends. Buying rolls the screen's wealth figure down with a
+  "−N" tag (181) and sends a copy to the screen's Discard counter (all off with Reduce motion).
 
 ## Events (backlog 039)
 The framework for solo opposition. Harmful ops (072), the Famine (083), eras (074) and the event modal (079) build on it.

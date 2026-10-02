@@ -1,17 +1,17 @@
 class_name UIKit
 extends RefCounted
 ## Shared building blocks for the board's components: layout constants, labels, buttons, overlays, and the small
-## effects (pulses, flying tokens, error pop-ups) several components use. Colours come from Palette and the looks
+## effects (pulses, error pop-ups) several components use. Colours come from Palette and the looks
 ## (Heading, Title, Stat, DarkPanel) from GameTheme (106).
 
 const SECTION_GAP := 22  # between the Realm and hand sections
 const HEADING_GAP := 6  # from a heading to its content
 const CARD_GAP := 10  # between cards in a row
-const COST_COLOR := Palette.COST  # tokens for resources paid, and error text
-const GAIN_COLOR := Palette.GAIN  # tokens for resources and VP gained
+const COST_COLOR := Palette.COST  # tags for resources paid (181), and error text
+const GAIN_COLOR := Palette.GAIN  # tags for resources and VP gained (181)
 
 
-## Reduce motion is on: no pulses, drifts or flying tokens.
+## Reduce motion is on: no pulses, drifts or rolling figures.
 static func calm() -> bool:
 	return Settings.reduce_motion
 
@@ -212,35 +212,6 @@ static func pulse(node: Control) -> void:
 	node.scale = Vector2.ONE * Anim.PULSE_SCALE
 	node.create_tween().tween_property(node, "scale", Vector2.ONE, Anim.PULSE_TIME) \
 		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-
-
-## A counter's token on layer ("−2 food", "+1 pop"), centred at from (just below its counter), floating straight up
-## Anim.TOKEN_FLOAT_PX as it fades out (114; every counter change since 126).
-static func float_token(layer: Control, text: String, from: Vector2, color: Color, delay: float) -> void:
-	var token := _token(layer, text, from, color)
-	var t := token.create_tween()
-	t.tween_interval(delay)
-	if calm():  # appear, hold, fade, in place
-		t.tween_property(token, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
-		t.tween_interval(Anim.TOKEN_FLY_TIME)
-		t.tween_property(token, "modulate:a", 0.0, Anim.CALM_FADE_TIME)
-		t.tween_callback(token.queue_free)
-		return
-	t.tween_property(token, "modulate:a", 1.0, 0.1)
-	t.tween_property(token, "global_position:y", token.global_position.y - Anim.TOKEN_FLOAT_PX, Anim.TOKEN_FLY_TIME) \
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(token, "modulate:a", 0.0, Anim.TOKEN_FLY_TIME / 2).set_delay(Anim.TOKEN_FLY_TIME / 2)
-	t.tween_callback(token.queue_free)
-
-
-## A hidden resource token on layer, centred at from.
-static func _token(layer: Control, text: String, from: Vector2, color: Color) -> Label:
-	var token := fx_label(text, 26, color)
-	token.modulate.a = 0.0
-	layer.add_child(token)
-	token.reset_size()
-	token.global_position = from - token.size / 2
-	return token
 
 
 ## A short message on a dark backing over the card, drifting up and fading out, on layer. width is the

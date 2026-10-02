@@ -244,7 +244,7 @@ func _grow() -> void:
 
 ## Shows the pop meter (with population on): a pip per housing, the first pop filled, Grow on the first empty one
 ## (hidden at housing), and grow_error as a dim line when Grow can't be used. After a grow from the meter, the new
-## pip pops in; the top bar floats the food and pop (126).
+## pip pops in; the top bar tags the food and pop (126, 181).
 func _show_meter(e: GameEngine) -> void:
 	_meter.visible = e.population_on()
 	var error := e.grow_error(uid) if _meter.visible else ""
