@@ -34,13 +34,12 @@ func close_over(swap: Callable) -> void:
 	stop()
 	show()
 	_place(0.0)
+	_sound(Sfx.CABINET_CLOSE, CLOSE_TIME)  # scheduled now, so each sounds on its moment whatever the frame rate
+	_sound(Sfx.CABINET_PART, CLOSE_TIME + HOLD_TIME)
 	_tween = create_tween()
 	_tween.tween_method(_place, 0.0, 1.0, CLOSE_TIME).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-	_tween.tween_callback(func(): _sound(Sfx.CABINET_CLOSE))
 	_tween.tween_interval(HOLD_TIME)
-	_tween.tween_callback(func():
-		swap.call()
-		_sound(Sfx.CABINET_PART))
+	_tween.tween_callback(swap)
 	_tween.tween_method(_place, 1.0, 0.0, PART_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	_tween.tween_callback(hide)
 
@@ -92,7 +91,7 @@ func _door(text: String, is_left: bool) -> PanelContainer:
 	return door
 
 
-func _sound(token: StringName) -> void:
+func _sound(token: StringName, delay: float) -> void:
 	var sfx := Sfx.find(self)
 	if sfx != null:
-		sfx.play(token)
+		sfx.play(token, delay)
