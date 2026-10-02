@@ -41,6 +41,14 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-Nothing scheduled: 142–148 are done (see done/HISTORY.md).
+Government and Anarchy rework (from `spike/revolution`):
+1. 154 government deck: choose your next government instead of drawing it
+2. 155 revolt any time; Anarchy's length follows unrest
+3. 156 Anarchy eats into stored food and wealth
+4. 157 Theocracy slows research: an insight-per-gain modifier
+5. 158 sim metrics for Anarchy, governments and famine
+6. 159 the bot chooses governments and revolts by looking ahead
+
+Then 149's balance pass can cover the reworked unrest.
 
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
