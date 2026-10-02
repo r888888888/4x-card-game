@@ -374,7 +374,8 @@ Each component lists anatomy, then states. Detailed state-transition specs are i
    key, not a separate switch control. §15.4.
 6. **Resource counter** — caption with its lamp on the same line, then glyph + value grouped by spacing (no box),
    forecast below.
-7. **Card** — §6.7.
+7. **Card** — §6.7. A pile of cards (deck, discard, a supply pile) is an **index pile** that deals out into a grid
+   when clicked (§15.13).
 8. **Panel / drawer** — `sheet`, square, title block, `shadow.lift` when it overlaps content, none when docked.
 9. **Tooltip** — a printed tab: `ink` fill, `sheet` text (inverse) in Night and Paper alike, `radius.0`, a 6 px
    triangle notch toward the target, max 320 px wide.
@@ -427,6 +428,8 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 - **One thing moves at a time** in the player's attention. Stagger siblings by 30–60 ms instead of moving them
   together.
 - **No overshoot** except the `settle` curve, reserved for major milestones (era change, victory), max 4%.
+- **Never wait on a frame that won't come.** Every transition also has a timer for its own duration; if the animation
+  hasn't finished by then (a hidden or minimised window), it jumps to its end state, so input is never left locked.
 
 ### 9.2 The six primitives
 
@@ -503,7 +506,10 @@ Screens are **sheets on rails**. The Knowledge (tech) screen comes from the righ
 the log drawer from the left rail. Each sheet carries the `ScreenHeader` breadcrumb in its title block; going back
 slides it out the way it came. A screen that grows out of a card (Navigator, 104) becomes a **wipe from the card's
 rectangle**: a clip rect expands from the card's bounds to the full sheet in 300 ms, with the card's type band
-colour flashing in the title block bar for the first 120 ms — continuity without scaling.
+colour flashing in the title block bar for the first 120 ms — continuity without scaling. The card's outline (2 px
+`ink`, its 6 px band on top) grows with the clip, tracing its edge, and is gone 120 ms after it lands; without it the
+growing clip shows only blank sheet, because the title bar sits outside the clip until the end. Closing reverses
+both into the card.
 
 ### 10.3 Counters
 Every changing number uses a discrete mechanism:
@@ -529,7 +535,9 @@ lifts 20 px; it becomes 0 scale and 8 px.)
 
 ### 10.6 Panels
 Drawers (log, notifications history) slide from a rail with `ease.latch`. Cabinet-door panels (government overlay,
-explore choice) **part in two halves** sliding left and right off a centre seam to reveal choices beneath, 260 ms.
+explore choice) work in two moves: the two halves **close** over the current screen from the sides and meet at a
+centre seam (200 ms `machined`), hold 60 ms, then **part** to reveal the choices beneath (260 ms `latch`). Making the
+choice runs the same two moves the other way: close over the choices, part onto the board.
 Layered plans (tech tree eras) stack as offset sheets, 8 px right and down per layer; bringing one forward slides
 it out of the stack and back on top.
 
@@ -537,7 +545,9 @@ it out of the stack and back on top.
 A **flag** slides out of the left rail (from x −100% to 0 in 200 ms, `machined`), holds, then slides back in
 (160 ms). One at a time; queued flags stack below at 8 px gaps, max 3, older ones collapse into a count badge on
 the rail. Each flag has a hue bar, glyph and one line; urgent ones (famine, anarchy) don't auto-dismiss and stay
-until resolved. Flags carry no indicator lamp.
+until resolved. Flags carry no indicator lamp; the **rail** does: one lamp per notification category, which lights
+(40 ms `lamp-on`) as a flag of that category arrives and stays lit while an urgent one is unresolved, so a dismissed
+or collapsed flag still leaves its trace on the rail.
 
 ### 10.8 Success / confirmation
 The lamp next to the control lights, then a small starburst (6 rays, 8 px) draws out from it and fades. The burst
@@ -643,12 +653,23 @@ moving between adjacent tooltip targets), with a 90 ms opacity + 4 px slide from
 (the upkeep forecast: one row per source, a hairline, the net).
 
 ### 11.12 Victory / progression
-Era change and game over are **ceremonial sheets**: full-screen `board` with a centred (the one allowed centring)
+Era change and game over are **ceremonial sheets**: full-screen `sheet` (lighter than the board, so the wipe reads)
+with a 4 px `ink` **straightedge** riding the wipe's leading edge, and a centred (the one allowed centring)
 composition: era or result in `type.display-xl` split-flapping in; a large geometric motif (concentric rings for an
 era, a 16-ray starburst for victory) drawn with wipes in 400 ms; the score in an odometer that rolls from 0 with
 digits settling right-to-left. Below, a ledger of the score breakdown (category left, right-aligned VP) with a
-double rule above the total. One primary button ("New game"). Skippable at any point; Reduce motion shows the end
-state directly.
+double rule above the total. One primary button ("New game"). A click while it plays skips to the end state; the
+next click continues (a click that lands before the sequence settles is remembered, never dropped). Reduce motion shows
+the end state directly.
+
+### 11.13 Deck, discard and supply piles
+Every pile is an **index pile** (§15.13): face-up cards squared on the desk with up to four edges stepping out 3 px
+down and right, the top card readable, and its count printed beneath as `DISCARD 7` (`type.label-caps` + Plex Mono
+figure). The draw deck is the same pile face down (the card back's ring motif) and never deals out, since its order
+is hidden; a supply pile shows its top copy. Clicking a face-up pile **deals it out into a grid**, the top card
+staying put and the rest sliding to their places 30 ms apart; clicking again gathers them back. A pile too big for the
+space it deals into (past about eight cards) **unfolds into a sheet** instead: a panel wiping out of the pile's own
+rectangle with every card as a header tile (the same wipe as §10.2).
 
 ---
 
@@ -931,6 +952,22 @@ caption below the button for "2 actions left" (from the engine).
 
 ---
 
+### 15.13 Card stack (index pile)
+Anatomy: the top card at full size; up to four card edges behind it, each offset +3, +3 px (2 px `ink` border,
+`sheet` fill, stacked bottom-up); the count beneath in `type.label-caps` with a Plex Mono figure. No shadow at rest.
+
+| Transition | Duration | Change | Curve |
+|---|---|---|---|
+| REST → HOVER | 100 ms | the top card slides 4 px up with `shadow.plinth`; the edges stay | `machined` |
+| HOVER → DEALT | 260 ms per card, 30 ms apart | the top card stays; each card below slides from its edge offset to its grid cell (4 across, 12 px gaps), in pile order; the count hides | `machined` |
+| DEALT → REST | 200 ms per card, 20 ms apart, last card first | each card slides back to its edge offset; the count returns | `release` |
+| COUNT CHANGE | per §15.5 | the figure rolls; a card added lands on top with a 60 ms `snap` | `snap` |
+| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§10.2), cards as header tiles | `machined` |
+| Reduce motion | — | cards jump to their cells and back | |
+
+Dealt cards are ordinary cards: hover, select and details work on them as anywhere else. The grid never overlaps the
+cards so a name is never hidden.
+
 ## 16. Mapping onto this codebase (spike findings)
 
 How the guide lands in the existing UI without touching `engine/`:
@@ -946,6 +983,10 @@ How the guide lands in the existing UI without touching `engine/`:
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
 | Toasts | `ui/toasts.gd` (116) | Become flags from the left rail; requires the left-rail layout in `BoardLayout`. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |
+| Toggles | `UIKit.motion_toggle()` and the settings screen's buttons | A `LegendKey` control (a toggle `Button` with a lamp strip and its own ON/OFF legend; latched = pressed stylebox with no shadow). |
+| Resource glyphs | `assets/icons/food.svg` etc., tinted by `Icons` | New SVGs on the 24 grid: sprout, cash coin, open book, solid bolt; wealth tinted with `glyph-ochre` in Paper. |
+| Costs | the card face's cost text (`CardFace`) | One glyph + figure per resource, top-right, grouped by spacing (§6.7); the engine already reports the costs, the face only lays them out. |
+| Piles | `LogDrawer`'s deck and discard counts (115, 121) | Index piles (§15.13) on the board; the deck face down, the discard dealing out on click. |
 
 **What I learned**
 - The existing architecture is well placed for this: colours are already semantic (`Palette`), looks are already
@@ -957,9 +998,16 @@ How the guide lands in the existing UI without touching `engine/`:
   travel needs either a content-margin trick in the pressed stylebox or a tween on the button's position.
 - Paper (light) mode needs a full second palette and testing over card art; the Night mode alone is a smaller first
   step and keeps today's dark board.
+- Iterating on the companion pages removed things more often than it added them: the bordered cost plate, the boxed
+  value window, the drawn slide switch and the lamp on a notification all went, in favour of spacing, the legend key
+  and the rail lamp. Glyphs had to match the height of the figure beside them, and a solid glyph had to be drawn
+  smaller than an outlined one to look the same size.
+- Yellow can't be a text colour on warm paper; an icon-only gold (3:1, not 4.5:1) is the honest fix.
 
 **Recommendation**
-Adopt it in three items, each UI-only (no `engine/` changes):
+First a short Godot spike to prove the parts HTML can't: hard offset shadows and press travel in `StyleBoxFlat`,
+tabular figures through a `FontVariation`, an odometer that clips its digits, and the legend key as a theme
+variation. Then adopt it in three items, each UI-only (no `engine/` changes):
 1. **Tokens & theme** — new `Palette` values (Night), fonts with `tnum`, `GameTheme` radius/border/shadow, `Anim`
    timings and the easing swap. Biggest visual change for the least code.
 2. **Mechanical feedback** — odometer counter + delta tags replacing floating tokens, lamps on the resource bar and
