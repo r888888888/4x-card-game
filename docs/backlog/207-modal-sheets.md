@@ -2,7 +2,7 @@
 id: 207
 title: Modals as the specimen's drafting sheets, laid down and lifted off
 type: feature
-status: red-review
+status: review
 branch: feat/207-modal-sheets
 ---
 
@@ -13,23 +13,23 @@ rule with the buttons right (primary rightmost), a hard 8 px shadow; it rises in
 +8,+8 on the one below.
 
 ## Acceptance criteria
-- [ ] AC1: `Modal` builds the sheet: a panel on `RAISED` with a 2 px `TEXT` border, `RADIUS_0`, an 8,8 `SHADOW`
+- [x] AC1: `Modal` builds the sheet: a panel on `RAISED` with a 2 px `TEXT` border, `RADIUS_0`, an 8,8 `SHADOW`
   shadow; a title block (4 px `TEXT` bar on top, the title in the Title variation at left, an optional context in
   caps at right); a body at most 640 px wide; an optional footer above which a 1 px `CONTROL_DISABLED_BORDER` rule
   runs, buttons right-aligned. Subclasses set `title`, `context` and footer buttons through `Modal`'s API instead of
   building their own headers.
-- [ ] AC2: Every modal uses it: card details, the civilization modal, the event modal, the Settings modal (206), and
+- [x] AC2: Every modal uses it: card details, the civilization modal, the event modal, the Settings modal (206), and
   the game menu and the game-over sheet, which become `Modal`s on `main.modals` (today they build their own scrims), each with its title (and context where it has one: the event modal "Turn N",
   card details the card type) and its Close or primary button in the footer.
-- [ ] AC3: Opening a modal (Reduce motion off): its panel starts 24 px below its place at opacity 0 and reaches its
+- [x] AC3: Opening a modal (Reduce motion off): its panel starts 24 px below its place at opacity 0 and reaches its
   place in 0.24 s (`Anim.MACHINED`), opacity 1 by 0.12 s; its scrim fades in over 0.16 s. With Reduce motion: a 0.12 s
   fade, no movement.
-- [ ] AC4: A modal opened over another sits +8,+8 from the one below (replacing `Modal.cascade`'s offset if it differs),
+- [x] AC4: A modal opened over another sits +8,+8 from the one below (replacing `Modal.cascade`'s offset if it differs),
   and opens with AC3's motion without a second scrim fade.
-- [ ] AC5: Closing: the panel moves to +12 px below and to opacity 0 in 0.16 s (`Anim.RELEASE`) with its scrim; it
+- [x] AC5: Closing: the panel moves to +12 px below and to opacity 0 in 0.16 s (`Anim.RELEASE`) with its scrim; it
   takes no clicks or keys while closing, and the modal below takes them at once. Closing several at once (ModalStack
   closing above a lower one) runs them together.
-- [ ] AC6: The existing sounds (189: sheet open/close, stacked quieter, under a bell quieter) play as today.
+- [x] AC6: The existing sounds (189: sheet open/close, stacked quieter, under a bell quieter) play as today.
 
 ## Out of scope
 - The tech tree (it becomes a screen in 208). Choice overlays (explore, renewal, government; 209 does government).
@@ -61,9 +61,21 @@ Decisions made writing the tests:
 - A stacked sheet shows its scrim at once ("without a second scrim fade").
 
 ## Manual check
+- [ ] Seed 5: open Menu, card details (I on a hand card), the civilization modal, an event and game over: each a
+  paper sheet with an ink bar, title (context right), body and a footer under a rule, buttons right.
 - [ ] Civilization modal → a card's details (or Revolt…, 205): the second sheet lands +8,+8 like paper on paper; compare with the specimen in both
   palettes and at ¼ speed in `transitions.html`.
 
 ## Log
 - Specced 2026-10-02 from the notes list. Decided 2026-10-02: the sheet's rise and stack transition are part of this
   item.
+- 2026-10-02: Built. `Modal` builds the sheet (`GameTheme`'s `Sheet` variation, `GameTheme.SHEET_SHADOW`), the title block
+  (`title`, `context`), `aside`, `body`, and `add_footer_button(button, primary)`; `enter(stacked)` / `leave()` run the
+  motion and `ModalStack` calls them (`ModalStack.has`, `Modal.is_open()`: a closing sheet is still drawn but not open).
+  `GameMenu` and `GameOverOverlay` are Modals; the game-over sheet isn't dismissable and closes any sheet still open
+  when it comes (the last turn's event). The top modal now lets keys through to its own focused control (the menu's
+  Tab loop, Enter on Exit), and main's card keys wait while any modal is open.
+- Existing tests changed by AC1/AC2: `test_theme::test_overlay_panels_use_dark_panel` → `…_and_modals_the_sheet` (modals
+  use `Sheet` with an ink rule, the event modal included); `test_key_sounds`' two menu key tests count sounds after the
+  menu's sheet-open; `test_start_screen::test_menu_new_game_opens_the_new_game_screen` checks the stack (the menu is
+  still lifting off); `test_button_widths::test_tech_tiles_fill_their_era_column` skips the footer.
