@@ -2,7 +2,7 @@
 id: 174
 title: Prerequisite cycles are a load error; the renewal modifier key lives on Modifiers
 type: feature
-status: ready
+status: red-review
 branch: feat/174-loader-prereq-cycles
 ---
 
@@ -25,6 +25,10 @@ modifier key is a `Modifiers` constant. From the 2026-10-01 project review.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_research::test_a_prereq_cycle_is_one_load_error` (two and three techs, a tail into a cycle, its own prereq, a chain) |
+| AC2 | `test_modifiers::test_every_modifier_key_is_a_modifiers_constant`; test_renewal unedited |
 
 ## Log
 - 2026-10-01: Specced from the project review.
+- 2026-10-01: Red. Added a case the spec didn't name: a tech whose prereq leads into a cycle without being in it
+  (t → b, with a ↔ b) gets no error of its own; the cycle's one error is on a, its first tech in card order.

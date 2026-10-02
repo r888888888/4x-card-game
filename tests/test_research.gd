@@ -100,6 +100,28 @@ func test_prereq_validation() -> void:
 	], func(args): return load_x(args[1], {"insight": 2} if args[1] == "tech" else {"wealth": 2}, [], args[0]))
 
 
+## A tech id with prereq (none when "").
+func tech(id: String, prereq := "") -> Dictionary:
+	var t := {"id": id, "name": id.capitalize(), "type": "tech", "cost": {"insight": 2}}
+	if prereq != "":
+		t["prereq"] = prereq
+	return t
+
+
+## 174: techs that need each other are one load error, on the cycle's first tech in card order.
+func test_a_prereq_cycle_is_one_load_error() -> void:
+	check_cases([
+		["two techs", [tech("a", "b"), tech("b", "a")], "cards.json: card 'a': prereq: cycle a → b → a", "one_error"],
+		["three techs", [tech("a", "b"), tech("b", "c"), tech("c", "a")],
+			"cards.json: card 'a': prereq: cycle a → b → c → a", "one_error"],
+		["a tail into a cycle", [tech("t", "b"), tech("a", "b"), tech("b", "a")],
+			"cards.json: card 'a': prereq: cycle a → b → a", "one_error"],
+		["its own prereq", [tech("a", "a")], "cards.json: card 'a': prereq: a tech can't be its own prerequisite",
+			"one_error"],
+	], func(extra): return fixture_load(extra, [TECHS]))
+	eq(fixture_load([tech("a"), tech("b", "a"), tech("c", "b")], [TECHS]).errors, [] as Array[String], "a chain loads")
+
+
 func test_prereq_on_a_card_that_is_not_a_tech_is_ignored() -> void:
 	var r := load_x("building", {"wealth": 2}, [], {"prereq": "bronze"})
 	check(r.cards.has("x"), "the building loads")
