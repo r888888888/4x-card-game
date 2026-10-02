@@ -2,7 +2,7 @@ class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food, wealth, insight (139) and unrest (144, out of its limit) (with next upkeep's change), score
 ## and pop, then
-## (115) the civilization and government button (one since 119), Buy Cards, Knowledge, Log, End turn (120) and Menu. Any
+## (115) Buy Cards, Knowledge, Log, End turn (120) and Menu (the civilization and government are in the Sidebar, 202). Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure and tags it with its net change
 ## (126, 181).
 
@@ -17,7 +17,6 @@ var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in i
 var end_turn_button: Button  # "End turn", or "Discard N (hand limit M)" while the hand is over its limit (120)
 var _turn_label: Label
 var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden while off, 144), score, pop (hidden while off)
-var _identity: Button  # "Egypt · Chiefdom": opens the civilization and government modal; hidden with neither (119)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
 # End turn's key (187): its release sounds wait for both the key coming up and its action (a mouse release sends
 # button_up before pressed, a key sends them the other way round).
@@ -27,8 +26,8 @@ var _turn_ended := false
 var _fresh := true  # a new game's first refresh shows its values at once, with no tags (126)
 
 
-## on_knowledge opens the tech tree, on_identity the civilization and government modal, on_log toggles the log drawer.
-func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_log: Callable) -> void:
+## on_knowledge opens the tech tree, on_log toggles the log drawer.
+func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	add_theme_constant_override("separation", Tokens.SPACE_3)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
 	_turn_label = UIKit.stat(self)
 	_turn_label.theme_type_variation = &"BarStat"
@@ -40,10 +39,6 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_identity: Callable, on_
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
-	_identity = UIKit.button("", on_identity)
-	_identity.tooltip_text = "Your civilization and government."
-	_identity.hide()
-	add_child(_identity)
 	_knowledge = UIKit.button("Knowledge", on_knowledge)
 	add_child(_knowledge)
 	log_button = UIKit.button("Log", on_log)
@@ -163,12 +158,6 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
 	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
 		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
-	var names: PackedStringArray = []
-	for zone_name in IdentityModal.ZONES:
-		if not e.zone(zone_name).is_empty():
-			names.append(e.zone(zone_name).cards[0].def.name)
-	_identity.text = " · ".join(names)
-	_identity.visible = not names.is_empty()
 	var error := e.end_turn_error()
 	end_turn_button.disabled = error != ""
 	end_turn_button.tooltip_text = error if error != "" else "Shortcut: E. Upkeep, then draw up to your hand size."
@@ -195,20 +184,10 @@ func set_log_unread(unread: bool) -> void:
 	log_button.text = "Log •" if unread else "Log"
 
 
-## Puts the Supply button after the civilization and government.
+## Puts the Supply button before Knowledge.
 func add_supply_button(button: Button) -> void:
 	add_child(button)
 	move_child(button, _knowledge.get_index())
-
-
-## The civilization and government button (visible or not).
-func identity_button() -> Button:
-	return _identity
-
-
-## Where a card leaving for the civilization and government button flies to (the government a player just played).
-func identity_point() -> Vector2:
-	return _identity.get_global_rect().get_center()
 
 
 ## " (+2)" / " (-1)": the forecast change for resource, or "" when there is no next upkeep.

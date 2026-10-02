@@ -216,17 +216,18 @@ func test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds() -> void:
 		var main: Node = await open_game()
 		main.open_menu()
 		await wait_frames()
+		var from: int = main.sfx.played().size()  # after the menu's sheet laid down (207): this test hears its key
 		var key: Button = main.menu_day_toggle()
 		mouse(main, centre(key), true)
 		mouse(main, centre(key), false)
 		await wait_frames()
 		check(key.button_pressed, "latched ON")
-		eq(heard(main), [[Sfx.BUTTON_PRESS, 0.024], [Sfx.TOGGLE_ON, 0.038]], "press, then the latch catching")
+		eq(heard(main).slice(from), [[Sfx.BUTTON_PRESS, 0.024], [Sfx.TOGGLE_ON, 0.038]], "press, then the latch catching")
 		main.sfx.set_clock(1.0)
 		mouse(main, centre(key), true)
 		mouse(main, centre(key), false)
 		await wait_frames()
-		eq(heard(main).slice(2), [[Sfx.BUTTON_PRESS, 1.024], [Sfx.TOGGLE_OFF, 1.047]], "press, then the latch letting go")
+		eq(heard(main).slice(from + 2), [[Sfx.BUTTON_PRESS, 1.024], [Sfx.TOGGLE_OFF, 1.047]], "press, then the latch letting go")
 		close_game(main))
 
 
@@ -237,11 +238,12 @@ func test_turning_interface_sounds_off_is_heard_before_the_bus_mutes() -> void:
 		var main: Node = await open_game()
 		main.open_menu()
 		await wait_frames()
+		var from: int = main.sfx.played().size()  # after the menu's sheet laid down (207): this test hears its key
 		var key: Button = main.call("menu_sound_toggle")
 		mouse(main, centre(key), true)
 		mouse(main, centre(key), false)
 		eq(Settings.interface_sounds, false, "turned off")
-		eq(tokens(main), [Sfx.BUTTON_PRESS, Sfx.TOGGLE_OFF], "its press and its OFF")
+		eq(tokens(main).slice(from), [Sfx.BUTTON_PRESS, Sfx.TOGGLE_OFF], "its press and its OFF")
 		var bus := AudioServer.get_bus_index(Settings.INTERFACE)
 		eq(AudioServer.is_bus_mute(bus), false, "the Interface bus waits for the OFF")
 		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
