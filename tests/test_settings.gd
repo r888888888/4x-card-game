@@ -119,3 +119,53 @@ func test_settings_set_civilization_saves_it() -> void:
 	saved.load()
 	eq(saved.get("civilization"), "nomads", "saved")
 	Settings.store = original
+
+
+# --- 183 AC1: day mode ---
+
+func test_missing_file_means_day_mode_off() -> void:
+	var store: Object = SettingsStore.new(_fresh_path())
+	store.load()
+	eq(store.get("day_mode"), false, "day_mode")
+
+
+func test_day_mode_survives_save_and_load() -> void:
+	var first: Object = SettingsStore.new(_fresh_path())
+	first.set("day_mode", true)
+	first.save()
+	var second: Object = SettingsStore.new(PATH)
+	second.load()
+	eq(second.get("day_mode"), true, "day_mode after saving true")
+	second.set("day_mode", false)
+	second.save()
+	var third: Object = SettingsStore.new(PATH)
+	third.set("day_mode", true)  # so the load has to overwrite it
+	third.load()
+	eq(third.get("day_mode"), false, "day_mode after saving false")
+
+
+func test_non_bool_day_mode_falls_back_to_off_with_warning() -> void:
+	_write("[ui]\nday_mode=\"yes\"\n")
+	var store: Object = SettingsStore.new(PATH)
+	store.set("day_mode", true)
+	var warnings: Array[String] = store.load()
+	eq(store.get("day_mode"), false, "day_mode")
+	eq(warnings, ["settings file '%s': [ui] 'day_mode' must be true or false, got \"yes\"; using false" % PATH] as Array[String],
+		"the warning")
+
+
+func test_settings_set_day_mode_saves_it_and_says_so() -> void:
+	var original: SettingsStore = Settings.store
+	Settings.store = SettingsStore.new(_fresh_path())
+	var told := [0]
+	var on_changed := func(): told[0] += 1
+	Settings.changed.connect(on_changed)
+	Settings.call("set_day_mode", true)
+	Settings.changed.disconnect(on_changed)
+	var saved: Object = SettingsStore.new(PATH)
+	saved.load()
+	eq(saved.get("day_mode"), true, "saved")
+	eq(told[0], 1, "changed emitted once")
+	Settings.store = original
+	if Settings.has_method("set_day_mode"):
+		Settings.changed.emit()  # back to the player's palette

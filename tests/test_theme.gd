@@ -64,11 +64,12 @@ const NIGHT_SHIFT := {
 
 
 func test_the_palette_holds_the_night_shift_values() -> void:
-	var names: Dictionary = load(PALETTE_PATH).get_script_constant_map()
+	var palette: Script = load(PALETTE_PATH)  # by name: a constant or (183) a static var
 	for name: String in NIGHT_SHIFT:
-		check(names.has(name), "Palette.%s exists" % name)
-		if names.has(name):
-			eq((names[name] as Color).to_html(), Color(NIGHT_SHIFT[name]).to_html(), "Palette.%s" % name)
+		var value: Variant = palette.get(name)
+		check(value is Color, "Palette.%s is a colour" % name)
+		if value is Color:
+			eq((value as Color).to_html(), Color(NIGHT_SHIFT[name]).to_html(), "Palette.%s" % name)
 
 
 func test_labels_look_as_before() -> void:
@@ -259,9 +260,9 @@ func test_the_palette_names_the_ui_colours() -> void:
 	check(FileAccess.file_exists(PALETTE_PATH), "%s exists" % PALETTE_PATH)
 	if not FileAccess.file_exists(PALETTE_PATH):
 		return
-	var names: Dictionary = load(PALETTE_PATH).get_script_constant_map()
+	var palette: Script = load(PALETTE_PATH)
 	for name in ["TEXT", "TEXT_DIM", "PANEL", "ACCENT", "COST", "GAIN"]:
-		check(names.has(name) and names[name] is Color, "Palette.%s is a colour" % name)
+		check(palette.get(name) is Color, "Palette.%s is a colour" % name)
 
 
 # --- AC3: one theme ---

@@ -2,7 +2,7 @@
 id: 183
 title: Day mode: the Paper palette, switched at once
 type: feature
-status: ready
+status: red-review
 branch: feat/183-day-mode
 ---
 
@@ -61,6 +61,12 @@ Night shift (178) stays the default.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_settings::test_missing_file_means_day_mode_off`, `test_day_mode_survives_save_and_load`, `test_non_bool_day_mode_falls_back_to_off_with_warning`, `test_settings_set_day_mode_saves_it_and_says_so` |
+| AC2 | `test_day_mode::test_the_palette_reads_day_values_in_day_mode_and_night_values_otherwise`, `test_both_modes_keep_the_guides_contrast`; `test_theme`'s palette tests read colours by name (constant or static var) |
+| AC3 | `test_day_mode::test_day_mode_switches_a_game_in_progress_and_back` |
+| AC4 | `test_day_mode::test_open_modals_and_screens_switch_and_stay_open`, `test_the_settings_screen_switches_and_stays_open` |
+| AC5 | `test_day_mode::test_both_screens_show_a_day_mode_key_under_reduce_motion`, `test_toggling_either_day_key_sets_it_and_shows_on_the_other`, `test_the_day_keys_are_in_the_focus_loops` |
+| AC6 | `test_ui_structure::test_no_ui_script_holds_a_palette_colour_in_a_constant` |
 
 ## Manual check
 - [ ] Seed 5, Egypt, mid-game: switch Day mode on from the menu; the board, cards, top bar, log, tech tree, supply

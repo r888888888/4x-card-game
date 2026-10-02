@@ -190,3 +190,34 @@ func test_the_pulses_pops_and_slides_ease_out_quartically() -> void:
 	for path in ["res://ui/ui_kit.gd", "res://ui/territory_view.gd", "res://ui/card_motion.gd"]:
 		check(source(path).contains(".set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)"),
 			"%s eases out with TRANS_QUART" % path)
+
+
+# --- 183: no colour frozen before a Day mode switch ---
+
+## Each const declaration in path's code (a multi-line one joined up) that reads a Palette colour, as "file:line".
+func palette_constants(path: String) -> Array[String]:
+	var found: Array[String] = []
+	var lines := source(path).split("\n")
+	var i := 0
+	while i < lines.size():
+		if lines[i].begins_with("const "):
+			var start := i
+			var text := lines[i].split("#")[0]
+			var depth := text.count("{") + text.count("[") + text.count("(") - text.count("}") - text.count("]") - text.count(")")
+			while depth > 0 and i + 1 < lines.size():
+				i += 1
+				var more := lines[i].split("#")[0]
+				text += more
+				depth += more.count("{") + more.count("[") + more.count("(") - more.count("}") - more.count("]") - more.count(")")
+			if text.contains("Palette."):
+				found.append("%s:%d" % [path.get_file(), start + 1])
+		i += 1
+	return found
+
+
+func test_no_ui_script_holds_a_palette_colour_in_a_constant() -> void:
+	var found: Array[String] = []
+	for path in ui_scripts():
+		if path != "res://ui/palette.gd":
+			found.append_array(palette_constants(path))
+	eq(found, [] as Array[String], "constants that freeze a Palette colour (read Palette when drawing instead)")
