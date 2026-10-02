@@ -2,7 +2,7 @@
 id: 156
 title: Anarchy eats into stored food and wealth
 type: feature
-status: ready
+status: red-review
 branch: feat/156-anarchy-drain
 ---
 
@@ -35,6 +35,10 @@ From `spike/revolution`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_drain_pct_loads_and_is_optional`, `test_drain_pct_validation` |
+| AC2 | `test_a_turn_under_anarchy_loses_a_share_of_food_and_wealth`, `test_nothing_is_lost_from_empty_stores` |
+| AC3 | `test_no_drain_without_anarchy`, `test_no_drain_with_drain_0` |
+| AC4 | `test_the_forecast_includes_the_drain_when_a_revolution_is_pending`, `test_the_forecast_includes_the_drain_while_anarchy_has_2_counters_left`, `test_the_forecast_has_no_drain_without_anarchy_ahead` |
 
 ## Manual check
 - [ ] Real data: drain 20; Anarchy no longer costs pop each upkeep; the top bar's food and wealth forecasts show the

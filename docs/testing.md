@@ -115,6 +115,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_unrest.gd` | Unrest (144): the government's `unrest_limit` and the modifier, `unrest_limit()` / `at_unrest_limit()` / `unrest_on()`, gain capped at the limit, unrest can't be paid (cost, discount, relief, trade), the forecast and the top bar's Unrest counter, `ScriptedBot` around the limit |
 | `tests/test_anarchy.gd` | Anarchy (145): the config `unrest` block, falling at the limit, what it locks, its upkeep and burning out, era unrest |
 | `tests/test_anarchy_length.gd` | Anarchy's length (155): counters by the unrest share of the fallen limit, calming lowers them for good, one off at the end of each Anarchy turn |
+| `tests/test_anarchy_drain.gd` | Anarchy's drain (156): config `unrest.drain_pct`, food and wealth lost each Anarchy turn, the forecast |
 | `tests/test_leaving_anarchy.gd` | Restoring order (146, 155): the c × (c + 1) price, `restore_order` and its error, the Restore order button, the bot paying |
 | `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
 | `tests/test_revolution.gd` | Revolution (148, 155): revolting at any time, Anarchy next turn, `revolt` and its error, `revolt_forecast`, the Revolt button, the bot's revolt |
