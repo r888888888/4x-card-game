@@ -22,6 +22,7 @@ const COMPONENTS := {
 	"res://ui/action_button.gd": "ActionButton",  # 175: Relieve famine, Restore order and Revolt
 	"res://ui/board_views.gd": "BoardViews",  # 176: syncing card views with the engine
 	"res://ui/board_layout.gd": "BoardLayout",  # 176: building the board's layout
+	"res://ui/era_sheet.gd": "EraSheet",  # 211: the era ceremony
 	"res://ui/sidebar.gd": "Sidebar",  # 202: the right rail
 	"res://ui/cabinet_doors.gd": "CabinetDoors",  # 209: the government choice's doors
 	"res://ui/vellum.gd": "Vellum",  # 210: targeting under vellum

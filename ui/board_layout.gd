@@ -49,7 +49,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
 	main.add_child(main.log_drawer)
 	main.log_drawer.unread_changed.connect(top_bar.set_log_unread)
-	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open())
+	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
+		or main.era_sheet.is_open())
 	main.add_child(main.toasts)
 
 	main.modals = ModalStack.new(main)
@@ -67,6 +68,10 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	_build_screens(main, push_new_game_screen)
+	main.era_sheet = EraSheet.new()  # last: over everything, and first to take the input (211)
+	main.add_child(main.era_sheet)
+	if Game.engine != null:
+		Game.engine.milestone.connect(main.era_sheet.note)
 
 
 ## The board: the top bar, then the Realm (the row, the territory view and the action buttons) beside the sidebar.

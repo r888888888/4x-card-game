@@ -24,6 +24,7 @@ static func build() -> Theme:
 	t.default_font_size = DEFAULT_FONT_SIZE
 	_controls(t)
 	_label(t, "Display", Tokens.TYPE_DISPLAY, Palette.TEXT, display())
+	_label(t, "DisplayXL", Tokens.TYPE_DISPLAY_XL, Palette.TEXT, display())  # the era ceremony's name (211)
 	_label(t, "Title", Tokens.TYPE_TITLE, Palette.TEXT, display())
 	_label(t, "Heading", Tokens.TYPE_HEADING, Palette.TEXT_DIM, heading_font())  # UIKit.heading sets the capitals
 	_label(t, "Body", Tokens.TYPE_BODY, Palette.TEXT)
