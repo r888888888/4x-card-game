@@ -2,7 +2,7 @@
 id: 177
 title: Find the top bar's counters by name, not by their text
 type: feature
-status: ready
+status: red-review
 branch: feat/177-counter-accessors
 ---
 
@@ -45,6 +45,11 @@ the restyle items only change what they mean to change. The Godot spike (`spike/
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_counters::test_each_counter_is_a_different_control_in_the_top_bar`, `test_an_unknown_key_has_no_counter` |
+| AC2 | `test_counters::test_the_food_counter_text_is_the_reading_the_bar_shows`, `test_each_counter_text_is_that_counters_text`, `test_an_unknown_key_has_no_text` |
+| AC3 | `test_counters::test_the_unrest_and_pop_counters_exist_but_hide_when_off` |
+| AC4 | `test_counters::test_the_supply_screen_names_its_wealth_and_discard_counters` |
+| AC5 | `test_ui_structure::test_no_test_finds_a_counter_by_its_text` (and the migrated tests in `test_resource_tokens`, `test_grow_meter`, `test_insight`, `test_unrest`, `test_board_layout`) |
 
 ## Log
 - 2026-10-01: Specced from the mid-century style guide and the `spike/mcm-godot` findings (118 tests failed on the
