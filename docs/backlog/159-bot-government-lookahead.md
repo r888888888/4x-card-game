@@ -2,7 +2,7 @@
 id: 159
 title: The bot chooses governments and revolts by looking ahead
 type: feature
-status: ready
+status: red-review
 branch: feat/159-bot-government-lookahead
 ---
 
@@ -35,6 +35,11 @@ government is worth (Theocracy's research cost included) and the bot revolts whe
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_the_bot_chooses_the_government_whose_lookahead_scores_most`, `test_with_one_option_the_bot_chooses_it`, `test_lookahead_ties_go_to_zone_order` |
+| AC2 | `test_the_bot_revolts_every_4_turns_when_a_revolution_scores_more`, `test_the_bot_doesnt_revolt_when_no_revolution_scores_more`, `test_the_bot_doesnt_weigh_a_revolt_in_the_last_half_lookahead` |
+| AC3 | `test_a_lookahead_changes_nothing_in_the_real_game`, `test_a_lookahead_chooses_the_government_it_was_opened_for`, `test_inside_a_lookahead_the_bot_never_revolts`, `test_a_lookahead_stops_at_the_games_end`, `test_the_ranking_prefers_most_actions_then_highest_limit_then_deck_order` |
+| AC4 | the Glory fixtures in AC1 and AC2 |
+| (removed) | test_revolution: 155's `test_the_bot_revolts_to_a_better_government_when_anarchy_would_last_1_turn`, `test_the_bot_doesnt_revolt_otherwise`; test_government_deck: `test_the_bot_chooses_the_government_with_most_actions_then_highest_limit`, `test_the_bot_breaks_government_ties_by_deck_order` (now the ranking test) |
 
 ## Log
 - 2026-10-01: Specced from `spike/revolution` (`sim/bot.gd` at commit d8b7a75 has a working version; the branch is deleted: `git show d8b7a75:sim/bot.gd`).

@@ -176,24 +176,6 @@ func test_the_identity_modal_lists_the_government_deck() -> void:
 		check(body.find("Government deck") > body.find("Chiefs"), "below the ruling government: %s" % body))
 
 
-# --- AC7: the bot ---
-
-func test_the_bot_chooses_the_government_with_most_actions_then_highest_limit() -> void:
-	var by_actions := choosing_engine(["kings", "band", "court"])
-	ScriptedBot.take_turn(by_actions, "baseline")
-	eq(ruling(by_actions), "court", "Court's 3 actions beat Band's 2 and the limits")
-	var by_limit := choosing_engine(["kings"])
-	ScriptedBot.take_turn(by_limit, "baseline")
-	eq(ruling(by_limit), "kings", "Kings' limit 7 beats Chiefs' 5")
-
-
-func test_the_bot_breaks_government_ties_by_deck_order() -> void:
-	var e := choosing_engine(["council", "kingdom"])
-	e.zone("governments").remove(e.zone("governments").find(uid_of(e.zone("governments"), "chiefs")))
-	ScriptedBot.take_turn(e, "baseline")
-	eq(ruling(e), "council", "Council first of two equals")
-
-
 # --- 175 AC3: a pick in the government overlay is refused with choose_government_error's reason ---
 
 func test_a_stale_government_pick_is_refused_with_its_reason() -> void:
