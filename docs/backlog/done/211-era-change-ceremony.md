@@ -2,7 +2,7 @@
 id: 211
 title: A new era opens with a ceremonial sheet
 type: feature
-status: review
+status: done
 branch: feat/211-era-change-ceremony
 ---
 
