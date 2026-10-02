@@ -62,4 +62,14 @@ Mid-century restyle (UI only, from [docs/design/mcm-style-guide.md](../design/mc
 6. 182 the legend key for Reduce motion
 7. 183 Day mode: the Paper palette, switched at once (needs 178 and 182)
 
+Sound (the guide's §16 and §14.1 tokens; after the restyle items each one names):
+1. 184 sound buses and volume settings
+2. 185 sound rows in Settings and the game menu (needs 182)
+3. 186 the sound player, its tokens and placeholder sounds
+4. 187 key sounds: buttons, the legend key and End turn (needs 178, 182)
+5. 188 counter and card sounds (needs 179, 181)
+6. 189 sheet, screen and notice sounds
+7. 190 notice priorities, heard as a pattern and seen as a hue bar (engine)
+8. 191 event sounds for techs, cities, eras and the end of the game (engine)
+
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).

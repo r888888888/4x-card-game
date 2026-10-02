@@ -1,0 +1,52 @@
+---
+id: 189
+title: Sheet, screen and notice sounds
+type: feature
+status: ready
+branch: feat/189-sheet-screen-and-notice-sounds
+---
+
+## Goal
+The structural moves of the interface get their Level 2 sounds ([docs/design/mcm-style-guide.md](../design/mcm-style-guide.md)
+§10.2, §10.7, §15.9, §15.11): a modal is a drafting sheet laid on the desk and lifted off, a screen is a sheet run
+along a rail, and a notice rings the rail lamp's small bell. Sub-navigation, the scrim and hints stay silent.
+
+## Acceptance criteria
+- [ ] AC1: `ModalStack.push` plays `Sfx.SHEET_OPEN` as the modal opens; a modal pushed over another plays it 1 dB
+  quieter. Closing the top modal (Esc, Close, a click outside, an action) plays `Sfx.SHEET_CLOSE` once; `close_all`
+  with three modals open plays it once, not three times.
+- [ ] AC2: `Navigator.push` plays `Sfx.NAV_FORWARD` as the screen starts to enter and `Navigator.back` plays
+  `Sfx.NAV_BACK`; `back()` at the root, `set_root` and `clear` play nothing.
+- [ ] AC3: `Toasts.notice` plays `Sfx.NOTIFICATION_INFO` when its toast appears, once per notice; three notices from
+  one action play three bells, each at least 0.4 s after the one before (`Sfx`'s rule). A notice dropped because the
+  toast stack is full still plays. `Toasts.hint` plays nothing.
+- [ ] AC4: A modal that opens in the same refresh as a notice (an event card's modal with its notice) plays its
+  `SHEET_OPEN` 3 dB quieter, so the bell leads.
+- [ ] AC5: These are system sounds except a sheet or screen opened or closed by the player's own press or key, which
+  plays with `input` true. With Reduce motion on, the same sounds play at the change.
+
+## Out of scope
+- The notice's three patterns (info, caution, urgent): every notice rings the info bell until 190. Drawers and
+  cabinet doors (`ui.panel.*`, `ui.cabinet.*`): the board has none yet; the log drawer gets them when it becomes the
+  guide's drawer.
+
+## Design notes
+- `ModalStack`, `Navigator` and `Toasts` each play their own token where the change happens, so every caller gets the
+  sound. "Same refresh as a notice" is `Sfx` knowing a notification was played this frame; no component asks another.
+- The sheet tokens' internal timing (the open's peak at about 130 ms, the screen's stop at about 172 ms) is shaped for
+  the guide's motion durations; the navigator's current 0.22 s transition is close enough until the restyle moves it
+  to the guide's wipe.
+- Builds on 186; independent of 187 and 188.
+
+## Test plan
+<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+| AC | Test |
+|---|---|
+
+## Manual check
+- [ ] Seed 5, Egypt: opening a card's details lays a sheet down with a soft paper sound; Esc lifts it off.
+  Knowledge and Buy cards run in on paper; Back runs them out.
+- [ ] A turn with several notices rings them one after another, never on top of each other.
+
+## Log
+- 2026-10-02: Specced from the style guide's sound system.
