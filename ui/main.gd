@@ -37,6 +37,7 @@ var toasts: Toasts  # notices and the targeting hint under the top bar (116)
 var identity_modal: IdentityModal  # the civilization and government, from the sidebar (119, 202)
 var sidebar: Sidebar  # the right rail: the civilization and government (202)
 var vellum: Vellum  # over the play area while a card waits for one of several targets (210)
+var era_sheet: EraSheet  # the era ceremony, over everything (211)
 var doors: CabinetDoors  # shut over the board while the government choice comes and goes (209)
 
 var _views: BoardViews  # syncs the card views with the engine (176)
@@ -109,6 +110,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	territory_view.reset()
 	_views.reset()
 	choices.refresh(null)  # an old game's choice goes at once, without doors (209)
+	era_sheet.reset()
 	_top_bar.reset_counters()  # a new game's counters show no tags (126, 181)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
@@ -436,7 +438,8 @@ func _refresh() -> void:
 	supply.refresh(e)
 	focus.sync()
 	_game_over.refresh(e)
-	if not _drawn.is_empty():
+	era_sheet.refresh(e)
+	if not _drawn.is_empty() and not era_sheet.is_open():  # the event waits for the era ceremony (211)
 		if not e.is_over:
 			_event_modal.open(_drawn)
 		_drawn = {}
@@ -462,6 +465,7 @@ func _build_layout() -> void:
 	_revolt = layout.revolt
 	_menu = layout.menu
 	_menu.closed_giving_back.connect(_on_menu_closed)
+	era_sheet.closed.connect(func(): if board_shown(): _refresh())
 	_game_over = layout.game_over
 	_event_modal = layout.event_modal
 	_views = BoardViews.new(self, _top_bar)
