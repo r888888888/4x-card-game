@@ -178,7 +178,7 @@
     {
       "id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
       "vp": 0, "tags": [],
-      "text": "1 action each turn. Only governments and order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. A government is accepted once unrest is at most half its limit. Pay 6 wealth, or wait 4 turns, and order returns: choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
+      "text": "1 action each turn. Only order cards can be played; nothing can be grown, bought or researched. ⟳ −1 pop. Lasts up to 4 turns, fewer the calmer the people; calming shortens it. From its second turn, buy order for 2, 6, 12 or 20 wealth with 1–4 turns left. When it ends, choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
       "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -308,16 +308,16 @@
     },
     {
       "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
-      "revolt": true, "modifiers": { "renewal": 1 },
+      "modifiers": { "renewal": 1 },
       "effects": []
     },
     {
-      "id": "peasant_uprising", "name": "Peasant Uprising", "type": "event", "tags": [], "revolt": true,
+      "id": "peasant_uprising", "name": "Peasant Uprising", "type": "event", "tags": [],
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "radical_thinkers", "name": "Radical Thinkers", "type": "event", "tags": [], "era": 2, "discard": { "turns": 3 },
-      "revolt": true, "modifiers": { "renewal": 2 },
+      "modifiers": { "renewal": 2 },
       "effects": []
     },
     {

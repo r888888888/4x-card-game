@@ -109,6 +109,8 @@ static func end_turn(e: GameEngine) -> void:
 	finish_turn(e)
 
 
+## Ends the turn after any hand-limit discard: game over on the last turn; else a counter comes off a ruling Anarchy
+## (155), which may owe the government choice first; else the next turn starts.
 static func finish_turn(e: GameEngine) -> void:
 	if e.turn >= e.turn_limit():
 		e.is_over = true
@@ -120,6 +122,9 @@ static func finish_turn(e: GameEngine) -> void:
 		e.changed.emit()
 		e.game_over.emit(final_score)
 		return
+	if Anarchy.end_of_turn(e):
+		e.changed.emit()
+		return
 	start_turn(e)
 	e.changed.emit()
 
@@ -129,6 +134,7 @@ static func start_turn(e: GameEngine) -> void:
 	e.state.actions_used = 0
 	e.state.actions_gained = 0
 	e._log("— Turn %d —" % e.turn)
+	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
 	if e.population_on():
 		Population.feed(e)

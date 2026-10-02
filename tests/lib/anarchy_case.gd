@@ -2,7 +2,7 @@ extends "res://tests/lib/test_case.gd"
 ## Base class for Anarchy tests (backlogs 145, 146): fixture governments and cards, a config with the unrest block, and
 ## games that start or have fallen into Anarchy. Fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5),
 ## Kings (limit 7), Anarchy (government, 1 action, ⟳ −1 pop), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
-## Dawn (adds era 2), Lore (a tech) and Altar (building, unrest limit +1). The unrest block's relief is 6 wealth.
+## Dawn (adds era 2), Lore (a tech) and Altar (building, unrest limit +1).
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
@@ -17,10 +17,9 @@ const DAWN := {"id": "dawn", "name": "Dawn", "type": "action", "effects": [{"op"
 const LORE := {"id": "lore", "name": "Lore", "type": "tech", "cost": {"insight": 1}}
 const ALTAR := {"id": "altar", "name": "Altar", "type": "building", "modifiers": {"unrest_limit": 1}}
 const FIXTURES := [CHIEFS, KINGS, ANARCHY, FEAST, CALM, DAWN, LORE, ALTAR]
-const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3,
-	"allowed_tag": "order", "relief": {"wealth": 6}}
+const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3, "allowed_tag": "order"}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
-const ONLY_ORDER := "Anarchy: only a government or an order card can be played."
+const ONLY_ORDER := "Anarchy: only an order card can be played."
 const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."
 
 
@@ -78,6 +77,29 @@ func anarchy_engine(unrest := {}, overrides := {}, extra := []) -> GameEngine:
 func fallen_engine(unrest := {}) -> GameEngine:
 	var e := anarchy_engine(unrest)
 	e.resources["unrest"] = 5
+	e.end_turn()
+	return e
+
+
+## An anarchy game (block merged into the unrest block, home buildings built first) where unrest was set to unrest
+## and a revolution declared on turn 1 (155), so Anarchy fell at turn 2's start, before upkeep.
+func revolted_engine(unrest: int, buildings := [], block := {}) -> GameEngine:
+	var e := anarchy_engine(block)
+	build_on(e, home_uid(e), buildings)
+	e.resources["unrest"] = unrest
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	e.end_turn()
+	return e
+
+
+## A game on Anarchy's second turn (155): fell into Anarchy at turn 2's start (unrest 5, 4 counters), unrest then set
+## to unrest (calming lowers the counters left) and wealth to wealth, and the turn ended.
+func second_turn_engine(unrest: int, wealth := 30, overrides := {}) -> GameEngine:
+	var e := anarchy_engine({}, overrides)
+	e.resources["unrest"] = 5
+	e.end_turn()
+	e.set_unrest(unrest)
+	e.resources["wealth"] = wealth
 	e.end_turn()
 	return e
 

@@ -11,13 +11,13 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	var card := e.zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
+	if card.def.type == CardDef.GOVERNMENT:  # chosen from the government deck (154, 155)
+		return "A government is chosen, not played."
 	if actions_left(e) == 0:
 		return "No actions left this turn."
 	var anarchy := Anarchy.play_error(e, card)
 	if anarchy != "":
 		return anarchy
-	if card.def.type == CardDef.GOVERNMENT and e.government() != -1 and e.zone("government").cards[0].def.id == card.def.id:
-		return "%s is already your government." % card.def.name
 	var cost := Discounts.cost(e, card.def)
 	if not e.can_pay(cost):  # names the first resource it is short of
 		for r in cost:
@@ -80,9 +80,7 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e._log("Played %s." % card.def.name)
 	if card.def.type == CardDef.BUILDING:
 		card.territory_uid = target
-	if to_zone == "government":
-		_replace_government(e, card)
-	elif to_zone == "tableau":
+	if to_zone == "tableau":
 		e.zone("tableau").add(card)
 	e._resolve(card, "play")
 	if to_zone == "discard":
@@ -129,21 +127,9 @@ static func target_effect(card: CardInstance) -> Effect:
 	return null
 
 
-## Where a played card goes: a government rules, other permanents join the tableau, actions are discarded.
+## Where a played card goes: permanents join the tableau, actions are discarded.
 static func _destination(card: CardInstance) -> String:
-	if card.def.type == CardDef.GOVERNMENT:
-		return "government"
 	return "tableau" if card.def.is_permanent() else "discard"
-
-
-## Makes card the government; the one it replaces leaves the game.
-static func _replace_government(e: GameEngine, card: CardInstance) -> void:
-	var gov := e.zone("government")
-	for old in gov.cards.duplicate():
-		gov.remove(old)
-		e.zone("removed").add(old)
-		e._log("%s replaces %s." % [card.def.name, old.def.name])
-	gov.add(card)
 
 
 static func _new_outcome(uid: int, to_zone: String, target: int) -> Dictionary:

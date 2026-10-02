@@ -11,7 +11,7 @@ var top_bar: TopBar
 var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var relief: ActionButton  # below the Realm while a Famine can be relieved
 var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var revolt: ActionButton  # beside them while a revolutionary event is active (148)
+var revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var menu: GameMenu
 var game_over: GameOverOverlay
 var event_modal: EventModal

@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Government cards (backlog 065): the `government` type, config `starting.government`, playing one to replace the
-## ruling government, and the ruling government's upkeep, VP and forecast. Fixtures in TEST_GOVS: Council (no effects)
+## Government cards (backlog 065): the `government` type, config `starting.government`, and the ruling government's
+## upkeep, VP and forecast. A government is chosen from the government deck (154), never played from hand (155 AC9). Fixtures in TEST_GOVS: Council (no effects)
 ## and Kingdom (cost 2 food, 1 VP, play +1 wealth, upkeep +1 food).
 
 
@@ -14,12 +14,6 @@ func card_errors(extra: Array) -> Array[String]:
 
 func starting_with(gov: Variant) -> Dictionary:
 	return {"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": gov}}
-
-
-## A Council game with Kingdom in hand; returns [engine, Kingdom's uid].
-func with_kingdom_in_hand() -> Array:
-	var e: GameEngine = gov_engine("council")
-	return [e, put_in_hand(e, "kingdom")]
 
 
 # --- AC1: the government type and starting.government ---
@@ -76,94 +70,37 @@ func test_without_a_starting_government_the_zone_is_empty() -> void:
 	eq(e.government(), -1, "government()")
 
 
-# --- AC3: playing a government ---
+# --- 155 AC9: a government is chosen, not played ---
 
-func test_playing_a_government_replaces_the_ruling_one() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	var kingdom: int = setup[1]
-	eq(e.resources.food, 4, "2 starting + 2 Capital upkeep")
-	check(e.play_card(kingdom), "play Kingdom: %s" % e.play_error(kingdom))
-	eq(e.resources.food, 2, "paid 2 food")
-	eq(e.resources.wealth, 1, "Kingdom's play +1 wealth")
-	eq(card_ids(e.zone("government")), ["kingdom"] as Array[String], "government zone")
-	eq(e.government(), kingdom, "government() is Kingdom's uid")
-	eq(card_ids(e.zone("removed")), ["council"] as Array[String], "Council left the game")
-	for z in ["hand", "discard", "tableau"]:
-		check(not card_ids(e.zone(z)).has("kingdom"), "no Kingdom in %s" % z)
-
-
-func test_playing_a_government_reports_the_government_zone() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	var outcomes: Array = []
-	e.card_played.connect(func(o): outcomes.append(o))
-	e.play_card(setup[1])
-	eq(outcomes.size(), 1, "one card_played")
-	if outcomes.size() == 1:
-		eq(outcomes[0].to_zone, "government", "outcome to_zone")
+func test_a_government_in_hand_cant_be_played() -> void:
+	var e: GameEngine = gov_engine("council")
+	var kingdom := put_in_hand(e, "kingdom")
+	e.resources.food = 10
+	eq(e.play_error(kingdom), "A government is chosen, not played.", "play_error")
+	check(not e.play_card(kingdom), "play_card refuses")
+	eq(card_ids(e.zone("government")), ["council"] as Array[String], "Council still rules")
 
 
 # --- AC4: the ruling government's bonuses ---
 
 func test_ruling_government_gives_its_upkeep_and_forecast() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	e.play_card(setup[1])
+	var e: GameEngine = gov_engine("kingdom")
 	eq(e.upkeep_forecast().food, 3, "Capital +2, Kingdom +1")
+	var food: int = e.resources.food
 	e.end_turn()
-	eq(e.resources.food, 5, "2 left + Capital 2 + Kingdom 1")
+	eq(e.resources.food, food + 3, "Capital 2 + Kingdom 1")
 
 
 func test_score_counts_the_ruling_government_vp() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	eq(e.score(), 2, "Capital 2, Council 0")
-	e.play_card(setup[1])
-	eq(e.score(), 3, "Capital 2 + Kingdom 1")
-
-
-func test_replaced_government_bonuses_stop() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	e.play_card(setup[1])
-	var council := put_in_hand(e, "council")
-	check(e.play_card(council), "play Council: %s" % e.play_error(council))
-	eq(card_ids(e.zone("removed")), ["council", "kingdom"] as Array[String], "old Council and Kingdom removed")
-	eq(e.score(), 2, "Capital 2, no Kingdom VP")
-	eq(e.upkeep_forecast().food, 2, "Capital +2 only")
-
-
-# --- AC5: errors ---
-
-func test_playing_the_ruling_government_again_is_an_error() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	e.play_card(setup[1])
-	e.resources.food = 10
-	var again := put_in_hand(e, "kingdom")
-	eq(e.play_error(again), "Kingdom is already your government.", "play_error")
-	check(not e.play_card(again), "play_card refuses")
-	eq(e.government(), setup[1], "the first Kingdom still rules")
-
-
-func test_government_cost_is_checked_like_any_card() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	e.resources.food = 1
-	eq(e.play_error(setup[1]), "Kingdom needs 2 food (you have 1).", "play_error")
-	check(not e.play_card(setup[1]), "play_card refuses")
-	eq(card_ids(e.zone("government")), ["council"] as Array[String], "Council still rules")
+	eq(gov_engine("council").score(), 2, "Capital 2, Council 0")
+	eq(gov_engine("kingdom").score(), 3, "Capital 2 + Kingdom 1")
 
 
 # --- AC6: fork ---
 
-func test_fork_copies_government_and_removed() -> void:
-	var setup := with_kingdom_in_hand()
-	var e: GameEngine = setup[0]
-	e.play_card(setup[1])
+func test_fork_copies_the_government() -> void:
+	var e: GameEngine = gov_engine("kingdom")
 	var f: GameEngine = e.fork()
 	eq(card_ids(f.zone("government")), ["kingdom"] as Array[String], "fork government zone")
-	eq(card_ids(f.zone("removed")), ["council"] as Array[String], "fork removed zone")
 	eq(f.government(), e.government(), "same uid")
 	check(f.zone("government").cards[0] != e.zone("government").cards[0], "a copy, not the same card")

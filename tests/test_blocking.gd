@@ -68,6 +68,8 @@ func scenarios() -> Array:
 	var government := blocking_engine()
 	government.resources["unrest"] = 5
 	government.end_turn()
+	government.end_turn()  # 155: order can be restored from Anarchy's second turn
+	government.resources["wealth"] = 30
 	check(government.restore_order(), "restore order: the government choice is owed")
 	var over := blocking_engine({}, {"turn_limit": 1})
 	over.end_turn()

@@ -42,7 +42,7 @@ var _menu_return: CardView  # the card to give the focus back to when the menu c
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var _revolt: ActionButton  # beside them while a revolutionary event is active (148)
+var _revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)

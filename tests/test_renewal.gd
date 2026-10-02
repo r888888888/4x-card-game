@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
-## Renewal (backlog 147): each turn that starts under Anarchy, after the draw, owes renewal: trash 1 + counters + the
-## renewal modifier cards (config unrest.renewal is the base) from the discard, governments aside; each calms 1 unrest.
+## Renewal (backlogs 147, 155): each turn that starts under Anarchy, after the draw, owes renewal: trash 1 + (Anarchy's
+## turn − 1) + the renewal modifier cards (config unrest.renewal is the base) from the discard, governments aside; each calms 1 unrest.
 ## Nothing else can be done until it is paid. Fixtures: tests/lib/anarchy_case.gd, plus Rites (a tech, renewal +1).
 
 const RITES := {"id": "rites", "name": "Rites", "type": "tech", "cost": {"insight": 1}, "modifiers": {"renewal": 1}}
@@ -24,17 +24,30 @@ func test_renewal_is_owed_the_turn_anarchy_falls() -> void:
 	eq(ruling(e), "anarchy", "in Anarchy")
 	var p: Dictionary = e.pending()
 	eq(p.get("kind"), GameEngine.PENDING_RENEWAL, "kind")
-	eq(p.get("count"), 1, "1 + 0 counters")
+	eq(p.get("count"), 1, "1 + its first turn − 1")
 	var discard: Zone = e.zone("discard")
 	eq(p.get("options"), [uid_of(discard, "farm"), uid_of(discard, "scout")], "the discard but the government, in order")
 
 
-func test_renewal_grows_with_the_counters() -> void:
+func test_renewal_grows_with_anarchys_turn() -> void:
 	var e := renewal_engine(["farm", "scout", "shrine", "farm"])
 	e.renew(e.pending().options[0])
 	e.end_turn()
-	eq(e.anarchy_counters(), 1, "1 counter")
-	eq(e.pending().get("count"), 2, "1 + 1 counter")
+	eq(e.pending().get("count"), 2, "1 + Anarchy's 2nd turn − 1")
+
+
+func test_renewal_counts_anarchys_turn_not_its_counters_left() -> void:
+	var e := anarchy_engine(RENEWAL)
+	for id in ["farm", "scout", "shrine", "farm", "scout", "shrine"]:
+		put_in(e, id, "discard")
+	e.resources["unrest"] = 5
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	e.end_turn()
+	eq([ruling(e), e.anarchy_counters(), e.pending().get("count")], ["anarchy", 4, 1], "its first turn, 4 counters: 1")
+	e.renew(e.pending().options[0])
+	e.end_turn()
+	eq(e.anarchy_counters(), 3, "3 counters left")
+	eq(e.pending().get("count"), 2, "its second turn: 1 + 1")
 
 
 func test_renewal_is_capped_at_the_options() -> void:
@@ -116,7 +129,7 @@ func test_a_researched_renewal_tech_raises_the_count() -> void:
 		e.create_card(id, "discard", null)
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(e.pending().get("count"), 2, "1 + 0 counters + Rites 1")
+	eq(e.pending().get("count"), 2, "1 + 0 + Rites 1")
 
 
 # --- The Renewal overlay (Design notes) ---

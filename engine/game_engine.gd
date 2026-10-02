@@ -139,6 +139,7 @@ func pending() -> Dictionary:
 	var p := state.pending.duplicate(true)
 	match p.get("kind", ""):
 		PENDING_GOVERNMENT:
+			p.erase("ends_turn")
 			p.options = zone("governments").cards.map(func(c): return c.uid)
 		PENDING_RENEWAL:
 			p.options = Anarchy.renewal_options(self)
@@ -263,15 +264,21 @@ func anarchy() -> int:
 	return card.uid if card != null else -1
 
 
-## What restore_order pays (146): config unrest.relief ({resource: amount}), or {} when order can't be bought.
+## What restore_order pays (155): c × (c + 1) wealth for c counters left ({resource: amount}), {} without Anarchy.
 func order_relief() -> Dictionary:
 	return Anarchy.relief(self)
 
 
-## The counters on the ruling Anarchy card (145): 0 the turn it falls, +1 each turn after; 0 without Anarchy.
+## The counters left on the ruling Anarchy (155): one comes off at the end of each of its turns, and calming lowers
+## them for good; never below 1 while it rules, 0 without Anarchy.
 func anarchy_counters() -> int:
-	var card := Anarchy.active(self)
-	return card.counters if card != null else 0
+	return Anarchy.counters_left(self)
+
+
+## The counters a revolution declared now would bring (155): ⌈max_counters × unrest ÷ unrest_limit()⌉, between 1 and
+## max_counters; 0 when revolt_error says no.
+func revolt_forecast() -> int:
+	return Anarchy.revolt_forecast(self)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.
@@ -540,13 +547,14 @@ func relieve_famine() -> bool:
 	return Famine.relieve(self)
 
 
-## Why revolt would refuse (148): game over or a pending decision, Anarchy already ruling, or no active event that
-## lets you revolt. "" if it can.
+## Why revolt would refuse (148, 155): game over or a pending decision, Anarchy already ruling, a revolution already
+## declared, or no government ruling. "" if it can.
 func revolt_error() -> String:
 	return Anarchy.revolt_error(self)
 
 
-## Starts Anarchy now, by choice, with renewal owed at once (148). False (and no change) if revolt_error says no.
+## Declares a revolution (155): Anarchy falls at the next turn's start, before upkeep. Uses no action. False (and no
+## change) if revolt_error says no.
 func revolt() -> bool:
 	return Anarchy.revolt(self)
 
@@ -563,13 +571,13 @@ func renew(uid: int) -> bool:
 	return Anarchy.renew(self, uid)
 
 
-## Why restore_order would refuse: game over or a pending decision, no Anarchy, no relief in the config, or not
-## enough to pay it. "" if it can.
+## Why restore_order would refuse: game over or a pending decision, no Anarchy, its first turn, or not enough wealth.
+## "" if it can.
 func restore_order_error() -> String:
 	return Anarchy.restore_error(self)
 
 
-## Pays the config's unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if
+## Pays order_relief() and Anarchy ends: a government is to be chosen at once (146, 154, 155). False (and no change) if
 ## restore_order_error says no.
 func restore_order() -> bool:
 	return Anarchy.restore(self)
@@ -587,6 +595,11 @@ func choose_government(uid: int) -> bool:
 
 
 # --- Internals (the modules call these too) ---
+
+## Unrest dropped: a ruling Anarchy keeps its lowered counters (155).
+func _unrest_lowered() -> void:
+	Anarchy.calm(self)
+
 
 ## Why action ("play", "grow", "buy", "end_turn", "supply", "discard", "research") is blocked by the game being over
 ## or by a pending() decision, or "". Only discarding, browsing the supply and learning techs go on while a discard is

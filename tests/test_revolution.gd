@@ -1,130 +1,136 @@
 extends "res://tests/lib/anarchy_case.gd"
-## Revolution events (backlog 148): an active event with `"revolt": true` lets the player revolt, starting Anarchy at
-## once (145's fall) with renewal owed at once (147). The Revolt button sits below the Realm; the bot revolts when a
-## government in hand ends the Anarchy at once. Fixtures: tests/lib/anarchy_case.gd, plus Reform (event, revolt,
-## renewal +1, 2 turns) and Quiet (event, no revolt).
-
-const REFORM := {"id": "reform", "name": "Reform", "type": "event", "revolt": true, "discard": {"turns": 2},
-	"modifiers": {"renewal": 1}}
-const QUIET := {"id": "quiet", "name": "Quiet", "type": "event"}
-const EVENTS := [REFORM, QUIET]
-const RENEWAL := {"renewal": 1}
-const REVOLT_TEXT := "While active, you may revolt."
+## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
+## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
+## The Revolt button sits below the Realm; the bot revolts to a better government when the Anarchy would last 1 turn.
+## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
 
 
-## A renewal game (unrest.renewal 1) with event_id active ("" for none), discard_ids in the discard and unrest.
-func revolt_engine(event_id: String, discard_ids := ["farm", "scout", "shrine"], unrest := 2) -> GameEngine:
-	var e := anarchy_engine(RENEWAL, {}, EVENTS)
-	if event_id != "":
-		e.create_card(event_id, "active_events", null).turns_left = 2
-	for id in discard_ids:
+## An anarchy game with unrest set and governments created into the government deck (154).
+func revolt_engine(unrest := 2, governments := []) -> GameEngine:
+	var e := anarchy_engine()
+	for id in governments:
 		e.create_card(id, "discard", null)
 	e.resources["unrest"] = unrest
 	return e
 
 
-# --- AC1: the event field and its text ---
+# --- AC4: revolting at any time ---
 
-func test_an_event_with_revolt_loads_and_says_so() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + EVENTS}, RESOURCES, "cards.json", errors, warnings,
-		keywords())
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.reform.get("revolt"), true, "Reform's revolt")
-	eq(cards.quiet.get("revolt"), false, "Quiet's revolt")
-	check(cards.reform.rules_text(cards).contains(REVOLT_TEXT), "face: %s" % cards.reform.rules_text(cards))
-	check(cards.reform.rules_tooltip(cards).contains(REVOLT_TEXT), "tooltip: %s" % cards.reform.rules_tooltip(cards))
-	check(not cards.quiet.rules_tooltip(cards).contains(REVOLT_TEXT), "not on Quiet")
-
-
-func test_revolt_validation() -> void:
-	check_cases([
-		["not a boolean", [{"id": "x", "name": "X", "type": "event", "revolt": "yes"}], ["cards.json: card 'x'", "revolt"],
-			"one_error"],
-		["on an action", [{"id": "x", "name": "X", "type": "action", "revolt": true}],
-			"'revolt' only applies to events (ignored)", "warning_only"],
-	], func(extra): return fixture_load(extra, [], RESOURCES))
-
-
-# --- AC2: revolting ---
-
-func test_revolting_starts_anarchy_with_renewal_owed_at_once() -> void:
-	var e := revolt_engine("reform")
+func test_revolting_needs_no_event_and_changes_nothing_this_turn() -> void:
+	var e := revolt_engine()
 	var recorded := record_messages(e)
-	eq(e.revolt_error(), "", "revolt_error")
+	var actions: int = e.actions_left()
+	eq(e.revolt_error(), "", "revolt_error with Chiefs ruling and no event")
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
-	eq(ruling(e), "anarchy", "Anarchy rules")
-	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs goes to the government deck (154)")
-	eq(e.anarchy_counters(), 0, "0 counters")
+	eq([ruling(e), e.anarchy(), e.pending(), e.actions_left()], ["chiefs", -1, {}, actions],
+		"Chiefs still rules, nothing owed, no action used")
+	eq(card_ids(e.zone("governments")), [] as Array[String], "Chiefs hasn't fallen yet")
 	check_noticed(recorded, "Anarchy")
-	var p: Dictionary = e.pending()
-	eq([p.get("kind"), p.get("count")], ["renewal", 2], "renewal owed: 1 + 0 counters + Reform 1")
-	eq(e.actions_left(), e.actions_per_turn(), "revolting uses no action: Anarchy's 1 of 1 left")
 
 
-# --- AC3: revolt_error ---
+func test_anarchy_falls_at_the_next_turns_start_before_upkeep() -> void:
+	var e := revolt_engine()
+	var home := home_uid(e)
+	e.revolt()
+	e.end_turn()
+	eq(ruling(e), "anarchy", "Anarchy rules turn 2")
+	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs went to the government deck")
+	eq(e.pop(home), 5, "before upkeep: turn 2 has Anarchy's ⟳ −1 pop")
+
 
 func test_revolt_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
-	var quiet := revolt_engine("quiet")
-	eq(quiet.revolt_error(), "Only a revolutionary event lets you revolt.", "a non-revolutionary event")
-	eq(revolt_engine("").revolt_error(), "Only a revolutionary event lets you revolt.", "no event")
-	check(not quiet.revolt(), "revolt refuses")
-	eq([ruling(quiet), quiet.pending()], ["chiefs", {}], "unchanged")
-	var over := revolt_engine("reform")
+	var twice := revolt_engine()
+	twice.revolt()
+	eq(twice.revolt_error(), "A revolution is already under way.", "after a revolt this turn")
+	var before := twice.state.copy()
+	check(not twice.revolt(), "revolt refuses")
+	eq(state_diff(twice.state, before), "", "a refusal changes nothing")
+	eq(fallen_engine().revolt_error(), "Anarchy already rules.", "during Anarchy")
+	var over := revolt_engine()
 	over.is_over = true
 	eq(over.revolt_error(), "The game is over.", "game over")
-	var anarchy := revolt_engine("reform")
-	anarchy.revolt()
-	for uid in anarchy.pending().options.duplicate():
-		anarchy.renew(uid)
-	eq(anarchy.revolt_error(), "Anarchy already rules.", "during Anarchy")
 
 
 func test_revolt_waits_for_a_pending_discard() -> void:
-	var e := revolt_engine("reform")
+	var e := revolt_engine()
 	for i in e.config.hand_limit + 1 - e.zone("hand").size():
 		put_in_hand(e, "farm")
 	e.end_turn()  # the hand is over its limit: a discard is owed
 	eq(e.revolt_error(), "Discard down to %d cards first." % e.config.hand_limit, "pending discard")
 
 
-# --- AC4: the Revolt button ---
+func test_bug_155_no_revolt_without_a_government_to_overthrow() -> void:
+	var e := anarchy_engine({}, {"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10},
+		"tableau": ["capital"], "territory": "homeland"}})
+	eq(ruling(e), "", "no government rules")
+	eq(e.revolt_error(), "There is no government to overthrow.", "revolt_error")
+	check(not e.revolt(), "revolt refuses")
+	e.end_turn()
+	eq([e.turn, e.anarchy(), e.pending()], [2, -1, {}], "no Anarchy, no government choice from an empty deck")
 
-func test_the_revolt_button_shows_while_you_may_revolt() -> void:
-	await with_main(anarchy_engine(RENEWAL, {}, EVENTS), func(main: Node):
+
+func test_without_an_unrest_block_there_is_no_revolution() -> void:
+	var e := anarchy_engine({}, {"unrest": null})
+	eq(e.revolt_error(), "Without unrest there is no revolution.", "revolt_error")
+	check(not e.revolt(), "revolt refuses")
+	eq(e.revolt_forecast(), 0, "nothing to forecast")
+
+
+# --- The revolt field is gone (Design notes) ---
+
+func test_an_events_revolt_field_is_unknown() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [{"id": "reform", "name": "Reform", "type": "event",
+		"revolt": true}]}, RESOURCES, "cards.json", errors, warnings, keywords())
+	eq(errors, [] as Array[String], "errors")
+	has_msg(warnings, "unknown field 'revolt'")
+
+
+# --- AC7: the bot revolts ---
+
+func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
+	var e: Object = revolt_engine(2)
+	eq(e.revolt_forecast(), 2, "unrest 2 of Chiefs' 5")
+	var with_altar := revolt_engine(3)
+	build_on(with_altar, home_uid(with_altar), ["altar"])
+	var altar: Object = with_altar
+	eq(altar.revolt_forecast(), 2, "unrest 3 of 6")
+
+
+func test_the_bot_revolts_to_a_better_government_when_anarchy_would_last_1_turn() -> void:
+	var e := revolt_engine(1, ["kings"])
+	ScriptedBot.take_turn(e, "baseline")
+	eq(e.revolt_error(), "A revolution is already under way.", "Kings (limit 7) beats Chiefs (5): revolted")
+	ScriptedBot.play(e, "baseline")
+	check(e.is_over, "the game still plays to its end")
+
+
+func test_the_bot_doesnt_revolt_otherwise() -> void:
+	var restless := revolt_engine(3, ["kings"])
+	ScriptedBot.take_turn(restless, "baseline")
+	eq(restless.revolt_error(), "", "unrest 3: 3 counters, no revolt")
+	var worse := revolt_engine(1, ["council"])
+	ScriptedBot.take_turn(worse, "baseline")
+	eq(worse.revolt_error(), "", "Council ranks below Chiefs: no revolt")
+	var none := revolt_engine(1)
+	ScriptedBot.take_turn(none, "baseline")
+	eq(none.revolt_error(), "", "an empty government deck: no revolt")
+
+
+# --- AC8: the Revolt button ---
+
+func test_the_revolt_button_shows_while_you_may_revolt_and_forecasts_the_anarchy() -> void:
+	await with_main(revolt_engine(2), func(main: Node):
 		var e := Game.engine
 		var revolt: Button = main.revolt_button()
-		await wait_frames()
-		check(not revolt.is_visible_in_tree(), "hidden with no revolutionary event")
-		e.create_card("reform", "active_events", null).turns_left = 2
-		e.create_card("farm", "discard", null)
+		e.resources["unrest"] = 2  # start_game restarted the game
 		e.changed.emit()
 		await wait_frames()
-		check(revolt.is_visible_in_tree(), "shown while Reform is active")
-		check(revolt.tooltip_text.contains("Anarchy"), "the tooltip says what revolting does: %s" % revolt.tooltip_text)
+		check(revolt.is_visible_in_tree(), "shown with Chiefs ruling and no event")
+		check(revolt.tooltip_text.contains("next turn"), "Anarchy starts next turn: %s" % revolt.tooltip_text)
+		check(revolt.tooltip_text.contains("about 2 turns"), "unrest 2 of 5: about 2 turns: %s" % revolt.tooltip_text)
 		revolt.pressed.emit()
 		await wait_frames()
-		eq(ruling(e), "anarchy", "pressing it revolts")
-		check(not revolt.is_visible_in_tree(), "hidden during Anarchy"))
-
-
-# --- AC5: the bot ---
-
-func test_the_bot_revolts_when_a_government_in_hand_ends_it_at_once() -> void:
-	var e := revolt_engine("reform", ["farm", "scout"], 2)
-	put_in_hand(e, "kings")
-	ScriptedBot.take_turn(e, "baseline")
-	eq(ruling(e), "kings", "revolted, renewed and played Kings (accepted at 3 or less)")
-	check(not e.zone("trashed").is_empty(), "renewal trashed a card")
-
-
-func test_the_bot_doesnt_revolt_without_such_a_government() -> void:
-	var none := revolt_engine("reform")
-	ScriptedBot.take_turn(none, "baseline")
-	eq(ruling(none), "chiefs", "no government in hand")
-	var restless := revolt_engine("reform", ["farm"], 4)
-	put_in_hand(restless, "kings")
-	ScriptedBot.take_turn(restless, "baseline")
-	check(ruling(restless) != "anarchy", "unrest 4 > Kings' 7 / 2: no revolt (got %s)" % ruling(restless))
-	eq(restless.zone("trashed").size(), 0, "no renewal")
+		eq(e.revolt_error(), "A revolution is already under way.", "pressing it revolts")
+		check(not revolt.is_visible_in_tree(), "hidden once a revolution is under way"))

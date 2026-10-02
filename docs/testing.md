@@ -120,10 +120,11 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_diffusion.gd` | Diffusion (142): 1 insight off per later era, none in a tech's own era, stacking with discounts and eurekas, the details |
 | `tests/test_eurekas.gd` | Eurekas (141): loading `eureka`, the tableau count (card and tag forms, idle cards), the floor, `tech_tree`'s `eureka`, card text, details and the tree's line |
 | `tests/test_unrest.gd` | Unrest (144): the government's `unrest_limit` and the modifier, `unrest_limit()` / `at_unrest_limit()` / `unrest_on()`, gain capped at the limit, unrest can't be paid (cost, discount, relief, trade), the forecast and the top bar's Unrest counter, `ScriptedBot` around the limit |
-| `tests/test_anarchy.gd` | Anarchy (145): the config `unrest` block, falling at the limit, what it locks, counters and burning out, era unrest, the bot's government first |
-| `tests/test_leaving_anarchy.gd` | Leaving Anarchy (146): a government accepted at half its limit, `restore_order` and its error, `unrest.relief`, the Restore order button, the bot paying after 2 counters |
+| `tests/test_anarchy.gd` | Anarchy (145): the config `unrest` block, falling at the limit, what it locks, its upkeep and burning out, era unrest |
+| `tests/test_anarchy_length.gd` | Anarchy's length (155): counters by the unrest share of the fallen limit, calming lowers them for good, one off at the end of each Anarchy turn |
+| `tests/test_leaving_anarchy.gd` | Restoring order (146, 155): the c × (c + 1) price, `restore_order` and its error, the Restore order button, the bot paying |
 | `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
-| `tests/test_revolution.gd` | Revolution events (148): the event's `revolt` field and text, `revolt` and its error, the Revolt button, the bot's revolt |
+| `tests/test_revolution.gd` | Revolution (148, 155): revolting at any time, Anarchy next turn, `revolt` and its error, `revolt_forecast`, the Revolt button, the bot's revolt |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_prices.gd` | Prices and unrest in one place (173): `can_pay` / `pay` / `price_error`, `Fields.amounts_text`, `set_unrest` stopping at the limit; only EngineCore lowers resources or writes unrest |
@@ -168,7 +169,7 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |
-| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, relief 6 wealth, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `ruling`, `raw_config_errors` (a raw config's errors) |
+| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `revolted_engine` (a revolution's Anarchy), `second_turn_engine` (Anarchy's second turn), `ruling`, `raw_config_errors` (a raw config's errors) |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, then each fixture set in `sets` (`[TEST_GOVS, TEST_CIVS]`, `[TECHS]`, …), then `extra`, parsed: `{cards, errors, warnings}`; for loader tests (170) |
