@@ -2,7 +2,7 @@
 id: 210
 title: Targeting lays vellum over the board, the targets above it
 type: feature
-status: red-review
+status: review
 branch: feat/210-vellum-targeting
 ---
 
@@ -12,16 +12,16 @@ across the board and only the valid targets stay above it, outlined and lit (`do
 transition 6), so the choice is obvious. Cancelling wipes it off.
 
 ## Acceptance criteria
-- [ ] AC1: Given a hand card with two or more valid targets (`valid_targets(uid)`), when targeting starts, then a
+- [x] AC1: Given a hand card with two or more valid targets (`valid_targets(uid)`), when targeting starts, then a
   vellum layer (`SCRIM`-like translucent `RAISED`) covers the Realm and the hand, wiping in from the left edge over
   0.26 s (`Anim.MACHINED`); the targeting card and each valid target's view are drawn above it, each target with a
   2 px `FOCUS` outline.
-- [ ] AC2: Non-targets under the vellum don't take clicks; a click on a target plays the card on it (as today) and the
+- [x] AC2: Non-targets under the vellum don't take clicks; a click on a target plays the card on it (as today) and the
   vellum wipes off to the right in 0.20 s (`Anim.RELEASE`).
-- [ ] AC3: When targeting is cancelled (Esc, right-click, or a click on the vellum), the card goes back to the hand and
+- [x] AC3: When targeting is cancelled (Esc, right-click, or a click on the vellum), the card goes back to the hand and
   the vellum wipes off to the right; nothing is played.
-- [ ] AC4: With Reduce motion: the vellum fades in and out over 0.12 s, no wipe.
-- [ ] AC5: A drag (not targeting mode) keeps today's lit targets and drop highlight, with no vellum.
+- [x] AC4: With Reduce motion: the vellum fades in and out over 0.12 s, no wipe.
+- [x] AC5: A drag (not targeting mode) keeps today's lit targets and drop highlight, with no vellum.
 
 ## Out of scope
 - Cards with one target (they play straight away).
@@ -44,3 +44,9 @@ click on the vellum) rather than doing nothing.
 
 ## Log
 - Specced 2026-10-02 from the notes list.
+- 2026-10-02: Built. `ui/vellum.gd` (`Vellum.lay(views)` / `lift()`, `main.vellum`), laid by
+  `DragController.begin_targeting` and lifted by `end_targeting`; it takes every click and hands the point to
+  `DragController.click_vellum` (a lit target picks, anything else cancels). `CardView.set_above_vellum(on, outlined)`
+  and `rest_z()` lift the card and its targets (FOCUS, 2 px). To keep `main.gd` under its 500-line soft limit, the
+  menu's focus bookkeeping moved into `GameMenu` (`open(seed, return_to)`, `dismiss(give_back)`,
+  `closed_giving_back`), where it belongs.
