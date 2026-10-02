@@ -24,6 +24,7 @@ var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing, Grow on the first empty one
 var _pips: Array[Panel] = []  # the meter's filled and empty pips, Grow not among them
+var _outside_press := false  # the left button went down on the view outside the box (200)
 var _growing := false  # while a grow from the meter runs, so the refresh it causes pops the new pip in
 var _nav := Navigator.new()
 var _realm: Control
@@ -40,8 +41,9 @@ func _init(board: MainScreen, realm: Control) -> void:
 	header = ScreenHeader.new(_nav, close)
 	add_child(header)
 	back_button = header.back_button
+	mouse_filter = Control.MOUSE_FILTER_STOP  # a click on the view outside the box closes it (200)
 	frame = PanelContainer.new()
-	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # as tall as its content: the board shows below it (200)
 	UIKit.painted(frame, func(): frame.add_theme_stylebox_override("panel", UIKit.panel_style(
 		Palette.RAISED.lerp(Palette.TERRITORY, 0.12), Palette.TERRITORY, Tokens.SPACE_4)))
 	add_child(frame)
@@ -127,6 +129,20 @@ func reset() -> void:
 ## The Realm section's heading: the root of the view's breadcrumb.
 func _realm_title() -> String:
 	return (_realm.get_child(0) as Label).text
+
+
+## A left click on the view outside the box (pressed and released there) goes back to the Realm, as Back does (200).
+func _gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click == null or click.button_index != MOUSE_BUTTON_LEFT or not is_open():
+		return
+	var outside := not frame.get_global_rect().has_point(click.global_position)
+	if click.pressed:
+		_outside_press = outside
+	elif _outside_press and outside:
+		_outside_press = false
+		accept_event()
+		close()
 
 
 ## Esc closes the view. Returns whether the key was used.
