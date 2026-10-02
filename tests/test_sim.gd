@@ -185,15 +185,6 @@ func test_sim_stats_have_no_era_metrics_without_techs() -> void:
 
 # --- AC3: the command-line entry point ---
 
-func test_sim_run_files_prints_one_line_per_metric() -> void:
-	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 5)
-	eq(out.get("code"), 0, "exit code")
-	var lines: Array = out.get("lines", [])
-	for m in METRICS:
-		var matching := lines.filter(func(l): return l.begins_with(m + " "))
-		eq(matching.size(), 1, "one line for %s in %s" % [m, lines])
-
-
 func test_sim_run_files_reports_loader_errors() -> void:
 	var path := "user://sim_bad_cards.json"
 	var f := FileAccess.open(path, FileAccess.WRITE)

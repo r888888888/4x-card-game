@@ -1,11 +1,11 @@
 extends "res://tests/lib/test_case.gd"
 ## Command-line options (backlog 135): LaunchOptions parses --civ, --turns and --seed for the game and the sim.
-## LaunchOptions and SimStats are loaded untyped so this file parses before the new API exists.
+## LaunchOptions is loaded untyped so this file parses before the new API exists. The sim runs on the real data
+## (AC5) are in tests/balance/test_sim_reports.gd.
 
 const PATH := "res://autoload/launch_options.gd"
 const CIVS := ["egypt", "sumer"]
 var LO: Variant = load(PATH) if ResourceLoader.exists(PATH) else null
-var STATS: Variant = load("res://sim/sim_stats.gd")
 
 
 ## parse(args, CIVS) for check_cases: {errors, warnings}.
@@ -74,34 +74,3 @@ func test_starts_game_with_a_civ_or_a_seed() -> void:
 	eq(LO.starts_game({"civ": "sumer", "turns": 0, "seed": -1}), true, "civ")
 	eq(LO.starts_game({"civ": "", "turns": 0, "seed": 4}), true, "seed")
 	eq(LO.starts_game({"civ": "", "turns": 20, "seed": -1}), false, "turns only")
-
-
-# --- AC5: the sim ---
-
-func test_sim_uses_the_turn_limit_option() -> void:
-	var out: Dictionary = STATS.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
-		{"civ": "", "turns": 5, "seed": -1})
-	eq(out.get("code"), 0, "exit code")
-	var explored: Array = out.get("lines", []).filter(func(l): return l.begins_with("explored "))
-	check(not explored.is_empty() and explored[0].ends_with("max   5"), "games last 5 turns: %s" % [explored])
-
-
-func test_sim_plays_only_the_civ_option() -> void:
-	var out: Dictionary = STATS.run_files("res://data/cards.json", "res://data/config.json", 1, "all",
-		{"civ": "sumer", "turns": 3, "seed": -1})
-	eq(out.get("code"), 0, "exit code")
-	var text := "\n".join(out.get("lines", []))
-	check("sumer" in text, "the report names Sumer")
-	check(not "egypt" in text, "and no other civilization: %s" % text)
-
-
-func test_sim_plays_a_single_strategy_as_the_civ_option() -> void:
-	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
-	var config: Dictionary = r.config.duplicate(true)
-	config.turn_limit = 4
-	var expected: Dictionary = STATS.run(r.cards, config, [1, 2], "baseline", "sumer")
-	var out: Dictionary = STATS.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
-		{"civ": "sumer", "turns": 4, "seed": -1})
-	var score: Array = out.get("lines", []).filter(func(l): return l.begins_with("score "))
-	check(not score.is_empty() and ("mean %6.2f" % expected.score.mean) in score[0],
-		"score line %s matches Sumer's %s" % [score, expected.score])
