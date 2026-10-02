@@ -388,6 +388,14 @@ func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
 
 
+## The name of the zone holding card uid, or "" when none does (176).
+func zone_of(uid: int) -> String:
+	for z in ZONES:
+		if zones[z].find(uid) != null:
+			return z
+	return ""
+
+
 ## The most cards the hand may hold at the end of a turn (config hand_limit).
 func hand_limit() -> int:
 	return config.hand_limit

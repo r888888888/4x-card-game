@@ -49,10 +49,8 @@ static func board_kind(leading: String) -> String:
 
 ## The leading zone (a key of LEADING_ZONES) card uid is in, or "" for a Realm card.
 static func leading_zone(e: GameEngine, uid: int) -> String:
-	for zone_name in LEADING_ZONES:
-		if e.zone(zone_name).find(uid) != null:
-			return zone_name
-	return ""
+	var zone_name := e.zone_of(uid)
+	return zone_name if LEADING_ZONES.has(zone_name) else ""
 
 
 ## Lays out engine e's row, calling place(card, row, index) for each card it shows except those in skip (resting

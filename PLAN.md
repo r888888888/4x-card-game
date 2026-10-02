@@ -60,7 +60,9 @@ res://
   autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
   autoload/settings.gd   # "Settings" singleton: player settings (reduce motion), saved via SettingsStore
   autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
-  ui/                    # main.tscn/main.gd (MainScreen: card views, refresh, layout built in code)
+  ui/                    # main.tscn/main.gd (MainScreen: actions, menu, refresh, test hooks), board_layout.gd
+                         # (176: BoardLayout builds the layout and components in code), board_views.gd (176:
+                         # BoardViews keeps the card views in line with the engine: deal, place, fly, leave)
                          # cards: card_view.gd (CardView: panel, tooltip, border), card_face.gd (086: its content),
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,

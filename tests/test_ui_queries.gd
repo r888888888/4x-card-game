@@ -258,7 +258,7 @@ func test_hand_limit_and_research_on_are_engine_queries() -> void:
 # --- 176 AC3: the zone a card is in ---
 
 func test_zone_of_names_the_zone_holding_a_card() -> void:
-	var e: Object = make_engine({"farm": 10})  # red phase: zone_of is new
+	var e := make_engine({"farm": 10})
 	var farm := first_in_hand(e)
 	eq(e.zone_of(farm), "hand", "a hand card")
 	eq(e.zone_of(home_uid(e)), "tableau", "the home territory")
