@@ -201,8 +201,11 @@ never changes. Upkeep effects are still limited to resources, bonus score and po
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147) or the government
-choice (154). While one is owed, every action is refused with the same message (`_blocked_error`), except the
-decision's own action, and a discard still lets you discard, browse the supply and learn techs. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
+choice (154). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
+options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
+message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
+and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
+"nothing owed" message (`_owed_error`). A new kind follows the `add-decision` skill.
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building

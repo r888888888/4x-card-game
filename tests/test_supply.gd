@@ -105,8 +105,7 @@ func test_cannot_buy_when_the_game_is_over() -> void:
 
 func test_cannot_buy_while_an_explore_choice_is_pending() -> void:
 	var e := supply_engine(10)
-	var state: Object = e.state  # red phase: GameState.pending is new (172)
-	state.pending = {"kind": GameEngine.PENDING_EXPLORE, "options": [1], "source": e.zone("tableau").cards[0].uid}
+	e.state.pending = {"kind": GameEngine.PENDING_EXPLORE, "options": [1], "source": e.zone("tableau").cards[0].uid}
 	assert_buy_refused(e, "scout", "Choose a territory first.")
 
 
