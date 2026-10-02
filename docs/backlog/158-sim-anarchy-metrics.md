@@ -2,7 +2,7 @@
 id: 158
 title: Sim metrics for Anarchy, governments and famine
 type: feature
-status: ready
+status: red-review
 branch: feat/158-sim-anarchy-metrics
 ---
 
@@ -30,6 +30,10 @@ government changes can be balanced with numbers. From `spike/revolution`.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_the_new_metrics_and_one_per_government_in_order`, `test_a_revolution_counts_as_a_revolt_and_an_anarchy`, `test_buying_order_counts_as_restored`, `test_trashed_and_famine_turns`, `test_revolting_emits_revolted_once`, `test_restoring_order_emits_order_restored_once`; test_sim: `test_sim_stats_reports_mean_min_max_per_metric` (its metric list) |
+| AC2 | `test_the_new_metrics_and_one_per_government_in_order` |
+| AC3 | `test_a_forced_anarchy_of_2_turns_then_kings` |
+| AC4 | `test_the_metrics_come_through_a_parallel_run` |
 
 ## Log
 - 2026-10-01: Specced from `spike/revolution` (`sim/sim_stats.gd` at commit d8b7a75 has a working version; the branch is deleted: `git show d8b7a75:sim/sim_stats.gd`).

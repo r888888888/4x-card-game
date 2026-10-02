@@ -1,7 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the scripted bot (sim/bot.gd) and per-seed stats (sim/sim_stats.gd).
 
-const METRICS := ["bought", "cities", "era", "explored", "pop", "score", "techs"]  # sorted
+const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
+	"pop", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158 added the Anarchy and famine ones)
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
