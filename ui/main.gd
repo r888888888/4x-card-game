@@ -243,6 +243,11 @@ func counter(key: String) -> Control:
 
 
 ## The top bar's reading for key (TopBar.counter_text, 177).
+func forecast_text(key: String) -> String:
+	return _top_bar.forecast_text(key)
+
+
+## The top bar's reading for key (TopBar.counter_text, 177): the figure and its words, not the forecast (201).
 func counter_text(key: String) -> String:
 	return _top_bar.counter_text(key)
 

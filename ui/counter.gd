@@ -1,6 +1,7 @@
 class_name Counter
 extends HBoxContainer
-## One counter (181): an optional glyph (180) or word, its figure as an Odometer, then a forecast such as " (+1)". A
+## One counter (181): an optional glyph (180) or word, its figure as an Odometer, any words after it (" / 5"), then the
+## next upkeep's change as a quieter figure of its own ("+1", 201). A
 ## change rolls the figure and shows a "+N" / "−N" tag right of it for Anim.TAG_HOLD (Anim.CALM_TAG_HOLD with Reduce
 ## motion), instead of a token floating off it.
 
@@ -10,7 +11,8 @@ const TAG_GAP := 4  # px between the figure and its tag
 var _prefix: Label  # "Wealth: " on the Supply screen; empty in the top bar, where the glyph names it
 var _figure: Odometer
 var _tag: Label
-var _suffix: Label  # the forecast, " (+1)", or the unrest limit and forecast, " / 5 (+1)"
+var _suffix: Label  # words after the figure: the unrest limit, " / 5"
+var _forecast: Label  # next upkeep's change, "+1", in the Forecast look; hidden with none (201)
 var _tag_tween: Tween
 
 
@@ -41,6 +43,12 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	_tag.add_theme_stylebox_override("normal", room)
 	_tag.hide()
 	_suffix = _text(variation)
+	_forecast = _text(&"Forecast")
+	_forecast.name = "Forecast"
+	var apart := StyleBoxEmpty.new()
+	apart.content_margin_left = Tokens.SPACE_1
+	_forecast.add_theme_stylebox_override("normal", apart)
+	_forecast.hide()
 	UIKit.painted(self, func():  # 183: a refresh or the owner sets any other colour after this
 		if glyph != null:
 			glyph.self_modulate = Icons.hue(glyph_key)
@@ -52,9 +60,20 @@ func figure() -> Odometer:
 	return _figure
 
 
-## The whole reading: the word, the figure's value and the forecast ("3 (+1)", "Wealth: 10").
+## The whole reading but the forecast: the word, the figure's value and the words after it ("3", "2 / 5", "Wealth: 10").
 func text() -> String:
 	return _prefix.text + str(_figure.value) + _suffix.text
+
+
+## The forecast shown ("+1"), or "" for none (201).
+func forecast_text() -> String:
+	return _forecast.text if _forecast.visible else ""
+
+
+## Shows next upkeep's change as text ("+1"), or no forecast for "".
+func set_forecast(text_: String) -> void:
+	_forecast.text = text_
+	_forecast.visible = text_ != ""
 
 
 ## Shows v and suffix: at once when fresh (a new game, an opened screen), else rolling the figure after delay, sounding
