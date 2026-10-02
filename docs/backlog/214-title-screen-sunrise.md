@@ -2,7 +2,7 @@
 id: 214
 title: The title screen's sun over a hill, rising and setting with the keys
 type: feature
-status: ready
+status: red-review
 branch: feat/214-title-screen-sunrise
 ---
 
@@ -53,6 +53,17 @@ warms in bands, the hill deepens.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_sunrise_art::test_the_art_fills_its_rect_from_a_600_by_675_design_like_svg_slice`, `test_the_suns_lower_half_has_five_gaps_each_thicker_than_the_one_above` |
+| AC2 | `test_warmth_is_a_smoothstep_from_200_down_to_10`, `test_warmth_drives_the_sun_the_sky_bands_and_the_hill` |
+| AC3 | `test_the_sun_rises_and_the_hill_comes_up_then_nothing_moves` |
+| AC4 | `test_new_game_brings_on_the_day_and_exit_a_sunset_and_leaving_rests` |
+| AC5 | `test_with_reduce_motion_the_art_rests_and_jumps` |
+| AC6 | `test_the_arts_colours_are_palette_roles_in_night_and_day`, `test_day_mode_redraws_the_art` |
+
+Hooks the tests imply: `StartScreen.sunrise` (a `SunriseArt` in `art`), `use_manual_clock()`, `advance(seconds)`,
+`sun_height()`, `hill_offset()`; static `warmth`, `sun_color`, `band_alpha`, `hill_color`, `slice_scale`, `gap_rects`;
+constants `DESIGN`, `SUN_X`, `SUN_RADIUS`, `HORIZON`, `HILL_WIDTH`, `HILL_CROWN`. Whether the gaps are true gaps (the
+sky through them) and the look itself are the manual check: the drawing isn't read back.
 
 ## Manual check
 - [ ] Launch in Night and Day at 1280×720 and 1920×1080: compare with `title-screen-ledger-hill.html` B1.1 at 1× and ¼×.
