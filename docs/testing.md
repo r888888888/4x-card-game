@@ -170,6 +170,9 @@ a test awaits them, so UI tests see structure (views, labels, overlays), never f
 awaits every test: a UI test that measures laid-out sizes or positions calls `await wait_frames()` first (088).
 Minimum sizes before a layout pass are meaningless. After each test the runner frees anything the test left in the
 tree (a UI test that crashed before `close_main`), so one crash doesn't fail every later UI test (087).
+Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, Day mode
+and Reduce motion off), so the player's own settings never change a result; after the run it fails if the player's
+`user://settings.cfg` changed (195). A test that needs a setting on uses `with_temp_settings` or `with_reduce_motion`.
 
 ### Available in every test (`tests/lib/test_case.gd`)
 

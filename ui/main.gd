@@ -435,6 +435,7 @@ func _refresh() -> void:
 ## The theme and background, then the board and components (BoardLayout) and the view syncing (BoardViews, 176).
 func _build_layout() -> void:
 	theme = GameTheme.build()
+	_palette_day = Palette.day  # built in the palette as it is now: a Day mode saved before launch isn't a switch (195)
 	var bg := ColorRect.new()
 	bg.name = "Background"
 	UIKit.painted(bg, func(): bg.color = Palette.BACKGROUND)

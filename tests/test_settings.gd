@@ -169,3 +169,12 @@ func test_settings_set_day_mode_saves_it_and_says_so() -> void:
 	Settings.store = original
 	if Settings.has_method("set_day_mode"):
 		Settings.changed.emit()  # back to the player's palette
+
+
+# --- Bug 195: the suite doesn't run on the player's settings ---
+
+func test_bug_195_tests_run_on_a_temp_settings_store() -> void:
+	check(Settings.store.path != "user://settings.cfg", "Settings.store isn't the player's (%s)" % Settings.store.path)
+	eq(Settings.store.day_mode, false, "Day mode off")
+	eq(Settings.reduce_motion, false, "Reduce motion off")
+	eq(Palette.day, false, "the Night palette")

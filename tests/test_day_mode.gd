@@ -235,3 +235,39 @@ func test_the_day_keys_are_in_the_focus_loops() -> void:
 		eq(main.get_viewport().gui_get_focus_owner(), main.settings_screen.day_toggle,
 			"settings: Tab from Reduce motion to Day mode")
 		close_main(main))
+
+
+# --- Bug 195: Day mode saved before any game ---
+
+func test_bug_195_opening_main_in_day_mode_before_a_game_raises_no_error() -> void:
+	await with_temp_settings(func():
+		set_day(true)
+		var real := Game.engine
+		Game.engine = board_engine()  # no game started: its zones don't exist yet
+		var main := open_main()
+		await wait_frames()
+		check(main.start_screen.is_open(), "the title screen is open")
+		check(not main.board_shown(), "the board isn't shown")
+		var button := Button.new()
+		main.add_child(button)
+		eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color.to_html(false), Palette.DAY["CONTROL"].to_html(false),
+			"the theme was built in Paper")
+		button.free()
+		close_main(main)
+		Game.engine = real)
+
+
+func test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper() -> void:
+	await with_temp_settings(func():
+		set_day(true)
+		var real := Game.engine
+		Game.engine = board_engine()
+		var main := open_main()
+		main.start_game(1)
+		await wait_frames()
+		eq(main.background_color().to_html(false), Palette.DAY["BACKGROUND"].to_html(false), "the board's background")
+		var view: CardView = main.views[first_in_hand(Game.engine)]
+		var fill := (view.get_theme_stylebox("panel") as StyleBoxFlat).bg_color.to_html(false)
+		check(fill in [Palette.DAY["RAISED"].to_html(false), Palette.DAY["DIM_BG"].to_html(false)], "a hand card's panel is paper: %s" % fill)
+		close_main(main)
+		Game.engine = real)

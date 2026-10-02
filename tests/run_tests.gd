@@ -11,6 +11,8 @@ extends SceneTree
 
 const TEST_ROOT := "res://tests"
 const BALANCE_ROOT := "res://tests/balance"
+const PLAYER_SETTINGS := "user://settings.cfg"
+const RUN_SETTINGS := "user://test_run_settings.cfg"  # the settings every test starts on (195)
 
 
 ## Collects errors (not warnings) logged while a test runs.
@@ -35,6 +37,12 @@ func _initialize() -> void:
 	var collector := ErrorCollector.new()
 	OS.add_logger(collector)
 	var kept := root.get_children()  # the autoloads; anything else a test leaves behind is freed after it
+	# The player's settings (Day mode, Reduce motion) must not change a result, nor a run change them (195): every test
+	# starts on a fresh store with both off, and the player's file is compared before and after.
+	var player_settings: Variant = _read(PLAYER_SETTINGS)
+	var settings: Node = root.get_node("Settings")
+	settings.store = SettingsStore.new(RUN_SETTINGS)
+	settings.changed.emit()  # the palette follows the fresh store: Night
 
 	for path in _find_test_files(BALANCE_ROOT if balance else TEST_ROOT):
 		var script: GDScript = load(path)
@@ -62,6 +70,11 @@ func _initialize() -> void:
 					root.remove_child(node)
 					node.free()
 
+	if FileAccess.file_exists(RUN_SETTINGS):
+		DirAccess.remove_absolute(RUN_SETTINGS)
+	if _read(PLAYER_SETTINGS) != player_settings:
+		failures.append("the run changed the player's %s (tests must use a temp settings store)" % PLAYER_SETTINGS)
+
 	for f in failures:
 		printerr("FAIL ", f)
 	if count == 0:
@@ -85,3 +98,8 @@ func _find_test_files(dir_path: String) -> Array[String]:
 			found.append(dir_path.path_join(file))
 	found.sort()
 	return found
+
+
+## The bytes of the file at path, or null when there is none.
+func _read(path: String) -> Variant:
+	return FileAccess.get_file_as_bytes(path) if FileAccess.file_exists(path) else null
