@@ -2,7 +2,7 @@
 id: 180
 title: Resource glyphs in the top bar and glyph costs on cards
 type: feature
-status: review
+status: done
 branch: feat/180-resource-glyphs-and-costs
 ---
 
