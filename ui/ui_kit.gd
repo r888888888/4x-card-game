@@ -36,7 +36,7 @@ static func panel_style(bg: Color, border: Color, padding: int) -> StyleBoxFlat:
 	style.bg_color = bg
 	style.border_color = border
 	style.set_border_width_all(1 if border.a < 1.0 else 2)
-	style.set_corner_radius_all(10)
+	style.set_corner_radius_all(0)  # paper is cut square (178, guide §6.3)
 	style.set_content_margin_all(padding)
 	return style
 
@@ -100,7 +100,7 @@ static func section(parent: Control, text: String) -> VBoxContainer:
 	return box
 
 
-static func stat(parent: Control, color := Color.WHITE) -> Label:
+static func stat(parent: Control, color := Palette.TEXT) -> Label:
 	var label := Label.new()
 	label.theme_type_variation = &"Stat"
 	label.add_theme_color_override("font_color", color)

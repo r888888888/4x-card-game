@@ -1,15 +1,11 @@
 extends "res://tests/lib/test_case.gd"
-## The UI theme (backlog 106). AC1 records how things look today, resolved through the real main scene's theme, and
+## The UI theme (backlog 106; 178: the Night shift look). AC1 records how things look, resolved through the real main scene's theme, and
 ## must pass unchanged before and after the cleanup. The rest check the palette (ui/palette.gd) and the theme built
 ## in code (ui/game_theme.gd, GameTheme.build()), loaded by path (held as Object) so this file parses before they
 ## exist.
 
 const PALETTE_PATH := "res://ui/palette.gd"
 const GAME_THEME_PATH := "res://ui/game_theme.gd"
-const TEXT := Color("e6ebf0")
-const BUTTON_FILL := Color("2f353d")
-const ACCENT := Color("e8c547")
-const OVERLAY_PANEL := Color("262b31")
 
 
 ## Adds c to main (so it resolves main's theme) and returns it.
@@ -54,71 +50,187 @@ func log_panel(main: Node) -> PanelContainer:
 	return null
 
 
-# --- AC1: nothing looks different (a guard: passes before and after) ---
+# --- 106 AC1, rewritten by 178: how things look (a guard; 178 set these values on purpose) ---
+
+## 178 AC1: the style guide's Night shift values, by Palette name.
+const NIGHT_SHIFT := {
+	"BACKGROUND": "1f1e1c", "RAISED": "2a2825", "TILE": "2a2825", "FIELD": "171614", "PANEL": "171614",
+	"CONTROL": "3a3733", "CONTROL_BORDER": "857d70", "CONTROL_DISABLED": "171614", "CONTROL_DISABLED_BORDER": "4a463f",
+	"TEXT": "ede6d6", "TEXT_DIM": "b9b1a1", "TEXT_DISABLED": "8e877a", "ACCENT": "e0703f", "TEXT_ON_ACCENT": "1f1e1c",
+	"GAIN": "93b585", "COST": "e07a63", "WARN": "e07a63", "FOCUS": "6cc3bc", "WEALTH": "d9a441", "INSIGHT": "86a9cc",
+	"UNREST": "e07a63", "POP": "5fb0a9", "SHADOW": "0d0c0b", "EDGE": "ede6d6",
+	"ACTION": "86a9cc", "BUILDING": "a9b26c", "CITY": "d9a441", "TERRITORY": "93b585", "TECH": "5fb0a9", "EVENT": "e07a63",
+}
+
+
+func test_the_palette_holds_the_night_shift_values() -> void:
+	var names: Dictionary = load(PALETTE_PATH).get_script_constant_map()
+	for name: String in NIGHT_SHIFT:
+		check(names.has(name), "Palette.%s exists" % name)
+		if names.has(name):
+			eq((names[name] as Color).to_html(), Color(NIGHT_SHIFT[name]).to_html(), "Palette.%s" % name)
+
 
 func test_labels_look_as_before() -> void:
 	var main := open_main()
 	var heading: Label = in_main(main, UIKit.heading("h"))
 	eq(heading.get_theme_font_size("font_size"), 19, "heading size")
-	eq(heading.get_theme_color("font_color").to_html(), Color("b4bcc6").to_html(), "heading colour")
+	eq(heading.get_theme_color("font_color").to_html(), Palette.TEXT_DIM.to_html(), "heading colour")
 	var title: Label = in_main(main, UIKit.title("t"))
 	eq(title.get_theme_font_size("font_size"), 26, "title size")
-	eq(title.get_theme_color("font_color").to_html(), Color.WHITE.to_html(), "title colour")
-	var stat := UIKit.stat(main, Color("9fd89f"))
+	eq(title.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "title colour: ink, not white")
+	var stat := UIKit.stat(main, Palette.POP)
 	eq(stat.get_theme_font_size("font_size"), 26, "stat size")
-	eq(stat.get_theme_color("font_color").to_html(), Color("9fd89f").to_html(), "stat colour: its own")
+	eq(stat.get_theme_color("font_color").to_html(), Palette.POP.to_html(), "stat colour: its own")
 	close_main(main)
 
 
-func test_panels_look_as_before() -> void:
+func test_panels_are_cut_square() -> void:
 	var main := open_main()
 	var overlay := UIKit.overlay(main)
 	var panel: PanelContainer = overlay.get_meta("panel")
-	check_box(stylebox(panel, "panel"), OVERLAY_PANEL, Color(1, 1, 1, 0.25), 1, 10, Vector2(24, 24), "overlay panel")
+	check_box(stylebox(panel, "panel"), Palette.RAISED, Palette.EDGE, 2, 0, Vector2(24, 24), "overlay panel")
 	main.start_game(1)
 	var log := log_panel(main)
 	check(log != null, "the log's panel")
 	if log != null:
-		check_box(stylebox(log, "panel"), Color("171a1e"), Color(1, 1, 1, 0.08), 1, 10, Vector2(12, 12), "log panel")
+		check_box(stylebox(log, "panel"), Palette.PANEL, Palette.FAINT_EDGE, 1, 0, Vector2(12, 12), "log panel")
+	eq(UIKit.panel_style(Palette.RAISED, Palette.EDGE, 8).corner_radius_bottom_right, 0, "UIKit.panel_style: radius 0")
 	close_main(main)
 
 
-func test_buttons_look_as_before() -> void:
+## Checks box stands on its hard shadow (178 AC3): SHADOW, offset (2, 2), size 1, no anti-aliasing.
+func check_plinth(box: StyleBoxFlat, what: String) -> void:
+	if box == null:
+		return
+	eq(box.shadow_color.to_html(), Palette.SHADOW.to_html(), "%s shadow colour" % what)
+	eq(box.shadow_offset, Vector2(2, 2), "%s shadow offset" % what)
+	eq(box.shadow_size, 1, "%s shadow size" % what)
+	check(not box.anti_aliasing, "%s: no anti-aliasing" % what)
+
+
+## Checks box is sunk 2 px into its shadow (178 AC4): no shadow, expand margins −2 left and top, +2 right and bottom,
+## content margins 16, 8, 12, 4.
+func check_sunk(box: StyleBoxFlat, what: String) -> void:
+	check(box != null, "%s: a flat stylebox" % what)
+	if box == null:
+		return
+	eq(box.shadow_size, 0, "%s: no shadow" % what)
+	eq([box.expand_margin_left, box.expand_margin_top, box.expand_margin_right, box.expand_margin_bottom],
+		[-2.0, -2.0, 2.0, 2.0], "%s expand margins (left, top, right, bottom)" % what)
+	eq([box.content_margin_left, box.content_margin_top, box.content_margin_right, box.content_margin_bottom],
+		[16.0, 8.0, 12.0, 4.0], "%s content margins (left, top, right, bottom)" % what)
+
+
+func test_buttons_stand_on_a_hard_shadow() -> void:
 	var main := open_main()
 	var plain := button(main)
 	var m := Vector2(14, 6)
-	check_box(stylebox(plain, "normal"), BUTTON_FILL, Color("78828e"), 2, 6, m, "Button normal")
-	check_box(stylebox(plain, "hover"), BUTTON_FILL.lightened(0.15), Color.WHITE, 2, 6, m, "Button hover")
-	check_box(stylebox(plain, "pressed"), BUTTON_FILL.darkened(0.2), Color.WHITE, 2, 6, m, "Button pressed")
-	check_box(stylebox(plain, "disabled"), Color("24282d"), Color("4a5058"), 2, 6, m, "Button disabled")
-	eq(plain.get_theme_color("font_color").to_html(), TEXT.to_html(), "Button text")
-	eq(plain.get_theme_color("font_disabled_color").to_html(), Color("8d96a0").to_html(), "Button disabled text")
+	check_box(stylebox(plain, "normal"), Palette.CONTROL, Palette.CONTROL_BORDER, 2, 2, m, "Button normal")
+	check_plinth(stylebox(plain, "normal"), "Button normal")
+	check_box(stylebox(plain, "hover"), Palette.CONTROL.lightened(0.08), Palette.TEXT, 2, 2, m, "Button hover")
+	check_plinth(stylebox(plain, "hover"), "Button hover")
+	check_box(stylebox(plain, "disabled"), Palette.CONTROL_DISABLED, Palette.CONTROL_DISABLED_BORDER, 2, 2, m,
+		"Button disabled")
+	if stylebox(plain, "disabled") != null:
+		eq(stylebox(plain, "disabled").shadow_size, 0, "Button disabled lies flat")
+	eq(plain.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "Button text")
+	eq(plain.get_theme_color("font_disabled_color").to_html(), Palette.TEXT_DISABLED.to_html(), "Button disabled text")
+	close_main(main)
+
+
+func test_a_pressed_button_sinks_into_its_shadow() -> void:
+	var main := open_main()
+	for variation in ["", "AccentButton"]:
+		var b := button(main, variation)
+		for state in ["pressed", "hover_pressed"]:
+			check_sunk(stylebox(b, state), "%s %s" % [variation if variation != "" else "Button", state])
+	close_main(main)
+
+
+func test_the_accent_button_is_signal_orange() -> void:
+	var main := open_main()
 	var accent := button(main, "AccentButton")
-	check_box(stylebox(accent, "normal"), ACCENT, ACCENT, 2, 6, m, "AccentButton normal")
-	check_box(stylebox(accent, "hover"), ACCENT.lightened(0.15), Color.WHITE, 2, 6, m, "AccentButton hover")
-	check_box(stylebox(accent, "pressed"), ACCENT.darkened(0.2), Color.WHITE, 2, 6, m, "AccentButton pressed")
-	check_box(stylebox(accent, "disabled"), Color("24282d"), Color("4a5058"), 2, 6, m, "AccentButton disabled")
-	eq(accent.get_theme_color("font_color").to_html(), Color("1d2126").to_html(), "AccentButton text")
-	var ring := stylebox(plain, "focus")
+	check_box(stylebox(accent, "normal"), Palette.ACCENT, Palette.TEXT, 2, 2, Vector2(14, 6), "AccentButton normal")
+	check_plinth(stylebox(accent, "normal"), "AccentButton normal")
+	eq(accent.get_theme_color("font_color").to_html(), Palette.TEXT_ON_ACCENT.to_html(), "AccentButton text")
+	close_main(main)
+
+
+func test_only_the_accent_button_is_filled_with_the_accent() -> void:
+	var t: Theme = load(GAME_THEME_PATH).build()
+	var found: Array[String] = []
+	for type in t.get_stylebox_type_list():
+		for name in t.get_stylebox_list(type):
+			var box := t.get_stylebox(name, type) as StyleBoxFlat
+			if box != null and box.draw_center and box.bg_color.is_equal_approx(Palette.ACCENT):
+				found.append("%s %s" % [type, name])
+	check(not found.is_empty(), "AccentButton is filled with ACCENT")
+	eq(found.filter(func(s: String): return not s.begins_with("AccentButton ")), [], "no other variation uses ACCENT")
+
+
+func test_the_focus_ring_is_square_and_outside_the_control() -> void:
+	var main := open_main()
+	var ring := stylebox(button(main), "focus")
 	check(ring != null and not ring.draw_center, "the focus ring draws no fill")
 	if ring != null:
-		eq(ring.border_color.to_html(), Color("5ec8ff").to_html(), "focus ring colour")
-		eq(ring.border_width_left, 3, "focus ring width")
+		eq(ring.border_color.to_html(), Palette.FOCUS.to_html(), "focus ring colour")
+		eq(ring.border_width_left, 2, "focus ring width")
+		eq(ring.corner_radius_top_left, 0, "focus ring radius")
+		eq(ring.expand_margin_left, 4.0, "focus ring 4 px outside")
 	close_main(main)
 
 
 func test_fields_and_card_colours_look_as_before() -> void:
 	var main := open_main()
 	var field: LineEdit = in_main(main, LineEdit.new())
-	check_box(stylebox(field, "normal"), Color("14171a"), Color("78828e"), 2, 6, Vector2(14, 6), "LineEdit")
-	eq(field.get_theme_color("font_color").to_html(), TEXT.to_html(), "LineEdit text")
+	check_box(stylebox(field, "normal"), Palette.FIELD, Palette.CONTROL_BORDER, 2, 2, Vector2(14, 6), "LineEdit")
+	eq(field.get_theme_color("font_color").to_html(), Palette.TEXT.to_html(), "LineEdit text")
 	var expected := {
-		CardDef.ACTION: "4a7fb5", CardDef.BUILDING: "5f9a45", CardDef.CITY: "c08a3e",
-		CardDef.TERRITORY: "8a6fb5", CardDef.TECH: "3fa7a0", CardDef.EVENT: "b5566f",
+		CardDef.ACTION: "86a9cc", CardDef.BUILDING: "a9b26c", CardDef.CITY: "d9a441",
+		CardDef.TERRITORY: "93b585", CardDef.TECH: "5fb0a9", CardDef.EVENT: "e07a63",
 	}
 	for type in expected:
 		eq(CardView.TYPE_COLORS[type].to_html(false), expected[type], "%s colour" % type)
 	close_main(main)
+
+
+# --- 178 AC2: the guide's typefaces, with tabular lining figures ---
+
+## Checks font is a FontVariation of file (under assets/fonts/) with tnum and lnum on.
+func check_face(font: Font, file: String, what: String) -> void:
+	check(font is FontVariation, "%s: a FontVariation" % what)
+	if not font is FontVariation:
+		return
+	var base: Font = (font as FontVariation).base_font
+	eq(base.resource_path if base != null else "", "res://assets/fonts/" + file, "%s face" % what)
+	var features: Dictionary = (font as FontVariation).opentype_features
+	var ts := TextServerManager.get_primary_interface()
+	for tag in ["tnum", "lnum"]:
+		var on: int = features.get(tag, features.get(ts.name_to_tag(tag), 0))
+		eq(on, 1, "%s: %s on" % [what, tag])
+
+
+func test_the_theme_uses_the_guides_typefaces() -> void:
+	var t: Theme = load(GAME_THEME_PATH).build()
+	check_face(t.default_font, "Barlow-Regular.ttf", "the default font")
+	check_face(t.get_font("font", "Button"), "BarlowSemiCondensed-Medium.ttf", "Button")
+	check_face(t.get_font("font", "AccentButton"), "BarlowSemiCondensed-SemiBold.ttf", "AccentButton")
+	for variation in ["Stat", "BarStat"]:
+		check_face(t.get_font("font", variation), "BarlowSemiCondensed-SemiBold.ttf", variation)
+	for variation in ["Title", "Link"]:
+		var font := t.get_font("font", variation)
+		check_face(font, "Jost-Variable.ttf", variation)
+		if font is FontVariation:
+			var weight: Dictionary = font.variation_opentype
+			var ts := TextServerManager.get_primary_interface()
+			eq(weight.get("wght", weight.get(ts.name_to_tag("wght"), 0)), 500, "%s at weight 500" % variation)
+
+
+func test_the_fonts_ship_with_their_licences() -> void:
+	for file in ["Barlow-Regular.ttf", "BarlowSemiCondensed-Medium.ttf", "BarlowSemiCondensed-SemiBold.ttf",
+			"Jost-Variable.ttf", "OFL-Barlow.txt", "OFL-Jost.txt"]:
+		check(FileAccess.file_exists("res://assets/fonts/" + file), "assets/fonts/%s" % file)
 
 
 # --- AC2: one palette ---
@@ -213,7 +325,7 @@ func test_overlay_panels_use_dark_panel() -> void:
 	if event_panel != null:
 		eq(event_panel.theme_type_variation, &"DarkPanel", "the event modal uses DarkPanel")
 		var box := stylebox(event_panel, "panel")
-		eq(box.bg_color.to_html(), OVERLAY_PANEL.to_html(), "event panel background: DarkPanel's")
+		eq(box.bg_color.to_html(), Palette.RAISED.to_html(), "event panel background: DarkPanel's")
 		eq(box.border_color.to_html(), CardView.TYPE_COLORS[CardDef.EVENT].to_html(), "its border: the event colour")
 	close_main(main)
 

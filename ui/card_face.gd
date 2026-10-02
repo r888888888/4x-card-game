@@ -278,7 +278,7 @@ static func cost_text(cost: Dictionary) -> String:
 
 
 ## A card label. It wraps, so long text makes the card taller rather than wider than its slot.
-static func label(text: String, font_size: int, color := Color.WHITE) -> Label:
+static func label(text: String, font_size: int, color := Palette.TEXT) -> Label:
 	var result := Label.new()
 	result.text = text
 	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -291,7 +291,7 @@ static func label(text: String, font_size: int, color := Color.WHITE) -> Label:
 ## A card label for text that can hold glyphs (see Icons), which it draws as icons. Like label it
 ## wraps and never takes mouse input. One line is exactly as tall as a Label's; wrapped lines sit 3px
 ## closer (a RichTextLabel adds its line_separation after the last line too, so it can't match both).
-static func rich_label(text: String, font_size: int, color := Color.WHITE) -> RichTextLabel:
+static func rich_label(text: String, font_size: int, color := Palette.TEXT) -> RichTextLabel:
 	var result := RichTextLabel.new()
 	result.fit_content = true
 	result.scroll_active = false

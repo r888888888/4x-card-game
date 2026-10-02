@@ -2,7 +2,7 @@
 id: 178
 title: Night shift palette, typefaces and machined controls
 type: feature
-status: ready
+status: review
 branch: feat/178-night-shift-theme
 ---
 
@@ -13,26 +13,26 @@ as physical keys: square-ish, standing on a hard shadow and sinking into it when
 and `GameTheme`, so every screen changes at once. Proven in the `spike/mcm-godot` spike.
 
 ## Acceptance criteria
-- [ ] AC1: The palette holds the guide's Night shift values: `BACKGROUND` 1f1e1c, `RAISED` and `TILE` 2a2825, `FIELD` and
+- [x] AC1: The palette holds the guide's Night shift values: `BACKGROUND` 1f1e1c, `RAISED` and `TILE` 2a2825, `FIELD` and
   `PANEL` 171614, `CONTROL` 3a3733, `CONTROL_BORDER` 857d70, `CONTROL_DISABLED` 171614, `CONTROL_DISABLED_BORDER`
   4a463f, `TEXT` ede6d6, `TEXT_DIM` b9b1a1, `TEXT_DISABLED` 8e877a, `ACCENT` e0703f, `TEXT_ON_ACCENT` 1f1e1c, `GAIN`
   93b585, `COST` and `WARN` e07a63, `FOCUS` 6cc3bc, `WEALTH` d9a441, `INSIGHT` 86a9cc, `UNREST` e07a63, `POP` 5fb0a9,
   `SHADOW` 0d0c0b (opaque), `EDGE` ede6d6; card types `ACTION` 86a9cc, `BUILDING` a9b26c, `CITY` d9a441, `TERRITORY`
   93b585, `TECH` 5fb0a9, `EVENT` e07a63. `test_theme`'s "looks as before" guard (106) is rewritten to these values.
-- [ ] AC2: The theme's default font is Barlow Regular; buttons use Barlow Semi Condensed Medium (the `AccentButton`
+- [x] AC2: The theme's default font is Barlow Regular; buttons use Barlow Semi Condensed Medium (the `AccentButton`
   SemiBold); `Stat` and `BarStat` labels Barlow Semi Condensed SemiBold; `Title` and `Link` Jost at weight 500. Every
   one is a `FontVariation` with the OpenType features `tnum` and `lnum` on, and the font files sit in `assets/fonts/`
   with their SIL OFL licence texts.
-- [ ] AC3: A `Button`'s normal box has fill `CONTROL`, a 2 px `CONTROL_BORDER` border, corner radius 2, content margins
+- [x] AC3: A `Button`'s normal box has fill `CONTROL`, a 2 px `CONTROL_BORDER` border, corner radius 2, content margins
   14 × 6, and a hard shadow: colour `SHADOW`, offset (2, 2), shadow size 1, anti-aliasing off. Hover: fill `CONTROL`
   lightened 8%, border `TEXT`, the same shadow. Disabled: fill `CONTROL_DISABLED`, border `CONTROL_DISABLED_BORDER`,
   shadow size 0.
-- [ ] AC4: The `pressed` and `hover_pressed` boxes sit 2 px down and right in their shadow: shadow size 0, expand
+- [x] AC4: The `pressed` and `hover_pressed` boxes sit 2 px down and right in their shadow: shadow size 0, expand
   margins left and top −2, right and bottom +2, and content margins 16, 8, 12, 4 (left, top, right, bottom), so the
   box and its label move together. The same holds for `AccentButton`.
-- [ ] AC5: `AccentButton` (End turn) has fill `ACCENT` (signal orange) with a `TEXT` border and `TEXT_ON_ACCENT` label,
+- [x] AC5: `AccentButton` (End turn) has fill `ACCENT` (signal orange) with a `TEXT` border and `TEXT_ON_ACCENT` label,
   and is the only variation using `ACCENT` as a fill.
-- [ ] AC6: Panels are cut square: the overlay and modal panel (`DarkPanel`), the log's panel and every
+- [x] AC6: Panels are cut square: the overlay and modal panel (`DarkPanel`), the log's panel and every
   `UIKit.panel_style` box have corner radius 0; the focus ring is `FOCUS`, 2 px wide, radius 0, 4 px outside the
   control.
 
@@ -54,6 +54,12 @@ and `GameTheme`, so every screen changes at once. Proven in the `spike/mcm-godot
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_theme::test_the_palette_holds_the_night_shift_values`, `test_labels_look_as_before`, `test_fields_and_card_colours_look_as_before` (106's guard, rewritten) |
+| AC2 | `test_theme::test_the_theme_uses_the_guides_typefaces`, `test_the_fonts_ship_with_their_licences` |
+| AC3 | `test_theme::test_buttons_stand_on_a_hard_shadow` |
+| AC4 | `test_theme::test_a_pressed_button_sinks_into_its_shadow` |
+| AC5 | `test_theme::test_the_accent_button_is_signal_orange`, `test_only_the_accent_button_is_filled_with_the_accent` |
+| AC6 | `test_theme::test_panels_are_cut_square`, `test_the_focus_ring_is_square_and_outside_the_control` |
 
 ## Manual check
 - [ ] Seed 5, Egypt: the board, the menu, the tech tree, the supply screen, a modal and the game-over sheet all read in
@@ -63,3 +69,10 @@ and `GameTheme`, so every screen changes at once. Proven in the `spike/mcm-godot
 
 ## Log
 - 2026-10-01: Specced from the mid-century style guide and the `spike/mcm-godot` spike.
+- 2026-10-02: Built from the spike's palette and `GameTheme` (`tabular()`, `display()`, `_pressed()`, `_flat()`),
+  fonts Barlow Regular, Barlow Semi Condensed Medium and SemiBold and Jost (variable) with their OFL texts; IBM Plex
+  Mono is left to 181. Decided at the red checkpoint: label sizes stay (19 / 26 / 26, BarStat 20); Title and the
+  Stat default are `TEXT` rather than white; `EDGE` is opaque, so the overlay frame is 2 px; `FAINT_EDGE` (the log's
+  border) keeps its value. Also swapped the last white defaults for `TEXT` (card face labels, `UIKit.stat`, the
+  GrowPip and a hovered card's border). Not tuned: the see-through layers (`DIMMER`, `GHOST_*`, `DROP_BG`, `HINT_BG`)
+  keep their cool values; 183 revisits them for Day mode.
