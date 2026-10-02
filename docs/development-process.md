@@ -111,6 +111,7 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
 | `.claude/skills/spec/` | Procedure: request → backlog item |
 | `.claude/skills/tdd/` | Procedure: backlog item → merged change |
 | `.claude/skills/add-effect/` | Recipe for a new card effect op |
+| `.claude/skills/add-decision/` | Recipe for a new kind of decision the player owes (a `pending()` kind) |
 | `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout |
 | `.claude/skills/project-review/` | Procedure: whole-project architecture and test review → backlog items; `scan.sh` for the mechanical checks |
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |

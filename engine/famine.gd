@@ -47,10 +47,7 @@ static func relieve_error(e: GameEngine) -> String:
 	var relief: Dictionary = e.config.famine.get("relief", {})
 	if relief.is_empty():
 		return "The famine can't be relieved."
-	for r in relief:
-		if e.resources.get(r, 0) < relief[r]:
-			return "Relieving the famine needs %s (you have %d)." % [_amounts(relief), e.resources.get(r, 0)]
-	return ""
+	return e.price_error("Relieving the famine", relief)
 
 
 ## Pays population.famine.relief and the Famine leaves the game (084). False (and no change) if relieve_error says no.
@@ -58,17 +55,11 @@ static func relieve(e: GameEngine) -> bool:
 	if relieve_error(e) != "":
 		return false
 	var relief: Dictionary = e.config.famine.relief
-	for r in relief:
-		e.resources[r] -= relief[r]
+	e.pay(relief)
 	e.zone("active_events").remove(active(e))
-	e._notice("Relieved the famine (%s)." % _amounts(relief))
+	e._notice("Relieved the famine (%s)." % Fields.amounts_text(relief))
 	e.changed.emit()
 	return true
-
-
-## A cost as text: "5 wealth", "2 food, 5 wealth".
-static func _amounts(cost: Dictionary) -> String:
-	return ", ".join(PackedStringArray(cost.keys().map(func(r): return "%d %s" % [cost[r], r])))
 
 
 ## After pop has eaten: fed ends an active Famine. Short brings one (or adds a counter, up to max_counters) and

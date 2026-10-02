@@ -47,11 +47,7 @@ static func grow_error(e: GameEngine, territory_uid: int) -> String:
 	var cap := housing(e, territory_uid)
 	if territory.pop >= cap:
 		return "%s is at its housing (%d)." % [territory.def.name, cap]
-	var cost := e.grow_cost(territory_uid)
-	var have: int = e.resources.get(GameEngine.FOOD, 0)
-	if have < cost:
-		return "Growing %s needs %d food (you have %d)." % [territory.def.name, cost, have]
-	return ""
+	return e.price_error("Growing %s" % territory.def.name, {GameEngine.FOOD: e.grow_cost(territory_uid)})
 
 
 static func grow(e: GameEngine, territory_uid: int) -> bool:
@@ -59,7 +55,7 @@ static func grow(e: GameEngine, territory_uid: int) -> bool:
 		return false
 	var territory := Territories.settled(e, territory_uid)
 	var cost := e.grow_cost(territory_uid)
-	e.resources.food -= cost
+	e.pay({GameEngine.FOOD: cost})
 	territory.pop += 1
 	e._log("%s grew to %d pop (%d food)." % [territory.def.name, territory.pop, cost])
 	e.changed.emit()
@@ -96,8 +92,8 @@ static func has_worker(e: GameEngine, territory: CardInstance) -> bool:
 ## Pop eats food_upkeep food each (083), then the Famine rules run on whether it was fed (Famine.after_feeding).
 static func feed(e: GameEngine) -> void:
 	var need: int = total_pop(e) * e.config.population.food_upkeep
-	var eaten: int = mini(need, e.resources.food)
-	e.resources.food -= eaten
+	var eaten: int = mini(need, e.resources[GameEngine.FOOD])
+	e.pay({GameEngine.FOOD: eaten})
 	if need > 0:
 		e._log("Pop eats %d food." % eaten)
 	Famine.after_feeding(e, eaten == need)

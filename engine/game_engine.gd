@@ -125,29 +125,6 @@ func outcome_summary(outcome: Dictionary) -> String:
 	return Events.outcome_summary(outcome)
 
 
-## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
-## or not enough to pay it. "" if it can.
-func relieve_famine_error() -> String:
-	return Famine.relieve_error(self)
-
-
-## Pays the config's population.famine.relief and the active Famine leaves the game at once (084). False (and no
-## change) if relieve_famine_error says no.
-func relieve_famine() -> bool:
-	return Famine.relieve(self)
-
-
-## Why settled territory territory_uid can't grow right now, or "" if it can.
-func grow_error(territory_uid: int) -> String:
-	return Population.grow_error(self, territory_uid)
-
-
-## Pays grow_cost food for +1 pop on settled territory territory_uid. False (and no change) if
-## grow_error says it can't.
-func grow(territory_uid: int) -> bool:
-	return Population.grow(self, territory_uid)
-
-
 ## Pop summed over every settled territory.
 func total_pop() -> int:
 	return Population.total_pop(self)
@@ -159,15 +136,15 @@ func total_pop() -> int:
 ## {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)} or
 ## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
 func pending() -> Dictionary:
-	if state.choosing_government:
-		return {"kind": PENDING_GOVERNMENT, "options": zone("governments").cards.map(func(c): return c.uid)}
-	if not pending_choice.is_empty():
-		return {"kind": PENDING_EXPLORE, "options": pending_choice.options, "source": pending_choice.source.uid}
-	if state.renewal_left > 0:
-		return {"kind": PENDING_RENEWAL, "count": state.renewal_left, "options": Anarchy.renewal_options(self)}
-	if state.discard_left > 0:
-		return {"kind": PENDING_DISCARD, "count": state.discard_left, "options": zone("hand").cards.map(func(c): return c.uid)}
-	return {}
+	var p := state.pending.duplicate(true)
+	match p.get("kind", ""):
+		PENDING_GOVERNMENT:
+			p.options = zone("governments").cards.map(func(c): return c.uid)
+		PENDING_RENEWAL:
+			p.options = Anarchy.renewal_options(self)
+		PENDING_DISCARD:
+			p.options = zone("hand").cards.map(func(c): return c.uid)
+	return p
 
 
 ## The name of the card that makes insight, for hints: the first whose effects gain insight in config deck order,
@@ -240,12 +217,6 @@ func tech_cost(uid: int) -> int:
 	return Research.cost(self, uid)
 
 
-## Why tech uid can't be learned right now, or "" if it can: the game is over or a choice is pending, it isn't in the
-## research deck, its prereq isn't researched, or the insight is short.
-func buy_tech_error(uid: int) -> String:
-	return Research.buy_error(self, uid)
-
-
 ## The cards in the supply and how many copies of each are left: {card_id: count}, in config order.
 func supply() -> Dictionary:
 	return state.supply.duplicate()
@@ -271,11 +242,6 @@ func buy_price(card_id: String) -> int:
 	return Supply.price(self, card_id)
 
 
-## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
-func buy_error(card_id: String) -> String:
-	return Supply.buy_error(self, card_id)
-
-
 func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
 
@@ -297,61 +263,15 @@ func anarchy() -> int:
 	return card.uid if card != null else -1
 
 
-## Why revolt would refuse (148): game over or a pending decision, Anarchy already ruling, or no active event that
-## lets you revolt. "" if it can.
-func revolt_error() -> String:
-	return Anarchy.revolt_error(self)
-
-
-## Starts Anarchy now, by choice, with renewal owed at once (148). False (and no change) if revolt_error says no.
-func revolt() -> bool:
-	return Anarchy.revolt(self)
-
-
-## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""
-## if it can.
-func renew_error(uid: int) -> String:
-	return Anarchy.renew_error(self, uid)
-
-
-## Trashes discard card uid for Anarchy's renewal: it leaves the game and unrest drops by 1 (147). False (and no
-## change) if renew_error says no.
-func renew(uid: int) -> bool:
-	return Anarchy.renew(self, uid)
-
-
 ## What restore_order pays (146): config unrest.relief ({resource: amount}), or {} when order can't be bought.
 func order_relief() -> Dictionary:
 	return Anarchy.relief(self)
-
-
-## Why restore_order would refuse: game over or a pending decision, no Anarchy, no relief in the config, or not
-## enough to pay it. "" if it can.
-func restore_order_error() -> String:
-	return Anarchy.restore_error(self)
-
-
-## Pays the config's unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if
-## restore_order_error says no.
-func restore_order() -> bool:
-	return Anarchy.restore(self)
 
 
 ## The counters on the ruling Anarchy card (145): 0 the turn it falls, +1 each turn after; 0 without Anarchy.
 func anarchy_counters() -> int:
 	var card := Anarchy.active(self)
 	return card.counters if card != null else 0
-
-
-## Why choose_government(uid) would refuse (154): no choice is owed, or uid isn't in the government deck. "" if it can.
-func choose_government_error(uid: int) -> String:
-	return Anarchy.choose_government_error(self, uid)
-
-
-## Government uid leaves the government deck and rules, its play effects resolving (its cost unpaid), and unrest
-## drops to at most half its limit (154). Uses no action. False (and no change) if choose_government_error says no.
-func choose_government(uid: int) -> bool:
-	return Anarchy.choose_government(self, uid)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.
@@ -389,11 +309,6 @@ func play_cost(uid: int) -> Dictionary:
 func playable_error(uid: int) -> String:
 	var targets := valid_targets(uid)
 	return play_error(uid, targets[0] if needs_target(uid) and not targets.is_empty() else -1)
-
-
-## Why the card can't be played right now, or "" if it can.
-func play_error(uid: int, target_uid := -1) -> String:
-	return CardPlay.error(self, uid, target_uid)
 
 
 ## The uids hand card uid can be played on; [] if it needs no target. A building's targets are the
@@ -473,14 +388,25 @@ func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
 
 
+## The most cards the hand may hold at the end of a turn (config hand_limit).
+func hand_limit() -> int:
+	return config.hand_limit
+
+
+## Whether the game has techs to learn (the config has a research deck).
+func research_on() -> bool:
+	return not config.research_deck.is_empty()
+
+
+## Why hand cards can't be picked up (dragged or double-clicked) now, or "" (175): the game is over, or a decision
+## other than a hand-limit discard is owed.
+func hand_input_error() -> String:
+	return _blocked_error("discard")
+
+
 ## Cards that must still be discarded before the turn can end (0 when none is pending).
 func discard_needed() -> int:
-	return state.discard_left
-
-
-## Why the turn can't end right now, or "" if it can.
-func end_turn_error() -> String:
-	return _blocked_error("end_turn")
+	return state.pending.get("count", 0) if state.pending.get("kind", "") == PENDING_DISCARD else 0
 
 
 ## Why the supply screen can't open now, or "". A discard owed doesn't block it: you can browse, and
@@ -512,6 +438,11 @@ func civilizations() -> Array[String]:
 	return config.get("civilizations", [] as Array[String]).duplicate()
 
 
+## Why the card can't be played right now, or "" if it can.
+func play_error(uid: int, target_uid := -1) -> String:
+	return CardPlay.error(self, uid, target_uid)
+
+
 ## Pays the cost, moves the card (permanents to the tableau), resolves its "play" effects on
 ## target_uid, then emits card_played with what happened. A card that needs a target and has only
 ## one valid target uses it when target_uid is -1; a card that needs none ignores target_uid.
@@ -530,11 +461,22 @@ func choose(uid: int) -> bool:
 	return Territories.choose(self, uid)
 
 
+## Why tech uid can't be learned right now, or "" if it can: the game is over or a choice is pending, it isn't in the
+## research deck, its prereq isn't researched, or the insight is short.
+func buy_tech_error(uid: int) -> String:
+	return Research.buy_error(self, uid)
+
+
 ## Learns tech uid from the research deck (140): pays its tech_cost in insight, moves it to the researched row and
 ## resolves its play effects; no card or action. Once the research deck is empty the lowest waiting era's techs
 ## arrive. False (and no change) if buy_tech_error says no.
 func buy_tech(uid: int) -> bool:
 	return Research.buy(self, uid)
+
+
+## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
+func buy_error(card_id: String) -> String:
+	return Supply.buy_error(self, card_id)
 
 
 ## Pays buy_price wealth for a new copy of card_id from the supply and puts it on the discard.
@@ -556,10 +498,84 @@ func discard_card(uid: int) -> bool:
 	return TurnLoop.discard_card(self, uid)
 
 
+## Why the turn can't end right now, or "" if it can.
+func end_turn_error() -> String:
+	return _blocked_error("end_turn")
+
+
 ## Ends the turn. Over the hand limit, waits for discard_card calls instead (not on the last turn).
 ## Does nothing if end_turn_error says no.
 func end_turn() -> void:
 	TurnLoop.end_turn(self)
+
+
+## Why settled territory territory_uid can't grow right now, or "" if it can.
+func grow_error(territory_uid: int) -> String:
+	return Population.grow_error(self, territory_uid)
+
+
+## Pays grow_cost food for +1 pop on settled territory territory_uid. False (and no change) if
+## grow_error says it can't.
+func grow(territory_uid: int) -> bool:
+	return Population.grow(self, territory_uid)
+
+
+## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
+## or not enough to pay it. "" if it can.
+func relieve_famine_error() -> String:
+	return Famine.relieve_error(self)
+
+
+## Pays the config's population.famine.relief and the active Famine leaves the game at once (084). False (and no
+## change) if relieve_famine_error says no.
+func relieve_famine() -> bool:
+	return Famine.relieve(self)
+
+
+## Why revolt would refuse (148): game over or a pending decision, Anarchy already ruling, or no active event that
+## lets you revolt. "" if it can.
+func revolt_error() -> String:
+	return Anarchy.revolt_error(self)
+
+
+## Starts Anarchy now, by choice, with renewal owed at once (148). False (and no change) if revolt_error says no.
+func revolt() -> bool:
+	return Anarchy.revolt(self)
+
+
+## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""
+## if it can.
+func renew_error(uid: int) -> String:
+	return Anarchy.renew_error(self, uid)
+
+
+## Trashes discard card uid for Anarchy's renewal: it leaves the game and unrest drops by 1 (147). False (and no
+## change) if renew_error says no.
+func renew(uid: int) -> bool:
+	return Anarchy.renew(self, uid)
+
+
+## Why restore_order would refuse: game over or a pending decision, no Anarchy, no relief in the config, or not
+## enough to pay it. "" if it can.
+func restore_order_error() -> String:
+	return Anarchy.restore_error(self)
+
+
+## Pays the config's unrest.relief and Anarchy ends: a government is to be chosen (146, 154). False (and no change) if
+## restore_order_error says no.
+func restore_order() -> bool:
+	return Anarchy.restore(self)
+
+
+## Why choose_government(uid) would refuse (154): no choice is owed, or uid isn't in the government deck. "" if it can.
+func choose_government_error(uid: int) -> String:
+	return Anarchy.choose_government_error(self, uid)
+
+
+## Government uid leaves the government deck and rules, its play effects resolving (its cost unpaid), and unrest
+## drops to at most half its limit (154). Uses no action. False (and no change) if choose_government_error says no.
+func choose_government(uid: int) -> bool:
+	return Anarchy.choose_government(self, uid)
 
 
 # --- Internals (the modules call these too) ---
@@ -570,14 +586,25 @@ func end_turn() -> void:
 func _blocked_error(action: String) -> String:
 	if is_over:
 		return "The game is over."
-	match pending().get("kind", ""):
+	match state.pending.get("kind", ""):
 		PENDING_GOVERNMENT:
 			return "Choose a government first."
 		PENDING_EXPLORE:
 			return "Choose a territory first."
 		PENDING_RENEWAL:
-			return "Anarchy: trash %d card%s from your discard first." % [state.renewal_left, "" if state.renewal_left == 1 else "s"]
+			var n: int = state.pending.count
+			return "Anarchy: trash %d card%s from your discard first." % [n, "" if n == 1 else "s"]
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""
 
+
+## The first reason a decision's own action (choose, renew, choose_government) refuses (172): the game being over,
+## then another decision owed (its _blocked_error message), then nothing_owed when kind isn't owed; "" while kind is.
+func _owed_error(kind: String, nothing_owed: String) -> String:
+	if is_over:
+		return "The game is over."
+	var owed: String = state.pending.get("kind", "")
+	if owed == "":
+		return nothing_owed
+	return "" if owed == kind else _blocked_error(kind)

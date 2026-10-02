@@ -89,10 +89,10 @@ func refresh(e: GameEngine, layer: Control = null, quiet := false) -> void:
 	end_turn_button.tooltip_text = error if error != "" else "Shortcut: E. Upkeep, then draw up to your hand size."
 	var pending := e.pending()
 	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
-		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.config.hand_limit]
+		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.hand_limit()]
 	else:
 		end_turn_button.text = "End turn"
-	_knowledge.visible = e.config.research_deck.size() > 0
+	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
 	if e.research_card_name() != "":

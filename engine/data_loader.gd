@@ -28,7 +28,7 @@ const TYPE_FIELDS := {
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
-const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Anarchy.RENEWAL]
+const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Modifiers.RENEWAL]
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
@@ -154,7 +154,28 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			e.check_references(db, ref_errors)
 			for m in ref_errors:
 				errors.append("%s: card '%s': '%s' effect: %s" % [src, id, e.op, m])
+	errors.append_array(_prereq_cycles(db, src))
 	return db
+
+
+## One error per cycle of techs that need each other (174), on the cycle's first tech in card order:
+## "cards.json: card 'a': prereq: cycle a → b → a". A tech that is its own prereq has its own error.
+static func _prereq_cycles(db: Dictionary, src: String) -> Array[String]:
+	var out: Array[String] = []
+	var in_cycle := {}
+	for id in db:
+		if in_cycle.has(id):
+			continue
+		var path: Array[String] = [id]
+		var next: String = db[id].prereq
+		while next != "" and db.has(next) and not path.has(next):
+			path.append(next)
+			next = db[next].prereq
+		if next == id and path.size() > 1:
+			for t in path:
+				in_cycle[t] = true
+			out.append("%s: card '%s': prereq: cycle %s" % [src, id, " → ".join(path + [id] as Array[String])])
+	return out
 
 
 static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], warns: Array[String]) -> CardDef:

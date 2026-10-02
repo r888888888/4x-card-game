@@ -167,15 +167,16 @@ static func explore(e: GameEngine, n: int, source: CardInstance) -> void:
 		for card in reveal.cards:
 			options.append(card.uid)
 		options.reverse()  # top first
-		e.pending_choice = {"options": options, "source": source}
+		e.state.pending = {"kind": GameEngine.PENDING_EXPLORE, "options": options, "source": source.uid}
 		e._log("  %s: choose a territory to keep." % source.def.name)
 
 
 ## Why territory uid can't be chosen now, or "".
 static func choose_error(e: GameEngine, uid: int) -> String:
-	if e.pending_choice.is_empty():
-		return "There is no territory to choose."
-	if not e.pending_choice.options.has(uid):
+	var owed := e._owed_error(GameEngine.PENDING_EXPLORE, "There is no territory to choose.")
+	if owed != "":
+		return owed
+	if not e.state.pending.options.has(uid):
 		return "That territory isn't an option."
 	return ""
 
@@ -189,10 +190,19 @@ static func choose(e: GameEngine, uid: int) -> bool:
 	e.zone("frontier").add(kept)
 	for card in reveal.take_all():
 		e.zone("territory_deck").add_bottom(card)
-	e._log("  %s: kept %s." % [e.pending_choice.source.def.name, kept.def.name])
-	e.pending_choice = {}
+	e._log("  %s: kept %s." % [_card_name(e, e.state.pending.source), kept.def.name])
+	e.state.pending = {}
 	e.changed.emit()
 	return true
+
+
+## The name of card uid, wherever it is ("" if it is nowhere).
+static func _card_name(e: GameEngine, uid: int) -> String:
+	for z in GameEngine.ZONES:
+		var card := e.zone(z).find(uid)
+		if card != null:
+			return card.def.name
+	return ""
 
 
 static func settle(e: GameEngine, territory_uid: int, city_id: String, source: CardInstance) -> void:

@@ -68,7 +68,8 @@ res://
                          # board: top_bar.gd (stats, identity, Buy Cards, Knowledge, Log, End turn, Menu),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
                          # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
-                         # relieve_button.gd (084), restore_order_button.gd (146), revolt_button.gd (148): below the Realm,
+                         # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
+                         # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
                          # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
                          # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154),
@@ -90,6 +91,8 @@ res://
   scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all)
   docs/                  # development process, testing guide, backlog
 ```
+Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on
+`EngineCore`; unrest is added or capped only through `set_unrest`, which stops at `unrest_limit()`.
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
 `engine/game_engine.gd`; the sections below give the rules and name the functions only where it helps.
 Buildings always target a settled territory with a free slot (`free_slots`).
@@ -201,8 +204,11 @@ never changes. Upkeep effects are still limited to resources, bonus score and po
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147) or the government
-choice (154). While one is owed, every action is refused with the same message (`_blocked_error`), except the
-decision's own action, and a discard still lets you discard, browse the supply and learn techs. A new decision kind (e.g. events) adds one `PENDING_*` constant and one branch there.
+choice (154). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
+options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
+message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
+and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
+"nothing owed" message (`_owed_error`). A new kind follows the `add-decision` skill.
 
 ## Territories (Milestone 2 — in design)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
@@ -308,7 +314,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Researched techs score their printed VP and resolve `upkeep` effects like tableau cards; they use no territory,
   slot or worker.
 - Prerequisites (026, hard since 140): a tech's optional `prereq` (another tech) must be researched before it can be
-  learned; card text "Needs Bronze Working".
+  learned; card text "Needs Bronze Working". Techs that need each other are one load error per cycle (174), on its
+  first tech in card order ("prereq: cycle a → b → a").
 - Eurekas (141): a tech's optional `eureka` (`{"card": "farm" | "tag": "city", "count": 2, "off": 2}`) takes `off`
   insight off while the tableau holds `count` matching cards (idle ones count). Card text "Eureka: -2 insight with 2
   Farms"; real eurekas take 2 insight in era 1, 4 in era 2 and 6 in era 3 (143). `tech_tree()` entries carry `eureka` (met or not) and the tree shows the line, ✔ when met.
