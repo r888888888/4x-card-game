@@ -2,7 +2,7 @@
 id: 202
 title: A right sidebar with the civilization and government
 type: feature
-status: review
+status: done
 branch: feat/202-civilization-sidebar
 ---
 
