@@ -4,20 +4,6 @@ extends "res://tests/lib/test_case.gd"
 
 const PALETTE_PATH := "res://ui/palette.gd"
 const UI_KIT_PATH := "res://ui/ui_kit.gd"
-const SETTINGS_PATH := "user://test_palette_roles_settings.cfg"
-
-
-## Runs body with a temp settings store (day mode off), then puts the player's store and palette back. Use with await.
-func with_temp_settings(body: Callable) -> void:
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(SETTINGS_PATH)
-	await body.call()
-	Settings.store = original
-	Settings.changed.emit()  # back to the player's palette
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
 
 
 ## The all-caps StringName literals (&"GAIN") in the ui/ scripts' code, as "ui/file:line NAME".

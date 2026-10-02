@@ -54,19 +54,6 @@ func open_and_start(seed_text: String) -> Node:
 	return main
 
 
-## Runs body with the Settings autoload saving to a temp file, then puts the player's settings back.
-func with_temp_settings(body: Callable) -> void:
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(SETTINGS_PATH)
-	await body.call()
-	Settings.store = original
-	Settings.changed.emit()
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
-
-
 func button_texts(root: Node) -> Array[String]:
 	var texts: Array[String] = []
 	for b in UIKit.buttons_in(root):
@@ -324,7 +311,7 @@ func test_settings_and_menu_toggles_share_the_setting() -> void:
 		eq(Settings.reduce_motion, false, "setting off")
 		await wait_frames()
 		eq(main.menu_motion_toggle().text, "OFF", "menu toggle follows")
-		var saved := SettingsStore.new(SETTINGS_PATH)
+		var saved := SettingsStore.new(Settings.store.path)  # the temp file with_temp_settings saves to
 		saved.reduce_motion = true
 		saved.load()
 		eq(saved.reduce_motion, false, "saved off")

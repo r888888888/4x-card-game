@@ -4,7 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## switch goes through Settings.set_day_mode on a temp settings file, and every test ends back on the player's palette.
 
 const PALETTE_PATH := "res://ui/palette.gd"
-const SETTINGS_PATH := "user://test_day_mode_settings.cfg"
 const KEY_PATH := "res://ui/legend_key.gd"
 ## AC2's Day values.
 const DAY := {"BACKGROUND": "efe8da", "RAISED": "f8f4ec", "CONTROL": "dcd3c2", "TEXT": "22211f", "ACCENT": "a8401b"}
@@ -15,19 +14,6 @@ const NIGHT := {"BACKGROUND": "1f1e1c", "RAISED": "2a2825", "CONTROL": "3a3733",
 ## Palette's colour called name, as it reads now.
 func palette(name: String) -> Color:
 	return load(PALETTE_PATH).get(name)
-
-
-## Runs body with a temp settings store (day mode off), then puts the player's store and palette back. Use with await.
-func with_temp_settings(body: Callable) -> void:
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
-	var original: SettingsStore = Settings.store
-	Settings.store = SettingsStore.new(SETTINGS_PATH)
-	await body.call()
-	Settings.store = original
-	Settings.changed.emit()  # back to the player's palette
-	if FileAccess.file_exists(SETTINGS_PATH):
-		DirAccess.remove_absolute(SETTINGS_PATH)
 
 
 func set_day(on: bool) -> void:
