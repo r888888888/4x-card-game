@@ -147,9 +147,9 @@ never the only cue.
 
 | Game thing | Hue | Glyph (§8) |
 |---|---|---|
-| Food | Ochre | Wheat ear: a stem with three pairs of grains |
-| Wealth | Olive | Cash coin: a ring with a square hole |
-| Insight | Muted blue | Lamp: a bulb on a two-step base (indicator lamps stay plain discs so the two never meet) |
+| Food | Sage (green) | Wheat ear: a stem with three pairs of grains |
+| Wealth | Ochre (yellow) | Cash coin: a ring with a square hole |
+| Insight | Muted blue | Open book with curved pages |
 | Pop | Teal | Figure: a circle over a half-disc |
 | Unrest | Brick | Lightning bolt, solid: the one solid resource glyph, because unrest is the one resource that is bad to have |
 | Score (VP) | Ink | Eight-point starburst |
@@ -159,6 +159,12 @@ never the only cue.
 | Territory card | Sage | Triangle ▲ |
 | Tech card | Teal | Four-point star ✦ |
 | Event card | Brick | Diamond in square ❖ |
+
+Food is sage, not olive: olive is a yellowish green that sits too close to wealth's yellow in a cost plate. Sage is
+also the gain colour, so a `+3` beside the food glyph is green too; the glyph, not the hue, says which resource it is.
+In Paper, ochre's line value is a dark mustard (yellow can't reach 4.5:1 on warm paper), so the **wealth glyph** uses
+a brighter gold, `glyph-ochre` `#A07514` (3.8:1 on `sheet`, past the 3:1 icons need). It is for icons only, never
+for text.
 
 These are the shapes the game's glyphs already use (`Icons.GLYPHS`); the guide keeps them and redraws them (§8).
 
@@ -746,7 +752,7 @@ lamp:    { s: 10, m: 14, l: 20 }
 color.paper:
   board: "#EFE8DA"  sheet: "#F8F4EC"  well: "#E3DACA"  steel: "#DCD3C2"
   ink: "#22211F"  ink-2: "#57534B"  ink-3: "#7A7468"  rule-fine: "#CFC6B5"  rule: "#6F685C"
-  shadow: "#22211F"  signal: "#A8401B"  on-signal: "#FBF6EC"
+  shadow: "#22211F"  signal: "#A8401B"  on-signal: "#FBF6EC"  glyph-ochre: "#A07514"  # icons only
   positive: "#4E6B47"  caution: "#7C5810"  danger: "#9B3424"  info: "#35597C"  focus: "#1F6A68"
   plane: { teal: "#5E9C97", ochre: "#D9A441", olive: "#A3AA6A", blue: "#8AA7C4", brick: "#C9705C", sage: "#9DB592" }
 color.night:

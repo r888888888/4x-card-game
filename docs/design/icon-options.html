@@ -30,6 +30,7 @@
 	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
 	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
 	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;
 	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
 	--knob: #FBF8F2; --on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
 }
@@ -86,17 +87,25 @@ section { margin-bottom: var(--space-6); }
 <script>
 // Each glyph is the inner SVG of a 24×24 stroke icon. "fill" marks a part drawn solid in the icon's colour.
 const RES = [
-	{ id: "food", name: "Food", hue: "ochre", cands: [
-		{ key: "current", name: "Current: split circle", svg: '<circle cx="12" cy="13" r="7"/><path d="M12 4v16M8 9l4 3 4-3"/>',
-			note: "Reads as a peace sign or a crosshair, not as food." },
+	{ id: "food", name: "Food", hue: "sage", cands: [
 		{ key: "wheat", name: "Wheat ear", svg: '<path d="M12 22V3M12 10L8 7M12 10l4-3M12 14l-4-3M12 14l4-3M12 18l-4-3M12 18l4-3"/>',
-			note: "A stem with three pairs of grains. The 4X convention for food, so players read it instantly.", pick: true },
-		{ key: "sheaf", name: "Sheaf", svg: '<path d="M12 4v17M12 12L7 4M12 12l5-8M12 12l-4 9M12 12l4 9M9 12h6"/>',
-			note: "Stalks bound at the waist with a tie. More harvest than plant; busier at 20 px." },
+			note: "The current pick, now green: young wheat in the field rather than the harvested grain.", pick: true },
+		{ key: "leaf", name: "Leaf", svg: '<path d="M5 19A12 12 0 0 1 19 5A12 12 0 0 1 5 19z"/><path d="M5 19L15 9M3 21l2-2"/>',
+			note: "A single leaf with its midrib. The simplest green-food mark; could also read as nature or ecology." },
+		{ key: "sprout", name: "Sprout", svg: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+			note: "A seedling with two leaves: farming and growth at once, which is what food does in the game (it grows pop). Clear at 16 px." },
+		{ key: "apple", name: "Apple", svg: '<circle cx="12" cy="14" r="7"/><path d="M12 7V3"/><path d="M12 6A4 4 0 0 1 17 3A4 4 0 0 1 12 6z"/>',
+			note: "Fruit: a disc with a stem and leaf. Plainly food; the disc alone is the City mark, so the stem has to stay legible." },
+		{ key: "pea", name: "Pea pod", svg: '<path d="M2 12A14 14 0 0 1 22 12A14 14 0 0 1 2 12z"/><circle cx="7" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="17" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
+			note: "A pod with three peas: almost pure geometry (one almond, three dots) and very mid-century. At 20 px and below it reads as an eye." },
+		{ key: "maize", name: "Maize", svg: '<path d="M12 3A10 10 0 0 1 12 17A10 10 0 0 1 12 3z"/><path d="M12 21A12 12 0 0 1 5 9M12 21A12 12 0 0 0 19 9"/>',
+			note: "A cob in its husk: a staple crop of the Americas. Distinctive silhouette; reads as a flame or a bud if the husk is lost at 16 px." },
+		{ key: "tree", name: "Orchard tree", svg: '<circle cx="12" cy="9" r="6"/><path d="M12 15v6M8 21h8"/>',
+			note: "A round tree on a trunk. Simple and green, but it says forest or nature as much as food." },
 		{ key: "bowl", name: "Bowl", svg: '<path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M7 12a5 5 0 0 1 10 0"/>',
-			note: "A bowl heaped with grain. Reads as food served rather than farmed; very clear at small sizes." },
+			note: "From the first set, now green: a bowl heaped with grain. Food served rather than grown; green suits it least." },
 	] },
-	{ id: "wealth", name: "Wealth", hue: "olive", cands: [
+	{ id: "wealth", name: "Wealth", hue: "ochre", cands: [
 		{ key: "current", name: "Current: ledger", svg: '<rect x="4" y="5" width="16" height="14"/><path d="M4 10h16"/>',
 			note: "Reads as a window or a card, not as money." },
 		{ key: "cash", name: "Cash coin", svg: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
@@ -106,9 +115,9 @@ const RES = [
 		{ key: "ingot", name: "Ingot", svg: '<path d="M3 20l3-8h12l3 8z"/><path d="M6 12l2-6h8l2 6"/>',
 			note: "Two stacked bars. Treasury rather than income; the shape echoes the territory triangle." },
 	] },
-	{ id: "insight", name: "Insight", hue: "blue", cands: [
-		{ key: "current", name: "Current: bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
-			note: "The base's neck, step and bar crowd together and blur below 20 px.", pick: true },
+	{ id: "insight-alt", name: "Insight: other ideas", hue: "blue", cands: [
+		{ key: "bulb", name: "Bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
+			note: "The base's neck, step and bar crowd together and blur below 20 px." },
 		{ key: "eye", name: "Eye", svg: '<path d="M2 12a13 13 0 0 1 20 0a13 13 0 0 1-20 0z"/><circle cx="12" cy="12" r="3"/>',
 			note: "Insight as seeing into things. Two arcs and a pupil; the almond holds its shape at every size." },
 		{ key: "magnifier", name: "Magnifier", svg: '<circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6"/>',
@@ -124,13 +133,13 @@ const RES = [
 		{ key: "bulb-plain", name: "Bulb, one-bar base", svg: '<circle cx="12" cy="10" r="7"/><path d="M9 21h6"/>',
 			note: "Your critique fixed directly: the base is one bar, so nothing at the bottom can blur. Two primitives." },
 	] },
-	{ id: "insight-book", name: "Insight: book permutations", hue: "blue", cands: [
+	{ id: "insight", name: "Insight: book permutations", hue: "blue", cands: [
 		{ key: "book-angled", name: "Open book, angled pages", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/>',
 			note: "The one from the first set: pages rising to the spine like a book lying open. Clear at 16 px." },
 		{ key: "book-flat", name: "Open book, flat pages", svg: '<path d="M3 5h7a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h7z"/>',
 			note: "Two square pages with a rounded fold at the spine. The most familiar book icon; squarer and calmer, a little generic." },
 		{ key: "book-curved", name: "Open book, curved pages", svg: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',
-			note: "Pages bowed up to the spine, as a real open book sits. Softer and more drawn; holds its shape at 16 px." },
+			note: "Pages bowed up to the spine, as a real open book sits. Softer and more drawn; holds its shape at 16 px.", pick: true },
 		{ key: "book-lines", name: "Open book with text", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/><path d="M6 10l3 .7M6 13.5l3 .7M18 10l-3 .7M18 13.5l-3 .7"/>',
 			note: "The angled book with two lines of text on each page. Says 'reading' outright; the lines fill in below 20 px." },
 		{ key: "book-closed", name: "Closed book, bookmark", svg: '<rect x="5" y="3" width="14" height="18"/><path d="M8 3v18M13 3v7l2-2 2 2V3"/>',
@@ -162,7 +171,7 @@ const OTHERS = [
 	{ name: "Territory", hue: "ink", svg: '<path d="M12 4l9 16H3z"/>' },
 	{ name: "Tech", hue: "ink", svg: '<path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>' },
 ];
-const colour = (hue) => (hue === "ink" ? "var(--ink)" : `var(--l-${hue})`);
+const colour = (hue) => (hue === "ink" ? "var(--ink)" : `var(--g-${hue}, var(--l-${hue}))`);
 // Stroke: 1.5 px at 16, 2 px at 24, 2.5 px at 32 (guide §8), expressed in viewBox units.
 const icon = (svg, hue, size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${colour(hue)}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" style="color:${colour(hue)}" aria-hidden="true">${svg}</svg>`;
 

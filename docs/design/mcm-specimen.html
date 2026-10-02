@@ -30,6 +30,7 @@
 	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
 	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
 	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;  /* glyph-only gold: 3.8:1 on sheet, enough for an icon, not for text */
 	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
 	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
 }
@@ -458,7 +459,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, calm() ? 0 : ms));
 const GLYPHS = {
 	food: '<path d="M12 22V3M12 10L8 7M12 10l4-3M12 14l-4-3M12 14l4-3M12 18l-4-3M12 18l4-3"/>',  // wheat ear
 	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',  // cash coin
-	insight: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',  // lamp
+	insight: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',  // open book, curved pages
 	pop: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>',
 	unrest: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',  // solid lightning bolt
 	score: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
@@ -525,8 +526,8 @@ addEventListener("resize", () => selectTab(activeTab));
 
 // ---- Resource bar with odometers (§15.5) ----
 const RESOURCES = [
-	{ id: "food", caption: "Food", hue: "ochre", value: 7, forecast: "+2 next" },
-	{ id: "wealth", caption: "Wealth", hue: "olive", value: 12, forecast: "+1 next" },
+	{ id: "food", caption: "Food", hue: "sage", value: 7, forecast: "+2 next" },
+	{ id: "wealth", caption: "Wealth", hue: "ochre", value: 12, forecast: "+1 next" },
 	{ id: "insight", caption: "Insight", hue: "blue", value: 4, forecast: "+3 next" },
 	{ id: "pop", caption: "Pop", hue: "teal", value: 5, forecast: "of 6 housing" },
 	{ id: "unrest", caption: "Unrest", hue: "brick", value: 2, limit: 4, forecast: "limit 4" },
@@ -537,7 +538,7 @@ const DIGITS = 3;
 bar.innerHTML = RESOURCES.map((r) => `
 	<div class="cell" id="cell-${r.id}">
 		<div class="cell-head"><span class="caps">${r.caption}</span><span class="lamp ${r.hue}"></span></div>
-		<div class="value">${glyph(r.id, r.hue === "ink" ? "var(--ink)" : `var(--l-${r.hue})`, 32)}
+		<div class="value">${glyph(r.id, r.hue === "ink" ? "var(--ink)" : `var(--g-${r.hue}, var(--l-${r.hue}))`, 32)}
 			<span class="window"><span class="odo" aria-label="${r.value}">${Array.from({ length: DIGITS }, () => '<span class="digit"><span class="reel"></span></span>').join("")}</span></span></div>
 		<div class="forecast">${r.forecast}</div>
 		<span class="tag"></span>
@@ -590,12 +591,12 @@ document.querySelectorAll("[data-change]").forEach((b) => b.addEventListener("cl
 }));
 
 // ---- Cards ----
-const COST_HUE = { food: "ochre", wealth: "olive", insight: "blue" };
+const COST_HUE = { food: "sage", wealth: "ochre", insight: "blue" };
 function costPlate(c) {
 	const items = Object.entries(c.cost);
 	const label = "Costs " + items.map(([res, n]) => `${n} ${res}`).join(", ");
 	return `<span class="cost" role="img" aria-label="${label}">${items.map(([res, n]) =>
-		`<span class="cost-item ${c.short === res ? "short" : ""}">${glyph(res, `var(--l-${COST_HUE[res]})`, 20)}${n}</span>`).join("")}</span>`;
+		`<span class="cost-item ${c.short === res ? "short" : ""}">${glyph(res, `var(--g-${COST_HUE[res]}, var(--l-${COST_HUE[res]}))`, 20)}${n}</span>`).join("")}</span>`;
 }
 const CARDS = [
 	{ name: "Granary", type: "Building", hue: "olive", cost: { food: 1, wealth: 2 }, rules: "⟳ +1 food. Needs a city with a free slot.", vp: 1 },
