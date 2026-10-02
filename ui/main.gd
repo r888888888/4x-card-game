@@ -41,6 +41,7 @@ var _board: Control  # the top bar and the play area
 var _top_bar: TopBar
 var _menu: GameMenu
 var _menu_return: CardView  # the card to give the focus back to when the menu closes (null: the Menu button)
+var _menu_give_back := true  # whether the menu, as it closes, gives the focus back (not for Restart or New game)
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
@@ -70,18 +71,15 @@ func _ready() -> void:
 
 
 ## Keyboard play (CardFocus.handle_key). Only reached when no control with focus (a button or the seed field)
-## used the key. Nothing here runs while the menu is open.
+## used the key. Nothing here runs while a modal (the menu among them) is open.
 func _unhandled_key_input(event: InputEvent) -> void:
-	if Game.engine != null and event is InputEventKey and event.pressed and not _menu.is_open() and nav.depth() == 0 \
+	if Game.engine != null and event is InputEventKey and event.pressed and not modals.is_open() and nav.depth() == 0 \
 			and focus.handle_key(event as InputEventKey):
 		get_viewport().set_input_as_handled()
 
 
 func _input(event: InputEvent) -> void:
-	if _menu.is_open():
-		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-			get_viewport().set_input_as_handled()
-			_close_menu()
+	if _menu.is_open():  # a sheet on the stack: it takes its own keys (207)
 		return
 	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
 		get_viewport().set_input_as_handled()
@@ -158,7 +156,6 @@ func _leave_game() -> void:
 	modals.close_all()
 	_views.reset()
 	choices.refresh(null)
-	_game_over.overlay.hide()
 	_board.hide()
 
 
@@ -228,7 +225,7 @@ func section_headings() -> Array[Dictionary]:
 
 ## Test hook (067): the menu's buttons, in order.
 func menu_buttons() -> Array[Button]:
-	return UIKit.buttons_in(_menu.overlay)
+	return UIKit.buttons_in(_menu)
 
 
 ## Test hooks (182, 183): the menu's Reduce motion and Day mode keys.
@@ -252,7 +249,7 @@ func menu_sound_toggle() -> LegendKey:
 
 ## Test hook (067): the game-over overlay's buttons, in order.
 func game_over_buttons() -> Array[Button]:
-	return UIKit.buttons_in(_game_over.overlay)
+	return UIKit.buttons_in(_game_over)
 
 
 ## The top bar's counter for key (TopBar.counter, 177).
@@ -392,12 +389,18 @@ func open_menu() -> void:
 	_menu.open(Game.engine.seed_value)
 
 
-## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
+## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button. The menu's own close
+## (Close, Esc, a click outside) comes back here through close_requested once it has closed (207).
 func _close_menu(give_back := true) -> void:
-	_menu.hide()
+	if _menu.is_open():
+		_menu_give_back = give_back
+		_menu.close()
+		return
 	get_viewport().gui_release_focus()
 	var card := _menu_return
 	_menu_return = null
+	give_back = _menu_give_back
+	_menu_give_back = true
 	if not give_back:
 		return
 	if is_instance_valid(card) and focus.row().has(card):

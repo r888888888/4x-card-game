@@ -167,7 +167,7 @@ func test_tech_tiles_fill_their_era_column() -> void:
 	await wait_frames()
 	# Each tech is a row in its era column: the tile, then (140) a Learn button while it can be learned.
 	var tiles := UIKit.buttons_in(main.tech_tree).filter(func(b): return b.is_visible_in_tree() \
-		and b.get_parent() is HBoxContainer and b.get_index() == 0)
+		and b.get_parent() is HBoxContainer and b.get_index() == 0 and b.get_parent() != main.tech_tree.footer)  # 207: not the sheet's footer
 	check(not tiles.is_empty(), "tech tiles shown")
 	for b in tiles:
 		var row: HBoxContainer = b.get_parent()

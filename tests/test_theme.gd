@@ -310,24 +310,17 @@ func test_ui_kit_labels_use_the_variations() -> void:
 	parent.free()
 
 
-func test_overlay_panels_use_dark_panel() -> void:
+func test_overlay_panels_use_dark_panel_and_modals_the_sheet() -> void:
 	var main := open_main()
-	var panels: Array = [UIKit.overlay(main).get_meta("panel")]
-	for modal in [main.details, main.tech_tree]:
-		panels.append(modal.find_children("*", "PanelContainer", true, false)[0])
-	for panel in panels:
-		eq(panel.theme_type_variation, &"DarkPanel", "%s uses DarkPanel" % panel.get_path())
-		check(not panel.has_theme_stylebox_override("panel"), "%s: no stylebox of its own" % panel.get_path())
-	var event_panel: PanelContainer = null
+	var overlay_panel: PanelContainer = UIKit.overlay(main).get_meta("panel")
+	eq(overlay_panel.theme_type_variation, &"DarkPanel", "an overlay uses DarkPanel")
+	check(not overlay_panel.has_theme_stylebox_override("panel"), "an overlay: no stylebox of its own")
 	for c in main.get_children():
-		if c is EventModal:
-			event_panel = c.find_children("*", "PanelContainer", true, false)[0]
-	check(event_panel != null, "the event modal's panel")
-	if event_panel != null:
-		eq(event_panel.theme_type_variation, &"DarkPanel", "the event modal uses DarkPanel")
-		var box := stylebox(event_panel, "panel")
-		eq(box.bg_color.to_html(), Palette.RAISED.to_html(), "event panel background: DarkPanel's")
-		eq(box.border_color.to_html(), CardView.TYPE_COLORS[CardDef.EVENT].to_html(), "its border: the event colour")
+		if c is Modal:  # 207: every modal is a sheet in an ink rule, the event modal too
+			var panel: PanelContainer = (c as Modal).panel
+			eq(panel.theme_type_variation, &"Sheet", "%s uses Sheet" % c.get_script().get_global_name())
+			check(not panel.has_theme_stylebox_override("panel"), "%s: no stylebox of its own" % c.get_script().get_global_name())
+			eq(stylebox(panel, "panel").border_color.to_html(), Palette.TEXT.to_html(), "%s: an ink rule" % c.get_script().get_global_name())
 	close_main(main)
 
 

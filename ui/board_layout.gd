@@ -47,17 +47,17 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open())
 	main.add_child(main.toasts)
 
-	game_over = GameOverOverlay.new(main, func(): restart.call(Game.engine.seed_value), func(): restart.call(-1))
-	menu = GameMenu.new(main)
+	main.modals = ModalStack.new(main)
+	game_over = GameOverOverlay.new(main.modals, func(): restart.call(Game.engine.seed_value), func(): restart.call(-1))
+	menu = GameMenu.new(main.modals)
 	menu.start_requested.connect(func(seed_value: int):
 		close_menu.call(false)
 		restart.call(seed_value))
 	menu.new_game_requested.connect(func():
 		close_menu.call(false)
 		main.show_new_game_screen())
-	menu.close_requested.connect(close_menu)
+	menu.close_requested.connect(func(): close_menu.call(true))
 	menu.exit_requested.connect(func(): main.quit_hook.call())
-	main.modals = ModalStack.new(main)
 	main.details = CardDetailsModal.new(main.modals)
 	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)
 	event_modal = EventModal.new(main.modals)
