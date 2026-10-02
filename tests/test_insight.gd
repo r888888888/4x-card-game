@@ -102,7 +102,7 @@ func shown_label(root: Node, prefix: String) -> Label:
 	return null
 
 
-func test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change() -> void:
+func test_the_top_bar_shows_insight_with_its_forecast_and_tags_its_change() -> void:
 	var real := Game.engine
 	Game.engine = tech_engine(["pottery", "writing"], {"farm": 10},
 		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital", "scriptorium"], "territory": "homeland"}},
@@ -118,6 +118,7 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_floats_its_change() ->
 	Game.engine.resources["insight"] = 3
 	Game.engine.changed.emit()
 	await wait_frames()
-	check(shown_label(main, "+3 insight") != null, "a +3 insight token floats up")
+	var tag := counter_tag(counter)
+	eq(tag.text if tag != null else "", "+3", "a +3 tag beside Insight (181)")
 	close_main(main)
 	Game.engine = real
