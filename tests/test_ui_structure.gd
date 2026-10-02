@@ -150,3 +150,26 @@ func test_main_is_under_the_soft_limit() -> void:
 func test_the_ui_asks_the_engine_which_zone_holds_a_card() -> void:
 	check(source("res://ui/tableau_view.gd").contains("zone_of("), "TableauView.leading_zone uses zone_of")
 	check(source("res://ui/board_views.gd").contains("zone_of("), "the leave point uses zone_of")
+
+
+# --- 177: tests find counters by name ---
+
+## The counters' old prefixes, as string literals (built here so this file doesn't hold them itself).
+func counter_prefixes() -> Array[String]:
+	var out: Array[String] = []
+	for word in ["Food", "Wealth", "Insight", "Unrest", "Score", "Pop"]:
+		out.append("\"%s:\"" % word)
+	return out
+
+
+func test_no_test_finds_a_counter_by_its_text() -> void:
+	var found: Array[String] = []
+	for dir in ["res://tests", "res://tests/lib"]:
+		for file in DirAccess.get_files_at(dir):
+			if not file.ends_with(".gd"):
+				continue
+			var text := source(dir + "/" + file)
+			for prefix in counter_prefixes():
+				if text.contains(prefix):
+					found.append("%s/%s: %s" % [dir, file, prefix])
+	eq(found, [] as Array[String], "tests use counter(key) and counter_text(key), not a counter's text")

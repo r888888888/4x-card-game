@@ -36,15 +36,8 @@ func labels_starting(root: Node, prefix: String) -> Array[Label]:
 	return found
 
 
-## The one visible label under root whose text starts with prefix (fails the test if not exactly one).
-func only_label(root: Node, prefix: String) -> Label:
-	var found := labels_starting(root, prefix)
-	eq(found.size(), 1, "labels starting '%s'" % prefix)
-	return found[0] if not found.is_empty() else null
-
-
 ## Where a cost token for counter starts: centred just below it.
-func below(counter: Label) -> Vector2:
+func below(counter: Control) -> Vector2:
 	return counter.get_global_rect().get_center() + Vector2(0, counter.size.y)
 
 
@@ -115,7 +108,7 @@ func play(main: Node, id: String) -> Vector2:
 
 func test_a_food_cost_floats_up_from_the_food_counter() -> void:
 	await with_token_main(func(main: Node):
-		var counter := only_label(main, "Food:")
+		var counter: Control = main.counter(GameEngine.FOOD)
 		await play(main, "farm")
 		var start := below(counter)
 		var tokens := labels_starting(main, "−2 food")
@@ -128,8 +121,8 @@ func test_a_food_cost_floats_up_from_the_food_counter() -> void:
 
 func test_food_and_wealth_costs_float_up_from_their_own_counters_one_after_the_other() -> void:
 	await with_token_main(func(main: Node):
-		var food := only_label(main, "Food:")
-		var wealth := only_label(main, "Wealth:")
+		var food: Control = main.counter(GameEngine.FOOD)
+		var wealth: Control = main.counter(GameEngine.WEALTH)
 		await play(main, "guildhall")
 		var starts := [below(food), below(wealth)]
 		var food_tokens := labels_starting(main, "−2 food")
@@ -151,11 +144,12 @@ func test_food_and_wealth_costs_float_up_from_their_own_counters_one_after_the_o
 
 func test_a_supply_purchase_floats_up_from_the_screens_wealth_counter() -> void:
 	await with_token_main(func(main: Node):
-		var top_bar_wealth := only_label(main, "Wealth:")
 		main.supply.open(Game.engine)
 		await wait_frames()
-		var counters := labels_starting(main, "Wealth:")
-		counters.erase(top_bar_wealth)
+		var counters: Array[Control] = []
+		var own: Control = main.supply.counter(GameEngine.WEALTH)
+		if own != null and own.is_visible_in_tree() and own != main.counter(GameEngine.WEALTH):
+			counters.append(own)
 		eq(counters.size(), 1, "the supply screen's own wealth counter")
 		var pile: CardView = main.supply.views()[0]
 		main.supply.pick(pile)
@@ -173,7 +167,7 @@ func test_a_supply_purchase_floats_up_from_the_screens_wealth_counter() -> void:
 
 func test_a_food_gain_floats_up_from_the_food_counter() -> void:
 	await with_token_main(func(main: Node):
-		var counter := only_label(main, "Food:")
+		var counter: Control = main.counter(GameEngine.FOOD)
 		await play(main, "caravan")
 		var tokens := labels_starting(main, "+")
 		tokens = tokens.filter(func(l: Label): return l.text.ends_with("food"))
@@ -190,7 +184,7 @@ func test_a_food_gain_floats_up_from_the_food_counter() -> void:
 func test_with_reduce_motion_a_cost_fades_in_place_below_its_counter() -> void:
 	_calm = true
 	await with_token_main(func(main: Node):
-		var counter := only_label(main, "Food:")
+		var counter: Control = main.counter(GameEngine.FOOD)
 		await play(main, "farm")
 		var start := below(counter)
 		var tokens := labels_starting(main, "−2 food")
@@ -210,15 +204,15 @@ func test_with_reduce_motion_a_cost_fades_in_place_below_its_counter() -> void:
 
 # --- 126: every counter change floats its net change up from the counter ---
 
-const COUNTERS := ["Food:", "Wealth:", "Score:", "Pop:"]  # the bar's order
-const UNITS := {"Food:": "food", "Wealth:": "wealth", "Score:": "VP", "Pop:": "pop"}
+const COUNTERS := [GameEngine.FOOD, GameEngine.WEALTH, TopBar.SCORE, TopBar.POP]  # the bar's order
+const UNITS := {GameEngine.FOOD: "food", GameEngine.WEALTH: "wealth", TopBar.SCORE: "VP", TopBar.POP: "pop"}
 const POP := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}, "territory_deck": {"grassland": 1}}
 
 
-## The bar's counter values now, by counter prefix.
+## The bar's counter values now, by counter key.
 func values(e: GameEngine) -> Dictionary:
-	return {"Food:": e.resources.get(GameEngine.FOOD, 0), "Wealth:": e.resources.get(GameEngine.WEALTH, 0),
-		"Score:": e.score(), "Pop:": e.total_pop()}
+	return {GameEngine.FOOD: e.resources.get(GameEngine.FOOD, 0), GameEngine.WEALTH: e.resources.get(GameEngine.WEALTH, 0),
+		TopBar.SCORE: e.score(), TopBar.POP: e.total_pop()}
 
 
 ## "+2 food" / "−3 wealth" (a real minus) for a change of n on counter.
@@ -242,7 +236,7 @@ func tokens_on(main: Node) -> Array[Label]:
 func assert_net_tokens(main: Node, before: Dictionary, what: String) -> void:
 	var after := values(Game.engine)
 	var expected: Array[Label] = []
-	var counters: Array[Label] = []
+	var counters: Array[Control] = []
 	var texts: Array[String] = []
 	for counter in COUNTERS:
 		var n: int = after[counter] - before[counter]
@@ -255,7 +249,7 @@ func assert_net_tokens(main: Node, before: Dictionary, what: String) -> void:
 			continue
 		eq(found[0].get_theme_color("font_color"), UIKit.GAIN_COLOR if n > 0 else UIKit.COST_COLOR, "%s: %s colour" % [what, text])
 		expected.append(found[0])
-		counters.append(only_label(main, counter))
+		counters.append(main.counter(counter))
 		texts.append(text)
 	var others := tokens_on(main).filter(func(l: Label): return not texts.has(l.text))
 	eq(others.map(func(l: Label): return l.text), [], "%s: no other tokens" % what)
@@ -327,7 +321,7 @@ func test_a_grow_effect_floats_its_pop_up_from_the_pop_counter() -> void:
 		var before := values(e)
 		await play(main, "festival")
 		await wait_frames()
-		eq(e.total_pop() - before["Pop:"], 2, "Festival grew both territories")
+		eq(e.total_pop() - before[TopBar.POP], 2, "Festival grew both territories")
 		await assert_net_tokens(main, before, "festival"), {"scout": 10}, POP)
 
 
@@ -341,7 +335,7 @@ func test_a_grow_from_the_meter_floats_food_and_pop_up_from_their_counters() -> 
 		var before := values(e)
 		main.territory_view.grow_button.pressed.emit()
 		await wait_frames()
-		eq(e.total_pop() - before["Pop:"], 1, "grew")
+		eq(e.total_pop() - before[TopBar.POP], 1, "grew")
 		await assert_net_tokens(main, before, "grow"), {"scout": 10}, POP)
 
 
@@ -372,7 +366,7 @@ func test_starving_pop_floats_down_from_the_pop_counter() -> void:
 		var before := values(e)
 		e.end_turn()
 		await wait_frames()
-		check(e.total_pop() < before["Pop:"], "pop starved")
+		check(e.total_pop() < before[TopBar.POP], "pop starved")
 		await assert_net_tokens(main, before, "starving"), {"scout": 10}, POP)
 
 
@@ -436,7 +430,7 @@ func test_closing_the_supply_screen_after_buying_floats_nothing() -> void:
 func test_with_reduce_motion_a_gain_fades_in_place_below_its_counter() -> void:
 	_calm = true
 	await with_token_main(func(main: Node):
-		var counter := only_label(main, "Food:")
+		var counter: Control = main.counter(GameEngine.FOOD)
 		Game.engine.resources[GameEngine.FOOD] += 2
 		Game.engine.changed.emit()
 		await wait_frames()

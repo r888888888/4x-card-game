@@ -214,10 +214,10 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_floats_its_change() -> v
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 2)
 	await wait_frames()
-	var counter := shown_label(main, "Unrest:")
-	check(counter != null, "an Unrest counter in the top bar")
+	var counter: Control = main.counter(GameEngine.UNREST)
+	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
+	eq(main.counter_text(GameEngine.UNREST), "Unrest: 2 / 5 (+1)", "unrest, the limit and the forecast")
 	if counter != null:
-		eq(counter.text, "Unrest: 2 / 5 (+1)", "unrest, the limit and the forecast")
 		eq(counter.get_theme_color("font_color"), Palette.UNREST,
 			"below the limit: Palette.UNREST")
 	set_unrest(5)
@@ -233,10 +233,9 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("council", 2)
 	await wait_frames()
-	var counter := shown_label(main, "Unrest:")
-	check(counter != null, "an Unrest counter in the top bar")
-	if counter != null:
-		eq(counter.text, "Unrest: 2 (+1)", "unrest and the forecast, no limit")
+	var counter: Control = main.counter(GameEngine.UNREST)
+	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
+	eq(main.counter_text(GameEngine.UNREST), "Unrest: 2 (+1)", "unrest and the forecast, no limit")
 	close_main(main)
 	Game.engine = real
 
@@ -247,8 +246,8 @@ func test_the_top_bar_has_no_unrest_counter_when_unrest_is_off() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	check(shown_label(main, "Score:") != null, "the top bar is up")
-	check(shown_label(main, "Unrest:") == null, "no Unrest counter")
+	check(main.counter(TopBar.SCORE).is_visible_in_tree(), "the top bar is up")
+	check(not main.counter(GameEngine.UNREST).is_visible_in_tree(), "no Unrest counter shown")
 	close_main(main)
 	Game.engine = real
 
