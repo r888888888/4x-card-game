@@ -88,7 +88,7 @@ res://
                          # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
-                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_screen.gd (099)
+                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
                          # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193, 194: the guide's spacing,
