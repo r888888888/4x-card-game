@@ -2,7 +2,7 @@
 id: 205
 title: Revolt from the civilization modal, after a confirmation that says what follows
 type: feature
-status: ready
+status: red-review
 branch: feat/205-revolt-in-civilization-modal
 ---
 
@@ -47,6 +47,20 @@ numbers) under a line of flavor, so nobody revolts by a stray click.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_revolution::test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers`, `test_a_summary_leaves_out_what_the_config_lacks` |
+| AC2 | `test_revolution::test_no_summary_while_revolt_is_refused` |
+| AC3 | `test_civ_flavor::test_a_government_may_have_flavor_and_a_quote`; `test_content::test_the_anarchy_government_has_flavor_and_a_quote` (the config's Anarchy, by the config, not by id); existing `test_flavor_and_quote_validation` keeps flavor on a building or an action a warning |
+| AC4 | `test_revolt_modal::test_the_civilization_modal_ends_its_government_section_with_revolt`, `test_with_revolt_refused_the_button_is_disabled_with_the_reason`, `test_the_board_has_no_revolt_button`; removed: `test_revolution::test_the_revolt_button_shows_while_you_may_revolt_and_forecasts_the_anarchy` (the board's button goes) |
+| AC5 | `test_revolt_opens_a_confirmation_with_the_flavor_and_the_summary` |
+| AC6 | `test_revolt_in_the_confirmation_revolts_once_and_leaves_the_civilization_modal_open`, `test_keep_esc_or_a_click_outside_close_the_confirmation_without_revolting` |
+
+Decisions made writing the tests:
+- The renewal line reads "Each turn: trash N card(s), +1 per turn so far, from your discard (−1 unrest each)." (the
+  Anarchy card's own wording); the actions line names the config's `allowed_tag` ("order").
+- AC3 says flavor elsewhere is "still a load error", but today it is a warning ("only applies to civilizations",
+  ignored); "still" reads as "as today", so it stays a warning and the existing validation test is unchanged.
+- Hooks: `IdentityModal.revolt_button`; `main.revolt_modal` (`keep_button`, `confirm_button`, `body_text()`);
+  `main.revolt_button()` goes with the board's button.
 
 ## Manual check
 - [ ] Seed 5: open Sumer · Chiefdom, press Revolt…: the sheet reads well (flavor, list, two buttons), in both palettes.
