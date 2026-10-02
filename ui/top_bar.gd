@@ -2,7 +2,7 @@ class_name TopBar
 extends HBoxContainer
 ## The top bar: turn, food, wealth, insight (139) and unrest (144, out of its limit) (with next upkeep's change), score
 ## and pop, then
-## (115) Buy Cards, Knowledge, Log, End turn (120) and Menu (the civilization and government are in the Sidebar, 202). Any
+## (115) Buy Cards, Knowledge, Log and Menu (the civilization, the government and End turn are in the Sidebar: 202, 203). Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure and tags it with its net change
 ## (126, 181).
 
@@ -14,15 +14,9 @@ const TURN := "turn"
 
 var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
 var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in its tooltip (120)
-var end_turn_button: Button  # "End turn", or "Discard N (hand limit M)" while the hand is over its limit (120)
 var _turn_label: Label
 var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden while off, 144), score, pop (hidden while off)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
-# End turn's key (187): its release sounds wait for both the key coming up and its action (a mouse release sends
-# button_up before pressed, a key sends them the other way round).
-var _key_up := false
-var _acted := false  # the press ran end_turn; _turn_ended: and it ended the turn
-var _turn_ended := false
 var _fresh := true  # a new game's first refresh shows its values at once, with no tags (126)
 
 
@@ -44,63 +38,9 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	log_button = UIKit.button("Log", on_log)
 	log_button.tooltip_text = "Shortcut: L. The game log: everything that happened."
 	add_child(log_button)
-	end_turn_button = UIKit.button("End turn", _end_turn)
-	end_turn_button.theme_type_variation = "AccentButton"
-	end_turn_button.add_to_group(KeySounds.OWN_SOUNDS)
-	end_turn_button.button_down.connect(_end_turn_down)
-	end_turn_button.button_up.connect(_end_turn_up)
-	add_child(end_turn_button)
 	menu_button = UIKit.button("Menu", on_menu)
 	menu_button.tooltip_text = "Shortcut: Esc. New game, restart with a seed, reduce motion, exit."
 	add_child(menu_button)
-
-
-func _end_turn() -> void:
-	var turn := Game.engine.turn
-	Game.engine.end_turn()
-	_turn_ended = Game.engine.turn != turn
-	_acted = true
-	if _key_up:
-		_end_turn_released()
-
-
-## End turn's sounds (187): the desk's biggest key going down; coming up, a relay and the turn drum when its press
-## ended the turn, else the plain key's release (a discard is owed).
-func _end_turn_down() -> void:
-	_key_up = false
-	_acted = false
-	_turn_ended = false
-	var sfx := Sfx.find(self)
-	if sfx != null:
-		sfx.at_contact(Sfx.ENDTURN_PRESS, Anim.KEY_PRESS_TIME, Anim.SNAP, true)
-
-
-func _end_turn_up() -> void:
-	_key_up = true
-	if _acted:
-		_end_turn_released()
-	else:
-		_released_without_action.call_deferred()
-
-
-## A release that ran no action by the end of the frame (dragged off the key) only comes back up.
-func _released_without_action() -> void:
-	if not _acted:
-		_end_turn_released()
-
-
-func _end_turn_released() -> void:
-	_acted = true  # sound once
-	_key_up = false
-	var sfx := Sfx.find(self)
-	if sfx == null:
-		return
-	if not _turn_ended:
-		sfx.at_contact(Sfx.BUTTON_RELEASE, Anim.KEY_RELEASE_TIME, Anim.MACHINED, true)
-		return
-	var commit := 0.0 if UIKit.calm() else Anim.contact(Anim.KEY_RELEASE_TIME, Anim.MACHINED)
-	sfx.play(Sfx.ENDTURN_COMMIT, commit, true)
-	sfx.play(Sfx.ENDTURN_TURN, commit + Anim.ENDTURN_TURN_DELAY, true)
 
 
 ## The counter for key (a resource, SCORE, POP or TURN), or null for an unknown key (177).
@@ -158,14 +98,6 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
 	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
 		"" if limit >= 0 else " (it sets no limit)")) + "In brackets: change at the next upkeep."
-	var error := e.end_turn_error()
-	end_turn_button.disabled = error != ""
-	end_turn_button.tooltip_text = error if error != "" else "Shortcut: E. Upkeep, then draw up to your hand size."
-	var pending := e.pending()
-	if pending.get("kind", "") == GameEngine.PENDING_DISCARD:
-		end_turn_button.text = "Discard %d (hand limit %d)" % [pending.count, e.hand_limit()]
-	else:
-		end_turn_button.text = "End turn"
 	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
