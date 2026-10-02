@@ -128,3 +128,9 @@ func test_no_summary_while_revolt_is_refused() -> void:
 	check(e.revolt(), "revolt")
 	check(e.revolt_error() != "", "precondition: refused now")
 	eq(e.revolt_summary(), [], "nothing to confirm")
+
+
+func test_anarchy_id_names_the_configs_anarchy_government() -> void:
+	var e: Object = anarchy_engine()
+	eq(e.anarchy_id(), "anarchy", "the config's unrest.anarchy (the revolution's confirmation shows its flavor, 205)")
+	eq(make_engine({"farm": 5}).anarchy_id(), "", "none without an unrest block")

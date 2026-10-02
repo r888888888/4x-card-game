@@ -11,7 +11,6 @@ var top_bar: TopBar
 var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var relief: ActionButton  # below the Realm while a Famine can be relieved
 var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var menu: GameMenu
 var game_over: GameOverOverlay
 var event_modal: EventModal
@@ -68,6 +67,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
+	main.revolt_modal = RevoltModal.new(main.modals)
+	main.identity_modal.revolt_requested.connect(func(): main.revolt_modal.open(Game.engine))
 	main.settings_modal = SettingsModal.new(main.modals)
 	main.settings_modal.restart_requested.connect(func(seed_value: int):
 		close_menu.call(false)
@@ -117,7 +118,6 @@ func _build_board(main: MainScreen) -> void:
 	realm_section.add_child(relief_row)
 	relief = ActionButton.relieve_famine(relief_row)
 	restore = ActionButton.restore_order(relief_row)
-	revolt = ActionButton.revolt(relief_row)
 
 
 ## The hand section: its "In Hand" heading (the how-to in its tooltip) with the actions count right-aligned on its line

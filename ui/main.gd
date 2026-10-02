@@ -29,6 +29,7 @@ var key_sounds: KeySounds  # every button's click (187)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
+var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
 var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
 var tech_tree: TechTreeModal
@@ -48,7 +49,6 @@ var _menu: GameMenu
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
 var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var _revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
 var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
@@ -198,13 +198,9 @@ func relieve_button() -> Button:
 	return _relief.button
 
 
-## Test hooks (146, 148): the Restore order and Revolt buttons beside Relieve (visible or not).
+## Test hook (146): the Restore order button beside Relieve (visible or not). Revolt is in the civilization modal (205).
 func restore_order_button() -> Button:
 	return _restore.button
-
-
-func revolt_button() -> Button:
-	return _revolt.button
 
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
@@ -419,7 +415,6 @@ func _refresh() -> void:
 	log_drawer.refresh(e)
 	_relief.refresh(e)
 	_restore.refresh(e)
-	_revolt.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	supply.refresh(e)
@@ -449,7 +444,6 @@ func _build_layout() -> void:
 	_play_area = layout.play_area
 	_relief = layout.relief
 	_restore = layout.restore
-	_revolt = layout.revolt
 	_menu = layout.menu
 	_menu.closed_giving_back.connect(_on_menu_closed)
 	era_sheet.closed.connect(func(): if board_shown(): _refresh())
