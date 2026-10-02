@@ -31,7 +31,7 @@ func first_card_id() -> String:
 func test_a_modal_lays_a_sheet_down_and_a_stacked_one_is_quieter() -> void:
 	var main: Node = await open_game()
 	main.details.open_def(first_card_id())
-	main.tech_tree.open()
+	main.identity_modal.open()  # the tech tree is a screen since 208
 	var opens := records(main, Sfx.SHEET_OPEN)
 	eq(opens.map(func(r): return r.db), [0.0, -1.0], "the first sheet, then one stacked on it 1 dB quieter")
 	close_main(main)
@@ -40,7 +40,7 @@ func test_a_modal_lays_a_sheet_down_and_a_stacked_one_is_quieter() -> void:
 func test_closing_the_top_modal_lifts_its_sheet_once() -> void:
 	var main: Node = await open_game()
 	main.details.open_def(first_card_id())
-	main.tech_tree.open()
+	main.identity_modal.open()
 	var before: int = main.sfx.played().size()
 	main.modals.close(main.modals.top())
 	eq(tokens(main, before), [Sfx.SHEET_CLOSE], "one lift")
@@ -50,8 +50,8 @@ func test_closing_the_top_modal_lifts_its_sheet_once() -> void:
 func test_close_all_lifts_once_however_many_are_open() -> void:
 	var main: Node = await open_game()
 	main.details.open_def(first_card_id())
-	main.tech_tree.open()
 	main.identity_modal.open()
+	main.open_menu()
 	eq(main.modals.depth(), 3, "three open")
 	var before: int = main.sfx.played().size()
 	main.modals.close_all()
@@ -115,14 +115,15 @@ func test_a_modal_opened_with_a_notice_is_3_db_quieter() -> void:
 
 func test_a_sheet_the_player_opens_or_closes_is_their_input() -> void:
 	var main: Node = await open_game()
-	main.tech_tree.open()
+	main.identity_modal.open()
 	eq(records(main, Sfx.SHEET_OPEN).map(func(r): return r.input), [false], "opened by the game: a system sound")
 	main.modals.close_all()
 	await wait_frames()
-	press_key(main, KEY_T)
+	main.get_viewport().gui_release_focus()
+	press_key(main, KEY_ESCAPE)  # the menu: a sheet the player opened (the tree was a screen's key since 208)
 	await wait_frames()
-	check(main.modals.top() == main.tech_tree, "T opens the tree")
-	eq(records(main, Sfx.SHEET_OPEN).map(func(r): return r.input), [false, true], "opened by T: the player's")
+	check(main.modals.top() != null, "Esc opens the menu")
+	eq(records(main, Sfx.SHEET_OPEN).map(func(r): return r.input), [false, true], "opened by Esc: the player's")
 	press_key(main, KEY_ESCAPE)
 	await wait_frames()
 	var closes := records(main, Sfx.SHEET_CLOSE)

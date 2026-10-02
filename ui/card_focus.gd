@@ -62,7 +62,7 @@ func handle_key(event: InputEventKey) -> bool:
 	if event.keycode == KEY_S and not event.echo:
 		_board.open_supply()
 	elif event.keycode == KEY_T and not event.echo:
-		_board.tech_tree.open()
+		_board.knowledge.toggle()
 	elif event.keycode == KEY_L and not event.echo:
 		_board.log_drawer.open()  # while open, the drawer takes L and closes itself
 	elif event.keycode == KEY_E and not event.echo:

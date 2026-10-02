@@ -12,7 +12,7 @@ const COMPONENTS := {
 	"res://ui/drag_controller.gd": "DragController",
 	"res://ui/card_focus.gd": "CardFocus",
 	"res://ui/card_details_modal.gd": "CardDetailsModal",
-	"res://ui/tech_tree_modal.gd": "TechTreeModal",
+	"res://ui/knowledge_screen.gd": "KnowledgeScreen",  # 208: the tech tree modal before it
 	"res://ui/event_modal.gd": "EventModal",
 	"res://ui/new_game_screen.gd": "NewGameScreen",
 	"res://ui/settings_modal.gd": "SettingsModal",  # 206: replaced the settings screen
@@ -122,9 +122,9 @@ func test_ui_names_no_card_from_the_real_data() -> void:
 
 func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
 	check(source(MAIN_PATH).contains("needs_target_choice("), "main.gd asks needs_target_choice")
-	var tree := source("res://ui/tech_tree_modal.gd")
-	check(tree.contains("tech_eras()"), "tech_tree_modal.gd builds from tech_eras()")
-	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "tech_tree_modal.gd reads no config or tech_tree()")
+	var tree := source("res://ui/knowledge_screen.gd")
+	check(tree.contains("tech_eras()"), "knowledge_screen.gd builds from tech_eras()")
+	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "knowledge_screen.gd reads no config or tech_tree()")
 	var supply := source("res://ui/supply_screen.gd")
 	check(supply.contains("open_supply_piles()") and not supply.contains("supply_locked"),
 		"supply_screen.gd shows open_supply_piles() and filters nothing itself")

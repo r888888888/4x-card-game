@@ -128,7 +128,7 @@ func test_a_key_skips_and_closes_and_nothing_else_takes_keys() -> void:
 		check(main.era_sheet.finished(), "a key skips to the end")
 		eq(e.turn, turn, "and doesn't end the turn")
 		press_key(main, KEY_T)
-		check(main.tech_tree.shown().is_empty(), "T opens nothing under it")
+		check(main.knowledge.shown().is_empty(), "T opens nothing under it")
 		check(not main.era_sheet.is_open(), "the second key closes it")
 		await wait_seconds(0.16 + SLACK)
 		while not main.event_modal().is_empty():  # the turn's event, which waited for the sheet (AC6)

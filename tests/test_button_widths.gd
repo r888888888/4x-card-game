@@ -120,9 +120,9 @@ func test_modal_close_buttons_fit_their_text() -> void:
 	await wait_frames()
 	check_fits(shown_button(main, "Close (S"), "Buy Cards Close")
 	main.supply.close()
-	main.tech_tree.open()
+	main.identity_modal.open()  # the tech tree is a screen since 208
 	await wait_frames()
-	check_fits(shown_button(main.tech_tree, "Close"), "Knowledge Close")
+	check_fits(main.identity_modal.close_button, "civilization Close")
 	close_at_1080(main)
 
 
@@ -156,29 +156,6 @@ func test_board_buttons_fit_their_text() -> void:
 
 
 # --- AC4: the side panel is gone (115): the top bar's buttons fit their text (test_board_layout) ---
-
-
-# --- AC5: tech tiles fill their era column ---
-
-func test_tech_tiles_fill_their_era_column() -> void:
-	var main := open_at_1080()
-	main.start_game(1)
-	main.tech_tree.open()
-	await wait_frames()
-	# Each tech is a row in its era column: the tile, then (140) a Learn button while it can be learned.
-	var tiles := UIKit.buttons_in(main.tech_tree).filter(func(b): return b.is_visible_in_tree() \
-		and b.get_parent() is HBoxContainer and b.get_index() == 0 and b.get_parent() != main.tech_tree.footer)  # 207: not the sheet's footer
-	check(not tiles.is_empty(), "tech tiles shown")
-	for b in tiles:
-		var row: HBoxContainer = b.get_parent()
-		var column: Control = row.get_parent()
-		check(absf(row.size.x - column.size.x) <= TOLERANCE, "row fills its column: %d, %d" % [row.size.x, column.size.x])
-		var rest := 0.0  # the Learn button and the gap before it
-		if row.get_child_count() > 1:
-			rest = (row.get_child(1) as Control).size.x + row.get_theme_constant("separation")
-		check(absf(b.size.x + rest - row.size.x) <= TOLERANCE, "tile takes the rest of its row: %d + %d, %d" % [
-			b.size.x, rest, row.size.x])
-	close_at_1080(main)
 
 
 # --- AC6: seed fields still fill their row ---

@@ -37,7 +37,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
   stretch; build such a column with `UIKit.button_column`). Buttons that are really list
-  rows or content tiles (the government overlay's cards, the tech tree's techs) may fill.
+  rows or content tiles (the government overlay's cards, the Knowledge screen's techs) may fill.
 - Spacing, margins, corner radii and text sizes are `Tokens` steps (`ui/tokens.gd`, the guide's scales), never numbers
   (the suite checks); a repeated text look is a `GameTheme` variation (`Body`, `Caption`, `RichBody`, …).
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour

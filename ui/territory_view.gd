@@ -26,7 +26,7 @@ var _meter: HBoxContainer  # the pop meter (124): a pip per housing, Grow on the
 var _pips: Array[Panel] = []  # the meter's filled and empty pips, Grow not among them
 var _outside_press := false  # the left button went down on the view outside the box (200)
 var _growing := false  # while a grow from the meter runs, so the refresh it causes pops the new pip in
-var _nav := Navigator.new()
+var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
 var _board: MainScreen
 
@@ -37,8 +37,8 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_realm = realm
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
-	_nav.animated = true
-	header = ScreenHeader.new(_nav, close)
+	nav.animated = true
+	header = ScreenHeader.new(nav, close)
 	add_child(header)
 	back_button = header.back_button
 	mouse_filter = Control.MOUSE_FILTER_STOP  # a click on the view outside the box closes it (200)
@@ -90,7 +90,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	hide()
 	realm.get_parent().add_child(self)
 	realm.get_parent().move_child(self, realm.get_index() + 1)
-	_nav.set_root(realm, null, _realm_title())
+	nav.set_root(realm, null, _realm_title())
 
 
 func is_open() -> bool:
@@ -104,7 +104,7 @@ func open(t: int) -> void:
 	global_position = _realm.global_position  # where its container will put it: the Realm's place
 	size = _realm.size
 	var title := Game.engine.zone("tableau").find(t).def.name
-	_nav.push(self, null, title, card.get_global_rect() if card != null else Rect2())
+	nav.push(self, null, title, card.get_global_rect() if card != null else Rect2())
 	navigated.emit()
 
 
@@ -112,7 +112,7 @@ func open(t: int) -> void:
 func close() -> void:
 	var was := uid
 	var keyboard := _board.focus.focused != null
-	if not _nav.back():
+	if not nav.back():
 		return
 	uid = -1
 	navigated.emit()
@@ -122,7 +122,7 @@ func close() -> void:
 
 ## Closes the view without refreshing the board (a new game, or the territory is gone).
 func reset() -> void:
-	_nav.set_root(_realm, null, _realm_title())
+	nav.set_root(_realm, null, _realm_title())
 	uid = -1
 
 

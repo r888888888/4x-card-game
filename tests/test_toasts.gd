@@ -176,12 +176,12 @@ func test_toasts_hide_while_the_menu_is_open_and_show_when_it_closes() -> void:
 		eq(main.toasts.texts(), ["Famine ends."], "the notice waited"))
 
 
-func test_toasts_hide_while_the_tech_tree_is_open() -> void:
+func test_toasts_hide_while_knowledge_is_open() -> void:
 	await with_game(false, func(main: Node):
-		main.tech_tree.open()
+		main.knowledge.open()  # a screen since 208
 		notice("Famine ends.")
 		await wait_frames()
-		check(not (main.toasts as Control).is_visible_in_tree(), "hidden under the tech tree")
-		main.tech_tree.close()
-		await wait_frames()
+		check(not (main.toasts as Control).is_visible_in_tree(), "hidden under Knowledge")
+		main.knowledge.close()
+		await wait_screen_transition()
 		check((main.toasts as Control).is_visible_in_tree(), "shown when it closes"))

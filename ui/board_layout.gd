@@ -49,7 +49,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.add_child(main.log_drawer)
 	main.log_drawer.unread_changed.connect(top_bar.set_log_unread)
 	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
-		or main.era_sheet.is_open())
+		or main.era_sheet.is_open() or main.knowledge.is_open())
 	main.add_child(main.toasts)
 
 	main.modals = ModalStack.new(main)
@@ -64,7 +64,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	menu.exit_requested.connect(func(): main.quit_hook.call())
 	menu.settings_requested.connect(func(): main.settings_modal.open(Game.engine.seed_value))
 	main.details = CardDetailsModal.new(main.modals)
-	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)
+	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_def)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	main.revolt_modal = RevoltModal.new(main.modals)
@@ -92,7 +92,7 @@ func _build_board(main: MainScreen) -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", Tokens.SPACE_3)
 	margin.add_child(root)
-	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.log_drawer.toggle())
+	top_bar = TopBar.new(main.open_menu, func(): main.knowledge.toggle(), func(): main.log_drawer.toggle())
 	root.add_child(top_bar)
 
 	var below := HBoxContainer.new()  # the play area, then the sidebar at the right edge (202)
