@@ -53,7 +53,7 @@ func test_pending_is_empty_when_nothing_is_owed() -> void:
 
 # --- AC2: explore ---
 
-## Options come top of the reveal zone first, as in pending_choice: Grassland (drawn last) before Hills.
+## Options come top of the reveal zone first: Grassland (drawn last) before Hills.
 func test_pending_explore_lists_the_revealed_territories_top_first() -> void:
 	var e := pending_engine()
 	var hills := uid_of(e.zone("territory_deck"), "hills")
@@ -93,3 +93,33 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 		eq(e.buy_tech_error(uid_of(e.zone("research_deck"), "pottery")), row[3], "%s: buy_tech_error (140)" % kind)
 		eq(e.discard_error(first_in_hand(e)), "" if row[4] else msg, "%s: discard_error (093)" % kind)
 		eq(e.discard_card(first_in_hand(e)), row[4], "%s: discard_card" % kind)
+
+
+# --- 172 AC1: one pending dictionary in the state ---
+
+func test_the_state_holds_one_pending_decision() -> void:
+	var names := script_vars(GameState.new())
+	check(names.has("pending"), "GameState.pending")
+	for old in ["pending_choice", "discard_left", "renewal_left", "choosing_government"]:
+		check(not names.has(old), "GameState.%s is gone" % old)
+	var fresh: Object = GameState.new()  # red phase: pending is new
+	eq(fresh.get("pending"), {}, "nothing owed on a new state")
+	var e := pending_engine()
+	var explorer := put_in_hand(e, "explorer")
+	check(e.play_card(explorer), "play Explorer")
+	var p: Variant = e.state.get("pending")
+	eq(p.get("kind") if p is Dictionary else null, GameEngine.PENDING_EXPLORE, "state.pending's kind")
+	eq(p.get("source") if p is Dictionary else null, explorer, "the explore source, stored as a uid")
+
+
+func test_pending_returns_a_copy() -> void:
+	var e := pending_explore_engine()
+	var options: Array = e.pending().options
+	options.clear()
+	eq(e.pending().options.size(), 2, "the options after clearing the returned ones")
+
+
+# --- 172 AC3: no pending_choice on the engine ---
+
+func test_the_engine_has_no_pending_choice() -> void:
+	check(not ("pending_choice" in pending_engine()), "EngineCore.pending_choice is gone")

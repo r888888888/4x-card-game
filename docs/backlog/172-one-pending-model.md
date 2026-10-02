@@ -2,7 +2,7 @@
 id: 172
 title: One pending-decision model
 type: feature
-status: ready
+status: red-review
 branch: feat/172-one-pending-model
 ---
 
@@ -48,6 +48,23 @@ own checks. From the 2026-10-01 project review.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_pending::test_the_state_holds_one_pending_decision`, `test_pending::test_pending_returns_a_copy` (the shapes: test_pending's existing tests) |
+| AC2 | `test_blocking::test_each_decision_action_names_game_over_then_the_owed_decision_then_nothing_owed` |
+| AC3 | `test_pending::test_the_engine_has_no_pending_choice`; rewritten on `pending()`: test_explore (5 tests), test_growth, test_hand_limit, test_ui_queries, test_population, test_changed, test_supply (`test_cannot_buy_while_an_explore_choice_is_pending` sets `state.pending`); test_ui_structure's `INTERNALS` |
+| AC4 | `test_blocking::test_every_action_sits_under_actions_beside_its_error_query` |
+| AC5 | 171's guards and every other test unedited; `scripts/sim.sh 20` before and after (Manual check) |
+| AC6 | Docs: the `add-decision` skill, CLAUDE.md, `docs/development-process.md` (at close) |
+
+## Manual check
+- [ ] `scripts/sim.sh 20` prints the same on `main` and on this branch (Claude runs both and pastes the comparison in
+  the Log).
 
 ## Log
 - 2026-10-01: Specced from the project review. Decided: one dictionary (not just consistent checks on four fields).
+- 2026-10-01: Red. AC2 read as one rule for all four decision actions, so beyond the two named changes: `choose_error`
+  says "The game is over." at game over and the owed decision's message while a discard, renewal or government choice
+  is owed (today "There is no territory to choose."); `renew_error` and `choose_government_error` likewise give the
+  game-over or owed-decision message before their "nothing owed" one. `discard_error` already did. AC4 puts
+  `end_turn_error`, `play_error`, `buy_error` and `buy_tech_error` under Actions too, each beside its action;
+  `supply_error` stays a query (the supply screen isn't an action). test_game_state and test_actions only name the
+  old field in a test name, so they need no rewrite.

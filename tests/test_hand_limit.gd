@@ -160,7 +160,7 @@ func test_discarding_the_whole_hand_redraws_next_turn() -> void:
 func test_discard_refused_while_a_choice_is_pending() -> void:
 	var e := make_engine({"explorer": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(e.play_card(first_in_hand(e)), "explore")
-	check(not e.pending_choice.is_empty(), "choice pending")
+	check(e.pending().get("kind") == GameEngine.PENDING_EXPLORE, "choice pending")
 	var uid := first_in_hand(e)
 	check(not e.discard_card(uid), "refused")
 	check(in_zone(e, "hand", uid), "still in hand")

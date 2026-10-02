@@ -120,3 +120,55 @@ func test_the_action_table_names_every_action_with_an_error_query() -> void:
 		listed.append(row[0])
 	listed.append_array(NOT_BLOCKED)
 	eq(sorted(listed), sorted(expected), "actions with an error query")
+
+
+# --- 172 AC2: each decision's own action: game over, then another owed decision, then nothing owed ---
+
+func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothing_owed() -> void:
+	const OVER := "The game is over."
+	const EXPLORE := "Choose a territory first."
+	const DISCARD := "Discard down to 5 cards first."
+	const RENEWAL := "Anarchy: trash 1 card from your discard first."
+	const GOVERNMENT := "Choose a government first."
+	var states := {"nothing owed": blocking_engine()}
+	for scenario in scenarios():
+		states[scenario[0]] = scenario[1]
+	# Each row: the action's error query for uid -1, then its message in each state, in the order of states' keys.
+	var rows := [
+		["choose", func(e): return e.choose_error(-1),
+			["There is no territory to choose.", "That territory isn't an option.", DISCARD, RENEWAL, GOVERNMENT, OVER]],
+		["renew", func(e): return e.renew_error(-1),
+			["Nothing to renew.", EXPLORE, DISCARD, Anarchy.RENEW_ERROR, GOVERNMENT, OVER]],
+		["choose_government", func(e): return e.choose_government_error(-1),
+			["No government to choose.", EXPLORE, DISCARD, RENEWAL,
+			"That government isn't in your government deck.", OVER]],
+		["discard_card", func(e): return e.discard_error(-1),
+			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", RENEWAL, GOVERNMENT, OVER]],
+	]
+	eq(states.keys(), ["nothing owed", "explore", "discard", "renewal", "government", "game over"], "states")
+	for row in rows:
+		var labels: Array = states.keys()
+		for i in labels.size():
+			eq(row[1].call(states[labels[i]]), row[2][i], "%s_error while %s" % [row[0], labels[i]])
+
+
+# --- 172 AC4: every action under # --- Actions ---, beside its error query ---
+
+func test_every_action_sits_under_actions_beside_its_error_query() -> void:
+	var lines := FileAccess.get_file_as_string("res://engine/game_engine.gd").split("\n")
+	var start := lines.find("# --- Actions ---")
+	check(start != -1, "an Actions section")
+	var funcs: Array[String] = []  # the function names in the Actions section, in order
+	for i in range(start + 1, lines.size()):
+		if lines[i].begins_with("# --- "):
+			break
+		if lines[i].begins_with("func "):
+			funcs.append(lines[i].trim_prefix("func ").get_slice("(", 0))
+	var names: Array = actions().map(func(row): return row[0]).filter(func(n): return n != "supply")
+	names.append_array(NOT_BLOCKED)
+	for name in names:
+		var query: String = ERROR_OF.get(name, name + "_error")
+		var at := funcs.find(name)
+		check(at != -1, "%s under # --- Actions ---" % name)
+		check(at != -1 and (funcs.find(query) == at - 1 or funcs.find(query) == at + 1),
+			"%s beside %s: %s" % [query, name, funcs])

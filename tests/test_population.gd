@@ -126,7 +126,7 @@ func test_unsettled_territories_have_no_pop() -> void:
 	check(e.play_card(first_in_hand(e)), "explore")
 	for c in e.zone("reveal").cards:
 		eq(e.pop(c.uid), 0, "revealed pop")
-	e.choose(e.pending_choice.options[0])
+	e.choose(e.pending().options[0])
 	eq(e.pop(e.zone("frontier").cards[0].uid), 0, "frontier pop")
 	eq(e.total_pop(), 2, "only homeland counts")
 

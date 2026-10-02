@@ -39,7 +39,7 @@ func test_bug_048_each_successful_action_emits_changed_once() -> void:
 	expect_changes("play_card", e, func(): return e.play_card(first_in_hand(e)), true, 1)
 
 	e = explore_engine()
-	expect_changes("choose", e, func(): return e.choose(e.pending_choice.options[0]), true, 1)
+	expect_changes("choose", e, func(): return e.choose(e.pending().options[0]), true, 1)
 
 	e = make_engine({"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}})
 	e.resources.food = 5
