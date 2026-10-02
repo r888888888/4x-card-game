@@ -4,7 +4,8 @@ extends RefCounted
 ## (scripts/sim.sh) and the balance skill. run_files can spread the games over child processes (152): each plays one
 ## shard of the job list (play_shard) and writes its games to a file, which the parent reads back (read_shards).
 
-const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored"]
+const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
+	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
 ## How long a parallel run waits for its child processes before killing them (their shards then fail the run).
 const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
 
@@ -13,7 +14,10 @@ const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
 ## {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how many turns the territory deck lasted:
 ## the turn it ran out, or the last turn played if it never did. For each era with techs in the research deck (143),
 ## era_<n>_open is the turn it was added (1 for era 1) and era_<n>_done the turn its last tech was researched; either
-## is the last turn played when it never happened.
+## is the last turn played when it never happened. The Anarchy metrics (158): anarchies (times it began), revolts,
+## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
+## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
+## trashed by the end), and <id>_turns per government (see _governments): turns that started with it ruling.
 static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := "baseline", civ := "") -> Dictionary:
 	return _summaries(_values(cards, config, seeds, strategy, civ))
 
@@ -32,9 +36,12 @@ static func _collect(games: Array, names: Array[String]) -> Dictionary:
 	return values
 
 
-## The metrics a game reports, in report order: METRICS, then era_<n>_open and era_<n>_done for each era with techs.
+## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, then era_<n>_open and
+## era_<n>_done for each era with techs.
 static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]:
 	var names := METRICS.duplicate()
+	for id in _governments(cards, config):
+		names.append("%s_turns" % id)
 	for n in _techs_per_era(cards, config):
 		names.append_array(["era_%d_open" % n, "era_%d_done" % n])
 	return names
@@ -55,14 +62,61 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 			var learned := engine.zone("researched").cards.filter(func(c): return c.def.era == n).size()
 			if not seen.has("era_%d_done" % n) and learned >= era_techs[n]:
 				seen["era_%d_done" % n] = engine.turn
+	var tally := {"anarchies": 0, "revolts": 0, "anarchy_turns": 0, "restored": 0, "gov_changes": 0, "famine_turns": 0}
+	for id in _governments(cards, config):
+		tally["%s_turns" % id] = 0
+	var last := {"turn": 0, "anarchy": false, "government": config.starting.get("government", "")}
+	var on_state := func():  # Anarchy and government changes, and what each turn started with (158)
+		var in_anarchy := engine.anarchy() != -1
+		if in_anarchy and not last.anarchy:
+			tally.anarchies += 1
+		last.anarchy = in_anarchy
+		var gov := engine.zone("government")
+		var ruling: String = "" if gov.is_empty() or in_anarchy else gov.cards[0].def.id
+		if ruling != "":
+			if last.government != "" and ruling != last.government:
+				tally.gov_changes += 1
+			last.government = ruling
+		if engine.turn > last.turn:
+			last.turn = engine.turn
+			tally.anarchy_turns += 1 if in_anarchy else 0
+			tally.famine_turns += 1 if engine.famine_counters() > 0 else 0
+			if tally.has("%s_turns" % ruling):
+				tally["%s_turns" % ruling] += 1
+	var on_revolted := func(): tally.revolts += 1
+	var on_restored := func(): tally.restored += 1
 	engine.changed.connect(on_changed)
+	engine.changed.connect(on_state)
+	engine.revolted.connect(on_revolted)
+	engine.order_restored.connect(on_restored)
 	on_changed.call()  # an empty territory deck from the start, era 1 open
+	on_state.call()  # turn 1 as it started
 	ScriptedBot.play(engine, job[1])
-	engine.changed.disconnect(on_changed)  # on_changed holds engine: break the cycle so it is freed
+	engine.changed.disconnect(on_changed)  # the callables hold engine: break the cycle so it is freed
+	engine.changed.disconnect(on_state)
+	engine.revolted.disconnect(on_revolted)
+	engine.order_restored.disconnect(on_restored)
 	var game := game_metrics(engine, config)
+	game.merge(tally)
 	var out := {}
 	for m in names:
 		out[m] = game[m] if game.has(m) else seen.get(m, engine.turn)
+	return out
+
+
+## The governments a game can have, in config order (158): starting.government, then each one a card creates, in
+## card order; never the unrest.anarchy card.
+static func _governments(cards: Dictionary, config: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	var anarchy: String = config.get("unrest", {}).get("anarchy", "")
+	var ids: Array[String] = [config.starting.get("government", "")]
+	for id in cards:
+		for effect in cards[id].effects:
+			if effect.op == "create":
+				ids.append_array(effect.referenced_cards().filter(func(c): return cards[c].type == CardDef.GOVERNMENT))
+	for id in ids:
+		if id != "" and id != anarchy and not out.has(id):
+			out.append(id)
 	return out
 
 
@@ -100,6 +154,7 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 		"techs": engine.zone("researched").size(),
 		"bought": bought,
 		"era": engine.era(),
+		"trashed": engine.zone("trashed").size(),
 	}
 
 

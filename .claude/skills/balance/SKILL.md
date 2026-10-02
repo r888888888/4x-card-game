@@ -10,6 +10,9 @@ The simulator plays one ScriptedBot game per seed (1..N) and reports mean, min a
 (founded beyond the starting ones), `pop` (at game end), `techs` (researched), `bought` (supply buys), `era`,
 `explored` (turns the territory deck lasted) and, per era with techs (143), `era_<n>_open` / `era_<n>_done` (the turn
 the era was added / its last tech was learned; the turn limit if never).
+Anarchy and governments (158): `anarchies`, `revolts`, `anarchy_turns` (turns that started under it), `restored`
+(order bought), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
+`<id>_turns` per government a game can have (turns that started with it ruling).
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.

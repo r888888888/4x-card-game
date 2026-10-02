@@ -26,6 +26,10 @@ signal card_played(outcome: Dictionary)
 ## gained, lost, vp, drawn, created}, as card_played's plus the event's card id; lost maps resource -> what a lose
 ## effect actually took.
 signal event_drawn(outcome: Dictionary)
+## Emitted when revolt() declares a revolution (155), before changed; the sim counts them (158).
+signal revolted
+## Emitted when restore_order() buys order (155), before changed; the sim counts them (158).
+signal order_restored
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
