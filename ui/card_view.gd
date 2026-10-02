@@ -157,11 +157,11 @@ func set_shortfall(short: Array[String]) -> void:
 	_face.show_shortfall(short)
 
 
-## Shows a settled territory's face (123): its keyword line, its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip,
-## all from the board.
-func show_settled(keywords: String, live: String, tip: String) -> void:
-	_replays["settled"] = show_settled.bind(keywords, live, tip)
-	_face.show_settled(keywords, live)
+## Shows a settled territory's face (123): its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip, both from the board.
+## Its keywords show in its territory view, not on the card (199).
+func show_settled(live: String, tip: String) -> void:
+	_replays["settled"] = show_settled.bind(live, tip)
+	_face.show_settled(live)
 	_face.rules_tip = tip
 	_set_tip(_hint)
 
