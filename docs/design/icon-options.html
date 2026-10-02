@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resource Icons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--knob: #FBF8F2; --on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--knob: #57524A; --on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 74ch; margin: 0 0 var(--space-6); }
+section { margin-bottom: var(--space-6); }
+.titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding-top: var(--space-3); margin-bottom: var(--space-4); }
+.titleblock h2 { margin: 0; font: 500 26px/32px var(--f-display); }
+.titleblock .caps { margin-left: auto; }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px; padding: 4px; background: var(--shadow); }
+.cand { background: var(--sheet); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.cand.current { background: var(--well); }
+.cand h3 { margin: 0; font: 600 17px/20px var(--f-cond); display: flex; justify-content: space-between; gap: var(--space-2); }
+.cand p { margin: 0; font-size: 14px; line-height: 19px; color: var(--ink-2); }
+.sizes { display: flex; align-items: center; gap: var(--space-4); }
+.big { width: 64px; height: 64px; display: grid; place-items: center; border: 1px dashed var(--rule-fine); }
+.window { display: inline-flex; align-items: center; gap: var(--space-2); }
+.window .val { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); padding: 2px 6px; font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums; }
+.cost { display: inline-flex; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.cost span { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px 1px 3px; font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums; }
+.tiny { display: inline-flex; align-items: center; gap: 4px; font: 500 12px/1 var(--f-cond); color: var(--ink-3); }
+.cost span + span { border-left: 1px solid var(--rule); }
+.lineup { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-4) var(--space-5); }
+.lineup figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.lineup figcaption { font: 600 12px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.pick { font: 600 11px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--sheet); background: var(--ink); padding: 1px 5px; align-self: flex-start; }
+</style>
+</head>
+<body>
+<header>
+	<h1>Resource icons</h1>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Candidates for food, wealth, insight and unrest, drawn to the guide's icon rules (§8): a 24 grid, one 2 px stroke scaled with size, square caps and mitred joins, circles, arcs, squares and straight lines only, five primitives at most. Each is shown large, at the resource bar's 32 px beside a value window, at the cost plate's 20 px, and at 16 px, the smallest any resource glyph is drawn. The current glyph is first in each row, on a darker tile. The last section puts the chosen set beside pop, score and the card-type marks to check they stay distinct.</p>
+	<div id="sections"></div>
+</main>
+<script>
+// Each glyph is the inner SVG of a 24×24 stroke icon. "fill" marks a part drawn solid in the icon's colour.
+const RES = [
+	{ id: "food", name: "Food", hue: "sage", cands: [
+		{ key: "wheat", name: "Wheat ear", svg: '<path d="M12 22V3M12 10L8 7M12 10l4-3M12 14l-4-3M12 14l4-3M12 18l-4-3M12 18l4-3"/>',
+			note: "The first pick, now green: young wheat in the field rather than the harvested grain." },
+		{ key: "leaf", name: "Leaf", svg: '<path d="M5 19A12 12 0 0 1 19 5A12 12 0 0 1 5 19z"/><path d="M5 19L15 9M3 21l2-2"/>',
+			note: "A single leaf with its midrib. The simplest green-food mark; could also read as nature or ecology." },
+		{ key: "sprout", name: "Sprout", svg: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+			note: "A seedling with two leaves: farming and growth at once, which is what food does in the game (it grows pop). Clear at 16 px.", pick: true },
+		{ key: "apple", name: "Apple", svg: '<circle cx="12" cy="14" r="7"/><path d="M12 7V3"/><path d="M12 6A4 4 0 0 1 17 3A4 4 0 0 1 12 6z"/>',
+			note: "Fruit: a disc with a stem and leaf. Plainly food; the disc alone is the City mark, so the stem has to stay legible." },
+		{ key: "pea", name: "Pea pod", svg: '<path d="M2 12A14 14 0 0 1 22 12A14 14 0 0 1 2 12z"/><circle cx="7" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="17" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
+			note: "A pod with three peas: almost pure geometry (one almond, three dots) and very mid-century. At 20 px and below it reads as an eye." },
+		{ key: "maize", name: "Maize", svg: '<path d="M12 3A10 10 0 0 1 12 17A10 10 0 0 1 12 3z"/><path d="M12 21A12 12 0 0 1 5 9M12 21A12 12 0 0 0 19 9"/>',
+			note: "A cob in its husk: a staple crop of the Americas. Distinctive silhouette; reads as a flame or a bud if the husk is lost at 16 px." },
+		{ key: "tree", name: "Orchard tree", svg: '<circle cx="12" cy="9" r="6"/><path d="M12 15v6M8 21h8"/>',
+			note: "A round tree on a trunk. Simple and green, but it says forest or nature as much as food." },
+		{ key: "bowl", name: "Bowl", svg: '<path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M7 12a5 5 0 0 1 10 0"/>',
+			note: "From the first set, now green: a bowl heaped with grain. Food served rather than grown; green suits it least." },
+	] },
+	{ id: "wealth", name: "Wealth", hue: "ochre", cands: [
+		{ key: "current", name: "Current: ledger", svg: '<rect x="4" y="5" width="16" height="14"/><path d="M4 10h16"/>',
+			note: "Reads as a window or a card, not as money." },
+		{ key: "cash", name: "Cash coin", svg: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
+			note: "A round coin with a square hole. Unmistakably money, purely geometric, no currency sign.", pick: true },
+		{ key: "stack", name: "Coin stack", svg: '<rect x="3" y="16" width="14" height="4" rx="2"/><rect x="7" y="11" width="14" height="4" rx="2"/><rect x="3" y="6" width="14" height="4" rx="2"/>',
+			note: "Three coins seen edge-on, offset. Says accumulated wealth; could read as layers at 20 px." },
+		{ key: "ingot", name: "Ingot", svg: '<path d="M3 20l3-8h12l3 8z"/><path d="M6 12l2-6h8l2 6"/>',
+			note: "Two stacked bars. Treasury rather than income; the shape echoes the territory triangle." },
+	] },
+	{ id: "insight-alt", name: "Insight: other ideas", hue: "blue", cands: [
+		{ key: "bulb", name: "Bulb", svg: '<circle cx="12" cy="10" r="6"/><path d="M9.5 15.5V18h5v-2.5M10 21h4"/>',
+			note: "The base's neck, step and bar crowd together and blur below 20 px." },
+		{ key: "eye", name: "Eye", svg: '<path d="M2 12a13 13 0 0 1 20 0a13 13 0 0 1-20 0z"/><circle cx="12" cy="12" r="3"/>',
+			note: "Insight as seeing into things. Two arcs and a pupil; the almond holds its shape at every size." },
+		{ key: "magnifier", name: "Magnifier", svg: '<circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6"/>',
+			note: "Inquiry and study, in two strokes. The most legible small, but every app uses it for search." },
+		{ key: "spiral", name: "Spiral", svg: '<path d="M13 11a2 2 0 0 0-4 0a4 4 0 0 0 8 0a6 6 0 0 0-12 0a8 8 0 0 0 16 0"/>',
+			note: "Understanding that grows: four half-turns, each wider than the last. A Bauhaus-era geometry motif; open enough to read at 16 px." },
+		{ key: "sun", name: "Rising sun", svg: '<path d="M2 19h20M6 19a6 6 0 0 1 12 0M12 5v4M5.5 8.5l2.5 2.5M18.5 8.5L16 11"/>',
+			note: "Dawn, enlightenment: a half-disc on the horizon with three rays. Reads like a 1960s corporate mark; optimistic." },
+		{ key: "prism", name: "Prism", svg: '<path d="M12 4l8 14H4z"/><path d="M1 13.5l6.5-1.5M16.5 12l6.5-3M16.5 12h6.5M16.5 12l6.5 3"/>',
+			note: "Light entering a prism and splitting: insight breaking things into parts. The rays crowd at 16 px." },
+		{ key: "book", name: "Open book", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/>',
+			note: "From the first set, for comparison. Learning and record-keeping; clear at every size." },
+		{ key: "bulb-plain", name: "Bulb, one-bar base", svg: '<circle cx="12" cy="10" r="7"/><path d="M9 21h6"/>',
+			note: "Your critique fixed directly: the base is one bar, so nothing at the bottom can blur. Two primitives." },
+	] },
+	{ id: "insight", name: "Insight: book permutations", hue: "blue", cands: [
+		{ key: "book-angled", name: "Open book, angled pages", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/>',
+			note: "The one from the first set: pages rising to the spine like a book lying open. Clear at 16 px." },
+		{ key: "book-flat", name: "Open book, flat pages", svg: '<path d="M3 5h7a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h7z"/>',
+			note: "Two square pages with a rounded fold at the spine. The most familiar book icon; squarer and calmer, a little generic." },
+		{ key: "book-curved", name: "Open book, curved pages", svg: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',
+			note: "Pages bowed up to the spine, as a real open book sits. Softer and more drawn; holds its shape at 16 px.", pick: true },
+		{ key: "book-lines", name: "Open book with text", svg: '<path d="M12 7v14M12 7L3 5v13l9 3M12 7l9-2v13l-9 3"/><path d="M6 10l3 .7M6 13.5l3 .7M18 10l-3 .7M18 13.5l-3 .7"/>',
+			note: "The angled book with two lines of text on each page. Says 'reading' outright; the lines fill in below 20 px." },
+		{ key: "book-closed", name: "Closed book, bookmark", svg: '<rect x="5" y="3" width="14" height="18"/><path d="M8 3v18M13 3v7l2-2 2 2V3"/>',
+			note: "A bound volume seen from the front, its spine and a ribbon. Reads as a record or a ledger more than as learning." },
+		{ key: "shelf", name: "Shelf of books", svg: '<path d="M2 21h20M4 21V6h4v15M9 21V9h4v12M14 21l3-13 4 1-3 12"/>',
+			note: "Spines standing on a shelf, one leaning: a library, which is where insight comes from in the game. Strongly mid-century; busy at 16 px." },
+		{ key: "lectern", name: "Book on a lectern", svg: '<path d="M12 5L4 3v9l8 2 8-2V3z"/><path d="M12 5v9M12 14v7M8 21h8"/>',
+			note: "An open book on a stand: a place of study. At 20 px and below the silhouette reads as a goblet or a trophy." },
+		{ key: "tablet", name: "Clay tablet", svg: '<path d="M6 21V9a6 6 0 0 1 12 0v12z"/><path d="M9 11h6M9 14h6M9 17h4"/>',
+			note: "Not a book: the first written record, an arched tablet with lines of text. Suits a civilization's early eras; the lines fill in at 16 px." },
+	] },
+	{ id: "unrest", name: "Unrest", hue: "brick", cands: [
+		{ key: "current", name: "Current: zigzag triangle", svg: '<path d="M12 3l9 17H3z"/><path d="M9 15l2-3 2 3 2-3"/>',
+			note: "Reads as a generic warning sign, which the UI already uses for caution." },
+		{ key: "bolt", name: "Bolt", svg: '<path d="M13 2L5 13h6l-1 9 8-11h-6z"/>',
+			note: "The classic outlined bolt. Reads as agitation and danger; could also read as power or energy." },
+		{ key: "bolt-line", name: "Single-stroke bolt", svg: '<path d="M15 2L8 12h8l-7 10"/>',
+			note: "One zigzag line, like a signage bolt. Lightest of the three; strong at 20 px, thin at 48." },
+		{ key: "bolt-solid", name: "Solid bolt", svg: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',
+			note: "The outlined bolt filled. Heaviest presence: unrest is the one resource that's bad to have, and the solid shape says so. The guide's one solid resource glyph.", pick: true },
+	] },
+];
+const OTHERS = [
+	{ name: "Pop", hue: "teal", svg: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>' },
+	{ name: "Score", hue: "ink", svg: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>' },
+	{ name: "Action", hue: "ink", svg: '<path d="M12 3l9 9-9 9-9-9z"/>' },
+	{ name: "Building", hue: "ink", svg: '<rect x="5" y="5" width="14" height="14"/>' },
+	{ name: "City", hue: "ink", svg: '<circle cx="12" cy="12" r="7"/>' },
+	{ name: "Territory", hue: "ink", svg: '<path d="M12 4l9 16H3z"/>' },
+	{ name: "Tech", hue: "ink", svg: '<path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>' },
+];
+const colour = (hue) => (hue === "ink" ? "var(--ink)" : `var(--g-${hue}, var(--l-${hue}))`);
+// Stroke: 1.5 px at 16, 2 px at 24, 2.5 px at 32 (guide §8), expressed in viewBox units.
+const icon = (svg, hue, size) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${colour(hue)}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" style="color:${colour(hue)}" aria-hidden="true">${svg}</svg>`;
+
+document.getElementById("sections").innerHTML = RES.map((r) => `
+	<section>
+		<div class="titleblock"><h2>${r.name}</h2><span class="caps">${r.hue}</span></div>
+		<div class="cands">${r.cands.map((c) => `
+			<div class="cand ${c.key === "current" ? "current" : ""}">
+				<h3>${c.name}${c.pick ? '<span class="pick">Chosen</span>' : ""}</h3>
+				<div class="sizes">
+					<span class="big">${icon(c.svg, r.hue, 48)}</span>
+					<span class="window">${icon(c.svg, r.hue, 32)}<span class="val">12</span></span>
+					<span class="cost"><span>${icon(c.svg, r.hue, 20)}3</span></span>
+					<span class="tiny">${icon(c.svg, r.hue, 16)}<span>16</span></span>
+				</div>
+				<p>${c.note}</p>
+			</div>`).join("")}
+		</div>
+	</section>`).join("") + `
+	<section>
+		<div class="titleblock"><h2>Chosen set, side by side</h2><span class="caps">distinct at 32 px</span></div>
+		<div class="lineup">
+			${RES.filter((r) => r.cands.some((x) => x.pick)).map((r) => { const c = r.cands.find((x) => x.pick); return `<figure>${icon(c.svg, r.hue, 32)}<figcaption>${r.name.split(":")[0]}</figcaption></figure>`; }).join("")}
+			${OTHERS.map((o) => `<figure>${icon(o.svg, o.hue, 32)}<figcaption>${o.name}</figcaption></figure>`).join("")}
+		</div>
+		<div class="lineup" style="margin-top:4px">
+			<span class="cost">${["food", "wealth", "insight"].map((id, i) => { const r = RES.find((x) => x.id === id); const c = r.cands.find((x) => x.pick); return `<span>${icon(c.svg, r.hue, 20)}${[1, 2, 4][i]}</span>`; }).join("")}</span>
+			<span class="caps">a cost plate: 1 food, 2 wealth, 4 insight</span>
+		</div>
+	</section>`;
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>

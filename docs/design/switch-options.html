@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switch Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--knob: #FBF8F2; --on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--knob: #57524A; --on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+main { max-width: 1100px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 70ch; margin: 0 0 var(--space-6); }
+.option { display: grid; grid-template-columns: 56px 1fr 380px; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 52ch; }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.demo { display: flex; flex-direction: column; gap: var(--space-3); background: var(--sheet); border: 1px solid var(--rule); padding: var(--space-4); }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 36px; }
+.setting + .setting { border-top: 1px solid var(--rule-fine); padding-top: var(--space-3); }
+.setting > span { font: 500 17px/20px var(--f-cond); }
+.state { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); width: 30px; }
+button.sw { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); display: inline-flex; align-items: center; gap: var(--space-3); font: inherit; }
+@media (max-width: 760px) { .option { grid-template-columns: 1fr; } .letter { font-size: 28px; } }
+
+/* A · Key pair: two adjacent push keys in one frame, like a Braun radio's AUS / AN keys. The pressed key is down. */
+.keys { display: inline-flex; border: 2px solid var(--ink); border-radius: var(--radius-1); background: var(--well); padding: 2px; gap: 2px; }
+.keys span {
+	min-width: 44px; padding: 5px 0 4px; text-align: center; font: 600 12px/14px var(--f-cond); letter-spacing: 0.12em;
+	background: var(--steel); color: var(--ink-2); box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
+	transition: transform var(--d-snap) var(--ease-snap), box-shadow var(--d-snap) var(--ease-snap), background-color var(--d-quick) linear;
+}
+.keys span.down { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); background: var(--ink); color: var(--sheet); }
+
+/* B · Slide bar: an outlined slot and a solid block that sits at one end. Nothing else. */
+.bar { position: relative; width: 44px; height: 22px; border: 2px solid var(--ink); background: var(--sheet); }
+.bar i { position: absolute; top: 2px; left: 2px; width: 16px; height: 14px; background: var(--ink-2); transition: transform var(--d-toggle) var(--ease-latch), background-color var(--d-quick) linear; }
+[aria-checked="true"] .bar i { transform: translateX(20px); background: var(--ink); }
+[aria-checked="true"] .bar { background: var(--p-sage); }
+
+/* C · Latching lamp key: one square key with a lamp window. Press latches it down and the lamp lights; press again releases. */
+.lampkey {
+	position: relative; width: 32px; height: 32px; border: 2px solid var(--ink); border-radius: var(--radius-1); background: var(--steel);
+	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0); display: grid; place-items: center;
+	transition: transform var(--d-snap) var(--ease-snap), box-shadow var(--d-snap) var(--ease-snap);
+}
+.lampkey i { width: 14px; height: 6px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ease-lamp-off); }
+[aria-checked="true"] .lampkey { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); }
+[aria-checked="true"] .lampkey i { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); transition-duration: 40ms; }
+
+/* D · Rocker: one rectangle split at a centre line; the half that's pressed is sunk (well), the other stands up. */
+.rocker { display: inline-flex; width: 52px; height: 28px; border: 2px solid var(--ink); border-radius: var(--radius-1); overflow: hidden; }
+.rocker span { flex: 1; display: grid; place-items: center; transition: background-color var(--d-snap) linear, box-shadow var(--d-snap) linear; }
+.rocker span + span { border-left: 1px solid var(--ink); }
+.rocker .o::before { content: ""; width: 7px; height: 7px; border: 1.5px solid currentColor; border-radius: 50%; }
+.rocker .i::before { content: ""; width: 1.5px; height: 10px; background: currentColor; }
+.rocker span { background: var(--steel); color: var(--ink-2); box-shadow: inset -2px -2px 0 var(--rule); }
+.rocker span.down { background: var(--well); color: var(--ink); box-shadow: inset 2px 2px 0 var(--shadow); }
+
+/* E · Rail selector: OFF | ON as two printed words; a 3 px ink rail slides under the current one, as the tabs do. */
+.railsel { position: relative; display: inline-flex; gap: var(--space-3); padding-bottom: 5px; border-bottom: 1px solid var(--rule-fine); }
+.railsel span { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; color: var(--ink-3); transition: color var(--d-quick) linear; min-width: 28px; text-align: center; }
+.railsel span.cur { color: var(--ink); }
+.railsel b { position: absolute; bottom: -1px; left: 0; width: 28px; height: 3px; background: var(--ink); transition: transform var(--d-small) var(--ease-machined); }
+[aria-checked="true"] .railsel b { transform: translateX(40px); }
+</style>
+</head>
+<body>
+<header>
+	<h1>Switch options</h1>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Five plainer alternatives to the drawn slide switch, each built from the guide's existing parts (frames, hard shadows, the press, the rail, the lamp) rather than new drawing. B, C and D sit beside the printed state word; A and E print their own state. Click any of them; the button top right swaps Paper and Night.</p>
+	<div id="options"></div>
+</main>
+<script>
+const OPTIONS = [
+	{ id: "A", name: "Key pair", kind: "keys",
+		text: "Two adjacent push keys in one frame, like the AUS / AN keys on a Braun radio. The current state's key is pressed down, inked and printed inverse. Reuses the button press exactly.",
+		meta: "Parts: frame, two keys, press · No state word needed: the keys are the words · Width 98 px" },
+	{ id: "B", name: "Slide bar", kind: "bar",
+		text: "An outlined slot and a solid block at one end. ON slides the block right and fills the slot sage. The plainest thing that still reads as a switch.",
+		meta: "Parts: one box, one block · Width 44 px · The most compact" },
+	{ id: "C", name: "Latching lamp key", kind: "lampkey",
+		text: "One square push key with a lamp window. Pressing latches it down and the lamp lights; pressing again releases it. A control-room key.",
+		meta: "Parts: key, lamp window, press · Width 32 px · Reads as a key more than a switch" },
+	{ id: "D", name: "Rocker", kind: "rocker",
+		text: "A rectangle split at a centre line with printed 0 and 1. The pressed half sinks into the panel, the other half stands up. Flat two-tone, no thumb.",
+		meta: "Parts: one box split in two, inset edges · Width 52 px" },
+	{ id: "E", name: "Rail selector", kind: "railsel",
+		text: "OFF and ON printed as two words, with the 3 px ink rail under the current one: the tab rail in miniature. Typographic, no control body at all.",
+		meta: "Parts: two words, the rail · Width 68 px · Same motion as the tabs" },
+];
+const BODY = {
+	keys: (on) => `<span class="keys"><span class="${on ? "" : "down"}">OFF</span><span class="${on ? "down" : ""}">ON</span></span>`,
+	bar: () => `<span class="bar"><i></i></span>`,
+	lampkey: () => `<span class="lampkey"><i></i></span>`,
+	rocker: (on) => `<span class="rocker"><span class="o ${on ? "" : "down"}"></span><span class="i ${on ? "down" : ""}"></span></span>`,
+	railsel: (on) => `<span class="railsel"><span class="${on ? "" : "cur"}">OFF</span><span class="${on ? "cur" : ""}">ON</span><b></b></span>`,
+};
+const WORDLESS = new Set(["keys", "railsel"]);  // these print their own state
+function control(kind, on) {
+	const word = WORDLESS.has(kind) ? "" : `<span class="state">${on ? "ON" : "OFF"}</span>`;
+	return `<button class="sw" role="switch" aria-checked="${on}" data-kind="${kind}">${BODY[kind](on)}${word}</button>`;
+}
+document.getElementById("options").innerHTML = OPTIONS.map((o) => `
+	<section class="option">
+		<div class="letter">${o.id}</div>
+		<div><h2>${o.name}</h2><p>${o.text}</p><div class="meta">${o.meta}</div></div>
+		<div class="demo">
+			<div class="setting"><span>Reduce motion</span>${control(o.kind, false)}</div>
+			<div class="setting"><span>Show forecasts</span>${control(o.kind, true)}</div>
+		</div>
+	</section>`).join("");
+document.addEventListener("click", (e) => {
+	const sw = e.target.closest("button.sw");
+	if (!sw) return;
+	const on = sw.getAttribute("aria-checked") !== "true";
+	const kind = sw.dataset.kind;
+	sw.setAttribute("aria-checked", on);
+	// Keep the element (so CSS transitions run) and only swap what changes.
+	sw.querySelectorAll(".keys span, .rocker span").forEach((s, i) => s.classList.toggle("down", (i === 1) === on));
+	sw.querySelectorAll(".railsel span").forEach((s, i) => s.classList.toggle("cur", (i === 1) === on));
+	const word = sw.querySelector(".state");
+	if (word) word.textContent = on ? "ON" : "OFF";
+});
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>

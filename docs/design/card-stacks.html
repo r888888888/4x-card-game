@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Stacks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-tick: 60ms; --d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-toggle: 160ms; --d-small: 200ms;
+	--d-panel: 260ms; --d-screen: 320ms; --d-emphasis: 400ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-release: cubic-bezier(0.4, 0, 1, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-latch: cubic-bezier(0.5, -0.2, 0.1, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #35597C; --focus: #1F6A68;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--g-ochre: #A07514;  /* glyph-only gold: 3.8:1 on sheet, enough for an icon, not for text */
+	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #86A9CC; --focus: #6CC3BC;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--g-ochre: #D9A441;
+	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 16px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 12px/14px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header.page { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-5) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 76ch; margin: 0 0 var(--space-4); }
+.btn {
+	display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: var(--radius-1); cursor: pointer;
+	font: 500 15px/18px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule);
+	box-shadow: 2px 2px 0 var(--shadow); transition: transform 120ms var(--ease-machined), box-shadow 120ms var(--ease-machined);
+}
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); transform: translate(2px, 2px); box-shadow: none; }
+.btn.small { min-height: 26px; padding: 2px 8px; font-size: 14px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+.group { display: inline-flex; align-items: center; gap: var(--space-2); }
+.toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 16px var(--f-cond); }
+.lkey { display: inline-grid; grid-template-rows: 5px 1fr; gap: 3px; width: 52px; height: 32px; padding: 4px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); }
+.toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: none; }
+.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.toggle[aria-checked="true"] .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); }
+.lkey-legend { display: grid; place-items: center; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
+.toggle[aria-checked="true"] .lkey-legend { color: var(--ink); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(540px, 1fr)); gap: 4px; padding: 4px; background: var(--shadow); }
+.opt { background: var(--sheet); padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.opt h2 { margin: 0; font: 500 22px/28px var(--f-display); display: flex; gap: var(--space-3); align-items: baseline; }
+.opt h2 b { font-weight: 500; color: var(--ink-2); }
+.chosen { font: 600 11px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--sheet); background: var(--ink); padding: 1px 5px; align-self: center; }
+.opt p { margin: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
+.opt .spec { font: 500 13px/17px var(--f-cond); color: var(--ink-3); letter-spacing: 0.02em; }
+.stg { position: relative; height: 340px; background: var(--board); border: 1px solid var(--rule); overflow: hidden; margin-top: var(--space-2); }
+.hint { position: absolute; right: 10px; bottom: 8px; z-index: 0; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); pointer-events: none; }
+
+/* ---- a card, as on the board ---- */
+.slot { position: absolute; left: 0; top: 0; }
+.mcard {
+	position: relative; width: 104px; height: 140px; background: var(--sheet); border: 2px solid var(--ink); display: flex; flex-direction: column;
+	cursor: pointer; text-align: left; padding: 0; font: inherit; color: var(--ink);
+	transition: transform 100ms var(--ease-machined), box-shadow 100ms var(--ease-machined);
+}
+.mcard.wide { width: 180px; }
+.mcard .mh { display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 4px 6px; font: 600 13px/15px var(--f-cond); white-space: nowrap; }
+.mcard .cost { display: inline-flex; gap: 6px; } .mcard .cost span { display: inline-flex; align-items: center; gap: 2px; font: 600 12px/1 var(--f-cond); }
+.mcard .band { height: 5px; background: var(--band); flex: none; }
+.mcard .mt { padding: 3px 6px; font: 600 9px/11px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--rule-fine); }
+.mcard .mr { padding: 4px 6px; font: 400 11px/14px var(--f-ui); color: var(--ink-2); }
+.mcard .tab { position: absolute; top: -8px; left: 8px; height: 5px; width: 0; background: var(--signal); transition: width 120ms var(--ease-machined); }
+.mcard.selected { border-width: 3px; }
+.mcard.selected .tab { width: 22px; }
+.mcard.back { background: var(--steel); display: grid; place-items: center; cursor: pointer; }
+.mcard.back::before { content: ""; position: absolute; inset: 5px; border: 1px solid var(--rule); }
+.glyph { flex: none; display: block; }
+.plate { display: inline-flex; align-items: baseline; gap: 6px; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.plate .n { font: 500 15px/1 var(--f-mono); color: var(--ink); letter-spacing: 0; }
+
+/* 1 · pile */
+.edge { position: absolute; width: 104px; height: 140px; border: 2px solid var(--ink); background: var(--sheet); }
+/* 2 · file box */
+.tray { position: absolute; left: 40px; top: 254px; width: 260px; height: 72px; background: var(--steel); border: 2px solid var(--ink); z-index: 20; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 14px 10px; }
+.tray::before { content: ""; position: absolute; left: 50%; top: 12px; translate: -50% 0; width: 56px; height: 14px; border: 2px solid var(--ink); background: var(--well); }
+.v-file .mcard:hover { transform: translateY(-6px); }
+/* 3 · ream */
+.ream-edge { position: absolute; width: 104px; height: 140px; border: 1px solid var(--rule); background: var(--well); }
+.drawer { position: absolute; left: 168px; top: 24px; width: 300px; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); z-index: 30; }
+.drawer .dh { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 12px 6px; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--rule-fine); }
+.drawer .row { display: grid; grid-template-columns: 6px 1fr auto auto; gap: 8px; align-items: center; padding: 3px 12px 3px 0; border-bottom: 1px solid var(--rule-fine); font: 600 14px/18px var(--f-cond); }
+.drawer .row i { align-self: stretch; background: var(--band); }
+.drawer .row .t { font: 600 10px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.drawer .row .x { font: 500 13px/1 var(--f-mono); color: var(--ink-2); }
+/* 4 · rolodex */
+.rolo-ctl { position: absolute; left: 24px; top: 268px; display: flex; gap: 10px; align-items: center; z-index: 30; }
+/* 5 · fan */
+.v-fan .mcard:hover { transform: translateY(-14px); box-shadow: 2px 2px 0 var(--shadow); }
+/* 6 · sheet */
+.sheet { position: absolute; inset: 10px; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--shadow); z-index: 40; display: flex; flex-direction: column; }
+.sheet .sh { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 14px 8px; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--rule-fine); }
+.sheet .sh h3 { margin: 0; font: 500 19px/24px var(--f-display); }
+.sheet .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 14px; overflow: auto; }
+.tilecard { border: 2px solid var(--ink); background: var(--sheet); display: flex; flex-direction: column; }
+.tilecard .mh { padding: 3px 6px; font: 600 13px/15px var(--f-cond); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tilecard .band { height: 4px; background: var(--band); }
+.tilecard .mt { display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 3px 6px; font: 600 9px/11px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.tilecard .mt .cost { display: inline-flex; gap: 5px; letter-spacing: 0; } .tilecard .mt .cost span { display: inline-flex; align-items: center; gap: 2px; font: 600 12px/1 var(--f-cond); color: var(--ink); }
+.wipeframe { position: absolute; z-index: 41; border: 2px solid var(--ink); border-top: 6px solid var(--ink); pointer-events: none; }
+.x { background: none; border: 0; color: var(--ink-2); font: 500 20px/1 var(--f-ui); cursor: pointer; padding: 0 2px; }
+</style>
+</head>
+<body>
+<header class="page">
+	<h1>Card stacks</h1>
+	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span></button>
+</header>
+<main>
+	<p class="intro">Six ways to show a stack of cards at rest and to open it when it's clicked: for the discard pile, the deck, a supply pile or the research deck. Each one is live: click the stack (and, where it says so, a card). Slow motion and Reduce motion apply to all of them.</p>
+	<div class="controls">
+		<span class="group"><span class="caps">Speed</span>
+			<button class="btn" data-speed="1" aria-pressed="true">1×</button>
+			<button class="btn" data-speed="4" aria-pressed="false">¼×</button>
+			<button class="btn" data-speed="10" aria-pressed="false">1/10×</button></span>
+		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span></button>
+	</div>
+	<div class="grid" id="grid"></div>
+</main>
+<script>
+// ---------- glyphs and cards ----------
+const GLYPHS = {
+	food: ["sage", '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>'],
+	wealth: ["ochre", '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>'],
+	insight: ["blue", '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>'],
+};
+const gcol = (h) => `var(--g-${h}, var(--l-${h}))`;
+const glyph = (name, size) => { const [h, svg] = GLYPHS[name]; return `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${gcol(h)}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${svg}</svg>`; };
+const cost = (c) => `<span class="cost">${Object.entries(c).map(([r, n]) => `<span>${glyph(r, 13)}${n}</span>`).join("")}</span>`;
+const DATA = [
+	{ name: "Granary", type: "Building", band: "olive", cost: { food: 1, wealth: 2 }, rules: "⟳ +1 food" },
+	{ name: "Settlers", type: "Action", band: "blue", cost: { food: 2 }, rules: "Settle an explored territory" },
+	{ name: "Pottery", type: "Tech", band: "teal", cost: { insight: 4 }, rules: "Granaries cost 1 less" },
+	{ name: "Monument", type: "Building", band: "olive", cost: { wealth: 6 }, rules: "Worth 3 VP" },
+	{ name: "Scout", type: "Action", band: "blue", cost: { food: 1 }, rules: "Explore a territory" },
+	{ name: "Market", type: "Building", band: "olive", cost: { food: 1, wealth: 3 }, rules: "+1 wealth per city" },
+	{ name: "Library", type: "Building", band: "olive", cost: { wealth: 4 }, rules: "⟳ +2 insight" },
+	{ name: "Writing", type: "Tech", band: "teal", cost: { insight: 5 }, rules: "+1 hand size" },
+	{ name: "Caravan", type: "Action", band: "blue", cost: { food: 1 }, rules: "+2 wealth" },
+];
+const face = (c, wide) => `<button class="mcard ${wide ? "wide" : ""}" style="--band:var(--p-${c.band})"><span class="tab"></span>
+	<span class="mh"><span>${c.name}</span>${cost(c.cost)}</span><span class="band"></span><span class="mt">${c.type}</span><span class="mr">${c.rules}</span></button>`;
+const backFace = () => `<button class="mcard back" aria-label="Deck"><svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="var(--rule)" stroke-width="1.5"><circle cx="22" cy="22" r="20"/><circle cx="22" cy="22" r="13"/><circle cx="22" cy="22" r="6" stroke="var(--ink-2)" stroke-width="2"/></svg></button>`;
+const make = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+// ---------- timing (as in transitions.html) ----------
+const root = document.documentElement;
+const E = { machined: "cubic-bezier(0.2, 0, 0, 1)", release: "cubic-bezier(0.4, 0, 1, 1)", snap: "cubic-bezier(0.3, 0, 0, 1)", latch: "cubic-bezier(0.5, -0.2, 0.1, 1)", linear: "linear" };
+let slow = 1;
+const calm = () => root.dataset.calm === "true";
+const ms = (n) => n * slow;
+const sleep = (n) => new Promise((r) => setTimeout(r, ms(n)));
+// Animate, then keep the end state as plain style; resolves even where the page can't render (a hidden tab).
+const go = (el, frames, dur, easing, opts = {}) => {
+	if (calm()) dur = 0;
+	const a = el.animate(frames, { duration: ms(dur), easing, fill: "both", ...opts, delay: calm() ? 0 : opts.delay || 0 });
+	const settle = () => { if (a.playState !== "finished") a.finish(); try { a.commitStyles(); } catch (e) {} a.cancel(); };
+	const late = new Promise((r) => setTimeout(() => r(), ms(dur) + (calm() ? 0 : opts.delay || 0) + 60));
+	return Promise.race([a.finished.catch(() => {}), late]).then(settle);
+};
+function lock() { let busy = false; return async (fn) => { if (busy) return; busy = true; try { await fn(); } finally { busy = false; } }; }
+
+// ---------- 1 · Index pile → deal to a grid ----------
+function pileToGrid(stg) {
+	const run = lock(), cards = DATA.slice(0, 7), n = cards.length;
+	const rest = (i) => `translate(${24 + Math.min(i, 4) * 3}px, ${20 + Math.min(i, 4) * 3}px)`;
+	const dealt = (i) => `translate(${24 + (i % 4) * 116}px, ${20 + Math.floor(i / 4) * 152}px)`;
+	const slots = cards.map((c, i) => { const s = make(`<div class="slot" style="z-index:${n - i};transform:${rest(i)}">${face(c)}</div>`); stg.append(s); return s; });
+	const plate = make(`<div class="plate" style="position:absolute;left:24px;top:186px">Discard <span class="n">${n}</span></div>`); stg.append(plate);
+	let open = false;
+	stg.addEventListener("click", (e) => { if (!e.target.closest(".mcard")) return; run(async () => {
+		if (!open) { plate.style.visibility = "hidden"; await Promise.all(slots.map((s, i) => go(s, [{ transform: rest(i) }, { transform: dealt(i) }], 260, E.machined, { delay: ms(i * 30) }))); }
+		else { await Promise.all(slots.map((s, i) => go(s, [{ transform: dealt(i) }, { transform: rest(i) }], 200, E.release, { delay: ms((n - 1 - i) * 20) }))); plate.style.visibility = ""; }
+		open = !open;
+	}); });
+}
+
+// ---------- 2 · Card file: tabs standing in a box, pull one up ----------
+function cardFile(stg) {
+	const run = lock(), cards = DATA.slice(0, 6), n = cards.length, step = 18, pull = 84;
+	stg.classList.add("v-file");
+	const y = (i) => 180 - i * step;
+	const slots = cards.map((c, i) => { const s = make(`<div class="slot" style="z-index:${n - i};transform:translate(60px, ${y(i)}px)">${face(c, true)}</div>`); stg.append(s); return s; });
+	stg.append(make(`<div class="tray"><span class="caps">Research deck</span><span class="plate"><span class="n">${n}</span></span></div>`));
+	let pulled = -1;
+	const move = (i, up) => go(slots[i], [{ transform: `translate(60px, ${y(i) - (up ? 0 : pull)}px)` }, { transform: `translate(60px, ${y(i) - (up ? pull : 0)}px)` }], up ? 220 : 160, up ? E.machined : E.release);
+	slots.forEach((s, i) => s.addEventListener("click", () => run(async () => {
+		const was = pulled;
+		if (was >= 0) { slots[was].querySelector(".mcard").classList.remove("selected"); await move(was, false); pulled = -1; }
+		if (was !== i) { s.querySelector(".mcard").classList.add("selected"); await move(i, true); pulled = i; }
+	})));
+}
+
+// ---------- 3 · Ream: a face-down deck; open its contents drawer ----------
+function reamDrawer(stg) {
+	const run = lock(), n = 23;
+	for (let k = 3; k >= 1; k--) stg.append(make(`<div class="ream-edge" style="left:${24 + k * 2}px;top:${24 + k * 3}px"></div>`));
+	const top = make(`<div class="slot" style="transform:translate(24px, 24px);z-index:5">${backFace()}</div>`); stg.append(top);
+	stg.append(make(`<div class="plate" style="position:absolute;left:24px;top:186px">Deck <span class="n">${n}</span></div>`));
+	const counts = {}; DATA.forEach((c, i) => (counts[c.name] = [c, [3, 4, 2, 2, 3, 2, 2, 2, 3][i]]));
+	const rows = Object.values(counts).sort((a, b) => a[0].name.localeCompare(b[0].name));
+	let drawer = null;
+	top.addEventListener("click", () => run(async () => {
+		if (!drawer) {
+			top.querySelector(".mcard").classList.add("selected");
+			drawer = make(`<div class="drawer"><div class="dh"><span class="caps">Deck · contents A–Z, not order</span><span class="plate"><span class="n">${n}</span></span></div>
+				${rows.map(([c, k]) => `<div class="row" style="--band:var(--p-${c.band})"><i></i><span>${c.name}</span><span class="t">${c.type}</span><span class="x">×${k}</span></div>`).join("")}</div>`);
+			stg.append(drawer);
+			const rs = [...drawer.querySelectorAll(".row")];
+			rs.forEach((r) => (r.style.opacity = calm() ? 1 : 0));
+			const wipe = go(drawer, [{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)" }], 260, E.latch);
+			await sleep(calm() ? 0 : 90);
+			await Promise.all([wipe, ...rs.map((r, i) => go(r, [{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "translateY(0)" }], 120, E.machined, { delay: ms(Math.min(i, 6) * 20) }))]);
+		} else {
+			await go(drawer, [{ clipPath: "inset(0 0 0% 0)" }, { clipPath: "inset(0 0 100% 0)" }], 180, E.release);
+			drawer.remove(); drawer = null; top.querySelector(".mcard").classList.remove("selected");
+		}
+	}));
+}
+
+// ---------- 4 · Rolodex: one at a time; the front card flips over the top to the back ----------
+function rolodex(stg) {
+	const run = lock(), cards = DATA.slice(0, 7), n = cards.length, peek = 7, show = 4;
+	let order = cards.map((_, i) => i);  // order[0] is the front card
+	const pos = (k) => `translate(40px, ${70 - Math.min(k, show) * peek}px)`;
+	const slots = cards.map((c) => { const s = make(`<div class="slot" style="transform-origin:50% 0">${face(c, true)}</div>`); stg.append(s); return s; });
+	const ctl = make(`<div class="rolo-ctl"><button class="btn small" data-d="-1">‹</button><span class="plate">Card <span class="n" id="rc">1 / ${n}</span></span><button class="btn small" data-d="1">›</button></div>`); stg.append(ctl);
+	const lay = () => order.forEach((idx, k) => { const s = slots[idx]; s.style.zIndex = 20 - k; s.style.transform = pos(k); s.style.opacity = k > show ? 0 : 1; });
+	lay();
+	let at = 0;
+	const flapTo = (txt) => { const el = ctl.querySelector("#rc"); el.textContent = txt; el.animate([{ transform: "scaleY(1)" }, { transform: "scaleY(0.1)", offset: 0.5 }, { transform: "scaleY(1)" }], { duration: ms(calm() ? 0 : 60) }); };
+	async function step(d) {
+		const before = order.map((idx, k) => [idx, pos(k)]);
+		if (d > 0) {
+			const front = slots[order[0]];
+			await go(front, [{ transform: `${pos(0)} perspective(700px) rotateX(0deg)`, opacity: 1 }, { transform: `${pos(0)} perspective(700px) rotateX(82deg)`, opacity: 0 }], 140, E.release);
+			order.push(order.shift());
+		} else order.unshift(order.pop());
+		at = (at + d + n) % n; flapTo(`${at + 1} / ${n}`);
+		order.forEach((idx, k) => (slots[idx].style.zIndex = 20 - k));
+		const moves = order.map((idx, k) => {
+			const s = slots[idx], from = before.find((b) => b[0] === idx)[1];
+			if (d < 0 && k === 0) return go(s, [{ transform: `${pos(0)} perspective(700px) rotateX(82deg)`, opacity: 0 }, { transform: `${pos(0)} perspective(700px) rotateX(0deg)`, opacity: 1 }], 160, E.machined);
+			if (d > 0 && k === n - 1) { s.style.transform = pos(k); s.style.opacity = 0; return null; }
+			return go(s, [{ transform: from, opacity: k > show ? 0 : 1 }, { transform: pos(k), opacity: k > show ? 0 : 1 }], 90, E.snap);
+		});
+		await Promise.all(moves);
+		lay();
+	}
+	stg.addEventListener("click", (e) => {
+		const b = e.target.closest("[data-d]");
+		if (b) return run(() => step(+b.dataset.d));
+		if (e.target.closest(".mcard")) run(() => step(1));
+	});
+}
+
+// ---------- 5 · Fan: the stack rotates out about a pivot below it ----------
+function fan(stg) {
+	const run = lock(), cards = DATA.slice(0, 7), n = cards.length, spread = 9;
+	const x = 230, yTop = 120;
+	const rest = (i) => `translate(${x + i}px, ${yTop + i}px) rotate(0deg)`;
+	const out = (i) => `translate(${x}px, ${yTop}px) rotate(${(i - (n - 1) / 2) * spread}deg)`;
+	const slots = cards.map((c, i) => { const s = make(`<div class="slot" style="z-index:${i};transform-origin:52px 260px;transform:${rest(i)}">${face(c)}</div>`); stg.append(s); return s; });
+	stg.append(make(`<div class="plate" style="position:absolute;left:24px;top:24px">Hand <span class="n">${n}</span></div>`));
+	let open = false;
+	stg.addEventListener("click", (e) => { if (!e.target.closest(".mcard")) return; run(async () => {
+		if (!open) await Promise.all(slots.map((s, i) => go(s, [{ transform: rest(i) }, { transform: out(i) }], 280, E.machined, { delay: ms(Math.abs(i - (n - 1) / 2) * 20) })));
+		else await Promise.all(slots.map((s, i) => go(s, [{ transform: out(i) }, { transform: rest(i) }], 200, E.release)));
+		open = !open;
+		stg.classList.toggle("v-fan", open);
+	}); });
+}
+
+// ---------- 6 · Unfold to sheet: a big pile wipes open into a panel of every card ----------
+function unfold(stg) {
+	const run = lock(), n = 18;
+	const pile = make(`<div class="slot" style="transform:translate(24px, 24px);z-index:5">${face(DATA[0])}</div>`);
+	for (let k = 4; k >= 1; k--) stg.append(make(`<div class="edge" style="left:${24 + k * 3}px;top:${24 + k * 3}px"></div>`));
+	stg.append(pile);
+	stg.append(make(`<div class="plate" style="position:absolute;left:24px;top:186px">Discard <span class="n">${n}</span></div>`));
+	let sheet = null;
+	const pileRect = () => { const s = stg.getBoundingClientRect(), r = pile.getBoundingClientRect(); return { t: r.top - s.top, l: r.left - s.left, b: s.bottom - r.bottom, r: s.right - r.right }; };
+	const full = { t: 10, l: 10, b: 10, r: 10 };
+	const ins = (q) => `inset(${q.t - 10}px ${q.r - 10}px ${q.b - 10}px ${q.l - 10}px)`;
+	const box = (q) => ({ left: q.l + "px", top: q.t + "px", width: stg.clientWidth - q.l - q.r + "px", height: stg.clientHeight - q.t - q.b + "px" });
+	async function close() {
+		const p = pileRect(), frame = make(`<div class="wipeframe"></div>`); stg.append(frame);
+		await Promise.all([go(sheet, [{ clipPath: ins(full) }, { clipPath: ins(p) }], 240, E.release), go(frame, [box(full), box(p)], 240, E.release)]);
+		frame.remove(); sheet.remove(); sheet = null; stg.querySelector(".hint").style.visibility = "";
+	}
+	pile.addEventListener("click", () => run(async () => {
+		if (sheet) return close();
+		const p = pileRect();
+		sheet = make(`<div class="sheet"><div class="sh"><h3>Discard</h3><span class="plate">${n} cards <button class="x" aria-label="Close">×</button></span></div>
+			<div class="tiles">${Array.from({ length: n }, (_, i) => { const c = DATA[i % DATA.length]; return `<div class="tilecard" style="--band:var(--p-${c.band})"><span class="mh">${c.name}</span><span class="band"></span><span class="mt"><span>${c.type}</span>${cost(c.cost)}</span></div>`; }).join("")}</div></div>`);
+		stg.append(sheet); stg.querySelector(".hint").style.visibility = "hidden";
+		sheet.querySelector(".x").addEventListener("click", () => run(close));
+		const tiles = sheet.querySelector(".tiles"), frame = make(`<div class="wipeframe"></div>`);
+		stg.append(frame);
+		tiles.style.opacity = calm() ? 1 : 0;
+		await Promise.all([
+			go(sheet, [{ clipPath: ins(p) }, { clipPath: ins(full) }], 300, E.machined),
+			go(frame, [box(p), box(full)], 300, E.machined),
+			go(tiles, [{ opacity: 0 }, { opacity: 1 }], 160, E.linear, { delay: ms(140) }),
+		]);
+		frame.remove();
+	}));
+}
+
+// ---------- page ----------
+const OPTIONS = [
+	["Index pile → deal to a grid", "A face-up pile with its edges stepping out 3 px down and right (up to four), like index cards squared on a desk. Clicking deals the cards out into rows, the top card staying put; clicking again gathers them back in.", "Deal 260 ms machined, 30 ms apart · gather 200 ms release, 20 ms apart, last card first · Discard pile, a supply pile", pileToGrid],
+	["Card file → pull one up", "Cards stand in a file box with only their name tabs showing, each 18 px higher than the one in front. A tab lifts 6 px under the pointer; clicking pulls that card up out of the file; clicking it again, or another, puts it back first.", "Pull up 84 px, 220 ms machined · put back 160 ms release · hover 6 px · Research deck, a long hand", cardFile],
+	["Ream → contents drawer", "A face-down deck drawn as a block: the top card's back and its page edges, with the count beneath. The order is hidden, so clicking drops a drawer listing what's inside, A–Z with counts, never in draw order.", "Drawer wipe down 260 ms latch · rows 120 ms, 20 ms apart · close 180 ms release · The draw deck", reamDrawer],
+	["Rolodex → flip through", "One card faces you; the cards behind peek over its top edge, 7 px each. Clicking the card (or ›) flips it over the top to the back of the file and the rest step forward; ‹ brings the last card round to the front.", "Flip 140 ms release (rotateX to 82°) · step forward 90 ms snap · bring back 160 ms machined · Browsing a pile one card at a time", rolodex],
+	["Fan", "A squared stack that rotates out into a fan about a pivot below it, 9° between cards, the middle ones first. In the fan a card lifts 14 px along its own angle under the pointer. Clicking again squares it up.", "Fan 280 ms machined, 20 ms apart from the middle · square 200 ms release · hover 14 px · A hand of cards, a small pile", fan],
+	["Unfold to sheet", "For a big pile: clicking wipes a panel open out of the pile's own rectangle (the card wipe from transitions.html), listing every card as a header tile. Close it and it folds back into the pile.", "Wipe 300 ms machined with the outline growing · tiles fade in from 140 ms · close 240 ms release · A discard of 15+, the supply", unfold],
+];
+document.getElementById("grid").innerHTML = OPTIONS.map(([name, text, spec], i) => `
+	<section class="opt"><h2><b>${i + 1}</b>${name}${i === 0 ? ' <span class="chosen">Chosen</span>' : ""}</h2><p>${text}</p><span class="spec">${spec}</span><div class="stg" id="stg${i}"><span class="hint">Click the stack</span></div></section>`).join("");
+OPTIONS.forEach((o, i) => o[3](document.getElementById(`stg${i}`)));
+document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
+	slow = +b.dataset.speed;
+	document.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+}));
+function bindKey(el, onChange) {
+	el.addEventListener("click", () => {
+		const on = el.getAttribute("aria-checked") !== "true";
+		el.setAttribute("aria-checked", on);
+		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
+		onChange(on);
+	});
+}
+bindKey(document.getElementById("theme"), (on) => { root.dataset.theme = on ? "night" : "paper"; });
+bindKey(document.getElementById("calm"), (on) => { root.dataset.calm = on; });
+</script>
+</body>
+</html>
