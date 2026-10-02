@@ -150,7 +150,7 @@ func test_the_government_overlay_shows_the_deck_and_a_click_chooses() -> void:
 		e.create_card("kings", "discard", null)
 		for i in 4:
 			e.end_turn()
-		await wait_frames()
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.6).timeout  # behind the cabinet doors (209)
 		var row: Node = main.choices.get("government_row")
 		check(row != null and row.is_visible_in_tree(), "the Government overlay is up")
 		if row == null:
@@ -162,7 +162,7 @@ func test_the_government_overlay_shows_the_deck_and_a_click_chooses() -> void:
 		check(main.choices.get("government_heading").text == "Order returns: choose your government.", "heading")
 		main.on_picked(main.views[kings])
 		eq(ruling(e), "kings", "a click chooses Kings")
-		await wait_frames()
+		await (Engine.get_main_loop() as SceneTree).create_timer(0.6).timeout  # behind the doors again (209)
 		check(not row.is_visible_in_tree(), "the overlay closes"))
 
 
@@ -170,7 +170,7 @@ func test_the_identity_modal_lists_the_government_deck() -> void:
 	await with_main(deck_engine(), func(main: Node):
 		var e := Game.engine
 		e.create_card("kings", "discard", null)
-		main.identity_button().pressed.emit()
+		main.sidebar.government_button.pressed.emit()
 		var body: String = main.identity_modal.body_text()
 		check(body.contains("Government deck: Kings"), "the deck line: %s" % body)
 		check(body.find("Government deck") > body.find("Chiefs"), "below the ruling government: %s" % body))

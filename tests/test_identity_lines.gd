@@ -1,7 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The civilization and government (backlog 088; in the top bar since 115; one button and modal since 119), in the
 ## real main scene on the real data (the default civilization and Chiefdom at the start) or on TEST_CIVS / TEST_GOVS.
-## Hooks: main.identity_button() is the top-bar button (visible or not); main.identity_modal shows both: shown() is the
+## Hooks: main.sidebar's name_button and government_button (202; the top-bar button until then) open the modal;
+## main.identity_modal shows both: shown() is the
 ## names shown, top to bottom ([] while closed), body_text() the modal's text without markup, close_button, close().
 
 
@@ -40,36 +41,12 @@ func test_no_civilization_or_government_rows_in_the_play_area() -> void:
 	close_main(main)
 
 
-# --- 119 AC1: one button ---
-
-func test_one_top_bar_button_names_the_civilization_and_government() -> void:
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	var button: Button = main.identity_button()
-	eq(button.text, "%s · Chiefdom" % name_in("civilization"), "names both")
-	eq(button.tooltip_text, "Your civilization and government.", "tooltip")
-	check(button.is_visible_in_tree(), "shown")
-	var bar := button.get_parent()
-	for c in bar.get_children():
-		if c is Button and c != button:
-			check(not c.text in [name_in("civilization"), "Chiefdom"], "no separate '%s' button" % c.text)
-	var score: int = main.counter(TopBar.SCORE).get_index()
-	var supply := -1
-	for c in bar.get_children():
-		if c is Button and c.text.begins_with("Buy Cards"):
-			supply = c.get_index()
-	check(score < button.get_index() and button.get_index() < supply, "after the stats, before Buy Cards: %d, %d, %d" % [
-		score, button.get_index(), supply])
-	close_main(main)
-
-
 # --- 119 AC2: the modal ---
 
 func test_pressing_it_opens_one_modal_with_the_civilization_then_the_government() -> void:
 	var main := open_main()
 	main.start_game(1)
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	var modal: Object = main.identity_modal
 	eq(modal.shown(), [name_in("civilization"), "Chiefdom"], "civilization, then government")
 	var body: String = modal.body_text()
@@ -91,13 +68,13 @@ func test_esc_and_close_close_it_and_it_blocks_the_board_keys() -> void:
 	var main := open_main()
 	main.start_game(1)
 	var modal: Object = main.identity_modal
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	press_key(main, KEY_E)
 	eq(Game.engine.turn, 1, "E doesn't end the turn while it is open")
 	press_key(main, KEY_ESCAPE)
 	eq(modal.shown(), [], "Esc closes it")
 	check(not main.menu_buttons()[0].is_visible_in_tree(), "and doesn't open the menu")
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	modal.close_button.pressed.emit()
 	eq(modal.shown(), [], "Close closes it")
 	close_main(main)
@@ -107,7 +84,7 @@ func test_it_opens_above_the_log_drawer() -> void:
 	var main := open_main()
 	main.start_game(1)
 	main.log_drawer.open()
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	var modal := main.identity_modal as Control
 	check(modal.z_index > (main.log_drawer as Control).z_index, "drawn above the drawer: %d, %d" % [
 		modal.z_index, (main.log_drawer as Control).z_index])
@@ -117,28 +94,30 @@ func test_it_opens_above_the_log_drawer() -> void:
 
 # --- 119 AC3: one or neither ---
 
-func test_with_only_a_civilization_the_button_and_modal_show_it_alone() -> void:
+func test_with_only_a_civilization_the_sidebar_and_modal_show_it_alone() -> void:
 	await with_engine(civ_engine("tribe"), func(main: Node):
-		eq(main.identity_button().text, "Tribe", "names the civilization alone")
-		main.identity_button().pressed.emit()
+		eq(main.sidebar.name_button.text, "Tribe", "names the civilization alone")
+		check(not main.sidebar.government_button.visible, "no government")
+		main.sidebar.name_button.pressed.emit()
 		eq(main.identity_modal.shown(), ["Tribe"], "one section"))
 
 
-func test_with_only_a_government_the_button_and_modal_show_it_alone() -> void:
+func test_with_only_a_government_the_sidebar_and_modal_show_it_alone() -> void:
 	await with_engine(gov_engine("council"), func(main: Node):
-		eq(main.identity_button().text, "Council", "names the government alone")
-		main.identity_button().pressed.emit()
+		check(not main.sidebar.name_button.visible, "no civilization")
+		eq(main.sidebar.government_button.text, "Council ›", "names the government alone")
+		main.sidebar.government_button.pressed.emit()
 		eq(main.identity_modal.shown(), ["Council"], "one section"))
 
 
-func test_with_neither_the_button_is_hidden() -> void:
+func test_with_neither_the_sidebar_names_nothing() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
 	var config := DataLoader.parse_config(raw_config({"farm": 5}), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	await with_engine(GameEngine.new(cards, config), func(main: Node):
-		check(not main.identity_button().visible, "hidden"))
+		check(not main.sidebar.name_button.visible and not main.sidebar.government_button.visible, "both hidden"))
 
 
 # --- 119 AC4: a new government ---
@@ -166,16 +145,16 @@ func to_government_choice(e: GameEngine) -> void:
 	check(false, "the government choice never came: %s" % [e.pending()])
 
 
-func test_choosing_a_government_updates_the_button_and_an_open_modal() -> void:
+func test_choosing_a_government_updates_the_sidebar_and_an_open_modal() -> void:
 	var main := open_main()
 	main.start_game(1)
 	var e := Game.engine
 	e.create_card("kingship", "discard", null)  # into the government deck (154)
 	to_government_choice(e)
-	main.identity_button().pressed.emit()
+	main.sidebar.government_button.pressed.emit()
 	var kingship := uid_of(e.zone("governments"), "kingship")
 	check(e.choose_government(kingship), "choose Kingship: %s" % e.choose_government_error(kingship))
-	eq(main.identity_button().text, "%s · Kingship" % name_in("civilization"), "the button")
+	eq(main.sidebar.government_button.text, "Kingship ›", "the sidebar")
 	eq(main.identity_modal.shown(), [name_in("civilization"), "Kingship"], "the open modal")
 	var body: String = main.identity_modal.body_text()
 	for line in e.def_details("kingship").rules:
@@ -187,7 +166,7 @@ func test_choosing_a_government_updates_the_button_and_an_open_modal() -> void:
 
 func test_a_civilization_without_flavor_or_quote_shows_no_empty_lines() -> void:
 	await with_engine(civ_engine("tribe"), func(main: Node):
-		main.identity_button().pressed.emit()
+		main.sidebar.government_button.pressed.emit()
 		var body: String = main.identity_modal.body_text()
 		check(not body.begins_with("\n") and not body.contains("\n\n\n"), "no empty flavor or quote lines: %s" % [body]))
 
