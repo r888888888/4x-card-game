@@ -16,7 +16,7 @@ func engine_const(name: String) -> Variant:
 
 
 ## A game with the research deck order_top_first and the given starting insight (and 20 wealth).
-func insight_engine(order_top_first: Array, insight: int, overrides := {}, extra: Array = []) -> Object:
+func insight_engine(order_top_first: Array, insight: int, overrides := {}, extra: Array = []) -> GameEngine:
 	var o := {"starting": {"resources": {"food": 2, "wealth": 20, "insight": insight}, "tableau": ["capital"],
 		"territory": "homeland"}}
 	o.merge(overrides, true)
@@ -24,17 +24,17 @@ func insight_engine(order_top_first: Array, insight: int, overrides := {}, extra
 
 
 ## The uid of tech id in the research deck (-1 if it isn't there).
-func deck_tech(e: Object, id: String) -> int:
+func deck_tech(e: GameEngine, id: String) -> int:
 	return uid_of(e.zone("research_deck"), id)
 
 
 ## Learns tech id from the research deck; returns buy_tech's result.
-func learn(e: Object, id: String) -> bool:
+func learn(e: GameEngine, id: String) -> bool:
 	return e.buy_tech(deck_tech(e, id))
 
 
 ## The tech_tree() entry for id ({} if missing).
-func entry(e: Object, id: String) -> Dictionary:
+func entry(e: GameEngine, id: String) -> Dictionary:
 	for t in e.tech_tree():
 		if t.id == id:
 			return t
@@ -53,12 +53,8 @@ func load_x(type: String, cost: Variant, effects: Array = [], fields := {}) -> D
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 
 
-func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
-	return config_errors_for(tech_db(), overrides, deck)
-
-
 ## What buy_tech changes: [insight, researched ids, research deck ids sorted].
-func snapshot(e: Object) -> Array:
+func snapshot(e: GameEngine) -> Array:
 	return [e.resources.get("insight"), card_ids(e.zone("researched")), sorted(card_ids(e.zone("research_deck")))]
 
 
@@ -141,7 +137,7 @@ func test_research_deck_validation() -> void:
 		["not a tech", [{"research_deck": {"farm": 1}}, {"farm": 1}], "config.json: research_deck: 'farm' is not a tech"],
 		["count below 1", [{"research_deck": {"pottery": 0}}, {"farm": 1}], "config.json: research_deck: count for 'pottery'"],
 		["tech in the main deck", [{}, {"pottery": 1}], "config.json: deck: 'pottery' is a tech"],
-	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], overrides_and_deck[1]))
+	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], [TECHS], overrides_and_deck[1]))
 
 
 # --- Setup ---
@@ -355,18 +351,18 @@ const SEEK := {"id": "seek", "name": "Seek", "type": "action", "effects": [{"op"
 
 
 func test_research_card_name_is_the_research_card_in_the_deck() -> void:
-	var e: Object = tech_engine(["pottery"], {"farm": 5, "study": 1})
+	var e: GameEngine = tech_engine(["pottery"], {"farm": 5, "study": 1})
 	eq(e.research_card_name(), "Research", "Research is in the deck")
 
 
 func test_research_card_name_is_empty_without_a_research_card() -> void:
-	var e: Object = tech_engine(["pottery"], {"farm": 5})
+	var e: GameEngine = tech_engine(["pottery"], {"farm": 5})
 	eq(e.research_card_name(), "", "no research card in the deck or supply")
 
 
 func test_research_card_name_looks_in_the_deck_then_the_supply_in_order() -> void:
 	var pile := {"price": 1, "count": 1}
-	var e: Object = tech_engine(["pottery"], {"farm": 5}, {"supply": {"seek": pile, "study": pile}}, [SEEK])
+	var e: GameEngine = tech_engine(["pottery"], {"farm": 5}, {"supply": {"seek": pile, "study": pile}}, [SEEK])
 	eq(e.research_card_name(), "Seek", "first supply pile that gains insight")
 	e = tech_engine(["pottery"], {"farm": 5, "study": 1}, {"supply": {"seek": pile}}, [SEEK])
 	eq(e.research_card_name(), "Research", "the deck comes before the supply")

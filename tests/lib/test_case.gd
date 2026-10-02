@@ -198,6 +198,41 @@ func card_ids(zone: Zone) -> Array[String]:
 	return ids
 
 
+## A make_engine game with Explorers in the deck and Hills, Grassland, Jungle in the territory deck (top first), an
+## Explorer played: the explore choice is open, Hills and Grassland revealed.
+func explore_engine() -> GameEngine:
+	var e := make_engine({"explorer": 10}, {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}})
+	arrange(e.zone("territory_deck"), ["hills", "grassland", "jungle"])
+	check(e.play_card(first_in_hand(e)), "play Explorer")
+	return e
+
+
+## A finished make_engine game (turn_limit 1, ended).
+func over_engine() -> GameEngine:
+	var e := make_engine({"farm": 10}, {"turn_limit": 1})
+	e.end_turn()
+	check(e.is_over, "the game is over")
+	return e
+
+
+## A card "x" of type with one effect.
+func card_with(type: String, effect: Dictionary) -> Dictionary:
+	return {"id": "x", "name": "X", "type": type, "effects": [effect]}
+
+
+## Sets the pop on e's home territory (home_uid) to n.
+func set_home_pop(e: GameEngine, n: int) -> void:
+	e.zone("tableau").find(home_uid(e)).pop = n
+
+
+## The territory the Capital stands on, or null.
+func capital_land(e: GameEngine) -> CardInstance:
+	for c in e.zone("tableau").cards:
+		if c.def.id == "capital":
+			return e.zone("tableau").find(c.territory_uid)
+	return null
+
+
 ## The uid of the starting territory on the tableau (config starting.territory, homeland in TEST_CARDS, or the
 ## civilization's home, 111), or -1. It is the first territory on the tableau: settled ones come after it.
 func home_uid(engine: GameEngine) -> int:
@@ -247,7 +282,7 @@ func arrange(z: Zone, ids_top_first: Array) -> void:
 
 ## Puts new copies of the buildings card_ids straight on territory territory_uid, in order (the last ones go idle
 ## first), without paying or checking slots.
-func build_on(engine: Object, territory_uid: int, card_ids: Array) -> void:
+func build_on(engine: GameEngine, territory_uid: int, card_ids: Array) -> void:
 	for id in card_ids:
 		var card: CardInstance = engine.create_card(id, "tableau", null)
 		card.territory_uid = territory_uid
@@ -255,16 +290,16 @@ func build_on(engine: Object, territory_uid: int, card_ids: Array) -> void:
 
 ## Moves one territory_deck copy of each id (in order) straight to the tableau, as if settled
 ## without a city.
-func settle(engine: Object, ids: Array) -> void:
+func settle(engine: GameEngine, ids: Array) -> void:
 	_move_territories(engine, ids, "tableau")
 
 
 ## Moves one territory_deck copy of each id (in order) to the frontier.
-func to_frontier(engine: Object, ids: Array) -> void:
+func to_frontier(engine: GameEngine, ids: Array) -> void:
 	_move_territories(engine, ids, "frontier")
 
 
-func _move_territories(engine: Object, ids: Array, to_zone: String) -> void:
+func _move_territories(engine: GameEngine, ids: Array, to_zone: String) -> void:
 	var deck: Zone = engine.zone("territory_deck")
 	for id in ids:
 		var uid := uid_of(deck, id)
@@ -289,13 +324,13 @@ func best_time_usec(f: Callable, calls := 20, runs := 5) -> int:
 
 
 ## Puts a new copy of card id in the hand and returns its uid.
-func put_in_hand(engine: Object, id: String) -> int:
+func put_in_hand(engine: GameEngine, id: String) -> int:
 	return put_in(engine, id, "hand")
 
 
 ## Puts a new copy of card id in zone_name and returns its uid. A government is placed there directly, where
 ## create_card would send it to the government deck (154): tests of rules for governments in the hand or discard.
-func put_in(engine: Object, id: String, zone_name: String) -> int:
+func put_in(engine: GameEngine, id: String, zone_name: String) -> int:
 	if engine.card_db[id].type != CardDef.GOVERNMENT:
 		var card: CardInstance = engine.create_card(id, zone_name, null)
 		return card.uid
@@ -305,9 +340,16 @@ func put_in(engine: Object, id: String, zone_name: String) -> int:
 	return gov.uid
 
 
+## r's cards (r from fixture_load), after appending its errors and warnings to errors and warnings.
+func cards_of(r: Dictionary, errors: Array[String], warnings: Array[String]) -> Dictionary:
+	errors.append_array(r.errors)
+	warnings.append_array(r.warnings)
+	return r.cards
+
+
 ## TEST_CARDS plus TEST_CIVS, parsed.
 func civ_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS}, resources(), "cards.json", errors, warnings, keywords())
+	return cards_of(fixture_load([], [TEST_CIVS]), errors, warnings)
 
 
 ## A new game on civ_db() with starting.civilization civ ("" for none); overrides replace config keys.
@@ -329,7 +371,7 @@ func civ_engine(civ: String, deck := {"farm": 10}, overrides := {}) -> GameEngin
 
 ## TEST_CARDS plus TEST_GOVS, parsed.
 func gov_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS}, resources(), "cards.json", errors, warnings, keywords())
+	return cards_of(fixture_load([], [TEST_GOVS]), errors, warnings)
 
 
 ## A new game on gov_db() with starting.government gov ("" for none); overrides replace config keys.
@@ -351,16 +393,30 @@ func gov_engine(gov: String, deck := {"farm": 10}, overrides := {}) -> GameEngin
 
 ## TEST_CARDS plus TEST_EVENTS, parsed.
 func event_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_EVENTS}, resources(), "cards.json", errors, warnings, keywords())
+	return cards_of(fixture_load([], [TEST_EVENTS]), errors, warnings)
 
 
-## TEST_CARDS plus extra cards, parsed: {cards, errors, warnings}.
-func load_with(extra: Array, resource_keywords: Array[String] = []) -> Dictionary:
+## TEST_CARDS, then each fixture set in sets (TEST_GOVS, TEST_CIVS, TECHS, …), then extra, parsed as cards.json:
+## {cards, errors, warnings}. resource_list is the resources listed (resources() when empty); resource_keywords the
+## config's rolled resource keywords. For loader tests; fixture_db when the cards must load.
+func fixture_load(extra := [], sets := [], resource_list: Array[String] = [], resource_keywords: Array[String] = []) -> Dictionary:
+	var raw: Array = TEST_CARDS.cards.duplicate()
+	for fixture_set in sets:
+		raw.append_array(fixture_set)
+	raw.append_array(extra)
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, resources(), "cards.json", errors, warnings,
-		keywords(), resource_keywords)
+	var listed := resources() if resource_list.is_empty() else resource_list
+	var cards := DataLoader.parse_cards({"cards": raw}, listed, "cards.json", errors, warnings, keywords(),
+		resource_keywords)
 	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+## fixture_load's cards, failing the test on a load error.
+func fixture_db(extra := [], sets := [], resource_list: Array[String] = []) -> Dictionary:
+	var r := fixture_load(extra, sets, resource_list)
+	check(r.errors.is_empty(), "test cards should load: %s" % [r.errors])
+	return r.cards
 
 
 ## The errors from parsing a config against the parsed card db cards. overrides replace config keys after
@@ -372,6 +428,11 @@ func config_errors_for(cards: Dictionary, overrides: Dictionary, deck := {"farm"
 	raw.merge(overrides, true)
 	DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
 	return errors
+
+
+## The errors from parsing a config with overrides (see config_errors_for) against fixture_db([], sets).
+func config_errors(overrides: Dictionary, sets := [], deck := {"farm": 1}) -> Array[String]:
+	return config_errors_for(fixture_db([], sets), overrides, deck)
 
 
 # --- UI helpers (backlog 045) ---
@@ -419,6 +480,21 @@ func with_main(engine: GameEngine, body: Callable) -> void:
 	await body.call(main)
 	close_main(main)
 	Game.engine = real
+
+
+## Runs body(main) on a real main scene started on seed 1 and laid out, with Reduce motion set to calm. Use with await.
+func with_game(calm: bool, body: Callable) -> void:
+	await with_reduce_motion(calm, func():
+		var main := open_main()
+		main.start_game(1)
+		await wait_frames()
+		await body.call(main)
+		close_main(main))
+
+
+## with_main on a make_engine game with deck, Grassland and Hills in the territory deck, and overrides. Use with await.
+func with_territories_main(body: Callable, deck := {"farm": 10}, overrides := {}) -> void:
+	await with_main(make_engine(deck, {"territory_deck": {"grassland": 1, "hills": 1}}.merged(overrides)), body)
 
 
 ## Runs body with Reduce motion set to calm in a temp settings store, then puts the player's settings back (104: a
@@ -489,9 +565,8 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 	e.changed.disconnect(on_changed)
 
 
-## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116). e is an Object so
-## the connection fails at run time, not parse time, before the signal exists.
-func record_messages(e: Object) -> Array[String]:
+## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116).
+func record_messages(e: GameEngine) -> Array[String]:
 	var out: Array[String] = []
 	e.connect("logged", func(m: String): out.append("log: " + m))
 	e.connect("noticed", func(m: String): out.append("notice: " + m))

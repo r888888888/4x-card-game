@@ -127,7 +127,7 @@ func test_without_population_workers_are_ignored() -> void:
 # --- 123: a territory's status and tooltip ---
 
 func test_territory_status_reports_free_slots_pop_housing_and_free_workers() -> void:
-	var e: Object = workers_engine(2)
+	var e: GameEngine = workers_engine(2)
 	var home := home_uid(e)
 	eq(e.territory_status(home), {"free_slots": e.free_slots(home), "total_slots": e.total_slots(home), "pop": 2,
 		"housing": e.housing(home), "free_workers": 2}, "Homeland with pop 2 and nothing built")
@@ -140,11 +140,11 @@ func test_territory_status_reports_free_slots_pop_housing_and_free_workers() -> 
 
 
 func test_territory_tooltip_spells_out_slots_pop_and_workers() -> void:
-	var e: Object = workers_engine(2)
+	var e: GameEngine = workers_engine(2)
 	var home := home_uid(e)
 	eq(e.territory_tooltip(home), "Building slots: %d free of %d\nPop 2, housing %d\nFree workers: 2 (each building needs one)" % [
 		e.free_slots(home), e.total_slots(home), e.housing(home)], "Homeland: no keywords")
-	var with_river: Object = make_engine({"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0},
+	var with_river: GameEngine = make_engine({"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0},
 		"territory_deck": {"river": 1}})
 	settle(with_river, ["river"])
 	var river := uid_of(with_river.zone("tableau"), "river")
@@ -153,6 +153,6 @@ func test_territory_tooltip_spells_out_slots_pop_and_workers() -> void:
 
 
 func test_territory_tooltip_without_population_names_only_slots() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	var home := home_uid(e)
 	eq(e.territory_tooltip(home), "Building slots: %d free of %d" % [e.free_slots(home), e.total_slots(home)], "slots only")

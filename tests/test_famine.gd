@@ -1,27 +1,27 @@
 extends "res://tests/lib/test_case.gd"
 ## The Famine (backlog 083) replaces starvation: a short upkeep brings a lasting Famine event with a counter (up to
 ## max_counters), each counter kills 1 pop (the lose_pop rule), growth stops, and a fed upkeep ends it. The fixture
-## Famine card and the famine block come from test_case (TEST_CARDS, FAMINE via raw_config). Engines are Object.
+## Famine card and the famine block come from test_case (TEST_CARDS, FAMINE via raw_config).
 
 const POP := {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}
 
 
 ## A game (population on, Capital +2 food) at turn 1, with the Homeland at home_pop and food on hand. extra cards are
 ## built on the Homeland.
-func famine_engine(home_pop: int, food := 0, extra: Array = []) -> Object:
-	var e: Object = make_engine({"farm": 10}, {"population": POP})
+func famine_engine(home_pop: int, food := 0, extra: Array = []) -> GameEngine:
+	var e: GameEngine = make_engine({"farm": 10}, {"population": POP})
 	e.zone("tableau").find(home_uid(e)).pop = home_pop
 	build_on(e, home_uid(e), extra)
 	e.resources.food = food
 	return e
 
 
-func home_pop(e: Object) -> int:
+func home_pop(e: GameEngine) -> int:
 	return e.pop(home_uid(e))
 
 
 ## Card ids named id in every zone.
-func famines_anywhere(e: Object) -> int:
+func famines_anywhere(e: GameEngine) -> int:
 	var n := 0
 	for z in GameEngine.ZONES:
 		n += card_ids(e.zone(z)).count("famine")
@@ -71,7 +71,7 @@ func test_a_famine_escalates_each_hungry_upkeep() -> void:
 
 
 func test_famine_deaths_use_the_most_pop_rule() -> void:
-	var e: Object = make_engine({"farm": 10}, {"population": POP, "territory_deck": {"hills": 1}})
+	var e: GameEngine = make_engine({"farm": 10}, {"population": POP, "territory_deck": {"hills": 1}})
 	settle(e, ["hills"])
 	var hills := uid_of(e.zone("tableau"), "hills")
 	e.zone("tableau").find(home_uid(e)).pop = 2
@@ -204,8 +204,8 @@ func test_forecast_starve_is_the_famines_deaths() -> void:
 # --- AC8: loader ---
 
 ## Loader errors for population overrides and extra cards (famine is not added for you here).
-func config_errors(population: Variant, overrides := {}, extra: Array = []) -> Array[String]:
-	return config_errors_for(load_with(extra).cards, overrides.merged({"population": population}, true))
+func population_errors(population: Variant, overrides := {}, extra: Array = []) -> Array[String]:
+	return config_errors_for(fixture_load(extra).cards, overrides.merged({"population": population}, true))
 
 
 func test_famine_config_validation() -> void:
@@ -219,14 +219,14 @@ func test_famine_config_validation() -> void:
 		["unknown card", pop.call({"card": "zzz", "max_counters": 3}), "config.json: population.famine.card: unknown card 'zzz'"],
 		["not an event", pop.call({"card": "farm", "max_counters": 3}), "population.famine.card 'farm' is not an event"],
 		["max_counters 0", pop.call({"card": "famine", "max_counters": 0}), "population.famine: 'max_counters' must be an integer >= 1"],
-	], func(p): return config_errors(p))
-	eq(config_errors(pop.call(FAMINE)), [] as Array[String], "a valid famine block")
+	], func(p): return population_errors(p))
+	eq(population_errors(pop.call(FAMINE)), [] as Array[String], "a valid famine block")
 
 
 func test_the_famine_card_is_never_in_the_event_deck_and_has_no_discard() -> void:
-	has_msg(config_errors(POP.merged({"famine": FAMINE}), {"event_deck": {"famine": 1}}), "event_deck: 'famine' is the famine card")
+	has_msg(population_errors(POP.merged({"famine": FAMINE}), {"event_deck": {"famine": 1}}), "event_deck: 'famine' is the famine card")
 	var lasting := {"id": "blight", "name": "Blight", "type": "event", "discard": {"turns": 2}}
-	has_msg(config_errors(POP.merged({"famine": {"card": "blight", "max_counters": 3}}), {}, [lasting]),
+	has_msg(population_errors(POP.merged({"famine": {"card": "blight", "max_counters": 3}}), {}, [lasting]),
 		"population.famine.card 'blight' can't have a discard")
 
 

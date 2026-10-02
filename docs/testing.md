@@ -157,12 +157,17 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
-| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (20 wealth and 20 insight) |
-| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, relief 6 wealth, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `ruling`, `config_errors` |
+| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |
+| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, relief 6 wealth, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `ruling`, `raw_config_errors` (a raw config's errors) |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `load_with(extra, resource_keywords)` | `TEST_CARDS` plus `extra` cards, parsed: `{cards, errors, warnings}` |
+| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, then each fixture set in `sets` (`[TEST_GOVS, TEST_CIVS]`, `[TECHS]`, …), then `extra`, parsed: `{cards, errors, warnings}`; for loader tests (170) |
+| `fixture_db(extra, sets, resource_list)` | `fixture_load`'s cards, failing the test on a load error (170) |
+| `cards_of(r, errors, warnings)` | A `fixture_load` result's cards, appending its errors and warnings to the out arrays (the `*_db` helpers) |
 | `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards`; `overrides` replace keys after `raw_config`'s defaults (a `population` block is used as given) |
+| `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)`; the only `config_errors` (170: per-file variants are named for what they take, e.g. `population_errors`, `raw_config_errors`) |
+| `explore_engine()` / `over_engine()` | A `make_engine` game with an explore choice open (Hills and Grassland revealed, Jungle below); a finished game (turn_limit 1) |
+| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | A card "x" with one effect; the home territory's pop; the territory the Capital stands on |
 | `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers; `home_uid` is the config's starting territory (fixed in 087: it used to find only `homeland`) |
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy for order-free comparisons |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
@@ -177,10 +182,12 @@ tree (a UI test that crashed before `close_main`), so one crash doesn't fail eve
 | `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
 | `with_event_engine(body, event_deck, overrides)` | UI tests: runs `body` with `Game.engine` swapped for a game on `TEST_CARDS` + `TEST_EVENTS`, then puts the real engine back (moved from `test_event_panel` in 079) |
 | `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `ScriptedBot`, calling `after_turn(main)` each turn. A real-data game is cut to `SEED_1_TURNS` (20) turns, and `close_main` restores the limit (066: 100 turns through the UI is too slow). A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
+| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI tests: run `body(main)` on the real main scene started on seed 1: on `engine`; on a `make_engine` game with Grassland and Hills to explore; on the real game with Reduce motion `calm` |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
-writing one. Tests never call engine members that start with `_`: if setup needs one, add a public method.
+writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase. Two files'
+helpers with the same name must do the same thing. Tests never call engine members that start with `_`: if setup needs one, add a public method.
 
 ### Guidelines
 

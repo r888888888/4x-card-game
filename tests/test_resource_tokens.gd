@@ -7,11 +7,11 @@ extends "res://tests/lib/test_case.gd"
 const STEP := 0.05  # seconds per tween step
 const STEPS := 30  # 1.5 s: longer than any token's life
 
-var _calm := false  # Reduce motion for with_fixture_main
+var _calm := false  # Reduce motion for with_token_main
 
 
 ## Runs body(main) on the real main scene on a TEST_CARDS game (seed 1) with 10 food and 10 wealth.
-func with_fixture_main(body: Callable, deck := {"scout": 10}, overrides := {}) -> void:
+func with_token_main(body: Callable, deck := {"scout": 10}, overrides := {}) -> void:
 	await with_reduce_motion(_calm, func():
 		var real := Game.engine
 		Game.engine = make_engine(deck, overrides)
@@ -114,7 +114,7 @@ func play(main: Node, id: String) -> Vector2:
 # --- AC1, AC2, AC4: paying for a played card ---
 
 func test_a_food_cost_floats_up_from_the_food_counter() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var counter := only_label(main, "Food:")
 		await play(main, "farm")
 		var start := below(counter)
@@ -127,7 +127,7 @@ func test_a_food_cost_floats_up_from_the_food_counter() -> void:
 
 
 func test_food_and_wealth_costs_float_up_from_their_own_counters_one_after_the_other() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var food := only_label(main, "Food:")
 		var wealth := only_label(main, "Wealth:")
 		await play(main, "guildhall")
@@ -150,7 +150,7 @@ func test_food_and_wealth_costs_float_up_from_their_own_counters_one_after_the_o
 # --- AC3: buying in the supply screen ---
 
 func test_a_supply_purchase_floats_up_from_the_screens_wealth_counter() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var top_bar_wealth := only_label(main, "Wealth:")
 		main.supply.open(Game.engine)
 		await wait_frames()
@@ -172,7 +172,7 @@ func test_a_supply_purchase_floats_up_from_the_screens_wealth_counter() -> void:
 # --- AC5 (changed by 126): gains float up from their counter too ---
 
 func test_a_food_gain_floats_up_from_the_food_counter() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var counter := only_label(main, "Food:")
 		await play(main, "caravan")
 		var tokens := labels_starting(main, "+")
@@ -189,7 +189,7 @@ func test_a_food_gain_floats_up_from_the_food_counter() -> void:
 
 func test_with_reduce_motion_a_cost_fades_in_place_below_its_counter() -> void:
 	_calm = true
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var counter := only_label(main, "Food:")
 		await play(main, "farm")
 		var start := below(counter)
@@ -271,7 +271,7 @@ func assert_net_tokens(main: Node, before: Dictionary, what: String) -> void:
 
 
 func test_a_change_floats_one_net_token_per_counter_in_its_colour() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		var before := values(e)
 		e.resources[GameEngine.FOOD] += 3
@@ -287,7 +287,7 @@ func test_a_change_floats_one_net_token_per_counter_in_its_colour() -> void:
 
 
 func test_wealth_score_and_pop_changes_float_up_from_their_counters() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		for change: Callable in [
 				func(): e.resources[GameEngine.WEALTH] -= 4,
@@ -300,7 +300,7 @@ func test_wealth_score_and_pop_changes_float_up_from_their_counters() -> void:
 
 
 func test_a_refresh_that_changes_no_counter_floats_nothing() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		Game.engine.changed.emit()
 		await wait_frames()
 		eq(tokens_on(main).map(func(l: Label): return l.text), [], "no tokens"))
@@ -309,7 +309,7 @@ func test_a_refresh_that_changes_no_counter_floats_nothing() -> void:
 # --- 126 AC2: whatever caused it ---
 
 func test_a_played_cards_costs_gains_and_vp_float_up_from_their_counters() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		for id in ["farm", "caravan", "bazaar", "shrine", "guildhall"]:
 			var before := values(Game.engine)
 			await play(main, id)
@@ -318,7 +318,7 @@ func test_a_played_cards_costs_gains_and_vp_float_up_from_their_counters() -> vo
 
 
 func test_a_grow_effect_floats_its_pop_up_from_the_pop_counter() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		e.changed.emit()
@@ -332,7 +332,7 @@ func test_a_grow_effect_floats_its_pop_up_from_the_pop_counter() -> void:
 
 
 func test_a_grow_from_the_meter_floats_food_and_pop_up_from_their_counters() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var view: CardView = main.views[home]
@@ -346,7 +346,7 @@ func test_a_grow_from_the_meter_floats_food_and_pop_up_from_their_counters() -> 
 
 
 func test_end_turn_upkeep_floats_its_net_changes() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		build_on(e, home_uid(e), ["temple", "stall"])  # upkeep: +1 VP, +1 wealth; pop eats 2 food
 		e.changed.emit()
@@ -360,7 +360,7 @@ func test_end_turn_upkeep_floats_its_net_changes() -> void:
 
 
 func test_starving_pop_floats_down_from_the_pop_counter() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		e.zone("tableau").find(home_uid(e)).pop = 6  # eats 6, the Capital makes 2
 		e.resources[GameEngine.FOOD] = 0
@@ -379,7 +379,7 @@ func test_starving_pop_floats_down_from_the_pop_counter() -> void:
 # --- 126 AC3: several at once ---
 
 func test_several_counters_float_left_to_right_a_stagger_apart() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var e := Game.engine
 		var before := values(e)
 		e.resources[GameEngine.FOOD] += 1
@@ -407,7 +407,7 @@ func test_several_counters_float_left_to_right_a_stagger_apart() -> void:
 # --- 126 AC4: no tokens for a fresh game ---
 
 func test_starting_and_restarting_a_game_floats_nothing() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		Game.engine.resources[GameEngine.FOOD] = 30
 		main.start_game(2)
 		await wait_frames()
@@ -420,7 +420,7 @@ func test_starting_and_restarting_a_game_floats_nothing() -> void:
 # --- 126 AC5: the supply screen shows its own ---
 
 func test_closing_the_supply_screen_after_buying_floats_nothing() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		main.supply.open(Game.engine)
 		await wait_frames()
 		main.supply.pick(main.supply.views()[0])
@@ -435,7 +435,7 @@ func test_closing_the_supply_screen_after_buying_floats_nothing() -> void:
 
 func test_with_reduce_motion_a_gain_fades_in_place_below_its_counter() -> void:
 	_calm = true
-	await with_fixture_main(func(main: Node):
+	await with_token_main(func(main: Node):
 		var counter := only_label(main, "Food:")
 		Game.engine.resources[GameEngine.FOOD] += 2
 		Game.engine.changed.emit()

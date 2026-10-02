@@ -39,17 +39,12 @@ func test_an_event_with_revolt_loads_and_says_so() -> void:
 
 
 func test_revolt_validation() -> void:
-	var load_cards := func(extra: Array) -> Dictionary:
-		var errors: Array[String] = []
-		var warnings: Array[String] = []
-		DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra}, RESOURCES, "cards.json", errors, warnings, keywords())
-		return {"errors": errors, "warnings": warnings}
 	check_cases([
 		["not a boolean", [{"id": "x", "name": "X", "type": "event", "revolt": "yes"}], ["cards.json: card 'x'", "revolt"],
 			"one_error"],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "revolt": true}],
 			"'revolt' only applies to events (ignored)", "warning_only"],
-	], load_cards)
+	], func(extra): return fixture_load(extra, [], RESOURCES))
 
 
 # --- AC2: revolting ---

@@ -51,7 +51,7 @@ func test_unrest_renewal_validation() -> void:
 	check_cases([
 		["-1", anarchy_raw({"renewal": -1}), "config.json: unrest.renewal: must be an integer >= 0"],
 		["not an integer", anarchy_raw({"renewal": "one"}), "config.json: unrest.renewal: must be an integer >= 0"],
-	], config_errors)
+	], raw_config_errors)
 
 
 # --- AC2: renewing ---

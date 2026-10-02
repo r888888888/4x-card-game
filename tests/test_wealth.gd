@@ -144,7 +144,7 @@ func test_growth_needs_food_not_wealth() -> void:
 func per_city_engine(cities: int) -> GameEngine:
 	var bank := {"id": "bank", "name": "Bank", "type": "building",
 		"effects": [{"op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep"}]}
-	var loaded := load_with([bank])
+	var loaded := fixture_load([bank])
 	var errors: Array[String] = loaded.errors
 	var config := DataLoader.parse_config(raw_config({"scout": 10}), resources(), loaded.cards, "test", errors, [] as Array[String])
 	check(errors.is_empty(), "test data should load: %s" % [errors])

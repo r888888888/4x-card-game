@@ -1,7 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Base class for tech tests (backlog 026 on): fixture techs and helpers to build a game with a
-## research deck. Engine helpers return Object, not GameEngine: GDScript rejects a call to a method
-## the typed class lacks at parse time, which would hide new tests behind a parse error in the red phase.
+## research deck.
 
 const TECHS := [
 	{"id": "pottery", "name": "Pottery", "type": "tech", "cost": {"insight": 2}, "vp": 1,
@@ -17,13 +16,14 @@ const TECHS := [
 ]
 
 
+## TEST_CARDS, TECHS and extra, parsed; errors and warnings collect the loader's.
 func tech_db(extra: Array = [], errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TECHS + extra}, resources(), "cards.json", errors, warnings, keywords())
+	return cards_of(fixture_load(extra, [TECHS]), errors, warnings)
 
 
 ## A game with the given main deck and a research deck holding the ids in order_top_first (top first),
 ## starting with 2 food, 20 wealth and 20 insight. extra is more fixture cards to load.
-func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}, extra: Array = []) -> Object:
+func tech_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}, extra: Array = []) -> GameEngine:
 	var counts := {}
 	for id in order_top_first:
 		counts[id] = counts.get(id, 0) + 1

@@ -1,6 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
 ## The tech tree (backlog 059): tech_tree() lists every tech in research_deck with its state, cost now, uid (140) and
-## what it gives; era_name(n) names eras from config era_names. Engines are Object so this parses before the API.
+## what it gives; era_name(n) names eras from config era_names.
 
 const ERA_2 := [
 	{"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2},
@@ -11,7 +11,7 @@ const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"ins
 
 
 ## era_2 techs (optics, astronomy) come first in the config, then order_top_first (era 1, top first).
-func tree_engine(order_top_first: Array, overrides := {}, extra: Array = []) -> Object:
+func tree_engine(order_top_first: Array, overrides := {}, extra: Array = []) -> GameEngine:
 	var counts := {"optics": 1, "astronomy": 1}
 	for id in order_top_first:
 		counts[id] = counts.get(id, 0) + 1
@@ -21,7 +21,7 @@ func tree_engine(order_top_first: Array, overrides := {}, extra: Array = []) -> 
 
 
 ## The tree entry for tech id, or {}.
-func entry(e: Object, id: String) -> Dictionary:
+func entry(e: GameEngine, id: String) -> Dictionary:
 	for t in e.tech_tree():
 		if t.id == id:
 			return t

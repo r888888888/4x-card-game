@@ -22,10 +22,6 @@ func relief_engine(home_pop: int, food := 0, wealth := 0, relief: Dictionary = R
 	return e
 
 
-func set_home_pop(e: GameEngine, n: int) -> void:
-	e.zone("tableau").find(home_uid(e)).pop = n
-
-
 ## relief_engine at 4 pop after two hungry upkeeps: a Famine with 2 counters, 1 pop left, then wealth on hand.
 ## overrides replace config keys.
 func two_counter_engine(wealth: int, overrides := {}) -> GameEngine:
@@ -120,21 +116,21 @@ func test_forecast_after_relief_is_0_when_fed_else_1() -> void:
 
 # --- AC4: loader ---
 
-func config_errors(relief: Variant) -> Array[String]:
+func relief_errors(relief: Variant) -> Array[String]:
 	var famine: Dictionary = FAMINE.duplicate()
 	famine["relief"] = relief
-	return config_errors_for(load_with([]).cards, {"population": POP.merged({"famine": famine})})
+	return config_errors_for(fixture_load([]).cards, {"population": POP.merged({"famine": famine})})
 
 
 func test_famine_relief_validation() -> void:
-	eq(config_errors({"wealth": 5}), [] as Array[String], "a valid relief")
+	eq(relief_errors({"wealth": 5}), [] as Array[String], "a valid relief")
 	check_cases([
 		["not an object", 5, "population.famine.relief"],
 		["unknown resource", {"gold": 5}, "population.famine.relief: unknown resource 'gold'"],
 		["0", {"wealth": 0}, "population.famine.relief: 'wealth' must be an integer >= 1"],
 		["not an integer", {"wealth": "x"}, "population.famine.relief: 'wealth' must be an integer >= 1"],
 		["empty", {}, "population.famine.relief"],
-	], func(relief): return config_errors(relief))
+	], func(relief): return relief_errors(relief))
 
 
 func test_a_famine_without_relief_cant_be_relieved() -> void:

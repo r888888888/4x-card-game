@@ -1,6 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
 ## Card details (backlog 056): def_details(card_id) and card_details(uid) give a card's full rules, its live state
-## and an explanation of every mechanic it uses. Engines are held as Object so the file parses before the API exists.
+## and an explanation of every mechanic it uses.
 
 ## A tech with a prerequisite and the default discount (2): printed 5 wealth.
 const CHARIOT := {"id": "chariot", "name": "Chariot", "type": "tech", "cost": {"insight": 5}, "prereq": "bronze"}
@@ -23,8 +23,8 @@ func term_text(details: Dictionary, term: String) -> String:
 
 
 ## Population on (start pop, no food upkeep or pop VP), a hand of Farms and 20 food.
-func pop_engine(start: int) -> Object:
-	var e: Object = make_engine({"farm": 10}, {"population": {"start": start, "food_upkeep": 0, "vp_per_pop": 0}})
+func pop_engine(start: int) -> GameEngine:
+	var e: GameEngine = make_engine({"farm": 10}, {"population": {"start": start, "food_upkeep": 0, "vp_per_pop": 0}})
 	e.resources.food = 20
 	return e
 
@@ -32,7 +32,7 @@ func pop_engine(start: int) -> Object:
 # --- AC1: a building's details ---
 
 func test_farm_details_have_name_type_cost_rules_and_terms() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	var d: Dictionary = e.def_details("farm")
 	eq(d.get("name"), "Farm", "name")
 	eq(d.get("type"), "Building", "type")
@@ -46,7 +46,7 @@ func test_farm_details_have_name_type_cost_rules_and_terms() -> void:
 
 
 func test_card_details_of_a_hand_card_match_its_definition() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	var d: Dictionary = e.card_details(first_in_hand(e))
 	eq(d.get("name"), "Farm", "name")
 	eq(d.get("rules"), ["Each upkeep: +1 food"] as Array[String], "rules")
@@ -54,7 +54,7 @@ func test_card_details_of_a_hand_card_match_its_definition() -> void:
 
 
 func test_action_effects_explain_their_mechanics() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	check(term_names(e.def_details("explorer")).has("Explore"), "Explorer explains Explore")
 	check(term_names(e.def_details("pioneer")).has("Settle"), "Pioneer explains Settle")
 	check(term_names(e.def_details("festival")).has("Grow"), "Festival explains Grow")
@@ -63,7 +63,7 @@ func test_action_effects_explain_their_mechanics() -> void:
 # --- AC2: keyword terms come from the card data ---
 
 func test_keyword_terms_name_the_cards_that_use_the_keyword() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	var well: Dictionary = e.def_details("well")
 	eq(term_names(well), ["Requires", "Fresh Water", "Workers"] as Array[String], "Well terms")
 	var fresh := term_text(well, "Fresh Water")
@@ -97,7 +97,7 @@ func test_rolled_resource_keyword_shows_in_rules_and_terms() -> void:
 		"territory_deck": {"hills": 1},
 	}), resources(), cards, "t", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
-	var e: Object = GameEngine.new(cards, config)
+	var e: GameEngine = GameEngine.new(cards, config)
 	e.new_game(1)
 	settle(e, ["hills"])
 	var d: Dictionary = e.card_details(uid_of(e.zone("tableau"), "hills"))
@@ -137,7 +137,7 @@ func test_a_tech_in_the_research_deck_explains_its_price_now() -> void:
 # --- AC6: unknown cards ---
 
 func test_unknown_cards_have_no_details() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	eq(e.card_details(-1), {}, "card_details(-1)")
 	eq(e.def_details("nope"), {}, "def_details(\"nope\")")
 
@@ -149,7 +149,7 @@ func test_bug_107_card_details_before_a_game_starts() -> void:
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
 	var config := DataLoader.parse_config(raw_config({"farm": 10}), resources(), cards, "test", errors, warnings)
-	var e: Object = GameEngine.new(cards, config)  # no new_game: no zones yet
+	var e: GameEngine = GameEngine.new(cards, config)  # no new_game: no zones yet
 	eq(e.card_details(-1), {}, "no card has live details before a game")
 	eq(e.def_details("farm").get("name", ""), "Farm", "a definition's details work before a game")
 

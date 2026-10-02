@@ -34,7 +34,7 @@ func test_unrest_block_validation() -> void:
 		["without unrest in resources", anarchy_raw({}, {"resources": ["food", "wealth", "insight"],
 			"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}}),
 			["config.json: unrest:", "resources"]],
-	], config_errors)
+	], raw_config_errors)
 
 
 func test_unrest_fallback_is_no_longer_read() -> void:

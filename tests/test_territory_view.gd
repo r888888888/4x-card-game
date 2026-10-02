@@ -6,19 +6,6 @@ extends "res://tests/lib/test_case.gd"
 ## would target, or -1).
 
 
-## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game (deck, overrides; Grassland
-## and Hills in the territory deck) started on seed 1, laid out; then puts the real engine back.
-func with_fixture_main(body: Callable, deck := {"farm": 10}, overrides := {}) -> void:
-	var real := Game.engine
-	Game.engine = make_engine(deck, {"territory_deck": {"grassland": 1, "hills": 1}}.merged(overrides))
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	await body.call(main)
-	close_main(main)
-	Game.engine = real
-
-
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 
@@ -64,7 +51,7 @@ func shown(c: Control) -> bool:
 # --- AC1: open ---
 
 func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm", "temple"])
@@ -87,7 +74,7 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 
 
 func test_clicking_a_city_or_building_still_shows_its_details() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		click(main, home)  # 102: a city has a card only in its territory's view
@@ -102,7 +89,7 @@ func test_clicking_a_city_or_building_still_shows_its_details() -> void:
 # --- AC2: stats and Grow ---
 
 func test_the_view_shows_slots_and_pop_and_grow() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -122,7 +109,7 @@ func test_the_view_shows_slots_and_pop_and_grow() -> void:
 
 
 func test_grow_in_the_view_adds_pop() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		e.resources.food = 20  # enough to grow
@@ -139,7 +126,7 @@ func test_grow_in_the_view_adds_pop() -> void:
 
 
 func test_grow_is_disabled_with_the_reason_when_it_cannot_grow() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		e.resources.food = 0
@@ -153,7 +140,7 @@ func test_grow_is_disabled_with_the_reason_when_it_cannot_grow() -> void:
 
 
 func test_without_population_there_is_no_pop_stat_or_grow() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		click(main, home_uid(Game.engine))
 		await wait_frames()
 		var view: Object = main.territory_view
@@ -164,7 +151,7 @@ func test_without_population_there_is_no_pop_stat_or_grow() -> void:
 # --- AC3: back ---
 
 func test_back_and_esc_return_to_the_realm() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var home := home_uid(Game.engine)
 		for way in ["back", "esc"]:
 			click(main, home)
@@ -183,7 +170,7 @@ func test_back_and_esc_return_to_the_realm() -> void:
 
 
 func test_restart_new_game_and_game_over_close_the_view() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		click(main, home_uid(e))
 		main.start_game(2)
@@ -199,7 +186,7 @@ func test_restart_new_game_and_game_over_close_the_view() -> void:
 # --- AC4: playing onto the viewed territory ---
 
 func test_a_drop_anywhere_on_the_view_targets_its_territory() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		settle(e, ["grassland"])
@@ -216,7 +203,7 @@ func test_a_drop_anywhere_on_the_view_targets_its_territory() -> void:
 
 
 func test_double_clicking_a_building_plays_it_onto_the_viewed_territory() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
@@ -237,7 +224,7 @@ func test_double_clicking_a_building_plays_it_onto_the_viewed_territory() -> voi
 
 
 func test_double_clicking_a_building_the_viewed_territory_cannot_take_says_why() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
@@ -261,7 +248,7 @@ func test_double_clicking_a_building_the_viewed_territory_cannot_take_says_why()
 # --- AC5: targeting wins ---
 
 func test_clicking_a_territory_while_targeting_picks_it() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
@@ -279,7 +266,7 @@ func test_clicking_a_territory_while_targeting_picks_it() -> void:
 # --- AC6: keyboard ---
 
 func test_up_from_the_hand_reaches_the_territories_and_enter_opens_one() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		settle(e, ["grassland"])
@@ -303,7 +290,7 @@ func test_up_from_the_hand_reaches_the_territories_and_enter_opens_one() -> void
 
 
 func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -338,7 +325,7 @@ func open_home(main: Node) -> int:
 
 
 func test_the_view_is_framed_in_the_territory_colour() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		await open_home(main)
 		var frame: Control = main.territory_view.frame
 		check(frame.is_visible_in_tree(), "the frame is shown")
@@ -351,7 +338,7 @@ func test_the_view_is_framed_in_the_territory_colour() -> void:
 
 
 func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home: int = await open_home(main)
 		var view: Object = main.territory_view
@@ -374,7 +361,7 @@ func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() ->
 
 
 func test_free_slots_show_as_outlines_after_the_cards() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -396,7 +383,7 @@ func test_free_slots_show_as_outlines_after_the_cards() -> void:
 
 
 func test_a_full_territory_shows_no_outlines() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var fill: Array = []
@@ -410,7 +397,7 @@ func test_a_full_territory_shows_no_outlines() -> void:
 
 
 func test_an_outline_is_a_drop_target_for_the_territory() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var home: int = await open_home(main)
 		var view: Object = main.territory_view
 		check(view.free_slot_count() > 0, "an outline to drop on")
@@ -423,7 +410,7 @@ func test_an_outline_is_a_drop_target_for_the_territory() -> void:
 # --- 105 AC5: no bounce when navigating ---
 
 func test_opening_shows_the_cards_at_once_without_a_bounce() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -440,7 +427,7 @@ func test_opening_shows_the_cards_at_once_without_a_bounce() -> void:
 
 
 func test_closing_removes_the_cards_at_once() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
@@ -457,7 +444,7 @@ func test_closing_removes_the_cards_at_once() -> void:
 
 
 func test_a_card_played_in_the_view_still_flies_in() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
 		var temple := put_in_hand(e, "temple")

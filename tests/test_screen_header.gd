@@ -5,7 +5,7 @@ extends "res://tests/lib/test_case.gd"
 
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game on seed 1.
-func with_fixture_main(body: Callable) -> void:
+func with_farm_main(body: Callable) -> void:
 	var real := Game.engine
 	Game.engine = make_engine({"farm": 10})
 	var main := open_main()
@@ -35,7 +35,7 @@ func test_the_new_game_and_settings_screens_have_a_header() -> void:
 
 
 func test_the_territory_view_has_a_header() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_farm_main(func(main: Node):
 		var home := home_uid(Game.engine)
 		main.views[home].details_requested.emit(main.views[home])  # a click on the territory
 		var header: Object = main.territory_view.header
@@ -50,7 +50,7 @@ func test_the_territory_view_has_a_header() -> void:
 
 func test_a_territory_view_grows_out_of_its_card_and_shrinks_back() -> void:
 	await with_reduce_motion(false, func():
-		await with_fixture_main(func(main: Node):
+		await with_farm_main(func(main: Node):
 			var home := home_uid(Game.engine)
 			var card := (main.views[home] as CardView).get_global_rect()
 			main.views[home].details_requested.emit(main.views[home])
@@ -86,7 +86,7 @@ func check_link_back(header: Control, parent_title: String, title: String) -> vo
 
 
 func test_the_territory_header_goes_back_through_its_realm_link() -> void:
-	await with_fixture_main(func(main: Node):
+	await with_farm_main(func(main: Node):
 		var home := home_uid(Game.engine)
 		main.views[home].details_requested.emit(main.views[home])
 		check_link_back(main.territory_view.header, "Realm", "Homeland")

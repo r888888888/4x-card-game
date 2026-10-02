@@ -20,15 +20,11 @@ func gold_resource_keywords() -> Array[String]:
 	return k
 
 
-func load_cards(errors: Array[String], warnings: Array[String]) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + GOLD_CARDS}, resources(), "t", errors, warnings, keywords(), gold_resource_keywords())
-
-
 ## A game with the given territory_resources tables and territory deck; the Capital on starting.
 func resource_engine(tables: Dictionary, territory_deck: Dictionary, deck := {"scout": 10}, seed_value := 1, starting := "homeland") -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := load_cards(errors, warnings)
+	var cards := cards_of(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()), errors, warnings)
 	var config := DataLoader.parse_config(raw_config(deck, {
 		"resource_keywords": RESOURCE_KEYWORDS,
 		"territory_resources": tables,
@@ -42,8 +38,8 @@ func resource_engine(tables: Dictionary, territory_deck: Dictionary, deck := {"s
 
 
 ## Loader errors for a config with resource_keywords ["gold"] plus overrides.
-func config_errors(overrides: Dictionary) -> Array[String]:
-	return config_errors_for(load_cards([], []), {"resource_keywords": RESOURCE_KEYWORDS}.merged(overrides, true))
+func gold_config_errors(overrides: Dictionary) -> Array[String]:
+	return config_errors_for(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()).cards, {"resource_keywords": RESOURCE_KEYWORDS}.merged(overrides, true))
 
 
 func kw(list: Array) -> Array[String]:
@@ -183,7 +179,7 @@ func test_territory_keywords_empty_for_non_territory() -> void:
 func test_valid_resource_config_loads_cleanly() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := load_cards(errors, warnings)
+	var cards := cards_of(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()), errors, warnings)
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {
 		"keywords": keywords(), "resource_keywords": RESOURCE_KEYWORDS, "territory_resources": HALF_GOLD,
 	}), resources(), cards, "config.json", errors, warnings)
@@ -217,7 +213,7 @@ func test_resource_config_validation() -> void:
 		["option keywords not an array", tr.call({"hills": [{"keywords": "gold", "weight": 1}]}),
 			"config.json: territory_resources: 'hills'[0]: 'keywords' must be an array"],
 		["territory_resources not an object", tr.call([]), "config.json: 'territory_resources' must be an object"],
-	], config_errors)
+	], gold_config_errors)
 
 
 func test_territory_printing_resource_keyword_is_error() -> void:

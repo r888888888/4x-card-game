@@ -42,10 +42,6 @@ func territory_config() -> Dictionary:
 	}
 
 
-func config_errors(overrides: Dictionary, deck := {"farm": 1}) -> Array[String]:
-	return config_errors_for(load_with([]).cards, overrides, deck)
-
-
 # --- AC1: territory cards load ---
 
 func test_territory_card_loads_with_slots_and_keywords() -> void:
@@ -99,7 +95,7 @@ func test_territory_deck_and_starting_territory_validation() -> void:
 			"config.json: starting.territory: 'farm' is not a territory"],
 		["starting territory unknown", [start.call("atlantis"), {"farm": 1}],
 			"config.json: starting.territory: unknown card 'atlantis'"],
-	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], overrides_and_deck[1]))
+	], func(overrides_and_deck): return config_errors(overrides_and_deck[0], [], overrides_and_deck[1]))
 
 
 # --- AC5: new game with territories ---

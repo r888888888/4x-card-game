@@ -9,7 +9,7 @@ const ALL_EVENTS := {"windfall": 1, "trade_winds": 1, "omen": 1}
 
 ## A game with the main deck {scout: 10}, the event deck order_top_first on top (the rest of event_deck below),
 ## 2 food and 0 wealth. overrides replace config keys.
-func event_engine(order_top_first: Array = [], overrides := {}, seed_value := 1) -> Object:
+func event_engine(order_top_first: Array = [], overrides := {}, seed_value := 1) -> GameEngine:
 	var config := {"event_deck": ALL_EVENTS}
 	config.merge(overrides, true)
 	var errors: Array[String] = []
@@ -28,7 +28,7 @@ func event_engine(order_top_first: Array = [], overrides := {}, seed_value := 1)
 
 ## Ends the turn with one card over the hand limit, so it stops after the event phase and before cleanup.
 ## The game needs hand_limit 5 (see event_engine overrides).
-func end_turn_before_cleanup(e: Object) -> void:
+func end_turn_before_cleanup(e: GameEngine) -> void:
 	while e.zone("hand").size() <= e.config.hand_limit:
 		put_in_hand(e, "scout")
 	e.end_turn()

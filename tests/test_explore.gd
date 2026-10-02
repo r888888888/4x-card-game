@@ -4,7 +4,7 @@ extends "res://tests/lib/test_case.gd"
 
 
 ## A game whose territory deck is ids, top first, and whose hand is 5 Explorers.
-func explore_engine(ids_top_first: Array) -> GameEngine:
+func explorer_engine(ids_top_first: Array) -> GameEngine:
 	var counts := {}
 	for id in ids_top_first:
 		counts[id] = counts.get(id, 0) + 1
@@ -19,17 +19,10 @@ func top_first(zone: Zone) -> Array[String]:
 	return ids
 
 
-## Plays the first Explorer from [hills, grassland, jungle]; returns the engine with the choice pending.
-func pending_engine() -> GameEngine:
-	var e := explore_engine(["hills", "grassland", "jungle"])
-	check(e.play_card(first_in_hand(e)), "play Explorer")
-	return e
-
-
 # --- AC1: reveal 2 ---
 
 func test_explore_reveals_top_two_as_a_choice() -> void:
-	var e := explore_engine(["hills", "grassland", "jungle"])
+	var e := explorer_engine(["hills", "grassland", "jungle"])
 	var hills := uid_of(e.zone("territory_deck"), "hills")
 	var grassland := uid_of(e.zone("territory_deck"), "grassland")
 	var explorer := first_in_hand(e)
@@ -45,7 +38,7 @@ func test_explore_reveals_top_two_as_a_choice() -> void:
 # --- AC2: choose ---
 
 func test_choose_keeps_pick_in_frontier_and_buries_the_rest() -> void:
-	var e := pending_engine()
+	var e := explore_engine()
 	check(e.choose(uid_of(e.zone("reveal"), "hills")), "choose returns true")
 	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "frontier")
 	eq(e.zone("reveal").size(), 0, "reveal empty")
@@ -54,7 +47,7 @@ func test_choose_keeps_pick_in_frontier_and_buries_the_rest() -> void:
 
 
 func test_choose_emits_changed_but_not_card_played() -> void:
-	var e := pending_engine()
+	var e := explore_engine()
 	var events := []
 	e.changed.connect(func(): events.append("changed"))
 	e.card_played.connect(func(_o): events.append("card_played"))
@@ -65,7 +58,7 @@ func test_choose_emits_changed_but_not_card_played() -> void:
 # --- AC3: a pending choice blocks play and end turn ---
 
 func test_pending_choice_blocks_play() -> void:
-	var e := pending_engine()
+	var e := explore_engine()
 	for c in e.zone("hand").cards:
 		eq(e.play_error(c.uid), "Choose a territory first.", "play_error for hand card %d" % c.uid)
 	var hand_before := card_ids(e.zone("hand"))
@@ -74,7 +67,7 @@ func test_pending_choice_blocks_play() -> void:
 
 
 func test_pending_choice_blocks_end_turn() -> void:
-	var e := pending_engine()
+	var e := explore_engine()
 	var hand_before := card_ids(e.zone("hand"))
 	var food_before: int = e.resources.food
 	e.end_turn()
@@ -86,7 +79,7 @@ func test_pending_choice_blocks_end_turn() -> void:
 # --- AC4: invalid choices ---
 
 func test_choose_non_option_is_refused() -> void:
-	var e := pending_engine()
+	var e := explore_engine()
 	var options: Array = e.pending_choice.get("options", []).duplicate()
 	check(not e.choose(uid_of(e.zone("territory_deck"), "jungle")), "choosing Jungle refused")
 	check(not e.choose(first_in_hand(e)), "choosing a hand card refused")
@@ -97,7 +90,7 @@ func test_choose_non_option_is_refused() -> void:
 
 
 func test_choose_with_nothing_pending_is_refused() -> void:
-	var e := explore_engine(["hills", "grassland"])
+	var e := explorer_engine(["hills", "grassland"])
 	var hills := uid_of(e.zone("territory_deck"), "hills")
 	check(not e.choose(hills), "choose refused")
 	eq(top_first(e.zone("territory_deck")), ["hills", "grassland"] as Array[String], "territory deck unchanged")
@@ -107,7 +100,7 @@ func test_choose_with_nothing_pending_is_refused() -> void:
 # --- AC5: fewer territories than revealed ---
 
 func test_explore_last_territory_goes_straight_to_frontier() -> void:
-	var e := explore_engine(["hills"])
+	var e := explorer_engine(["hills"])
 	check(e.play_card(first_in_hand(e)), "play Explorer")
 	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "frontier")
 	eq(e.pending_choice, {}, "nothing pending")
@@ -116,7 +109,7 @@ func test_explore_last_territory_goes_straight_to_frontier() -> void:
 
 
 func test_explore_empty_territory_deck_does_nothing() -> void:
-	var e := explore_engine([])
+	var e := explorer_engine([])
 	check(e.play_card(first_in_hand(e)), "play Explorer")
 	eq(e.pending_choice, {}, "nothing pending")
 	eq(e.zone("reveal").size(), 0, "reveal empty")

@@ -25,7 +25,7 @@ func load_config(overrides: Dictionary) -> Dictionary:
 
 
 ## A game with population overrides whose frontier holds one Grassland and whose hand is Pioneers.
-func frontier_engine(overrides: Dictionary) -> GameEngine:
+func pioneer_engine(overrides: Dictionary) -> GameEngine:
 	var o := {"territory_deck": {"grassland": 1}}
 	o.merge(overrides, true)
 	var e := make_engine({"pioneer": 10}, o)
@@ -134,7 +134,7 @@ func test_unsettled_territories_have_no_pop() -> void:
 # --- AC4: settling gives 1 pop ---
 
 func test_settle_gives_new_territory_1_pop() -> void:
-	var e := frontier_engine({"population": population(2)})
+	var e := pioneer_engine({"population": population(2)})
 	var territory: int = e.zone("frontier").cards[0].uid
 	check(e.play_card(first_in_hand(e), territory), "settle")
 	eq(e.pop(territory), 1, "settled territory pop")
@@ -164,7 +164,7 @@ func test_final_score_includes_pop_vp() -> void:
 # --- AC6: no population block ---
 
 func test_without_population_block_pop_is_always_0() -> void:
-	var e := frontier_engine({})
+	var e := pioneer_engine({})
 	var home := home_uid(e)
 	var territory: int = e.zone("frontier").cards[0].uid
 	eq(e.pop(home), 0, "homeland pop")

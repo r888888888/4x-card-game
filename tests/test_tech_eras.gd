@@ -27,7 +27,7 @@ func load_x(fields: Dictionary, type := "tech", effects: Array = []) -> Dictiona
 
 ## A game whose research deck starts with the era-1 techs in order_top_first (top first) and whose
 ## era-2 techs (optics, astronomy) wait in future_techs. deck is the main deck.
-func era_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) -> Object:
+func era_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) -> GameEngine:
 	var counts := {"optics": 1, "astronomy": 1}
 	for id in order_top_first:
 		counts[id] = counts.get(id, 0) + 1
@@ -135,7 +135,7 @@ func test_learning_the_last_tech_with_no_eras_left_adds_nothing() -> void:
 # --- Era unlock thresholds (backlog 029) ---
 
 ## A game with era-2 techs waiting, population on (start 2) and era_unlocks; starting resources as given.
-func threshold_engine(unlocks: Dictionary, start_resources := {"food": 10, "wealth": 0}, tableau: Array = ["capital"]) -> Object:
+func threshold_engine(unlocks: Dictionary, start_resources := {"food": 10, "wealth": 0}, tableau: Array = ["capital"]) -> GameEngine:
 	var overrides := {
 		"era_unlocks": unlocks,
 		"starting": {"resources": start_resources, "tableau": tableau, "territory": "homeland"},
@@ -151,12 +151,6 @@ func threshold_config_errors(unlocks: Variant) -> Dictionary:
 	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_unlocks": unlocks}), resources(), cards, "config.json", errors, warnings)
 	return {"config": config, "errors": errors, "warnings": warnings}
 
-
-func set_home_pop(e: Object, n: int) -> void:
-	e.zone("tableau").find(home_uid(e)).pop = n
-
-
-# AC1: config
 
 func test_era_unlocks_is_normalized() -> void:
 	var r := threshold_config_errors({"2": {"pop": 8.0, "wealth": 15}})

@@ -17,7 +17,7 @@ func era_db(errors: Array[String] = [], warnings: Array[String] = []) -> Diction
 
 
 ## A game with event_deck DECK (or event_deck), main deck {scout: 10}; overrides replace config keys.
-func era_engine(overrides := {}, event_deck := DECK, seed_value := 1) -> GameEngine:
+func event_era_engine(overrides := {}, event_deck := DECK, seed_value := 1) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := era_db(errors, warnings)
@@ -58,7 +58,7 @@ func test_event_era_validation() -> void:
 # --- AC2: setup ---
 
 func test_later_era_events_wait_in_future_events() -> void:
-	var e := era_engine()
+	var e := event_era_engine()
 	eq(sorted(card_ids(e.zone("event_deck"))), ["omen", "trade_winds", "windfall"], "era-1 events in the deck")
 	eq(sorted(card_ids(e.zone("future_events"))), ["blight", "raid"], "era-2 events wait")
 
@@ -66,7 +66,7 @@ func test_later_era_events_wait_in_future_events() -> void:
 # --- AC3: era added ---
 
 func test_adding_era_2_shuffles_its_events_into_the_event_deck_once() -> void:
-	var e := era_engine()
+	var e := event_era_engine()
 	e.end_turn()  # draws one era-1 event
 	var active := card_ids(e.zone("active_events"))
 	var discard := card_ids(e.zone("event_discard"))
@@ -83,7 +83,7 @@ func test_adding_era_2_shuffles_its_events_into_the_event_deck_once() -> void:
 
 ## Backlog 116: an era's events added is a notice.
 func test_an_eras_events_added_is_a_notice() -> void:
-	var e := era_engine()
+	var e := event_era_engine()
 	var recorded := record_messages(e)
 	e.add_era(2)
 	check_noticed(recorded, "events added to the event deck")
@@ -92,7 +92,7 @@ func test_an_eras_events_added_is_a_notice() -> void:
 func test_era_2_events_are_shuffled_in_by_seed() -> void:
 	var orders := []
 	for i in 2:
-		var e := era_engine()
+		var e := event_era_engine()
 		check(not card_ids(e.zone("event_deck")).has("raid"), "Raid isn't in the deck before era 2")
 		e.add_era(2)
 		orders.append(card_ids(e.zone("event_deck")))
@@ -101,7 +101,7 @@ func test_era_2_events_are_shuffled_in_by_seed() -> void:
 
 
 func test_an_era_unlocks_threshold_adds_the_era_2_events() -> void:
-	var e := era_engine({"era_unlocks": {"2": {"wealth": 5}}})
+	var e := event_era_engine({"era_unlocks": {"2": {"wealth": 5}}})
 	e.resources.wealth = 5
 	e.end_turn()  # the next turn's start checks the thresholds
 	eq(e.era(), 2, "era 2 reached")
@@ -114,10 +114,10 @@ func test_an_era_unlocks_threshold_adds_the_era_2_events() -> void:
 
 # --- AC4: panel ---
 
-## The event info label's tooltip in the real main scene, on era_engine's game with event_deck.
+## The event info label's tooltip in the real main scene, on event_era_engine's game with event_deck.
 func event_tooltip(event_deck: Dictionary) -> String:
 	var real := Game.engine
-	Game.engine = era_engine({}, event_deck)
+	Game.engine = event_era_engine({}, event_deck)
 	var main := open_main()
 	main.start_game(1)
 	var tooltip: String = main.event_panel().tooltip

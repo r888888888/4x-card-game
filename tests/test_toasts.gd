@@ -6,16 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const TARGET_HINT := "Esc cancels."
 
 
-## Runs body(main) on a seed 1 game of the real data with Reduce motion set to calm.
-func with_game(calm: bool, body: Callable) -> void:
-	await with_reduce_motion(calm, func():
-		var main := open_main()
-		main.start_game(1)
-		await wait_frames()
-		await body.call(main)
-		close_main(main))
-
-
 ## Emits the engine's noticed signal, as the engine does for a notable log line.
 func notice(message: String) -> void:
 	Game.engine.emit_signal("noticed", message)

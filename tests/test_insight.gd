@@ -20,7 +20,7 @@ func tech_errors(cost: Dictionary) -> Array[String]:
 
 ## tech_engine with Pottery then Writing on the research deck (Optics in era 2) and starting resources res;
 ## civ is the starting civilization ("" for none).
-func insight_engine(res: Dictionary, civ := "") -> Object:
+func civ_insight_engine(res: Dictionary, civ := "") -> GameEngine:
 	var starting := {"resources": res, "tableau": ["capital"], "territory": "homeland"}
 	if civ != "":
 		starting["civilization"] = civ
@@ -44,7 +44,7 @@ func test_a_tech_must_cost_insight_only() -> void:
 # --- AC2: buying spends insight, not wealth ---
 
 func test_buying_a_tech_spends_insight_and_leaves_wealth() -> void:
-	var e := insight_engine({"food": 2, "wealth": 20, "insight": 2})
+	var e := civ_insight_engine({"food": 2, "wealth": 20, "insight": 2})
 	var pottery := uid_of(e.zone("research_deck"), "pottery")
 	check(e.buy_tech(pottery), "buy Pottery: %s" % e.buy_tech_error(pottery))
 	eq(e.resources.get("insight"), 0, "insight 2 − 2")
@@ -55,7 +55,7 @@ func test_buying_a_tech_spends_insight_and_leaves_wealth() -> void:
 # --- AC3: not enough insight ---
 
 func test_a_tech_needs_enough_insight() -> void:
-	var e := insight_engine({"food": 2, "wealth": 20, "insight": 1})
+	var e := civ_insight_engine({"food": 2, "wealth": 20, "insight": 1})
 	var pottery := uid_of(e.zone("research_deck"), "pottery")
 	eq(e.buy_tech_error(pottery), "Pottery needs 2 insight (you have 1).", "buy_tech_error")
 	check(not e.buy_tech(pottery), "buy_tech refuses")
@@ -67,12 +67,12 @@ func test_a_tech_needs_enough_insight() -> void:
 # --- AC4: discounts, the tree and the details speak insight ---
 
 func test_a_civilization_tech_discount_takes_insight() -> void:
-	var e := insight_engine({"food": 2, "insight": 20}, "sages")
+	var e := civ_insight_engine({"food": 2, "insight": 20}, "sages")
 	eq(e.tech_cost(uid_of(e.zone("research_deck"), "writing")), 2, "Writing 3 − 1")
 
 
 func test_the_tech_tree_reports_costs_in_insight() -> void:
-	var e := insight_engine({"food": 2, "insight": 20}, "sages")
+	var e := civ_insight_engine({"food": 2, "insight": 20}, "sages")
 	var costs := {}
 	for t in e.tech_tree():
 		costs[t.id] = t.cost
@@ -80,7 +80,7 @@ func test_the_tech_tree_reports_costs_in_insight() -> void:
 
 
 func test_a_techs_details_name_its_insight_price_and_the_civilization_discount() -> void:
-	var e := insight_engine({"food": 2, "insight": 20}, "sages")
+	var e := civ_insight_engine({"food": 2, "insight": 20}, "sages")
 	var d: Dictionary = e.card_details(uid_of(e.zone("research_deck"), "writing"))
 	check(d.get("state", []).has("Costs 2 insight now (printed 3, −1 civilization)"), "state: %s" % [d.get("state")])
 
@@ -88,7 +88,7 @@ func test_a_techs_details_name_its_insight_price_and_the_civilization_discount()
 # --- AC5: the forecast and the top bar ---
 
 func test_the_forecast_includes_insight() -> void:
-	var e := insight_engine({"food": 2, "insight": 0})
+	var e := civ_insight_engine({"food": 2, "insight": 0})
 	e.create_card("scriptorium", "tableau", null)
 	eq(e.upkeep_forecast().get("insight"), 1, "Scriptorium ⟳ +1 insight")
 

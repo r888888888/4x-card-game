@@ -3,7 +3,7 @@ extends "res://tests/lib/tech_case.gd"
 
 
 ## Calls action and returns how many times e emitted changed meanwhile.
-func changes_during(e: Object, action: Callable) -> int:
+func changes_during(e: GameEngine, action: Callable) -> int:
 	var count := [0]
 	var on_changed := func(): count[0] += 1
 	e.changed.connect(on_changed)
@@ -13,7 +13,7 @@ func changes_during(e: Object, action: Callable) -> int:
 
 
 ## Asserts that action returns ok and emits changed expected times.
-func expect_changes(label: String, e: Object, action: Callable, ok: bool, expected: int) -> void:
+func expect_changes(label: String, e: GameEngine, action: Callable, ok: bool, expected: int) -> void:
 	var result := [null]
 	var n := changes_during(e, func(): result[0] = action.call())
 	if result[0] != null:
@@ -21,17 +21,10 @@ func expect_changes(label: String, e: Object, action: Callable, ok: bool, expect
 	eq(n, expected, "%s: changed emitted" % label)
 
 
-## A game with the choice from an Explorer pending (hills and grassland revealed).
-func explore_engine() -> Object:
-	var e: Object = make_engine({"explorer": 10}, {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}})
-	check(e.play_card(first_in_hand(e)), "play Explorer")
-	return e
-
-
 # --- AC3: finishing the forced discard ---
 
 func test_bug_048_discarding_the_last_owed_card_emits_changed_once() -> void:
-	var e: Object = make_engine({"scout": 10}, {"hand_limit": 5})
+	var e: GameEngine = make_engine({"scout": 10}, {"hand_limit": 5})
 	check(e.play_card(first_in_hand(e)), "play Scout")  # hand 6
 	e.end_turn()
 	eq(e.discard_needed(), 1, "1 owed")
@@ -42,7 +35,7 @@ func test_bug_048_discarding_the_last_owed_card_emits_changed_once() -> void:
 # --- AC4: once per successful action, none when refused ---
 
 func test_bug_048_each_successful_action_emits_changed_once() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	expect_changes("play_card", e, func(): return e.play_card(first_in_hand(e)), true, 1)
 
 	e = explore_engine()
@@ -74,7 +67,7 @@ func test_bug_048_each_successful_action_emits_changed_once() -> void:
 
 
 func test_bug_048_refused_actions_emit_no_changed() -> void:
-	var e: Object = make_engine({"farm": 10})
+	var e: GameEngine = make_engine({"farm": 10})
 	expect_changes("play_card", e, func(): return e.play_card(-1), false, 0)
 	expect_changes("choose", e, func(): return e.choose(-1), false, 0)
 	expect_changes("grow", e, func(): return e.grow(-1), false, 0)
@@ -93,7 +86,7 @@ func test_bug_048_refused_actions_emit_no_changed() -> void:
 # --- Backlog 093: discard_card and choose refuse through their error queries ---
 
 ## The sizes of the zones a refused discard or choose could touch.
-func zone_sizes(e: Object) -> Array[int]:
+func zone_sizes(e: GameEngine) -> Array[int]:
 	var out: Array[int] = []
 	for z in ["hand", "discard", "reveal", "frontier", "territory_deck", "research_deck"]:
 		out.append(e.zone(z).size())
@@ -101,7 +94,7 @@ func zone_sizes(e: Object) -> Array[int]:
 
 
 func test_actions_refuse_exactly_when_their_error_query_says_why() -> void:
-	var over: Object = make_engine({"farm": 10}, {"turn_limit": 1})
+	var over: GameEngine = make_engine({"farm": 10}, {"turn_limit": 1})
 	over.end_turn()
 	var cases := [
 		# [label, engine, query, action]
@@ -114,7 +107,7 @@ func test_actions_refuse_exactly_when_their_error_query_says_why() -> void:
 		["choose, not an option", explore_engine(), func(e): return e.choose_error(-1), func(e): return e.choose(-1)],
 	]
 	for row in cases:
-		var e: Object = row[1]
+		var e: GameEngine = row[1]
 		var query: Callable = row[2]
 		var action: Callable = row[3]
 		check(query.call(e) != "", "%s: the query says why" % row[0])

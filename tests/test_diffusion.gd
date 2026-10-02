@@ -12,7 +12,7 @@ const FIXTURES := [ASTRONOMY, PHILOSOPHY, BRINE, SAGES]
 
 
 ## A game with Loom, Brine and Pottery in era 1, Astronomy in era 2 and Philosophy in era 3; civ as given ("" none).
-func diffusion_engine(civ := "") -> Object:
+func diffusion_engine(civ := "") -> GameEngine:
 	var starting := {"resources": {"food": 2, "insight": 20}, "tableau": ["capital"], "territory": "homeland"}
 	if civ != "":
 		starting["civilization"] = civ
@@ -22,12 +22,12 @@ func diffusion_engine(civ := "") -> Object:
 
 
 ## tech_cost of tech id in the research deck.
-func cost_of(e: Object, id: String) -> int:
+func cost_of(e: GameEngine, id: String) -> int:
 	return e.tech_cost(uid_of(e.zone("research_deck"), id))
 
 
 ## The tech_tree() entry for id ({} if missing).
-func entry(e: Object, id: String) -> Dictionary:
+func entry(e: GameEngine, id: String) -> Dictionary:
 	for t in e.tech_tree():
 		if t.id == id:
 			return t

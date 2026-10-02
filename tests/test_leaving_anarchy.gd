@@ -77,7 +77,7 @@ func test_unrest_relief_validation() -> void:
 		["unknown resource", with_relief.call({"gold": 6}), "config.json: unrest.relief: unknown resource 'gold'"],
 		["0", with_relief.call({"wealth": 0}), "config.json: unrest.relief: 'wealth' must be an integer >= 1"],
 		["unrest", with_relief.call({"unrest": 1}), "config.json: unrest.relief: unrest can't be paid"],
-	], config_errors)
+	], raw_config_errors)
 
 
 # --- AC3: restore_order_error ---
