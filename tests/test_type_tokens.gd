@@ -139,3 +139,10 @@ func size_literals() -> Array[String]:
 
 func test_no_ui_script_passes_a_literal_text_size() -> void:
 	eq(size_literals(), [] as Array[String], "literal text sizes (use Tokens.TYPE_* or a variation)")
+
+
+func test_a_title_keeps_its_case() -> void:
+	var title := UIKit.title("Knowledge")
+	check(not title.uppercase, "a title isn't drawn in capitals (type.title is Title Case)")
+	eq(title.theme_type_variation, &"Title", "the Title variation")
+	title.free()

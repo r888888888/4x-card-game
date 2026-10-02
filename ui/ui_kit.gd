@@ -105,9 +105,10 @@ static func buttons_in(node: Node) -> Array[Button]:
 	return Array(node.find_children("*", "Button", true, false), TYPE_OBJECT, "Button", null)
 
 
-## An overlay's title: bigger and white.
+## An overlay's or a modal's title: the display face at type.title, in its own case (194).
 static func title(text: String) -> Label:
-	var label := heading(text)
+	var label := Label.new()
+	label.text = text
 	label.theme_type_variation = &"Title"
 	return label
 
