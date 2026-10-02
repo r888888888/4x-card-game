@@ -102,5 +102,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 92. 174 prerequisite cycles a load error; the renewal modifier key on `Modifiers`
 93. 175 the last small rules leave the UI; one action-button class
 94. 176 split `main.gd` (`BoardViews`, `BoardLayout`)
+95. 155 revolt any time; Anarchy's length follows unrest (governments no longer played from hand)
+96. 157 Theocracy slows research: an insight-per-gain modifier
+97. 156 Anarchy eats into stored food and wealth
+98. 159 the bot chooses governments and revolts by looking ahead (with the balance suite, `scripts/test.sh --balance`)
+99. 158 sim metrics for Anarchy, governments and famine
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

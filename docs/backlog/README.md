@@ -41,14 +41,7 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-Government and Anarchy rework (from `spike/revolution`; 155 also retires playing a government from hand):
-1. 155 revolt any time; Anarchy's length follows unrest (154 government deck is done)
-2. 156 Anarchy eats into stored food and wealth
-3. 157 Theocracy slows research: an insight-per-gain modifier
-4. 158 sim metrics for Anarchy, governments and famine
-5. 159 the bot chooses governments and revolts by looking ahead
-
-Then 149's balance pass can cover the reworked unrest.
+149's balance pass can cover the reworked unrest (155–159 are done).
 
 Barbarians and military (units are homed on a territory, using a worker there, and stationed where they defend):
 1. 160 unit cards garrisoned on a home territory
