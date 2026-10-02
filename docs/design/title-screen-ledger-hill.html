@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledger Title Hill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). Iterates option B of title-screen-options.html (213). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--p-teal); outline-offset: 3px; }
+header.page { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 10px; cursor: pointer; }
+.plain[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.group { display: inline-flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; display: grid; gap: var(--space-7); }
+.intro { color: var(--ink-2); max-width: 80ch; margin: 0; }
+.intro b { color: var(--ink); font-weight: 600; }
+.opt { display: grid; gap: var(--space-3); }
+.opt .head { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+.opt h2 { margin: 0 auto 0 0; font: 500 24px/30px var(--f-display); display: flex; gap: var(--space-3); align-items: baseline; }
+.opt h2 b { font-weight: 500; color: var(--ink-3); }
+.opt p { margin: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); max-width: 92ch; }
+.spec { font: 400 14px/20px var(--f-ui); color: var(--ink-2); margin: 0; padding-left: var(--space-4); border-left: 2px solid var(--rule-fine); }
+.spec b { color: var(--ink); font-weight: 600; }
+
+/* ---- the 16:9 window, option B's ledger on the left ---- */
+.screen { position: relative; aspect-ratio: 16 / 9; width: 100%; background: var(--board); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); overflow: hidden; container-type: inline-size; display: grid; grid-template-columns: 1fr 1fr; }
+.left { padding: 7cqw 0 0 7cqw; display: grid; align-content: start; gap: 4cqw; position: relative; z-index: 1; }
+.left .caps { font-size: 1.1cqw; line-height: 1; }
+.left h3 { margin: 0; font: 500 6.4cqw/0.95 var(--f-display); letter-spacing: 0.02em; }
+.left h3 small { display: block; margin-top: 1cqw; font: 600 1.4cqw/1 var(--f-cond); letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-2); }
+.col { display: grid; gap: 1.2cqw; width: 32cqw; }
+.big { --travel: 0.35cqw; cursor: pointer; color: var(--ink); font: inherit; display: grid; grid-template-columns: 0.8cqw 1fr auto; align-items: center; gap: 1.6cqw; height: 6.6cqw; padding: 0 1.6cqw 0 0; background: var(--sheet); border: 0.22cqw solid var(--ink); box-shadow: var(--travel) var(--travel) 0 var(--shadow); text-align: left; transform: translate(0, 0);
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), background-color var(--d-hover) var(--ease-machined); }
+.big:hover { background: var(--steel); }
+.big:active { transform: translate(var(--travel), var(--travel)); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.big .edge { align-self: stretch; background: var(--well); box-shadow: inset -0.15cqw 0 0 var(--rule); }
+.big.primary .edge { background: var(--signal); box-shadow: none; }
+.big .label { font: 600 1.9cqw/1 var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; }
+.big .label small { display: block; margin-top: 0.5cqw; font: 400 1.15cqw/1.2 var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+.big .arrow { font: 500 2cqw/1 var(--f-display); color: var(--ink-2); }
+.right { position: relative; border-left: 0.15cqw solid var(--rule-fine); overflow: hidden; }
+.right svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<header class="page">
+	<h1>Ledger · sun over a hill</h1>
+	<span class="group"><button class="plain" data-theme-btn="night" aria-pressed="true">Night shift</button><button class="plain" data-theme-btn="paper" aria-pressed="false">Paper</button></span>
+	<span class="group"><button class="plain" id="calm" aria-pressed="false">Reduce motion</button></span>
+	<span class="group"><span class="caps">Speed</span><button class="plain" data-speed="1" aria-pressed="true">1×</button><button class="plain" data-speed="0.25" aria-pressed="false">¼×</button></span>
+</header>
+<main>
+	<p class="intro">The chosen title-screen art (backlog 213, 214): option B's ledger with the striped sun rising
+	over <b>one bare green hill</b>. It rises into place when the screen opens, then rests (guide rule 4).
+	<b>New game brings on the day</b> (the sun climbs); <b>Exit sinks it into a sunset</b>: as the sun nears the horizon
+	it turns from gold to signal red, warm bands gather in the sky and the hill deepens. The same warmth plays at dawn.
+	Settings leaves it be.</p>
+	<div id="opts"></div>
+</main>
+<script>
+const OPTS = [
+	{ id: "dome", name: "One hill", sun: [300, 300, 150],
+		about: "A single round hill, centred, with the sun rising straight up behind its crown. The calmest of the three: symmetrical, like a seal or an emblem.",
+		spec: "<b>Hill</b>: an elliptical dome, 720 wide, crown 150 px above the horizon · <b>Enter</b>: hill rises 120 px in 0.9 s machined; sun rises 2.6 s machined · <b>New game</b>: sun +70 px · <b>Exit</b>: sun sinks 190 px into a sunset. <b>Low sun</b> (centre under 200 px up, dawn and dusk alike): the sun turns from gold to signal red, four warm bands gather in the sky behind it (brick near the horizon, ochre higher), and the hill deepens toward teal; no grey veil." },
+];
+
+const KEYS = [["New game", "Choose a civilization and a seed", "primary"], ["Settings", "Motion, day mode, sound", ""], ["Exit", "Close the game", ""]];
+document.getElementById("opts").innerHTML = OPTS.map((o, i) => `
+	<section class="opt" data-opt="${o.id}">
+		<div class="head"><h2>${o.name}</h2><button class="plain" data-replay>Replay entrance</button></div>
+		<p>${o.about}</p>
+		<div class="screen">
+			<div class="left">
+				<span class="caps">Est. Turn 001</span>
+				<h3>4X Card<br>Game<small>Civilizations in cards</small></h3>
+				<div class="col">${KEYS.map(([l, s, c], k) => `<button class="big ${c}" data-key="${k}"><span class="edge"></span><span class="label">${l}<small>${s}</small></span><span class="arrow">›</span></button>`).join("")}</div>
+			</div>
+			<div class="right"><svg viewBox="0 0 600 675" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+		</div>
+		<p class="spec">${o.spec}</p>
+	</section>`).join("");
+
+// ---------- helpers ----------
+const root = document.documentElement;
+let speed = 1, calm = false;
+const bezier = (x1, y1, x2, y2) => (t) => {
+	if (t <= 0) return 0; if (t >= 1) return 1;
+	let u = t;
+	for (let i = 0; i < 8; i++) {
+		const x = 3 * (1 - u) ** 2 * u * x1 + 3 * (1 - u) * u * u * x2 + u ** 3 - t;
+		const dx = 3 * (1 - u) ** 2 * x1 + 6 * (1 - u) * u * (x2 - x1) + 3 * u * u * (1 - x2);
+		if (Math.abs(dx) < 1e-6) break;
+		u = Math.min(1, Math.max(0, u - x / dx));
+	}
+	return 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u * u * y2 + u ** 3;
+};
+const EASE = { machined: bezier(0.2, 0, 0, 1), latch: bezier(0.5, -0.2, 0.1, 1), linear: (t) => t };
+const clamp = (x) => Math.min(1, Math.max(0, x));
+const tw = (t, start, dur, ease = EASE.machined) => ease(clamp((t - start) / dur));
+const lerp = (a, b, k) => a + (b - a) * k;
+const spring = (x = 0, k = 12) => ({ x, v: 0, target: x, k, c: 2 * Math.sqrt(k) });  // critically damped: no overshoot
+const step = (s, dt) => { const a = s.k * (s.target - s.x) - s.c * s.v; s.v += a * dt; s.x += s.v * dt; };
+const still = (s) => Math.abs(s.x - s.target) < 0.002 && Math.abs(s.v) < 0.002;
+const settleSpring = (s) => { s.x = s.target; s.v = 0; };
+const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const NS = "http://www.w3.org/2000/svg";
+const el = (parent, tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };
+const set = (e, attrs) => { for (const k in attrs) e.setAttribute(k, attrs[k]); };
+// keys: 0 New game brings the day (day → 1), 2 Exit brings dusk (dusk → 1)
+const keyed = (day, dusk) => (k) => { day.target = k === 0 ? 1 : 0; dusk.target = k === 2 ? 1 : 0; };
+
+// ---------- the scene: a banded sun behind one or two hill shapes ----------
+const H = 520;  // the horizon: the hills meet the ground here
+const HILLS = {
+	dome: [[`M-60 ${H} A360 150 0 0 1 660 ${H} L660 675 L-60 675 Z`, "var(--p-sage)", 120]],
+	pair: [[`M180 ${H} A320 190 0 0 1 820 ${H} L820 675 L180 675 Z`, "var(--p-olive)", 70], [`M-200 ${H} A400 130 0 0 1 600 ${H} L600 675 L-200 675 Z`, "var(--p-sage)", 120]],
+	slope: [["M-20 675 L-20 330 C 140 300, 300 400, 640 560 L640 675 Z", "var(--p-sage)", 120]],
+};
+let maskN = 0;
+function hillScene(kind, [sx, restY, r]) {
+	return (svg) => {
+		// the sky's warm bands, behind everything: they gather as the sun nears the horizon
+		const BANDS = [[H - 46, 46, "brick", 0.55], [H - 104, 58, "brick", 0.32], [H - 174, 70, "ochre", 0.22], [H - 260, 86, "ochre", 0.12]];
+		const bands = BANDS.map(([y, h, hue, a]) => ({ e: el(svg, "rect", { x: 0, y, width: 600, height: h, fill: `var(--p-${hue})`, opacity: 0 }), a }));
+		// the sun: gold, with a red disc over it for the low sun; its bands are true gaps (a mask), so the sky shows through
+		const id = `sunmask${maskN++}`, mask = el(el(svg, "defs"), "mask", { id, maskUnits: "userSpaceOnUse", x: -r - 10, y: -r - 10, width: 2 * r + 20, height: 2 * r + 20 });
+		el(mask, "circle", { cx: 0, cy: 0, r, fill: "white" });
+		[0.15, 0.33, 0.51, 0.69, 0.86].forEach((f, i) => el(mask, "rect", { x: -r, y: f * r, width: 2 * r, height: (4 + i * 3.5) * r / 150, fill: "black" }));
+		const sun = el(svg, "g"), disc = el(sun, "g", { mask: `url(#${id})` });
+		el(disc, "rect", { x: -r, y: -r, width: 2 * r, height: 2 * r, fill: "var(--p-ochre)" });
+		const red = el(disc, "rect", { x: -r, y: -r, width: 2 * r, height: 2 * r, fill: "var(--signal)", opacity: 0 });
+		// the hills, and over each a cooler, deeper copy for the low sun (a silhouette, not a grey veil)
+		const hills = HILLS[kind].map(([d, fill, rise]) => {
+			const g = el(svg, "g");
+			el(g, "path", { d, fill });
+			return { g, rise, deep: el(g, "path", { d, fill: "var(--p-teal)", opacity: 0 }), shade: el(g, "path", { d, fill: "var(--shadow)", opacity: 0 }) };
+		});
+		const day = spring(), night = spring();
+		return {
+			rest() { settleSpring(day); settleSpring(night); }, key: keyed(day, night),
+			frame(t, dt, e) {
+				step(day, dt); step(night, dt);
+				const cy = lerp(H + r + 20, restY, tw(e, 0, 2600)) - 70 * day.x + 190 * night.x;
+				set(sun, { transform: `translate(${sx} ${cy.toFixed(1)})` });
+				// how low the sun is: 0 once its centre is 200 px up, 1 at the horizon (dawn on the way up, sunset on the way down)
+				const low = clamp((200 - (H - cy)) / 190), glow = low * low * (3 - 2 * low);
+				red.setAttribute("opacity", (0.85 * glow).toFixed(3));
+				bands.forEach((b) => b.e.setAttribute("opacity", (b.a * glow).toFixed(3)));
+				hills.forEach((h, i) => {
+					set(h.g, { transform: `translate(0 ${(h.rise * (1 - tw(e, 150 + i * 150, 900))).toFixed(1)})` });
+					h.deep.setAttribute("opacity", (0.6 * glow).toFixed(3));
+					h.shade.setAttribute("opacity", (0.25 * glow).toFixed(3));
+				});
+				return e < 2700 || !still(day) || !still(night);
+			},
+		};
+	};
+}
+
+// ---------- wiring: a scene's clock runs only while something moves ----------
+const scenes = [...document.querySelectorAll(".opt")].map((sec) => {
+	const s = { sec, scene: hillScene(sec.dataset.opt, OPTS.find((o) => o.id === sec.dataset.opt).sun)(sec.querySelector("svg")), enterAt: 0, running: false, last: 0 };
+	sec.querySelector("[data-replay]").addEventListener("click", () => enter(s));
+	sec.querySelectorAll("[data-key]").forEach((b) => {
+		const k = +b.dataset.key;
+		b.addEventListener("pointerenter", () => key(s, k)); b.addEventListener("focus", () => key(s, k));
+		b.addEventListener("pointerleave", () => key(s, null)); b.addEventListener("blur", () => key(s, null));
+	});
+	return s;
+});
+let clockMs = 0, lastReal = performance.now();
+function tick() { const now = performance.now(); clockMs += (now - lastReal) * speed; lastReal = now; }
+function run(s) {
+	if (s.running) return;
+	s.running = true; s.last = clockMs;
+	const loop = () => {
+		tick();
+		const dt = Math.min(0.05, (clockMs - s.last) / 1000); s.last = clockMs;
+		const moving = s.scene.frame(clockMs, dt, clockMs - s.enterAt);
+		if (moving && !calm) requestAnimationFrame(loop); else s.running = false;
+	};
+	requestAnimationFrame(loop);
+}
+function settle(s) { tick(); s.enterAt = -1e6; s.scene.rest(); s.scene.frame(clockMs, 0, 1e6); }
+function enter(s) { if (calm) return settle(s); tick(); s.enterAt = clockMs; run(s); }
+function key(s, k) { s.scene.key(k); if (calm) settle(s); else run(s); }
+
+const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
+	if (!e.isIntersecting) return;
+	seen.unobserve(e.target);
+	enter(scenes.find((s) => s.sec === e.target));
+}), { threshold: 0.4 });
+scenes.forEach((s) => { settle(s); seen.observe(s.sec); });
+
+document.querySelectorAll("[data-theme-btn]").forEach((b) => b.addEventListener("click", () => {
+	root.dataset.theme = b.dataset.themeBtn;
+	document.querySelectorAll("[data-theme-btn]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+}));
+document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
+	tick(); speed = +b.dataset.speed;
+	document.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+}));
+document.getElementById("calm").addEventListener("click", (e) => {
+	calm = !calm; e.currentTarget.setAttribute("aria-pressed", calm);
+	scenes.forEach((s) => (calm ? settle(s) : enter(s)));
+});
+</script>
+</body>
+</html>

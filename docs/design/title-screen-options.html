@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Title Screen Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). Options for backlog 213. */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2; --steel-hover: #D3C9B6;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --on-signal: #FBF6EC;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--l-sage: #4E6B47;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733; --steel-hover: #44403B;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --on-signal: #1F1E1C;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--l-sage: #93B585;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--p-teal); outline-offset: 3px; }
+header.page { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 10px; cursor: pointer; }
+.plain[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; display: grid; gap: var(--space-7); }
+.intro { color: var(--ink-2); max-width: 74ch; margin: 0; }
+.opt { display: grid; gap: var(--space-3); }
+.opt h2 { margin: 0; font: 500 24px/30px var(--f-display); display: flex; gap: var(--space-3); align-items: baseline; flex-wrap: wrap; }
+.opt h2 b { font-weight: 500; color: var(--ink-3); }
+.opt p { margin: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); max-width: 90ch; }
+.spec { font: 400 14px/20px var(--f-ui); color: var(--ink-2); margin: 0; padding-left: var(--space-4); }
+
+/* A 16:9 window, the title screen inside it. */
+.screen { position: relative; aspect-ratio: 16 / 9; width: 100%; background: var(--board); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); overflow: hidden; container-type: inline-size; }
+
+/* ---- the press every big button shares (§15.1, scaled up) ---- */
+.big { cursor: pointer; transform: translate(0, 0); color: var(--ink); font: inherit;
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), background-color var(--d-hover) var(--ease-machined); }
+.big:active { transform: translate(var(--travel), var(--travel)); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+
+/* ===== A · Front plate: centred title block, three wide keys with a keycap index ===== */
+.a { display: grid; place-content: center; justify-items: center; gap: 5cqw; }
+.a .plate { text-align: center; border-top: 0.6cqw solid var(--ink); border-bottom: 0.15cqw solid var(--ink); padding: 1.4cqw 3cqw 1.2cqw; }
+.a .plate .caps { font-size: 1.1cqw; line-height: 1; }
+.a .plate h3 { margin: 0.8cqw 0 0.6cqw; font: 500 6cqw/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; }
+.a .col { display: grid; gap: 1.4cqw; width: 30cqw; }
+.a .big { --travel: 0.35cqw; display: flex; align-items: center; height: 5.6cqw; padding: 0 1.2cqw 0 2cqw; background: var(--steel); border: 0.22cqw solid var(--ink); border-radius: var(--radius-1); box-shadow: var(--travel) var(--travel) 0 var(--shadow); }
+.a .big:hover { background: var(--steel-hover); }
+.a .big .label { flex: 1; text-align: left; font: 600 1.7cqw/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; }
+.a .big .cap { display: grid; place-items: center; width: 2.6cqw; height: 2.6cqw; background: var(--well); font: 500 1.4cqw/1 var(--f-mono); color: var(--ink-2); }
+.a .big.primary { background: var(--signal); color: var(--on-signal); }
+.a .big.primary:hover { background: var(--signal-hover); }
+.a .foot { position: absolute; left: 0; right: 0; bottom: 2cqw; text-align: center; font-size: 1cqw; }
+
+/* ===== B · Ledger: title and keys flush left, each key a tall slab with a lamp edge and a sub-caption ===== */
+.b { display: grid; grid-template-columns: 1fr 1fr; }
+.b .left { padding: 7cqw 0 0 7cqw; display: grid; align-content: start; gap: 4cqw; }
+.b .left .caps { font-size: 1.1cqw; line-height: 1; }
+.b h3 { margin: 0; font: 500 6.4cqw/0.95 var(--f-display); letter-spacing: 0.02em; }
+.b h3 small { display: block; margin-top: 1cqw; font: 600 1.4cqw/1 var(--f-cond); letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-2); }
+.b .col { display: grid; gap: 1.2cqw; width: 32cqw; }
+.b .big { --travel: 0.35cqw; display: grid; grid-template-columns: 0.8cqw 1fr auto; align-items: center; gap: 1.6cqw; height: 6.6cqw; padding: 0 1.6cqw 0 0; background: var(--sheet); border: 0.22cqw solid var(--ink); box-shadow: var(--travel) var(--travel) 0 var(--shadow); text-align: left; }
+.b .big:hover { background: var(--steel); }
+.b .big .edge { align-self: stretch; background: var(--well); box-shadow: inset -0.15cqw 0 0 var(--rule); }
+.b .big.primary .edge { background: var(--signal); box-shadow: none; }
+.b .big .label { font: 600 1.9cqw/1 var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; }
+.b .big .label small { display: block; margin-top: 0.5cqw; font: 400 1.15cqw/1.2 var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+.b .big .arrow { font: 500 2cqw/1 var(--f-display); color: var(--ink-2); }
+.b .right { position: relative; border-left: 0.15cqw solid var(--rule-fine); }
+.b .rings { position: absolute; inset: 0; display: grid; place-items: center; }
+.b .rings span { position: absolute; border: 0.15cqw solid var(--rule); border-radius: 50%; }
+.b .bands { position: absolute; right: 6cqw; bottom: 6cqw; display: flex; gap: 0.6cqw; }
+.b .bands i { width: 3cqw; height: 0.7cqw; }
+
+/* ===== C · Console: a steel panel set into the board; keys seated in recessed collars, one lit lamp per key ===== */
+.c { display: grid; place-content: center; }
+.c .panel { width: 46cqw; background: var(--sheet); border: 0.22cqw solid var(--ink); box-shadow: 0.7cqw 0.7cqw 0 var(--shadow); }
+.c .panel .tb { border-top: 0.6cqw solid var(--ink); padding: 2cqw 2.6cqw 1.6cqw; display: flex; align-items: baseline; justify-content: space-between; border-bottom: 0.1cqw solid var(--rule-fine); }
+.c .panel h3 { margin: 0; font: 500 4cqw/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.c .panel .tb .caps { font-size: 1cqw; }
+.c .keys { padding: 2.4cqw 2.6cqw 2.6cqw; display: grid; gap: 1.4cqw; }
+.c .collar { background: var(--well); padding: 0.5cqw; box-shadow: inset 0.3cqw 0.3cqw 0 var(--shadow), inset 0 0 0 0.1cqw var(--rule); }
+.c .big { --travel: 0.3cqw; width: 100%; display: flex; align-items: center; gap: 1.4cqw; height: 5cqw; padding: 0 1.6cqw; background: var(--steel); border: 0.2cqw solid var(--ink); border-radius: var(--radius-1); transform: translate(calc(var(--travel) * -1), calc(var(--travel) * -1)); box-shadow: var(--travel) var(--travel) 0 var(--shadow); }
+.c .big:hover { background: var(--steel-hover); }
+.c .big:active { transform: translate(0, 0); }
+.c .big .lamp { width: 1.2cqw; height: 1.2cqw; border-radius: 50%; background: var(--well); box-shadow: inset 0 0 0 0.12cqw var(--rule); }
+.c .big.primary .lamp { background: var(--p-sage); box-shadow: inset 0 0 0 0.12cqw var(--l-sage); }
+.c .big .label { flex: 1; text-align: left; font: 600 1.7cqw/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; }
+.c .big .hint { font: 500 1.2cqw/1 var(--f-mono); color: var(--ink-3); }
+.c .big.primary { background: var(--signal); color: var(--on-signal); }
+.c .big.primary .hint { color: var(--on-signal); opacity: 0.7; }
+.c .big.primary:hover { background: var(--signal-hover); }
+</style>
+</head>
+<body>
+<header class="page">
+	<h1>Title screen options</h1>
+	<span class="caps">Backlog 213</span>
+	<button class="plain" data-theme-btn="night" aria-pressed="true">Night shift</button>
+	<button class="plain" data-theme-btn="paper" aria-pressed="false">Paper</button>
+</header>
+<main>
+	<p class="intro">Three designs for the title screen and its large-format button. Each mock is a 16:9 window drawn at
+	scale; press the buttons to feel the travel. New game is the primary key (signal fill) in every option. Pick one (or
+	mix: a layout from one, a button from another) and 213 gets its criteria from it.</p>
+
+	<section class="opt">
+		<h2><b>A</b> Front plate</h2>
+		<p>A centred title block between a heavy and a fine rule, over one column of wide keys. Each key is the End turn
+		key's family: steel fill, 3 px ink border, 4 px plinth, caps label, and a keycap index (1, 2, 3) on a well inset
+		that doubles as its keyboard shortcut.</p>
+		<div class="screen a">
+			<div class="plate"><span class="caps">A game of civilizations in cards</span><h3>4X Card Game</h3></div>
+			<div class="col">
+				<button class="big primary"><span class="label">New game</span><span class="cap">1</span></button>
+				<button class="big"><span class="label">Settings</span><span class="cap">2</span></button>
+				<button class="big"><span class="label">Exit</span><span class="cap">3</span></button>
+			</div>
+			<span class="caps foot">Prototype · Godot 4</span>
+		</div>
+		<p class="spec">Button: 400 × 72 at 1280 wide (one width, the column's) · 3 px ink border · radius.1 · plinth 4,4 ·
+		label caps 22 px semi-condensed 600 +12% · index plate 32 × 32 mono on well · press +4,+4, 70 ms snap.</p>
+	</section>
+
+	<section class="opt">
+		<h2><b>B</b> Ledger</h2>
+		<p>Title and keys flush left, like a ledger's first page; the right half stays open for art later (rings and the
+		card-type bands as placeholders). Each key is a tall slab with a lamp edge on its left (signal on the primary)
+		and a one-line sub-caption saying what it does.</p>
+		<div class="screen b">
+			<div class="left">
+				<span class="caps">Est. Turn 001</span>
+				<h3>4X Card<br>Game<small>Civilizations in cards</small></h3>
+				<div class="col">
+					<button class="big primary"><span class="edge"></span><span class="label">New game<small>Choose a civilization and a seed</small></span><span class="arrow">›</span></button>
+					<button class="big"><span class="edge"></span><span class="label">Settings<small>Motion, day mode, sound</small></span><span class="arrow">›</span></button>
+					<button class="big"><span class="edge"></span><span class="label">Exit<small>Close the game</small></span><span class="arrow">›</span></button>
+				</div>
+			</div>
+			<div class="right">
+				<div class="rings"><span style="width:30cqw;height:30cqw"></span><span style="width:22cqw;height:22cqw"></span><span style="width:14cqw;height:14cqw"></span></div>
+				<div class="bands"><i style="background:var(--p-sage)"></i><i style="background:var(--p-olive)"></i><i style="background:var(--p-blue)"></i><i style="background:var(--p-teal)"></i><i style="background:var(--p-ochre)"></i><i style="background:var(--p-brick)"></i></div>
+			</div>
+		</div>
+		<p class="spec">Button: 420 × 84 · sheet fill (steel on hover) · 3 px ink border · square corners like an index card ·
+		10 px lamp edge (well, signal on primary) · label caps 24 px + 15 px sub-caption in ink-2 · › at right · plinth 4,4.</p>
+	</section>
+
+	<section class="opt">
+		<h2><b>C</b> Console</h2>
+		<p>The title sits on a sheet with the modal's title block; the keys are seated in recessed collars on it, like a
+		control console. Each key has a pilot lamp (lit on the primary) and its shortcut printed at the right. Pressing
+		sinks the key into its collar instead of onto a plinth.</p>
+		<div class="screen c">
+			<div class="panel">
+				<div class="tb"><h3>4X Card Game</h3><span class="caps">Desk 01</span></div>
+				<div class="keys">
+					<div class="collar"><button class="big primary"><span class="lamp"></span><span class="label">New game</span><span class="hint">N</span></button></div>
+					<div class="collar"><button class="big"><span class="lamp"></span><span class="label">Settings</span><span class="hint">S</span></button></div>
+					<div class="collar"><button class="big"><span class="lamp"></span><span class="label">Exit</span><span class="hint">Q</span></button></div>
+				</div>
+			</div>
+		</div>
+		<p class="spec">Button: fills its collar, ≈ 500 × 64 · collar = well with an inset shadow · key rests 4 px up-left of
+		its seat, press sinks it home · 14 px pilot lamp · label caps 22 px · shortcut mono 15 px ink-3.</p>
+	</section>
+</main>
+<script>
+const root = document.documentElement;
+document.querySelectorAll("[data-theme-btn]").forEach((b) => b.addEventListener("click", () => {
+	root.dataset.theme = b.dataset.themeBtn;
+	document.querySelectorAll("[data-theme-btn]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+}));
+</script>
+</body>
+</html>
