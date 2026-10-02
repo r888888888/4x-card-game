@@ -48,7 +48,7 @@ func sync(e: GameEngine) -> void:
 	for group in e.territory_groups():
 		if views.has(group.territory):
 			var t: int = group.territory
-			views[t].show_settled(CardFace.keyword_line(e.zone("tableau").find(t)), TerritoryView.stats(e, t), e.territory_tooltip(t))
+			views[t].show_settled(TerritoryView.stats(e, t), e.territory_tooltip(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		for i in cards.size():

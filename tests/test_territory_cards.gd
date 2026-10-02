@@ -227,7 +227,7 @@ func live_line(e: GameEngine, uid: int) -> String:
 	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid)]
 
 
-func test_a_settled_territory_card_shows_its_name_keywords_and_live_line_only() -> void:
+func test_a_settled_territory_card_shows_its_name_and_live_line_only() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
@@ -236,7 +236,7 @@ func test_a_settled_territory_card_shows_its_name_keywords_and_live_line_only() 
 		e.changed.emit()
 		await wait_frames()
 		eq((main.views[home] as CardView).face_text(), "Homeland\n" + live_line(e, home), "Homeland: no keywords line")
-		eq((main.views[hills] as CardView).face_text(), "Hills\nMountain\n" + live_line(e, hills), "Hills")
+		eq((main.views[hills] as CardView).face_text(), "Hills\n" + live_line(e, hills), "Hills: no keywords line (199)")
 		for uid in [home, hills]:
 			var tip: String = (main.views[uid] as CardView).tooltip_text
 			check(tip.begins_with(e.call("territory_tooltip", uid)), "the tooltip spells it out: %s" % tip), \
@@ -278,3 +278,61 @@ func test_frontier_cards_keep_their_printed_slots_and_housing() -> void:
 		var text := (main.views[grass] as CardView).face_text()
 		var def := e.card_db["grassland"] as CardDef
 		check(text.contains("▢%d ⌂%d" % [def.slots, def.housing]), "printed slots and housing: %s" % text))
+
+
+# --- 199: the Realm's settled territory cards hide their keywords ---
+
+## The visible Label and RichTextLabel texts on uid's card face that name one of the territory's keywords.
+func keyword_texts(main: Node, uid: int) -> Array[String]:
+	var card: CardInstance = Game.engine.zone("tableau").find(uid)
+	var names: Array = card.keywords.map(func(k): return k.capitalize())
+	var found: Array[String] = []
+	for c in (main.views[uid] as CardView).find_children("*", "Control", true, false):
+		if not (c as Control).is_visible_in_tree():
+			continue
+		var text := ""
+		if c is Label:
+			text = c.text
+		elif c is RichTextLabel:
+			text = c.get_meta("source", c.get_parsed_text())
+		for n: String in names:
+			if text.contains(n):
+				found.append(text)
+	return found
+
+
+func test_a_settled_territory_card_in_the_realm_shows_no_keyword() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		settle(e, ["hills"])
+		var hills := uid_of(e.zone("tableau"), "hills")
+		e.changed.emit()
+		await wait_frames()
+		check(not e.zone("tableau").find(hills).keywords.is_empty(), "precondition: Hills has keywords")
+		eq(keyword_texts(main, hills), [] as Array[String], "no keyword on Hills' Realm card"), \
+		{"farm": 10}, POP)
+
+
+func test_a_rolled_keyword_shows_in_the_view_but_not_on_the_realm_card() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		var territory: CardInstance = e.zone("tableau").find(home)
+		territory.keywords.append("gold")  # rolled
+		e.changed.emit()
+		await wait_frames()
+		eq(keyword_texts(main, home), [] as Array[String], "no keyword on the Realm card, rolled or printed")
+		click(main, home)
+		await wait_screen_transition()
+		var title: String = main.territory_view.title_text()
+		check(title.contains("+ Gold"), "the view's info line names the rolled Gold: %s" % title)
+		check(title.contains(CardFace.territory_info(territory)), "and all its keywords: %s" % title), \
+		{"farm": 10}, POP)
+
+
+func test_a_revealed_territory_still_shows_its_keywords() -> void:
+	var e := make_engine({"farm": 10}, {"territory_deck": {"hills": 1}})
+	var view := CardView.new()
+	view.setup(CardInstance.new(900, e.card_db["hills"]), e.card_db, false)  # as the Explore choice builds it
+	check(view.face_text().contains("Mountain"), "the Explore choice's card names its keywords: %s" % view.face_text())
+	view.free()

@@ -172,24 +172,14 @@ func _set_rules_tip(card: CardInstance, card_db: Dictionary) -> void:
 		rules_tip += "\nResources: " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
 
 
-## Turns a territory's face into a settled one's (123): its name, then keywords (its keyword line, "" for none),
-## then live (the "▢ 6   ⌂ 2/5   ⚒ 2" line, drawn with icons) at the bottom. The type line and printed info go.
-func show_settled(keywords: String, live: String) -> void:
-	for gone in ["TypeRow", "PrintedInfo"]:
+## Turns a territory's face into a settled one's (123): its name, then live (the "▢ 6   ⌂ 2/5   ⚒ 2" line, drawn with
+## icons) at the bottom. The type line, printed info and keywords go: the territory view shows the keywords (199).
+func show_settled(live: String) -> void:
+	for gone in ["TypeRow", "PrintedInfo", "Keywords"]:
 		var node := get_node_or_null(gone)
 		if node != null:
 			remove_child(node)
 			node.free()
-	var keyword_line := get_node_or_null("Keywords") as Label
-	if keyword_line == null:
-		keyword_line = label("", Tokens.TYPE_BODY_S, Palette.TEXT_DIM)
-		if board:
-			one_line(keyword_line)
-		keyword_line.name = "Keywords"
-		add_child(keyword_line)
-		move_child(keyword_line, 1)  # under the name
-	keyword_line.text = keywords
-	keyword_line.visible = keywords != ""
 	var line := get_node_or_null("LiveInfo") as RichTextLabel
 	if line == null:
 		line = rich_label("", Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
@@ -202,7 +192,7 @@ func show_settled(keywords: String, live: String) -> void:
 		Icons.fill(line, live, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
 
 
-## A settled territory's keyword line: "Grassland · Fresh Water", plus " + Gold" for rolled resources (123).
+## A territory's keyword line: "Grassland · Fresh Water", plus " + Gold" for rolled resources (123; a frontier card's).
 static func keyword_line(card: CardInstance) -> String:
 	var names := card.def.keywords.map(func(k): return k.capitalize())
 	var text := " · ".join(PackedStringArray(names))
