@@ -141,7 +141,9 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
-  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`) to non-zero ints, e.g. `"modifiers": {"actions": 1}`.
+  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`) to non-zero ints, e.g.
+  `"modifiers": {"actions": 1}`. `insight_per_gain` (157) is added to each insight gain in `EngineCore.gain`, never below
+  0 ("Each insight gain −1"); a per-count op or `trade` is one gain. Real data: Theocracy −1.
   `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
   (`Modifiers.total`); `actions_per_turn()` adds the `actions` modifier to the government's, never below 1. Text
   "+1 action each turn" (an event's tooltip adds "while active"). `hand_size` (109): `hand_size()` is config
