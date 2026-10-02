@@ -2,7 +2,7 @@
 id: 203
 title: End turn as the specimen's key, at the sidebar's foot
 type: feature
-status: red-review
+status: review
 branch: feat/203-end-turn-key
 ---
 
@@ -12,21 +12,21 @@ of the sidebar (202): a lamp that says whether you're ready, the turn plate, a c
 state while the turn resolves.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game in progress, then End turn sits at the sidebar's bottom right: 220 × 64, `ACCENT` fill,
+- [x] AC1: Given a game in progress, then End turn sits at the sidebar's bottom right: 220 × 64, `ACCENT` fill,
   3 px `TEXT` border, `RADIUS_1`, a 4,4 plinth shadow; a lamp at its left, the label "END TURN" in the caps label
   face, and the turn plate ("012" for turn 12, mono numeral on the `FIELD` inset) at its right.
-- [ ] AC2: Lamp states, from the engine: given `end_turn_error()` is "" and `actions_left()` is 0, the lamp is lit in
+- [x] AC2: Lamp states, from the engine: given `end_turn_error()` is "" and `actions_left()` is 0, the lamp is lit in
   `GAIN` (sage) and the caption under the key is empty; given `end_turn_error()` is "" and `actions_left()` is 2, the
   lamp is lit in `WEALTH` (ochre) and the caption reads "2 actions left" ("1 action left" for 1); given
   `end_turn_error()` is non-empty (a discard owed), the lamp is lit in `UNREST` (brick), the key is disabled with no
   plinth, and the caption is the error.
-- [ ] AC3: When End turn is pressed and the turn ends, then until the new turn's refresh finishes (at most 1.2 s), the
+- [x] AC3: When End turn is pressed and the turn ends, then until the new turn's refresh finishes (at most 1.2 s), the
   key is busy: `CONTROL` fill, label "UPKEEP…", lamp off, presses ignored; the plate then shows the new turn (split-flap
   per character, `TYPE_NUMERAL_S`; with Reduce motion it changes at once). After that it returns to AC2's state.
-- [ ] AC4: Pressed, it moves +4,+4 and loses its shadow (70 ms snap); the existing sounds (187: press, commit, turn
+- [x] AC4: Pressed, it moves +4,+4 and loses its shadow (70 ms snap); the existing sounds (187: press, commit, turn
   drum) still play at the same moments.
-- [ ] AC5: The game-over state disables it with `end_turn_error()`'s reason, lamp brick.
-- [ ] AC6: The top strip no longer has End turn; its keyboard shortcut (if any) still works.
+- [x] AC5: The game-over state disables it with `end_turn_error()`'s reason, lamp brick.
+- [x] AC6: The top strip no longer has End turn; its keyboard shortcut (if any) still works.
 
 ## Out of scope
 - Era change ceremony on end turn (211).
@@ -54,3 +54,9 @@ the caption instead of "Discard N (hand limit M)"; the lamp is off while busy.
 
 ## Log
 - Specced 2026-10-02 from the notes list. Decided 2026-10-02: the full §15.12 key (lamp states, plate, caption, busy).
+- 2026-10-02: Built. `ui/end_turn_key.gd` (`EndTurnKey`, `main.sidebar.end_turn`, its `caption` under it) took End
+  turn's press and its 187 sounds from `TopBar`; new `GameTheme` variations `EndTurnKey`, `EndTurnKeyBusy`, `KeyLabel`
+  and `Plate` (201 reuses it for the strip's turn). Busy lasts a short beat plus the plate's flap (≈0.4 s; at once with
+  Reduce motion). E still ends the turn straight from the keyboard (no busy spell). Changed: `test_theme`'s 178 guard
+  ("only AccentButton is filled with ACCENT") now also allows `EndTurnKey`, the accent action's new home.
+- Manual-check note: the ochre "actions left" lamp is faint on the orange key; a darker ring may be needed.
