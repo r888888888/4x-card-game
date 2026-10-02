@@ -69,8 +69,8 @@ func test_a_screen_runs_in_and_back_and_the_root_and_clear_are_silent() -> void:
 	await wait_frames()
 	main.sfx.set_clock(0.0)
 	eq(tokens(main), [], "the title screen (set_root) is silent")
-	main.start_screen.settings_button.pressed.emit()
-	eq(tokens(main), [Sfx.NAV_FORWARD], "Settings runs in")
+	main.start_screen.new_game_button.pressed.emit()  # Settings is a modal since 206: New game is the screen
+	eq(tokens(main), [Sfx.NAV_FORWARD], "New game runs in")
 	main.nav.back()
 	eq(tokens(main), [Sfx.NAV_FORWARD, Sfx.NAV_BACK], "Back runs it out")
 	main.nav.back()
@@ -134,11 +134,11 @@ func test_a_screen_the_player_opens_is_their_input() -> void:
 	var main := open_main()
 	await wait_frames()
 	main.sfx.set_clock(0.0)
-	var settings: Button = main.start_screen.settings_button
-	settings.grab_focus()
+	var new_game: Button = main.start_screen.new_game_button  # a screen (Settings is a modal since 206)
+	new_game.grab_focus()
 	press_key(main, KEY_ENTER)
 	await wait_frames()
-	eq(records(main, Sfx.NAV_FORWARD).map(func(r): return r.input), [true], "Enter on Settings")
+	eq(records(main, Sfx.NAV_FORWARD).map(func(r): return r.input), [true], "Enter on New game")
 	close_main(main)
 
 
@@ -147,7 +147,7 @@ func test_with_reduce_motion_sheets_and_screens_sound_at_the_change() -> void:
 		var main := open_main()
 		await wait_frames()
 		main.sfx.set_clock(0.0)
-		main.start_screen.settings_button.pressed.emit()
+		main.start_screen.new_game_button.pressed.emit()  # a screen (Settings is a modal since 206)
 		main.nav.back()
 		main.start_game(1)
 		await wait_frames()

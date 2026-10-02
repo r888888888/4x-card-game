@@ -15,7 +15,7 @@ const COMPONENTS := {
 	"res://ui/tech_tree_modal.gd": "TechTreeModal",
 	"res://ui/event_modal.gd": "EventModal",
 	"res://ui/new_game_screen.gd": "NewGameScreen",
-	"res://ui/settings_screen.gd": "SettingsScreen",
+	"res://ui/settings_modal.gd": "SettingsModal",  # 206: replaced the settings screen
 	"res://ui/navigator.gd": "Navigator",
 	"res://ui/palette.gd": "Palette",
 	"res://ui/game_theme.gd": "GameTheme",
@@ -26,6 +26,7 @@ const COMPONENTS := {
 	"res://ui/sidebar.gd": "Sidebar",  # 202: the right rail
 	"res://ui/cabinet_doors.gd": "CabinetDoors",  # 209: the government choice's doors
 	"res://ui/vellum.gd": "Vellum",  # 210: targeting under vellum
+	"res://ui/revolt_modal.gd": "RevoltModal",  # 205: the revolution's confirmation
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.

@@ -73,13 +73,13 @@ func test_top_bar_shows_no_seed() -> void:
 	close_main(main)
 
 
-func test_menu_seed_field_shows_the_current_seed() -> void:
+func test_the_settings_seed_field_shows_the_current_seed() -> void:
 	var main := open_main()
 	main.start_game(4242)
-	press_key(main, KEY_ESCAPE)  # nothing focused: opens the menu
+	await open_settings_modal(main)  # the seed field moved from the menu to the Settings modal (206)
 	# 063: the hidden start screen has a seed field too, so only the visible ones count.
 	var fields := main.find_children("*", "LineEdit", true, false).filter(func(f): return f.is_visible_in_tree())
-	check(fields.size() == 1, "the menu's seed field is the one showing")
+	check(fields.size() == 1, "the Settings modal's seed field is the one showing")
 	eq(fields[0].text if fields.size() == 1 else "", "4242", "seed field")
 	close_main(main)
 

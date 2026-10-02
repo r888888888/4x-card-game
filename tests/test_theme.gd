@@ -167,7 +167,9 @@ func test_only_the_accent_button_is_filled_with_the_accent() -> void:
 			if box != null and box.draw_center and box.bg_color.is_equal_approx(Palette.ACCENT):
 				found.append("%s %s" % [type, name])
 	check(not found.is_empty(), "AccentButton is filled with ACCENT")
-	eq(found.filter(func(s: String): return not s.begins_with("AccentButton ")), [], "no other variation uses ACCENT")
+	# End turn, the accent action, is its own key since 203
+	eq(found.filter(func(s: String): return not s.begins_with("AccentButton ") and not s.begins_with("EndTurnKey ")), [],
+		"no other variation uses ACCENT")
 
 
 func test_the_focus_ring_is_square_and_outside_the_control() -> void:
