@@ -20,6 +20,8 @@ var event_modal: EventModal
 ## Builds main's layout. restart(seed) starts again as this game's civilization (-1: a random seed);
 ## close_menu(give_back) closes the menu; push_new_game_screen opens the new game screen over the current one.
 func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_game_screen: Callable) -> void:
+	main.sfx = Sfx.new()  # first, so every component can play through it (186)
+	main.add_child(main.sfx)
 	_build_board(main)
 	_build_hand(main)
 

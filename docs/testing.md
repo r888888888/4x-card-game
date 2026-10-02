@@ -23,7 +23,8 @@ Exit code 0 means green.
 A test fails when:
 - an assertion fails (`eq`, `check`, `has_msg`);
 - it makes no assertions (empty, or crashed before the first one);
-- any engine or script error is logged while it runs (null access, missing method, `push_error`);
+- any engine or script error is logged while it runs (null access, missing method, `push_error`), unless the test
+  expected it with `expect_error(fragment)` (then the test fails if no such error is logged);
 
 and the whole run fails if a test file doesn't parse or the filter matches nothing.
 
@@ -49,6 +50,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_territory_view.gd` | The territory view in the real `main.tscn` (101) on a TEST_CARDS game: a click on a territory opens it in place of the Realm (a city's click still shows details), stats and Grow, Back / Esc / new game / game over close it, drops and double-clicks play onto it, targeting wins over opening, ↑/↓ and Enter from the hand; uses `main.territory_view` (`is_open`, `uid`, `card_uids`, `stats_text`, `target_at`, `back_button`, `grow_button`); 105: the territory as the framed box (its name and info as the title, stats and Grow above the cards, its card left in the Realm), free-slot outlines after the cards, no pop-in or fly-off when opening or closing (`frame`, `title_text()`, `outlines()`, `free_slot_count()`) |
 | `tests/test_grow_meter.gd` | The territory view's pop meter (124) in the real `main.tscn` on a TEST_CARDS game: a pip per housing with pop filled (`PipFilled`), Grow (`grow_button`) on the first empty pip with its cost and the food icon, `grow_reason` showing `grow_error`, and a grow from the meter popping the pip in, its "+1" and "−3" tags beside the top bar's Pop and Food (126, 181; Reduce motion too); `main.territory_view.pips()`; tweens stepped by hand |
 | `tests/test_day_mode.gd` | Day mode (183) in the real `main.tscn`: the palette's Day and Night values and the guide's contrast in both, a game at turn 3 switched to Day and back (theme, background, card panels and bands, glyphs, figures, log) with the game untouched, open modals and screens switching and staying open, the Day mode keys under Reduce motion (mirrored, in the focus loops); a temp settings file, back on the player's palette after |
+| `tests/test_sfx.gd` | The sound player (186): every token of the guide's §14.1 tables is an `Sfx` constant with its level (read from the guide), its files under `assets/sounds/` (16-bit, 48 kHz, mono, uncompressed), the streams (Level 1 randomized), `play()` and `played()`, the tick, notification, voice and Level 3 rules, `Anim.contact`, `Sfx.lead` and `at_contact`; the clock set by hand |
 | `tests/test_sound_settings.gd` | Sound settings and the audio buses (184): the `[sound]` section's defaults, round trip and bad values; `Settings.set_volume` / `volume` / `set_interface_sounds`; the bus layout (Game and Interface into Master, limiters, the Interface filters); bus volumes and mutes following the settings, Interface sounds off, and the window in the background; temp settings files |
 | `tests/test_palette_roles.gd` | Palette roles (192): `UIKit.stat` takes a role name and follows a Day mode switch, every all-caps StringName in `ui/` is a Palette role, `NIGHT` and `DAY` name exactly Palette's colours |
 | `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193): `Tokens` holds the guide's space and radius scales; on the board and every screen and modal (`each_screen`), container spacings and resting styleboxes' radii and content margins are on the scales; zones, hints and slot outlines are square; no spacing or radius literal in `ui/` |
@@ -184,6 +186,7 @@ and Reduce motion off), so the player's own settings never change a result; afte
 | `eq(actual, expected, what)` | Equality. Always pass `what` so failures say which value was wrong |
 | `check(cond, message)` | Boolean assertion |
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
+| `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test; it doesn't fail it (186) |
 | `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |

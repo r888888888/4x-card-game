@@ -38,3 +38,27 @@ const HIGHLIGHT_PULSE_TIME := 0.7
 const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fading, in and out (104)
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
+
+# The style guide's easing curves (§9.3) as cubic-bezier control points (x1, y1, x2, y2), for timing sounds (186).
+const SNAP := Vector4(0.3, 0, 0, 1)
+const MACHINED := Vector4(0.2, 0, 0, 1)
+const LATCH := Vector4(0.5, -0.2, 0.1, 1)
+const RELEASE := Vector4(0.4, 0, 1, 1)
+
+
+## When a motion of duration (s) on curve reaches 90% of its travel: its contact point (§16.5), where its sound plays.
+static func contact(duration: float, curve: Vector4) -> float:
+	var lo := 0.0
+	var hi := 1.0
+	for i in 40:  # the bezier's parameter where its progress first reaches 0.9
+		var mid := (lo + hi) / 2
+		if _bezier(mid, curve.y, curve.w) < 0.9:
+			lo = mid
+		else:
+			hi = mid
+	return duration * _bezier(hi, curve.x, curve.z)
+
+
+## One coordinate of a cubic bezier from (0, 0) to (1, 1) with control points p1 and p2, at parameter s.
+static func _bezier(s: float, p1: float, p2: float) -> float:
+	return 3 * (1 - s) * (1 - s) * s * p1 + 3 * (1 - s) * s * s * p2 + s * s * s

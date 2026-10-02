@@ -23,6 +23,7 @@ var supply: SupplyScreen
 var drag: DragController
 var focus: CardFocus
 var modals: ModalStack  # the open modals, bottom to top (153)
+var sfx: Sfx  # every sound the UI makes (186)
 var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
