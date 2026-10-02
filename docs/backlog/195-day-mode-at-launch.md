@@ -2,7 +2,7 @@
 id: 195
 title: Launching with Day mode saved refreshes a board with no game, and the suite reads the player's settings
 type: bug
-status: ready
+status: red-review
 branch: fix/195-day-mode-at-launch
 ---
 
@@ -33,6 +33,10 @@ Found 2026-10-02 while merging 193; present since 183 (the commit before 192 sho
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_day_mode::test_bug_195_opening_main_in_day_mode_before_a_game_raises_no_error` |
+| AC2 | `test_day_mode::test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper` |
+| AC3 | `test_settings::test_bug_195_tests_run_on_a_temp_settings_store` |
+| AC4 | the runner itself (`tests/run_tests.gd`): snapshots `user://settings.cfg` before the first test and reports a FAIL if a run changed it; checked by a deliberate break, as a guard |
 
 ## Root cause
 <!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
@@ -48,3 +52,5 @@ starts, and the suite runs on the player's real settings store, which had Day mo
 ## Log
 - Specced 2026-10-02 from the 193 merge. Workaround until fixed: turn Day mode off in the game, or run the suite with
   `HOME` pointed at an empty folder.
+- Red: AC1 and AC2 fail on the launch errors themselves (59 script errors from `_refresh` on an engine with no
+  game), with a clean `HOME` and with the player's Day mode on. AC3 fails on `Settings.store` being the player's.
