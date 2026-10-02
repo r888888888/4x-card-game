@@ -2,7 +2,7 @@
 id: 207
 title: Modals as the specimen's drafting sheets, laid down and lifted off
 type: feature
-status: ready
+status: red-review
 branch: feat/207-modal-sheets
 ---
 
@@ -43,6 +43,22 @@ rule with the buttons right (primary rightmost), a hard 8 px shadow; it rises in
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_modal_sheets::check_sheet` in each AC2 test: sheet style, bar, title, context, body ≤ 640, footer and rule |
+| AC2 | `test_card_details_is_a_sheet_titled_with_the_card_and_its_type`, `test_the_civilization_modal_is_a_sheet`, `test_the_event_modal_is_a_sheet_with_the_turn_as_context`, `test_the_menu_is_a_sheet_on_the_modal_stack`, `test_game_over_is_a_sheet_on_the_modal_stack_that_stays`, `test_a_modal_with_an_action_puts_it_rightmost_in_the_footer` |
+| AC3 | `test_a_sheet_rises_into_place_and_its_scrim_fades_in`, `test_with_reduce_motion_a_sheet_only_fades_in` |
+| AC4 | `test_a_sheet_over_another_sits_8_8_from_it_and_rises_without_a_second_scrim_fade`; changed: `test_modal_stack::test_a_modal_over_another_is_one_cascade_step_from_centre` (cascade 36,28 → 8,8; measured after the rise), `test_a_modal_alone_is_centred` (measured after the rise) |
+| AC5 | `test_a_closing_sheet_drops_and_fades_while_the_one_below_takes_input`, `test_a_closed_sheet_ends_12_px_below_clear_and_comes_back_in_place`, `test_closing_several_sheets_at_once_lifts_them_together`, `test_with_reduce_motion_a_closing_sheet_only_fades` |
+| AC6 | Existing `test_sheet_sounds` (unchanged) |
+| — | Changed: `test_button_widths::test_menu_and_game_over_columns_share_one_width` → `test_the_menu_column_shares_one_width_and_footer_buttons_fit_their_text` (Close, Exit and the game-over buttons move to footers) |
+
+Decisions made writing the tests:
+- Titles: card details = the card's name, context its type; the civilization modal = "Civilization"; the event = the
+  event's name, context "Turn N"; "Menu"; "Game over".
+- Footers: details "Close (Esc)" then its action (primary); civilization "Close (Esc)"; event "OK (Enter)"; menu
+  "Close (Esc)", "Exit" (so Exit stays last, as 067 has it); game over "New game", "Replay this seed" (primary).
+- The game-over sheet can't be dismissed (Esc, a click outside): only its buttons or a new game end it.
+- The 640 px limit is the `body` column; a modal's card (details, event) sits beside it.
+- A stacked sheet shows its scrim at once ("without a second scrim fade").
 
 ## Manual check
 - [ ] Civilization modal → a card's details (or Revolt…, 205): the second sheet lands +8,+8 like paper on paper; compare with the specimen in both
