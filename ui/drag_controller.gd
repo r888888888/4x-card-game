@@ -96,6 +96,7 @@ func handle_input(event: InputEvent) -> bool:
 
 func begin_targeting(view: CardView) -> void:
 	targeting = view
+	_board.sfx.at_contact(Sfx.SELECTION, Anim.SELECT_TIME, Anim.MACHINED, true)  # the index tab clips on (188)
 	view.set_highlight(true)
 	_light_targets(view.uid, true)
 	# The engine's reason the card can't be played yet, e.g. "Choose a territory to settle." or "Choose a card to trash."

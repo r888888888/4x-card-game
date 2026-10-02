@@ -3,7 +3,9 @@ extends Control
 ## A figure whose digits roll like an odometer (181, guide §10.3, §15.5). Each digit is a column of 0–9 and a second 0
 ## (for rolling on past 9) inside a box one digit tall; a change steps through every value between the old and the new
 ## one, Anim.ODOMETER_STEP a step, and only the last Anim.ODOMETER_MAX_STEPS steps of a longer change (it jumps to
-## the start of those). With Reduce motion it shows the new value at once. Left-aligned: it grows rightward from
+## the start of those). With Reduce motion it shows the new value at once. It sounds its steps (188, guide §10.3): a
+## tick as each digit lands, each a dB quieter than the last, and the last step registers with a gain or a loss instead
+## (with Reduce motion, the registration alone). Left-aligned: it grows rightward from
 ## whatever sits to its left. Its digits use the variation's font (BarStat or Stat: tabular figures, 178), so every
 ## column is one digit wide.
 
@@ -50,13 +52,15 @@ func show_now(v: int) -> void:
 	_place(v, 0)
 
 
-## Rolls to v one step at a time; with Reduce motion shows it at once. A call during a roll rolls on from where the
-## roll had got to.
-func set_value(v: int) -> void:
+## Rolls to v one step at a time, starting after delay; with Reduce motion shows it at once. A call during a roll
+## rolls on from where the roll had got to. sound: tick and register (not when a covered bar catches up).
+func set_value(v: int, delay := 0.0, sound := true) -> void:
+	var from := value
 	if UIKit.calm():
 		show_now(v)
+		if sound and v != from:
+			_register(v > from, 0.0)
 		return
-	var from := value
 	value = v
 	if v == from:
 		return
@@ -73,7 +77,20 @@ func set_value(v: int) -> void:
 		_place(start, 0)
 	for k in range(1, n + 1):
 		_queue.append(start + step * k)
-	_roll()
+	if sound and n > 0:
+		var sfx := Sfx.find(self)
+		for k in range(1, n):
+			if sfx != null:
+				sfx.play(Sfx.COUNTER_TICK, delay + k * Anim.ODOMETER_STEP, false, -(k - 1))
+		_register(step > 0, delay + n * Anim.ODOMETER_STEP)
+	_roll(delay)
+
+
+## The last step lands: the drum locks in, with a gain or a loss.
+func _register(up: bool, delay: float) -> void:
+	var sfx := Sfx.find(self)
+	if sfx != null:
+		sfx.play(Sfx.RESOURCE_GAIN if up else Sfx.RESOURCE_LOSS, delay)
 
 
 ## The value the digit columns show right now (each column read at its nearest digit).
@@ -99,8 +116,10 @@ func _stop() -> void:
 
 ## One tween for every queued step (a tween started from another's callback would wait a frame): each step lays the
 ## columns out for both values, then slides each changed column one digit, Anim.ODOMETER_STEP long.
-func _roll() -> void:
+func _roll(delay := 0.0) -> void:
 	_tween = create_tween()
+	if delay > 0.0:
+		_tween.tween_interval(delay)
 	var at := _at
 	for next: int in _queue:
 		var old := _digits(at)

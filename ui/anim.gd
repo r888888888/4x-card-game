@@ -42,6 +42,8 @@ const CALM_FADE_TIME := 0.15
 # A key's travel (§9.4, §15.1), for timing its sounds (187): down on SNAP, back up on MACHINED.
 const KEY_PRESS_TIME := 0.07
 const KEY_RELEASE_TIME := 0.12
+const LIFT_TIME := 0.06  # a card leaving its row as a drag starts (§16.5), for its sound (188)
+const SELECT_TIME := 0.12  # the index tab clipping onto a card that waits for a target
 const ENDTURN_TURN_DELAY := 0.12  # the turn drum advances this long after End turn's relay closes
 const SOUND_OFF_GRACE := 0.25  # turning interface sounds off mutes them after this, so the key's OFF is heard
 

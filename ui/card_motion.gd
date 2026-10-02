@@ -2,10 +2,13 @@ class_name CardMotion
 extends RefCounted
 ## How one CardView moves (backlog 086): at rest in its slot (lifting on hover, sliding when the slot moves), flying
 ## between slots on the shared effects layer, following the cursor while dragged, and leaving the board. The view's
-## movement methods and _process hand off to this; it reads the view's hover, focus and size, and sets its state.
+## movement methods and _process hand off to this; it reads the view's hover, focus and size, and sets its state. It
+## makes the card's sounds where its motion happens (188): a flick as a drag lifts it, a pat as a played card lands
+## (place_on_land), a double tap as a refused card starts its shake.
 
 var view: CardView
 var delay := 0.0  # seconds to wait before a dealt card starts flying
+var place_on_land := false  # a played card on its way: it pats down as it lands (188)
 var _lift := 0.0
 var _rest_offset := Vector2.ZERO  # eases back to zero after the slot moves
 var _last_slot_pos := Vector2.ZERO
@@ -75,7 +78,7 @@ func return_home() -> void:
 ## Shakes to say "no": now if resting, otherwise when it lands back in its slot.
 func reject() -> void:
 	if view.state == CardView.State.REST:
-		_shake()
+		_refused()
 	else:
 		_shake_on_land = true
 		return_home()
@@ -88,6 +91,9 @@ func begin_drag(layer: Control, grab_offset: Vector2) -> void:
 	_last_mouse_x = view.get_global_mouse_position().x
 	view.state = CardView.State.DRAGGING
 	view._update_border()
+	var sfx := Sfx.find(view)
+	if sfx != null:
+		sfx.at_contact(Sfx.CARD_LIFT, Anim.LIFT_TIME, Anim.SNAP, true)
 
 
 ## Leaves the board: optionally pops (first flying to via, e.g. the card it was played on), then
@@ -168,14 +174,26 @@ func slot_size() -> Vector2:
 func _land() -> void:
 	view.reparent(view.slot)
 	_come_to_rest()  # with a firm stop: no squash (179)
-	if _calm():
-		_shake_on_land = false
-		if view.modulate.a >= 1.0:  # not mid deal, which fades itself in
-			_fade_in()
-		return
+	if place_on_land:
+		place_on_land = false
+		_play(Sfx.CARD_PLACE)
 	if _shake_on_land:
 		_shake_on_land = false
-		_shake()
+		_refused()
+	if _calm() and view.modulate.a >= 1.0:  # not mid deal, which fades itself in
+		_fade_in()
+
+
+## Refused: the double tap as the shake starts (with Reduce motion, the tap alone).
+func _refused() -> void:
+	_play(Sfx.REJECT, true)
+	_shake()
+
+
+func _play(token: StringName, input := false) -> void:
+	var sfx := Sfx.find(view)
+	if sfx != null:
+		sfx.play(token, 0.0, input)
 
 
 func _come_to_rest() -> void:

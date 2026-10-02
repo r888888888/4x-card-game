@@ -57,16 +57,16 @@ func text() -> String:
 	return _prefix.text + str(_figure.value) + _suffix.text
 
 
-## Shows v and suffix: at once when fresh (a new game, an opened screen), else rolling the figure. Returns the change
-## from the value it was heading to (0 when fresh).
-func show_value(v: int, suffix: String, fresh: bool) -> int:
+## Shows v and suffix: at once when fresh (a new game, an opened screen), else rolling the figure after delay, sounding
+## its steps if sound (188). Returns the change from the value it was heading to (0 when fresh).
+func show_value(v: int, suffix: String, fresh: bool, delay := 0.0, sound := true) -> int:
 	_suffix.text = suffix
 	var change := 0 if fresh else v - _figure.value
 	if fresh:
 		_figure.show_now(v)
 		_hide_tag()
 	elif change != 0:
-		_figure.set_value(v)
+		_figure.set_value(v, delay, sound)
 	return change
 
 

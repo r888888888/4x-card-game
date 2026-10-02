@@ -127,7 +127,9 @@ func reset_counters() -> void:
 
 
 ## Shows engine e's stats: each counter's figure rolls to its new value and, unless quiet (a screen covering the bar
-## shows its own), shows its net change as a tag, left to right Anim.TAG_STAGGER apart (126, 181).
+## shows its own), shows its net change as a tag, left to right Anim.TAG_STAGGER apart (126, 181). The changed counters
+## roll one after another, left to right, each starting as the one before registers, so their ticks make one tidy
+## run and their registrations come in order (188); quiet, they roll in silence.
 func refresh(e: GameEngine, quiet := false) -> void:
 	UIKit.set_stat(_turn_label, "Turn %d / %d" % [e.turn, e.turn_limit()])
 	var forecast := e.upkeep_forecast()
@@ -145,9 +147,11 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	_counters[GameEngine.UNREST].visible = e.unrest_on()
 	_counters[POP].visible = e.population_on()
 	var n := 0
+	var roll_at := 0.0
 	for key: String in readings:
 		var counter: Counter = _counters[key]
-		var change := counter.show_value(readings[key][0], readings[key][1], _fresh)
+		var change := counter.show_value(readings[key][0], readings[key][1], _fresh, roll_at, not quiet and counter.visible)
+		roll_at += mini(absi(change), Anim.ODOMETER_MAX_STEPS) * Anim.ODOMETER_STEP
 		if change != 0 and not quiet and counter.visible:
 			counter.show_tag(change, n * Anim.TAG_STAGGER)
 			n += 1

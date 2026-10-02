@@ -287,6 +287,11 @@ func return_home() -> void:
 
 
 ## Shakes to say "no": now if resting, otherwise when it lands back in its slot.
+## A played card flying to its slot: it pats down as it lands (188).
+func place_on_land() -> void:
+	_motion.place_on_land = true
+
+
 func reject() -> void:
 	_motion.reject()
 
