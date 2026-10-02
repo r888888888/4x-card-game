@@ -53,16 +53,19 @@ A colour must follow a Day mode switch. How depends on where it is set:
 
 ## Type (§5.2)
 
-| Guide token | Size | In the code now |
-|---|---|---|
-| `type.display` | 40 | start screen title (literal 40) |
-| `type.title` | 28 | `Title` and `Link` variations: **26** |
-| `type.heading` | 15, caps, +10% | `Heading` variation: **19**, mixed case |
-| `type.body` | 20 | theme default (`GameTheme.DEFAULT_FONT_SIZE`), `BarStat` |
-| `type.numeral` | 26 | `Stat` variation |
-| others | 56, 17, 14, 44 | not used by name; literals 15–22 on card faces, 19 for modal and log bodies |
+Every size is a `Tokens.TYPE_*` step (no literal size in `ui/`, suite checks, 194). A repeated look is a theme
+variation; set it with `theme_type_variation`.
 
-Several sizes are off the guide's scale today; item 194 snaps them and adds the variations.
+| Guide token | Size | In the code |
+|---|---|---|
+| `type.display` | 40 | `Display` (Jost): the start screen's title, game over |
+| `type.title` | 28 | `Title` (Jost), `UIKit.title()`; the header's `Link` |
+| `type.heading` | 15 | `Heading` (SemiCondensed SemiBold, tracked), `UIKit.heading()` sets capitals; text stays as written |
+| `type.body` | 20 | theme default, `Body`, `RichBody` (modal text, the log), `BarStat`, card names and rules |
+| `type.body-s` | 17 | `BodySmall`; card subtitles, keywords, the reason strip |
+| `type.label-caps` / `caption` | 14 | `Caption`; the card badge, the legend key |
+| `type.numeral` / `numeral-s` | 26 / 17 | `Stat`; small card figures (VP on a frontier card) |
+| `display-xl`, `numeral-xl` | 56, 44 | tokens only; nothing uses them yet |
 
 ## Spacing, radius, borders, shadows (§6)
 

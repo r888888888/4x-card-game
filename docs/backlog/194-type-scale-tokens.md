@@ -2,7 +2,7 @@
 id: 194
 title: Text sizes come from the guide's type scale
 type: feature
-status: in-progress
+status: review
 branch: feat/194-type-scale-tokens
 ---
 
@@ -14,21 +14,21 @@ guide's 15 and 28. After this, every size on screen is a step of the guide's typ
 theme variations, and the suite fails on a new literal size. The user chose to snap to the guide's values.
 
 ## Acceptance criteria
-- [ ] AC1: Given the theme, then it has Label variations named for the guide's roles at its sizes: `Display` 40,
+- [x] AC1: Given the theme, then it has Label variations named for the guide's roles at its sizes: `Display` 40,
   `Title` 28, `Heading` 15, `Body` 20, `BodySmall` 17, `Caption` 14, `Stat` 26 (numeral), and a RichTextLabel
   variation `RichBody` whose normal, bold and italics sizes are 20. `Title` and `Display` use the display face
   (`GameTheme.display()`), `Heading` the semibold label face.
-- [ ] AC2: Given `UIKit.heading("The realm")` in the main scene, then the label shows the text in capitals
+- [x] AC2: Given `UIKit.heading("The realm")` in the main scene, then the label shows the text in capitals
   (`uppercase` on, its `text` unchanged) at 15 px, with positive letter spacing (§5.3: caps are tracked +10%,
   1–2 px at 15).
-- [ ] AC3: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
+- [x] AC3: Given a mid-game board (seed 5, turn 3) and, in turn, each screen and modal open on it (supply, tech tree,
   card details, identity, event, game menu, settings, new game, game over, start), when every visible Label, Button,
   LineEdit and RichTextLabel is walked, then each resolved font size (`font_size`, and a RichTextLabel's
   `normal_font_size` / `bold_font_size` / `italics_font_size`) is one of 14, 15, 17, 20, 26, 28, 40, 44, 56; the
   failure names the node path and size.
-- [ ] AC4: Given a hand card, a tableau card, a dimmed card with its reason strip and a territory card on that
+- [x] AC4: Given a hand card, a tableau card, a dimmed card with its reason strip and a territory card on that
   board, then every text size on each face is on the scale (AC3's set).
-- [ ] AC5: Given every `ui/` script except `game_theme.gd`, when its source is scanned, then no
+- [x] AC5: Given every `ui/` script except `game_theme.gd`, when its source is scanned, then no
   `add_theme_font_size_override`, `set_font_size`, or call to `CardFace.label` / `CardFace.rich_label` /
   `UIKit.fx_label` passes a numeric literal, and no string contains `[font_size=`; the failure lists `file:line`.
 
@@ -67,6 +67,8 @@ theme variations, and the suite fails on a new literal size. The user chose to s
   text doesn't overflow a hand card, the reason strip reads.
 - [ ] Section headings ("THE REALM", "IN HAND") read as labels, not footnotes; the top bar still fits 1920 px.
 - [ ] Each screen and modal from AC3 at 1920×1080.
+- [ ] `godot --path . -- --civ sumer --turns 20 --seed 5`: game over reads as a display line (Jost, 40); the identity
+  modal (top bar's civilization button) shows each name as a title over its text; the log reads at 20.
 
 ## Log
 - Specced from the design-system review (2026-10-02). The user chose to snap values to the guide. Depends on 193
@@ -76,3 +78,14 @@ theme variations, and the suite fails on a new literal size. The user chose to s
   `test_spacing_tokens` / `test_day_mode` into `test_case.gd` (shared with 193's walk). `test_theme::test_labels_look_as_before`
   changes Heading 19 → 15 and Title 26 → 28, as the Design notes state. AC5 flags 41 lines today (literal sizes in
   calls that take a size, and the identity modal's `[font_size=30]`).
+
+- Green: `Tokens.TYPE_*`; GameTheme's Display, Body, BodySmall, Caption and RichBody variations, Title 28, Heading 15
+  (`heading_font()`: SemiCondensed SemiBold, `spacing_glyph` 2), Link 28; `UIKit.heading` sets `uppercase`. Every
+  literal size replaced per the Design notes' mapping; the cost figure stays 20 (`TYPE_BODY`, already on the scale).
+  The identity modal's `[font_size=30]` names became `Title` labels over a `RichBody` per section; `body_text()`
+  returns the same text as before, so its tests are unchanged. Game over is a `Display` label (it was a 32 px
+  Heading). No card face test broke (names still fit).
+- Green: `UIKit.title` was built on `heading`, so titles caught the capitals; a new test
+  (`test_a_title_keeps_its_case`) failed first, and `title` now builds its own label. Display isn't in capitals
+  either (the Out of scope's case for other roles).
+- Verify: suite 1204 → 1211, green with a clean `HOME` and the player's Day mode on; headless launch: 0 errors.

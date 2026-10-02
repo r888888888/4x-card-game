@@ -38,8 +38,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
   stretch; build such a column with `UIKit.button_column`). Buttons that are really list
   rows or content tiles (the government overlay's cards, the tech tree's techs) may fill.
-- Spacing, margins and corner radii are `Tokens` steps (`ui/tokens.gd`, the guide's scales), never numbers (the suite
-  checks).
+- Spacing, margins, corner radii and text sizes are `Tokens` steps (`ui/tokens.gd`, the guide's scales), never numbers
+  (the suite checks); a repeated text look is a `GameTheme` variation (`Body`, `Caption`, `RichBody`, …).
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
   e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
