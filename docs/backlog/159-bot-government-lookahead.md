@@ -2,7 +2,7 @@
 id: 159
 title: The bot chooses governments and revolts by looking ahead
 type: feature
-status: in-progress
+status: review
 branch: feat/159-bot-government-lookahead
 ---
 
@@ -12,15 +12,15 @@ government is worth (Theocracy's research cost included) and the bot revolts whe
 `spike/revolution`.
 
 ## Acceptance criteria
-- [ ] AC1: When the government choice is owed, `ScriptedBot` forks the engine once per option, chooses it, plays
+- [x] AC1: When the government choice is owed, `ScriptedBot` forks the engine once per option, chooses it, plays
   `LOOKAHEAD_TURNS` (12) turns with the same strategy (or to the game's end), and chooses the option whose fork
   scores highest (ties: zone order). With one option it chooses it without forking.
-- [ ] AC2: Every `REVOLT_EVERY` (4) turns, at the end of the turn, it compares a fork that doesn't revolt with one fork
+- [x] AC2: Every `REVOLT_EVERY` (4) turns, at the end of the turn, it compares a fork that doesn't revolt with one fork
   per government in the deck that revolts and then chooses that government; it revolts if any revolting fork scores
   higher. It doesn't weigh a revolt in the last LOOKAHEAD_TURNS ÷ 2 turns.
-- [ ] AC3: Inside a lookahead the bot never revolts and chooses the government its fork was opened for, else 154's
+- [x] AC3: Inside a lookahead the bot never revolts and chooses the government its fork was opened for, else 154's
   ranking. A lookahead changes nothing in the real game (state, log, signals).
-- [ ] AC4: With fixtures where one government clearly scores more (⟳ +3 VP against nothing), the bot chooses it, and
+- [x] AC4: With fixtures where one government clearly scores more (⟳ +3 VP against nothing), the bot chooses it, and
   revolts to it from a ruling government that scores nothing.
 
 ## Out of scope
@@ -42,4 +42,8 @@ government is worth (Theocracy's research cost included) and the bot revolts whe
 | (removed) | test_revolution: 155's `test_the_bot_revolts_to_a_better_government_when_anarchy_would_last_1_turn`, `test_the_bot_doesnt_revolt_otherwise`; test_government_deck: `test_the_bot_chooses_the_government_with_most_actions_then_highest_limit`, `test_the_bot_breaks_government_ties_by_deck_order` (now the ranking test) |
 
 ## Log
+- 2026-10-01: Built on 155's branch. The lookahead made the real-data sim tests take minutes (suite 45 s → 157 s, past
+  the Stop hook's 120 s); at the user's request those moved to a balance suite (`chore/balance-suite`,
+  `scripts/test.sh --balance`), merged into this branch: main suite 31 s. 158 is rebuilt on this branch so its
+  revolution fixture follows the lookahead rule.
 - 2026-10-01: Specced from `spike/revolution` (`sim/bot.gd` at commit d8b7a75 has a working version; the branch is deleted: `git show d8b7a75:sim/bot.gd`).

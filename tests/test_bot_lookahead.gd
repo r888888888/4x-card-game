@@ -37,16 +37,6 @@ func choice_game(governments: Array, keep_chiefs := false) -> GameEngine:
 	return e
 
 
-## sim/bot.gd as an Object, so calls to its new statics parse before they exist (red phase).
-func bot() -> Object:
-	return load("res://sim/bot.gd")
-
-
-## LOOKAHEAD_TURNS, read the same way.
-func lookahead_turns() -> int:
-	return bot().get_script_constant_map().get("LOOKAHEAD_TURNS", -1)
-
-
 ## Whether the bot has revolted in e this turn.
 func revolted(e: GameEngine) -> bool:
 	return e.revolt_error() == "A revolution is already under way."
@@ -103,30 +93,30 @@ func test_a_lookahead_changes_nothing_in_the_real_game() -> void:
 	var signals := [0]
 	for s in ["changed", "noticed", "logged", "card_played", "game_over", "event_drawn"]:
 		e.connect(s, func(_a = null): signals[0] += 1)
-	bot().lookahead(e, "baseline", "glory")
-	bot().lookahead(deck_game(["glory"], 4), "baseline", "glory", true)
-	bot().lookahead(e, "baseline", "dull", true)
+	ScriptedBot.lookahead(e, "baseline", "glory")
+	ScriptedBot.lookahead(deck_game(["glory"], 4), "baseline", "glory", true)
+	ScriptedBot.lookahead(e, "baseline", "dull", true)
 	eq(state_diff(e.state, before), "", "the real game's state")
 	eq(signals[0], 0, "no signal from the real game")
 
 
 func test_a_lookahead_chooses_the_government_it_was_opened_for() -> void:
 	var e := choice_game(["glory", "dull"])
-	var glory: int = bot().lookahead(e, "baseline", "glory")
-	var dull: int = bot().lookahead(e, "baseline", "dull")
+	var glory: int = ScriptedBot.lookahead(e, "baseline", "glory")
+	var dull: int = ScriptedBot.lookahead(e, "baseline", "dull")
 	eq(dull, e.score(), "under Dull nothing scores")
-	eq(glory, e.score() + 3 * lookahead_turns(), "Glory's ⟳ +3 for each of the 12 turns played")
+	eq(glory, e.score() + 3 * ScriptedBot.LOOKAHEAD_TURNS, "Glory's ⟳ +3 for each of the 12 turns played")
 
 
 func test_inside_a_lookahead_the_bot_never_revolts() -> void:
 	var e := deck_game(["glory"], 4)
-	eq(bot().lookahead(e, "baseline"), e.score(), "staying on Chiefs for 12 turns, never revolting to Glory")
-	check(bot().lookahead(e, "baseline", "glory", true) > e.score(), "the revolting fork does reach Glory")
+	eq(ScriptedBot.lookahead(e, "baseline"), e.score(), "staying on Chiefs for 12 turns, never revolting to Glory")
+	check(ScriptedBot.lookahead(e, "baseline", "glory", true) > e.score(), "the revolting fork does reach Glory")
 
 
 func test_a_lookahead_stops_at_the_games_end() -> void:
 	var short := deck_game([], 1, 3)
-	eq(bot().lookahead(short, "baseline"), short.score(), "a 3-turn game plays out to its end")
+	eq(ScriptedBot.lookahead(short, "baseline"), short.score(), "a 3-turn game plays out to its end")
 
 
 # --- 154's ranking, now used inside a lookahead ---
@@ -136,10 +126,10 @@ func test_the_ranking_prefers_most_actions_then_highest_limit_then_deck_order() 
 	for id in ["kings", "band", "court", "dull", "plain"]:
 		e.create_card(id, "discard", null)
 	var deck := e.zone("governments").cards
-	eq(bot().best_government(deck).def.id, "court", "Court's 3 actions")
+	eq(ScriptedBot.best_government(deck).def.id, "court", "Court's 3 actions")
 	var no_actions := deck.filter(func(c): return c.def.actions == 0)
-	eq(bot().best_government(no_actions).def.id, "dull", "Dull's limit 9")
+	eq(ScriptedBot.best_government(no_actions).def.id, "dull", "Dull's limit 9")
 	var council := anarchy_engine({}, {}, GOVS)
 	for id in ["council", "kingdom"]:
 		council.create_card(id, "discard", null)
-	eq(bot().best_government(council.zone("governments").cards).def.id, "council", "a tie: the first")
+	eq(ScriptedBot.best_government(council.zone("governments").cards).def.id, "council", "a tie: the first")
