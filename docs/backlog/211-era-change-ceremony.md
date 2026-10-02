@@ -2,7 +2,7 @@
 id: 211
 title: A new era opens with a ceremonial sheet
 type: feature
-status: ready
+status: red-review
 branch: feat/211-era-change-ceremony
 ---
 
@@ -29,6 +29,15 @@ across the screen, rings draw out from the middle, and the era's name split-flap
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_era_sheet::test_a_new_era_covers_the_window_with_its_name_and_the_turn` |
+| AC2 | `test_the_sheet_wipes_in_then_rings_then_the_name_letter_by_letter`, `test_with_reduce_motion_the_finished_sheet_fades_in` |
+| AC3 | `test_a_click_skips_to_the_end_and_a_second_closes_it`, `test_a_key_skips_and_closes_and_nothing_else_takes_keys` |
+| AC4 | `test_two_eras_on_one_turn_show_one_sheet_naming_the_later` |
+| AC5 | `test_a_new_game_that_starts_in_a_later_era_shows_no_sheet` (the headless sim has no UI: nothing to test there) |
+| AC6 | `test_an_event_drawn_the_same_turn_opens_after_the_sheet_closes` |
+
+New hook: `main.era_sheet` (`is_open()`, `finished()`, `covered_rect()`, `kicker_text()`, `era_text()`, `name_label`,
+`turn_text()`, `rings()`). No engine change: the sheet listens to `milestone(MILESTONE_ERA)`.
 
 ## Manual check
 - [ ] Play to the second era (or use a fixture): the sheet, rings and flap read well; skip and continue feel right.
