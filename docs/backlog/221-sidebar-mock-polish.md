@@ -2,7 +2,7 @@
 id: 221
 title: Bring the board's strip, rail and End turn closer to the transitions mock
 type: feature
-status: in-progress
+status: review
 branch: feat/221-sidebar-mock-polish
 ---
 
@@ -13,20 +13,20 @@ turn key repeats the actions count that the hand's heading already shows ("2 / 2
 ruled strip and open rail, the sidebar's type matches the mock, and End turn is a bigger key filling the rail's foot.
 
 ## Acceptance criteria
-- [ ] AC1 (no actions count on End turn): Given a government with 2 actions per turn and 2 left, the End turn key's
+- [x] AC1 (no actions count on End turn): Given a government with 2 actions per turn and 2 left, the End turn key's
   caption is empty (its lamp is still ochre); after both are spent it is still empty. Given a turn that can't end (a
   discard owed), the caption still shows `end_turn_error()`.
-- [ ] AC2 (the strip): At 1280×720 and 1920×1080, the top bar sits on a full-bleed strip: from x = 0 to the window's
+- [x] AC2 (the strip): At 1280×720 and 1920×1080, the top bar sits on a full-bleed strip: from x = 0 to the window's
   right edge, starting at y = 0, filled RAISED with a 3 px TEXT rule along its bottom edge and no other border.
-- [ ] AC3 (the open rail): The sidebar has no box: no fill of its own (the board shows through) and only a 1 px HAIRLINE
+- [x] AC3 (the open rail): The sidebar has no box: no fill of its own (the board shows through) and only a 1 px HAIRLINE
   rule on its left edge. It runs from the strip's bottom to the window's bottom edge and ends at the window's right edge.
-- [ ] AC4 (sidebar type): The "Civilization" heading stays in Heading caps; the civilization's name stays a TitleLink at
+- [x] AC4 (sidebar type): The "Civilization" heading stays in Heading caps; the civilization's name stays a TitleLink at
   TYPE_TITLE; the government ("Chiefdom ›") is a `CapsLink`: the heading face (Barlow SemiCondensed SemiBold, tracked)
   at TYPE_HEADING, in capitals, TEXT_DIM, TEXT on hover. The rule over the heading is 3 px of TEXT.
-- [ ] AC5 (bigger End turn): The End turn key is as wide as the rail's content (the rail's width less SPACE_4 each
+- [x] AC5 (bigger End turn): The End turn key is as wide as the rail's content (the rail's width less SPACE_4 each
   side) and 80 px tall, its label at TYPE_BODY; its right and bottom edges sit SPACE_4 from the window's right and
   bottom edges.
-- [ ] AC6 (alignment): The rail's padding and the play area's margins are SPACE_4: the "Realm" heading's top and the
+- [x] AC6 (alignment): The rail's padding and the play area's margins are SPACE_4: the "Realm" heading's top and the
   rail's rule's top are at the same y (SPACE_4 under the strip), and the Realm heading starts SPACE_4 from the window's
   left edge.
 
@@ -61,3 +61,7 @@ ruled strip and open rail, the sidebar's type matches the mock, and End turn is 
 - [ ] 1280×720: nothing overlaps; the hand still fits beside the rail.
 
 ## Log
+- The government's text is upper-cased in code (`name.to_upper()`): a Godot Button has no `uppercase`. That changed
+  two older assertions in `test_identity_lines` (Council, Kingship) to the capitals, as AC4 asks.
+- The key label went from TYPE_LABEL to TYPE_BODY (`KeyLabel` is only End turn's). The strip's padding is SPACE_2 ×
+  SPACE_4 (mock 8 × 14) and the rail's SPACE_4 (mock 14).

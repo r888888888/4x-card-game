@@ -68,8 +68,8 @@ res://
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
                          # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, End turn, Menu), sidebar.gd (202: the
-                         # right rail, the civilization and government),
+                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, Menu; on a ruled Strip, 221), sidebar.gd
+                         # (202: the right rail, open on the board, 221: the civilization, government and End turn),
                          # counter.gd (181: Counter, a glyph, an odometer figure and the forecast; no tag since 218),
                          # odometer.gd (181: Odometer, a figure whose digits roll),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
@@ -92,7 +92,7 @@ res://
                          # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
-                         # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193, 194: the guide's spacing,
+                         # code, with Heading/Title/Stat/DarkPanel/Strip/Rail variations), tokens.gd (193, 194: the guide's spacing,
                          # corner radius and type scales, Tokens.SPACE_*, RADIUS_* and TYPE_*)
                          # sound: sfx.gd (186: Sfx, main.sfx: every sound token, its level, bus, files and rules),
                          # key_sounds.gd (187: every button's click and a disabled key's dead tap), event_sounds.gd (191:
