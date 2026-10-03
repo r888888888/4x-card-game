@@ -344,7 +344,8 @@ func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() ->
 		var territory: CardInstance = e.zone("tableau").find(home)
 		var title: String = view.title_text()
 		check(title.contains(territory.def.name), "the name in '%s'" % title)
-		check(title.contains(load("res://ui/card_face.gd").territory_info(territory)), "its info in '%s'" % title)
+		check(title.ends_with(load("res://ui/card_face.gd").keyword_line(territory)), "its keywords in '%s'" % title)
+		check(not title.contains("▢") and not title.contains("⌂"), "no slots or housing beside the name: '%s'" % title)
 		var card: CardView = main.views[home]
 		check(not view.is_ancestor_of(card.slot), "the territory's card isn't in the view")
 		eq(card.slot.get_parent(), main.tableau.row, "it stays in the Realm")

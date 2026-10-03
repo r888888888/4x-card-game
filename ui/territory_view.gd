@@ -19,7 +19,7 @@ var frame: PanelContainer  # the framed body, bordered in the territory colour: 
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 
 var _name: Label
-var _info: RichTextLabel  # the territory card's info line (slots, housing, keywords, rolled resources)
+var _info: RichTextLabel  # the territory card's info line (keywords, rolled resources)
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
@@ -208,7 +208,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
 	_name.text = territory.def.name
-	var info := CardFace.territory_info(territory)
+	var info := CardFace.keyword_line(territory)
 	_info.set_meta("source", info)
 	Icons.fill(_info, info, Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	var cards := card_uids()
