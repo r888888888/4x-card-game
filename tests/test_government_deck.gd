@@ -171,9 +171,9 @@ func test_the_identity_modal_lists_the_government_deck() -> void:
 		var e := Game.engine
 		e.create_card("kings", "discard", null)
 		main.sidebar.government_button.pressed.emit()
-		var body: String = main.identity_modal.body_text()
-		check(body.contains("Government deck: Kings"), "the deck line: %s" % body)
-		check(body.find("Government deck") > body.find("Chiefs"), "below the ruling government: %s" % body))
+		var tabs: Array = main.identity_modal.deck_tabs()  # a row of tabs since 231
+		eq(tabs.map(func(b): return b.text), ["Kings"], "the deck's tabs")
+		eq(main.identity_modal.deck_text(), "Government deck", "under its caption"))
 
 
 # --- 175 AC3: a pick in the government overlay is refused with choose_government_error's reason ---

@@ -346,3 +346,27 @@ func test_the_bot_doesnt_calm_unrest_far_below_the_limit() -> void:
 ## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
 func forecast(main: Node, key: String) -> String:
 	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"
+
+
+# --- 231 AC1/AC2: the government's details show unrest against its limit ---
+
+## The state lines of the ruling government's card_details in e.
+func gov_state(e: GameEngine) -> Array:
+	return e.card_details(e.government()).get("state", [])
+
+
+func test_the_governments_details_show_unrest_against_its_limit() -> void:
+	eq(gov_state(unrest_engine("chiefs", 2)), ["Unrest 2 / 5"], "2 of Chiefs' 5")
+	eq(gov_state(unrest_engine("chiefs", 5)), ["Unrest 5 / 5"], "at the limit")
+	var raised := unrest_engine("chiefs", 2, MODIFIER_FIXTURES)
+	build_on(raised, home_uid(raised), ["altar"])
+	eq(gov_state(raised), ["Unrest 2 / 6"], "the limit is unrest_limit(): Altar adds 1")
+
+
+func test_no_unrest_line_without_a_limit_or_without_unrest() -> void:
+	eq(gov_state(unrest_engine("council", 2)), [], "Council sets no limit")
+	var off := unrest_engine("chiefs", 0, [], {"farm": 10}, {"resources": ["food", "wealth", "insight"],
+		"starting": {"resources": {"food": 10}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}})
+	eq(off.unrest_limit(), -1, "precondition: unrest off")
+	eq(gov_state(off), [], "unrest off")
+	eq(unrest_engine("chiefs", 2).def_details("chiefs").state, [], "def_details has no live state")
