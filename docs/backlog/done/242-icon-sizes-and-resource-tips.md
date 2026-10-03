@@ -2,7 +2,7 @@
 id: 242
 title: Bigger top-bar glyphs, a pop-figure meter, a green Grow sprout, and tooltips that name each resource
 type: feature
-status: review
+status: done
 branch: feat/242-icon-sizes-and-resource-tips
 ---
 
