@@ -2,7 +2,7 @@
 id: 160
 title: Unit cards garrisoned on a home territory
 type: feature
-status: review
+status: done
 branch: feat/160-unit-cards
 ---
 
