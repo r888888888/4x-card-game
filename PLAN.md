@@ -360,8 +360,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   for more", then one band per era with its title block at the left and its techs as index-card tiles of one size.
   A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked) and "✔ Eureka"
   when met, and is filled by state (teal researched, well locked); its tooltip has the state in words, why it can't
-  be learned (`buy_tech_error`), what it gives and its eureka. A click on an available tile learns it; any other
-  click, a right click or I opens the details. An era not reached lies under a vellum printed "<ERA> · OPENS AT 8
+  be learned (`buy_tech_error`), what it gives and its eureka. A click, Enter, a right click or I opens the
+  details, whose Learn button researches a tech not yet learned (disabled with `buy_tech_error`, 229). An era not reached lies under a vellum printed "<ERA> · OPENS AT 8
   POP OR 15 WEALTH". Researched techs show only in the tech tree (137).
 
 ## Supply (backlog 032)

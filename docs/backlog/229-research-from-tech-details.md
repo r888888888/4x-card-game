@@ -2,7 +2,7 @@
 id: 229
 title: Clicking a tech opens its details; research from there
 type: feature
-status: in-progress
+status: review
 branch: feat/229-research-from-tech-details
 ---
 
@@ -12,20 +12,20 @@ spends insight by accident. After this, a click (or Enter) on any tile only open
 player commits to learning it with a Research button in that modal's footer, as 225 did for playing a hand card.
 
 ## Acceptance criteria
-- [ ] AC1: Given the Knowledge screen open with Pottery available and 5 insight, when Pottery's tile is clicked (or
+- [x] AC1: Given the Knowledge screen open with Pottery available and 5 insight, when Pottery's tile is clicked (or
   focused and Enter pressed), then Pottery's details modal opens over the screen and nothing is learned (insight stays
   5, Pottery stays in the research deck).
-- [ ] AC2: Given Pottery's details opened from its tile (cost 2, 5 insight), when the footer's Research button is
+- [x] AC2: Given Pottery's details opened from its tile (cost 2, 5 insight), when the footer's Research button is
   pressed, then Pottery is learned (insight 3, Pottery in the researched zone), the modal closes, the Knowledge screen
   stays open and Pottery's tile reads `["Pottery", "✓"]`.
-- [ ] AC3: Given a tech whose `buy_tech_error` is non-empty (Bronze Working with 4 insight, or Iron Working whose
+- [x] AC3: Given a tech whose `buy_tech_error` is non-empty (Bronze Working with 4 insight, or Iron Working whose
   prerequisite isn't learned), when its details are opened from its tile, then Research is shown but disabled, its
   tooltip is that error, and pressing it learns nothing.
-- [ ] AC4: Given the details of a researched tech or a later-era tech (under its vellum), or of any card opened
+- [x] AC4: Given the details of a researched tech or a later-era tech (under its vellum), or of any card opened
   outside the Knowledge screen (a hand card, a board card, a supply pile), then the modal shows no Research button.
-- [ ] AC5: Given Writing's details open with Research shown, when the same modal is then opened for a board card, then
+- [x] AC5: Given Writing's details open with Research shown, when the same modal is then opened for a board card, then
   Research is gone (the button follows what the modal is opened for).
-- [ ] AC6: Given an available tile, its tooltip's last line no longer says a click learns it: it reads "Click, right
+- [x] AC6: Given an available tile, its tooltip's last line no longer says a click learns it: it reads "Click, right
   click or I for the details." like every other tile.
 
 ## Out of scope
@@ -59,9 +59,14 @@ player commits to learning it with a Research button in that modal's footer, as 
 
 ## Manual check
 - [ ] `godot --path . -- --seed 5`, press T: click an available tech; its details open and insight is unchanged.
-  Research sits beside Close, sized to its text; press it and the tile turns to ✓.
-- [ ] Open a locked tech's details: Research is dimmed and hovering it says which tech it needs.
+  Learn sits beside Close, sized to its text; press it and the details close and the tile turns to ✓.
+- [ ] Open a locked tech's details: Learn is dimmed and hovering it says which tech it needs.
+- [ ] Open a researched tech's details, and a hand card's: no Learn button.
 
 ## Log
 - Red: replaced `test_a_click_on_an_available_tile_learns_it`, `test_enter_on_a_focused_available_tile_learns_it` and
   `test_a_click_on_a_tile_you_cant_learn_learns_nothing_and_says_why` (old rule) with AC1/AC3 tests.
+- Green: the button reads **Learn**, not "Research": Research is a card in `data/cards.json`, and the UI may not
+  name content (`test_ui_names_no_card_from_the_real_data`). The hook keeps the name `research_button()`.
+- The Knowledge screen passes the tech's uid to `CardDetailsModal.open_tech` only for an available or locked tech
+  (-1 otherwise); the modal shows Learn for uid >= 0 and asks `buy_tech_error` for its enabled state and tooltip.
