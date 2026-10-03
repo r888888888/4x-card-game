@@ -26,6 +26,8 @@ static var TYPE_COLORS: Dictionary:  # card type -> its colour, as the palette r
 			CardDef.TERRITORY: Palette.TERRITORY,
 			CardDef.TECH: Palette.TECH,
 			CardDef.EVENT: Palette.EVENT,
+			CardDef.CIVILIZATION: Palette.CIVILIZATION,
+			CardDef.GOVERNMENT: Palette.GOVERNMENT,
 		}
 const HAND_SIZE := Vector2(264, 320)
 const TABLEAU_SIZE := Vector2(245, 175)

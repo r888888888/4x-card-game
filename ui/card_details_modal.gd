@@ -65,6 +65,12 @@ func open(view: CardView) -> void:
 		view if view.in_hand else null)
 
 
+## Opens the live details of card, in whatever zone it is (the civilization modal's cards and deck tabs, 231).
+func open_card(card: CardInstance) -> void:
+	var details := Game.engine.card_details(card.uid)
+	_show(details if not details.is_empty() else Game.engine.def_details(card.def.id), card.def.id)
+
+
 ## Opens the details of card definition card_id (a tech in the tree).
 func open_def(card_id: String) -> void:
 	_show(Game.engine.def_details(card_id), card_id)

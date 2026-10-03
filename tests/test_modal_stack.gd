@@ -89,18 +89,27 @@ func test_a_click_outside_both_panels_closes_only_the_details() -> void:
 		eq(depth(main), 1, "one modal left"))
 
 
-func test_a_click_on_the_tree_beside_the_details_closes_only_the_details() -> void:
+func test_a_click_on_the_details_beside_the_civilization_modal_closes_only_the_civilization_modal() -> void:
+	# The pair swapped (231): the civilization modal is now smaller than card details and hides under them, so the
+	# details go below and the civilization modal on top, and the click lands on the part of the details that shows.
 	await with_tree_and_details(func(main: Node):
-		var tree := panel_rect(main.identity_modal)
-		var at := tree.position + Vector2(6, 6)  # the tree panel's corner, inside its padding
-		check(tree.has_area() and tree.has_point(at), "the point is on the tree's panel: %s" % [tree])
-		check(not panel_rect(main.details).has_point(at), "and not on the details' panel")
+		main.details.close()
+		main.identity_modal.close()
+		await wait_frames()
+		main.details.open_def(first_tech_id())
+		main.identity_modal.open()
+		await wait_frames()
+		eq(top(main), main.identity_modal, "precondition: the civilization modal on top")
+		var below := panel_rect(main.details)
+		var at := below.position + Vector2(6, 6)  # the details panel's corner, inside its padding
+		check(below.has_area() and below.has_point(at), "the point is on the details' panel: %s" % [below])
+		check(not panel_rect(main.identity_modal).has_point(at), "and not on the civilization modal's panel")
 		var researched: int = Game.engine.zone("researched").size()
 		click_at(main, at)
 		await wait_frames()
-		eq(main.details.shown(), {}, "the details close")
-		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
-		eq(depth(main), 1, "one modal left: no tech's details opened")
+		eq(main.identity_modal.shown(), [] as Array[String], "the civilization modal closes")
+		check(not main.details.shown().is_empty(), "the details stay open")
+		eq(depth(main), 1, "one modal left")
 		eq(Game.engine.zone("researched").size(), researched, "no tech learned"))
 
 
