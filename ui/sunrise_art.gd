@@ -194,12 +194,15 @@ func _draw_slice(centre: Vector2, r: float, y0: float, y1: float, colour: Color)
 		return
 	var left: PackedVector2Array = []
 	var right: PackedVector2Array = []
-	var n := 24
+	# Step by angle, not height: a disc's edge is steepest at its top and bottom, so even steps in y flatten them.
+	var a0 := asin(clampf(y0 / r, -1.0, 1.0))
+	var a1 := asin(clampf(y1 / r, -1.0, 1.0))
+	var n := maxi(8, ceili(64.0 * (a1 - a0) / PI))
 	for i in n + 1:
-		var y := lerpf(y0, y1, i / float(n))
-		var half := sqrt(maxf(r * r - y * y, 0.0))
-		right.append(centre + Vector2(half, y))
-		left.append(centre + Vector2(-half, y))
+		var a := lerpf(a0, a1, i / float(n))
+		var offset := Vector2(cos(a), sin(a)) * r
+		right.append(centre + offset)
+		left.append(centre + Vector2(-offset.x, offset.y))
 	left.reverse()
 	var points := right + left
 	if points.size() >= 3:
