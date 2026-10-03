@@ -1,7 +1,8 @@
 class_name SupplyScreen
 extends RefCounted
 ## The supply screen: dims the board and shows one card per supply pile to click and buy; stays open for several
-## buys. Also owns the "Buy Cards" button that opens it (S).
+## buys. Each card shows its play cost like a hand card, with its price on a tag hanging below it and the copies left
+## under that (232). Also owns the "Buy Cards" button that opens it (S).
 
 ## A buy was refused; message is the engine's reason, for the log.
 signal refused(message: String)
@@ -12,6 +13,8 @@ var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the conf
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
+var _tags := {}  # card_id -> its price tag (PriceTag), below its card
+var _lefts := {}  # card_id -> the Label under its tag ("6 left")
 var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer)
 var _discard: Label
 var _fresh := true  # the next refresh shows the wealth at once: the screen just opened
@@ -20,6 +23,7 @@ var _board: MainScreen
 
 
 const DISCARD := "discard"  # counter()'s key for the discard count, beside GameEngine.WEALTH (177)
+const TAG_DIMMED := 0.4  # a price tag's opacity while its pile can't be bought
 
 
 ## Builds the screen on parent, hidden. on_open is the Supply button's action.
@@ -71,6 +75,16 @@ func is_open() -> bool:
 	return _overlay.visible
 
 
+## view's price tag (232): "Buy", the wealth glyph and the price, hanging below the card.
+func price_tag(view: CardView) -> Control:
+	return _tags[_views.find_key(view)]
+
+
+## The Label under view's price tag saying how many copies are left ("6 left").
+func copies_left(view: CardView) -> Label:
+	return _lefts[_views.find_key(view)]
+
+
 ## The pile cards, in config order.
 func views() -> Array[CardView]:
 	var out: Array[CardView] = []
@@ -87,10 +101,24 @@ func can_open(e: GameEngine) -> bool:
 func open(e: GameEngine) -> void:
 	var i := 0
 	for id in e.open_supply_piles():  # a locked pile stays hidden until a tech unlocks it
+		var column := VBoxContainer.new()
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_theme_constant_override("separation", Tokens.SPACE_0)  # the tag hangs from the card's edge
+		_row.add_child(column)
 		var slot := Control.new()
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot.custom_minimum_size = CardView.TABLEAU_SIZE
-		_row.add_child(slot)
+		column.add_child(slot)
+		_tags[id] = _price_tag()
+		column.add_child(_tags[id])
+		var pad := MarginContainer.new()
+		pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pad.add_theme_constant_override("margin_top", Tokens.SPACE_1)
+		column.add_child(pad)
+		_lefts[id] = Label.new()
+		_lefts[id].theme_type_variation = &"Caption"
+		_lefts[id].horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pad.add_child(_lefts[id])
 		var view := CardView.new()
 		view.setup(CardInstance.new(-1 - i, e.card_db[id]), e.card_db, false)
 		view.lift_on_hover = true
@@ -105,6 +133,35 @@ func open(e: GameEngine) -> void:
 	refresh(e)  # after show: it only fills in the cards while the screen is open
 	_overlay.modulate.a = 0.0
 	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
+
+
+## A new price tag: "Buy", the wealth glyph and a figure refresh() fills in, centred under its card.
+func _price_tag() -> PanelContainer:
+	var tag := PanelContainer.new()
+	tag.theme_type_variation = &"PriceTag"
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var line := HBoxContainer.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_constant_override("separation", Tokens.SPACE_2)
+	tag.add_child(line)
+	var buy := Label.new()
+	buy.theme_type_variation = &"PriceTagText"
+	buy.text = "Buy"
+	line.add_child(buy)
+	var price := HBoxContainer.new()
+	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	price.add_theme_constant_override("separation", Tokens.GLYPH_GAP)
+	line.add_child(price)
+	var glyph := Icons.glyph(GameEngine.WEALTH, 20)
+	glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UIKit.painted(glyph, func(): glyph.self_modulate = Palette.TEXT_ON_ACCENT)  # ink on the gold, not gold on gold
+	price.add_child(glyph)
+	var figure := Label.new()
+	figure.name = "Price"
+	figure.theme_type_variation = &"PriceTagText"
+	price.add_child(figure)
+	return tag
 
 
 ## Fixes the row's width to as many whole cards as fit the window (at most count), so the piles wrap onto
@@ -123,9 +180,11 @@ func close() -> void:
 	_overlay.hide()
 	_fresh = true  # so the next open shows the wealth at once, without rolling
 	_views.clear()
-	for slot in _row.get_children():
-		_row.remove_child(slot)
-		slot.queue_free()
+	_tags.clear()
+	_lefts.clear()
+	for column in _row.get_children():
+		_row.remove_child(column)
+		column.queue_free()
 	for child in _fx.get_children():
 		child.queue_free()
 	closed.emit()
@@ -151,7 +210,7 @@ func pick(view: CardView) -> void:
 	copy.leave(_fx, _discard.get_global_rect().get_center(), true, null, UIKit.pulse.bind(_discard))
 
 
-## The Supply button, and while the screen is open its counters and each pile's price, count and state.
+## The Supply button, and while the screen is open its counters and each pile's play cost, price, count and state.
 func refresh(e: GameEngine) -> void:
 	var reason := e.supply_error()
 	button.visible = not e.supply().is_empty()
@@ -163,4 +222,9 @@ func refresh(e: GameEngine) -> void:
 	_fresh = false
 	_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _views:
-		_views[id].set_buy_info(e.buy_price(id), e.supply_left(id), e.buy_error(id))
+		var error := e.buy_error(id)
+		_views[id].set_play_cost(e.supply_play_cost(id))
+		_views[id].set_buy_error(error)
+		(_tags[id].find_child("Price", true, false) as Label).text = str(e.buy_price(id))
+		_tags[id].modulate.a = 1.0 if error == "" else TAG_DIMMED
+		_lefts[id].text = "%d left" % e.supply_left(id)

@@ -2,7 +2,7 @@
 id: 232
 title: Supply cards show their play cost, with the buy price on a tag below
 type: feature
-status: red-review
+status: in-progress
 branch: feat/232-supply-price-tag
 ---
 
