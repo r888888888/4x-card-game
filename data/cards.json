@@ -23,6 +23,11 @@
       ]
     },
     {
+      "id": "warriors", "name": "Warriors", "type": "unit",
+      "cost": { "food": 2 }, "vp": 0, "tags": ["military"], "strength": 2,
+      "effects": [ { "op": "lose", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
       "id": "settler", "name": "Settler", "type": "action",
       "cost": { "food": 5 }, "vp": 0, "tags": ["expand"],
       "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]

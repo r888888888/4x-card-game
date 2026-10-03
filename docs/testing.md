@@ -150,6 +150,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
+| `tests/test_units.gd` | Unit cards (160): the `unit` type and `strength` (loading, fixed-land errors, decks), recruiting onto a home (`unit_station`), units using a worker but no slot, targets, idle units after earlier buildings, card text and score; a local `TEST_UNITS` fixture (Levy) and `unit_engine` |
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, `day_mode` (183) and `civilization`, `Settings.set_day_mode`, `civilization_in` fallback, bad or missing files |
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |

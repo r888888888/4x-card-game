@@ -380,6 +380,17 @@ func is_idle(uid: int) -> bool:
 	return Population.is_idle(self, uid)
 
 
+## Where unit uid in the tableau is stationed (160): a territory uid, or -1 when uid isn't a unit in the tableau.
+func unit_station(uid: int) -> int:
+	var card := zone("tableau").find(uid)
+	return card.station_uid if card != null and card.def.type == CardDef.UNIT else -1
+
+
+## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.
+func units_at(uid: int) -> Array[int]:
+	return Territories.units_at(self, uid)
+
+
 ## Whether playing hand card uid needs the player to pick a target: it is playable and has several valid targets.
 func needs_target_choice(uid: int) -> bool:
 	return CardPlay.needs_target_choice(self, uid)

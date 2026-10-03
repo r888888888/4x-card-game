@@ -54,7 +54,7 @@ static func _state(e: GameEngine, card: CardInstance, zone_name: String) -> Arra
 	var territory := e.territory_of(card) if zone_name == "tableau" else null
 	if territory != null and territory != card:
 		out.append("On %s" % territory.def.name)
-	if zone_name == "tableau" and card.def.type == CardDef.BUILDING and e.is_idle(card.uid):
+	if zone_name == "tableau" and card.def.uses_worker() and e.is_idle(card.uid):
 		out.append("Idle: no free worker (skips upkeep)")
 	if card.def.type == CardDef.TECH and zone_name == "research_deck":
 		out.append(_tech_cost_text(e, card))
@@ -95,6 +95,8 @@ static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Arra
 		if def.famine_guard > 0:
 			names.append("Famine guard")
 		names.append_array(["Slots", "Workers"])
+	if def.type == CardDef.UNIT:
+		names.append("Workers")
 	if def.type == CardDef.TECH:
 		if def.prereq != "":
 			names.append("Prerequisite")

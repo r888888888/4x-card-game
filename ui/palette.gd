@@ -55,6 +55,7 @@ static var TECH: Color = NIGHT["TECH"]
 static var EVENT: Color = NIGHT["EVENT"]
 static var CIVILIZATION: Color = NIGHT["CIVILIZATION"]  # plum: no card plane uses it (231)
 static var GOVERNMENT: Color = NIGHT["GOVERNMENT"]  # indigo (231)
+static var UNIT: Color = NIGHT["UNIT"]  # bronze (160): no guide hue, chosen apart from the other planes
 
 # An unsettled territory on the board (138): open land, not yet yours.
 static var FRONTIER_BG: Color = NIGHT["FRONTIER_BG"]  # barely off the board
@@ -124,6 +125,7 @@ const NIGHT := {
 	"EVENT": Color("e07a63"),
 	"CIVILIZATION": Color("c48faf"),
 	"GOVERNMENT": Color("a39bcb"),
+	"UNIT": Color("bc8f72"),
 	"FRONTIER_BG": Color("1f1e1c"),
 	"FRONTIER_HATCH": Color(1, 1, 1, 0.05),
 	"RESEARCHED_FILL": Color("5fb0a9"),
@@ -185,6 +187,7 @@ const DAY := {
 	"EVENT": Color("c9705c"),
 	"CIVILIZATION": Color("b07d9c"),
 	"GOVERNMENT": Color("8f88b8"),
+	"UNIT": Color("a97f63"),
 	"FRONTIER_BG": Color("efe8da"),
 	"FRONTIER_HATCH": Color("22211f1a"),
 	"RESEARCHED_FILL": Color("5e9c97"),

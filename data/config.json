@@ -41,6 +41,7 @@
     "fishing_huts": { "price": 2, "count": 6 },
     "quarry": { "price": 2, "count": 6 },
     "shrine": { "price": 2, "count": 6 },
+    "warriors": { "price": 2, "count": 6 },
     "granary": { "price": 2, "count": 12, "locked": true },
     "pasture": { "price": 2, "count": 6, "locked": true },
     "mine": { "price": 2, "count": 6, "locked": true },

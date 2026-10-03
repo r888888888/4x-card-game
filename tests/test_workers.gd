@@ -142,7 +142,7 @@ func test_territory_status_reports_free_slots_pop_housing_and_free_workers() -> 
 func test_territory_tooltip_spells_out_slots_pop_and_workers() -> void:
 	var e: GameEngine = workers_engine(2)
 	var home := home_uid(e)
-	eq(e.territory_tooltip(home), "Building slots: %d free of %d\nPop 2, housing %d\nFree workers: 2 (each building needs one)" % [
+	eq(e.territory_tooltip(home), "Building slots: %d free of %d\nPop 2, housing %d\nFree workers: 2 (each building or unit needs one)" % [
 		e.free_slots(home), e.total_slots(home), e.housing(home)], "Homeland: no keywords")
 	var with_river: GameEngine = make_engine({"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0},
 		"territory_deck": {"river": 1}})

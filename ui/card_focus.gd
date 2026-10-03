@@ -36,7 +36,7 @@ func row() -> Array[CardView]:
 ## The open territory view's cards, else the Realm's territory cards in tableau order.
 func board_row() -> Array[CardView]:
 	if _board.territory_view.is_open():
-		return _board.views_in(_board.territory_view.row)
+		return _board.views_in(_board.territory_view.row) + _board.views_in(_board.territory_view.units_row)
 	var out: Array[CardView] = []
 	for group in Game.engine.territory_groups():
 		if group.territory != -1 and _board.views.has(group.territory):

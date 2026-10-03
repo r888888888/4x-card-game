@@ -47,6 +47,25 @@ static func buildings_on(e: GameEngine, territory_uid: int) -> Array[CardInstanc
 	return out
 
 
+## The cards using workers on territory territory_uid (its buildings and the units homed there, 160), in the order
+## they were placed: the first ones get its pop.
+static func workers_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for card in e.zone("tableau").cards:
+		if card.def.uses_worker() and card.territory_uid == territory_uid:
+			out.append(card)
+	return out
+
+
+## The units stationed on territory territory_uid (160), in the order they were recruited; [] for anything else.
+static func units_at(e: GameEngine, territory_uid: int) -> Array[int]:
+	var out: Array[int] = []
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.UNIT and card.station_uid == territory_uid:
+			out.append(card.uid)
+	return out
+
+
 ## Whether card is a territory with a free building slot.
 static func has_room(e: GameEngine, territory: CardInstance) -> bool:
 	return territory.def.type == CardDef.TERRITORY and free_slots(e, territory.uid) > 0
@@ -71,6 +90,15 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
 	for territory in e.zone("tableau").cards:
 		if has_room(e, territory) and Population.has_worker(e, territory) and meets_requires(card, territory):
+			out.append(territory.uid)
+	return out
+
+
+## The settled territories a unit can be recruited on (160): any with a free worker; a unit takes no slot.
+static func unit_targets(e: GameEngine) -> Array[int]:
+	var out: Array[int] = []
+	for territory in e.zone("tableau").cards:
+		if territory.def.type == CardDef.TERRITORY and Population.has_worker(e, territory):
 			out.append(territory.uid)
 	return out
 
@@ -119,7 +147,7 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	var lines: PackedStringArray = ["Building slots: %d free of %d" % [s.free_slots, s.total_slots]]
 	if e.population_on():
 		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
-		lines.append("Free workers: %d (each building needs one)" % s.free_workers)
+		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
 	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
 	if not keywords.is_empty():
 		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))

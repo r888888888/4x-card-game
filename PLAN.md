@@ -188,6 +188,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   water, coastal, …). With `terrains` set, every territory card prints exactly one terrain (a load error otherwise).
 - Buildings may set `housing` (int ≥ 1: added to their territory's housing, idle or not) and `famine_guard` (int ≥ 1:
   pop on their territory saved from starving each upkeep, while working) (060).
+- Units (`"type": "unit"`, 160) need `strength` (int ≥ 1). Played from the hand onto a settled territory with a free
+  worker, their home: they take no slot but use a worker there (with its buildings, in placement order, so the last
+  placed go idle first), and stand on a station (the home until 163 moves them). No `requires`, no effect `keyword`
+  and no `grow` "here" (a unit can move, so it has no fixed land). They go in `deck` or `supply`, never the other decks.
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or

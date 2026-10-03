@@ -13,6 +13,7 @@ const TYPE_FIELDS := {
 	"slots": [CardDef.TERRITORY, CardDef.CITY],
 	"housing": [CardDef.TERRITORY, CardDef.BUILDING],
 	"famine_guard": [CardDef.BUILDING],
+	"strength": [CardDef.UNIT],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"eureka": [CardDef.TECH],
@@ -29,7 +30,7 @@ const TYPE_FIELDS := {
 }
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
 const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Modifiers.RENEWAL, Modifiers.INSIGHT_PER_GAIN]
-const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments"}
+const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments", CardDef.UNIT: "units"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
 ## The keys of an event's discard object (its discard conditions). Only a duration so far.
@@ -238,6 +239,11 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				if problem != "":
 					errs.append("effects[%d]: %s" % [j, problem])
 					continue
+			if effect != null and e_errs.is_empty() and def.type == CardDef.UNIT:
+				var unit_problem := _unit_effect_problem(effect)
+				if unit_problem != "":
+					errs.append("effects[%d]: %s" % [j, unit_problem])
+					continue
 			if effect != null and e_errs.is_empty():
 				def.effects.append(effect)
 	else:
@@ -264,6 +270,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	elif def.type == CardDef.BUILDING:
 		def.housing = Fields.read_int(c, "housing", errs, 1, 0)
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
+	elif def.type == CardDef.UNIT:
+		def.strength = Fields.read_int(c, "strength", errs, 1)
 	elif def.type == CardDef.GOVERNMENT:
 		def.actions = Fields.read_int(c, "actions", errs, 1, 0)
 		def.unrest_limit = Fields.read_int(c, "unrest_limit", errs, 1, 0)
@@ -306,6 +314,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				def.requires.append(k)
 	else:
 		errs.append("'requires' must be an array of keyword ids")
+	if def.type == CardDef.UNIT and not def.requires.is_empty():
+		errs.append("a unit can't have 'requires' (it can move, so it has no fixed land)")
 
 	for key in c:
 		if not CARD_FIELDS.has(key) and not TYPE_FIELDS.has(key):
@@ -346,6 +356,16 @@ static func _no_territory_effect_problem(effect: Effect, type: String) -> String
 		return "an event effect can't use '%s' (an event resolves after your plays)" % effect.op
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
+	return ""
+
+
+## Why effect can't be on a unit, or "" if it can (160): a unit can move off its home, so it has no fixed land for a
+## keyword or a "here" to act on.
+static func _unit_effect_problem(effect: Effect) -> String:
+	if effect.keyword != "":
+		return "a unit effect can't use 'keyword' (a unit can move, so it has no fixed land)"
+	if effect.needs_own_territory():
+		return "a unit effect can't act on its own territory (a unit can move; use 'each')"
 	return ""
 
 

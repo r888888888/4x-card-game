@@ -32,6 +32,7 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 		return ""
 	var targets := targets_of(e, uid)
 	var building := card.def.type == CardDef.BUILDING
+	var placed := building or card.def.type == CardDef.UNIT  # goes on a territory (160)
 	if target_uid != -1:
 		if targets.has(target_uid):
 			return ""
@@ -40,9 +41,11 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 			return Territories.requires_error(card)
 		return "That target isn't valid."
 	if targets.is_empty():
+		if card.def.type == CardDef.UNIT:
+			return "No territory with a free worker."
 		return Territories.no_building_target_error(e, card) if building else target_effect(card).no_target_error()
 	if targets.size() > 1:
-		return "Choose a territory for %s." % card.def.name if building else target_effect(card).choose_target_error()
+		return "Choose a territory for %s." % card.def.name if placed else target_effect(card).choose_target_error()
 	return ""
 
 
@@ -53,6 +56,8 @@ static func targets_of(e: GameEngine, uid: int) -> Array[int]:
 		return out
 	if card.def.type == CardDef.BUILDING:
 		return Territories.building_targets(e, card)
+	if card.def.type == CardDef.UNIT:
+		return Territories.unit_targets(e)
 	for target in e.zone(target_effect(card).target_zone()).cards:
 		if target != card:  # a hand target is never the card being played
 			out.append(target.uid)
@@ -80,6 +85,9 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e._log("Played %s." % card.def.name)
 	if card.def.type == CardDef.BUILDING:
 		card.territory_uid = target
+	if card.def.type == CardDef.UNIT:  # homed and stationed where it is recruited (160)
+		card.territory_uid = target
+		card.station_uid = target
 	if to_zone == "tableau":
 		e.zone("tableau").add(card)
 	e._resolve(card, "play")
@@ -109,14 +117,14 @@ static func actions_left(e: GameEngine) -> int:
 	return -1 if per_turn < 0 else maxi(0, per_turn + e.state.actions_gained - e.state.actions_used)
 
 
-## Buildings target a territory; other cards need a target if a "play" effect does.
 ## Whether hand card uid is playable, needs a target and has more than one valid target, so the player picks one.
 static func needs_target_choice(e: GameEngine, uid: int) -> bool:
 	return e.needs_target(uid) and targets_of(e, uid).size() > 1 and e.playable_error(uid) == ""
 
 
+## Buildings and units target a territory; other cards need a target if a "play" effect does.
 static func needs_target(card: CardInstance) -> bool:
-	return card.def.type == CardDef.BUILDING or target_effect(card) != null
+	return card.def.uses_worker() or target_effect(card) != null
 
 
 ## The card's first "play" effect that needs a target, or null.
