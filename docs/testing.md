@@ -155,7 +155,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215): loading and validation, in the details, never on a card face |
 | `tests/test_civ_home.gd` | A civilization's `home` territory (111): loading and validation, population start fitting each home, card text, the home settled at new game, the same decks with or without a home, its roll |
 | `tests/test_civ_start_building.gd` | A civilization's start building (133): a start `create` into the tableau puts the building on the home, works from turn 1, must be a building fitting the home's keywords and slots |
-| `tests/test_discounts.gd` | Civilization `discounts` (108): loading and validation, card text, type and tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors |
+| `tests/test_discounts.gd` | Civilization `discounts` (108): loading and validation, card text, type and tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors; `supply_play_cost` (232) |
 | `tests/test_government.gd` | Government cards (065): the type, `starting.government`, `government()`, playing one to replace the ruling one (to `removed`), upkeep, forecast, score, the same-government error, fork; uses `TEST_GOVS` / `gov_engine` |
 | `tests/test_government_deck.gd` | The government deck (154): created and fallen governments in `governments`, the government choice owed when Anarchy ends (`PENDING_GOVERNMENT`, `choose_government` and its error), unrest halved, the Government overlay, the identity modal's deck line, the bot's choice; uses `anarchy_case.gd` |
 | `tests/test_actions.gd` | Actions per turn (127): the government's `actions`, unlimited without one, each play using one, what needs none, the reset each turn; uses `TEST_GOVS` |
@@ -179,6 +179,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
 | `tests/test_prices.gd` | Prices and unrest in one place (173): `can_pay` / `pay` / `price_error`, `Fields.amounts_text`, `set_unrest` stopping at the limit; only EngineCore lowers resources or writes unrest |
 | `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
+| `tests/test_supply_screen.gd` | The Supply screen's pile cards in the real `main.tscn` (232): the play cost after discounts in the title row, the buy price on a tag below the card (`price_tag`), the copies left under it (`copies_left`), the tag dimming with an unbuyable pile |
 | `tests/test_terrains.gd` | Terrain keywords (130): config `terrains`, exactly one terrain per territory, terrain-keyed roll tables, terrain/feature keyword details |
 | `tests/test_territory_resources.gd` | Rolled resource keywords: `resource_keywords` / `territory_resources` config, rolling per copy, `territory_keywords` |
 | `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
