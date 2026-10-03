@@ -55,10 +55,11 @@ func hand_card(id: String, food := 5) -> int:
 
 
 func test_play_button_plays_a_playable_hand_card_and_closes_the_details() -> void:
-	await with_territories_main(func(main: Node):
+	await with_main(gov_engine("band"), func(main: Node):  # Band: 2 actions a turn, so a play visibly uses one
 		var e := Game.engine
 		var study := hand_card("study")
 		var actions: int = e.actions_left()
+		check(actions > 0, "Band limits the actions")
 		main.details.open(main.views[study])
 		var play: Button = main.details.play_button()
 		check(play.visible, "Play shows for a hand card")
@@ -71,21 +72,26 @@ func test_play_button_plays_a_playable_hand_card_and_closes_the_details() -> voi
 		eq(e.actions_left(), actions - 1, "it took an action"))
 
 
-func test_play_button_is_hidden_for_board_supply_and_tech_details() -> void:
+func test_play_button_is_hidden_for_board_and_tech_details() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		main.details.open(main.views[home_uid(e)])
 		check(not main.details.play_button().visible, "no Play for a board card")
 		main.details.close()
 		main.details.open_def("study")
-		check(not main.details.play_button().visible, "no Play for a definition")
-		main.details.close()
-		main.open_supply()
-		var piles: Array = main.supply.views()
-		check(not piles.is_empty(), "the supply has piles")
-		if not piles.is_empty():
-			main.details.open(piles[0])
-			check(not main.details.play_button().visible, "no Play for a supply pile"))
+		check(not main.details.play_button().visible, "no Play for a definition"))
+
+
+func test_play_button_is_hidden_for_supply_pile_details() -> void:
+	var main := open_main()
+	main.start_game(1)
+	main.open_supply()
+	var piles: Array = main.supply.views()
+	check(not piles.is_empty(), "the supply is open with piles")
+	if not piles.is_empty():
+		main.details.open(piles[0])
+		check(not main.details.play_button().visible, "no Play for a supply pile")
+	close_main(main)
 
 
 func test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card() -> void:

@@ -101,7 +101,8 @@ func test_card_details_is_a_sheet_titled_with_the_card_and_its_type() -> void:
 		var card: CardInstance = Game.engine.zone("hand").cards[0]
 		main.details.open(main.views[card.uid])
 		await wait_sheet()
-		check_sheet(main.details, "card details", card.def.name, card.def.type.capitalize(), ["Close (Esc)"] as Array[String])
+		check_sheet(main.details, "card details", card.def.name, card.def.type.capitalize(),
+			["Close (Esc)", "Play"] as Array[String])  # a hand card's details offer Play (225)
 		close_main(main))
 
 

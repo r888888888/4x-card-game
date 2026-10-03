@@ -43,7 +43,7 @@ with a Play button instead of closing the modal and dragging or double-clicking 
 | AC | Test |
 |---|---|
 | AC1 | `test_details_modal::test_play_button_plays_a_playable_hand_card_and_closes_the_details` |
-| AC2 | `test_details_modal::test_play_button_is_hidden_for_board_supply_and_tech_details` |
+| AC2 | `test_details_modal::test_play_button_is_hidden_for_board_and_tech_details`, `test_details_modal::test_play_button_is_hidden_for_supply_pile_details` |
 | AC3 | `test_details_modal::test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card` |
 | AC4 | `test_details_modal::test_play_button_begins_targeting_for_a_card_with_several_targets` |
 | AC5 | `test_details_modal::test_play_button_goes_when_the_details_reopen_for_a_board_card` |
@@ -58,3 +58,6 @@ with a Play button instead of closing the modal and dragging or double-clicking 
 ## Log
 - Red: AC6's example was a forced discard, but discarding is itself hand input, so `hand_input_error` is "" then;
   the test uses an explore choice instead.
+- Green (approved): AC1's game starts under Band, since without a government actions are unlimited (`actions_left` is
+  -1); AC2's supply check moved to the real game, as TEST_CARDS has no supply; `test_modal_sheets`' card-details sheet
+  now expects `["Close (Esc)", "Play"]`, as it opens a hand card.
