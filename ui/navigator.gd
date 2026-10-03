@@ -207,7 +207,7 @@ func _slide_in(screen: Control, below: Control) -> void:
 	var place := screen.get_global_rect()
 	var width := place.size.x
 	_lift(screen, place)
-	_offset(Vector2(width, 0), screen, place.position)  # off the right edge at once, not on the tween's first step
+	_offset(Vector2(width, 0), screen, place.position)  # at its container's right edge at once, not on the tween's first step
 	_tween.set_parallel()
 	_tween.tween_method(_offset.bind(screen, place.position), Vector2(width, 0), Vector2.ZERO, SLIDE_IN) \
 		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)

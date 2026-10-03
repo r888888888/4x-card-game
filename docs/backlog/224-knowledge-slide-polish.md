@@ -2,7 +2,7 @@
 id: 224
 title: The Knowledge screen's slide moves the Hand, crosses the sidebar and shows the Realm through it
 type: bug
-status: in-progress
+status: review
 branch: fix/224-knowledge-slide-polish
 ---
 
@@ -23,19 +23,19 @@ branch: fix/224-knowledge-slide-polish
   3. The Knowledge screen has no background, so the Realm's cards show through its tech rows while it passes over.
 
 ## Acceptance criteria
-- [ ] AC1: Given a started game with Reduce motion off, when the Knowledge screen opens, then at every sampled frame
+- [x] AC1: Given a started game with Reduce motion off, when the Knowledge screen opens, then at every sampled frame
   of the slide (and once it is in place) the Hand section's global rect equals its rect before opening.
-- [ ] AC2: Given the Knowledge screen open, when it closes, then at every sampled frame of the slide out (and once it
+- [x] AC2: Given the Knowledge screen open, when it closes, then at every sampled frame of the slide out (and once it
   is gone) the Hand section's global rect equals its rect before opening.
-- [ ] AC3: Given the Knowledge screen opening with Reduce motion off, then it starts with its left edge at the play
+- [x] AC3: Given the Knowledge screen opening with Reduce motion off, then it starts with its left edge at the play
   area's right edge (slide offset equals its own width) and, throughout the slide, it is clipped to the play area's
   rect: no part of it is drawn right of the play area, over the sidebar.
-- [ ] AC4: Given the Knowledge screen open, then it has an opaque background covering its whole rect (a fill with
+- [x] AC4: Given the Knowledge screen open, then it has an opaque background covering its whole rect (a fill with
   alpha 1, a `Palette` colour named for the board/sheet), so nothing under it shows through during the slide or at
   rest.
-- [ ] AC5: Given Reduce motion on, when the Knowledge screen opens and closes, then it still only fades (0.12 s), and
+- [x] AC5: Given Reduce motion on, when the Knowledge screen opens and closes, then it still only fades (0.12 s), and
   the Hand section's global rect never changes.
-- [ ] AC6 (stays correct): the existing slide timings and the Realm's 24 px shift (`test_it_slides_in_from_the_right_
+- [x] AC6 (stays correct): the existing slide timings and the Realm's 24 px shift (`test_it_slides_in_from_the_right_
   as_the_realm_shifts_left`), and opening over a territory view, keep passing unchanged.
 
 ## Test plan
@@ -58,7 +58,14 @@ branch: fix/224-knowledge-slide-polish
 - `Navigator` is UI, so this needs no engine change; the Knowledge screen is the only screen pushed with `slide`.
 
 ## Root cause
-<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+`Navigator._slide_in` / `_slide_out` take both sliding screens out of the play area's VBox (`top_level`) so they can
+move freely, which left the Hand the only child in its layout: it moved up into the Realm's slot until the screens
+landed. Now `_hold` puts an empty stand-in of the lifted screen's size and size flags in its slot (the Realm on the way
+in, the Knowledge screen on the way out) and `_release` removes it when the screens land. The slide's travel was the
+distance to the window's right edge, past the sidebar; it is now the screen's own width, and the sidebar (z_index 1,
+the Rail filled with `Palette.BACKGROUND`) draws over it: a lifted screen is parented to the canvas, so its container
+can't clip it. The Knowledge screen, a VBoxContainer, drew no background; it now fills its rect with `sheet_color()`.
+The 208 tests checked the slide's offsets and timings, never where the sections around it were or what it covered.
 
 ## Manual check
 - Record the open and close (`--write-movie`, seed 5) or watch at 1920×1080 and at a narrow window: the Hand never
@@ -67,3 +74,9 @@ branch: fix/224-knowledge-slide-polish
 
 ## Log
 - 2026-10-02: specced from a frame-by-frame recording of the transition (seed 5, sumer).
+- 2026-10-02: AC3 met by drawing the sidebar over the sheet rather than clipping it (a top_level Control escapes its
+  parent's clip). That conflicted with 221's "the rail has no fill of its own"; with the user's approval that check now
+  also allows a fill in the board's colour (`test_sidebar::test_the_rail_is_open_on_the_board_with_a_hairline_to_its_left`).
+  Re-recorded after the fix: the hand stays still, nothing crosses the sidebar, the Realm doesn't show through.
+- Follow-up idea (not specced): the tech tree has only the Realm's height; if more eras make it scroll a lot on short
+  windows, consider a taller sheet that leaves the Research cards in view.
