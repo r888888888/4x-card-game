@@ -2,7 +2,7 @@
 id: 228
 title: Unrest limit moves to the tooltip; the glyph breathes when Anarchy is a turn away
 type: feature
-status: review
+status: done
 branch: feat/228-unrest-limit-in-tooltip
 ---
 
