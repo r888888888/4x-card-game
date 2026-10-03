@@ -15,12 +15,16 @@ const SIZES := [14, 15, 17, 20, 26, 28, 40, 44, 56]
 const LABELS := {"Display": 40, "Title": 28, "Heading": 15, "Body": 20, "BodySmall": 17, "Caption": 14, "Stat": 26}
 
 
-## The base face of variation's font in theme t (through FontVariations), or null.
-func base_face(t: Theme, variation: String) -> Font:
-	var font := t.get_font("font", variation)
+## The face under font (through FontVariations), or null.
+func face_of(font: Font) -> Font:
 	while font is FontVariation:
 		font = (font as FontVariation).base_font
 	return font
+
+
+## The base face of variation's font in theme t, or null.
+func base_face(t: Theme, variation: String) -> Font:
+	return face_of(t.get_font("font", variation))
 
 
 ## The font sizes a visible text control draws with: a RichTextLabel's three, else its font_size.
@@ -60,13 +64,6 @@ func test_the_theme_has_a_label_variation_per_type_role() -> void:
 # --- 216: a real italic for the body face ---
 
 const ITALIC_PATH := "res://assets/fonts/Barlow-Italic.ttf"
-
-
-## The face under font (through FontVariations), or null.
-func face_of(font: Font) -> Font:
-	while font is FontVariation:
-		font = (font as FontVariation).base_font
-	return font
 
 
 func test_rich_body_italics_are_barlow_italic_with_the_body_fonts_figures() -> void:

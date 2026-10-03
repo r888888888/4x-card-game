@@ -2,7 +2,7 @@
 id: 216
 title: A real italic for the body face
 type: feature
-status: in-progress
+status: review
 branch: feat/216-body-italic
 ---
 
@@ -12,9 +12,9 @@ Regular. 178 shipped only Barlow Regular for body text, so RichBody had an itali
 in 205's Manual check); 215's flavor expects italics.
 
 ## Acceptance criteria
-- [ ] AC1: Given `GameTheme.build()`, then the `RichBody` variation's `italics_font` is set, and its base font is
+- [x] AC1: Given `GameTheme.build()`, then the `RichBody` variation's `italics_font` is set, and its base font is
   `assets/fonts/Barlow-Italic.ttf`, through `GameTheme.tabular()` (`tnum` and `lnum` on) like the body font.
-- [ ] AC2: Given a RichTextLabel with `theme_type_variation = &"RichBody"` in the main scene, then its resolved
+- [x] AC2: Given a RichTextLabel with `theme_type_variation = &"RichBody"` in the main scene, then its resolved
   `italics_font` is the Barlow Italic face (not the theme's default font), while its `normal_font` stays Barlow
   Regular.
 
@@ -34,6 +34,13 @@ in 205's Manual check); 215's flavor expects italics.
 | AC2 | `test_type_tokens::test_a_rich_body_in_the_main_scene_draws_italics_in_barlow_italic` |
 
 ## Manual check
-- [ ] Open a card with flavor in its details: the flavor is slanted Barlow, the rules upright.
+- [ ] `godot --path . -- --civ sumer --seed 5`: open the civilization (Sumer) card's details: its flavor is slanted
+  Barlow, the rules upright, both at the same size.
+- [ ] Press Revolt… in the civilization modal: the Anarchy flavor in the confirmation is italic (205 noted it upright).
 
 ## Log
+- Barlow-Italic.ttf 1.408 downloaded from google/fonts `ofl/barlow/` (109,624 bytes, user-approved); its `.import`
+  copies the importer defaults, like Barlow-Regular's.
+- Before this, `has_font("italics_font", "RichBody")` was already true: it falls back to the theme's default font
+  (Barlow Regular), so the tests check the face, not presence.
+- Refactor: `test_type_tokens.gd`'s `base_face` now uses the new `face_of`.
