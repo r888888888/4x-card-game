@@ -2,7 +2,7 @@
 id: 238
 title: The bot plays an explore-only card with nothing left to explore
 type: bug
-status: review
+status: done
 branch: fix/238-bot-dead-explores
 ---
 

@@ -2,7 +2,7 @@
 id: 239
 title: The bot buys food cards and, at random, spends its wealth before Anarchy's drain
 type: feature
-status: review
+status: done
 branch: feat/239-bot-spends-wealth
 ---
 

@@ -2,7 +2,7 @@
 id: 221
 title: Bring the board's strip, rail and End turn closer to the transitions mock
 type: feature
-status: review
+status: done
 branch: feat/221-sidebar-mock-polish
 ---
 
