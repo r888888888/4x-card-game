@@ -68,7 +68,7 @@ const FAMINE := {"card": "famine", "max_counters": 3}
 ## have no event deck.
 const TEST_EVENTS := [
 	{"id": "windfall", "name": "Windfall", "type": "event", "discard": {"turns": 1},
-	 "effects": [{"op": "gain", "resource": "food", "amount": 2}]},
+	 "flavor": "A great flood covered the plain.", "effects": [{"op": "gain", "resource": "food", "amount": 2}]},
 	{"id": "trade_winds", "name": "Trade Winds", "type": "event", "discard": {"turns": 2},
 	 "effects": [{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"}]},
 	{"id": "omen", "name": "Omen", "type": "event"},

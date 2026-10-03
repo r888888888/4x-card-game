@@ -136,6 +136,28 @@ func test_an_event_with_no_effect_shows_no_immediate_effect() -> void:
 		eq(main.event_modal().get("summary", "?"), "No immediate effect", "summary"), ["omen"])
 
 
+# --- 226: the event's flavor ---
+
+func test_the_modal_shows_the_events_flavor() -> void:
+	with_modal_main(func(main: Node):
+		Game.engine.end_turn()
+		eq(main.event_modal().get("flavor", "?"), "A great flood covered the plain.", "Windfall's flavor"), ["windfall"])
+
+
+func test_an_event_without_flavor_shows_no_flavor_line() -> void:
+	with_modal_main(func(main: Node):
+		Game.engine.end_turn()
+		eq(main.event_modal().get("flavor", "?"), "", "no flavor"), ["omen"])
+
+
+func test_closing_the_modal_clears_the_flavor_too() -> void:
+	with_modal_main(func(main: Node):
+		Game.engine.end_turn()
+		eq(main.event_modal().get("flavor", ""), "A great flood covered the plain.", "shown")
+		main.event_modal_ok_button().pressed.emit()
+		eq(main.event_modal(), {}, "closed, flavor and all"), ["windfall"])
+
+
 func test_esc_enter_ok_and_a_click_outside_close_the_modal() -> void:
 	with_modal_main(func(main: Node):
 		for way in ["esc", "enter", "ok", "outside"]:
