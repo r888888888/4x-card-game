@@ -4,6 +4,7 @@ extends Modal
 ## how long it lasts and what it just did (GameEngine.outcome_summary). While on top it takes every key and click;
 ## Esc, Enter, OK or a click outside closes it.
 
+var _flavor: RichTextLabel
 var _lasts: Label
 var _summary: Label
 var ok_button: Button
@@ -18,6 +19,11 @@ func _init(p_stack: ModalStack) -> void:
 	aside.visible = true
 	body.custom_minimum_size.x = 420
 	body.add_child(UIKit.heading("A new event"))
+	_flavor = RichTextLabel.new()
+	_flavor.bbcode_enabled = true
+	_flavor.fit_content = true
+	_flavor.theme_type_variation = &"RichBody"
+	body.add_child(_flavor)
 	_summary = UIKit.heading("")
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_child(_summary)
@@ -26,7 +32,7 @@ func _init(p_stack: ModalStack) -> void:
 	ok_button = add_footer_button(UIKit.button("OK (Enter)", close), true)
 
 
-## Test hook: {uid, id, text, lasts, summary} on show, {} while hidden.
+## Test hook: {uid, id, text, flavor, lasts, summary} on show, {} while hidden.
 func shown() -> Dictionary:
 	return _shown if is_open() else {}
 
@@ -36,10 +42,13 @@ func open(outcome: Dictionary) -> void:
 	var e := Game.engine
 	var def: CardDef = e.card_db[outcome.id]
 	var summary := e.outcome_summary(outcome)
-	_shown = {"uid": outcome.uid, "id": def.id, "text": def.rules_text(e.card_db), "lasts": def.lasts_text(),
+	_shown = {"uid": outcome.uid, "id": def.id, "text": def.rules_text(e.card_db), "flavor": def.flavor,
+		"lasts": def.lasts_text(),
 		"summary": summary if summary != "" else "No immediate effect"}
 	title = def.name
 	context = "Turn %d" % e.turn
+	_flavor.text = CardDetailsModal.body_bbcode({"flavor": def.flavor, "rules": [], "state": [], "terms": []})
+	_flavor.visible = def.flavor != ""
 	_summary.text = _shown.summary
 	_lasts.text = _shown.lasts
 	for child in aside.get_children():
