@@ -2,7 +2,7 @@
 id: 220
 title: A list row's focus ring waits for the keyboard
 type: feature
-status: review
+status: done
 branch: feat/220-quiet-list-focus
 ---
 
