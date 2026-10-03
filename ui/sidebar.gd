@@ -16,6 +16,7 @@ var end_turn: EndTurnKey  # at its foot (203), its caption under it
 ## Builds the rail; on_open opens the civilization modal.
 func _init(on_open: Callable) -> void:
 	theme_type_variation = &"Rail"
+	z_index = 1  # over a screen sliding in on the play area (224), below the flying cards, drawer and modals
 	custom_minimum_size.x = WIDTH
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column = VBoxContainer.new()

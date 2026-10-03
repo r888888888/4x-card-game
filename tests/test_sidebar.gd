@@ -174,7 +174,8 @@ func test_the_rail_is_open_on_the_board_with_a_hairline_to_its_left() -> void:
 		var box := bar.get_theme_stylebox("panel") as StyleBoxFlat
 		check(box != null, "%s: a flat box" % size)
 		if box != null:
-			check(not box.draw_center or box.bg_color.a == 0.0, "%s: no fill of its own" % size)
+			check(not box.draw_center or box.bg_color.a == 0.0 or box.bg_color == Palette.BACKGROUND,
+				"%s: no fill of its own, or the board's (224: a sliding screen passes under it)" % size)
 			eq(box.border_color, Palette.HAIRLINE, "%s: a HAIRLINE rule" % size)
 			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [1, 0, 0, 0],
 				"%s: 1 px on the left only" % size)

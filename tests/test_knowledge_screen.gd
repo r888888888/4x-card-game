@@ -452,6 +452,69 @@ func test_with_reduce_motion_it_only_fades() -> void:
 			eq((main.knowledge as Control).modulate.a, 1.0, "in by 0.12 s")))
 
 
+## Checks every frame for seconds (and a little after) that the hand's row stays at rect. Use with await.
+func check_hand_stays(main: Node, rect: Rect2, seconds: float, what: String) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var end := Time.get_ticks_msec() + int((seconds + 0.1) * 1000.0)
+	var moved := 0
+	var at := rect
+	while Time.get_ticks_msec() < end:
+		await tree.process_frame
+		var now: Rect2 = (main.hand_scroll as Control).get_global_rect()
+		if now != rect:
+			moved += 1
+			at = now
+	eq(moved, 0, "%s: the hand stays at %s (frames off: %d, last at %s)" % [what, rect, moved, at])
+
+
+func test_bug_224_the_hand_stays_put_while_it_slides_in_and_out() -> void:
+	await with_reduce_motion(false, func():
+		await with_tree(func(main: Node):
+			main.knowledge.close()
+			await wait_screen_transition()
+			await wait_frames()
+			var rest: Rect2 = (main.hand_scroll as Control).get_global_rect()
+			main.knowledge.open()
+			await check_hand_stays(main, rest, 0.32, "sliding in")
+			main.knowledge.close()
+			await check_hand_stays(main, rest, 0.26, "sliding out")))
+
+
+func test_bug_224_with_reduce_motion_the_hand_stays_put() -> void:
+	await with_reduce_motion(true, func():
+		await with_tree(func(main: Node):
+			main.knowledge.close()
+			await wait_screen_transition()
+			await wait_frames()
+			var rest: Rect2 = (main.hand_scroll as Control).get_global_rect()
+			main.knowledge.open()
+			await check_hand_stays(main, rest, 0.12, "fading in")
+			main.knowledge.close()
+			await check_hand_stays(main, rest, 0.12, "fading out")))
+
+
+func test_bug_224_it_runs_in_from_the_play_areas_edge_under_the_sidebar() -> void:
+	await with_reduce_motion(false, func():
+		await with_tree(func(main: Node):
+			main.knowledge.close()
+			await wait_screen_transition()
+			main.knowledge.open()
+			var width: float = (main.knowledge as Control).size.x
+			eq(main.knowledge.slide_offset(), width, "it travels its own width, from the play area's right edge")
+			var sidebar := main.sidebar as Control
+			check(sidebar.z_index > (main.knowledge as Control).z_index, "the sidebar draws over the sliding sheet")
+			var panel := sidebar.get_theme_stylebox("panel") as StyleBoxFlat
+			check(panel != null and panel.draw_center and panel.bg_color.a == 1.0,
+				"the sidebar is opaque, so the sheet passes under it")))
+
+
+func test_bug_224_the_sheet_is_opaque() -> void:
+	await with_tree(func(main: Node):
+		var color: Color = main.knowledge.sheet_color()
+		eq(color.a, 1.0, "an opaque fill")
+		eq(color, Palette.BACKGROUND, "the board's colour"))
+
+
 func test_over_a_territory_view_it_pushes_on_top_and_back_returns_to_the_view() -> void:
 	var real := Game.engine
 	Game.engine = tech_engine(["pottery", "writing"], {"farm": 5})

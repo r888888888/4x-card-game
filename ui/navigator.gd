@@ -8,13 +8,16 @@ extends RefCounted
 ## nothing about the game; a screen is any Control, shown and hidden as it comes and goes. A screen is a sheet run along
 ## a rail (189): push runs it in, back runs it out; set_root and clear are silent. A screen pushed to slide (208) runs in
 ## from the right edge (SLIDE_IN) while the screen below moves SHIFT px left, and back runs it out to the right
-## (SLIDE_OUT) as the one below returns; with Reduce motion it fades (SLIDE_FADE).
+## (SLIDE_OUT) as the one below returns; with Reduce motion it fades (SLIDE_FADE). A slide runs the screen its own width,
+## from its container's edge, and a stand-in holds the slot of the screen it lifts out of the layout, so the sections
+## around it stay still (224).
 
 ## After each push, back, set_root and clear.
 signal changed
 
 const LEAVING := &"navigator_leaving"  # meta on a screen still drawn while it transitions out
 const OFFSET := &"navigator_offset"  # meta: a sliding screen's or the one below's offset from its place (208)
+const STAND_IN := &"navigator_stand_in"  # meta: the empty Control holding a lifted screen's slot in its container (224)
 const SLIDE_IN := 0.32  # Anim.MACHINED
 const SLIDE_OUT := 0.26  # Anim.RELEASE
 const SLIDE_FADE := 0.12
@@ -202,14 +205,15 @@ func _slide_in(screen: Control, below: Control) -> void:
 		_tween.tween_property(screen, "modulate:a", 1.0, SLIDE_FADE)
 		return
 	var place := screen.get_global_rect()
-	var width := screen.get_viewport_rect().size.x - place.position.x
+	var width := place.size.x
 	_lift(screen, place)
-	_offset(Vector2(width, 0), screen, place.position)  # off the right edge at once, not on the tween's first step
+	_offset(Vector2(width, 0), screen, place.position)  # at its container's right edge at once, not on the tween's first step
 	_tween.set_parallel()
 	_tween.tween_method(_offset.bind(screen, place.position), Vector2(width, 0), Vector2.ZERO, SLIDE_IN) \
 		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	if below != null:
 		var at := below.get_global_rect()
+		_hold(below)
 		_lift(below, at)
 		_offset(Vector2.ZERO, below, at.position)
 		_tween.tween_method(_offset.bind(below, at.position), Vector2.ZERO, Vector2(SHIFT, 0), SLIDE_IN) \
@@ -218,6 +222,7 @@ func _slide_in(screen: Control, below: Control) -> void:
 		_land(screen)
 		if below != null:
 			_land(below)
+			_release(below)
 			below.hide()
 			below.set_meta(OFFSET, Vector2(SHIFT, 0)))  # it stays aside under the screen
 
@@ -238,7 +243,8 @@ func _slide_out(screen: Control, below: Control) -> void:
 		_tween.tween_property(screen, "modulate:a", 0.0, SLIDE_FADE)
 		_tween.tween_callback(_rest.bind(screen))
 		return
-	var width := screen.get_viewport_rect().size.x - place.position.x
+	var width := place.size.x
+	_hold(screen)
 	_tween.set_parallel()
 	_tween.tween_method(_offset.bind(screen, place.position), Vector2.ZERO, Vector2(width, 0), SLIDE_OUT) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -249,6 +255,32 @@ func _slide_out(screen: Control, below: Control) -> void:
 	_tween.chain().tween_callback(func():
 		_land(below)
 		_rest(screen))
+
+
+## Puts an empty stand-in of screen's size and size flags in screen's slot in its container, so lifting screen out of
+## the layout moves nothing around it.
+static func _hold(screen: Control) -> void:
+	var parent := screen.get_parent()
+	if not parent is Container:
+		return
+	var stand_in := Control.new()
+	stand_in.custom_minimum_size = screen.size
+	stand_in.size_flags_horizontal = screen.size_flags_horizontal
+	stand_in.size_flags_vertical = screen.size_flags_vertical
+	stand_in.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(stand_in)
+	parent.move_child(stand_in, screen.get_index())
+	screen.set_meta(STAND_IN, stand_in)
+
+
+## Removes screen's stand-in, if it has one.
+static func _release(screen: Control) -> void:
+	if not screen.has_meta(STAND_IN):
+		return
+	var stand_in: Control = screen.get_meta(STAND_IN)
+	stand_in.get_parent().remove_child(stand_in)
+	stand_in.queue_free()
+	screen.remove_meta(STAND_IN)
 
 
 ## Takes screen out of its container's layout, held at global rect at.
@@ -291,6 +323,7 @@ static func _rest(screen: Control) -> void:
 	screen.top_level = false
 	screen.remove_meta(LEAVING)
 	screen.remove_meta(OFFSET)
+	_release(screen)
 
 
 ## Completes a running transition at once (a new push or back came first).
