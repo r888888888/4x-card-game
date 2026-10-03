@@ -2,7 +2,7 @@
 id: 216
 title: A real italic for the body face
 type: feature
-status: red-review
+status: in-progress
 branch: feat/216-body-italic
 ---
 
