@@ -2,7 +2,7 @@
 id: 218
 title: Counters stay put when they change, with more room between them
 type: feature
-status: review
+status: done
 branch: feat/218-steady-counters
 ---
 
