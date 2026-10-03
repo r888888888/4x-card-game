@@ -76,7 +76,7 @@ func open(seed_value := -1) -> void:
 	UIKit.focus_loop(loop)
 	show_settings()
 	present()
-	motion_toggle.grab_focus()
+	FocusRing.focus(motion_toggle)
 
 
 ## Matches the keys and the volume rows to the settings.

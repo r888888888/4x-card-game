@@ -54,7 +54,7 @@ func push(screen: Control, focus: Control = null, title := "", from := Rect2(), 
 		_enter(screen, from)
 	_sound(screen, Sfx.NAV_FORWARD)
 	if focus != null:
-		focus.grab_focus()
+		FocusRing.focus(focus)
 	changed.emit()
 
 
@@ -75,7 +75,7 @@ func back() -> bool:
 		_leave(screen, from)
 	_sound(screen, Sfx.NAV_BACK)
 	if is_instance_valid(focus) and focus.is_visible_in_tree():
-		focus.grab_focus()
+		FocusRing.focus(focus)
 	elif screen.is_inside_tree():
 		screen.get_viewport().gui_release_focus()
 	changed.emit()
@@ -90,7 +90,7 @@ func set_root(screen: Control, focus: Control = null, title := "") -> void:
 	_add(screen, title, Rect2())
 	_slides.append(false)
 	if focus != null:
-		focus.grab_focus()
+		FocusRing.focus(focus)
 	changed.emit()
 
 

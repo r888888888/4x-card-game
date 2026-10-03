@@ -58,6 +58,7 @@ var _palette_day := false  # the palette main's theme was built in (183)
 
 func _ready() -> void:
 	_build_layout()
+	add_child(FocusRing.new())  # last: it sees each key and click before the modals (230)
 	if not Game.load_errors.is_empty():
 		UIKit.message_overlay(self, "Game data has errors — fix data/*.json and restart", Game.load_errors).show()
 		return
@@ -393,7 +394,7 @@ func _on_menu_closed(card: CardView, give_back: bool) -> void:
 	if is_instance_valid(card) and focus.row().has(card):
 		focus.set_card(card)
 	else:
-		_top_bar.menu_button.grab_focus()
+		FocusRing.focus(_top_bar.menu_button)
 
 
 ## A button or field took the focus: the card focus goes. Remembers the card if it was the Menu
