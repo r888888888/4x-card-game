@@ -2,7 +2,7 @@
 id: 225
 title: Play a hand card from its details modal
 type: feature
-status: review
+status: done
 branch: feat/225-play-from-card-details
 ---
 
