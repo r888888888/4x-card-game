@@ -41,6 +41,45 @@ func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> vo
 	check(e.is_over, "game over")
 
 
+## Bug 238: since 235 an explore-only card costs an action and refunds nothing, so the bot keeps it in the hand when
+## the territory deck is empty. A Pioneer deck (nothing to settle: unplayable) and an emptied hand of hand_ids.
+func dead_explore_game(hand_ids: Array, territories := {}) -> GameEngine:
+	var e := make_engine({"pioneer": 10}, {"territory_deck": territories})
+	for c in e.zone("hand").cards.duplicate():
+		e.zone("hand").remove(c)
+	for id in hand_ids:
+		put_in_hand(e, id)
+	return e
+
+
+func test_bug_238_the_bot_skips_an_explore_only_card_with_nothing_to_explore() -> void:
+	var e := dead_explore_game(["explorer", "forager"])
+	eq(e.zone("territory_deck").size(), 0, "nothing to explore")
+	ScriptedBot.take_turn(e, "baseline")
+	eq(card_ids(e.zone("hand")), ["explorer"] as Array[String], "Forager played, Explorer kept")
+
+
+func test_bug_238_with_only_an_explore_only_card_the_bot_plays_nothing() -> void:
+	var e := dead_explore_game(["explorer"])
+	var played := []
+	e.card_played.connect(func(outcome: Dictionary): played.append(outcome.uid))
+	ScriptedBot.take_turn(e, "baseline")
+	eq(played.size(), 0, "no card played")
+	eq(card_ids(e.zone("hand")), ["explorer"] as Array[String], "Explorer stays in the hand")
+
+
+func test_bug_238_the_bot_still_explores_while_a_territory_is_left() -> void:
+	var e := dead_explore_game(["explorer"], {"hills": 1})
+	ScriptedBot.take_turn(e, "baseline")
+	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "Explorer found Hills")
+
+
+func test_bug_238_the_bot_plays_a_card_that_explores_and_does_more_with_nothing_to_explore() -> void:
+	var e := dead_explore_game(["pathfinder"])
+	ScriptedBot.take_turn(e, "baseline")
+	eq(e.zone("hand").size(), 0, "Pathfinder played for its food")
+
+
 ## Backlog 140: the tree is open, so the bot learns the cheapest tech it can afford at the start of its turn.
 func test_bot_learns_the_cheapest_tech_it_can_afford() -> void:
 	var e: GameEngine = tech_engine(["writing", "pottery", "bronze"], {"farm": 10},

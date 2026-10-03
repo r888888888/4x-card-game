@@ -2,19 +2,22 @@ class_name ScriptedBot
 extends RefCounted
 ## A fixed-policy bot for smoke tests and the balance simulator (backlog 042). Each step it resolves an
 ## explore choice with its first option, learns the cheapest tech it can afford (140),
-## otherwise plays the first playable hand card on its first valid target (Research cards last),
+## otherwise plays the first playable hand card on its first valid target (Research cards last; never a card that
+## only explores with nothing left to explore, 238),
 ## otherwise relieves a Famine it can pay for when the next upkeep would still starve (084), discards the hand
 ## (dead cards never cycle otherwise, backlog 024) and ends the turn. After MAX_PLAYS_PER_TURN plays it ends the
 ## turn anyway: free cards that draw can redraw each other forever (058).
 ##
 ## Strategies (134) change which playable card goes first and add end-of-turn steps; "baseline" is the bot above.
 ## They read what cards do from their effects, never their ids: growth and tall play cards that make food on upkeep
-## first, wealth plays cards that make wealth first and buys one from the supply each turn, wide plays cards that
-## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
+## first and buy one from the supply each turn (239), wealth does the same with cards that make wealth, wide plays
+## cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
 ## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
-## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159).
+## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159),
+## valued by score and the insight they gathered (240). Before Anarchy rules, a seeded coin decides whether it spends
+## its wealth on the supply instead of letting the drain take it (239): see _spend_before_drain.
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -26,6 +29,10 @@ const CALM_MARGIN := 2
 ## How many turns a lookahead plays (159), and how often, in turns, the bot weighs a revolution.
 const LOOKAHEAD_TURNS := 12
 const REVOLT_EVERY := 4
+## The wealth the bot keeps when it spends before Anarchy's drain (239): enough to buy order with 2 turns left.
+const SPEND_RESERVE := 6
+## The insight a lookahead's fork gathers that is worth 1 point of its value (240): research pays off past the horizon.
+const INSIGHT_PER_POINT := 4
 
 static var _depth := 0  # > 0 while a lookahead plays (159): no revolts, the forced government chosen
 static var _forced_government := ""  # the government a lookahead was opened for ("" for the ranking)
@@ -55,8 +62,8 @@ static func _close_turn(engine: GameEngine) -> void:
 	engine.end_turn()
 
 
-## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its score then
-## (159). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
+## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its value then:
+## its score (159) + 1 point per INSIGHT_PER_POINT insight it gathered (240). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
 ## ("" for best_government), and never revolts; engine itself is untouched.
 static func lookahead(engine: GameEngine, strategy: String, government_id := "", revolt := false) -> int:
 	var f := engine.fork()
@@ -75,7 +82,17 @@ static func lookahead(engine: GameEngine, strategy: String, government_id := "",
 		steps += 1
 	_depth -= 1
 	_forced_government = saved
-	return f.score()
+	return f.score() + insight_gathered(engine, f) / INSIGHT_PER_POINT
+
+
+## The insight end gathered since start (240): the insight it holds minus what start held, plus the printed insight
+## cost of each tech it learned that start hadn't.
+static func insight_gathered(start: GameEngine, end: GameEngine) -> int:
+	var gathered: int = end.resources.get(GameEngine.INSIGHT, 0) - start.resources.get(GameEngine.INSIGHT, 0)
+	for tech in end.zone("researched").cards:
+		if start.zone("researched").find(tech.uid) == null:
+			gathered += tech.def.cost.get(GameEngine.INSIGHT, 0)
+	return gathered
 
 
 ## Plays one turn with strategy up to, not including, discarding and ending it: choices, techs and hand cards, then
@@ -99,11 +116,12 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			break
 		else:
 			plays += 1
-	if strategy == "wealth":
-		_buy_wealth_card(engine)
+	if strategy in ["wealth", "growth", "tall"]:
+		_buy_cheapest(engine, func(def): return _prefers(strategy, def))
 	if strategy != "baseline":
 		_grow(engine, strategy)
 	_revolt(engine, strategy)
+	_spend_before_drain(engine, strategy)
 	return steps
 
 
@@ -133,7 +151,7 @@ static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> 
 	for card in order:
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
-		if not _unrest_ok(engine, card.def):
+		if not _unrest_ok(engine, card.def) or _explores_nothing(engine, card.def):
 			continue
 		var targets := engine.valid_targets(card.uid)
 		var target: int = targets[0] if engine.needs_target(card.uid) and not targets.is_empty() else -1
@@ -279,6 +297,12 @@ static func _keep_value(engine: GameEngine, def: CardDef) -> int:
 	return v
 
 
+## Whether def only explores while the territory deck is empty (238): playing it would spend an action for nothing.
+static func _explores_nothing(engine: GameEngine, def: CardDef) -> bool:
+	return engine.zone("territory_deck").is_empty() and not def.effects.is_empty() \
+			and def.effects.all(func(e): return e.op == "explore")
+
+
 static func _makes_wealth(def: CardDef) -> bool:
 	return def.effects.any(func(e): return e.get("resource") == GameEngine.WEALTH)
 
@@ -291,15 +315,34 @@ static func _settled_count(engine: GameEngine) -> int:
 	return engine.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
 
 
-## Buys the cheapest open supply card that makes wealth and that the engine allows, if any.
-static func _buy_wealth_card(engine: GameEngine) -> void:
+## Buys the cheapest open supply card whose def wanted accepts, that the engine allows and that leaves at least
+## reserve wealth; a tie goes to the pile listed first. Returns whether it bought one.
+static func _buy_cheapest(engine: GameEngine, wanted: Callable, reserve := 0) -> bool:
 	var best := ""
+	var wealth: int = engine.resources.get(GameEngine.WEALTH, 0)
 	for id in engine.open_supply_piles():
-		if _makes_wealth(engine.card_db[id]) and engine.buy_error(id) == "" \
+		if wanted.call(engine.card_db[id]) and engine.buy_error(id) == "" \
+				and wealth - engine.buy_price(id) >= reserve \
 				and (best == "" or engine.buy_price(id) < engine.buy_price(best)):
 			best = id
-	if best != "":
-		engine.buy(best)
+	return best != "" and engine.buy(best)
+
+
+## Whether the bot spends its wealth before Anarchy's drain (239): a coin from engine's seed and turn, the same on a
+## fork, that never touches the game's rng.
+static func spends_before_drain(engine: GameEngine) -> bool:
+	return posmod(hash([engine.seed_value, engine.turn]), 2) == 0
+
+
+## When Anarchy will rule next turn and spends_before_drain says so, buys supply cards down to SPEND_RESERVE wealth
+## (239): the cheapest card strategy buys (wealth: makes wealth; growth and tall: makes food on upkeep; any for the
+## others), then the cheapest of any.
+static func _spend_before_drain(engine: GameEngine, strategy: String) -> void:
+	if not (Anarchy.rules_next_turn(engine) or engine.anarchy_ahead()) or not spends_before_drain(engine):
+		return
+	var preferred := func(def): return strategy in ["baseline", "wide"] or _prefers(strategy, def)
+	while _buy_cheapest(engine, preferred, SPEND_RESERVE) or _buy_cheapest(engine, func(_def): return true, SPEND_RESERVE):
+		pass
 
 
 ## Grows one pop at a time, on the first territory in strategy's order whose growth leaves the next upkeep fed, until

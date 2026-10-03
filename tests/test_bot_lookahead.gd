@@ -10,7 +10,13 @@ const GLORY := {"id": "glory", "name": "Glory", "type": "government", "unrest_li
 	"effects": [{"op": "score", "amount": 3, "trigger": "upkeep"}]}
 const DULL := {"id": "dull", "name": "Dull", "type": "government", "unrest_limit": 9}
 const PLAIN := {"id": "plain", "name": "Plain", "type": "government", "unrest_limit": 6}
-const GOVS := [GLORY, DULL, PLAIN]
+## 240: Scholars (⟳ +2 insight, limit 6) and Pious (each insight gain −1, limit 6).
+const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "government", "unrest_limit": 6,
+	"effects": [{"op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep"}]}
+const PIOUS := {"id": "pious", "name": "Pious", "type": "government", "unrest_limit": 6,
+	"modifiers": {"insight_per_gain": -1}}
+const GOVS := [GLORY, DULL, PLAIN, SCHOLARS, PIOUS]
+var BOT: Variant = load("res://sim/bot.gd")  # untyped: insight_gathered is new in 240
 
 
 ## A Chiefs game of turn_limit turns with governments created into the government deck, played (by end_turn alone)
@@ -133,3 +139,47 @@ func test_the_ranking_prefers_most_actions_then_highest_limit_then_deck_order() 
 	for id in ["council", "kingdom"]:
 		council.create_card(id, "discard", null)
 	eq(ScriptedBot.best_government(council.zone("governments").cards).def.id, "council", "a tie: the first")
+
+
+# --- 240: a lookahead values the insight it gathered ---
+
+func test_a_lookahead_values_insight_at_1_point_per_4() -> void:
+	var e := choice_game(["plain", "scholars"])
+	var scholars: int = ScriptedBot.lookahead(e, "baseline", "scholars")
+	var plain: int = ScriptedBot.lookahead(e, "baseline", "plain")
+	eq(scholars - plain, 6, "Scholars' ⟳ +2 insight over 12 turns: 24 insight, 6 points")
+
+
+func test_insight_gathered_counts_techs_learned_and_not_insight_held_at_the_start() -> void:
+	var e := deck_game([])
+	eq(e.resources["insight"], 10, "10 insight held at the start")
+	var f := e.fork()
+	eq(BOT.insight_gathered(e, f), 0, "nothing gathered yet")
+	check(f.buy_tech(uid_of(f.zone("research_deck"), "lore")), "the fork learns Lore (1 insight)")
+	f.resources["insight"] += 4
+	eq(BOT.insight_gathered(e, f), 4, "13 held − 10 at the start + Lore's 1")
+
+
+func test_the_bot_chooses_a_government_that_gathers_insight_over_a_tie() -> void:
+	var e := choice_game(["plain", "scholars"])
+	ScriptedBot.take_turn(e, "baseline")
+	eq(ruling(e), "scholars", "Scholars' insight breaks what was a tie (Plain first)")
+
+
+func test_the_bot_avoids_a_government_that_costs_insight() -> void:
+	var e := anarchy_engine({}, {"deck": {"study": 10}}, GOVS)
+	for id in ["pious", "plain"]:
+		e.create_card(id, "discard", null)
+	e.resources["unrest"] = 5
+	for i in 5:
+		e.end_turn()
+	e.zone("governments").remove(e.zone("governments").find(uid_of(e.zone("governments"), "chiefs")))
+	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the choice is owed")
+	ScriptedBot.take_turn(e, "baseline")
+	eq(ruling(e), "plain", "Research cards gain 1 insight less under Pious, first in the deck")
+
+
+func test_score_still_beats_insight() -> void:
+	var e := choice_game(["scholars", "glory"])
+	ScriptedBot.take_turn(e, "baseline")
+	eq(ruling(e), "glory", "Glory's 36 points beat Scholars' 6")
