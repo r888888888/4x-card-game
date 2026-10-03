@@ -2,7 +2,7 @@
 id: 246
 title: End turn sounds a vibraphone chord that walks D, Bm, G, A from turn to turn
 type: feature
-status: red-review
+status: in-progress
 branch: feat/246-endturn-chord-walk
 ---
 

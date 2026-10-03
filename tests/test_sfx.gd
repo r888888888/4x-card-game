@@ -149,6 +149,8 @@ func test_without_a_variant_the_choice_stays_random() -> void:
 
 func test_a_variant_out_of_range_plays_nothing() -> void:
 	var sfx := new_sfx()
+	expect_error("'ui.endturn.turn' has no variant 4")
+	expect_error("'ui.panel.open' has no variant 2")
 	eq(sfx.play(Sfx.ENDTURN_TURN, 0.0, true, 0.0, 4), false, "the chord has variants 0-3")
 	eq(sfx.play(Sfx.PANEL_OPEN, 0.0, true, 0.0, 2), false, "a panel has variants 0-1")
 	eq(sfx.played(), [], "nothing played")

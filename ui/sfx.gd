@@ -61,6 +61,8 @@ const NOTIFICATIONS: Array[StringName] = [NOTIFICATION_INFO, NOTIFICATION_CAUTIO
 ## Two-stage sounds start this early (s), so their last stage lands on contact and the snap just before (§16.5).
 const _LEADS := {BUTTON_PRESS: 0.014, ENDTURN_PRESS: 0.014, BUTTON_RELEASE: 0.018, TOGGLE_OFF: 0.018}
 const VARIANTS := {1: "abcd", 2: "ab", 3: ""}  # each level's file variants (§16.8, §16.10)
+## Tokens whose variants differ from their level's: the end-turn chord walks D, Bm, G, A (246).
+const _TOKEN_VARIANTS := {ENDTURN_TURN: "abcd"}
 const SOUNDS_DIR := "res://assets/sounds"
 const TICK_GAP := 0.035  # s between counter ticks across the bus; a closer one is dropped
 const HOVER_GAP := 0.08  # s between hover ticks; a closer one is dropped (245)
@@ -132,21 +134,26 @@ static func bus(token: StringName) -> StringName:
 	return Settings.GAME if level(token) == 3 else Settings.INTERFACE
 
 
-## token's files: four variants for Level 1 (ui/ui_button_press_a.wav … _d.wav), two for Level 2, one for Level 3
-## (events/ui_milestone_era.wav).
+## token's files: four variants for Level 1 (ui/ui_button_press_a.wav … _d.wav), two for Level 2 (four chords for
+## ui.endturn.turn), one for Level 3 (events/ui_milestone_era.wav).
 static func files(token: StringName) -> Array[String]:
 	var stem := String(token).replace(".", "_")
 	if level(token) == 3:
 		return ["%s/events/%s.wav" % [SOUNDS_DIR, stem]]
 	var out: Array[String] = []
-	for v in VARIANTS.get(level(token), ""):
+	for v in _TOKEN_VARIANTS.get(token, VARIANTS.get(level(token), "")):
 		out.append("%s/ui/%s_%s.wav" % [SOUNDS_DIR, stem, v])
 	return out
 
 
 ## What plays token: Level 1 and 2 through a randomizer over their variants (Level 1 with pitch and volume jitter),
-## Level 3 its file.
-static func stream(token: StringName) -> AudioStream:
+## Level 3 its file. With a variant (0 = a), that variant's file.
+static func stream(token: StringName, variant := -1) -> AudioStream:
+	if variant >= 0:
+		var key := "%s#%d" % [token, variant]
+		if not _streams.has(key):
+			_streams[key] = load(files(token)[variant])
+		return _streams[key]
 	if not _streams.has(token):
 		var paths := files(token)
 		if level(token) == 3:
@@ -160,6 +167,11 @@ static func stream(token: StringName) -> AudioStream:
 				r.add_stream(-1, load(path))
 			_streams[token] = r
 	return _streams[token]
+
+
+## The end-turn chord for ending turn: D, Bm, G, A, then round again from turn 5 (246).
+static func turn_variant(turn: int) -> int:
+	return posmod(turn - 1, files(ENDTURN_TURN).size())
 
 
 ## How long token sounds (s): its first file's length.
@@ -183,10 +195,14 @@ func clock() -> float:
 
 
 ## Plays token delay seconds from now, gain_db louder or quieter. input: the player's own press or key caused it (it
-## plays even during a Level 3). Returns whether it will play.
-func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bool:
+## plays even during a Level 3). variant: which file (0 = a), or -1 for the token's random choice. Returns whether it
+## will play.
+func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0, variant := -1) -> bool:
 	if not TOKENS.has(token):
 		push_error("Sfx: no sound token '%s'" % token)
+		return false
+	if variant < -1 or variant >= files(token).size():
+		push_error("Sfx: '%s' has no variant %d" % [token, variant])
 		return false
 	var now := clock()
 	var at := now + maxf(delay, 0.0)
@@ -218,11 +234,11 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 		if oldest.is_empty():
 			return false
 		_stop(oldest[0])
-	var record := {"token": token, "bus": on, "at": at, "db": gain_db, "input": input}
+	var record := {"token": token, "bus": on, "at": at, "db": gain_db, "input": input, "variant": variant}
 	if lvl == 3:
 		_give_way(at, at + length(token))
 	_voices.append({"token": token, "bus": on, "level": lvl, "at": at, "end": at + length(token), "db": gain_db,
-		"player": null, "input": input, "frame": Engine.get_process_frames(), "record": record})
+		"player": null, "variant": variant, "input": input, "frame": Engine.get_process_frames(), "record": record})
 	_played.append(record)
 	_start_due()
 	return true
@@ -248,7 +264,7 @@ func at_contact(token: StringName, duration: float, curve: Vector4, input := fal
 	return play(token, delay, input)
 
 
-## Every sound played, in order: {token, bus, at, db, input}.
+## Every sound played, in order: {token, bus, at, db, input, variant}.
 func played() -> Array[Dictionary]:
 	return _played.duplicate(true)
 
@@ -292,7 +308,7 @@ func _start_due() -> void:
 	for v in _voices:
 		if v.player == null and v.at <= now:
 			var player := _free_player(v.bus)
-			player.stream = stream(v.token)
+			player.stream = stream(v.token, v.variant)
 			player.volume_db = v.db
 			player.play()
 			v.player = player
