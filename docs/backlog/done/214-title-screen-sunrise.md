@@ -2,7 +2,7 @@
 id: 214
 title: The title screen's sun over a hill, rising and setting with the keys
 type: feature
-status: review
+status: done
 branch: feat/214-title-screen-sunrise
 ---
 
