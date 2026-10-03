@@ -2,13 +2,12 @@ class_name GameTheme
 extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
-## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
-## (124), IconButton (227), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
+## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel),
+## IconButton (227), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
 ## BarHeading and DividerTab (241). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
 const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
-const PIP_SIZE := 22  # a pop meter pip's width and height (124)
 # The style guide's typefaces (178, §5): each is used through tabular(), so figures never shift width as they change.
 const BODY_FONT := preload("res://assets/fonts/Barlow-Regular.ttf")
 const ITALIC_FONT := preload("res://assets/fonts/Barlow-Italic.ttf")  # RichBody's [i], e.g. flavor (216)
@@ -54,7 +53,7 @@ static func build() -> Theme:
 	t.set_stylebox("panel", "Sheet", sheet())
 	_price_tag(t)
 	_board_frame(t)
-	_pips(t)
+	_icon_button(t)
 	_tech_tiles(t)
 	_identity_cards(t)
 	_tooltips(t)
@@ -137,16 +136,8 @@ static func _tech_tiles(t: Theme) -> void:
 	t.set_stylebox("panel", "EraVellum", vellum)
 
 
-## The territory view's pop meter (124): a pip per housing, PipFilled for each pop and PipEmpty for the room left
-## (Panels); and IconButton, a Button whose icon (Grow's food, 227) is sized to sit beside its text.
-static func _pips(t: Theme) -> void:
-	for variation: String in ["PipFilled", "PipEmpty"]:
-		var filled := variation == "PipFilled"
-		var pip := UIKit.panel_style(Palette.POP if filled else Color.TRANSPARENT, Palette.POP.darkened(0.0 if filled else 0.45), 0)
-		pip.set_border_width_all(2)
-		pip.set_corner_radius_all(Tokens.RADIUS_FULL)
-		t.set_type_variation(variation, "Panel")
-		t.set_stylebox("panel", variation, pip)
+## IconButton, a Button whose icon (Grow's food, 227) is sized to sit beside its text.
+static func _icon_button(t: Theme) -> void:
 	t.set_type_variation("IconButton", "Button")
 	t.set_constant("icon_max_width", "IconButton", 20)
 

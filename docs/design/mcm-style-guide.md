@@ -745,7 +745,7 @@ the figure fills; the idle lamp is silent. Founding a city (settling a territory
 heavier latch, like a plan being stamped, and two marimba notes.
 
 ### 11.7 Population
-Pop is a **tally counter** of pips (the existing PipFilled/PipEmpty meter, 124). Pips are 14 px discs in a
+Pop is a **tally counter** of pips (the meter, 124). Pips are pop figures at the stats line's text size (242) in a
 `well` track: filled teal for pop, outlined for housing room. Grow is a push-button labelled with its food cost in
 the territory view's actions row below the meter (227). Growing: the button presses (§10.1), then the pip turns into a
 lit disc (lamp on 40 ms) and the food counter rolls down. Starvation risk: the rightmost pips get a brick ring and

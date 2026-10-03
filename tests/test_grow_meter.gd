@@ -3,8 +3,8 @@ extends "res://tests/lib/test_case.gd"
 ## (main.territory_view.grow_button) is a button in the view's actions row (territory_view.actions, 227), reading
 ## "Grow" and its food cost with the food icon; when it can't be used it is disabled with the reason as its tooltip.
 ## A grow pops the new pip in, and the top bar's Pop and Food figures roll to their new values, with no tags (218).
-## Hooks: territory_view.pips() (the meter's pips in order); a pip is filled when its theme_type_variation is
-## "PipFilled". Tweens are stepped by hand (step_tweens) to read positions and scales along the way.
+## Hooks: territory_view.pips() (the meter's pips in order); a pip is the pop glyph (242), filled when tinted
+## Palette.POP. Tweens are stepped by hand (step_tweens) to read positions and scales along the way.
 
 const STEP := 0.05  # seconds per tween step
 const STEPS := 40  # 2 s: longer than any roll
@@ -34,7 +34,7 @@ func with_meter(body: Callable, food := 10, overrides := POP) -> void:
 
 
 func filled(pip: Control) -> bool:
-	return pip.theme_type_variation == "PipFilled"
+	return pip is TextureRect and pip.self_modulate == Palette.POP
 
 
 func filled_count(pips: Array) -> int:
@@ -97,6 +97,33 @@ func test_the_meter_is_plain_pips_one_per_housing_with_pop_filled() -> void:
 		eq(pips.filter(func(p): return p is BaseButton).size(), 0, "no pip is a button")
 		eq(filled_count(pips), 2, "pop pips filled")
 		eq(pips.slice(0, 2).all(filled), true, "the first two"))
+
+
+# --- 242 AC2: the pips are pop glyphs at the stats line's text size ---
+
+func test_the_meter_pips_are_pop_glyphs_the_size_of_the_stats_text() -> void:
+	await with_meter(func(main: Node, home: int):
+		var pips: Array = main.territory_view.pips()
+		eq(pips.size(), Game.engine.housing(home), "a pip per housing")
+		for pip: Control in pips:
+			check(pip is TextureRect and (pip as TextureRect).texture == Icons.RESOURCES[TopBar.POP],
+				"%s is the pop glyph" % pip)
+			eq(pip.custom_minimum_size, Vector2.ONE * Tokens.TYPE_BODY, "sized to the stats line's text")
+		var empty: Control = pips[2]
+		check(empty.self_modulate != Palette.POP, "an empty pip is dimmer: %s" % empty.self_modulate))
+
+
+# --- 242 AC3: Grow's food icon is green ---
+
+func test_grows_food_icon_is_drawn_in_gain_in_night_and_day() -> void:
+	await with_temp_settings(func():
+		await with_meter(func(main: Node, _home: int):
+			var grow: Button = main.territory_view.grow_button
+			for day in [false, true]:
+				Settings.call("set_day_mode", day)
+				await wait_frames()
+				for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
+					eq(grow.get_theme_color(state), Palette.GAIN, "%s in %s" % [state, "day" if day else "night"])))
 
 
 # --- 227 AC3: the Grow button ---

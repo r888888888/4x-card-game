@@ -23,7 +23,8 @@ var _info: RichTextLabel  # the territory card's info line (slots, housing, keyw
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
-var _pips: Array[Panel] = []  # the meter's filled and empty pips
+var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
+var _filled := 0
 var _outside_press := false  # the left button went down on the view outside the box (200)
 var _growing := false  # while a grow from Grow runs, so the refresh it causes pops the new pip in
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
@@ -71,7 +72,8 @@ func _init(board: MainScreen, realm: Control) -> void:
 			line.add_theme_color_override("default_color", Palette.TEXT_DIM))
 	bar.add_child(_stats)
 	_meter = HBoxContainer.new()
-	_meter.add_theme_constant_override("separation", Tokens.SPACE_2)
+	_meter.add_theme_constant_override("separation", Tokens.SPACE_1)
+	UIKit.painted(_meter, _tint_pips)
 	bar.add_child(_meter)
 	actions = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
@@ -79,6 +81,9 @@ func _init(board: MainScreen, realm: Control) -> void:
 	grow_button = UIKit.button("", _grow)
 	grow_button.theme_type_variation = "IconButton"
 	grow_button.icon = Icons.FOOD
+	UIKit.painted(grow_button, func():  # food's green, as everywhere else (242)
+		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
+			grow_button.add_theme_color_override(state, Palette.GAIN))
 	grow_button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	actions.add_child(grow_button)
 	row = HFlowContainer.new()
@@ -278,21 +283,27 @@ func _show_meter(e: GameEngine) -> void:
 	while _pips.size() > e.housing(uid):
 		_pips.pop_back().free()
 	while _pips.size() < e.housing(uid):
-		var pip := Panel.new()
-		pip.custom_minimum_size = Vector2.ONE * GameTheme.PIP_SIZE
+		var pip := Icons.glyph(TopBar.POP, Tokens.TYPE_BODY)  # the stats line's text size (242)
 		pip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_meter.add_child(pip)
 		_pips.append(pip)
-	for i in _pips.size():
-		_pips[i].theme_type_variation = "PipFilled" if i < pop else "PipEmpty"
+	_filled = pop
+	_tint_pips()
 	if _growing and not UIKit.calm():
 		_pop_in(_pips[pop - 1])
 
 
+## Tints the first _filled pips POP and the rest a faint POP, as the palette reads now (242).
+func _tint_pips() -> void:
+	var faint := Palette.POP
+	faint.a = 0.35
+	for i in _pips.size():
+		_pips[i].self_modulate = Palette.POP if i < _filled else faint
+
+
 ## pip (the one a grow from Grow just filled) pops in (124).
-static func _pop_in(pip: Panel) -> void:
-	pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
+static func _pop_in(pip: Control) -> void:
+	pip.pivot_offset = Vector2.ONE * Tokens.TYPE_BODY / 2
 	pip.scale = Vector2.ONE * 0.4
 	pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
 		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
