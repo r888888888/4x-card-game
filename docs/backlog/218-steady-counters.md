@@ -2,7 +2,7 @@
 id: 218
 title: Counters stay put when they change, with more room between them
 type: feature
-status: in-progress
+status: review
 branch: feat/218-steady-counters
 ---
 
@@ -13,15 +13,15 @@ odometer roll already shows the change, so the tag goes. The counters also sit c
 (docs/design/transitions.html: 16 px in a ~1160 px mock of the 1920 px window), so they get more room.
 
 ## Acceptance criteria
-- [ ] AC1: Given the main scene with 20 food and 20 wealth, when food changes by +2 (or −3), wealth by −4, pop by +1,
+- [x] AC1: Given the main scene with 20 food and 20 wealth, when food changes by +2 (or −3), wealth by −4, pop by +1,
   a card is played or upkeep runs, then while the figures roll and after, no counter in the top bar shows a
   "+N" / "−N" tag, and at every step of the roll each counter sits where it settles (within 0.5 px): nothing shifts
   and shifts back. With Reduce motion the figure changes at once, also with no tag.
-- [ ] AC2: Given the Supply screen with 10 wealth, when a card is bought, then its Wealth counter rolls down and shows
+- [x] AC2: Given the Supply screen with 10 wealth, when a card is bought, then its Wealth counter rolls down and shows
   no tag.
-- [ ] AC3: Given the top bar, then the gap between the turn plate and the first counter, and between each pair of
+- [x] AC3: Given the top bar, then the gap between the turn plate and the first counter, and between each pair of
   neighbouring visible counters, is Tokens.SPACE_5 (24 px); the buttons keep their Tokens.SPACE_3 gaps.
-- [ ] AC4: Given the main scene at 1920 × 1080 with every counter on (unrest and pop), then the top bar still fits the
+- [x] AC4: Given the main scene at 1920 × 1080 with every counter on (unrest and pop), then the top bar still fits the
   window: its last button ends inside it.
 
 ## Out of scope
@@ -45,10 +45,19 @@ odometer roll already shows the change, so the tag goes. The counters also sit c
 | AC4 | `test_board_layout::test_the_top_bar_fits_with_its_longest_texts` (existing, already green: a guard) |
 
 ## Manual check
-- [ ] Play a card that gains food and wealth: the counters roll in place, nothing to their right moves.
-- [ ] The counters' spacing reads like the mock's strip in docs/design/transitions.html.
+- [ ] `godot --path . -- --seed 5`: play a card that costs food (or press End turn): the figure rolls, no "+N" / "−N"
+  appears, and Wealth, Insight, Score and Pop stay where they are throughout.
+- [ ] Buy Cards → buy a card: the screen's Wealth rolls down with no tag.
+- [ ] The turn plate and counters sit 24 px apart, like the mock's strip in docs/design/transitions.html; the buttons
+  at the right keep their tighter gaps; with Unrest and Pop on, the bar still fits 1920 px.
 
 ## Log
+- Green: the counters sit in their own HBox (SPACE_5) inside TopBar, so three tests that took a counter's parent for
+  the bar now find the TopBar above it (`test_board_layout`, `test_counters`, `test_sidebar`).
+- `test_counters::test_each_resource_shows_its_forecast_as_a_separate_quieter_figure` measured the forecast's gap from
+  its label's edge, and passed on main only because a "+3" tag from its setup sat between figure and forecast. The
+  SPACE_1 gap is the label's own left content margin, so the test now measures to where its text starts (5 px).
+- Removed `UIKit.GAIN_COLOR` (only the tag used it; `Palette.GAIN` stays).
 - Red: the 181 tag tests (one net tag per counter, colours, stagger, Reduce motion hold, the per-cause tag tests for
   grow, Festival and starving) are replaced: tags are gone. The fixture's food and wealth go 10 → 20 so no change in
   the tests crosses a digit count. "Stays put" is measured against where each counter settles after the roll, since a

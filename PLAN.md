@@ -70,7 +70,7 @@ res://
                          # labels, overlays, button columns)
                          # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, End turn, Menu), sidebar.gd (202: the
                          # right rail, the civilization and government),
-                         # counter.gd (181: Counter, a glyph, an odometer figure, a "+N" tag and the forecast),
+                         # counter.gd (181: Counter, a glyph, an odometer figure and the forecast; no tag since 218),
                          # odometer.gd (181: Odometer, a figure whose digits roll),
                          # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
                          # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
