@@ -150,6 +150,7 @@ func test_choosing_a_government_updates_the_sidebar_and_an_open_modal() -> void:
 	var e := Game.engine
 	e.create_card("kingship", "discard", null)  # into the government deck (154)
 	to_government_choice(e)
+	main.modals.close_all()  # the earlier turns' event (237: choosing draws the next one, which comes back on top)
 	main.sidebar.government_button.pressed.emit()
 	var kingship := uid_of(e.zone("governments"), "kingship")
 	check(e.choose_government(kingship), "choose Kingship: %s" % e.choose_government_error(kingship))

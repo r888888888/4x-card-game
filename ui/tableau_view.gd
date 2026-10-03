@@ -8,7 +8,7 @@ extends ScrollContainer
 
 ## The zones whose cards lead the row, in order, each with the explanation its cards' tooltips end with.
 const LEADING_ZONES := {
-	"active_events": "One event is drawn at the end of each turn. It stays active until its turns run out.",
+	"active_events": "One event is drawn at the start of each turn from turn 2. It stays active until its turns run out.",
 	"frontier": "Territories discovered, not yet settled. Play a city card on one to settle it.",
 }
 

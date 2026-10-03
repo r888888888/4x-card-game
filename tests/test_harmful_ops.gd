@@ -61,13 +61,12 @@ func test_lose_works_for_wealth() -> void:
 
 func test_a_drawn_event_with_lose_takes_food() -> void:
 	var drought := {"id": "drought", "name": "Drought", "type": "event", "effects": [LOSE_FOOD]}
-	var e: GameEngine = engine_with([drought], {"event_deck": {"drought": 1}, "hand_limit": 5})
+	var e: GameEngine = engine_with([drought], {"event_deck": {"drought": 1}})
 	e.resources.food = 5
-	while e.zone("hand").size() <= e.config.hand_limit:  # stop for the discard, after the event and before upkeep
-		put_in_hand(e, "scout")
-	e.end_turn()
+	var upkeep: int = e.upkeep_forecast().get("food", 0)
+	e.end_turn()  # drawn as turn 2 starts, after upkeep (237)
 	eq(card_ids(e.zone("active_events")), ["drought"] as Array[String], "Drought drawn")
-	eq(e.resources.food, 3, "5 - 2 when drawn")
+	eq(e.resources.food, 5 + upkeep - 2, "5, then upkeep, then − 2 when drawn")
 
 
 # --- AC2: loader ---

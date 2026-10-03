@@ -142,5 +142,5 @@ func test_an_event_card_explains_events_in_its_tooltip() -> void:
 		e.changed.emit()
 		await wait_frames()
 		var tip: String = (main.views[winds.uid] as CardView).tooltip_text
-		check(tip.contains("One event is drawn at the end of each turn. It stays active until its turns run out."),
+		check(tip.contains("One event is drawn at the start of each turn from turn 2. It stays active until its turns run out."),
 			"event tooltip: '%s'" % tip))

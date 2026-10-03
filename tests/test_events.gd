@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The event deck (backlog 039): the event card type and its discard condition, the event_deck config, drawing
-## one event per end_turn, active events' upkeep, discarding them, and reshuffling the event discard.
+## one event at the start of each turn from turn 2 (237), active events' upkeep, discarding them, and reshuffling the event discard.
 ## Fixture events: TEST_EVENTS in tests/lib/test_case.gd. Engine helpers return Object, not GameEngine, so calls
 ## to new engine methods fail at run time, not parse time.
 
@@ -180,16 +180,6 @@ func test_no_event_deck_leaves_the_event_zones_empty() -> void:
 
 # --- AC4: drawing in the event phase ---
 
-func test_end_turn_draws_the_top_event_and_resolves_it_before_cleanup() -> void:
-	var e := event_engine(["windfall", "trade_winds", "omen"], {"hand_limit": 5})
-	end_turn_before_cleanup(e)
-	eq(e.resources.food, 4, "2 food + Windfall 2, before turn 2's upkeep")
-	eq(card_ids(e.zone("active_events")), ["windfall"], "active events")
-	var uid := uid_of(e.zone("active_events"), "windfall")
-	eq(e.event_turns_left(uid), 1, "turns left")
-	eq(e.zone("event_deck").size(), 2, "event deck after one draw")
-
-
 func test_finishing_the_discard_does_not_draw_another_event() -> void:
 	var e := event_engine(["windfall", "trade_winds", "omen"], {"hand_limit": 5})
 	end_turn_before_cleanup(e)
@@ -206,13 +196,6 @@ func test_each_end_turn_draws_exactly_one_event() -> void:
 	eq(e.zone("event_deck").size(), 1, "one more after turn 2")
 
 
-func test_the_final_turn_draws_an_event() -> void:
-	var e := event_engine(["trade_winds", "windfall", "omen"], {"turn_limit": 1})
-	e.end_turn()
-	check(e.is_over, "game over")
-	eq(card_ids(e.zone("active_events")), ["trade_winds"], "event drawn on the final turn")
-
-
 func test_event_turns_left_is_zero_for_a_card_that_is_not_active() -> void:
 	var e := event_engine(["omen", "windfall", "trade_winds"])
 	eq(e.event_turns_left(uid_of(e.zone("event_deck"), "omen")), 0, "event still in the deck")
@@ -225,14 +208,17 @@ func test_an_active_event_gives_its_upkeep_every_turn_it_lasts() -> void:
 	var e := event_engine(["trade_winds", "windfall", "omen"])
 	e.end_turn()
 	var uid := uid_of(e.zone("active_events"), "trade_winds")
-	eq(e.resources.wealth, 1, "turn 2 upkeep: Trade Winds +1")
-	eq(e.event_turns_left(uid), 1, "turns left after turn 2's upkeep")
+	eq(e.resources.wealth, 0, "drawn at turn 2's start, after its upkeep")
+	eq(e.event_turns_left(uid), 2, "turns left during turn 2")
 	e.end_turn()
-	eq(e.resources.wealth, 2, "turn 3 upkeep: Trade Winds +1 again")
+	eq(e.resources.wealth, 1, "turn 3 upkeep: Trade Winds +1")
+	eq(e.event_turns_left(uid), 1, "turns left after turn 3's upkeep")
+	e.end_turn()
+	eq(e.resources.wealth, 2, "turn 4 upkeep: Trade Winds +1 again")
 	eq(uid_of(e.zone("active_events"), "trade_winds"), -1, "no longer active")
 	check(uid_of(e.zone("event_discard"), "trade_winds") != -1, "Trade Winds in the event discard")
 	e.end_turn()
-	eq(e.resources.wealth, 2, "turn 4 upkeep: nothing from Trade Winds")
+	eq(e.resources.wealth, 2, "turn 5 upkeep: nothing from Trade Winds")
 
 
 func test_event_upkeep_resolves_before_pop_eats() -> void:
@@ -257,8 +243,9 @@ func test_forecast_leaves_the_event_zones_alone() -> void:
 	var e := event_engine(["trade_winds", "windfall", "omen"])
 	e.end_turn()
 	var uid := uid_of(e.zone("active_events"), "trade_winds")
+	e.end_turn()
 	e.upkeep_forecast()  # on the fork, Trade Winds would end
-	eq(card_ids(e.zone("active_events")), ["trade_winds"], "still active")
+	eq(card_ids(e.zone("active_events")), ["trade_winds", "windfall"], "still active")
 	eq(e.zone("event_discard").size(), 0, "event discard untouched")
 	eq(e.event_turns_left(uid), 1, "turns left unchanged")
 
@@ -268,7 +255,8 @@ func test_forecast_leaves_the_event_zones_alone() -> void:
 func test_a_single_turn_event_ends_at_the_next_upkeep() -> void:
 	var e := event_engine(["windfall", "trade_winds", "omen"])
 	e.end_turn()
-	eq(card_ids(e.zone("event_discard")), ["windfall"], "Windfall discarded at turn 2's upkeep")
+	e.end_turn()
+	eq(card_ids(e.zone("event_discard")), ["windfall"], "Windfall discarded at turn 3's upkeep")
 	eq(uid_of(e.zone("active_events"), "windfall"), -1, "no longer active")
 
 
@@ -277,15 +265,16 @@ func test_an_event_ending_is_a_notice_and_drawing_one_is_not() -> void:
 	var e := event_engine(["windfall", "trade_winds", "omen"])
 	var recorded := record_messages(e)
 	e.end_turn()
+	e.end_turn()
 	check_noticed(recorded, "Windfall ends.", GameEngine.NOTICE_INFO)
 	check(recorded.has("log: Event: Windfall."), "Windfall drawn: %s" % [recorded])
 	check(not notices_in(recorded).has("Event: Windfall."), "drawing isn't a notice")
 
 
 func test_several_events_can_be_active_in_draw_order() -> void:
-	var e := event_engine(["trade_winds", "omen", "windfall"], {"hand_limit": 5})
+	var e := event_engine(["trade_winds", "omen", "windfall"])
 	e.end_turn()
-	end_turn_before_cleanup(e)
+	e.end_turn()
 	eq(card_ids(e.zone("active_events")), ["trade_winds", "omen"], "both active, in draw order")
 	for z in ["hand", "tableau", "discard"]:
 		for id in ["trade_winds", "omen"]:
@@ -305,10 +294,10 @@ func test_active_events_score_no_vp() -> void:
 func test_empty_event_deck_reshuffles_the_event_discard_by_seed() -> void:
 	var drawn := []
 	for i in 2:
-		var e := event_engine([], {"hand_limit": 5}, 3)
+		var e := event_engine([], {}, 3)
 		for card in e.zone("event_deck").take_all():
 			e.zone("event_discard").add(card)
-		end_turn_before_cleanup(e)
+		e.end_turn()
 		eq(e.zone("event_deck").size(), 2, "3 reshuffled, 1 drawn")
 		eq(e.zone("event_discard").size(), 0, "event discard emptied")
 		drawn.append(card_ids(e.zone("active_events")) + card_ids(e.zone("event_deck")))
@@ -316,10 +305,9 @@ func test_empty_event_deck_reshuffles_the_event_discard_by_seed() -> void:
 
 
 func test_nothing_is_drawn_when_both_event_piles_are_empty() -> void:
-	var e := event_engine(["trade_winds"], {"event_deck": {"trade_winds": 1}, "hand_limit": 5})
+	var e := event_engine(["trade_winds"], {"event_deck": {"trade_winds": 1}})
 	e.end_turn()
-	end_turn_before_cleanup(e)  # the event phase found both piles empty
+	e.end_turn()  # turn 3's start finds both piles empty
+	eq(e.turn, 3, "turn 3 started normally")
 	eq(card_ids(e.zone("active_events")), ["trade_winds"], "only Trade Winds, still active")
 	eq(e.zone("event_deck").size() + e.zone("event_discard").size(), 0, "nothing else to draw")
-	check(e.discard_card(first_in_hand(e)), "discard should finish the turn")
-	eq(e.turn, 3, "turn ended normally")

@@ -186,14 +186,16 @@ func test_keys_do_not_reach_the_board_while_the_modal_is_open() -> void:
 		eq(Game.engine.turn, 2, "still turn 2"), ["windfall"])
 
 
-func test_the_hand_limit_discard_is_still_owed_after_the_modal() -> void:
+## Backlog 237: the event is drawn as the next turn starts, so the hand-limit discard comes first.
+func test_the_hand_limit_discard_comes_before_the_event_modal() -> void:
 	with_modal_main(func(main: Node):
 		for i in 3:
 			put_in_hand(Game.engine, "farm")  # hand 8, limit 7
 		Game.engine.end_turn()
-		check(not main.event_modal().is_empty(), "the modal shows first")
-		press_key(main, KEY_ESCAPE)
-		eq(main.pending_kind(), GameEngine.PENDING_DISCARD, "the discard is still owed"), ["windfall"])
+		eq(main.pending_kind(), GameEngine.PENDING_DISCARD, "the discard is owed")
+		eq(main.event_modal(), {}, "no event yet")
+		Game.engine.discard_card(first_in_hand(Game.engine))
+		eq(main.event_modal().get("id"), "windfall", "the modal shows as turn 2 starts"), ["windfall"])
 
 
 func test_the_last_turn_shows_game_over_and_no_modal() -> void:
