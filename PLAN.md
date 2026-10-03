@@ -444,6 +444,9 @@ A game is played as one civilization: a permanent card with a starting gift and 
   the details modal shows them first (flavor in italics, then the quote and who said it), before the rules. On the
   new game screen a click on a civilization selects it and opens these details, with a "Play as <name>" button that
   starts the game as it.
+  A government (205), a tech and an event (215) may set `flavor` too, and a government or a tech a `quote` (an event
+  may not); every real tech has both and every real event a flavor line. Flavor and quotes show only in the details,
+  never on a card face.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
