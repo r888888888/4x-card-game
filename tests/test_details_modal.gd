@@ -142,3 +142,29 @@ func test_play_button_is_disabled_while_a_decision_blocks_the_hand() -> void:
 		var play: Button = main.details.play_button()
 		check(play.disabled, "Play is disabled")
 		eq(play.tooltip_text, e.playable_error(study), "the tooltip gives the reason"))
+
+
+# --- Backlog 229: Research shows only for a tech opened from the Knowledge screen. ---
+
+func test_research_button_is_hidden_outside_the_knowledge_screen() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var study := hand_card("study")
+		main.details.open(main.views[study])
+		check(not main.details.research_button().visible, "no Research for a hand card")
+		main.details.open(main.views[home_uid(e)])
+		check(not main.details.research_button().visible, "no Research for a board card")
+		main.details.open_def("study")
+		check(not main.details.research_button().visible, "no Research for a definition"))
+
+
+func test_research_button_is_hidden_for_supply_pile_details() -> void:
+	var main := open_main()
+	main.start_game(1)
+	main.open_supply()
+	var piles: Array = main.supply.views()
+	check(not piles.is_empty(), "the supply is open with piles")
+	if not piles.is_empty():
+		main.details.open(piles[0])
+		check(not main.details.research_button().visible, "no Research for a supply pile")
+	close_main(main)

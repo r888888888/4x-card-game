@@ -3,7 +3,8 @@ extends Modal
 ## The card details modal (backlog 056): a big card on the left and, on the right, the engine's full rules, live
 ## state and explanation of every mechanic the card uses (GameEngine.card_details / def_details). It sits on top of
 ## the board and blocks no engine action; while on top it takes every key. Esc, I or a click outside closes it.
-## A hand card's details also offer Play (225), disabled with the engine's reason when it can't be played.
+## A hand card's details also offer Play (225), and a tech's from the Knowledge screen Research (229), each disabled
+## with the engine's reason when it can't be done.
 
 ## Play was pressed on a hand card's details: the modal has closed, and view is the card to play.
 signal play_requested(view: CardView)
@@ -13,10 +14,12 @@ var _body: RichTextLabel
 var _details := {}  # what is shown; {} while hidden
 var _play: Button
 var _view: CardView  # the hand card Play plays; null when Play is hidden
+var _research: Button
+var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidden
 
 
 ## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close and (for a
-## hand card) Play in the footer (207, 225).
+## hand card) Play or (for a tech to learn) Research in the footer (207, 225, 229).
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	close_keys = [KEY_ESCAPE, KEY_I]
@@ -31,6 +34,7 @@ func _init(p_stack: ModalStack) -> void:
 	body.add_child(_body)
 	add_footer_button(UIKit.button("Close (Esc)", close))
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
+	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -41,6 +45,11 @@ func shown() -> Dictionary:
 ## Test hook (225): the Play button, hidden unless a hand card's details are on show.
 func play_button() -> Button:
 	return _play
+
+
+## Test hook (229): the Research button, hidden unless a tech to learn is on show.
+func research_button() -> Button:
+	return _research
 
 
 ## Test hook: the body text on show, without markup.
@@ -61,12 +70,24 @@ func open_def(card_id: String) -> void:
 	_show(Game.engine.def_details(card_id), card_id)
 
 
-func _show(details: Dictionary, card_id: String, hand_view: CardView = null) -> void:
+## Opens the details of tech card_id from the Knowledge screen; uid is the tech to learn, whose details offer Research,
+## or -1 (researched, or a later era's).
+func open_tech(card_id: String, uid: int) -> void:
+	_show(Game.engine.def_details(card_id), card_id, null, uid)
+
+
+func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tech := -1) -> void:
 	if details.is_empty():
 		return
 	var e := Game.engine
 	_details = details
 	_view = hand_view
+	_tech = tech
+	_research.visible = tech >= 0
+	if tech >= 0:
+		var reason := e.buy_tech_error(tech)
+		_research.disabled = reason != ""
+		_research.tooltip_text = reason
 	_play.visible = hand_view != null
 	if hand_view != null:
 		var error := e.playable_error(hand_view.uid)
@@ -95,6 +116,7 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null) -> 
 func closed() -> void:
 	_details = {}
 	_view = null
+	_tech = -1
 
 
 func _on_play() -> void:
@@ -102,6 +124,13 @@ func _on_play() -> void:
 	close()
 	if view != null and is_instance_valid(view):
 		play_requested.emit(view)
+
+
+func _on_research() -> void:
+	var tech := _tech
+	close()
+	if Game.engine.buy_tech_error(tech) == "":
+		Game.engine.buy_tech(tech)
 
 
 ## The body for details (from GameEngine.card_details / def_details) as BBCode: flavor, quote, rules, state and terms,

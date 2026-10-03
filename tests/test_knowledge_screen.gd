@@ -170,21 +170,21 @@ func click(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
 		main.get_viewport().push_input(event, true)
 
 
-func test_a_click_on_an_available_tile_learns_it() -> void:
+func test_a_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
 	await with_tree(func(main: Node):
 		var e := Game.engine
+		await wait_screen_transition()
 		check(tile(main, "Pottery") != null, "a Pottery tile")
 		if tile(main, "Pottery") == null:
 			return
 		tile(main, "Pottery").pressed.emit()
-		check(learned(e, "pottery"), "Pottery learned")
-		eq(e.resources.get("insight"), 3, "5 − 2")
-		check(main.knowledge.is_open(), "the screen stays open")
-		eq(main.details.shown(), {}, "no details open")
-		eq(tile_texts(main, "Pottery"), ["Pottery", "✓"] as Array[String], "the tile now reads researched"))
+		eq(main.details.shown().get("name", ""), "Pottery", "Pottery's details")
+		check(not learned(e, "pottery"), "nothing learned")
+		eq(e.resources.get("insight"), 5, "nothing paid")
+		check(main.knowledge.is_open(), "over the open screen"))
 
 
-func test_enter_on_a_focused_available_tile_learns_it() -> void:
+func test_enter_on_a_focused_available_tile_opens_its_details_and_learns_nothing() -> void:
 	await with_tree(func(main: Node):
 		await wait_screen_transition()
 		var t := tile(main, "Writing")
@@ -193,7 +193,8 @@ func test_enter_on_a_focused_available_tile_learns_it() -> void:
 			return
 		t.grab_focus()
 		press_key(main, KEY_ENTER)
-		check(learned(Game.engine, "writing"), "Enter learned Writing"))
+		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
+		check(not learned(Game.engine, "writing"), "Enter learned nothing"))
 
 
 func test_there_is_no_learn_button() -> void:
@@ -202,23 +203,76 @@ func test_there_is_no_learn_button() -> void:
 		eq(learn.size(), 0, "no Learn buttons"))
 
 
-func test_a_click_on_a_tile_you_cant_learn_learns_nothing_and_says_why() -> void:
+# --- 229: Research from a tech's details. Hook: main.details.research_button() (hidden unless a tech to learn). ---
+
+func test_research_in_a_techs_details_learns_it_and_closes_the_details() -> void:
+	await with_tree(func(main: Node):
+		var e := Game.engine
+		await wait_screen_transition()
+		tile(main, "Pottery").pressed.emit()
+		var research: Button = main.details.research_button()
+		check(research.visible, "Research shows for an available tech")
+		check(not research.disabled, "Research is enabled")
+		check(research.get_parent() == main.details.footer, "Research sits in the footer")
+		research.pressed.emit()
+		await wait_frames()
+		check(learned(e, "pottery"), "Pottery learned")
+		eq(e.resources.get("insight"), 3, "5 − 2")
+		eq(main.details.shown(), {}, "the details closed")
+		check(main.knowledge.is_open(), "the screen stays open")
+		eq(tile_texts(main, "Pottery"), ["Pottery", "✓"] as Array[String], "the tile now reads researched"))
+
+
+func test_research_is_disabled_with_the_reason_when_the_tech_cant_be_learned() -> void:
 	await with_tree(func(main: Node):
 		var e := Game.engine
 		e.resources["insight"] = 4
 		e.changed.emit()
-		main.knowledge.close()
-		main.knowledge.open()  # reopen, so the screen reads 4 insight
-		var t := tile(main, "Bronze Working")
-		check(t != null, "a Bronze Working tile")
-		if t == null:
-			return
-		var error := e.buy_tech_error(uid_of(e.zone("research_deck"), "bronze"))
-		check(error != "", "precondition: 4 insight is too little")
-		check(t.tooltip_text.contains(error), "the tooltip says why: %s" % t.tooltip_text)
-		t.pressed.emit()
-		check(not learned(e, "bronze"), "nothing learned")
+		await wait_screen_transition()
+		for pair in [["Bronze Working", "bronze"], ["Iron Working", "iron"]]:
+			var error := e.buy_tech_error(uid_of(e.zone("research_deck"), pair[1]))
+			check(error != "", "precondition: %s can't be learned" % pair[0])
+			tile(main, pair[0]).pressed.emit()
+			eq(main.details.shown().get("name", ""), pair[0], "%s's details" % pair[0])
+			var research: Button = main.details.research_button()
+			check(research.visible, "Research shows for %s" % pair[0])
+			check(research.disabled, "Research is disabled for %s" % pair[0])
+			eq(research.tooltip_text, error, "the tooltip says why")
+			research.pressed.emit()
+			check(not learned(e, pair[1]), "%s not learned" % pair[0])
+			main.details.close()
 		eq(e.resources.get("insight"), 4, "nothing paid"))
+
+
+func test_research_is_hidden_for_a_researched_tech() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		await wait_screen_transition()
+		tile(main, "Pottery").pressed.emit()
+		eq(main.details.shown().get("name", ""), "Pottery", "Pottery's details")
+		check(not main.details.research_button().visible, "no Research for a researched tech"))
+
+
+func test_research_is_hidden_for_a_later_era_tech() -> void:
+	await with_two_eras(func(main: Node):
+		tile(main, "Optics").pressed.emit()
+		eq(main.details.shown().get("name", ""), "Optics", "Optics' details")
+		check(not main.details.research_button().visible, "no Research for a later-era tech"))
+
+
+func test_research_goes_when_the_details_reopen_for_another_card() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		tile(main, "Writing").pressed.emit()
+		check(main.details.research_button().visible, "Research shows for Writing")
+		main.details.open_def("farm")
+		check(not main.details.research_button().visible, "Research is gone for another card"))
+
+
+func test_an_available_tiles_tooltip_says_a_click_shows_the_details() -> void:
+	await with_tree(func(main: Node):
+		var lines := tile(main, "Writing").tooltip_text.split("\n")
+		eq(lines[-1], "Click, right click or I for the details.", "the tooltip's last line"))
 
 
 # --- 222 AC2, AC3: the tiles ---

@@ -65,7 +65,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	menu.settings_requested.connect(func(): main.settings_modal.open(Game.engine.seed_value))
 	main.details = CardDetailsModal.new(main.modals)
 	main.details.play_requested.connect(main.on_double_clicked)  # Play acts as a double-click would (225)
-	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_def)
+	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	main.revolt_modal = RevoltModal.new(main.modals)
