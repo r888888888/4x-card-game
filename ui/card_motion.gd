@@ -240,9 +240,9 @@ func _to_layer(layer: Control) -> void:
 	view.z_index = 2  # above hovered hand cards
 
 
-## The card's size: its nominal size, taller if its text needs more room.
+## The card's size: its nominal size (or its min_height), taller if its text needs more room.
 func _fit_size() -> Vector2:
-	return Vector2(view._target_size.x, maxf(view._target_size.y, view.get_combined_minimum_size().y))
+	return Vector2(view._target_size.x, maxf(maxf(view._target_size.y, view.min_height), view.get_combined_minimum_size().y))
 
 
 ## Keeps the card at its fitted size and the slot tall enough to hold it.

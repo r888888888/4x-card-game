@@ -81,6 +81,7 @@ var _hover := false
 var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
+var min_height := 0.0  # a floor under the fitted height: the supply row keeps its cards one height
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
 var _replays := {}
