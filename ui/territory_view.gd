@@ -67,7 +67,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_land.theme_type_variation = &"Caption"
 	names.add_child(_land)
 	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
-	rename_button.theme_type_variation = &"Link"
+	rename_button.theme_type_variation = &"CapsLink"  # a tertiary action beside the name (guide §7.3)
 	rename_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	title.add_child(rename_button)
 	_info = CardFace.rich_label("", Tokens.TYPE_BODY, Palette.TEXT_DIM)

@@ -16,9 +16,10 @@ var _uid := -1  # the territory being named
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	title = "Rename territory"
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # the field spans the sheet, under the title block
 	body.add_child(UIKit.heading("Name"))
 	field = LineEdit.new()
-	field.custom_minimum_size.x = BODY_MAX_WIDTH * 0.5
+	field.custom_minimum_size.x = BODY_MAX_WIDTH * 0.5  # room for a long name; it fills the sheet when wider
 	field.select_all_on_focus = true
 	field.text_changed.connect(func(_text: String): _check())
 	field.text_submitted.connect(func(_text: String): _rename())
