@@ -9,12 +9,9 @@ const HEADING_GAP := Tokens.SPACE_2  # from a heading to its content
 const CARD_GAP := Tokens.SPACE_3  # between cards in a row
 const PAINTED := &"painted"  # the group of nodes with colours set in code, repainted when Day mode changes (183)
 
-static var COST_COLOR: Color:  # tags for resources paid (181), and error text
+static var COST_COLOR: Color:  # error text
 	get:
 		return Palette.COST
-static var GAIN_COLOR: Color:  # tags for resources and VP gained (181)
-	get:
-		return Palette.GAIN
 
 
 ## Sets node's colours with apply now, and again whenever the palette switches (183): apply reads Palette when it

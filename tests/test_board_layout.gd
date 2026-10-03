@@ -84,7 +84,8 @@ func test_the_top_bar_holds_supply_and_knowledge_before_menu() -> void:
 	var indices := order.map(func(b: Button): return b.get_index())
 	eq(indices, sorted(indices), "Buy Cards, Knowledge, then Menu")
 	var score: Control = main.counter(TopBar.SCORE)
-	check(score.get_parent() == bar and score.get_index() < supply.get_index(), "after the stats")
+	var stats: Node = score.get_parent()  # the counters' own row (218)
+	check(bar.is_ancestor_of(score) and stats.get_parent() == bar and stats.get_index() < supply.get_index(), "after the stats")
 	close_at_1080(main)
 
 

@@ -210,7 +210,7 @@ func set_unrest(n: int) -> void:
 	Game.engine.changed.emit()
 
 
-func test_the_top_bar_shows_unrest_out_of_the_limit_and_tags_its_change() -> void:
+func test_the_top_bar_shows_unrest_out_of_the_limit_and_rolls_its_change_with_no_tag() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 2)
 	await wait_frames()
@@ -223,8 +223,7 @@ func test_the_top_bar_shows_unrest_out_of_the_limit_and_tags_its_change() -> voi
 			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST; 181: an odometer)")
 	set_unrest(5)
 	await wait_frames()
-	var tag := counter_tag(counter)
-	eq(tag.text if tag != null else "", "+3", "a +3 tag beside Unrest (181)")
+	eq(counter_tag(counter), null, "no tag beside Unrest (218)")
 	if counter != null:
 		eq(counter.figure().color, Palette.WARN, "at the limit: the warning colour")
 	close_main(main)

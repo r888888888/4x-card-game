@@ -12,7 +12,7 @@ var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the conf
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
-var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer and tag)
+var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer)
 var _discard: Label
 var _fresh := true  # the next refresh shows the wealth at once: the screen just opened
 var _fx: Control  # flying copies and errors above the panel
@@ -121,7 +121,7 @@ func close() -> void:
 	if not is_open():
 		return
 	_overlay.hide()
-	_fresh = true  # so the next open shows the wealth at once, with no tag
+	_fresh = true  # so the next open shows the wealth at once, without rolling
 	_views.clear()
 	for slot in _row.get_children():
 		_row.remove_child(slot)
@@ -141,7 +141,7 @@ func pick(view: CardView) -> void:
 		UIKit.show_error(_fx, view, error, _overlay.size.x)
 		view.reject()
 		return
-	e.buy(id)  # the refresh that follows rolls the wealth down and tags it (181)
+	e.buy(id)  # the refresh that follows rolls the wealth down (181)
 	# A copy flies to the screen's Discard counter, which pulses as it lands.
 	var copy := CardView.new()
 	copy.setup(CardInstance.new(-100, e.card_db[id]), e.card_db, false)
@@ -159,10 +159,8 @@ func refresh(e: GameEngine) -> void:
 	button.tooltip_text = reason if reason != "" else "Shortcut: S. Buy copies of cards into your discard."
 	if not is_open():
 		return
-	var change := _wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), "", _fresh)
+	_wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), "", _fresh)
 	_fresh = false
-	if change != 0:
-		_wealth.show_tag(change, 0.0)
 	_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _views:
 		_views[id].set_buy_info(e.buy_price(id), e.supply_left(id), e.buy_error(id))

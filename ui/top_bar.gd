@@ -3,8 +3,8 @@ extends HBoxContainer
 ## The top bar: turn, food, wealth, insight (139) and unrest (144, out of its limit) (with next upkeep's change), score
 ## and pop, then
 ## (115) Buy Cards, Knowledge, Log and Menu (the civilization, the government and End turn are in the Sidebar: 202, 203). Any
-## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure and tags it with its net change
-## (126, 181).
+## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure in place (181, 218). The turn plate
+## and the counters sit Tokens.SPACE_5 apart in a row of their own, the mock's strip (218); the buttons SPACE_3.
 
 const GLYPH := 20  # a counter's glyph (180; 20 px since 201, the mock's strip)
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
@@ -17,20 +17,23 @@ var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in i
 var _turn_label: Label  # the turn plate, "T 001" (201)
 var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden while off, 144), score, pop (hidden while off)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
-var _fresh := true  # a new game's first refresh shows its values at once, with no tags (126)
+var _fresh := true  # a new game's first refresh shows its values at once, without rolling (126)
 
 
 ## on_knowledge opens the tech tree, on_log toggles the log drawer.
 func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	add_theme_constant_override("separation", Tokens.SPACE_3)  # tight: the stats and six buttons share 1920 px (115, 139, 144)
+	var stats := HBoxContainer.new()
+	stats.add_theme_constant_override("separation", Tokens.SPACE_5)
+	add_child(stats)
 	_turn_label = Label.new()
 	_turn_label.theme_type_variation = &"Plate"  # the mono numerals on a well (201)
 	_turn_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_turn_label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the tooltip
-	add_child(_turn_label)
+	stats.add_child(_turn_label)
 	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, SCORE, POP]:
 		var counter := Counter.new(key, "", &"Stat")  # figures at TYPE_NUMERAL (201)
-		add_child(counter)
+		stats.add_child(counter)
 		_counters[key] = counter
 	_counters[SCORE].tooltip_text = "Score: victory points."
 	var spacer := Control.new()
@@ -59,15 +62,14 @@ func counter_text(key: String) -> String:
 	return (_counters[key] as Counter).text() if _counters.has(key) else ""
 
 
-## Makes the next refresh show its values at once, with no tags: a new game (126).
+## Makes the next refresh show its values at once, without rolling: a new game (126).
 func reset_counters() -> void:
 	_fresh = true
 
 
-## Shows engine e's stats: each counter's figure rolls to its new value and, unless quiet (a screen covering the bar
-## shows its own), shows its net change as a tag, left to right Anim.TAG_STAGGER apart (126, 181). The changed counters
-## roll one after another, left to right, each starting as the one before registers, so their ticks make one tidy
-## run and their registrations come in order (188); quiet, they roll in silence.
+## Shows engine e's stats: each counter's figure rolls to its new value (181). The changed counters roll one after
+## another, left to right, each starting as the one before registers, so their ticks make one tidy run and their
+## registrations come in order (188); quiet (a screen covering the bar shows its own), they roll in silence.
 func refresh(e: GameEngine, quiet := false) -> void:
 	_turn_label.text = "T %03d" % e.turn
 	_turn_label.tooltip_text = "Turn %d of %d" % [e.turn, e.turn_limit()] if e.turn_limit() > 0 else "Turn %d" % e.turn
@@ -86,15 +88,11 @@ func refresh(e: GameEngine, quiet := false) -> void:
 		(_counters[key] as Counter).set_forecast("%+d" % forecast[key] if forecast.has(key) else "")
 	_counters[GameEngine.UNREST].visible = e.unrest_on()
 	_counters[POP].visible = e.population_on()
-	var n := 0
 	var roll_at := 0.0
 	for key: String in readings:
 		var counter: Counter = _counters[key]
 		var change := counter.show_value(readings[key][0], readings[key][1], _fresh, roll_at, not quiet and counter.visible)
 		roll_at += mini(absi(change), Anim.ODOMETER_MAX_STEPS) * Anim.ODOMETER_STEP
-		if change != 0 and not quiet and counter.visible:
-			counter.show_tag(change, n * Anim.TAG_STAGGER)
-			n += 1
 	_fresh = false
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
 	_counters[GameEngine.FOOD].tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "Beside it: the change at the next upkeep, after pop eats."

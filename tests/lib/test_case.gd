@@ -626,7 +626,8 @@ func wait_frames(n := 2) -> void:
 		await (Engine.get_main_loop() as SceneTree).process_frame
 
 
-## counter's tag (181): a visible Label inside it reading "+N" or "−N" (a real minus), or null.
+## counter's tag (181; gone since 218, so tests assert there is none): a visible Label inside it reading "+N" or "−N"
+## (a real minus), or null.
 func counter_tag(counter: Control) -> Label:
 	if counter == null:
 		return null
