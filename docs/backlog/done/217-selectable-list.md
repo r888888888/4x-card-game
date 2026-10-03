@@ -2,7 +2,7 @@
 id: 217
 title: A selectable list component, and a new game screen that holds still
 type: feature
-status: review
+status: done
 branch: feat/217-selectable-list
 ---
 
@@ -10,7 +10,7 @@ branch: feat/217-selectable-list
 Choosing a civilization feels steady and clear. Today the new game sheet resizes and recentres with each
 civilization's text, so it jumps as you move through the list. The selected row is also a pressed button with a pale
 border, which barely stands out and looks like the teal focus ring on another row. This item adds a **selectable
-list** to the style guide (option A, "Index card", from [list-options.html](../design/list-options.html)) and uses it
+list** to the style guide (option A, "Index card", from [list-options.html](../../design/list-options.html)) and uses it
 for the civilization list.
 
 ## Acceptance criteria
