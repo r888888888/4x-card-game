@@ -3,7 +3,7 @@ extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
 ## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
-## and GrowPip (124). A control takes one with
+## and GrowPip (124), and the selectable list's ListWell and ListRow (217). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
 const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
