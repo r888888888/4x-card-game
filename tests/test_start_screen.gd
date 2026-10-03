@@ -338,7 +338,8 @@ func test_the_civilizations_are_a_select_list_with_one_index_tab() -> void:
 		var script := (list as Node).get_script() as Script
 		eq(script.resource_path if script != null else "", "res://ui/select_list.gd", "the list is a SelectList")
 		for id in civs:
-			eq((screen.civilization_row(id) as Button).theme_type_variation, &"ListRow", "%s: a ListRow" % id)
+			check((screen.civilization_row(id) as Button).theme_type_variation in [&"ListRow", &"ListRowQuiet"],
+				"%s: a ListRow" % id)
 		eq(rows_with_a_tab(screen), [civs[0]] as Array[String], "the preselected row carries the tab")
 		(screen.civilization_row(civs[3]) as Button).pressed.emit()
 		await wait_frames()
@@ -622,3 +623,21 @@ func test_esc_on_the_title_screen_does_nothing() -> void:
 	eq(changes, 0, "no game started")
 	eq(quits[0], 0, "no quit")
 	close_main(main)
+
+
+func test_the_new_game_screen_opens_with_no_ring_until_a_key() -> void:
+	await with_temp_settings(func():
+		var civs: Array[String] = Game.engine.civilizations()
+		Settings.store.civilization = civs[0]
+		var main: Node = await open_settled_new_game_screen()
+		var screen: Object = main.new_game_screen
+		var row: Button = screen.civilization_row(civs[0])
+		eq(focus_owner(main), row, "the selected row has the focus")
+		check(row.get_theme_stylebox("focus") is StyleBoxEmpty, "and draws no ring")
+		press_key(main, KEY_DOWN)
+		await wait_frames()
+		var next: Button = screen.civilization_row(civs[1])
+		eq(focus_owner(main), next, "Down focuses the next row")
+		var ring := next.get_theme_stylebox("focus") as StyleBoxFlat
+		check(ring != null and ring.border_color == Palette.FOCUS, "which draws the ring")
+		close_main(main))

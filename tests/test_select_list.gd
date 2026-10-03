@@ -69,7 +69,7 @@ func test_the_list_is_a_well() -> void:
 	if box != null:
 		eq(box.bg_color.to_html(), Palette.FIELD.to_html(), "the well")
 	for id in list.ids():
-		eq((list.row(id) as Button).theme_type_variation, &"ListRow", "row %s is a ListRow" % id)
+		check((list.row(id) as Button).theme_type_variation in [&"ListRow", &"ListRowQuiet"], "row %s is a ListRow" % id)
 	close_main(main)
 
 
@@ -121,16 +121,83 @@ func test_a_list_rows_focus_is_the_ring_not_the_selection() -> void:
 	var main := open_main()
 	var list: Object = await three_rows(main, [])
 	var row := list.row("a") as Button
-	var ring := row.get_theme_stylebox("focus") as StyleBoxFlat
-	check(ring != null and not ring.draw_center, "the focus ring draws no fill")
-	if ring != null:
-		eq(ring.border_color.to_html(), Palette.FOCUS.to_html(), "the teal ring")
 	list.select("a")
 	row.grab_focus()
 	press_key(main, KEY_TAB)
 	await wait_frames()
 	eq(main.get_viewport().gui_get_focus_owner(), list.row("b"), "Tab moves the focus to b")
+	check(draws_the_ring(list.row("b")), "the focus is the teal ring, with no fill")
 	eq(list.selected, "a", "a stays selected")
 	eq(shown_tabs(list), ["a"] as Array[String], "the tab stays on a")
 	check(not (list.row("b") as Button).button_pressed, "the focused row is not pressed")
+	close_main(main)
+
+
+# --- 220: the ring waits for the keyboard ---
+
+## Whether row's focus stylebox is the focus ring: no fill, a FOCUS border.
+func draws_the_ring(row: Button) -> bool:
+	var ring := row.get_theme_stylebox("focus") as StyleBoxFlat
+	return ring != null and not ring.draw_center and ring.border_color == Palette.FOCUS and ring.border_width_left > 0
+
+
+## Shift+Tab, pressed and released.
+func press_shift_tab(main: Node) -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = KEY_TAB
+		event.physical_keycode = KEY_TAB
+		event.shift_pressed = true
+		event.pressed = pressed
+		main.get_viewport().push_input(event)
+
+
+func test_a_row_focused_by_the_code_draws_no_ring() -> void:
+	var main := open_main()
+	var list: Object = await three_rows(main, [])
+	(list.row("a") as Button).grab_focus()
+	await wait_frames()
+	check((list.row("a") as Button).get_theme_stylebox("focus") is StyleBoxEmpty, "a: no ring")
+	close_main(main)
+
+
+func test_the_arrows_show_the_ring() -> void:
+	var main := open_main()
+	var list: Object = await three_rows(main, [])
+	(list.row("a") as Button).grab_focus()
+	press_key(main, KEY_DOWN)
+	await wait_frames()
+	eq(main.get_viewport().gui_get_focus_owner(), list.row("b"), "Down focuses b")
+	check(draws_the_ring(list.row("b")), "b: the ring")
+	close_main(main)
+
+
+func test_tab_and_shift_tab_show_the_ring() -> void:
+	var main := open_main()
+	var list: Object = await three_rows(main, [])
+	(list.row("a") as Button).grab_focus()
+	press_key(main, KEY_TAB)
+	await wait_frames()
+	eq(main.get_viewport().gui_get_focus_owner(), list.row("b"), "Tab focuses b")
+	check(draws_the_ring(list.row("b")), "b: the ring")
+	press_shift_tab(main)
+	await wait_frames()
+	eq(main.get_viewport().gui_get_focus_owner(), list.row("a"), "Shift+Tab focuses a")
+	check(draws_the_ring(list.row("a")), "a: the ring")
+	close_main(main)
+
+
+func test_the_ring_goes_when_the_focus_leaves() -> void:
+	var main := open_main()
+	var list: Object = await three_rows(main, [])
+	(list.row("a") as Button).grab_focus()
+	press_key(main, KEY_DOWN)
+	await wait_frames()
+	check(draws_the_ring(list.row("b")), "b: the ring")
+	(list.row("c") as Button).grab_focus()
+	await wait_frames()
+	check(not draws_the_ring(list.row("b")), "b, unfocused: back to no ring")
+	(list.row("b") as Button).grab_focus()
+	await wait_frames()
+	check((list.row("b") as Button).get_theme_stylebox("focus") is StyleBoxEmpty, "b, focused by the code again: no ring")
 	close_main(main)

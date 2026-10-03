@@ -100,7 +100,7 @@ static func _link(t: Theme) -> void:
 
 ## The selectable list (217, guide §7): ListWell, the list's recessed well, with room on its trailing side for the
 ## pulled-out row; ListRow, a row printed on it with no box, and when selected (pressed) a sheet strip pulled PULL px
-## out onto a hard shadow. SelectList draws the selected row's index tab.
+## out onto a hard shadow; ListRowQuiet, a ListRow with no focus ring. SelectList draws the selected row's index tab.
 static func _select_list(t: Theme) -> void:
 	t.set_type_variation("ListWell", "PanelContainer")
 	var well := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
@@ -136,6 +136,8 @@ static func _select_list(t: Theme) -> void:
 	t.set_color("font_color", "ListRow", Palette.TEXT_DIM)
 	for state in ["font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
 		t.set_color(state, "ListRow", Palette.TEXT)
+	t.set_type_variation("ListRowQuiet", "ListRow")  # a row the keyboard didn't focus: no ring (220)
+	t.set_stylebox("focus", "ListRowQuiet", StyleBoxEmpty.new())
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.
