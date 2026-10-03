@@ -80,7 +80,7 @@ func refresh(e: GameEngine, quiet := false) -> void:
 		GameEngine.FOOD: [e.resources.get(GameEngine.FOOD, 0), ""],
 		GameEngine.WEALTH: [e.resources.get(GameEngine.WEALTH, 0), ""],
 		GameEngine.INSIGHT: [e.resources.get(GameEngine.INSIGHT, 0), ""],
-		GameEngine.UNREST: [e.resources.get(GameEngine.UNREST, 0), " / %d" % limit if limit >= 0 else ""],
+		GameEngine.UNREST: [e.resources.get(GameEngine.UNREST, 0), ""],  # the limit is in the tooltip (228)
 		SCORE: [e.score(), ""],
 		POP: [e.total_pop(), ""],
 	}
@@ -99,8 +99,11 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	_counters[GameEngine.WEALTH].tooltip_text = "Beside it: the change at the next upkeep."
 	_counters[GameEngine.INSIGHT].tooltip_text = "Pays for techs. Beside it: the change at the next upkeep."
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
-	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
-		"" if limit >= 0 else " (it sets no limit)")) + "Beside it: the change at the next upkeep."
+	var ahead := e.anarchy_ahead()
+	_counters[GameEngine.UNREST].set_breathing(ahead)
+	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest. Your government tolerates at most %d: a turn that starts there falls into Anarchy. " % limit
+		if limit >= 0 else "Civil unrest. Your government sets no limit. ") + "Beside it: the change at the next upkeep." + (
+		"\nThe next upkeep brings it to the limit." if ahead else "")
 	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)

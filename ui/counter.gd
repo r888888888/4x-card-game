@@ -2,7 +2,8 @@ class_name Counter
 extends HBoxContainer
 ## One counter (181): an optional glyph (180) or word, its figure as an Odometer, any words after it (" / 5"), then the
 ## next upkeep's change as a quieter figure of its own ("+1", 201). A change rolls the figure; the roll is the only mark
-## of it (218: a "+N" tag beside the figure pushed the counters after it along, then back).
+## of it (218: a "+N" tag beside the figure pushed the counters after it along, then back). The glyph can breathe, a
+## slow fade and back, held still with Reduce motion (228).
 
 const GLYPH_GAP := 6  # px between the glyph and the figure
 
@@ -10,6 +11,9 @@ var _prefix: Label  # "Wealth: " on the Supply screen; empty in the top bar, whe
 var _figure: Odometer
 var _suffix: Label  # words after the figure: the unrest limit, " / 5"
 var _forecast: Label  # next upkeep's change, "+1", in the Forecast look; hidden with none (201)
+var _glyph: TextureRect  # null without one
+var _breathe := false  # whether the owner wants the glyph breathing (228)
+var _breath: Tween  # the glyph's looping breath while it runs
 
 
 ## glyph_key: an Icons.RESOURCES key for the glyph ("" for none); prefix: a word before the figure ("" for none);
@@ -20,6 +24,7 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	var glyph: TextureRect = null
 	if glyph_key != "":
 		glyph = Icons.glyph(glyph_key, TopBar.GLYPH)
+		_glyph = glyph
 		glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		add_child(glyph)
 		var gap := Control.new()
@@ -43,6 +48,23 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 		if glyph != null:
 			glyph.self_modulate = Icons.hue(glyph_key)
 		set_color(Palette.TEXT))
+	Settings.changed.connect(_apply_breath)
+
+
+## The counter's glyph, or null without one.
+func glyph() -> TextureRect:
+	return _glyph
+
+
+## Whether the glyph is breathing now (228).
+func breathing() -> bool:
+	return _breath != null and _breath.is_running()
+
+
+## Breathes the glyph while on, unless Reduce motion holds it still at full opacity (228).
+func set_breathing(on: bool) -> void:
+	_breathe = on
+	_apply_breath()
 
 
 ## The counter's figure.
@@ -83,6 +105,23 @@ func set_color(c: Color) -> void:
 	_figure.color = c
 	for label in [_prefix, _suffix]:
 		label.add_theme_color_override("font_color", c)
+
+
+## Starts or stops the glyph's breath to match what the owner wants and Reduce motion.
+func _apply_breath() -> void:
+	var go := _breathe and _glyph != null and not UIKit.calm()
+	if go == breathing():
+		return
+	if _breath != null:
+		_breath.kill()
+		_breath = null
+	if _glyph == null:
+		return
+	_glyph.modulate.a = 1.0
+	if go:
+		_breath = create_tween().set_loops()
+		_breath.tween_property(_glyph, "modulate:a", Anim.BREATH_ALPHA, Anim.BREATH_TIME / 2).set_trans(Tween.TRANS_SINE)
+		_breath.tween_property(_glyph, "modulate:a", 1.0, Anim.BREATH_TIME / 2).set_trans(Tween.TRANS_SINE)
 
 
 ## Lays the row out now rather than next frame, so the words after the figure move with it.
