@@ -10,6 +10,7 @@ const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its 
 const PIP_SIZE := 22  # a pop meter pip's width and height (124)
 # The style guide's typefaces (178, §5): each is used through tabular(), so figures never shift width as they change.
 const BODY_FONT := preload("res://assets/fonts/Barlow-Regular.ttf")
+const ITALIC_FONT := preload("res://assets/fonts/Barlow-Italic.ttf")  # RichBody's [i], e.g. flavor (216)
 const LABEL_FONT := preload("res://assets/fonts/BarlowSemiCondensed-Medium.ttf")
 const LABEL_SEMIBOLD := preload("res://assets/fonts/BarlowSemiCondensed-SemiBold.ttf")
 const DISPLAY_FONT := preload("res://assets/fonts/Jost-Variable.ttf")
@@ -38,6 +39,7 @@ static func build() -> Theme:
 	t.set_type_variation("RichBody", "RichTextLabel")  # modal text and the log (194)
 	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:
 		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
+	t.set_font("italics_font", "RichBody", tabular(ITALIC_FONT))
 	_link(t)
 	_big_buttons(t)
 	_end_turn_key(t)

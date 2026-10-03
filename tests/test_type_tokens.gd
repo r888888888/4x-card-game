@@ -15,12 +15,16 @@ const SIZES := [14, 15, 17, 20, 26, 28, 40, 44, 56]
 const LABELS := {"Display": 40, "Title": 28, "Heading": 15, "Body": 20, "BodySmall": 17, "Caption": 14, "Stat": 26}
 
 
-## The base face of variation's font in theme t (through FontVariations), or null.
-func base_face(t: Theme, variation: String) -> Font:
-	var font := t.get_font("font", variation)
+## The face under font (through FontVariations), or null.
+func face_of(font: Font) -> Font:
 	while font is FontVariation:
 		font = (font as FontVariation).base_font
 	return font
+
+
+## The base face of variation's font in theme t, or null.
+func base_face(t: Theme, variation: String) -> Font:
+	return face_of(t.get_font("font", variation))
 
 
 ## The font sizes a visible text control draws with: a RichTextLabel's three, else its font_size.
@@ -55,6 +59,33 @@ func test_the_theme_has_a_label_variation_per_type_role() -> void:
 	for variation in ["Display", "Title"]:
 		eq(base_face(t, variation), GameTheme.DISPLAY_FONT, "%s uses the display face" % variation)
 	eq(base_face(t, "Heading"), GameTheme.LABEL_SEMIBOLD, "Heading uses the semibold label face")
+
+
+# --- 216: a real italic for the body face ---
+
+const ITALIC_PATH := "res://assets/fonts/Barlow-Italic.ttf"
+
+
+func test_rich_body_italics_are_barlow_italic_with_the_body_fonts_figures() -> void:
+	var t := GameTheme.build()
+	check(t.has_font("italics_font", "RichBody"), "RichBody has an italics font")
+	var font := t.get_font("italics_font", "RichBody")
+	var face := face_of(font)
+	eq(face.resource_path if face else "", ITALIC_PATH, "its face is Barlow Italic")
+	var features: Dictionary = (font as FontVariation).opentype_features if font is FontVariation else {}
+	eq(features, (t.default_font as FontVariation).opentype_features, "tabular lining figures, like the body font")
+
+
+func test_a_rich_body_in_the_main_scene_draws_italics_in_barlow_italic() -> void:
+	var main := open_main()
+	var text := RichTextLabel.new()
+	text.theme_type_variation = &"RichBody"
+	main.add_child(text)
+	var italic := face_of(text.get_theme_font("italics_font"))
+	eq(italic.resource_path if italic else "", ITALIC_PATH, "italics in Barlow Italic")
+	eq(face_of(text.get_theme_font("normal_font")), GameTheme.BODY_FONT, "upright text stays Barlow Regular")
+	text.free()
+	close_main(main)
 
 
 # --- AC2: headings are capitals, tracked ---
