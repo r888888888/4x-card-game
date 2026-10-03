@@ -2,7 +2,7 @@
 id: 243
 title: Supply cards stand one height
 type: feature
-status: review
+status: done
 branch: feat/243-supply-cards-one-height
 ---
 
@@ -24,7 +24,7 @@ A supply card whose text wraps no longer leaves the row uneven: every pile card 
 | AC1 | `test_supply_screen::test_pile_cards_share_the_height_of_the_tallest` |
 
 ## Manual check
-- [ ] Open the supply with piles of differing text length: the cards line up at one height.
+- [x] Open the supply with piles of differing text length: the cards line up at one height.
 
 ## Log
 - Written after the fact (a small UI fix made on main); the test was confirmed failing without the change (175 vs 198).
