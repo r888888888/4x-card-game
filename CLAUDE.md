@@ -4,7 +4,8 @@ Single-player Civilization-inspired card game prototype. Godot 4.7, GDScript.
 Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-process.md](docs/development-process.md).
 
 ## Commands
-- Run all tests: `scripts/test.sh` (exit 0 = green). Filter: `scripts/test.sh <substring of file::method>`
+- Run all tests: `scripts/test.sh` (exit 0 = green; ~4 s, parallel shards, `TEST_JOBS=1` for serial). Filter:
+  `scripts/test.sh <substring of file::method>`
 - Balance suite: `scripts/test.sh --balance` runs only `tests/balance/` (real-data bot games; not in the main suite
   or the Stop hook). Run it when you change `sim/`.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)

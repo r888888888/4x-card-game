@@ -20,6 +20,19 @@ The script re-imports the project first when a `.gd` file changed, so a new `cla
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
 
+**Speed (223).** The whole suite takes ~4 s. Three settings make it fast:
+- The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
+  `TEST_JOBS=1` runs serially, ~17 s). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
+  the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`, so
+  no two share `user://` and a run never touches the player's settings. Tests must not depend on which other files
+  ran before them in the same process.
+- The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
+  frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
+  frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.
+  A test that checks an animation part-way through should wait frames or game seconds, never wall-clock time.
+- The engine isn't the cost: profiling found a `make_engine` game 0.5 ms to build and a 20-turn bot game on the real
+  data 20 ms. Most of the time left is building and freeing the main scene (~18 ms per UI test).
+
 A test fails when:
 - an assertion fails (`eq`, `check`, `has_msg`);
 - it makes no assertions (empty, or crashed before the first one);
@@ -84,6 +97,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_card_landing.gd` | How a card lands (117): a dealt card settles with no squash but still flies and fades in; since 179 no flight squashes; a rejected card still shakes. CardViews in a plain Control tree, stepped by frames |
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
+| `tests/test_test_runner.gd` | The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes all |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; ratios of `best_time_usec` timings (test_case.gd), never absolute times |
 | `tests/test_sim.gd` | The simulator on fixtures: `ScriptedBot` policy, `SimStats.run` metrics, `run_files`' loader errors |
 | `tests/test_sim_anarchy.gd` | Sim metrics for Anarchy, governments and famine (158): the metric names, fixture games with known counts, the `revolted` / `order_restored` signals (the real-data parallel run: `tests/balance/test_sim_anarchy_report.gd`) |
