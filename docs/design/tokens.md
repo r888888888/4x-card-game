@@ -36,20 +36,21 @@ A colour must follow a Day mode switch. How depends on where it is set:
 | `sheet` | `RAISED`, `TILE` |
 | `well` | `FIELD` (also a selectable list's `ListWell`), `PANEL`, `CONTROL_DISABLED`, `STRIP_BG` |
 | `steel` | `CONTROL` |
-| `ink` | `TEXT`, `EDGE`, `STRIP_TEXT`, `AVAILABLE` |
+| `ink` | `TEXT`, `EDGE`, `STRIP_TEXT` |
 | `ink-2` | `TEXT_DIM`, `PILES` |
-| `ink-3` | `TEXT_DISABLED`, `FUTURE` |
-| `rule` | `CONTROL_BORDER`, `LOCKED` |
+| `ink-3` | `TEXT_DISABLED` |
+| `rule` | `CONTROL_BORDER` |
 | `rule-fine` | `HAIRLINE` (a fine rule within a sheet, 217); `CONTROL_DISABLED_BORDER` (Day only; Night uses its own `4a463f`) |
 | `shadow` | `SHADOW` |
 | `signal` / `on-signal` | `ACCENT` (End turn, and a selectable list's index tab) / `TEXT_ON_ACCENT` |
 | `positive` | `GAIN` |
 | `danger` | `COST`, `WARN`, `UNREST` |
 | `info` | `INSIGHT` |
-| `focus` | `FOCUS`; in Day also `POP`, `RESEARCHED` |
+| `focus` | `FOCUS`; in Day also `POP` |
 | `caution` (Night) / `glyph-ochre` (Day) | `WEALTH` |
-| `plane.*` (card types) | `ACTION` blue, `BUILDING` olive, `CITY` ochre, `TERRITORY` sage, `TECH` teal, `EVENT` brick |
-| no guide token | `LOG_TEXT`, `DIM_*`, `FRONTIER_HATCH`, see-through layers (`DIMMER`, `SCRIM`, `OUTLINE`, `FAINT_EDGE`, `GHOST_*`, `DROP_BG`, `HINT_BG`) |
+| `plane.*` (card types) | `ACTION` blue, `BUILDING` olive, `CITY` ochre, `TERRITORY` sage, `TECH` teal, `EVENT` brick; `RESEARCHED_FILL` (a researched tech tile, 222) teal |
+| `on-plane` | `TEXT_ON_PLANE` (text on a researched tile) |
+| no guide token | `LOG_TEXT`, `DIM_*`, `FRONTIER_HATCH`, see-through layers (`DIMMER`, the era vellum (`RAISED` at 88%, `EraVellum`), `SCRIM`, `OUTLINE`, `FAINT_EDGE`, `GHOST_*`, `DROP_BG`, `HINT_BG`) |
 
 ## Type (§5.2)
 

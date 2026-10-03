@@ -58,11 +58,7 @@ static var EVENT: Color = NIGHT["EVENT"]
 static var FRONTIER_BG: Color = NIGHT["FRONTIER_BG"]  # barely off the board
 static var FRONTIER_HATCH: Color = NIGHT["FRONTIER_HATCH"]  # its diagonal lines
 
-# Tech tree states.
-static var RESEARCHED: Color = NIGHT["RESEARCHED"]
-static var AVAILABLE: Color = NIGHT["AVAILABLE"]
-static var FUTURE: Color = NIGHT["FUTURE"]
-static var LOCKED: Color = NIGHT["LOCKED"]  # a tech whose prerequisite isn't researched (140)
+# The tech tree (222).
 static var RESEARCHED_FILL: Color = NIGHT["RESEARCHED_FILL"]  # a researched tech's tile: the teal plane (222)
 static var TEXT_ON_PLANE: Color = NIGHT["TEXT_ON_PLANE"]  # text on a filled plane, such as a researched tile (222)
 
@@ -126,10 +122,6 @@ const NIGHT := {
 	"EVENT": Color("e07a63"),
 	"FRONTIER_BG": Color("1f1e1c"),
 	"FRONTIER_HATCH": Color(1, 1, 1, 0.05),
-	"RESEARCHED": Color("5fb0a9"),
-	"AVAILABLE": Color("ede6d6"),
-	"FUTURE": Color("8e877a"),
-	"LOCKED": Color("857d70"),
 	"RESEARCHED_FILL": Color("5fb0a9"),
 	"TEXT_ON_PLANE": Color("1f1e1c"),
 	"DIMMER": Color(0, 0, 0, 0.65),
@@ -189,10 +181,6 @@ const DAY := {
 	"EVENT": Color("c9705c"),
 	"FRONTIER_BG": Color("efe8da"),
 	"FRONTIER_HATCH": Color("22211f1a"),
-	"RESEARCHED": Color("1f6a68"),
-	"AVAILABLE": Color("22211f"),
-	"FUTURE": Color("7a7468"),
-	"LOCKED": Color("6f685c"),
 	"RESEARCHED_FILL": Color("5e9c97"),
 	"TEXT_ON_PLANE": Color("22211f"),
 	"DIMMER": Color("22211f66"),

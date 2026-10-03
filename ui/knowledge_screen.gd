@@ -2,11 +2,11 @@ class_name KnowledgeScreen
 extends VBoxContainer
 ## The Knowledge screen (backlog 208; the tech tree modal of 059 and 140 before it): a navigated screen on the play
 ## area's navigator (the Realm at its root, 101), its header "Realm › Knowledge" with the turn and era at its right.
-## One row per era from GameEngine.tech_eras, top to bottom, headed with its name; an era not reached yet is dimmed and
-## shows its unlock thresholds. Each tech is a tile showing its state with a mark and a word (not colour alone), its
-## cost now, its eureka (✔ when met, 141), its prerequisite and what it gives; clicking one opens its details. An
-## available tech has a Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be
-## learned. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
+## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
+## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
+## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
+## printed with how it opens. A click on an available tile learns it; any other click, a right click or I shows the
+## details. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
 ## back.
 
 const STATE_WORD := {
