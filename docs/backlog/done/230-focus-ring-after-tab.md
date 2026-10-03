@@ -2,7 +2,7 @@
 id: 230
 title: The focus ring waits for Tab
 type: feature
-status: review
+status: done
 branch: feat/230-focus-ring-after-tab
 ---
 
