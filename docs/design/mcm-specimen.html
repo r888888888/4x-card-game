@@ -32,7 +32,9 @@
 	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
 	--g-ochre: #A07514;  /* glyph-only gold: 3.8:1 on sheet, enough for an icon, not for text */
 	--l-teal: #1F6A68; --l-ochre: #7C5810; --l-olive: #56602E; --l-blue: #35597C; --l-brick: #9B3424; --l-sage: #4E6B47;
+	--p-plum: #B07D9C; --p-indigo: #8F88B8;  /* civilization and government cards (231): no guide hue, apart from the six */
 	--on-plane: #22211F; --scrim: rgba(34, 33, 31, 0.4); --vellum: rgba(248, 244, 236, 0.88);
+	--dim-bg: #E8E1D3; --dim-border: #B9AF9C; --hatch: rgba(34, 33, 31, 0.1);
 }
 :root[data-theme="night"] {
 	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
@@ -42,7 +44,9 @@
 	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
 	--g-ochre: #D9A441;
 	--l-teal: #5FB0A9; --l-ochre: #D9A441; --l-olive: #A9B26C; --l-blue: #86A9CC; --l-brick: #E07A63; --l-sage: #93B585;
+	--p-plum: #C48FAF; --p-indigo: #A39BCB;
 	--on-plane: #1F1E1C; --scrim: rgba(0, 0, 0, 0.6); --vellum: rgba(42, 40, 37, 0.88);
+	--dim-bg: #232220; --dim-border: #5A554D; --hatch: rgba(255, 255, 255, 0.05);
 }
 /* Reduce motion (§9.5): moves become instant; fades stay at 120 ms. */
 :root[data-calm="true"] {
@@ -168,60 +172,137 @@ section { margin-bottom: var(--space-7); }
 .toggle.lit .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
 .lkey-state { width: 3.2em; text-align: left; font: 600 13px/1 var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
 
-/* ---- Resource bar: instrument cells with odometers (§11.2, §15.5) ---- */
-.bar { display: flex; flex-wrap: wrap; background: var(--sheet); border: 2px solid var(--ink); }
-.cell { position: relative; min-width: 150px; padding: var(--space-3) var(--space-4); border-right: 1px solid var(--rule-fine); }
-.cell:last-child { border-right: 0; }
-.cell-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.cell .value { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 var(--space-1); }
+/* ---- Resource strip: plate, then glyph, odometer and forecast per counter (§11.2, §15.5; 201, 218, 228) ----
+   The mock's strip (transitions.html .dstrip): a sheet band over a 3 px ink rule. The turn on a plate, then each
+   counter as its glyph, its figure and next upkeep's change as a quieter figure beside it. A change rolls the figure;
+   the roll is the only mark of it (218: no "+N" tag). Unrest's figure turns danger at its limit, and its glyph breathes
+   when the next upkeep would reach it (228). The buttons sit at the right. */
+.dstrip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--sheet); border-bottom: 3px solid var(--ink); }
+.dstrip .stats { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-5); }
+.dstrip .spacer { flex: 1; }
+.dstrip .keys { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.plate { display: inline-flex; align-items: center; padding: 2px var(--space-2); background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums lining-nums; color: var(--ink); white-space: pre; }
+.counter { display: inline-flex; align-items: center; }
+.counter .glyph { margin-right: 6px; }
+.counter.breathe .glyph { animation: breathe 2200ms ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.45; } }  /* never fades out */
+:root[data-calm="true"] .counter.breathe .glyph { animation: none; }
 .glyph { flex: none; }
-.window { display: inline-flex; padding: 2px 0; }  /* no box: the odometer digits clip their reels themselves */
-.odo { display: inline-flex; font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums lining-nums; }
-.digit { display: inline-block; height: 28px; overflow: hidden; width: 0.62em; text-align: center; }
+.odo { display: inline-flex; font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums lining-nums; color: var(--ink); transition: color var(--d-quick) linear; }
+.counter.warn .odo { color: var(--danger); }
+.digit { display: inline-block; height: 28px; overflow: hidden; width: 0.56em; text-align: center; }
 .digit .reel { display: flex; flex-direction: column; transition: transform var(--d-tick) linear; }
 .digit .reel span { height: 28px; }
-.forecast { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
-.forecast.bad { color: var(--danger); }
-.tag {
-	align-self: flex-start; margin-top: 2px; font: 600 17px/20px var(--f-cond);  /* follows the figure */ font-variant-numeric: tabular-nums;
-	opacity: 0; transform: translateX(-4px); pointer-events: none;
-}
-.tag.show { opacity: 1; transform: none; transition: opacity var(--d-snap) var(--ease-snap), transform var(--d-snap) var(--ease-snap); }
-.tag.hide { opacity: 0; clip-path: inset(0 100% 0 0); transition: clip-path var(--d-quick) var(--ease-release), opacity 0ms linear var(--d-quick); }
-.tag.gain { color: var(--positive); }
-.tag.loss { color: var(--danger); }
+.fc { margin-left: var(--space-1); font: 600 17px/1 var(--f-cond); font-variant-numeric: tabular-nums; color: var(--ink-2); }
 
-/* ---- Cards: index cards (§6.7, §15.6) ---- */
-.hand { display: flex; gap: var(--space-3); padding-top: 16px; }
+/* ---- The board (§11.1; 201–204, 221): the strip, the Realm and the hand, the civilization rail at the right ----
+   Built at the game's 1920 × 1080 and scaled to fit (zoom), so every size here is the game's own. */
+.desk-fit { border: 2px solid var(--ink); overflow: hidden; }
+.desk { width: 1920px; height: 1080px; display: grid; grid-template-rows: auto 1fr; background: var(--board); font-size: 20px; }
+.dbody { display: grid; grid-template-columns: minmax(0, 1fr) 288px; min-height: 0; }
+.work { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); min-width: 0; }
+.zone-head { display: flex; justify-content: space-between; align-items: baseline; }
+.zone-head .num { font-size: 20px; }
+.realm { display: flex; gap: var(--space-3); padding-top: var(--space-2); }
+.hand-zone { margin-top: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.hand { display: flex; flex-wrap: wrap; gap: var(--space-3); padding: 48px var(--space-5) var(--space-5); }
+.drail { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border-left: 1px solid var(--rule-fine); }
+.drail .rule3 { height: 3px; background: var(--ink); margin-bottom: var(--space-1); }
+.title-link { align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); font: 500 28px/34px var(--f-display); border-bottom: 2px solid transparent; }
+.title-link:hover { border-bottom-color: var(--ink); }
+.caps-link { align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer; font: 600 15px/20px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); border-bottom: 2px solid transparent; }
+.caps-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.drail .foot { margin-top: auto; }
+
+/* ---- Cards: index cards (§6.7, §15.6; 138, 179, 180, 198) ----
+   Name and cost on top, the type band under the name, the type line with its mark, the rules; a card you can't play
+   dims its background and border (never its text) and says why in a strip at its foot. */
+.cards { display: flex; flex-direction: column; gap: var(--space-5); }
+.cards .caps { display: block; margin-bottom: var(--space-1); }
+.card-row { display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-3); align-items: flex-start; padding-top: 16px; }
 .card {
-	position: relative; width: 180px; height: 240px; background: var(--sheet); border: 2px solid var(--ink);
-	display: flex; flex-direction: column; cursor: pointer; text-align: left; padding: 0; color: var(--ink); font: inherit;
+	position: relative; width: 264px; height: 320px; padding: var(--space-3); flex: none;
+	display: flex; flex-direction: column; gap: var(--space-2);
+	background: var(--sheet); border: 2px solid var(--rule); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
 	transform: translateY(0); box-shadow: 0 0 0 var(--shadow);
-	transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined);
+	transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined), border-color var(--d-hover) var(--ease-machined);
 }
-.card:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); }
-.card[aria-pressed="true"] { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border-width: 3px; transition-duration: 140ms; }
+.card:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); border-color: var(--ink); }
+.card[aria-pressed="true"] { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border: 3px solid var(--ink); padding: 11px; transition-duration: 140ms; }
 .card .index-tab { position: absolute; top: -9px; left: 12px; height: 6px; width: 0; background: var(--signal); transition: width var(--d-quick) var(--ease-machined); }
 .card[aria-pressed="true"] .index-tab { width: 24px; }
-.card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
-.card .name { font: 600 17px/20px var(--f-cond); }
-/* Cost: always top-right, one entry per resource paid (food, wealth, insight), each its glyph + figure, grouped by
-   spacing alone (3 px inside an entry, 12 px between). The glyph's shape tells the resource; its hue repeats it.
-   A resource the player is short of prints in danger, underlined. */
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card .name { font: 600 20px/24px var(--f-cond); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Cost: always top-right, one entry per resource paid, each its glyph + figure, grouped by spacing alone (3 px inside
+   an entry, 12 px between). The glyph's shape tells the resource; its hue repeats it. A resource the player is short
+   of prints in danger, underlined. */
 .card .cost { display: inline-flex; flex: none; gap: var(--space-3); }
-.card .cost-item { display: inline-flex; align-items: center; gap: 3px; font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums; }
-.card .cost-item.short { color: var(--danger); text-decoration: underline 2px; text-underline-offset: 3px; }
-.card .band { height: 6px; background: var(--band); display: flex; justify-content: flex-end; }
-.card .type { display: flex; justify-content: space-between; padding: var(--space-1) var(--space-3); border-bottom: 1px solid var(--rule-fine); }
-.card .rules { padding: var(--space-2) var(--space-3); font: 400 15px/21px var(--f-ui); flex: 1; }
-.card .vp { display: flex; align-items: center; gap: 4px; justify-content: flex-end; padding: var(--space-2) var(--space-3); font: 600 17px var(--f-cond); }
-.card.dimmed .band { background: repeating-linear-gradient(-45deg, var(--ink-3) 0 1px, transparent 1px 5px); }
-.card.dimmed { border-color: var(--rule); cursor: not-allowed; }
+.cost-item { display: inline-flex; align-items: center; gap: 3px; font: 500 20px/24px var(--f-cond); font-variant-numeric: tabular-nums; }
+.cost-item.short { color: var(--danger); text-decoration: underline 2px; text-underline-offset: 3px; }
+.card .band { flex: none; height: 5px; background: var(--band); }
+.card .type { display: flex; align-items: center; gap: 6px; font: 400 17px/22px var(--f-ui); color: var(--ink-2); }
+.mark { flex: none; width: 10px; height: 10px; fill: currentColor; }
+.card .rules { flex: 1; font: 400 20px/24px var(--f-ui); }
+.card .rules .glyph { vertical-align: -3px; margin-right: 4px; }
+.card .vp { color: var(--positive); }
+.card .reason { display: flex; gap: 6px; align-items: flex-start; background: var(--well); padding: var(--space-1) var(--space-2); font: 400 17px/21px var(--f-ui); }
+.card .reason .glyph { margin-top: 2px; }
+.card.dimmed { background: var(--dim-bg); border-color: var(--dim-border); cursor: not-allowed; }
+.card.dimmed .band { background: var(--dim-border); }
 .card.dimmed:hover { transform: none; box-shadow: none; }
-.card .reason { margin: 0 var(--space-3) var(--space-3); background: var(--well); padding: var(--space-1) var(--space-2); font: 500 14px/18px var(--f-cond); display: flex; gap: 6px; align-items: center; }
 .card.shake { animation: snap-shake 240ms var(--ease-snap); border-color: var(--danger); }
 @keyframes snap-shake { 0%, 100% { transform: translateX(0); } 33% { transform: translateX(-4px); } 66% { transform: translateX(4px); } }
 :root[data-calm="true"] .card.shake { animation: none; }
+/* A card in the Realm's row (138): one line per field, the rest in its details. */
+.card.realm-card { width: 245px; height: 150px; }
+.card .live { margin-top: auto; display: flex; gap: var(--space-4); font: 400 20px/24px var(--f-ui); color: var(--l-sage); }
+.card .live span { display: inline-flex; align-items: center; gap: 4px; }
+.card .keywords { margin-top: auto; font: 400 17px/22px var(--f-ui); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.frontier { border: 2px dashed var(--rule); background: var(--board) repeating-linear-gradient(-45deg, var(--hatch) 0 1px, transparent 1px 10px); }
+.card .badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 0 var(--space-2); border-radius: 4px; background: var(--band); color: var(--on-plane); font: 500 14px/20px var(--f-cond); white-space: nowrap; }
+.card .badge .mark { width: 9px; height: 9px; }
+/* A supply pile (232): its play cost on the card like a hand card's; its price on a gold tag hanging below it. */
+.pile { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.price-tag { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--g-ochre); color: var(--on-signal); font: 600 20px/24px var(--f-cond); font-variant-numeric: tabular-nums; }
+.price-tag span { display: inline-flex; align-items: center; gap: 3px; }
+.pile .left { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
+
+/* ---- Selectable list (§7.16; 217): an index card pulled out of a well ---- */
+.slist { display: flex; flex-direction: column; width: 260px; padding: var(--space-2) 0; background: var(--well); }
+.lrow {
+	position: relative; padding: var(--space-2) var(--space-4); background: none; border: 0; text-align: left; cursor: pointer;
+	font: 500 20px/24px var(--f-cond); color: var(--ink-2); transform: translateX(0);
+	transition: transform var(--d-quick) var(--ease-machined), color var(--d-hover) var(--ease-machined);
+}
+.lrow:hover { color: var(--ink); }
+.lrow[aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 4px 4px 0 var(--shadow); transform: translateX(8px); }
+.lrow .itab { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--signal); opacity: 0; }
+.lrow[aria-selected="true"] .itab { opacity: 1; }
+.ldetail { flex: 1; min-width: 260px; max-width: 520px; background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-4) var(--space-5); }
+.ldetail h3 { margin: 0 0 var(--space-2); font: 500 28px/34px var(--f-display); }
+.ldetail p { margin: 0; color: var(--ink-2); font-size: 17px; }
+
+/* ---- A screen: the header and the Knowledge sheet (§11.3; 104, 118, 208, 222) ---- */
+.screen { background: var(--sheet); border: 2px solid var(--ink); }
+.shead { padding: 0 var(--space-5); }
+.sbar { height: 4px; background: var(--ink); }
+.crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-3); padding: var(--space-3) 0 var(--space-4); font: 500 28px/34px var(--f-display); }
+.crumb { background: none; border: 0; padding: 0; font: inherit; color: var(--ink-2); cursor: pointer; border-bottom: 2px solid transparent; }
+.crumb:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.crumbs .sep { color: var(--ink-3); }
+.crumbs .caps { margin-left: auto; }
+.sbody { display: flex; flex-direction: column; gap: var(--space-5); padding: 0 var(--space-5) var(--space-5); }
+.era { position: relative; display: grid; grid-template-columns: 112px 1fr; gap: var(--space-3); align-items: start; border-top: 1px solid var(--rule-fine); padding-top: var(--space-3); }
+.tiles { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.tile {
+	width: 192px; height: 96px; padding: var(--space-2) var(--space-3); display: flex; justify-content: space-between; gap: var(--space-2);
+	background: var(--sheet); border: 2px solid var(--ink); color: var(--ink); font: 600 20px/24px var(--f-cond); text-align: left; cursor: pointer;
+}
+.tile .m { flex: none; display: inline-flex; align-items: flex-start; gap: 3px; font: 500 17px/24px var(--f-cond); }
+.tile.done { background: var(--p-teal); color: var(--on-plane); }
+.tile.locked { background: var(--well); border-color: var(--rule); color: var(--ink-3); }
+.tile.locked .m { max-width: 50%; text-align: right; font-size: 14px; line-height: 18px; }
+.era .vel { position: absolute; inset: 1px 0 0 0; display: grid; place-items: center; background: var(--vellum); font: 600 15px/20px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
 
 /* ---- Segmented progress (§15.10) ---- */
 .progress { display: flex; align-items: center; gap: var(--space-3); }
@@ -276,23 +357,25 @@ section { margin-bottom: var(--space-7); }
 .modal .body { padding: var(--space-4) var(--space-5) var(--space-5); font-size: 18px; line-height: 1.45; }
 .modal footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--rule-fine); }
 
-/* ---- End turn (§15.12) ---- */
+/* ---- End turn (§15.12; 203, 221): the desk's biggest key, filling the rail's foot ----
+   The lamp says whether you're ready (sage ready; ochre actions left, counted on the hand's heading; brick the turn
+   can't end, the reason in the caption under it); the turn sits on a plate at its right. */
 .end-turn {
-	display: inline-flex; align-items: center; gap: var(--space-3); width: 240px; height: 64px; padding: 0 var(--space-3) 0 var(--space-4);
+	display: flex; align-items: center; gap: var(--space-3); width: 100%; height: 80px; padding: 0 var(--space-4);
 	background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); border-radius: var(--radius-1);
 	box-shadow: 4px 4px 0 var(--shadow); cursor: pointer; transform: translate(0, 0);
-	font: 600 17px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase;
+	font: 600 20px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase;
 	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), background-color var(--d-hover) var(--ease-machined);
 }
 .end-turn:hover { background: var(--signal-hover); }
 .end-turn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
 .end-turn .label { flex: 1; text-align: left; }
-.end-turn .plate { background: var(--well); color: var(--ink); padding: 4px 8px; font: 500 20px/1 var(--f-mono); letter-spacing: 0; display: inline-flex; }
+.end-turn .plate { letter-spacing: 0; }
 .end-turn.busy { background: var(--steel); color: var(--ink); cursor: progress; }
-.end-turn[aria-disabled="true"] { background: var(--steel); color: var(--ink-2); box-shadow: none; cursor: not-allowed; transform: none; }
+.end-turn[aria-disabled="true"] { background: var(--well); color: var(--ink-2); border-color: var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
 .end-turn .lamp { --lamp: var(--p-sage); --lamp-line: var(--on-signal); }
 .end-turn.busy .lamp, .end-turn[aria-disabled="true"] .lamp { --lamp-line: var(--rule); }
-.caption { font: 400 14px/18px var(--f-ui); color: var(--ink-2); margin-top: var(--space-2); min-height: 18px; }
+.caption { font: 400 17px/22px var(--f-ui); color: var(--ink-2); margin-top: var(--space-2); min-height: 22px; }
 
 /* split-flap: each character flips through intermediate glyphs */
 .flap { display: inline-block; width: 0.62em; text-align: center; }
@@ -338,8 +421,7 @@ section { margin-bottom: var(--space-7); }
 	.type-row { grid-template-columns: 1fr; gap: 0; }
 	.t-display-xl { font-size: 36px; line-height: 40px; }
 	.t-display { font-size: 28px; line-height: 32px; }
-	.cell { min-width: 50%; border-bottom: 1px solid var(--rule-fine); }
-	.hand { flex-wrap: wrap; }
+	.cards { zoom: 0.62; }
 }
 </style>
 </head>
@@ -362,6 +444,43 @@ section { margin-bottom: var(--space-7); }
 
 <main>
 	<section>
+		<div class="titleblock"><h2>The board</h2><span class="caps">§11.1 · strip, Realm, hand, rail</span></div>
+		<div class="desk-fit" id="desk-fit">
+			<div class="desk" id="desk">
+				<div class="dstrip">
+					<div class="stats" data-stats></div>
+					<span class="spacer"></span>
+					<div class="keys"><button class="btn">Buy Cards</button><button class="btn">Knowledge</button><button class="btn">Log</button><button class="btn">Menu</button></div>
+				</div>
+				<div class="dbody">
+					<div class="work">
+						<span class="caps">Realm</span>
+						<div class="realm" id="realm"></div>
+						<div class="hand-zone">
+							<div class="zone-head"><span class="caps">In hand</span><span class="num" id="actions">2 / 2</span></div>
+							<div class="hand" id="hand"></div>
+						</div>
+					</div>
+					<aside class="drail">
+						<div class="rule3"></div>
+						<span class="caps">Civilization</span>
+						<button class="title-link">Sumer</button>
+						<button class="caps-link">Chiefdom ›</button>
+						<div class="foot">
+							<button class="end-turn" id="end-turn"><span class="lamp on"></span><span class="label">End turn</span><span class="plate" id="turn-plate"></span></button>
+							<div class="caption" id="end-caption"></div>
+						</div>
+					</aside>
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top:var(--space-4); gap:var(--space-3)">
+			<button class="btn" id="cycle-state">Cycle End turn's state</button>
+		</div>
+		<p class="note">The game's own 1920 × 1080 layout, scaled to fit. The strip runs across the top; the Realm's row and the hand share the play area; the rail at the right holds the civilization, its government as a small caps link, and End turn at its foot. Click a card to select it, or press End turn: its plate and the strip's flap to the next turn while the counters roll.</p>
+	</section>
+
+	<section>
 		<div class="titleblock"><h2>Colour</h2><span class="caps">§4 · neutrals, signal, support hues</span></div>
 		<div class="swatches" id="swatches"></div>
 		<p class="note">Flat planes held in a dark frame (the 4 px gaps are the frame). One signal orange per view. Every hue has a glyph and a word; colour is never the only cue.</p>
@@ -379,7 +498,7 @@ section { margin-bottom: var(--space-7); }
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, lamp key</span></div>
+		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4, §7.16 · press, tab rail, lamp key, list</span></div>
 		<div class="row" style="align-items:center">
 			<button class="btn primary">Confirm</button>
 			<button class="btn">Buy cards</button>
@@ -404,28 +523,35 @@ section { margin-bottom: var(--space-7); }
 				<span>Show forecasts</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">OFF</span>
 			</button>
 		</div>
+
+		<div class="row" style="margin-top:var(--space-6); align-items:stretch; gap:var(--space-5)">
+			<div class="slist" role="listbox" id="slist" tabindex="0" aria-label="Civilization"></div>
+			<div class="ldetail" id="ldetail"></div>
+		</div>
+		<p class="note">The selectable list (§7.16): rows rest flat in the well; the selected one is an index card pulled 8 px out on a plinth, with the orange index tab on its leading edge. Focus is not selection: the focus ring and the tab never mean the same thing. Up and Down move the selection.</p>
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Resource bar</h2><span class="caps">§11.2 · odometer, delta tag, lamp</span></div>
-		<div class="bar" id="bar"></div>
-		<div class="row" style="margin-top:var(--space-4)">
+		<div class="titleblock"><h2>Resource strip</h2><span class="caps">§11.2 · plate, odometer, forecast</span></div>
+		<div class="dstrip" style="border:2px solid var(--ink); border-bottom-width:3px"><div class="stats" data-stats></div></div>
+		<div class="row" style="margin-top:var(--space-4); gap:var(--space-3)">
 			<button class="btn" data-change="food:3">Harvest +3 food</button>
 			<button class="btn" data-change="wealth:-2">Pay 2 wealth</button>
 			<button class="btn" data-change="insight:12">Library +12 insight</button>
 			<button class="btn" data-change="unrest:1">Unrest +1</button>
+			<button class="btn" data-change="unrest:-1">Unrest −1</button>
 		</div>
-		<p class="note">Each changed digit column rolls in 60 ms steps (up for gain, down for loss, at most 8 steps), ticking as each digit lands; the last step registers instead, with the lamp. The tag snaps in, holds 600 ms and wipes out, silently. The lamp pulses once; at a limit it stays lit and the caption says so.</p>
+		<p class="note">Each changed digit column rolls in 60 ms steps (up for gain, down for loss, at most 8 steps), ticking as each digit lands; the last step registers instead. The roll is the only mark of a change: no tag beside the figure, so nothing after it moves. The quiet figure beside each is next upkeep's change. Unrest's limit is in its tooltip, not the strip: its glyph breathes when the next upkeep would reach it, and its figure turns danger once it's there.</p>
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Cards</h2><span class="caps">§15.6 · index cards, slide out of the row</span></div>
-		<div class="hand" id="hand"></div>
-		<p class="note">Hover slides a card 4 px up with a plinth shadow, silently; selecting pulls it 12 px out of the row with the orange index tab, which clips on with a barely-there tick. The dimmed card snaps sideways (±4 px) when you try to play it, one low tap per stop.</p>
+		<div class="titleblock"><h2>Cards</h2><span class="caps">§15.6 · hand, Realm, supply, identity</span></div>
+		<div class="cards" id="cards"></div>
+		<p class="note">Hover slides a card 4 px up with a plinth shadow, silently; selecting pulls it 12 px out of the row with the orange index tab, which clips on with a barely-there tick. A card you can't play greys its background, border and band, never its text, says why in a strip at its foot, and snaps sideways (±4 px) when you try to play it, one low tap per stop. In the Realm's row a card shows one line per field: a settled territory its live slots, housing and free workers; a frontier is dashed over hatching, like unmapped land, and a badge names what it is.</p>
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Feedback</h2><span class="caps">§15.8–15.10 · tooltip, progress, flags, confirm</span></div>
+		<div class="titleblock"><h2>Feedback</h2><span class="caps">§15.8–15.11 · tooltip, progress, flags, confirm, modal</span></div>
 		<div class="row" style="align-items:center">
 			<span class="tip-host">
 				<button class="btn">Food forecast</button>
@@ -441,21 +567,18 @@ section { margin-bottom: var(--space-7); }
 			<button class="btn" data-flag="info">Notify: event drawn</button>
 			<button class="btn" data-flag="danger">Notify: famine</button>
 			<span class="burst-host"><span class="lamp-wrap"><span class="lamp" id="confirm-lamp"></span><span class="burst" id="burst"></span></span><button class="btn" id="confirm">Learn Pottery</button></span>
+			<button class="btn" id="open-modal">Open a modal</button>
 		</div>
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Turn</h2><span class="caps">§15.11–15.12 · modal sheet, end turn</span></div>
-		<div class="row" style="align-items:flex-start">
-			<div>
-				<button class="end-turn" id="end-turn"><span class="lamp on"></span><span class="label">End turn</span><span class="plate" id="turn-plate"></span></button>
-				<div class="caption" id="end-caption">Ready</div>
-			</div>
-			<div class="row" style="gap:var(--space-3)">
-				<button class="btn" id="cycle-state">Cycle state</button>
-				<button class="btn" id="open-modal">Open a modal</button>
-			</div>
+		<div class="titleblock"><h2>Screens</h2><span class="caps">§11.3 · header, Knowledge sheet</span></div>
+		<div class="screen">
+			<div class="shead"><div class="sbar"></div>
+				<div class="crumbs"><button class="crumb">Realm</button><span class="sep">/</span><span>Knowledge</span><span class="caps">Turn 12 · Ancient era</span></div></div>
+			<div class="sbody" id="eras"></div>
 		</div>
+		<p class="note">A screen you navigate to carries a breadcrumb naming where you are; its parent's title is the link back. On the Knowledge sheet each era is a title block beside its tiles, whose fill says their state: researched in the teal plane, available on the sheet in ink with its cost, locked in the well with what it needs. An era not reached lies under vellum that says when it opens. The motion of every screen is in <a href="transitions.html" style="color:var(--ink)">transitions.html</a>.</p>
 	</section>
 
 	<section>
@@ -767,12 +890,25 @@ const GLYPHS = {
 	unrest: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',  // solid lightning bolt
 	score: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
 	blocked: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',
+	upkeep: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 3v5h-5"/>',  // ⟳: at each upkeep
+	slot: '<rect x="4" y="4" width="16" height="16" rx="3"/>',  // a building slot
+	housing: '<path d="M12 2.5 1.5 11.5h3V21.5h5.5v-6h4v6h5.5V11.5h3z" fill="currentColor" stroke="none"/>',
+	worker: '<path d="M14.5 2.5 21.5 9.5 19 12 16.8 9.8 6.3 20.3a2 2 0 0 1-2.8-2.8L14 7 11.8 4.8z" fill="currentColor" stroke="none"/>',  // a free worker
+};
+// The type marks (solid, drawn small beside the type line and in a badge).
+const MARKS = {
+	action: '<path d="M12 2 22 12 12 22 2 12z"/>', building: '<rect x="4" y="4" width="16" height="16" rx="1.5"/>',
+	city: '<circle cx="12" cy="12" r="8.5"/>', territory: '<path d="M12 3 22 20.5H2z"/>',
+	tech: '<path d="M12 2 14.3 9.7 22 12 14.3 14.3 12 22 9.7 14.3 2 12 9.7 9.7z"/>',
+	event: '<path d="M12 2 14.1 6.8 19.1 4.9 17.2 9.9 22 12 17.2 14.1 19.1 19.1 14.1 17.2 12 22 9.9 17.2 4.9 19.1 6.8 14.1 2 12 6.8 9.9 4.9 4.9 9.9 6.8z"/>',
 };
 const glyph = (name, color, size = 20) => `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" style="color:${color}" aria-hidden="true">${GLYPHS[name]}</svg>`;
 
 // ---- Swatches ----
 const SWATCHES = [["board", "Board"], ["sheet", "Sheet"], ["well", "Well"], ["steel", "Steel"], ["ink", "Ink"], ["ink-2", "Ink 2"],
-	["signal", "Signal"], ["p-teal", "Teal"], ["p-ochre", "Ochre"], ["p-olive", "Olive"], ["p-blue", "Muted blue"], ["p-brick", "Brick"], ["p-sage", "Sage"]];
+	["signal", "Signal · End turn"], ["p-blue", "Muted blue · Action"], ["p-olive", "Olive · Building"], ["p-ochre", "Ochre · City"],
+	["p-sage", "Sage · Territory"], ["p-teal", "Teal · Tech"], ["p-brick", "Brick · Event"], ["p-plum", "Plum · Civilization"],
+	["p-indigo", "Indigo · Government"]];
 document.getElementById("swatches").innerHTML = SWATCHES.map(([v, n]) => `<div class="swatch"><div class="chip" style="background:var(--${v})"></div><span>${n}<br>--${v}</span></div>`).join("");
 
 // ---- Toggles (§15.4): the key latches (70 ms), then its lamp lights and its state word flips ----
@@ -832,53 +968,58 @@ tabs.forEach((t, i) => t.addEventListener("click", () => selectTab(i)));
 document.fonts.ready.then(() => selectTab(0));
 addEventListener("resize", () => selectTab(activeTab));
 
-// ---- Resource bar with odometers (§15.5) ----
+// ---- Resource strip with odometers (§11.2, §15.5; 201, 218, 228) ----
+// Every strip on the page (the board's and the strip section's) shows the same counters; a change rolls them all.
 const RESOURCES = [
-	{ id: "food", caption: "Food", hue: "sage", value: 7, forecast: "+2 next" },
-	{ id: "wealth", caption: "Wealth", hue: "ochre", value: 12, forecast: "+1 next" },
-	{ id: "insight", caption: "Insight", hue: "blue", value: 4, forecast: "+3 next" },
-	{ id: "pop", caption: "Pop", hue: "teal", value: 5, forecast: "of 6 housing" },
-	{ id: "unrest", caption: "Unrest", hue: "brick", value: 2, limit: 4, forecast: "limit 4" },
-	{ id: "score", caption: "Score", hue: "ink", value: 23, forecast: "VP on the tableau" },
+	{ id: "food", hue: "sage", value: 6, forecast: 4, tip: "Beside it: the change at the next upkeep, after pop eats." },
+	{ id: "wealth", hue: "ochre", value: 3, forecast: 1, tip: "Beside it: the change at the next upkeep." },
+	{ id: "insight", hue: "blue", value: 1, forecast: 1, tip: "Pays for techs. Beside it: the change at the next upkeep." },
+	{ id: "unrest", hue: "brick", value: 2, forecast: 1, limit: 5, tip: "Civil unrest. Your government tolerates at most 5: a turn that starts there falls into Anarchy." },
+	{ id: "score", hue: "ink", value: 4, tip: "Score: victory points." },
+	{ id: "pop", hue: "teal", value: 2, tip: "Pop across the realm." },
 ];
-const bar = document.getElementById("bar");
+const hueOf = (h) => (h === "ink" ? "var(--ink)" : `var(--g-${h}, var(--l-${h}))`);
 const DIGITS = 3;
-bar.innerHTML = RESOURCES.map((r) => `
-	<div class="cell" id="cell-${r.id}">
-		<div class="cell-head"><span class="caps">${r.caption}</span><span class="lamp ${r.hue}"></span></div>
-		<div class="value">${glyph(r.id, r.hue === "ink" ? "var(--ink)" : `var(--g-${r.hue}, var(--l-${r.hue}))`, 32)}
-			<span class="window"><span class="odo" aria-label="${r.value}">${Array.from({ length: DIGITS }, () => '<span class="digit"><span class="reel"></span></span>').join("")}</span></span><span class="tag"></span></div>
-		<div class="forecast">${r.forecast}</div>
-	</div>`).join("");
-const reels = {};
-for (const r of RESOURCES) {
-	reels[r.id] = [...document.querySelectorAll(`#cell-${r.id} .reel`)];
-	reels[r.id].forEach((reel) => { reel.innerHTML = "0123456789".split("").map((d) => `<span>${d}</span>`).join(""); });
-	setOdo(r.id, r.value);
-}
+let turn = 12;
+const turnPlate = () => "T " + String(turn).padStart(3, "0");
+document.querySelectorAll("[data-stats]").forEach((stats) => {
+	stats.innerHTML = `<span class="plate" data-turn title="Turn ${turn} of 100">${turnPlate()}</span>` + RESOURCES.map((r) => `
+		<span class="counter" data-res="${r.id}" title="${r.tip}">${glyph(r.id, hueOf(r.hue), 20)}<span class="odo">${Array.from({ length: DIGITS }, () =>
+			'<span class="digit"><span class="reel"></span></span>').join("")}</span>${r.forecast !== undefined ? `<span class="fc"></span>` : ""}</span>`).join("");
+});
+document.querySelectorAll(".counter .reel").forEach((reel) => { reel.innerHTML = "0123456789".split("").map((d) => `<span>${d}</span>`).join(""); });
 function setOdo(id, value) {
 	const s = String(value).padStart(DIGITS, " ");
-	reels[id].forEach((reel, i) => {
-		const ch = s[i];
-		reel.parentElement.style.display = ch === " " ? "none" : "";  // left-aligned: the figure grows rightward from the glyph
-		reel.style.transform = `translateY(${-(ch === " " ? 0 : +ch) * 28}px)`;
+	document.querySelectorAll(`.counter[data-res="${id}"]`).forEach((c) => {
+		c.querySelectorAll(".reel").forEach((reel, i) => {
+			const ch = s[i];
+			reel.parentElement.style.display = ch === " " ? "none" : "";  // left-aligned: the figure grows rightward from the glyph
+			reel.style.transform = `translateY(${-(ch === " " ? 0 : +ch) * 28}px)`;
+		});
+		c.querySelector(".odo").setAttribute("aria-label", value);
 	});
-	document.querySelector(`#cell-${id} .odo`).setAttribute("aria-label", value);
 }
+// The forecast beside the figure; unrest warns at its limit and breathes a turn before it (228).
+function showState(r) {
+	document.querySelectorAll(`.counter[data-res="${r.id}"]`).forEach((c) => {
+		const fc = c.querySelector(".fc");
+		if (fc) fc.textContent = (r.forecast >= 0 ? "+" : "−") + Math.abs(r.forecast);
+		if (r.limit) {
+			c.classList.toggle("warn", r.value >= r.limit);
+			c.classList.toggle("breathe", r.value < r.limit && r.value + r.forecast >= r.limit);
+		}
+	});
+}
+for (const r of RESOURCES) { setOdo(r.id, r.value); showState(r); }
 async function change(id, delta) {
 	const r = RESOURCES.find((x) => x.id === id);
-	const cell = document.getElementById(`cell-${id}`);
-	const tag = cell.querySelector(".tag");
-	const target = Math.max(0, r.limit ? Math.min(r.limit, r.value + delta) : r.value + delta);
-	tag.textContent = (delta > 0 ? "+" : "−") + Math.abs(delta);
-	tag.className = "tag " + (delta > 0 ? "gain" : "loss");
-	void tag.offsetWidth; tag.classList.add("show");
-	await wait(60);
+	const target = Math.max(0, r.value + delta);
 	const step = Math.sign(target - r.value);
 	const steps = Math.abs(target - r.value);
 	let v = steps > 8 ? target - step * 8 : r.value;  // roll only the last 8 steps
 	if (steps > 8) setOdo(id, v);  // the jump is silent
 	let n = 0;
+	r.value = target;
 	while (v !== target) {
 		v += step; setOdo(id, v);
 		// the digit lands at the end of its 60 ms step; each later tick in the run is 1 dB quieter
@@ -886,61 +1027,125 @@ async function change(id, delta) {
 		n++;
 		await wait(70);
 	}
-	if (steps) Sound.play(delta > 0 ? "ui.resource.gain" : "ui.resource.loss");  // registers with the lamp
-	r.value = target;
-	const lamp = cell.querySelector(".lamp");
-	const atLimit = r.limit && r.value >= r.limit;
-	cell.querySelector(".forecast").textContent = atLimit ? "AT LIMIT" : r.forecast;
-	cell.querySelector(".forecast").classList.toggle("bad", !!atLimit);
-	lamp.classList.add("on");
-	await wait(calm() ? 1500 : 300);
-	if (!atLimit) lamp.classList.remove("on");
-	await wait(calm() ? 0 : 300);
-	tag.classList.add("hide");
-	await wait(120);
-	tag.className = "tag";
+	if (steps) Sound.play(delta > 0 ? "ui.resource.gain" : "ui.resource.loss");  // the last step registers
+	showState(r);
 }
 document.querySelectorAll("[data-change]").forEach((b) => b.addEventListener("click", () => {
 	const [id, d] = b.dataset.change.split(":");
 	change(id, +d);
 }));
 
-// ---- Cards ----
+// ---- Cards (§15.6; 138, 179, 180, 232) ----
 const COST_HUE = { food: "sage", wealth: "ochre", insight: "blue" };
+const TYPE = {  // card type -> its plane and its mark (a shape per type, so types tell apart without colour)
+	Action: ["blue", "action"], Building: ["olive", "building"], City: ["ochre", "city"], Territory: ["sage", "territory"],
+	Tech: ["teal", "tech"], Event: ["brick", "event"], Civilization: ["plum", "city"], Government: ["indigo", "building"],
+};
+const mark = (type) => `<svg class="mark" viewBox="0 0 24 24" aria-hidden="true">${MARKS[TYPE[type][1]]}</svg>`;
 function costPlate(c) {
-	const items = Object.entries(c.cost);
-	const label = "Costs " + items.map(([res, n]) => `${n} ${res}`).join(", ");
+	const items = Object.entries(c.cost || {});
+	const label = items.length ? "Costs " + items.map(([res, n]) => `${n} ${res}`).join(", ") : "Free";
 	return `<span class="cost" role="img" aria-label="${label}">${items.map(([res, n]) =>
-		`<span class="cost-item ${c.short === res ? "short" : ""}">${glyph(res, `var(--g-${COST_HUE[res]}, var(--l-${COST_HUE[res]}))`, 20)}${n}</span>`).join("")}</span>`;
+		`<span class="cost-item ${c.short === res ? "short" : ""}">${glyph(res, hueOf(COST_HUE[res]), 20)}${n}</span>`).join("")}</span>`;
 }
-const CARDS = [
-	{ name: "Granary", type: "Building", hue: "olive", cost: { food: 1, wealth: 2 }, rules: "⟳ +1 food. Needs a city with a free slot.", vp: 1 },
-	{ name: "Settlers", type: "Action", hue: "blue", cost: { food: 2 }, rules: "Settle an explored territory: it becomes a city.", vp: 0 },
-	{ name: "Pottery", type: "Tech", hue: "teal", cost: { insight: 4 }, rules: "Granaries cost 1 less wealth.", vp: 2 },
-	{ name: "Monument", type: "Building", hue: "olive", cost: { wealth: 6 }, short: "wealth", rules: "Worth 3 VP. Needs a city.", vp: 3, dimmed: "Not enough wealth" },
-];
-document.getElementById("hand").innerHTML = CARDS.map((c, i) => `
-	<button class="card ${c.dimmed ? "dimmed" : ""}" style="--band:var(--p-${c.hue})" aria-pressed="false" data-i="${i}">
+const rulesHTML = (t, size = 20) => t.replace(/⟳/g, glyph("upkeep", "var(--positive)", size));
+function card(c) {
+	const kind = c.kind || "hand";
+	const band = `--band:var(--p-${TYPE[c.type][0]})`;
+	if (kind === "settled") return `<button class="card realm-card" style="${band}" aria-pressed="false">
+		<span class="index-tab"></span><span class="head"><span class="name">${c.name}</span></span><span class="band"></span>
+		<span class="live">${c.live.map(([g, t]) => `<span>${glyph(g, "currentColor", 18)}${t}</span>`).join("")}</span></button>`;
+	if (kind === "frontier" || kind === "event") return `<button class="card realm-card ${kind === "frontier" ? "frontier" : ""}" style="${band}" aria-pressed="false">
+		<span class="index-tab"></span><span class="badge">${mark(c.type)} ${c.badge}</span>
+		<span class="head"><span class="name">${c.name}</span></span><span class="keywords">${rulesHTML(c.line, 17)}</span></button>`;
+	return `<button class="card ${c.dimmed ? "dimmed" : ""}" style="${band}" aria-pressed="false">
 		<span class="index-tab"></span>
 		<span class="head"><span class="name">${c.name}</span>${costPlate(c)}</span>
 		<span class="band"></span>
-		<span class="type"><span class="caps">${c.type}</span></span>
-		<span class="rules">${c.rules}</span>
-		${c.dimmed ? `<span class="reason">${glyph("blocked", "var(--ink)")}${c.dimmed}</span>` : ""}
-		<span class="vp">${glyph("score", "var(--ink)")}${c.vp}</span>
-	</button>`).join("");
-document.querySelectorAll(".card").forEach((card) => card.addEventListener("click", () => {
-	if (card.classList.contains("dimmed")) {
+		<span class="type">${mark(c.type)}${c.type}${c.tags ? " · " + c.tags : ""}</span>
+		<span class="rules">${rulesHTML(c.rules)}${c.vp ? `<br><span class="vp">${c.vp} VP</span>` : ""}</span>
+		${c.dimmed ? `<span class="reason">${glyph("blocked", "var(--ink)", 18)}${c.dimmed}</span>` : ""}</button>`;
+}
+const HAND = [
+	{ name: "Barter", type: "Action", cost: { food: 2 }, rules: "+2 wealth<br>+1 action" },
+	{ name: "Settler", type: "Action", tags: "expand", cost: { food: 5 }, rules: "Settle: City<br>+1 unrest", dimmed: "No discovered territory to settle." },
+	{ name: "Lumber Camp", type: "Building", cost: { food: 1, wealth: 2 }, rules: "Needs Forest<br>⟳ +1 food", vp: 1, dimmed: "Lumber Camp needs a territory with Forest." },
+	{ name: "Scout", type: "Action", tags: "explore", rules: "Explore 2<br>Draw 1 card<br>+1 action" },
+	{ name: "Research", type: "Action", rules: "+3 insight" },
+];
+const REALM = [
+	{ kind: "settled", name: "Delta Marsh", type: "Territory", live: [["slot", "3"], ["housing", "2/7"], ["worker", "1"]] },
+	{ kind: "event", name: "Good Harvest", type: "Event", badge: "Event · 2 turns", line: "⟳ +1 food" },
+	{ kind: "frontier", name: "River Plain", type: "Territory", badge: "Frontier · unsettled", line: "Grassland · Fresh Water" },
+];
+const SHOWN = [
+	{ name: "Granary", type: "Building", cost: { food: 1, wealth: 2 }, rules: "Needs a city with a free slot<br>⟳ +1 food", vp: 1 },
+	{ name: "Pottery", type: "Tech", cost: { insight: 4 }, rules: "Granaries cost 1 less wealth" },
+	{ name: "Monument", type: "Building", cost: { wealth: 6 }, short: "wealth", rules: "Needs a city", vp: 3, dimmed: "Not enough wealth." },
+	{ name: "Sumer", type: "Civilization", rules: "Cities start with 1 more housing" },
+	{ name: "Chiefdom", type: "Government", rules: "2 actions a turn<br>Unrest limit 5" },
+];
+document.getElementById("hand").innerHTML = HAND.map(card).join("");
+document.getElementById("realm").innerHTML = REALM.map(card).join("");
+const group = (title, html) => `<div><span class="caps">${title}</span><div class="card-row">${html}</div></div>`;
+document.getElementById("cards").innerHTML =
+	group("In hand · playable, short of wealth, a tech", SHOWN.slice(0, 3).map(card).join("")) +
+	group("In the Realm · settled, an event, a frontier", REALM.map(card).join("")) +
+	group("Supply pile · price tag", `<div class="pile">${card({ name: "Farm", type: "Building", cost: { wealth: 1 }, rules: "⟳ +1 food" })}
+		<span class="price-tag">Buy <span>${glyph("wealth", "var(--on-signal)", 20)}3</span></span><span class="left">6 left</span></div>`) +
+	group("Identity · laid side by side in the civilization modal", SHOWN.slice(3).map(card).join(""));
+document.querySelectorAll(".card").forEach((el) => el.addEventListener("click", () => {
+	if (el.classList.contains("dimmed")) {
 		Sound.play("ui.reject", { at: contactMs(80, "snap"), input: true });  // one tap at each lateral stop
-		card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
-		setTimeout(() => card.classList.remove("shake"), 4000);
+		el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+		setTimeout(() => el.classList.remove("shake"), 400);
 		return;
 	}
-	const on = card.getAttribute("aria-pressed") !== "true";
-	document.querySelectorAll(".card").forEach((c) => c.setAttribute("aria-pressed", "false"));
-	card.setAttribute("aria-pressed", on);
+	const on = el.getAttribute("aria-pressed") !== "true";
+	el.parentElement.closest(".card-row, .hand, .realm").querySelectorAll(".card").forEach((c) => c.setAttribute("aria-pressed", "false"));
+	el.setAttribute("aria-pressed", on);
 	if (on) Sound.play("ui.selection", { at: contactMs(120, "machined"), input: true });  // the index tab clips on; deselect is silent
 }));
+
+// ---- The board, scaled to fit ----
+const deskFit = document.getElementById("desk-fit"), desk = document.getElementById("desk");
+function fitDesk() { const k = deskFit.clientWidth / 1920; desk.style.zoom = k; deskFit.style.height = 1080 * k + 4 + "px"; }
+fitDesk();
+addEventListener("resize", fitDesk);
+
+// ---- Selectable list (§7.16; 217) ----
+const CIVS = [
+	["Sumer", "Cities start with 1 more housing. The first civilization to write."],
+	["Egypt", "Wonders cost 3 less wealth. The Nile feeds the realm."],
+	["Greece", "Techs cost 1 less insight. Philosophy opens early."],
+	["Rome", "Settlers cost 1 less food. Roads tie the realm together."],
+];
+const slist = document.getElementById("slist"), ldetail = document.getElementById("ldetail");
+slist.innerHTML = CIVS.map(([n], i) => `<button class="lrow" role="option" tabindex="-1" aria-selected="${i === 0}" data-i="${i}"><span class="itab"></span>${n}</button>`).join("");
+let civ = 0;
+function pickCiv(i, sound = true) {
+	civ = (i + CIVS.length) % CIVS.length;
+	slist.querySelectorAll(".lrow").forEach((r, j) => r.setAttribute("aria-selected", j === civ));
+	ldetail.innerHTML = `<span class="caps">Civilization</span><h3>${CIVS[civ][0]}</h3><p>${CIVS[civ][1]}</p>`;
+	if (sound) Sound.play("ui.selection", { at: contactMs(120, "machined"), input: true });
+}
+pickCiv(0, false);
+slist.addEventListener("click", (e) => { const r = e.target.closest(".lrow"); if (r) pickCiv(+r.dataset.i); });
+slist.addEventListener("keydown", (e) => {
+	if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); pickCiv(civ + (e.key === "ArrowDown" ? 1 : -1)); }
+});
+
+// ---- Knowledge sheet (§11.3; 222) ----
+const ERAS = [
+	["Ancient", [["Pottery", "done"], ["Writing", "done"], ["Bronze Working", 4], ["Masonry", 3]]],
+	["Classical", [["Philosophy", 6], ["Currency", "needs Bronze Working"], ["Mathematics", "needs Masonry"]]],
+	["Medieval", [["Feudalism"], ["Theology"]], "Medieval · opens at 8 pop or 15 wealth"],
+];
+document.getElementById("eras").innerHTML = ERAS.map(([era, techs, vellum]) => `<div class="era"><span class="caps">${era}</span><div class="tiles">${techs.map(([n, m]) => {
+	const cls = m === "done" ? "done" : typeof m === "string" ? "locked" : "";
+	const marker = m === "done" ? "✓" : typeof m === "number" ? `${glyph("insight", hueOf("blue"), 18)}${m}` : m || "";
+	return `<button class="tile ${cls}"><span>${n}</span><span class="m">${marker}</span></button>`;
+}).join("")}</div>${vellum ? `<div class="vel">${vellum}</div>` : ""}</div>`).join("");
 
 // ---- Segmented progress (§15.10) ----
 const segs = document.getElementById("segments");
@@ -986,26 +1191,27 @@ document.getElementById("confirm").addEventListener("click", async () => {
 	burst.classList.remove("go"); void burst.offsetWidth; burst.classList.add("go");
 });
 
-// ---- End turn (§15.12) ----
+// ---- End turn (§15.12; 203, 221) ----
 const endBtn = document.getElementById("end-turn");
 const plate = document.getElementById("turn-plate");
 const endCaption = document.getElementById("end-caption");
 const endLamp = endBtn.querySelector(".lamp");
-let turn = 12;
 plate.textContent = String(turn).padStart(3, "0");
 const STATES = [
-	{ caption: "Ready", lamp: "", disabled: false },
-	{ caption: "2 actions left", lamp: "ochre", disabled: false },
-	{ caption: "Choose a government first", lamp: "brick", disabled: true },
+	{ caption: "", lamp: "", disabled: false, actions: "0 / 2" },
+	{ caption: "", lamp: "ochre", disabled: false, actions: "2 / 2" },  // actions left: counted on the hand's heading
+	{ caption: "Choose a government first.", lamp: "brick", disabled: true, actions: "2 / 2" },
 ];
-let state = 0;
-function showState() {
+let state = 1;
+function showTurnState() {
 	const s = STATES[state];
 	endCaption.textContent = s.caption;
 	endLamp.className = "lamp on " + s.lamp;
 	endBtn.setAttribute("aria-disabled", s.disabled);
+	document.getElementById("actions").textContent = s.actions;
 }
-document.getElementById("cycle-state").addEventListener("click", () => { state = (state + 1) % STATES.length; showState(); });
+showTurnState();
+document.getElementById("cycle-state").addEventListener("click", () => { state = (state + 1) % STATES.length; showTurnState(); });
 endBtn.addEventListener("click", async () => {
 	if (endBtn.classList.contains("busy") || endBtn.getAttribute("aria-disabled") === "true") return;
 	// COMMIT: the relay latches as the key gets home and the lamp goes out (≈ 65 ms after release)
@@ -1015,14 +1221,13 @@ endBtn.addEventListener("click", async () => {
 	endBtn.classList.add("busy");
 	endBtn.querySelector(".label").textContent = "Upkeep…";
 	turn += 1;
-	Sound.play("ui.endturn.turn");  // the drum advances; the plate's flutter rides on it
-	await flapText(plate, String(turn).padStart(3, "0"), true);
-	const deltas = [["food", 2], ["wealth", 1], ["insight", 3]];
-	for (const [id, d] of deltas) { change(id, d); await wait(60); }
-	await wait(400);
+	Sound.play("ui.endturn.turn");  // the drum advances; the plates' flutter rides on it
+	await Promise.all([flapText(plate, String(turn).padStart(3, "0"), true),
+		...[...document.querySelectorAll("[data-turn]")].map((p) => flapText(p, turnPlate(), true))]);
+	for (const r of RESOURCES) if (r.forecast) { await change(r.id, r.forecast); }  // one after another, left to right
 	endBtn.classList.remove("busy");
 	endBtn.querySelector(".label").textContent = "End turn";
-	state = 0; showState();
+	state = 1; showTurnState();
 });
 
 // ---- Modal (§15.11) ----
@@ -1088,7 +1293,7 @@ document.getElementById("rep-upkeep").addEventListener("click", () => schedule(2
 	for (const [id, d, i] of [["food", 2, 0], ["wealth", 1, 1], ["insight", 3, 2], ["unrest", -1, 3]]) setTimeout(() => change(id, d), i * 60);
 }));
 document.getElementById("rep-select").addEventListener("click", () => {
-	const playable = [...document.querySelectorAll(".card:not(.dimmed)")];
+	const playable = [...document.querySelectorAll("#hand .card:not(.dimmed)")];
 	schedule(40, 400, (i) => playable[i % playable.length].click());
 });
 document.getElementById("rep-stop").addEventListener("click", stopReps);
