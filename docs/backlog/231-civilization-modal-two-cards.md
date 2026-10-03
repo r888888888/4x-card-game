@@ -2,7 +2,7 @@
 id: 231
 title: Show the civilization modal as two cards on the desk
 type: feature
-status: in-progress
+status: review
 branch: feat/231-civilization-modal-two-cards
 ---
 
@@ -15,28 +15,28 @@ them, the government deck is a row of small tabs. The player can see at a glance
 government allows, how close the realm is to its unrest limit, and what they could switch to.
 
 ## Acceptance criteria
-- [ ] AC1 (engine): Given unrest is on, the government in play is Chiefdom (unrest limit 5) and unrest is 2, when
+- [x] AC1 (engine): Given unrest is on, the government in play is Chiefdom (unrest limit 5) and unrest is 2, when
   `card_details(uid)` is asked about the government, then its `state` holds `"Unrest 2 / 5"`. With unrest at 5 (at
   Chiefdom's limit), it reads `"Unrest 5 / 5"`. With a modifier that adds 1 to the limit, it reads
   `"Unrest 2 / 6"`: it uses `unrest_limit()`.
-- [ ] AC2 (engine): Given a government with no unrest limit (Anarchy: `unrest_limit()` < 0), or a game with unrest
+- [x] AC2 (engine): Given a government with no unrest limit (Anarchy: `unrest_limit()` < 0), or a game with unrest
   off, when `card_details` is asked about the government, then `state` has no `Unrest` line. `def_details` of any
   government never has one, since it has no live state.
-- [ ] AC3: Given the modal is open on a Sumer game (seed 5, Chiefdom), then the body holds two card panels side by side,
+- [x] AC3: Given the modal is open on a Sumer game (seed 5, Chiefdom), then the body holds two card panels side by side,
   the civilization's on the left and the government's on the right, at the same height. Each shows, top to bottom:
   the name, a type band, the type line ("Civilization" / "Government"), every rule line, any `state` line from
   `card_details`, and the full flavor at the foot when the card has one. `shown()` is still
   `[civ name, government name]`. The quote is not on either card. The government card ends with Revolt…, which keeps
   its enabled state and tooltip from `revolt_error` (205).
-- [ ] AC4: Given the modal is open, when the player clicks the civilization card or the government card, then the card
+- [x] AC4: Given the modal is open, when the player clicks the civilization card or the government card, then the card
   details modal opens on top (depth 2). It shows that card's `card_details` (its quote, its state and its terms), and
   closing it leaves the civilization modal open. A click on Revolt… still opens the revolution confirmation, not the
   details.
-- [ ] AC5: Given the government deck holds Kings (the `test_government_deck` fixture), then under the two cards there is
+- [x] AC5: Given the government deck holds Kings (the `test_government_deck` fixture), then under the two cards there is
   a "Government deck" caption followed by one tab per card, in deck order, each showing the card's name. A click on
   the Kings tab opens Kings's details on top. Given an empty deck, then the caption reads "Government deck" with
   "empty" beside it and there are no tabs.
-- [ ] AC6: Given Palette's Night and Day sets, then each holds a `CIVILIZATION` and a `GOVERNMENT` colour, and
+- [x] AC6: Given Palette's Night and Day sets, then each holds a `CIVILIZATION` and a `GOVERNMENT` colour, and
   `CardView.type_color` returns them for `CardDef.CIVILIZATION` and `CardDef.GOVERNMENT`. The modal's bands use these
   colours and follow a Day mode switch while the modal is open.
 
@@ -81,15 +81,30 @@ government allows, how close the realm is to its unrest limit, and what they cou
 | AC6 | `test_identity_cards::test_civilization_and_government_have_their_own_band_colours`, `test_identity_cards::test_the_bands_follow_day_mode_while_open` |
 
 ## Manual check
-- [ ] Open the modal on a Sumer game in Night and in Day: the cards read as cards (band, name, rules, flavor at the
-  foot), side by side and level, and no word repeats needlessly.
-- [ ] Revolt into Anarchy, then open the modal: Anarchy's long text fits, both cards stay level, and the body scrolls
-  if needed.
-- [ ] The band colours for civilization and government are distinct from each other and from the six card planes.
-- [ ] Clicking a card or a deck tab opens details on top, offset +8,+8, and Esc closes only the details.
+- [ ] `godot --path . -- --civ sumer --seed 5`, then click "Sumer" in the sidebar. The two cards sit side by side and
+  level: name, plum (Sumer) / indigo (Chiefdom) band, type, rules, "Unrest 0 / 5" on Chiefdom, Sumer's flavor in
+  italics at its foot, Revolt… at the foot of Chiefdom. "Civilization" appears only as the title and Sumer's type.
+- [ ] Hover a card: an ink rule and a hard 4,4 shadow. Click it: its details open on top, offset +8,+8, with the quote;
+  Esc closes only the details.
+- [ ] Settings → Day mode with the modal open: the bands, cards and tab switch to Day colours.
+- [ ] Play until a government card (Kingship) joins the deck, or revolt and let Anarchy end: the "Government deck" row
+  shows a tab per card, and a click opens its details. With an empty deck it reads "GOVERNMENT DECK empty".
+- [ ] Revolt into Anarchy, then open the modal: Anarchy's long rule wraps on its card, both cards stay level, and the
+  modal fits the 1080 px screen.
+- [ ] The plum and indigo bands are distinct from each other and from the six card colours, in Night and Day.
 
 ## Log
 <!-- Decisions and surprises during implementation, newest last. -->
 - 2026-10-02: Chosen from five options in `docs/design/civilization-modal-options.html` (A ledger, B two cards,
   C charter, D index tabs, E control panel). Answers: new palette roles for both bands; full flavor at the foot and
   the quote only in details; live unrest as a `state` line from the engine; deck tabs open details.
+- 2026-10-02: Built in worktree `../4x-231`. The cards are Buttons (IdentityCard) holding a margin and column whose
+  minimum size the button copies, so a click anywhere on a card opens its details and Revolt…, a child, still takes
+  its own clicks. `CardDetailsModal.open_card(card)` opens a live card's details; the modal asks for them with
+  `details_requested(card)`. New theme looks: `IdentityCard`, `Flavor`, `DeckTab`.
+- 2026-10-02: `test_modal_stack`'s "click on the lower modal beside the top one" (153) no longer had a spot to click:
+  the civilization modal is now smaller than card details and sits wholly under them. With the user's OK the pair is
+  swapped (details below, civilization modal on top), same assertions:
+  `test_a_click_on_the_details_beside_the_civilization_modal_closes_only_the_civilization_modal`.
+- 2026-10-02: The colours, plum `c48faf` / `b07d9c` and indigo `a39bcb` / `8f88b8` (Night / Day), aren't from the
+  guide's six hues. They're for the manual check to confirm; §4.3 of the style guide doesn't list them yet.

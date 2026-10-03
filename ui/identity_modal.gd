@@ -179,6 +179,7 @@ func _add_card(card: CardInstance, details: Dictionary) -> VBoxContainer:
 		column.add_child(_line("No bonus.", &"BodySmall"))
 	var foot := Control.new()  # pushes the flavor (and Revolt…) to the card's foot
 	foot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	foot.custom_minimum_size.y = Tokens.SPACE_2  # at least a step between the rules and the flavor
 	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(foot)
 	if details.flavor != "":
