@@ -2,7 +2,7 @@
 id: 228
 title: Unrest limit moves to the tooltip; the glyph breathes when Anarchy is a turn away
 type: feature
-status: in-progress
+status: review
 branch: feat/228-unrest-limit-in-tooltip
 ---
 
@@ -13,19 +13,19 @@ glyph breathes when the next upkeep would bring unrest to the limit, the point w
 Anarchy unless you calm it first.
 
 ## Acceptance criteria
-- [ ] AC1: Given unrest on, a government with limit 5 and unrest 2, when the top bar refreshes, then the Unrest
+- [x] AC1: Given unrest on, a government with limit 5 and unrest 2, when the top bar refreshes, then the Unrest
   counter's text is "2" (no " / 5"), and its tooltip contains "5".
-- [ ] AC2: Given unrest on and a government with no limit (council), when the top bar refreshes, then the counter's
+- [x] AC2: Given unrest on and a government with no limit (council), when the top bar refreshes, then the counter's
   text is "2" and its tooltip says the government sets no limit (unchanged from today).
-- [ ] AC3: Engine query `anarchy_ahead() -> bool`: true when the government has a limit L ≥ 0 and
+- [x] AC3: Engine query `anarchy_ahead() -> bool`: true when the government has a limit L ≥ 0 and
   unrest + the next upkeep's unrest change (`upkeep_forecast()[UNREST]`, 0 if absent) ≥ L; else false. Cases:
   limit 5, unrest 4, forecast +1 → true; unrest 3, forecast +1 → false; unrest 5, forecast 0 → true;
   unrest 5, forecast −1 → false; no limit → false; unrest off → false; under Anarchy → false.
-- [ ] AC4: Given `anarchy_ahead()` true, when the top bar refreshes, then the Unrest glyph is breathing (a looping
+- [x] AC4: Given `anarchy_ahead()` true, when the top bar refreshes, then the Unrest glyph is breathing (a looping
   opacity tween on the glyph); given false, it is not breathing and the glyph is at full opacity.
-- [ ] AC5: Given `anarchy_ahead()` true and Reduce motion on, when the top bar refreshes, then the glyph doesn't
+- [x] AC5: Given `anarchy_ahead()` true and Reduce motion on, when the top bar refreshes, then the glyph doesn't
   breathe and stays at full opacity; turning Reduce motion off while it's still true starts the breathing.
-- [ ] AC6: The figure still turns `Palette.WARN` at the limit (unrest ≥ limit) and is ink below it (unchanged).
+- [x] AC6: The figure still turns `Palette.WARN` at the limit (unrest ≥ limit) and is ink below it (unchanged).
 
 ## Out of scope
 - Other near-limit cues from the brainstorm (forecast tint, caution colour, hairline gauge).
@@ -54,6 +54,9 @@ Anarchy unless you calm it first.
 | AC6 | `test_unrest::test_the_top_bar_shows_unrest_alone_with_the_limit_in_its_tooltip_and_rolls_its_change_with_no_tag` (unchanged colour asserts) |
 
 ## Manual check
+Start a game with unrest on (`godot --path .`), and raise unrest until the next upkeep's "+N" beside it would carry it
+to your government's limit.
+- [ ] The counter shows just the figure; hovering it names the limit, and once Anarchy is a turn away a line says so.
 - [ ] The breathing reads as subtle: slow (around 2 s a cycle), never fully fading, not distracting over several turns.
 - [ ] With Reduce motion on, the glyph is still.
 - [ ] Hovering the counter shows the limit.
@@ -62,3 +65,7 @@ Anarchy unless you calm it first.
 - Brainstorm of near-limit cues offered: forecast tint, caution colour one step below, breathing glyph, hairline
   gauge (also mentioned: tick sound pitch, End Turn lamp flicker). The user chose the breathing glyph, and "near" as
   "the next upkeep reaches the limit".
+- Built: `GameEngine.anarchy_ahead()`; `Counter.set_breathing()`, `breathing()`, `glyph()`; `Anim.BREATH_TIME` (2.2 s)
+  and `BREATH_ALPHA` (0.45). The counter follows Reduce motion itself through `Settings.changed`.
+- Refactor: nothing passed words after a counter's figure any more, so `Counter`'s suffix label and
+  `show_value`'s `suffix` argument are gone.

@@ -1,7 +1,6 @@
 class_name Counter
 extends HBoxContainer
-## One counter (181): an optional glyph (180) or word, its figure as an Odometer, any words after it (" / 5"), then the
-## next upkeep's change as a quieter figure of its own ("+1", 201). A change rolls the figure; the roll is the only mark
+## One counter (181): an optional glyph (180) or word, its figure as an Odometer, then the next upkeep's change as a quieter figure of its own ("+1", 201). A change rolls the figure; the roll is the only mark
 ## of it (218: a "+N" tag beside the figure pushed the counters after it along, then back). The glyph can breathe, a
 ## slow fade and back, held still with Reduce motion (228).
 
@@ -9,7 +8,6 @@ const GLYPH_GAP := 6  # px between the glyph and the figure
 
 var _prefix: Label  # "Wealth: " on the Supply screen; empty in the top bar, where the glyph names it
 var _figure: Odometer
-var _suffix: Label  # words after the figure: the unrest limit, " / 5"
 var _forecast: Label  # next upkeep's change, "+1", in the Forecast look; hidden with none (201)
 var _glyph: TextureRect  # null without one
 var _breathe := false  # whether the owner wants the glyph breathing (228)
@@ -35,9 +33,8 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	_prefix.text = prefix
 	_prefix.visible = prefix != ""
 	_figure = Odometer.new(variation)
-	_figure.widened.connect(_sort_now)  # the words after it follow the figure as it widens mid-roll
+	_figure.widened.connect(_sort_now)  # the forecast after it follows the figure as it widens mid-roll
 	add_child(_figure)
-	_suffix = _text(variation)
 	_forecast = _text(&"Forecast")
 	_forecast.name = "Forecast"
 	var apart := StyleBoxEmpty.new()
@@ -72,9 +69,9 @@ func figure() -> Odometer:
 	return _figure
 
 
-## The whole reading but the forecast: the word, the figure's value and the words after it ("3", "2 / 5", "Wealth: 10").
+## The whole reading but the forecast: the word and the figure's value ("3", "Wealth: 10").
 func text() -> String:
-	return _prefix.text + str(_figure.value) + _suffix.text
+	return _prefix.text + str(_figure.value)
 
 
 ## The forecast shown ("+1"), or "" for none (201).
@@ -88,10 +85,9 @@ func set_forecast(text_: String) -> void:
 	_forecast.visible = text_ != ""
 
 
-## Shows v and suffix: at once when fresh (a new game, an opened screen), else rolling the figure after delay, sounding
+## Shows v: at once when fresh (a new game, an opened screen), else rolling the figure after delay, sounding
 ## its steps if sound (188). Returns the change from the value it was heading to (0 when fresh).
-func show_value(v: int, suffix: String, fresh: bool, delay := 0.0, sound := true) -> int:
-	_suffix.text = suffix
+func show_value(v: int, fresh: bool, delay := 0.0, sound := true) -> int:
 	var change := 0 if fresh else v - _figure.value
 	if fresh:
 		_figure.show_now(v)
@@ -103,8 +99,7 @@ func show_value(v: int, suffix: String, fresh: bool, delay := 0.0, sound := true
 ## The figure's and its words' colour (TEXT, WARN at a limit, or a counter's own on a screen).
 func set_color(c: Color) -> void:
 	_figure.color = c
-	for label in [_prefix, _suffix]:
-		label.add_theme_color_override("font_color", c)
+	_prefix.add_theme_color_override("font_color", c)
 
 
 ## Starts or stops the glyph's breath to match what the owner wants and Reduce motion.
@@ -124,7 +119,7 @@ func _apply_breath() -> void:
 		_breath.tween_property(_glyph, "modulate:a", 1.0, Anim.BREATH_TIME / 2).set_trans(Tween.TRANS_SINE)
 
 
-## Lays the row out now rather than next frame, so the words after the figure move with it.
+## Lays the row out now rather than next frame, so the forecast after the figure moves with it.
 func _sort_now() -> void:
 	notification(NOTIFICATION_SORT_CHILDREN)
 
