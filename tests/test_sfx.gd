@@ -79,7 +79,8 @@ func test_levels_and_buses() -> void:
 func test_every_token_has_its_files() -> void:
 	for token: StringName in Sfx.TOKENS:
 		var files: Array = Sfx.files(token)
-		eq(files.size(), {1: 4, 2: 2, 3: 1}[Sfx.level(token)], "%s's variants" % token)
+		var count: int = 4 if token == Sfx.ENDTURN_TURN else {1: 4, 2: 2, 3: 1}[Sfx.level(token)]  # the chord walk (246)
+		eq(files.size(), count, "%s's variants" % token)
 		for path: String in files:
 			var stem := String(token).replace(".", "_")
 			check(path.begins_with("res://assets/sounds/%s/%s" % ["events" if Sfx.level(token) == 3 else "ui", stem]),
@@ -114,6 +115,46 @@ func test_levels_2_and_3_play_their_files_unpitched() -> void:
 		check(is_equal_approx(two.random_volume_offset_db, 0.0), "no volume jitter: %s" % two.random_volume_offset_db)
 	var three: Variant = Sfx.stream(Sfx.MILESTONE_ERA)
 	check(three is AudioStreamWAV and three.resource_path == Sfx.files(Sfx.MILESTONE_ERA)[0], "Level 3: its file")
+
+
+# --- 246: the end-turn chord walk ---
+
+func test_the_end_turn_chord_has_four_files_one_per_chord() -> void:
+	eq(Sfx.files(Sfx.ENDTURN_TURN), ["a", "b", "c", "d"].map(func(v): return "res://assets/sounds/ui/ui_endturn_turn_%s.wav" % v),
+		"D, Bm, G, A")
+	eq(Sfx.files(Sfx.ENDTURN_COMMIT).size(), 2, "the relay keeps two")
+
+
+func test_the_turn_that_ends_picks_its_chord() -> void:
+	eq([1, 2, 3, 4, 5, 8, 9].map(func(t): return (Sfx as Script).call("turn_variant", t)), [0, 1, 2, 3, 0, 3, 0], "(T - 1) mod 4")
+
+
+func test_a_chosen_variant_plays_that_file_and_is_recorded() -> void:
+	var sfx := new_sfx()
+	for v in 4:
+		var s: Variant = (Sfx as Script).call("stream", Sfx.ENDTURN_TURN, v)
+		check(s is AudioStreamWAV and s.resource_path == Sfx.files(Sfx.ENDTURN_TURN)[v], "variant %d: its file: %s" % [v, s])
+	eq(sfx.play(Sfx.ENDTURN_TURN, 0.0, true, 0.0, 2), true, "plays")
+	eq(record_of(sfx, Sfx.ENDTURN_TURN).get("variant"), 2, "recorded as variant 2 (G)")
+	free_sfx(sfx)
+
+
+func test_without_a_variant_the_choice_stays_random() -> void:
+	var sfx := new_sfx()
+	eq(sfx.play(Sfx.PANEL_OPEN), true, "plays")
+	eq(record_of(sfx, Sfx.PANEL_OPEN).get("variant"), -1, "no variant chosen")
+	check(Sfx.stream(Sfx.PANEL_OPEN) is AudioStreamRandomizer, "still the randomizer")
+	free_sfx(sfx)
+
+
+func test_a_variant_out_of_range_plays_nothing() -> void:
+	var sfx := new_sfx()
+	expect_error("'ui.endturn.turn' has no variant 4")
+	expect_error("'ui.panel.open' has no variant 2")
+	eq(sfx.play(Sfx.ENDTURN_TURN, 0.0, true, 0.0, 4), false, "the chord has variants 0-3")
+	eq(sfx.play(Sfx.PANEL_OPEN, 0.0, true, 0.0, 2), false, "a panel has variants 0-1")
+	eq(sfx.played(), [], "nothing played")
+	free_sfx(sfx)
 
 
 # --- AC3: play() ---

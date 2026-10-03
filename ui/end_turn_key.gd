@@ -5,7 +5,7 @@ extends Button
 ## hand's heading, not here (221); brick: the turn can't end, the reason in the caption under it), "END TURN", and the turn on a plate at its
 ## right. It fills the sidebar's foot (221). Pressed, it ends the turn and is busy ("UPKEEP…", the lamp off, presses ignored) while the plate flaps to the
 ## new turn, then shows the new turn's state. Its sounds (187): the big key going down; coming up, a relay and the
-## turn drum when the press ended the turn, else the plain key's release.
+## turn's chord when the press ended the turn (246), else the plain key's release.
 
 const HEIGHT := 80  # the width is the sidebar's (221)
 const LAMP := 12  # px across
@@ -27,6 +27,7 @@ var _tween: Tween
 var _key_up := false
 var _acted := false
 var _turn_ended := false
+var _ended_turn := 0  # the turn the press ended: its chord (246)
 
 
 func _init() -> void:
@@ -136,6 +137,7 @@ func _end_turn() -> void:
 	_set_busy(true)
 	e.end_turn()
 	_turn_ended = e.turn != turn
+	_ended_turn = turn
 	_acted = true
 	if _key_up:
 		_released()
@@ -226,4 +228,4 @@ func _released() -> void:
 		return
 	var commit := 0.0 if UIKit.calm() else Anim.contact(Anim.KEY_RELEASE_TIME, Anim.MACHINED)
 	sfx.play(Sfx.ENDTURN_COMMIT, commit, true)
-	sfx.play(Sfx.ENDTURN_TURN, commit + Anim.ENDTURN_TURN_DELAY, true)
+	sfx.play(Sfx.ENDTURN_TURN, commit + Anim.ENDTURN_TURN_DELAY, true, 0.0, Sfx.turn_variant(_ended_turn))

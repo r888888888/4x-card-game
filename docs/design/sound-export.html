@@ -73,6 +73,24 @@ const SoundExport = (() => {
 	const vib = (c, out, t, o) => partials(c, out, t, { ratios: [1, 4, 10], amps: [1, 0.22, 0.04], decays: [1, 0.3, 0.1], attack: 0.005, lp: 6000, ...o });
 	const marimba = (c, out, t, o) => { partials(c, out, t, { ratios: [1, 3.9, 9.2], amps: [1, 0.16, 0.03], decays: [1, 0.25, 0.08], attack: 0.005, lp: 4000, ...o }); click(c, out, t, { f: 500, q: 1, dur: 0.02, g: 0.25 * (o.g || 1) }); };
 	const piano = (c, out, t, o) => partials(c, out, t, { ratios: [1, 2, 3, 4], amps: [1, 0.3, 0.12, 0.04], decays: [1, 0.6, 0.4, 0.25], attack: 0.005, lp: 1600, ...o });
+	// The vibraphone with its motor's tremolo on the fundamental (246, chosen on spike/endturn-chords).
+	function tremVib(c, out, t, { f, g = 1, dur = 2.6, trem = 5.2, depth = 0.35 }) {
+		const tg = c.createGain(); tg.gain.value = 1 - depth / 2; tg.connect(out);
+		const l = c.createOscillator(); l.frequency.value = trem; const lg = c.createGain(); lg.gain.value = depth / 2;
+		l.connect(lg).connect(tg.gain); l.start(t); l.stop(t + dur + 0.05);
+		tone(c, tg, t, { f, dur, g, lp: 6000, attack: 0.004 });
+		tone(c, out, t, { f: f * 4, dur: dur * 0.27, g: 0.2 * g, lp: 9000, attack: 0.004 });
+		tone(c, out, t, { f: f * 10, dur: dur * 0.07, g: 0.04 * g, lp: 12000, attack: 0.004 });
+		click(c, out, t, { f: 2500, q: 0.8, dur: 0.012, g: 0.06 * g });
+	}
+	// The end-turn chord walk: Dmaj9 (D3 D4 F#4 A4 C#5 E5) moved diatonically to D, Bm, G, A (I, vi, IV, V).
+	const WALK = [0, -2, -4, -3];
+	function shiftDia(m, k) {  // MIDI note m moved k steps along D major
+		const steps = [0, 2, 4, 5, 7, 9, 11], d = steps.indexOf(((m - 2) % 12 + 12) % 12), n = d + k;
+		return 2 + (Math.floor((m - 2) / 12) + Math.floor(n / 7)) * 12 + steps[((n % 7) + 7) % 7];
+	}
+	const walkChord = (c, out, t, k) => [50, 62, 66, 69, 73, 76].map((m) => shiftDia(m, WALK[k]))
+		.forEach((m) => tremVib(c, out, t, { f: 440 * 2 ** ((m - 69) / 12), g: 0.9 / 6 ** 0.5 }));
 	const chord = (fn, c, out, t, notes, o) => notes.forEach((n) => fn(c, out, t, { ...o, f: NOTE[n], g: (o.g || 1) / notes.length ** 0.5 }));
 	// A run: a drawer or partition on its rail. "decel" fades as the motion slows; "accel" grows to a shut.
 	function run(c, out, t, { dur = 0.2, g = 1, lp = 1800, shape = "decel" } = {}) {
@@ -157,7 +175,8 @@ const SoundExport = (() => {
 		// The same switch under the desk's biggest key: the snap, then a deeper bottom-out with more case.
 		"ui.endturn.press": { l: 2, level: 4, lead: 14, freq: "high", dur: 0.11, fn: (c, o, t) => { jacket(c, o, t, 0.92); clack(c, o, t + 0.014, 1, { f: 1300, body: 800, kase: 200, g: 1.2, dur: 0.045 }); body(c, o, t + 0.014, { f: 160, dur: 0.1, g: 0.35 }); } },
 		"ui.endturn.commit": { l: 2, level: 5, freq: "high", dur: 0.14, fn: (c, o, t) => relay(c, o, t) },
-		"ui.endturn.turn": { l: 2, level: -2, wet: 0.05, freq: "high", dur: 0.32, fn: (c, o, t) => { motor(c, o, t, { dur: 0.3, g: 0.5 }); flutter(c, o, t + 0.02, { n: 10, span: 0.22, g: 0.6 }); } },
+		// Four files, one per chord of the walk (a = D, b = Bm, c = G, d = A); the game picks by turn (246).
+		"ui.endturn.turn": { l: 2, level: 9, wet: 0.25, room: 1.2, tonal: true, walk: 4, freq: "high", dur: 2.6, fn: (c, o, t, p) => walkChord(c, o, t, p.k) },
 		"ui.milestone": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.0, fn: (c, o, t) => { relay(c, o, t, { g: 0.5 }); vib(c, o, t + 0.12, { f: NOTE.D5, dur: 0.9 }); } },
 		"ui.milestone.breakthrough": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.9, fn: (c, o, t) => { paper(c, o, t, { dur: 0.22, peak: 0.5, f: 3500, g: 0.25 }); ["D5", "Fs5", "A5"].forEach((n, i) => vib(c, o, t + 0.24 + i * 0.12, { f: NOTE[n], dur: 0.7 - i * 0.1, g: 0.8 })); } },
 		"ui.milestone.city": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.8, fn: (c, o, t) => { body(c, o, t, { f: 150, dur: 0.09, g: 0.4, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.05, g: 0.25 }); marimba(c, o, t + 0.12, { f: NOTE.D4, dur: 0.5 }); marimba(c, o, t + 0.3, { f: NOTE.A4, dur: 0.6 }); } },
@@ -179,23 +198,23 @@ const SoundExport = (() => {
 	const VARIANTS = [1, 1.05, 0.96, 1.025];  // four L1 variants (§16.8); two for L2
 
 	// The shared small room (§16.6), as the specimen builds it, but mono.
-	function impulse(c, seconds) {
+	function impulse(c, seconds, rate = 17.3) {
 		const len = Math.ceil(c.sampleRate * seconds), b = c.createBuffer(1, len, c.sampleRate);
 		const d = b.getChannelData(0); let lp = 0;
-		for (let i = 0; i < len; i++) { lp = lp * 0.6 + (Math.random() * 2 - 1) * 0.4; d[i] = lp * Math.exp(-17.3 * i / c.sampleRate); }
+		for (let i = 0; i < len; i++) { lp = lp * 0.6 + (Math.random() * 2 - 1) * 0.4; d[i] = lp * Math.exp(-rate * i / c.sampleRate); }
 		return b;
 	}
 	// One file: the token rendered from t = 0 at variant pitch v, with its room, normalised to its level, its silent tail cut.
-	async function renderOne(tk, v) {
+	async function renderOne(tk, v, k = 0) {
 		const c = new OfflineAudioContext(1, Math.ceil(SR * (tk.dur + 1.0)), SR);
 		const dry = c.createGain();
 		dry.connect(c.destination);
 		if (tk.wet) {
-			const room = c.createConvolver(); room.normalize = true; room.buffer = impulse(c, 0.4);
+			const room = c.createConvolver(); room.normalize = true; room.buffer = tk.room ? impulse(c, tk.room, 6.9 / tk.room) : impulse(c, 0.4);
 			const w = c.createGain(); w.gain.value = tk.wet;
 			dry.connect(w).connect(room).connect(c.destination);
 		}
-		tk.fn(c, dry, 0, { v, calm: false });
+		tk.fn(c, dry, 0, { v, k, calm: false });
 		const data = (await c.startRendering()).getChannelData(0);
 		let peak = 0; for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i]));
 		const gain = db(REF_DB + tk.level) / (peak || 1);
@@ -221,7 +240,7 @@ const SoundExport = (() => {
 	function paths(name, tk) {
 		const stem = name.replaceAll(".", "_");
 		if (tk.l === 3) return ["events/" + stem + ".wav"];
-		return "abcd".slice(0, tk.l === 1 ? 4 : 2).split("").map((k) => "ui/" + stem + "_" + k + ".wav");
+		return "abcd".slice(0, tk.walk || (tk.l === 1 ? 4 : 2)).split("").map((k) => "ui/" + stem + "_" + k + ".wav");
 	}
 	// Every file: [{path, bytes, seconds}]. A tonal token's variants keep its pitch (its tones mean something).
 	async function renderAll() {
@@ -229,7 +248,7 @@ const SoundExport = (() => {
 		for (const [name, tk] of Object.entries(T)) {
 			const ps = paths(name, tk);
 			for (let k = 0; k < ps.length; k++) {
-				const samples = await renderOne(tk, tk.tonal || tk.l === 3 ? 1 : VARIANTS[k]);
+				const samples = await renderOne(tk, tk.tonal || tk.l === 3 ? 1 : VARIANTS[k], k);
 				out.push({ path: ps[k], bytes: wav(samples), seconds: samples.length / SR });
 			}
 		}
