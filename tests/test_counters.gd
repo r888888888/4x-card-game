@@ -24,6 +24,11 @@ func in_top_bar(node: Node) -> bool:
 	return false
 
 
+## main's top bar.
+func top_bar(main: Node) -> Node:
+	return main.find_children("*", "HBoxContainer", true, false).filter(func(n): return n is TopBar)[0]
+
+
 # --- AC1: a counter per key ---
 
 func test_each_counter_is_a_different_control_in_the_top_bar() -> void:
@@ -156,6 +161,23 @@ func test_the_figures_are_numerals_beside_20_px_glyphs() -> void:
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, TopBar.SCORE]:
 			var figure: Control = main.counter(key).figure()
 			eq(figure.get_theme_font_size("font_size"), Tokens.TYPE_NUMERAL, "%s's figure at TYPE_NUMERAL" % key))
+
+
+# --- 218 AC3: room between the counters ---
+
+func test_the_counters_sit_space_5_apart_and_the_buttons_space_3() -> void:
+	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
+		var shown: Array = bar_keys().filter(func(k): return (main.counter(k) as Control).is_visible_in_tree())
+		check(shown.size() >= 5, "the turn plate and at least four counters: %s" % [shown])
+		for i in range(1, shown.size()):
+			var left: Rect2 = (main.counter(shown[i - 1]) as Control).get_global_rect()
+			var right: Rect2 = (main.counter(shown[i]) as Control).get_global_rect()
+			eq(roundi(right.position.x - left.end.x), Tokens.SPACE_5, "%s to %s" % [shown[i - 1], shown[i]])
+		var buttons: Array = UIKit.buttons_in(top_bar(main)).filter(func(b): return b.is_visible_in_tree())
+		check(buttons.size() >= 2, "the bar's buttons")
+		for i in range(1, buttons.size()):
+			var gap: float = buttons[i].get_global_rect().position.x - buttons[i - 1].get_global_rect().end.x
+			eq(roundi(gap), Tokens.SPACE_3, "%s to %s" % [buttons[i - 1].text, buttons[i].text]))
 
 
 func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> void:
