@@ -2,7 +2,7 @@
 id: 227
 title: Move Grow out of the pop meter into an actions row in the territory view
 type: feature
-status: in-progress
+status: review
 branch: feat/227-territory-actions-row
 ---
 
@@ -21,18 +21,18 @@ River Meadow   Hills
 
 ## Acceptance criteria
 <!-- UI tests in the real main.tscn on TEST_CARDS, population on, territory view open on a settled territory. -->
-- [ ] AC1: The actions row. The view has an actions row (`territory_view.actions`) inside the box, below the stats
+- [x] AC1: The actions row. The view has an actions row (`territory_view.actions`) inside the box, below the stats
   line and the pop meter and above the city and buildings. `grow_button` is in it, and not in the meter.
-- [ ] AC2: Plain pips. Given pop 2 and housing 5, `pips()` is 5 plain pips (no buttons), the first 2 filled and the
+- [x] AC2: Plain pips. Given pop 2 and housing 5, `pips()` is 5 plain pips (no buttons), the first 2 filled and the
   other 3 empty.
-- [ ] AC3: The Grow button. Given pop 2, housing 5 and 10 food, `grow_button` is shown and enabled, its text is
+- [x] AC3: The Grow button. Given pop 2, housing 5 and 10 food, `grow_button` is shown and enabled, its text is
   "Grow" with the food cost `grow_cost` (3) and the food icon, and its tooltip names the action and the cost.
-- [ ] AC4: Blocked, with the reason as the tooltip. Given pop 2, housing 5 and 1 food, `grow_button` is shown,
+- [x] AC4: Blocked, with the reason as the tooltip. Given pop 2, housing 5 and 1 food, `grow_button` is shown,
   disabled, and its tooltip is `grow_error(uid)`. Given pop 5 and housing 5, the same: shown, disabled, tooltip
   `grow_error(uid)`. No separate reason line shows in the view (`grow_reason` is gone).
-- [ ] AC5: Growing. Given pop 2, housing 5 and 10 food, pressing `grow_button` makes pop 3 and food 7; the meter has
+- [x] AC5: Growing. Given pop 2, housing 5 and 10 food, pressing `grow_button` makes pop 3 and food 7; the meter has
   3 filled pips of 5, the new one pops in (as 124 AC5), and Grow now costs 4.
-- [ ] AC6: Population off. With population off there are no pips and no Grow, and the actions row is hidden.
+- [x] AC6: Population off. With population off there are no pips and no Grow, and the actions row is hidden.
 
 ## Out of scope
 - Other territory actions in the row (it holds only Grow for now).
@@ -62,7 +62,7 @@ River Meadow   Hills
 
 ## Manual check
 <!-- Only for UI-visible changes. Steps to try in the running game. Delete if not needed. -->
-- [ ] `godot --path .`, any seed. Open your home territory from the Realm.
+- [ ] `godot --path . -- --seed 5`. Click your home territory in the Realm to open its view.
 - [ ] The pips read as pop only; Grow is a button in its own row under the stats, reading "Grow 3" with the food icon.
 - [ ] Hover Grow with too little food, and again at housing: the tooltip says why.
 - [ ] Grow: the pip pops in and the top bar rolls Pop and Food.
@@ -72,3 +72,11 @@ River Meadow   Hills
 - 2026-10-02: Specced. User choices: the row sits below the stats, Grow is a normal "Grow N🌾" button, at housing it
   shows disabled, and the reason moves from 124's dim line into the tooltip. Note: a tooltip isn't seen from the
   keyboard, which 124 fixed with the line; accepted for now.
+- 2026-10-02: Red: 7 tests in `test_grow_meter.gd` replace 124's meter tests; 2 checks in `test_territory_view.gd`
+  change (the "Grow N" text, the reason in the tooltip). 124's pop-in and roll tests stay as they were.
+- 2026-10-02: Green, 1465 → 1466 tests. UI only: `TerritoryView.actions` (an `HBoxContainer` in the box between the
+  stats bar and the cards) holds `grow_button`; `grow_reason` and the meter's reordering of Grow are gone; Grow is
+  always shown with population on, and `grow_error` alone decides whether it's enabled, which settles 124's
+  follow-up (the UI no longer compares pop with housing). `GameTheme`'s `GrowPip` became `IconButton`, a plain
+  Button variation that only caps the icon's width (the food icon sits after the text). PLAN.md, testing.md and
+  the style guide's §11.7 and sound tables updated. Checked by eye with a screenshot on seed 5, enabled and disabled.
