@@ -194,3 +194,28 @@ func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> voi
 ## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
 func forecast(main: Node, key: String) -> String:
 	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"
+
+
+# --- 242 AC1: the glyphs match the figures ---
+
+func test_each_top_bar_glyph_is_the_size_of_its_figure() -> void:
+	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
+		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, TopBar.SCORE, TopBar.POP]:
+			var glyph: TextureRect = (main.counter(key) as Counter).glyph()
+			eq(glyph.custom_minimum_size, Vector2.ONE * Tokens.TYPE_NUMERAL, "%s's glyph" % key))
+
+
+# --- 242 AC4: each tooltip names its resource and what it's for ---
+
+func test_each_top_bar_tooltip_names_its_resource_and_what_it_is_for() -> void:
+	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
+		var says := {  # key -> [how the tooltip opens, a word saying what it's for]
+			GameEngine.FOOD: ["Food: ", "Grow"], GameEngine.WEALTH: ["Wealth: ", "Supply"],
+			GameEngine.INSIGHT: ["Insight: ", "techs"], GameEngine.UNREST: ["Unrest: ", "limit"],
+			TopBar.SCORE: ["Score: ", "victory points"], TopBar.POP: ["Pop: ", "territories"],
+		}
+		for key: String in says:
+			var tip: String = (main.counter(key) as Control).tooltip_text
+			check(tip.begins_with(says[key][0]), "%s's tooltip opens with its name: '%s'" % [key, tip])
+			check(tip.contains(says[key][1]), "%s's tooltip says what it's for: '%s'" % [key, tip])
+		check((main.counter(GameEngine.FOOD) as Control).tooltip_text.contains("next upkeep"), "the forecast sentence stays"))
