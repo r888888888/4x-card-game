@@ -1,19 +1,15 @@
 class_name Counter
 extends HBoxContainer
 ## One counter (181): an optional glyph (180) or word, its figure as an Odometer, any words after it (" / 5"), then the
-## next upkeep's change as a quieter figure of its own ("+1", 201). A
-## change rolls the figure and shows a "+N" / "−N" tag right of it for Anim.TAG_HOLD (Anim.CALM_TAG_HOLD with Reduce
-## motion), instead of a token floating off it.
+## next upkeep's change as a quieter figure of its own ("+1", 201). A change rolls the figure; the roll is the only mark
+## of it (218: a "+N" tag beside the figure pushed the counters after it along, then back).
 
 const GLYPH_GAP := 6  # px between the glyph and the figure
-const TAG_GAP := 4  # px between the figure and its tag
 
 var _prefix: Label  # "Wealth: " on the Supply screen; empty in the top bar, where the glyph names it
 var _figure: Odometer
-var _tag: Label
 var _suffix: Label  # words after the figure: the unrest limit, " / 5"
 var _forecast: Label  # next upkeep's change, "+1", in the Forecast look; hidden with none (201)
-var _tag_tween: Tween
 
 
 ## glyph_key: an Icons.RESOURCES key for the glyph ("" for none); prefix: a word before the figure ("" for none);
@@ -34,14 +30,8 @@ func _init(glyph_key := "", prefix := "", variation := &"BarStat") -> void:
 	_prefix.text = prefix
 	_prefix.visible = prefix != ""
 	_figure = Odometer.new(variation)
-	_figure.widened.connect(_sort_now)  # the tag follows the figure as it widens mid-roll
+	_figure.widened.connect(_sort_now)  # the words after it follow the figure as it widens mid-roll
 	add_child(_figure)
-	_tag = _text(variation)
-	_tag.name = "Tag"
-	var room := StyleBoxEmpty.new()
-	room.content_margin_left = TAG_GAP
-	_tag.add_theme_stylebox_override("normal", room)
-	_tag.hide()
 	_suffix = _text(variation)
 	_forecast = _text(&"Forecast")
 	_forecast.name = "Forecast"
@@ -83,7 +73,6 @@ func show_value(v: int, suffix: String, fresh: bool, delay := 0.0, sound := true
 	var change := 0 if fresh else v - _figure.value
 	if fresh:
 		_figure.show_now(v)
-		_hide_tag()
 	elif change != 0:
 		_figure.set_value(v, delay, sound)
 	return change
@@ -96,44 +85,9 @@ func set_color(c: Color) -> void:
 		label.add_theme_color_override("font_color", c)
 
 
-## Shows change as a tag right of the figure after delay (at once with Reduce motion), in UIKit.GAIN_COLOR or UIKit.COST_COLOR, for Anim.TAG_HOLD
-## (Anim.CALM_TAG_HOLD in place with Reduce motion), then hides it.
-func show_tag(change: int, delay: float) -> void:
-	_hide_tag()
-	_tag.text = "%s%d" % ["+" if change > 0 else "−", absi(change)]
-	_tag.add_theme_color_override("font_color", UIKit.GAIN_COLOR if change > 0 else UIKit.COST_COLOR)
-	_tag_tween = create_tween()
-	if UIKit.calm():
-		delay = 0.0
-	if delay > 0.0:
-		_tag_tween.tween_interval(delay)
-	_tag_tween.tween_callback(_show_tag)
-	if UIKit.calm():
-		_tag_tween.tween_interval(Anim.CALM_TAG_HOLD)
-	else:
-		_tag_tween.tween_interval(Anim.TAG_HOLD)
-		_tag_tween.tween_property(_tag, "modulate:a", 0.0, Anim.CALM_FADE_TIME)
-	_tag_tween.tween_callback(func(): _tag.hide(); _tag.modulate.a = 1.0)
-	if delay <= 0.0:
-		_show_tag()
-
-
-func _show_tag() -> void:
-	_tag.show()
-	_sort_now()
-
-
-## Lays the row out now rather than next frame, so the tag sits right of the figure from the moment it shows.
+## Lays the row out now rather than next frame, so the words after the figure move with it.
 func _sort_now() -> void:
 	notification(NOTIFICATION_SORT_CHILDREN)
-
-
-func _hide_tag() -> void:
-	if _tag_tween != null and _tag_tween.is_valid() and _tag_tween.is_running():
-		_tag_tween.kill()
-	_tag_tween = null
-	_tag.hide()
-	_tag.modulate.a = 1.0
 
 
 func _text(variation: StringName) -> Label:

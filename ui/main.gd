@@ -112,7 +112,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_views.reset()
 	choices.refresh(null)  # an old game's choice goes at once, without doors (209)
 	era_sheet.reset()
-	_top_bar.reset_counters()  # a new game's counters show no tags (126, 181)
+	_top_bar.reset_counters()  # a new game's counters show their values at once (126)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
 	_menu.set_game(seed_value, _civilization_name())

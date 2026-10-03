@@ -140,8 +140,9 @@ func test_each_resource_shows_its_forecast_as_a_separate_quieter_figure() -> voi
 			eq(label.get_theme_color("font_color"), Palette.TEXT_DIM, "TEXT_DIM")
 			eq(label.get_theme_font_size("font_size"), Tokens.TYPE_NUMERAL_S, "TYPE_NUMERAL_S")
 			var figure_end: float = (main.counter(GameEngine.FOOD).figure() as Control).get_global_rect().end.x
-			check(label.get_global_rect().position.x - figure_end >= Tokens.SPACE_1 - 0.5, "SPACE_1 from the figure: %d" % [
-				label.get_global_rect().position.x - figure_end])
+			var text_start: float = label.get_global_rect().position.x + label.get_theme_stylebox("normal").get_margin(SIDE_LEFT)
+			check(text_start - figure_end >= Tokens.SPACE_1 - 0.5, "SPACE_1 from the figure to the forecast's text: %d" % [
+				text_start - figure_end])
 		var ahead_all: Dictionary = e.upkeep_forecast()
 		for key in [GameEngine.WEALTH, GameEngine.INSIGHT]:
 			var want: String = ("%+d" % ahead_all[key]) if ahead_all.has(key) else ""  # no entry: no forecast label
@@ -184,7 +185,7 @@ func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> voi
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
+	var strip: Node = top_bar(main)
 	var texts: Array = UIKit.buttons_in(strip).filter(func(b): return b.is_visible_in_tree()).map(func(b): return b.text)
 	eq(texts, ["Buy Cards", "Knowledge", "Log", "Menu"], "the strip's buttons (the civilization and End turn left: 202, 203)")
 	close_main(main)
