@@ -82,7 +82,9 @@ static func _tech_tiles(t: Theme) -> void:
 		t.set_stylebox("focus", type, focus_ring())
 		_label(t, type.replace("TechTile", "TechTileText"), Tokens.TYPE_LABEL, look[2], tabular(LABEL_SEMIBOLD))
 	t.set_type_variation("EraVellum", "PanelContainer")
-	t.set_stylebox("panel", "EraVellum", UIKit.panel_style(Color(Palette.RAISED, 0.88), Color.TRANSPARENT, 0))
+	var vellum := UIKit.panel_style(Color(Palette.RAISED, 0.88), Color.TRANSPARENT, 0)
+	vellum.set_border_width_all(0)  # no clear edge for the tiles to show through
+	t.set_stylebox("panel", "EraVellum", vellum)
 
 
 ## The territory view's pop meter (124): a pip per housing, PipFilled for each pop and PipEmpty for the room left

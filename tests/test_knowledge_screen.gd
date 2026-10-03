@@ -248,6 +248,16 @@ func test_every_tile_is_one_fixed_size() -> void:
 			eq(s, tile_size(), "a tile's size"))
 
 
+func test_a_tiles_texts_all_have_room_to_show() -> void:
+	await with_tree(func(main: Node):
+		await wait_frames()
+		for tech_name in ["Writing", "Iron Working"]:
+			for label: Label in tile(main, tech_name).find_children("*", "Label", true, false):
+				var font := label.get_theme_font("font")
+				var width := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+				check(label.size.x >= width, "%s: '%s' is %s wide, needs %s" % [tech_name, label.text, label.size.x, width]))
+
+
 func test_tiles_look_like_their_state() -> void:
 	await with_tree(func(main: Node):
 		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))

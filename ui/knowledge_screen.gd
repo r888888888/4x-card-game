@@ -302,9 +302,9 @@ func _tile_label(text: String, variation: StringName, fill: bool) -> Label:
 	label.text = text
 	label.theme_type_variation = variation
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	label.clip_text = true
-	if fill:
+	if fill:  # a line of its own, cut short with an ellipsis; a corner marker keeps its width
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.clip_text = true
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
 
