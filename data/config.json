@@ -21,11 +21,11 @@
   },
   "civilizations": ["egypt", "sumer", "phoenicia", "babylon", "greece", "persia"],
   "deck": {
-    "farm": 3,
-    "settler": 2,
+    "farm": 2,
+    "settler": 1,
     "scout": 2,
-    "lumber_camp": 2,
-    "research": 2,
+    "lumber_camp": 1,
+    "research": 1,
     "barter": 2,
     "storyteller": 1,
     "hunt": 1
