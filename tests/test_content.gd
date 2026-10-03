@@ -645,3 +645,13 @@ func test_the_anarchy_government_has_flavor_and_a_quote() -> void:
 		var def: CardDef = Game.engine.card_db[anarchy]
 		check(def.flavor != "", "Anarchy has flavor (205: the revolution's confirmation shows it)")
 		check(def.quote_text != "" and def.quote_by != "", "and a quote")
+
+
+## Backlog 215: every tech has a flavor line and a quote with its source, and every event a flavor line.
+func test_every_tech_has_flavor_and_a_quote_and_every_event_flavor() -> void:
+	var r := load_real()
+	for def: CardDef in r.cards.values():
+		if def.type in [CardDef.TECH, CardDef.EVENT]:
+			check(def.flavor != "", "%s has flavor" % def.id)
+		if def.type == CardDef.TECH:
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)

@@ -45,9 +45,9 @@ var eureka: Dictionary = {}  # techs: {card | tag, count, off}: off insight whil
 var discard_turns := 1  # events: upkeeps the event stays active for
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
-var flavor: String = ""  # civilizations: a short paragraph of history, shown in the details
-var quote_text: String = ""  # civilizations: a quote shown in the details, with quote_by
-var quote_by: String = ""  # civilizations: who said quote_text
+var flavor: String = ""  # civilizations, governments, techs, events: a line of history, shown in the details
+var quote_text: String = ""  # civilizations, governments, techs: a quote shown in the details, with quote_by
+var quote_by: String = ""  # civilizations, governments, techs: who said quote_text
 var home: String = ""  # civilizations: the territory card id the game starts on, or "" for starting.territory (111)
 
 

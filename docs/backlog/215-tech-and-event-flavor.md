@@ -2,7 +2,7 @@
 id: 215
 title: Flavor text and quotes for techs and events
 type: feature
-status: ready
+status: review
 branch: feat/215-tech-and-event-flavor
 ---
 
@@ -12,21 +12,21 @@ Techs and events read like history, not just rules: every tech carries a one-lin
 civilizations may set `flavor` and `quote` (107).
 
 ## Acceptance criteria
-- [ ] AC1: Given a `TEST_CARDS` tech with `"flavor": "Fire, tamed."` and `"quote": {"text": "Knowledge is power.",
+- [x] AC1: Given a `TEST_CARDS` tech with `"flavor": "Fire, tamed."` and `"quote": {"text": "Knowledge is power.",
   "by": "Francis Bacon"}`, when the cards load, then there are no errors or warnings, and `def_details(id)` returns
   `flavor` "Fire, tamed." and `quote` `{"text": "Knowledge is power.", "by": "Francis Bacon"}`.
-- [ ] AC2: Given a `TEST_CARDS` event with `"flavor": "The sky burned."`, when the cards load, then there are no
+- [x] AC2: Given a `TEST_CARDS` event with `"flavor": "The sky burned."`, when the cards load, then there are no
   errors or warnings, and both `def_details(id)` and `card_details(uid)` of the drawn event return that `flavor`.
-- [ ] AC3: Given an event with `"quote": {...}`, when the cards load, then it warns "'quote' only applies to
+- [x] AC3: Given an event with `"quote": {...}`, when the cards load, then it warns "'quote' only applies to
   civilizations (ignored)" (the existing message names the field's first type; quotes are for civilizations and
   techs only) and its details' `quote` is `{}`.
-- [ ] AC4: Given a tech or event whose `flavor` is `3` or `""`, or a tech whose `quote` lacks `by`, when the cards
+- [x] AC4: Given a tech or event whose `flavor` is `3` or `""`, or a tech whose `quote` lacks `by`, when the cards
   load, then the loader reports the same errors as for a civilization (107), naming the card.
-- [ ] AC5: Given a building with `flavor`, when the cards load, then it warns that `flavor` doesn't apply to
+- [x] AC5: Given a building with `flavor`, when the cards load, then it warns that `flavor` doesn't apply to
   buildings (ignored), as before.
-- [ ] AC6 (content): in `data/cards.json` every tech has a `flavor` and a `quote`, and every event has a `flavor`
+- [x] AC6 (content): in `data/cards.json` every tech has a `flavor` and a `quote`, and every event has a `flavor`
   (`test_content.gd` invariant).
-- [ ] AC7: Given a tech or event with a flavor, when its card face is built (`CardFace.build` or `build_board`),
+- [x] AC7: Given a tech or event with a flavor, when its card face is built (`CardFace.build` or `build_board`),
   then the face shows no flavor or quote line: its lines are the same as for the card without them. Flavor appears
   only in the details window.
 
@@ -49,7 +49,13 @@ civilizations may set `flavor` and `quote` (107).
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_tech_event_flavor::test_a_tech_may_have_flavor_and_a_quote` |
+| AC2 | `test_tech_event_flavor::test_an_event_may_have_flavor` |
+| AC3 | `test_tech_event_flavor::test_a_quote_on_an_event_is_ignored_with_a_warning` (already passes: guards the rule) |
+| AC4 | `test_tech_event_flavor::test_tech_and_event_flavor_validation` |
+| AC5 | `test_tech_event_flavor::test_flavor_on_a_building_is_still_ignored_with_a_warning` (already passes: guards the rule) |
+| AC6 | `test_content::test_every_tech_has_flavor_and_a_quote_and_every_event_flavor` |
+| AC7 | `test_tech_event_flavor::test_a_tech_face_shows_no_flavor_or_quote`, `test_an_event_face_shows_no_flavor` |
 
 ## Manual check
 - [ ] Open a few techs from the tech tree: italic flavor, then the quote and its source, then the rules.
@@ -58,3 +64,12 @@ civilizations may set `flavor` and `quote` (107).
 - [ ] Read through all 19 tech quotes and 19 event lines for tone, accuracy of attribution and length.
 
 ## Log
+- 2026-10-02: Governments already took `flavor` and `quote` (205), so `TYPE_FIELDS.flavor` is now
+  `[CIVILIZATION, GOVERNMENT, TECH, EVENT]` and `quote` `[CIVILIZATION, GOVERNMENT, TECH]`. `_parse_flavor` now runs
+  for every card and reads each field only on the types `TYPE_FIELDS` gives it, so a quote on an event is dropped
+  (with the existing warning).
+- AC3, AC5 and AC7's face comparison held before the change; their tests guard the rules. AC7's tests also check
+  the flavor loaded, so they failed first.
+- Quotes to double-check at the manual check (translation wording varies): Animal Husbandry (Xenophon), Bronze
+  Working and Iron Working (Hesiod, Evelyn-White translation, shortened), Mathematics (Euclid, via Proclus),
+  Engineering (Archimedes, via Pappus).
