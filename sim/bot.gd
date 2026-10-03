@@ -2,7 +2,8 @@ class_name ScriptedBot
 extends RefCounted
 ## A fixed-policy bot for smoke tests and the balance simulator (backlog 042). Each step it resolves an
 ## explore choice with its first option, learns the cheapest tech it can afford (140),
-## otherwise plays the first playable hand card on its first valid target (Research cards last),
+## otherwise plays the first playable hand card on its first valid target (Research cards last; never a card that
+## only explores with nothing left to explore, 238),
 ## otherwise relieves a Famine it can pay for when the next upkeep would still starve (084), discards the hand
 ## (dead cards never cycle otherwise, backlog 024) and ends the turn. After MAX_PLAYS_PER_TURN plays it ends the
 ## turn anyway: free cards that draw can redraw each other forever (058).
@@ -133,7 +134,7 @@ static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> 
 	for card in order:
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
-		if not _unrest_ok(engine, card.def):
+		if not _unrest_ok(engine, card.def) or _explores_nothing(engine, card.def):
 			continue
 		var targets := engine.valid_targets(card.uid)
 		var target: int = targets[0] if engine.needs_target(card.uid) and not targets.is_empty() else -1
@@ -277,6 +278,12 @@ static func _keep_value(engine: GameEngine, def: CardDef) -> int:
 	if def.effects.any(func(e): return e.get("resource") == GameEngine.INSIGHT):
 		v += 3
 	return v
+
+
+## Whether def only explores while the territory deck is empty (238): playing it would spend an action for nothing.
+static func _explores_nothing(engine: GameEngine, def: CardDef) -> bool:
+	return engine.zone("territory_deck").is_empty() and not def.effects.is_empty() \
+			and def.effects.all(func(e): return e.op == "explore")
 
 
 static func _makes_wealth(def: CardDef) -> bool:
