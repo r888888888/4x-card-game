@@ -775,17 +775,18 @@ Press: travel 4 px (twice a normal button), 70 ms; release triggers the turn. Th
 to the next, the event card for the turn slides in from the event deck, upkeep deltas appear as tags per resource
 in a tally sequence (60 ms apart, left to right). Total turn-change choreography ≤ 1.2 s, and any click skips it.
 
-Sound, the one sequence the player hears every turn, so it is firm but never cinematic:
+Sound, the one sequence the player hears every turn, so it is firm but never cinematic. Its one musical moment is a
+quiet chord on the turn that walks with the turns, so forty of them in a row read as a phrase, not a jingle (246):
 
 | Moment | Visual / motion | Sound | Sync |
 |---|---|---|---|
 | PRESS | face travels 4 px into its plinth, 70 ms `snap` | `ui.endturn.press`: the same key switch, with a deeper bottom-out than any other key | snap ≈ 24 ms, bottom-out at contact ≈ 38 ms |
 | COMMIT | release; the lamp goes out; BUSY | `ui.endturn.commit`: a two-stage relay closing behind the panel | key back at rest, ≈ 65 ms after release |
-| TURN | the turn plate flaps to N+1; the event card slides in | `ui.endturn.turn`: a short drum-advance with the plate's flap flutter riding on it; the event card's `ui.card.place` as it lands | first flap |
+| TURN | the turn plate flaps to N+1; the event card slides in | `ui.endturn.turn`: a vibraphone chord with a slow tremolo, Dmaj9 voiced D3–E5, walking I–vi–IV–V (D, Bm, G, A) by the turn that ended: ending turn T plays chord (T − 1) mod 4; the event card's `ui.card.place` as it lands | first flap |
 | UPKEEP | delta tags and rolls, 60 ms apart | the shared tick stream and one registration per resource (§10.3–10.4) | per step |
 | READY | fill back to signal, lamp on | None: the lamp says ready; a sound here would nag | — |
 
-The sequence never exceeds the motion's 1.2 s and peaks at the commit, not later. A click that skips the
+Every sound in the sequence starts within the motion's 1.2 s, and only the chord's ring outlasts it. A click that skips the
 choreography drops the sounds still to come and fades those playing in 30 ms. Pressing a BLOCKED End turn plays
 `ui.reject.locked` and the reason caption is already showing.
 
@@ -1070,7 +1071,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.notification` | A desk indicator lamp with a small bell · bell pulses in three patterns | info ● 200–300 ms; caution ●● 350–450 ms; urgent ●↘● 400–600 ms | mid (+6), the same for all three | info E5; caution E5, E5; urgent A5 → D5; a small bell's partials, soft attack | minimal (≤ 5%) | the flag reaches full extension with the rail lamp, ≈ 108 ms of 200 | occasional (urgent: rare) |
 | `ui.endturn.press` | The same key switch under the desk's biggest key · the snap, then a firm, deep bottom-out | 80–120 ms | mid (+4) | the snap slightly lower; a deeper clack ≈ 1.3 kHz over a ≈ 200 Hz case and a 160 Hz thump | none | bottom-out at +4 px, ≈ 38 ms; the snap 14 ms before | high (once a turn) |
 | `ui.endturn.commit` | A relay closing behind the panel · a two-stage clack, 12 ms apart | 80–140 ms | mid (+5) | low-mid: armature ≈ 300 Hz, contacts ≈ 1.2 kHz | none | the key back at rest and its lamp out, ≈ 65 ms after release | high (once a turn) |
-| `ui.endturn.turn` | The turn drum advancing · a short motor-advance carrying the plate's flutter | 250–400 ms | low (−2) | motor below 600 Hz; flaps neutral-high | minimal | the turn plate's first flap | high (once a turn); optional, the first thing cut if turns feel busy |
+| `ui.endturn.turn` | The turn's chord · a vibraphone struck once, its motor's tremolo in the tail; four files, one per chord of the I–vi–IV–V walk, picked by the turn (246) | ≈ 2.2 s | mid (+9; under every milestone) | Dmaj9 and its diatonic moves, D3–E5; top rolled off at 6 kHz | room 1.2 s, 25% | the turn plate's first flap | high (once a turn) |
 
 **Level 3 — event feedback** (Game bus; layered, may be musical; ducks the music)
 
@@ -1339,8 +1340,8 @@ Signal family when it reports news.
 | **Rails and sheets** (navigation) | ball-bearing drawer runners, sliding partitions, drafting sheets, index cards | aluminium rails, felt stops, paper and card stock | drawers, cabinet doors, screens, modals, cards, piles | a soft run below 4 kHz, a damped stop, a paper whisper | a whoosh, any pitch sweep |
 | **Counters** | drum counters, split-flap units, adding-machine registers | steel pawls, plastic drums and flaps | odometers, flaps, tallies, gain and loss | tiny ticks ≈ 3 kHz; a registration clack | coins, bells, slot-machine rolls |
 | **Signals** (notifications) | indicator lamps with a tone generator, a small desk bell | sine and soft-square oscillators, a small bell | confirm, notifications, gain's whisper | pure tones from the tone ladder, soft attack, ≤ 600 ms | sirens, buzzers, chiptune |
-| **Machinery** | relays, small motors, heavy latches | steel armatures and contacts | End turn's commit and turn, the cabinet doors' latch, the base of every milestone | two-stage clacks, short motor runs below 600 Hz | engines, servos, hydraulics, sci-fi doors |
-| **Ceremony** (Level 3 only) | vibraphone, marimba, muted piano, brushes, a soft organ | wood and aluminium bars, wire brushes | `ui.milestone.*` | musical, in D, in a small room | orchestral hits, choirs, fanfares, lounge grooves |
+| **Machinery** | relays, small motors, heavy latches | steel armatures and contacts | End turn's commit, the cabinet doors' latch, the base of every milestone | two-stage clacks, short motor runs below 600 Hz | engines, servos, hydraulics, sci-fi doors |
+| **Ceremony** (Level 3, and the end-turn chord) | vibraphone, marimba, muted piano, brushes, a soft organ | wood and aluminium bars, wire brushes | `ui.milestone.*`, `ui.endturn.turn` | musical, in D, in a small room | orchestral hits, choirs, fanfares, lounge grooves |
 
 A component never borrows another family's mechanism: a button never slides, a drawer never beeps, a counter never
 rings a bell. A Signal tone joins a mechanism only when the mechanism reports a result (the confirm lamp has a tone; the
@@ -1459,7 +1460,9 @@ Sound occurs at the perceived physical event.
   off: a lamp's tone generator, not a synthesizer lead.
 
 ### 16.7 Musical treatment
-- Routine interaction is non-musical. Music enters only at Level 3.
+- Routine interaction is non-musical. Music enters only at Level 3, with one exception: the end-turn chord
+  (`ui.endturn.turn`, 246), a single struck vibraphone chord that sits under every milestone and walks I–vi–IV–V
+  with the turns instead of resolving each time.
 - **Palette**: vibraphone (motor off, or a slow tremolo at most), marimba, muted piano, brushes on a snare, a soft
   electric organ only under the era's final chord, and restrained analogue electronics (a sine with a slow attack) as
   glue. Used subtly: two or three of them per event, never all.
@@ -1492,7 +1495,8 @@ lamp after a turn, and idle time.
   dozens of sounds.
 - **Variation.** Level 1 tokens have four variants played in random order without an immediate repeat, with ±25 cents
   and ±1 dB of jitter, so fifty presses don't sound like a machine gun. Level 2 has two variants and no pitch jitter
-  (its tones mean something). Level 3 has one.
+  (its tones mean something). Level 3 has one. `ui.endturn.turn` has four, one per chord of its walk, chosen by the
+  turn rather than at random.
 
 **Repetition test.** Every Level 1 and 2 token passes this before it ships (the specimen has a board for it):
 

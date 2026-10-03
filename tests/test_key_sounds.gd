@@ -162,7 +162,7 @@ func test_end_turn_presses_heavy_and_closes_a_relay_when_the_turn_ends() -> void
 		eq(Game.engine.turn, 2, "the turn ended")
 		var sounds := heard(main)
 		check(sounds.has([Sfx.ENDTURN_COMMIT, 0.065]), "the relay 0.065 s after the release: %s" % [sounds])
-		check(sounds.has([Sfx.ENDTURN_TURN, 0.185]), "the drum 0.12 s after that: %s" % [sounds])
+		check(sounds.has([Sfx.ENDTURN_TURN, 0.185]), "the turn's chord 0.12 s after that: %s" % [sounds])
 		check(not tokens(main).has(Sfx.BUTTON_PRESS) and not tokens(main).has(Sfx.BUTTON_RELEASE), "no plain key sounds")
 		close_game(main))
 
@@ -187,7 +187,7 @@ func test_end_turn_plays_the_chord_for_the_turn_it_ends() -> void:
 			mouse(main, centre(end_turn), false)
 			eq(Game.engine.turn, t + 1, "turn %d ended" % t)
 			eq(turn_chord(main), [0, 2, 0][[1, 3, 5].find(t)], "ending turn %d: D, G, D" % t)
-			check(heard(main).has([Sfx.ENDTURN_TURN, 0.185]), "at the same time as the drum was: %s" % [heard(main)])
+			check(heard(main).has([Sfx.ENDTURN_TURN, 0.185]), "0.12 s after the relay, where the drum was: %s" % [heard(main)])
 			close_game(main))
 
 

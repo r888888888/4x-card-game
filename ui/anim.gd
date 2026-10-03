@@ -43,7 +43,7 @@ const KEY_PRESS_TIME := 0.07
 const KEY_RELEASE_TIME := 0.12
 const LIFT_TIME := 0.06  # a card leaving its row as a drag starts (§16.5), for its sound (188)
 const SELECT_TIME := 0.12  # the index tab clipping onto a card that waits for a target
-const ENDTURN_TURN_DELAY := 0.12  # the turn drum advances this long after End turn's relay closes
+const ENDTURN_TURN_DELAY := 0.12  # the turn's chord sounds this long after End turn's relay closes
 const SOUND_OFF_GRACE := 0.25  # turning interface sounds off mutes them after this, so the key's OFF is heard
 
 # The style guide's easing curves (§9.3) as cubic-bezier control points (x1, y1, x2, y2), for timing sounds (186).

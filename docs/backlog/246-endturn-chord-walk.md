@@ -2,7 +2,7 @@
 id: 246
 title: End turn sounds a vibraphone chord that walks D, Bm, G, A from turn to turn
 type: feature
-status: in-progress
+status: review
 branch: feat/246-endturn-chord-walk
 ---
 
@@ -13,20 +13,20 @@ forms a phrase instead of repeating one sound. Chosen by ear on `spike/endturn-c
 (`docs/design/endturn-chord-options.html`, option A, "Full sequence", "Instead of the drum advance", "Walk I–vi–IV–V").
 
 ## Acceptance criteria
-- [ ] AC1: Given `Sfx.ENDTURN_TURN`, then `Sfx.files` lists four variants, `ui/ui_endturn_turn_a.wav … _d.wav` (a = D,
+- [x] AC1: Given `Sfx.ENDTURN_TURN`, then `Sfx.files` lists four variants, `ui/ui_endturn_turn_a.wav … _d.wav` (a = D,
   b = Bm, c = G, d = A), and every other Level 2 token still has two; each of the four files exists.
-- [ ] AC2: Given main on turn 1, when the player presses and releases End turn and the turn ends, then the sounds are
+- [x] AC2: Given main on turn 1, when the player presses and releases End turn and the turn ends, then the sounds are
   `ui.endturn.press`, `ui.endturn.commit` and `ui.endturn.turn` at the same times as today (the turn 0.12 s after the
   commit), and the turn sound plays variant 0 (a, D).
-- [ ] AC3: Given the turn that ends is T, then `ui.endturn.turn` plays variant (T − 1) mod 4: ending turns 1, 2, 3, 4,
+- [x] AC3: Given the turn that ends is T, then `ui.endturn.turn` plays variant (T − 1) mod 4: ending turns 1, 2, 3, 4,
   5 plays a, b, c, d, a. The walk follows the game's turn, so a new game or a loaded one starts from its own turn,
   not from where the last game left off.
-- [ ] AC4: Given `Sfx.play(token, …)` with a variant for a token that has variants, then that file plays and
+- [x] AC4: Given `Sfx.play(token, …)` with a variant for a token that has variants, then that file plays and
   `played()` records the variant; with no variant given, Level 1 and 2 tokens keep their random, no-repeat choice.
   A variant outside the token's range is an error (`push_error` naming the token and the variant) and nothing plays.
-- [ ] AC5: Given Reduce motion, when the turn ends, then `ui.endturn.turn` plays at once with the commit (as today)
+- [x] AC5: Given Reduce motion, when the turn ends, then `ui.endturn.turn` plays at once with the commit (as today)
   and still plays variant (T − 1) mod 4.
-- [ ] AC6: Given a press that doesn't end the turn (blocked, or dragged off the key), then no `ui.endturn.turn` plays
+- [x] AC6: Given a press that doesn't end the turn (blocked, or dragged off the key), then no `ui.endturn.turn` plays
   and the walk doesn't advance: the next turn that ends plays the variant for its own T.
 
 ## Out of scope
@@ -75,3 +75,10 @@ forms a phrase instead of repeating one sound. Chosen by ear on `spike/endturn-c
 - Explored on `spike/endturn-chords` (12 options on `docs/design/endturn-chord-options.html`); the user picked the
   Dmaj9 vibraphone walk. Assumption made without asking: the walk follows the turn number (AC3) rather than a
   counter that carries across games, so every game opens on D.
+- AC4's out-of-range test first missed the criterion's "push_error naming the token and the variant"; added
+  `expect_error` for both cases at green (stricter, not weaker).
+- The turn → chord mapping (`Sfx.turn_variant`) lives in `Sfx`: it's which sound file plays, not a game rule.
+- Files rendered by `docs/design/sound-export.html` (its `ui.endturn.turn` now walks; `walk: 4`, room 1.2 s): each
+  peaks at −17 dBFS, about 2.2 s. Style guide amended in §15.12, the Level 2 table, the families table, §16.7, §16.8.
+- Each chord holds an Interface voice for ≈ 2.2 s (6 voices); watch for dropped Level 1 clicks right after End turn
+  (Manual check). If they drop, a follow-up could move the token to the Game bus.
