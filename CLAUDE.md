@@ -44,6 +44,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
   e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
+- Focus a control from code with `FocusRing.focus(control)`, never `grab_focus()` (the suite checks): its ring stays
+  hidden until the player presses Tab, and a click hides it again (230).
 - A modal extends `Modal` and opens on `main.modals` (`ModalStack`), over any modal already open; only the top one
   takes keys and clicks, and Esc, Close or a click outside its panel closes just that one. Don't write a modal's own
   scrim, key handling or z-order.

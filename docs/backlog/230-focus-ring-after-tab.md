@@ -2,7 +2,7 @@
 id: 230
 title: The focus ring waits for Tab
 type: feature
-status: in-progress
+status: review
 branch: feat/230-focus-ring-after-tab
 ---
 
@@ -15,18 +15,18 @@ to keyboard mode, where focus rings draw as now; a mouse click switches back to 
 unchanged in both modes, so Enter still presses the focused button.
 
 ## Acceptance criteria
-- [ ] AC1: Given pointer mode (a fresh game, no Tab pressed yet), when a modal opens and focuses its action button
+- [x] AC1: Given pointer mode (a fresh game, no Tab pressed yet), when a modal opens and focuses its action button
   (the event modal's OK, the game menu's Restart), then that button has the focus and draws no focus ring; pressing
   Enter still presses it.
-- [ ] AC2: Given pointer mode, when a Navigator screen is pushed with a focus control, then that control has the focus
+- [x] AC2: Given pointer mode, when a Navigator screen is pushed with a focus control, then that control has the focus
   and draws no ring.
-- [ ] AC3: Given a modal open in pointer mode (AC1), when Tab is pressed, then the focus moves to the next button and it
+- [x] AC3: Given a modal open in pointer mode (AC1), when Tab is pressed, then the focus moves to the next button and it
   draws the ring; Shift+Tab likewise moves it back and the previous button draws the ring.
-- [ ] AC4: Given keyboard mode (Tab pressed once), when another modal opens and focuses its action button, then that
+- [x] AC4: Given keyboard mode (Tab pressed once), when another modal opens and focuses its action button, then that
   button draws the ring.
-- [ ] AC5: Given keyboard mode, when the player clicks the mouse anywhere, then the game is back in pointer mode: the
+- [x] AC5: Given keyboard mode, when the player clicks the mouse anywhere, then the game is back in pointer mode: the
   next modal that opens focuses its action button with no ring (as AC1).
-- [ ] AC6: Given pointer mode on the New game screen, when Down moves the selection to the next civilization row, then
+- [x] AC6: Given pointer mode on the New game screen, when Down moves the selection to the next civilization row, then
   that row draws the ring as now (220's arrow behaviour is unchanged).
 
 ## Out of scope
@@ -66,3 +66,11 @@ unchanged in both modes, so Enter still presses the focused button.
 - [ ] New game screen: no ring on opening; Down shows it on the next row.
 
 ## Log
+- `FocusRing` (`ui/focus_ring.gd`) is a Node main adds as its last child, so its `_input` sees each Tab and click
+  before a modal can handle it; `FocusRing.focus(control, shown := keyboard)` wraps `grab_focus(hide_focus)`. Main's
+  `_ready` resets the mode, so each main starts in pointer mode.
+- Kept 220's `ListRowQuiet`: in the game every row focus now goes through `FocusRing` (hidden from the code, shown from
+  the arrows), so it is close to redundant, but dropping it would rewrite 220's approved tests, which call
+  `grab_focus()` directly. A follow-up could retire it and move those tests onto `has_focus(true)`.
+- A new class_name in a fresh worktree needs `godot --headless --path . --import` before `godot --path .` launches.
+
