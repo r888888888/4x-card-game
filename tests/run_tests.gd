@@ -2,9 +2,13 @@ extends SceneTree
 ## Minimal test runner (no addon needed). Finds every tests/**/test_*.gd file and
 ## runs each test_* method on a fresh instance. Use scripts/test.sh rather than
 ## calling this directly; it also re-imports new classes and catches script errors.
-##   godot --headless --path . --script res://tests/run_tests.gd [-- [--balance] <filter>]
+##   godot --headless --fixed-fps 120 --path . --script res://tests/run_tests.gd [-- [--balance] <filter>]
 ## <filter> is a substring of "file::method", e.g. "rules" or "test_create_card".
 ## tests/balance/ (real-data sim runs) is left out; --balance runs only it.
+## TEST_SHARD=i/n in the environment runs only shard i of n of the files (TestShards.pick, 223); scripts/test.sh runs
+## the shards in parallel and sums their counts, so a shard where nothing matched the filter isn't a failure by itself.
+## Frames don't sleep and --fixed-fps gives each one 1/120 s of game time (223): animation waits cost a fixed number
+## of frames and run as fast as the CPU allows.
 ## A test fails if an assertion fails, it makes no assertions, or it raises any
 ## engine/script error (GDScript has no exceptions, so errors are caught by a Logger).
 ## Exits with code 1 if any test fails, a test file fails to load, or nothing ran.
@@ -13,6 +17,7 @@ const TEST_ROOT := "res://tests"
 const BALANCE_ROOT := "res://tests/balance"
 const PLAYER_SETTINGS := "user://settings.cfg"
 const RUN_SETTINGS := "user://test_run_settings.cfg"  # the settings every test starts on (195)
+const TestShards := preload("res://tests/lib/test_shards.gd")
 
 
 ## Collects errors (not warnings) logged while a test runs.
@@ -26,11 +31,16 @@ class ErrorCollector extends Logger:
 
 
 func _initialize() -> void:
+	OS.low_processor_usage_mode_sleep_usec = 0  # headless can't draw, so Godot would sleep 6.9 ms every frame (223)
 	# Autoloads (Game, Settings) join the tree and run _ready only after the first frame; UI tests need them.
 	await process_frame
 	var args := Array(OS.get_cmdline_user_args())
 	var balance := args.has("--balance")
 	args.erase("--balance")
+	var shard := [0, 1]  # index, count: TEST_SHARD=i/n, an environment variable so the game's LaunchOptions don't see it
+	if OS.has_environment("TEST_SHARD"):
+		var parts := OS.get_environment("TEST_SHARD").split("/")
+		shard = [int(parts[0]), int(parts[1])]
 	var filter: String = args[0] if not args.is_empty() else ""
 	var failures: Array[String] = []
 	var count := 0
@@ -44,7 +54,7 @@ func _initialize() -> void:
 	settings.store = SettingsStore.new(RUN_SETTINGS)
 	settings.changed.emit()  # the palette follows the fresh store: Night
 
-	for path in _find_test_files(BALANCE_ROOT if balance else TEST_ROOT):
+	for path in TestShards.pick(_find_test_files(BALANCE_ROOT if balance else TEST_ROOT), shard[0], shard[1]):
 		var script: GDScript = load(path)
 		if script == null or not script.can_instantiate():
 			failures.append("%s: failed to load (parse error? see output above)" % path)
@@ -81,10 +91,11 @@ func _initialize() -> void:
 
 	for f in failures:
 		printerr("FAIL ", f)
-	if count == 0:
+	var whole_run: bool = shard[1] == 1
+	if count == 0 and whole_run:
 		printerr("No tests matched filter '%s'." % filter)
 	print("%d tests, %d failures" % [count, failures.size()])
-	quit(1 if not failures.is_empty() or count == 0 else 0)
+	quit(1 if not failures.is_empty() or (count == 0 and whole_run) else 0)
 
 
 func _find_test_files(dir_path: String) -> Array[String]:

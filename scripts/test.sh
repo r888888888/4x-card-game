@@ -3,6 +3,8 @@
 #   filter: substring of "file::method", e.g. "rules" or "test_create_card"
 #   --balance: run only tests/balance/ (real-data sim runs; the main suite and the Stop hook leave it out)
 # Re-imports the project first when any .gd file changed, so new class_names resolve.
+# The files run in TEST_JOBS parallel shards (default: the CPU count, 223), each Godot with its own empty HOME so no
+# two share user:// (nor touch the player's). The last line sums them: "N tests, M failures".
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,7 +15,40 @@ if [[ ! -f "$stamp" ]] || [[ -n "$(find . -name '*.gd' -newer "$stamp" -not -pat
 	mkdir -p .godot && touch "$stamp"
 fi
 
-# Drop the engine banner and backtrace noise; the runner prints one FAIL line per problem.
-"$GODOT" --headless --path . --script res://tests/run_tests.gd -- "$@" 2>&1 \
-	| grep -v -e '^Godot Engine v' -e '^$' -e '^ *GDScript backtrace' -e '^ *\[[0-9]*\] '
-exit "${PIPESTATUS[0]}"
+jobs="${TEST_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)}"
+work="$(mktemp -d "${TMPDIR:-/tmp}/4x-tests.XXXXXX")"
+trap 'rm -rf "$work"' EXIT
+
+pids=()
+for ((i = 0; i < jobs; i++)); do
+	mkdir -p "$work/home$i"
+	HOME="$work/home$i" TEST_SHARD="$i/$jobs" "$GODOT" --headless --fixed-fps 120 --path . \
+		--script res://tests/run_tests.gd -- "$@" >"$work/out$i" 2>&1 &
+	pids+=($!)
+done
+
+tests=0
+failures=0
+status=0
+summary='^([0-9]+) tests, ([0-9]+) failures$'
+for ((i = 0; i < jobs; i++)); do
+	wait "${pids[$i]}" || status=1
+	# Drop the engine banner and backtrace noise; the runner prints one FAIL line per problem.
+	grep -v -E -e '^Godot Engine v' -e '^$' -e '^ *GDScript backtrace' -e '^ *\[[0-9]*\] ' -e "$summary" "$work/out$i"
+	line="$(grep -E "$summary" "$work/out$i" | tail -1)"
+	if [[ "$line" =~ $summary ]]; then
+		tests=$((tests + BASH_REMATCH[1]))
+		failures=$((failures + BASH_REMATCH[2]))
+	else
+		echo "FAIL shard $i/$jobs crashed before its summary (output above)" >&2
+		failures=$((failures + 1))
+		status=1
+	fi
+done
+
+if ((tests == 0)); then
+	echo "No tests matched filter '${*: -1}'." >&2
+	status=1
+fi
+echo "$tests tests, $failures failures"
+exit "$status"

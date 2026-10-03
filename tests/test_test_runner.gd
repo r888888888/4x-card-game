@@ -11,14 +11,16 @@ func test_frames_run_without_the_headless_sleep() -> void:
 	eq(OS.low_processor_usage_mode_sleep_usec, 0, "no sleep between frames")
 
 
-func test_a_quarter_second_timer_takes_thirty_frames() -> void:
+func test_each_frame_is_a_120th_of_a_second_whatever_the_wall_clock_does() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
-	var timer := tree.create_timer(0.25)
-	var frames := 0
-	while timer.time_left > 0.0 and frames < 1000:
+	var deltas: Array[float] = []
+	for i in 5:
+		if i == 2:
+			OS.delay_msec(50)  # a slow frame: six 120ths of real time
 		await tree.process_frame
-		frames += 1
-	check(absi(frames - 30) <= 1, "0.25 s at a fixed 1/120 s per frame is 30 frames, took %d" % frames)
+		deltas.append(tree.root.get_process_delta_time())
+	for d in deltas:
+		check(absf(d - 1.0 / 120.0) < 0.0001, "each frame advances 1/120 s of game time: %s" % [deltas])
 
 
 # --- AC3: shards ---
@@ -29,7 +31,7 @@ func test_shards_take_every_nth_file() -> void:
 	eq(shards.pick(files, 0, 3), ["a", "d", "g"] as Array[String], "shard 0 of 3")
 	eq(shards.pick(files, 1, 3), ["b", "e"] as Array[String], "shard 1 of 3")
 	eq(shards.pick(files, 2, 3), ["c", "f"] as Array[String], "shard 2 of 3")
-	eq(shards.pick(files, 3, 8), [] as Array[String], "a shard past the last file gets none")
+	eq(shards.pick(files, 7, 8), [] as Array[String], "a shard past the last file gets none")
 
 
 func test_one_shard_takes_every_file() -> void:
