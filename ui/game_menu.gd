@@ -55,7 +55,7 @@ func set_game(seed_value: int, civ_name: String) -> void:
 func open(return_to: CardView) -> void:
 	_return_to = return_to
 	present()
-	_restart_button.grab_focus()
+	FocusRing.focus(_restart_button)
 
 
 ## Closes it; give_back false: the focus goes nowhere (the board is restarting or leaving).

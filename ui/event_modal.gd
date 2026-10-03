@@ -59,7 +59,7 @@ func open(outcome: Dictionary) -> void:
 	aside.custom_minimum_size = card.slot_size()
 	card.attach(aside)
 	present()
-	ok_button.grab_focus()
+	FocusRing.focus(ok_button)
 
 
 func closed() -> void:

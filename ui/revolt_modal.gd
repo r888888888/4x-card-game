@@ -44,7 +44,7 @@ func open(e: GameEngine) -> void:
 	_summary.text = "\n".join(e.revolt_summary().map(func(line): return "• " + line))
 	keep_button.text = "Keep %s" % government
 	present()
-	keep_button.grab_focus()
+	FocusRing.focus(keep_button)
 
 
 ## Test hook: the sheet's text, without markup.

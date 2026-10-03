@@ -46,7 +46,7 @@ func add_row(id: String, text: String) -> Button:
 		if step != 0 and at >= 0 and at < list.size():
 			row.accept_event()
 			_choose(list[at])
-			_rows[list[at]].grab_focus())
+			FocusRing.focus(_rows[list[at]], true))
 	_box.add_child(row)
 	_rows[id] = row
 	return row

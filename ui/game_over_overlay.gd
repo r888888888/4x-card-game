@@ -36,7 +36,7 @@ func refresh(e: GameEngine) -> void:
 	if not is_open():
 		stack.close_all()  # the game is over: it replaces any sheet still open (the last turn's event)
 		present()
-		_replay_button.grab_focus()
+		FocusRing.focus(_replay_button)
 		var sfx := Sfx.find(self)
 		if sfx != null:
 			sfx.play(Sfx.MILESTONE_VICTORY)  # the closing ceremony (191)
