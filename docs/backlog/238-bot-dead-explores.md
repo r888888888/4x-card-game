@@ -2,7 +2,7 @@
 id: 238
 title: The bot plays an explore-only card with nothing left to explore
 type: bug
-status: in-progress
+status: review
 branch: fix/238-bot-dead-explores
 ---
 
@@ -16,14 +16,14 @@ branch: fix/238-bot-dead-explores
   (tall) to 197 (growth) such plays per strategy; wealth had 0.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game whose territory deck is empty and a hand of a card whose only effect is `explore` and
+- [x] AC1: Given a game whose territory deck is empty and a hand of a card whose only effect is `explore` and
   a card that gains 1 food, when the bot takes its turn, then it plays the food card and not the explore card,
   which stays in the hand.
-- [ ] AC2: Given the same empty territory deck and a hand of only the explore card, when the bot takes its turn,
+- [x] AC2: Given the same empty territory deck and a hand of only the explore card, when the bot takes its turn,
   then it plays no card (the action is unspent).
-- [ ] AC3: Given a territory deck with 1 territory and a hand of only the explore card, when the bot takes its turn,
+- [x] AC3: Given a territory deck with 1 territory and a hand of only the explore card, when the bot takes its turn,
   then it plays it and the territory is in the frontier (explore still happens while there is something to find).
-- [ ] AC4: Given an empty territory deck and a hand of a card that explores and also gains 1 food, when the bot takes
+- [x] AC4: Given an empty territory deck and a hand of a card that explores and also gains 1 food, when the bot takes
   its turn, then it plays it (only cards that do nothing but explore are skipped).
 
 ## Test plan
@@ -35,10 +35,14 @@ branch: fix/238-bot-dead-explores
 | AC4 | `test_sim::test_bug_238_the_bot_plays_a_card_that_explores_and_does_more_with_nothing_to_explore` (guard) |
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`ScriptedBot._play_first_playable` played any card `play_error` allowed, and the engine allows exploring an empty
+territory deck (it logs "no territories left to explore"). Before 235 Scout drew a card and refunded its action, so
+the waste was invisible; now it costs an action. The bot now skips a card whose effects are all `explore` while the
+territory deck is empty (`_explores_nothing`). No test covered the bot with an empty territory deck.
 
 ## Log
 - 2026-10-03: Found while checking the bot against the changes since 158 (156, 157, 232, 235). Siblings: 239 (the
   bot spends wealth), 240 (the lookahead values research).
 - 2026-10-03: Red. Fixtures Forager (+1 food) and Pathfinder (explore, +1 food) added to TEST_CARDS. AC2 counts
   card_played instead of actions_left: the fixture game has no action limit, so an unspent action can't be seen.
+- 2026-10-03: Green: 1515 → 1519 tests; balance suite green.
