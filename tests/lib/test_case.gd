@@ -519,6 +519,12 @@ func with_reduce_motion(calm: bool, body: Callable) -> void:
 		DirAccess.remove_absolute(path)
 
 
+## The state a toggle key shows, ON or OFF: the text of its state label beside it (219), or "" if it has none.
+func shown_state(key: Object) -> String:
+	var word: Variant = key.get("state_label") if key != null else null
+	return (word as Label).text if word is Label else ""
+
+
 ## Runs body with the Settings autoload saving to a temp file at path (Day mode and Reduce motion off), then puts the
 ## player's store and palette back. Use with await.
 func with_temp_settings(body: Callable, path := "user://test_temp_settings.cfg") -> void:

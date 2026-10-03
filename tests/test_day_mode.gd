@@ -176,7 +176,7 @@ func test_the_settings_modal_shows_a_day_mode_key_under_reduce_motion() -> void:
 		var key: Control = main.settings_modal.day_toggle  # one set of keys since 206: the Settings modal's
 		check(key != null and key.get_script() != null and key.get_script().resource_path == KEY_PATH, "a LegendKey")
 		eq(row_text(key), "Day mode", "labelled Day mode")
-		eq(key.text, "ON", "shows the setting")
+		eq(shown_state(key), "ON", "shows the setting (219: beside the key)")
 		var motion_row: Control = main.settings_modal.motion_toggle.get_parent()
 		check(key.get_parent().get_index() == motion_row.get_index() + 1 and key.get_parent().get_parent() == motion_row.get_parent(),
 			"right under Reduce motion")
