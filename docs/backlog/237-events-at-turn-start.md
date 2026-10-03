@@ -2,7 +2,7 @@
 id: 237
 title: Draw the turn's event at the start of the turn, from turn 2
 type: feature
-status: in-progress
+status: review
 branch: feat/237-events-at-turn-start
 ---
 
@@ -13,24 +13,24 @@ you play and its modifiers never apply. Drawing it at the end of the turn start,
 and play around it for every turn it lasts.
 
 ## Acceptance criteria
-- [ ] AC1: Given a new game (event deck not empty), when turn 1 starts, then no event is drawn: `active_events` is
+- [x] AC1: Given a new game (event deck not empty), when turn 1 starts, then no event is drawn: `active_events` is
   empty, the event deck keeps its size and `event_drawn` is not emitted.
-- [ ] AC2: Given turn 1 with an event deck, when the turn ends, then no event is drawn during `end_turn` and the event
+- [x] AC2: Given turn 1 with an event deck, when the turn ends, then no event is drawn during `end_turn` and the event
   is drawn as turn 2 starts: after the turn starts, `active_events` holds the former top of the event deck, its `play`
   effects have resolved and `event_drawn` was emitted once.
-- [ ] AC3: Given an event that lasts 1 turn drawn at the start of turn 2, then it is active through turn 2's play
+- [x] AC3: Given an event that lasts 1 turn drawn at the start of turn 2, then it is active through turn 2's play
   phase (`turns_left` 1); when turn 3 starts, its `upkeep` effects resolve, it goes to `event_discard`, and the turn
   3 event is drawn after that.
-- [ ] AC4: Given an event with `modifiers` (e.g. +1 action) and `discard.turns` 2 drawn at the start of turn 2, then
+- [x] AC4: Given an event with `modifiers` (e.g. +1 action) and `discard.turns` 2 drawn at the start of turn 2, then
   the modifier applies during the play phases of turns 2 and 3 and not turn 4.
-- [ ] AC5: Given unrest 1 below the limit and the event deck's top event gains 1 unrest on play, when the next turn
+- [x] AC5: Given unrest 1 below the limit and the event deck's top event gains 1 unrest on play, when the next turn
   starts, then unrest reaches the limit but Anarchy does not fall that turn (the event resolves after the
   `start_of_turn` check); when the turn after starts with unrest still at the limit, Anarchy falls.
-- [ ] AC6: Given Anarchy ruling with renewal owed at turn start and an event that gains food, when the turn starts,
+- [x] AC6: Given Anarchy ruling with renewal owed at turn start and an event that gains food, when the turn starts,
   then renewal is pending with its usual count (an event drawn this turn adds no renewal modifier to it), the event's
   food is gained after the drain (not drained), and the event is in `active_events`.
-- [ ] AC7: Given the final turn (`turn_limit`), when it ends, then no event is drawn (the event deck keeps its size).
-- [ ] AC8: Given Anarchy burning out at the end of a turn (the government choice owed), when the government is chosen,
+- [x] AC7: Given the final turn (`turn_limit`), when it ends, then no event is drawn (the event deck keeps its size).
+- [x] AC8: Given Anarchy burning out at the end of a turn (the government choice owed), when the government is chosen,
   then the next turn starts and its event is drawn exactly once.
 
 ## Out of scope
@@ -69,13 +69,27 @@ reshuffle tests), `test_event_panel::test_event_view_shows_its_turns_left` (2 tu
 (closes the earlier turns' event modal first).
 
 ## Manual check
-- [ ] Turn 1 shows no event modal; pressing End turn shows the turn 2 event modal at the start of turn 2, and the
-  event sits in the Realm row with its turns-left badge while you play.
-- [ ] A turn that starts under Anarchy with renewal owed: the event modal is on top and readable first, then the
-  renewal choice.
-- [ ] A one-turn event's tooltip "while active" modifiers show as active during the turn.
+- [ ] `godot --path . -- --seed 5`: turn 1 shows no event modal. Press End turn: the event modal opens as turn 2
+  starts, and after OK the event leads the Realm row with its turns-left badge (a 1-turn event says 1 turn left)
+  while you play turn 2. Hover the row: "One event is drawn at the start of each turn from turn 2."
+- [ ] Draw a one-turn event with a "while active" modifier (e.g. Calls for Reform under Anarchy, or any +action
+  event): the modifier shows in effect during that turn.
+- [ ] Declare a revolution with cards in the discard, end the turn: Anarchy falls, renewal is owed and the turn's
+  event modal is on top; read it, press OK, then pay the renewal.
+- [ ] Let Anarchy burn out (calm to 1 counter, end the turn): choose a government, then the next turn's event modal
+  opens.
 
 ## Log
 - Balance worries: every event gets one more play phase (harmful ones hit harder, e.g. `bandit_raids`, good ones
   help more), and unrest events no longer topple a government by surprise, so events become a softer source of
   Anarchy. One fewer event per game is drawn (the wasted draw at the end of the final turn).
+- Built: `TurnLoop.end_turn` no longer draws; `start_turn` calls `Events.draw` last, from turn 2. No new API.
+- The empty-event-deck reshuffle now runs right after upkeep, so an event that just ended can be reshuffled and drawn
+  again the same turn start. That is the same sequence as before (discarded at an upkeep, then the next draw), one
+  step earlier; `test_modifiers` needed a filler event because its game has no event deck.
+- `ModalStack.push` on an already-open modal closes what is above it: if the previous turn's event modal is still
+  open when the next event is drawn (only possible in tests, or by choosing a government from the identity modal
+  without closing the event first), the identity modal above it closes. Not changed here.
+- Follow-ups: ScriptedBot's `_unrest_ok` keeps a +1 margin "for the event", now only cautious (balance item).
+  `engine/glossary.gd` says upkeep happens "at the end of each turn"; it runs at the start (pre-existing, not this
+  item).

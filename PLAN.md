@@ -42,7 +42,7 @@ res://
     famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
     anarchy.gd           # Anarchy (145–148, 154, 155): falling at the unrest limit, counters, restore order, renewal, revolt,
                          # the government deck and choice
-    events.gd            # Events: event deck setup, drawing in the event phase, active events' upkeep and discard
+    events.gd            # Events: event deck setup, drawing one at each turn start, active events' upkeep and discard
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
     glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated;
                          # BASIC ones (Upkeep, Slots, Pop) are left out of card details (112)
@@ -212,9 +212,11 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
-2. Draw up to hand size (unplayed cards stay in hand).
-3. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
-4. Event: draw one event from the event deck and resolve its `play` effects (see Events).
+2. Draw up to hand size (unplayed cards stay in hand); under Anarchy, renewal is owed.
+3. Event (237: from turn 2): draw one event from the event deck and resolve its `play` effects (see Events). It is
+   drawn last so it is active all turn: you see it in the Realm and play around it, and an event that lasts N turns
+   is active for N play phases.
+4. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After the last turn (`turn_limit`, 100 in the real data), show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
@@ -396,14 +398,16 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   later ones wait in `future_events`. When an era is added (the `add_era` op, the empty research deck, or an
   `era_unlocks` threshold), its events are shuffled into `event_deck`, once; the era-1 events, the active events
   and the event discard stay as they are. The event pile line's tooltip says how many events wait.
-- Event phase (once per `end_turn()`, before the hand-limit discard, also on the final turn): draws the top event,
+- The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check and drain, the
+  hand draw and renewal; none on turn 1 or after the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty (nothing when both are empty), makes it active with
   `turns_left` = its `discard.turns`, and resolves its `play` effects. Then `event_drawn(outcome)` reports it (079:
   `{uid, id, gained, lost, vp, drawn, created}`, before `changed`); the UI pops up a modal with the event and
   `outcome_summary(outcome)` ("No immediate effect" when empty), except when the game just ended. Play outcomes
   gain `lost` too: what a `lose` effect actually took.
 - Upkeep: each active event resolves its `upkeep` effects, then its `turns_left` drops by 1 and at 0 it moves to
-  `event_discard`, so a 1-turn event gives exactly one upkeep. `event_turns_left(uid)` reads it; the forecast
+  `event_discard`, so a 1-turn event is active for the turn it is drawn and gives exactly one upkeep, at the next
+  turn's start. An unrest event that reaches the limit leaves a turn to calm before the Anarchy check. `event_turns_left(uid)` reads it; the forecast
   includes active events.
 - Code: `engine/events.gd`.
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
@@ -411,7 +415,7 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
   supply's Granary pile grew to 3 to keep growth cards available.
 - UI (068, 137, 138): the active events lead the Realm's row as board cards with their turns left (a Famine shows its
-  counters); the row's tooltip says one event is drawn at the end of each turn. None show without an event deck.
+  counters); the row's tooltip says one event is drawn at the start of each turn from turn 2. None show without an event deck.
 
 ## Civilizations (backlog 062)
 A game is played as one civilization: a permanent card with a starting gift and ongoing bonuses.

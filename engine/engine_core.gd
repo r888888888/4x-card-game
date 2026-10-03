@@ -32,7 +32,7 @@ signal game_over(final_score: int)
 ## target is the uid the card was played on (-1 if none), paid and gained map resource -> amount,
 ## drawn and created are card uids.
 signal card_played(outcome: Dictionary)
-## Emitted when the event phase draws an event, after its play effects, before changed (079). outcome: {uid, id,
+## Emitted when the turn start draws an event (237), after its play effects, before changed (079). outcome: {uid, id,
 ## gained, lost, vp, drawn, created}, as card_played's plus the event's card id; lost maps resource -> what a lose
 ## effect actually took.
 signal event_drawn(outcome: Dictionary)

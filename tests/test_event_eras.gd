@@ -128,7 +128,7 @@ func event_tooltip(event_deck: Dictionary) -> String:
 
 ## Backlog 122: the tooltip no longer says how many events wait for a later era (was 039 AC4).
 func test_event_tooltip_names_no_events_waiting_for_a_later_era() -> void:
-	var base := "One event is drawn at the end of each turn. It stays active until its turns run out."
+	var base := "One event is drawn at the start of each turn from turn 2. It stays active until its turns run out."
 	eq(event_tooltip(DECK), base, "two waiting: not said")
 	eq(event_tooltip({"windfall": 1, "raid": 1}), base, "one waiting: not said")
 	eq(event_tooltip({"windfall": 1, "omen": 1}), base, "none waiting")

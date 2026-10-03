@@ -1,6 +1,6 @@
 class_name Events
 extends RefCounted
-## The event deck (backlog 039): drawing one event each event phase, active events' upkeep, and discarding an
+## The event deck (backlog 039): drawing one event at each turn start from turn 2 (237), active events' upkeep, and discarding an
 ## event once its discard condition is met. Static functions on the engine's state; GameEngine and TurnLoop
 ## call them.
 
@@ -36,7 +36,7 @@ static func turns_left(e: GameEngine, uid: int) -> int:
 	return card.turns_left if card != null else 0
 
 
-## The event phase: draws the top event (shuffling the event discard back in when the deck is empty), makes it
+## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event (shuffling the event discard back in when the deck is empty), makes it
 ## active for its discard_turns, and resolves its play effects. Does nothing when both piles are empty.
 static func draw(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")

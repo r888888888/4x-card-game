@@ -1,6 +1,6 @@
 class_name EventModal
 extends Modal
-## The drawn-event modal (backlog 079): when the event phase draws an event, a big card on the left and, on the right,
+## The drawn-event modal (backlog 079): when a turn start draws an event (237), a big card on the left and, on the right,
 ## how long it lasts and what it just did (GameEngine.outcome_summary). While on top it takes every key and click;
 ## Esc, Enter, OK or a click outside closes it.
 
