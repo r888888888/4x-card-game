@@ -14,7 +14,8 @@ extends RefCounted
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
 ## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
-## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159).
+## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159),
+## valued by score and the insight they gathered (240).
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -26,6 +27,8 @@ const CALM_MARGIN := 2
 ## How many turns a lookahead plays (159), and how often, in turns, the bot weighs a revolution.
 const LOOKAHEAD_TURNS := 12
 const REVOLT_EVERY := 4
+## The insight a lookahead's fork gathers that is worth 1 point of its value (240): research pays off past the horizon.
+const INSIGHT_PER_POINT := 4
 
 static var _depth := 0  # > 0 while a lookahead plays (159): no revolts, the forced government chosen
 static var _forced_government := ""  # the government a lookahead was opened for ("" for the ranking)
@@ -55,8 +58,8 @@ static func _close_turn(engine: GameEngine) -> void:
 	engine.end_turn()
 
 
-## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its score then
-## (159). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
+## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its value then:
+## its score (159) + 1 point per INSIGHT_PER_POINT insight it gathered (240). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
 ## ("" for best_government), and never revolts; engine itself is untouched.
 static func lookahead(engine: GameEngine, strategy: String, government_id := "", revolt := false) -> int:
 	var f := engine.fork()
@@ -75,7 +78,17 @@ static func lookahead(engine: GameEngine, strategy: String, government_id := "",
 		steps += 1
 	_depth -= 1
 	_forced_government = saved
-	return f.score()
+	return f.score() + insight_gathered(engine, f) / INSIGHT_PER_POINT
+
+
+## The insight end gathered since start (240): the insight it holds minus what start held, plus the printed insight
+## cost of each tech it learned that start hadn't.
+static func insight_gathered(start: GameEngine, end: GameEngine) -> int:
+	var gathered: int = end.resources.get(GameEngine.INSIGHT, 0) - start.resources.get(GameEngine.INSIGHT, 0)
+	for tech in end.zone("researched").cards:
+		if start.zone("researched").find(tech.uid) == null:
+			gathered += tech.def.cost.get(GameEngine.INSIGHT, 0)
+	return gathered
 
 
 ## Plays one turn with strategy up to, not including, discarding and ending it: choices, techs and hand cards, then

@@ -2,7 +2,7 @@
 id: 240
 title: The bot's government lookahead values research beyond its horizon
 type: feature
-status: red-review
+status: in-progress
 branch: feat/240-lookahead-values-research
 ---
 
