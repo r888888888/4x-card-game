@@ -52,11 +52,4 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
-Board and screens redesign (from `docs/design/transitions.html` and `mcm-specimen.html`; specced 2026-10-02; 197–200,
-202, 204, 207 and 209–213 are done):
-1. 206 Settings modal, then 205 Revolt in the civilization modal with its confirmation
-2. 203 End turn at the sidebar's foot, then 201 the resource strip
-3. 208 Knowledge screen
-4. 214 the title screen's sunrise art
-
 Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
