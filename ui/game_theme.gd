@@ -51,6 +51,7 @@ static func build() -> Theme:
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	t.set_type_variation("Sheet", "PanelContainer")
 	t.set_stylebox("panel", "Sheet", sheet())
+	_price_tag(t)
 	_board_frame(t)
 	_pips(t)
 	_tech_tiles(t)
@@ -235,6 +236,16 @@ static func _board_frame(t: Theme) -> void:
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.
 static func dark_panel(border := Palette.EDGE) -> StyleBoxFlat:
 	return UIKit.panel_style(Palette.RAISED, border, Tokens.SPACE_5)
+
+
+## A supply pile's price tag (232): a WEALTH plane hanging below the card, PriceTagText on it.
+static func _price_tag(t: Theme) -> void:
+	var style := UIKit.panel_style(Palette.WEALTH, Palette.WEALTH, Tokens.SPACE_1)
+	style.content_margin_left = Tokens.SPACE_3
+	style.content_margin_right = Tokens.SPACE_3
+	t.set_type_variation("PriceTag", "PanelContainer")
+	t.set_stylebox("panel", "PriceTag", style)
+	_label(t, "PriceTagText", Tokens.TYPE_BODY, Palette.TEXT_ON_ACCENT, tabular(LABEL_SEMIBOLD))
 
 
 ## The keyboard focus ring drawn over a focused button or field; same colour as a focused card's.

@@ -141,3 +141,30 @@ func test_bug_136_play_cost_is_empty_before_a_game_starts() -> void:
 func test_bug_136_play_cost_is_empty_for_a_card_not_in_the_hand() -> void:
 	var e := make_engine({"farm": 10})
 	eq(e.play_cost(-1), {}, "uid -1 isn't in the hand")
+
+
+# --- 232: a supply pile's play cost ---
+
+## discount_game(civ) whose supply also sells Obelisk and Cairn.
+func supply_cost_game(civ: String) -> Object:  # Object until supply_play_cost exists (red phase)
+	var e := discount_game(civ)
+	e.state.supply.merge({"obelisk": 2, "cairn": 2})
+	return e
+
+
+func test_a_supply_piles_play_cost_takes_off_the_civilizations_tag_discount() -> void:
+	eq(supply_cost_game("builders").supply_play_cost("obelisk"), {"wealth": 9}, "Obelisk 12 − 3")
+	eq(supply_cost_game("builders").supply_play_cost("cairn"), {"wealth": 0, "food": 1}, "Cairn: wealth floors at 0")
+	eq(supply_cost_game("").supply_play_cost("obelisk"), {"wealth": 12}, "no civilization: the printed cost")
+
+
+func test_a_supply_discount_lowers_the_buy_price_but_not_the_play_cost() -> void:
+	var e := supply_cost_game("traders")
+	eq(e.supply_play_cost("obelisk"), {"wealth": 12}, "the play cost is printed")
+	eq(e.buy_price("scout"), 2, "the buy price is 3 − 1")
+
+
+func test_a_card_with_no_supply_pile_has_no_supply_play_cost() -> void:
+	var e := supply_cost_game("builders")
+	eq(e.supply_play_cost("farm"), {}, "Farm has no pile")
+	eq(e.supply_play_cost("nonsense"), {}, "no such card")
