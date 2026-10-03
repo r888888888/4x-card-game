@@ -2,7 +2,7 @@
 id: 220
 title: A list row's focus ring waits for the keyboard
 type: feature
-status: in-progress
+status: review
 branch: feat/220-quiet-list-focus
 ---
 
@@ -13,15 +13,15 @@ index tab), so the ring is noise there. A SelectList row draws no ring when the 
 and draws it once the keyboard moves the focus (Up/Down in the list, Tab or Shift+Tab onto a row).
 
 ## Acceptance criteria
-- [ ] AC1: Given a SelectList with rows a, b, c, when row a is focused with `grab_focus()` (as a screen does when it
+- [x] AC1: Given a SelectList with rows a, b, c, when row a is focused with `grab_focus()` (as a screen does when it
   opens), then a's `focus` stylebox draws nothing (a `StyleBoxEmpty`).
-- [ ] AC2: Given row a focused as in AC1, when Down is pressed, then row b has the focus and its `focus` stylebox is the
+- [x] AC2: Given row a focused as in AC1, when Down is pressed, then row b has the focus and its `focus` stylebox is the
   focus ring (a `StyleBoxFlat` with no fill and a `Palette.FOCUS` border).
-- [ ] AC3: Given row a focused as in AC1, when Tab moves the focus to row b, then b's `focus` stylebox is the ring; and
+- [x] AC3: Given row a focused as in AC1, when Tab moves the focus to row b, then b's `focus` stylebox is the ring; and
   when Shift+Tab moves it back to a, then a's is the ring.
-- [ ] AC4: Given row b showing the ring (AC2), when the focus leaves it and b is then focused again with `grab_focus()`
+- [x] AC4: Given row b showing the ring (AC2), when the focus leaves it and b is then focused again with `grab_focus()`
   (or a click), then b draws no ring.
-- [ ] AC5: Given the New game screen opening with civilizations, then the selected row has the focus and draws no ring;
+- [x] AC5: Given the New game screen opening with civilizations, then the selected row has the focus and draws no ring;
   when Down is pressed, the next row has the focus and draws the ring.
 
 ## Out of scope
@@ -47,6 +47,11 @@ and draws it once the keyboard moves the focus (Up/Down in the list, Tab or Shif
 | AC5 | `test_start_screen::test_the_new_game_screen_opens_with_no_ring_until_a_key` |
 
 ## Manual check
-- [ ] New game: the selected civilization has no ring on opening; Down or Tab shows it; a click on a row shows none.
+- [ ] `godot --path .` → New game: the selected civilization has no teal ring on opening.
+- [ ] Press Down: the next row is selected and has the ring. Tab to the seed field and Shift+Tab back: the row has it.
+- [ ] Click another row: it is selected with no ring.
 
 ## Log
+- The ring is chosen on focus_entered from a flag SelectList sets in `_input` while an arrow, Tab or Shift+Tab is
+  handled (cleared deferred). Reading `Input.is_action_pressed` instead doesn't see `Viewport.push_input` events, so
+  the tests couldn't drive it.
