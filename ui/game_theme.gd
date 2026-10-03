@@ -16,6 +16,8 @@ const DISPLAY_FONT := preload("res://assets/fonts/Jost-Variable.ttf")
 const PLINTH := Vector2(2, 2)  # a control's hard shadow (guide shadow.plinth)
 const PRESS := 2  # px a pressed control travels into its shadow (guide travel.press)
 const SHEET_SHADOW := Vector2(8, 8)  # a modal sheet's hard shadow (207, guide §15.11)
+const SELECTED_SHADOW := Vector2(4, 4)  # a selected row's hard shadow (217, guide §4.4 "Selected")
+const PULL := Tokens.SPACE_2  # px a selected row is pulled out of its list (217, guide §10.5)
 
 
 static func build() -> Theme:
@@ -41,6 +43,7 @@ static func build() -> Theme:
 	_link(t)
 	_big_buttons(t)
 	_end_turn_key(t)
+	_select_list(t)
 	t.set_type_variation("DarkPanel", "PanelContainer")
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	t.set_type_variation("Sheet", "PanelContainer")
@@ -91,6 +94,46 @@ static func _link(t: Theme) -> void:
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
 	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)
 	t.set_color("font_color", "TitleLink", Palette.TEXT)
+
+
+## The selectable list (217, guide §7): ListWell, the list's recessed well, with room on its trailing side for the
+## pulled-out row; ListRow, a row printed on it with no box, and when selected (pressed) a sheet strip pulled PULL px
+## out onto a hard shadow. SelectList draws the selected row's index tab.
+static func _select_list(t: Theme) -> void:
+	t.set_type_variation("ListWell", "PanelContainer")
+	var well := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
+	well.set_border_width_all(0)
+	well.content_margin_left = Tokens.SPACE_2
+	well.content_margin_top = Tokens.SPACE_2
+	well.content_margin_bottom = Tokens.SPACE_2
+	well.content_margin_right = Tokens.SPACE_4  # the pull and its shadow
+	t.set_stylebox("panel", "ListWell", well)
+	t.set_type_variation("ListRow", "Button")
+	var flat := UIKit.panel_style(Palette.RAISED, Palette.RAISED, 0)
+	flat.set_border_width_all(0)
+	flat.content_margin_left = Tokens.SPACE_4
+	flat.content_margin_right = Tokens.SPACE_4
+	flat.content_margin_top = Tokens.SPACE_2
+	flat.content_margin_bottom = Tokens.SPACE_2
+	var printed := flat.duplicate() as StyleBoxFlat
+	printed.draw_center = false
+	t.set_stylebox("normal", "ListRow", printed)
+	t.set_stylebox("hover", "ListRow", printed)
+	var pulled := flat.duplicate() as StyleBoxFlat
+	pulled.shadow_color = Palette.SHADOW
+	pulled.shadow_offset = SELECTED_SHADOW
+	pulled.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
+	pulled.anti_aliasing = false
+	pulled.expand_margin_left = -PULL
+	pulled.expand_margin_right = PULL
+	pulled.content_margin_left += PULL
+	pulled.content_margin_right -= PULL
+	t.set_stylebox("pressed", "ListRow", pulled)
+	t.set_stylebox("hover_pressed", "ListRow", pulled)
+	t.set_font("font", "ListRow", tabular(LABEL_FONT))
+	t.set_color("font_color", "ListRow", Palette.TEXT_DIM)
+	for state in ["font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
+		t.set_color(state, "ListRow", Palette.TEXT)
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.

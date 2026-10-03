@@ -159,6 +159,11 @@ static func button(text: String, on_pressed: Callable) -> Button:
 	return b
 
 
+## An empty selectable list (217): add rows with add_row, and listen to chosen.
+static func select_list() -> SelectList:
+	return SelectList.new()
+
+
 ## A stacked column of buttons for a menu or a screen (100), added to parent: controls share the widest one's width,
 ## and the column is centred in parent.
 static func button_column(parent: Control, controls: Array[Control]) -> VBoxContainer:
