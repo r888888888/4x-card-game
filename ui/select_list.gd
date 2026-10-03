@@ -2,8 +2,8 @@ class_name SelectList
 extends PanelContainer
 ## The selectable list (backlog 217, guide §7 "Selectable list", the index card): rows printed on a recessed well, of
 ## which one is selected. The selected row is pulled out as a sheet strip on a hard shadow (ListRow's pressed look)
-## with the signal index tab on its leading edge; the keyboard focus keeps its own ring. A click, or Up and Down on a
-## row, chooses: the row is selected and chosen fires. select() changes the selection without firing chosen.
+## with the signal index tab on its leading edge; the keyboard focus keeps its own ring, drawn only when a key (the
+## arrows, Tab or Shift+Tab) moved the focus onto the row (220). A click, or Up and Down on a row, chooses: the row is selected and chosen fires. select() changes the selection without firing chosen.
 
 ## The player chose id's row.
 signal chosen(id: String)
@@ -12,6 +12,7 @@ var selected := ""  # the selected row's id, "" for none
 
 var _box := VBoxContainer.new()
 var _rows := {}  # id -> its row Button, in the order added
+var _keyed := false  # a focus-moving key is being handled: a row it focuses draws the ring
 
 
 func _init() -> void:
@@ -23,7 +24,7 @@ func _init() -> void:
 ## Adds a row reading text for id, at the bottom, and returns it.
 func add_row(id: String, text: String) -> Button:
 	var row := UIKit.button(text, func(): _choose(id))
-	row.theme_type_variation = &"ListRow"
+	row.theme_type_variation = &"ListRowQuiet"
 	row.toggle_mode = true
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	row.size_flags_horizontal = Control.SIZE_FILL  # a list row: the column's width (100)
@@ -36,6 +37,8 @@ func add_row(id: String, text: String) -> Button:
 	tab.offset_right = GameTheme.PULL + Tokens.SPACE_1
 	UIKit.painted(tab, func(): tab.color = Palette.ACCENT)
 	row.add_child(tab)
+	row.focus_entered.connect(func(): row.theme_type_variation = &"ListRow" if _keyed else &"ListRowQuiet")
+	row.focus_exited.connect(func(): row.theme_type_variation = &"ListRowQuiet")
 	row.gui_input.connect(func(event: InputEvent):
 		var step := 1 if event.is_action_pressed("ui_down") else -1 if event.is_action_pressed("ui_up") else 0
 		var list := ids()
@@ -77,6 +80,14 @@ func ids() -> Array[String]:
 ## id's row, or null.
 func row(id: String) -> Button:
 	return _rows.get(id)
+
+
+func _input(event: InputEvent) -> void:
+	for action in ["ui_up", "ui_down", "ui_focus_next", "ui_focus_prev"]:
+		if event.is_action_pressed(action):
+			_keyed = true
+			set_deferred("_keyed", false)
+			return
 
 
 func _choose(id: String) -> void:
