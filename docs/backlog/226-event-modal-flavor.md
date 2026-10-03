@@ -2,7 +2,7 @@
 id: 226
 title: Show the event's flavor text in the drawn-event modal
 type: feature
-status: red-review
+status: review
 branch: feat/226-event-modal-flavor
 ---
 
@@ -11,10 +11,10 @@ When the event phase draws an event, the modal that announces it also shows the 
 `flavor` the card details show), so the event reads as history, not just numbers.
 
 ## Acceptance criteria
-- [ ] AC1: Given an event whose def has `flavor` "A great flood covered the plain.", when the drawn-event modal opens
+- [x] AC1: Given an event whose def has `flavor` "A great flood covered the plain.", when the drawn-event modal opens
   for it, then `main.event_modal().flavor` is that text.
-- [ ] AC2: Given an event with no flavor, when the modal opens, then `flavor` is "" and no flavor label is visible.
-- [ ] AC3: Given the modal shows an event with flavor, when it is closed, then `event_modal()` is `{}` as before (the
+- [x] AC2: Given an event with no flavor, when the modal opens, then `flavor` is "" and no flavor label is visible.
+- [x] AC3: Given the modal shows an event with flavor, when it is closed, then `event_modal()` is `{}` as before (the
   flavor is part of the shown state, not a separate modal).
 
 ## Out of scope
