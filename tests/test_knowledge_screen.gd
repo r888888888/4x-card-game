@@ -1,10 +1,11 @@
 extends "res://tests/lib/tech_case.gd"
 ## The Knowledge screen in the real main scene (backlog 208; the tech tree modal of 059 and 140 before it): the
 ## Knowledge button and T push it on the play area's navigator with a header ("Realm › Knowledge") and one row of tech
-## tiles per era, named from era_names; T, Esc or the header's link go back. An available tech's tile has a Learn
-## button beside it (140). Hooks on main.knowledge: shown() (the era names, top to bottom; [] while closed), is_open(),
-## open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label), slide_offset() (how far
-## the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
+## tiles per era, named from era_names; T, Esc or the header's link go back. A click on an available tech's tile
+## learns it (222; a Learn button before it, 140). Hooks on main.knowledge: shown() (the era names, top to bottom; []
+## while closed), is_open(), open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label),
+## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), slide_offset() (how
+## far the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
 
 
 ## Whether main has its Knowledge screen (checked, so a test without it fails instead of crashing and leaving a
@@ -98,7 +99,7 @@ func test_hints_leave_out_the_research_sentence_without_a_research_card() -> voi
 	eq(hints[1], "Insight 0", "tree header without a research card")
 
 
-# --- Backlog 140 AC6: learning from the tree ---
+# --- Backlog 140 AC6, 222 AC4: learning from the tree ---
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a fixture game: research deck Pottery (2),
 ## Writing (3), Bronze Working (5) and Iron Working (6, prereq Bronze), insight 5, a Research card in the deck;
@@ -118,67 +119,208 @@ func with_tree(body: Callable) -> void:
 	Game.engine = real
 
 
-## The tech tile (a Button) in the open tree whose text names tech_name, or null.
+## Runs body(main) with the tree open on a fixture game of two eras: Pottery and Writing in era 1, Optics (4) in era
+## 2, which opens at 8 pop. Puts the real engine back.
+func with_two_eras(body: Callable, unlocks := {"pop": 8}) -> void:
+	var real := Game.engine
+	Game.engine = tech_engine(["pottery", "writing"], {"farm": 5}, {"research_deck": {"pottery": 1, "writing": 1, "optics": 1},
+		"era_unlocks": {"2": unlocks}}, [{"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}])
+	var main := open_main()
+	main.start_game(1)
+	press_key(main, KEY_T)
+	await wait_screen_transition()
+	if has_knowledge(main):
+		await body.call(main)
+	close_main(main)
+	Game.engine = real
+
+
+## The tech tile (a Button) in the open tree for tech_name, or null.
 func tile(main: Node, tech_name: String) -> Button:
-	for b in main.knowledge.find_children("*", "Button", true, false):
-		var first: String = b.text.split("\n")[0]
-		if b.is_visible_in_tree() and (first.ends_with(" " + tech_name) or first.contains(" %s ·" % tech_name)):
-			return b
-	return null
+	return main.knowledge.tile(tech_name)
 
 
-## The Learn button in the same row as tech_name's tile, or null.
-func learn_button(main: Node, tech_name: String) -> Button:
-	var t := tile(main, tech_name)
-	if t == null:
-		return null
-	for b in t.get_parent().get_children():
-		if b is Button and b != t and b.text == "Learn":
-			return b
-	return null
+## The texts tech_name's tile shows, in order: its name, its marker, then "✔ Eureka" when met.
+func tile_texts(main: Node, tech_name: String) -> Array[String]:
+	return main.knowledge.tile_texts(tech_name)
 
 
-func test_an_available_tech_has_a_learn_button_that_learns_it() -> void:
+## The Palette colour called name as it reads now, or transparent if there is none.
+func role(name: String) -> Color:
+	return (Palette.DAY if Palette.day else Palette.NIGHT).get(name, Color.TRANSPARENT)
+
+
+## KnowledgeScreen.TILE_SIZE, or (-1, -1) while it doesn't exist.
+func tile_size() -> Vector2:
+	return (load("res://ui/knowledge_screen.gd") as Script).get_script_constant_map().get("TILE_SIZE", Vector2(-1, -1))
+
+
+func learned(e: GameEngine, id: String) -> bool:
+	return e.zone("researched").cards.any(func(c): return c.def.id == id)
+
+
+## Pushes a press of mouse button at the centre of control on main's viewport.
+func click(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		event.position = control.get_global_rect().get_center()
+		event.global_position = event.position
+		main.get_viewport().push_input(event, true)
+
+
+func test_a_click_on_an_available_tile_learns_it() -> void:
 	await with_tree(func(main: Node):
 		var e := Game.engine
-		var button := learn_button(main, "Pottery")
-		check(button != null, "Pottery has a Learn button")
-		if button == null:
+		check(tile(main, "Pottery") != null, "a Pottery tile")
+		if tile(main, "Pottery") == null:
 			return
-		check(not button.disabled, "enabled: 5 insight is enough")
-		button.pressed.emit()
-		check(e.zone("researched").cards.any(func(c): return c.def.id == "pottery"), "Pottery learned")
+		tile(main, "Pottery").pressed.emit()
+		check(learned(e, "pottery"), "Pottery learned")
 		eq(e.resources.get("insight"), 3, "5 − 2")
-		var t := tile(main, "Pottery")
-		check(t != null and t.text.contains("✔") and t.text.contains("Researched"), "the tree shows Pottery researched: %s" % [
-			t.text if t != null else "no tile"])
-		check(learn_button(main, "Pottery") == null, "no Learn button once researched"))
+		check(main.knowledge.is_open(), "the screen stays open")
+		eq(main.details.shown(), {}, "no details open")
+		eq(tile_texts(main, "Pottery"), ["Pottery", "✓"] as Array[String], "the tile now reads researched"))
 
 
-func test_a_learn_button_you_cant_use_is_disabled_with_the_reason() -> void:
+func test_enter_on_a_focused_available_tile_learns_it() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var t := tile(main, "Writing")
+		check(t != null and t.focus_mode != Control.FOCUS_NONE, "a focusable Writing tile")
+		if t == null:
+			return
+		t.grab_focus()
+		press_key(main, KEY_ENTER)
+		check(learned(Game.engine, "writing"), "Enter learned Writing"))
+
+
+func test_there_is_no_learn_button() -> void:
+	await with_tree(func(main: Node):
+		var learn: Array = main.knowledge.find_children("*", "Button", true, false).filter(func(b): return b.text == "Learn")
+		eq(learn.size(), 0, "no Learn buttons"))
+
+
+func test_a_click_on_a_tile_you_cant_learn_learns_nothing_and_says_why() -> void:
 	await with_tree(func(main: Node):
 		var e := Game.engine
 		e.resources["insight"] = 4
 		e.changed.emit()
 		main.knowledge.close()
 		main.knowledge.open()  # reopen, so the screen reads 4 insight
-		var button := learn_button(main, "Bronze Working")
-		check(button != null, "Bronze Working has a Learn button")
-		if button == null:
-			return
-		check(button.disabled, "disabled: 4 insight is too little")
-		eq(button.tooltip_text, e.buy_tech_error(uid_of(e.zone("research_deck"), "bronze")), "the tooltip is buy_tech_error"))
-
-
-func test_a_locked_tech_says_what_it_needs_and_has_no_learn_button() -> void:
-	await with_tree(func(main: Node):
-		var t := tile(main, "Iron Working")
-		check(t != null, "an Iron Working tile")
+		var t := tile(main, "Bronze Working")
+		check(t != null, "a Bronze Working tile")
 		if t == null:
 			return
-		check(t.text.contains("🔒") and t.text.contains("Locked"), "locked: %s" % t.text)
-		check(t.text.contains("needs Bronze Working"), "names its prereq: %s" % t.text)
-		check(learn_button(main, "Iron Working") == null, "no Learn button"))
+		var error := e.buy_tech_error(uid_of(e.zone("research_deck"), "bronze"))
+		check(error != "", "precondition: 4 insight is too little")
+		check(t.tooltip_text.contains(error), "the tooltip says why: %s" % t.tooltip_text)
+		t.pressed.emit()
+		check(not learned(e, "bronze"), "nothing learned")
+		eq(e.resources.get("insight"), 4, "nothing paid"))
+
+
+# --- 222 AC2, AC3: the tiles ---
+
+func test_each_tile_shows_its_name_and_a_marker_for_its_state() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))  # 5 − 2 = 3 insight
+		eq(tile_texts(main, "Pottery"), ["Pottery", "✓"] as Array[String], "researched: a tick")
+		eq(tile_texts(main, "Writing"), ["Writing", "3"] as Array[String], "available: its cost now")
+		eq(tile_texts(main, "Iron Working"), ["Iron Working", "needs Bronze Working"] as Array[String], "locked: its prereq")
+		check(tile(main, "Pottery").tooltip_text.begins_with("Researched"), "state in words: %s" % tile(main, "Pottery").tooltip_text)
+		check(tile(main, "Writing").tooltip_text.begins_with("Available"), "state in words: %s" % tile(main, "Writing").tooltip_text)
+		check(tile(main, "Iron Working").tooltip_text.begins_with("Locked"), "state in words: %s" % tile(main, "Iron Working").tooltip_text))
+
+
+func test_a_future_tile_has_no_marker_and_says_later_era() -> void:
+	await with_two_eras(func(main: Node):
+		eq(tile_texts(main, "Optics"), ["Optics"] as Array[String], "no marker")
+		check(tile(main, "Optics").tooltip_text.begins_with("Later era"), "state in words: %s" % tile(main, "Optics").tooltip_text))
+
+
+func test_every_tile_is_one_fixed_size() -> void:
+	await with_tree(func(main: Node):
+		await wait_frames()
+		var sizes := ["Pottery", "Writing", "Bronze Working", "Iron Working"].map(func(n): return tile(main, n).size if tile(main, n) != null else Vector2.ZERO)
+		for s in sizes:
+			eq(s, tile_size(), "a tile's size"))
+
+
+func test_a_tiles_texts_all_have_room_to_show() -> void:
+	await with_tree(func(main: Node):
+		await wait_frames()
+		for tech_name in ["Writing", "Iron Working"]:
+			for label: Label in tile(main, tech_name).find_children("*", "Label", true, false):
+				var font := label.get_theme_font("font")
+				var width := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+				check(label.size.x >= width, "%s: '%s' is %s wide, needs %s" % [tech_name, label.text, label.size.x, width]))
+
+
+func test_tiles_look_like_their_state() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		var looks := {
+			"Pottery": ["TechTileResearched", role("RESEARCHED_FILL"), role("TEXT_ON_PLANE")],
+			"Writing": ["TechTile", Palette.TILE, Palette.TEXT],
+			"Iron Working": ["TechTileLocked", Palette.FIELD, Palette.TEXT_DISABLED],
+		}
+		for tech_name in looks:
+			var t := tile(main, tech_name)
+			var look: Array = looks[tech_name]
+			eq(t.theme_type_variation, look[0], "%s's variation" % tech_name)
+			var box := t.get_theme_stylebox("normal") as StyleBoxFlat
+			eq(box.bg_color if box != null else Color.TRANSPARENT, look[1], "%s's fill" % tech_name)
+			for label in t.find_children("*", "Label", true, false):
+				eq(label.get_theme_color("font_color"), look[2], "%s's text colour" % tech_name)
+		var available := tile(main, "Writing").get_theme_stylebox("normal") as StyleBoxFlat
+		eq(available.border_color, Palette.TEXT, "available: an ink border")
+		eq(available.border_width_left, 2, "of 2 px")
+		eq((tile(main, "Iron Working").get_theme_stylebox("normal") as StyleBoxFlat).border_color, Palette.CONTROL_BORDER,
+			"locked: a rule border"))
+
+
+# --- 222 AC5: details ---
+
+func test_a_click_on_a_tile_that_isnt_available_opens_its_details() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		tile(main, "Iron Working").pressed.emit()
+		eq(main.details.shown().get("name", ""), "Iron Working", "Iron Working's details")
+		check(main.knowledge.is_open(), "over the open screen"))
+
+
+func test_a_right_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		click(main, tile(main, "Writing"), MOUSE_BUTTON_RIGHT)
+		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
+		check(not learned(Game.engine, "writing"), "not learned"))
+
+
+func test_i_on_a_focused_tile_opens_its_details() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		tile(main, "Writing").grab_focus()
+		press_key(main, KEY_I)
+		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
+		check(not learned(Game.engine, "writing"), "not learned"))
+
+
+func test_a_tiles_tooltip_lists_what_it_gives() -> void:
+	var real := Game.engine
+	Game.engine = tech_engine(["masonry"], {"farm": 5}, {}, [{"id": "masonry", "name": "Masonry", "type": "tech",
+		"cost": {"insight": 2}, "effects": [{"op": "create", "card": "farm"}]}])
+	var main := open_main()
+	main.start_game(1)
+	press_key(main, KEY_T)
+	if has_knowledge(main):
+		var t := tile(main, "Masonry")
+		check(t != null and t.tooltip_text.contains("gives Farm"), "names what it gives: %s" % [t.tooltip_text if t != null else "no tile"])
+	close_main(main)
+	Game.engine = real
+
 
 
 func test_the_tree_header_counts_insight_and_names_the_research_card() -> void:
@@ -221,40 +363,49 @@ func test_each_era_is_a_row_headed_in_caps() -> void:
 			var heading: Label = main.knowledge.era_heading(i)
 			eq(heading.text, eras[i].name, "row %d's heading" % i)
 			check(heading.uppercase, "in caps")
-		check(tile(main, "Pottery") != null, "Pottery's tile")
-		check(tile(main, "Pottery").text.contains("○") and tile(main, "Pottery").text.contains("Available"), "a mark and a word"))
+		check(tile(main, "Pottery") != null, "Pottery's tile"))
 
 
-func test_a_future_era_row_is_dimmed_and_shows_its_unlocks() -> void:
-	var real := Game.engine
-	Game.engine = tech_engine(["pottery", "writing"], {"farm": 5}, {"research_deck": {"pottery": 1, "writing": 1, "optics": 1},
-		"era_unlocks": {"2": {"pop": 8}}}, [{"id": "optics", "name": "Optics", "type": "tech", "cost": {"insight": 4}, "era": 2}])
-	var main := open_main()
-	main.start_game(1)
-	press_key(main, KEY_T)
-	await wait_screen_transition()
-	if not has_knowledge(main):
-		close_main(main)
-		Game.engine = real
-		return
-	var eras: Array = Game.engine.tech_eras()
-	var future := eras.find_custom(func(era): return not era.reached)
-	check(future != -1, "precondition: an era not reached")
-	if future != -1:
-		var row: Control = main.knowledge.era_heading(future).get_parent()
-		eq(row.modulate, Palette.FUTURE, "dimmed in FUTURE")
-		var texts := row.find_children("*", "Label", true, false).map(func(l): return l.text)
-		check(texts.any(func(t): return t.contains("8 pop")), "its unlock threshold: %s" % [texts])
-	close_main(main)
-	Game.engine = real
+func test_each_era_has_its_title_block_at_the_left_of_its_tiles() -> void:
+	await with_two_eras(func(main: Node):
+		await wait_frames()
+		var first: Label = main.knowledge.era_heading(0)
+		var second: Label = main.knowledge.era_heading(1)
+		eq(second.global_position.x, first.global_position.x, "the title blocks share a column")
+		eq(second.size.x, first.size.x, "of one width")
+		for i in 2:
+			var heading: Label = main.knowledge.era_heading(i)
+			var tiles: Array = main.knowledge.era_tiles(i)
+			check(not tiles.is_empty(), "era %d has tiles" % i)
+			for t in tiles:
+				check(t.global_position.x >= heading.get_global_rect().end.x, "era %d: a tile right of its title block" % i)
+				check(t.global_position.y < heading.get_global_rect().end.y and t.get_global_rect().end.y > heading.global_position.y,
+					"era %d: a tile level with its title block" % i))
 
 
-func test_a_click_on_a_tile_opens_its_details_over_the_screen() -> void:
-	await with_tree(func(main: Node):
-		await wait_screen_transition()
-		tile(main, "Writing").pressed.emit()
-		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
-		check(main.knowledge.is_open(), "over the open screen"))
+# --- 222 AC6: an era not reached is under vellum ---
+
+func test_a_future_era_is_under_vellum_with_its_unlocks() -> void:
+	await with_two_eras(func(main: Node):
+		await wait_frames()
+		eq(main.knowledge.era_vellum(0), null, "a reached era has no vellum")
+		var vellum: Control = main.knowledge.era_vellum(1)
+		check(vellum != null and vellum.is_visible_in_tree(), "the era not reached is under vellum")
+		if vellum == null:
+			return
+		eq(main.knowledge.vellum_text(1), "%s · OPENS AT 8 POP" % Game.engine.era_name(2).to_upper(), "its name and unlocks")
+		var optics: Button = tile(main, "Optics")
+		check(vellum.get_global_rect().encloses(optics.get_global_rect()), "it covers the era's tiles")
+		eq(main.knowledge.era_heading(1).get_parent().modulate, Color.WHITE, "the row isn't dimmed")
+		click(main, optics)
+		eq(main.details.shown(), {}, "a click on the vellum opens nothing"))
+
+
+func test_the_vellum_names_each_threshold() -> void:
+	await with_two_eras(func(main: Node):
+		eq(main.knowledge.vellum_text(1), "%s · OPENS AT 8 POP OR 30 WEALTH" % Game.engine.era_name(2).to_upper(), "both"),
+		{"pop": 8, "wealth": 30})  # the fixture starts with 20 wealth
+
 
 
 func test_back_esc_t_and_the_realm_link_go_back_and_give_the_focus_back() -> void:

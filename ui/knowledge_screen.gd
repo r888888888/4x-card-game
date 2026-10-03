@@ -2,22 +2,25 @@ class_name KnowledgeScreen
 extends VBoxContainer
 ## The Knowledge screen (backlog 208; the tech tree modal of 059 and 140 before it): a navigated screen on the play
 ## area's navigator (the Realm at its root, 101), its header "Realm › Knowledge" with the turn and era at its right.
-## One row per era from GameEngine.tech_eras, top to bottom, headed with its name; an era not reached yet is dimmed and
-## shows its unlock thresholds. Each tech is a tile showing its state with a mark and a word (not colour alone), its
-## cost now, its eureka (✔ when met, 141), its prerequisite and what it gives; clicking one opens its details. An
-## available tech has a Learn button beside it (140), disabled with buy_tech_error as its tooltip when it can't be
-## learned. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
+## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
+## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
+## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
+## printed with how it opens. A click on an available tile learns it; any other click, a right click or I shows the
+## details. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
 ## back.
 
-static var STATE_LOOK: Dictionary:  # state -> [mark, word, border colour, text alpha], as the palette reads now (183)
-	get:
-		return {
-			GameEngine.TECH_RESEARCHED: ["✔", "Researched", Palette.RESEARCHED, 1.0],
-			GameEngine.TECH_AVAILABLE: ["○", "Available", Palette.AVAILABLE, 1.0],
-			GameEngine.TECH_LOCKED: ["🔒", "Locked", Palette.LOCKED, 0.8],
-			GameEngine.TECH_FUTURE: ["…", "Later era", Palette.FUTURE, 0.6],
-		}
-const TILE_WIDTH := Tokens.SPACE_9 * 3  # a tech tile in its era's row
+const STATE_WORD := {
+	GameEngine.TECH_RESEARCHED: "Researched",
+	GameEngine.TECH_AVAILABLE: "Available",
+	GameEngine.TECH_LOCKED: "Locked",
+	GameEngine.TECH_FUTURE: "Later era",
+}
+const TILE_LOOK := {  # a tile's GameTheme variation by state; a later era's looks available under its vellum
+	GameEngine.TECH_RESEARCHED: &"TechTileResearched",
+	GameEngine.TECH_LOCKED: &"TechTileLocked",
+}
+const TILE_SIZE := Vector2(Tokens.SPACE_9 * 2, Tokens.SPACE_9)  # every tech tile, an index card (222)
+const TITLE_WIDTH := Tokens.SPACE_9 + Tokens.SPACE_4  # an era's title block, the rows' left column
 
 var header: ScreenHeader
 
@@ -29,6 +32,10 @@ var _insight: Label
 var _rows: VBoxContainer
 var _titles: Array[String] = []  # the era rows on show
 var _headings: Array[Label] = []
+var _era_tiles: Array = []  # per era row, its tiles (Array[Button])
+var _vellums: Array = []  # per era row, its vellum, or null once reached
+var _tiles := {}  # tech name -> its tile
+var _tile_texts := {}  # tech name -> the texts its tile shows
 
 
 ## Builds the screen beside place (the Realm section) for nav, hidden. Its techs open their details with
@@ -77,6 +84,29 @@ func context_text() -> String:
 
 func era_heading(i: int) -> Label:
 	return _headings[i]
+
+
+## Test hooks (222): the tile of the tech called tech_name (null if none), the texts it shows (name, marker,
+## "✔ Eureka"), era row i's tiles, and its vellum (null once reached) and the vellum's text.
+func tile(tech_name: String) -> Button:
+	return _tiles.get(tech_name)
+
+
+func tile_texts(tech_name: String) -> Array[String]:
+	return _tile_texts.get(tech_name, [] as Array[String])
+
+
+func era_tiles(i: int) -> Array:
+	return _era_tiles[i]
+
+
+func era_vellum(i: int) -> Control:
+	return _vellums[i]
+
+
+func vellum_text(i: int) -> String:
+	var label: Label = _vellums[i].get_child(0)
+	return label.text.to_upper()
 
 
 func slide_offset() -> float:
@@ -142,51 +172,66 @@ func _fill(e: GameEngine) -> void:
 		child.queue_free()
 	_titles.clear()
 	_headings.clear()
+	_era_tiles.clear()
+	_vellums.clear()
+	_tiles.clear()
+	_tile_texts.clear()
 	for era in e.tech_eras():
 		_titles.append(era.name)
 		_rows.add_child(_row(e, era))
 
 
-## One era's row: its name, its status when not reached, then its techs' tiles. era is a tech_eras() entry.
+## One era's row under a hairline rule: its title block at the left, then its techs' tiles; an era not reached is
+## covered by its vellum. era is a tech_eras() entry.
 func _row(e: GameEngine, era: Dictionary) -> VBoxContainer:
 	var row := VBoxContainer.new()
-	row.add_theme_constant_override("separation", Tokens.SPACE_2)
+	row.add_theme_constant_override("separation", Tokens.SPACE_3)
+	var rule := ColorRect.new()
+	rule.custom_minimum_size.y = 1  # a hairline (guide border.hair)
+	UIKit.painted(rule, func(): rule.color = Palette.HAIRLINE)
+	row.add_child(rule)
+	var band := MarginContainer.new()  # the era and, over it, its vellum
+	row.add_child(band)
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", Tokens.SPACE_3)
+	band.add_child(line)
 	var heading := UIKit.heading(era.name)
-	row.add_child(heading)
+	heading.custom_minimum_size.x = TITLE_WIDTH
+	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.add_child(heading)
 	_headings.append(heading)
-	if not era.reached:
-		row.add_child(UIKit.heading(_era_status(era)))
-		UIKit.painted(row, func(): row.modulate = Palette.FUTURE)
 	var tiles := HFlowContainer.new()
+	tiles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tiles.add_theme_constant_override("h_separation", Tokens.SPACE_3)
 	tiles.add_theme_constant_override("v_separation", Tokens.SPACE_3)
-	row.add_child(tiles)
+	line.add_child(tiles)
+	var era_tiles: Array[Button] = []
 	for tech in era.techs:
-		tiles.add_child(_tech_row(e, tech))
+		var tile := _tile(e, tech)
+		tiles.add_child(tile)
+		era_tiles.append(tile)
+	_era_tiles.append(era_tiles)
+	_vellums.append(null if era.reached else _vellum(band, era))
 	return row
 
 
-## A tech's tile and, while it is available, its Learn button beside it.
-func _tech_row(e: GameEngine, tech: Dictionary) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.custom_minimum_size.x = TILE_WIDTH
-	var tile := _tech_button(e, tech)
-	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(tile)
-	if tech.state == GameEngine.TECH_AVAILABLE:
-		var error := e.buy_tech_error(tech.uid)
-		var learn := UIKit.button("Learn", func(): Game.engine.buy_tech(tech.uid))
-		learn.disabled = error != ""
-		learn.tooltip_text = error
-		row.add_child(learn)
-	return row
+## The vellum over an era not reached, printed with its name and how it opens; it takes the clicks meant for the
+## tiles under it.
+func _vellum(band: MarginContainer, era: Dictionary) -> PanelContainer:
+	var vellum := PanelContainer.new()
+	vellum.theme_type_variation = &"EraVellum"
+	vellum.mouse_filter = Control.MOUSE_FILTER_STOP
+	var label := UIKit.heading("%s · %s" % [era.name, _opens(era)])
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	vellum.add_child(label)
+	band.add_child(vellum)
+	return vellum
 
 
-## "Reached", or "Unlocks at 8 pop or 15 wealth" (from its unlocks), or "Unlocks through a tech". era is a
-## tech_eras() entry.
-static func _era_status(era: Dictionary) -> String:
-	if era.reached:
-		return "Reached"
+## "Opens at 8 pop or 15 wealth" (from its unlocks), or "Opens through a tech". era is a tech_eras() entry.
+static func _opens(era: Dictionary) -> String:
 	var need: Dictionary = era.unlocks
 	var parts: PackedStringArray = []
 	if need.has("pop"):
@@ -194,29 +239,93 @@ static func _era_status(era: Dictionary) -> String:
 	if need.has(GameEngine.WEALTH):
 		parts.append("%d wealth" % need.wealth)
 	if parts.is_empty():
-		return "Unlocks through a tech"
-	return "Unlocks at %s, or through a tech" % " or ".join(parts)
+		return "Opens through a tech"
+	return "Opens at %s" % " or ".join(parts)
 
 
-func _tech_button(e: GameEngine, tech: Dictionary) -> Button:
-	var look: Array = STATE_LOOK[tech.state]
-	var title := "%s %s" % [look[0], e.card_db[tech.id].name]
-	if tech.state != GameEngine.TECH_RESEARCHED:
-		title += " · %d insight" % tech.cost
-	var status: String = look[1]
-	if not tech.gives.is_empty():
-		status += " · gives " + ", ".join(PackedStringArray(tech.gives.map(func(id): return e.card_db[id].name)))
-	var lines: PackedStringArray = [title, status]
-	var eureka: String = e.card_db[tech.id].eureka_text(e.card_db)
-	if eureka != "" and tech.state != GameEngine.TECH_RESEARCHED:
-		lines.append(("✔ " if tech.eureka else "") + eureka)
-	if tech.prereq != "":
-		lines.append(("needs " if tech.state == GameEngine.TECH_LOCKED else "after ") + e.card_db[tech.prereq].name)
-	var b := UIKit.button("\n".join(lines), func(): _open_def.call(tech.id))
-	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.size_flags_horizontal = Control.SIZE_FILL  # a tile: fills its row beside its Learn button
-	b.tooltip_text = "Click for the full details."
+## A tech's index-card tile: its name, its marker (✓, its cost now, or "needs <prerequisite>"), and "✔ Eureka" when
+## its eureka is met. A click learns an available tech and shows the details of any other; a right click or I shows
+## its details. Its tooltip says its state in words, why it can't be learned, what it gives and its eureka.
+func _tile(e: GameEngine, tech: Dictionary) -> Button:
 	var state: String = tech.state
-	UIKit.painted(b, func(): b.add_theme_stylebox_override("normal", UIKit.panel_style(Palette.TILE, STATE_LOOK[state][2], Tokens.SPACE_2)))
-	b.modulate.a = look[3]
+	var b := Button.new()
+	b.custom_minimum_size = TILE_SIZE
+	b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	b.theme_type_variation = TILE_LOOK.get(state, &"TechTile")
+	b.tooltip_text = _tooltip(e, tech)
+	var text := StringName(String(b.theme_type_variation).replace("TechTile", "TechTileText"))
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, Tokens.SPACE_2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(box)
+	var top := HBoxContainer.new()
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(top)
+	var texts: Array[String] = [e.card_db[tech.id].name]
+	top.add_child(_tile_label(texts[0], text, true))
+	var marker := ""
+	match state:
+		GameEngine.TECH_RESEARCHED:
+			marker = "✓"
+		GameEngine.TECH_AVAILABLE:
+			marker = str(tech.cost)
+		GameEngine.TECH_LOCKED:
+			marker = "needs " + e.card_db[tech.prereq].name
+	if marker != "":
+		texts.append(marker)
+		if state == GameEngine.TECH_LOCKED:  # too long for the corner: its own line
+			box.add_child(_tile_label(marker, text, true))
+		else:
+			top.add_child(_tile_label(marker, text, false))
+	if tech.eureka and state != GameEngine.TECH_RESEARCHED:
+		texts.append("✔ Eureka")
+		box.add_child(_tile_label(texts[-1], text, true))
+	_tiles[texts[0]] = b
+	_tile_texts[texts[0]] = texts
+	b.pressed.connect(func():
+		if state == GameEngine.TECH_AVAILABLE:
+			if Game.engine.buy_tech_error(tech.uid) == "":
+				Game.engine.buy_tech(tech.uid)
+		else:
+			_open_def.call(tech.id))
+	b.gui_input.connect(func(event: InputEvent):
+		var right: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed
+		var key_i: bool = event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I
+		if right or key_i:
+			b.accept_event()
+			_open_def.call(tech.id))
 	return b
+
+
+func _tile_label(text: String, variation: StringName, fill: bool) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.theme_type_variation = variation
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if fill:  # a line of its own, cut short with an ellipsis; a corner marker keeps its width
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.clip_text = true
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return label
+
+
+## "Available · 3 insight", then why it can't be learned, what it gives, its eureka, and what a click does.
+func _tooltip(e: GameEngine, tech: Dictionary) -> String:
+	var state: String = tech.state
+	var lines: PackedStringArray = [STATE_WORD[state]]
+	if state != GameEngine.TECH_RESEARCHED:
+		lines[0] += " · %d insight" % tech.cost
+	if state == GameEngine.TECH_AVAILABLE:
+		var error := e.buy_tech_error(tech.uid)
+		if error != "":
+			lines.append(error)
+	if not tech.gives.is_empty():
+		lines.append("gives " + ", ".join(PackedStringArray(tech.gives.map(func(id): return e.card_db[id].name))))
+	var eureka: String = e.card_db[tech.id].eureka_text(e.card_db)
+	if eureka != "" and state != GameEngine.TECH_RESEARCHED:
+		lines.append(eureka)
+	if tech.prereq != "" and state != GameEngine.TECH_LOCKED:
+		lines.append("after " + e.card_db[tech.prereq].name)
+	lines.append("Click to learn it; right click or I for the details." if state == GameEngine.TECH_AVAILABLE \
+		else "Click, right click or I for the details.")
+	return "\n".join(lines)

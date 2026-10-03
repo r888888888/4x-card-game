@@ -52,7 +52,40 @@ static func build() -> Theme:
 	t.set_stylebox("panel", "Sheet", sheet())
 	_board_frame(t)
 	_pips(t)
+	_tech_tiles(t)
 	return t
+
+
+## The Knowledge screen's tech tiles (222, guide §11.3), index cards cut square: TechTile (available, or a later
+## era's under its vellum) the sheet with an ink border, lifted onto its plinth on hover; TechTileResearched the teal
+## plane; TechTileLocked the well with a rule border. TechTileText* is the text on each, and EraVellum the sheet at
+## 88% laid over an era not reached.
+static func _tech_tiles(t: Theme) -> void:
+	var looks := {
+		"TechTile": [Palette.TILE, Palette.TEXT, Palette.TEXT],
+		"TechTileResearched": [Palette.RESEARCHED_FILL, Palette.TEXT, Palette.TEXT_ON_PLANE],
+		"TechTileLocked": [Palette.FIELD, Palette.CONTROL_BORDER, Palette.TEXT_DISABLED],
+	}
+	for type: String in looks:
+		var look: Array = looks[type]
+		t.set_type_variation(type, "Button")
+		var box := UIKit.panel_style(look[0], look[1], Tokens.SPACE_2)
+		box.set_border_width_all(2)
+		t.set_stylebox("normal", type, box)
+		var lifted := box.duplicate() as StyleBoxFlat
+		lifted.shadow_color = Palette.SHADOW
+		lifted.shadow_offset = PLINTH
+		lifted.shadow_size = 1  # solid, unblurred
+		lifted.anti_aliasing = false
+		t.set_stylebox("hover", type, lifted)
+		t.set_stylebox("pressed", type, box)
+		t.set_stylebox("disabled", type, box)
+		t.set_stylebox("focus", type, focus_ring())
+		_label(t, type.replace("TechTile", "TechTileText"), Tokens.TYPE_LABEL, look[2], tabular(LABEL_SEMIBOLD))
+	t.set_type_variation("EraVellum", "PanelContainer")
+	var vellum := UIKit.panel_style(Color(Palette.RAISED, 0.88), Color.TRANSPARENT, 0)
+	vellum.set_border_width_all(0)  # no clear edge for the tiles to show through
+	t.set_stylebox("panel", "EraVellum", vellum)
 
 
 ## The territory view's pop meter (124): a pip per housing, PipFilled for each pop and PipEmpty for the room left

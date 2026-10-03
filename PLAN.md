@@ -85,7 +85,7 @@ res://
                          # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I),
-                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
+                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
                          # revolt_modal.gd (205: the revolution's confirmation)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
@@ -356,11 +356,13 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   unlocks, `uid` −1 for a future tech. Optional config
   `era_names` (`{"1": "Stone Age"}`) feeds `era_name(n)`, default "Era n".
 - UI: a Knowledge button (T) in the top bar (the current era's name in its tooltip; hidden when the config has no
-  research deck) opens the tech tree modal: "Insight N · play a Research card for more", then one column per era with
-  its thresholds, each tech's state as a mark and a word (🔒 Locked for a missing prereq), cost now, prereq ("after
-  Mining", or "needs Mining" while locked) and what it gives; clicking a tech opens its details. An available tech has
-  a Learn button beside it, disabled with `buy_tech_error` as its tooltip (140). Researched techs show only in the
-  tech tree (137).
+  research deck) opens the Knowledge screen (208), drawn as a drafting sheet (222): "Insight N · play a Research card
+  for more", then one band per era with its title block at the left and its techs as index-card tiles of one size.
+  A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked) and "✔ Eureka"
+  when met, and is filled by state (teal researched, well locked); its tooltip has the state in words, why it can't
+  be learned (`buy_tech_error`), what it gives and its eureka. A click on an available tile learns it; any other
+  click, a right click or I opens the details. An era not reached lies under a vellum printed "<ERA> · OPENS AT 8
+  POP OR 15 WEALTH". Researched techs show only in the tech tree (137).
 
 ## Supply (backlog 032)
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
