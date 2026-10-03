@@ -15,8 +15,8 @@ var _play: Button
 var _view: CardView  # the hand card Play plays; null when Play is hidden
 
 
-## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close in the
-## footer (207).
+## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close and (for a
+## hand card) Play in the footer (207, 225).
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	close_keys = [KEY_ESCAPE, KEY_I]
@@ -48,7 +48,8 @@ func body_text() -> String:
 	return _body.get_parsed_text()
 
 
-## Opens the details of the card view shows: its live copy, or its definition for a supply pile.
+## Opens the details of the card view shows: its live copy, or its definition for a supply pile. A hand card's
+## details offer Play.
 func open(view: CardView) -> void:
 	var details := Game.engine.card_details(view.uid)
 	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id,
@@ -93,6 +94,7 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null) -> 
 
 func closed() -> void:
 	_details = {}
+	_view = null
 
 
 func _on_play() -> void:
