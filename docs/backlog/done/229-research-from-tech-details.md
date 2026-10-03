@@ -2,7 +2,7 @@
 id: 229
 title: Clicking a tech opens its details; research from there
 type: feature
-status: review
+status: done
 branch: feat/229-research-from-tech-details
 ---
 
