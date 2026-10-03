@@ -423,6 +423,8 @@ func _on_details_timer(click: int) -> void:
 
 func _set_hover(on: bool) -> void:
 	_hover = on and (in_hand or pickable) and state == State.REST
+	if _hover and Sfx.find(self) != null:
+		Sfx.find(self).hover()
 	if state == State.REST:
 		z_index = rest_z()  # draw over the neighbours while lifted
 	_update_border()

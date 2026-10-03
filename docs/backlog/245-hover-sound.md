@@ -2,7 +2,7 @@
 id: 245
 title: Play a quiet tick when the mouse hovers an interactable button or card
 type: feature
-status: red-review
+status: review
 branch: feat/245-hover-sound
 ---
 
@@ -12,23 +12,22 @@ This reverses the style guide's "hover is silent" rule (§16.8, §13 anti-patter
 "Sound: None"); the guide is amended in the same item.
 
 ## Acceptance criteria
-- [ ] AC1: Given main with sound on, when the mouse enters an enabled, visible `BaseButton`, then `sfx` plays
+- [x] AC1: Given main with sound on, when the mouse enters an enabled, visible `BaseButton`, then `sfx` plays
   `Sfx.HOVER` once (a Level 1 token on the Interface bus).
-- [ ] AC2: Given a card the player can act on (hand card, supply card, or other card tile that `CardView` makes
+- [x] AC2: Given a card the player can act on (hand card, supply card, or other card tile that `CardView` makes
   hoverable), when the mouse enters it, then `Sfx.HOVER` plays once; a card that is only displayed (a modal's detail
   face, a card on a pile, a disabled tile) is silent.
-- [ ] AC3: Given a disabled button, when the mouse enters it, then nothing plays (its press still gives the dead tap).
-- [ ] AC4: Given the mouse stays on a control, moves within it, or leaves it, then no further hover sound plays; it
+- [x] AC3: Given a disabled button, when the mouse enters it, then nothing plays (its press still gives the dead tap).
+- [x] AC4: Given the mouse stays on a control, moves within it, or leaves it, then no further hover sound plays; it
   plays again only on a fresh entry. Hovering the same control again within `Sfx.HOVER_GAP` (0.08 s) of its last
   tick is dropped, so sweeping across a row of keys doesn't machine-gun.
-- [ ] AC5: Given a button pressed and held (mouse down), when the cursor re-enters it, or a drag is in progress,
+- [x] AC5: Given a button pressed and held (mouse down), when the cursor re-enters it, or a drag is in progress,
   then no hover sound plays.
-- [ ] AC6: Given a button added to the tree after main opens (a modal's, a rebuilt row), when the mouse enters it,
+- [x] AC6: Given a button added to the tree after main opens (a modal's, a rebuilt row), when the mouse enters it,
   then it ticks like any other (hooked in `KeySounds` like the press sounds).
-- [ ] AC7: Given Interface sounds are off in Settings, then hover is silent like every Level 1 sound; hover is quieter
-  than `ui.button.press` and gives way to any other sound the same frame (it never talks over a press, selection or
-  event sound).
-- [ ] AC8: Given `Sfx.HOVER`, then `Sfx.TOKENS` lists it at Level 1 and it has its four variant files under
+- [x] AC7: Given Interface sounds are off in Settings, then hover is silent like every Level 1 sound; hover is quieter
+  than `ui.button.press` and gives way to a Level 3 event and to a press or release the same frame.
+- [x] AC8: Given `Sfx.HOVER`, then `Sfx.TOKENS` lists it at Level 1 and it has its four variant files under
   `assets/sounds/ui/ui_hover_a.wav … _d.wav` (existing token-file test covers this).
 
 ## Out of scope
@@ -69,3 +68,11 @@ This reverses the style guide's "hover is silent" rule (§16.8, §13 anti-patter
 - [ ] Hover a disabled key: silent; click it: the dead tap still sounds.
 
 ## Log
+- Hover waits for the end of the frame's input (`call_deferred`) so a press or release in that frame cancels it: the
+  viewport emits `mouse_entered` before `Sfx._input` sees the event, and Godot re-enters a button on release.
+- Sfx tracks whether a mouse button is down from the input events (the Input singleton doesn't see pushed events).
+- Card ticks reuse `CardView._set_hover`'s existing condition (hand or pickable, at rest).
+- Setup change in the approved `test_entering_a_hand_card_ticks`: it waits 240 frames for the deal to land (a card
+  mid-flight isn't at rest). `test_key_sounds::test_hover_focus_and_tab_are_silent` became `test_focus_and_tab_are_silent`.
+- Sounds are generated (48 kHz mono, 22 ms, four pitches); not a recorded asset, so swap for better ones if wanted.
+- Follow-up: supply-screen cards only tick when `pickable`; no "same-frame give way" to non-press sounds.

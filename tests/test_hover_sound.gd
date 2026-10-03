@@ -1,10 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## Hover sound (245) in the real main.tscn, its sound clock frozen at 0: an enabled button or an actionable card ticks
 ## once as the mouse enters it, a disabled key, a display-only card, a held mouse, a repeat inside HOVER_GAP and a
-## Level 3 event are silent, and late-added buttons tick too. The token is written as a literal while it doesn't exist.
+## Level 3 event are silent, and late-added buttons tick too.
 
-const HOVER := &"ui.hover"
-const GAP := 0.08
+const HOVER := Sfx.HOVER
+const GAP := Sfx.HOVER_GAP
 
 var _old_window_size := Vector2i.ZERO
 
@@ -91,6 +91,7 @@ func test_entering_an_enabled_button_ticks_once_and_quietly() -> void:
 func test_entering_a_hand_card_ticks() -> void:
 	var main: Node = await open_game()
 	away(main)
+	await wait_frames(240)  # the deal lands
 	var card: CardView = main.views_in(main.hand)[0]
 	move_mouse(main, centre(card))
 	await wait_frames()
