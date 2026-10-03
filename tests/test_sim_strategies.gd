@@ -129,6 +129,57 @@ func test_wealth_buys_the_cheapest_wealth_card_once_a_turn() -> void:
 	eq(e.supply_left("scout"), 3, "no Scout (makes no wealth)")
 
 
+# --- 239: growth and tall buy food cards ---
+
+## A strategy_engine game with 5 wealth and supply piles: Farm (⟳ +1 food) at farm_price, Paddy (⟳ food) at 3 and
+## Scout (no food) at 1; Paddy listed before Farm when paddy_first.
+func food_supply_engine(farm_price := 2, paddy_first := false) -> GameEngine:
+	var farm := {"price": farm_price, "count": 3}
+	var paddy := {"price": 3, "count": 3}
+	var supply := {"paddy": paddy, "farm": farm} if paddy_first else {"farm": farm, "paddy": paddy}
+	supply["scout"] = {"price": 1, "count": 3}
+	var e := strategy_engine(0, {"supply": supply})
+	e.resources.wealth = 5
+	return e
+
+
+func test_growth_and_tall_buy_the_cheapest_food_card_once_a_turn() -> void:
+	for strategy in ["growth", "tall"]:
+		var e := food_supply_engine()
+		BOT.take_turn(e, strategy)
+		eq(e.supply_left("farm"), 2, "%s: one Farm bought (cheapest card that makes food on upkeep)" % strategy)
+		eq(e.supply_left("paddy"), 3, "%s: no Paddy" % strategy)
+		eq(e.supply_left("scout"), 3, "%s: no Scout (makes no food)" % strategy)
+		eq(e.resources.wealth, 3, "%s: 5 − 2" % strategy)
+
+
+func test_a_food_card_price_tie_goes_to_the_pile_listed_first() -> void:
+	var e := food_supply_engine(3, true)
+	BOT.take_turn(e, "growth")
+	eq(e.supply_left("paddy"), 2, "Paddy, listed first, bought")
+	eq(e.supply_left("farm"), 3, "no Farm")
+
+
+func test_growth_buys_no_food_card_it_cant_afford_or_that_isnt_open() -> void:
+	var poor := food_supply_engine()
+	poor.resources.wealth = 1
+	BOT.take_turn(poor, "growth")
+	eq(poor.supply_left("farm"), 3, "1 wealth buys no Farm")
+	eq(poor.supply_left("scout"), 3, "nor a Scout")
+	var no_food := strategy_engine(0, {"supply": {"scout": {"price": 1, "count": 3}}})
+	no_food.resources.wealth = 5
+	BOT.take_turn(no_food, "growth")
+	eq(no_food.supply_left("scout"), 3, "no food pile: nothing bought")
+
+
+func test_baseline_and_wide_buy_nothing_on_a_turn_with_no_anarchy_ahead() -> void:
+	for strategy in ["baseline", "wide"]:
+		var e := food_supply_engine()
+		BOT.take_turn(e, strategy)
+		eq([e.supply_left("farm"), e.supply_left("paddy"), e.supply_left("scout")], [3, 3, 3], "%s buys nothing" % strategy)
+		eq(e.resources.wealth, 5, "%s keeps its wealth" % strategy)
+
+
 # --- AC5: wide vs tall ---
 
 func test_wide_plays_explore_and_settle_cards_first() -> void:
