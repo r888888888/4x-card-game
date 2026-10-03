@@ -176,3 +176,60 @@ func test_no_ui_script_but_the_helper_calls_grab_focus() -> void:
 		if file.ends_with(".gd") and path != helper:
 			check(not FileAccess.get_file_as_string(path).contains("grab_focus("),
 				"%s focuses through FocusRing, not grab_focus" % path)
+
+
+# --- Bug 234: the card focus ring the code places waits for Tab too ---
+
+## Whether card view draws the card focus ring (CardView.shows_focus_ring, held as Object so this parses before it exists).
+func card_rings(view: Object) -> bool:
+	check(view != null and view.has_method("shows_focus_ring"), "CardView.shows_focus_ring() exists")
+	return view != null and view.has_method("shows_focus_ring") and view.shows_focus_ring()
+
+
+## Plays an Explorer from the hand on main's fixture game: an explore choice of the two territories opens.
+func open_explore_choice(main: Node) -> Array[CardView]:
+	var e := Game.engine
+	e.play_card(put_in_hand(e, "explorer"))
+	await wait_frames()
+	eq(e.pending().get("kind", ""), GameEngine.PENDING_EXPLORE, "an explore choice is owed")
+	return main.focus.row()
+
+
+func test_bug_234_the_explore_choice_focuses_its_first_card_with_no_ring() -> void:
+	await with_territories_main(func(main: Node):
+		var choice: Array[CardView] = await open_explore_choice(main)
+		eq(choice.size(), 2, "two territories to choose from")
+		eq(main.focus.focused, choice[0], "the first choice card has the card focus")
+		check(not card_rings(choice[0]), "it draws no ring before Tab")
+		var kept := choice[0].uid
+		press_key(main, KEY_ENTER)
+		await wait_frames()
+		eq(Game.engine.pending().get("kind", ""), "", "Enter made the choice")
+		check(Game.engine.zone("frontier").find(kept) != null, "the focused card went to the frontier"))
+
+
+func test_bug_234_right_on_the_explore_choice_shows_the_ring() -> void:
+	await with_territories_main(func(main: Node):
+		var choice: Array[CardView] = await open_explore_choice(main)
+		press_key(main, KEY_RIGHT)
+		await wait_frames()
+		eq(main.focus.focused, choice[1], "Right focuses the second choice card")
+		check(card_rings(choice[1]), "it draws the ring"))
+
+
+func test_bug_234_after_tab_the_explore_choice_shows_the_ring() -> void:
+	await with_territories_main(func(main: Node):
+		press_key(main, KEY_TAB)
+		await wait_frames()
+		var choice: Array[CardView] = await open_explore_choice(main)
+		eq(main.focus.focused, choice[0], "the first choice card has the card focus")
+		check(card_rings(choice[0]), "in keyboard mode it draws the ring"))
+
+
+func test_bug_234_right_in_the_hand_still_shows_the_ring() -> void:
+	await with_territories_main(func(main: Node):
+		press_key(main, KEY_RIGHT)
+		await wait_frames()
+		var hand: Array[CardView] = main.views_in(main.hand)
+		eq(main.focus.focused, hand[0], "Right focuses the first hand card")
+		check(card_rings(hand[0]), "it draws the ring"))
