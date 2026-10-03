@@ -126,6 +126,7 @@ func open(e: GameEngine) -> void:
 		view.picked.connect(pick)
 		view.details_requested.connect(func(v: CardView): _board.details.open(v))
 		view.pop_in(slot, i * Anim.DEAL_STAGGER)
+		view.minimum_size_changed.connect(_equalize_heights)
 		_views[id] = view
 		i += 1
 	_fit_row(i)
@@ -162,6 +163,15 @@ func _price_tag() -> PanelContainer:
 	figure.theme_type_variation = &"PriceTagText"
 	price.add_child(figure)
 	return tag
+
+
+## Gives every pile card the height of the tallest, so a card whose text wraps doesn't make the row uneven.
+func _equalize_heights() -> void:
+	var tallest := 0.0
+	for view: CardView in _views.values():
+		tallest = maxf(tallest, view.get_combined_minimum_size().y)
+	for view: CardView in _views.values():
+		view.min_height = tallest
 
 
 ## Fixes the row's width to as many whole cards as fit the window (at most count), so the piles wrap onto

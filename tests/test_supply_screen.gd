@@ -87,3 +87,15 @@ func test_a_pile_that_cant_be_bought_dims_its_tag_too() -> void:
 		main.supply.pick(scout)
 		main.supply.refresh(Game.engine)
 		check(main.supply.price_tag(scout).modulate.a < 1.0, "sold out: the tag dims"))
+
+
+# --- Fixed height: the pile cards stand one height ---
+
+func test_pile_cards_share_the_height_of_the_tallest() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		views[0].set_buy_error("A long reason this pile can't be bought right now, long enough to wrap across several lines of the card")
+		await wait_frames()
+		await wait_frames()
+		var tallest := maxf(views[0].size.y, views[1].size.y)
+		eq(views[0].size.y, tallest, "the first card")
+		eq(views[1].size.y, tallest, "the second card"))
