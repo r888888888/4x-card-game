@@ -2,7 +2,7 @@
 id: 245
 title: Play a quiet tick when the mouse hovers an interactable button or card
 type: feature
-status: review
+status: done
 branch: feat/245-hover-sound
 ---
 
