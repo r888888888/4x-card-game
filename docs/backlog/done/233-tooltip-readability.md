@@ -2,7 +2,7 @@
 id: 233
 title: Make tooltips readable: more contrast and padding
 type: feature
-status: review
+status: done
 branch: feat/233-tooltip-readability
 ---
 
