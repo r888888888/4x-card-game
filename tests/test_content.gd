@@ -461,7 +461,7 @@ func test_every_unit_has_a_supply_pile_or_a_tech_that_creates_it() -> void:
 			from_techs[id] = true
 	var units := 0
 	for id in r.cards:
-		if r.cards[id].type == "unit":
+		if r.cards[id].type == CardDef.UNIT:
 			units += 1
 			check(r.config.supply.has(id) or from_techs.has(id), "%s has a supply pile or a tech creates it" % id)
 	check(units > 0, "the real data has units")

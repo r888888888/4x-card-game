@@ -10,7 +10,8 @@ const TECH := "tech"  # from the research deck; bought with insight (139), never
 const EVENT := "event"  # from the event deck; drawn at each turn start from turn 2 (237), active until its discard condition
 const CIVILIZATION := "civilization"  # the civilization you play as; in its own zone all game, never in a deck
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
-const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT]
+const UNIT := "unit"  # stays in the tableau, homed on a territory where it uses a worker; stationed somewhere (160)
+const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT, UNIT]
 ## Each modifier key's noun in card text, [singular, plural] (129).
 ## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
 ## since "pop" has no plural); [for a gain, for a loss].
@@ -33,6 +34,7 @@ var effects: Array[Effect] = []
 var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
+var strength: int = 0  # units: how much it counts in defence (160)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
@@ -54,6 +56,11 @@ var city_names: Array[String] = []  # civilizations: the names its settled terri
 
 func is_permanent() -> bool:
 	return type != ACTION
+
+
+## Whether a played copy uses a worker on its territory (a building, or a unit on its home, 160).
+func uses_worker() -> bool:
+	return type == BUILDING or type == UNIT
 
 
 ## Whether one of the card's effects adds an era of techs (such a tech can't be lost).
@@ -79,6 +86,8 @@ func rules_text(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
+	if type == UNIT:
+		parts.append(strength_text())
 	if actions > 0:
 		parts.append(actions_text())
 	if unrest_limit > 0:
@@ -124,6 +133,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if type == TERRITORY:
 		return territory_text(keywords)
+	if type == UNIT:
+		parts.append(strength_text())
 	if actions > 0:
 		parts.append(actions_text())
 	if unrest_limit > 0:
@@ -163,6 +174,11 @@ func eureka_text(card_db: Dictionary) -> String:
 	var plural := "" if eureka.count == 1 else "s"
 	var what: String = card_db[eureka.card].name + plural if eureka.has("card") else "%s card%s" % [eureka.tag, plural]
 	return "Eureka: -%d insight with %d %s" % [eureka.off, eureka.count, what]
+
+
+## A unit's strength line (160): "Strength 2".
+func strength_text() -> String:
+	return "Strength %d" % strength
 
 
 ## A government's actions line (127): "2 actions each turn."

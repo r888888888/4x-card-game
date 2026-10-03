@@ -49,11 +49,10 @@ func test_unit_loads_with_its_strength() -> void:
 	var r := unit_load()
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
-	eq(CardDef.new().get_script().get_script_constant_map().get("UNIT"), "unit", "CardDef.UNIT")
 	check(r.cards.has("levy"), "Levy loaded")
 	if r.cards.has("levy"):
-		eq(r.cards.levy.type, "unit", "type")
-		eq(r.cards.levy.get("strength"), 2, "strength")
+		eq(r.cards.levy.type, CardDef.UNIT, "type")
+		eq(r.cards.levy.strength, 2, "strength")
 		check(r.cards.levy.is_permanent(), "a unit is permanent")
 
 
@@ -97,7 +96,7 @@ func test_unit_decks_in_config() -> void:
 # --- AC2: recruiting ---
 
 func test_playing_a_unit_puts_it_on_its_home() -> void:
-	var e: Object = recruit_engine()
+	var e: GameEngine = recruit_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -115,7 +114,7 @@ func test_playing_a_unit_puts_it_on_its_home() -> void:
 
 
 func test_unit_station_is_minus_1_for_anything_else() -> void:
-	var e: Object = recruit_engine()
+	var e: GameEngine = recruit_engine()
 	if e == null:
 		return
 	var levy := first_in_hand(e)
@@ -125,7 +124,7 @@ func test_unit_station_is_minus_1_for_anything_else() -> void:
 
 
 func test_station_survives_a_state_copy() -> void:
-	var e: Object = recruit_engine()
+	var e: GameEngine = recruit_engine()
 	if e == null:
 		return
 	var levy := first_in_hand(e)
@@ -136,7 +135,7 @@ func test_station_survives_a_state_copy() -> void:
 # --- AC3: workers ---
 
 func test_unit_uses_a_worker_on_its_home() -> void:
-	var e: Object = recruit_engine()
+	var e: GameEngine = recruit_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -151,7 +150,7 @@ func test_unit_uses_a_worker_on_its_home() -> void:
 
 
 func test_units_need_no_worker_without_population() -> void:
-	var e: Object = unit_engine(-1)
+	var e: GameEngine = unit_engine(-1)
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -174,7 +173,7 @@ func two_homes_engine() -> GameEngine:
 
 
 func test_unit_chooses_between_territories_with_a_free_worker() -> void:
-	var e: Object = two_homes_engine()
+	var e: GameEngine = two_homes_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -188,7 +187,7 @@ func test_unit_chooses_between_territories_with_a_free_worker() -> void:
 
 
 func test_unit_refuses_invalid_targets() -> void:
-	var e: Object = two_homes_engine()
+	var e: GameEngine = two_homes_engine()
 	if e == null:
 		return
 	var grass_card: CardInstance = e.zone("tableau").find(uid_of(e.zone("tableau"), "grassland"))
@@ -202,7 +201,7 @@ func test_unit_refuses_invalid_targets() -> void:
 # --- AC5: idle units ---
 
 ## A unit_engine game with a Farm placed on Homeland (2 pop), then a Levy played there: its uid.
-func farm_then_levy(e: Object) -> int:
+func farm_then_levy(e: GameEngine) -> int:
 	build_on(e, home_uid(e), ["farm"])
 	var levy := first_in_hand(e)
 	check(e.play_card(levy, home_uid(e)), "Levy played")
@@ -210,7 +209,7 @@ func farm_then_levy(e: Object) -> int:
 
 
 func test_units_go_idle_after_earlier_buildings() -> void:
-	var e: Object = unit_engine(2)
+	var e: GameEngine = unit_engine(2)
 	if e == null:
 		return
 	var levy := farm_then_levy(e)
@@ -225,7 +224,7 @@ func test_units_go_idle_after_earlier_buildings() -> void:
 
 
 func test_idle_unit_works_again_when_pop_returns() -> void:
-	var e: Object = unit_engine(2)
+	var e: GameEngine = unit_engine(2)
 	if e == null:
 		return
 	var levy := farm_then_levy(e)
@@ -251,7 +250,7 @@ func test_unit_text_shows_strength() -> void:
 
 
 func test_unit_scores_its_printed_vp() -> void:
-	var e: Object = unit_engine(1)
+	var e: GameEngine = unit_engine(1)
 	if e == null:
 		return
 	var before: int = e.score()

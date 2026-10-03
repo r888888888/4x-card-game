@@ -47,6 +47,16 @@ static func buildings_on(e: GameEngine, territory_uid: int) -> Array[CardInstanc
 	return out
 
 
+## The cards using workers on territory territory_uid (its buildings and the units homed there, 160), in the order
+## they were placed: the first ones get its pop.
+static func workers_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for card in e.zone("tableau").cards:
+		if card.def.uses_worker() and card.territory_uid == territory_uid:
+			out.append(card)
+	return out
+
+
 ## Whether card is a territory with a free building slot.
 static func has_room(e: GameEngine, territory: CardInstance) -> bool:
 	return territory.def.type == CardDef.TERRITORY and free_slots(e, territory.uid) > 0
@@ -71,6 +81,15 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
 	for territory in e.zone("tableau").cards:
 		if has_room(e, territory) and Population.has_worker(e, territory) and meets_requires(card, territory):
+			out.append(territory.uid)
+	return out
+
+
+## The settled territories a unit can be recruited on (160): any with a free worker; a unit takes no slot.
+static func unit_targets(e: GameEngine) -> Array[int]:
+	var out: Array[int] = []
+	for territory in e.zone("tableau").cards:
+		if territory.def.type == CardDef.TERRITORY and Population.has_worker(e, territory):
 			out.append(territory.uid)
 	return out
 

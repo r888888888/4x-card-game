@@ -74,17 +74,17 @@ static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: Card
 
 
 static func free_workers(e: GameEngine, territory_uid: int) -> int:
-	return maxi(pop(e, territory_uid) - Territories.buildings_on(e, territory_uid).size(), 0)
+	return maxi(pop(e, territory_uid) - Territories.workers_on(e, territory_uid).size(), 0)
 
 
 static func is_idle(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("tableau").find(uid)
-	if card == null or card.def.type != CardDef.BUILDING or not e.population_on():
+	if card == null or not card.def.uses_worker() or not e.population_on():
 		return false
-	return Territories.buildings_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid)
+	return Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid)
 
 
-## Whether territory has a free worker for another building (always, with population off).
+## Whether territory has a free worker for another building or unit (always, with population off).
 static func has_worker(e: GameEngine, territory: CardInstance) -> bool:
 	return not e.population_on() or free_workers(e, territory.uid) > 0
 
