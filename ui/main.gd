@@ -138,6 +138,7 @@ func _civilization_card() -> CardInstance:
 func show_title_screen() -> void:
 	_leave_game()
 	nav.set_root(start_screen.overlay, start_screen.new_game_button, "Main menu")
+	start_screen.opened()  # the art rises (214)
 
 
 ## Leaves the current game for the new game screen, over the title screen (the menu's New game).

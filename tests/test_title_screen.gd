@@ -48,7 +48,8 @@ func test_the_title_screen_is_a_ledger_left_and_an_empty_art_half_right() -> voi
 		close_title(main)
 		return
 	eq(art.name, &"Art", "named Art")
-	eq(art.get_child_count() > 0 and art.get_children().any(func(c): return c.name != "Rule"), false, "empty (214 fills it)")
+	eq(art.get_children().filter(func(c): return c.name != "Rule").map(func(c): return c.get_script().get_global_name() if c.get_script() else ""),
+		[&"SunriseArt"], "only its art (214) and the rule")
 	var r := art.get_global_rect()
 	check(absf(r.position.x - width / 2) <= TOLERANCE and absf(r.end.x - width) <= TOLERANCE, "the right half: %s" % r)
 	var rule := art.find_child("Rule", true, false) as ColorRect

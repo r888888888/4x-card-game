@@ -2,7 +2,8 @@ class_name StartScreen
 extends RefCounted
 ## The title screen (backlog 063, 099; a ledger since 213): two halves. On the left, flush left, a caps kicker, the
 ## game's title on two lines, a caps subtitle and the three large keys New game, Settings and Exit in one column of one
-## width; on the right the Art (214 fills it) behind a 1 px rule. It is the Navigator's root on launch and after leaving
+## width; on the right the Art, a sun over a hill (214), behind a 1 px rule. The art rises when the screen opens, and the
+## keys move its sun: New game brings on the day, Exit a sunset. It is the Navigator's root on launch and after leaving
 ## a game, with the board hidden behind it. The board decides what the keys do through the signals.
 
 signal new_game_requested
@@ -10,13 +11,17 @@ signal settings_requested
 signal exit_requested
 
 var overlay: Control
-var art: Control  # the right half (214)
+var art: Control  # the right half
+var sunrise: SunriseArt  # in it (214)
 var kicker: Label
 var title: Label
 var subtitle: Label
 var new_game_button: Button
 var settings_button: Button
 var exit_button: Button
+
+var _hovered: Button  # the key under the pointer, or null
+var _focused: Button  # the key with the focus, or null
 
 
 ## Builds the screen on parent, hidden.
@@ -74,10 +79,38 @@ func _init(parent: Control) -> void:
 	rule.offset_right = 1
 	UIKit.painted(rule, func(): rule.color = Palette.CONTROL_DISABLED_BORDER)
 	art.add_child(rule)
+	sunrise = SunriseArt.new()
+	art.add_child(sunrise)
+	art.move_child(sunrise, 0)  # under the rule
+	for key: Button in [new_game_button, settings_button, exit_button]:
+		key.mouse_entered.connect(func(): _hovered = key; _aim())
+		key.mouse_exited.connect(func():
+			if _hovered == key:
+				_hovered = null
+			_aim())
+		key.focus_entered.connect(func(): _focused = key; _aim())
+		key.focus_exited.connect(func():
+			if _focused == key:
+				_focused = null
+			_aim())
 
 
 func is_open() -> bool:
 	return Navigator.is_shown(overlay)
+
+
+## The screen opened (launch, or back from a game): the art makes its entrance. The key focused by default doesn't move
+## the sun until the player moves the focus.
+func opened() -> void:
+	_hovered = null
+	_focused = null
+	sunrise.enter()
+
+
+## The sun follows the key under the pointer, else the focused one: up for New game, down for Exit, at rest otherwise.
+func _aim() -> void:
+	var key := _hovered if _hovered != null else _focused
+	sunrise.aim(SunriseArt.DAY_UP if key == new_game_button else -SunriseArt.SUNSET if key == exit_button else 0.0)
 
 
 ## A large key labelled text over caption, emitting pressed_signal; the primary one's lamp is lit.
