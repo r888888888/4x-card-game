@@ -61,6 +61,12 @@ func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
 	check_noticed(recorded, "Anarchy!", GameEngine.NOTICE_URGENT)
 
 
+func test_no_anarchy_ahead_while_anarchy_rules() -> void:
+	var e := fallen_engine()
+	e.resources["unrest"] = 9
+	eq(e.anarchy_ahead(), false, "Anarchy sets no limit to reach (228)")
+
+
 func test_unrest_below_the_limit_doesnt_fall() -> void:
 	var e := anarchy_engine()
 	e.resources["unrest"] = 4

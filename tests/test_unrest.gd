@@ -3,7 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## (the ruling government's unrest_limit plus the unrest_limit modifier; -1 for none). It can't be paid. The forecast
 ## and the top bar show it; ScriptedBot plays around the limit. Local fixtures, loaded with TEST_CARDS and TEST_GOVS:
 ## Chiefs (government, unrest limit 5), Riot (action, +3 unrest), Colonist (+1), Feast (−1), Brazier (building,
-## ⟳ +1 unrest); the modifier cards Altar (+1 limit) and Curse (−10) are in MODIFIER_FIXTURES.
+## ⟳ +1 unrest), Calmer (building, ⟳ −1 unrest, 228); the modifier cards Altar (+1 limit) and Curse (−10) are in MODIFIER_FIXTURES.
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
@@ -16,6 +16,8 @@ const FEAST := {"id": "feast", "name": "Feast", "type": "action",
 const BRAZIER := {"id": "brazier", "name": "Brazier", "type": "building",
 	"effects": [{"op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep"}]}
 const FIXTURES := [CHIEFS, RIOT, COLONIST, FEAST, BRAZIER]
+const CALMER := {"id": "calmer", "name": "Calmer", "type": "building",
+	"effects": [{"op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep"}]}
 const ALTAR := {"id": "altar", "name": "Altar", "type": "building", "modifiers": {"unrest_limit": 1}}
 const CURSE := {"id": "curse", "name": "Curse", "type": "building", "modifiers": {"unrest_limit": -10}}
 const MODIFIER_FIXTURES := [ALTAR, CURSE]
@@ -210,13 +212,15 @@ func set_unrest(n: int) -> void:
 	Game.engine.changed.emit()
 
 
-func test_the_top_bar_shows_unrest_out_of_the_limit_and_rolls_its_change_with_no_tag() -> void:
+func test_the_top_bar_shows_unrest_alone_with_the_limit_in_its_tooltip_and_rolls_its_change_with_no_tag() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 2)
 	await wait_frames()
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "2 / 5", "unrest and the limit")
+	eq(main.counter_text(GameEngine.UNREST), "2", "unrest alone; the limit is in the tooltip (228)")
+	if counter != null:
+		check(counter.tooltip_text.contains("5"), "the tooltip names the limit: %s" % counter.tooltip_text)
 	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	if counter != null:
 		eq(counter.figure().color, Palette.TEXT,
@@ -237,9 +241,61 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	var counter: Control = main.counter(GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
 	eq(main.counter_text(GameEngine.UNREST), "2", "unrest, no limit")
+	var counter_: Control = main.counter(GameEngine.UNREST)
+	if counter_ != null:
+		check(counter_.tooltip_text.contains("no limit"), "the tooltip: %s" % counter_.tooltip_text)
 	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	close_main(main)
 	Game.engine = real
+
+
+# --- 228: Anarchy a turn away, and the glyph breathing ---
+
+func test_anarchy_ahead_when_the_next_upkeep_brings_unrest_to_the_limit() -> void:
+	var e := unrest_engine("chiefs", 4)
+	build_on(e, home_uid(e), ["brazier"])
+	eq(e.anarchy_ahead(), true, "4 of 5, upkeep +1")
+	e.resources["unrest"] = 3
+	eq(e.anarchy_ahead(), false, "3 of 5, upkeep +1")
+	eq(unrest_engine("chiefs", 5).anarchy_ahead(), true, "5 of 5, no upkeep change")
+	var calmed := unrest_engine("chiefs", 5, [CALMER])
+	build_on(calmed, home_uid(calmed), ["calmer"])
+	eq(calmed.upkeep_forecast().get("unrest"), -1, "Calmer ⟳ −1 unrest")
+	eq(calmed.anarchy_ahead(), false, "5 of 5, upkeep −1")
+	eq(unrest_engine("council", 9).anarchy_ahead(), false, "no limit")
+	var off := unrest_engine("chiefs", 0, [], {"farm": 10}, {"resources": ["food", "wealth", "insight"],
+		"starting": {"resources": {"food": 10}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}})
+	eq(off.anarchy_ahead(), false, "unrest off")
+
+
+func test_the_unrest_glyph_breathes_while_anarchy_is_ahead() -> void:
+	var real := Game.engine
+	var main := open_unrest_main("chiefs", 4)
+	await wait_frames()
+	var counter: Control = main.counter(GameEngine.UNREST)
+	eq(counter.breathing(), true, "4 of 5 with upkeep +1: breathing")
+	set_unrest(2)
+	await wait_frames()
+	eq(counter.breathing(), false, "2 of 5: still")
+	eq(counter.glyph().modulate.a, 1.0, "still at full opacity")
+	close_main(main)
+	Game.engine = real
+
+
+func test_the_unrest_glyph_holds_still_with_reduce_motion() -> void:
+	await with_temp_settings(func():
+		var real := Game.engine
+		Settings.set_reduce_motion(true)
+		var main := open_unrest_main("chiefs", 4)
+		await wait_frames()
+		var counter: Control = main.counter(GameEngine.UNREST)
+		eq(counter.breathing(), false, "reduce motion: still")
+		eq(counter.glyph().modulate.a, 1.0, "at full opacity")
+		Settings.set_reduce_motion(false)
+		await wait_frames()
+		eq(counter.breathing(), true, "motion back on: breathing")
+		close_main(main)
+		Game.engine = real)
 
 
 func test_the_top_bar_has_no_unrest_counter_when_unrest_is_off() -> void:
