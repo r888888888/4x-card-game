@@ -76,6 +76,12 @@ func test_rich_body_italics_are_barlow_italic_with_the_body_fonts_figures() -> v
 	eq(features, (t.default_font as FontVariation).opentype_features, "tabular lining figures, like the body font")
 
 
+func test_rich_body_bold_is_a_real_semibold_face() -> void:
+	var t := GameTheme.build()
+	check(t.has_font("bold_font", "RichBody"), "RichBody has a bold font")
+	eq(face_of(t.get_font("bold_font", "RichBody")), GameTheme.LABEL_SEMIBOLD, "its face is the semibold label face")
+
+
 func test_a_rich_body_in_the_main_scene_draws_italics_in_barlow_italic() -> void:
 	var main := open_main()
 	var text := RichTextLabel.new()

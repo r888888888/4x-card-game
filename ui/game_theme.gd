@@ -42,6 +42,7 @@ static func build() -> Theme:
 	for size in ["normal_font_size", "bold_font_size", "italics_font_size"]:
 		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
 	t.set_font("italics_font", "RichBody", tabular(ITALIC_FONT))
+	t.set_font("bold_font", "RichBody", tabular(LABEL_SEMIBOLD))  # a real bold for [b] headers, not a synthesized one
 	_link(t)
 	_big_buttons(t)
 	_end_turn_key(t)
