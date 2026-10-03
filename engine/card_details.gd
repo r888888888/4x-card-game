@@ -58,6 +58,8 @@ static func _state(e: GameEngine, card: CardInstance, zone_name: String) -> Arra
 		out.append("Idle: no free worker (skips upkeep)")
 	if card.def.type == CardDef.TECH and zone_name == "research_deck":
 		out.append(_tech_cost_text(e, card))
+	if zone_name == "government" and e.unrest_limit() >= 0:  # the ruling government: unrest against its limit (231)
+		out.append("Unrest %d / %d" % [e.resources.get(GameEngine.UNREST, 0), e.unrest_limit()])
 	return out
 
 

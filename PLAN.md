@@ -466,7 +466,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
   first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck,
-  a click chooses; the identity modal lists the deck ("Government deck: Kingship"). The bot chooses by lookahead (159).
+  a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
 - Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
   `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
   owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every

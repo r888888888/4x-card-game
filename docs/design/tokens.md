@@ -48,7 +48,7 @@ A colour must follow a Day mode switch. How depends on where it is set:
 | `info` | `INSIGHT` |
 | `focus` | `FOCUS`; in Day also `POP` |
 | `caution` (Night) / `glyph-ochre` (Day) | `WEALTH` |
-| `plane.*` (card types) | `ACTION` blue, `BUILDING` olive, `CITY` ochre, `TERRITORY` sage, `TECH` teal, `EVENT` brick; `RESEARCHED_FILL` (a researched tech tile, 222) teal |
+| `plane.*` (card types) | `ACTION` blue, `BUILDING` olive, `CITY` ochre, `TERRITORY` sage, `TECH` teal, `EVENT` brick; `CIVILIZATION` plum and `GOVERNMENT` indigo (231: no guide hue, chosen apart from the six planes); `RESEARCHED_FILL` (a researched tech tile, 222) teal |
 | `on-plane` | `TEXT_ON_PLANE` (text on a researched tile) |
 | no guide token | `LOG_TEXT`, `DIM_*`, `FRONTIER_HATCH`, see-through layers (`DIMMER`, the era vellum (`RAISED` at 88%, `EraVellum`), `SCRIM`, `OUTLINE`, `FAINT_EDGE`, `GHOST_*`, `DROP_BG`, `HINT_BG`) |
 

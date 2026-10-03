@@ -52,13 +52,12 @@ func test_pressing_it_opens_one_modal_with_the_civilization_then_the_government(
 	var body: String = modal.body_text()
 	var civ: Dictionary = Game.engine.def_details(id_in("civilization"))
 	check(civ.flavor != "" and body.contains(civ.flavor), "the civilization's flavor: %s" % body)
-	check(body.contains(civ.quote.text) and body.contains(civ.quote.by), "its quote and who said it: %s" % body)
+	check(not body.contains(civ.quote.text), "its quote is in its details, not here (231): %s" % body)
 	for line in civ.rules:
 		check(body.contains(line), "its rules ('%s'): %s" % [line, body])
-	check(body.find(civ.flavor) < body.find(civ.quote.text) and body.find(civ.quote.text) < body.find("Rules"),
-		"flavor, then quote, then rules: %s" % body)
+	check(body.find(civ.rules[-1]) < body.find(civ.flavor), "rules, then the flavor at the card's foot (231): %s" % body)
 	var gov_at := body.find("Chiefdom")
-	check(gov_at > body.find(civ.rules[0]), "the government after the civilization: %s" % body)
+	check(gov_at > body.find(civ.flavor), "the government after the civilization: %s" % body)
 	for line in Game.engine.def_details(id_in("government")).rules:  # since 127, at least its actions
 		check(body.find(line, gov_at) != -1, "the government's rules ('%s'): %s" % [line, body])
 	close_main(main)
