@@ -25,6 +25,7 @@ var next_uid := 1
 var revolt_pending := false  # a revolution was declared: Anarchy falls at the next turn's start (155)
 var anarchy_turn := 0  # the ruling Anarchy's turn, 1 the turn it fell; 0 without Anarchy (155)
 var anarchy_limit := 1  # the fallen government's unrest_limit(), recorded as Anarchy falls (155)
+var names_given := 0  # default city names handed out (248): the next settled territory takes the next
 
 
 ## A deep copy: new zones holding new card instances, its own RNG in the same state.
@@ -53,4 +54,5 @@ func copy() -> GameState:
 	s.revolt_pending = revolt_pending
 	s.anarchy_turn = anarchy_turn
 	s.anarchy_limit = anarchy_limit
+	s.names_given = names_given
 	return s

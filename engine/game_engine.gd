@@ -16,6 +16,7 @@ const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "governmen
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
 ## The kinds of decision pending() can report.
+const MAX_TERRITORY_NAME := 24  # characters in a territory's name (248)
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
@@ -400,6 +401,11 @@ func card_details(uid: int) -> Dictionary:
 	return CardDetails.of_card(self, uid)
 
 
+## The name territory uid goes by (248): its city name once settled, else its card's name; "" when uid isn't a territory.
+func territory_name(uid: int) -> String:
+	return Territories.territory_name(self, uid)
+
+
 ## The settled territory card sits on, or null.
 func territory_of(card: CardInstance) -> CardInstance:
 	return Territories.territory_of(self, card)
@@ -590,6 +596,18 @@ func revolt_error() -> String:
 ## change) if revolt_error says no.
 func revolt() -> bool:
 	return Anarchy.revolt(self)
+
+
+## Why rename_territory would refuse (248): game over or a pending decision, not a settled territory, or a name blank
+## or longer than MAX_TERRITORY_NAME once trimmed. "" if it can.
+func rename_territory_error(territory_uid: int, name: String) -> String:
+	return Territories.rename_error(self, territory_uid, name)
+
+
+## Renames settled territory territory_uid to name, trimmed. Uses no action. False (and no change) if
+## rename_territory_error says no.
+func rename_territory(territory_uid: int, name: String) -> bool:
+	return Territories.rename(self, territory_uid, name)
 
 
 ## The lines that describe the Anarchy a revolution now would bring, with this game's numbers (205); [] when

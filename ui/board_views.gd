@@ -103,7 +103,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		free_slot(old_slot)
 		return false
 	container.move_child(view.slot, index)
-	if not in_hand and view.board_kind != kind:  # a frontier territory settled: same row, settled face
+	if not in_hand and (view.board_kind != kind or view.shown_name != card.shown_name()):  # settled, renamed
 		view.setup(card, e.card_db, in_hand, error, kind)
 		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
