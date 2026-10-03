@@ -242,6 +242,11 @@ func set_focused(on: bool) -> void:
 	queue_redraw()
 
 
+## Test hook (234): whether the card draws the keyboard focus ring.
+func shows_focus_ring() -> bool:
+	return _focused
+
+
 ## Tints the card red while it is held over the play area but can't be played there.
 func set_warning(on: bool) -> void:
 	_warning = on
