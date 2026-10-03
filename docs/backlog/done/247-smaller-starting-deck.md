@@ -2,7 +2,7 @@
 id: 247
 title: Trim the starting deck's farms, settlers, lumber camps and research
 type: feature
-status: review
+status: done
 branch: feat/247-smaller-starting-deck
 ---
 
