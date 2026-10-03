@@ -167,6 +167,45 @@ func test_end_turn_presses_heavy_and_closes_a_relay_when_the_turn_ends() -> void
 		close_game(main))
 
 
+## The variant ui.endturn.turn played with, or null when it didn't play.
+func turn_chord(main: Node) -> Variant:
+	for r: Dictionary in main.sfx.played():
+		if r.token == Sfx.ENDTURN_TURN:
+			return r.get("variant")
+	return null
+
+
+func test_end_turn_plays_the_chord_for_the_turn_it_ends() -> void:
+	await with_reduce_motion(false, func():
+		for t: int in [1, 3, 5]:
+			var main: Node = await open_game()
+			Game.engine.turn = t
+			Game.engine.changed.emit()
+			await wait_frames()
+			var end_turn := shown_button(main, "End turn")
+			mouse(main, centre(end_turn), true)
+			mouse(main, centre(end_turn), false)
+			eq(Game.engine.turn, t + 1, "turn %d ended" % t)
+			eq(turn_chord(main), [0, 2, 0][[1, 3, 5].find(t)], "ending turn %d: D, G, D" % t)
+			check(heard(main).has([Sfx.ENDTURN_TURN, 0.185]), "at the same time as the drum was: %s" % [heard(main)])
+			close_game(main))
+
+
+func test_with_reduce_motion_the_chord_still_follows_the_turn() -> void:
+	await with_reduce_motion(true, func():
+		var main: Node = await open_game()
+		Game.engine.turn = 4
+		Game.engine.changed.emit()
+		await wait_frames()
+		var end_turn := shown_button(main, "End turn")
+		mouse(main, centre(end_turn), true)
+		mouse(main, centre(end_turn), false)
+		eq(Game.engine.turn, 5, "the turn ended")
+		eq(turn_chord(main), 3, "ending turn 4: A")
+		check(heard(main).has([Sfx.ENDTURN_TURN, 0.12]), "with the commit, as before: %s" % [heard(main)])
+		close_game(main))
+
+
 func test_end_turn_that_owes_a_discard_comes_up_like_any_key() -> void:
 	await with_reduce_motion(false, func():
 		var main: Node = await open_game()
