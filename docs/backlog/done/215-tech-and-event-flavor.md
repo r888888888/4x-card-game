@@ -2,7 +2,7 @@
 id: 215
 title: Flavor text and quotes for techs and events
 type: feature
-status: review
+status: done
 branch: feat/215-tech-and-event-flavor
 ---
 
