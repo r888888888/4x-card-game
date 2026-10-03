@@ -2,7 +2,7 @@
 id: 223
 title: Make the test suite run in seconds, not minutes
 type: feature
-status: in-progress
+status: review
 branch: feat/223-faster-test-suite
 ---
 
@@ -23,18 +23,18 @@ Profiling on main (c5899a8, 1426 tests):
   The next lever is running test files in parallel.
 
 ## Acceptance criteria
-- [ ] AC1: Given a run of the suite, when a test runs, then `OS.low_processor_usage_mode_sleep_usec` is 0 (no
+- [x] AC1: Given a run of the suite, when a test runs, then `OS.low_processor_usage_mode_sleep_usec` is 0 (no
   per-frame sleep).
-- [ ] AC2: Given a run of the suite, when frames run, then each one's process delta is 1/120 s, even a frame that
+- [x] AC2: Given a run of the suite, when frames run, then each one's process delta is 1/120 s, even a frame that
   took 50 ms of real time: game time advances a fixed step, whatever the wall clock does.
-- [ ] AC3: Given the sorted test files and a shard count n ≥ 1, when they are split into n shards, then shard i
+- [x] AC3: Given the sorted test files and a shard count n ≥ 1, when they are split into n shards, then shard i
   (0-based) gets files i, i + n, i + 2n, …: the shards are disjoint, together hold every file, and a count of 1 gives
   every file to shard 0.
-- [ ] AC4: Given `scripts/test.sh` (with or without a filter or `--balance`), when it runs, then the files run in up
+- [x] AC4: Given `scripts/test.sh` (with or without a filter or `--balance`), when it runs, then the files run in up
   to `TEST_JOBS` parallel Godot processes (default: the CPU count), each with its own empty `HOME` so no two share
   `user://`; it prints every FAIL line and then one last line `N tests, M failures` summed over the shards; it exits
   non-zero if any shard failed, a shard crashed, or no test matched the filter.
-- [ ] AC5: Given a shard whose files hold no test matching the filter, when it runs, then it is not a failure by
+- [x] AC5: Given a shard whose files hold no test matching the filter, when it runs, then it is not a failure by
   itself (only the whole run matching nothing is).
 
 ## Out of scope
@@ -63,11 +63,12 @@ Profiling on main (c5899a8, 1426 tests):
 | AC5 | Manual check |
 
 ## Manual check
-- [ ] `time scripts/test.sh` is green and well under 20 s; run it 3 times to look for flaky tests.
-- [ ] `scripts/test.sh test_rules` runs only the rules tests across the shards; `scripts/test.sh no_such_test` fails
-  with "No tests matched".
-- [ ] A deliberately failing test shows its FAIL line, the summary counts it, and the exit code is 1.
-- [ ] `scripts/test.sh --balance` still runs only `tests/balance/`.
+- [x] `time scripts/test.sh` is green and well under 20 s; run it 3 times to look for flaky tests. (8 runs, all green,
+  4.2–4.3 s, one 6.1 s cold; two runs at once both green; `TEST_JOBS=1` green in 17 s.)
+- [x] `scripts/test.sh test_rules` runs only the rules tests across the shards (15 tests); `scripts/test.sh
+  no_such_test` fails with "No tests matched" and exit 1.
+- [x] A deliberately failing test shows its FAIL line, the summary counts it, and the exit code is 1.
+- [x] `scripts/test.sh --balance` still runs only `tests/balance/` (12 tests, green, 87 s).
 
 ## Log
 - 2026-10-02: Specced from profiling (numbers in Goal). The user asked for engine optimization and a critical-test
@@ -80,3 +81,5 @@ Profiling on main (c5899a8, 1426 tests):
   deltas follow the wall clock without `--fixed-fps`).
 - 2026-10-02: The shard goes in the environment (`TEST_SHARD`), not a user arg: `LaunchOptions` (Game autoload)
   logs every unknown `--` arg. `--balance` already gets that noise; left alone (it's outside a test, not a failure).
+- 2026-10-02: Result: 101 s → ~4.2 s for the main suite (1426 → 1431 tests). Fixed step + no sleep alone: ~18 s;
+  12 shards take it to ~4 s. No engine change: nothing in the profile was worth one.

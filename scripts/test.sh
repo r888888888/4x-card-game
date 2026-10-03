@@ -47,7 +47,9 @@ for ((i = 0; i < jobs; i++)); do
 done
 
 if ((tests == 0)); then
-	echo "No tests matched filter '${*: -1}'." >&2
+	filter=""
+	for arg in "$@"; do [[ "$arg" == --balance ]] || filter="$arg"; done
+	echo "No tests matched filter '$filter'." >&2
 	status=1
 fi
 echo "$tests tests, $failures failures"

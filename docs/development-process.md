@@ -117,6 +117,6 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |
 | `docs/backlog/` | Items, templates, status flow |
 | `docs/testing.md` | How tests are written and run |
-| `scripts/test.sh` | Test entry point (re-imports new classes, filters) |
+| `scripts/test.sh` | Test entry point (re-imports new classes, filters, runs the files in parallel shards) |
 | `scripts/test-hook.sh` | Stop hook |
 | `tests/lib/test_case.gd` | Assertions, fixtures, helpers |
