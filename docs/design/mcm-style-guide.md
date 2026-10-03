@@ -566,7 +566,8 @@ when it commits.
 
 ### 10.2 Navigation
 Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, the Supply from the right as well,
-the log drawer from the left rail. Each sheet carries the `ScreenHeader` breadcrumb in its title block; going back
+the log drawer from the left rail. Each sheet carries the `ScreenHeader` title bar (241): filled with the screen's colour, its left end the index tab
+of the sheet underneath ("◂ Realm", the board's colour, slanted right edge) that takes you back; going back
 slides it out the way it came. A screen that grows out of a card (Navigator, 104) becomes a **wipe from the card's
 rectangle**: a clip rect expands from the card's bounds to the full sheet in 300 ms, with the card's type band
 colour flashing in the title block bar for the first 120 ms — continuity without scaling. The card's outline (2 px

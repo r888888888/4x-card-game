@@ -1,7 +1,7 @@
 class_name TerritoryView
 extends VBoxContainer
-## The territory view (backlog 101): one settled territory, under a header ("← Realm", "Realm › River Meadow", 104),
-## shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
+## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
+## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
 ## its name and info, its stats and pop meter, a row of its actions (Grow, 227), then its city and buildings and an outline per free slot; its card stays in
 ## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
 ## empty while a game is on,
@@ -126,7 +126,7 @@ func reset() -> void:
 	uid = -1
 
 
-## The Realm section's heading: the root of the view's breadcrumb.
+## The Realm section's heading: the root of the view's navigator, the title its tab back names.
 func _realm_title() -> String:
 	return (_realm.get_child(0) as Label).text
 

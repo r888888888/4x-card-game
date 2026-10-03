@@ -3,7 +3,8 @@ extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
 ## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
-## (124), IconButton (227), and the selectable list's ListWell and ListRow (217). A control takes one with
+## (124), IconButton (227), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
+## BarHeading and DividerTab (241). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
 const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
@@ -150,7 +151,7 @@ static func _pips(t: Theme) -> void:
 	t.set_constant("icon_max_width", "IconButton", 20)
 
 
-## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
+## "Link": a flat Button that reads as a title you can click: dim, accent on hover.
 ## "TitleLink": the same in ink.
 static func _link(t: Theme) -> void:
 	t.set_type_variation("Link", "Button")
@@ -160,7 +161,7 @@ static func _link(t: Theme) -> void:
 	t.set_color("font_hover_color", "Link", Palette.ACCENT)
 	t.set_color("font_pressed_color", "Link", Palette.ACCENT)
 	t.set_color("font_focus_color", "Link", Palette.ACCENT)
-	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it sits in the breadcrumb's text
+	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it reads as text
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
 	_divider_tab(t)
 	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)

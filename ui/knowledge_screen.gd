@@ -1,7 +1,7 @@
 class_name KnowledgeScreen
 extends VBoxContainer
 ## The Knowledge screen (backlog 208; the tech tree modal of 059 and 140 before it): a navigated screen on the play
-## area's navigator (the Realm at its root, 101), its header "Realm › Knowledge" with the turn and era at its right.
+## area's navigator (the Realm at its root, 101), its header a teal bar ("◂ Realm", "Knowledge", 241) with the turn and era at its right.
 ## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
 ## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
 ## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum

@@ -88,7 +88,7 @@ res://
                          # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
                          # revolt_modal.gd (205: the revolution's confirmation)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
-                         # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
+                         # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
                          # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in

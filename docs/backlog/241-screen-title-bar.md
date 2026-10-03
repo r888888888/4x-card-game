@@ -2,7 +2,7 @@
 id: 241
 title: Navigated screens open under a coloured title bar with a divider tab back
 type: feature
-status: in-progress
+status: review
 branch: feat/241-screen-title-bar
 ---
 
@@ -16,21 +16,21 @@ Design: [navigation-options.html](../design/navigation-options.html) option B, w
 [back-button-options.html](../design/back-button-options.html) option 3 (the divider tab), without its Esc keycap.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game on the board, when a territory (Homeland) is opened, then its header's bar is filled with
+- [x] AC1: Given a game on the board, when a territory (Homeland) is opened, then its header's bar is filled with
   `Palette.TERRITORY`; when Knowledge is opened from the Realm, its bar is `Palette.TECH`; when New game is opened
   from the title screen, its bar is `Palette.CIVILIZATION`. The screen's title ("Homeland", "Knowledge",
   "New game") is in the bar, after the tab.
-- [ ] AC2: Given a territory open over the Realm, then the header's back button reads "◂ Realm", has the tooltip
+- [x] AC2: Given a territory open over the Realm, then the header's back button reads "◂ Realm", has the tooltip
   "Back to Realm" and a pointing-hand cursor, uses the `DividerTab` theme variation, and is the header's only button;
   no text in the header mentions Esc. When it is pressed, the view closes and the Realm shows.
-- [ ] AC3: Given Knowledge opened over a territory (Realm › Homeland › Knowledge), then its tab reads "◂ Homeland"
+- [x] AC3: Given Knowledge opened over a territory (Realm › Homeland › Knowledge), then its tab reads "◂ Homeland"
   (the parent only, not the whole path) and its title is "Knowledge"; when the tab is pressed, Knowledge closes and
   the Homeland view is still open.
-- [ ] AC4: Given New game opened from the title screen, then its tab reads "◂ Main menu", and pressing it returns to
+- [x] AC4: Given New game opened from the title screen, then its tab reads "◂ Main menu", and pressing it returns to
   the title screen.
-- [ ] AC5: Given Knowledge open on turn 1, then its turn-and-era line ("Turn 1 · <era>") is inside the header's bar
+- [x] AC5: Given Knowledge open on turn 1, then its turn-and-era line ("Turn 1 · <era>") is inside the header's bar
   at its right end, after the title; the territory and New game bars have no such line.
-- [ ] AC6: Given a game on the board with no screen open, then no ScreenHeader is visible: the Realm has no bar.
+- [x] AC6: Given a game on the board with no screen open, then no ScreenHeader is visible: the Realm has no bar.
 
 ## Out of scope
 - The sheet treatment of navigated screens (docs/design/sheet-options.html) and the key plan back control.
@@ -65,6 +65,13 @@ Design: [navigation-options.html](../design/navigation-options.html) option B, w
 | AC6 | `test_screen_header::test_the_realm_has_no_bar` (passes already: a guard) |
 
 ## Manual check
+Run `godot --path . -- --seed 5`.
+- [ ] New game (title screen › New game): a plum bar inside the panel, "◂ Main menu" tab at its left; the tab returns
+  to the title screen.
+- [ ] Start, click the home territory: a sage bar with "◂ Realm" and its name; hover lightens the tab; clicking it
+  shrinks the view back into its card.
+- [ ] With the territory open, press T: a teal bar with "◂ <territory>", "Knowledge" and "TURN 1 · STONE AGE" at its
+  right; the tab returns to the territory, Esc too.
 - [ ] The tab reads as the sheet underneath showing through: board colour, slanted right edge, flush with the bar's
   left and top and bottom edges, in Night and Day.
 - [ ] Teal (Knowledge), sage (territory) and plum (New game) bars all keep their title legible.
@@ -72,3 +79,9 @@ Design: [navigation-options.html](../design/navigation-options.html) option B, w
 - [ ] Tab focus reaches the tab and its focus ring shows on the board-coloured tab.
 
 ## Log
+- The tab's slant is a skewed StyleBoxFlat (`DividerTab`) whose left edge runs off the bar, which clips it
+  (`clip_contents`); expand_margin_left keeps the left slant out of sight.
+- Clicks on the territory view's bar no longer reach the view's click-outside-closes handler (200): the bar is a
+  PanelContainer and stops them. The tab is the way back there.
+- Follow-up: the territory view now shows the territory's name twice, in the bar and in its frame's title row. A
+  small item could drop the frame's name and keep its info line (keywords, rolled resources).
