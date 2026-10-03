@@ -10,12 +10,14 @@ extends RefCounted
 ##
 ## Strategies (134) change which playable card goes first and add end-of-turn steps; "baseline" is the bot above.
 ## They read what cards do from their effects, never their ids: growth and tall play cards that make food on upkeep
-## first, wealth plays cards that make wealth first and buys one from the supply each turn, wide plays cards that
-## explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
+## first and buy one from the supply each turn (239), wealth does the same with cards that make wealth, wide plays
+## cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
 ## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
 ## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
 ## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
 ## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159).
+## Before Anarchy rules, a seeded coin decides whether it spends its wealth on the supply instead of letting the drain
+## take it (239): see _spend_before_drain.
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -27,6 +29,8 @@ const CALM_MARGIN := 2
 ## How many turns a lookahead plays (159), and how often, in turns, the bot weighs a revolution.
 const LOOKAHEAD_TURNS := 12
 const REVOLT_EVERY := 4
+## The wealth the bot keeps when it spends before Anarchy's drain (239): enough to buy order with 2 turns left.
+const SPEND_RESERVE := 6
 
 static var _depth := 0  # > 0 while a lookahead plays (159): no revolts, the forced government chosen
 static var _forced_government := ""  # the government a lookahead was opened for ("" for the ranking)
@@ -100,11 +104,12 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			break
 		else:
 			plays += 1
-	if strategy == "wealth":
-		_buy_wealth_card(engine)
+	if strategy in ["wealth", "growth", "tall"]:
+		_buy_cheapest(engine, func(def): return _prefers(strategy, def))
 	if strategy != "baseline":
 		_grow(engine, strategy)
 	_revolt(engine, strategy)
+	_spend_before_drain(engine, strategy)
 	return steps
 
 
@@ -298,15 +303,34 @@ static func _settled_count(engine: GameEngine) -> int:
 	return engine.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
 
 
-## Buys the cheapest open supply card that makes wealth and that the engine allows, if any.
-static func _buy_wealth_card(engine: GameEngine) -> void:
+## Buys the cheapest open supply card whose def wanted accepts, that the engine allows and that leaves at least
+## reserve wealth; a tie goes to the pile listed first. Returns whether it bought one.
+static func _buy_cheapest(engine: GameEngine, wanted: Callable, reserve := 0) -> bool:
 	var best := ""
+	var wealth: int = engine.resources.get(GameEngine.WEALTH, 0)
 	for id in engine.open_supply_piles():
-		if _makes_wealth(engine.card_db[id]) and engine.buy_error(id) == "" \
+		if wanted.call(engine.card_db[id]) and engine.buy_error(id) == "" \
+				and wealth - engine.buy_price(id) >= reserve \
 				and (best == "" or engine.buy_price(id) < engine.buy_price(best)):
 			best = id
-	if best != "":
-		engine.buy(best)
+	return best != "" and engine.buy(best)
+
+
+## Whether the bot spends its wealth before Anarchy's drain (239): a coin from engine's seed and turn, the same on a
+## fork, that never touches the game's rng.
+static func spends_before_drain(engine: GameEngine) -> bool:
+	return posmod(hash([engine.seed_value, engine.turn]), 2) == 0
+
+
+## When Anarchy will rule next turn and spends_before_drain says so, buys supply cards down to SPEND_RESERVE wealth
+## (239): the cheapest card strategy buys (wealth: makes wealth; growth and tall: makes food on upkeep; any for the
+## others), then the cheapest of any.
+static func _spend_before_drain(engine: GameEngine, strategy: String) -> void:
+	if not (Anarchy.rules_next_turn(engine) or engine.anarchy_ahead()) or not spends_before_drain(engine):
+		return
+	var preferred := func(def): return strategy in ["baseline", "wide"] or _prefers(strategy, def)
+	while _buy_cheapest(engine, preferred, SPEND_RESERVE) or _buy_cheapest(engine, func(_def): return true, SPEND_RESERVE):
+		pass
 
 
 ## Grows one pop at a time, on the first territory in strategy's order whose growth leaves the next upkeep fed, until

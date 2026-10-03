@@ -177,6 +177,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_leaving_anarchy.gd` | Restoring order (146, 155): the c × (c + 1) price, `restore_order` and its error, the Restore order button, the bot paying |
 | `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
 | `tests/test_bot_lookahead.gd` | The bot's government lookahead (159): choosing and revolting by forked lookaheads, `ScriptedBot.lookahead`, 154's ranking (`best_government`) |
+| `tests/test_bot_spending.gd` | The bot spends before Anarchy's drain (239): the seeded coin `ScriptedBot.spends_before_drain`, buying down to `SPEND_RESERVE` |
 | `tests/test_revolution.gd` | Revolution (148, 155): revolting at any time, Anarchy next turn, `revolt` and its error, `revolt_forecast`, the Revolt button, the bot's revolt |
 | `tests/test_insight_per_gain.gd` | The `insight_per_gain` modifier (157): each insight gain lowered (play, upkeep, per-count ops, trade), modifiers add up, the forecast, its text |
 | `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
