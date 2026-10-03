@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigation Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --focus: #1F6A68;
+	--territory: #4E6B47; --tech: #1F6A68; --on-plane: #FBF6EC; --vellum: rgba(248, 244, 236, 0.88);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --focus: #6CC3BC;
+	--territory: #93B585; --tech: #5FB0A9; --on-plane: #1F1E1C; --vellum: rgba(42, 40, 37, 0.88);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 16px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+main { max-width: 1120px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-7); }
+h1 { font: 500 34px/1.1 var(--f-display); margin: 0 0 var(--space-2); }
+h2 { font: 500 22px/1.2 var(--f-display); margin: 0; }
+.lede { color: var(--ink-2); max-width: 70ch; margin: 0 0 var(--space-5); }
+.toolbar { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); }
+.toolbar button { font: 600 13px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; background: var(--steel); color: var(--ink);
+	border: 1px solid var(--rule); border-radius: var(--radius-1); padding: var(--space-1) var(--space-3); cursor: pointer; }
+.toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--board); }
+
+.option { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--space-5); padding: var(--space-6) 0;
+	border-top: 1px solid var(--rule-fine); }
+.option.pick { border-top: 4px solid var(--signal); }
+.tag { font: 600 12px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.pick .tag { color: var(--signal); }
+.notes p { margin: var(--space-2) 0; color: var(--ink-2); }
+.notes ul { margin: var(--space-2) 0; padding-left: 1.2em; color: var(--ink-2); }
+.notes li { margin: 2px 0; }
+.notes b { color: var(--ink); font-weight: 600; }
+@media (max-width: 820px) { .option { grid-template-columns: 1fr; } }
+
+/* The miniature game window */
+.game { --c: var(--tech); background: var(--board); border: 1px solid var(--rule); border-radius: var(--radius-1); overflow: hidden;
+	font: 500 10px/1.2 var(--f-cond); color: var(--ink); aspect-ratio: 16 / 10; display: grid; grid-template-rows: 22px 1fr; }
+.game.terr { --c: var(--territory); }
+.top { display: flex; align-items: center; gap: 6px; padding: 0 6px; border-bottom: 2px solid var(--ink-2); }
+.top .res { color: var(--ink-2); letter-spacing: .04em; }
+.top .sp { flex: 1; }
+.btn { border: 1px solid var(--rule); background: var(--steel); border-radius: var(--radius-1); padding: 1px 5px; white-space: nowrap; }
+.btn.lit { background: var(--c); color: var(--on-plane); border-color: var(--c); }
+.body { display: grid; grid-template-columns: 1fr 26%; min-height: 0; }
+.work { display: grid; grid-template-rows: 1fr 30%; min-height: 0; position: relative; }
+.side { border-left: 1px solid var(--rule-fine); padding: 6px; display: flex; flex-direction: column; color: var(--ink-2); }
+.side .end { margin-top: auto; background: var(--signal); color: var(--on-signal); padding: 5px; font-weight: 600; letter-spacing: .08em; }
+.hand { display: flex; gap: 4px; padding: 4px 6px; border-top: 1px solid var(--rule-fine); }
+.hand i { flex: 0 0 13%; border: 1px solid var(--rule); background: var(--sheet); }
+.cap { font: 600 8px var(--f-cond); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.screen { padding: 6px; min-height: 0; display: flex; flex-direction: column; gap: 5px; position: relative; }
+.crumb { font: 500 12px var(--f-ui); color: var(--ink); }
+.crumb a { color: var(--focus); text-decoration: underline; text-underline-offset: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.tiles i { height: 18px; background: var(--sheet); border: 1px solid var(--rule-fine); }
+.tiles i.r { background: var(--tech); border-color: var(--tech); }
+.terrbox { border: 2px solid var(--territory); background: color-mix(in srgb, var(--sheet) 88%, var(--territory)); padding: 5px; flex: 0 0 auto; }
+.terrbox .row { display: flex; gap: 4px; margin-top: 4px; }
+.terrbox .row i { width: 32px; height: 24px; background: var(--sheet); border: 1px solid var(--rule); }
+.terrbox .row i.o { background: transparent; border-style: dashed; }
+.key { display: inline-block; font: 600 8px var(--f-cond); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: var(--radius-1);
+	padding: 0 3px; color: var(--ink-2); background: var(--sheet); }
+.realmcard { width: 26%; height: 34px; border: 1px solid var(--rule); background: var(--sheet); padding: 3px; }
+
+/* A — louder header */
+.backbtn { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--rule); background: var(--steel); padding: 2px 6px;
+	border-radius: var(--radius-1); font: 600 10px var(--f-cond); letter-spacing: .04em; }
+.disp { font: 500 15px/1 var(--f-display); }
+
+/* B — title-block bar */
+.bar { display: flex; align-items: center; gap: 6px; background: var(--c); color: var(--on-plane); padding: 4px 6px; margin: -6px -6px 0; }
+.bar .disp { color: var(--on-plane); }
+.bar .home { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--on-plane); padding: 1px 5px; border-radius: var(--radius-1);
+	font: 600 10px var(--f-cond); }
+.bar .key { background: transparent; border-color: var(--on-plane); color: var(--on-plane); }
+.bar .ctx { margin-left: auto; font: 600 9px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+
+/* C — sheet on the desk */
+.under { position: absolute; inset: 0; padding: 6px; opacity: .35; }
+.sheetC { position: absolute; top: 4px; bottom: 0; left: 30px; right: 0; background: var(--sheet); border: 2px solid var(--ink-2); border-right: 0;
+	box-shadow: -4px 0 0 var(--shadow); padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+.rail { position: absolute; left: 0; top: 0; bottom: 0; width: 30px; display: flex; align-items: center; justify-content: center; }
+.rail span { writing-mode: vertical-rl; transform: rotate(180deg); font: 600 8px var(--f-cond); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+
+/* D — location switch */
+.loc { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--radius-1); overflow: hidden; }
+.loc span { padding: 1px 6px; display: inline-flex; align-items: center; gap: 4px; }
+.loc span + span { border-left: 1px solid var(--rule); }
+.loc .on { background: var(--well); color: var(--ink); }
+.lamp { width: 6px; height: 6px; border-radius: 50%; background: var(--steel); border: 1px solid var(--rule); }
+.on .lamp { background: var(--c); border-color: var(--c); box-shadow: 0 0 4px var(--c); }
+
+/* E — folder tabs */
+.tabs { display: flex; gap: 2px; padding: 4px 6px 0; border-bottom: 2px solid var(--c); }
+.tabs span { padding: 2px 8px; border: 1px solid var(--rule-fine); border-bottom: 0; color: var(--ink-3); background: var(--well); }
+.tabs span.on { background: var(--c); color: var(--on-plane); border-color: var(--c); font-weight: 600; }
+.tabs span.x::after { content: " ×"; }
+
+/* F — framed work area */
+.work.framed::after { content: ""; position: absolute; inset: 0; border: 3px solid var(--c); pointer-events: none; }
+.work.framed .stamp { position: absolute; right: 8px; top: 6px; font: 600 8px var(--f-cond); letter-spacing: .14em; color: var(--c); }
+
+.summary { margin-top: var(--space-6); padding: var(--space-5); background: var(--sheet); border-left: 4px solid var(--signal); }
+.summary h2 { margin-bottom: var(--space-3); }
+.summary ol, .summary ul { color: var(--ink-2); padding-left: 1.3em; }
+.summary li { margin: var(--space-1) 0; }
+.summary b { color: var(--ink); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: var(--space-4) 0; }
+th, td { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--rule-fine); vertical-align: top; }
+th { font: 600 12px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+td { color: var(--ink-2); }
+td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+</style>
+</head>
+<body>
+<main>
+<h1>Off the Realm: where am I, how do I get back?</h1>
+<p class="lede">The Knowledge screen and the territory view take the Realm's place in the work area. The top bar, the sidebar
+and the hand don't change, so all that marks the switch is a small breadcrumb ("Realm › Knowledge") whose link is the only
+way back besides Esc. Six ways to make the switch obvious, from the least change to the most. Each is shown on Knowledge
+(teal) and on a territory (sage).</p>
+<div class="toolbar" role="group" aria-label="Theme">
+	<button type="button" data-t="night" aria-pressed="true">Night</button>
+	<button type="button" data-t="paper" aria-pressed="false">Paper</button>
+</div>
+
+<!-- Today -->
+<section class="option">
+	<div style="display:grid;gap:12px">
+		<div class="game"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+			<div class="body"><div class="work"><div class="screen"><div class="crumb"><a>Realm</a> › Knowledge</div><div class="cap">Ancient</div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="cap">Classical</div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+			<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	</div>
+	<div class="notes"><span class="tag">Today</span><h2>Breadcrumb only</h2>
+		<p>A text link in the top-left corner of the work area. Everything around it, about 80% of the window, looks the
+			same as on the Realm.</p>
+		<ul><li>The way back is a 12 px underlined word, and nothing on screen says Esc works.</li>
+			<li>Knowledge's tiles and the Realm's cards look alike at a glance, so it is easy to miss that you've changed screens.</li></ul>
+	</div>
+</section>
+
+<!-- A -->
+<section class="option">
+	<div class="game"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="body"><div class="work"><div class="screen"><div style="display:flex;align-items:center;gap:8px"><span class="backbtn">← Realm <span class="key">Esc</span></span><span class="disp">Knowledge</span></div><div class="cap">Ancient</div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="cap">Classical</div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+		<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	<div class="notes"><span class="tag">A · smallest change</span><h2>A louder header</h2>
+		<p>The link becomes a real secondary button, <b>← Realm</b>, with an <b>Esc</b> keycap on it, and the screen's
+			name is set in display type.</p>
+		<ul><li><b>+</b> The way back is now clear. It only changes ScreenHeader.</li>
+			<li><b>−</b> It doesn't help you notice the switch: the header is still a small part of a large unchanged window.</li></ul>
+	</div>
+</section>
+
+<!-- B -->
+<section class="option pick">
+	<div style="display:grid;gap:12px">
+		<div class="game"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn lit">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+			<div class="body"><div class="work"><div class="screen"><div class="bar"><span class="home">← Realm <span class="key">Esc</span></span><span class="disp">Knowledge</span><span class="ctx">Ancient era · 4 insight</span></div><div class="cap">Ancient</div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="cap">Classical</div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+			<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+		<div class="game terr"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+			<div class="body"><div class="work"><div class="screen"><div class="bar"><span class="home">← Realm <span class="key">Esc</span></span><span class="disp">Delta Marsh</span><span class="ctx">Territory</span></div><div class="terrbox"><span class="cap">3 · 2/7 · 1</span><div class="row"><i></i><i></i><i class="o"></i><i class="o"></i></div></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+			<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	</div>
+	<div class="notes"><span class="tag">B · recommended</span><h2>A title-block bar in the screen's colour</h2>
+		<p>Every screen you navigate to opens under a full-width bar filled with its card-type colour: teal for Knowledge,
+			sage for a territory. The bar's left end is the way home, <b>← Realm</b> with its <b>Esc</b> keycap. Then comes the
+			screen's name in display type, and its context (era, insight) at the right. The Realm has no bar, so if you see
+			a bar you are somewhere else. While Knowledge is open, its top-bar button lights in the same teal, and pressing
+			it again goes back.</p>
+		<ul><li><b>+</b> One rule covers every screen: a filled band means you're off the Realm, and its left end takes you back.</li>
+			<li><b>+</b> The guide already describes this bar. §10.2 flashes "the card's type band colour … in the title block bar"
+				during the wipe. Here the bar keeps the colour instead of flashing it, which also links the screen to the card it grew from.</li>
+			<li><b>+</b> It is one component, ScreenHeader, so future screens get it for free.</li>
+			<li><b>−</b> It is a large coloured plane, and §4.6 rations those. It is fine at one per screen, but the bar is
+				the only filled plane in the header.</li></ul>
+	</div>
+</section>
+
+<!-- C -->
+<section class="option">
+	<div class="game"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="body"><div class="work"><div class="screen" style="padding:0"><div class="under"><div class="cap">Realm</div><div class="realmcard">Delta Marsh</div></div><div class="rail"><span>‹ Realm</span></div><div class="sheetC"><div class="crumb"><a>Realm</a> › <span class="disp" style="font-size:13px">Knowledge</span></div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+		<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	<div class="notes"><span class="tag">C · literal metaphor</span><h2>A sheet laid on the desk</h2>
+		<p>The screen is a raised sheet with an ink edge and a hard shadow, slid in from the right but stopping short. A
+			dimmed strip of the Realm stays visible at the left under a "‹ Realm" label, and clicking the strip goes back.</p>
+		<ul><li><b>+</b> It fits "sheets on rails" (§10.2), and you can see the Realm is still there underneath.</li>
+			<li><b>−</b> It costs width the tech tree needs, and it brings back the see-through effect that 224 removed on purpose
+				(Knowledge is opaque).</li>
+			<li><b>−</b> A territory nested on a territory would need two strips.</li></ul>
+	</div>
+</section>
+
+<!-- D -->
+<section class="option">
+	<div style="display:grid;gap:12px">
+		<div class="game"><div class="top"><span class="res">T001 · 6 · 3</span><span class="loc"><span><i class="lamp"></i>Realm</span><span class="on"><i class="lamp"></i>Knowledge</span></span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+			<div class="body"><div class="work"><div class="screen"><div class="crumb"><a>Realm</a> › Knowledge</div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+			<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	</div>
+	<div class="notes"><span class="tag">D · global</span><h2>A location switch in the top bar</h2>
+		<p>Knowledge leaves the button row and joins Realm in a two-position selector with lamps at the left of the top
+			bar. The lamp shows where you are, and clicking Realm takes you home from anywhere. A territory lights Realm,
+			because it is part of the Realm.</p>
+		<ul><li><b>+</b> It is always in the same place on every screen, and the console style suits a "machined" switch.</li>
+			<li><b>−</b> A territory looks like "on the Realm", so it doesn't help in the territory case you mentioned.</li>
+			<li><b>−</b> It moves Knowledge out of the global row, which §11.1 lays out, and it competes with the resource bar for the left end.</li></ul>
+	</div>
+</section>
+
+<!-- E -->
+<section class="option">
+	<div class="game terr"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="body"><div class="work" style="grid-template-rows:auto 1fr 30%"><div class="tabs"><span>Realm</span><span class="on x">Delta Marsh</span></div><div class="screen"><div class="terrbox"><span class="cap">3 · 2/7 · 1</span><div class="row"><i></i><i></i><i class="o"></i><i class="o"></i></div></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+		<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	<div class="notes"><span class="tag">E · familiar</span><h2>Folder tabs</h2>
+		<p>The work area becomes a folder with tabs: Realm is always there, and every open screen adds a tab with a close ×.</p>
+		<ul><li><b>+</b> Everyone already knows how tabs work, and Realm is always one click away.</li>
+			<li><b>−</b> Tabs suggest several screens open side by side, but the navigator is a stack: opening a territory
+				from Knowledge isn't a sibling tab. The tabs and the breadcrumb would disagree.</li>
+			<li><b>−</b> It's more software than desk, and §1 wants the desk.</li></ul>
+	</div>
+</section>
+
+<!-- F -->
+<section class="option">
+	<div class="game"><div class="top"><span class="res">T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="body"><div class="work framed"><span class="stamp">KNOWLEDGE</span><div class="screen"><div class="crumb"><a>Realm</a> › Knowledge</div><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i></i></div><div class="tiles"><i></i><i></i><i></i><i></i><i></i></div></div><div class="hand"><i></i><i></i><i></i><i></i></div></div>
+		<div class="side"><span class="cap">Civilization</span>Sumer<span class="end">END TURN</span></div></div></div>
+	<div class="notes"><span class="tag">F · ambient</span><h2>Frame the work area</h2>
+		<p>A 3 px rule in the screen's colour goes round the whole work area while you're away from the Realm, with the
+			screen's name stamped in a corner.</p>
+		<ul><li><b>+</b> You'd notice it in your peripheral vision without reading anything.</li>
+			<li><b>−</b> It doesn't help with getting back. It reads as a selection or targeting state (§10.5, §11.8), and
+				the territory box already has a sage frame, so you'd get a frame inside a frame.</li></ul>
+	</div>
+</section>
+
+<div class="summary">
+	<h2>Proposed pattern: the title block marks where you are</h2>
+	<ol>
+		<li><b>The Realm is home and has no title bar.</b> Every navigated screen gets a full-width title-block bar filled
+			with its card-type colour (B). A coloured bar always means you're away from the Realm.</li>
+		<li><b>The way back is always at the bar's left end.</b> It is a real button, "← Realm", with an Esc keycap, and
+			in a nested stack it names the parent ("← Knowledge"). The breadcrumb text moves into the bar's name.</li>
+		<li><b>The button that opened a screen lights while it's open, and pressing it again closes the screen.</b> Knowledge
+			lights in teal and T, its shortcut, already toggles it. This adds part of D without a new control.</li>
+		<li><b>Keep the wipe.</b> The bar is what the card grows into: its colour comes from the card's type band, so the
+			§10.2 flash now stays as the bar's colour.</li>
+	</ol>
+	<table>
+		<tr><th>Option</th><th>Noticed?</th><th>Way back clear?</th><th>Fits the guide</th><th>Cost</th></tr>
+		<tr><td>A header</td><td>Weak</td><td>Yes</td><td>Yes</td><td>ScreenHeader only</td></tr>
+		<tr><td>B bar</td><td>Strong</td><td>Yes</td><td>Yes (§10.2 bar)</td><td>ScreenHeader + 1 theme variation</td></tr>
+		<tr><td>C sheet</td><td>Strong</td><td>Yes</td><td>Partly (undoes 224)</td><td>Navigator layout, both screens</td></tr>
+		<tr><td>D switch</td><td>Knowledge only</td><td>Yes</td><td>Changes §11.1</td><td>TopBar rework</td></tr>
+		<tr><td>E tabs</td><td>Strong</td><td>Yes</td><td>No (stack ≠ tabs)</td><td>New component</td></tr>
+		<tr><td>F frame</td><td>Medium</td><td>No</td><td>Clashes with §10.5</td><td>Small</td></tr>
+	</table>
+</div>
+</main>
+<script>
+for (const b of document.querySelectorAll(".toolbar button")) b.addEventListener("click", () => {
+	document.documentElement.dataset.theme = b.dataset.t;
+	for (const o of document.querySelectorAll(".toolbar button")) o.setAttribute("aria-pressed", String(o === b));
+});
+</script>
+</body>
+</html>

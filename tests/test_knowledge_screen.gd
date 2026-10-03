@@ -403,7 +403,8 @@ func test_knowledge_is_a_screen_on_the_play_areas_navigator_with_a_header() -> v
 		check(main.knowledge.is_open(), "open")
 		eq(main.modals.depth(), 0, "not a modal")
 		check(not main.tableau.is_visible_in_tree(), "in place of the Realm")
-		eq(screen.header.breadcrumb_text(), "Realm › Knowledge", "its breadcrumb")
+		eq(screen.header.back_button.text, "◂ Realm", "its tab back (241)")
+		eq(screen.header.title_text(), "Knowledge", "its title")
 		eq(main.knowledge.context_text(), "Turn 1 · %s" % Game.engine.era_name(Game.engine.era()), "its context")
 		check(not FileAccess.file_exists("res://ui/tech_tree_modal.gd"), "the tech tree modal is gone")
 		check(main.get("tech_tree") == null, "and main has no tech_tree"))
@@ -586,10 +587,50 @@ func test_over_a_territory_view_it_pushes_on_top_and_back_returns_to_the_view() 
 		close_main(main)
 		Game.engine = real
 		return
-	eq(main.knowledge.header.breadcrumb_text(), "Realm › %s › Knowledge" % home_name, "over the view")
+	eq(main.knowledge.header.back_button.text, "◂ " + home_name, "over the view: the tab names the view, not the path (241)")
+	eq(main.knowledge.header.title_text(), "Knowledge", "its title")
 	press_key(main, KEY_ESCAPE)
 	await wait_screen_transition()
 	check(not main.knowledge.is_open(), "closed")
 	check(main.territory_view.is_open(), "back to the territory view")
+	close_main(main)
+	Game.engine = real
+
+
+# --- 241: the title bar ---
+
+func test_knowledge_opens_under_a_tech_coloured_bar_with_its_context_at_the_right() -> void:
+	await with_tree(func(main: Node):
+		var header: Control = main.knowledge.header
+		var box := header.get_theme_stylebox("panel") as StyleBoxFlat
+		check(box != null and box.draw_center, "the header is a filled bar")
+		if box != null:
+			eq(box.bg_color, Palette.TECH, "filled with the tech colour")
+		var texts: Array[String] = []
+		for l in header.find_children("*", "Label", true, false):
+			if (l as Label).is_visible_in_tree():
+				texts.append((l as Label).text)
+		eq(texts, ["Knowledge", "Turn 1 · %s" % Game.engine.era_name(Game.engine.era())] as Array[String],
+			"the title, then the turn and era, in the bar"))
+
+
+func test_over_a_territory_its_tab_goes_back_one_step_to_the_view() -> void:
+	var real := Game.engine
+	Game.engine = tech_engine(["pottery", "writing"], {"farm": 5})
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	var home := home_uid(Game.engine)
+	main.views[home].details_requested.emit(main.views[home])
+	await wait_screen_transition()
+	press_key(main, KEY_T)
+	await wait_screen_transition()
+	if has_knowledge(main):
+		var home_name: String = Game.engine.zone("tableau").find(home).def.name
+		eq(main.knowledge.header.back_button.text, "◂ " + home_name, "the tab names the view below")
+		main.knowledge.header.back_button.pressed.emit()
+		await wait_screen_transition()
+		check(not main.knowledge.is_open(), "Knowledge closes")
+		check(main.territory_view.is_open(), "the territory view is still open")
 	close_main(main)
 	Game.engine = real

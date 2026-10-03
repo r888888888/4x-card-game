@@ -278,14 +278,14 @@ func test_the_header_names_the_screen_below_and_the_path() -> void:
 	_host.add_child(header)
 	nav.set_root(s.A, null, "Realm")
 	check(not header.back_button.visible, "at the root: no link back")
-	eq(header.breadcrumb_text(), "Realm", "at the root: its title")
+	eq(header.title_text(), "Realm", "at the root: its title")
 	nav.push(s.B, null, "River Meadow")
 	check(header.back_button.visible, "a link back")
-	eq(header.back_button.text, "Realm", "the screen below's title is the link (118)")
-	eq(header.breadcrumb_text(), "Realm › River Meadow", "the path")
+	eq(header.back_button.text, "◂ Realm", "the screen below's title is the tab (118, 241)")
+	eq(header.title_text(), "River Meadow", "the title")
 	header.back_button.pressed.emit()
 	eq(nav.depth(), 1, "pressing it goes back")
-	eq(header.breadcrumb_text(), "Realm", "and the header follows")
+	eq(header.title_text(), "Realm", "and the header follows")
 	free_screens()
 
 

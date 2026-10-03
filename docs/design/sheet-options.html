@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-hover: 90ms; --ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --focus: #1F6A68;
+	--territory: #4E6B47; --tech: #1F6A68; --on-plane: #FBF6EC; --dim: rgba(239, 232, 218, 0.72);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --focus: #6CC3BC;
+	--territory: #93B585; --tech: #5FB0A9; --on-plane: #1F1E1C; --dim: rgba(13, 12, 11, 0.62);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 16px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+main { max-width: 1040px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-7); }
+h1 { font: 500 34px/1.1 var(--f-display); margin: 0 0 var(--space-2); }
+h2 { font: 500 22px/1.2 var(--f-display); margin: 0 0 var(--space-3); }
+.lede { color: var(--ink-2); max-width: 72ch; margin: 0 0 var(--space-4); }
+.toolbar { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); }
+.toolbar button { font: 600 13px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; background: var(--steel); color: var(--ink);
+	border: 1px solid var(--rule); border-radius: var(--radius-1); padding: var(--space-1) var(--space-3); cursor: pointer; }
+.toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--board); }
+section { padding: var(--space-6) 0; border-top: 1px solid var(--rule-fine); }
+section.pick { border-top: 4px solid var(--signal); }
+.tag { font: 600 12px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.pick .tag { color: var(--signal); }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); margin-top: var(--space-4); }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+.cols p { margin: 0 0 var(--space-2); color: var(--ink-2); }
+.cols ul { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
+.cols li { margin: 2px 0; }
+b { color: var(--ink); font-weight: 600; }
+.hint { font: 500 13px var(--f-cond); color: var(--ink-3); margin-top: var(--space-2); }
+
+/* ── The miniature game window ── */
+.scroller { overflow: hidden; }
+.game { position: relative; width: 880px; height: 500px; background: var(--board); border: 1px solid var(--rule); overflow: hidden;
+	font: 500 12px/1.2 var(--f-cond); color: var(--ink); }
+.top { position: absolute; inset: 0 0 auto 0; height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 8px;
+	border-bottom: 3px solid var(--ink-2); background: var(--board); z-index: 5; }
+.top .sp { flex: 1; }
+.top .res { color: var(--ink-2); letter-spacing: .04em; }
+.btn { border: 1px solid var(--rule); background: var(--steel); border-radius: var(--radius-1); padding: 2px 6px; }
+.btn.lit { background: var(--tech); border-color: var(--tech); color: var(--on-plane); }
+.cap { font: 600 9px var(--f-cond); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+
+/* the desk under the sheet */
+.realm { position: absolute; top: 33px; left: 0; right: 200px; bottom: 140px; padding: 10px; }
+.realm .cards { display: flex; gap: 8px; margin-top: 6px; }
+.rc { width: 120px; height: 74px; border: 1px solid var(--rule); background: var(--sheet); padding: 5px; }
+.rc .band { height: 2px; background: var(--territory); margin: 4px 0; }
+.rc.front { background: repeating-linear-gradient(45deg, transparent 0 5px, var(--rule-fine) 5px 6px); border-style: dashed; }
+.sidebar { position: absolute; top: 33px; right: 0; width: 200px; bottom: 0; border-left: 1px solid var(--rule-fine); padding: 10px;
+	display: flex; flex-direction: column; gap: 4px; color: var(--ink-2); }
+.sidebar .civ { font: 500 16px var(--f-display); color: var(--ink); }
+.endturn { position: absolute; right: 10px; bottom: 14px; width: 180px; background: var(--signal); color: var(--on-signal);
+	padding: 10px; font-weight: 600; letter-spacing: .1em; z-index: 4; }
+.hand { position: absolute; left: 0; right: 200px; bottom: 0; height: 140px; border-top: 1px solid var(--rule-fine); padding: 8px 10px;
+	display: flex; gap: 8px; z-index: 3; background: var(--board); }
+.hand i { width: 96px; border: 1px solid var(--rule); background: var(--sheet); position: relative; }
+.hand i::before { content: ""; position: absolute; left: 5px; right: 5px; top: 18px; height: 2px; background: var(--ink-3); }
+
+/* the dim over what the sheet leaves showing */
+.dimmer { position: absolute; background: var(--dim); z-index: 2; cursor: pointer; transition: background var(--d-hover) var(--ease-machined); }
+.dimmer:hover { background: transparent; }
+.dimmer:hover + .sheet, .dimmer:hover ~ .sheet { transform: translateX(6px); }
+
+/* the sheet */
+.sheet { position: absolute; z-index: 2; background: var(--sheet); border: 2px solid var(--ink-2); border-right: 0;
+	box-shadow: 0 8px 0 var(--shadow); padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
+	transition: transform var(--d-hover) var(--ease-machined); }
+.sheet .head { display: flex; align-items: flex-end; gap: 12px; border-bottom: 4px solid var(--c, var(--tech)); padding-bottom: 8px; }
+.sheet .name { font: 500 26px/1 var(--f-display); }
+.sheet .crumb { font: 600 10px var(--f-cond); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.sheet .crumb a { color: var(--focus); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.sheet .ctx { margin-left: auto; font: 600 11px var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.key { display: inline-block; font: 600 10px/1 var(--f-cond); letter-spacing: .06em; border: 1px solid var(--rule); border-bottom-width: 2px;
+	border-radius: var(--radius-1); padding: 2px 4px; color: var(--ink-2); background: var(--board); }
+.era { display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: start; }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.tiles i { height: 40px; background: var(--board); border: 2px solid var(--ink-2); }
+.tiles i.r { background: var(--tech); border-color: var(--tech); }
+.tiles i.l { background: var(--well); border: 1px solid var(--rule-fine); }
+.terrbox { border: 2px solid var(--territory); background: color-mix(in srgb, var(--sheet) 88%, var(--territory)); padding: 10px; }
+.terrbox .row { display: flex; gap: 8px; margin-top: 8px; }
+.terrbox .row i { width: 96px; height: 70px; background: var(--board); border: 1px solid var(--rule); }
+.terrbox .row i.o { background: transparent; border-style: dashed; }
+.sheet.terr { --c: var(--territory); }
+
+/* C1: margin at the left */
+.c1 .dimmer { top: 33px; left: 0; width: 72px; bottom: 140px; }
+.c1 .sheet { top: 33px; left: 72px; right: 0; bottom: 140px; border-top: 0; }
+
+/* C2: laid on the blotter, margins round */
+.c2 .dimmer { top: 33px; left: 0; right: 0; bottom: 140px; }
+.c2 .sheet { top: 49px; left: 56px; right: 24px; bottom: 156px; border-right: 2px solid var(--ink-2); box-shadow: 8px 8px 0 var(--shadow); }
+.c2 .dimmer:hover ~ .sheet { transform: none; }
+
+/* C3: stepped stack */
+.c3 .dimmer { top: 33px; left: 0; width: 48px; bottom: 140px; }
+.c3 .dimmer.d2 { left: 48px; width: 48px; background: color-mix(in srgb, var(--dim) 60%, transparent); z-index: 3; }
+.c3 .sheet.s1 { top: 33px; left: 48px; right: 0; bottom: 140px; border-top: 0; padding-left: 10px; }
+.c3 .sheet.s2 { top: 41px; left: 96px; right: 0; bottom: 140px; z-index: 3; }
+.c3 .dimmer.d1:hover ~ .sheet { transform: translateX(6px); }
+.c3 .dimmer.d2:hover ~ .sheet.s2 { transform: translateX(6px); }
+
+/* C4: the Realm docked in the margin */
+.c4 .dock { position: absolute; top: 33px; left: 0; width: 132px; bottom: 140px; padding: 10px; z-index: 2; background: var(--board);
+	display: flex; flex-direction: column; gap: 6px; border-right: 1px solid var(--rule-fine); }
+.c4 .dock a { font: 600 10px var(--f-cond); letter-spacing: .14em; text-transform: uppercase; color: var(--focus); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.mini { height: 30px; border: 1px solid var(--rule); background: var(--sheet); padding: 3px 5px; font-size: 10px; cursor: pointer; }
+.mini.cur { border: 2px solid var(--territory); background: var(--territory); color: var(--on-plane); }
+.mini.front { background: repeating-linear-gradient(45deg, transparent 0 4px, var(--rule-fine) 4px 5px); border-style: dashed; color: var(--ink-3); }
+.mini:hover:not(.cur) { box-shadow: 2px 2px 0 var(--shadow); transform: translate(-1px, -1px); }
+.c4 .sheet { top: 33px; left: 140px; right: 0; bottom: 140px; border-top: 0; }
+
+/* C5: covers the hand too */
+.c5 .dimmer { top: 33px; left: 0; width: 72px; bottom: 0; }
+.c5 .sheet { top: 33px; left: 72px; right: 0; bottom: 0; border-top: 0; box-shadow: none; }
+.c5 .tray { margin-top: auto; border-top: 1px solid var(--rule-fine); padding-top: 8px; display: flex; gap: 8px; align-items: flex-end; }
+.c5 .tray i { width: 70px; height: 50px; border: 1px solid var(--rule); background: var(--board); }
+.c5 .tray .et { margin-left: auto; background: var(--signal); color: var(--on-signal); padding: 8px 10px; font-weight: 600; letter-spacing: .1em; }
+
+.summary { margin-top: var(--space-6); padding: var(--space-5); background: var(--sheet); border-left: 4px solid var(--signal); }
+.summary ol { color: var(--ink-2); padding-left: 1.3em; margin: var(--space-2) 0 0; }
+.summary li { margin: var(--space-2) 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>The screen as a sheet on the desk</h1>
+<p class="lede">These iterate on option C. The navigated screen is a sheet of paper slid over the desk. It now covers the
+sidebar as well as the work area, and the vertical "REALM" label is gone: the margin of desk it leaves uncovered is
+itself the way back. The top bar stays on top so your resources are always visible. All but option 5 stop the sheet at
+the hand row, so the hand and End turn stay in reach. <b>Hover the dimmed margins to try them.</b></p>
+<div class="toolbar" role="group" aria-label="Theme">
+	<button type="button" data-t="night" aria-pressed="true">Night</button>
+	<button type="button" data-t="paper" aria-pressed="false">Paper</button>
+</div>
+
+<!-- shared desk fragments are repeated per option so each mock stands alone -->
+
+<!-- C1 -->
+<section class="pick">
+	<span class="tag">1 · recommended · the revision you asked for</span><h2>A margin of desk at the left</h2>
+	<div class="scroller"><div class="game c1">
+		<div class="top"><span class="res">T001 · 6 · 3 · 1 · 4</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn lit">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="realm"><span class="cap">Realm</span><div class="cards"><div class="rc">Delta Marsh<div class="band"></div></div><div class="rc">River Meadow<div class="band"></div></div><div class="rc front"></div></div></div>
+		<div class="sidebar"><span class="cap">Civilization</span><span class="civ">Sumer</span><span class="cap">Chiefdom</span></div>
+		<div class="dimmer" title="Back to the Realm (Esc)"></div>
+		<div class="sheet"><div class="head"><div><div class="crumb"><a>Realm</a> ›</div><div class="name">Knowledge</div></div><span class="ctx">Ancient era · 4 insight</span><span class="key">Esc</span></div>
+			<div class="era"><span class="cap">Ancient</span><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i class="l"></i></div></div>
+			<div class="era"><span class="cap">Classical</span><div class="tiles"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i></div></div></div>
+		<div class="hand"><i></i><i></i><i></i><i></i><i></i></div>
+		<div class="endturn">◦ END TURN</div>
+	</div></div>
+	<div class="hint">Hover the left margin: the Realm undims and the sheet gives way 6 px, the start of its slide home.</div>
+	<div class="cols">
+		<div><p>The sheet runs in from the right and stops 72 px short of the left edge, covering the work area and the
+			sidebar down to the hand row. The Realm shows dimmed in the margin, with the edges of its first cards visible.
+			The sheet has an ink edge, and its 8 px hard shadow falls onto the hand row, so it reads as lying <i>on</i> the desk.</p>
+			<p>With no label, the margin works by behaviour. The cursor turns to a hand, the Realm undims, the sheet nudges
+				right and a tooltip says "Back to the Realm (Esc)". The sheet's own head keeps the breadcrumb and an Esc keycap.</p></div>
+		<ul><li><b>+</b> You can tell from the layout that you're off the Realm: half the familiar window is gone under paper,
+			and the Realm peeks out from beneath.</li>
+			<li><b>+</b> Covering the sidebar gives Knowledge's tree its full width back, which is more than C had before.</li>
+			<li><b>+</b> End turn sits level with the hand, so it stays visible below the sheet.</li>
+			<li><b>−</b> Without the label, the margin is a learned affordance. The first hover teaches it, but nothing
+				invites the first hover. The breadcrumb and Esc keycap cover that gap.</li>
+			<li><b>−</b> The civilization and government panel is hidden while the sheet is up.</li></ul>
+	</div>
+</section>
+
+<!-- C2 -->
+<section>
+	<span class="tag">2 · modal-like</span><h2>Laid on the blotter, margins all round</h2>
+	<div class="scroller"><div class="game c2">
+		<div class="top"><span class="res">T001 · 6 · 3 · 1 · 4</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn lit">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="realm"><span class="cap">Realm</span><div class="cards"><div class="rc">Delta Marsh<div class="band"></div></div><div class="rc">River Meadow<div class="band"></div></div><div class="rc front"></div></div></div>
+		<div class="sidebar"><span class="cap">Civilization</span><span class="civ">Sumer</span><span class="cap">Chiefdom</span></div>
+		<div class="dimmer" title="Back to the Realm (Esc)"></div>
+		<div class="sheet"><div class="head"><div><div class="crumb"><a>Realm</a> ›</div><div class="name">Knowledge</div></div><span class="ctx">Ancient era · 4 insight</span><span class="key">Esc</span></div>
+			<div class="era"><span class="cap">Ancient</span><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i class="l"></i></div></div>
+			<div class="era"><span class="cap">Classical</span><div class="tiles"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i></div></div></div>
+		<div class="hand"><i></i><i></i><i></i><i></i><i></i></div>
+		<div class="endturn">◦ END TURN</div>
+	</div></div>
+	<div class="cols">
+		<div><p>The sheet is placed inside the area, with dimmed desk showing on every side, and has a full 8 px sheet
+			shadow. A click anywhere off the sheet returns you to the Realm, as clicking outside the territory box already does (200).</p></div>
+		<ul><li><b>+</b> It is the most obviously "on top", and the back target is huge.</li>
+			<li><b>−</b> It looks exactly like a modal (§7, shadow.sheet). Modals open over screens, so a card's details
+				modal over Knowledge would be a sheet on a sheet, and the two layers would be hard to tell apart.</li>
+			<li><b>−</b> The margins cost space on all sides, not just one.</li></ul>
+	</div>
+</section>
+
+<!-- C3 -->
+<section>
+	<span class="tag">3 · nesting</span><h2>Stepped sheets: every level leaves its edge</h2>
+	<div class="scroller"><div class="game c3">
+		<div class="top"><span class="res">T001 · 6 · 3 · 1 · 4</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn lit">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="realm"><span class="cap">Realm</span><div class="cards"><div class="rc">Delta Marsh<div class="band"></div></div><div class="rc">River Meadow<div class="band"></div></div><div class="rc front"></div></div></div>
+		<div class="sidebar"><span class="cap">Civilization</span><span class="civ">Sumer</span><span class="cap">Chiefdom</span></div>
+		<div class="dimmer d1" title="Back to the Realm"></div>
+		<div class="sheet s1"><div class="head"><div><div class="name" style="font-size:20px">Knowledge</div></div></div>
+			<div class="tiles" style="grid-template-columns:repeat(8,1fr)"><i class="r"></i><i class="r"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+		<div class="dimmer d2" title="Back to Knowledge (Esc)"></div>
+		<div class="sheet terr s2"><div class="head"><div><div class="crumb"><a>Realm</a> › <a>Knowledge</a> ›</div><div class="name">Delta Marsh</div></div><span class="ctx">Territory</span><span class="key">Esc</span></div>
+			<div class="terrbox"><span class="cap">3 · 2/7 · 1</span><div class="row"><i></i><i></i><i class="o"></i><i class="o"></i></div></div></div>
+		<div class="hand"><i></i><i></i><i></i><i></i><i></i></div>
+		<div class="endturn">◦ END TURN</div>
+	</div></div>
+	<div class="hint">Shown with a territory opened over Knowledge. Hover each margin strip.</div>
+	<div class="cols">
+		<div><p>This is option 1 applied to a stack. Each sheet opened on top of another stops a further 48 px right and 8 px
+			lower, the offset the guide already gives layered plans (§10.6, "offset sheets, 8 px right and down per
+			layer"). Every level of the breadcrumb is a visible strip, and clicking a strip goes back to that level.</p></div>
+		<ul><li><b>+</b> It fixes the original C's nesting problem: the stack you're in is shown spatially, not just in text.</li>
+			<li><b>+</b> It's the same pattern as option 1, so with a single screen open it simply <i>is</i> option 1.</li>
+			<li><b>−</b> Each level costs 48 px of width. Two levels deep is fine, but more would need a cap.</li></ul>
+	</div>
+</section>
+
+<!-- C4 -->
+<section>
+	<span class="tag">4 · navigation in the margin</span><h2>The Realm docked in the margin</h2>
+	<div class="scroller"><div class="game c4">
+		<div class="top"><span class="res">T001 · 6 · 3 · 1 · 4</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="sidebar"><span class="cap">Civilization</span><span class="civ">Sumer</span></div>
+		<div class="dock"><a title="Back to the Realm (Esc)">◂ Realm</a><div class="mini">River Meadow</div><div class="mini cur">Delta Marsh</div><div class="mini">Hill Pass</div><div class="mini front">Frontier</div></div>
+		<div class="sheet terr"><div class="head"><div><div class="crumb"><a>Realm</a> ›</div><div class="name">Delta Marsh</div></div><span class="ctx">Territory</span><span class="key">Esc</span></div>
+			<div class="terrbox"><span class="cap">3 · 2/7 · 1</span><div class="row"><i></i><i></i><i class="o"></i><i class="o"></i></div></div></div>
+		<div class="hand"><i></i><i></i><i></i><i></i><i></i></div>
+		<div class="endturn">◦ END TURN</div>
+	</div></div>
+	<div class="cols">
+		<div><p>Instead of a dimmed peek, the Realm folds into the margin as a live column of miniature territory cards,
+			with the current one filled in its colour. Its heading "◂ Realm" goes home, and any other mini card switches
+			straight to that territory. This is the key plan from the previous page, made into a rail.</p></div>
+		<ul><li><b>+</b> It's the most useful option: you can move between territories without going home, and it's clear
+			where you are among them.</li>
+			<li><b>−</b> It's a new component with its own layout and focus order, and it needs a wider margin (132 px).</li>
+			<li><b>−</b> The Realm is no longer "underneath". It has become a sidebar, so the sheet metaphor weakens.</li>
+			<li><b>−</b> For Knowledge, the column is just a list of territories you can't use there.</li></ul>
+	</div>
+</section>
+
+<!-- C5 -->
+<section>
+	<span class="tag">5 · full cover</span><h2>The sheet covers the hand too</h2>
+	<div class="scroller"><div class="game c5">
+		<div class="top"><span class="res">T001 · 6 · 3 · 1 · 4</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn lit">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="realm" style="bottom:0"><span class="cap">Realm</span><div class="cards"><div class="rc">Delta Marsh<div class="band"></div></div><div class="rc">River Meadow<div class="band"></div></div></div></div>
+		<div class="dimmer" title="Back to the Realm (Esc)"></div>
+		<div class="sheet"><div class="head"><div><div class="crumb"><a>Realm</a> ›</div><div class="name">Knowledge</div></div><span class="ctx">Ancient era · 4 insight</span><span class="key">Esc</span></div>
+			<div class="era"><span class="cap">Ancient</span><div class="tiles"><i class="r"></i><i class="r"></i><i></i><i></i><i class="l"></i></div></div>
+			<div class="era"><span class="cap">Classical</span><div class="tiles"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i></div></div>
+			<div class="era"><span class="cap">Medieval</span><div class="tiles"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i></div></div>
+		</div>
+	</div></div>
+	<div class="cols">
+		<div><p>The sheet runs the full height below the top bar, covering the hand and End turn as well. Only the
+			left margin of desk stays visible.</p></div>
+		<ul><li><b>+</b> It is the strongest "you're somewhere else" and gives the most room to the tree.</li>
+			<li><b>−</b> It breaks play from the sheet. You drop hand cards onto a territory, and you play a Research card while looking at
+				the tree. Both need the hand.</li>
+			<li><b>−</b> Ending the turn would need a trip home. That might suit Knowledge, but not a territory.</li></ul>
+	</div>
+</section>
+
+<div class="summary">
+	<h2>Recommendation: 1, growing into 3 when screens stack</h2>
+	<ol>
+		<li><b>One sheet, one margin.</b> The sheet covers the work area and the sidebar down to the hand row. It leaves a
+			72 px margin of dimmed Realm on the left, has an ink edge, and casts its 8 px shadow onto the hand row. The
+			hand, End turn and the top bar stay above it.</li>
+		<li><b>The margin is the way back,</b> with no label. It gets a pointer cursor, undims on hover, nudges the sheet
+			6 px as the start of its slide home, and carries a "Back to the Realm (Esc)" tooltip. The sheet's head keeps the
+			breadcrumb and an Esc keycap for players who don't hover.</li>
+		<li><b>Stacked screens step</b> 48 px right and 8 px down per level (§10.6's offset sheets), and each strip goes back
+			to its level. Cap the visible steps at two.</li>
+		<li><b>It combines with B.</b> The 4 px rule under the sheet's head is already in the screen's type colour. If
+			that's not enough, fill it into the full title-block bar from the previous page.</li>
+		<li><b>Watch:</b> modals must still look different from navigated sheets. Modals keep shadow.sheet (8, 8) all round
+			and a scrim, while a navigated sheet has no right edge and only casts its shadow downward.</li>
+	</ol>
+</div>
+</main>
+<script>
+for (const b of document.querySelectorAll(".toolbar button")) b.addEventListener("click", () => {
+	document.documentElement.dataset.theme = b.dataset.t;
+	for (const o of document.querySelectorAll(".toolbar button")) o.setAttribute("aria-pressed", String(o === b));
+});
+function fit() { for (const sc of document.querySelectorAll(".scroller")) sc.firstElementChild.style.zoom = Math.min(1, sc.clientWidth / 882); }
+addEventListener("resize", fit); fit();
+</script>
+</body>
+</html>

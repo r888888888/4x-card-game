@@ -120,7 +120,7 @@ func test_new_game_opens_the_new_game_screen_without_starting() -> void:
 	eq(screen.seed_edit.text, "", "seed field starts empty (random)")
 	eq(screen.start_button.text, "Start", "Start button")
 	check(screen.overlay.is_ancestor_of(screen.start_button), "Start on the screen")
-	eq(screen.back_button.text, "Main menu", "the header's link back (104, 118)")
+	eq(screen.back_button.text, "◂ Main menu", "the header's tab back (104, 118, 241)")
 	check(screen.overlay.is_ancestor_of(screen.back_button), "Back on the screen")
 	close_main(main)
 
