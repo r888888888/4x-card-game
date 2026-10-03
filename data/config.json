@@ -37,6 +37,7 @@
     "hunt": { "price": 2, "count": 6 },
     "winnow": { "price": 2, "count": 6 },
     "feast": { "price": 2, "count": 6 },
+    "farm": { "price": 2, "count": 6 },
     "fishing_huts": { "price": 2, "count": 6 },
     "quarry": { "price": 2, "count": 6 },
     "shrine": { "price": 2, "count": 6 },

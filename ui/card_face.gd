@@ -38,11 +38,11 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var title := title_label(def.name)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)
+	add_child(title_row)
 	if in_hand:
 		var e := Game.engine
 		var now: Dictionary = e.play_cost(card.uid) if e != null else {}  # after discounts (108)
-		title_row.add_child(cost_glyphs(now if not now.is_empty() else def.cost))
-	add_child(title_row)
+		show_cost(now if not now.is_empty() else def.cost)
 	if in_hand and Game.engine != null:
 		show_shortfall(Game.engine.play_shortfall(card.uid))
 	_add_band(color)
@@ -246,16 +246,6 @@ func replace_info(label_name: String, text: String) -> void:
 	add_child(info)
 
 
-## Sets the text of the gold info line called label_name, adding it at the bottom the first time.
-func update_info(label_name: String, text: String) -> void:
-	var info := get_node_or_null(label_name) as Label
-	if info == null:
-		info = label("", Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
-		info.name = label_name
-		add_child(info)
-	info.text = text
-
-
 ## The text of the info line called label_name, or "" when there is none.
 func info_text(label_name: String) -> String:
 	var info := find_child(label_name, true, false) as Label
@@ -311,6 +301,16 @@ static func cost_glyphs(cost: Dictionary) -> HBoxContainer:
 		entry.add_child(figure)
 		row.add_child(entry)
 	return row
+
+
+## Shows cost (cost_glyphs) at the right of the name, in place of any cost shown there before.
+func show_cost(cost: Dictionary) -> void:
+	var title_row := get_node("TitleRow")
+	var old := title_row.get_node_or_null("Cost")
+	if old != null:
+		title_row.remove_child(old)
+		old.queue_free()
+	title_row.add_child(cost_glyphs(cost))
 
 
 ## Colours each cost figure (cost_glyphs) WARN for a resource in short (GameEngine.play_shortfall), else TEXT.

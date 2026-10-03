@@ -2,7 +2,7 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a header ("← Realm", "Realm › River Meadow", 104),
 ## shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name and info, its stats and pop meter, then its city and buildings and an outline per free slot; its card stays in
+## its name and info, its stats and pop meter, a row of its actions (Grow, 227), then its city and buildings and an outline per free slot; its card stays in
 ## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
 ## empty while a game is on,
 ## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
@@ -13,8 +13,8 @@ signal navigated
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
-var grow_button: Button  # the pop meter's first empty pip: Grow, showing its food cost (124)
-var grow_reason: Label  # why Grow can't be used, dim, beside the meter; hidden when it can (124)
+var actions: HBoxContainer  # the territory's actions, under the stats and meter (227)
+var grow_button: Button  # in actions: Grow and its food cost; disabled with the reason as its tooltip (227)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 
@@ -22,10 +22,10 @@ var _name: Label
 var _info: RichTextLabel  # the territory card's info line (slots, housing, keywords, rolled resources)
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
-var _meter: HBoxContainer  # the pop meter (124): a pip per housing, Grow on the first empty one
-var _pips: Array[Panel] = []  # the meter's filled and empty pips, Grow not among them
+var _meter: HBoxContainer  # the pop meter (124): a pip per housing
+var _pips: Array[Panel] = []  # the meter's filled and empty pips
 var _outside_press := false  # the left button went down on the view outside the box (200)
-var _growing := false  # while a grow from the meter runs, so the refresh it causes pops the new pip in
+var _growing := false  # while a grow from Grow runs, so the refresh it causes pops the new pip in
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
 var _board: MainScreen
@@ -73,14 +73,14 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_meter = HBoxContainer.new()
 	_meter.add_theme_constant_override("separation", Tokens.SPACE_2)
 	bar.add_child(_meter)
+	actions = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
+	body.add_child(actions)
 	grow_button = UIKit.button("", _grow)
-	grow_button.theme_type_variation = "GrowPip"
+	grow_button.theme_type_variation = "IconButton"
 	grow_button.icon = Icons.FOOD
-	grow_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_meter.add_child(grow_button)
-	grow_reason = UIKit.heading("")
-	grow_reason.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bar.add_child(grow_reason)
+	grow_button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	actions.add_child(grow_button)
 	row = HFlowContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
@@ -244,7 +244,7 @@ static func stats(e: GameEngine, t: int) -> String:
 	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [s.free_slots, s.pop, s.housing, s.free_workers]
 
 
-## The pop meter's pips in order, Grow among them (124); none with population off.
+## The pop meter's pips in order (124); none with population off.
 func pips() -> Array[Control]:
 	var out: Array[Control] = []
 	if _meter.visible:
@@ -254,33 +254,30 @@ func pips() -> Array[Control]:
 	return out
 
 
-## Grows the shown territory from the meter; the refresh that follows animates it (124).
+## Grows the shown territory from Grow; the refresh that follows animates it (124).
 func _grow() -> void:
 	_growing = true
 	Game.engine.grow(uid)
 	_growing = false
 
 
-## Shows the pop meter (with population on): a pip per housing, the first pop filled, Grow on the first empty one
-## (hidden at housing), and grow_error as a dim line when Grow can't be used. After a grow from the meter, the new
-## pip pops in; the top bar rolls the food and pop (181).
+## Shows the pop meter and the actions row (with population on): a pip per housing, the first pop filled, and Grow
+## with its food cost, disabled with grow_error as its tooltip when it can't be used (227). After a grow from Grow,
+## the new pip pops in; the top bar rolls the food and pop (181).
 func _show_meter(e: GameEngine) -> void:
 	_meter.visible = e.population_on()
-	var error := e.grow_error(uid) if _meter.visible else ""
-	grow_reason.visible = error != ""
-	grow_reason.text = error
+	actions.visible = _meter.visible
 	if not _meter.visible:
 		return
-	var pop := e.pop(uid)
-	var room := pop < e.housing(uid)
-	grow_button.visible = room
-	grow_button.text = str(e.grow_cost(uid))
+	var error := e.grow_error(uid)
+	var cost := e.grow_cost(uid)
+	grow_button.text = "Grow %d" % cost
 	grow_button.disabled = error != ""
-	grow_button.tooltip_text = "Grow: +1 pop for %d food." % e.grow_cost(uid)
-	var plain := e.housing(uid) - (1 if room else 0)
-	while _pips.size() > plain:
+	grow_button.tooltip_text = error if error != "" else "Grow: +1 pop for %d food." % cost
+	var pop := e.pop(uid)
+	while _pips.size() > e.housing(uid):
 		_pips.pop_back().free()
-	while _pips.size() < plain:
+	while _pips.size() < e.housing(uid):
 		var pip := Panel.new()
 		pip.custom_minimum_size = Vector2.ONE * GameTheme.PIP_SIZE
 		pip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -289,13 +286,11 @@ func _show_meter(e: GameEngine) -> void:
 		_pips.append(pip)
 	for i in _pips.size():
 		_pips[i].theme_type_variation = "PipFilled" if i < pop else "PipEmpty"
-		_meter.move_child(_pips[i], i if i < pop else i + 1)
-	_meter.move_child(grow_button, pop)
 	if _growing and not UIKit.calm():
 		_pop_in(_pips[pop - 1])
 
 
-## pip (the one a grow from the meter just filled) pops in (124).
+## pip (the one a grow from Grow just filled) pops in (124).
 static func _pop_in(pip: Panel) -> void:
 	pip.pivot_offset = Vector2.ONE * GameTheme.PIP_SIZE / 2
 	pip.scale = Vector2.ONE * 0.4

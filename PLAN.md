@@ -306,7 +306,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth: during play, `grow(territory_uid)` pays `grow_cost` = pop + 1 food for +1 pop, up to housing, with no
   limit per turn. `grow_error` says why not (like `play_error`). In the territory view pop is a meter of pips, one per
-  housing, and Grow is the first empty pip, showing its cost; when it can't be used, `grow_error` shows beside it (124).
+  housing (124), and Grow is a "Grow N" button in the view's actions row below it; when it can't be used it is
+  disabled with `grow_error` as its tooltip (227).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)
@@ -318,8 +319,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
   (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
   starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Lumber Camp 2,
-  Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles
-  with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
+  Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles,
+  Farm too (232), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
 - Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 5–8, era 2 13–19, era 3 27–32, set by 143 so era 1 runs out around turn 18 and era 2
   around 50 in the sim); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
@@ -380,7 +381,8 @@ the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Li
   supply pile. The lock state is in `GameState.locked_supply` and copied by `fork()`.
 - Code: supply and `buy` in `engine/supply.gd`.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
-  ("2 wealth · 1 left" under it). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
+  (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
+  "Buy" tag hanging below it, and the copies left under that). Click or Enter buys and the screen stays open; S or Esc closes it. It can't
   open during an explore choice or after the game ends. Buying rolls the screen's wealth figure down with a
   "−N" tag (181) and sends a copy to the screen's Discard counter (all off with Reduce motion).
 

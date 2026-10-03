@@ -190,11 +190,16 @@ func event_info_text() -> String:
 	return _face.info_text("EventInfo")
 
 
-## Shows a supply pile's price and copies left ("2 wealth · 1 left"). error: "" if it can be bought,
-## otherwise the reason, which dims the card and leads its tooltip.
-func set_buy_info(price: int, left: int, error: String) -> void:
-	_replays["buy_info"] = set_buy_info.bind(price, left, error)
-	_face.update_info("BuyInfo", "%d wealth · %d left" % [price, left])
+## Shows what the card costs to play at the right of its name, as on a hand card: a supply pile's (232).
+func set_play_cost(cost: Dictionary) -> void:
+	_replays["play_cost"] = set_play_cost.bind(cost)
+	_face.show_cost(cost)
+
+
+## Sets a supply pile's buyable look (its price and copies left are on its tag, SupplyScreen.price_tag: 232).
+## error: "" if it can be bought, otherwise the reason, which dims the card and leads its tooltip.
+func set_buy_error(error: String) -> void:
+	_replays["buy_error"] = set_buy_error.bind(error)
 	_set_dimmed(error != "", "" if error == "" else "⊘ " + error)
 	if error == "":
 		_set_tip("Click to buy a copy into your discard.")

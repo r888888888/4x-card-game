@@ -251,6 +251,12 @@ func buy_price(card_id: String) -> int:
 	return Supply.price(self, card_id)
 
 
+## What a copy of supply pile card_id would cost to play, after the civilization's type and tag discounts (232);
+## {} if card_id has no pile.
+func supply_play_cost(card_id: String) -> Dictionary:
+	return Discounts.cost(self, card_db[card_id]) if state.supply.has(card_id) and card_db.has(card_id) else {}
+
+
 func count_tag(tag: String, zone_name: String) -> int:
 	return zone(zone_name).count_tag(tag)
 
