@@ -2,7 +2,7 @@
 id: 240
 title: The bot's government lookahead values research beyond its horizon
 type: feature
-status: in-progress
+status: review
 branch: feat/240-lookahead-values-research
 ---
 
@@ -13,16 +13,16 @@ insight gain, yet the bot still rules Theocracy about half of every game. After 
 the insight the fork gathered, so a government that costs research scores lower.
 
 ## Acceptance criteria
-- [ ] AC1: Given two governments, Scholars (⟳ +2 insight, unrest limit 6) and Plain (nothing, limit 6), no card that
+- [x] AC1: Given two governments, Scholars (⟳ +2 insight, unrest limit 6) and Plain (nothing, limit 6), no card that
   scores, and no tech in the research deck, when the bot looks ahead 12 turns under each, then Scholars' value is
   Plain's + 6 (24 insight ÷ INSIGHT_PER_POINT 4).
-- [ ] AC2: Given a fork that learns one tech with a printed cost of 8 insight and 0 VP and ends with 0 insight, when the
+- [x] AC2: Given a fork that learns one tech with a printed cost of 8 insight and 0 VP and ends with 0 insight, when the
   bot looks ahead, then the value counts the 8 spent: score + 2. Insight held at the lookahead's start doesn't count.
-- [ ] AC3: Given the government choice is owed between Plain and Scholars (Plain first in the government deck), when
+- [x] AC3: Given the government choice is owed between Plain and Scholars (Plain first in the government deck), when
   the bot chooses, then it chooses Scholars. (Before, both scored the same and the tie went to Plain.)
-- [ ] AC4: Given Pious (`insight_per_gain` −1, limit 6) and Plain, and a deck of cards that each gain 2 insight, when
+- [x] AC4: Given Pious (`insight_per_gain` −1, limit 6) and Plain, and a deck of cards that each gain 2 insight, when
   the government choice is owed (Pious first in the deck), then the bot chooses Plain.
-- [ ] AC5: Given Glory (⟳ +3 VP) and Scholars, when the choice is owed, then the bot still chooses Glory (36 points
+- [x] AC5: Given Glory (⟳ +3 VP) and Scholars, when the choice is owed, then the bot still chooses Glory (36 points
   beat 6).
 
 ## Out of scope
@@ -54,3 +54,5 @@ the insight the fork gathered, so a government that costs research scores lower.
   through a whole lookahead: a fork that learns exactly one 8-insight tech is fiddly to set up, and the helper pins
   the formula directly (the fixture tech is Lore, 1 insight). AC4 uses TEST_CARDS' Research (+3 insight, +2 under
   Pious). A probe showed a 12-turn Scholars fork gathers 24–26 insight, so AC1's 6 is robust.
+- 2026-10-03: Green: 1515 → 1520 tests; balance suite green. Follow-up: a balance item should check, with 238 and 239
+  merged, how often the bot now rules Theocracy and tune INSIGHT_PER_POINT.
