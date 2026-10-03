@@ -2,7 +2,7 @@
 id: 241
 title: Navigated screens open under a coloured title bar with a divider tab back
 type: feature
-status: review
+status: done
 branch: feat/241-screen-title-bar
 ---
 
