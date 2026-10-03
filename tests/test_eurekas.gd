@@ -134,19 +134,7 @@ func test_a_met_eureka_shows_in_the_price_details() -> void:
 	check(d.get("state", []).has("Costs 1 insight now (printed 3, −2 eureka)"), "state: %s" % [d.get("state")])
 
 
-# --- AC5: the tech tree modal ---
-
-## The tile text of the tech named tech_name in the open tree, or "".
-func tile_text(main: Node, tech_name: String) -> String:
-	var screen: Node = main.get("knowledge")  # read by name: a missing hook mustn't strand the fixture engine
-	if screen == null:
-		return ""
-	for b in screen.find_children("*", "Button", true, false):
-		var first: String = b.text.split("\n")[0]
-		if b.is_visible_in_tree() and (first.ends_with(" " + tech_name) or first.contains(" %s ·" % tech_name)):
-			return b.text
-	return ""
-
+# --- AC5: the Knowledge screen (222: the tile shows a met eureka, its tooltip the eureka text) ---
 
 func test_the_tree_shows_a_eureka_and_ticks_it_when_met() -> void:
 	var real := Game.engine
@@ -154,17 +142,20 @@ func test_the_tree_shows_a_eureka_and_ticks_it_when_met() -> void:
 	var main := open_main()
 	main.start_game(1)
 	press_key(main, KEY_T)
-	var lines := tile_text(main, "Lore").split("\n")
-	check(lines.has("Eureka: -2 insight with 2 Farms"), "unmet eureka line: %s" % [lines])
-	press_key(main, KEY_T)
-	build_farms(Game.engine, 2)
-	press_key(main, KEY_T)
-	lines = tile_text(main, "Lore").split("\n")
-	check(lines.has("✔ Eureka: -2 insight with 2 Farms"), "met eureka line: %s" % [lines])
-	press_key(main, KEY_T)
-	check(Game.engine.buy_tech(lore_uid(Game.engine)), "learn Lore")
-	press_key(main, KEY_T)
-	var text := tile_text(main, "Lore")
-	check(text != "" and not text.contains("Eureka"), "a researched tech shows no eureka: %s" % text)
+	var screen: Node = main.get("knowledge")  # read by name: a missing hook mustn't strand the fixture engine
+	if screen != null and screen.has_method("tile"):
+		var t: Button = screen.tile("Lore")
+		check(t.tooltip_text.split("\n").has("Eureka: -2 insight with 2 Farms"), "unmet: the tooltip: %s" % t.tooltip_text)
+		check(not screen.tile_texts("Lore").has("✔ Eureka"), "unmet: not on the tile: %s" % [screen.tile_texts("Lore")])
+		press_key(main, KEY_T)
+		build_farms(Game.engine, 2)
+		press_key(main, KEY_T)
+		check(screen.tile_texts("Lore").has("✔ Eureka"), "met: on the tile: %s" % [screen.tile_texts("Lore")])
+		press_key(main, KEY_T)
+		check(Game.engine.buy_tech(lore_uid(Game.engine)), "learn Lore")
+		press_key(main, KEY_T)
+		check(not screen.tile_texts("Lore").has("✔ Eureka"), "a researched tech shows no eureka: %s" % [screen.tile_texts("Lore")])
+	else:
+		check(false, "main.knowledge.tile() exists")
 	close_main(main)
 	Game.engine = real
