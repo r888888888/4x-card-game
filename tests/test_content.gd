@@ -452,6 +452,21 @@ func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
 	check(checked > 0, "some tech gives a card")
 
 
+## Backlog 160: every unit can be had, from a supply pile or a tech that creates it; the data has some.
+func test_every_unit_has_a_supply_pile_or_a_tech_that_creates_it() -> void:
+	var r := load_real()
+	var from_techs := {}
+	for tech in techs_in_research_deck(r):
+		for id in created_by(tech):
+			from_techs[id] = true
+	var units := 0
+	for id in r.cards:
+		if r.cards[id].type == "unit":
+			units += 1
+			check(r.config.supply.has(id) or from_techs.has(id), "%s has a supply pile or a tech creates it" % id)
+	check(units > 0, "the real data has units")
+
+
 ## Backlog 065: the game starts with a government, and every other government comes from a researchable tech (but
 ## the config's unrest.anarchy, 145).
 func test_starting_government_and_every_other_government_comes_from_a_tech() -> void:

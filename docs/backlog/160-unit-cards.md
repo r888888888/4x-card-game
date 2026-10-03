@@ -2,7 +2,7 @@
 id: 160
 title: Unit cards garrisoned on a home territory
 type: feature
-status: ready
+status: red-review
 branch: feat/160-unit-cards
 ---
 
@@ -53,6 +53,13 @@ builders or soldiers. A unit has a **station** (where it stands, the home for no
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_units::test_unit_loads_with_its_strength`, `test_bad_unit_strength_is_a_load_error`, `test_unit_with_fixed_land_is_a_load_error`, `test_unit_decks_in_config` |
+| AC2 | `test_units::test_playing_a_unit_puts_it_on_its_home`, `test_unit_station_is_minus_1_for_anything_else`, `test_station_survives_a_state_copy` |
+| AC3 | `test_units::test_unit_uses_a_worker_on_its_home`, `test_units_need_no_worker_without_population` |
+| AC4 | `test_units::test_unit_chooses_between_territories_with_a_free_worker`, `test_unit_refuses_invalid_targets` |
+| AC5 | `test_units::test_units_go_idle_after_earlier_buildings`, `test_idle_unit_works_again_when_pop_returns` |
+| AC6 | `test_units::test_unit_text_shows_strength`, `test_unit_scores_its_printed_vp` |
+| AC7 | `test_content::test_every_unit_has_a_supply_pile_or_a_tech_that_creates_it` |
 
 ## Manual check
 - [ ] Warriors in the shipped data: cost 2 food, strength 2, ⟳ −1 food; supply pile price 2, count 6, unlocked.
