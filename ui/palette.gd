@@ -53,6 +53,8 @@ static var CITY: Color = NIGHT["CITY"]
 static var TERRITORY: Color = NIGHT["TERRITORY"]
 static var TECH: Color = NIGHT["TECH"]
 static var EVENT: Color = NIGHT["EVENT"]
+static var CIVILIZATION: Color = NIGHT["CIVILIZATION"]  # plum: no card plane uses it (231)
+static var GOVERNMENT: Color = NIGHT["GOVERNMENT"]  # indigo (231)
 
 # An unsettled territory on the board (138): open land, not yet yours.
 static var FRONTIER_BG: Color = NIGHT["FRONTIER_BG"]  # barely off the board
@@ -120,6 +122,8 @@ const NIGHT := {
 	"TERRITORY": Color("93b585"),
 	"TECH": Color("5fb0a9"),
 	"EVENT": Color("e07a63"),
+	"CIVILIZATION": Color("c48faf"),
+	"GOVERNMENT": Color("a39bcb"),
 	"FRONTIER_BG": Color("1f1e1c"),
 	"FRONTIER_HATCH": Color(1, 1, 1, 0.05),
 	"RESEARCHED_FILL": Color("5fb0a9"),
@@ -179,6 +183,8 @@ const DAY := {
 	"TERRITORY": Color("9db592"),
 	"TECH": Color("5e9c97"),
 	"EVENT": Color("c9705c"),
+	"CIVILIZATION": Color("b07d9c"),
+	"GOVERNMENT": Color("8f88b8"),
 	"FRONTIER_BG": Color("efe8da"),
 	"FRONTIER_HATCH": Color("22211f1a"),
 	"RESEARCHED_FILL": Color("5e9c97"),

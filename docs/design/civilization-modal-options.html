@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Civilization Modal Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). Mocks are drawn at 75% of the game's size. */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --focus: #1F6A68; --danger: #9B3424; --gain: #4E6B47; --wealth: #7C5810;
+	--p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592;
+	--on-plane: #22211F;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --focus: #6CC3BC; --danger: #E07A63; --gain: #93B585; --wealth: #D9A441;
+	--p-teal: #5FB0A9; --p-ochre: #D9A441; --p-olive: #A9B26C; --p-blue: #86A9CC; --p-brick: #E07A63; --p-sage: #93B585;
+	--on-plane: #1F1E1C;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+.caps { font: 600 11px/14px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+.plain[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 82ch; margin: 0 0 var(--space-5); }
+.intro b { color: var(--ink); }
+.intro ul { margin: var(--space-2) 0 0; padding-left: 20px; }
+.option { display: grid; grid-template-columns: 48px minmax(0, 1fr) 500px; gap: var(--space-5); align-items: start; padding: var(--space-6) 0; border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 54ch; }
+.option p b { color: var(--ink); }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-3); }
+@media (max-width: 1000px) { .option { grid-template-columns: 1fr; } .letter { font-size: 28px; } }
+
+/* ---------- The modal sheet every mock shares (§11.10): 4 px title bar, body, hairline, footer. ---------- */
+.sheet { width: 100%; max-width: 500px; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); padding: var(--space-4) var(--space-5) var(--space-4); font-size: 15px; line-height: 1.4; }
+.sheet.wide { max-width: 500px; }
+.bar { border-top: 3px solid var(--ink); padding-top: var(--space-2); display: flex; align-items: baseline; gap: var(--space-3); }
+.bar h3 { margin: 0 auto 0 0; font: 500 21px/1.2 var(--f-display); }
+.foot { display: flex; justify-content: flex-end; gap: var(--space-2); border-top: 1px solid var(--rule-fine); margin-top: var(--space-4); padding-top: var(--space-3); }
+.key { font: 500 13px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 10px; box-shadow: 2px 2px 0 var(--shadow); white-space: nowrap; }
+.key.ghost { box-shadow: none; background: transparent; }
+.flavor { font-style: italic; color: var(--ink-2); margin: 0; }
+.quote { margin: 0; color: var(--ink); }
+.quote cite { display: block; font-style: normal; color: var(--ink-3); font-size: 13px; }
+.rule-text { margin: 0; }
+.hair { border: 0; border-top: 1px solid var(--rule-fine); margin: var(--space-3) 0; }
+.num { font-variant-numeric: tabular-nums; }
+.g { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 3px; }
+.g.food { background: var(--p-sage); } .g.wealth { background: var(--p-ochre); } .g.unrest { background: var(--p-brick); }
+
+/* A: ledger */
+.a-head { display: grid; grid-template-columns: 1fr auto; align-items: end; margin-top: var(--space-3); }
+.a-head .name { font: 500 26px/1 var(--f-display); }
+.a-flavor { display: grid; grid-template-columns: 3px 1fr; gap: var(--space-3); margin: var(--space-3) 0; }
+.a-flavor .tick { background: var(--rule-fine); }
+.ledger { display: grid; grid-template-columns: 76px 1fr; column-gap: var(--space-3); row-gap: 3px; margin: 0; }
+.ledger dt { font: 600 11px/20px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.ledger dd { margin: 0; line-height: 20px; }
+.ledger .sep { grid-column: 1 / 3; border-top: 1px solid var(--rule-fine); margin: 3px 0; }
+.a-gov { margin-top: var(--space-5); border-top: 3px solid var(--ink); padding-top: var(--space-2); }
+.a-gov-row { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-2); }
+.a-gov-row .name { font: 500 22px/1 var(--f-display); margin-right: auto; }
+.plate { display: flex; flex-direction: column; align-items: flex-end; }
+.plate .n { font: 500 20px/1 var(--f-ui); font-variant-numeric: tabular-nums; }
+.plate .n small { font-size: 13px; color: var(--ink-3); }
+.deckline { display: flex; align-items: baseline; gap: var(--space-2); margin-top: var(--space-3); color: var(--ink-2); font-size: 14px; }
+
+/* B: two cards */
+.b-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-3); }
+.cardx { background: var(--board); border: 2px solid var(--ink); display: flex; flex-direction: column; min-height: 300px; }
+:root[data-theme="paper"] .cardx { background: var(--sheet); }
+.cardx .band { height: 6px; background: var(--band); }
+.cardx .in { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+.cardx .t { font: 600 17px/1.1 var(--f-ui); }
+.cardx .sub { font: 500 12px/1 var(--f-cond); color: var(--ink-3); }
+.cardx .r { font-size: 13px; line-height: 1.35; }
+.cardx .fl { font-size: 12px; font-style: italic; color: var(--ink-2); margin-top: auto; border-top: 1px solid var(--rule-fine); padding-top: var(--space-2); }
+.cardx .act { margin-top: var(--space-2); align-self: flex-start; }
+.b-deck { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+.mini { font: 500 12px/1 var(--f-cond); border: 1px solid var(--rule); background: var(--well); padding: 6px 8px; border-top: 3px solid var(--p-blue); }
+
+/* C: charter */
+.c-sheet { text-align: left; }
+.c-top { text-align: center; padding: var(--space-4) 0 var(--space-3); }
+.c-burst { width: 54px; height: 54px; margin: 0 auto var(--space-2); }
+.c-top .name { font: 500 34px/1 var(--f-display); letter-spacing: 0.04em; }
+.c-top .ep { font-style: italic; color: var(--ink-2); max-width: 36ch; margin: var(--space-3) auto 0; font-size: 14px; }
+.c-top .ep cite { display: block; font-style: normal; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.articles { counter-reset: art; list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+.articles li { counter-increment: art; display: grid; grid-template-columns: 54px 1fr; padding: 5px 0; border-top: 1px solid var(--rule-fine); }
+.articles li::before { content: "Art. " counter(art, upper-roman); font: 600 11px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.c-gov { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2) var(--space-3); align-items: center; margin-top: var(--space-4); padding: var(--space-3); border: 1px solid var(--rule); }
+.c-gov .name { font: 500 20px/1 var(--f-display); }
+
+/* D: index tabs */
+.d-body { display: grid; grid-template-columns: 132px 1fr; gap: var(--space-4); margin-top: var(--space-3); min-height: 290px; }
+.tabs { display: flex; flex-direction: column; gap: 3px; }
+.tab { position: relative; font: 500 15px/1 var(--f-cond); padding: 9px 10px; color: var(--ink-2); border: 1px solid transparent; cursor: pointer; background: none; text-align: left; }
+.tab .caps { display: block; margin-bottom: 3px; font-size: 10px; }
+.tab[aria-selected="true"] { background: var(--well); color: var(--ink); border-color: var(--rule); box-shadow: 4px 4px 0 var(--shadow); transform: translate(-2px, -2px); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; right: -10px; top: 50%; width: 8px; height: 2px; background: var(--ink); }
+.d-pane h4 { margin: 0 0 var(--space-2); font: 500 24px/1 var(--f-display); }
+.d-pane > * + * { margin-top: var(--space-3); }
+.d-pane[hidden] { display: none; }
+
+/* E: government as a dial / status panel */
+.e-civ { display: grid; grid-template-columns: 1fr; gap: var(--space-2); margin-top: var(--space-3); }
+.e-civ .name { font: 500 26px/1 var(--f-display); }
+.e-panel { margin-top: var(--space-4); background: var(--well); border: 2px solid var(--rule); padding: var(--space-3); display: grid; grid-template-columns: auto 1fr; gap: var(--space-3) var(--space-4); align-items: center; }
+.dial { width: 92px; height: 92px; }
+.e-panel .name { font: 500 20px/1 var(--f-display); }
+.e-stats { display: flex; gap: var(--space-5); margin-top: var(--space-2); }
+.e-panel .extra { grid-column: 1 / 3; display: flex; align-items: center; gap: var(--space-3); border-top: 1px solid var(--rule-fine); padding-top: var(--space-2); font-size: 14px; }
+.e-panel .extra span { margin-right: auto; }
+.pips { display: inline-flex; gap: 3px; vertical-align: middle; }
+.pips i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--rule); }
+.pips i.on { background: var(--p-brick); border-color: var(--p-brick); }
+.pips i.act { background: var(--ink); border-color: var(--ink); }
+
+/* Current */
+.now { margin-bottom: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) 500px; gap: var(--space-5); align-items: start; }
+.now ol { color: var(--ink-2); margin: 0; padding-left: 20px; }
+.now ol b { color: var(--ink); }
+.now h2 { margin: 0 0 var(--space-2); font: 500 24px/30px var(--f-display); }
+.cur h3 { margin: var(--space-2) 0 0; font: 500 21px/1.2 var(--f-display); }
+.cur h4 { margin: var(--space-3) 0 0; font: 500 19px/1.2 var(--f-display); }
+.cur p { margin: 0 0 var(--space-2); }
+@media (max-width: 1000px) { .now { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+	<h1>Civilization modal</h1>
+	<button class="plain" id="anarchy" aria-pressed="false">Show Kingship + deck</button>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+	<p class="intro">Five directions for the civilization modal (backlog 119, 205), opened from the sidebar. All show the real content of a
+	<b>Sumer</b> game. The button up top swaps in a later state (Kingship, with Chiefdom and Theocracy in the government deck) so you can see
+	how each handles more text. Mocks are at 75% scale. <b>Pick one, or mix parts</b> (e.g. "A, with E's unrest pips").</p>
+
+	<section class="now">
+		<div>
+			<h2>Now</h2>
+			<ol>
+				<li><b>"Civilization" three times</b>: the modal title, then "Sumer", then the type word "Civilization" right under it.</li>
+				<li><b>No hierarchy</b>: the modal title, the civ's name and the government's name are all the same Title size.</li>
+				<li><b>Rules are a plain list</b>: "When the game starts:" and "Each upkeep:" repeat, nothing lines up, and the bold "Rules" doesn't match the caps headings used elsewhere.</li>
+				<li><b>The government is a footnote</b>: its numbers (actions, unrest limit) are prose, the current unrest isn't shown, and Revolt… sits jammed against the last line.</li>
+				<li>Flavor and quote are body-size and come before the rules, so you scroll past history to find what your civ does.</li>
+			</ol>
+		</div>
+		<div class="sheet cur">
+			<div class="bar"><h3>Civilization</h3></div>
+			<h3>Sumer</h3><p>Civilization</p>
+			<p class="flavor">Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay…</p>
+			<p>“Go up on the wall of Uruk and walk around.”<br>— Epic of Gilgamesh</p>
+			<p><b>Rules</b><br>When the game starts: Create a Farm<br>When the game starts: Add a Research to your discard<br>Each upkeep: +1 food per farm card<br>Every territory houses 1 more pop<br>Farms cost 1 less wealth.</p>
+			<h4>Chiefdom</h4><p>Government</p>
+			<p><b>Rules</b><br>2 actions each turn.<br>Unrest limit 5.</p>
+			<span class="key">Revolt…</span>
+			<div class="foot"><span class="key">Close (Esc)</span></div>
+		</div>
+	</section>
+
+	<!-- A -->
+	<section class="option">
+		<div class="letter">A</div>
+		<div>
+			<h2>The ledger</h2>
+			<p>The smallest change, closest to the style guide's drafting sheet. The <b>civ's name becomes the modal title</b>, with "Civilization" as the caps
+			context on the right of the title bar. Flavor and quote shrink into a ruled margin note. Rules become a <b>two-column ledger</b>: the trigger
+			(Start, Upkeep, Always) in a caps column, the effect beside it, so "When the game starts:" stops repeating.</p>
+			<p>The government gets its own 3 px bar and a row of <b>stat plates</b>: actions, and unrest shown live against its limit. Revolt… sits at the
+			right of that row, next to the thing it overthrows.</p>
+			<p class="meta">Cost: small. Needs the engine to split each rule into trigger + effect (rules are generated, so the trigger is already known).</p>
+		</div>
+		<div class="sheet" data-mock="a"></div>
+	</section>
+
+	<!-- B -->
+	<section class="option">
+		<div class="letter">B</div>
+		<div>
+			<h2>Two cards on the desk</h2>
+			<p>The civilization and the government <b>are cards</b>, so show them as cards: two large card faces side by side, the same anatomy as the hand
+			(title, type band, rules, flavor at the foot). The government's band is the action blue; the civ gets a band of its own.</p>
+			<p>The government deck sits underneath as a row of <b>small card tabs</b>, so it reads as "the cards you could switch to". Revolt… lives on the
+			government card.</p>
+			<p class="meta">Cost: medium. Reuses CardFace at a larger size; the quote is dropped or moved to card details (click a card to open it).</p>
+		</div>
+		<div class="sheet" data-mock="b"></div>
+	</section>
+
+	<!-- C -->
+	<section class="option">
+		<div class="letter">C</div>
+		<div>
+			<h2>The charter</h2>
+			<p>A founding document. The guide allows centring for "single-message moments", and this is the one place the player meets their civ's identity, so the
+			top is <b>centred</b>: one period motif (a small starburst), the name large in Jost, the quote as an epigraph under it.</p>
+			<p>Below, left-aligned again, the rules are numbered <b>articles</b> (Art. I, II…). The government is a boxed "constitution" panel with its articles
+			and Revolt…. Flavor moves to a tooltip on the name, or is dropped.</p>
+			<p class="meta">Cost: small–medium. The most atmosphere; spends the screen's one motif here.</p>
+		</div>
+		<div class="sheet" data-mock="c"></div>
+	</section>
+
+	<!-- D -->
+	<section class="option">
+		<div class="letter">D</div>
+		<div>
+			<h2>Index tabs</h2>
+			<p>Uses the selectable list already chosen for the game (§7.16, the index card). Left: <b>Sumer, Chiefdom, Government deck</b> as tabs. Right: the
+			selected one's details. Each pane can be roomy (full flavor, quote, rules, terms) without the modal growing tall.</p>
+			<p>The sidebar's two links open the modal on the matching tab: the civ name on Sumer, "CHIEFDOM ›" on Chiefdom. Anarchy's long text fits without scrolling.
+			<b>Click the tabs in the mock.</b></p>
+			<p class="meta">Cost: medium. Reuses SelectList; one more click to see the government from the civ name.</p>
+		</div>
+		<div class="sheet" data-mock="d"></div>
+	</section>
+
+	<!-- E -->
+	<section class="option">
+		<div class="letter">E</div>
+		<div>
+			<h2>Control panel</h2>
+			<p>Civ on paper, government on steel. The civ's half is a short printed sheet (name, rules, one-line flavor). The government is a <b>recessed instrument
+			panel</b>: an unrest dial (the guide's circle = state) reading 2 of 5, action pips, and its extra rules underneath.</p>
+			<p>The panel is the "how stable am I" readout, so Revolt… is the panel's own control. Paper holds information, steel holds controls, as tenet 2 asks.</p>
+			<p class="meta">Cost: medium–large. A drawn dial; most useful if unrest is something players check here.</p>
+		</div>
+		<div class="sheet" data-mock="e"></div>
+	</section>
+</main>
+
+<script>
+const CIV = {
+	name: "Sumer",
+	flavor: "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
+	quote: "Go up on the wall of Uruk and walk around.", by: "Epic of Gilgamesh",
+	home: "Delta Marsh",
+	rules: [
+		["Start", "Create a Farm"],
+		["Start", "Add a Research to your discard"],
+		["Upkeep", "+1 food per farm card"],
+		["Always", "Every territory houses 1 more pop"],
+		["Always", "Farms cost 1 less wealth"],
+	],
+};
+const GOVS = {
+	early: { name: "Chiefdom", actions: 2, unrest: 2, limit: 5, rules: [], deck: [] },
+	late: { name: "Kingship", actions: 3, unrest: 4, limit: 7, rules: [["Upkeep", "+1 wealth"]], deck: ["Chiefdom", "Theocracy"] },
+};
+let gov = GOVS.early;
+
+const ledger = (rules) => `<dl class="ledger">${rules.map((r, i) =>
+	(i && rules[i - 1][0] !== r[0] ? `<div class="sep"></div>` : "") + `<dt>${i && rules[i - 1][0] === r[0] ? "" : r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl>`;
+const deckLine = (g) => g.deck.length ? `<div class="deckline"><span class="caps">Government deck</span>${g.deck.join(" · ")}</div>`
+	: `<div class="deckline"><span class="caps">Government deck</span><span style="color:var(--ink-3)">empty: play a government card to add it</span></div>`;
+const pips = (n, of, cls) => `<span class="pips">${Array.from({ length: of }, (_, i) => `<i class="${i < n ? cls : ""}"></i>`).join("")}</span>`;
+const foot = `<div class="foot"><span class="key">Close (Esc)</span></div>`;
+
+const MOCKS = {
+	a: () => `
+		<div class="bar"><h3>${CIV.name}</h3><span class="caps">Civilization · home ${CIV.home}</span></div>
+		<div class="a-flavor"><div class="tick"></div><div>
+			<p class="flavor" style="font-size:13px">${CIV.flavor}</p>
+			<p class="quote" style="font-size:13px;margin-top:4px">“${CIV.quote}” <cite style="display:inline">— ${CIV.by}</cite></p>
+		</div></div>
+		${ledger(CIV.rules)}
+		<div class="a-gov">
+			<span class="caps">Government</span>
+			<div class="a-gov-row">
+				<span class="name">${gov.name}</span>
+				<div class="plate"><span class="caps">Actions</span><span class="n">${gov.actions}</span></div>
+				<div class="plate"><span class="caps">Unrest</span><span class="n">${gov.unrest}<small> / ${gov.limit}</small></span></div>
+				<span class="key">Revolt…</span>
+			</div>
+			${gov.rules.length ? `<div style="margin-top:8px">${ledger(gov.rules)}</div>` : ""}
+			${deckLine(gov)}
+		</div>
+		${foot}`,
+	b: () => `
+		<div class="bar"><h3>Civilization</h3><span class="caps">Your civilization and government</span></div>
+		<div class="b-cards">
+			<div class="cardx" style="--band:var(--p-ochre)"><div class="band"></div><div class="in">
+				<span class="t">${CIV.name}</span><span class="sub">Civilization · ${CIV.home}</span>
+				${CIV.rules.map(r => `<span class="r">${r[0] === "Always" ? "" : `<b style="font-weight:600">${r[0]}:</b> `}${r[1]}</span>`).join("")}
+				<span class="fl">${CIV.flavor.split(",")[0]}…</span>
+			</div></div>
+			<div class="cardx" style="--band:var(--p-blue)"><div class="band"></div><div class="in">
+				<span class="t">${gov.name}</span><span class="sub">Government</span>
+				<span class="r">${gov.actions} actions each turn</span>
+				<span class="r">Unrest limit ${gov.limit} <span style="color:var(--ink-3)">(now ${gov.unrest})</span></span>
+				${gov.rules.map(r => `<span class="r"><b style="font-weight:600">${r[0]}:</b> ${r[1]}</span>`).join("")}
+				<span class="key act" style="margin-top:auto">Revolt…</span>
+			</div></div>
+		</div>
+		<div class="b-deck"><span class="caps">Government deck</span>${gov.deck.length ? gov.deck.map(d => `<span class="mini">${d}</span>`).join("") : `<span style="color:var(--ink-3);font-size:13px">empty</span>`}</div>
+		${foot}`,
+	c: () => `
+		<div class="bar"><h3 style="font-size:15px;font-family:var(--f-cond);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)">Charter</h3></div>
+		<div class="c-top">
+			<svg class="c-burst" viewBox="-30 -30 60 60" aria-hidden="true">${Array.from({ length: 16 }, (_, i) =>
+				`<line x1="0" y1="${i % 2 ? -14 : -10}" x2="0" y2="${i % 2 ? -26 : -20}" stroke="var(--p-ochre)" stroke-width="2.5" transform="rotate(${i * 22.5})"/>`).join("")}
+				<circle r="6" fill="var(--p-ochre)"/></svg>
+			<div class="name">${CIV.name}</div>
+			<p class="ep">“${CIV.quote}”<cite>— ${CIV.by}</cite></p>
+		</div>
+		<span class="caps">Articles of the civilization</span>
+		<ol class="articles">${CIV.rules.map(r => `<li><span>${r[0] === "Start" ? "At the founding, " + r[1].charAt(0).toLowerCase() + r[1].slice(1) : r[0] === "Upkeep" ? "Each upkeep, " + r[1] : r[1]}.</span></li>`).join("")}</ol>
+		<div class="c-gov">
+			<div><span class="caps">Constitution</span><div class="name">${gov.name}</div></div>
+			<span class="key">Revolt…</span>
+			<div style="grid-column:1/3;font-size:14px">${gov.actions} actions each turn · unrest limit ${gov.limit}${gov.rules.map(r => ` · ${r[0].toLowerCase()}: ${r[1]}`).join("")}</div>
+			${gov.deck.length ? `<div style="grid-column:1/3;font-size:13px;color:var(--ink-2)">Could become: ${gov.deck.join(", ")}</div>` : ""}
+		</div>
+		${foot}`,
+	d: () => `
+		<div class="bar"><h3>Civilization</h3></div>
+		<div class="d-body">
+			<div class="tabs" role="tablist">
+				<button class="tab" role="tab" aria-selected="true" data-p="0"><span class="caps">Civilization</span>${CIV.name}</button>
+				<button class="tab" role="tab" aria-selected="false" data-p="1"><span class="caps">Government</span>${gov.name}</button>
+				<button class="tab" role="tab" aria-selected="false" data-p="2"><span class="caps">Deck</span>${gov.deck.length} government${gov.deck.length === 1 ? "" : "s"}</button>
+			</div>
+			<div>
+				<div class="d-pane" data-pane="0">
+					<h4>${CIV.name}</h4>
+					<p class="flavor" style="font-size:14px">${CIV.flavor}</p>
+					<p class="quote" style="font-size:14px">“${CIV.quote}”<cite>— ${CIV.by}</cite></p>
+					${ledger(CIV.rules)}
+				</div>
+				<div class="d-pane" data-pane="1" hidden>
+					<h4>${gov.name}</h4>
+					<p style="margin:0"><span class="num">${gov.actions}</span> actions each turn<br>Unrest <span class="num">${gov.unrest}</span> of a limit of <span class="num">${gov.limit}</span></p>
+					${gov.rules.length ? ledger(gov.rules) : ""}
+					<span class="key" style="display:inline-block">Revolt…</span>
+				</div>
+				<div class="d-pane" data-pane="2" hidden>
+					<h4>Government deck</h4>
+					${gov.deck.length ? gov.deck.map(d => `<p style="margin:0">${d}</p>`).join("") : `<p style="margin:0;color:var(--ink-2)">Empty. A government card you play replaces ${gov.name}, which joins this deck; Anarchy chooses from it.</p>`}
+				</div>
+			</div>
+		</div>
+		${foot}`,
+	e: () => {
+		const frac = gov.unrest / gov.limit, a0 = -220, a1 = 40, ang = a0 + (a1 - a0) * frac;
+		const pt = (deg, r) => [Math.cos(deg * Math.PI / 180) * r, Math.sin(deg * Math.PI / 180) * r];
+		const ticks = Array.from({ length: gov.limit + 1 }, (_, i) => { const d = a0 + (a1 - a0) * i / gov.limit, [x1, y1] = pt(d, 34), [x2, y2] = pt(d, 40);
+			return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i === gov.limit ? "var(--danger)" : "var(--ink-2)"}" stroke-width="${i === gov.limit ? 3 : 1.5}"/>`; }).join("");
+		const [nx, ny] = pt(ang, 30);
+		return `
+		<div class="bar"><h3>${CIV.name}</h3><span class="caps">Civilization</span></div>
+		<div class="e-civ">
+			<p class="flavor" style="font-size:13px">“${CIV.quote}” — ${CIV.by}</p>
+			${ledger(CIV.rules)}
+		</div>
+		<div class="e-panel">
+			<svg class="dial" viewBox="-46 -46 92 92" aria-label="Unrest ${gov.unrest} of ${gov.limit}">
+				<circle r="44" fill="var(--sheet)" stroke="var(--rule)" stroke-width="2"/>${ticks}
+				<line x1="0" y1="0" x2="${nx}" y2="${ny}" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="square"/><circle r="4" fill="var(--ink)"/>
+				<text y="24" text-anchor="middle" font-family="Barlow" font-size="15" font-weight="500" fill="var(--ink)">${gov.unrest}/${gov.limit}</text>
+			</svg>
+			<div>
+				<span class="caps">Government</span>
+				<div class="name">${gov.name}</div>
+				<div class="e-stats">
+					<div><div class="caps">Actions</div>${pips(gov.actions, gov.actions, "act")}</div>
+					<div><div class="caps">Unrest</div>${pips(gov.unrest, gov.limit, "on")}</div>
+				</div>
+				${gov.rules.map(r => `<div style="font-size:14px;margin-top:6px">${r[0]}: ${r[1]}</div>`).join("")}
+			</div>
+			<div class="extra"><span><span class="caps">Deck</span> ${gov.deck.length ? gov.deck.join(" · ") : "empty"}</span><span class="key">Revolt…</span></div>
+		</div>
+		${foot}`;
+	},
+};
+
+function render() {
+	document.querySelectorAll("[data-mock]").forEach(el => { el.innerHTML = MOCKS[el.dataset.mock](); });
+	document.querySelectorAll('[data-mock="d"] .tab').forEach(t => t.addEventListener("click", () => {
+		const s = t.closest(".sheet");
+		s.querySelectorAll(".tab").forEach(o => o.setAttribute("aria-selected", o === t));
+		s.querySelectorAll(".d-pane").forEach(p => p.hidden = p.dataset.pane !== t.dataset.p);
+	}));
+}
+render();
+document.getElementById("anarchy").addEventListener("click", (e) => {
+	const on = e.target.getAttribute("aria-pressed") !== "true";
+	e.target.setAttribute("aria-pressed", on);
+	gov = on ? GOVS.late : GOVS.early;
+	render();
+});
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>
