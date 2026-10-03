@@ -287,6 +287,25 @@ func test_game_theme_builds_the_controls_and_variations() -> void:
 	check(t.has_stylebox("panel", "DarkPanel"), "DarkPanel stylebox")
 
 
+## 233 AC1, AC2: a tooltip is a printed tab (guide §11.11): ink fill, sheet text, square, with room around the text,
+## in Night and Day alike.
+func test_tooltips_are_ink_tabs_with_room() -> void:
+	for day in [false, true]:
+		Palette.use(day)
+		var t: Theme = load(GAME_THEME_PATH).build()
+		var what := "Day" if day else "Night"
+		var box := t.get_stylebox("panel", "TooltipPanel") as StyleBoxFlat
+		check(box != null, "%s: TooltipPanel is a flat box" % what)
+		if box != null:
+			eq(box.bg_color.to_html(), Palette.TEXT.to_html(), "%s: tooltip fill is ink" % what)
+			eq(box.corner_radius_top_left, Tokens.RADIUS_0, "%s: tooltip is square" % what)
+			eq(Vector2(box.content_margin_left, box.content_margin_top), Vector2(Tokens.SPACE_4, Tokens.SPACE_3),
+					"%s: tooltip padding" % what)
+		eq(t.get_color("font_color", "TooltipLabel").to_html(), Palette.RAISED.to_html(), "%s: tooltip text is sheet" % what)
+		eq(t.get_font_size("font_size", "TooltipLabel"), Tokens.TYPE_BODY_S, "%s: tooltip text size" % what)
+	Palette.use(false)
+
+
 func test_main_uses_the_game_theme() -> void:
 	var main := open_main()
 	check(main.theme != null and main.theme.get_type_variation_base("Heading") == &"Label", "main's theme has the variations")
