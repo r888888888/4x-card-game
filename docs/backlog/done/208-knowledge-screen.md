@@ -2,7 +2,7 @@
 id: 208
 title: Knowledge as a screen of era rows, slid in on its rail
 type: feature
-status: review
+status: done
 branch: feat/208-knowledge-screen
 ---
 

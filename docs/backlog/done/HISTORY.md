@@ -142,5 +142,6 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 132. 205 Revolt from the civilization modal, after a confirmation
 133. 203 End turn as the specimen's key at the sidebar's foot
 134. 201 the resource strip: a turn plate, figures and their forecasts
+135. 208 Knowledge as a screen of era rows, slid in on its rail
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
