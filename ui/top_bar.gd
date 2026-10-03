@@ -76,13 +76,13 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	var forecast := e.upkeep_forecast()
 	var starve: int = forecast.get("starve", 0)
 	var limit := e.unrest_limit()
-	var readings := {  # key -> [value, the words after the figure]
-		GameEngine.FOOD: [e.resources.get(GameEngine.FOOD, 0), ""],
-		GameEngine.WEALTH: [e.resources.get(GameEngine.WEALTH, 0), ""],
-		GameEngine.INSIGHT: [e.resources.get(GameEngine.INSIGHT, 0), ""],
-		GameEngine.UNREST: [e.resources.get(GameEngine.UNREST, 0), " / %d" % limit if limit >= 0 else ""],
-		SCORE: [e.score(), ""],
-		POP: [e.total_pop(), ""],
+	var readings := {  # key -> value; the unrest limit is in its tooltip (228)
+		GameEngine.FOOD: e.resources.get(GameEngine.FOOD, 0),
+		GameEngine.WEALTH: e.resources.get(GameEngine.WEALTH, 0),
+		GameEngine.INSIGHT: e.resources.get(GameEngine.INSIGHT, 0),
+		GameEngine.UNREST: e.resources.get(GameEngine.UNREST, 0),
+		SCORE: e.score(),
+		POP: e.total_pop(),
 	}
 	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST]:
 		(_counters[key] as Counter).set_forecast("%+d" % forecast[key] if forecast.has(key) else "")
@@ -91,7 +91,7 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	var roll_at := 0.0
 	for key: String in readings:
 		var counter: Counter = _counters[key]
-		var change := counter.show_value(readings[key][0], readings[key][1], _fresh, roll_at, not quiet and counter.visible)
+		var change := counter.show_value(readings[key], _fresh, roll_at, not quiet and counter.visible)
 		roll_at += mini(absi(change), Anim.ODOMETER_MAX_STEPS) * Anim.ODOMETER_STEP
 	_fresh = false
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
@@ -99,8 +99,11 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	_counters[GameEngine.WEALTH].tooltip_text = "Beside it: the change at the next upkeep."
 	_counters[GameEngine.INSIGHT].tooltip_text = "Pays for techs. Beside it: the change at the next upkeep."
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
-	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest, out of the most your government tolerates%s. " % (
-		"" if limit >= 0 else " (it sets no limit)")) + "Beside it: the change at the next upkeep."
+	var ahead := e.anarchy_ahead()
+	_counters[GameEngine.UNREST].set_breathing(ahead)
+	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest. Your government tolerates at most %d: a turn that starts there falls into Anarchy. " % limit
+		if limit >= 0 else "Civil unrest. Your government sets no limit. ") + "Beside it: the change at the next upkeep." + (
+		"\nThe next upkeep brings it to the limit." if ahead else "")
 	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)

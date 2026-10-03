@@ -159,7 +159,7 @@ func refresh(e: GameEngine) -> void:
 	button.tooltip_text = reason if reason != "" else "Shortcut: S. Buy copies of cards into your discard."
 	if not is_open():
 		return
-	_wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), "", _fresh)
+	_wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), _fresh)
 	_fresh = false
 	_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _views:

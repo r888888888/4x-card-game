@@ -220,7 +220,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
-never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 / 5 (+1)", 144),
+never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
 with the food stat in the warning color when pop would starve.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147) or the government
@@ -523,7 +523,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   fall, before the draw) loses that share of stored food and wealth, rounded up (`Anarchy.drain`, logged as the Anarchy
   card's loss). `upkeep_forecast()` includes it on the stores after upkeep and feeding when Anarchy will rule next turn
   (a revolution pending, or 2+ counters left).
-  The top bar shows "Unrest: 2 / 5 (+1)" ("Unrest: 2 (+1)" with no limit), in the warning colour at the limit; its
+  The top bar shows "Unrest: 2 (+1)" with the limit in its tooltip (228), in the warning colour at the limit; its glyph
+  breathes while `anarchy_ahead()` (the next upkeep brings unrest to the limit), held still with Reduce motion. Its
   stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
   unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.
   Real data: Settler +1 unrest; Famine ⟳ +1 per counter; Temple ⟳ −1; Shrine and Monument raise the limit by 1 and 2;

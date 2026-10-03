@@ -301,6 +301,13 @@ func at_unrest_limit() -> bool:
 	return limit >= 0 and resources.get(UNREST, 0) >= limit
 
 
+## Whether the next upkeep brings unrest to a limit, so the next turn falls into Anarchy unless it is calmed first
+## (228); false with no limit. The era's unrest isn't counted.
+func anarchy_ahead() -> bool:
+	var limit := unrest_limit()
+	return limit >= 0 and resources.get(UNREST, 0) + upkeep_forecast().get(UNREST, 0) >= limit
+
+
 ## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).
 func hand_size() -> int:
 	return Modifiers.hand_size(self)

@@ -32,6 +32,8 @@ const PULSE_TIME := 0.25
 const ERROR_SHOW_TIME := 1.8
 const TOAST_TIME := 3.0  # a notice's toast shows this long before it fades (116)
 const HIGHLIGHT_PULSE_TIME := 0.7
+const BREATH_TIME := 2.2  # one slow breath of a counter's glyph, out and back: Anarchy a turn away (228)
+const BREATH_ALPHA := 0.45  # the glyph's opacity at the bottom of a breath; it never fades out
 const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fading, in and out (104)
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
