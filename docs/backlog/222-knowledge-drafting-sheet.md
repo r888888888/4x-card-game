@@ -2,7 +2,7 @@
 id: 222
 title: Draw the Knowledge screen as the mock's drafting sheet
 type: feature
-status: red-review
+status: in-progress
 branch: feat/222-knowledge-drafting-sheet
 ---
 

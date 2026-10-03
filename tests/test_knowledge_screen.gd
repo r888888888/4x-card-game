@@ -393,8 +393,8 @@ func test_a_future_era_is_under_vellum_with_its_unlocks() -> void:
 
 func test_the_vellum_names_each_threshold() -> void:
 	await with_two_eras(func(main: Node):
-		eq(main.knowledge.vellum_text(1), "%s · OPENS AT 8 POP OR 15 WEALTH" % Game.engine.era_name(2).to_upper(), "both"),
-		{"pop": 8, "wealth": 15})
+		eq(main.knowledge.vellum_text(1), "%s · OPENS AT 8 POP OR 30 WEALTH" % Game.engine.era_name(2).to_upper(), "both"),
+		{"pop": 8, "wealth": 30})  # the fixture starts with 20 wealth
 
 
 

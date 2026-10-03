@@ -63,6 +63,8 @@ static var RESEARCHED: Color = NIGHT["RESEARCHED"]
 static var AVAILABLE: Color = NIGHT["AVAILABLE"]
 static var FUTURE: Color = NIGHT["FUTURE"]
 static var LOCKED: Color = NIGHT["LOCKED"]  # a tech whose prerequisite isn't researched (140)
+static var RESEARCHED_FILL: Color = NIGHT["RESEARCHED_FILL"]  # a researched tech's tile: the teal plane (222)
+static var TEXT_ON_PLANE: Color = NIGHT["TEXT_ON_PLANE"]  # text on a filled plane, such as a researched tile (222)
 
 # The title screen's art (214): a sun over a hill, its own roles so it can drift from the cards' planes.
 static var SUN: Color = NIGHT["SUN"]  # the sun at its height
@@ -128,6 +130,8 @@ const NIGHT := {
 	"AVAILABLE": Color("ede6d6"),
 	"FUTURE": Color("8e877a"),
 	"LOCKED": Color("857d70"),
+	"RESEARCHED_FILL": Color("5fb0a9"),
+	"TEXT_ON_PLANE": Color("1f1e1c"),
 	"DIMMER": Color(0, 0, 0, 0.65),
 	"SCRIM": Color(0, 0, 0, 0.6),
 	"SHADOW": Color("0d0c0b"),
@@ -189,6 +193,8 @@ const DAY := {
 	"AVAILABLE": Color("22211f"),
 	"FUTURE": Color("7a7468"),
 	"LOCKED": Color("6f685c"),
+	"RESEARCHED_FILL": Color("5e9c97"),
+	"TEXT_ON_PLANE": Color("22211f"),
 	"DIMMER": Color("22211f66"),
 	"SCRIM": Color("22211f66"),
 	"SHADOW": Color("22211f"),
