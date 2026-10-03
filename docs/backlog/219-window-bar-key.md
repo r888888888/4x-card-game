@@ -2,7 +2,7 @@
 id: 219
 title: The window bar key replaces the legend key
 type: feature
-status: red-review
+status: in-progress
 branch: feat/219-window-bar-key
 ---
 

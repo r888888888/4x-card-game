@@ -1,21 +1,26 @@
 class_name LegendKey
 extends Button
-## The legend key (182, guide §7.5, §15.4): a push key that latches. A toggle Button on the theme's button boxes, so
-## latched is the pressed box sunk 2 px into its shadow (178); a lamp strip across its top lights when latched, and its
-## legend prints the state, ON or OFF. It makes its own key sounds (187): the switch's press going down, then the latch
-## catching (ON) or letting go (OFF) as it comes back up.
+## The toggle key (182; the window bar since 219, guide §7.5, §15.4): a square push key that latches. A toggle Button on
+## the theme's button boxes, so latched is the pressed box sunk 2 px into its shadow (178); a lamp window in the middle
+## of its face lights when latched, and its state_label, which its row shows beside it, prints the state, ON or OFF. It
+## makes its own key sounds (187): the switch's press going down, then the latch catching (ON) or letting go (OFF) as
+## it comes back up.
 
-const LAMP_HEIGHT := 6.0
-const MIN_SIZE := Vector2(64, 44)
+const LAMP_SIZE := Vector2(14, 6)
+const MIN_SIZE := Vector2(32, 32)
 
+## ON or OFF, kept in step with the key; UIKit.setting_row puts it right after the key.
+var state_label := Label.new()
 var _was_on := false  # latched when the press went down
 
 
 func _init() -> void:
 	toggle_mode = true
 	custom_minimum_size = MIN_SIZE
-	alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_theme_font_size_override("font_size", Tokens.TYPE_LABEL_CAPS)
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER  # stays square in a taller row
+	state_label.theme_type_variation = "StateWord"
+	state_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	state_label.ready.connect(_fit_state_label)
 	toggled.connect(func(_on: bool): _legend())
 	add_to_group(KeySounds.OWN_SOUNDS)
 	button_down.connect(_on_down)
@@ -42,8 +47,8 @@ func _on_up() -> void:
 		sfx.at_contact(Sfx.TOGGLE_OFF, Anim.KEY_RELEASE_TIME, Anim.MACHINED, true)
 
 
-## The theme's boxes are only reachable once the key is in the tree: copy them with room above the legend for the
-## lamp strip, and again when Day mode rebuilds the theme (183).
+## The theme's boxes are only reachable once the key is in the tree: copy them, and again when Day mode rebuilds the
+## theme (183).
 func _ready() -> void:
 	UIKit.painted(self, _copy_boxes)
 
@@ -54,13 +59,27 @@ func _copy_boxes() -> void:
 		var box := get_theme_stylebox(state).duplicate() as StyleBoxFlat
 		if box == null:
 			continue
-		box.content_margin_top += LAMP_HEIGHT + 2
 		add_theme_stylebox_override(state, box)
 
 
-## set_pressed_no_signal emits nothing, so the legend also follows the state here.
+## A key that never went into a row frees its state label with it.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and is_instance_valid(state_label) and state_label.get_parent() == null:
+		state_label.free()
+
+
+## The state label is as wide as its wider word, so the key doesn't move when the word changes.
+func _fit_state_label() -> void:
+	var font := state_label.get_theme_font("font")
+	var font_size := state_label.get_theme_font_size("font_size")
+	var widest := maxf(font.get_string_size("ON", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x,
+		font.get_string_size("OFF", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	state_label.custom_minimum_size.x = ceilf(widest)
+
+
+## set_pressed_no_signal emits nothing, so the state label also follows the state here.
 func _process(_delta: float) -> void:
-	if text != _legend_text():
+	if state_label.text != state_text():
 		_legend()
 
 
@@ -69,17 +88,18 @@ func lamp_color() -> Color:
 	return Palette.GAIN if button_pressed else Palette.FIELD
 
 
-func _legend_text() -> String:
+## The state the key is in: ON while latched, OFF while up.
+func state_text() -> String:
 	return "ON" if button_pressed else "OFF"
 
 
 func _legend() -> void:
-	text = _legend_text()
+	state_label.text = state_text()
 	queue_redraw()
 
 
 func _draw() -> void:
-	var travel := GameTheme.PRESS if button_pressed else 0  # the strip sinks with the latched box
-	var strip := Rect2(Vector2(6 + travel, 6 + travel), Vector2(size.x - 12, LAMP_HEIGHT))
-	draw_rect(strip, lamp_color())
-	draw_rect(strip, Palette.CONTROL_BORDER, false, 1.0)
+	var travel := GameTheme.PRESS if button_pressed else 0  # the window sinks with the latched box
+	var window := Rect2((size - LAMP_SIZE) / 2 + Vector2(travel, travel), LAMP_SIZE)
+	draw_rect(window, lamp_color())
+	draw_rect(window, Palette.CONTROL_BORDER, false, 1.0)
