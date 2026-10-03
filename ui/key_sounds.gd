@@ -1,7 +1,7 @@
 class_name KeySounds
 extends Node
 ## Key sounds for every button in main (187, guide §10.1, §15.1): a press clicks as the key sinks into its shadow and
-## ticks as it comes back up, at their contact points; hover and focus are silent. A press on a disabled key gives one
+## ticks as it comes back up, at their contact points; focus is silent, and hover ticks quietly on an enabled button (245). A press on a disabled key gives one
 ## dead tap and shows the key's reason at once (the locked tip), the visual twin of the tap. Buttons in OWN_SOUNDS (the
 ## legend key, End turn) make their own press and release sounds; their disabled tap is still made here. No component
 ## has to remember to add sound: every BaseButton entering main's tree is hooked.
@@ -51,6 +51,7 @@ func _hook(b: BaseButton) -> void:
 	if b.gui_input.is_connected(_on_input):
 		return
 	b.gui_input.connect(_on_input.bind(b))
+	b.mouse_entered.connect(func(): if not b.disabled: _sfx.hover())
 	if not b.is_in_group(OWN_SOUNDS):
 		b.button_down.connect(func(): _sfx.at_contact(Sfx.BUTTON_PRESS, Anim.KEY_PRESS_TIME, Anim.SNAP, true))
 		b.button_up.connect(func(): _sfx.at_contact(Sfx.BUTTON_RELEASE, Anim.KEY_RELEASE_TIME, Anim.MACHINED, true))

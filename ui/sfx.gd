@@ -16,6 +16,7 @@ const SELECTION := &"ui.selection"
 const CARD_LIFT := &"ui.card.lift"
 const CARD_PLACE := &"ui.card.place"
 const COUNTER_TICK := &"ui.counter.tick"
+const HOVER := &"ui.hover"
 const FLAP := &"ui.flap"
 const RESOURCE_GAIN := &"ui.resource.gain"
 const RESOURCE_LOSS := &"ui.resource.loss"
@@ -49,7 +50,7 @@ const MILESTONE_DEFEAT := &"ui.milestone.defeat"
 ## Each token's level (§16.4): 1 micro-feedback and 2 structural on the Interface bus, 3 events on the Game bus.
 const TOKENS := {
 	BUTTON_PRESS: 1, BUTTON_RELEASE: 1, TOGGLE_ON: 1, TOGGLE_OFF: 1, SELECTION: 1, CARD_LIFT: 1, CARD_PLACE: 1,
-	COUNTER_TICK: 1, FLAP: 1, RESOURCE_GAIN: 1, RESOURCE_LOSS: 1, REJECT_LOCKED: 1,
+	COUNTER_TICK: 1, HOVER: 1, FLAP: 1, RESOURCE_GAIN: 1, RESOURCE_LOSS: 1, REJECT_LOCKED: 1,
 	PANEL_OPEN: 2, PANEL_CLOSE: 2, SHEET_OPEN: 2, SHEET_CLOSE: 2, NAV_FORWARD: 2, NAV_BACK: 2, CABINET_CLOSE: 2,
 	CABINET_PART: 2, PILE_DEAL: 2, PILE_GATHER: 2, CONFIRM: 2, REJECT: 2, NOTIFICATION_INFO: 2,
 	NOTIFICATION_CAUTION: 2, NOTIFICATION_URGENT: 2, ENDTURN_PRESS: 2, ENDTURN_COMMIT: 2, ENDTURN_TURN: 2,
@@ -62,6 +63,8 @@ const _LEADS := {BUTTON_PRESS: 0.014, ENDTURN_PRESS: 0.014, BUTTON_RELEASE: 0.01
 const VARIANTS := {1: "abcd", 2: "ab", 3: ""}  # each level's file variants (§16.8, §16.10)
 const SOUNDS_DIR := "res://assets/sounds"
 const TICK_GAP := 0.035  # s between counter ticks across the bus; a closer one is dropped
+const HOVER_GAP := 0.08  # s between hover ticks; a closer one is dropped (245)
+const HOVER_DB := -8.0  # a hover tick sits well under a press
 const NOTICE_GAP := 0.4  # s between notifications; a closer one waits
 const INTERFACE_VOICES := 6
 const EVENT_DUCK_DB := -6.0  # the player's input during a Level 3
@@ -77,6 +80,9 @@ var _played: Array[Dictionary] = []
 var _voices: Array[Dictionary] = []  # scheduled or sounding: {token, bus, level, at, end, db, player}
 var _ticks: Array[float] = []  # when recent ticks are due
 var _last_notice := -INF
+var _last_hover := -INF
+var _hover_asked := false  # a hover waits for the end of the frame's input, to see whether a button is down
+var _mouse_held := false  # a mouse button is down (a hover then belongs to a press or drag, 245)
 var _notice_frame := -1  # the frame a notification last played in
 var _input_frame := -1  # the frame the player last pressed or released a key or mouse button in
 
@@ -87,6 +93,10 @@ func _init() -> void:
 
 ## Notes the frame of the player's last key or mouse button (before any control handles it), for player_acted.
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		_mouse_held = event.pressed or event.button_mask != 0
+	elif event is InputEventMouseMotion:
+		_mouse_held = event.button_mask != 0
 	if event is InputEventKey or event is InputEventMouseButton:
 		note_input()
 
@@ -191,6 +201,10 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 		if _ticks.any(func(t): return absf(at - t) < TICK_GAP):
 			return false
 		_ticks.append(at)
+	if token == HOVER:
+		if absf(at - _last_hover) < HOVER_GAP:
+			return false
+		_last_hover = at
 	if NOTIFICATIONS.has(token):
 		at = maxf(at, _last_notice + NOTICE_GAP)
 		_last_notice = at
@@ -212,6 +226,19 @@ func play(token: StringName, delay := 0.0, input := false, gain_db := 0.0) -> bo
 	_played.append(record)
 	_start_due()
 	return true
+
+
+## The mouse entered something clickable: a quiet tick once this frame's input is in, unless a mouse button is down
+## (the entry belongs to a press or a drag then), or a button was pressed or released this frame (245).
+func hover() -> void:
+	_hover_asked = true
+	_hover_check.call_deferred()
+
+
+func _hover_check() -> void:
+	if _hover_asked and not _mouse_held and not player_acted():
+		play(HOVER, 0.0, false, HOVER_DB)
+	_hover_asked = false
 
 
 ## Plays token when a motion of duration on curve makes contact, less its lead (never before now); at once with

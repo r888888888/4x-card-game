@@ -862,7 +862,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
    screen and in Settings (as today).
 4. **Frequent interactions are quiet.** Hover, press, select and resource changes move ≤ 12 px and never loop.
    Nothing on screen animates while the player is idle (the drop-zone pulse only runs during a drag). Their sounds,
-   if any, are Level 1: ≤ 100 ms, the quietest in the game, and hover has none.
+   if any, are Level 1: ≤ 100 ms, the quietest in the game; hover's `ui.hover` is the quietest of them (245).
 5. **Type floor**: nothing below 14 px; body is 20 px at 1080p. UI scale setting multiplies the whole type and
    spacing scale together (offer 90/100/115/130%).
 6. **Focus** is always visible for keyboard play (teal ring, offset 2 px, square), never removed on mouse click.
@@ -933,7 +933,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Era change as a ceremonial sheet | Era change as confetti |
 | Cost top-right as `[sprout 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
 | A latching lamp key with ON or OFF printed beside it | A rounded pill track with a circle thumb |
-| A key switch's snap, then its bottom-out as the key meets the desk | A sound on hover, or on every pointer move |
+| A key switch's snap, then its bottom-out as the key meets the desk | One whisper-quiet `ui.hover` tick as the pointer enters an enabled key or actionable card | A sound on every pointer move, or a loud or musical hover |
 | A drawer's rail run and felt stop, as long as its slide | A digital whoosh, or a sound that outlasts the motion |
 | ≤ 8 ticks for a roll, then one registration | A tick per unit when wealth jumps by 40; a coin shower |
 | A low double tap, one per error snap | A buzzer or a "wrong answer" honk |
@@ -1044,6 +1044,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
 | `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
 | `ui.card.place` | An index card laid on the blotter · a soft, flat pat with a little body | 60–100 ms | low (−3) | neutral-low; ≈ 300 Hz body under paper | none | the card lands (start of its 60 ms landing snap) | high |
+| `ui.hover` | A fingertip brushing a felt-lined key edge · a soft, dry, short tick | 15–25 ms | very low (−8) | neutral; ≈ 2 kHz soft tick over a ≈ 1.5× overtone, no body | none | the pointer entering an enabled key or an actionable card (a press or drag in progress, a disabled key and a moving card are silent) | very high |
 | `ui.counter.tick` | A drum counter's pawl advancing · a compact electromechanical tick | 30–60 ms | very low (−6; each later tick in a run −1) | neutral; ≈ 3 kHz click on a ≈ 1 kHz body; a downward roll −1 st | none | each digit lands on its next value (the last step registers instead) | very high |
 | `ui.flap` | A split-flap word turning over · one short riffle of light flaps | 120–250 ms, one per word | very low (−8) | neutral-high, dry rattle | none | the first flap falls | occasional |
 | `ui.resource.gain` | The counter's drum locking in, with the lamp's faint tone · "tk-clack" and a whisper of A5 | 80–140 ms | low (−3) | slightly elevated; the A5 tone 12 dB under the click | none | the last step lands, with the lamp pulse, in place of its tick | high |
@@ -1099,7 +1100,7 @@ optional 16 px icon left with 8 px gap.
 | State | Fill | Offset | Shadow | Border | Notes | Sound |
 |---|---|---|---|---|---|---|
 | REST | signal | 0, 0 | plinth (2, 2) | 3 ink | | None |
-| HOVER | signal lightened 8% (Paper) / darkened 8% (Night) | 0, 0 | plinth | 3 ink | 90 ms `machined` in, 140 ms `release` out | None |
+| HOVER | signal lightened 8% (Paper) / darkened 8% (Night) | 0, 0 | plinth | 3 ink | 90 ms `machined` in, 140 ms `release` out | `ui.hover` on entry (enabled only) |
 | PRESSED | signal darkened 10% | +2, +2 | none | 3 ink | 70 ms `snap`. Sits into its shadow. | `ui.button.press` −2 st: snap ≈ 24 ms, bottom-out ≈ 38 ms |
 | RELEASED | → HOVER (pointer still over) | 0, 0 | plinth | | 120 ms `machined`; action fires on release | `ui.button.release` −2 st, @ ≈ 65 ms |
 | FOCUS | as REST + teal 2 px ring offset 2 px | | | | ring appears instantly | None |
@@ -1195,7 +1196,7 @@ rules `type.body-s`; VP with starburst bottom-right.
 | Transition | Duration | Offset | Shadow | Border | Other | Sound |
 |---|---|---|---|---|---|---|
 | REST | — | 0, 0 | none | 2 ink/rule | | None |
-| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale | None |
+| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
 | → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting | `ui.card.lift` @ ≈ 33 ms, once the press becomes a drag; a click that selects plays `ui.selection` instead |
 | → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | sheet (8, 8) | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
 | → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms | `ui.selection` @ the tab lands, ≈ 65 ms. Deselect: None |
@@ -1324,7 +1325,7 @@ would make of those mechanisms today, cleaner and quieter than any real machine,
 | Repetition-tolerant | passes the repetition test (§16.8) | |
 
 **Avoid**: futuristic bleeps, arcade chirps, cartoon effects, loud cinematic impacts, glitches, digital distortion,
-long reverb, sound on hover, typewriter bells and cash registers, casino-style rewards, and overly literal retro
+long reverb, a sound on every pointer move or on a hover that gets louder than a whisper, typewriter bells and cash registers, casino-style rewards, and overly literal retro
 effects. If a sound would make a player say "how retro", it is wrong; if they don't notice it until it is gone, it is
 right.
 
@@ -1475,7 +1476,7 @@ Sound occurs at the perceived physical event.
 ### 16.8 Silence, density and repetition
 Silence is an intentional part of the system. Every sound earns its place; the default is none.
 
-**Silent by design**: hover on every component, keyboard focus moving, tooltips, links, the scrim, lamps going out,
+**Silent by design**: hover on anything that isn't an enabled key or an actionable card (245: those tick, see `ui.hover`), keyboard focus moving, tooltips, links, the scrim, lamps going out,
 lamps lighting for status (AT LIMIT, IDLE, target lamps), the vellum overlay, gauge needles, the tab rail, delta
 tags, a card's drag travel, deselecting, progress cells filling, the chaser, flags leaving and restacking, the READY
 lamp after a turn, and idle time.
@@ -1484,6 +1485,7 @@ lamp after a turn, and idle time.
 - **One gesture, one voice per mechanism.** A click that selects plays `ui.selection`, not `ui.card.lift` and
   `ui.selection`; the vellum that a drag brings is silent because the pick-up already spoke.
 - **Rate caps.** `ui.counter.tick`: at most one per 35 ms across the whole bus (extra ticks are dropped, not queued).
+  `ui.hover`: at most one per 80 ms; it waits for the frame's input and gives way to a press, a release or a Level 3 event.
   A button's sounds: at most one per 40 ms. Notifications: ≥ 400 ms apart. Voices: 6 on Interface, 3 on Game; the
   oldest Level 1 voice is stolen first, never a Level 2 or 3.
 - **Runs.** ≤ 8 ticks per roll, each 1 dB quieter, mirroring the roll's ≤ 8 visible steps; large changes never become

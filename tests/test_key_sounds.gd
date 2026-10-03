@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Key sounds (187) in the real main.tscn: every button clicks at its contact on the way down and up (mouse or keys),
-## hover and focus are silent, a press dragged off sounds and does nothing, a disabled key gives a dead tap and shows
+## focus is silent (hover ticks, 245), a press dragged off sounds and does nothing, a disabled key gives a dead tap and shows
 ## its reason at once, End turn has its own key and relay, the legend key latches with its own sounds, turning
 ## interface sounds off is still heard, and Reduce motion plays them at the press. main.sfx's clock is frozen at 0.
 
@@ -88,10 +88,9 @@ func test_space_and_enter_on_a_button_click_too() -> void:
 		close_game(main))
 
 
-func test_hover_focus_and_tab_are_silent() -> void:
+func test_focus_and_tab_are_silent() -> void:
 	var main: Node = await open_game()
 	var log_button := shown_button(main, "Log")
-	move_mouse(main, centre(log_button))
 	log_button.grab_focus()
 	press_key(main, KEY_TAB)
 	await wait_frames()
