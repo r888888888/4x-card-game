@@ -2,7 +2,7 @@
 id: 226
 title: Show the event's flavor text in the drawn-event modal
 type: feature
-status: review
+status: done
 branch: feat/226-event-modal-flavor
 ---
 
