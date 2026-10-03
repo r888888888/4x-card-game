@@ -42,3 +42,103 @@ func test_supply_pile_details_come_from_its_definition() -> void:
 		check(main.details.shown().get("name", "") != "", "a pile's details have its name")
 		eq(main.details.shown().get("state"), [] as Array[String], "a pile has no live state")
 	close_main(main)
+
+
+# --- Backlog 225: Play from a hand card's details. Hook: main.details.play_button() (hidden unless a hand card). ---
+
+## Puts card id in the hand with food food and refreshes the board; returns its uid.
+func hand_card(id: String, food := 5) -> int:
+	var uid := put_in_hand(Game.engine, id)
+	Game.engine.resources.food = food
+	Game.engine.changed.emit()  # put_in_hand bypasses the actions that refresh the board
+	return uid
+
+
+func test_play_button_plays_a_playable_hand_card_and_closes_the_details() -> void:
+	await with_main(gov_engine("band"), func(main: Node):  # Band: 2 actions a turn, so a play visibly uses one
+		var e := Game.engine
+		var study := hand_card("study")
+		var actions: int = e.actions_left()
+		check(actions > 0, "Band limits the actions")
+		main.details.open(main.views[study])
+		var play: Button = main.details.play_button()
+		check(play.visible, "Play shows for a hand card")
+		check(not play.disabled, "Play is enabled for a playable card")
+		check(play.get_parent() == main.details.footer, "Play sits in the footer")
+		play.pressed.emit()
+		await wait_frames()
+		eq(main.details.shown(), {}, "the details closed")
+		check(e.zone("hand").find(study) == null, "the card left the hand")
+		eq(e.actions_left(), actions - 1, "it took an action"))
+
+
+func test_play_button_is_hidden_for_board_and_tech_details() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		main.details.open(main.views[home_uid(e)])
+		check(not main.details.play_button().visible, "no Play for a board card")
+		main.details.close()
+		main.details.open_def("study")
+		check(not main.details.play_button().visible, "no Play for a definition"))
+
+
+func test_play_button_is_hidden_for_supply_pile_details() -> void:
+	var main := open_main()
+	main.start_game(1)
+	main.open_supply()
+	var piles: Array = main.supply.views()
+	check(not piles.is_empty(), "the supply is open with piles")
+	if not piles.is_empty():
+		main.details.open(piles[0])
+		check(not main.details.play_button().visible, "no Play for a supply pile")
+	close_main(main)
+
+
+func test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var farm := hand_card("farm", 0)
+		main.details.open(main.views[farm])
+		var play: Button = main.details.play_button()
+		check(play.visible, "Play shows for a hand card")
+		check(play.disabled, "Play is disabled when the card can't be played")
+		check(e.playable_error(farm) != "", "the farm is unaffordable")
+		eq(play.tooltip_text, e.playable_error(farm), "the tooltip says why"))
+
+
+func test_play_button_begins_targeting_for_a_card_with_several_targets() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		settle(e, ["grassland"])
+		var temple := hand_card("temple")
+		check(e.needs_target_choice(temple), "Temple could go on either territory")
+		main.details.open(main.views[temple])
+		main.details.play_button().pressed.emit()
+		await wait_frames()
+		eq(main.details.shown(), {}, "the details closed")
+		check(main.drag.targeting == main.views[temple], "targeting the Temple")
+		check(e.zone("hand").find(temple) != null, "nothing played yet"))
+
+
+func test_play_button_goes_when_the_details_reopen_for_a_board_card() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var study := hand_card("study")
+		main.details.open(main.views[study])
+		check(main.details.play_button().visible, "Play shows for the hand card")
+		main.details.open(main.views[home_uid(e)])
+		check(not main.details.play_button().visible, "Play is gone for the board card"))
+
+
+func test_play_button_is_disabled_while_a_decision_blocks_the_hand() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var study := hand_card("study")
+		e.play_card(put_in_hand(e, "explorer"))  # reveals territories: an explore choice is owed
+		await wait_frames()
+		eq(e.pending().get("kind", ""), GameEngine.PENDING_EXPLORE, "an explore choice is owed")
+		check(e.hand_input_error() != "", "the hand is blocked")
+		main.details.open(main.views[study])
+		var play: Button = main.details.play_button()
+		check(play.disabled, "Play is disabled")
+		eq(play.tooltip_text, e.playable_error(study), "the tooltip gives the reason"))
