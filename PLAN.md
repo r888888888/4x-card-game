@@ -86,7 +86,7 @@ res://
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I),
                          # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
-                         # revolt_modal.gd (205: the revolution's confirmation)
+                         # revolt_modal.gd (205: the revolution's confirmation), rename_modal.gd (248: naming a territory)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
                          # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
@@ -447,6 +447,12 @@ A game is played as one civilization: a permanent card with a starting gift and 
   `population.start` must fit every listed civilization's home. Card text: "Starts on: <territory>". Real data:
   Egypt Desert Floodplain, Sumer Delta Marsh, Babylon Alluvial Plain, Phoenicia Cedar Coast, Greece Coastal Hills,
   Persia Highland Valley; every home takes most of the starting deck's buildings.
+- City names (248): a civilization may set `city_names` (distinct, non-empty strings). The home and each territory
+  settled after it take the next name (`CardInstance.city_name`; `GameState.names_given` counts them), then the list
+  again as "Thebes II", "Thebes III", …; without a list a territory keeps its card's name. `territory_name(uid)` is the
+  name it goes by; `rename_territory(uid, name)` / `rename_territory_error` rename a settled territory (trimmed, 1 to
+  `MAX_TERRITORY_NAME` 24 characters, no action, never shifts the next default). The territory view and its Realm card
+  show the name over the land's; the view's Rename… opens `RenameModal`. Real data: 12 historical names each.
 - Flavor (107): a civilization may set `flavor` (a paragraph) and `quote` ({"text", "by"}); both optional, non-empty
   strings. `def_details` / `card_details` return `flavor` ("" if none) and `quote` ({} if none) for every card, and
   the details modal shows them first (flavor in italics, then the quote and who said it), before the rules. On the
