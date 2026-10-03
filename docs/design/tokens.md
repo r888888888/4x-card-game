@@ -15,7 +15,7 @@ This file says what is in the code **now**. When an item changes a token, it upd
 | Colours | `ui/palette.gd` (`Palette`) | Named for their use. Read when drawing; never copy into a `const` (suite checks). No colour literal elsewhere in `ui/` (suite checks). |
 | Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets (suite checks, 192). |
 | Looks (fonts, sizes, boxes) | `ui/game_theme.gd` (`GameTheme`) | A look used twice is a theme type variation, set with `theme_type_variation`. |
-| Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
+| Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `select_list` (217: a `SelectList`, the guide's §7.16), `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
 | Modals, screens | `Modal` on `main.modals`, `Navigator` + `ScreenHeader` | See CLAUDE.md's UI design section. |
 
@@ -34,15 +34,15 @@ A colour must follow a Day mode switch. How depends on where it is set:
 |---|---|
 | `board` | `BACKGROUND`, `FRONTIER_BG` |
 | `sheet` | `RAISED`, `TILE` |
-| `well` | `FIELD`, `PANEL`, `CONTROL_DISABLED`, `STRIP_BG` |
+| `well` | `FIELD` (also a selectable list's `ListWell`), `PANEL`, `CONTROL_DISABLED`, `STRIP_BG` |
 | `steel` | `CONTROL` |
 | `ink` | `TEXT`, `EDGE`, `STRIP_TEXT`, `AVAILABLE` |
 | `ink-2` | `TEXT_DIM`, `PILES` |
 | `ink-3` | `TEXT_DISABLED`, `FUTURE` |
 | `rule` | `CONTROL_BORDER`, `LOCKED` |
-| `rule-fine` | `CONTROL_DISABLED_BORDER` (Day only; Night uses its own `4a463f`) |
+| `rule-fine` | `HAIRLINE` (a fine rule within a sheet, 217); `CONTROL_DISABLED_BORDER` (Day only; Night uses its own `4a463f`) |
 | `shadow` | `SHADOW` |
-| `signal` / `on-signal` | `ACCENT` (End turn only) / `TEXT_ON_ACCENT` |
+| `signal` / `on-signal` | `ACCENT` (End turn, and a selectable list's index tab) / `TEXT_ON_ACCENT` |
 | `positive` | `GAIN` |
 | `danger` | `COST`, `WARN`, `UNREST` |
 | `info` | `INSIGHT` |
@@ -75,9 +75,10 @@ variation; set it with `theme_type_variation`.
 | `radius.*` | 0 (panels, cards, tooltips), 2 (buttons, fields), 4 (badges), full (pips, lamps) | `Tokens.RADIUS_0` (panels, cards, zones, hints, pop-ups, slot outlines), `RADIUS_1` (buttons, fields), `RADIUS_2` (the card badge), `RADIUS_FULL` (pips). |
 | `border.*` | 1 hair, 2 control, 3 emphasis, 4 bar | Literals. |
 | `shadow.plinth` / `travel.press` | 2,2 / 2 | `GameTheme.PLINTH` / `GameTheme.PRESS` |
+| selected (§4.4, §10.5) | 4,4 shadow, 8 px pull | `GameTheme.SELECTED_SHADOW` / `GameTheme.PULL`: `ListRow`'s pressed look |
 
 ## Motion (§9.4)
 
 `Anim` names its constants by what moves, not by the guide's duration tokens. Nearest equivalents: `SCREEN_TIME`
-0.22 s (guide `screen` 320 ms), `ODOMETER_STEP` 0.07 (`tick` 60), `TAG_HOLD` 0.6 (`feedback` 600),
-`CALM_FADE_TIME` 0.15 (`quick` 120), `DEAL_STAGGER` / `TAG_STAGGER` 0.06 (`stagger.tick`).
+0.22 s (guide `screen` 320 ms), `ODOMETER_STEP` 0.07 (`tick` 60),
+`CALM_FADE_TIME` 0.15 (`quick` 120), `DEAL_STAGGER` 0.06 (`stagger.tick`).

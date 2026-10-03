@@ -4,7 +4,8 @@ extends RefCounted
 ## (104), the civilizations down the left as list rows (064), the selected one's story and rules on the right, and the
 ## seed field and Start at the pane's foot. It opens from the title screen's New game and the menu's New game, with
 ## the board hidden behind it. A click or the arrows select a row; nothing opens over it. The board decides what Start
-## does through start_requested; selected is the civilization to use.
+## does through start_requested; selected is the civilization to use. The list is a SelectList (217), and the sheet
+## holds still: the detail is as tall as the tallest civilization's, with the seed and Start under a footer rule.
 
 ## Start, or Enter in the seed field (seed_value: the field's seed, or -1 if it is empty or not a whole number).
 signal start_requested(seed_value: int)
@@ -18,11 +19,10 @@ var seed_edit: LineEdit
 var start_button: Button
 var back_button: Button  # the header's
 var selected := ""  # the id of the chosen civilization, "" if the game offers none
-var civilization_list: VBoxContainer  # one list row per civilization, in config order
+var civilization_list: SelectList  # one row per civilization, in config order (217)
 var detail_pane: VBoxContainer  # the selected civilization, then the seed field and Start
 var detail_body: RichTextLabel
 
-var _rows := {}  # civilization id -> its row Button
 var _detail_title: Label
 var _engine: GameEngine
 
@@ -38,9 +38,9 @@ func _init(parent: Control, nav: Navigator) -> void:
 	var split := HBoxContainer.new()
 	split.add_theme_constant_override("separation", Tokens.SPACE_6)
 	box.add_child(split)
-	civilization_list = VBoxContainer.new()
-	civilization_list.add_theme_constant_override("separation", Tokens.SPACE_1)
+	civilization_list = UIKit.select_list()
 	civilization_list.custom_minimum_size.x = LIST_WIDTH
+	civilization_list.chosen.connect(select)
 	split.add_child(civilization_list)
 	detail_pane = VBoxContainer.new()
 	detail_pane.add_theme_constant_override("separation", Tokens.SPACE_4)
@@ -53,6 +53,11 @@ func _init(parent: Control, nav: Navigator) -> void:
 	detail_body.custom_minimum_size.x = PANE_WIDTH
 	detail_body.theme_type_variation = &"RichBody"
 	detail_pane.add_child(detail_body)
+	var rule := ColorRect.new()
+	rule.name = "FooterRule"
+	rule.custom_minimum_size.y = 1  # a hairline (guide border.hair)
+	UIKit.painted(rule, func(): rule.color = Palette.HAIRLINE)
+	detail_pane.add_child(rule)
 	var seed_row := HBoxContainer.new()
 	seed_row.add_theme_constant_override("separation", Tokens.SPACE_3)
 	detail_pane.add_child(seed_row)
@@ -84,19 +89,18 @@ func show_civilizations(e: GameEngine, civilizations: Array[String], preselect: 
 
 ## The control that takes the focus when the screen opens: the selected row, or Start with no civilizations.
 func first_focus() -> Control:
-	return _rows.get(selected, start_button)
+	var row := civilization_list.row(selected)
+	return row if row != null else start_button
 
 
 ## The civilizations listed, in order.
 func civilization_ids() -> Array[String]:
-	var out: Array[String] = []
-	out.assign(_rows.keys())
-	return out
+	return civilization_list.ids()
 
 
 ## Test hooks (212): civ_id's row (or null), and the detail pane's title and text without markup.
 func civilization_row(civ_id: String) -> Button:
-	return _rows.get(civ_id)
+	return civilization_list.row(civ_id)
 
 
 func detail_title() -> String:
@@ -117,62 +121,48 @@ func _fill_civilizations(e: GameEngine, civilizations: Array[String]) -> void:
 	civilization_list.visible = not civilizations.is_empty()
 	if civilization_ids() == civilizations:
 		return
-	for row in civilization_list.get_children():
-		civilization_list.remove_child(row)
-		row.queue_free()
-	_rows.clear()
+	civilization_list.clear()
 	for id in civilizations:
-		var row := _row(e.card_db[id])
-		civilization_list.add_child(row)
-		_rows[id] = row
+		civilization_list.add_row(id, e.card_db[id].name).tooltip_text = "Play as %s." % e.card_db[id].name
 	var loop: Array[Control] = []
-	loop.assign(_rows.values())
+	for id in civilizations:
+		loop.append(civilization_list.row(id))
 	loop.append_array([seed_edit, start_button, back_button])
 	UIKit.focus_loop(loop)
+	_fit_tallest(e, civilizations)
 
 
-## A list row for civilization def: its name after a band of its card type's colour; Up and Down select the row above
-## or below.
-func _row(def: CardDef) -> Button:
-	var row := UIKit.button(def.name, func(): select(def.id))
-	row.toggle_mode = true
-	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	row.size_flags_horizontal = Control.SIZE_FILL  # a list row: the column's width (100)
-	row.tooltip_text = "Play as %s." % def.name
-	var edge := ColorRect.new()
-	edge.name = "Edge"
-	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	edge.anchor_bottom = 1.0
-	edge.offset_right = Tokens.SPACE_1
-	UIKit.painted(edge, func(): edge.color = CardView.type_color(def.type))
-	row.add_child(edge)
-	row.gui_input.connect(func(event: InputEvent):
-		var step := 1 if event.is_action_pressed("ui_down") else -1 if event.is_action_pressed("ui_up") else 0
-		var ids := civilization_ids()
-		var at := ids.find(def.id) + step
-		if step != 0 and at >= 0 and at < ids.size():
-			row.accept_event()
-			select(ids[at])
-			_rows[ids[at]].grab_focus())
-	return row
+## Holds the detail at the height of the tallest civilization's text (217), so the sheet never resizes or moves.
+func _fit_tallest(e: GameEngine, civilizations: Array[String]) -> void:
+	detail_body.custom_minimum_size.y = 0
+	detail_body.size.x = PANE_WIDTH
+	var tallest := 0
+	for id in civilizations:
+		detail_body.text = _detail_bbcode(e, id)
+		tallest = maxi(tallest, detail_body.get_content_height())
+	detail_body.custom_minimum_size.y = tallest
 
 
 func _show_selected(civ_id: String) -> void:
 	selected = civ_id
-	for id in _rows:
-		(_rows[id] as Button).set_pressed_no_signal(id == civ_id)
+	civilization_list.select(civ_id)
 	if civ_id == "" or _engine == null:
 		_detail_title.text = ""
 		detail_body.text = "This game offers no civilizations: you play without one."
 		return
-	var def: CardDef = _engine.card_db[civ_id]
-	_detail_title.text = def.name
-	var text := CardDetailsModal.body_bbcode(_engine.def_details(civ_id))
+	_detail_title.text = _engine.card_db[civ_id].name
+	detail_body.text = _detail_bbcode(_engine, civ_id)
+
+
+## civ_id's story, rules and home, as the detail pane shows them.
+static func _detail_bbcode(e: GameEngine, civ_id: String) -> String:
+	var def: CardDef = e.card_db[civ_id]
+	var text := CardDetailsModal.body_bbcode(e.def_details(civ_id))
 	if def.home != "":
-		var home: CardDef = _engine.card_db[def.home]
+		var home: CardDef = e.card_db[def.home]
 		var keywords := home.keywords.map(func(k): return k.capitalize())
 		text += "\n\n[b]Home[/b]\n%s: %s" % [home.name, " · ".join(PackedStringArray(keywords))]
-	detail_body.text = text
+	return text
 
 
 func _start() -> void:

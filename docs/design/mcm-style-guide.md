@@ -15,6 +15,8 @@ Companion pages in this folder (open them in a browser):
 - [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
   [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
   alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
+- [list-options.html](list-options.html): five designs for a selectable list (index card, folder tab, ledger line,
+  selector lamps, pointer); the index card was chosen (§7.16).
 - [click-options.html](click-options.html): nine versions of the key click (`ui.button.press` / `.release`): the
   current one down to the darkest, then three two-stage clicky switches; matched for loudness, with bursts at a busy
   turn's rate.
@@ -424,6 +426,13 @@ the specification, not an omission.
     `ui.sheet.open` / `ui.sheet.close`; the scrim is silent.
 15. **End-turn control** — §11.9 and §15.12. Sound: the desk's heaviest key and a relay behind the panel,
     `ui.endturn.press`, `ui.endturn.commit`, `ui.endturn.turn`.
+16. **Selectable list** — an **index card** list (217; the alternatives are in
+    [list-options.html](list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`. The one
+    selected row is pulled out like an index card: a `sheet` strip moved 8 px toward the trailing side onto a hard 4 px
+    `shadow`, its label `ink`, with the signal **index tab** (4 px wide, the row's height inset) on its leading edge:
+    the same selection mark a card gets (§4.4, §10.5). Hover only inks the label. Focus keeps its teal ring, so focus
+    and selection read apart. A click or Up / Down selects. A list beside a detail holds the detail at its tallest
+    item's height, so changing the selection never moves the sheet. Sound: `ui.selection` as the tab lands.
 
 ---
 

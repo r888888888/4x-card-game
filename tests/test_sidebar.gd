@@ -97,17 +97,25 @@ func test_the_top_bar_has_no_civilization_button() -> void:
 	var main: Node = await open_at(Vector2i(1920, 1080))
 	var methods: Array = (load("res://ui/top_bar.gd") as Script).get_script_method_list().map(func(m): return m.name)
 	check(not methods.has("identity_button"), "TopBar.identity_button() is gone")
-	var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
+	var strip: Node = top_strip(main)
 	for b in UIKit.buttons_in(strip):
 		check(not b.text.contains(civ_name()) and not b.text.contains(gov_name()), "no '%s' in the top strip" % b.text)
 	close_at(main)
+
+
+## main's top strip, the TopBar holding the counters (218: they sit in a row of their own inside it).
+func top_strip(main: Node) -> Node:
+	var node: Node = main.counter(GameEngine.FOOD)
+	while node != null and not node is TopBar:
+		node = node.get_parent()
+	return node
 
 
 # --- AC5: focus order ---
 
 func test_tab_from_the_strips_last_button_reaches_the_sidebar() -> void:
 	var main: Node = await open_at(Vector2i(1920, 1080))
-	var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
+	var strip: Node = top_strip(main)
 	var buttons := UIKit.buttons_in(strip).filter(func(b): return b.is_visible_in_tree() and b.focus_mode != Control.FOCUS_NONE)
 	(buttons.back() as Button).grab_focus()
 	press_key(main, KEY_TAB)

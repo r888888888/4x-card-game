@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selectable List Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-small: 200ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --focus: #1F6A68;
+	--p-sage: #9DB592; --l-sage: #4E6B47;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --focus: #6CC3BC;
+	--p-sage: #93B585; --l-sage: #93B585;
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 78ch; margin: 0 0 var(--space-5); }
+.intro b { color: var(--ink); }
+.option { display: grid; grid-template-columns: 56px minmax(0, 1fr) 560px; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 52ch; }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.option .pick { color: var(--signal); }
+@media (max-width: 980px) { .option { grid-template-columns: 1fr; } .letter { font-size: 28px; } }
+
+/* The demo: a fixed-size sheet, the list on the left, the detail on the right, the footer pinned under a rule. */
+.demo { display: grid; grid-template-columns: 170px 1fr; grid-template-rows: 1fr auto; height: 300px; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); max-width: 100%; }
+.list { grid-row: 1 / 3; display: flex; flex-direction: column; padding: var(--space-4) 0 var(--space-4) var(--space-4); outline: none; }
+.detail { padding: var(--space-4) var(--space-4) 0 var(--space-5); overflow: hidden; }
+.detail h3 { margin: 0 0 var(--space-2); font: 500 24px/28px var(--f-display); }
+.detail p { margin: 0 0 var(--space-3); font-size: 15px; color: var(--ink); max-width: none; }
+.detail .caps { display: block; margin-bottom: 2px; }
+.foot { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); margin: 0 var(--space-4) 0 var(--space-5); padding: var(--space-3) 0 var(--space-4); border-top: 1px solid var(--rule-fine); }
+.foot .field { flex: 1; height: 32px; background: var(--well); border: 2px solid var(--rule); border-radius: var(--radius-1); color: var(--ink-3); font-size: 15px; padding: 4px 8px; }
+.key { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 7px 14px; box-shadow: 2px 2px 0 var(--shadow); }
+.row { position: relative; display: flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-3); font: 500 17px/1 var(--f-cond); color: var(--ink-2); background: none; border: 0; text-align: left; cursor: pointer; width: 100%; }
+.row:hover { color: var(--ink); }
+.row:focus-visible { outline-offset: -2px; }
+
+/* A · Index card: rows printed on a well; the selected one is pulled out as a sheet strip on a hard plinth, with the
+   signal index tab on its leading edge (guide §4.4 "Selected", §10.5). */
+.a .list { background: var(--well); padding-right: var(--space-3); gap: 2px; }
+.a .row { transition: transform var(--d-small) var(--ease-machined), box-shadow var(--d-small) var(--ease-machined), background-color var(--d-quick) linear; }
+.a .row::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 4px; background: var(--signal); transform: scaleY(0); transition: transform var(--d-small) var(--ease-machined); }
+.a .row.on { background: var(--sheet); color: var(--ink); font-weight: 600; transform: translateX(8px); box-shadow: 3px 3px 0 var(--shadow); }
+.a .row.on::before { transform: scaleY(1); }
+
+/* B · Folder tab: the list is a column of tabs (§15.3 turned on its side); the selected tab is the sheet and opens
+   into the detail, with no rule between them, and a 3 px ink rail on its outer edge. */
+.b .list { background: var(--well); padding: var(--space-4) 0 var(--space-4) var(--space-4); border-right: 1px solid var(--ink); gap: 0; position: relative; }
+.b .row { border-bottom: 1px solid var(--rule-fine); }
+.b .row.on { background: var(--sheet); color: var(--ink); font-weight: 600; margin-right: -1px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.b .rail { position: absolute; left: var(--space-4); width: 3px; height: 36px; background: var(--ink); transition: top var(--d-small) var(--ease-machined); }
+
+/* C · Ledger line: plain rows separated by hairlines, as in a typeset register; the selected line prints inverse,
+   ink fill and sheet text. */
+.c .row { border-bottom: 1px solid var(--rule-fine); margin-right: var(--space-3); transition: background-color var(--d-quick) linear, color var(--d-quick) linear; }
+.c .row.on { background: var(--ink); color: var(--sheet); font-weight: 600; }
+
+/* D · Selector lamps: each row carries an indicator lamp (§7.11); the selected row's lamp is lit, like the
+   positions of a rotary selector on a control panel. */
+.d .row { padding-left: var(--space-2); }
+.d .row i { width: 12px; height: 12px; border-radius: 50%; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); flex: none; transition: background-color var(--d-quick) linear, box-shadow var(--d-quick) linear; }
+.d .row.on { color: var(--ink); font-weight: 600; }
+.d .row.on i { background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55) 0 1.5px, transparent 2px), var(--p-sage); box-shadow: inset 0 0 0 2px var(--l-sage); }
+
+/* E · Pointer: plain rows on a gutter with a 1 px rule; a solid triangle (direction, §2) slides along the gutter to
+   the selected row. */
+.e .list { padding-left: var(--space-5); position: relative; }
+.e .list::before { content: ""; position: absolute; left: 18px; top: var(--space-4); bottom: var(--space-4); width: 1px; background: var(--rule-fine); }
+.e .row.on { color: var(--ink); font-weight: 600; }
+.e .ptr { position: absolute; left: 12px; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 10px solid var(--signal); transition: top var(--d-small) var(--ease-machined); }
+
+.fix { margin: var(--space-6) 0 0; padding: var(--space-5) 0 0; border-top: 4px solid var(--ink); }
+.fix h2 { margin: 0 0 var(--space-2); font: 500 24px/30px var(--f-display); }
+.fix li { color: var(--ink-2); margin-bottom: var(--space-2); max-width: 90ch; }
+.fix li b { color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+	<h1>Selectable list</h1>
+	<span class="caps">Item 217</span>
+	<button class="plain" id="theme">Paper / Night</button>
+</header>
+<main>
+<p class="intro">Five ways to show <b>which item in a list is chosen</b>, for the style guide's component list and first
+for the new game screen's civilizations. Click a row, or focus a list and use the arrow keys. Each demo is the same
+fixed-size sheet, so the selection never moves the sheet: compare a short story (Greece) with a long one (Egypt).
+Focus (the teal ring) and selection stay distinct in every option, as §4.4 requires.</p>
+
+<section class="option a">
+	<div class="letter">A</div>
+	<div>
+		<h2>Index card <span class="caps pick">chosen</span></h2>
+		<p>The rows are printed on a recessed well. The chosen one is pulled out like an index card: a sheet strip
+		that slides 8 px out of the column onto a hard plinth, with the signal-orange index tab wiping in on its
+		leading edge.</p>
+		<p>It is the guide's existing selection treatment (§4.4, §10.5) for cards, applied to rows, so a selected card and
+		a selected row read the same.</p>
+		<div class="meta">Motion: slide + tab wipe, 200 ms machined. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="a"></div>
+</section>
+
+<section class="option b">
+	<div class="letter">B</div>
+	<div>
+		<h2>Folder tab</h2>
+		<p>The list is a column of folder tabs (§15.3 turned on its side). The chosen tab is the sheet itself: it
+		opens into the detail with no rule between them, and a 3 px ink rail slides along its outer edge.</p>
+		<p>This option links the row most clearly to the text beside it, but it only works when the list sits beside
+		its detail.</p>
+		<div class="meta">Motion: rail slides, 200 ms machined. Sound: none (sub-navigation).</div>
+	</div>
+	<div class="demo" data-kind="b"></div>
+</section>
+
+<section class="option c">
+	<div class="letter">C</div>
+	<div>
+		<h2>Ledger line</h2>
+		<p>Plain rows ruled by hairlines, as in a typeset register. The chosen line prints in inverse: an ink fill with
+		sheet text.</p>
+		<p>It's the easiest to read at a glance and works in any list, but it's heavy: the ink block competes with the
+		title and with Start.</p>
+		<div class="meta">Motion: fill, 120 ms. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="c"></div>
+</section>
+
+<section class="option d">
+	<div class="letter">D</div>
+	<div>
+		<h2>Selector lamps</h2>
+		<p>Each row has an indicator lamp. The chosen row's lamp is lit, like the positions of a rotary selector
+		switch. It uses the right geometry (a circle for state) and it's quiet.</p>
+		<p>Quiet can be too weak, though: a 12 px lamp is a small cue on a large screen, and the lamps also look like
+		radio buttons.</p>
+		<div class="meta">Motion: lamp-on 40 ms. Sound: none (the lamp is the latch).</div>
+	</div>
+	<div class="demo" data-kind="d"></div>
+</section>
+
+<section class="option e">
+	<div class="letter">E</div>
+	<div>
+		<h2>Pointer</h2>
+		<p>Plain rows beside a gutter with a hairline. A solid signal triangle (the guide's sign for direction) slides
+		along the gutter to the chosen row, like the needle of a slide-rule dial.</p>
+		<p>It's light and has character, but the selection relies on a small mark plus the row's weight.</p>
+		<div class="meta">Motion: pointer slides, 200 ms machined. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="e"></div>
+</section>
+
+<section class="fix">
+	<h2>Whichever look: a sheet that doesn't move</h2>
+	<ul>
+		<li><b>Fixed size.</b> The sheet is as tall as the tallest civilization's detail, measured when the list is
+		filled, so changing the selection never resizes or recentres it.</li>
+		<li><b>Footer pinned.</b> The seed and Start sit at the foot of the sheet under a hairline (the guide's modal
+		footer rule, §7.14), not straight after the text.</li>
+		<li><b>Print headings.</b> "Rules" and "Home" set as label caps (<span class="caps">Rules</span>), so the detail
+		reads as a printed sheet rather than one block of body text.</li>
+	</ul>
+</section>
+</main>
+<script>
+const CIVS = [  // stories from data/cards.json, shortened; rules only where they are short
+	["Egypt", "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.", "Each upkeep: +1 food for each settled territory with Fresh Water or Flood Plain. Wonders cost 3 less wealth.", "Desert Floodplain"],
+	["Sumer", "Between the Tigris and the Euphrates, the Sumerians dug canals and built the first cities.", "As printed on its card.", "Delta Marsh"],
+	["Phoenicia", "From Tyre and Sidon, Phoenician ships carried cedar, glass and purple dye across the Mediterranean.", "As printed on its card.", "Cedar Coast"],
+	["Babylon", "Hammurabi carved his laws in stone for all to see.", "As printed on its card.", "Alluvial Plain"],
+	["Greece", "Rival city-states argued in the agora.", "Draw up to 1 more card each turn.", "Coastal Hills"],
+	["Persia", "Cyrus and Darius ruled the largest empire yet seen, held together by satraps.", "As printed on its card.", "Highland Valley"],
+];
+for (const demo of document.querySelectorAll(".demo")) {
+	const kind = demo.dataset.kind;
+	const list = document.createElement("div");
+	list.className = "list";
+	list.setAttribute("role", "listbox");
+	list.tabIndex = 0;
+	const detail = document.createElement("div");
+	detail.className = "detail";
+	const foot = document.createElement("div");
+	foot.className = "foot";
+	foot.innerHTML = '<span class="caps">Seed</span><span class="field">random</span><span class="key">Start</span>';
+	const marker = document.createElement("span");
+	marker.className = kind === "b" ? "rail" : "ptr";
+	if (kind === "b" || kind === "e") list.append(marker);
+	const rows = CIVS.map(([name], i) => {
+		const row = document.createElement("button");
+		row.className = "row";
+		row.tabIndex = -1;
+		row.setAttribute("role", "option");
+		row.innerHTML = (kind === "d" ? "<i></i>" : "") + name;
+		row.addEventListener("click", () => select(i));
+		list.append(row);
+		return row;
+	});
+	let at = 0;
+	function select(i) {
+		at = i;
+		rows.forEach((r, j) => { r.classList.toggle("on", j === i); r.setAttribute("aria-selected", j === i); });
+		const [name, story, rules, home] = CIVS[i];
+		detail.innerHTML = `<h3>${name}</h3><p>${story}</p><span class="caps">Rules</span><p>${rules}</p><span class="caps">Home</span><p>${home}</p>`;
+		marker.style.top = (rows[i].offsetTop + (kind === "e" ? 11 : 0)) + "px";
+	}
+	list.addEventListener("keydown", (ev) => {
+		const step = ev.key === "ArrowDown" ? 1 : ev.key === "ArrowUp" ? -1 : 0;
+		if (step && at + step >= 0 && at + step < rows.length) { ev.preventDefault(); select(at + step); }
+	});
+	demo.append(list, detail, foot);
+	requestAnimationFrame(() => select(0));
+}
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+</script>
+</body>
+</html>
