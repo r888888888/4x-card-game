@@ -60,7 +60,7 @@ var uid := -1
 var card_id := ""
 var in_hand := false
 var board_kind := ""  # a card in the Realm's row: BOARD_REALM, BOARD_FRONTIER or BOARD_EVENT; "" elsewhere
-var shown_name := ""  # the name on its face (CardFace.display_name): a renamed territory rebuilds it (248)
+var shown_name := ""  # the name on its face (CardInstance.shown_name): a renamed territory rebuilds it (248)
 var pickable := false  # an option of a pending choice or a target: a click picks it
 var lift_on_hover := false  # lift under the mouse like a hand card (supply cards, which have room)
 var state := State.REST
@@ -96,7 +96,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_replays = {}
 	add_to_group(GROUP)
 	board_kind = kind
-	shown_name = CardFace.display_name(card)
+	shown_name = card.shown_name()
 	uid = card.uid
 	card_id = card.def.id
 	in_hand = p_in_hand
