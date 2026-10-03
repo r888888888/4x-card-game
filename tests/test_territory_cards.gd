@@ -325,8 +325,8 @@ func test_a_rolled_keyword_shows_in_the_view_but_not_on_the_realm_card() -> void
 		click(main, home)
 		await wait_screen_transition()
 		var title: String = main.territory_view.title_text()
-		check(title.contains("+ Gold"), "the view's info line names the rolled Gold: %s" % title)
-		check(title.contains(CardFace.territory_info(territory)), "and all its keywords: %s" % title), \
+		check(title.contains("Gold"), "the view's info line names the rolled Gold: %s" % title)
+		check(title.contains(CardFace.keyword_line(territory)), "and all its keywords: %s" % title), \
 		{"farm": 10}, POP)
 
 
