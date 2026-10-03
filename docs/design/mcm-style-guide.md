@@ -744,12 +744,12 @@ the figure fills; the idle lamp is silent. Founding a city (settling a territory
 heavier latch, like a plan being stamped, and two marimba notes.
 
 ### 11.7 Population
-Pop is a **tally counter** of pips (the existing PipFilled/PipEmpty/GrowPip meter, 124). Pips are 14 px discs in a
-`well` track: filled teal for pop, outlined for housing room, the Grow pip is a square push-button (radius.1) in the
-first empty position labelled with its food cost. Growing: the button presses (§10.1), then the pip turns into a
+Pop is a **tally counter** of pips (the existing PipFilled/PipEmpty meter, 124). Pips are 14 px discs in a
+`well` track: filled teal for pop, outlined for housing room. Grow is a push-button labelled with its food cost in
+the territory view's actions row below the meter (227). Growing: the button presses (§10.1), then the pip turns into a
 lit disc (lamp on 40 ms) and the food counter rolls down. Starvation risk: the rightmost pips get a brick ring and
 the meter caption reads "WILL STARVE".
-Sound: the Grow pip's press and release, one `ui.counter.tick` as the pip lights, then the food counter's roll and
+Sound: the Grow button's press and release, one `ui.counter.tick` as the pip lights, then the food counter's roll and
 `ui.resource.loss`. The starvation ring is silent here; the famine flag carries the alarm.
 
 ### 11.8 Map overlays (the Realm)
@@ -1333,7 +1333,7 @@ Signal family when it reports news.
 
 | Family | Imagined mechanism | Materials | Used by | Signature | Never |
 |---|---|---|---|---|---|
-| **Keys** (primary controls) | ABS keycaps on clicky key switches (a click jacket that snaps at actuation); latching lamp keys | molded plastic, small springs | buttons, tabs, lamp keys, the Grow pip, End turn (the heaviest key) | two-stage: a bright snap, then a plastic bottom-out clack 14 ms later; attack ≤ 1 ms, ≤ 80 ms, no ring | a metallic ring, a hollow clack, a typewriter's bell |
+| **Keys** (primary controls) | ABS keycaps on clicky key switches (a click jacket that snaps at actuation); latching lamp keys | molded plastic, small springs | buttons, tabs, lamp keys, Grow, End turn (the heaviest key) | two-stage: a bright snap, then a plastic bottom-out clack 14 ms later; attack ≤ 1 ms, ≤ 80 ms, no ring | a metallic ring, a hollow clack, a typewriter's bell |
 | **Rails and sheets** (navigation) | ball-bearing drawer runners, sliding partitions, drafting sheets, index cards | aluminium rails, felt stops, paper and card stock | drawers, cabinet doors, screens, modals, cards, piles | a soft run below 4 kHz, a damped stop, a paper whisper | a whoosh, any pitch sweep |
 | **Counters** | drum counters, split-flap units, adding-machine registers | steel pawls, plastic drums and flaps | odometers, flaps, tallies, gain and loss | tiny ticks ≈ 3 kHz; a registration clack | coins, bells, slot-machine rolls |
 | **Signals** (notifications) | indicator lamps with a tone generator, a small desk bell | sine and soft-square oscillators, a small bell | confirm, notifications, gain's whisper | pure tones from the tone ladder, soft attack, ≤ 600 ms | sirens, buzzers, chiptune |
@@ -1349,7 +1349,7 @@ Sound and motion imply the same imaginary mechanism. Change one and you change t
 
 | Physical metaphor | Components | Motion (§9.2) | Sound | Never |
 |---|---|---|---|---|
-| Mechanical push-button | buttons, tabs, the Grow pip | snap in, machined out | a clicky switch: the snap, then the bottom-out; a quieter snap and top-out on return | a beep |
+| Mechanical push-button | buttons, tabs, Grow | snap in, machined out | a clicky switch: the snap, then the bottom-out; a quieter snap and top-out on return | a beep |
 | Latching key | the lamp key (toggle) | snap, latch | a firm detent: a catch for ON, a spring-back for OFF | an electric "zap" |
 | Sliding panel on a rail | drawers, cabinet doors | slide, `latch` curve | a quiet rail run, a felt stop or latch at the end | a whoosh |
 | Drafting sheet | screens, modals | wipe, slide | a soft paper lay or run | a page-turn flourish |

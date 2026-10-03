@@ -1,9 +1,9 @@
 extends "res://tests/lib/test_case.gd"
-## The territory view's pop meter (backlog 124): one pip per housing, the first `pop` filled; the first empty pip is
-## Grow (main.territory_view.grow_button), showing its food cost with the food icon; a dim reason line
-## (territory_view.grow_reason) says why Grow can't be used. A grow from the meter pops the new pip in, and the top
-## bar's Pop and Food figures roll to their new values, with no tags (218). Hooks: territory_view.pips()
-## (the meter's pips in order, the Grow pip among them); a pip is filled when its theme_type_variation is
+## The territory view's pop meter (backlog 124): one plain pip per housing, the first `pop` filled. Grow
+## (main.territory_view.grow_button) is a button in the view's actions row (territory_view.actions, 227), reading
+## "Grow" and its food cost with the food icon; when it can't be used it is disabled with the reason as its tooltip.
+## A grow pops the new pip in, and the top bar's Pop and Food figures roll to their new values, with no tags (218).
+## Hooks: territory_view.pips() (the meter's pips in order); a pip is filled when its theme_type_variation is
 ## "PipFilled". Tweens are stepped by hand (step_tweens) to read positions and scales along the way.
 
 const STEP := 0.05  # seconds per tween step
@@ -63,9 +63,29 @@ func step_tweens(main: Node, sample: Callable) -> void:
 	await wait_frames()
 
 
-# --- AC1: pips ---
+# --- 227 AC1: the actions row ---
 
-func test_the_meter_has_a_pip_per_housing_with_pop_filled_and_grow_on_the_first_empty_one() -> void:
+func test_grow_is_in_the_actions_row_below_the_stats_and_meter_above_the_cards() -> void:
+	await with_meter(func(main: Node, _home: int):
+		var view: Object = main.territory_view
+		var actions: Control = view.actions
+		check(shown(actions), "the actions row shows")
+		check(view.frame.is_ancestor_of(actions), "inside the box")
+		check(actions.is_ancestor_of(view.grow_button), "Grow is in it")
+		check(not (view.pips() as Array).has(view.grow_button), "Grow isn't a pip")
+		var top: float = actions.get_global_rect().position.y
+		var stats: Array = view.find_children("*", "RichTextLabel", true, false).filter(
+			func(l): return l.get_meta("source", "") == view.stats_text())
+		check(not stats.is_empty(), "the stats line")
+		for c: Control in stats + view.pips():
+			check(c.get_global_rect().end.y <= top + 1.0, "%s above the actions row" % c)
+		check(actions.get_global_rect().end.y <= view.row.get_global_rect().position.y + 1.0,
+			"the actions row above the cards"))
+
+
+# --- 227 AC2: plain pips ---
+
+func test_the_meter_is_plain_pips_one_per_housing_with_pop_filled() -> void:
 	await with_meter(func(main: Node, home: int):
 		var e := Game.engine
 		var view: Object = main.territory_view
@@ -74,32 +94,46 @@ func test_the_meter_has_a_pip_per_housing_with_pop_filled_and_grow_on_the_first_
 		eq(e.pop(home), 2, "pop 2")
 		var pips: Array = view.pips()
 		eq(pips.size(), housing, "a pip per housing")
+		eq(pips.filter(func(p): return p is BaseButton).size(), 0, "no pip is a button")
 		eq(filled_count(pips), 2, "pop pips filled")
-		eq(pips.slice(0, 2).all(filled), true, "the first two")
-		eq(pips[2], view.grow_button, "the third pip is Grow")
-		var grow: Button = view.grow_button
+		eq(pips.slice(0, 2).all(filled), true, "the first two"))
+
+
+# --- 227 AC3: the Grow button ---
+
+func test_grow_is_a_button_reading_grow_and_its_food_cost() -> void:
+	await with_meter(func(main: Node, home: int):
+		var e := Game.engine
+		var grow: Button = main.territory_view.grow_button
 		check(shown(grow), "Grow shown")
-		eq(grow.text, str(e.grow_cost(home)), "its food cost (3)")
+		check(not grow.disabled, "enabled")
+		eq(grow.text, "Grow %d" % e.grow_cost(home), "the action and its food cost (3)")
 		check(grow.icon != null and grow.icon.resource_path.ends_with("food.svg"), "with the food icon")
-		check(not grow.text.contains("food"), "no word 'food'")
 		check(grow.tooltip_text.contains("Grow") and grow.tooltip_text.contains(str(e.grow_cost(home))),
-			"tooltip names the action and the cost: '%s'" % grow.tooltip_text)
-		for pip in pips.slice(3):
-			check(not pip is BaseButton, "the pips after Grow are plain")
-			check(not filled(pip), "and empty"))
+			"tooltip names the action and the cost: '%s'" % grow.tooltip_text))
 
 
-func test_without_population_there_is_no_meter_grow_or_reason() -> void:
-	await with_meter(func(main: Node, _home: int):
+# --- 227 AC4: blocked, the reason as the tooltip ---
+
+## The view's visible labels reading text.
+func labels_reading(view: Node, text: String) -> Array:
+	return view.find_children("*", "Label", true, false).filter(
+		func(l: Label): return l.is_visible_in_tree() and l.text == text)
+
+
+func test_without_enough_food_grow_is_disabled_with_the_reason_as_its_tooltip() -> void:
+	await with_meter(func(main: Node, home: int):
+		var e := Game.engine
 		var view: Object = main.territory_view
-		eq((view.pips() as Array).filter(shown).size(), 0, "no pips shown")
-		check(not shown(view.grow_button), "no Grow")
-		check(not shown(view.grow_reason), "no reason line"), 10, {})
+		var grow: Button = view.grow_button
+		check(e.grow_error(home).contains("needs 3 food"), "the engine says why: %s" % e.grow_error(home))
+		check(shown(grow), "shown")
+		check(grow.disabled, "disabled")
+		eq(grow.tooltip_text, e.grow_error(home), "its tooltip reads grow_error")
+		eq(labels_reading(view, e.grow_error(home)).size(), 0, "no reason line"), 1)
 
 
-# --- AC2, AC3: the reason line ---
-
-func test_at_housing_every_pip_is_filled_grow_is_hidden_and_the_reason_shows() -> void:
+func test_at_housing_grow_is_disabled_with_the_reason_as_its_tooltip() -> void:
 	await with_meter(func(main: Node, home: int):
 		var e := Game.engine
 		var view: Object = main.territory_view
@@ -109,35 +143,17 @@ func test_at_housing_every_pip_is_filled_grow_is_hidden_and_the_reason_shows() -
 		var pips: Array = view.pips()
 		eq(pips.size(), e.housing(home), "a pip per housing")
 		eq(filled_count(pips), e.housing(home), "all filled")
-		check(not shown(view.grow_button), "no Grow")
-		check(shown(view.grow_reason), "the reason shows")
-		eq(view.grow_reason.text, e.grow_error(home), "it reads grow_error"))
-
-
-func test_without_enough_food_grow_is_disabled_and_the_reason_shows() -> void:
-	await with_meter(func(main: Node, home: int):
-		var e := Game.engine
-		var view: Object = main.territory_view
 		var grow: Button = view.grow_button
-		eq((view.pips() as Array)[2], grow, "Grow on the third pip")
-		check(shown(grow), "shown")
+		check(e.grow_error(home) != "", "can't grow at housing")
+		check(shown(grow), "Grow still shown")
 		check(grow.disabled, "disabled")
-		check(e.grow_error(home).contains("needs 3 food"), "the engine says why: %s" % e.grow_error(home))
-		check(shown(view.grow_reason), "the reason shows")
-		eq(view.grow_reason.text, e.grow_error(home), "it reads grow_error"), 1)
+		eq(grow.tooltip_text, e.grow_error(home), "its tooltip reads grow_error")
+		eq(labels_reading(view, e.grow_error(home)).size(), 0, "no reason line"))
 
 
-func test_when_grow_is_legal_the_reason_line_is_hidden() -> void:
-	await with_meter(func(main: Node, home: int):
-		var view: Object = main.territory_view
-		eq(Game.engine.grow_error(home), "", "can grow")
-		check(not view.grow_button.disabled, "Grow enabled")
-		check(not shown(view.grow_reason), "no reason line"))
+# --- 227 AC5: growing ---
 
-
-# --- AC4: growing ---
-
-func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
+func test_pressing_grow_fills_the_next_pip_and_raises_the_cost() -> void:
 	await with_meter(func(main: Node, home: int):
 		var e := Game.engine
 		var view: Object = main.territory_view
@@ -146,10 +162,20 @@ func test_pressing_grow_fills_the_pip_and_moves_grow_to_the_next() -> void:
 		eq(e.pop(home), 3, "pop 3")
 		eq(e.resources[GameEngine.FOOD], 7, "paid 3 food")
 		var pips: Array = view.pips()
+		eq(pips.size(), e.housing(home), "still a pip per housing")
 		eq(filled_count(pips), 3, "3 filled")
-		eq(pips[3], view.grow_button, "Grow on the fourth pip")
-		eq(view.grow_button.text, "4", "costing 4")
+		eq(view.grow_button.text, "Grow 4", "Grow now costs 4")
 		eq(main.counter_text(TopBar.POP), str(e.total_pop()), "the top bar's Pop reads the new total"))
+
+
+# --- 227 AC6: population off ---
+
+func test_without_population_there_is_no_meter_grow_or_actions_row() -> void:
+	await with_meter(func(main: Node, _home: int):
+		var view: Object = main.territory_view
+		eq((view.pips() as Array).filter(shown).size(), 0, "no pips shown")
+		check(not shown(view.grow_button), "no Grow")
+		check(not shown(view.actions), "no actions row"), 10, {})
 
 
 # --- AC5: the grow animation ---
