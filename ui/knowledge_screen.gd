@@ -46,14 +46,10 @@ func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
 	_open_tech = open_tech
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
-	var top := HBoxContainer.new()
-	add_child(top)
-	header = ScreenHeader.new(nav, close)
-	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(header)
+	header = ScreenHeader.new(nav, close, &"TECH")
+	add_child(header)
 	_context = UIKit.heading("")
-	_context.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top.add_child(_context)
+	header.add_context(_context)
 	_insight = UIKit.heading("")
 	add_child(_insight)
 	var scroll := ScrollContainer.new()

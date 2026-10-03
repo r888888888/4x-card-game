@@ -38,7 +38,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	nav.animated = true
-	header = ScreenHeader.new(nav, close)
+	header = ScreenHeader.new(nav, close, &"TERRITORY")
 	add_child(header)
 	back_button = header.back_button
 	mouse_filter = Control.MOUSE_FILTER_STOP  # a click on the view outside the box closes it (200)

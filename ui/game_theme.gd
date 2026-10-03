@@ -162,6 +162,7 @@ static func _link(t: Theme) -> void:
 	t.set_color("font_focus_color", "Link", Palette.ACCENT)
 	for state in ["normal", "hover", "pressed", "disabled"]:  # no box or padding: it sits in the breadcrumb's text
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
+	_divider_tab(t)
 	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)
 	t.set_color("font_color", "TitleLink", Palette.TEXT)
 	t.set_type_variation("CapsLink", "Link")  # a small caps link, ink on hover (the sidebar's government, 221)
@@ -169,6 +170,31 @@ static func _link(t: Theme) -> void:
 	t.set_font("font", "CapsLink", heading_font())
 	for state in ["font_hover_color", "font_pressed_color", "font_focus_color"]:
 		t.set_color(state, "CapsLink", Palette.TEXT)
+
+
+## A navigated screen's title bar (241): BarTitle and BarHeading, the title and its context printed on the bar's
+## colour; DividerTab, the way back at its left end, the index tab of the sheet underneath: the board's colour, its
+## right edge slanted (a skewed box whose left edge runs off the bar, which clips it), the sheet colour on hover.
+static func _divider_tab(t: Theme) -> void:
+	_label(t, "BarTitle", Tokens.TYPE_TITLE, Palette.TEXT_ON_PLANE, display())
+	_label(t, "BarHeading", Tokens.TYPE_HEADING, Palette.TEXT_ON_PLANE, heading_font())
+	t.set_type_variation("DividerTab", "Button")
+	t.set_font("font", "DividerTab", tabular(LABEL_SEMIBOLD))
+	t.set_font_size("font_size", "DividerTab", Tokens.TYPE_LABEL)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		t.set_color(state, "DividerTab", Palette.TEXT)
+	var tab := UIKit.panel_style(Palette.BACKGROUND, Palette.BACKGROUND, Tokens.SPACE_3)
+	tab.set_border_width_all(0)
+	tab.skew = Vector2(-0.3, 0)
+	tab.expand_margin_left = Tokens.SPACE_5
+	tab.content_margin_left = Tokens.SPACE_4
+	tab.content_margin_right = Tokens.SPACE_6
+	var hover := tab.duplicate() as StyleBoxFlat
+	hover.bg_color = Palette.RAISED
+	for state in ["normal", "pressed", "disabled"]:
+		t.set_stylebox(state, "DividerTab", tab)
+	t.set_stylebox("hover", "DividerTab", hover)
+	t.set_stylebox("focus", "DividerTab", focus_ring())
 
 
 ## The selectable list (217, guide §7): ListWell, the list's recessed well, with room on its trailing side for the

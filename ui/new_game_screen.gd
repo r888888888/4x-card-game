@@ -32,7 +32,7 @@ func _init(parent: Control, nav: Navigator) -> void:
 	overlay = UIKit.overlay(parent)
 	overlay.z_index = 15  # above the game-over sheet, below the card details (the menu can't be open)
 	var box := overlay.get_meta("box") as VBoxContainer
-	header = ScreenHeader.new(nav)
+	header = ScreenHeader.new(nav, Callable(), &"CIVILIZATION")
 	box.add_child(header)
 	back_button = header.back_button
 	var split := HBoxContainer.new()
