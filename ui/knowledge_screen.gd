@@ -7,7 +7,7 @@ extends VBoxContainer
 ## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
 ## printed with how it opens. A click on an available tile learns it; any other click, a right click or I shows the
 ## details. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
-## back.
+## back. It is an opaque sheet (224), so nothing under it shows through as it slides.
 
 const STATE_WORD := {
 	GameEngine.TECH_RESEARCHED: "Researched",
@@ -64,8 +64,18 @@ func _init(nav: Navigator, place: Control, open_def: Callable) -> void:
 	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rows.add_theme_constant_override("separation", Tokens.SPACE_5)
 	scroll.add_child(_rows)
+	UIKit.painted(self, queue_redraw)
 	hide()
 	place.get_parent().add_child(self)
+
+
+## The colour the sheet is filled with: the board's.
+func sheet_color() -> Color:
+	return Palette.BACKGROUND
+
+
+func _draw() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), sheet_color())
 
 
 func is_open() -> bool:

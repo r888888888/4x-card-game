@@ -180,7 +180,8 @@ static func _select_list(t: Theme) -> void:
 
 
 ## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, RAISED with a 3 px ink rule under
-## it; Rail, the sidebar open on the board with a hairline on its left.
+## it; Rail, the sidebar open on the board with a hairline on its left, filled with the board's colour so a screen sliding
+## in passes under it (224).
 static func _board_frame(t: Theme) -> void:
 	var strip := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_2)
 	strip.set_border_width_all(0)
@@ -189,8 +190,7 @@ static func _board_frame(t: Theme) -> void:
 	strip.content_margin_right = Tokens.SPACE_4
 	t.set_type_variation("Strip", "PanelContainer")
 	t.set_stylebox("panel", "Strip", strip)
-	var rail := UIKit.panel_style(Color.TRANSPARENT, Palette.HAIRLINE, Tokens.SPACE_4)
-	rail.draw_center = false
+	var rail := UIKit.panel_style(Palette.BACKGROUND, Palette.HAIRLINE, Tokens.SPACE_4)
 	rail.set_border_width_all(0)
 	rail.border_width_left = 1
 	t.set_type_variation("Rail", "PanelContainer")
