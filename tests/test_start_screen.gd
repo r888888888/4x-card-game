@@ -422,11 +422,11 @@ func test_the_settings_modals_toggle_is_the_setting() -> void:
 		Settings.set_reduce_motion(true)
 		check(toggle.button_pressed, "the key follows the setting on")
 		await wait_frames()
-		eq(toggle.text, "ON", "its legend (182)")
+		eq(shown_state(toggle), "ON", "its state (182; beside it since 219)")
 		toggle.button_pressed = false  # the player turns it off
 		eq(Settings.reduce_motion, false, "setting off")
 		await wait_frames()
-		eq(toggle.text, "OFF", "its legend follows")
+		eq(shown_state(toggle), "OFF", "its state follows")
 		var saved := SettingsStore.new(Settings.store.path)  # the temp file with_temp_settings saves to
 		saved.reduce_motion = true
 		saved.load()

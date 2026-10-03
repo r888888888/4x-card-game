@@ -83,7 +83,7 @@ func test_the_settings_modal_shows_the_current_sound_settings() -> void:
 		eq(values, [80.0, 50.0, 70.0], "the sliders")
 		eq(figures, ["80%", "50%", "70%"], "the figures")
 		var key: Button = main.settings_modal.get("sound_toggle")
-		eq(key.text if key != null else "", "OFF", "the Interface sounds key")
+		eq(shown_state(key), "OFF", "the Interface sounds key (219: beside it)")
 		close_main(main), SETTINGS_PATH)
 
 
@@ -116,7 +116,7 @@ func test_the_interface_sounds_key_sets_the_setting() -> void:
 		var key: Button = main.settings_modal.get("sound_toggle")
 		check(key != null, "the key")
 		if key != null:
-			eq(key.text, "ON", "on by default")
+			eq(shown_state(key), "ON", "on by default")
 			key.button_pressed = false
 			await wait_frames()
 			eq(Settings.interface_sounds, false, "turned off")

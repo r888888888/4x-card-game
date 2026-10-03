@@ -199,6 +199,7 @@ static func _end_turn_key(t: Theme) -> void:
 			t.set_color(state, type, Color.TRANSPARENT)
 	_label(t, "KeyLabel", Tokens.TYPE_LABEL, Palette.TEXT_ON_ACCENT, heading_font())
 	_label(t, "Plate", Tokens.TYPE_NUMERAL_S, Palette.TEXT, tabular(LABEL_SEMIBOLD))
+	_label(t, "StateWord", Tokens.TYPE_LABEL_CAPS, Palette.TEXT_DIM, heading_font())  # ON/OFF beside a toggle key (219)
 	var well := UIKit.panel_style(Palette.FIELD, Palette.CONTROL_BORDER, Tokens.SPACE_1)
 	well.set_border_width_all(1)
 	well.content_margin_left = Tokens.SPACE_2

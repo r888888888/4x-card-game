@@ -236,7 +236,8 @@ static func show_setting(key: LegendKey, on: bool) -> void:
 	key.set_pressed_no_signal(on)
 
 
-## A setting's row (182): its name on the left and key on the right, filling the width it is given (a button column's).
+## A setting's row (182): its name on the left and key on the right, filling the width it is given (a button column's);
+## a LegendKey's state label follows it, at the row's right (219).
 static func setting_row(text: String, key: Control) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", Tokens.SPACE_4)
@@ -246,6 +247,8 @@ static func setting_row(text: String, key: Control) -> HBoxContainer:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(label)
 	row.add_child(key)
+	if key is LegendKey:
+		row.add_child((key as LegendKey).state_label)
 	return row
 
 
