@@ -2,7 +2,7 @@
 id: 233
 title: Make tooltips readable: more contrast and padding
 type: feature
-status: red-review
+status: review
 branch: feat/233-tooltip-readability
 ---
 
@@ -14,9 +14,9 @@ contrast the palette has, and roomier padding makes the text easier to read. The
 so it follows.
 
 ## Acceptance criteria
-- [ ] AC1: Given the theme built in Night or in Day mode, then `TooltipPanel`'s panel is a flat box filled with ink
+- [x] AC1: Given the theme built in Night or in Day mode, then `TooltipPanel`'s panel is a flat box filled with ink
   (`Palette.TEXT`), square (`RADIUS_0`), with content margins of `SPACE_4` across and `SPACE_3` down.
-- [ ] AC2: Given the same theme, then `TooltipLabel` draws sheet-coloured text (`Palette.RAISED`) at `TYPE_BODY_S`.
+- [x] AC2: Given the same theme, then `TooltipLabel` draws sheet-coloured text (`Palette.RAISED`) at `TYPE_BODY_S`.
 
 ## Out of scope
 - The guide's notch, 320 px max width, show delay and slide-in.
@@ -31,3 +31,5 @@ so it follows.
   Night's light-ink / Day's dark-ink inverse, readable, with clear space around the text.
 
 ## Log
+- GameTheme._tooltips styles TooltipPanel and TooltipLabel; Godot's tooltip popup picks up main's theme (checked in a
+  Night screenshot: a light ink tab with dark text over the top bar). The locked tip uses the same types, so it follows.
