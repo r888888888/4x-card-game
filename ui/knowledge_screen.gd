@@ -5,8 +5,8 @@ extends VBoxContainer
 ## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
 ## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
 ## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
-## printed with how it opens. A click on an available tile learns it; any other click, a right click or I shows the
-## details. It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
+## printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
+## button learns it (229). It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
 ## back. It is an opaque sheet (224), so nothing under it shows through as it slides.
 
 const STATE_WORD := {
@@ -26,7 +26,7 @@ var header: ScreenHeader
 
 var _nav: Navigator
 var _place: Control  # the Realm section, whose place the screen takes
-var _open_def: Callable  # opens a card definition's details over the screen
+var _open_tech: Callable  # opens a tech's details over the screen
 var _context: Label
 var _insight: Label
 var _rows: VBoxContainer
@@ -39,11 +39,11 @@ var _tile_texts := {}  # tech name -> the texts its tile shows
 
 
 ## Builds the screen beside place (the Realm section) for nav, hidden. Its techs open their details with
-## open_def(card_id).
-func _init(nav: Navigator, place: Control, open_def: Callable) -> void:
+## open_tech(card_id, uid), uid the tech to learn or -1 for one researched or of a later era.
+func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
 	_nav = nav
 	_place = place
-	_open_def = open_def
+	_open_tech = open_tech
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
 	var top := HBoxContainer.new()
@@ -254,8 +254,7 @@ static func _opens(era: Dictionary) -> String:
 
 
 ## A tech's index-card tile: its name, its marker (✓, its cost now, or "needs <prerequisite>"), and "✔ Eureka" when
-## its eureka is met. A click learns an available tech and shows the details of any other; a right click or I shows
-## its details. Its tooltip says its state in words, why it can't be learned, what it gives and its eureka.
+## its eureka is met. A click, a right click or I shows its details. Its tooltip says its state in words, why it can't be learned, what it gives and its eureka.
 func _tile(e: GameEngine, tech: Dictionary) -> Button:
 	var state: String = tech.state
 	var b := Button.new()
@@ -292,18 +291,15 @@ func _tile(e: GameEngine, tech: Dictionary) -> Button:
 		box.add_child(_tile_label(texts[-1], text, true))
 	_tiles[texts[0]] = b
 	_tile_texts[texts[0]] = texts
-	b.pressed.connect(func():
-		if state == GameEngine.TECH_AVAILABLE:
-			if Game.engine.buy_tech_error(tech.uid) == "":
-				Game.engine.buy_tech(tech.uid)
-		else:
-			_open_def.call(tech.id))
+	var learnable := state == GameEngine.TECH_AVAILABLE or state == GameEngine.TECH_LOCKED
+	var details := func(): _open_tech.call(tech.id, tech.uid if learnable else -1)
+	b.pressed.connect(details)
 	b.gui_input.connect(func(event: InputEvent):
 		var right: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed
 		var key_i: bool = event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I
 		if right or key_i:
 			b.accept_event()
-			_open_def.call(tech.id))
+			details.call())
 	return b
 
 
@@ -319,7 +315,7 @@ func _tile_label(text: String, variation: StringName, fill: bool) -> Label:
 	return label
 
 
-## "Available · 3 insight", then why it can't be learned, what it gives, its eureka, and what a click does.
+## "Available · 3 insight", then why it can't be learned, what it gives, its eureka, and how to see the details.
 func _tooltip(e: GameEngine, tech: Dictionary) -> String:
 	var state: String = tech.state
 	var lines: PackedStringArray = [STATE_WORD[state]]
@@ -336,6 +332,5 @@ func _tooltip(e: GameEngine, tech: Dictionary) -> String:
 		lines.append(eureka)
 	if tech.prereq != "" and state != GameEngine.TECH_LOCKED:
 		lines.append("after " + e.card_db[tech.prereq].name)
-	lines.append("Click to learn it; right click or I for the details." if state == GameEngine.TECH_AVAILABLE \
-		else "Click, right click or I for the details.")
+	lines.append("Click, right click or I for the details.")
 	return "\n".join(lines)
