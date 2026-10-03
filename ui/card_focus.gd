@@ -152,14 +152,15 @@ func activate() -> void:
 				set_card(targets[0])
 
 
-## Gives view the keyboard focus ring (null: no card), taking focus away from any button.
-func set_card(view: CardView) -> void:
+## Gives view the card focus (null: no card), taking focus away from any button. shown: it draws the ring (a key
+## placed it); the code's own placing draws it only in keyboard mode (234).
+func set_card(view: CardView, shown := true) -> void:
 	if is_instance_valid(focused):
 		focused.set_focused(false)
 	focused = view
 	if view == null:
 		return
-	view.set_focused(true)
+	view.set_focused(shown)
 	_board.get_viewport().gui_release_focus()
 	if view.in_hand and is_instance_valid(view.slot):
 		_board.hand_scroll.ensure_control_visible(view.slot)
@@ -174,7 +175,7 @@ func sync() -> void:
 	if kind == GameEngine.PENDING_EXPLORE:
 		var choice := row()
 		if not choice.has(focused) and not choice.is_empty():
-			set_card(choice[0])
+			set_card(choice[0], FocusRing.keyboard)
 		return
 	if _board.drag.targeting != null:
 		return

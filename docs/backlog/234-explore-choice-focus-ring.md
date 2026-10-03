@@ -2,7 +2,7 @@
 id: 234
 title: The explore choice's first card draws the focus ring before Tab
 type: bug
-status: red-review
+status: in-progress
 branch: fix/234-explore-choice-focus-ring
 ---
 
