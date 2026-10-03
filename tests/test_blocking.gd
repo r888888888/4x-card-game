@@ -42,6 +42,8 @@ func actions() -> Array:
 		["relieve_famine", func(e): return e.relieve_famine_error(), func(e): return e.relieve_famine()],
 		["restore_order", func(e): return e.restore_order_error(), func(e): return e.restore_order()],
 		["revolt", func(e): return e.revolt_error(), func(e): return e.revolt()],
+		["rename_territory", func(e): return e.call("rename_territory_error", home_uid(e), "Delta"),
+			func(e): return e.call("rename_territory", home_uid(e), "Delta")],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
 	]
 

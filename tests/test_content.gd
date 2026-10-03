@@ -282,6 +282,14 @@ func test_every_listed_civilization_has_flavor_and_a_quote() -> void:
 		check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % id)
 
 
+## Backlog 248: every offered civilization names its cities: at least 8 distinct, non-empty city names.
+func test_every_listed_civilization_has_at_least_8_city_names() -> void:
+	var r := load_real()
+	for id in r.config.get("civilizations", []):
+		var def: CardDef = r.cards[id]
+		check(def.get("city_names") != null and def.city_names.size() >= 8, "%s has at least 8 city names" % id)
+
+
 ## Backlog 107: no civilization card is left in the data without being offered.
 func test_every_civilization_card_is_listed() -> void:
 	var r := load_real()
