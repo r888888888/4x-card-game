@@ -41,8 +41,8 @@ func test_the_sidebar_names_the_civilization_and_its_government() -> void:
 	check(bar.heading.uppercase and bar.heading.theme_type_variation == &"Heading", "in Heading caps")
 	eq(bar.name_button.text, civ_name(), "the civilization's name")
 	eq(bar.name_button.get_theme_font_size("font_size"), Tokens.TYPE_TITLE, "at title size")
-	eq(bar.government_button.text, "%s ›" % gov_name(), "the government as a link")
-	eq(bar.government_button.theme_type_variation, &"Link", "the Link look")
+	eq(bar.government_button.text, "%s ›" % gov_name().to_upper(), "the government as a link, in capitals (221)")
+	eq(bar.government_button.theme_type_variation, &"CapsLink", "the CapsLink look (221)")
 	close_at(main)
 
 
@@ -87,7 +87,7 @@ func test_under_anarchy_the_sidebar_reads_anarchy() -> void:
 		main.event_modal_ok_button().pressed.emit()
 	await wait_frames()
 	eq(gov_name(), "Anarchy", "precondition: Anarchy rules")
-	eq(main.sidebar.government_button.text, "Anarchy ›", "the sidebar follows")
+	eq(main.sidebar.government_button.text, "ANARCHY ›", "the sidebar follows")
 	close_at(main)
 
 
@@ -136,3 +136,79 @@ func test_the_sidebar_is_hidden_on_the_title_and_new_game_screens() -> void:
 	await wait_frames()
 	check(not (main.sidebar as Control).is_visible_in_tree(), "hidden on the new game screen")
 	close_main(main)
+
+
+# --- 221: the mock's strip, open rail, type and alignment ---
+
+## The strip the top bar sits on: the TopBar's parent, or null.
+func strip_panel(main: Node) -> Control:
+	var bar: Node = top_strip(main)
+	return bar.get_parent() as Control if bar != null else null
+
+
+func test_the_top_bar_sits_on_a_full_bleed_strip_ruled_underneath() -> void:
+	for size in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		var main: Node = await open_at(size)
+		var strip := strip_panel(main)
+		var viewport: Vector2 = main.get_viewport_rect().size
+		eq(strip.theme_type_variation, &"Strip", "%s: the Strip look" % size)
+		var r := strip.get_global_rect()
+		eq(r.position, Vector2.ZERO, "%s: from the window's top-left corner" % size)
+		check(absf(r.size.x - viewport.x) <= TOLERANCE, "%s: the window's full width: %d of %d" % [size, r.size.x, viewport.x])
+		var box := strip.get_theme_stylebox("panel") as StyleBoxFlat
+		check(box != null, "%s: a flat box" % size)
+		if box != null:
+			eq(box.bg_color, Palette.RAISED, "%s: RAISED" % size)
+			eq(box.border_color, Palette.TEXT, "%s: a TEXT rule" % size)
+			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [0, 0, 0, 3],
+				"%s: 3 px along the bottom only" % size)
+		close_at(main)
+
+
+func test_the_rail_is_open_on_the_board_with_a_hairline_to_its_left() -> void:
+	for size in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		var main: Node = await open_at(size)
+		var bar: Control = main.sidebar
+		var viewport: Vector2 = main.get_viewport_rect().size
+		eq(bar.theme_type_variation, &"Rail", "%s: the Rail look" % size)
+		var box := bar.get_theme_stylebox("panel") as StyleBoxFlat
+		check(box != null, "%s: a flat box" % size)
+		if box != null:
+			check(not box.draw_center or box.bg_color.a == 0.0, "%s: no fill of its own" % size)
+			eq(box.border_color, Palette.HAIRLINE, "%s: a HAIRLINE rule" % size)
+			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [1, 0, 0, 0],
+				"%s: 1 px on the left only" % size)
+		var rail := bar.get_global_rect()
+		var strip := strip_panel(main).get_global_rect()
+		check(absf(rail.position.y - strip.end.y) <= TOLERANCE, "%s: from the strip's bottom: %d, strip ends %d" % [size, rail.position.y, strip.end.y])
+		check(absf(viewport.y - rail.end.y) <= TOLERANCE, "%s: to the window's bottom: %d of %d" % [size, rail.end.y, viewport.y])
+		check(absf(viewport.x - rail.end.x) <= TOLERANCE, "%s: to the window's right: %d of %d" % [size, rail.end.x, viewport.x])
+		close_at(main)
+
+
+func test_the_government_link_is_in_the_heading_face_under_a_3_px_rule() -> void:
+	var main: Node = await open_at(Vector2i(1920, 1080))
+	var gov: Button = main.sidebar.government_button
+	eq(gov.get_theme_font_size("font_size"), Tokens.TYPE_HEADING, "at TYPE_HEADING")
+	var font := gov.get_theme_font("font") as FontVariation
+	check(font != null and font.base_font == GameTheme.LABEL_SEMIBOLD and font.spacing_glyph > 0, "the heading face, tracked")
+	eq(gov.get_theme_color("font_color"), Palette.TEXT_DIM, "TEXT_DIM")
+	eq(gov.get_theme_color("font_hover_color"), Palette.TEXT, "TEXT on hover")
+	var rule: ColorRect = main.sidebar.column.get_node("Rule")
+	eq(rule.size.y, 3.0, "a 3 px rule")
+	eq(rule.color, Palette.TEXT, "in TEXT")
+	close_at(main)
+
+
+func test_the_realm_heading_and_the_rails_rule_line_up_space_4_under_the_strip() -> void:
+	for size in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		var main: Node = await open_at(size)
+		var heading := (main.tableau as Control).get_parent().get_child(0) as Label
+		eq(heading.text, "Realm", "%s: precondition: the Realm heading" % size)
+		var rule: Control = main.sidebar.column.get_node("Rule")
+		var strip := strip_panel(main).get_global_rect()
+		var top: float = strip.end.y + Tokens.SPACE_4
+		check(absf(heading.get_global_rect().position.y - top) <= TOLERANCE, "%s: the heading SPACE_4 under the strip: %d, want %d" % [size, heading.get_global_rect().position.y, top])
+		check(absf(rule.get_global_rect().position.y - top) <= TOLERANCE, "%s: the rule SPACE_4 under the strip: %d, want %d" % [size, rule.get_global_rect().position.y, top])
+		check(absf(heading.get_global_rect().position.x - Tokens.SPACE_4) <= TOLERANCE, "%s: the heading SPACE_4 from the left: %d" % [size, heading.get_global_rect().position.x])
+		close_at(main)
