@@ -2,7 +2,7 @@
 id: 237
 title: Draw the turn's event at the start of the turn, from turn 2
 type: feature
-status: red-review
+status: in-progress
 branch: feat/237-events-at-turn-start
 ---
 

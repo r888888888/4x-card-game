@@ -100,7 +100,6 @@ static func discard_card(e: GameEngine, uid: int) -> bool:
 static func end_turn(e: GameEngine) -> void:
 	if e.end_turn_error() != "":
 		return
-	Events.draw(e)
 	if e.turn < e.turn_limit():
 		var over: int = e.zone("hand").size() - e.config.hand_limit
 		if over > 0:
@@ -145,6 +144,8 @@ static func start_turn(e: GameEngine) -> void:
 	Anarchy.drain(e)
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 	Anarchy.start_renewal(e)
+	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237)
+		Events.draw(e)
 
 
 ## Resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
