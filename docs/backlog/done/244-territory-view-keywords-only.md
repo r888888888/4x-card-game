@@ -2,7 +2,7 @@
 id: 244
 title: The territory view's title line lists only keywords
 type: feature
-status: review
+status: done
 branch: feat/244-territory-view-keywords-only
 ---
 
