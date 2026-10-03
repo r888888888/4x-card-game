@@ -105,7 +105,7 @@ func test_with_only_a_civilization_the_sidebar_and_modal_show_it_alone() -> void
 func test_with_only_a_government_the_sidebar_and_modal_show_it_alone() -> void:
 	await with_engine(gov_engine("council"), func(main: Node):
 		check(not main.sidebar.name_button.visible, "no civilization")
-		eq(main.sidebar.government_button.text, "Council ›", "names the government alone")
+		eq(main.sidebar.government_button.text, "COUNCIL ›", "names the government alone, in capitals (221)")
 		main.sidebar.government_button.pressed.emit()
 		eq(main.identity_modal.shown(), ["Council"], "one section"))
 
@@ -154,7 +154,7 @@ func test_choosing_a_government_updates_the_sidebar_and_an_open_modal() -> void:
 	main.sidebar.government_button.pressed.emit()
 	var kingship := uid_of(e.zone("governments"), "kingship")
 	check(e.choose_government(kingship), "choose Kingship: %s" % e.choose_government_error(kingship))
-	eq(main.sidebar.government_button.text, "Kingship ›", "the sidebar")
+	eq(main.sidebar.government_button.text, "KINGSHIP ›", "the sidebar, in capitals (221)")
 	eq(main.identity_modal.shown(), [name_in("civilization"), "Kingship"], "the open modal")
 	var body: String = main.identity_modal.body_text()
 	for line in e.def_details("kingship").rules:

@@ -1,18 +1,18 @@
 class_name EndTurnKey
 extends Button
 ## End turn as the desk's biggest key (backlog 203, guide §15.12), at the foot of the sidebar: an ACCENT key on a
-## plinth with a lamp at its left that says whether you're ready (sage: ready; ochre: actions left, counted in the
-## caption under it; brick: the turn can't end, the reason in the caption), "END TURN", and the turn on a plate at its
-## right. Pressed, it ends the turn and is busy ("UPKEEP…", the lamp off, presses ignored) while the plate flaps to the
+## plinth with a lamp at its left that says whether you're ready (sage: ready; ochre: actions left, counted on the
+## hand's heading, not here (221); brick: the turn can't end, the reason in the caption under it), "END TURN", and the turn on a plate at its
+## right. It fills the sidebar's foot (221). Pressed, it ends the turn and is busy ("UPKEEP…", the lamp off, presses ignored) while the plate flaps to the
 ## new turn, then shows the new turn's state. Its sounds (187): the big key going down; coming up, a relay and the
 ## turn drum when the press ended the turn, else the plain key's release.
 
-const SIZE := Vector2(220, 64)
+const HEIGHT := 80  # the width is the sidebar's (221)
 const LAMP := 12  # px across
 const FLAP_TIME := 0.08  # each digit of the plate turning over
 const BUSY_MIN := 0.12  # the shortest busy spell, so UPKEEP… reads
 
-var caption: Label  # under the key: actions left, or why the turn can't end; hidden when there's nothing to say
+var caption: Label  # under the key: why the turn can't end; hidden otherwise
 
 var _lamp: Panel
 var _lamp_style: StyleBoxFlat
@@ -32,8 +32,7 @@ var _turn_ended := false
 func _init() -> void:
 	text = "End turn"
 	theme_type_variation = &"EndTurnKey"
-	custom_minimum_size = SIZE
-	size_flags_horizontal = Control.SIZE_SHRINK_END
+	custom_minimum_size.y = HEIGHT
 	tooltip_text = "Shortcut: E. Upkeep, then draw up to your hand size."
 	add_to_group(KeySounds.OWN_SOUNDS)
 	var face := MarginContainer.new()
@@ -72,8 +71,6 @@ func _init() -> void:
 	caption.theme_type_variation = &"Caption"
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	caption.custom_minimum_size.x = SIZE.x
-	caption.size_flags_horizontal = Control.SIZE_SHRINK_END
 	pressed.connect(_end_turn)
 	button_down.connect(_down)
 	button_up.connect(_up)
@@ -92,11 +89,8 @@ func refresh(e: GameEngine) -> void:
 	if error != "":
 		_set_lamp(&"UNREST", true)
 		_set_caption(error)
-	elif left > 0:
-		_set_lamp(&"WEALTH", true)
-		_set_caption("%d action%s left" % [left, "" if left == 1 else "s"])
 	else:
-		_set_lamp(&"GAIN", true)
+		_set_lamp(&"WEALTH" if left > 0 else &"GAIN", true)
 		_set_caption("")
 
 
@@ -116,6 +110,10 @@ func lamp_color() -> Color:
 
 func label_text() -> String:
 	return _label.text.to_upper()
+
+
+func label_font_size() -> int:
+	return _label.get_theme_font_size("font_size")
 
 
 func plate_text() -> String:

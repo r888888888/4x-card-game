@@ -80,30 +80,35 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 		Game.engine.milestone.connect(main.era_sheet.note)
 
 
-## The board: the top bar, then the Realm (the row, the territory view and the action buttons) beside the sidebar.
+## The board (221, the transitions mock's desk): the top bar on a full-bleed Strip, then the Realm (the row, the
+## territory view and the action buttons) and the hand, inset SPACE_4, beside the sidebar's open rail.
 func _build_board(main: MainScreen) -> void:
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, Tokens.SPACE_4)
-	main.add_child(margin)
-	board = margin
-
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", Tokens.SPACE_3)
-	margin.add_child(root)
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_theme_constant_override("separation", Tokens.SPACE_0)
+	main.add_child(root)
+	board = root
+
+	var strip := PanelContainer.new()
+	strip.theme_type_variation = &"Strip"
+	root.add_child(strip)
 	top_bar = TopBar.new(main.open_menu, func(): main.knowledge.toggle(), func(): main.log_drawer.toggle())
-	root.add_child(top_bar)
+	strip.add_child(top_bar)
 
 	var below := HBoxContainer.new()  # the play area, then the sidebar at the right edge (202)
 	below.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	below.add_theme_constant_override("separation", Tokens.SPACE_4)
+	below.add_theme_constant_override("separation", Tokens.SPACE_0)
 	root.add_child(below)
+	var inset := MarginContainer.new()  # the play area's margins, level with the rail's padding (221)
+	inset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for side in ["left", "right", "top", "bottom"]:
+		inset.add_theme_constant_override("margin_" + side, Tokens.SPACE_4)
+	below.add_child(inset)
 	play_area = VBoxContainer.new()  # the width left of the sidebar below the top bar (115, 202)
 	play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	play_area.add_theme_constant_override("separation", UIKit.SECTION_GAP)
-	below.add_child(play_area)
+	inset.add_child(play_area)
 	main.sidebar = Sidebar.new(func(): main.identity_modal.open())
 	below.add_child(main.sidebar)
 	top_bar.menu_button.focus_next = top_bar.menu_button.get_path_to(main.sidebar.name_button)  # the strip, then the rail
