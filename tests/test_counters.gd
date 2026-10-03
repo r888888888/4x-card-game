@@ -156,9 +156,8 @@ func test_score_and_pop_show_no_forecast() -> void:
 			check(forecast_label(main, key) == null, "%s: no forecast label" % key))
 
 
-func test_the_figures_are_numerals_beside_20_px_glyphs() -> void:
+func test_the_figures_are_numerals() -> void:  # their glyphs' size: 242 AC1
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
-		eq(TopBar.GLYPH, 20, "glyphs at 20 px, the mock's strip")
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, TopBar.SCORE]:
 			var figure: Control = main.counter(key).figure()
 			eq(figure.get_theme_font_size("font_size"), Tokens.TYPE_NUMERAL, "%s's figure at TYPE_NUMERAL" % key))

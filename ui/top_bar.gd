@@ -6,7 +6,7 @@ extends HBoxContainer
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure in place (181, 218). The turn plate
 ## and the counters sit Tokens.SPACE_5 apart in a row of their own, the mock's strip (218); the buttons SPACE_3.
 
-const GLYPH := 20  # a counter's glyph (180; 20 px since 201, the mock's strip)
+const GLYPH := Tokens.TYPE_NUMERAL  # a counter's glyph (180): the size of its figure (242)
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
 const SCORE := "score"
 const POP := "pop"
@@ -36,6 +36,7 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 		stats.add_child(counter)
 		_counters[key] = counter
 	_counters[SCORE].tooltip_text = "Score: victory points."
+	_counters[POP].tooltip_text = "Pop: your people. They live and work in your territories."
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
@@ -95,14 +96,15 @@ func refresh(e: GameEngine, quiet := false) -> void:
 		roll_at += mini(absi(change), Anim.ODOMETER_MAX_STEPS) * Anim.ODOMETER_STEP
 	_fresh = false
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
-	_counters[GameEngine.FOOD].tooltip_text = "Next upkeep: famine, %d pop will die." % starve if starve > 0 else "Beside it: the change at the next upkeep, after pop eats."
-	_counters[GameEngine.WEALTH].tooltip_text = "Beside it: the change at the next upkeep."
-	_counters[GameEngine.INSIGHT].tooltip_text = "Pays for techs. Beside it: the change at the next upkeep."
+	_counters[GameEngine.FOOD].tooltip_text = "Food: feeds your pop at each upkeep and pays for Grow. " + (
+		"Next upkeep: famine, %d pop will die." % starve if starve > 0 else "Beside it: the change at the next upkeep, after pop eats.")
+	_counters[GameEngine.WEALTH].tooltip_text = "Wealth: buys cards from the Supply. Beside it: the change at the next upkeep."
+	_counters[GameEngine.INSIGHT].tooltip_text = "Insight: pays for techs. Beside it: the change at the next upkeep."
 	_counters[GameEngine.UNREST].set_color(CardView.WARN_COLOR if e.at_unrest_limit() else Palette.TEXT)
 	var ahead := e.anarchy_ahead()
 	_counters[GameEngine.UNREST].set_breathing(ahead)
-	_counters[GameEngine.UNREST].tooltip_text = ("Civil unrest. Your government tolerates at most %d: a turn that starts there falls into Anarchy. " % limit
-		if limit >= 0 else "Civil unrest. Your government sets no limit. ") + "Beside it: the change at the next upkeep." + (
+	_counters[GameEngine.UNREST].tooltip_text = ("Unrest: civil unrest. Your government tolerates at most %d: a turn that starts there falls into Anarchy. " % limit
+		if limit >= 0 else "Unrest: civil unrest. Your government sets no limit. ") + "Beside it: the change at the next upkeep." + (
 		"\nThe next upkeep brings it to the limit." if ahead else "")
 	_knowledge.visible = e.research_on()
 	_knowledge.tooltip_text = "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: %s." % (
