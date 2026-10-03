@@ -149,7 +149,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
 | `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_hand_size.gd` | Hand size as a modifier (109): the `hand_size` modifier key, past the hand limit a config error, the opening hand and refills, the same deal order |
-| `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per end turn, active events' upkeep and discard, reshuffling |
+| `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per turn start from turn 2, active events' upkeep and discard, reshuffling |
+| `tests/test_events_at_turn_start.gd` | When the turn's event is drawn (237): last in the turn start from turn 2, never in `end_turn`; how long it lasts, its modifiers, and its order against the Anarchy check, drain, renewal and the government choice |
 | `tests/test_event_eras.gd` | Event decks by era (074): an event's `era`, later-era events in `future_events`, shuffled in once when their era is added, the notice, the event tooltip |
 | `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
 | `tests/test_civ_flavor.gd` | Civilization `flavor` and `quote` (107): loading and validation, optional, in `def_details` / `card_details` |

@@ -3,14 +3,15 @@ extends "res://tests/lib/tech_case.gd"
 ## modifier(key) over the working tableau cards, ALWAYS_ON_ZONES and the active events. The first key is "actions",
 ## added to the government's actions (127). Fixtures are local so other tests load while the field is missing: Palace
 ## (free building, +1 action), Calendar (tech, +1), Sages (civilization, +1), Unrest (1-turn event, −1) and Riot
-## (1-turn event, −3).
+## (1-turn event, −3) and Lull (1-turn event, no effect).
 
 const PALACE := {"id": "palace", "name": "Palace", "type": "building", "modifiers": {"actions": 1}}
 const CALENDAR := {"id": "calendar", "name": "Calendar", "type": "tech", "cost": {"insight": 2}, "modifiers": {"actions": 1}}
 const SAGES := {"id": "sages", "name": "Sages", "type": "civilization", "modifiers": {"actions": 1}}
 const UNREST := {"id": "unrest", "name": "Unrest", "type": "event", "discard": {"turns": 1}, "modifiers": {"actions": -1}}
 const RIOT := {"id": "riot", "name": "Riot", "type": "event", "discard": {"turns": 1}, "modifiers": {"actions": -3}}
-const FIXTURES := [PALACE, CALENDAR, SAGES, UNREST, RIOT]
+const LULL := {"id": "lull", "name": "Lull", "type": "event"}
+const FIXTURES := [PALACE, CALENDAR, SAGES, UNREST, RIOT, LULL]
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 
@@ -110,6 +111,7 @@ func test_actions_per_turn_adds_the_actions_modifier() -> void:
 	var u: GameEngine = band_game()
 	activate(u, "unrest")
 	eq(u.actions_per_turn(), 1, "Band 2 − Unrest 1")
+	u.create_card("lull", "event_deck", null)  # turn 2's event, so Unrest isn't reshuffled and drawn again (237)
 	u.end_turn()
 	check(card_ids(u.zone("event_discard")).has("unrest"), "Unrest has ended")
 	eq(u.actions_per_turn(), 2, "back to 2")

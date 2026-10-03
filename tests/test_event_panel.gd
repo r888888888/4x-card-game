@@ -38,12 +38,12 @@ func test_event_view_shows_its_turns_left() -> void:
 		main.start_game(1)
 		var e := Game.engine
 		arrange(e.zone("event_deck"), ["trade_winds"])
-		e.end_turn()  # Trade Winds drawn; turn 2's upkeep leaves 1 turn
+		e.end_turn()  # Trade Winds drawn at turn 2's start, after its upkeep: 2 turns left (237)
 		var uid := uid_of(e.zone("active_events"), "trade_winds")
 		var texts := {}
 		for v in main.event_panel().get("views", []):
 			texts[v.uid] = v.text
-		check(texts.get(uid, "").contains("1 turn left"), "Trade Winds view says '1 turn left': %s" % [texts])
+		check(texts.get(uid, "").contains("2 turns left"), "Trade Winds view says '2 turns left': %s" % [texts])
 		close_main(main))
 
 
