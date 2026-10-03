@@ -2,7 +2,7 @@
 id: 227
 title: Move Grow out of the pop meter into an actions row in the territory view
 type: feature
-status: red-review
+status: in-progress
 branch: feat/227-territory-actions-row
 ---
 

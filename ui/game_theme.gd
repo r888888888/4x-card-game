@@ -3,7 +3,7 @@ extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
 ## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel) and the pop meter's PipFilled, PipEmpty
-## and GrowPip (124), and the selectable list's ListWell and ListRow (217). A control takes one with
+## (124), IconButton (227), and the selectable list's ListWell and ListRow (217). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
 const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
@@ -90,7 +90,7 @@ static func _tech_tiles(t: Theme) -> void:
 
 
 ## The territory view's pop meter (124): a pip per housing, PipFilled for each pop and PipEmpty for the room left
-## (Panels), and GrowPip, the button on the first empty pip: a pip-coloured border round its cost and food icon.
+## (Panels); and IconButton, a Button whose icon (Grow's food, 227) is sized to sit beside its text.
 static func _pips(t: Theme) -> void:
 	for variation: String in ["PipFilled", "PipEmpty"]:
 		var filled := variation == "PipFilled"
@@ -99,22 +99,8 @@ static func _pips(t: Theme) -> void:
 		pip.set_corner_radius_all(Tokens.RADIUS_FULL)
 		t.set_type_variation(variation, "Panel")
 		t.set_stylebox("panel", variation, pip)
-	t.set_type_variation("GrowPip", "Button")
-	for state in ["normal", "hover", "pressed", "disabled"]:
-		var box := _box(Palette.CONTROL, Palette.POP)
-		box.set_corner_radius_all(Tokens.RADIUS_FULL)
-		box.content_margin_left = Tokens.SPACE_3
-		box.content_margin_right = Tokens.SPACE_3
-		box.content_margin_top = Tokens.SPACE_1
-		box.content_margin_bottom = Tokens.SPACE_1
-		if state == "hover":
-			box.bg_color = Palette.CONTROL.lightened(0.08)
-			box.border_color = Palette.TEXT
-		elif state == "disabled":
-			box.bg_color = Palette.CONTROL_DISABLED
-			box.border_color = Palette.CONTROL_DISABLED_BORDER
-		t.set_stylebox(state, "GrowPip", box)
-	t.set_constant("icon_max_width", "GrowPip", 20)
+	t.set_type_variation("IconButton", "Button")
+	t.set_constant("icon_max_width", "IconButton", 20)
 
 
 ## "Link": a flat Button that reads as a title you can click (a header's way back, 118): dim, accent on hover.
