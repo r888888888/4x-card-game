@@ -178,6 +178,31 @@ static func revolt_error(e: GameEngine) -> String:
 	return ""
 
 
+## What a revolution declared now would bring (205), one line each, with this game's numbers: when Anarchy falls, how
+## long it lasts (revolt_forecast), its actions and allowed cards, what stops, the drain (unrest.drain_pct), renewal
+## (unrest.renewal) and how it ends; a line whose config is missing is left out. [] when revolt_error says no.
+static func revolt_summary(e: GameEngine) -> Array[String]:
+	var out: Array[String] = []
+	if revolt_error(e) != "":
+		return out
+	var unrest: Dictionary = e.config.unrest
+	var n := revolt_forecast(e)
+	out.append("Anarchy falls at the start of next turn.")
+	out.append("It lasts up to %d turn%s; calming shortens it." % [n, "" if n == 1 else "s"])
+	var actions: int = e.card_db[unrest.anarchy].actions
+	var tag: String = unrest.get("allowed_tag", "")
+	var allowed := ("only %s cards can be played" % tag) if tag != "" else "no cards can be played"
+	out.append("%d action%s each turn; %s." % [actions, "" if actions == 1 else "s", allowed])
+	out.append("Nothing can be grown, bought or researched.")
+	if unrest.get("drain_pct", 0) > 0:
+		out.append("Each turn it eats %d%% of stored food and wealth." % unrest.drain_pct)
+	if unrest.has("renewal"):
+		var r: int = unrest.renewal
+		out.append("Each turn: trash %d card%s, +1 per turn so far, from your discard (−1 unrest each)." % [r, "" if r == 1 else "s"])
+	out.append("When it ends, choose a government from your government deck.")
+	return out
+
+
 ## Declares a revolution (155): Anarchy falls at the next turn's start. Uses no action and changes nothing else this
 ## turn. False (and no change) if revolt_error says no.
 static func revolt(e: GameEngine) -> bool:

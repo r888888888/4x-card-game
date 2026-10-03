@@ -99,7 +99,7 @@ func test_keys_and_clicks_do_not_reach_the_board_while_the_doors_move() -> void:
 		press_key(main, KEY_E)
 		press_key(main, KEY_T)
 		eq(e.turn, turn, "E does nothing")
-		check(main.tech_tree.shown().is_empty(), "T does nothing"))
+		check(main.knowledge.shown().is_empty(), "T does nothing"))
 
 
 # --- AC3: choosing closes them over the overlay and parts them on the Realm ---

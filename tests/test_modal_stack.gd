@@ -1,8 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The modal stack in the real main scene (backlog 153): every modal opens on main.modals, the top one alone takes keys
 ## and clicks, Esc / its close keys / Close / a click outside close only the top one, closing a lower one closes those
-## above, and each level's panel is cascaded from the one below. "Tree + details": the tech tree open with a tech's
-## details over it. Hooks: main.modals (depth(), top()) and a modal's panel.
+## above, and each level's panel is cascaded from the one below. "Tree + details": the civilization modal open with a
+## tech's details over it (the tech tree was the lower modal until it became a screen, 208). Hooks: main.modals (depth(), top()) and a modal's panel.
 
 const CASCADE := Vector2(8, 8)  # a stacked sheet sits +8,+8 on the one below (207)
 
@@ -18,10 +18,10 @@ func with_tree_and_details(body: Callable) -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	main.tech_tree.open()
+	main.identity_modal.open()
 	main.details.open_def(first_tech_id())
 	await wait_frames()
-	check(not main.tech_tree.shown().is_empty() and not main.details.shown().is_empty(), "tree + details open")
+	check(not main.identity_modal.shown().is_empty() and not main.details.shown().is_empty(), "civilization + details open")
 	await body.call(main)
 	close_main(main)
 	window.size = _old_window_size
@@ -71,10 +71,10 @@ func test_esc_closes_the_details_over_the_tree_then_the_tree() -> void:
 		eq(depth(main), 2, "two modals open")
 		press_key(main, KEY_ESCAPE)
 		eq(main.details.shown(), {}, "Esc closes the details")
-		check(not main.tech_tree.shown().is_empty(), "the tree stays open")
+		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
 		eq(depth(main), 1, "one modal left")
 		press_key(main, KEY_ESCAPE)
-		eq(main.tech_tree.shown(), [] as Array[String], "a second Esc closes the tree")
+		eq(main.identity_modal.shown(), [] as Array[String], "a second Esc closes the tree")
 		eq(depth(main), 0, "none left"))
 
 
@@ -85,13 +85,13 @@ func test_a_click_outside_both_panels_closes_only_the_details() -> void:
 		click_at(main, main.get_viewport().get_visible_rect().end - Vector2(5, 5))
 		await wait_frames()
 		eq(main.details.shown(), {}, "the details close")
-		check(not main.tech_tree.shown().is_empty(), "the tree stays open")
+		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
 		eq(depth(main), 1, "one modal left"))
 
 
 func test_a_click_on_the_tree_beside_the_details_closes_only_the_details() -> void:
 	await with_tree_and_details(func(main: Node):
-		var tree := panel_rect(main.tech_tree)
+		var tree := panel_rect(main.identity_modal)
 		var at := tree.position + Vector2(6, 6)  # the tree panel's corner, inside its padding
 		check(tree.has_area() and tree.has_point(at), "the point is on the tree's panel: %s" % [tree])
 		check(not panel_rect(main.details).has_point(at), "and not on the details' panel")
@@ -99,7 +99,7 @@ func test_a_click_on_the_tree_beside_the_details_closes_only_the_details() -> vo
 		click_at(main, at)
 		await wait_frames()
 		eq(main.details.shown(), {}, "the details close")
-		check(not main.tech_tree.shown().is_empty(), "the tree stays open")
+		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
 		eq(depth(main), 1, "one modal left: no tech's details opened")
 		eq(Game.engine.zone("researched").size(), researched, "no tech learned"))
 
@@ -111,12 +111,12 @@ func test_keys_go_to_the_top_modal_only() -> void:
 		var turn := Game.engine.turn
 		press_key(main, KEY_T)
 		eq(depth(main), 2, "T (the tree's key) leaves both open")
-		check(not main.tech_tree.shown().is_empty() and not main.details.shown().is_empty(), "both still shown")
+		check(not main.identity_modal.shown().is_empty() and not main.details.shown().is_empty(), "both still shown")
 		press_key(main, KEY_E)
 		eq(Game.engine.turn, turn, "E doesn't end the turn")
 		press_key(main, KEY_I)
 		eq(main.details.shown(), {}, "I (the details' key) closes the details")
-		check(not main.tech_tree.shown().is_empty(), "the tree stays open")
+		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
 		eq(depth(main), 1, "one modal left"))
 
 
@@ -124,19 +124,19 @@ func test_keys_go_to_the_top_modal_only() -> void:
 
 func test_closing_the_tree_closes_the_details_over_it() -> void:
 	await with_tree_and_details(func(main: Node):
-		main.tech_tree.close()
+		main.identity_modal.close()
 		eq(main.details.shown(), {}, "the details close with the tree")
-		eq(main.tech_tree.shown(), [] as Array[String], "the tree is closed")
+		eq(main.identity_modal.shown(), [] as Array[String], "the tree is closed")
 		eq(depth(main), 0, "none left"))
 
 
 func test_reopening_the_tree_brings_it_to_the_top() -> void:
 	await with_tree_and_details(func(main: Node):
-		main.tech_tree.open()
+		main.identity_modal.open()
 		eq(main.details.shown(), {}, "the details above it close")
-		check(not main.tech_tree.shown().is_empty(), "the tree is open")
+		check(not main.identity_modal.shown().is_empty(), "the tree is open")
 		eq(depth(main), 1, "one modal")
-		check(top(main) == main.tech_tree, "the tree on top"))
+		check(top(main) == main.identity_modal, "the tree on top"))
 
 
 # --- AC5: the cascade ---
@@ -156,7 +156,7 @@ func test_a_modal_alone_is_centred() -> void:
 func test_a_modal_over_another_is_one_cascade_step_from_centre() -> void:
 	await with_tree_and_details(func(main: Node):
 		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout  # the sheets' rise (207)
-		var tree := panel_rect(main.tech_tree)
+		var tree := panel_rect(main.identity_modal)
 		var details := panel_rect(main.details)
 		check(tree.has_area() and details.has_area(), "both have panels")
 		check(tree.get_center().distance_to(screen_center(main)) <= 1.0, "the tree, below, is centred: %s" % [
@@ -175,19 +175,6 @@ func test_details_open_on_the_stack_and_close_with_close() -> void:
 	eq(depth(main), 1, "one modal")
 	check(top(main) == main.details, "the details on top")
 	for b in UIKit.buttons_in(main.details):
-		if b.text.begins_with("Close"):
-			b.pressed.emit()
-	eq(depth(main), 0, "Close closes it")
-	close_main(main)
-
-
-func test_the_tree_opens_on_the_stack_and_close_closes_it() -> void:
-	var main := open_main()
-	main.start_game(1)
-	main.tech_tree.open()
-	eq(depth(main), 1, "one modal")
-	check(top(main) == main.tech_tree, "the tree on top")
-	for b in UIKit.buttons_in(main.tech_tree):
 		if b.text.begins_with("Close"):
 			b.pressed.emit()
 	eq(depth(main), 0, "Close closes it")
@@ -229,7 +216,7 @@ func test_a_new_game_closes_every_modal() -> void:
 	await with_tree_and_details(func(main: Node):
 		main.start_game(2)
 		eq(depth(main), 0, "none open")
-		eq(main.tech_tree.shown(), [] as Array[String], "the tree closed")
+		eq(main.identity_modal.shown(), [] as Array[String], "the tree closed")
 		eq(main.details.shown(), {}, "the details closed"))
 
 
@@ -237,5 +224,5 @@ func test_leaving_for_the_title_screen_closes_every_modal() -> void:
 	await with_tree_and_details(func(main: Node):
 		main.show_title_screen()
 		eq(depth(main), 0, "none open")
-		eq(main.tech_tree.shown(), [] as Array[String], "the tree closed")
+		eq(main.identity_modal.shown(), [] as Array[String], "the tree closed")
 		eq(main.details.shown(), {}, "the details closed"))

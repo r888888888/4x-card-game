@@ -84,11 +84,12 @@ res://
                          # modal.gd (153: Modal, every modal's base: scrim, close keys, click outside; 207: the drafting
                          # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
-                         # those above it), card_details_modal.gd (click, right-click or I), tech_tree_modal.gd
-                         # (Knowledge or T), event_modal.gd (each drawn event, 079), identity_modal.gd (119)
+                         # those above it), card_details_modal.gd (click, right-click or I),
+                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
+                         # revolt_modal.gd (205: the revolution's confirmation)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118: the breadcrumb), start_screen.gd (063, 099: the title screen),
-                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_screen.gd (099)
+                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
                          # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
                          # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
                          # code, with Heading/Title/Stat/DarkPanel variations), tokens.gd (193, 194: the guide's spacing,

@@ -11,7 +11,6 @@ var top_bar: TopBar
 var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var relief: ActionButton  # below the Realm while a Famine can be relieved
 var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var revolt: ActionButton  # beside them whenever you may revolt (148, 155)
 var menu: GameMenu
 var game_over: GameOverOverlay
 var event_modal: EventModal
@@ -50,7 +49,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.add_child(main.log_drawer)
 	main.log_drawer.unread_changed.connect(top_bar.set_log_unread)
 	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
-		or main.era_sheet.is_open())
+		or main.era_sheet.is_open() or main.knowledge.is_open())
 	main.add_child(main.toasts)
 
 	main.modals = ModalStack.new(main)
@@ -63,10 +62,17 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 		close_menu.call(false)
 		main.show_new_game_screen())
 	menu.exit_requested.connect(func(): main.quit_hook.call())
+	menu.settings_requested.connect(func(): main.settings_modal.open(Game.engine.seed_value))
 	main.details = CardDetailsModal.new(main.modals)
-	main.tech_tree = TechTreeModal.new(main.modals, main.details.open_def)
+	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_def)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
+	main.revolt_modal = RevoltModal.new(main.modals)
+	main.identity_modal.revolt_requested.connect(func(): main.revolt_modal.open(Game.engine))
+	main.settings_modal = SettingsModal.new(main.modals)
+	main.settings_modal.restart_requested.connect(func(seed_value: int):
+		close_menu.call(false)
+		restart.call(seed_value))
 	_build_screens(main, push_new_game_screen)
 	main.era_sheet = EraSheet.new()  # last: over everything, and first to take the input (211)
 	main.add_child(main.era_sheet)
@@ -86,7 +92,7 @@ func _build_board(main: MainScreen) -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", Tokens.SPACE_3)
 	margin.add_child(root)
-	top_bar = TopBar.new(main.open_menu, func(): main.tech_tree.open(), func(): main.log_drawer.toggle())
+	top_bar = TopBar.new(main.open_menu, func(): main.knowledge.toggle(), func(): main.log_drawer.toggle())
 	root.add_child(top_bar)
 
 	var below := HBoxContainer.new()  # the play area, then the sidebar at the right edge (202)
@@ -112,7 +118,6 @@ func _build_board(main: MainScreen) -> void:
 	realm_section.add_child(relief_row)
 	relief = ActionButton.relieve_famine(relief_row)
 	restore = ActionButton.restore_order(relief_row)
-	revolt = ActionButton.revolt(relief_row)
 
 
 ## The hand section: its "In Hand" heading (the how-to in its tooltip) with the actions count right-aligned on its line
@@ -151,10 +156,9 @@ func _build_screens(main: MainScreen, push_new_game_screen: Callable) -> void:
 	main.start_screen = StartScreen.new(main)
 	main.start_screen.new_game_requested.connect(push_new_game_screen)
 	main.start_screen.settings_requested.connect(func():
-		main.nav.push(main.settings_screen.overlay, main.settings_screen.back_button, "Settings"))
+		main.settings_modal.open())
 	main.start_screen.exit_requested.connect(func(): main.quit_hook.call())
 	main.nav.animated = true
 	main.new_game_screen = NewGameScreen.new(main, main.nav)
 	main.new_game_screen.start_requested.connect(func(seed_value: int):
 		main.start_game(seed_value, main.new_game_screen.selected))
-	main.settings_screen = SettingsScreen.new(main, main.nav)

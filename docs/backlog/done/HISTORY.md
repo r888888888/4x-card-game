@@ -138,5 +138,10 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 128. 211 the era ceremony: a sheet, rings and the era's name
 129. 212 the new game screen as a civilization list and a detail pane
 130. 213 the title screen as a ledger with large-format keys
+131. 206 a Settings modal, from the menu and the title screen
+132. 205 Revolt from the civilization modal, after a confirmation
+133. 203 End turn as the specimen's key at the sidebar's foot
+134. 201 the resource strip: a turn plate, figures and their forecasts
+135. 208 Knowledge as a screen of era rows, slid in on its rail
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).

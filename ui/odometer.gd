@@ -32,6 +32,7 @@ var _digit := Vector2.ZERO  # one digit's box
 
 func _init(p_variation := &"BarStat") -> void:
 	variation = p_variation
+	theme_type_variation = p_variation  # its own look reads as its digits' (201: a figure's size)
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
