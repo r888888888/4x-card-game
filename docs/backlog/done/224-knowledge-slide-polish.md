@@ -2,7 +2,7 @@
 id: 224
 title: The Knowledge screen's slide moves the Hand, crosses the sidebar and shows the Realm through it
 type: bug
-status: review
+status: done
 branch: fix/224-knowledge-slide-polish
 ---
 
