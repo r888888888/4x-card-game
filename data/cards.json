@@ -30,7 +30,7 @@
     {
       "id": "scout", "name": "Scout", "type": "action",
       "cost": {}, "vp": 0, "tags": ["explore"],
-      "effects": [ { "op": "explore" }, { "op": "draw", "amount": 1 }, { "op": "gain_actions", "amount": 1 } ]
+      "effects": [ { "op": "explore" } ]
     },
     {
       "id": "barter", "name": "Barter", "type": "action",
