@@ -121,6 +121,14 @@ func titles() -> Array[String]:
 	return _titles.duplicate()
 
 
+## Renames screen's title on the stack (a renamed territory, 248); nothing if screen isn't on it or keeps its title.
+func retitle(screen: Control, title: String) -> void:
+	var i := _screens.find(screen)
+	if i != -1 and _titles[i] != title:
+		_titles[i] = title
+		changed.emit()
+
+
 static func _sound(screen: Control, token: StringName) -> void:
 	var sfx := Sfx.find(screen)
 	if sfx != null:

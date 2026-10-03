@@ -58,6 +58,8 @@ static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 		var civilization := e._make_card(civ_id)
 		e.zone("civilization").add(civilization)
 		e._resolve(civilization, "start")
+		if home != null:
+			Territories.name_settled(e, home)
 		for card in e.zone("tableau").cards:  # a start create into the tableau builds on the home (133)
 			if card.def.type == CardDef.BUILDING and card.territory_uid == -1 and home != null:
 				card.territory_uid = home.uid

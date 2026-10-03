@@ -20,6 +20,7 @@ const TYPE_FIELDS := {
 	"discard": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"home": [CardDef.CIVILIZATION],
+	"city_names": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
@@ -276,6 +277,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	_parse_flavor(c, def, errs)
 	if def.type == CardDef.CIVILIZATION:
 		def.home = Fields.read_string(c, "home", errs, [], "")
+		def.city_names = _parse_city_names(c.get("city_names", []), errs)
 		if c.has("discounts"):
 			def.discounts = _parse_discounts(c.discounts, ctx.resources, errs)
 	if def.type == CardDef.EVENT:
@@ -464,3 +466,19 @@ static func _parse_discard(raw: Variant, errs: Array[String]) -> int:
 ## Parses config.json against cards: see ConfigLoader.parse_config, which does the work.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	return ConfigLoader.parse_config(raw, resources, cards, src, errors, warnings)
+
+
+## A civilization's city_names (248): a list of distinct, non-empty strings.
+static func _parse_city_names(raw: Variant, errs: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	if not (raw is Array):
+		errs.append("'city_names' must be an array of names")
+		return out
+	for name in raw:
+		if not (name is String) or (name as String).strip_edges() == "":
+			errs.append("'city_names' must be non-empty strings (got %s)" % [name])
+		elif out.has(name):
+			errs.append("'city_names' lists '%s' twice" % name)
+		else:
+			out.append(name)
+	return out

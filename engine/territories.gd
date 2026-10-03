@@ -213,6 +213,7 @@ static func settle(e: GameEngine, territory_uid: int, city_id: String, source: C
 		territory.pop = 1
 	var city := e.create_card(city_id, "tableau", source)
 	city.territory_uid = territory.uid
+	name_settled(e, territory)
 	e._log("  %s: settled %s." % [source.def.name, territory.def.name])
 	e._milestone(GameEngine.MILESTONE_CITY)
 
@@ -254,3 +255,57 @@ static func make(e: GameEngine, card_id: String) -> CardInstance:
 			card.keywords.append_array(option.keywords)
 			break
 	return card
+
+
+## Gives newly settled territory the civilization's next city name (248), then the list again with numerals (II,
+## III, …). Without a civilization or its city_names the territory keeps its card's name.
+static func name_settled(e: GameEngine, territory: CardInstance) -> void:
+	var civ := e.zone("civilization")
+	var names: Array[String] = civ.cards[0].def.city_names if not civ.is_empty() else ([] as Array[String])
+	if names.is_empty():
+		return
+	var n := e.state.names_given
+	e.state.names_given += 1
+	var cycle := floori(n / float(names.size())) + 1
+	territory.city_name = names[n % names.size()] + ("" if cycle == 1 else " " + _numeral(cycle))
+
+
+static func _numeral(n: int) -> String:
+	var out := ""
+	for step in [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+			[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]:
+		while n >= step[0]:
+			out += step[1]
+			n -= step[0]
+	return out
+
+
+## The name territory uid goes by: its city name once settled and named, else its card's name; "" for no territory.
+static func territory_name(e: GameEngine, uid: int) -> String:
+	for z in GameEngine.ZONES:
+		var card := e.zone(z).find(uid)
+		if card != null and card.def.type == CardDef.TERRITORY:
+			return card.shown_name()
+	return ""
+
+
+static func rename_error(e: GameEngine, uid: int, name: String) -> String:
+	var blocked := e._blocked_error("rename_territory")
+	if blocked != "":
+		return blocked
+	if settled(e, uid) == null:
+		return "Only a settled territory can be renamed."
+	var trimmed := name.strip_edges()
+	if trimmed == "":
+		return "Enter a name."
+	if trimmed.length() > GameEngine.MAX_TERRITORY_NAME:
+		return "A name can be at most %d characters." % GameEngine.MAX_TERRITORY_NAME
+	return ""
+
+
+static func rename(e: GameEngine, uid: int, name: String) -> bool:
+	if rename_error(e, uid, name) != "":
+		return false
+	settled(e, uid).city_name = name.strip_edges()
+	e.changed.emit()
+	return true

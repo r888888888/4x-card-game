@@ -2,7 +2,7 @@
 id: 248
 title: Name territories after the civilization's historical cities
 type: feature
-status: red-review
+status: in-progress
 branch: feat/248-name-territories
 ---
 

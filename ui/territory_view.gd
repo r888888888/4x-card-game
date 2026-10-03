@@ -2,23 +2,27 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
 ## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name and info, its stats and pop meter, a row of its actions (Grow, 227), then its city and buildings and an outline per free slot; its card stays in
+## its name (its city name over its land's, 248) and info, its stats and pop meter, Rename… beside the name (248), a row of its actions (Grow, 227), then its city and buildings and an outline per free slot; its card stays in
 ## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
 ## empty while a game is on,
 ## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
 ## board places the view's cards through refresh; navigated asks the board to refresh after it opens or closes.
 
 signal navigated
+## Rename… pressed: the board opens the naming modal for territory t (248).
+signal rename_requested(t: int)
 
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
 var actions: HBoxContainer  # the territory's actions, under the stats and meter (227)
 var grow_button: Button  # in actions: Grow and its food cost; disabled with the reason as its tooltip (227)
+var rename_button: Button  # Rename…, a link beside the name, opening the naming modal (248)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 
-var _name: Label
+var _name: Label  # the territory's name: its city name once named (248)
+var _land: Label  # its card's name, as a caption under _name (248)
 var _info: RichTextLabel  # the territory card's info line (keywords, rolled resources)
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
@@ -54,8 +58,18 @@ func _init(board: MainScreen, realm: Control) -> void:
 	var title := HBoxContainer.new()
 	title.add_theme_constant_override("separation", Tokens.SPACE_4)
 	body.add_child(title)
+	var names := VBoxContainer.new()
+	names.add_theme_constant_override("separation", Tokens.SPACE_0)
+	title.add_child(names)
 	_name = UIKit.title("")
-	title.add_child(_name)
+	names.add_child(_name)
+	_land = Label.new()
+	_land.theme_type_variation = &"Caption"
+	names.add_child(_land)
+	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
+	rename_button.theme_type_variation = &"Link"
+	rename_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	title.add_child(rename_button)
 	_info = CardFace.rich_label("", Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_info.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -108,7 +122,7 @@ func open(t: int) -> void:
 	var card: CardView = _board.views.get(t)
 	global_position = _realm.global_position  # where its container will put it: the Realm's place
 	size = _realm.size
-	var title := Game.engine.zone("tableau").find(t).def.name
+	var title := Game.engine.territory_name(t)
 	nav.push(self, null, title, card.get_global_rect() if card != null else Rect2())
 	navigated.emit()
 
@@ -176,7 +190,8 @@ func card_uids() -> Array[int]:
 
 ## The title line: the territory's name, then its info.
 func title_text() -> String:
-	return "%s  %s" % [_name.text, _info.get_meta("source", "")]
+	var land := ("  " + _land.text) if _land.visible else ""
+	return "%s%s  %s" % [_name.text, land, _info.get_meta("source", "")]
 
 
 func stats_text() -> String:
@@ -207,7 +222,13 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	_show_meter(e)
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
-	_name.text = territory.def.name
+	_name.text = e.territory_name(uid)
+	_land.text = territory.def.name
+	_land.visible = _land.text != _name.text
+	nav.retitle(self, _name.text)
+	var rename_error := e.rename_territory_error(uid, _name.text)
+	rename_button.disabled = rename_error != ""
+	rename_button.tooltip_text = rename_error if rename_error != "" else "Give %s a new name." % _name.text
 	var info := CardFace.keyword_line(territory)
 	_info.set_meta("source", info)
 	Icons.fill(_info, info, Tokens.TYPE_BODY, Palette.TEXT_DIM)

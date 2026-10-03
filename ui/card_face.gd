@@ -91,11 +91,15 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 		badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		badge_row.add_child(badge(BADGES[kind], color))
 		add_child(badge_row)
-	add_child(one_line(title_label(def.name)))
+	add_child(one_line(title_label(display_name(card))))
 	if kind != CardView.BOARD_FRONTIER:  # an unsettled territory keeps its hatching and dashed border instead
 		_add_band(color)
 	_set_rules_tip(card, card_db)
 	if def.type == CardDef.TERRITORY:
+		if display_name(card) != def.name:  # a named city: its land under the name (248)
+			var land := one_line(label(def.name, Tokens.TYPE_BODY_S, Palette.TEXT_DIM))
+			land.name = "Land"
+			add_child(land)
 		if kind == CardView.BOARD_FRONTIER:
 			var keywords := keyword_line(card)
 			if keywords != "":
@@ -367,3 +371,8 @@ static func rich_label(text: String, font_size: int, color := Palette.TEXT) -> R
 	result.set_meta("source", text)  # the text with its glyphs, which are drawn as icons (see text())
 	Icons.fill(result, text, font_size, color)
 	return result
+
+
+## The name card goes by on its face: a settled territory's city name (248), else its card's.
+static func display_name(card: CardInstance) -> String:
+	return card.shown_name()
