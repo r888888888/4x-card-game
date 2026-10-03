@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Back Button Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-hover: 90ms; --ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --focus: #1F6A68;
+	--territory: #4E6B47; --tech: #1F6A68; --on-plane: #FBF6EC;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --focus: #6CC3BC;
+	--territory: #93B585; --tech: #5FB0A9; --on-plane: #1F1E1C;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 16px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+main { max-width: 1040px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-7); }
+h1 { font: 500 34px/1.1 var(--f-display); margin: 0 0 var(--space-2); }
+h2 { font: 500 22px/1.2 var(--f-display); margin: 0 0 var(--space-2); }
+.lede { color: var(--ink-2); max-width: 72ch; margin: 0 0 var(--space-4); }
+.toolbar { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); }
+.toolbar button { font: 600 13px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; background: var(--steel); color: var(--ink);
+	border: 1px solid var(--rule); border-radius: var(--radius-1); padding: var(--space-1) var(--space-3); cursor: pointer; }
+.toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--board); }
+
+section { padding: var(--space-6) 0; border-top: 1px solid var(--rule-fine); }
+section.pick { border-top: 4px solid var(--signal); }
+.tag { font: 600 12px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.pick .tag { color: var(--signal); }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); margin-top: var(--space-4); }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+.cols p { margin: 0 0 var(--space-2); color: var(--ink-2); }
+.cols ul { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
+.cols li { margin: 2px 0; }
+b { color: var(--ink); font-weight: 600; }
+.bars { display: grid; gap: var(--space-3); }
+
+/* The title-block bar, at game size */
+.bar { --c: var(--tech); display: flex; align-items: center; gap: var(--space-4); background: var(--c); color: var(--on-plane);
+	min-height: 52px; padding: 0 var(--space-4) 0 var(--space-3); position: relative; }
+.bar.terr { --c: var(--territory); }
+.bar .name { font: 500 24px/1 var(--f-display); }
+.bar .ctx { margin-left: auto; font: 600 12px var(--f-cond); letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.key { display: inline-block; font: 600 10px/1 var(--f-cond); letter-spacing: .06em; border: 1px solid currentColor; border-bottom-width: 2px;
+	border-radius: var(--radius-1); padding: 2px 4px; }
+.small { font: 600 10px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+.back { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-2); color: inherit;
+	transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined); }
+.back:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* 1 · Key plan */
+.keyplan { flex-direction: column; align-items: flex-start; gap: 3px; }
+.keyplan svg { display: block; background: var(--c); }
+.keyplan:hover svg { transform: translate(-2px, -2px); box-shadow: 2px 2px 0 var(--on-plane); }
+.keyplan:active svg { transform: none; box-shadow: none; }
+
+/* 2 · Sheet callout */
+.callout:hover .disc { fill: var(--on-plane); }
+.callout:hover .disc-t { fill: var(--c); }
+.callout .lbl { display: flex; flex-direction: column; gap: 3px; }
+
+/* 3 · Divider tab */
+.bar.tabbed { padding-left: 0; }
+.divtab { align-self: stretch; padding: 0 var(--space-4) 0 var(--space-3); background: var(--board); color: var(--ink);
+	clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 0 100%); padding-right: 26px; gap: var(--space-2); }
+.divtab:hover { background: var(--sheet); }
+.divtab:active { transform: translateX(-3px); }
+
+/* 4 · Console key */
+.ckey { background: var(--steel); color: var(--ink); border: 1px solid var(--rule); border-bottom-width: 3px; border-radius: var(--radius-1);
+	padding: 5px 10px 4px; display: inline-grid; grid-template-columns: auto auto; column-gap: 8px; align-items: center; }
+.ckey .main { font: 600 13px/1 var(--f-cond); letter-spacing: .1em; }
+.ckey .esc { grid-column: 2; grid-row: 1; font: 600 8px/1 var(--f-cond); letter-spacing: .1em; color: var(--ink-3); align-self: start; }
+.ckey:hover { border-bottom-width: 4px; margin-top: -1px; }
+.ckey:active { border-bottom-width: 1px; margin-top: 2px; }
+
+/* 5 · Label holder */
+.holder { flex-direction: column; gap: 0; align-items: center; }
+.holder .frame { border: 2px solid var(--on-plane); padding: 2px 8px; font: 600 11px/1.1 var(--f-cond); letter-spacing: .14em; background: var(--sheet); color: var(--ink); }
+.holder:hover .frame { background: var(--board); }
+
+/* In context */
+.game { background: var(--board); border: 1px solid var(--rule); font: 500 12px/1.2 var(--f-cond); color: var(--ink); display: grid;
+	grid-template-rows: 28px auto; }
+.top { display: flex; align-items: center; gap: 6px; padding: 0 8px; border-bottom: 3px solid var(--ink-2); }
+.top .sp { flex: 1; }
+.btn { border: 1px solid var(--rule); background: var(--steel); border-radius: var(--radius-1); padding: 2px 6px; }
+.btn.lit { background: var(--territory); border-color: var(--territory); color: var(--on-plane); }
+.gbody { display: grid; grid-template-columns: 1fr 200px; min-height: 360px; }
+.work { display: grid; grid-template-rows: auto 1fr 110px; }
+.side { border-left: 1px solid var(--rule-fine); padding: 8px; display: flex; flex-direction: column; color: var(--ink-2); }
+.side .end { margin-top: auto; background: var(--signal); color: var(--on-signal); padding: 8px; font-weight: 600; letter-spacing: .08em; }
+.terrbox { margin: 12px; border: 2px solid var(--territory); background: color-mix(in srgb, var(--sheet) 88%, var(--territory)); padding: 10px; align-self: start; }
+.terrbox .row { display: flex; gap: 8px; margin-top: 8px; }
+.terrbox .row i { width: 70px; height: 52px; background: var(--sheet); border: 1px solid var(--rule); }
+.terrbox .row i.o { background: transparent; border-style: dashed; }
+.hand { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--rule-fine); }
+.hand i { width: 78px; border: 1px solid var(--rule); background: var(--sheet); }
+
+.summary { margin-top: var(--space-6); padding: var(--space-5); background: var(--sheet); border-left: 4px solid var(--signal); }
+.summary ol { color: var(--ink-2); padding-left: 1.3em; margin: var(--space-2) 0 0; }
+.summary li { margin: var(--space-2) 0; }
+</style>
+</head>
+<body>
+<!-- Shared hatch: the frontier, as on the board -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+	<pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+		<line x1="0" y1="0" x2="0" y2="4" stroke="currentColor" stroke-width="1"/></pattern>
+</defs></svg>
+<main>
+<h1>The way home, made of something</h1>
+<p class="lede">These variations on B, the coloured title-block bar, keep the bar and change its left end. The guide's
+desk gives the vocabulary: paper holds information, steel holds controls, a split circle is a period motif, and the
+Realm is a plan laid on a blotter. Each option is shown on Knowledge (teal) and on a territory (sage), at game size.
+Hover and press the buttons to try them.</p>
+<div class="toolbar" role="group" aria-label="Theme">
+	<button type="button" data-t="night" aria-pressed="true">Night</button>
+	<button type="button" data-t="paper" aria-pressed="false">Paper</button>
+</div>
+
+<!-- 1 Key plan -->
+<section class="pick">
+	<span class="tag">1 · recommended · drafting</span><h2>The key plan</h2>
+	<div class="bars">
+		<div class="bar"><button class="back keyplan" title="Back to the Realm (Esc)">
+			<svg width="68" height="30" viewBox="0 0 68 30" aria-hidden="true">
+				<rect x="0.75" y="0.75" width="66.5" height="28.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="5" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="20" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="35" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="50" y="6" width="12" height="17" fill="url(#hatch)" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+			</svg>
+			<span class="small">◂ Realm <span class="key">Esc</span></span>
+		</button><span class="name">Knowledge</span><span class="ctx">Ancient era · 4 insight</span></div>
+		<div class="bar terr"><button class="back keyplan" title="Back to the Realm (Esc)">
+			<svg width="68" height="30" viewBox="0 0 68 30" aria-hidden="true">
+				<rect x="0.75" y="0.75" width="66.5" height="28.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="5" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="20" y="6" width="12" height="17" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="35" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<rect x="50" y="6" width="12" height="17" fill="url(#hatch)" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+			</svg>
+			<span class="small">◂ Realm <span class="key">Esc</span></span>
+		</button><span class="name">Delta Marsh</span><span class="ctx">Territory · 2 of 3</span></div>
+	</div>
+	<div class="cols">
+		<div><p>Architects' title blocks carry a <b>key plan</b>: a thumbnail of the whole building with the part this sheet
+			shows filled in. Here the button is a thumbnail of the Realm. There is one cell per territory card in tableau order,
+			the frontier is hatched as on the board, and the territory you're in is filled. Under it is "◂ REALM" with the Esc
+			keycap.</p>
+			<p>On hover, the plan lifts with a hard plinth shadow (§11.3's tile hover). On press, it seats.</p></div>
+		<ul><li><b>+</b> The button is a picture of where it takes you, so "click the Realm to go to the Realm" needs no
+			explaining. On a territory it also answers "which one am I in?"</li>
+			<li><b>+</b> It is pure drafting and paper, the guide's §11.6 site-plan world, and adds no new motif.</li>
+			<li><b>−</b> It needs the Realm's layout: the engine already lists territories, and the UI draws the cells. With many
+				territories, the cells must shrink or wrap.</li>
+			<li><b>−</b> On Knowledge nothing is filled, which is honest (you're not in any territory) but tells you less.</li></ul>
+	</div>
+</section>
+
+<!-- 2 Callout -->
+<section>
+	<span class="tag">2 · drafting · period motif</span><h2>The sheet callout</h2>
+	<div class="bars">
+		<div class="bar"><button class="back callout" title="Back to the Realm (Esc)">
+			<svg width="44" height="36" viewBox="0 0 44 36" aria-hidden="true">
+				<polygon points="2,18 12,12 12,24" fill="currentColor"/>
+				<circle class="disc" cx="27" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+				<line x1="12" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="2"/>
+				<text class="disc-t" x="27" y="15" text-anchor="middle" font-family="Barlow Semi Condensed" font-weight="600" font-size="11" fill="currentColor">R</text>
+				<text class="disc-t" x="27" y="30" text-anchor="middle" font-family="Barlow Semi Condensed" font-weight="600" font-size="11" fill="currentColor">1</text>
+			</svg>
+			<span class="lbl"><span class="small">Realm</span><span class="key" style="align-self:flex-start">Esc</span></span>
+		</button><span class="name">Knowledge</span><span class="ctx">Sheet 2 · Ancient era</span></div>
+		<div class="bar terr"><button class="back callout" title="Back to the Realm (Esc)">
+			<svg width="44" height="36" viewBox="0 0 44 36" aria-hidden="true">
+				<polygon points="2,18 12,12 12,24" fill="currentColor"/>
+				<circle class="disc" cx="27" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+				<line x1="12" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="2"/>
+				<text class="disc-t" x="27" y="15" text-anchor="middle" font-family="Barlow Semi Condensed" font-weight="600" font-size="11" fill="currentColor">R</text>
+				<text class="disc-t" x="27" y="30" text-anchor="middle" font-family="Barlow Semi Condensed" font-weight="600" font-size="11" fill="currentColor">1</text>
+			</svg>
+			<span class="lbl"><span class="small">Realm</span><span class="key" style="align-self:flex-start">Esc</span></span>
+		</button><span class="name">Delta Marsh</span><span class="ctx">Sheet R.2 · Territory</span></div>
+	</div>
+	<div class="cols">
+		<div><p>A drawing set's <b>reference bubble</b>, the split circle that says "see sheet 1", with a triangle pointing
+			back. The Realm is sheet 1. Each screen's context reads as a sheet number, so the set has an order. On hover, the
+			disc fills like a lit lamp.</p></div>
+		<ul><li><b>+</b> It uses the split circle, a motif the guide already names (§2), and is a crisp, iconic mark that
+			scales down well.</li>
+			<li><b>−</b> You have to know what an architect's callout means: "R / 1" is decoration until the label explains it.</li>
+			<li><b>−</b> Counts as the screen's one period motif, which Knowledge may want for its 12-ray burst.</li></ul>
+	</div>
+</section>
+
+<!-- 3 Divider tab -->
+<section>
+	<span class="tag">3 · paper · spatial</span><h2>The divider tab</h2>
+	<div class="bars">
+		<div class="bar tabbed"><button class="back divtab" title="Back to the Realm (Esc)">
+			<span class="small">◂ Realm</span><span class="key">Esc</span>
+		</button><span class="name">Knowledge</span><span class="ctx">Ancient era · 4 insight</span></div>
+		<div class="bar terr tabbed"><button class="back divtab" title="Back to the Realm (Esc)">
+			<span class="small">◂ Realm</span><span class="key">Esc</span>
+		</button><span class="name">Delta Marsh</span><span class="ctx">Territory</span></div>
+	</div>
+	<div class="cols">
+		<div><p>The bar's left end is cut away to show the <b>index tab of the Realm sheet</b> underneath, in the board's
+			colour, its edge slanted like a file divider. Clicking it pulls that sheet back on top. On press, the tab nudges
+			left, the way it will slide.</p></div>
+		<ul><li><b>+</b> It shows the space: the Realm is still there underneath, and its tab is how you get it. It matches
+			the slide-out transition.</li>
+			<li><b>+</b> It's simple to build: a slanted panel and a label.</li>
+			<li><b>−</b> A territory nested on Knowledge would need two tabs stepped side by side to stay honest.</li></ul>
+	</div>
+</section>
+
+<!-- 4 Console key -->
+<section>
+	<span class="tag">4 · steel · the desk's controls</span><h2>The console key</h2>
+	<div class="bars">
+		<div class="bar"><button class="back ckey" title="Back to the Realm (Esc)"><span class="main">◂ REALM</span><span class="esc">ESC</span></button>
+			<span class="name">Knowledge</span><span class="ctx">Ancient era · 4 insight</span></div>
+		<div class="bar terr"><button class="back ckey" title="Back to the Realm (Esc)"><span class="main">◂ REALM</span><span class="esc">ESC</span></button>
+			<span class="name">Delta Marsh</span><span class="ctx">Territory</span></div>
+	</div>
+	<div class="cols">
+		<div><p>A <b>steel keycap</b> from the desk's console, with a dual legend: "◂ REALM" as the main legend and "ESC" small
+			in the corner, like the shifted legend on a real key. It travels and seats when pressed (§10.1), and it is a
+			sibling of the End turn key.</p></div>
+		<ul><li><b>+</b> It's clearly a control: steel holds controls, and it reads as a button at once.</li>
+			<li><b>+</b> Esc is part of the key's legend instead of a separate keycap.</li>
+			<li><b>−</b> It's the least thematic of the five: a key labelled "Realm" is just a nicer button. It's also steel sitting on
+				a paper bar, which §1 frowns on.</li></ul>
+	</div>
+</section>
+
+<!-- 5 Label holder -->
+<section>
+	<span class="tag">5 · furniture · card catalog</span><h2>The drawer label</h2>
+	<div class="bars">
+		<div class="bar"><button class="back holder" title="Back to the Realm (Esc)">
+			<span class="frame">◂ REALM</span>
+			<svg width="40" height="10" viewBox="0 0 40 10" aria-hidden="true"><path d="M2 0 A18 9 0 0 0 38 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+		</button><span class="key">Esc</span><span class="name">Knowledge</span><span class="ctx">Ancient era · 4 insight</span></div>
+		<div class="bar terr"><button class="back holder" title="Back to the Realm (Esc)">
+			<span class="frame">◂ REALM</span>
+			<svg width="40" height="10" viewBox="0 0 40 10" aria-hidden="true"><path d="M2 0 A18 9 0 0 0 38 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+		</button><span class="key">Esc</span><span class="name">Delta Marsh</span><span class="ctx">Territory</span></div>
+	</div>
+	<div class="cols">
+		<div><p>A <b>card-catalog drawer's label holder and cup pull</b>: a framed paper label above a half-round pull.
+			Knowledge's techs are already index cards (§11.3), so the screen is a drawer you've pulled out, and the pull
+			pushes it back.</p></div>
+		<ul><li><b>+</b> It's very much of 1962 and pairs with the guide's "drawer on its runners" sound.</li>
+			<li><b>−</b> The metaphor only fits Knowledge, since a territory isn't a drawer. It edges toward the "retro" the
+				guide rules out, and the pull's shape doesn't say "back".</li></ul>
+	</div>
+</section>
+
+<!-- In context -->
+<section>
+	<span class="tag">In context</span><h2>The key plan on a territory</h2>
+	<div class="game">
+		<div class="top"><span>T001 · 6 · 3 · 1</span><span class="sp"></span><span class="btn">Buy Cards</span><span class="btn">Knowledge</span><span class="btn">Log</span><span class="btn">Menu</span></div>
+		<div class="gbody"><div class="work">
+			<div class="bar terr"><button class="back keyplan" title="Back to the Realm (Esc)">
+				<svg width="68" height="30" viewBox="0 0 68 30" aria-hidden="true">
+					<rect x="0.75" y="0.75" width="66.5" height="28.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+					<rect x="5" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+					<rect x="20" y="6" width="12" height="17" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+					<rect x="35" y="6" width="12" height="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+					<rect x="50" y="6" width="12" height="17" fill="url(#hatch)" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+				</svg>
+				<span class="small">◂ Realm <span class="key">Esc</span></span>
+			</button><span class="name">Delta Marsh</span><span class="ctx">Territory · 2 of 3</span></div>
+			<div class="terrbox"><span>3 · 2/7 · 1</span><div class="row"><i></i><i></i><i class="o"></i><i class="o"></i></div></div>
+			<div class="hand"><i></i><i></i><i></i><i></i><i></i></div>
+		</div><div class="side"><span class="small" style="color:var(--ink-3)">Civilization</span>Sumer<span class="end">END TURN</span></div></div>
+	</div>
+</section>
+
+<div class="summary">
+	<h2>Recommendation: the key plan, with the divider tab as fallback</h2>
+	<ol>
+		<li><b>Key plan (1).</b> It's the only option where the button itself carries information: the Realm in miniature, with
+			your place in it marked. It belongs to the desk's drafting language without adding a motif. Label it
+			"◂ REALM" with the Esc keycap so nobody has to decode it.</li>
+		<li><b>When stacked</b> (a territory opened over Knowledge), the plan still goes to the Realm, and the breadcrumb's
+			parent ("Knowledge") stays as a text link beside the name for the one-step-back case.</li>
+		<li><b>If the plan reads poorly at small sizes</b> (many territories, or the Paper theme), fall back to the divider tab
+			(3). It is just as clear about the space, cheaper to build, and has no drawing to scale.</li>
+	</ol>
+</div>
+</main>
+<script>
+for (const b of document.querySelectorAll(".toolbar button")) b.addEventListener("click", () => {
+	document.documentElement.dataset.theme = b.dataset.t;
+	for (const o of document.querySelectorAll(".toolbar button")) o.setAttribute("aria-pressed", String(o === b));
+});
+</script>
+</body>
+</html>

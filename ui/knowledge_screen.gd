@@ -1,7 +1,7 @@
 class_name KnowledgeScreen
 extends VBoxContainer
 ## The Knowledge screen (backlog 208; the tech tree modal of 059 and 140 before it): a navigated screen on the play
-## area's navigator (the Realm at its root, 101), its header "Realm › Knowledge" with the turn and era at its right.
+## area's navigator (the Realm at its root, 101), its header a teal bar ("◂ Realm", "Knowledge", 241) with the turn and era at its right.
 ## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
 ## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
 ## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
@@ -46,14 +46,10 @@ func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
 	_open_tech = open_tech
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", UIKit.HEADING_GAP)
-	var top := HBoxContainer.new()
-	add_child(top)
-	header = ScreenHeader.new(nav, close)
-	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(header)
+	header = ScreenHeader.new(nav, close, &"TECH")
+	add_child(header)
 	_context = UIKit.heading("")
-	_context.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top.add_child(_context)
+	header.add_context(_context)
 	_insight = UIKit.heading("")
 	add_child(_insight)
 	var scroll := ScrollContainer.new()
