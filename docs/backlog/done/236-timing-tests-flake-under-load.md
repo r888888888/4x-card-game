@@ -2,7 +2,7 @@
 id: 236
 title: The cabinet doors and scaling tests flake on a loaded machine
 type: bug
-status: review
+status: done
 branch: fix/236-timing-tests-flake-under-load
 ---
 
