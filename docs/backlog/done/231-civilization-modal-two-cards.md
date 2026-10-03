@@ -2,7 +2,7 @@
 id: 231
 title: Show the civilization modal as two cards on the desk
 type: feature
-status: review
+status: done
 branch: feat/231-civilization-modal-two-cards
 ---
 
