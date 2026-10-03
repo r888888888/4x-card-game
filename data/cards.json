@@ -64,6 +64,7 @@
     },
     {
       "id": "forage", "name": "Forage", "type": "event",
+      "flavor": "When the stores run thin, the young go out at dawn and come back with roots, nuts and the odd unlucky hare.",
       "tags": [],
       "effects": [ { "op": "gain", "resource": "food", "amount": 2 } ]
     },
@@ -245,6 +246,7 @@
     },
     {
       "id": "harvest_festival", "name": "Harvest Festival", "type": "event",
+      "flavor": "The last sheaf is cut and carried home with songs; for one night the whole village eats as if winter will never come.",
       "tags": [],
       "effects": [
         { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" },
@@ -257,164 +259,219 @@
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
-      "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": []
+      "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": [],
+      "flavor": "On the longest night, fires burn on every hill and the elders watch for the sun to turn back."
     },
     {
-      "id": "traveling_bards", "name": "Traveling Bards", "type": "event", "tags": [], "effects": []
+      "id": "traveling_bards", "name": "Traveling Bards", "type": "event", "tags": [], "effects": [],
+      "flavor": "Strangers with lyres trade songs of far-off kings for a meal and a place by the fire."
     },
     {
-      "id": "comet_sighted", "name": "Comet Sighted", "type": "event", "tags": [], "effects": []
+      "id": "comet_sighted", "name": "Comet Sighted", "type": "event", "tags": [], "effects": [],
+      "flavor": "A long-haired star hangs over the fields for weeks, and the priests argue whether it foretells a birth or a death."
     },
     {
-      "id": "distant_drums", "name": "Distant Drums", "type": "event", "tags": [], "effects": []
+      "id": "distant_drums", "name": "Distant Drums", "type": "event", "tags": [], "effects": [],
+      "flavor": "From beyond the hills, drums beat through the night. No one has seen the drummers yet."
     },
     {
       "id": "wild_berries", "name": "Wild Berries", "type": "event", "tags": [],
+      "flavor": "The hedges hang heavy with fruit this year, and the children come home with purple hands.",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1 } ]
     },
     {
       "id": "wandering_trader", "name": "Wandering Trader", "type": "event", "tags": [],
+      "flavor": "A lone trader leads a laden donkey into the square, with salt, beads and news from the coast.",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1 } ]
     },
     {
       "id": "local_legend", "name": "Local Legend", "type": "event", "tags": [],
+      "flavor": "A shepherd who wrestled a lion becomes a hero; by the third retelling, it was two lions.",
       "effects": [ { "op": "score", "amount": 1 } ]
     },
     {
       "id": "mild_spring", "name": "Mild Spring", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "flavor": "The thaw comes early and gentle, and the rivers rise just enough.",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "famine", "name": "Famine", "type": "event", "tags": [],
+      "flavor": "The granaries echo. Families eat the seed grain, then the oxen, and pray for the next harvest.",
       "text": "Each hungry upkeep: +1 counter (max 3), −1 pop (largest territory) and +1 unrest per counter. Ends when your pop is fed.",
       "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" }, { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "market_day", "name": "Market Day", "type": "event", "tags": [],
+      "flavor": "The square fills with stalls, haggling and gossip, and coins change hands faster than rumours.",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "good_omens", "name": "Good Omens", "type": "event", "tags": [],
+      "flavor": "An eagle circles the citadel three times, and the augurs declare the gods well pleased.",
       "effects": [ { "op": "score", "amount": 1 } ]
     },
     {
       "id": "grumbling", "name": "Grumbling", "type": "event", "tags": [],
+      "flavor": "At the wells and in the taverns, people mutter about taxes, the harvest and the ones who rule them.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "omen_of_doom", "name": "Omen of Doom", "type": "event", "tags": [],
+      "flavor": "A calf is born with two heads and the moon turns red; the soothsayers will not meet anyone's eye.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ]
     },
     {
       "id": "bandit_raids", "name": "Bandit Raids", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "flavor": "Masked riders strike the roads at dusk, and caravans arrive late, light, or not at all.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "flavor": "Petitioners crowd the palace steps, demanding fairer laws and a say in how they are made.",
       "modifiers": { "renewal": 1 },
       "effects": []
     },
     {
       "id": "peasant_uprising", "name": "Peasant Uprising", "type": "event", "tags": [],
+      "flavor": "Pitchforks and torches: the farmers have had enough, and the steward's house burns first.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "radical_thinkers", "name": "Radical Thinkers", "type": "event", "tags": [], "era": 2, "discard": { "turns": 3 },
+      "flavor": "Teachers in the agora question the gods, the laws and the king, and the young listen.",
       "modifiers": { "renewal": 2 },
       "effects": []
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",
+      "flavor": "Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.",
+      "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
+      "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides and patient strength for the plough.",
+      "quote": { "text": "The master's eye fattens the horse.", "by": "Persian saying, in Xenophon's Oeconomicus" },
       "cost": { "insight": 6 }, "vp": 0, "tags": [],
       "effects": [ { "op": "create", "card": "pasture", "zone": "discard" }, { "op": "unlock", "card": "pasture" } ]
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
+      "flavor": "Copper, tin and flint are dug from the hills in narrow shafts lit by oil lamps.",
+      "quote": { "text": "Surely there is a vein for the silver, and a place for gold where they fine it.", "by": "Job 28:1" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "quarry", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "mine", "zone": "discard" }, { "op": "unlock", "card": "mine" } ]
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
+      "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise.",
+      "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
       "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
+      "flavor": "First spun by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains.",
+      "quote": { "text": "As it were a wheel in the middle of a wheel.", "by": "Ezekiel 1:16" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
+      "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
+      "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "quarry", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
+      "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across the seas.",
+      "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2,
+      "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
+      "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 } ]
     },
     {
       "id": "currency", "name": "Currency", "type": "tech", "era": 2, "prereq": "bronze_working",
+      "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and value fits in a purse.",
+      "quote": { "text": "Money does not stink.", "by": "Vespasian, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
+      "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts.",
+      "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
+      "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods.",
+      "quote": { "text": "Thou art a priest for ever after the order of Melchizedek.", "by": "Psalm 110:4" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" } ]
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
+      "flavor": "Written laws, set in stone for all to read, replace the whim of the chief with fixed rules.",
+      "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
+      "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days.",
+      "quote": { "text": "To every thing there is a season, and a time to every purpose under the heaven.", "by": "Ecclesiastes 3:1" },
       "cost": { "insight": 19 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
       "effects": []
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
+      "flavor": "Greek thinkers ask what the world is made of and how one should live, and answer with reason, not myth.",
+      "quote": { "text": "Philosophy begins in wonder.", "by": "Plato, Theaetetus" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "temple", "count": 2, "off": 6 }, "tags": [],
       "effects": []
     },
     {
       "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 3, "prereq": "bronze_working",
+      "flavor": "Iron is harder to smelt than bronze, but its ore is everywhere: soon every farmer has an iron blade.",
+      "quote": { "text": "For now truly is a race of iron, and men never rest from labour and sorrow by day.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "forge", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "currency",
+      "flavor": "Babylonian tables, Egyptian surveyors and Greek geometers turn counting into proof.",
+      "quote": { "text": "There is no royal road to geometry.", "by": "Euclid to Ptolemy I, in Proclus" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "market", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
     },
     {
       "id": "monarchy", "name": "Monarchy", "type": "tech", "era": 3, "prereq": "philosophy",
+      "flavor": "A crown passes from parent to heir, and loyalty to a dynasty binds the realm together.",
+      "quote": { "text": "Uneasy lies the head that wears a crown.", "by": "William Shakespeare, Henry IV, Part 2" },
       "cost": { "insight": 32 }, "vp": 3, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
+      "flavor": "Priests atop the ziggurats chart the wandering stars and learn to foretell eclipses.",
+      "quote": { "text": "The heavens declare the glory of God; and the firmament sheweth his handywork.", "by": "Psalm 19:1" },
       "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
       "effects": []
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
+      "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
+      "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "quarry", "count": 3, "off": 6 }, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },

@@ -18,9 +18,9 @@ const TYPE_FIELDS := {
 	"eureka": [CardDef.TECH],
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
-	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT],
+	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"home": [CardDef.CIVILIZATION],
-	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT],
+	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"discounts": [CardDef.CIVILIZATION],
@@ -273,8 +273,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 
 	if c.has("modifiers") and TYPE_FIELDS.modifiers.has(def.type):
 		def.modifiers = _parse_modifiers(c.modifiers, errs)
-	if def.type in [CardDef.CIVILIZATION, CardDef.GOVERNMENT]:  # a government's flavor since 205
-		_parse_flavor(c, def, errs)
+	_parse_flavor(c, def, errs)
 	if def.type == CardDef.CIVILIZATION:
 		def.home = Fields.read_string(c, "home", errs, [], "")
 		if c.has("discounts"):
@@ -409,14 +408,15 @@ static func _parse_modifiers(raw: Variant, errs: Array[String]) -> Dictionary:
 	return out
 
 
-## Reads a civilization's or a government's (205) optional flavor paragraph and quote {text, by} into def.
+## Reads a card's optional flavor line and quote {text, by} into def, each only on the types TYPE_FIELDS gives it
+## (civilizations and governments, 205; techs and, without a quote, events, 215).
 static func _parse_flavor(c: Dictionary, def: CardDef, errs: Array[String]) -> void:
-	if c.has("flavor"):
+	if c.has("flavor") and TYPE_FIELDS.flavor.has(def.type):
 		if c.flavor is String and c.flavor != "":
 			def.flavor = c.flavor
 		else:
 			errs.append("'flavor' must be a non-empty string")
-	if c.has("quote"):
+	if c.has("quote") and TYPE_FIELDS.quote.has(def.type):
 		var q: Variant = c.quote
 		var text: Variant = q.get("text") if q is Dictionary else null
 		var by: Variant = q.get("by") if q is Dictionary else null
