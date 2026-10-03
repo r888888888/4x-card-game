@@ -137,6 +137,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_event_eras.gd` | Event decks by era (074): an event's `era`, later-era events in `future_events`, shuffled in once when their era is added, the notice, the event tooltip |
 | `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
 | `tests/test_civ_flavor.gd` | Civilization `flavor` and `quote` (107): loading and validation, optional, in `def_details` / `card_details` |
+| `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215): loading and validation, in the details, never on a card face |
 | `tests/test_civ_home.gd` | A civilization's `home` territory (111): loading and validation, population start fitting each home, card text, the home settled at new game, the same decks with or without a home, its roll |
 | `tests/test_civ_start_building.gd` | A civilization's start building (133): a start `create` into the tableau puts the building on the home, works from turn 1, must be a building fitting the home's keywords and slots |
 | `tests/test_discounts.gd` | Civilization `discounts` (108): loading and validation, card text, type and tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors |

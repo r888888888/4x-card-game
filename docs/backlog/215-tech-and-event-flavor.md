@@ -2,7 +2,7 @@
 id: 215
 title: Flavor text and quotes for techs and events
 type: feature
-status: ready
+status: red-review
 branch: feat/215-tech-and-event-flavor
 ---
 
@@ -49,7 +49,13 @@ civilizations may set `flavor` and `quote` (107).
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_tech_event_flavor::test_a_tech_may_have_flavor_and_a_quote` |
+| AC2 | `test_tech_event_flavor::test_an_event_may_have_flavor` |
+| AC3 | `test_tech_event_flavor::test_a_quote_on_an_event_is_ignored_with_a_warning` (already passes: guards the rule) |
+| AC4 | `test_tech_event_flavor::test_tech_and_event_flavor_validation` |
+| AC5 | `test_tech_event_flavor::test_flavor_on_a_building_is_still_ignored_with_a_warning` (already passes: guards the rule) |
+| AC6 | `test_content::test_every_tech_has_flavor_and_a_quote_and_every_event_flavor` |
+| AC7 | `test_tech_event_flavor::test_a_tech_face_shows_no_flavor_or_quote`, `test_an_event_face_shows_no_flavor` |
 
 ## Manual check
 - [ ] Open a few techs from the tech tree: italic flavor, then the quote and its source, then the rules.
