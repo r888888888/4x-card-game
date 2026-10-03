@@ -63,6 +63,14 @@ static var AVAILABLE: Color = NIGHT["AVAILABLE"]
 static var FUTURE: Color = NIGHT["FUTURE"]
 static var LOCKED: Color = NIGHT["LOCKED"]  # a tech whose prerequisite isn't researched (140)
 
+# The title screen's art (214): a sun over a hill, its own roles so it can drift from the cards' planes.
+static var SUN: Color = NIGHT["SUN"]  # the sun at its height
+static var SUN_LOW: Color = NIGHT["SUN_LOW"]  # the sun near the horizon
+static var SKY_LOW: Color = NIGHT["SKY_LOW"]  # the sunset's bands near the horizon
+static var SKY_HIGH: Color = NIGHT["SKY_HIGH"]  # and higher up
+static var HILL: Color = NIGHT["HILL"]
+static var HILL_LOW: Color = NIGHT["HILL_LOW"]  # the hill at sunset
+
 # See-through layers.
 static var DIMMER: Color = NIGHT["DIMMER"]  # behind an overlay
 static var SCRIM: Color = NIGHT["SCRIM"]  # behind a modal
@@ -128,6 +136,12 @@ const NIGHT := {
 	"GHOST_EDGE": Color(1, 1, 1, 0.35),
 	"DROP_BG": Color(1, 0.85, 0.4, 0.03),
 	"HINT_BG": Color(0.08, 0.09, 0.11, 0.92),
+	"SUN": Color("d9a441"),
+	"SUN_LOW": Color("e0703f"),
+	"SKY_LOW": Color("e07a63"),
+	"SKY_HIGH": Color("d9a441"),
+	"HILL": Color("93b585"),
+	"HILL_LOW": Color("5fb0a9"),
 }
 
 ## The guide's Paper values (§4); the see-through layers take ink at low alpha instead of white (the scrim: ink at 40%).
@@ -182,6 +196,12 @@ const DAY := {
 	"GHOST_EDGE": Color("22211f59"),
 	"DROP_BG": Color("a8401b0d"),
 	"HINT_BG": Color("f8f4ecf0"),
+	"SUN": Color("d9a441"),
+	"SUN_LOW": Color("a8401b"),
+	"SKY_LOW": Color("c9705c"),
+	"SKY_HIGH": Color("d9a441"),
+	"HILL": Color("9db592"),
+	"HILL_LOW": Color("5e9c97"),
 }
 
 
