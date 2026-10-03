@@ -393,8 +393,8 @@ the specification, not an omission.
 4. **Tab** — a folder tab: square top, its rail below. Inactive tabs are `steel`; the active tab is `sheet`, joins
    the sheet below (no border between them) and carries a 3 px `ink` rail on top that slides between tabs. Sound: a
    shallow key, `ui.button.press` at −3 dB; the rail and the content change are silent (sub-navigation).
-5. **Toggle** — a **legend key**: a latching push key with a lamp strip across its top and its state printed on its
-   face (ON/OFF). ON latches it down and lights the strip. It reuses the button's press, so the UI has one kind of
+5. **Toggle** — a **lamp key** (the window bar, 219): a square latching push key with a small lamp window across the
+   middle of its face, its state word (ON/OFF) beside it. ON latches it down and lights the window. It reuses the button's press, so the UI has one kind of
    key, not a separate switch control. Sound: `ui.button.press`, then the latch: `ui.toggle.on` or `ui.toggle.off`.
    §15.4.
 6. **Resource counter** — caption with its lamp on the same line, then glyph + value grouped by spacing (no box),
@@ -509,7 +509,7 @@ travel (§16.5).
 | Hover feedback | in 90 ms, out 140 ms | Background one value step; shadow unchanged. Links: underline wipe 0→100%. | in `machined`, out `release` | None |
 | Button press | 50–70 ms down | translate (+2, +2), shadow plinth→none: the button sits into its shadow. | `snap` | `ui.button.press`: snap ≈ 24 ms, bottom-out at contact ≈ 38 ms |
 | Button release | 110–140 ms up | back to (0, 0), shadow restored. | `machined` | `ui.button.release`: upstroke snap ≈ 47 ms, top-out back at rest ≈ 65 ms |
-| Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp strip and legend change as the latch lands. | `snap` key, `lamp` | `ui.button.press` @ held contact; `ui.toggle.on` @ latch lands with the lamp, ≈ 38 ms; `ui.toggle.off` @ back at rest, ≈ 65 ms |
+| Toggle change | 70 ms latch + 40 ms lamp | The key over-travels 3 px while held, latches 2 px down (ON) or springs back (OFF); the lamp window and the state word change as the latch lands. | `snap` key, `lamp` | `ui.button.press` @ held contact; `ui.toggle.on` @ latch lands with the lamp, ≈ 38 ms; `ui.toggle.off` @ back at rest, ≈ 65 ms |
 | Navigation transition | 280–360 ms | New screen wipes in from the side of its origin (left rail → right), old slides 24 px and fades out under it. | `machined` / `release` | `ui.nav.forward`: paper texture from 0, stop @ ≈ 172 ms; back: `ui.nav.back` |
 | Panel opening (drawer) | 220–280 ms open, 180–220 ms close | Slide from its rail edge; contents fade in after 40% (stagger rows 20 ms, max 6 rows). | `latch` / `release` | `ui.panel.open`: latch tick @ 0, stop @ ≈ 164 ms; `ui.panel.close`: catch @ ≈ 187 ms |
 | Modal appearance | 220–260 ms | Sheet slides up 24 px + opacity 0→1 over the first 120 ms; scrim fades 160 ms. Close: 160 ms, down 12 px. | `machined` / `release` | `ui.sheet.open` peaks as the sheet settles, ≈ 130 ms; `ui.sheet.close` @ 0 (the lift) |
@@ -865,7 +865,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
     same thing, and that twin lasts at least as long as the sound (table below). A deaf player, or one playing muted,
     misses nothing.
 11. **Separate volumes.** Settings (and the title screen, beside Reduce motion) offer Master, Music, Game (events) and
-    Interface (clicks, panels, confirmations) levels, plus an **Interface sounds** legend key (ON/OFF) that silences
+    Interface (clicks, panels, confirmations) levels, plus an **Interface sounds** lamp key (ON/OFF) that silences
     Levels 1 and 2 while keeping the event sounds. All four persist between launches.
 12. **No sudden loud sounds.** Every bus has a limiter: Interface peaks never pass −18 dBFS, Game −10 dBFS, Master −1
     dBFS. Any musical or tonal layer attacks over ≥ 5 ms (no click at onset); a Level 3 cue opens with its quiet
@@ -887,7 +887,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Sound | Visual twin that carries the same information |
 |---|---|
 | `ui.button.press` / `.release` | press travel and shadow; the action's own result |
-| `ui.toggle.on` / `.off` | the latched key position and its printed ON/OFF legend |
+| `ui.toggle.on` / `.off` | the latched key position and the ON/OFF word beside it |
 | `ui.selection`, `ui.card.lift` / `.place` | the index tab and 12 px slide; the card's new place |
 | `ui.counter.tick`, `ui.flap` | the rolled digits, the flapped word |
 | `ui.resource.gain` / `.loss` | the delta tag (with its sign and hue), the lamp pulse, the log line |
@@ -922,7 +922,7 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Plex Mono in a split-flap window | A pixel or LCD segment font |
 | Era change as a ceremonial sheet | Era change as confetti |
 | Cost top-right as `[sprout 1 \| coin 2]`, a glyph per resource | A bare `3` that could be food or wealth, or costs placed differently per card type |
-| A latching legend key that says ON or OFF on its face | A rounded pill track with a circle thumb |
+| A latching lamp key with ON or OFF printed beside it | A rounded pill track with a circle thumb |
 | A key switch's snap, then its bottom-out as the key meets the desk | A sound on hover, or on every pointer move |
 | A drawer's rail run and felt stop, as long as its slide | A digital whoosh, or a sound that outlasts the motion |
 | ≤ 8 ticks for a roll, then one registration | A tick per unit when wealth jumps by 40; a coin shower |
@@ -1029,7 +1029,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 |---|---|---|---|---|---|---|---|
 | `ui.button.press` | A clicky key switch under ABS keycaps · two-stage: the click jacket's snap, then the stem's bottom-out 14 ms later | 50–80 ms | low (0) | a bright snap ≈ 4.5 kHz (12 ms), as loud as the bottom-out: a plastic clack ≈ 1.8 kHz over a ≈ 380 Hz case; primary button −2 st (a heavier cap) | none | bottom-out as the face reaches +2 px, ≈ 38 ms into the 70 ms press; the snap 14 ms before, at actuation | very high |
 | `ui.button.release` | The switch coming back up · the upstroke snap, then the top-out 18 ms later | 40–70 ms | very low (−4) | the snap 5 dB under the press's; a lighter clack ≈ 2.2 kHz | none | top-out as the face is back at rest, ≈ 65 ms into the 120 ms release; the snap 18 ms before | very high |
-| `ui.toggle.on` | The legend key's latch catching, after the switch's press · a short, bright catch, no snap | 40–70 ms | low (0) | activation: brighter, a clack ≈ 2.4 kHz with a ≈ 3.3 kHz tick | none | latch lands at +2 px with the lamp strip, ≈ 38 ms after release | occasional |
+| `ui.toggle.on` | The lamp key's latch catching, after the switch's press · a short, bright catch, no snap | 40–70 ms | low (0) | activation: brighter, a clack ≈ 2.4 kHz with a ≈ 3.3 kHz tick | none | latch lands at +2 px with the lamp window, ≈ 38 ms after release | occasional |
 | `ui.toggle.off` | The latch letting go, the switch springing back · a soft upstroke snap, then the top-out | 50–80 ms | low (−2) | deactivation: −3 st, the snap 8 dB down, a duller clack ≈ 1.5 kHz | none | top-out as the key is back at rest, ≈ 65 ms after release; the snap 18 ms before | occasional |
 | `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
 | `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
@@ -1126,34 +1126,35 @@ equals its side padding (16), so the label and the text under it read as one col
 
 Switching tabs with the arrow keys is silent; only a press on a tab clicks.
 
-### 15.4 Toggle (legend key)
-A latching push key, like a control-room key with a lit legend. It is the button's press made to stay down, so the UI
-has one physical idea for "a thing you press" and no separate switch control. The key prints its own state, so it
-needs no ON/OFF word beside it; the setting's name sits to its left in `type.label`, and the key aligns right in its
-row.
+### 15.4 Toggle (lamp key)
+A latching push key, like a control-room key with a lamp window in its face (the window bar, chosen over the legend key
+in 219; see [lamp-key-options.html](lamp-key-options.html)). It is the button's press made to stay down, so the UI has
+one physical idea for "a thing you press" and no separate switch control. The light is the key's only mark; its state
+word sits beside it. In its row the setting's name sits left in `type.label`, and the key and its state word align
+right, the word last.
 
-Anatomy: 56×36 key, `steel` face, 2 px `ink` border, `radius.1`, 4 px padding, `shadow.plinth` (2, 2) at rest. Inside,
-two rows 3 px apart:
-- **Lamp strip**, 6 px tall, the key's full inner width. OFF: `well` with a 1 px inset `rule`. ON: the `sage` plane
-  with a 1 px inset sage line. (Sage is the default; a setting whose ON state is a warning may use the caution lamp.)
-- **Legend**, "ON" / "OFF" in `type.label-caps` at 12 px, centred. OFF prints `ink-2`, ON prints `ink`.
+Anatomy: a 32×32 key, `steel` face, 2 px `ink` border, `radius.1`, `shadow.plinth` (2, 2) at rest.
+- **Lamp window**, 14×6, centred in the face. OFF: `well` with a 1 px inset `rule`. ON: the `sage` plane with a 1 px
+  inset sage line. (Sage is the default; a setting whose ON state is a warning may use the caution lamp.)
+- **State word**, "ON" / "OFF" in `type.label-caps`, `ink-2`, `space.4` right of the key (the row's spacing). Its box is as wide as "OFF"
+  in both states, so the key doesn't move when the word changes.
 
 | Transition | Duration | Change | Curve | Sound |
 |---|---|---|---|---|
 | REST → HELD | 70 ms | key over-travels to +3, +3; shadow hidden | `snap` | `ui.button.press`: snap ≈ 24 ms, bottom-out ≈ 38 ms |
-| HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp strip lights (40 ms) and the legend changes to ON | `snap`, `lamp-on` | `ui.toggle.on`, brighter, @ ≈ 38 ms, with the lamp |
-| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the legend changes to OFF | `machined`, `lamp-off` | `ui.toggle.off`, lower and muted: snap ≈ 47 ms, top-out ≈ 65 ms as the key reaches rest; the fading lamp is silent |
+| HELD → LATCHED (turning ON) | 70 ms | key settles at +2, +2, shadow stays hidden; as it lands the lamp window lights (40 ms) and the state word changes to ON | `snap`, `lamp-on` | `ui.toggle.on`, brighter, @ ≈ 38 ms, with the lamp |
+| HELD → REST (turning OFF) | 120 ms | key springs back to 0, 0 and its shadow returns; the lamp fades (160 ms) and the state word changes to OFF | `machined`, `lamp-off` | `ui.toggle.off`, lower and muted: snap ≈ 47 ms, top-out ≈ 65 ms as the key reaches rest; the fading lamp is silent |
 | HOVER | 90 ms | border stays `ink`; face one value step toward `sheet` | `machined` | None |
 | FOCUS | instant | teal focus ring, offset 2 px | | None |
-| DISABLED | — | face `well`, legend `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | | on press: `ui.reject.locked` |
+| DISABLED | — | face `well`, state word `ink-3`, dashed `rule` border, no shadow; a latched disabled key stays down | | on press: `ui.reject.locked` |
 | Reduce motion | — | position and lamp switch in one frame | | unchanged: the press on press, the latch or release on release |
 
 ON and OFF differ the way the mechanism does: the press is the key switch's (snap and bottom-out); ON adds the latch
 catching (a short, bright catch), OFF lets the switch spring back (its upstroke snap and top-out, lower and muted). The difference is small but always audible side by side.
 
-Accessibility: `role="switch"` with `aria-checked`; the legend and the latched position both carry the state, so
+Accessibility: `role="switch"` with `aria-checked`; the state word and the latched position both carry the state, so
 neither the lamp colour, the motion nor the sound is needed to read it. The **Interface sounds** setting is itself a
-legend key: turning it OFF plays `ui.toggle.off` before the bus goes quiet, so the player hears what they switched off.
+lamp key: turning it OFF plays `ui.toggle.off` before the bus goes quiet, so the player hears what they switched off.
 
 ### 15.5 Resource counter
 Anatomy: a head line with the caption (`type.label-caps`, `ink-2`) at its left and a 12 px lamp at its right,
@@ -1323,7 +1324,7 @@ Signal family when it reports news.
 
 | Family | Imagined mechanism | Materials | Used by | Signature | Never |
 |---|---|---|---|---|---|
-| **Keys** (primary controls) | ABS keycaps on clicky key switches (a click jacket that snaps at actuation); latching legend keys | molded plastic, small springs | buttons, tabs, legend keys, the Grow pip, End turn (the heaviest key) | two-stage: a bright snap, then a plastic bottom-out clack 14 ms later; attack ≤ 1 ms, ≤ 80 ms, no ring | a metallic ring, a hollow clack, a typewriter's bell |
+| **Keys** (primary controls) | ABS keycaps on clicky key switches (a click jacket that snaps at actuation); latching lamp keys | molded plastic, small springs | buttons, tabs, lamp keys, the Grow pip, End turn (the heaviest key) | two-stage: a bright snap, then a plastic bottom-out clack 14 ms later; attack ≤ 1 ms, ≤ 80 ms, no ring | a metallic ring, a hollow clack, a typewriter's bell |
 | **Rails and sheets** (navigation) | ball-bearing drawer runners, sliding partitions, drafting sheets, index cards | aluminium rails, felt stops, paper and card stock | drawers, cabinet doors, screens, modals, cards, piles | a soft run below 4 kHz, a damped stop, a paper whisper | a whoosh, any pitch sweep |
 | **Counters** | drum counters, split-flap units, adding-machine registers | steel pawls, plastic drums and flaps | odometers, flaps, tallies, gain and loss | tiny ticks ≈ 3 kHz; a registration clack | coins, bells, slot-machine rolls |
 | **Signals** (notifications) | indicator lamps with a tone generator, a small desk bell | sine and soft-square oscillators, a small bell | confirm, notifications, gain's whisper | pure tones from the tone ladder, soft attack, ≤ 600 ms | sirens, buzzers, chiptune |
@@ -1332,7 +1333,7 @@ Signal family when it reports news.
 
 A component never borrows another family's mechanism: a button never slides, a drawer never beeps, a counter never
 rings a bell. A Signal tone joins a mechanism only when the mechanism reports a result (the confirm lamp has a tone; the
-toggle's lamp strip doesn't). Ceremony appears only at Level 3.
+toggle's lamp window doesn't). Ceremony appears only at Level 3.
 
 ### 16.3 Mechanisms: what the eye sees, the ear hears
 Sound and motion imply the same imaginary mechanism. Change one and you change the other.
@@ -1340,7 +1341,7 @@ Sound and motion imply the same imaginary mechanism. Change one and you change t
 | Physical metaphor | Components | Motion (§9.2) | Sound | Never |
 |---|---|---|---|---|
 | Mechanical push-button | buttons, tabs, the Grow pip | snap in, machined out | a clicky switch: the snap, then the bottom-out; a quieter snap and top-out on return | a beep |
-| Latching key | the legend key (toggle) | snap, latch | a firm detent: a catch for ON, a spring-back for OFF | an electric "zap" |
+| Latching key | the lamp key (toggle) | snap, latch | a firm detent: a catch for ON, a spring-back for OFF | an electric "zap" |
 | Sliding panel on a rail | drawers, cabinet doors | slide, `latch` curve | a quiet rail run, a felt stop or latch at the end | a whoosh |
 | Drafting sheet | screens, modals | wipe, slide | a soft paper lay or run | a page-turn flourish |
 | Index card | cards, piles | slide, snap | a card-stock flick, a pat, one riffle | a playing-card snap |
@@ -1499,7 +1500,7 @@ None. Removing a sound is always an acceptable fix.
 
 ### 16.9 Mix, buses and controls
 - **Buses**: Master → Music, Game (Level 3 and any future gameplay sounds), Interface (Levels 1–2). Each has a volume
-  in Settings (§12 rule 11) and a limiter at its ceiling (`sound.ceiling`); Interface also has an ON/OFF legend key.
+  in Settings (§12 rule 11) and a limiter at its ceiling (`sound.ceiling`); Interface also has an ON/OFF lamp key.
   Turning interface sounds off keeps the events: a player who dislikes clicks still hears the era change.
 - **Defaults**: Master 80%, Music 60%, Game 80%, Interface 70%.
 - **Ducking**: Level 3 ducks Music by 6 dB (50 ms attack, 400 ms release). Interface isn't ducked, but its
@@ -1545,7 +1546,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
 | Toasts | `ui/toasts.gd` (116) | Become flags from the left rail; requires the left-rail layout in `BoardLayout`. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |
-| Toggles | `UIKit.motion_toggle()` and the settings screen's buttons | A `LegendKey` control (a toggle `Button` with a lamp strip and its own ON/OFF legend; latched = pressed stylebox with no shadow). |
+| Toggles | `UIKit.motion_toggle()` and the settings screen's buttons | A `LegendKey` control (a square toggle `Button` with a centred lamp window; its `state_label` prints ON/OFF beside it in `UIKit.setting_row`; latched = pressed stylebox with no shadow; 182, 219). |
 | Resource glyphs | `assets/icons/food.svg` etc., tinted by `Icons` | New SVGs on the 24 grid: sprout, cash coin, open book, solid bolt; wealth tinted with `glyph-ochre` in Paper. |
 | Costs | the card face's cost text (`CardFace`) | One glyph + figure per resource, top-right, grouped by spacing (§6.7); the engine already reports the costs, the face only lays them out. |
 | Piles | `LogDrawer`'s deck and discard counts (115, 121) | Index piles (§15.13) on the board; the deck face down, the discard dealing out on click. |
@@ -1556,7 +1557,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Counters, cards, piles | `OdometerLabel` (Godot spike), `CardMotion`, `DragController` | A tick per rolled step through the shared limiter, the registration with the lamp pulse; lift, selection and place in the card tweens. |
 | Sheets, screens, flags | `Modal` / `ModalStack`, `Navigator`, `Toasts` | Sheet, nav and notification tokens in their open and close tweens; `Toasts` passes the flag's priority so it can choose the pattern. |
 | Events | The engine's signals the UI already shows (tech learned, era, game over) | The UI plays `ui.milestone.*` where it shows them. `engine/` stays silent: sound is presentation. |
-| Sound settings | `SettingsStore` (`reduce_motion`, `civilization`) | Add `volume_master`, `volume_music`, `volume_game`, `volume_interface` and `interface_sounds`, saved and validated like `reduce_motion`; sliders and the legend key on the Settings and title screens. This touches `autoload/`, so it is a test-first item. |
+| Sound settings | `SettingsStore` (`reduce_motion`, `civilization`) | Add `volume_master`, `volume_music`, `volume_game`, `volume_interface` and `interface_sounds`, saved and validated like `reduce_motion`; sliders and the lamp key on the Settings and title screens. This touches `autoload/`, so it is a test-first item. |
 
 **What I learned**
 - The existing architecture is well placed for this: colours are already semantic (`Palette`), looks are already

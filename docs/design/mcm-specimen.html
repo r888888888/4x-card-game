@@ -151,22 +151,22 @@ section { margin-bottom: var(--space-7); }
 .tabpanel p { margin: 0; animation: tab-in var(--d-quick) var(--ease-machined); }
 @keyframes tab-in { from { opacity: 0; transform: translateX(var(--from, 12px)); } }
 
-/* ---- Toggle: the legend key (§15.4) ----
-   A push key that latches. It stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays latched
-   2 px down with its shadow hidden and its lamp strip lit; released OFF it springs back. Its legend prints the state. */
+/* ---- Toggle: the lamp key (§15.4; the window bar since 219) ----
+   A square push key that latches. It stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays
+   latched 2 px down with its shadow hidden and the lamp window in its face lit; released OFF it springs back. The state
+   word beside it prints the state, in a box as wide as "OFF" so the key doesn't move. */
 .toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 17px var(--f-cond); }
 .lkey {
-	display: inline-grid; grid-template-rows: 6px 1fr; gap: 3px; flex: none; width: 56px; height: 36px; padding: 4px;
+	display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px;
 	background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1);
 	box-shadow: 2px 2px 0 var(--shadow); transform: translate(0, 0);
 	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined);
 }
 .toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
 .toggle:active .lkey { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
-.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ease-lamp-off), box-shadow 160ms var(--ease-lamp-off); }
+.lkey-lamp { width: 14px; height: 6px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ease-lamp-off), box-shadow 160ms var(--ease-lamp-off); }
 .toggle.lit .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
-.lkey-legend { display: grid; place-items: center; font: 600 12px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
-.toggle.lit .lkey-legend { color: var(--ink); }
+.lkey-state { width: 3.2em; text-align: left; font: 600 13px/1 var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
 
 /* ---- Resource bar: instrument cells with odometers (§11.2, §15.5) ---- */
 .bar { display: flex; flex-wrap: wrap; background: var(--sheet); border: 2px solid var(--ink); }
@@ -348,13 +348,13 @@ section { margin-bottom: var(--space-7); }
 <header class="strip">
 	<h1>Civic Planning Desk</h1>
 	<button class="toggle lit" id="theme-toggle" role="switch" aria-checked="true">
-		<span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span>
+		<span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">ON</span>
 	</button>
 	<button class="toggle" id="calm-toggle" role="switch" aria-checked="false">
-		<span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span>
+		<span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">OFF</span>
 	</button>
 	<button class="toggle lit" id="sound-toggle" role="switch" aria-checked="true">
-		<span>Interface sounds</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span>
+		<span>Interface sounds</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">ON</span>
 	</button>
 </header>
 
@@ -379,7 +379,7 @@ section { margin-bottom: var(--space-7); }
 	</section>
 
 	<section>
-		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, legend key</span></div>
+		<div class="titleblock"><h2>Controls</h2><span class="caps">§15.1–15.4 · press, tab rail, lamp key</span></div>
 		<div class="row" style="align-items:center">
 			<button class="btn primary">Confirm</button>
 			<button class="btn">Buy cards</button>
@@ -401,7 +401,7 @@ section { margin-bottom: var(--space-7); }
 
 		<div class="row" style="margin-top:var(--space-6); align-items:center">
 			<button class="toggle demo-toggle" role="switch" aria-checked="false">
-				<span>Show forecasts</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span>
+				<span>Show forecasts</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">OFF</span>
 			</button>
 		</div>
 	</section>
@@ -605,7 +605,7 @@ const Sound = (() => {
 		// `lead` (ms): a two-stage sound starts this much early, so its last part (bottom-out, top-out) lands on contact.
 		"ui.button.press": { l: 1, level: 0, lead: 14, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { jacket(c, o, t, p.v); clack(c, o, t + 0.014, p.v, { f: 1800, body: 1100, kase: 380 }); } },
 		"ui.button.release": { l: 1, level: -4, lead: 18, freq: "very high", dur: 0.07, fn: (c, o, t, p) => { jacket(c, o, t, p.v * 1.06, 0.55); clack(c, o, t + 0.018, p.v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); } },
-		// The legend key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
+		// The lamp key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
 		// spring back with its upstroke snap and top-out, lower and muted.
 		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { clack(c, o, t, p.v, { f: 2400, body: 1500, kase: 420, g: 0.8 }); click(c, o, t + 0.008, { f: 3300 * p.v, q: 5, dur: 0.012, g: 0.5 }); } },
 		"ui.toggle.off": { l: 1, level: -2, lead: 18, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { const v = p.v * st(-3); jacket(c, o, t, v * 0.75, 0.4); clack(c, o, t + 0.018, v, { f: 1500, body: 1000, kase: 330, g: 0.7 }); } },
@@ -749,7 +749,7 @@ function keyDown(el) {
 function keyUp() {
 	const el = pressedKey; pressedKey = null;
 	if (el && el.classList.contains("btn")) Sound.play("ui.button.release", { at: contactMs(120, "machined"), pitch: el.classList.contains("primary") ? -2 : 0, input: true });
-	// tabs become active (no return), legend keys latch or spring back (bindToggle), End turn commits (its click)
+	// tabs become active (no return), lamp keys latch or spring back (bindToggle), End turn commits (its click)
 }
 const KEYS = ".btn, .end-turn, .tab, .toggle";
 document.addEventListener("pointerdown", (e) => { const k = e.button === 0 && e.target.closest(KEYS); if (k) keyDown(k); });
@@ -775,7 +775,7 @@ const SWATCHES = [["board", "Board"], ["sheet", "Sheet"], ["well", "Well"], ["st
 	["signal", "Signal"], ["p-teal", "Teal"], ["p-ochre", "Ochre"], ["p-olive", "Olive"], ["p-blue", "Muted blue"], ["p-brick", "Brick"], ["p-sage", "Sage"]];
 document.getElementById("swatches").innerHTML = SWATCHES.map(([v, n]) => `<div class="swatch"><div class="chip" style="background:var(--${v})"></div><span>${n}<br>--${v}</span></div>`).join("");
 
-// ---- Toggles (§15.4): the key latches (70 ms), then its lamp lights and its legend flips ----
+// ---- Toggles (§15.4): the key latches (70 ms), then its lamp lights and its state word flips ----
 function bindToggle(el, onChange) {
 	el.addEventListener("click", async () => {
 		const on = el.getAttribute("aria-checked") !== "true";
@@ -784,7 +784,7 @@ function bindToggle(el, onChange) {
 		Sound.play(on ? "ui.toggle.on" : "ui.toggle.off", { at: on ? contactMs(70, "snap") : contactMs(120, "machined"), input: true });
 		await wait(contactMs(70, "snap"));  // the latch lands first
 		el.classList.toggle("lit", on);
-		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
+		el.querySelector(".lkey-state").textContent = on ? "ON" : "OFF";
 		onChange && onChange(on);
 	});
 }

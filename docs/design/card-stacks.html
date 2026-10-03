@@ -64,12 +64,11 @@ main { max-width: 1180px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
 .group { display: inline-flex; align-items: center; gap: var(--space-2); }
 .toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 16px var(--f-cond); }
-.lkey { display: inline-grid; grid-template-rows: 5px 1fr; gap: 3px; width: 52px; height: 32px; padding: 4px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); }
+.lkey { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); }
 .toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: none; }
-.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.lkey-lamp { width: 14px; height: 6px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
 .toggle[aria-checked="true"] .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); }
-.lkey-legend { display: grid; place-items: center; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
-.toggle[aria-checked="true"] .lkey-legend { color: var(--ink); }
+.lkey-state { width: 3.2em; text-align: left; font: 600 12px/1 var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(540px, 1fr)); gap: 4px; padding: 4px; background: var(--shadow); }
 .opt { background: var(--sheet); padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
@@ -138,7 +137,7 @@ main { max-width: 1180px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 <body>
 <header class="page">
 	<h1>Card stacks</h1>
-	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span></button>
+	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">ON</span></button>
 </header>
 <main>
 	<p class="intro">Six ways to show a stack of cards at rest and to open it when it's clicked: for the discard pile, the deck, a supply pile or the research deck. Each one is live: click the stack (and, where it says so, a card). Slow motion and Reduce motion apply to all of them.</p>
@@ -147,7 +146,7 @@ main { max-width: 1180px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 			<button class="btn" data-speed="1" aria-pressed="true">1×</button>
 			<button class="btn" data-speed="4" aria-pressed="false">¼×</button>
 			<button class="btn" data-speed="10" aria-pressed="false">1/10×</button></span>
-		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span></button>
+		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">OFF</span></button>
 	</div>
 	<div class="grid" id="grid"></div>
 </main>
@@ -361,7 +360,7 @@ function bindKey(el, onChange) {
 	el.addEventListener("click", () => {
 		const on = el.getAttribute("aria-checked") !== "true";
 		el.setAttribute("aria-checked", on);
-		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
+		el.querySelector(".lkey-state").textContent = on ? "ON" : "OFF";
 		onChange(on);
 	});
 }

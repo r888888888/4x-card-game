@@ -59,6 +59,7 @@ main { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-5)
 .opt { background: var(--sheet); padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
 .opt h2 { margin: 0; font: 500 22px/28px var(--f-display); display: flex; gap: var(--space-3); align-items: baseline; }
 .opt h2 b { font-weight: 500; color: var(--ink-2); }
+.opt h2 .chosen { margin-left: auto; font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--on-signal); background: var(--signal); padding: 2px 6px; border-radius: var(--radius-1); }
 .opt p { margin: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
 .demo { border-top: 1px solid var(--rule-fine); }
 .setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 52px; border-bottom: 1px solid var(--rule-fine); }
@@ -140,12 +141,12 @@ button.sw { background: none; border: 0; padding: 0; cursor: pointer; color: var
 	<button class="plain" id="theme">Paper / Night</button>
 </header>
 <main>
-	<p class="intro">Nine takes on one square push key that latches down when ON and lights a lamp. They share the same mechanism: at rest it stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays latched 2 px down with its shadow hidden; released OFF it springs back. They differ in where the light is and how much of the key it takes. Press and hold one to feel the over-travel. The lamp colour is chosen at the top.</p>
+	<p class="intro">Nine takes on one square push key that latches down when ON and lights a lamp. They share the same mechanism: at rest it stands on a 2 px plinth; while held it over-travels 3 px; released ON it stays latched 2 px down with its shadow hidden; released OFF it springs back. They differ in where the light is and how much of the key it takes. Press and hold one to feel the over-travel. The lamp colour is chosen at the top. The game uses 1, the window bar (item 219; the legend key, 4, was the first choice, in 182).</p>
 	<div class="grid" id="grid"></div>
 </main>
 <script>
 const VARIANTS = [
-	{ cls: "v-bar", name: "Window bar", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
+	{ cls: "v-bar", name: "Window bar", chosen: true, words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
 		text: "The original: a small lamp window across the middle of the face. Balanced; the light is the key's only mark." },
 	{ cls: "v-dot", name: "Pilot dot", words: true, body: () => '<span class="key"><span class="lamp"></span></span>',
 		text: "A round pilot lamp in the face's top-left corner, the rest of the face blank. The quietest; the dot matches the indicator lamps elsewhere." },
@@ -167,7 +168,7 @@ const VARIANTS = [
 const control = (v, on) => `<button class="sw" role="switch" aria-checked="${on}">${v.body(on)}${v.words ? `<span class="state">${on ? "ON" : "OFF"}</span>` : ""}</button>`;
 document.getElementById("grid").innerHTML = VARIANTS.map((v, i) => `
 	<div class="opt ${v.cls}" data-i="${i}">
-		<h2><b>${i + 1}</b>${v.name}</h2>
+		<h2><b>${i + 1}</b>${v.name}${v.chosen ? '<span class="chosen">Chosen</span>' : ""}</h2>
 		<p>${v.text}</p>
 		<div class="demo">
 			<div class="setting"><span>Reduce motion</span>${control(v, false)}</div>

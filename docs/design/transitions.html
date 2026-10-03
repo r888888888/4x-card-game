@@ -53,7 +53,7 @@ header.page { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp
 header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
 main { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5) 64px; }
 
-/* Page controls: the specimen's buttons and legend key */
+/* Page controls: the specimen's buttons and lamp key */
 .btn {
 	display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 14px; border-radius: var(--radius-1); cursor: pointer;
 	font: 500 15px/18px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule);
@@ -68,13 +68,12 @@ main { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 .controls2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
 .group { display: inline-flex; align-items: center; gap: var(--space-2); }
 .toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; background: none; border: 0; padding: 0; color: var(--ink); font: 500 16px var(--f-cond); }
-.lkey { display: inline-grid; grid-template-rows: 5px 1fr; gap: 3px; width: 52px; height: 32px; padding: 4px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); transition: transform 120ms var(--ease-machined), box-shadow 120ms; }
+.lkey { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; background: var(--steel); border: 2px solid var(--ink); border-radius: var(--radius-1); box-shadow: 2px 2px 0 var(--shadow); transition: transform 120ms var(--ease-machined), box-shadow 120ms; }
 .toggle[aria-checked="true"] .lkey { transform: translate(2px, 2px); box-shadow: none; }
 .toggle:active .lkey { transform: translate(3px, 3px); box-shadow: none; }
-.lkey-lamp { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.lkey-lamp { width: 14px; height: 6px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
 .toggle[aria-checked="true"] .lkey-lamp { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); }
-.lkey-legend { display: grid; place-items: center; font: 600 11px/1 var(--f-cond); letter-spacing: 0.12em; color: var(--ink-2); }
-.toggle[aria-checked="true"] .lkey-legend { color: var(--ink); }
+.lkey-state { width: 3.2em; text-align: left; font: 600 12px/1 var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
 .caption { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--space-4); align-items: baseline; margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--sheet); border: 1px solid var(--rule); min-height: 72px; }
 .caption b { font: 500 20px/26px var(--f-display); grid-row: span 2; }
 .caption .what { color: var(--ink); font-size: 15px; }
@@ -190,7 +189,7 @@ main { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 <body>
 <header class="page">
 	<h1>Screen transitions</h1>
-	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">ON</span></span></button>
+	<button class="toggle" id="theme" role="switch" aria-checked="true"><span>Night shift</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">ON</span></button>
 </header>
 <main>
 	<div class="controls" id="controls"></div>
@@ -199,7 +198,7 @@ main { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5)
 			<button class="btn" data-speed="1" aria-pressed="true">1×</button>
 			<button class="btn" data-speed="4" aria-pressed="false">¼×</button>
 			<button class="btn" data-speed="10" aria-pressed="false">1/10×</button></span>
-		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span><span class="lkey-legend">OFF</span></span></button>
+		<button class="toggle" id="calm" role="switch" aria-checked="false"><span>Reduce motion</span><span class="lkey"><span class="lkey-lamp"></span></span><span class="lkey-state">OFF</span></button>
 		<span class="caps">Esc or the breadcrumb goes back · click things in the mock too</span>
 	</div>
 	<div class="stage" id="stage">
@@ -580,7 +579,7 @@ function bindKey(el, onChange) {
 	el.addEventListener("click", () => {
 		const on = el.getAttribute("aria-checked") !== "true";
 		el.setAttribute("aria-checked", on);
-		el.querySelector(".lkey-legend").textContent = on ? "ON" : "OFF";
+		el.querySelector(".lkey-state").textContent = on ? "ON" : "OFF";
 		onChange(on);
 	});
 }

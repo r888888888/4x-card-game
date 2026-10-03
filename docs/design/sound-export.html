@@ -127,7 +127,7 @@ const SoundExport = (() => {
 		// `lead` (ms): a two-stage sound starts this much early, so its last part (bottom-out, top-out) lands on contact.
 		"ui.button.press": { l: 1, level: 0, lead: 14, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { jacket(c, o, t, p.v); clack(c, o, t + 0.014, p.v, { f: 1800, body: 1100, kase: 380 }); } },
 		"ui.button.release": { l: 1, level: -4, lead: 18, freq: "very high", dur: 0.07, fn: (c, o, t, p) => { jacket(c, o, t, p.v * 1.06, 0.55); clack(c, o, t + 0.018, p.v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); } },
-		// The legend key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
+		// The lamp key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
 		// spring back with its upstroke snap and top-out, lower and muted.
 		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { clack(c, o, t, p.v, { f: 2400, body: 1500, kase: 420, g: 0.8 }); click(c, o, t + 0.008, { f: 3300 * p.v, q: 5, dur: 0.012, g: 0.5 }); } },
 		"ui.toggle.off": { l: 1, level: -2, lead: 18, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { const v = p.v * st(-3); jacket(c, o, t, v * 0.75, 0.4); clack(c, o, t + 0.018, v, { f: 1500, body: 1000, kase: 330, g: 0.7 }); } },

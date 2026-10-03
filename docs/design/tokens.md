@@ -63,7 +63,7 @@ variation; set it with `theme_type_variation`.
 | `type.heading` | 15 | `Heading` (SemiCondensed SemiBold, tracked), `UIKit.heading()` sets capitals; text stays as written |
 | `type.body` | 20 | theme default, `Body`, `RichBody` (modal text, the log), `BarStat`, `CardTitle` (card names, semibold: 198), card rules |
 | `type.body-s` | 17 | `BodySmall`; card subtitles, keywords, the reason strip |
-| `type.label-caps` / `caption` | 14 | `Caption`; the card badge, the legend key |
+| `type.label-caps` / `caption` | 14 | `Caption`, `StateWord`; the card badge, a toggle's ON/OFF word |
 | `type.numeral` / `numeral-s` | 26 / 17 | `Stat`; small card figures (VP on a frontier card) |
 | `display-xl`, `numeral-xl` | 56, 44 | tokens only; nothing uses them yet |
 

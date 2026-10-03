@@ -21,11 +21,11 @@ func _init() -> void:
 	state_label.theme_type_variation = "StateWord"
 	state_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	state_label.ready.connect(_fit_state_label)
-	toggled.connect(func(_on: bool): _legend())
+	toggled.connect(func(_on: bool): _show_state())
 	add_to_group(KeySounds.OWN_SOUNDS)
 	button_down.connect(_on_down)
 	button_up.connect(_on_up)
-	_legend()
+	_show_state()
 
 
 func _on_down() -> void:
@@ -80,7 +80,7 @@ func _fit_state_label() -> void:
 ## set_pressed_no_signal emits nothing, so the state label also follows the state here.
 func _process(_delta: float) -> void:
 	if state_label.text != state_text():
-		_legend()
+		_show_state()
 
 
 ## The lamp's colour: lit (GAIN) while latched, dark (FIELD) while up.
@@ -93,7 +93,7 @@ func state_text() -> String:
 	return "ON" if button_pressed else "OFF"
 
 
-func _legend() -> void:
+func _show_state() -> void:
 	state_label.text = state_text()
 	queue_redraw()
 

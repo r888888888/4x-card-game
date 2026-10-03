@@ -2,7 +2,7 @@
 id: 219
 title: The window bar key replaces the legend key
 type: feature
-status: in-progress
+status: review
 branch: feat/219-window-bar-key
 ---
 
@@ -14,21 +14,21 @@ a small lamp window across the middle of its face, with the state word, ON or OF
 and quieter in a settings column, and the light is the only thing on the face. The guide (§7.5, §15.4) is updated to match.
 
 ## Acceptance criteria
-- [ ] AC1: A `LegendKey` is a toggle `Button` with no text of its own and a size of at least 32 × 32 px (the
+- [x] AC1: A `LegendKey` is a toggle `Button` with no text of its own and a size of at least 32 × 32 px (the
   64 × 44 minimum is gone). Latched, `lamp_color()` is `Palette.GAIN`; unlatched, `Palette.FIELD`. This holds after
   `set_pressed_no_signal` too.
-- [ ] AC2: It still uses the theme's button boxes: latched it shows the `pressed` box (sunk 2 px, no shadow), unlatched the
+- [x] AC2: It still uses the theme's button boxes: latched it shows the `pressed` box (sunk 2 px, no shadow), unlatched the
   `normal` box on its shadow. The boxes add no extra top margin for a lamp strip (the lamp is centred in the face).
-- [ ] AC3: `LegendKey.state_text()` returns "ON" while latched and "OFF" while not, including after
+- [x] AC3: `LegendKey.state_text()` returns "ON" while latched and "OFF" while not, including after
   `set_pressed_no_signal`.
-- [ ] AC4: The Settings modal (206) shows each toggle as a row: the setting's name on the left, and on the right the key
+- [x] AC4: The Settings modal (206) shows each toggle as a row: the setting's name on the left, and on the right the key
   followed by its state label (`key.state_label`, the next child in the row). The label's text is `state_text()` and
   follows the key, including when it is set with `set_pressed_no_signal` (given Reduce motion on, opening the modal
   shows its label "ON").
-- [ ] AC5: The row still fills the width it is given (the modal's column width), the state label ends at the row's right
+- [x] AC5: The row still fills the width it is given (the modal's column width), the state label ends at the row's right
   edge, and the label is as wide for ON as for OFF, so the key does not move when toggled (`test_button_widths`
   keeps passing).
-- [ ] AC6: Focus, Space/Enter toggling, tooltips, saving and the key sounds (187) behave as before.
+- [x] AC6: Focus, Space/Enter toggling, tooltips, saving and the key sounds (187) behave as before.
 
 ## Out of scope
 - Other lamp-key variants, and changing the lamp colour per setting.
@@ -59,9 +59,19 @@ and quieter in a settings column, and the light is the only thing on the face. T
 | AC6 | unchanged, already green: `test_legend_key::test_the_key_is_in_the_focus_loop_and_space_toggles_it`, `test_key_sounds::test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds`, the tooltip in the AC4 modal test, the saves in `test_toggling_the_key_sets_saves_and_shows_it` |
 
 ## Manual check
-- [ ] Menu and settings: a small square key with a lit green window when ON, a dark window when OFF, the word beside it.
+- [ ] `godot --path .` → Settings: Reduce motion, Day mode and Interface sounds each show a small square key with a lit
+  green window when ON, a dark window when OFF, and the word ON/OFF right of it at the row's right edge.
 - [ ] Pressing it: over-travels, latches 2 px down; the key does not shift sideways when the word changes.
 - [ ] Day mode: the window and key read in both palettes.
 
 ## Log
 - 2026-10-02: Specced from the user's request to swap the legend key for the window bar.
+- 2026-10-02: Built. `LegendKey` keeps its name: text "", 32 × 32 minimum, shrink-centred vertically so it stays square
+  in its row, a 14 × 6 lamp window drawn centred (sinking 2 px when latched). New `state_text()` and `state_label`
+  (the `StateWord` theme variation: `type.label-caps`, `TEXT_DIM`, the heading face), sized on `ready` to the wider of
+  ON/OFF so the key doesn't move; the key frees it if it never joined a row. `UIKit.setting_row` adds it after a
+  `LegendKey`. Tests read the shown state through the new `shown_state(key)` helper. Docs: guide §7.5, §15.4 (now
+  "lamp key"; §21's Toggles row, the sound tables), `tokens.md`, `testing.md`; the specimen, `transitions.html` and
+  `card-stacks.html` draw the window bar; the options page marks variant 1 chosen. The guide's spike notes (§20) keep
+  "legend key" as history. One suite run failed the "player's settings.cfg changed" guard; it passed with an isolated
+  HOME, so another session wrote the shared `user://` file during the run.
