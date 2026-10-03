@@ -50,6 +50,7 @@ static func build() -> Theme:
 	t.set_stylebox("panel", "DarkPanel", dark_panel())
 	t.set_type_variation("Sheet", "PanelContainer")
 	t.set_stylebox("panel", "Sheet", sheet())
+	_board_frame(t)
 	_pips(t)
 	return t
 
@@ -96,6 +97,11 @@ static func _link(t: Theme) -> void:
 		t.set_stylebox(state, "Link", StyleBoxEmpty.new())
 	t.set_type_variation("TitleLink", "Link")  # a name you can click, in ink (the sidebar's civilization, 202)
 	t.set_color("font_color", "TitleLink", Palette.TEXT)
+	t.set_type_variation("CapsLink", "Link")  # a small caps link, ink on hover (the sidebar's government, 221)
+	t.set_font_size("font_size", "CapsLink", Tokens.TYPE_HEADING)
+	t.set_font("font", "CapsLink", heading_font())
+	for state in ["font_hover_color", "font_pressed_color", "font_focus_color"]:
+		t.set_color(state, "CapsLink", Palette.TEXT)
 
 
 ## The selectable list (217, guide §7): ListWell, the list's recessed well, with room on its trailing side for the
@@ -138,6 +144,24 @@ static func _select_list(t: Theme) -> void:
 		t.set_color(state, "ListRow", Palette.TEXT)
 	t.set_type_variation("ListRowQuiet", "ListRow")  # a row the keyboard didn't focus: no ring (220)
 	t.set_stylebox("focus", "ListRowQuiet", StyleBoxEmpty.new())
+
+
+## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, RAISED with a 3 px ink rule under
+## it; Rail, the sidebar open on the board with a hairline on its left.
+static func _board_frame(t: Theme) -> void:
+	var strip := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_2)
+	strip.set_border_width_all(0)
+	strip.border_width_bottom = 3
+	strip.content_margin_left = Tokens.SPACE_4
+	strip.content_margin_right = Tokens.SPACE_4
+	t.set_type_variation("Strip", "PanelContainer")
+	t.set_stylebox("panel", "Strip", strip)
+	var rail := UIKit.panel_style(Color.TRANSPARENT, Palette.HAIRLINE, Tokens.SPACE_4)
+	rail.draw_center = false
+	rail.set_border_width_all(0)
+	rail.border_width_left = 1
+	t.set_type_variation("Rail", "PanelContainer")
+	t.set_stylebox("panel", "Rail", rail)
 
 
 ## An overlay's or a modal's panel; border defaults to DarkPanel's own.
@@ -199,7 +223,7 @@ static func _end_turn_key(t: Theme) -> void:
 		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color",
 				"font_disabled_color"]:
 			t.set_color(state, type, Color.TRANSPARENT)
-	_label(t, "KeyLabel", Tokens.TYPE_LABEL, Palette.TEXT_ON_ACCENT, heading_font())
+	_label(t, "KeyLabel", Tokens.TYPE_BODY, Palette.TEXT_ON_ACCENT, heading_font())  # TYPE_BODY since 221
 	_label(t, "Plate", Tokens.TYPE_NUMERAL_S, Palette.TEXT, tabular(LABEL_SEMIBOLD))
 	_label(t, "StateWord", Tokens.TYPE_LABEL_CAPS, Palette.TEXT_DIM, heading_font())  # ON/OFF beside a toggle key (219)
 	var well := UIKit.panel_style(Palette.FIELD, Palette.CONTROL_BORDER, Tokens.SPACE_1)

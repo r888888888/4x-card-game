@@ -48,7 +48,6 @@ func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:
 		var r := k.get_global_rect()
 		check(rail.end.x - r.end.x <= Tokens.SPACE_5 + TOLERANCE, "at the right: ends %d, sidebar %d" % [r.end.x, rail.end.x])
 		check(r.position.y > rail.position.y + rail.size.y * 0.6, "at the bottom: top at %d of %s" % [r.position.y, rail])
-		eq(k.size, Vector2(220, 64), "220 × 64")
 		var box := k.get_theme_stylebox("normal") as StyleBoxFlat
 		eq(box.bg_color, Palette.ACCENT, "ACCENT fill")
 		eq(box.border_color, Palette.TEXT, "TEXT border")
@@ -65,16 +64,17 @@ func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:
 
 # --- AC2: the lamp says whether you're ready ---
 
-func test_the_lamp_is_ochre_with_actions_left_and_sage_when_spent() -> void:
+func test_the_lamp_is_ochre_with_actions_left_and_sage_when_spent_with_no_count_under_it() -> void:
 	await with_key_game(gov_engine("band"), func(main: Node):
 		var e := Game.engine
 		var k := key(main)
 		eq(e.actions_left(), 2, "precondition: 2 actions")
 		eq(k.lamp_color(), Palette.WEALTH, "ochre: actions left")
-		eq(k.caption_text(), "2 actions left", "the caption")
+		eq(k.caption_text(), "", "no actions count under the key (221: the hand's heading shows it)")
 		check(e.play_card(put_in_hand(e, "shrine")), "play one")
 		await wait_frames()
-		eq(k.caption_text(), "1 action left", "one left")
+		eq(k.lamp_color(), Palette.WEALTH, "still ochre: one left")
+		eq(k.caption_text(), "", "still no count")
 		check(e.play_card(put_in_hand(e, "shrine")), "play the other")
 		await wait_frames()
 		eq(k.lamp_color(), Palette.GAIN, "sage: ready")
@@ -169,3 +169,17 @@ func test_game_over_disables_it_with_a_brick_lamp() -> void:
 		eq(k.tooltip_text, Game.engine.end_turn_error(), "the reason")
 		eq(k.lamp_color(), Palette.UNREST, "brick")
 	close_main(main)
+
+
+# --- 221: a bigger key filling the rail's foot ---
+
+func test_the_key_fills_the_rails_width_at_80_px_in_the_windows_bottom_right_corner() -> void:
+	await with_key_game(null, func(main: Node):
+		var k: Object = key(main)
+		var rail: Rect2 = (main.sidebar as Control).get_global_rect()
+		var viewport: Vector2 = main.get_viewport_rect().size
+		var r: Rect2 = (k as Control).get_global_rect()
+		eq(r.size, Vector2(rail.size.x - 2 * Tokens.SPACE_4, 80), "the rail's content width × 80")
+		check(absf(viewport.x - r.end.x - Tokens.SPACE_4) <= TOLERANCE, "SPACE_4 from the right edge: ends at %d of %d" % [r.end.x, viewport.x])
+		check(absf(viewport.y - r.end.y - Tokens.SPACE_4) <= TOLERANCE, "SPACE_4 from the bottom edge: ends at %d of %d" % [r.end.y, viewport.y])
+		eq(k.label_font_size(), Tokens.TYPE_BODY, "its label at TYPE_BODY"))
