@@ -2,7 +2,7 @@
 id: 223
 title: Make the test suite run in seconds, not minutes
 type: feature
-status: review
+status: done
 branch: feat/223-faster-test-suite
 ---
 
