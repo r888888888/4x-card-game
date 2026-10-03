@@ -97,7 +97,7 @@ func test_a_bot_tech_pick_costs_under_half_a_tech_tree() -> void:
 		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital"], "territory": "homeland"}},
 		twenty_techs())
 	eq(ScriptedBot.learn_cheapest_tech(e), false, "no insight: nothing learned")
-	var ratio := float(best_time_usec(func(): ScriptedBot.learn_cheapest_tech(e))) / best_time_usec(func(): e.tech_tree())
+	var ratio := time_ratio(func(): ScriptedBot.learn_cheapest_tech(e), func(): e.tech_tree())
 	check(ratio < 0.5, "a pick costs %.2f of a tech_tree() call" % ratio)
 
 

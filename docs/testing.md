@@ -30,6 +30,8 @@ Exit code 0 means green.
   frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
   frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.
   A test that checks an animation part-way through should wait frames or game seconds, never wall-clock time.
+  `Sfx.clock()` is the wall clock, so a test that checks when a sound is due freezes it first (`main.sfx.set_clock`),
+  then compares against that time (236).
 - The engine isn't the cost: profiling found a `make_engine` game 0.5 ms to build and a 20-turn bot game on the real
   data 20 ms. Most of the time left is building and freeing the main scene (~18 ms per UI test).
 
@@ -99,7 +101,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
 | `tests/test_test_runner.gd` | The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes all |
-| `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; ratios of `best_time_usec` timings (test_case.gd), never absolute times |
+| `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; `time_ratio` of two timings in alternating runs (test_case.gd, 236), never absolute times |
 | `tests/test_sim.gd` | The simulator on fixtures: `ScriptedBot` policy, `SimStats.run` metrics, `run_files`' loader errors |
 | `tests/test_sim_anarchy.gd` | Sim metrics for Anarchy, governments and famine (158): the metric names, fixture games with known counts, the `revolted` / `order_restored` signals (the real-data parallel run: `tests/balance/test_sim_anarchy_report.gd`) |
 | `tests/balance/test_sim_reports.gd` | Balance suite: `SimStats.run_files` on the real data (what `scripts/sim.sh` prints: a line per metric, every strategy and civilization, `--civ` / `--turns`) |

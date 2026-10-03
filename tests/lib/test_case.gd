@@ -319,17 +319,21 @@ func _move_territories(engine: GameEngine, ids: Array, to_zone: String) -> void:
 			engine.zone(to_zone).add(card)
 
 
-## The fastest of runs timings, in microseconds, of calling f calls times (backlog 150). Compare two of these as a
-## ratio, never against a fixed time: the machine's speed cancels out, and best-of-runs drops a busy moment.
-func best_time_usec(f: Callable, calls := 20, runs := 5) -> int:
-	var best := -1
+## How many times longer slow takes than fast (backlog 150): the fastest of runs timings of each, calling it calls
+## times. Compare as a ratio, never against a fixed time: the machine's speed cancels out. The two sides alternate run
+## by run (236), so a busy spell on a loaded machine lands on both, and best-of-runs drops it.
+func time_ratio(slow: Callable, fast: Callable, calls := 20, runs := 9) -> float:
+	var sides := [slow, fast]
+	var best := [-1, -1]
 	for r in runs:
-		var start := Time.get_ticks_usec()
-		for i in calls:
-			f.call()
-		var took := Time.get_ticks_usec() - start
-		best = took if best == -1 or took < best else best
-	return maxi(best, 1)
+		for k in 2:
+			var i := (r + k) % 2  # who goes first alternates too
+			var start := Time.get_ticks_usec()
+			for c in calls:
+				sides[i].call()
+			var took := Time.get_ticks_usec() - start
+			best[i] = took if best[i] == -1 or took < best[i] else best[i]
+	return float(maxi(best[0], 1)) / maxi(best[1], 1)
 
 
 ## Puts a new copy of card id in the hand and returns its uid.

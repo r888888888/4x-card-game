@@ -6,7 +6,8 @@ extends "res://tests/lib/anarchy_case.gd"
 const CLOSE := 0.20  # the doors meet (Anim.MACHINED)
 const HOLD := 0.06
 const PART := 0.26  # back to the edges (Anim.LATCH)
-const SLACK := 0.06  # real-time tolerance on headless frames
+const SLACK := 0.06  # tolerance on headless frames
+const NOW := 100.0  # main.sfx's frozen clock: sounds are scheduled on it, never on the wall clock (236)
 
 
 ## Runs body(main, e) on a deck_engine game one end_turn from the government choice, with Reduce motion calm.
@@ -44,12 +45,12 @@ func overlay_shown(main: Node) -> bool:
 	return (main.choices.government as Control).is_visible_in_tree()
 
 
-## The times, from start, at which token played.
-func played_at(main: Node, token: StringName, start: float) -> Array[float]:
+## The times, from the frozen clock (NOW), at which token is due.
+func played_at(main: Node, token: StringName) -> Array[float]:
 	var out: Array[float] = []
 	for r in main.sfx.played():
 		if r.token == token:
-			out.append(r.at - start)
+			out.append(r.at - NOW)
 	return out
 
 
@@ -58,7 +59,7 @@ func played_at(main: Node, token: StringName, start: float) -> Array[float]:
 func test_the_doors_close_then_part_on_the_government_choice() -> void:
 	await with_choice_coming(false, func(main: Node, e: GameEngine):
 		var width: float = main.get_viewport_rect().size.x
-		var start: float = main.sfx.clock()
+		main.sfx.set_clock(NOW)
 		e.end_turn()  # Anarchy burns out: the government choice
 		eq(e.pending().get("kind", ""), GameEngine.PENDING_GOVERNMENT, "precondition: the choice is owed")
 		var at_start := edges(main)
@@ -76,13 +77,13 @@ func test_the_doors_close_then_part_on_the_government_choice() -> void:
 		var parted := edges(main)
 		check(parted[0] <= 1.0 and parted[1] >= width - 1.0, "parted back to the edges: %s" % [parted])
 		check(not main.doors.moving(), "and at rest")
-		var closes := played_at(main, Sfx.CABINET_CLOSE, start)
-		var parts := played_at(main, Sfx.CABINET_PART, start)
+		var closes := played_at(main, Sfx.CABINET_CLOSE)
+		var parts := played_at(main, Sfx.CABINET_PART)
 		eq(closes.size(), 1, "one close sound")
 		eq(parts.size(), 1, "one part sound")
 		if closes.size() == 1 and parts.size() == 1:
-			check(absf(closes[0] - CLOSE) <= SLACK, "the close as they meet: %.2f s" % closes[0])
-			check(absf(parts[0] - (CLOSE + HOLD)) <= SLACK, "the part as they part: %.2f s" % parts[0]))
+			check(absf(closes[0] - CLOSE) <= 0.001, "the close as they meet: %.3f s" % closes[0])
+			check(absf(parts[0] - (CLOSE + HOLD)) <= 0.001, "the part as they part: %.3f s" % parts[0]))
 
 
 # --- AC2: nothing gets through while they move ---
@@ -144,7 +145,7 @@ func test_with_reduce_motion_the_overlay_fades_with_no_doors() -> void:
 
 func test_the_doors_play_once_however_often_the_board_refreshes() -> void:
 	await with_choice_coming(false, func(main: Node, e: GameEngine):
-		var start: float = main.sfx.clock()
+		main.sfx.set_clock(NOW)
 		e.end_turn()
 		await wait_frames()
 		e.changed.emit()
@@ -152,7 +153,7 @@ func test_the_doors_play_once_however_often_the_board_refreshes() -> void:
 		await wait_seconds(CLOSE + HOLD + PART + SLACK)
 		e.changed.emit()
 		await wait_frames()
-		eq(played_at(main, Sfx.CABINET_CLOSE, start).size(), 1, "the doors closed once")
+		eq(played_at(main, Sfx.CABINET_CLOSE).size(), 1, "the doors closed once")
 		check(overlay_shown(main) and not main.doors.moving(), "the overlay up, the doors at rest"))
 
 
