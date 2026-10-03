@@ -2,7 +2,7 @@
 id: 161
 title: Territory defence from units, walls, cities and terrain
 type: feature
-status: ready
+status: red-review
 branch: feat/161-territory-defence
 ---
 
@@ -41,6 +41,12 @@ terrain. Raids (162) are measured against it, so the player can see at a glance 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_defence::test_defense_loads_on_buildings_and_cities`, `test_bad_defense_is_a_load_error`, `test_terrain_defense_config` |
+| AC2 | `test_defence::test_defense_adds_units_buildings_cities_and_terrain` |
+| AC3 | `test_defence::test_idle_walls_and_units_add_no_defense` |
+| AC4 | `test_defence::test_unit_counts_on_its_station_not_its_home` |
+| AC5 | `test_defence::test_terrain_sums_every_matching_keyword_rolled_ones_included`, `test_no_terrain_defense_without_the_config`, `test_defense_is_0_for_anything_but_a_settled_territory` |
+| AC6 | `test_defence::test_defense_text` |
 
 ## Manual check
 - [ ] Shipped numbers: Capital defense 2, City 1, Palisade (wealth 3, defense 2, unlocked supply pile), terrain
