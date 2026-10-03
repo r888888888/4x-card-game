@@ -2,7 +2,7 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
 ## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name (its city name over its land's, 248) and info, its stats and pop meter, Rename… beside the name (248), a row of its actions (Grow, 227), then its city and buildings and an outline per free slot; its card stays in
+## its name (its city name over its land's, 248) and info, its stats and pop meter, Rename… beside the name (248), a row of its actions (Grow, 227), then its city and buildings and an outline per free slot, then its units (160); its card stays in
 ## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
 ## empty while a game is on,
 ## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
@@ -20,12 +20,14 @@ var grow_button: Button  # in actions: Grow and its food cost; disabled with the
 var rename_button: Button  # Rename…, a link beside the name, opening the naming modal (248)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
+var units_row: HFlowContainer  # the units stationed here (160), under their caption; hidden when there are none
 
 var _name: Label  # the territory's name: its city name once named (248)
 var _land: Label  # its card's name, as a caption under _name (248)
 var _info: RichTextLabel  # the territory card's info line (keywords, rolled resources)
 var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
+var _units_caption: Label  # over units_row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
@@ -106,6 +108,15 @@ func _init(board: MainScreen, realm: Control) -> void:
 	row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(row)
+	_units_caption = Label.new()
+	_units_caption.theme_type_variation = &"Caption"
+	_units_caption.text = "Units"
+	body.add_child(_units_caption)
+	units_row = HFlowContainer.new()
+	units_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	units_row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
+	units_row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
+	body.add_child(units_row)
 	hide()
 	realm.get_parent().add_child(self)
 	realm.get_parent().move_child(self, realm.get_index() + 1)
@@ -177,7 +188,7 @@ static func is_territory(e: GameEngine, t: int) -> bool:
 	return not e.territory_summary(t).is_empty()
 
 
-## The uids shown: the territory's city and buildings in tableau order ([] while closed). Its own card stays in the
+## The uids shown: the territory's city, buildings and units in tableau order ([] while closed). Its own card stays in the
 ## Realm: the view is the territory (105).
 func card_uids() -> Array[int]:
 	var out: Array[int] = []
@@ -232,10 +243,15 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	var info := CardFace.keyword_line(territory)
 	_info.set_meta("source", info)
 	Icons.fill(_info, info, Tokens.TYPE_BODY, Palette.TEXT_DIM)
-	var cards := card_uids()
+	var units := e.units_at(uid)
+	var cards := card_uids().filter(func(c): return not units.has(c))
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)
 	_show_outlines(e.free_slots(uid))
+	for i in units.size():  # the units stationed here, in a row of their own (160)
+		place.call(tableau.find(units[i]), units_row, i)
+	_units_caption.visible = not units.is_empty()
+	units_row.visible = not units.is_empty()
 
 
 ## The free-slot outlines, in order.

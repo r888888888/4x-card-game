@@ -260,3 +260,30 @@ func test_unit_scores_its_printed_vp() -> void:
 	set_home_pop(e, 0)
 	check(e.is_idle(levy), "idle")
 	eq(e.score() - before, 1, "an idle Levy keeps its VP")
+
+
+# --- AC8: what the territory view and details show ---
+
+func test_units_at_lists_the_units_stationed_on_a_territory() -> void:
+	var e: GameEngine = unit_engine(3)
+	var home := home_uid(e)
+	build_on(e, home, ["farm"])
+	var first := first_in_hand(e)
+	e.play_card(first, home)
+	var second := first_in_hand(e)
+	e.play_card(second, home)
+	eq(e.units_at(home), [first, second] as Array[int], "both Levies, in the order recruited")
+	eq(e.units_at(uid_of(e.zone("tableau"), "capital")), [] as Array[int], "a city has none")
+
+
+func test_details_and_tooltip_count_units_as_workers() -> void:
+	var e: GameEngine = unit_engine(1)
+	var home := home_uid(e)
+	var levy := first_in_hand(e)
+	e.play_card(levy, home)
+	check("Free workers: 0 (each building or unit needs one)" in e.territory_tooltip(home), e.territory_tooltip(home))
+	set_home_pop(e, 0)
+	var state: Array[String] = []
+	state.assign(e.card_details(levy).state)
+	has_msg(state, "Idle: no free worker (skips upkeep)")
+	check(e.card_details(levy).terms.any(func(t): return t.term == "Workers"), "the Workers term")

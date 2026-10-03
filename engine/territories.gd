@@ -57,6 +57,15 @@ static func workers_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]
 	return out
 
 
+## The units stationed on territory territory_uid (160), in the order they were recruited; [] for anything else.
+static func units_at(e: GameEngine, territory_uid: int) -> Array[int]:
+	var out: Array[int] = []
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.UNIT and card.station_uid == territory_uid:
+			out.append(card.uid)
+	return out
+
+
 ## Whether card is a territory with a free building slot.
 static func has_room(e: GameEngine, territory: CardInstance) -> bool:
 	return territory.def.type == CardDef.TERRITORY and free_slots(e, territory.uid) > 0
@@ -138,7 +147,7 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	var lines: PackedStringArray = ["Building slots: %d free of %d" % [s.free_slots, s.total_slots]]
 	if e.population_on():
 		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
-		lines.append("Free workers: %d (each building needs one)" % s.free_workers)
+		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
 	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
 	if not keywords.is_empty():
 		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))

@@ -6,8 +6,8 @@ extends RefCounted
 const TERMS := {
 	"Upkeep": "At the end of each turn, every card in your realm with an upkeep effect resolves it.",
 	"Slots": "Each settled territory holds a limited number of buildings. A city can add slots to its territory.",
-	"Workers": "With population on, each building needs a free pop on its territory to be placed and to work. "
-		+ "Buildings beyond a territory's pop are idle and skip upkeep.",
+	"Workers": "With population on, each building or unit needs a free pop on its territory to be placed and to work. "
+		+ "Buildings and units beyond a territory's pop are idle and skip upkeep.",
 	"Pop": "People living on a territory. Pop works buildings, eats food at upkeep and scores VP.",
 	"Housing": "The most pop a territory can hold. Growth stops there. Some buildings add housing to their territory.",
 	"Famine Guard": "Each upkeep, a working building with a famine guard saves pop on its territory that would "
