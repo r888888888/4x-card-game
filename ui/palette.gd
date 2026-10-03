@@ -19,6 +19,7 @@ static var CONTROL: Color = NIGHT["CONTROL"]  # a button
 static var CONTROL_DISABLED: Color = NIGHT["CONTROL_DISABLED"]
 static var CONTROL_BORDER: Color = NIGHT["CONTROL_BORDER"]
 static var CONTROL_DISABLED_BORDER: Color = NIGHT["CONTROL_DISABLED_BORDER"]
+static var HAIRLINE: Color = NIGHT["HAIRLINE"]  # a fine rule between parts of a sheet (guide rule-fine; 217)
 
 # Text.
 static var TEXT: Color = NIGHT["TEXT"]
@@ -95,6 +96,7 @@ const NIGHT := {
 	"CONTROL_DISABLED": Color("171614"),
 	"CONTROL_BORDER": Color("857d70"),
 	"CONTROL_DISABLED_BORDER": Color("4a463f"),
+	"HAIRLINE": Color("3a3733"),
 	"TEXT": Color("ede6d6"),
 	"TEXT_DIM": Color("b9b1a1"),
 	"TEXT_DISABLED": Color("8e877a"),
@@ -155,6 +157,7 @@ const DAY := {
 	"CONTROL_DISABLED": Color("e3daca"),
 	"CONTROL_BORDER": Color("6f685c"),
 	"CONTROL_DISABLED_BORDER": Color("cfc6b5"),
+	"HAIRLINE": Color("cfc6b5"),
 	"TEXT": Color("22211f"),
 	"TEXT_DIM": Color("57534b"),
 	"TEXT_DISABLED": Color("7a7468"),
