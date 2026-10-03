@@ -1,7 +1,7 @@
 extends "res://tests/lib/tech_case.gd"
 ## How engine queries scale with the tableau (backlog 150): which cards work (Modifiers.working_cards, behind
 ## modifier(), upkeep and the forecast) is one pass over the tableau, and a eureka check stops once its count is met.
-## Scaling is a ratio of two best_time_usec timings, so it holds on any machine. Local fixture: Mill, a building with
+## Scaling is a time_ratio of two timings, so it holds on any machine. Local fixture: Mill, a building with
 ## +1 hand_size and +1 food on upkeep.
 
 const MILL := {"id": "mill", "name": "Mill", "type": "building", "modifiers": {"hand_size": 1},
@@ -68,7 +68,7 @@ func test_modifiers_scale_linearly_with_the_tableau() -> void:
 	var large := wide_engine(400)
 	eq(small.modifier("hand_size"), 50, "every Mill works (small)")
 	eq(large.modifier("hand_size"), 400, "every Mill works (large)")
-	var ratio := float(best_time_usec(func(): large.modifier("actions"))) / best_time_usec(func(): small.modifier("actions"))
+	var ratio := time_ratio(func(): large.modifier("actions"), func(): small.modifier("actions"))
 	check(ratio < 16.0, "8× the tableau costs %.1f× the time (linear ~8, quadratic ~64)" % ratio)
 
 
@@ -93,5 +93,5 @@ func test_a_met_eureka_check_does_not_grow_with_the_tableau() -> void:
 	var large: GameEngine = engines[1]
 	var small_uid: int = lore_of.call(small)
 	var large_uid: int = lore_of.call(large)
-	var ratio := float(best_time_usec(func(): large.tech_cost(large_uid))) / best_time_usec(func(): small.tech_cost(small_uid))
+	var ratio := time_ratio(func(): large.tech_cost(large_uid), func(): small.tech_cost(small_uid))
 	check(ratio < 3.0, "8× the cards after the Farm cost %.1f× the time (the check should stop at the Farm)" % ratio)
