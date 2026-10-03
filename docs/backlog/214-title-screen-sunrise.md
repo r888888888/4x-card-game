@@ -2,7 +2,7 @@
 id: 214
 title: The title screen's sun over a hill, rising and setting with the keys
 type: feature
-status: red-review
+status: review
 branch: feat/214-title-screen-sunrise
 ---
 
@@ -13,26 +13,26 @@ rests. Hovering or focusing New game brings on the day, and Exit lets the sun si
 warms in bands, the hill deepens.
 
 ## Acceptance criteria
-- [ ] AC1: `SunriseArt` (a `Control` that draws itself) draws, in a 600 × 675 design space scaled to fill its rect
+- [x] AC1: `SunriseArt` (a `Control` that draws itself) draws, in a 600 × 675 design space scaled to fill its rect
   (cropped, centred, as SVG `slice`): four sky bands, the sun (a disc of radius 150 centred at x 300, with five
   horizontal gaps across its lower half, each thicker than the one above), and the hill (an elliptical dome 720 wide
   whose crown is 150 above the horizon at y 520, filled down to the bottom edge). The gaps are true gaps: the sky
   shows through them.
-- [ ] AC2: `SunriseArt.warmth(height)` (static) gives how low the sun is from its centre's height above the horizon:
+- [x] AC2: `SunriseArt.warmth(height)` (static) gives how low the sun is from its centre's height above the horizon:
   0.0 at 200 or more, 1.0 at 10 or less, smoothstep between (`warmth(105)` is 0.5). It drives the low sun: the sun is
   drawn as `SUN` blended toward `SUN_LOW` by 0.85 × warmth; each sky band's alpha is its base (0.55, 0.32, 0.22, 0.12
   from the horizon up) × warmth; the hill is `HILL` blended toward `HILL_LOW` by 0.6 × warmth, then toward `SHADOW` by
   0.25 × warmth. Given warmth 0, no band is drawn and the sun and hill are their plain colours.
-- [ ] AC3: Entrance, when the title screen opens (launch, or back from a game): the sun's centre rises from 170 below
+- [x] AC3: Entrance, when the title screen opens (launch, or back from a game): the sun's centre rises from 170 below
   the horizon to 220 above it in 2.6 s (`Anim.MACHINED`); the hill rises 120 px into place in 0.9 s, starting at 0.15 s.
   Then nothing moves: once settled, `SunriseArt` stops processing (`is_processing()` false) and draws nothing new while
   the player is idle (guide rule 4).
-- [ ] AC4: Given the screen at rest, when New game is hovered or focused, the sun eases up 70 px (a critically damped
+- [x] AC4: Given the screen at rest, when New game is hovered or focused, the sun eases up 70 px (a critically damped
   spring, no overshoot); when Exit is hovered or focused, it sinks 190 px, which carries it into the low-sun warmth of
   AC2; when the pointer and focus leave (or go to Settings), it eases back to rest. It processes only while moving.
-- [ ] AC5: With Reduce motion: the screen opens with the art at rest (no rise), and the keys' changes jump to their end
+- [x] AC5: With Reduce motion: the screen opens with the art at rest (no rise), and the keys' changes jump to their end
   state at once; no tween or processing runs.
-- [ ] AC6: The art's colours are `Palette` roles named for it (`SUN`, `SUN_LOW`, `SKY_LOW`, `SKY_HIGH`, `HILL`,
+- [x] AC6: The art's colours are `Palette` roles named for it (`SUN`, `SUN_LOW`, `SKY_LOW`, `SKY_HIGH`, `HILL`,
   `HILL_LOW`) with Night and Day values, and Day mode redraws it at once (183).
 
 ## Out of scope
@@ -72,3 +72,8 @@ sky through them) and the look itself are the manual check: the drawing isn't re
 
 ## Log
 - Specced 2026-10-02, split from 213 after the user chose B1.1 (one hill) in `title-screen-ledger-hill.html`.
+- 2026-10-02: Built. `ui/sunrise_art.gd` (`SunriseArt`, `StartScreen.sunrise` in `art`): bands, a sun drawn as disc slices
+  (the gaps are empty, so the sky shows through), the dome hill; `enter()` (from `StartScreen.opened()`, which main calls
+  as the title screen opens) and `aim(offset)` on the exact critically damped step; `Palette` roles `SUN`, `SUN_LOW`,
+  `SKY_LOW`, `SKY_HIGH`, `HILL`, `HILL_LOW`. The key focused by default doesn't move the sun until the focus moves.
+  Changed: 213's `test_the_title_screen_is_a_ledger_left_and_an_empty_art_half_right` now expects the art in `Art`.
