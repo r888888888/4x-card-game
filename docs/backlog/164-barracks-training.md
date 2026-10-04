@@ -2,7 +2,7 @@
 id: 164
 title: Barracks train the units stationed with them
 type: feature
-status: in-progress
+status: red-review
 branch: feat/164-barracks-training
 ---
 
@@ -37,6 +37,7 @@ strength. Introduces `unit_strength(uid)`, which defence uses from now on. Follo
 | AC3 | `test_a_unit_moved_away_loses_its_training`, `test_a_unit_moved_onto_a_training_territory_gains_it`, `test_an_idle_training_building_trains_nobody` |
 | AC4 | `test_unit_strength_is_printed_strength_without_training`, `test_unit_strength_is_0_for_an_idle_unit_or_a_non_unit` |
 | AC5 | `test_training_text` |
+| Manual check | `test_trained_unit_details_explain_its_strength`, `test_strength_tag_shows_only_on_a_trained_unit` (added after the first red review) |
 
 ## Manual check
 - [ ] Shipped Barracks: wealth 4, training 1, locked supply pile (price 3, count 6) opened by Bronze Working beside the

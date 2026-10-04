@@ -160,3 +160,33 @@ func test_training_text() -> void:
 		return
 	check("Units here have +1 strength" in db.drill_yard.rules_text(db), "face: %s" % db.drill_yard.rules_text(db))
 	check("Units here have +1 strength" in db.drill_yard.rules_tooltip(db), "tooltip: %s" % db.drill_yard.rules_tooltip(db))
+
+
+# --- Manual check support: the details and the face ---
+
+func test_trained_unit_details_explain_its_strength() -> void:
+	var e: Object = training_engine()
+	if e == null:
+		return
+	var levy := levy_of(e)
+	var state: Array[String] = []
+	state.assign(e.card_details(levy).state)
+	check(not state.any(func(s): return s.begins_with("Strength")), "no strength line untrained: %s" % [state])
+	build_on(e, home_uid(e), ["drill_yard"])
+	state.assign(e.card_details(levy).state)
+	has_msg(state, "Strength 3 (printed 2, +1 training)")
+
+
+func test_strength_tag_shows_only_on_a_trained_unit() -> void:
+	var e: Object = training_engine()
+	if e == null:
+		return
+	var home := home_uid(e)
+	var levy := levy_of(e)
+	eq(e.unit_strength_tag(levy), "", "untrained")
+	build_on(e, home, ["drill_yard"])
+	eq(e.unit_strength_tag(levy), "Strength 3", "trained")
+	for uid in [home, uid_of(e.zone("tableau"), "drill_yard"), put_in_hand(e, "levy"), 9999]:
+		eq(e.unit_strength_tag(uid), "", "tag of %d" % uid)
+	set_home_pop(e, 0)
+	eq(e.unit_strength_tag(levy), "", "idle")
