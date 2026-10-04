@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Moving and disbanding units (backlog 163): move_unit changes only a unit's station, once a turn, for no action;
-## disband sends a unit to the discard and frees its worker on its home. move_unit_error and disband_error.
+## Moving and disbanding units (backlog 163): move_unit changes only a unit's station, once a turn, for an action;
+## disband, free, sends a unit to the discard and frees its worker on its home. move_unit_error and disband_error.
 
 ## Levy: a unit costing 1 food, strength 2, ⟳ −1 food.
 const MOVE_UNITS := [
@@ -10,13 +10,18 @@ const MOVE_UNITS := [
 
 
 ## A game on TEST_CARDS + MOVE_UNITS with Levies in the deck, 50 food, Homeland at 2 pop, Hills settled at 1 pop and
-## Grassland on the frontier, and a Levy recruited on Homeland. null (after a failed check) when the data doesn't load.
-func move_engine() -> GameEngine:
+## Grassland on the frontier, and a Levy recruited on Homeland. gov is the starting government from TEST_GOVS (Band:
+## 2 actions a turn, 1 left after the Levy), none (unlimited actions) when "". null (after a failed check) when the
+## data doesn't load.
+func move_engine(gov := "") -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := cards_of(fixture_load([], [MOVE_UNITS]), errors, warnings)
+	var cards := cards_of(fixture_load([], [TEST_GOVS, MOVE_UNITS]), errors, warnings)
+	var starting := {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland"}
+	if gov != "":
+		starting["government"] = gov
 	var o := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0},
-		"territory_deck": {"hills": 1, "grassland": 1}}
+		"territory_deck": {"hills": 1, "grassland": 1}, "starting": starting}
 	var config := DataLoader.parse_config(raw_config({"levy": 10}, o), resources(), cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	if not errors.is_empty():
@@ -55,8 +60,8 @@ func check_refusals(e: GameEngine, cases: Array) -> void:
 
 # --- AC1: moving ---
 
-func test_moving_a_unit_changes_only_its_station() -> void:
-	var e: GameEngine = move_engine()
+func test_moving_a_unit_changes_its_station_for_an_action() -> void:
+	var e: GameEngine = move_engine("band")
 	if e == null:
 		return
 	var m: Object = e
@@ -65,8 +70,8 @@ func test_moving_a_unit_changes_only_its_station() -> void:
 	var levy := levy_of(e)
 	var workers := [e.free_workers(home), e.free_workers(hills)]
 	var defense := [e.defense(home), e.defense(hills)]
-	var actions := e.state.actions_used
 	var resources := e.resources.duplicate()
+	eq(e.actions_left(), 1, "Band: 1 action left after the Levy")
 	eq(m.move_unit_error(levy, hills), "", "the move is legal")
 	check(m.move_unit(levy, hills), "Levy moved to Hills")
 	eq(e.unit_station(levy), hills, "stationed on Hills")
@@ -74,7 +79,7 @@ func test_moving_a_unit_changes_only_its_station() -> void:
 	eq([e.free_workers(home), e.free_workers(hills)], workers, "free workers unchanged")
 	eq(e.defense(hills) - defense[1], 2, "Hills' defence +2")
 	eq(defense[0] - e.defense(home), 2, "Homeland's defence −2")
-	eq(e.state.actions_used, actions, "no action used")
+	eq(e.actions_left(), 0, "one action used")
 	eq(e.resources, resources, "no resource spent")
 
 
@@ -110,6 +115,24 @@ func test_moves_this_turn_survive_a_fork() -> void:
 
 
 # --- AC3: move errors ---
+
+func test_moving_needs_an_action_left() -> void:
+	var e: GameEngine = move_engine("band")
+	if e == null:
+		return
+	var m: Object = e
+	var levy := levy_of(e)
+	var home := home_uid(e)
+	check(m.move_unit(levy, hills_of(e)), "the last action moves the Levy")
+	check_refusals(e, [
+		["no action left", func(): return m.move_unit_error(levy, home), func(): return m.move_unit(levy, home),
+			"No actions left this turn."],
+		["no action left comes before the unit checks", func(): return m.move_unit_error(-1, -1),
+			func(): return m.move_unit(-1, -1), "No actions left this turn."],
+	])
+	e.end_turn()
+	eq(m.move_unit_error(levy, home), "", "a new turn's actions")
+
 
 func test_move_unit_error_reasons() -> void:
 	var e: GameEngine = move_engine()
@@ -151,19 +174,19 @@ func test_move_unit_error_reasons() -> void:
 # --- AC4: disbanding ---
 
 func test_disbanding_a_unit_frees_its_worker_and_its_strength() -> void:
-	var e: GameEngine = move_engine()
+	var e: GameEngine = move_engine("band")
 	if e == null:
 		return
 	var m: Object = e
 	var home := home_uid(e)
 	var hills := hills_of(e)
 	var levy := levy_of(e)
-	check(m.move_unit(levy, hills), "moved to Hills")
+	check(m.move_unit(levy, hills), "moved to Hills with the last action")
 	var workers: int = e.free_workers(home)
 	var hills_workers: int = e.free_workers(hills)
 	var defense: int = e.defense(hills)
 	var actions := e.state.actions_used
-	eq(m.disband_error(levy), "", "the Levy can be disbanded")
+	eq(m.disband_error(levy), "", "the Levy can be disbanded with no action left")
 	check(m.disband(levy), "disbanded")
 	check(e.zone("tableau").find(levy) == null, "out of the tableau")
 	check(e.zone("discard").find(levy) != null, "in the discard")
