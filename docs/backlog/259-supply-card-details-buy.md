@@ -2,7 +2,7 @@
 id: 259
 title: A click on a supply pile opens its details, which offer Buy
 type: feature
-status: in-progress
+status: review
 branch: feat/259-supply-card-details-buy
 ---
 
@@ -12,21 +12,21 @@ misclick spends wealth. After this, a click (or Enter) on a pile opens the card'
 showing the pile as it stands (its price tag and copies left) with a Buy key; buying is a deliberate second step.
 
 ## Acceptance criteria
-- [ ] AC1: Given the supply screen open with 10 wealth and a pile priced 3 with 6 left, when the player clicks that
+- [x] AC1: Given the supply screen open with 10 wealth and a pile priced 3 with 6 left, when the player clicks that
   pile's card (or presses Enter on it while it has focus), then nothing is bought (wealth stays 10, 6 left, discard
   unchanged) and the card details modal opens over the supply screen, showing that card's details.
-- [ ] AC2: Given that pile's details open, then the modal's aside shows the card with the pile's price tag below it
+- [x] AC2: Given that pile's details open, then the modal's aside shows the card with the pile's price tag below it
   reading "Buy" and "3" and, under the tag, "6 left"; the footer holds Close (Esc) and a visible, enabled primary
   **Buy** key, rightmost; and Play, Learn, Move… and Disband are hidden.
-- [ ] AC3: Given that pile's details open, when the player presses Buy, then the modal closes, the supply screen
+- [x] AC3: Given that pile's details open, when the player presses Buy, then the modal closes, the supply screen
   stays open, one copy is bought (wealth 7, the pile shows 5 left, the discard holds one more copy of the card) and a
   copy flies to the screen's Discard counter as a click-buy did before.
-- [ ] AC4: Given the supply screen open with 2 wealth and that pile priced 3, when the player opens its details, then
+- [x] AC4: Given the supply screen open with 2 wealth and that pile priced 3, when the player opens its details, then
   Buy is disabled, the engine's `buy_error` for the pile is printed on the footer's left, and the aside's price tag is
   dimmed (as on the supply screen). The same holds for a sold-out pile (0 left).
-- [ ] AC5: Given a hand card's, a tech's or a Realm card's details (not a supply pile's), then the footer shows no
+- [x] AC5: Given a hand card's, a tech's or a Realm card's details (not a supply pile's), then the footer shows no
   Buy key and no reason text, and the aside shows no price tag or copies-left line.
-- [ ] AC6: Given a pile's details open over the supply screen, when the player presses Esc or Close, then only the
+- [x] AC6: Given a pile's details open over the supply screen, when the player presses Esc or Close, then only the
   modal closes and nothing is bought; the supply screen stays open.
 
 ## Out of scope
@@ -72,3 +72,12 @@ showing the pile as it stands (its price tag and copies left) with a Buy key; bu
 - [ ] Both themes (paper and night): the tag's gold and the reason's colour read on the sheet.
 
 ## Log
+- `SupplyScreen.pile_column` / `show_pile` (static) build and fill a pile's card slot, tag and count; the supply
+  screen and the details modal share them. The supply screen keeps one column per pile (`_columns`).
+- A right-click on a pile now goes through `pick` too, so it also offers Buy. A plain `details.open(pile_view)` still
+  opens details without Buy (no caller left on the supply screen).
+- Removed the unreachable refusal path: the click's shake, its floating error and `SupplyScreen.refused` (which
+  `board_layout` logged). The reason now lives on the modal's footer, in a new `Refusal` label variation (COST colour).
+- The disabled Buy uses the theme's existing disabled button look, not the mockup's dashed border.
+- During the red phase, `test_revolt_modal` and `test_toasts` failed in the full parallel run only (state left by
+  red tests erroring mid-callback in the same shard); they pass alone and in the green suite.
