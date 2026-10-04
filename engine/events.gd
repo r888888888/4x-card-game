@@ -30,6 +30,16 @@ static func add_era(e: GameEngine, n: int) -> void:
 	e._notice("  Era %d events added to the event deck." % n)
 
 
+## The active event with card id id (the Famine, Anarchy), or null; null for "".
+static func find_active(e: GameEngine, id: String) -> CardInstance:
+	if id == "":
+		return null
+	for card in e.zone("active_events").cards:
+		if card.def.id == id:
+			return card
+	return null
+
+
 ## Upkeeps left for active event uid (0 if uid isn't an active event).
 static func turns_left(e: GameEngine, uid: int) -> int:
 	var card := e.zone("active_events").find(uid)

@@ -1,8 +1,9 @@
 class_name Anarchy
 extends RefCounted
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy (after upkeep), and a revolution
-## declared any time falls at the next turn's start, before upkeep (155). The config's unrest.anarchy government takes
-## over and the fallen government goes to the government deck (154). While it rules only cards tagged
+## declared any time falls at the next turn's start, before upkeep (155). The config's unrest.anarchy event joins the
+## active events (253: its counters on show, never counted down or discarded by upkeep), the fallen government goes to
+## the government deck (154) and none rules until Anarchy ends. While it lasts only cards tagged
 ## unrest.allowed_tag can be played, and nothing is grown, bought or researched. It gets ⌈max_counters × unrest ÷ L⌉
 ## counters (1 to max_counters, L the fallen government's limit); calming lowers the counters left for good, and one
 ## comes off at the end of each Anarchy turn (155). At 0, or when order is bought from its second turn for c × (c + 1)
@@ -18,13 +19,7 @@ const RENEW_ERROR := "Trash a card from your discard (not a government)."
 
 ## The active Anarchy event (253), or null.
 static func active(e: GameEngine) -> CardInstance:
-	var id: String = e.config.get("unrest", {}).get("anarchy", "")
-	if id == "":
-		return null
-	for card in e.zone("active_events").cards:
-		if card.def.id == id:
-			return card
-	return null
+	return Events.find_active(e, e.config.get("unrest", {}).get("anarchy", ""))
 
 
 ## Whether event is the active Anarchy (Events.resolve_upkeep resolves it without counting it down, 253).
