@@ -79,7 +79,7 @@ func test_while_the_choice_is_owed_everything_else_refuses() -> void:
 	eq(e.grow_error(home_uid(e)), CHOOSE_FIRST, "grow")
 	eq(e.buy_error("farm"), CHOOSE_FIRST, "buy")
 	eq(e.buy_tech_error(lore), CHOOSE_FIRST, "research")
-	eq(e.renew_error(uid_of(e.zone("discard"), "farm")), CHOOSE_FIRST, "renew")
+	eq((e as Object).renew_error([uid_of(e.zone("discard"), "farm")]), CHOOSE_FIRST, "renew")
 	eq(e.revolt_error(), CHOOSE_FIRST, "revolt")
 	eq(e.restore_order_error(), CHOOSE_FIRST, "restore order")
 	eq(e.end_turn_error(), CHOOSE_FIRST, "end turn")

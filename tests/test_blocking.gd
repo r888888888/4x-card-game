@@ -36,7 +36,7 @@ func actions() -> Array:
 		["discard_card", func(e): return e.discard_error(first_in(e, "hand")),
 			func(e): return e.discard_card(first_in(e, "hand"))],
 		["choose", func(e): return e.choose_error(option.call(e)), func(e): return e.choose(option.call(e))],
-		["renew", func(e): return e.renew_error(option.call(e)), func(e): return e.renew(option.call(e))],
+		["renew", func(e): return (e as Object).renew_error([option.call(e)]), func(e): return (e as Object).renew([option.call(e)])],
 		["choose_government", func(e): return e.choose_government_error(option.call(e)),
 			func(e): return e.choose_government(option.call(e))],
 		["relieve_famine", func(e): return e.relieve_famine_error(), func(e): return e.relieve_famine()],
@@ -144,7 +144,7 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 	var rows := [
 		["choose", func(e): return e.choose_error(-1),
 			["There is no territory to choose.", "That territory isn't an option.", DISCARD, RENEWAL, GOVERNMENT, OVER]],
-		["renew", func(e): return e.renew_error(-1),
+		["renew", func(e): return (e as Object).renew_error([-1]),
 			["Nothing to renew.", EXPLORE, DISCARD, Anarchy.RENEW_ERROR, GOVERNMENT, OVER]],
 		["choose_government", func(e): return e.choose_government_error(-1),
 			["No government to choose.", EXPLORE, DISCARD, RENEWAL,

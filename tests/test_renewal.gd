@@ -53,9 +53,15 @@ func test_renewal_offers_the_hand_deck_and_discard_in_name_order() -> void:
 	eq(e.pending().get("count"), 1, "the count is unchanged")
 
 
+## Pays the renewal owed with the first options (255: one call for the whole count).
+func pay_renewal(e: Object) -> void:
+	var p: Dictionary = e.pending()
+	check(e.renew(p.options.slice(0, p.count)), "renew: %s" % e.renew_error(p.options.slice(0, p.count)))
+
+
 func test_renewal_grows_with_anarchys_turn() -> void:
 	var e := renewal_engine(["farm", "scout", "shrine", "farm"])
-	e.renew(e.pending().options[0])
+	pay_renewal(e)
 	e.end_turn()
 	eq(e.pending().get("count"), 2, "1 + Anarchy's 2nd turn − 1")
 
@@ -68,7 +74,7 @@ func test_renewal_counts_anarchys_turn_not_its_counters_left() -> void:
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	e.end_turn()
 	eq([e.anarchy() != -1, e.anarchy_counters(), e.pending().get("count")], [true, 4, 1], "its first turn, 4 counters: 1")
-	e.renew(e.pending().options[0])
+	pay_renewal(e)
 	e.end_turn()
 	eq(e.anarchy_counters(), 3, "3 counters left")
 	eq(e.pending().get("count"), 2, "its second turn: 1 + 1")
@@ -106,12 +112,12 @@ func test_unrest_renewal_validation() -> void:
 
 # --- AC2: renewing ---
 
-func test_renewing_trashes_a_hand_or_deck_card_and_keeps_the_deck_order() -> void:
-	var e := renewal_engine(["scout"], {"renewal": 2})
+func test_renewing_trashes_the_chosen_cards_at_once_and_keeps_the_deck_order() -> void:
+	var e: Object = renewal_engine(["scout"], {"renewal": 2})
 	var lib := set_library(e, ["shrine"], ["farm", "scout", "calm"], [])
 	e.resources["unrest"] = 4
-	check(e.renew(lib.hand[0]), "renew the hand's Shrine: %s" % e.renew_error(lib.hand[0]))
-	check(e.renew(lib.deck[1]), "renew the deck's Scout: %s" % e.renew_error(lib.deck[1]))
+	var chosen := [lib.hand[0], lib.deck[1]]
+	check(e.renew(chosen), "renew the hand's Shrine and the deck's Scout: %s" % e.renew_error(chosen))
 	eq(card_ids(e.zone("trashed")), ["shrine", "scout"] as Array[String], "both trashed")
 	eq(e.zone("hand").size(), 0, "the hand lost the Shrine")
 	eq(e.zone("deck").cards.map(func(c): return c.uid), [lib.deck[0], lib.deck[2]], "Farm, Calm: the order kept")
@@ -119,34 +125,43 @@ func test_renewing_trashes_a_hand_or_deck_card_and_keeps_the_deck_order() -> voi
 	eq(e.pending(), {}, "paid")
 
 
-func test_renewing_trashes_the_card_and_calms_1_unrest() -> void:
-	var e := renewal_engine(["farm", "scout"], {"renewal": 2})
+func test_renewing_one_card_calms_1_unrest() -> void:
+	var e: Object = renewal_engine(["farm", "scout"])
 	e.resources["unrest"] = 4
 	var farm := uid_of(e.zone("discard"), "farm")
-	check(e.renew(farm), "renew: %s" % e.renew_error(farm))
+	check(e.renew([farm]), "renew: %s" % e.renew_error([farm]))
 	check(e.zone("trashed").find(farm) != null, "Farm is trashed")
 	eq(e.resources.get("unrest"), 3, "4 − 1")
-	eq(e.pending().get("count"), 1, "1 left")
-	check(e.renew(uid_of(e.zone("discard"), "scout")), "renew the Scout")
 	eq(e.pending(), {}, "nothing pending")
 
 
 # --- AC3: renew_error ---
 
 func test_renew_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
-	var e := renewal_engine(["farm", "kings"])
+	var e: Object = renewal_engine(["farm", "kings"], {"renewal": 2})
 	var wrong := "Trash a card from your hand, deck or discard (not a government)."
 	var kings := uid_of(e.zone("discard"), "kings")
-	eq(e.renew_error(kings), wrong, "a government in the discard")
-	eq(e.renew_error(put_in(e, "kings", "hand")), wrong, "a government in the hand")
-	eq(e.renew_error(home_uid(e)), wrong, "a tableau card")
-	eq(e.renew_error(9999), wrong, "an unknown uid")
-	eq(e.renew_error(e.zone("hand").cards[0].uid), "", "a hand card may be trashed (255)")
-	var before := e.state.copy()
-	check(not e.renew(kings), "renew refuses")
+	var farm := uid_of(e.zone("discard"), "farm")
+	var hand: int = e.zone("hand").cards[0].uid
+	eq(e.renew_error([kings, farm]), wrong, "a government in the discard")
+	eq(e.renew_error([put_in(e, "kings", "hand"), farm]), wrong, "a government in the hand")
+	eq(e.renew_error([home_uid(e), farm]), wrong, "a tableau card")
+	eq(e.renew_error([9999, farm]), wrong, "an unknown uid")
+	eq(e.renew_error([farm, farm]), "Each card can be trashed once.", "the same card twice")
+	eq(e.renew_error([farm]), "Choose 2 cards to trash.", "too few")
+	eq(e.renew_error([farm, hand, e.zone("deck").cards[0].uid]), "Choose 2 cards to trash.", "too many")
+	eq(e.renew_error([farm, hand]), "", "a discard and a hand card (255)")
+	var before: GameState = e.state.copy()
+	check(not e.renew([kings, farm]), "renew refuses")
+	check(not e.renew([farm]), "renew refuses too few")
 	eq(state_diff(e.state, before), "", "a refusal changes nothing")
-	e.renew(uid_of(e.zone("discard"), "farm"))
-	eq(e.renew_error(kings), "Nothing to renew.", "not pending")
+	e.renew([farm, hand])
+	eq(e.renew_error([kings]), "Nothing to renew.", "not pending")
+
+
+func test_renew_error_says_1_card_when_1_is_owed() -> void:
+	var e: Object = renewal_engine(["farm", "scout"])
+	eq(e.renew_error([]), "Choose 1 card to trash.", "none chosen")
 
 
 # --- AC4: renewal comes first ---
@@ -160,8 +175,8 @@ func test_renewal_blocks_everything_else() -> void:
 	eq(e.buy_error("farm"), message, "buy")
 	eq(e.discard_error(hand), message, "discard")
 	eq(e.end_turn_error(), message, "end turn")
-	e.renew(e.pending().options[0])
-	eq(e.end_turn_error(), "Anarchy: trash 1 card from your hand, deck or discard first.", "one left")
+	var one := renewal_engine(["farm"])
+	eq(one.end_turn_error(), "Anarchy: trash 1 card from your hand, deck or discard first.", "one owed")
 
 
 # --- AC5: the renewal modifier ---
@@ -185,57 +200,19 @@ func test_a_researched_renewal_tech_raises_the_count() -> void:
 	eq(e.pending().get("count"), 2, "1 + 0 + Rites 1")
 
 
-# --- The Renewal overlay (Design notes) ---
-
-func test_the_renewal_overlay_shows_the_options_in_order_with_the_hand_in_it() -> void:
-	await with_main(anarchy_engine(RENEWAL), func(main: Node):
-		var e := Game.engine
-		e.create_card("scout", "discard", null)
-		e.resources["unrest"] = 5
-		e.end_turn()
-		await wait_frames()
-		var row: Node = main.choices.get("renewal_row")
-		check(row != null and row.is_visible_in_tree(), "the Renewal overlay is up")
-		if row == null:
-			return
-		eq(main.views_in(row).map(func(v): return v.uid), e.pending().get("options"), "the options, in their order")
-		eq(main.views_in(main.hand).size(), 0, "the hand's cards are in the row")
-		main.on_picked(main.views[uid_of(e.zone("discard"), "scout")])
-		await wait_frames()
-		check(not row.is_visible_in_tree(), "the overlay closes when done")
-		eq(main.views_in(main.hand).size(), e.zone("hand").size(), "the hand is back"))
-
-
-func test_the_renewal_overlay_shows_the_discard_and_a_click_trashes() -> void:
-	await with_main(anarchy_engine(RENEWAL), func(main: Node):
-		var e := Game.engine
-		e.create_card("farm", "discard", null)
-		put_in(e, "kings", "discard")
-		e.resources["unrest"] = 5
-		e.end_turn()
-		await wait_frames()
-		var row: Node = main.choices.get("renewal_row")
-		check(row != null and row.is_visible_in_tree(), "the Renewal overlay is up")
-		if row == null:
-			return
-		var farm := uid_of(e.zone("discard"), "farm")
-		var kings := uid_of(e.zone("discard"), "kings")
-		var in_row: Array = main.views_in(row).map(func(v): return v.uid)
-		check(in_row.has(farm) and not in_row.has(kings), "the discard's Farm, not the government (255)")
-		main.on_picked(main.views[kings])
-		check(e.zone("discard").find(kings) != null, "a government refuses")
-		main.on_picked(main.views[farm])
-		check(e.zone("trashed").find(farm) != null, "a click trashes the Farm")
-		await wait_frames()
-		check(not row.is_visible_in_tree(), "the overlay closes when done"))
-
-
 # --- AC6: the bot ---
 
 func test_the_bot_renews_the_card_worth_least_to_keep() -> void:
 	var e := renewal_engine(["farm", "scout", "kings"])
 	ScriptedBot.take_turn(e, "baseline")
 	eq(card_ids(e.zone("trashed")), ["scout"] as Array[String], "Scout (0) before Farm (2 food + 4 building)")
+
+
+func test_the_bot_pays_a_count_of_2_in_one_go_with_the_least_worth_keeping() -> void:
+	var e := renewal_engine(["farm", "scout", "shrine", "kings"], {"renewal": 2})
+	set_library(e, [], [], ["farm", "scout", "shrine", "kings"])
+	ScriptedBot.take_turn(e, "baseline")
+	eq(sorted(card_ids(e.zone("trashed"))), ["scout", "shrine"], "Scout and Shrine (0 each), not Farm")
 
 
 func test_the_bot_breaks_renewal_ties_by_name_order() -> void:

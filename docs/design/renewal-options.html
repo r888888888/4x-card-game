@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Renewal Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). Backlog 255: the Renewal screen, every card listed on
+   its own, chosen then confirmed. */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms; --d-small: 200ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1);
+	--ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --signal-hover: #B84A23; --signal-press: #8F3616; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --danger: #9B3424; --focus: #1F6A68; --scrim: rgba(34, 33, 31, 0.4);
+	--p-blue: #8AA7C4; --p-olive: #A3AA6A; --p-teal: #5E9C97; --p-brick: #C9705C; --l-brick: #9B3424;
+	--g-ochre: #A07514; --l-sage: #4E6B47; --hatch: rgba(34, 33, 31, 0.1);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --signal-hover: #E8804F; --signal-press: #C85E30; --on-signal: #1F1E1C;
+	--positive: #93B585; --danger: #E07A63; --focus: #6CC3BC; --scrim: rgba(0, 0, 0, 0.6);
+	--p-blue: #86A9CC; --p-olive: #A9B26C; --p-teal: #5FB0A9; --p-brick: #E07A63; --l-brick: #E07A63;
+	--g-ochre: #D9A441; --l-sage: #93B585; --hatch: rgba(255, 255, 255, 0.05);
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.num { font-family: var(--f-cond); font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
+header { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); position: sticky; top: 0; z-index: 5; }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 82ch; margin: 0 0 var(--space-5); }
+.intro b { color: var(--ink); font-weight: 500; }
+.option { padding: var(--space-5) 0 var(--space-6); border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.ohead { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: var(--space-5); margin-bottom: var(--space-4); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 86ch; }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.pick { color: var(--signal); }
+
+/* The faux screen: the dimmed board behind a modal (§15.11). */
+.stage { position: relative; background: var(--board) repeating-linear-gradient(-45deg, var(--hatch) 0 1px, transparent 1px 12px); border: 2px solid var(--ink); padding: var(--space-6) var(--space-5); display: grid; place-items: center; }
+.stage::before { content: ""; position: absolute; inset: 0; background: var(--scrim); }
+.modal { position: relative; width: 100%; background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); }
+.titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); margin: 0; padding: var(--space-3) var(--space-5) 0; }
+.titleblock h3 { margin: 0; font: 500 28px/34px var(--f-display); }
+.titleblock .caps { margin-left: auto; }
+.mbody { padding: var(--space-3) var(--space-5) var(--space-4); }
+.lede { margin: 0 0 var(--space-4); font: 400 18px/1.45 var(--f-ui); }
+.lede .bolt { vertical-align: -3px; }
+.mfoot { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); border-top: 1px solid var(--rule-fine); }
+.mfoot .spacer { flex: 1; }
+.mfoot .hint { font: 400 15px/20px var(--f-ui); color: var(--ink-2); }
+
+/* Buttons (§15.1, §15.2) */
+.btn { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) 20px; border-radius: var(--radius-1); cursor: pointer; font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em; background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); transition: background-color var(--d-hover) var(--ease-machined), transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined); }
+.btn:hover { border-color: var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--shadow); transition-duration: var(--d-snap); }
+.btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
+.btn.primary:hover { background: var(--signal-hover); }
+.btn[aria-disabled="true"] { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
+.link { background: none; border: 0; padding: 2px 0; cursor: pointer; font: 500 17px/20px var(--f-cond); color: var(--ink-2); border-bottom: 2px solid transparent; }
+.link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* Segmented progress (§15.10): one segment per card owed. */
+.progress { display: inline-flex; align-items: center; gap: var(--space-3); }
+.segments { display: flex; gap: 2px; padding: 2px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.seg { width: 22px; height: 8px; background: linear-gradient(var(--p-brick), var(--p-brick)) no-repeat; background-size: 0% 100%; transition: background-size var(--d-quick) var(--ease-machined); }
+.seg.full { background-size: 100% 100%; }
+
+/* Index cards (§6.7, §15.6), sized down to fit a wrapping grid; chosen = lifted, index tab out, a brick strip. */
+.glyph, .mark { flex: none; }
+.mark { width: 10px; height: 10px; fill: currentColor; }
+.grid { display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-3); padding-top: var(--space-3); }
+.card { position: relative; width: 168px; height: 196px; padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; gap: 6px; background: var(--sheet); border: 2px solid var(--rule); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transform: translateY(0); box-shadow: 0 0 0 var(--shadow); transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined), border-color var(--d-hover) var(--ease-machined); }
+.card:hover { transform: translateY(-4px); box-shadow: 2px 2px 0 var(--shadow); border-color: var(--ink); }
+.card[aria-pressed="true"] { transform: translateY(-12px); box-shadow: 4px 4px 0 var(--shadow); border: 3px solid var(--ink); padding: 7px 11px; }
+.card .itab { position: absolute; top: -9px; left: 12px; height: 6px; width: 0; background: var(--signal); transition: width var(--d-quick) var(--ease-machined); }
+.card[aria-pressed="true"] .itab { width: 24px; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card .name { font: 600 18px/22px var(--f-cond); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cost { display: inline-flex; gap: var(--space-2); flex: none; }
+.cost span { display: inline-flex; align-items: center; gap: 2px; font: 500 17px/20px var(--f-cond); }
+.card .band { flex: none; height: 5px; background: var(--band); }
+.card .type { display: flex; align-items: center; gap: 6px; font: 400 15px/20px var(--f-ui); color: var(--ink-2); }
+.card .rules { flex: 1; font: 400 16px/20px var(--f-ui); }
+.card .stamp { display: none; align-items: center; gap: 6px; margin: 0 -11px -7px; padding: var(--space-1) var(--space-3); background: var(--p-brick); color: var(--on-signal); font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; }
+.card[aria-pressed="true"] .stamp { display: flex; }
+.card.compact { width: 150px; height: 104px; }
+
+/* B: the ledger, a selectable list (§7.16) with a lamp per row, and the focused card's face beside it. */
+.sounds { margin-top: var(--space-5); max-width: 1040px; }
+.sounds h3 { margin: 0 0 var(--space-2); }
+.sounds table { width: 100%; border-collapse: collapse; font: 400 15px/20px var(--f-ui); }
+.sounds th { text-align: left; font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); padding: var(--space-2); border-bottom: 1px solid var(--ink); }
+.sounds td { padding: var(--space-2); border-bottom: 1px solid var(--rule-fine); vertical-align: top; }
+.sounds td:first-child { font: 500 16px/20px var(--f-cond); }
+.sounds code { font: 500 14px/18px ui-monospace, Menlo, monospace; color: var(--ink); }
+.ledger { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--space-5); }
+.slist { display: flex; flex-direction: column; padding: var(--space-2) 0; background: var(--well); max-height: 420px; overflow: auto; }
+.lrow { position: relative; display: grid; grid-template-columns: 16px 10px minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: none; border: 0; text-align: left; cursor: pointer; font: 500 19px/24px var(--f-cond); color: var(--ink-2); transform: translateX(0); transition: transform var(--d-quick) var(--ease-machined), color var(--d-hover) var(--ease-machined); }
+.lrow:hover, .lrow.focus { color: var(--ink); }
+.lrow.focus { background: var(--sheet); box-shadow: 4px 4px 0 var(--shadow); transform: translateX(8px); }
+.lrow .cost span { font-size: 15px; }
+.lamp { --lamp: var(--p-brick); --lamp-line: var(--l-brick); width: 12px; height: 12px; border-radius: 50%; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); transition: background-color var(--d-quick) var(--ease-lamp-off), box-shadow var(--d-quick) var(--ease-lamp-off); }
+.lrow[aria-pressed="true"] .lamp { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--lamp) 40%, white) 0 18%, var(--lamp) 22%); box-shadow: inset 0 0 0 2px var(--lamp-line); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+.lrow[aria-pressed="true"] { color: var(--ink); }
+.lrow[aria-pressed="true"] .lname { text-decoration: line-through 2px var(--p-brick); }
+.face { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+.face .card { width: 264px; height: 300px; cursor: default; }
+.face .card .stamp, .face .card .itab { display: none; }
+.face .card:hover { transform: none; box-shadow: none; border-color: var(--rule); }
+.face .btn { align-self: flex-start; }
+
+/* C: the tray, a well under the cards with one slot per card owed; a chosen card moves into a slot. */
+.tray { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-5); padding: var(--space-3) var(--space-4); background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); }
+.tray .caps { width: 90px; }
+.slot { width: 150px; height: 104px; display: grid; place-items: center; border: 2px dashed var(--rule); color: var(--ink-3); font: 500 15px/1 var(--f-cond); }
+.slot .card { margin: -2px; }
+.grid .card.gone { visibility: hidden; }
+
+@media (max-width: 900px) { .ledger { grid-template-columns: 1fr; } .ohead { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+	<h1>Renewal · options</h1>
+	<button class="plain" id="sound">Sound: on</button>
+	<button class="plain" id="theme">Paper</button>
+</header>
+<main>
+<p class="intro">Backlog <b>255</b>: under Anarchy, renewal trashes cards from your <b>hand, deck or discard</b>. Every card is listed on its
+	own (no stacks), sorted by name so the draw order stays hidden, and nothing is trashed until you <b>confirm</b>. Each demo is the
+	Egypt starting library (11 cards) on Anarchy's 2nd turn: <b>trash 2</b>. Click cards to choose; the confirm key arms at 2 of 2.
+	Esc or Close isn't offered: renewal is owed. <b>B is chosen</b>; its sounds are live (click once anywhere to
+	wake the audio), and the plan for them is under it.</p>
+
+<section class="option">
+	<div class="ohead"><div class="letter">A</div><div>
+		<h2>Card spread</h2>
+		<p>The cards as they look in the hand, in one wrapping grid. A click lifts a card (the hand's chosen pose: 12 px up, the
+			index tab out) and stamps it <b>Trash</b>; a second click puts it back. The footer counts on segmented progress and the
+			confirm key arms only at the full count.</p>
+		<p class="meta">Closest to today's screen and the hand. <span class="pick">Reads well up to ~16 cards</span>; a 30-card library
+			scrolls.</p>
+	</div></div>
+	<div class="stage"><div class="modal" data-demo="spread"></div></div>
+</section>
+
+<section class="option">
+	<div class="ohead"><div class="letter">B</div><div>
+		<h2>Ledger <span class="pick">· chosen</span></h2>
+		<p>A selectable list (§7.16): one row per card, its type mark, name and cost. Hover or arrow keys pull a row out like an index
+			card and show its plain face on the right (only the row says whether it's chosen); Enter or a click lights the row's lamp and
+			strikes the name through. Compact at any library size and the most keyboard-friendly.</p>
+		<p class="meta">Like the Knowledge sheet and the identity modal's lists. <span class="pick">Scales to any deck</span>; less
+			visual than A.</p>
+	</div></div>
+	<div class="stage"><div class="modal" data-demo="ledger"></div></div>
+	<div class="sounds">
+		<h3 class="caps">Sounds: §14.1 tokens, nothing new</h3>
+		<table>
+			<tr><th>Moment</th><th>Token</th><th>Why</th><th></th></tr>
+			<tr><td>The screen opens</td><td><code>ui.sheet.open</code></td><td>A modal is a drafting sheet laid on the desk (§16.5)</td><td><button class=plain data-try=ui.sheet.open>Play</button></td></tr>
+			<tr><td>Pointer enters a row</td><td><code>ui.hover</code></td><td>A row is actionable: the felt tick, rate-capped to one per 80 ms</td><td><button class=plain data-try=ui.hover>Play</button></td></tr>
+			<tr><td>Up / Down moves the pulled-out row</td><td>silent</td><td>Keyboard focus moving is silent by design (§16.8); the face swapping is part of it</td><td></td></tr>
+			<tr><td>A row chosen (its lamp lights)</td><td><code>ui.toggle.on</code></td><td>Choosing latches the row like a lamp key; the catch lands with the lamp. Not <code>ui.selection</code>: that is the pulled-out row's (§7.16), and here the pull-out follows the pointer, so it would tick on every hover</td><td><button class=plain data-try=ui.toggle.on>Play</button></td></tr>
+			<tr><td>A row put back</td><td><code>ui.toggle.off</code></td><td>The latch letting go</td><td><button class=plain data-try=ui.toggle.off>Play</button></td></tr>
+			<tr><td>A row past the count, or the unarmed key</td><td><code>ui.reject.locked</code></td><td>A key that won't go down: one dead tap, no shake</td><td><button class=plain data-try=ui.reject.locked>Play</button></td></tr>
+			<tr><td>Progress fills, the key arms</td><td>silent</td><td>Progress cells and status lamps are silent (§16.8)</td><td></td></tr>
+			<tr><td>Trash 2 cards pressed</td><td><code>ui.button.press</code> / <code>.release</code>, primary (−2 st)</td><td>The primary key, as everywhere</td><td><button class=plain data-try=ui.button.press>Play</button></td></tr>
+			<tr><td>The cards go, the sheet lifts</td><td><code>ui.sheet.close</code></td><td>At once as the modal leaves (§16.5 rule 5). No <code>ui.confirm</code>: its rising tone marks a good result, and losing cards isn't a reward (§16.4 rule 4)</td><td><button class=plain data-try=ui.sheet.close>Play</button></td></tr>
+			<tr><td>Unrest drops on the strip</td><td><code>ui.counter.tick</code>s, then <code>ui.resource.loss</code></td><td>The counter's own sounds, as for any change; nothing extra for renewal</td><td><button class=plain data-try=ui.resource.loss>Play</button></td></tr>
+		</table>
+	</div>
+</section>
+
+<section class="option">
+	<div class="ohead"><div class="letter">C</div><div>
+		<h2>Trash tray</h2>
+		<p>Compact cards (the Realm's one-line size) above a well with one dashed slot per card owed. A click moves the card into the
+			next slot, leaving its gap in the grid; a click on a slotted card sends it back. You see exactly what's going before you
+			confirm.</p>
+		<p class="meta">The most physical. <span class="pick">The count is the slots</span>; the tray grows with the count (5 on turn 5).</p>
+	</div></div>
+	<div class="stage"><div class="modal" data-demo="tray"></div></div>
+</section>
+</main>
+
+<script>
+const root = document.documentElement;
+const calm = () => root.dataset.calm === "true" || (root.dataset.calm !== "false" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const wait = (ms) => new Promise((r) => setTimeout(r, calm() ? 0 : ms));
+
+// ---- Sound (§16; tokens §14.1) ----
+// Placeholder synthesis: every token is built from a few mechanisms (a filtered noise click, a damped body, a run, a
+// paper whisper, a lamp tone, a bell, bars) and normalized offline to its level, so the levels are the spec's, not
+// the synth's. A sound is scheduled at its motion's contact point (90% of travel, §16.5), never at pointer-down.
+const bezier = (x1, y1, x2, y2) => (u) => {
+	const x = (t) => 3 * (1 - t) ** 2 * t * x1 + 3 * (1 - t) * t * t * x2 + t ** 3;
+	const y = (t) => 3 * (1 - t) ** 2 * t * y1 + 3 * (1 - t) * t * t * y2 + t ** 3;
+	let lo = 0, hi = 1;
+	for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (x(m) < u) lo = m; else hi = m; }
+	return y(lo);
+};
+const CURVES = { snap: bezier(0.3, 0, 0, 1), machined: bezier(0.2, 0, 0, 1), latch: bezier(0.5, -0.2, 0.1, 1), release: bezier(0.4, 0, 1, 1) };
+// The ms at which a motion of this duration and curve reaches 90% of its travel: its contact point.
+function contactMs(ms, curve) {
+	const f = CURVES[curve];
+	for (let i = 0; i <= 200; i++) if (f(i / 200) >= 0.9) return Math.round(ms * i / 200);
+	return ms;
+}
+
+const Sound = (() => {
+	const REF_DB = -26;  // ui.button.press peak at full volume; levels are dB from it
+	const db = (d) => 10 ** (d / 20);
+	const st = (n) => 2 ** (n / 12);
+	const NOTE = { A3: 220, B3: 247, Cs4: 277, D4: 294, E4: 330, Fs4: 370, A4: 440, B4: 494, D5: 587, E5: 659, Fs5: 740, A5: 880, B5: 988, D6: 1175, E6: 1319 };
+	const SR = 48000;
+	const noiseBuf = new AudioBuffer({ length: SR, sampleRate: SR });
+	{ const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+
+	// -- mechanisms: each writes into `out` starting at time t --
+	function env(c, t, peak, attack, dur) {
+		const g = c.createGain();
+		g.gain.setValueAtTime(0, t);
+		g.gain.linearRampToValueAtTime(peak, t + attack);
+		g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, attack + 0.005));
+		return g;
+	}
+	function noise(c, t, dur) { const n = c.createBufferSource(); n.buffer = noiseBuf; n.loop = true; n.start(t, Math.random() * 0.9); n.stop(t + dur + 0.03); return n; }
+	function filter(c, type, f, q = 0.7) { const b = c.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
+	// A click: a noise burst through a band-pass (the switch's contact), attack 1 ms.
+	function click(c, out, t, { f = 2000, q = 3, dur = 0.04, g = 1 } = {}) {
+		noise(c, t, dur).connect(filter(c, "bandpass", f, q)).connect(env(c, t, g, 0.001, dur)).connect(out);
+	}
+	// A body: the damped thump of the part that was struck.
+	function body(c, out, t, { f = 300, dur = 0.05, g = 1, to = 1 } = {}) {
+		const o = c.createOscillator();
+		o.frequency.setValueAtTime(f, t);
+		if (to !== 1) o.frequency.exponentialRampToValueAtTime(f * to, t + dur);
+		o.connect(env(c, t, g, 0.002, dur)).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	// A lamp's tone generator: sine or soft square, top rolled off, soft attack (§16.6).
+	function tone(c, out, t, { f = 880, dur = 0.2, g = 1, type = "sine", lp = 2500, attack = 0.006 } = {}) {
+		const o = c.createOscillator(); o.type = type; o.frequency.value = f;
+		o.connect(filter(c, "lowpass", lp, 0.5)).connect(env(c, t, g, attack, dur)).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	function partials(c, out, t, { f, dur, g = 1, ratios, amps, decays, attack = 0.005, lp = 8000 }) {
+		ratios.forEach((r, i) => tone(c, out, t, { f: f * r, dur: dur * decays[i], g: g * amps[i], lp, attack }));
+	}
+	const bell = (c, out, t, o) => partials(c, out, t, { ratios: [1, 2.76, 5.4], amps: [1, 0.2, 0.05], decays: [1, 0.45, 0.2], attack: 0.005, lp: 5000, ...o });
+	const vib = (c, out, t, o) => partials(c, out, t, { ratios: [1, 4, 10], amps: [1, 0.22, 0.04], decays: [1, 0.3, 0.1], attack: 0.005, lp: 6000, ...o });
+	const marimba = (c, out, t, o) => { partials(c, out, t, { ratios: [1, 3.9, 9.2], amps: [1, 0.16, 0.03], decays: [1, 0.25, 0.08], attack: 0.005, lp: 4000, ...o }); click(c, out, t, { f: 500, q: 1, dur: 0.02, g: 0.25 * (o.g || 1) }); };
+	const piano = (c, out, t, o) => partials(c, out, t, { ratios: [1, 2, 3, 4], amps: [1, 0.3, 0.12, 0.04], decays: [1, 0.6, 0.4, 0.25], attack: 0.005, lp: 1600, ...o });
+	const chord = (fn, c, out, t, notes, o) => notes.forEach((n) => fn(c, out, t, { ...o, f: NOTE[n], g: (o.g || 1) / notes.length ** 0.5 }));
+	// A run: a drawer or partition on its rail. "decel" fades as the motion slows; "accel" grows to a shut.
+	function run(c, out, t, { dur = 0.2, g = 1, lp = 1800, shape = "decel" } = {}) {
+		const e = c.createGain();
+		if (shape === "decel") { e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + 0.015); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+		else { e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + dur * 0.92); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+		noise(c, t, dur).connect(filter(c, "lowpass", lp)).connect(filter(c, "highpass", 250)).connect(e).connect(out);
+	}
+	// Paper: a sheet laid, lifted or run along a rule. Peaks at `peak` (a fraction of dur), with a slight flutter.
+	function paper(c, out, t, { dur = 0.15, g = 1, peak = 0.5, f = 2200 } = {}) {
+		const e = c.createGain(), flutter = c.createGain();
+		e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + Math.max(0.004, dur * peak)); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		for (let k = 0; k < dur / 0.012; k++) flutter.gain.setValueAtTime(0.65 + Math.random() * 0.35, t + k * 0.012);
+		noise(c, t, dur).connect(filter(c, "bandpass", f, 0.7)).connect(filter(c, "highpass", 500)).connect(flutter).connect(e).connect(out);
+	}
+	// A flutter: a split-flap word or a riffle of cards; one sound for the whole word.
+	function flutter(c, out, t, { n = 9, span = 0.17, g = 1, f = 3400 } = {}) {
+		for (let i = 0; i < n; i++) click(c, out, t + span * (i / n) ** 0.85 + Math.random() * 0.004, { f: f * (0.9 + Math.random() * 0.2), q: 3, dur: 0.008, g: g * (0.55 + Math.random() * 0.45) });
+	}
+	function motor(c, out, t, { dur = 0.3, g = 1 } = {}) {
+		const o = c.createOscillator(); o.type = "sawtooth";
+		o.frequency.setValueAtTime(70, t); o.frequency.linearRampToValueAtTime(95, t + dur);
+		const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + 0.04); e.gain.setValueAtTime(g, t + dur - 0.07); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		o.connect(filter(c, "lowpass", 450)).connect(e).connect(out); o.start(t); o.stop(t + dur + 0.03);
+	}
+	// A relay: armature and contacts, two stages 12 ms apart.
+	function relay(c, out, t, { g = 1 } = {}) {
+		click(c, out, t, { f: 1200, q: 6, dur: 0.035, g }); body(c, out, t, { f: 300, dur: 0.1, g: 0.6 * g, to: 0.85 });
+		click(c, out, t + 0.012, { f: 3200, q: 8, dur: 0.02, g: 0.7 * g }); body(c, out, t + 0.012, { f: 260, dur: 0.09, g: 0.4 * g });
+	}
+	function brush(c, out, t, { dur = 0.45, g = 1 } = {}) {
+		const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + dur * 0.45); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		noise(c, t, dur).connect(filter(c, "bandpass", 4500, 0.5)).connect(e).connect(out);
+	}
+	// The key switch (chosen in click-options.html, option G): a clicky switch under ABS keycaps. Its click jacket
+	// snaps at actuation, then the stem bottoms out on the housing; on the way up it snaps again and tops out.
+	function jacket(c, out, t, v, g = 1) {
+		click(c, out, t, { f: 4500 * v, q: 1.5, dur: 0.012, g: 1.8 * g });  // as loud as the bottom-out
+		body(c, out, t, { f: 3300 * v, dur: 0.01, g: 0.5 * g });
+	}
+	function clack(c, out, t, v, { f, body: b, kase, g = 1, dur = 0.03 }) {  // the plastic clack, the cap's tone, the case
+		click(c, out, t, { f: f * v, q: 1.2, dur, g: 0.8 * g });
+		body(c, out, t, { f: b * v, dur: 0.02, g: 0.3 * g });
+		body(c, out, t, { f: kase * v, dur: 0.05, g: 0.35 * g, to: 0.95 });
+	}
+	const stop = (c, out, t, f = 240, g = 1) => { body(c, out, t, { f, dur: 0.09, g, to: 0.8 }); click(c, out, t, { f: 900, q: 1, dur: 0.035, g: 0.45 * g }); };
+	const tap = (c, out, t, g = 1) => { body(c, out, t, { f: 230, dur: 0.07, g, to: 0.9 }); click(c, out, t, { f: 700, q: 1.2, dur: 0.03, g: 0.45 * g }); };
+
+	// -- the tokens (§14.1): level in dB from REF, the level of the hierarchy, a family, a duration in s --
+	// p.v is the variant's pitch factor (L1 only), p.calm collapses travel into the stop (§9.5).
+	const T = {
+		// `lead` (ms): a two-stage sound starts this much early, so its last part (bottom-out, top-out) lands on contact.
+		"ui.button.press": { l: 1, level: 0, lead: 14, freq: "very high", dur: 0.08, fn: (c, o, t, p) => { jacket(c, o, t, p.v); clack(c, o, t + 0.014, p.v, { f: 1800, body: 1100, kase: 380 }); } },
+		"ui.button.release": { l: 1, level: -4, lead: 18, freq: "very high", dur: 0.07, fn: (c, o, t, p) => { jacket(c, o, t, p.v * 1.06, 0.55); clack(c, o, t + 0.018, p.v, { f: 2200, body: 1300, kase: 420, g: 0.55 }); } },
+		// The lamp key latches: ON is a bright latch catch (no snap: the press already snapped); OFF lets the switch
+		// spring back with its upstroke snap and top-out, lower and muted.
+		"ui.toggle.on": { l: 1, level: 0, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { clack(c, o, t, p.v, { f: 2400, body: 1500, kase: 420, g: 0.8 }); click(c, o, t + 0.008, { f: 3300 * p.v, q: 5, dur: 0.012, g: 0.5 }); } },
+		"ui.toggle.off": { l: 1, level: -2, lead: 18, freq: "occasional", dur: 0.08, fn: (c, o, t, p) => { const v = p.v * st(-3); jacket(c, o, t, v * 0.75, 0.4); clack(c, o, t + 0.018, v, { f: 1500, body: 1000, kase: 330, g: 0.7 }); } },
+		"ui.selection": { l: 1, level: -8, freq: "very high", dur: 0.04, fn: (c, o, t, p) => click(c, o, t, { f: 3000 * p.v, q: 5, dur: 0.04 }) },
+		"ui.card.lift": { l: 1, level: -6, freq: "high", dur: 0.06, fn: (c, o, t, p) => paper(c, o, t, { dur: 0.05, peak: 0.2, f: 2800 * p.v }) },
+		"ui.card.place": { l: 1, level: -3, freq: "high", dur: 0.09, fn: (c, o, t, p) => { paper(c, o, t, { dur: 0.07, peak: 0.12, f: 1800 * p.v }); body(c, o, t, { f: 300 * p.v, dur: 0.08, g: 0.5, to: 0.8 }); } },
+		"ui.counter.tick": { l: 1, level: -6, freq: "very high", dur: 0.03, fn: (c, o, t, p) => { click(c, o, t, { f: 3000 * p.v, q: 6, dur: 0.03 }); body(c, o, t, { f: 1000 * p.v, dur: 0.04, g: 0.2 }); } },
+		"ui.flap": { l: 1, level: -8, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => flutter(c, o, t, { f: 3400 * p.v }) },
+		"ui.resource.gain": { l: 1, level: -3, freq: "high", dur: 0.14, fn: (c, o, t, p) => { click(c, o, t, { f: 2600 * p.v, q: 4, dur: 0.02, g: 0.7 }); click(c, o, t + 0.018, { f: 1500 * p.v, q: 3, dur: 0.045 }); body(c, o, t + 0.018, { f: 380 * p.v, dur: 0.04, g: 0.4 }); tone(c, o, t + 0.018, { f: NOTE.A5, dur: 0.14, g: db(-12) }); } },
+		"ui.resource.loss": { l: 1, level: -3, freq: "high", dur: 0.12, fn: (c, o, t, p) => { const v = p.v * st(-3); click(c, o, t, { f: 2000 * v, q: 4, dur: 0.02, g: 0.6 }); click(c, o, t + 0.018, { f: 1200 * v, q: 2.5, dur: 0.05 }); body(c, o, t + 0.018, { f: 330 * v, dur: 0.1, g: 0.45, to: 0.85 }); } },
+		"ui.reject.locked": { l: 1, level: -4, freq: "occasional", dur: 0.05, fn: (c, o, t) => tap(c, o, t) },
+		"ui.panel.open": { l: 2, level: 3, freq: "occasional", dur: 0.26, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t); click(c, o, t, { f: 2200, q: 5, dur: 0.02, g: 0.35 }); run(c, o, t + 0.005, { dur: 0.15, g: 0.32 }); stop(c, o, t + 0.164); } },
+		"ui.panel.close": { l: 2, level: 3, freq: "occasional", dur: 0.22, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.187; if (!p.calm) run(c, o, t, { dur: 0.18, g: 0.32, shape: "accel" }); click(c, o, t + at, { f: 1700, q: 4, dur: 0.03, g: 0.8 }); body(c, o, t + at, { f: 260, dur: 0.04, g: 0.9 }); } },
+		"ui.sheet.open": { l: 2, level: 1, wet: 0.05, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => paper(c, o, t, p.calm ? { dur: 0.12, peak: 0.25, f: 2000 } : { dur: 0.2, peak: 0.65, f: 2000 }) },
+		"ui.sheet.close": { l: 2, level: -2, freq: "occasional", dur: 0.1, fn: (c, o, t) => paper(c, o, t, { dur: 0.12, peak: 0.1, f: 2600 }) },
+		"ui.nav.forward": { l: 2, level: 2, wet: 0.05, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t, 200, 0.9); paper(c, o, t, { dur: 0.3, peak: 0.45, f: 1900, g: 0.6 }); run(c, o, t, { dur: 0.25, g: 0.25, lp: 1400 }); stop(c, o, t + 0.172, 200, 0.9); } },
+		"ui.nav.back": { l: 2, level: 0, freq: "occasional", dur: 0.26, fn: (c, o, t) => paper(c, o, t, { dur: 0.26, peak: 0.12, f: 1700 }) },
+		"ui.cabinet.close": { l: 2, level: 3, wet: 0.05, freq: "occasional", dur: 0.22, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.108; if (!p.calm) run(c, o, t, { dur: 0.11, g: 0.35, shape: "accel" }); body(c, o, t + at, { f: 190, dur: 0.13, to: 0.85 }); click(c, o, t + at, { f: 700, q: 1, dur: 0.05, g: 0.5 }); } },
+		"ui.cabinet.part": { l: 2, level: 2, wet: 0.05, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return stop(c, o, t, 230, 0.7); click(c, o, t, { f: 1800, q: 4, dur: 0.03, g: 0.5 }); run(c, o, t, { dur: 0.16, g: 0.35 }); stop(c, o, t + 0.164, 230, 0.7); } },
+		"ui.pile.deal": { l: 2, level: 0, freq: "occasional", dur: 0.3, fn: (c, o, t, p) => { if (p.calm) return tap(c, o, t, 0.6); for (let i = 0; i < 7; i++) paper(c, o, t + i * 0.035, { dur: 0.05, peak: 0.2, f: 2400, g: 0.9 }); } },
+		"ui.pile.gather": { l: 2, level: -2, freq: "occasional", dur: 0.2, fn: (c, o, t, p) => { const at = p.calm ? 0 : 0.12; if (!p.calm) for (let i = 0; i < 4; i++) paper(c, o, t + i * 0.025, { dur: 0.05, peak: 0.2, f: 2400, g: 0.8 }); body(c, o, t + at, { f: 300, dur: 0.04, g: 0.8 }); click(c, o, t + at, { f: 1500, q: 2, dur: 0.02, g: 0.4 }); } },
+		"ui.confirm": { l: 2, level: 4, wet: 0.05, tonal: true, freq: "occasional", dur: 0.25, fn: (c, o, t, p) => { if (p.strong) { tone(c, o, t, { f: NOTE.E5, dur: 0.14, type: "square", g: 0.8 }); tone(c, o, t + 0.09, { f: NOTE.A5, dur: 0.2, type: "square" }); } else tone(c, o, t, { f: NOTE.A5, dur: 0.22, type: "square" }); } },
+		"ui.reject": { l: 2, level: 3, freq: "occasional", dur: 0.16, fn: (c, o, t, p) => { tap(c, o, t); if (!p.calm) tap(c, o, t + 0.08, 0.85); } },
+		"ui.notification.info": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.28, fn: (c, o, t) => bell(c, o, t, { f: NOTE.E5, dur: 0.28 }) },
+		"ui.notification.caution": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "occasional", dur: 0.4, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.E5, dur: 0.22 }); bell(c, o, t + 0.16, { f: NOTE.E5, dur: 0.28 }); } },
+		"ui.notification.urgent": { l: 2, level: 6, wet: 0.05, tonal: true, freq: "rare", dur: 0.55, fn: (c, o, t) => { bell(c, o, t, { f: NOTE.A5, dur: 0.25 }); bell(c, o, t + 0.17, { f: NOTE.D5, dur: 0.4 }); } },
+		// The same switch under the desk's biggest key: the snap, then a deeper bottom-out with more case.
+		"ui.endturn.press": { l: 2, level: 4, lead: 14, freq: "high", dur: 0.11, fn: (c, o, t) => { jacket(c, o, t, 0.92); clack(c, o, t + 0.014, 1, { f: 1300, body: 800, kase: 200, g: 1.2, dur: 0.045 }); body(c, o, t + 0.014, { f: 160, dur: 0.1, g: 0.35 }); } },
+		"ui.endturn.commit": { l: 2, level: 5, freq: "high", dur: 0.14, fn: (c, o, t) => relay(c, o, t) },
+		"ui.endturn.turn": { l: 2, level: -2, wet: 0.05, freq: "high", dur: 0.32, fn: (c, o, t) => { motor(c, o, t, { dur: 0.3, g: 0.5 }); flutter(c, o, t + 0.02, { n: 10, span: 0.22, g: 0.6 }); } },
+		"ui.milestone": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.0, fn: (c, o, t) => { relay(c, o, t, { g: 0.5 }); vib(c, o, t + 0.12, { f: NOTE.D5, dur: 0.9 }); } },
+		"ui.milestone.breakthrough": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.9, fn: (c, o, t) => { paper(c, o, t, { dur: 0.22, peak: 0.5, f: 3500, g: 0.25 }); ["D5", "Fs5", "A5"].forEach((n, i) => vib(c, o, t + 0.24 + i * 0.12, { f: NOTE[n], dur: 0.7 - i * 0.1, g: 0.8 })); } },
+		"ui.milestone.city": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.8, fn: (c, o, t) => { body(c, o, t, { f: 150, dur: 0.09, g: 0.4, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.05, g: 0.25 }); marimba(c, o, t + 0.12, { f: NOTE.D4, dur: 0.5 }); marimba(c, o, t + 0.3, { f: NOTE.A4, dur: 0.6 }); } },
+		"ui.milestone.wonder": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.2, fn: (c, o, t) => { relay(c, o, t, { g: 0.6 }); relay(c, o, t + 0.08, { g: 0.5 }); motor(c, o, t + 0.05, { dur: 0.35, g: 0.35 }); chord(vib, c, o, t + 0.42, ["D5", "Fs5", "A5", "E6"], { dur: 0.95 }); bell(c, o, t + 0.42, { f: NOTE.D6, dur: 0.6, g: 0.2 }); } },
+		"ui.milestone.accord": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 1.1, fn: (c, o, t) => { body(c, o, t, { f: 170, dur: 0.07, g: 0.3, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.04, g: 0.2 }); chord(piano, c, o, t + 0.08, ["A3", "Cs4", "E4"], { dur: 0.5, g: 0.8 }); chord(piano, c, o, t + 0.4, ["D4", "Fs4", "A4"], { dur: 0.75 }); } },
+		"ui.milestone.era": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 2.0, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.45, g: 0.5 }); flutter(c, o, t + 0.3, { n: 14, span: 0.35, g: 0.4 }); relay(c, o, t + 0.6, { g: 0.4 }); relay(c, o, t + 0.7, { g: 0.35 });
+			["D5", "A5", "D6"].forEach((n, i) => vib(c, o, t + 0.8 + i * 0.15, { f: NOTE[n], dur: 0.8, g: 0.6 }));
+			chord(piano, c, o, t + 1.25, ["D4", "Fs4", "A4"], { dur: 1.0 }); tone(c, o, t + 1.25, { f: NOTE.D4, dur: 1.2, type: "triangle", lp: 900, attack: 0.2, g: 0.15 }); } },
+		"ui.milestone.victory": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 2.6, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.5, g: 0.5 }); flutter(c, o, t + 0.3, { n: 16, span: 0.4, g: 0.4 }); relay(c, o, t + 0.65, { g: 0.4 }); relay(c, o, t + 0.75, { g: 0.35 });
+			["D5", "Fs5", "A5", "D6"].forEach((n, i) => vib(c, o, t + 0.85 + i * 0.15, { f: NOTE[n], dur: 0.8, g: 0.55 }));
+			chord(piano, c, o, t + 1.6, ["D4", "Fs4", "A4", "E5"], { dur: 1.2 }); chord(vib, c, o, t + 1.6, ["D5", "A5", "E6"], { dur: 1.2, g: 0.5 }); } },
+		"ui.milestone.defeat": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 2.4, fn: (c, o, t) => {
+			brush(c, o, t, { dur: 0.5, g: 0.4 }); flutter(c, o, t + 0.3, { n: 14, span: 0.35, g: 0.35 }); relay(c, o, t + 0.65, { g: 0.35 });
+			["A5", "Fs5", "D5"].forEach((n, i) => vib(c, o, t + 0.8 + i * 0.16, { f: NOTE[n], dur: 0.7, g: 0.55 }));
+			chord(piano, c, o, t + 1.3, ["B3", "D4", "Fs4"], { dur: 0.6 }); chord(piano, c, o, t + 1.7, ["D4", "Fs4", "A4"], { dur: 1.0 }); } },
+	};
+	const VARIANTS = [1, 1.05, 0.96, 1.025];  // four L1 variants (§16.8); two for L2
+
+	// Normalize each token offline so its peak sits at its level: the levels are the spec's, not the synth's.
+	const norm = {};
+	const ready = (async () => {
+		for (const [name, tk] of Object.entries(T)) {
+			const off = new OfflineAudioContext(1, Math.ceil(SR * (tk.dur + 1.2)), SR);
+			tk.fn(off, off.destination, 0.01, { v: 1, calm: false });
+			const data = (await off.startRendering()).getChannelData(0);
+			let peak = 0; for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i]));
+			norm[name] = db(REF_DB + tk.level) / (peak || 1);
+		}
+	})();
+
+	let ctx = null, enabled = true, lastTick = 0, lastNote = 0, l3Until = 0, lastVariant = {};
+	const volume = { interface: 0.7, game: 0.8 };
+	const buses = {}, voices = [];
+	function impulse(c, seconds) {
+		const len = Math.ceil(c.sampleRate * seconds), b = c.createBuffer(2, len, c.sampleRate);
+		for (let ch = 0; ch < 2; ch++) {
+			const d = b.getChannelData(ch); let lp = 0;
+			for (let i = 0; i < len; i++) { lp = lp * 0.6 + (Math.random() * 2 - 1) * 0.4; d[i] = lp * Math.exp(-17.3 * i / c.sampleRate); }  // −60 dB at 0.4 s, top damped
+		}
+		return b;
+	}
+	function start() {
+		if (ctx) { if (ctx.state === "suspended") ctx.resume(); return ctx; }
+		ctx = new AudioContext({ sampleRate: SR });
+		for (const name of ["interface", "game"]) {
+			const input = ctx.createGain(), vol = ctx.createGain(), room = ctx.createConvolver();
+			room.buffer = impulse(ctx, 0.4);  // one shared small room (§16.6)
+			const shelf = filter(ctx, "highshelf", 6000); shelf.gain.value = -6;
+			const chain = name === "interface" ? [filter(ctx, "highpass", 150), shelf] : [shelf];
+			let node = input; for (const f of chain) node = node.connect(f);
+			node.connect(vol).connect(ctx.destination);
+			room.connect(input);
+			vol.gain.value = volume[name];
+			buses[name] = { input, vol, room };
+		}
+		return ctx;
+	}
+
+	// play(token, { at: ms from now to the contact point, input: did the player cause it, gainDb, pitch (st), run })
+	function play(name, { at = 0, input = false, gainDb = 0, pitch = 0, strong = false } = {}) {
+		const tk = T[name];
+		if (!enabled || !tk || norm[name] === undefined) return;
+		const c = start();
+		const calmNow = calm();
+		const lead = Math.min(c.baseLatency || 0, 0.01);  // land inside the window: never early, ≤ 30 ms late (§16.5)
+		let when = c.currentTime + Math.max(0, (calmNow ? 0 : at - (tk.lead || 0)) / 1000 - lead) + 0.005;
+		if (tk.l < 3 && when < l3Until) { if (!input) return; gainDb -= 6; }  // events aren't interrupted (§16.4)
+		if (name === "ui.counter.tick") { if (when - lastTick < 0.035) return; lastTick = when; }  // one tick stream
+		if (name.startsWith("ui.notification")) { when = Math.max(when, lastNote + 0.4); lastNote = when; }
+		const now = c.currentTime;
+		for (let i = voices.length - 1; i >= 0; i--) if (voices[i].end < now) voices.splice(i, 1);
+		if (tk.l === 1 && voices.filter((v) => v.bus === "interface").length >= 6) return;  // the oldest L1 gives way
+		let v = 1, jitterDb = 0;
+		if (tk.l < 3) {
+			const n = tk.l === 1 ? 4 : 2;
+			let k; do { k = Math.floor(Math.random() * n); } while (n > 1 && k === lastVariant[name]);
+			lastVariant[name] = k;
+			if (!tk.tonal) v = VARIANTS[k] * (tk.l === 1 ? 2 ** ((Math.random() * 50 - 25) / 1200) : 1);
+			if (tk.l === 1) jitterDb = Math.random() * 2 - 1;
+		}
+		const bus = buses[tk.l === 3 ? "game" : "interface"];
+		const out = c.createGain();
+		out.gain.value = norm[name] * db(gainDb + jitterDb);
+		out.connect(bus.input);
+		if (tk.wet) { const w = c.createGain(); w.gain.value = tk.wet; out.connect(w).connect(bus.room); }
+		tk.fn(c, out, when, { v: v * st(pitch), calm: calmNow, strong });
+		voices.push({ bus: tk.l === 3 ? "game" : "interface", end: when + tk.dur });
+		if (tk.l === 3) l3Until = when + tk.dur;
+	}
+	function setVolume(bus, value) { volume[bus] = value; if (buses[bus]) buses[bus].vol.gain.setTargetAtTime(value, ctx.currentTime, 0.02); }
+	function setEnabled(on) { enabled = on; }
+	document.addEventListener("visibilitychange", () => {  // the interface is muted in the background (§12 rule 16)
+		if (!ctx) return;
+		for (const [name, b] of Object.entries(buses)) b.vol.gain.setTargetAtTime(document.hidden ? 0 : volume[name], ctx.currentTime, 0.05);
+	});
+	return { play, setVolume, setEnabled, start, ready, tokens: T };
+})();
+
+// Keys (§10.1, §15.1): a click when the face meets the desk, a tick when it is back at its stop. Hover is silent.
+let pressedKey = null;
+function keyDown(el) {
+	if (el.closest("[data-audition]")) return;
+	if (el.getAttribute("aria-disabled") === "true") { Sound.play("ui.reject.locked", { input: true }); return; }  // a locked key doesn't travel
+	if (el.classList.contains("end-turn")) { if (!el.classList.contains("busy")) Sound.play("ui.endturn.press", { at: contactMs(70, "snap"), input: true }); }
+	else if (el.classList.contains("tab")) Sound.play("ui.button.press", { at: contactMs(60, "snap"), gainDb: -3, input: true });
+	else Sound.play("ui.button.press", { at: contactMs(70, "snap"), pitch: el.classList.contains("primary") ? -2 : 0, input: true });
+	pressedKey = el;
+}
+function keyUp() {
+	const el = pressedKey; pressedKey = null;
+	if (el && el.classList.contains("btn")) Sound.play("ui.button.release", { at: contactMs(120, "machined"), pitch: el.classList.contains("primary") ? -2 : 0, input: true });
+	// tabs become active (no return), lamp keys latch or spring back (bindToggle), End turn commits (its click)
+}
+const KEYS = ".btn, .end-turn, .tab, .toggle";
+document.addEventListener("pointerdown", (e) => { const k = e.button === 0 && e.target.closest(KEYS); if (k) keyDown(k); });
+document.addEventListener("pointerup", keyUp);
+document.addEventListener("pointercancel", () => { pressedKey = null; });
+document.addEventListener("keydown", (e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat && e.target.matches && e.target.matches(KEYS)) keyDown(e.target); });
+document.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") keyUp(); });
+document.querySelectorAll("[data-try]").forEach((b) => b.addEventListener("click", () => Sound.play(b.dataset.try, { at: 40 })));
+document.addEventListener("pointerdown", () => Sound.start(), { once: true });
+let soundOn = true;
+document.getElementById("sound").addEventListener("click", (e) => {
+	soundOn = !soundOn; Sound.setEnabled(soundOn); e.currentTarget.textContent = `Sound: ${soundOn ? "on" : "off"}`;
+});
+</script>
+<script>
+const GLYPHS = {
+	food: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
+	unrest: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',
+	trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+};
+const MARKS = { action: '<path d="M12 2 22 12 12 22 2 12z"/>', building: '<rect x="4" y="4" width="16" height="16" rx="1.5"/>' };
+const HUE = { food: "var(--l-sage)", wealth: "var(--g-ochre)" };
+const glyph = (n, c, s = 18) => `<svg class="glyph" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="square" style="color:${c}" aria-hidden="true">${GLYPHS[n]}</svg>`;
+const mark = (t) => `<svg class="mark" viewBox="0 0 24 24" aria-hidden="true">${MARKS[t.toLowerCase()]}</svg>`;
+const cost = (c) => `<span class="cost">${Object.entries(c || {}).map(([r, n]) => `<span>${glyph(r, HUE[r], 16)}${n}</span>`).join("")}</span>`;
+
+const LIBRARY = [
+	["Barter", "Action", { food: 2 }, "+2 wealth<br>+1 action"], ["Barter", "Action", { food: 2 }, "+2 wealth<br>+1 action"],
+	["Farm", "Building", { food: 1, wealth: 2 }, "⟳ +2 food"], ["Farm", "Building", { food: 1, wealth: 2 }, "⟳ +2 food"],
+	["Hunt", "Action", null, "+1 food per Forest"], ["Lumber Camp", "Building", { food: 1, wealth: 2 }, "Needs Forest<br>⟳ +1 food"],
+	["Research", "Action", null, "+3 insight"], ["Scout", "Action", null, "Explore 2<br>Draw 1 card"],
+	["Scout", "Action", null, "Explore 2<br>Draw 1 card"], ["Settler", "Action", { food: 5 }, "Settle: City<br>+1 unrest"],
+	["Storyteller", "Action", { food: 1 }, "Draw 2 cards"],
+].map(([name, type, c, rules], i) => ({ i, name, type, cost: c, rules }));
+const OWED = 2;
+const band = (t) => `--band:var(--p-${t === "Action" ? "blue" : "olive"})`;
+const cardHTML = (c, compact = false) => `<button class="card ${compact ? "compact" : ""}" style="${band(c.type)}" data-i="${c.i}" aria-pressed="false">
+	<span class="itab"></span><span class="head"><span class="name">${c.name}</span>${cost(c.cost)}</span><span class="band"></span>
+	<span class="type">${mark(c.type)}${c.type}</span>${compact ? "" : `<span class="rules">${c.rules.replace(/⟳/g, "↻")}</span>
+	<span class="stamp">${glyph("trash", "currentColor", 14)}Trash</span>`}</button>`;
+
+function shell(kind, body) {
+	return `<div class="titleblock"><h3>Renewal</h3><span class="caps">Anarchy · turn 2 of 4</span></div>
+	<div class="mbody"><p class="lede">The old ways are torn down. Choose <b>${OWED} cards</b> from your hand, deck or discard to trash for
+		good; each calms 1 ${glyph("unrest", "var(--danger)", 18)}.</p>${body}</div>
+	<div class="mfoot"><span class="progress"><span class="caps">Chosen</span><span class="segments">${"<span class=seg></span>".repeat(OWED)}</span>
+		<span class="num count">0 / ${OWED}</span></span><span class="spacer"></span>
+		<span class="hint">${kind === "ledger" ? "↑↓ move · Enter choose" : "Click a card again to put it back"}</span>
+		<button class="btn primary confirm" aria-disabled="true">Trash ${OWED} cards</button></div>`;
+}
+
+function wire(modal, toggle, hooks = {}) {
+	const chosen = [];
+	const sync = () => {
+		modal.querySelectorAll(".seg").forEach((s, k) => s.classList.toggle("full", k < chosen.length));
+		modal.querySelector(".count").textContent = `${chosen.length} / ${OWED}`;
+		modal.querySelector(".confirm").setAttribute("aria-disabled", chosen.length === OWED ? "false" : "true");
+	};
+	const flip = (i) => {
+		const at = chosen.indexOf(i);
+		if (at >= 0) chosen.splice(at, 1); else if (chosen.length < OWED) chosen.push(i); else { if (hooks.full) hooks.full(); return; }
+		toggle(i, chosen); sync();
+	};
+	modal.querySelector(".confirm").addEventListener("click", (e) => {
+		if (e.currentTarget.getAttribute("aria-disabled") === "true") return;
+		modal.querySelector(".lede").innerHTML = `Trashed: <b>${chosen.map((i) => LIBRARY[i].name).join(", ")}</b>. Unrest −${OWED}.`;
+		if (hooks.sounds) {  // after the key's release: the sheet lifts off, then the unrest counter registers its drop
+			Sound.play("ui.sheet.close", { at: 130 });
+			Sound.play("ui.resource.loss", { at: 130 + 160 + 280 });
+		}
+	});
+	return flip;
+}
+
+// A: card spread
+(function () {
+	const m = document.querySelector('[data-demo="spread"]');
+	m.innerHTML = shell("spread", `<div class="grid">${LIBRARY.map((c) => cardHTML(c)).join("")}</div>`);
+	const flip = wire(m, (i, chosen) => m.querySelector(`[data-i="${i}"]`).setAttribute("aria-pressed", chosen.includes(i)));
+	m.querySelectorAll(".card").forEach((b) => b.addEventListener("click", () => flip(+b.dataset.i)));
+})();
+
+// B: ledger
+(function () {
+	const m = document.querySelector('[data-demo="ledger"]');
+	const rows = LIBRARY.map((c) => `<button class="lrow" data-i="${c.i}" aria-pressed="false"><span class="lamp"></span>${mark(c.type)}
+		<span class="lname">${c.name}</span>${cost(c.cost)}</button>`).join("");
+	m.innerHTML = shell("ledger", `<div class="ledger"><div class="slist" tabindex="0">${rows}</div><div class="face"></div></div>`);
+	const face = m.querySelector(".face");
+	let focus = 0;
+	const show = (i) => {
+		focus = i;
+		m.querySelectorAll(".lrow").forEach((r) => r.classList.toggle("focus", +r.dataset.i === i));
+		const on = m.querySelector(`.lrow[data-i="${i}"]`).getAttribute("aria-pressed") === "true";
+		face.innerHTML = cardHTML(LIBRARY[i]) + `<button class="btn choose">${on ? "Put back" : "Choose to trash"}</button>`;
+		face.querySelector(".choose").addEventListener("click", () => flip(i));
+	};
+	const flip = wire(m, (i, chosen) => {
+		const on = chosen.includes(i);
+		m.querySelector(`.lrow[data-i="${i}"]`).setAttribute("aria-pressed", on);
+		Sound.play(on ? "ui.toggle.on" : "ui.toggle.off", { at: on ? 0 : contactMs(120, "machined"), input: true });  // the lamp latches / lets go
+		show(i);
+	}, { full: () => Sound.play("ui.reject.locked", { input: true }), sounds: true });
+	m.querySelectorAll(".lrow").forEach((r) => {
+		r.addEventListener("mouseenter", () => { Sound.play("ui.hover", { input: true }); show(+r.dataset.i); });
+		r.addEventListener("click", () => flip(+r.dataset.i));
+	});
+	m.querySelector(".slist").addEventListener("keydown", (e) => {
+		if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); show((focus + (e.key === "ArrowDown" ? 1 : LIBRARY.length - 1)) % LIBRARY.length); }
+		if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(focus); }
+	});
+	show(0);
+})();
+
+// C: trash tray
+(function () {
+	const m = document.querySelector('[data-demo="tray"]');
+	const slots = Array.from({ length: OWED }, (_, k) => `<div class="slot" data-k="${k}">Slot ${k + 1}</div>`).join("");
+	m.innerHTML = shell("tray", `<div class="grid">${LIBRARY.map((c) => cardHTML(c, true)).join("")}</div>
+		<div class="tray"><span class="caps">To trash</span>${slots}</div>`);
+	const flip = wire(m, (i, chosen) => {
+		m.querySelectorAll(".grid .card").forEach((b) => b.classList.toggle("gone", chosen.includes(+b.dataset.i)));
+		m.querySelectorAll(".slot").forEach((s, k) => {
+			const c = chosen[k];
+			s.innerHTML = c === undefined ? `Slot ${k + 1}` : cardHTML(LIBRARY[c], true);
+			if (c !== undefined) s.querySelector(".card").addEventListener("click", () => flip(c));
+		});
+	});
+	m.querySelectorAll(".grid .card").forEach((b) => b.addEventListener("click", () => flip(+b.dataset.i)));
+})();
+
+document.getElementById("theme").addEventListener("click", (e) => {
+	const night = document.documentElement.dataset.theme === "night";
+	document.documentElement.dataset.theme = night ? "paper" : "night";
+	e.currentTarget.textContent = night ? "Night" : "Paper";
+});
+</script>
+</body>
+</html>
