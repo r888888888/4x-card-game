@@ -27,6 +27,14 @@ func take_top() -> CardInstance:
 	return cards.pop_back()
 
 
+## The first card here with card id id, or null.
+func find_id(id: String) -> CardInstance:
+	for card in cards:
+		if card.def.id == id:
+			return card
+	return null
+
+
 ## Puts card at the bottom (the deck's top is the last element).
 func add_bottom(card: CardInstance) -> void:
 	cards.push_front(card)

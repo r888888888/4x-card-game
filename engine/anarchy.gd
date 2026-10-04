@@ -297,8 +297,8 @@ static func default_government(e: GameEngine) -> int:
 	if e.state.pending.get("kind", "") != GameEngine.PENDING_GOVERNMENT or e.zone("governments").is_empty():
 		return -1
 	var start: String = e.config.get("starting", {}).get("government", "")
-	var uid := uid_of(e.zone("governments"), start) if start != "" else -1
-	return uid if uid != -1 else e.zone("governments").cards[0].uid
+	var card := e.zone("governments").find_id(start) if start != "" else null
+	return card.uid if card != null else e.zone("governments").cards[0].uid
 
 
 ## The government deck's uids for the choice (254): the default first, the rest in deck order.
@@ -306,13 +306,6 @@ static func government_options(e: GameEngine) -> Array:
 	var first := default_government(e)
 	var rest: Array = e.zone("governments").cards.map(func(c): return c.uid).filter(func(u): return u != first)
 	return ([first] if first != -1 else []) + rest
-
-
-static func uid_of(zone: Zone, id: String) -> int:
-	for card in zone.cards:
-		if card.def.id == id:
-			return card.uid
-	return -1
 
 
 ## Why choose_government(uid) would refuse, or "" (154).
