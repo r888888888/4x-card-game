@@ -13,29 +13,35 @@ hit, and the next event phase they strike it. The player has a turn to answer (r
 forecast, with no choice during upkeep. Follows 161.
 
 ## Acceptance criteria
-- [ ] AC1 (loader): An event may set `raid` `{strength (int ≥ 1, required), targets (config keywords, optional),
+- [x] AC1 (loader): An event may set `raid` `{strength (int ≥ 1, required), targets (config keywords, optional),
   pop (int ≥ 0, default 1)}`; a bad field is a load error naming file, card and field; `raid` on another type is ignored
   with a warning. A raid with `discard` is a load error (it lasts until it strikes). Effects with trigger `repel` or
   `pillage` are allowed only on a raid (load error elsewhere) and only with upkeep-safe ops (`Effect.upkeep_ok`).
-- [ ] AC2 (announce): When the event phase draws a raid, it becomes active, its `play` effects resolve, and its
+- [x] AC2 (announce): When the event phase draws a raid, it becomes active, its `play` effects resolve, and its
   target is fixed (`raid_target(uid)`): among settled territories with any of `targets` (all settled territories when
   none match or `targets` is empty), the one with the lowest `defense`, ties to the most pop, then tableau order. With
   Homeland (defense 0, 3 pop) and Hills (mountain, defense 0, 1 pop), Raiders targeting mountain picks Hills; with no
   targets it picks Homeland.
-- [ ] AC3 (timing): An active raid doesn't count down at upkeep. At the next `end_turn`, before the new event is drawn,
+- [x] AC3 (timing): An active raid doesn't count down at upkeep. At the next `end_turn`, before the new event is drawn,
   each raid drawn on an earlier turn strikes, in the order drawn, then goes to `event_discard`; `raid_resolved(outcome)`
   is emitted with `{uid, target, strength, defense, repelled, units_lost, pop_lost, gained, lost, vp}`. The target
   stays fixed even if defence changes elsewhere meanwhile.
-- [ ] AC4 (repelled): Given Raiders (strength 3; repel: +2 wealth, −1 unrest) aimed at Hills and Hills' defence 3 when
+- [x] AC4 (repelled): Given Raiders (strength 3; repel: +2 wealth, −1 unrest) aimed at Hills and Hills' defence 3 when
   it strikes, then it is repelled: wealth +2, unrest −1, no pop is lost and the units on Hills stay.
-- [ ] AC5 (pillaged): Given the same raid and Hills' defence 2 (a Levy stationed there), then its `pillage` effects
+- [x] AC5 (pillaged): Given the same raid and Hills' defence 2 (a Levy stationed there), then its `pillage` effects
   resolve (e.g. −2 food, +1 unrest), Hills loses `pop` pop (1, never below 0), the Levy goes to the discard and units
   stationed elsewhere are untouched.
-- [ ] AC6 (forecast): `raid_forecast()` lists each announced raid as `{uid, target, strength, defense}` with the
+- [x] AC6 (forecast): `raid_forecast()` lists each announced raid as `{uid, target, strength, defense}` with the
   target's current defence; after recruiting a Levy on the target during play, its `defense` is 2 higher. It is `[]`
   with no raid active.
-- [ ] AC7 (end of game): A raid announced earlier still strikes in the final turn's event phase; a raid drawn in the
+- [x] AC7 (end of game): A raid announced earlier still strikes in the final turn's event phase; a raid drawn in the
   final turn never strikes. `fork()` copies each raid's target.
+- [x] AC8 (added at green, for the Manual check): `raid_line(uid)` ("Raiders will strike Hills next turn: 3 against
+  your 0.", also the announcement's caution notice), `raid_tag(uid)` ("Hills 3 vs 0"), `raid_short(uid)` and
+  `raid_warning(territory)` ("Raiders strike next turn: 3 vs 0", also in the territory tooltip); the strike's notice
+  says what it cost or gave ("Raiders pillaged Hills: +1 unrest, −2 food, −1 pop, 1 unit lost.", urgent; repelled
+  is info). A raid's face starts "Raid 3 (mountain)", its tooltip "Raid 3: strikes your least defended …", with
+  "If repelled:" / "If pillaged:" lines and no "Lasts".
 
 ## Out of scope
 - Moving units to answer a raid (163); veterans from a repelled raid (165); occupation and rivals; the bot (168).
@@ -60,6 +66,7 @@ forecast, with no choice during upkeep. Follows 161.
 | AC5 | `test_raids::test_a_raid_short_of_defence_pillages`, `test_pillage_never_takes_pop_below_0` |
 | AC6 | `test_raids::test_raid_forecast_lists_announced_raids_with_live_defence` |
 | AC7 | `test_raids::test_a_raid_strikes_in_the_final_turn_and_one_drawn_then_never_does`, `test_a_fork_keeps_each_raids_target` |
+| AC8 | `test_raids::test_raid_line_tag_and_shortfall_for_the_ui`, `test_the_strike_notice_says_what_it_cost_or_gave`, `test_raid_text` (face line) |
 
 ## Manual check
 - [ ] Shipped era-1 raids in `event_deck`: Raiders (strength 2, grassland/desert; pillage −2 food, +1 unrest; repel
@@ -74,3 +81,10 @@ forecast, with no choice during upkeep. Follows 161.
 ## Log
 - Balance worry: era-1 raids before Warriors are bought. Capital defence and terrain should cover strength 2; check in
   a balance item.
+- 2026-10-04: Rules in `Military` (`announce`, `strike_raids`, the queries); `Events.draw` announces, `TurnLoop.start_turn`
+  strikes right before the turn's event is drawn, `Events.resolve_upkeep` skips raids. The target is the event's
+  `territory_uid`, so `CardInstance.copy` carries it. Repelled means defence ≥ strength. `units_lost` lists uids.
+- UI: the event modal shows `raid_line` in place of "Lasts"; an active raid's board face shows `raid_tag` where turns
+  left go (Palette.WARN while `raid_short`); the target territory's card carries `raid_warning` in its bottom strip.
+- Content held back: the shipped raids' pillage effects (lose food or wealth) break `test_content::
+  test_real_events_harm_only_by_unrest` (144: an event harms only by unrest). Waiting on the user before narrowing it.
