@@ -2,7 +2,7 @@
 id: 162
 title: Barbarian raids, announced a turn ahead
 type: feature
-status: review
+status: done
 branch: feat/162-barbarian-raids
 ---
 
