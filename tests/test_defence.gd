@@ -158,6 +158,16 @@ func test_defense_is_0_for_anything_but_a_settled_territory() -> void:
 		eq(e.defense_parts(uid), {}, "parts of %d" % uid)
 
 
+# --- AC7: the territory's tooltip ---
+
+func test_territory_tooltip_breaks_down_its_defence() -> void:
+	var e: GameEngine = defence_engine()
+	if e == null:
+		return
+	var hills := fortify_hills(e)
+	check("Defence 6: units 2, walls 2, cities 1, terrain 1" in e.territory_tooltip(hills), e.territory_tooltip(hills))
+
+
 # --- AC6: text ---
 
 func test_defense_text() -> void:

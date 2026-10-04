@@ -43,6 +43,7 @@ static var GLYPHS: Dictionary:
 			"▢": [preload("res://assets/icons/slot.svg"), null, 1.0],
 			"⌂": [preload("res://assets/icons/housing.svg"), null, 1.0],
 			"⚒": [preload("res://assets/icons/worker.svg"), null, 1.0],  # a free worker (123)
+			"⛨": [preload("res://assets/icons/shield.svg"), null, 1.0],  # a territory's defence (161)
 			"◆": [preload("res://assets/icons/action.svg"), null, 0.6],
 			"■": [preload("res://assets/icons/building.svg"), null, 0.6],
 			"●": [preload("res://assets/icons/city.svg"), null, 0.6],

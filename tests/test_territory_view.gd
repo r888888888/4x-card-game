@@ -98,7 +98,8 @@ func test_the_view_shows_slots_and_pop_and_grow() -> void:
 		await wait_frames()
 		var view: Object = main.territory_view
 		var stats: String = view.stats_text()
-		eq(stats, "▢ %d   ⌂ %d/%d   ⚒ %d" % [e.free_slots(home), e.pop(home), e.housing(home), e.free_workers(home)],
+		eq(stats, "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(home), e.pop(home), e.housing(home),
+			e.free_workers(home), e.defense(home)],
 			"the card's live line (123)")
 		var grow: Button = view.grow_button
 		check(shown(grow), "Grow shown")
@@ -143,7 +144,9 @@ func test_without_population_there_is_no_pop_stat_or_grow() -> void:
 		click(main, home_uid(Game.engine))
 		await wait_frames()
 		var view: Object = main.territory_view
-		eq(view.stats_text(), "▢ %d" % Game.engine.free_slots(home_uid(Game.engine)), "free slots only (123)")
+		var home := home_uid(Game.engine)
+		eq(view.stats_text(), "▢ %d   ⛨ %d" % [Game.engine.free_slots(home), Game.engine.defense(home)],
+			"free slots and defence (123, 161)")
 		check(not shown(view.grow_button), "no Grow"))
 
 

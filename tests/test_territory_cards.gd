@@ -220,11 +220,13 @@ func test_many_territories_wrap_instead_of_widening_the_realm() -> void:
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 
-## The live line a settled territory's card should show (123): "▢ F   ⌂ P/H   ⚒ W", or "▢ F" with population off.
+## The live line a settled territory's card should show (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D", or "▢ F   ⛨ D" with
+## population off (161: D its defence).
 func live_line(e: GameEngine, uid: int) -> String:
 	if not e.population_on():
-		return "▢ %d" % e.free_slots(uid)
-	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid)]
+		return "▢ %d   ⛨ %d" % [e.free_slots(uid), e.defense(uid)]
+	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid),
+		e.defense(uid)]
 
 
 func test_a_settled_territory_card_shows_its_name_and_live_line_only() -> void:
@@ -257,15 +259,17 @@ func test_the_live_line_follows_building_and_growth() -> void:
 		{"farm": 10}, POP)
 
 
-func test_without_population_the_live_line_is_free_slots_only() -> void:
+func test_without_population_the_live_line_is_free_slots_and_defence() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
-		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d" % e.free_slots(home), "free slots only"))
+		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d   ⛨ %d" % [e.free_slots(home), e.defense(home)],
+			"free slots and defence (161)"))
 
 
 func test_the_worker_glyph_is_an_icon() -> void:
 	check(Icons.GLYPHS.has("⚒"), "⚒ is drawn as an icon like ▢ and ⌂")
+	check(Icons.GLYPHS.has("⛨"), "⛨ (defence, 161) is drawn as an icon too")
 
 
 func test_frontier_cards_keep_their_printed_slots_and_housing() -> void:
