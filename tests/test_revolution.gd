@@ -33,7 +33,7 @@ func test_anarchy_falls_at_the_next_turns_start_before_upkeep() -> void:
 	var home := home_uid(e)
 	e.revolt()
 	e.end_turn()
-	eq(ruling(e), "anarchy", "Anarchy rules turn 2")
+	check(e.anarchy() != -1, "Anarchy rules turn 2")
 	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs went to the government deck")
 	eq(e.pop(home), 5, "before upkeep: turn 2 has Anarchy's ⟳ −1 pop")
 

@@ -664,9 +664,9 @@ func test_every_eureka_counts_cards_the_player_can_get() -> void:
 
 
 
-func test_the_anarchy_government_has_flavor_and_a_quote() -> void:
+func test_the_anarchy_event_has_flavor_and_a_quote() -> void:
 	var anarchy: String = Game.engine.config.get("unrest", {}).get("anarchy", "")
-	check(anarchy != "", "the config names an Anarchy government")
+	check(anarchy != "", "the config names an Anarchy event")
 	if anarchy != "":
 		var def: CardDef = Game.engine.card_db[anarchy]
 		check(def.flavor != "", "Anarchy has flavor (205: the revolution's confirmation shows it)")

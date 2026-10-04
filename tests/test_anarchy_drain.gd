@@ -47,7 +47,7 @@ func test_a_turn_under_anarchy_loses_a_share_of_food_and_wealth() -> void:
 	var before := anarchy_engine(DRAIN)
 	var insight: int = before.resources.insight + before.upkeep_forecast().insight
 	var e := drained_engine(10, 7)
-	eq(ruling(e), "anarchy", "fell into Anarchy at turn 2's start")
+	check(e.anarchy() != -1, "fell into Anarchy at turn 2's start")
 	eq([e.resources.food, e.resources.wealth], [8, 5], "20% of 10 and of 7, rounded up: 2 and 2")
 	eq(e.resources.insight, insight, "insight untouched")
 	check(e.state.log_lines.any(func(l): return l.contains("Anarchy") and l.contains("food")),

@@ -21,7 +21,7 @@ func renewal_engine(discard_ids: Array, block := RENEWAL, extra := []) -> GameEn
 
 func test_renewal_is_owed_the_turn_anarchy_falls() -> void:
 	var e := renewal_engine(["farm", "kings", "scout"])
-	eq(ruling(e), "anarchy", "in Anarchy")
+	check(e.anarchy() != -1, "in Anarchy")
 	var p: Dictionary = e.pending()
 	eq(p.get("kind"), GameEngine.PENDING_RENEWAL, "kind")
 	eq(p.get("count"), 1, "1 + its first turn − 1")
@@ -43,7 +43,7 @@ func test_renewal_counts_anarchys_turn_not_its_counters_left() -> void:
 	e.resources["unrest"] = 5
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	e.end_turn()
-	eq([ruling(e), e.anarchy_counters(), e.pending().get("count")], ["anarchy", 4, 1], "its first turn, 4 counters: 1")
+	eq([e.anarchy() != -1, e.anarchy_counters(), e.pending().get("count")], [true, 4, 1], "its first turn, 4 counters: 1")
 	e.renew(e.pending().options[0])
 	e.end_turn()
 	eq(e.anarchy_counters(), 3, "3 counters left")

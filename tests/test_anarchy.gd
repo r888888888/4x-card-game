@@ -22,14 +22,11 @@ func test_the_unrest_block_loads_with_its_defaults() -> void:
 func test_unrest_block_validation() -> void:
 	var with_block := func(block: Dictionary) -> Dictionary: return anarchy_raw(block)
 	check_cases([
-		["anarchy not a government", with_block.call({"anarchy": "farm"}), ["config.json: unrest.anarchy:", "farm", "government"]],
+		["anarchy not an event", with_block.call({"anarchy": "farm"}), ["config.json: unrest.anarchy", "farm", "event"]],
 		["anarchy unknown", with_block.call({"anarchy": "nobody"}), ["config.json: unrest.anarchy:", "nobody"]],
 		["max_counters 0", with_block.call({"max_counters": 0}), ["config.json: unrest.max_counters:", ">= 1"]],
 		["era_unrest -1", with_block.call({"era_unrest": -1}), ["config.json: unrest.era_unrest:", ">= 0"]],
 		["allowed_tag not a string", with_block.call({"allowed_tag": 3}), ["config.json: unrest.allowed_tag:", "string"]],
-		["anarchy starts", anarchy_raw({}, {"starting": {"resources": {"food": 2}, "tableau": ["capital"],
-			"territory": "homeland", "government": "anarchy"}}), ["config.json: unrest.anarchy:", "starting.government"]],
-		["anarchy sets a limit", with_block.call({"anarchy": "kings"}), ["config.json: unrest.anarchy:", "unrest_limit"]],
 		["without unrest in resources", anarchy_raw({}, {"resources": ["food", "wealth", "insight"],
 			"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}}),
 			["config.json: unrest:", "resources"]],
@@ -54,8 +51,7 @@ func test_a_turn_starting_at_the_limit_falls_into_anarchy() -> void:
 	var deck_before: int = e.zone("deck").size()
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(ruling(e), "anarchy", "Anarchy rules")
-	eq(e.anarchy(), e.government(), "anarchy() is its uid")
+	check(e.anarchy() != -1, "Anarchy rules")
 	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs goes to the government deck (154)")
 	eq(e.zone("deck").size(), deck_before, "not into the deck (a full hand draws none)")
 	check_noticed(recorded, "Anarchy!", GameEngine.NOTICE_URGENT)
@@ -113,7 +109,7 @@ func test_under_anarchy_a_government_in_hand_cant_be_played() -> void:
 	var kings := put_in_hand(e, "kings")
 	eq(e.play_error(kings), "A government is chosen, not played.", "155 AC9")
 	check(not e.play_card(kings), "play_card refuses")
-	eq(ruling(e), "anarchy", "Anarchy still rules")
+	check(e.anarchy() != -1, "Anarchy still rules")
 
 
 func test_anarchy_has_its_cards_actions() -> void:
@@ -156,7 +152,7 @@ func test_when_anarchy_burns_out_the_government_choice_is_owed() -> void:
 	var anarchy_uid: int = e.anarchy()
 	for i in 3:
 		e.end_turn()
-	eq(ruling(e), "anarchy", "3 turns ended: still Anarchy")
+	check(e.anarchy() != -1, "3 turns ended: still Anarchy")
 	e.end_turn()
 	eq(e.anarchy(), -1, "the 4th: no anarchy")
 	check(e.zone("removed").find(anarchy_uid) != null, "the Anarchy card is removed")
@@ -189,7 +185,7 @@ func test_a_new_era_adds_era_unrest_up_to_the_limit() -> void:
 	eq(e.resources.get("unrest"), 5, "3 + 3, capped at 5")
 	check_noticed(recorded, "unrest", GameEngine.NOTICE_CAUTION)
 	e.end_turn()
-	eq(ruling(e), "anarchy", "the next turn falls into Anarchy")
+	check(e.anarchy() != -1, "the next turn falls into Anarchy")
 
 
 func test_era_unrest_0_adds_nothing() -> void:
