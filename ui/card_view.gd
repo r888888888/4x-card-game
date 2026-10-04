@@ -189,6 +189,20 @@ func set_event_info(turns_left: int, counters := 0) -> void:
 		_face.replace_info("EventInfo", "%d turn%s left" % [turns_left, "" if turns_left == 1 else "s"])
 
 
+## Shows an active raid's target and its strength against the target's defence where an event's turns left go
+## ("Steppe 3 vs 1", 162), in the warning colour while short.
+func set_raid_info(tag: String, short: bool) -> void:
+	_replays["event_info"] = set_raid_info.bind(tag, short)
+	_face.replace_info("EventInfo", tag, Palette.WARN if short else HIGHLIGHT_COLOR)
+
+
+## Marks a settled territory a raid is aimed at with warning in the strip at its bottom (162); "" clears it.
+func set_raid_warning(warning: String) -> void:
+	_replays["raid_warning"] = set_raid_warning.bind(warning)
+	if not _dimmed:
+		_face.set_reason(warning)
+
+
 ## The text set_event_info shows, or "" when it was never called.
 func event_info_text() -> String:
 	return _face.info_text("EventInfo")

@@ -154,6 +154,9 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
 	if not keywords.is_empty():
 		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
+	var raids := Military.raid_warning(e, uid)
+	if raids != "":
+		lines.append(raids)
 	return "\n".join(lines)
 
 

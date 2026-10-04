@@ -57,8 +57,46 @@ static func announce(e: GameEngine, raid: CardInstance) -> void:
 			target = land
 	raid.territory_uid = target.uid if target != null else -1
 	if target != null:
-		e._notice("%s will strike %s next turn: %d against your %d." % [raid.def.name, target.shown_name(),
-			raid.def.raid.strength, e.defense(target.uid)], GameEngine.NOTICE_CAUTION)
+		e._notice(raid_line(e, raid.uid), GameEngine.NOTICE_CAUTION)
+
+
+## Active raid uid and its target, or {} when uid isn't an active raid aimed at a settled territory.
+static func _aimed(e: GameEngine, uid: int) -> Dictionary:
+	var raid := e.zone("active_events").find(uid)
+	var target := Territories.settled(e, raid.territory_uid) if is_raid(raid) else null
+	return {"raid": raid, "target": target} if target != null else {}
+
+
+## "Raiders will strike Hills next turn: 3 against your 0." for active raid uid, or "".
+static func raid_line(e: GameEngine, uid: int) -> String:
+	var a := _aimed(e, uid)
+	if a.is_empty():
+		return ""
+	return "%s will strike %s next turn: %d against your %d." % [a.raid.def.name, a.target.shown_name(),
+		a.raid.def.raid.strength, e.defense(a.target.uid)]
+
+
+## "Hills 3 vs 0" for active raid uid's board face, or "".
+static func raid_tag(e: GameEngine, uid: int) -> String:
+	var a := _aimed(e, uid)
+	if a.is_empty():
+		return ""
+	return "%s %d vs %d" % [a.target.shown_name(), a.raid.def.raid.strength, e.defense(a.target.uid)]
+
+
+## Whether active raid uid's target has less defence than its strength now.
+static func raid_short(e: GameEngine, uid: int) -> bool:
+	var a := _aimed(e, uid)
+	return not a.is_empty() and e.defense(a.target.uid) < a.raid.def.raid.strength
+
+
+## A line per active raid aimed at territory uid, "Raiders strike next turn: 3 vs 0", or "" when none is.
+static func raid_warning(e: GameEngine, territory_uid: int) -> String:
+	var lines: PackedStringArray = []
+	for raid in e.zone("active_events").cards:
+		if is_raid(raid) and raid.territory_uid == territory_uid and Territories.settled(e, territory_uid) != null:
+			lines.append("%s strike next turn: %d vs %d" % [raid.def.name, raid.def.raid.strength, e.defense(territory_uid)])
+	return "\n".join(lines)
 
 
 ## Whether raid target a beats b: less defence, or as much and more pop.
@@ -98,8 +136,17 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 		outcome.pop_lost = mini(target.pop, raid.def.raid.pop)
 		target.pop -= outcome.pop_lost
 	var where := target.shown_name() if target != null else "nothing"
+	var parts: PackedStringArray = []
+	var summary := Events.outcome_summary(outcome)
+	if summary != "":
+		parts.append(summary)
+	if outcome.pop_lost > 0:
+		parts.append("−%d pop" % outcome.pop_lost)
+	if not units_lost.is_empty():
+		parts.append("%d unit%s lost" % [units_lost.size(), "" if units_lost.size() == 1 else "s"])
+	var what := (": " + ", ".join(parts)) if not parts.is_empty() else ""
 	if outcome.repelled:
-		e._notice("%s repelled at %s." % [raid.def.name, where])
+		e._notice("%s repelled at %s%s." % [raid.def.name, where, what])
 	else:
-		e._notice("%s pillaged %s." % [raid.def.name, where], GameEngine.NOTICE_URGENT)
+		e._notice("%s pillaged %s%s." % [raid.def.name, where, what], GameEngine.NOTICE_URGENT)
 	e.raid_resolved.emit(outcome)

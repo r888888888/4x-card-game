@@ -129,7 +129,7 @@ func rules_text(card_db: Dictionary) -> String:
 	if not eureka.is_empty():
 		parts.append(eureka_text(card_db))
 	if not raid.is_empty():
-		parts.insert(0, raid_text())
+		parts.insert(0, raid_face_text())
 	elif type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
@@ -197,7 +197,14 @@ func strength_text() -> String:
 	return "Strength %d" % strength
 
 
-## A raid's line (162): "Raid 3: strikes your least defended mountain or hills territory next turn" (any territory
+## A raid's line on the card face (162): "Raid 3 (mountain/hills)", or "Raid 3" without targets.
+func raid_face_text() -> String:
+	if raid.targets.is_empty():
+		return "Raid %d" % raid.strength
+	return "Raid %d (%s)" % [raid.strength, "/".join(PackedStringArray(raid.targets.map(func(k): return k.replace("_", " "))))]
+
+
+## A raid's tooltip line (162): "Raid 3: strikes your least defended mountain or hills territory next turn" (any territory
 ## without targets).
 func raid_text() -> String:
 	var names: PackedStringArray = []

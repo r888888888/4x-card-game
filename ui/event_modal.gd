@@ -28,6 +28,7 @@ func _init(p_stack: ModalStack) -> void:
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_child(_summary)
 	_lasts = UIKit.heading("")
+	_lasts.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # a raid's line names its target (162)
 	body.add_child(_lasts)
 	ok_button = add_footer_button(UIKit.button("OK (Enter)", close), true)
 
@@ -42,8 +43,9 @@ func open(outcome: Dictionary) -> void:
 	var e := Game.engine
 	var def: CardDef = e.card_db[outcome.id]
 	var summary := e.outcome_summary(outcome)
+	var raid := e.raid_line(outcome.uid)  # a raid lasts until it strikes; it says where and against what (162)
 	_shown = {"uid": outcome.uid, "id": def.id, "text": def.rules_text(e.card_db), "flavor": def.flavor,
-		"lasts": def.lasts_text(),
+		"lasts": raid if raid != "" else def.lasts_text(),
 		"summary": summary if summary != "" else "No immediate effect"}
 	title = def.name
 	context = "Turn %d" % e.turn

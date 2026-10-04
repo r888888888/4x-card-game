@@ -233,12 +233,12 @@ func text() -> String:
 
 
 ## Replaces the gold info line called label_name at the bottom of the card with text.
-func replace_info(label_name: String, text: String) -> void:
+func replace_info(label_name: String, text: String, color: Variant = null) -> void:
 	var old := find_child(label_name, true, false)
 	if old != null:
 		old.get_parent().remove_child(old)
 		old.queue_free()
-	var info := label(text, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR)
+	var info := label(text, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR if color == null else color)
 	info.name = label_name
 	var badge_row := get_node_or_null("BadgeRow")
 	if badge_row != null:  # a board card's info (an event's turns left) sits beside its badge (138)

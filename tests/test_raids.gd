@@ -61,25 +61,25 @@ func raid_engine(ids_on_top := ["raiders"], event_deck := {"raiders": 1, "horde"
 
 
 ## Hills' uid in e's tableau.
-func hills_of(e: Object) -> int:
+func hills_of(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "hills")
 
 
 ## The uid of the active event id, or -1.
-func active_uid(e: Object, id: String) -> int:
+func active_uid(e: GameEngine, id: String) -> int:
 	return uid_of(e.zone("active_events"), id)
 
 
 ## Recruits a Levy from e's hand onto territory uid.
-func recruit(e: Object, uid: int) -> void:
+func recruit(e: GameEngine, uid: int) -> void:
 	var levy := uid_of(e.zone("hand"), "levy")
 	check(e.play_card(levy, uid), "Levy recruited: %s" % e.play_error(levy, uid))
 
 
 ## Records every raid_resolved outcome e emits into the returned array.
-func record_raids(e: Object) -> Array[Dictionary]:
+func record_raids(e: GameEngine) -> Array[Dictionary]:
 	var outcomes: Array[Dictionary] = []
-	e.connect("raid_resolved", func(o: Dictionary): outcomes.append(o))
+	e.raid_resolved.connect(func(o: Dictionary): outcomes.append(o))
 	return outcomes
 
 
@@ -91,7 +91,7 @@ func test_raid_loads_on_an_event() -> void:
 	eq(r.warnings, [] as Array[String], "warnings")
 	if not r.cards.has("raiders"):
 		return
-	var raiders: Object = r.cards.raiders
+	var raiders: CardDef = r.cards.raiders
 	eq(raiders.raid.strength, 3, "strength")
 	eq(raiders.raid.targets, ["mountain"] as Array[String], "targets")
 	eq(raiders.raid.pop, 1, "pop defaults to 1")
@@ -138,12 +138,16 @@ func test_raid_text() -> void:
 	var tip: String = db.raiders.rules_tooltip(db)
 	for fragment in ["Raid 3", "mountain", "If repelled: +2 wealth", "If pillaged: −2 food"]:
 		check(fragment in tip, "'%s' in: %s" % [fragment, tip])
+	check("Lasts" not in tip, "a raid lasts until it strikes: %s" % tip)
+	var face: String = db.raiders.rules_text(db)
+	eq(face.split("\n")[0], "Raid 3 (mountain)", "the face's first line, which the board shows")
+	eq(db.horde.rules_text(db).split("\n")[0], "Raid 1", "Horde's, with no targets")
 
 
 # --- AC2: the announcement and its target ---
 
 func test_a_drawn_raid_is_announced_at_the_weakest_matching_territory() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	var insight: int = e.resources.insight
@@ -155,7 +159,7 @@ func test_a_drawn_raid_is_announced_at_the_weakest_matching_territory() -> void:
 
 
 func test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop() -> void:
-	var e: Object = raid_engine(["horde"])
+	var e: GameEngine = raid_engine(["horde"])
 	if e == null:
 		return
 	e.end_turn()
@@ -163,7 +167,7 @@ func test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop() -> void:
 
 
 func test_a_raid_whose_targets_match_nothing_picks_among_all_territories() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	var hills: CardInstance = e.zone("tableau").find(hills_of(e))
@@ -174,7 +178,7 @@ func test_a_raid_whose_targets_match_nothing_picks_among_all_territories() -> vo
 
 
 func test_a_raid_avoids_stronger_land_and_breaks_full_ties_by_tableau_order() -> void:
-	var e: Object = raid_engine(["horde"])
+	var e: GameEngine = raid_engine(["horde"])
 	if e == null:
 		return
 	settle(e, ["grassland"])
@@ -186,7 +190,7 @@ func test_a_raid_avoids_stronger_land_and_breaks_full_ties_by_tableau_order() ->
 
 
 func test_raid_target_is_minus_1_for_anything_but_an_active_raid() -> void:
-	var e: Object = raid_engine(["omen", "raiders"])
+	var e: GameEngine = raid_engine(["omen", "raiders"])
 	if e == null:
 		return
 	e.end_turn()
@@ -197,7 +201,7 @@ func test_raid_target_is_minus_1_for_anything_but_an_active_raid() -> void:
 # --- AC3: it strikes at the next event phase ---
 
 func test_a_raid_strikes_at_the_next_event_phase_then_is_discarded() -> void:
-	var e: Object = raid_engine(["raiders", "omen"])
+	var e: GameEngine = raid_engine(["raiders", "omen"])
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -220,7 +224,7 @@ func test_a_raid_strikes_at_the_next_event_phase_then_is_discarded() -> void:
 
 
 func test_the_target_stays_fixed_when_defence_changes_elsewhere() -> void:
-	var e: Object = raid_engine(["horde"])
+	var e: GameEngine = raid_engine(["horde"])
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -239,7 +243,7 @@ func test_the_target_stays_fixed_when_defence_changes_elsewhere() -> void:
 # --- AC4: repelled ---
 
 func test_a_raid_meeting_enough_defence_is_repelled() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -266,7 +270,7 @@ func test_a_raid_meeting_enough_defence_is_repelled() -> void:
 # --- AC5: pillaged ---
 
 func test_a_raid_short_of_defence_pillages() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -295,7 +299,7 @@ func test_a_raid_short_of_defence_pillages() -> void:
 
 
 func test_pillage_never_takes_pop_below_0() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -311,7 +315,7 @@ func test_pillage_never_takes_pop_below_0() -> void:
 # --- AC6: the forecast ---
 
 func test_raid_forecast_lists_announced_raids_with_live_defence() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	eq(e.raid_forecast(), [], "no raid on turn 1")
@@ -326,7 +330,7 @@ func test_raid_forecast_lists_announced_raids_with_live_defence() -> void:
 # --- AC7: the end of the game and forks ---
 
 func test_a_raid_strikes_in_the_final_turn_and_one_drawn_then_never_does() -> void:
-	var e: Object = raid_engine(["raiders", "horde"], {"raiders": 1, "horde": 1, "omen": 3}, {"turn_limit": 3})
+	var e: GameEngine = raid_engine(["raiders", "horde"], {"raiders": 1, "horde": 1, "omen": 3}, {"turn_limit": 3})
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -340,11 +344,58 @@ func test_a_raid_strikes_in_the_final_turn_and_one_drawn_then_never_does() -> vo
 
 
 func test_a_fork_keeps_each_raids_target() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
-	var f: Object = e.fork()
+	var f: GameEngine = e.fork()
 	eq(f.raid_target(raid), hills_of(e), "the fork's target")
 	eq(f.raid_forecast(), e.raid_forecast(), "the fork's forecast")
+
+
+# --- AC8 (added at green, for the Manual check): what the UI shows ---
+
+func test_raid_line_tag_and_shortfall_for_the_ui() -> void:
+	var e: GameEngine = raid_engine(["raiders", "omen"])
+	if e == null:
+		return
+	var recorded := record_messages(e)
+	e.end_turn()
+	var raid := active_uid(e, "raiders")
+	var hills := hills_of(e)
+	eq(e.raid_line(raid), "Raiders will strike Hills next turn: 3 against your 0.", "the line")
+	check_noticed(recorded, "Raiders will strike Hills next turn", GameEngine.NOTICE_CAUTION)
+	eq(e.raid_tag(raid), "Hills 3 vs 0", "the board tag")
+	check(e.raid_short(raid), "short while defence 0 < 3")
+	eq(e.raid_warning(hills), "Raiders strike next turn: 3 vs 0", "the target's mark")
+	check("Raiders strike next turn: 3 vs 0" in e.territory_tooltip(hills), e.territory_tooltip(hills))
+	eq(e.raid_warning(home_uid(e)), "", "no mark on Homeland")
+	build_on(e, hills, ["town"])
+	recruit(e, hills)
+	check(not e.raid_short(raid), "not short at 3 against 3")
+	eq(e.raid_tag(raid), "Hills 3 vs 3", "live")
+	var omen := uid_of(e.zone("event_deck"), "omen")
+	for uid in [omen, hills, 9999]:
+		eq([e.raid_line(uid), e.raid_tag(uid), e.raid_short(uid)], ["", "", false], "nothing for %d" % uid)
+
+
+func test_the_strike_notice_says_what_it_cost_or_gave() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	e.end_turn()
+	recruit(e, hills_of(e))
+	var recorded := record_messages(e)
+	e.end_turn()
+	check_noticed(recorded, "Raiders pillaged Hills", GameEngine.NOTICE_URGENT)
+	for fragment in ["+1 unrest", "−2 food", "−1 pop", "1 unit lost"]:
+		check(notices_in(recorded).any(func(m): return "pillaged" in m and fragment in m), "'%s' in %s" % [fragment, notices_in(recorded)])
+
+	var r: GameEngine = raid_engine()
+	r.end_turn()
+	build_on(r, hills_of(r), ["town"])
+	recruit(r, hills_of(r))
+	var repelled := record_messages(r)
+	r.end_turn()
+	check_noticed(repelled, "Raiders repelled at Hills: +2 wealth, −1 unrest", GameEngine.NOTICE_INFO)

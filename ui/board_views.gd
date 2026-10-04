@@ -49,13 +49,18 @@ func sync(e: GameEngine) -> void:
 		if views.has(group.territory):
 			var t: int = group.territory
 			views[t].show_settled(TerritoryView.stats(e, t), e.territory_tooltip(t))
+			views[t].set_raid_warning(e.raid_warning(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		for i in cards.size():
 			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
 			place(card, rows[zone_name], i, 0.0)
 	for card in e.zone("active_events").cards:
-		views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
+		var raid := e.raid_tag(card.uid)
+		if raid != "":
+			views[card.uid].set_raid_info(raid, e.raid_short(card.uid))
+		else:
+			views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	outcome = {}
 
 
