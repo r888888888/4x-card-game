@@ -140,8 +140,9 @@ func _choice_row() -> Container:
 	return null
 
 
-## Enter on the focused card: its details (a supply pile, 259), keep it (explore choice, a government), buy it (research), play onto it
-## (targeting), or play it, which starts targeting when it has several targets (same as a double-click).
+## Enter on the focused card: open its details (a supply pile, 259), keep it (explore choice, a government), buy it
+## (research), play onto it (targeting), or play it, which starts targeting when it has several targets (same as a
+## double-click).
 func activate() -> void:
 	var view := focused
 	if view == null or not is_instance_valid(view):

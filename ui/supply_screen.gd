@@ -12,8 +12,7 @@ var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the conf
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
-var _tags := {}  # card_id -> its price tag (PriceTag), below its card
-var _lefts := {}  # card_id -> the Label under its tag ("6 left")
+var _columns := {}  # card_id -> its pile_column: the card's slot, its price tag and the copies left under that
 var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer)
 var _discard: Label
 var _fresh := true  # the next refresh shows the wealth at once: the screen just opened
@@ -77,12 +76,12 @@ func is_open() -> bool:
 
 ## view's price tag (232): "Buy", the wealth glyph and the price, hanging below the card.
 func price_tag(view: CardView) -> Control:
-	return _tags[_views.find_key(view)]
+	return _columns[_views.find_key(view)].get_meta("tag")
 
 
 ## The Label under view's price tag saying how many copies are left ("6 left").
 func copies_left(view: CardView) -> Label:
-	return _lefts[_views.find_key(view)]
+	return _columns[_views.find_key(view)].get_meta("left")
 
 
 ## The pile cards, in config order.
@@ -101,18 +100,15 @@ func can_open(e: GameEngine) -> bool:
 func open(e: GameEngine) -> void:
 	var i := 0
 	for id in e.open_supply_piles():  # a locked pile stays hidden until a tech unlocks it
-		var column := pile_column(CardView.TABLEAU_SIZE)
-		_row.add_child(column)
-		_tags[id] = column.get_meta("tag")
-		_lefts[id] = column.get_meta("left")
-		var slot: Control = column.get_meta("slot")
+		_columns[id] = pile_column(CardView.TABLEAU_SIZE)
+		_row.add_child(_columns[id])
 		var view := CardView.new()
 		view.setup(CardInstance.new(-1 - i, e.card_db[id]), e.card_db, false)
 		view.lift_on_hover = true
 		view.set_pickable(true)
 		view.picked.connect(pick)
 		view.details_requested.connect(pick)
-		view.pop_in(slot, i * Anim.DEAL_STAGGER)
+		view.pop_in(_columns[id].get_meta("slot"), i * Anim.DEAL_STAGGER)
 		view.minimum_size_changed.connect(_equalize_heights)
 		_views[id] = view
 		i += 1
@@ -213,8 +209,7 @@ func close() -> void:
 	_overlay.hide()
 	_fresh = true  # so the next open shows the wealth at once, without rolling
 	_views.clear()
-	_tags.clear()
-	_lefts.clear()
+	_columns.clear()
 	for column in _row.get_children():
 		_row.remove_child(column)
 		column.queue_free()
@@ -267,4 +262,4 @@ func refresh(e: GameEngine) -> void:
 	for id in _views:
 		_views[id].set_play_cost(e.supply_play_cost(id))
 		_views[id].set_buy_error(e.buy_error(id))
-		show_pile(_tags[id].get_parent(), e, id)
+		show_pile(_columns[id], e, id)
