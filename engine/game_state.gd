@@ -17,7 +17,7 @@ var log_lines: Array[String] = []
 var pending: Dictionary = {}
 var era := 1  # the highest era of techs added to the research deck
 var eras_added: Array[int] = []  # eras add_era has already shuffled in
-var actions_used := 0  # cards played from hand this turn (127)
+var actions_used := 0  # cards played from hand and units moved this turn (127, 163)
 var actions_gained := 0  # actions gain_actions effects gave this turn (128)
 var supply: Dictionary = {}  # card_id -> copies left to buy, in config order
 var locked_supply: Dictionary = {}  # card_id -> true for piles not yet unlocked (057)
@@ -25,6 +25,7 @@ var next_uid := 1
 var revolt_pending := false  # a revolution was declared: Anarchy falls at the next turn's start (155)
 var anarchy_turn := 0  # the ruling Anarchy's turn, 1 the turn it fell; 0 without Anarchy (155)
 var anarchy_limit := 1  # the fallen government's unrest_limit(), recorded as Anarchy falls (155)
+var moved_units: Array[int] = []  # uids of the units moved this turn (163)
 var names_given := 0  # default city names handed out (248): the next settled territory takes the next
 
 
@@ -54,5 +55,6 @@ func copy() -> GameState:
 	s.revolt_pending = revolt_pending
 	s.anarchy_turn = anarchy_turn
 	s.anarchy_limit = anarchy_limit
+	s.moved_units = moved_units.duplicate()
 	s.names_given = names_given
 	return s
