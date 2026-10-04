@@ -2,7 +2,7 @@
 id: 163
 title: Move and disband units
 type: feature
-status: review
+status: done
 branch: feat/163-move-and-disband-units
 ---
 
