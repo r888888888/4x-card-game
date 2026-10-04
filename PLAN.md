@@ -193,6 +193,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   worker, their home: they take no slot but use a worker there (with its buildings, in placement order, so the last
   placed go idle first), and stand on a station (the home until 163 moves them). No `requires`, no effect `keyword`
   and no `grow` "here" (a unit can move, so it has no fixed land). They go in `deck` or `supply`, never the other decks.
+- Defence (161): buildings and cities may set `defense` (int ≥ 1), and config `terrain_defense` maps keywords (resource
+  keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the strength of the working units stationed
+  there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;
+  `defense_parts(uid)` gives `{units, buildings, cities, terrain, total}`. Rules in `engine/military.gd` (`Military`).
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or
