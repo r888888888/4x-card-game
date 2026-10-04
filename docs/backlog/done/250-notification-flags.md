@@ -2,7 +2,7 @@
 id: 250
 title: Notification flags out of the rail, as in the MCM specimen
 type: feature
-status: review
+status: done
 branch: feat/250-notification-flags
 ---
 
