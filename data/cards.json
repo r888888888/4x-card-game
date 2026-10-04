@@ -154,6 +154,10 @@
       ]
     },
     {
+      "id": "barracks", "name": "Barracks", "type": "building",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [], "training": 1
+    },
+    {
       "id": "market", "name": "Market", "type": "building",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"],
       "effects": [
@@ -424,7 +428,7 @@
       "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across the seas.",
       "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "add_era", "era": 2 } ]
+      "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2,
