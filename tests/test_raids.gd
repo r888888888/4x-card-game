@@ -1,86 +1,8 @@
-extends "res://tests/lib/test_case.gd"
+extends "res://tests/lib/raid_case.gd"
 ## Barbarian raids (backlog 162): an event with `raid` {strength, targets, pop} is announced when drawn, aimed at the
-## weakest settled territory it may hit, and strikes at the next event phase: repelled when the target's defence is
+## weakest settled territory it may hit, and strikes two event phases later (257): repelled when the target's defence is
 ## at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
 ## there lost). `raid_target`, `raid_forecast` and `raid_resolved`.
-
-const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
-## Levy: a unit of strength 2; Town: a city with defense 1. Raiders: strength 3 aimed at mountains, +1 insight when
-## drawn; repelled +2 wealth −1 unrest, pillaged −2 food +1 unrest. Horde: strength 1, any territory, pop 1 by default.
-const RAID_CARDS := [
-	{"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2},
-	{"id": "town", "name": "Town", "type": "city", "vp": 1, "tags": ["city"], "defense": 1},
-	{"id": "raiders", "name": "Raiders", "type": "event", "raid": {"strength": 3, "targets": ["mountain"]}, "effects": [
-		{"op": "gain", "resource": "insight", "amount": 1},
-		{"op": "gain", "resource": "wealth", "amount": 2, "trigger": "repel"},
-		{"op": "lose", "resource": "unrest", "amount": 1, "trigger": "repel"},
-		{"op": "lose", "resource": "food", "amount": 2, "trigger": "pillage"},
-		{"op": "gain", "resource": "unrest", "amount": 1, "trigger": "pillage"}]},
-	{"id": "horde", "name": "Horde", "type": "event", "raid": {"strength": 1}},
-]
-
-
-## TEST_CARDS, TEST_EVENTS and RAID_CARDS plus extra, parsed with unrest listed: {cards, errors, warnings}.
-func raid_load(extra := []) -> Dictionary:
-	return fixture_load(extra, [TEST_EVENTS, RAID_CARDS], RESOURCES)
-
-
-## A raid_load card "x" of type event with a raid and these fields merged in, for loader cases.
-func raid_with(fields: Dictionary) -> Array:
-	var card := {"id": "x", "name": "X", "type": "event", "raid": {"strength": 2}}
-	card.merge(fields, true)
-	return [card]
-
-
-## A game on raid_load's cards: Levies in the deck, population on (Homeland at 3 pop, no food upkeep), Hills settled
-## at 1 pop, 50 food and 1 unrest, and the event deck event_deck with ids_on_top arranged on top (the turn-2 event
-## first). Still turn 1. null (after a failed check) when the data doesn't load.
-func raid_engine(ids_on_top := ["raiders"], event_deck := {"raiders": 1, "horde": 1, "omen": 3}, overrides := {}) -> GameEngine:
-	var r := raid_load()
-	check(r.errors.is_empty(), "test cards should load: %s" % [r.errors])
-	if not r.errors.is_empty():
-		return null
-	var o := {"resources": RESOURCES, "keywords": keywords(), "event_deck": event_deck,
-		"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 0},
-		"territory_deck": {"hills": 1, "grassland": 1, "river": 1}}
-	o.merge(overrides, true)
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"levy": 10}, o), RESOURCES, r.cards, "config.json", errors, warnings)
-	check(errors.is_empty(), "test config should load: %s" % [errors])
-	if not errors.is_empty():
-		return null
-	var e := GameEngine.new(r.cards, config)
-	e.new_game(1)
-	settle(e, ["hills"])
-	e.zone("tableau").find(hills_of(e)).pop = 1
-	e.resources.food = 50
-	e.resources.unrest = 1
-	arrange(e.zone("event_deck"), ids_on_top)
-	return e
-
-
-## Hills' uid in e's tableau.
-func hills_of(e: GameEngine) -> int:
-	return uid_of(e.zone("tableau"), "hills")
-
-
-## The uid of the active event id, or -1.
-func active_uid(e: GameEngine, id: String) -> int:
-	return uid_of(e.zone("active_events"), id)
-
-
-## Recruits a Levy from e's hand onto territory uid.
-func recruit(e: GameEngine, uid: int) -> void:
-	var levy := uid_of(e.zone("hand"), "levy")
-	check(e.play_card(levy, uid), "Levy recruited: %s" % e.play_error(levy, uid))
-
-
-## Records every raid_resolved outcome e emits into the returned array.
-func record_raids(e: GameEngine) -> Array[Dictionary]:
-	var outcomes: Array[Dictionary] = []
-	e.raid_resolved.connect(func(o: Dictionary): outcomes.append(o))
-	return outcomes
 
 
 # --- AC1: loading ---
@@ -198,21 +120,26 @@ func test_raid_target_is_minus_1_for_anything_but_an_active_raid() -> void:
 		eq(e.raid_target(uid), -1, "raid_target(%d)" % uid)
 
 
-# --- AC3: it strikes at the next event phase ---
+# --- AC3: it strikes two event phases after it is drawn (257) ---
 
-func test_a_raid_strikes_at_the_next_event_phase_then_is_discarded() -> void:
-	var e: GameEngine = raid_engine(["raiders", "omen"])
+func test_a_raid_strikes_two_event_phases_after_it_is_drawn_then_is_discarded() -> void:
+	var e: GameEngine = raid_engine(["raiders", "omen", "omen"])
 	if e == null:
 		return
 	var outcomes := record_raids(e)
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
+	var target := e.raid_target(raid)
 	eq(outcomes.size(), 0, "not on the turn it is drawn")
 	e.end_turn()
-	eq(outcomes.size(), 1, "struck once at the turn-3 event phase")
+	eq(outcomes.size(), 0, "not at the next event phase either")
+	eq(active_uid(e, "raiders"), raid, "still active on turn 3")
+	eq(e.raid_target(raid), target, "its target unchanged")
+	e.end_turn()
+	eq(outcomes.size(), 1, "struck once at the turn-4 event phase")
 	eq(uid_of(e.zone("event_discard"), "raiders"), raid, "Raiders in the event discard")
 	eq(active_uid(e, "raiders"), -1, "no longer active")
-	check(active_uid(e, "omen") != -1, "the turn-3 event drawn after it")
+	eq(e.zone("active_events").cards.filter(func(c): return c.def.id == "omen").size(), 2, "the turn-4 event drawn after it")
 	if outcomes.is_empty():
 		return
 	var o: Dictionary = outcomes[0]
@@ -231,6 +158,7 @@ func test_the_target_stays_fixed_when_defence_changes_elsewhere() -> void:
 	e.end_turn()
 	recruit(e, home_uid(e))
 	eq(e.raid_target(active_uid(e, "horde")), home_uid(e), "still Homeland, now stronger than Hills")
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
@@ -253,6 +181,7 @@ func test_a_raid_meeting_enough_defence_is_repelled() -> void:
 	recruit(e, hills)
 	var levy := uid_of(e.zone("tableau"), "levy")
 	var wealth: int = e.resources.wealth
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	eq(e.resources.wealth - wealth, 2, "+2 wealth")
 	eq(e.resources.unrest, 0, "unrest 1 → 0")
@@ -284,6 +213,7 @@ func test_a_raid_short_of_defence_pillages() -> void:
 			levies.append(c.uid)
 	var guard: int = levies[0] if e.unit_station(levies[0]) == hills else levies[1]
 	var other: int = levies[1] if guard == levies[0] else levies[0]
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	eq(e.resources.unrest, 2, "unrest 1 → 2")
 	eq(e.zone("tableau").find(hills).pop, 0, "Hills loses 1 pop")
@@ -305,6 +235,7 @@ func test_pillage_never_takes_pop_below_0() -> void:
 	var outcomes := record_raids(e)
 	e.end_turn()
 	e.zone("tableau").find(hills_of(e)).pop = 0
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	eq(e.zone("tableau").find(hills_of(e)).pop, 0, "Hills' pop")
 	eq(outcomes.size(), 1, "one raid resolved")
@@ -331,6 +262,7 @@ func test_163_a_unit_moved_onto_the_target_defends_it() -> void:
 	var levy := levy_in(e)
 	check(e.move_unit(levy, hills), "the Levy marches to Hills")
 	eq(e.raid_target(active_uid(e, "raiders")), hills, "the target stays Hills")
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
@@ -350,6 +282,7 @@ func test_163_a_unit_moved_off_the_target_doesnt_defend_it() -> void:
 	recruit(e, hills)
 	var levy := levy_in(e)
 	check(e.move_unit(levy, home_uid(e)), "the Levy leaves Hills")
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
@@ -370,6 +303,7 @@ func test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home() -> void:
 	var levy := levy_in(e)
 	check(e.move_unit(levy, hills_of(e)), "the Levy marches to Hills")
 	var workers: int = e.free_workers(home)
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
@@ -397,13 +331,15 @@ func test_raid_forecast_lists_announced_raids_with_live_defence() -> void:
 # --- AC7: the end of the game and forks ---
 
 func test_a_raid_strikes_in_the_final_turn_and_one_drawn_then_never_does() -> void:
-	var e: GameEngine = raid_engine(["raiders", "horde"], {"raiders": 1, "horde": 1, "omen": 3}, {"turn_limit": 3})
+	var e: GameEngine = raid_engine(["raiders", "omen"], {"raiders": 1, "horde": 1, "omen": 3}, {"turn_limit": 4})
 	if e == null:
 		return
 	var outcomes := record_raids(e)
 	e.end_turn()
 	e.end_turn()
-	eq(outcomes.size(), 1, "Raiders struck as turn 3 began")
+	arrange(e.zone("event_deck"), ["horde"])
+	e.end_turn()
+	eq(outcomes.size(), 1, "Raiders struck as turn 4 began")
 	check(active_uid(e, "horde") != -1, "Horde drawn in the final turn")
 	e.end_turn()
 	check(e.is_over, "game over")
@@ -431,12 +367,12 @@ func test_raid_line_tag_and_shortfall_for_the_ui() -> void:
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
 	var hills := hills_of(e)
-	eq(e.raid_line(raid), "Raiders will strike Hills next turn: 3 against your 0.", "the line")
-	check_noticed(recorded, "Raiders will strike Hills next turn", GameEngine.NOTICE_CAUTION)
+	eq(e.raid_line(raid), "Raiders will strike Hills in 2 turns: 3 against your 0.", "the line")
+	check_noticed(recorded, "Raiders will strike Hills in 2 turns", GameEngine.NOTICE_CAUTION)
 	eq(e.raid_tag(raid), "Hills 3 vs 0", "the board tag")
 	check(e.raid_short(raid), "short while defence 0 < 3")
-	eq(e.raid_warning(hills), "Raiders strike next turn: 3 vs 0", "the target's mark")
-	check("Raiders strike next turn: 3 vs 0" in e.territory_tooltip(hills), e.territory_tooltip(hills))
+	eq(e.raid_warning(hills), "Raiders strike in 2 turns: 3 vs 0", "the target's mark")
+	check("Raiders strike in 2 turns: 3 vs 0" in e.territory_tooltip(hills), e.territory_tooltip(hills))
 	eq(e.raid_warning(home_uid(e)), "", "no mark on Homeland")
 	build_on(e, hills, ["town"])
 	recruit(e, hills)
@@ -454,6 +390,7 @@ func test_the_strike_notice_says_what_it_cost_or_gave() -> void:
 	e.end_turn()
 	recruit(e, hills_of(e))
 	var recorded := record_messages(e)
+	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
 	check_noticed(recorded, "Raiders pillaged Hills", GameEngine.NOTICE_URGENT)
 	for fragment in ["+1 unrest", "−2 food", "−1 pop", "1 unit lost"]:
@@ -464,5 +401,6 @@ func test_the_strike_notice_says_what_it_cost_or_gave() -> void:
 	build_on(r, hills_of(r), ["town"])
 	recruit(r, hills_of(r))
 	var repelled := record_messages(r)
+	r.end_turn()  # announced 2 turns ahead (257)
 	r.end_turn()
 	check_noticed(repelled, "Raiders repelled at Hills: +2 wealth, −1 unrest", GameEngine.NOTICE_INFO)
