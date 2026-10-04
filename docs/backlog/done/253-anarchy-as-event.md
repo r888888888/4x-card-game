@@ -2,7 +2,7 @@
 id: 253
 title: Anarchy is an event with its counters on show
 type: feature
-status: review
+status: done
 branch: feat/253-anarchy-as-event
 ---
 
