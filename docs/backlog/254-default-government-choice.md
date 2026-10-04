@@ -2,7 +2,7 @@
 id: 254
 title: The government choice defaults to the starting government
 type: feature
-status: ready
+status: red-review
 branch: feat/254-default-government-choice
 ---
 
@@ -34,6 +34,11 @@ governments read as deliberate alternatives.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_default_government::test_the_default_government_is_the_starting_one_listed_first` |
+| AC2 | `test_default_government::test_without_a_starting_government_the_default_is_the_decks_first` |
+| AC3 | `test_default_government::test_with_no_choice_owed_there_is_no_default_government` |
+| AC4 | `test_government_deck::test_while_the_choice_is_owed_everything_else_refuses` (existing, already green) |
+| Design (overlay) | `test_default_government::test_the_government_overlay_lists_and_focuses_the_default_first` |
 
 ## Manual check
 - [ ] Let Anarchy burn out after a revolt from Kingship (or any government that isn't the starting one): the overlay
