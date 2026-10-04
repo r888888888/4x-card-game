@@ -214,6 +214,7 @@ func test_research_in_a_techs_details_learns_it_and_closes_the_details() -> void
 		check(research.visible, "Research shows for an available tech")
 		check(not research.disabled, "Research is enabled")
 		check(research.get_parent() == main.details.footer, "Research sits in the footer")
+		eq(accent_footer(main.details), [research.text] as Array[String], "251: it is the one primary")
 		research.pressed.emit()
 		await wait_frames()
 		check(learned(e, "pottery"), "Pottery learned")

@@ -670,6 +670,15 @@ func open_settings_modal(main: Node) -> void:
 	await wait_frames()
 
 
+## The texts of the visible buttons in modal's footer that wear the primary look (AccentButton, 251), left to right.
+func accent_footer(modal: Object) -> Array[String]:
+	var out: Array[String] = []
+	for b in (modal.footer as Control).get_children():
+		if b is Button and (b as Button).visible and (b as Button).theme_type_variation == &"AccentButton":
+			out.append((b as Button).text)
+	return out
+
+
 ## Presses and releases keycode on main's viewport.
 func press_key(main: Node, keycode: Key) -> void:
 	for pressed in [true, false]:

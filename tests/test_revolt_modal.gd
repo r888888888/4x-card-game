@@ -61,6 +61,7 @@ func test_revolt_opens_a_confirmation_with_the_flavor_and_the_summary() -> void:
 		at = found
 	eq(sheet.footer.get_children().filter(func(b): return b is Button and b.visible).map(func(b): return b.text),
 		["Keep %s" % gov_name(), "Revolt"], "Keep, then Revolt (primary) at the right")
+	eq(accent_footer(sheet), ["Revolt"] as Array[String], "251: Revolt in the signal colour, Keep plain")
 	close_main(main)
 
 

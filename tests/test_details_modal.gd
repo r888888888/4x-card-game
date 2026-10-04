@@ -103,7 +103,10 @@ func test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card() 
 		check(play.visible, "Play shows for a hand card")
 		check(play.disabled, "Play is disabled when the card can't be played")
 		check(e.playable_error(farm) != "", "the farm is unaffordable")
-		eq(play.tooltip_text, e.playable_error(farm), "the tooltip says why"))
+		eq(play.tooltip_text, e.playable_error(farm), "the tooltip says why")
+		eq(play.theme_type_variation, &"AccentButton", "251: still the primary key")
+		var box := play.get_theme_stylebox("disabled") as StyleBoxFlat
+		check(box != null and not box.bg_color.is_equal_approx(Palette.ACCENT), "251: disabled, no ACCENT fill"))
 
 
 func test_play_button_begins_targeting_for_a_card_with_several_targets() -> void:
