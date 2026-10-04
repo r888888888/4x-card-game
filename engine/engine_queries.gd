@@ -351,6 +351,16 @@ func unit_station(uid: int) -> int:
 	return card.station_uid if card != null and card.def.type == CardDef.UNIT else -1
 
 
+## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
+func defense(uid: int) -> int:
+	return Military.defense_parts(self, uid).get("total", 0)
+
+
+## Settled territory uid's defence by source (161): {units, buildings, cities, terrain, total}, or {} for anything else.
+func defense_parts(uid: int) -> Dictionary:
+	return Military.defense_parts(self, uid)
+
+
 ## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.
 func units_at(uid: int) -> Array[int]:
 	return Territories.units_at(self, uid)

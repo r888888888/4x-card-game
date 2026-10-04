@@ -35,6 +35,7 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var strength: int = 0  # units: how much it counts in defence (160)
+var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
@@ -116,6 +117,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append("+%d housing" % housing)
 	if famine_guard > 0:
 		parts.append("Saves %d pop from famine" % famine_guard)
+	if defense > 0:
+		parts.append(defense_text())
 	if prereq != "":
 		parts.append("Needs %s" % card_db[prereq].name)
 	if not eureka.is_empty():
@@ -158,6 +161,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("+%d housing on its territory" % housing)
 	if famine_guard > 0:
 		parts.append("Each upkeep, %d pop here that would starve survives" % famine_guard)
+	if defense > 0:
+		parts.append(defense_text() + " on its territory")
 	if prereq != "":
 		parts.append("Needs %s researched first." % card_db[prereq].name)
 	if not eureka.is_empty():
@@ -179,6 +184,11 @@ func eureka_text(card_db: Dictionary) -> String:
 ## A unit's strength line (160): "Strength 2".
 func strength_text() -> String:
 	return "Strength %d" % strength
+
+
+## A building's or city's defence line (161): "Defence 2".
+func defense_text() -> String:
+	return "Defence %d" % defense
 
 
 ## A government's actions line (127): "2 actions each turn."

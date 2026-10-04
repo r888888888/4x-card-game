@@ -61,8 +61,8 @@ func test_defense_loads_on_buildings_and_cities() -> void:
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
 	if r.cards.has("palisade"):
-		eq(r.cards.palisade.get("defense"), 2, "Palisade")
-		eq(r.cards.town.get("defense"), 1, "Town")
+		eq(r.cards.palisade.defense, 2, "Palisade")
+		eq(r.cards.town.defense, 1, "Town")
 
 
 func test_bad_defense_is_a_load_error() -> void:
@@ -88,7 +88,7 @@ func test_terrain_defense_config() -> void:
 # --- AC2: the total ---
 
 func test_defense_adds_units_buildings_cities_and_terrain() -> void:
-	var e: Object = defence_engine()
+	var e: GameEngine = defence_engine()
 	if e == null:
 		return
 	var hills := fortify_hills(e)
@@ -99,7 +99,7 @@ func test_defense_adds_units_buildings_cities_and_terrain() -> void:
 # --- AC3: idle cards add nothing ---
 
 func test_idle_walls_and_units_add_no_defense() -> void:
-	var e: Object = defence_engine()
+	var e: GameEngine = defence_engine()
 	if e == null:
 		return
 	var hills := fortify_hills(e)
@@ -111,7 +111,7 @@ func test_idle_walls_and_units_add_no_defense() -> void:
 # --- AC4: a unit counts where it is stationed ---
 
 func test_unit_counts_on_its_station_not_its_home() -> void:
-	var e: Object = defence_engine()
+	var e: GameEngine = defence_engine()
 	if e == null:
 		return
 	var hills := fortify_hills(e)
@@ -126,7 +126,7 @@ func test_unit_counts_on_its_station_not_its_home() -> void:
 # --- AC5: terrain and edges ---
 
 func test_terrain_sums_every_matching_keyword_rolled_ones_included() -> void:
-	var e: Object = defence_engine({"resource_keywords": ["gold"],
+	var e: GameEngine = defence_engine({"resource_keywords": ["gold"],
 		"terrain_defense": {"fresh_water": 1, "flood_plain": 2, "mountain": 1, "gold": 3}})
 	if e == null:
 		return
@@ -139,7 +139,7 @@ func test_terrain_sums_every_matching_keyword_rolled_ones_included() -> void:
 
 
 func test_no_terrain_defense_without_the_config() -> void:
-	var e: Object = defence_engine({"terrain_defense": {}})
+	var e: GameEngine = defence_engine({"terrain_defense": {}})
 	if e == null:
 		return
 	settle(e, ["hills"])
@@ -149,7 +149,7 @@ func test_no_terrain_defense_without_the_config() -> void:
 
 
 func test_defense_is_0_for_anything_but_a_settled_territory() -> void:
-	var e: Object = defence_engine()
+	var e: GameEngine = defence_engine()
 	if e == null:
 		return
 	to_frontier(e, ["hills"])

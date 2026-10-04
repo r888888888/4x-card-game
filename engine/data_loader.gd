@@ -14,6 +14,7 @@ const TYPE_FIELDS := {
 	"housing": [CardDef.TERRITORY, CardDef.BUILDING],
 	"famine_guard": [CardDef.BUILDING],
 	"strength": [CardDef.UNIT],
+	"defense": [CardDef.BUILDING, CardDef.CITY],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"eureka": [CardDef.TECH],
@@ -267,9 +268,11 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			errs.append("'keywords' must be an array of keyword ids")
 	elif def.type == CardDef.CITY:
 		def.slots = Fields.read_int(c, "slots", errs, 0, 0)
+		def.defense = Fields.read_int(c, "defense", errs, 1, 0)
 	elif def.type == CardDef.BUILDING:
 		def.housing = Fields.read_int(c, "housing", errs, 1, 0)
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
+		def.defense = Fields.read_int(c, "defense", errs, 1, 0)
 	elif def.type == CardDef.UNIT:
 		def.strength = Fields.read_int(c, "strength", errs, 1)
 	elif def.type == CardDef.GOVERNMENT:
