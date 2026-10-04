@@ -24,8 +24,6 @@ func _init(main: MainScreen, top_bar: TopBar) -> void:
 func sync(e: GameEngine) -> void:
 	var m := _main
 	var rows := {"reveal": m.choices.reveal}
-	if m.pending_kind() == GameEngine.PENDING_RENEWAL:
-		rows["discard"] = m.choices.renewal_row  # the discard pile, to trash from (147)
 	rows["governments"] = m.choices.government_row  # the government deck, shown while one is to be chosen (154)
 	var viewed := m.territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}

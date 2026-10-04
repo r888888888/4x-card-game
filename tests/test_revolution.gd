@@ -103,7 +103,7 @@ func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
 const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts up to 3 turns; calming shortens it.",
 	"1 action each turn; only order cards can be played.", "Nothing can be grown, bought or researched.",
 	"Each turn it eats 20% of stored food and wealth.",
-	"Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",
+	"Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
 	"When it ends, choose a government from your government deck."]
 
 

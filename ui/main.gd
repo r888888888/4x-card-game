@@ -31,6 +31,7 @@ var start_screen: StartScreen  # the title screen, shown on launch with the boar
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
 var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
 var move_modal: MoveModal  # where a unit marches, from its details' Move… (163)
+var renewal_modal: RenewalModal  # Anarchy's renewal, open while it is owed (255)
 var rename_modal: RenameModal  # names a territory, from the territory view's Rename… (248)
 var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
@@ -330,7 +331,7 @@ func discard(view: CardView) -> void:
 	Game.engine.discard_card(view.uid)
 
 
-## A click on a lit target, or on a card in a choice row: a revealed territory, a card to renew (147) or a government
+## A click on a lit target, or on a card in a choice row: a revealed territory or a government
 ## (154). A choice goes through its error query, so a pick on a view left over from an earlier choice is refused.
 func on_picked(view: CardView) -> void:
 	if drag.targeting != null:
@@ -345,9 +346,6 @@ func on_picked(view: CardView) -> void:
 		"governments":
 			error = e.choose_government_error
 			action = e.choose_government
-		"discard":
-			error = e.renew_error
-			action = e.renew
 	var refused: String = error.call(view.uid)
 	if refused != "":
 		_refuse(view, refused)
@@ -422,6 +420,7 @@ func _refresh() -> void:
 	UIKit.set_stat(actions_label, "%d / %d" % [e.actions_left(), e.actions_per_turn()])
 	_views.sync(e)
 	choices.refresh(e)
+	renewal_modal.refresh(e)
 	log_drawer.refresh(e)
 	_relief.refresh(e)
 	_restore.refresh(e)

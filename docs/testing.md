@@ -186,6 +186,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_anarchy_drain.gd` | Anarchy's drain (156): config `unrest.drain_pct`, food and wealth lost each Anarchy turn, the forecast |
 | `tests/test_anarchy_event.gd` | Anarchy as an event (253): in the active events with its counters, the government slot empty, not counted down by upkeep, its action, the loader wants an event |
 | `tests/test_default_government.gd` | The government choice's default (254): the starting government first and focused, else the deck's first |
+| `tests/test_renewal_modal.gd` | The Renewal modal (255): a row per option, chosen up to the count, Trash pays in one call, not dismissable, its sounds |
 | `tests/test_leaving_anarchy.gd` | Restoring order (146, 155): the c × (c + 1) price, `restore_order` and its error, the Restore order button, the bot paying |
 | `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
 | `tests/test_bot_lookahead.gd` | The bot's government lookahead (159): choosing and revolting by forked lookaheads, `ScriptedBot.lookahead`, 154's ranking (`best_government`) |

@@ -15,6 +15,8 @@ Companion pages in this folder (open them in a browser):
 - [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
   [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
   alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
+- [renewal-options.html](renewal-options.html): three designs for the Renewal sheet (card spread, ledger, trash tray);
+  the ledger was chosen (255), with its sound plan.
 - [list-options.html](list-options.html): five designs for a selectable list (index card, folder tab, ledger line,
   selector lamps, pointer); the index card was chosen (§7.16).
 - [click-options.html](click-options.html): nine versions of the key click (`ui.button.press` / `.release`): the

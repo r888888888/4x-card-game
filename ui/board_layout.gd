@@ -70,6 +70,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.identity_modal = IdentityModal.new(main.modals)
 	main.revolt_modal = RevoltModal.new(main.modals)
 	main.move_modal = MoveModal.new(main.modals)
+	main.renewal_modal = RenewalModal.new(main.modals)
 	main.details.move_requested.connect(func(uid): main.move_modal.open(Game.engine, uid))
 	main.identity_modal.revolt_requested.connect(func(): main.revolt_modal.open(Game.engine))
 	main.identity_modal.details_requested.connect(main.details.open_card)
