@@ -210,6 +210,12 @@ func restore_order() -> bool:
 	return Anarchy.restore(self)
 
 
+## The government choice's default (254): the uid of the config's starting government when it's in the government
+## deck, else the deck's first; -1 when no government choice is owed. pending() lists it first.
+func default_government() -> int:
+	return Anarchy.default_government(self)
+
+
 ## Why choose_government(uid) would refuse (154): no choice is owed, or uid isn't in the government deck. "" if it can.
 func choose_government_error(uid: int) -> String:
 	return Anarchy.choose_government_error(self, uid)

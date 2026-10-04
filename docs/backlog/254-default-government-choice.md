@@ -2,7 +2,7 @@
 id: 254
 title: The government choice defaults to the starting government
 type: feature
-status: red-review
+status: in-progress
 branch: feat/254-default-government-choice
 ---
 

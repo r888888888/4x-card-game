@@ -107,7 +107,7 @@ func pending() -> Dictionary:
 	match p.get("kind", ""):
 		GameEngine.PENDING_GOVERNMENT:
 			p.erase("ends_turn")
-			p.options = zone("governments").cards.map(func(c): return c.uid)
+			p.options = Anarchy.government_options(self)
 		GameEngine.PENDING_RENEWAL:
 			p.options = Anarchy.renewal_options(self)
 		GameEngine.PENDING_DISCARD:
