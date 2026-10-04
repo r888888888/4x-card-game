@@ -56,6 +56,40 @@ func test_the_territory_view_and_its_card_show_the_city_name_over_the_land_name(
 	close_main(main)
 
 
+# --- 252: Rename… in the action row, beside Grow ---
+
+func test_rename_sits_in_the_action_row_right_after_grow_in_its_key_look() -> void:
+	var main: Node = await open_home()
+	var view: Object = main.territory_view
+	var rename: Button = view.rename_button
+	var grow: Button = view.grow_button
+	eq(rename.get_parent(), view.actions, "Rename… is in the actions row")
+	eq(rename.get_index(), grow.get_index() + 1, "directly after Grow")
+	eq(rename.theme_type_variation, grow.theme_type_variation, "in Grow's key look, not a link")
+	check(rename.size.x <= rename.get_combined_minimum_size().x + 1.0, "it doesn't stretch (%d px)" % rename.size.x)
+	await open_rename(main)
+	check(main.rename_modal.is_open(), "it still opens the naming modal")
+	close_main(main)
+
+
+func test_a_refused_rename_stays_in_the_row_disabled_with_its_reason() -> void:
+	var main: Node = await open_home()
+	var view: Object = main.territory_view
+	var grow: Button = view.grow_button
+	Game.engine.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": 1}  # a decision blocks renaming
+	Game.engine.changed.emit()
+	await wait_frames()
+	var rename: Button = view.rename_button
+	var error: String = Game.engine.rename_territory_error(home_uid(Game.engine), home_name())
+	check(error != "", "precondition: renaming refused while a decision is owed")
+	eq(rename.get_parent(), view.actions, "Rename… stays in the row")
+	check(rename.disabled, "disabled")
+	eq(rename.tooltip_text, error, "with the engine's reason")
+	var grow_error := Game.engine.grow_error(home_uid(Game.engine))
+	eq(grow.disabled, grow_error != "", "Grow keeps its own state")
+	close_main(main)
+
+
 # --- AC8: the modal ---
 
 func test_rename_opens_the_naming_modal_prefilled_with_the_name() -> void:

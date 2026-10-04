@@ -152,6 +152,7 @@ func test_board_buttons_fit_their_text() -> void:
 	await wait_frames()
 	check_fits(main.territory_view.back_button, "territory view Back")
 	check_fits(main.territory_view.grow_button, "territory view Grow")
+	check_fits(main.territory_view.rename_button, "territory view Rename… (252)")
 	close_at_1080(main)
 
 
