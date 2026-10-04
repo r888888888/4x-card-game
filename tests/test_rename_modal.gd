@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Territory names on screen and the naming modal (backlog 248) in the real main scene on the real data (seed 5, Egypt):
 ## the territory view's title and the territory's card in the Realm show the city name over the land name; the view's
-## Rename… (territory_view.rename_button) opens main.rename_modal (field, rename_button, cancel_button) prefilled with
+## Rename… (territory_view.rename_button, in the view's actions after Grow since 252) opens main.rename_modal (field, rename_button, cancel_button) prefilled with
 ## the name.
 
 

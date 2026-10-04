@@ -2,11 +2,12 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
 ## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name (its city name over its land's, 248) and info, its stats and pop meter, Rename… beside the name (248), a row of its actions (Grow, 227), then its city and buildings and an outline per free slot, then its units (160); its card stays in
-## the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav stays
-## empty while a game is on,
-## 103), and grows out of the territory's card when it opens (104). A drop anywhere on it targets its territory. The
-## board places the view's cards through refresh; navigated asks the board to refresh after it opens or closes.
+## its name (its city name over its land's, 248) and info, its stats and pop meter, a row of its actions (Grow, 227;
+## then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units (160); its card
+## stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
+## stays empty while a game is on, 103), and grows out of the territory's card when it opens (104). A drop anywhere on
+## it targets its territory. The board places the view's cards through refresh; navigated asks the board to refresh
+## after it opens or closes.
 
 signal navigated
 ## Rename… pressed: the board opens the naming modal for territory t (248).
@@ -17,7 +18,7 @@ var header: ScreenHeader
 var back_button: Button  # the header's
 var actions: HBoxContainer  # the territory's actions, under the stats and meter (227)
 var grow_button: Button  # in actions: Grow and its food cost; disabled with the reason as its tooltip (227)
-var rename_button: Button  # Rename…, a link beside the name, opening the naming modal (248)
+var rename_button: Button  # in actions after Grow: Rename…, opening the naming modal (248, 252)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 var units_row: HFlowContainer  # the units stationed here (160), under their caption; hidden when there are none
@@ -68,10 +69,6 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_land = Label.new()
 	_land.theme_type_variation = &"Caption"
 	names.add_child(_land)
-	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
-	rename_button.theme_type_variation = &"CapsLink"  # a tertiary action beside the name (guide §7.3)
-	rename_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	title.add_child(rename_button)
 	_info = CardFace.rich_label("", Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_info.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -102,6 +99,9 @@ func _init(board: MainScreen, realm: Control) -> void:
 			grow_button.add_theme_color_override(state, Palette.GAIN))
 	grow_button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	actions.add_child(grow_button)
+	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
+	rename_button.theme_type_variation = grow_button.theme_type_variation  # one set of keys in the row (252)
+	actions.add_child(rename_button)
 	row = HFlowContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)

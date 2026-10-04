@@ -2,7 +2,7 @@
 id: 252
 title: Move Rename… into the territory's action row, beside Grow
 type: feature
-status: red-review
+status: review
 branch: feat/252-rename-beside-grow
 ---
 
@@ -12,14 +12,14 @@ action row under the stats and pop meter, right after Grow (227), so everything 
 one place.
 
 ## Acceptance criteria
-- [ ] AC1: Given a territory's view open (seed 5, Egypt, the home territory), then `territory_view.rename_button` is a
+- [x] AC1: Given a territory's view open (seed 5, Egypt, the home territory), then `territory_view.rename_button` is a
   child of `territory_view.actions`, directly after `grow_button`, and the title line (the name, the land caption and
   the info) holds no button.
-- [ ] AC2: Given that view, then Rename… wears the same key look as Grow (its `theme_type_variation` equals Grow's, not
+- [x] AC2: Given that view, then Rename… wears the same key look as Grow (its `theme_type_variation` equals Grow's, not
   `CapsLink`) and doesn't stretch: it is no wider than its text plus padding.
-- [ ] AC3: Given that view, when Rename… is pressed, then the naming modal opens for that territory, as before (248's
+- [x] AC3: Given that view, when Rename… is pressed, then the naming modal opens for that territory, as before (248's
   tests keep passing unchanged).
-- [ ] AC4: Given Rename… disabled by `rename_territory_error` (as in 248), then it stays in the row, disabled, with the
+- [x] AC4: Given Rename… disabled by `rename_territory_error` (as in 248), then it stays in the row, disabled, with the
   reason as its tooltip; Grow beside it keeps its own enabled state and tooltip.
 
 ## Out of scope
@@ -45,3 +45,5 @@ one place.
   cost), then Rename…, the same height, a small gap between; the title line shows only the name, land and info.
 
 ## Log
+- Rename… copies Grow's variation (`IconButton`) rather than naming it, so the row stays one look if Grow's changes.
+- `CapsLink` is still used by the sidebar's government link (221).
