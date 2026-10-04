@@ -152,9 +152,12 @@ func test_a_pressed_button_sinks_into_its_shadow() -> void:
 func test_the_accent_button_is_signal_orange() -> void:
 	var main := open_main()
 	var accent := button(main, "AccentButton")
-	check_box(stylebox(accent, "normal"), Palette.ACCENT, Palette.TEXT, 2, 2, Vector2(16, 8), "AccentButton normal")
+	# 251: the guide's primary button (§7.1, the specimen's .btn.primary) has a 3 px ink border
+	check_box(stylebox(accent, "normal"), Palette.ACCENT, Palette.TEXT, 3, 2, Vector2(16, 8), "AccentButton normal")
 	check_plinth(stylebox(accent, "normal"), "AccentButton normal")
 	eq(accent.get_theme_color("font_color").to_html(), Palette.TEXT_ON_ACCENT.to_html(), "AccentButton text")
+	check_box(stylebox(accent, "disabled"), Palette.CONTROL_DISABLED, Palette.CONTROL_DISABLED_BORDER, 2, 2,
+		Vector2(16, 8), "AccentButton disabled: the plain Button's disabled look")
 	close_main(main)
 
 
@@ -182,6 +185,12 @@ func test_the_focus_ring_is_square_and_outside_the_control() -> void:
 		eq(ring.corner_radius_top_left, 0, "focus ring radius")
 		eq(ring.expand_margin_left, 4.0, "focus ring 4 px outside")
 	close_main(main)
+
+
+func test_a_field_draws_no_focus_ring() -> void:
+	var t: Theme = load(GAME_THEME_PATH).build()
+	var ring := t.get_stylebox("focus", "LineEdit")
+	check(ring is StyleBoxEmpty, "251: a field's focus box draws nothing (its caret shows the focus), got %s" % ring)
 
 
 func test_fields_and_card_colours_look_as_before() -> void:

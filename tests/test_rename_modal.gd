@@ -81,6 +81,22 @@ func test_an_invalid_name_disables_rename_with_the_engines_reason() -> void:
 	close_main(main)
 
 
+# --- 251: Cancel, then Rename in the signal colour ---
+
+func test_rename_is_the_primary_and_disabled_it_loses_the_accent() -> void:
+	var main: Node = await open_home()
+	await open_rename(main)
+	var rename: Button = main.rename_modal.rename_button
+	eq(accent_footer(main.rename_modal), ["Rename"] as Array[String], "Rename is the one primary, Cancel plain")
+	type_name(main, "   ")
+	check(rename.disabled, "precondition: Rename disabled")
+	eq(rename.theme_type_variation, &"AccentButton", "still the primary key")
+	var box := rename.get_theme_stylebox("disabled") as StyleBoxFlat
+	check(box != null and not box.bg_color.is_equal_approx(Palette.ACCENT), "disabled, it has no ACCENT fill")
+	eq(rename.tooltip_text, Game.engine.call("rename_territory_error", home_uid(Game.engine), "   "), "and keeps its reason")
+	close_main(main)
+
+
 func test_enter_renames_the_territory_and_closes_the_modal() -> void:
 	var main: Node = await open_home()
 	await open_rename(main)

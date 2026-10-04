@@ -42,7 +42,7 @@ A colour must follow a Day mode switch. How depends on where it is set:
 | `rule` | `CONTROL_BORDER` |
 | `rule-fine` | `HAIRLINE` (a fine rule within a sheet, 217); `CONTROL_DISABLED_BORDER` (Day only; Night uses its own `4a463f`) |
 | `shadow` | `SHADOW` |
-| `signal` / `on-signal` | `ACCENT` (End turn, and a selectable list's index tab) / `TEXT_ON_ACCENT` |
+| `signal` / `on-signal` | `ACCENT` (End turn, a selectable list's index tab, and a modal's primary button: `AccentButton`, 3 px ink border, 251) / `TEXT_ON_ACCENT` |
 | `positive` | `GAIN` |
 | `danger` | `COST`, `WARN`, `UNREST` |
 | `info` | `INSIGHT` |

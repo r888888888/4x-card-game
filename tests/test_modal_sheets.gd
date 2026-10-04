@@ -103,6 +103,7 @@ func test_card_details_is_a_sheet_titled_with_the_card_and_its_type() -> void:
 		await wait_sheet()
 		check_sheet(main.details, "card details", card.def.name, card.def.type.capitalize(),
 			["Close (Esc)", "Play"] as Array[String])  # a hand card's details offer Play (225)
+		eq(accent_footer(main.details), ["Play"] as Array[String], "251: Play is the one primary")
 		close_main(main))
 
 
@@ -112,6 +113,7 @@ func test_the_civilization_modal_is_a_sheet() -> void:
 		main.identity_modal.open()
 		await wait_sheet()
 		check_sheet(main.identity_modal, "civilization", "Civilization", "", ["Close (Esc)"] as Array[String])
+		eq(accent_footer(main.identity_modal), [] as Array[String], "251: nothing to do, no primary")
 		close_main(main))
 
 
@@ -127,6 +129,7 @@ func test_the_event_modal_is_a_sheet_with_the_turn_as_context() -> void:
 		var modal: Object = main.modals.top()
 		var def: CardDef = Game.engine.card_db[main.event_modal().id]
 		check_sheet(modal, "event", def.name, "Turn %d" % Game.engine.turn, ["OK (Enter)"] as Array[String])
+		eq(accent_footer(modal), ["OK (Enter)"] as Array[String], "251: OK is the primary")
 		close_main(main))
 
 
@@ -137,6 +140,7 @@ func test_the_menu_is_a_sheet_on_the_modal_stack() -> void:
 		await wait_sheet()
 		eq(main.modals.depth(), 1, "the menu is on main.modals")
 		check_sheet(main.modals.top(), "menu", "Menu", "", ["Close (Esc)", "Exit"] as Array[String])
+		eq(accent_footer(main.modals.top()), [] as Array[String], "251: the menu has no primary")
 		press_key(main, KEY_ESCAPE)
 		await wait_frames()
 		eq(main.modals.depth(), 0, "Esc closes it")
@@ -157,6 +161,7 @@ func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
 		eq(main.modals.depth(), 1, "the game-over sheet is on main.modals")
 		var sheet: Object = main.modals.top()
 		check_sheet(sheet, "game over", "Game over", "", ["New game", "Replay this seed"] as Array[String])
+		eq(accent_footer(sheet), ["Replay this seed"] as Array[String], "251: Replay is the primary")
 		press_key(main, KEY_ESCAPE)
 		var outside := Vector2(4, 4)
 		for pressed in [true, false]:
@@ -168,6 +173,32 @@ func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
 			main.get_viewport().push_input(event, true)
 		await wait_frames()
 		eq(main.modals.top(), sheet, "Esc and a click outside leave it open")
+		close_main(main))
+
+
+# --- 251: the primary action in the signal colour ---
+
+func test_a_primary_footer_button_wears_the_accent_look_and_the_others_stay_plain() -> void:
+	var main := open_main()
+	var modal := Modal.new(main.modals)
+	var cancel := modal.add_footer_button(UIKit.button("Cancel", func(): pass))
+	var go := modal.add_footer_button(UIKit.button("Go", func(): pass), true)
+	eq(go.theme_type_variation, &"AccentButton", "the primary is an AccentButton")
+	eq(cancel.theme_type_variation, &"", "the other keeps the plain Button look")
+	close_main(main)
+
+
+func test_settings_and_board_card_details_have_no_primary() -> void:
+	await with_temp_settings(func():
+		var main: Node = await open_game()
+		await open_settings_modal(main)
+		check(main.settings_modal.is_open(), "precondition: Settings open")
+		eq(accent_footer(main.settings_modal), [] as Array[String], "Settings: no primary")
+		main.settings_modal.close()
+		main.details.open(main.views[home_uid(Game.engine)])
+		await wait_frames()
+		eq(footer_texts(main.details), ["Close (Esc)"] as Array[String], "a board card's details: Close only")
+		eq(accent_footer(main.details), [] as Array[String], "a board card's details: no primary")
 		close_main(main))
 
 
