@@ -40,6 +40,24 @@ static func unit_strength(e: GameEngine, uid: int) -> int:
 	return strength
 
 
+## The training unit uid gets from its station (164): unit_strength less its printed strength, or 0.
+static func training(e: GameEngine, uid: int) -> int:
+	var strength := unit_strength(e, uid)
+	return strength - _unit(e, uid).def.strength if strength > 0 else 0
+
+
+## "Strength 3" for a trained unit (164), shown on its face; "" for anything else.
+static func strength_tag(e: GameEngine, uid: int) -> String:
+	return "Strength %d" % unit_strength(e, uid) if training(e, uid) > 0 else ""
+
+
+## "Strength 3 (printed 2, +1 training)" for a trained unit (164), its details' line; "" for anything else.
+static func strength_line(e: GameEngine, uid: int) -> String:
+	if training(e, uid) <= 0:
+		return ""
+	return "Strength %d (printed %d, +%d training)" % [unit_strength(e, uid), _unit(e, uid).def.strength, training(e, uid)]
+
+
 ## Whether event is a raid (162).
 static func is_raid(event: CardInstance) -> bool:
 	return event != null and not event.def.raid.is_empty()

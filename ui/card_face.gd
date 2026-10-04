@@ -232,12 +232,14 @@ func text() -> String:
 	return "\n".join(lines)
 
 
-## Replaces the gold info line called label_name at the bottom of the card with text.
+## Replaces the gold info line called label_name at the bottom of the card with text; "" removes it.
 func replace_info(label_name: String, text: String, color: Variant = null) -> void:
 	var old := find_child(label_name, true, false)
 	if old != null:
 		old.get_parent().remove_child(old)
 		old.queue_free()
+	if text == "":
+		return
 	var info := label(text, Tokens.TYPE_BODY, CardView.HIGHLIGHT_COLOR if color == null else color)
 	info.name = label_name
 	var badge_row := get_node_or_null("BadgeRow")

@@ -55,9 +55,10 @@ func sync(e: GameEngine) -> void:
 		for i in cards.size():
 			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
 			place(card, rows[zone_name], i, 0.0)
-	for uid in viewed:  # a unit away from home says where it is from (163)
+	for uid in viewed:  # a unit away from home says where it is from (163); a trained one, its strength (164)
 		if views.has(uid) and e.unit_station(uid) != -1:
 			views[uid].set_unit_origin(e.unit_origin(uid))
+			views[uid].set_unit_strength(e.unit_strength_tag(uid))
 	for card in e.zone("active_events").cards:
 		var raid := e.raid_tag(card.uid)
 		if raid != "":

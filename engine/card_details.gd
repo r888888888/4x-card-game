@@ -54,6 +54,8 @@ static func _state(e: GameEngine, card: CardInstance, zone_name: String) -> Arra
 	var territory := e.territory_of(card) if zone_name == "tableau" else null
 	if territory != null and territory != card:
 		out.append("On %s" % territory.def.name)
+	if zone_name == "tableau" and Military.strength_line(e, card.uid) != "":
+		out.append(Military.strength_line(e, card.uid))
 	if zone_name == "tableau" and card.def.uses_worker() and e.is_idle(card.uid):
 		out.append("Idle: no free worker (skips upkeep)")
 	if card.def.type == CardDef.TECH and zone_name == "research_deck":

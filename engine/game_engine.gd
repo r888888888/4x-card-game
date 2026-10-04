@@ -251,6 +251,11 @@ func unit_strength(uid: int) -> int:
 	return Military.unit_strength(self, uid)
 
 
+## "Strength 3" for a unit trained by a building on its station (164), for its face; "" for anything else.
+func unit_strength_tag(uid: int) -> String:
+	return Military.strength_tag(self, uid)
+
+
 ## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
 func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)
