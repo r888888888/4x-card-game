@@ -335,6 +335,32 @@
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
+      "id": "raiders", "name": "Raiders", "type": "event", "tags": [],
+      "raid": { "strength": 2, "targets": ["grassland", "desert"] },
+      "flavor": "Dust on the horizon: riders from the steppe, come for the harvest.",
+      "effects": [
+        { "op": "lose", "resource": "food", "amount": 2, "trigger": "pillage" },
+        { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "pillage" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "repel" },
+        { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "repel" }
+      ]
+    },
+    {
+      "id": "sea_raiders", "name": "Sea Raiders", "type": "event", "tags": [],
+      "raid": { "strength": 3, "targets": ["coastal"] },
+      "flavor": "Long ships are beached in the night, and the harbour stores are their prize.",
+      "effects": [ { "op": "lose", "resource": "wealth", "amount": 3, "trigger": "pillage" } ]
+    },
+    {
+      "id": "hill_tribes", "name": "Hill Tribes", "type": "event", "tags": [],
+      "raid": { "strength": 3, "targets": ["hills", "mountain"] },
+      "flavor": "The clans of the high valleys come down when their own stores run thin.",
+      "effects": [
+        { "op": "lose", "resource": "food", "amount": 2, "trigger": "pillage" },
+        { "op": "lose", "resource": "wealth", "amount": 1, "trigger": "pillage" }
+      ]
+    },
+    {
       "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
       "flavor": "Petitioners crowd the palace steps, demanding fairer laws and a say in how they are made.",
       "modifiers": { "renewal": 1 },
