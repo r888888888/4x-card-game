@@ -2,11 +2,11 @@ class_name SupplyScreen
 extends RefCounted
 ## The supply screen: dims the board and shows one card per supply pile to click and buy; stays open for several
 ## buys. Each card shows its play cost like a hand card, with its price on a tag hanging below it and the copies left
-## under that (232). Also owns the "Buy Cards" button that opens it (S).
+## under that (232). A click outside its panel closes it (258). Also owns the "Buy Cards" button that opens it (S).
 
 ## A buy was refused; message is the engine's reason, for the log.
 signal refused(message: String)
-## The screen closed (Close, S or Esc, or a new game).
+## The screen closed (Close, S or Esc, a click outside its panel, or a new game).
 signal closed
 
 var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the config has no supply
@@ -34,6 +34,7 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	button.hide()
 	_overlay = UIKit.overlay(parent, &"GAIN")
 	_overlay.z_index = 5
+	_overlay.gui_input.connect(_on_dimmer_input)
 	var box := _overlay.get_meta("box") as VBoxContainer
 	box.add_child(UIKit.title("Supply"))
 	box.add_child(UIKit.heading("Click a card to buy a copy into your discard. Buy as many as you can pay for."))
@@ -198,6 +199,14 @@ func close() -> void:
 	for child in _fx.get_children():
 		child.queue_free()
 	closed.emit()
+
+
+## A click on the dimmer, outside the panel, closes the screen, as a click beside a modal's sheet does (258).
+func _on_dimmer_input(event: InputEvent) -> void:
+	var panel := _overlay.get_meta("panel") as Control
+	if event is InputEventMouseButton and event.pressed and not panel.get_global_rect().has_point(event.global_position):
+		_overlay.accept_event()
+		close()
 
 
 ## A click (or Enter) on a pile card: buy a copy, or shake and say why not.

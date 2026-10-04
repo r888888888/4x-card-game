@@ -2,7 +2,7 @@
 id: 258
 title: A click outside the supply panel closes the supply screen
 type: feature
-status: red-review
+status: in-progress
 branch: feat/258-supply-click-outside-closes
 ---
 
