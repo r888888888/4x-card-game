@@ -256,3 +256,49 @@ func test_unit_origin_names_the_home_of_a_unit_stationed_away() -> void:
 	check(e.move_unit(levy, hills_of(e)), "moved")
 	eq(e.unit_origin(levy), "from %s" % e.territory_name(home_uid(e)), "away from home")
 	eq(e.unit_origin(home_uid(e)), "", "not a unit")
+
+
+# --- The Manual check's UI on the real main scene: Move… and Disband in a unit's details ---
+
+## A move_engine game started on main: the board's start_game begins a new game, so the setup is played again on it.
+func setup_on_main(e: GameEngine) -> int:
+	e.resources.food = 50
+	settle(e, ["hills"])
+	e.zone("tableau").find(hills_of(e)).pop = 1
+	var levy := uid_of(e.zone("hand"), "levy")
+	if levy == -1:
+		levy = put_in_hand(e, "levy")
+	check(e.play_card(levy, home_uid(e)), "Levy recruited: %s" % e.play_error(levy, home_uid(e)))
+	return levy
+
+
+func test_details_move_and_disband_a_unit() -> void:
+	var engine := move_engine()
+	if engine == null:
+		return
+	await with_main(engine, func(main: Node):
+		var e := Game.engine
+		var levy := setup_on_main(e)
+		await wait_frames()
+		main.details.open_card(e.zone("tableau").find(levy))
+		var buttons: Array[Button] = main.details.unit_buttons()
+		check(buttons[0].visible and not buttons[0].disabled, "Move… offered")
+		check(buttons[1].visible and not buttons[1].disabled, "Disband offered")
+		buttons[0].pressed.emit()
+		await wait_frames()
+		var targets: Array[Button] = main.move_modal.target_buttons()
+		eq(targets.size(), 1, "one place to go: Hills")
+		if targets.size() == 1:
+			targets[0].pressed.emit()
+		await wait_frames()
+		eq(e.unit_station(levy), hills_of(e), "the Levy marched to Hills")
+		main.details.open_card(e.zone("tableau").find(levy))
+		buttons = main.details.unit_buttons()
+		check(buttons[0].disabled, "Move… disabled after moving")
+		eq(buttons[0].tooltip_text, "Levy has already moved this turn.", "with the reason")
+		buttons[1].pressed.emit()
+		await wait_frames()
+		check(e.zone("discard").find(levy) != null, "Disband sent it to the discard")
+		main.details.open_card(e.zone("tableau").find(home_uid(e)))
+		check(not main.details.unit_buttons()[0].visible, "no Move… on a territory")
+		main.details.close())

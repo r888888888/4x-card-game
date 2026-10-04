@@ -30,6 +30,7 @@ var details: CardDetailsModal
 var start_screen: StartScreen  # the title screen, shown on launch with the board hidden (063, 099)
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
 var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
+var move_modal: MoveModal  # where a unit marches, from its details' Move… (163)
 var rename_modal: RenameModal  # names a territory, from the territory view's Rename… (248)
 var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
 var nav := Navigator.new()  # the open start screens, title first (103); empty while a game is on the board
