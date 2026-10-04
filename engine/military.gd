@@ -3,6 +3,8 @@ extends RefCounted
 ## Military rules (backlog 161 on): a settled territory's defence from the units stationed there, its working walls,
 ## its cities and its terrain; raids (162), aimed when drawn and striking at the next event phase. Static functions on the engine's state; GameEngine's public methods call them.
 
+const NOT_A_UNIT := "That isn't a unit in your realm."
+
 
 ## Settled territory uid's defence by source: {units, buildings, cities, terrain, total}, or {} when uid isn't a
 ## settled territory. Idle units and buildings add nothing; a unit counts where it is stationed, not on its home.
@@ -150,3 +152,109 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	else:
 		e._notice("%s pillaged %s%s." % [raid.def.name, where, what], GameEngine.NOTICE_URGENT)
 	e.raid_resolved.emit(outcome)
+
+
+## Why unit uid can't move to territory_uid now (163), or "": unit_move_block's reasons, then not a settled
+## territory or its own station.
+static func move_error(e: GameEngine, uid: int, territory_uid: int) -> String:
+	var unit_error := _unit_move_error(e, uid)
+	if unit_error != "":
+		return unit_error
+	var target := Territories.settled(e, territory_uid)
+	if target == null:
+		return "Units can only move to a settled territory."
+	var unit := _unit(e, uid)
+	if unit.station_uid == territory_uid:
+		return "%s is already on %s." % [unit.def.name, target.shown_name()]
+	return ""
+
+
+## The settled territories unit uid can move to now (163), in tableau order; [] when move_block says it can't.
+static func move_targets(e: GameEngine, uid: int) -> Array[int]:
+	var out: Array[int] = []
+	if move_block(e, uid) == "":
+		out = _elsewhere(e, uid)
+	return out
+
+
+## Why unit uid can't move anywhere now (163), or "": blocked, no action left, not a unit in the tableau, moved this
+## turn, or no settled territory but its station.
+static func move_block(e: GameEngine, uid: int) -> String:
+	var unit_error := _unit_move_error(e, uid)
+	if unit_error != "":
+		return unit_error
+	return "%s has nowhere else to go." % _unit(e, uid).def.name if _elsewhere(e, uid).is_empty() else ""
+
+
+## "from Homeland" for a unit stationed away from its home (163), else "".
+static func unit_origin(e: GameEngine, uid: int) -> String:
+	var unit := _unit(e, uid)
+	if unit == null or unit.station_uid == unit.territory_uid:
+		return ""
+	return "from %s" % e.territory_name(unit.territory_uid)
+
+
+## The reasons unit uid can't move whatever the target: blocked, no action left, not a unit, moved this turn; or "".
+static func _unit_move_error(e: GameEngine, uid: int) -> String:
+	var blocked := e._blocked_error("move_unit")
+	if blocked != "":
+		return blocked
+	if CardPlay.actions_left(e) == 0:
+		return "No actions left this turn."
+	var unit := _unit(e, uid)
+	if unit == null:
+		return NOT_A_UNIT
+	if e.state.moved_units.has(uid):
+		return "%s has already moved this turn." % unit.def.name
+	return ""
+
+
+## The settled territories other than unit uid's station, in tableau order ([] when uid isn't a unit).
+static func _elsewhere(e: GameEngine, uid: int) -> Array[int]:
+	var out: Array[int] = []
+	var unit := _unit(e, uid)
+	if unit != null:
+		for card in e.zone("tableau").cards:
+			if card.def.type == CardDef.TERRITORY and card.uid != unit.station_uid:
+				out.append(card.uid)
+	return out
+
+
+## Stations unit uid on territory_uid for an action (163). False (and no change) if move_error says no.
+static func move(e: GameEngine, uid: int, territory_uid: int) -> bool:
+	if move_error(e, uid, territory_uid) != "":
+		return false
+	var unit := _unit(e, uid)
+	unit.station_uid = territory_uid
+	e.state.moved_units.append(uid)
+	e.state.actions_used += 1
+	e._log("%s marches to %s." % [unit.def.name, Territories.settled(e, territory_uid).shown_name()])
+	e.changed.emit()
+	return true
+
+
+## Why unit uid can't be disbanded now (163), or "": blocked, or not a unit in the tableau.
+static func disband_error(e: GameEngine, uid: int) -> String:
+	var blocked := e._blocked_error("disband")
+	if blocked != "":
+		return blocked
+	return NOT_A_UNIT if _unit(e, uid) == null else ""
+
+
+## Unit uid goes from the tableau to the discard (163), freeing its worker on its home. False (and no change) if
+## disband_error says no.
+static func disband(e: GameEngine, uid: int) -> bool:
+	if disband_error(e, uid) != "":
+		return false
+	var unit := _unit(e, uid)
+	e.zone("tableau").remove(unit)
+	e.zone("discard").add(unit)
+	e._log("%s disbanded." % unit.def.name)
+	e.changed.emit()
+	return true
+
+
+## Unit uid in the tableau, or null.
+static func _unit(e: GameEngine, uid: int) -> CardInstance:
+	var card := e.zone("tableau").find(uid)
+	return card if card != null and card.def.type == CardDef.UNIT else null

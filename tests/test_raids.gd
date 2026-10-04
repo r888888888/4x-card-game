@@ -312,6 +312,73 @@ func test_pillage_never_takes_pop_below_0() -> void:
 		eq(outcomes[0].pop_lost, 0, "pop_lost")
 
 
+# --- 163 AC5: units moved to answer a raid ---
+
+## The uid of the Levy in e's tableau, or -1.
+func levy_in(e: GameEngine) -> int:
+	return uid_of(e.zone("tableau"), "levy")
+
+
+func test_163_a_unit_moved_onto_the_target_defends_it() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	var hills := hills_of(e)
+	build_on(e, hills, ["town"])
+	recruit(e, home_uid(e))
+	var levy := levy_in(e)
+	check(e.move_unit(levy, hills), "the Levy marches to Hills")
+	eq(e.raid_target(active_uid(e, "raiders")), hills, "the target stays Hills")
+	e.end_turn()
+	if outcomes.size() != 1:
+		check(false, "one raid resolved: %s" % [outcomes])
+		return
+	eq([outcomes[0].target, outcomes[0].defense, outcomes[0].repelled], [hills, 3, true], "repelled at Hills by Town + Levy")
+	eq(e.unit_station(levy), hills, "the Levy stays on Hills")
+
+
+func test_163_a_unit_moved_off_the_target_doesnt_defend_it() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	var hills := hills_of(e)
+	build_on(e, hills, ["town"])
+	recruit(e, hills)
+	var levy := levy_in(e)
+	check(e.move_unit(levy, home_uid(e)), "the Levy leaves Hills")
+	e.end_turn()
+	if outcomes.size() != 1:
+		check(false, "one raid resolved: %s" % [outcomes])
+		return
+	eq([outcomes[0].target, outcomes[0].defense, outcomes[0].repelled, outcomes[0].units_lost], [hills, 1, false, []],
+		"pillaged against the Town alone")
+	eq(e.unit_station(levy), home_uid(e), "the Levy is safe on Homeland")
+
+
+func test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	var home := home_uid(e)
+	recruit(e, home)
+	var levy := levy_in(e)
+	check(e.move_unit(levy, hills_of(e)), "the Levy marches to Hills")
+	var workers: int = e.free_workers(home)
+	e.end_turn()
+	if outcomes.size() != 1:
+		check(false, "one raid resolved: %s" % [outcomes])
+		return
+	eq([outcomes[0].repelled, outcomes[0].units_lost], [false, [levy]], "pillaged; the Levy lost")
+	check(e.zone("discard").find(levy) != null, "the Levy is in the discard")
+	eq(e.free_workers(home) - workers, 1, "its worker on Homeland is free again")
+
+
 # --- AC6: the forecast ---
 
 func test_raid_forecast_lists_announced_raids_with_live_defence() -> void:

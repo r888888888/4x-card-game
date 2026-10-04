@@ -4,10 +4,12 @@ extends Modal
 ## state and explanation of every mechanic the card uses (GameEngine.card_details / def_details). It sits on top of
 ## the board and blocks no engine action; while on top it takes every key. Esc, I or a click outside closes it.
 ## A hand card's details also offer Play (225), and a tech's from the Knowledge screen Research (229), each disabled
-## with the engine's reason when it can't be done.
+## with the engine's reason when it can't be done. A unit's in the realm offer Move… and Disband (163), likewise.
 
 ## Play was pressed on a hand card's details: the modal has closed, and view is the card to play.
 signal play_requested(view: CardView)
+## Move… was pressed on a unit's details: the modal has closed, and uid is the unit to move (163).
+signal move_requested(uid: int)
 
 var _subtitle: Label
 var _body: RichTextLabel
@@ -16,6 +18,9 @@ var _play: Button
 var _view: CardView  # the hand card Play plays; null when Play is hidden
 var _research: Button
 var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidden
+var _move: Button
+var _disband: Button
+var _unit := -1  # the unit in the realm Move… and Disband act on (163); -1 when they are hidden
 
 
 ## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close and (for a
@@ -35,6 +40,8 @@ func _init(p_stack: ModalStack) -> void:
 	add_footer_button(UIKit.button("Close (Esc)", close))
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
+	_disband = add_footer_button(UIKit.button("Disband", _on_disband))
+	_move = add_footer_button(UIKit.button("Move…", _on_move), true)
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -52,6 +59,11 @@ func research_button() -> Button:
 	return _research
 
 
+## Test hook (163): the Move… and Disband buttons, hidden unless a unit in the realm is on show.
+func unit_buttons() -> Array[Button]:
+	return [_move, _disband]
+
+
 ## Test hook: the body text on show, without markup.
 func body_text() -> String:
 	return _body.get_parsed_text()
@@ -62,13 +74,13 @@ func body_text() -> String:
 func open(view: CardView) -> void:
 	var details := Game.engine.card_details(view.uid)
 	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id,
-		view if view.in_hand else null)
+		view if view.in_hand else null, -1, view.uid)
 
 
 ## Opens the live details of card, in whatever zone it is (the civilization modal's cards and deck tabs, 231).
 func open_card(card: CardInstance) -> void:
 	var details := Game.engine.card_details(card.uid)
-	_show(details if not details.is_empty() else Game.engine.def_details(card.def.id), card.def.id)
+	_show(details if not details.is_empty() else Game.engine.def_details(card.def.id), card.def.id, null, -1, card.uid)
 
 
 ## Opens the details of card definition card_id (a tech in the tree).
@@ -82,7 +94,8 @@ func open_tech(card_id: String, uid: int) -> void:
 	_show(Game.engine.def_details(card_id), card_id, null, uid)
 
 
-func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tech := -1) -> void:
+## uid is the live card shown (-1 for a definition): a unit in the realm gets Move… and Disband.
+func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tech := -1, uid := -1) -> void:
 	if details.is_empty():
 		return
 	var e := Game.engine
@@ -94,6 +107,16 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		var reason := e.buy_tech_error(tech)
 		_research.disabled = reason != ""
 		_research.tooltip_text = reason
+	_unit = uid if e.unit_station(uid) != -1 else -1
+	_move.visible = _unit != -1
+	_disband.visible = _unit != -1
+	if _unit != -1:
+		var block := e.unit_move_block(_unit)
+		_move.disabled = block != ""
+		_move.tooltip_text = block if block != "" else "March to another territory (an action)."
+		var cant := e.disband_error(_unit)
+		_disband.disabled = cant != ""
+		_disband.tooltip_text = cant if cant != "" else "Send it to your discard; its worker is freed."
 	_play.visible = hand_view != null
 	if hand_view != null:
 		var error := e.playable_error(hand_view.uid)
@@ -123,6 +146,20 @@ func closed() -> void:
 	_details = {}
 	_view = null
 	_tech = -1
+	_unit = -1
+
+
+func _on_move() -> void:
+	var uid := _unit
+	close()
+	move_requested.emit(uid)
+
+
+func _on_disband() -> void:
+	var uid := _unit
+	close()
+	if Game.engine.disband_error(uid) == "":
+		Game.engine.disband(uid)
 
 
 func _on_play() -> void:

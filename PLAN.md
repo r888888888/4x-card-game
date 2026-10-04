@@ -191,8 +191,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   pop on their territory saved from starving each upkeep, while working) (060).
 - Units (`"type": "unit"`, 160) need `strength` (int ≥ 1). Played from the hand onto a settled territory with a free
   worker, their home: they take no slot but use a worker there (with its buildings, in placement order, so the last
-  placed go idle first), and stand on a station (the home until 163 moves them). No `requires`, no effect `keyword`
+  placed go idle first), and stand on a station (the home until moved). No `requires`, no effect `keyword`
   and no `grow` "here" (a unit can move, so it has no fixed land). They go in `deck` or `supply`, never the other decks.
+- Moving and disbanding (163): `move_unit(uid, territory)` stations a unit on another settled territory for one action,
+  once a turn per unit (`GameState.moved_units`); its home and worker stay. `disband(uid)` sends it to the discard,
+  freeing its worker, for no action. `move_targets`, `unit_move_block` and `unit_origin` ("from Homeland") feed the
+  details modal's Move… and Disband and the unit's face.
 - Defence (161): buildings and cities may set `defense` (int ≥ 1), and config `terrain_defense` maps keywords (resource
   keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the strength of the working units stationed
   there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;

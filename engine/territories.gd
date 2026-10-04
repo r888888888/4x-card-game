@@ -166,6 +166,8 @@ static func groups(e: GameEngine) -> Array[Dictionary]:
 		var key := -1
 		if card.def.type == CardDef.TERRITORY:
 			key = card.uid
+		elif card.def.type == CardDef.UNIT and settled(e, card.station_uid) != null:  # where it stands (163)
+			key = card.station_uid
 		elif territory_of(e, card) != null:
 			key = card.territory_uid
 		if not members.has(key):

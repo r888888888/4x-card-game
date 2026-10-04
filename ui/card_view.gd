@@ -203,6 +203,13 @@ func set_raid_warning(warning: String) -> void:
 		_face.set_reason(warning)
 
 
+## Marks a unit stationed away from its home with origin ("from Homeland", 163) in the strip at its bottom; "" clears it.
+func set_unit_origin(origin: String) -> void:
+	_replays["unit_origin"] = set_unit_origin.bind(origin)
+	if not _dimmed:
+		_face.set_reason(origin)
+
+
 ## The text set_event_info shows, or "" when it was never called.
 func event_info_text() -> String:
 	return _face.info_text("EventInfo")

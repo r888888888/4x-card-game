@@ -221,6 +221,41 @@ func choose_government(uid: int) -> bool:
 	return Anarchy.choose_government(self, uid)
 
 
+## Why move_unit(uid, territory_uid) would refuse (163): game over or a pending decision, no action left, uid not a
+## unit in the tableau, territory_uid not a settled territory, the unit's own station, or the unit moved this turn.
+## "" if it can.
+func move_unit_error(uid: int, territory_uid: int) -> String:
+	return Military.move_error(self, uid, territory_uid)
+
+
+## Stations unit uid on settled territory territory_uid (163); its home and worker stay. Uses an action. False (and no
+## change) if move_unit_error says no.
+func move_unit(uid: int, territory_uid: int) -> bool:
+	return Military.move(self, uid, territory_uid)
+
+
+## The settled territories unit uid can move to now (163), in tableau order; [] when unit_move_block says it can't.
+func move_targets(uid: int) -> Array[int]:
+	return Military.move_targets(self, uid)
+
+
+## Why unit uid can't move anywhere now (163): move_unit_error's reasons that don't depend on the target, or nowhere
+## else to go; "" when move_targets isn't empty.
+func unit_move_block(uid: int) -> String:
+	return Military.move_block(self, uid)
+
+
+## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
+func disband_error(uid: int) -> String:
+	return Military.disband_error(self, uid)
+
+
+## Unit uid goes from the tableau to the discard, freeing its worker on its home (163). Uses no action. False (and no
+## change) if disband_error says no.
+func disband(uid: int) -> bool:
+	return Military.disband(self, uid)
+
+
 # --- Internals (the modules call these too) ---
 
 ## Unrest dropped: a ruling Anarchy keeps its lowered counters (155).
