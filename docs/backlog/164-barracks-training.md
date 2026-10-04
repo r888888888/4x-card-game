@@ -2,7 +2,7 @@
 id: 164
 title: Barracks train the units stationed with them
 type: feature
-status: in-progress
+status: review
 branch: feat/164-barracks-training
 ---
 
@@ -11,16 +11,16 @@ Training as a placement decision: a building with `training` gives the units sta
 strength. Introduces `unit_strength(uid)`, which defence uses from now on. Follows 161 and 163.
 
 ## Acceptance criteria
-- [ ] AC1 (loader): `training` (int ≥ 1) loads on buildings; a bad value is a load error naming file, card and field;
+- [x] AC1 (loader): `training` (int ≥ 1) loads on buildings; a bad value is a load error naming file, card and field;
   on another type it is ignored with a warning.
-- [ ] AC2 (strength): Given a working Drill Yard (building, training 1) on Homeland and a Levy (strength 2) stationed
+- [x] AC2 (strength): Given a working Drill Yard (building, training 1) on Homeland and a Levy (strength 2) stationed
   there, `unit_strength(levy)` is 3 and `defense(Homeland)` counts 3 for it; a second training building there adds its
   training too.
-- [ ] AC3 (where): The bonus follows the station, not the home: a Levy homed on Homeland and moved to Hills has
+- [x] AC3 (where): The bonus follows the station, not the home: a Levy homed on Homeland and moved to Hills has
   strength 2; a Levy moved onto Homeland from elsewhere has 3. An idle Drill Yard trains nobody.
-- [ ] AC4 (edges): `unit_strength(uid)` is the printed strength with no training building, and 0 for an idle unit or a
+- [x] AC4 (edges): `unit_strength(uid)` is the printed strength with no training building, and 0 for an idle unit or a
   uid that isn't a unit in the tableau.
-- [ ] AC5 (text): The building's text and tooltip say "Units here have +1 strength".
+- [x] AC5 (text): The building's text and tooltip say "Units here have +1 strength".
 
 ## Out of scope
 - Veterans (165) and upgrades (166).
@@ -43,5 +43,16 @@ strength. Introduces `unit_strength(uid)`, which defence uses from now on. Follo
 - [ ] Shipped Barracks: wealth 4, training 1, locked supply pile (price 3, count 6) opened by Bronze Working beside the
   Forge.
 - [ ] Units in the territory view show their trained strength; the details explain the bonus.
+- [ ] Steps: `godot --path . -- --turns 20 --seed 5`. Research Bronze Working; the Supply screen shows Barracks
+  (Units here have +1 strength) open beside the Forge. Recruit a Warriors on a territory, buy and build a Barracks
+  there: the Warriors' card shows "Strength N+1" on its info line, and its details (I) list "Strength N+1 (printed N,
+  +1 training)". Its territory's tooltip defence counts the trained strength. Move the unit to another territory: the
+  tag goes away and the defences shift. Drop the territory's pop so the Barracks idles: no tag.
 
 ## Log
+- 2026-10-04: `unit_strength` went in `game_engine.gd`, not `engine_queries.gd`: that file's own structure test caps it
+  at 500 lines and it was at 500. `ui/card_view.gd` is at 501 lines (WARN, not a failure).
+- 2026-10-04: The details line and face tag (`unit_strength_tag`) were added after the first red review, with their own
+  red checkpoint, to serve the Manual check.
+- Balance: Barracks (4 wealth, +1 strength for every unit on its territory) not tuned; check it against Palisade's
+  flat Defence 2 in a balance item.
