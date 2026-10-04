@@ -2,7 +2,7 @@
 id: 162
 title: Barbarian raids, announced a turn ahead
 type: feature
-status: ready
+status: red-review
 branch: feat/162-barbarian-raids
 ---
 
@@ -53,6 +53,13 @@ forecast, with no choice during upkeep. Follows 161.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_raids::test_raid_loads_on_an_event`, `test_bad_raid_is_a_load_error`, `test_repel_and_pillage_effects_only_go_on_raids`; added: `test_raid_text` |
+| AC2 | `test_raids::test_a_drawn_raid_is_announced_at_the_weakest_matching_territory`, `test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop`, `test_a_raid_whose_targets_match_nothing_picks_among_all_territories`, `test_a_raid_avoids_stronger_land_and_breaks_full_ties_by_tableau_order`, `test_raid_target_is_minus_1_for_anything_but_an_active_raid` |
+| AC3 | `test_raids::test_a_raid_strikes_at_the_next_event_phase_then_is_discarded`, `test_the_target_stays_fixed_when_defence_changes_elsewhere` |
+| AC4 | `test_raids::test_a_raid_meeting_enough_defence_is_repelled` |
+| AC5 | `test_raids::test_a_raid_short_of_defence_pillages`, `test_pillage_never_takes_pop_below_0` |
+| AC6 | `test_raids::test_raid_forecast_lists_announced_raids_with_live_defence` |
+| AC7 | `test_raids::test_a_raid_strikes_in_the_final_turn_and_one_drawn_then_never_does`, `test_a_fork_keeps_each_raids_target` |
 
 ## Manual check
 - [ ] Shipped era-1 raids in `event_deck`: Raiders (strength 2, grassland/desert; pillage −2 food, +1 unrest; repel
