@@ -212,3 +212,47 @@ func test_disband_error_reasons() -> void:
 	e.state.pending = {}
 	e.state.is_over = true
 	check_refusals(e, [disband.call("game over", levy, "The game is over.")])
+
+
+# --- AC6 (added at green, for the Manual check): what the details modal and the unit's face show ---
+
+func test_move_targets_list_where_a_unit_can_go_now() -> void:
+	var e: GameEngine = move_engine()
+	if e == null:
+		return
+	var levy := levy_of(e)
+	var hills := hills_of(e)
+	eq(e.move_targets(levy), [hills] as Array[int], "Hills: not its station, not the frontier")
+	eq(e.move_targets(home_uid(e)), [] as Array[int], "not a unit")
+	check(e.move_unit(levy, hills), "moved")
+	eq(e.move_targets(levy), [] as Array[int], "moved this turn")
+
+
+func test_unit_move_block_says_why_a_unit_cant_move_anywhere() -> void:
+	var e: GameEngine = move_engine()
+	if e == null:
+		return
+	var levy := levy_of(e)
+	eq(e.unit_move_block(levy), "", "it can move")
+	eq(e.unit_move_block(home_uid(e)), "That isn't a unit in your realm.", "not a unit")
+	check(e.move_unit(levy, hills_of(e)), "moved")
+	eq(e.unit_move_block(levy), "Levy has already moved this turn.", "moved this turn")
+	var band: GameEngine = move_engine("band")
+	if band == null:
+		return
+	band.state.actions_used = 2
+	eq(band.unit_move_block(levy_of(band)), "No actions left this turn.", "no action left")
+	var alone: GameEngine = move_engine()
+	alone.zone("tableau").remove(alone.zone("tableau").find(hills_of(alone)))
+	eq(alone.unit_move_block(levy_of(alone)), "Levy has nowhere else to go.", "no other settled territory")
+
+
+func test_unit_origin_names_the_home_of_a_unit_stationed_away() -> void:
+	var e: GameEngine = move_engine()
+	if e == null:
+		return
+	var levy := levy_of(e)
+	eq(e.unit_origin(levy), "", "at home")
+	check(e.move_unit(levy, hills_of(e)), "moved")
+	eq(e.unit_origin(levy), "from %s" % e.territory_name(home_uid(e)), "away from home")
+	eq(e.unit_origin(home_uid(e)), "", "not a unit")

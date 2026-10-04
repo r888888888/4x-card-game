@@ -351,6 +351,11 @@ func unit_station(uid: int) -> int:
 	return card.station_uid if card != null and card.def.type == CardDef.UNIT else -1
 
 
+## "from Homeland" for unit uid stationed away from its home (163), else "".
+func unit_origin(uid: int) -> String:
+	return Military.unit_origin(self, uid)
+
+
 ## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
 func defense(uid: int) -> int:
 	return Military.defense_parts(self, uid).get("total", 0)

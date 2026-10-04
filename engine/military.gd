@@ -154,9 +154,48 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	e.raid_resolved.emit(outcome)
 
 
-## Why unit uid can't move to territory_uid now (163), or "": blocked, no action left, not a unit in the tableau, not a
-## settled territory, its own station, or moved this turn.
+## Why unit uid can't move to territory_uid now (163), or "": unit_move_block's reasons, then not a settled
+## territory or its own station.
 static func move_error(e: GameEngine, uid: int, territory_uid: int) -> String:
+	var unit_error := _unit_move_error(e, uid)
+	if unit_error != "":
+		return unit_error
+	var target := Territories.settled(e, territory_uid)
+	if target == null:
+		return "Units can only move to a settled territory."
+	var unit := _unit(e, uid)
+	if unit.station_uid == territory_uid:
+		return "%s is already on %s." % [unit.def.name, target.shown_name()]
+	return ""
+
+
+## The settled territories unit uid can move to now (163), in tableau order; [] when move_block says it can't.
+static func move_targets(e: GameEngine, uid: int) -> Array[int]:
+	var out: Array[int] = []
+	if move_block(e, uid) == "":
+		out = _elsewhere(e, uid)
+	return out
+
+
+## Why unit uid can't move anywhere now (163), or "": blocked, no action left, not a unit in the tableau, moved this
+## turn, or no settled territory but its station.
+static func move_block(e: GameEngine, uid: int) -> String:
+	var unit_error := _unit_move_error(e, uid)
+	if unit_error != "":
+		return unit_error
+	return "%s has nowhere else to go." % _unit(e, uid).def.name if _elsewhere(e, uid).is_empty() else ""
+
+
+## "from Homeland" for a unit stationed away from its home (163), else "".
+static func unit_origin(e: GameEngine, uid: int) -> String:
+	var unit := _unit(e, uid)
+	if unit == null or unit.station_uid == unit.territory_uid:
+		return ""
+	return "from %s" % e.territory_name(unit.territory_uid)
+
+
+## The reasons unit uid can't move whatever the target: blocked, no action left, not a unit, moved this turn; or "".
+static func _unit_move_error(e: GameEngine, uid: int) -> String:
 	var blocked := e._blocked_error("move_unit")
 	if blocked != "":
 		return blocked
@@ -165,14 +204,20 @@ static func move_error(e: GameEngine, uid: int, territory_uid: int) -> String:
 	var unit := _unit(e, uid)
 	if unit == null:
 		return NOT_A_UNIT
-	var target := Territories.settled(e, territory_uid)
-	if target == null:
-		return "Units can only move to a settled territory."
-	if unit.station_uid == territory_uid:
-		return "%s is already on %s." % [unit.def.name, target.shown_name()]
 	if e.state.moved_units.has(uid):
 		return "%s has already moved this turn." % unit.def.name
 	return ""
+
+
+## The settled territories other than unit uid's station, in tableau order ([] when uid isn't a unit).
+static func _elsewhere(e: GameEngine, uid: int) -> Array[int]:
+	var out: Array[int] = []
+	var unit := _unit(e, uid)
+	if unit != null:
+		for card in e.zone("tableau").cards:
+			if card.def.type == CardDef.TERRITORY and card.uid != unit.station_uid:
+				out.append(card.uid)
+	return out
 
 
 ## Stations unit uid on territory_uid for an action (163). False (and no change) if move_error says no.

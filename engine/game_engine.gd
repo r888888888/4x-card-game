@@ -234,6 +234,17 @@ func move_unit(uid: int, territory_uid: int) -> bool:
 	return Military.move(self, uid, territory_uid)
 
 
+## The settled territories unit uid can move to now (163), in tableau order; [] when unit_move_block says it can't.
+func move_targets(uid: int) -> Array[int]:
+	return Military.move_targets(self, uid)
+
+
+## Why unit uid can't move anywhere now (163): move_unit_error's reasons that don't depend on the target, or nowhere
+## else to go; "" when move_targets isn't empty.
+func unit_move_block(uid: int) -> String:
+	return Military.move_block(self, uid)
+
+
 ## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
 func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)
