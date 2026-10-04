@@ -69,7 +69,7 @@ func test_the_buy_price_is_on_a_tag_below_the_card_with_the_copies_left_under_it
 
 func test_the_tag_and_count_follow_a_buy() -> void:
 	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
-		main.supply.pick(views[0])
+		main.supply.buy(views[0])
 		main.supply.refresh(Game.engine)
 		eq(label_texts(main.supply.price_tag(views[0])), ["Buy", "3"], "same price")
 		eq(main.supply.copies_left(views[0]).text, "5 left", "one fewer copy"))
@@ -84,7 +84,7 @@ func test_a_pile_that_cant_be_bought_dims_its_tag_too() -> void:
 		check(obelisk.tooltip_text.begins_with(Game.engine.buy_error("obelisk")), "the reason leads the tooltip")
 		check(main.supply.price_tag(obelisk).modulate.a < 1.0, "price 3 with 2 wealth: the tag dims")
 		eq(main.supply.price_tag(scout).modulate.a, 1.0, "price 2 with 2 wealth: the tag doesn't")
-		main.supply.pick(scout)
+		main.supply.buy(scout)
 		main.supply.refresh(Game.engine)
 		check(main.supply.price_tag(scout).modulate.a < 1.0, "sold out: the tag dims"))
 
@@ -142,3 +142,131 @@ func test_a_click_outside_a_details_modal_closes_only_the_modal() -> void:
 		click_at(main, corner(main))
 		check(main.details.shown().is_empty(), "the details modal closes")
 		check(main.supply.is_open(), "the supply stays open"))
+
+
+# --- 259: a click on a pile opens its details, which offer Buy. Hooks: main.details.buy_button(), buy_reason(),
+# pile_tag() and pile_left() (null unless a supply pile's details are on show). ---
+
+## The discard's copies of card id.
+func discarded(id: String) -> int:
+	return Game.engine.zone("discard").cards.filter(func(c: CardInstance): return c.def.id == id).size()
+
+
+func test_a_click_on_a_pile_opens_its_details_and_buys_nothing() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var before := discarded("obelisk")
+		click_at(main, views[0].get_global_rect().get_center())
+		await wait_frames()
+		eq(main.details.shown().get("name", ""), "Obelisk", "the pile's details are on show")
+		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent")
+		eq(Game.engine.supply_left("obelisk"), 6, "no copy taken")
+		eq(discarded("obelisk"), before, "nothing in the discard")
+		check(main.supply.is_open(), "the supply stays open under the details"))
+
+
+func test_enter_on_a_focused_pile_opens_its_details() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.focus.set_card(views[0])
+		press_key(main, KEY_ENTER)
+		await wait_frames()
+		eq(main.details.shown().get("name", ""), "Obelisk", "the pile's details are on show")
+		eq(Game.engine.supply_left("obelisk"), 6, "no copy taken"))
+
+
+func test_a_piles_details_show_its_tag_count_and_an_enabled_buy() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.supply.pick(views[0])
+		await wait_frames()
+		var d = main.details
+		var tag: Control = d.pile_tag()
+		check(tag != null and tag.is_visible_in_tree(), "a price tag in the aside")
+		if tag != null:
+			eq(label_texts(tag), ["Buy", "3"], "the pile's price")
+			check(d.aside.is_ancestor_of(tag), "the tag is in the aside")
+		var left: Label = d.pile_left()
+		check(left != null and left.is_visible_in_tree(), "a copies-left line")
+		if left != null:
+			eq(left.text, "6 left", "copies left")
+			if tag != null:
+				check(left.get_global_rect().position.y >= tag.get_global_rect().end.y - 1.0, "the count sits under the tag")
+		var buy: Button = d.buy_button()
+		check(buy.visible and not buy.disabled, "Buy is shown and enabled")
+		eq(buy.text, "Buy", "its label")
+		var shown: Array = d.footer.get_children().filter(func(c: Control): return c is Button and c.visible)
+		eq(shown.back(), buy, "Buy is rightmost")
+		check(not d.play_button().visible and not d.research_button().visible, "no Play or Learn")
+		check(d.unit_buttons().all(func(b: Button): return not b.visible), "no Move… or Disband")
+		check(not d.buy_reason().visible, "no reason while it can be bought"))
+
+
+func test_buy_in_a_piles_details_buys_a_copy_and_closes_them() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var before := discarded("obelisk")
+		main.supply.pick(views[0])
+		await wait_frames()
+		main.details.buy_button().pressed.emit()
+		await wait_frames()
+		check(main.details.shown().is_empty(), "the details close")
+		check(main.supply.is_open(), "the supply stays open")
+		eq(Game.engine.resources[GameEngine.WEALTH], 7, "3 wealth paid")
+		eq(Game.engine.supply_left("obelisk"), 5, "one copy taken")
+		eq(discarded("obelisk"), before + 1, "the copy is in the discard")
+		eq(main.supply.copies_left(views[0]).text, "5 left", "the screen's count follows"))
+
+
+func test_buy_flies_a_copy_to_the_discard_counter() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.supply.pick(views[0])
+		await wait_frames()
+		main.details.buy_button().pressed.emit()
+		var flying: Array = main.find_children("*", "CardView", true, false).filter(
+			func(v: CardView): return v.uid == -100)
+		eq(flying.size(), 1, "one copy in flight to the Discard counter"))
+
+
+func test_an_unaffordable_piles_buy_is_disabled_with_the_reason_on_the_footer() -> void:
+	await with_supply(supply_game(2), func(main: Node, views: Array[CardView]):
+		main.supply.pick(views[0])
+		await wait_frames()
+		var d = main.details
+		check(d.buy_button().visible and d.buy_button().disabled, "Buy is shown, disabled")
+		var reason: Label = d.buy_reason()
+		check(reason.is_visible_in_tree(), "the reason is shown")
+		eq(reason.text, Game.engine.buy_error("obelisk"), "the engine's reason")
+		check(d.footer.is_ancestor_of(reason), "on the footer")
+		var first: Control = d.footer.get_children().filter(func(c: Control): return c.visible).front()
+		eq(first, reason, "at its left")
+		check(d.pile_tag() != null and d.pile_tag().modulate.a < 1.0, "the tag is dimmed")
+		eq(Game.engine.supply_left("obelisk"), 6, "opening bought nothing"))
+
+
+func test_a_sold_out_piles_buy_is_disabled_with_the_reason() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.supply.buy(views[1])  # the only Scout
+		main.supply.refresh(Game.engine)
+		main.supply.pick(views[1])
+		await wait_frames()
+		var d = main.details
+		check(d.buy_button().disabled, "Buy is disabled")
+		eq(d.buy_reason().text, Game.engine.buy_error("scout"), "the engine's reason")
+		check(d.buy_reason().is_visible_in_tree(), "shown")
+		eq(d.pile_left().text, "0 left", "none left")
+		check(d.pile_tag().modulate.a < 1.0, "the tag is dimmed"))
+
+
+func test_esc_or_close_on_a_piles_details_buys_nothing() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.supply.pick(views[0])
+		await wait_frames()
+		press_key(main, KEY_ESCAPE)
+		await wait_frames()
+		check(main.details.shown().is_empty(), "Esc closes the details")
+		check(main.supply.is_open(), "the supply stays open after Esc")
+		main.supply.pick(views[0])
+		await wait_frames()
+		main.details.close()
+		await wait_frames()
+		check(main.details.shown().is_empty(), "Close closes the details")
+		check(main.supply.is_open(), "the supply stays open after Close")
+		eq(Game.engine.supply_left("obelisk"), 6, "nothing bought")
+		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent"))

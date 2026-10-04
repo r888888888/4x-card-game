@@ -117,7 +117,7 @@ func test_closing_the_supply_screen_after_buying_is_silent() -> void:
 		await wait_frames()
 		main.supply.open(Game.engine)
 		await wait_frames()
-		main.supply.pick(main.supply.views()[0])
+		main.supply.buy(main.supply.views()[0])
 		await wait_frames()
 		main.sfx.set_clock(50.0)
 		var before: int = main.sfx.played().size()

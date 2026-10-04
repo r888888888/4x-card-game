@@ -1,11 +1,10 @@
 class_name SupplyScreen
 extends RefCounted
-## The supply screen: dims the board and shows one card per supply pile to click and buy; stays open for several
-## buys. Each card shows its play cost like a hand card, with its price on a tag hanging below it and the copies left
-## under that (232). A click outside its panel closes it (258). Also owns the "Buy Cards" button that opens it (S).
+## The supply screen: dims the board and shows one card per supply pile; a click (or Enter) on one opens its details,
+## whose Buy buys a copy (259); stays open for several buys. Each card shows its play cost like a hand card, with its
+## price on a tag hanging below it and the copies left under that (232). A click outside its panel closes it (258).
+## Also owns the "Buy Cards" button that opens it (S).
 
-## A buy was refused; message is the engine's reason, for the log.
-signal refused(message: String)
 ## The screen closed (Close, S or Esc, a click outside its panel, or a new game).
 signal closed
 
@@ -13,12 +12,11 @@ var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the conf
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
 var _views := {}  # card_id -> CardView (display-only; not the board's card views)
-var _tags := {}  # card_id -> its price tag (PriceTag), below its card
-var _lefts := {}  # card_id -> the Label under its tag ("6 left")
+var _columns := {}  # card_id -> its pile_column: the card's slot, its price tag and the copies left under that
 var _wealth: Counter  # the screen's own counters: the top bar's sit under the dimmer (181: an odometer)
 var _discard: Label
 var _fresh := true  # the next refresh shows the wealth at once: the screen just opened
-var _fx: Control  # flying copies and errors above the panel
+var _fx: Control  # flying copies above the panel
 var _board: MainScreen
 
 
@@ -37,7 +35,7 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	_overlay.gui_input.connect(_on_dimmer_input)
 	var box := _overlay.get_meta("box") as VBoxContainer
 	box.add_child(UIKit.title("Supply"))
-	box.add_child(UIKit.heading("Click a card to buy a copy into your discard. Buy as many as you can pay for."))
+	box.add_child(UIKit.heading("Click a card to see it and buy a copy into your discard. Buy as many as you can pay for."))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", Tokens.SPACE_6)
 	box.add_child(stats)
@@ -78,12 +76,12 @@ func is_open() -> bool:
 
 ## view's price tag (232): "Buy", the wealth glyph and the price, hanging below the card.
 func price_tag(view: CardView) -> Control:
-	return _tags[_views.find_key(view)]
+	return _columns[_views.find_key(view)].get_meta("tag")
 
 
 ## The Label under view's price tag saying how many copies are left ("6 left").
 func copies_left(view: CardView) -> Label:
-	return _lefts[_views.find_key(view)]
+	return _columns[_views.find_key(view)].get_meta("left")
 
 
 ## The pile cards, in config order.
@@ -102,31 +100,15 @@ func can_open(e: GameEngine) -> bool:
 func open(e: GameEngine) -> void:
 	var i := 0
 	for id in e.open_supply_piles():  # a locked pile stays hidden until a tech unlocks it
-		var column := VBoxContainer.new()
-		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		column.add_theme_constant_override("separation", Tokens.SPACE_0)  # the tag hangs from the card's edge
-		_row.add_child(column)
-		var slot := Control.new()
-		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.custom_minimum_size = CardView.TABLEAU_SIZE
-		column.add_child(slot)
-		_tags[id] = _price_tag()
-		column.add_child(_tags[id])
-		var pad := MarginContainer.new()
-		pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pad.add_theme_constant_override("margin_top", Tokens.SPACE_1)
-		column.add_child(pad)
-		_lefts[id] = Label.new()
-		_lefts[id].theme_type_variation = &"Caption"
-		_lefts[id].horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		pad.add_child(_lefts[id])
+		_columns[id] = pile_column(CardView.TABLEAU_SIZE)
+		_row.add_child(_columns[id])
 		var view := CardView.new()
 		view.setup(CardInstance.new(-1 - i, e.card_db[id]), e.card_db, false)
 		view.lift_on_hover = true
 		view.set_pickable(true)
 		view.picked.connect(pick)
-		view.details_requested.connect(func(v: CardView): _board.details.open(v))
-		view.pop_in(slot, i * Anim.DEAL_STAGGER)
+		view.details_requested.connect(pick)
+		view.pop_in(_columns[id].get_meta("slot"), i * Anim.DEAL_STAGGER)
 		view.minimum_size_changed.connect(_equalize_heights)
 		_views[id] = view
 		i += 1
@@ -137,8 +119,44 @@ func open(e: GameEngine) -> void:
 	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
 
 
+## A pile's column (232): a slot of slot_size for its card, the price tag hanging from the card's edge and the copies
+## left under it. Its metas "slot", "tag" and "left" are the three; the tag's figure is its child named "Price".
+## The supply screen's piles and a pile's details (259) both use it.
+static func pile_column(slot_size: Vector2) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", Tokens.SPACE_0)  # the tag hangs from the card's edge
+	var slot := Control.new()
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.custom_minimum_size = slot_size
+	column.add_child(slot)
+	var tag := _price_tag()
+	column.add_child(tag)
+	var pad := MarginContainer.new()
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pad.add_theme_constant_override("margin_top", Tokens.SPACE_1)
+	column.add_child(pad)
+	var left := Label.new()
+	left.theme_type_variation = &"Caption"
+	left.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pad.add_child(left)
+	column.set_meta("slot", slot)
+	column.set_meta("tag", tag)
+	column.set_meta("left", left)
+	return column
+
+
+## Fills a pile_column's tag and count for pile id of e: its price, the copies left, and the tag dimmed while the pile
+## can't be bought.
+static func show_pile(column: VBoxContainer, e: GameEngine, id: String) -> void:
+	var tag: Control = column.get_meta("tag")
+	(tag.find_child("Price", true, false) as Label).text = str(e.buy_price(id))
+	tag.modulate.a = 1.0 if e.buy_error(id) == "" else TAG_DIMMED
+	(column.get_meta("left") as Label).text = "%d left" % e.supply_left(id)
+
+
 ## A new price tag: "Buy", the wealth glyph and a figure refresh() fills in, centred under its card.
-func _price_tag() -> PanelContainer:
+static func _price_tag() -> PanelContainer:
 	var tag := PanelContainer.new()
 	tag.theme_type_variation = &"PriceTag"
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -191,8 +209,7 @@ func close() -> void:
 	_overlay.hide()
 	_fresh = true  # so the next open shows the wealth at once, without rolling
 	_views.clear()
-	_tags.clear()
-	_lefts.clear()
+	_columns.clear()
 	for column in _row.get_children():
 		_row.remove_child(column)
 		column.queue_free()
@@ -209,15 +226,17 @@ func _on_dimmer_input(event: InputEvent) -> void:
 		close()
 
 
-## A click (or Enter) on a pile card: buy a copy, or shake and say why not.
+## A click, right-click or Enter on a pile card: its details, which offer Buy (259).
 func pick(view: CardView) -> void:
+	_board.details.open_pile(view, _views.find_key(view))
+
+
+## Buys a copy of view's pile (its details' Buy), flying it to the screen's Discard counter; nothing if the engine
+## refuses.
+func buy(view: CardView) -> void:
 	var e := Game.engine
-	var id: String = _views.find_key(view)
-	var error := e.buy_error(id)
-	if error != "":
-		refused.emit(error)
-		UIKit.show_error(_fx, view, error, _overlay.size.x)
-		view.reject()
+	var id: Variant = _views.find_key(view)
+	if not is_open() or id == null or e.buy_error(id) != "":
 		return
 	e.buy(id)  # the refresh that follows rolls the wealth down (181)
 	# A copy flies to the screen's Discard counter, which pulses as it lands.
@@ -241,9 +260,6 @@ func refresh(e: GameEngine) -> void:
 	_fresh = false
 	_discard.text = "Discard: %d" % e.zone("discard").size()
 	for id in _views:
-		var error := e.buy_error(id)
 		_views[id].set_play_cost(e.supply_play_cost(id))
-		_views[id].set_buy_error(error)
-		(_tags[id].find_child("Price", true, false) as Label).text = str(e.buy_price(id))
-		_tags[id].modulate.a = 1.0 if error == "" else TAG_DIMMED
-		_lefts[id].text = "%d left" % e.supply_left(id)
+		_views[id].set_buy_error(e.buy_error(id))
+		show_pile(_columns[id], e, id)

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supply Card Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (§14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", sans-serif; --f-ui: "Barlow", sans-serif; --f-cond: "Barlow Semi Condensed", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --positive: #4E6B47; --danger: #9B3424;
+	--g-ochre: #A07514; --l-ochre: #7C5810; --p-sage: #9DB592; --scrim: rgba(34, 33, 31, 0.4);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --positive: #93B585; --danger: #E07A63;
+	--g-ochre: #D9A441; --l-ochre: #D9A441; --p-sage: #93B585; --scrim: rgba(0, 0, 0, 0.6);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); }
+main { max-width: 1200px; margin: 0 auto; padding: var(--space-6) 16px 96px; }
+h1 { font: 500 28px/34px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 var(--space-2); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.note { color: var(--ink-2); max-width: 70ch; margin: var(--space-2) 0 var(--space-5); }
+.option { margin-bottom: var(--space-7); }
+.option > h2 { font: 500 22px/28px var(--f-display); margin: 0; border-top: 4px solid var(--ink); padding-top: var(--space-3); }
+.toggle { float: right; }
+
+/* The board under the scrim: the supply screen, dimmed. */
+.stage { position: relative; background: var(--board); padding: var(--space-6) var(--space-4); overflow: hidden; border: 1px solid var(--rule-fine); }
+.stage::before { content: ""; position: absolute; inset: 0; background: var(--scrim); z-index: 1; }
+.behind { display: flex; gap: var(--space-3); opacity: 0.6; }
+.behind .card { transform: scale(0.8); transform-origin: top left; margin-right: -50px; }
+
+/* Card (§15.6). */
+.card { position: relative; width: 264px; min-height: 300px; padding: var(--space-3); flex: none; display: flex; flex-direction: column; gap: var(--space-2); background: var(--sheet); border: 2px solid var(--rule); }
+.card .head { display: flex; justify-content: space-between; align-items: center; }
+.card .name { font: 600 20px/24px var(--f-cond); }
+.cost-item { display: inline-flex; align-items: center; gap: 3px; font: 500 20px/24px var(--f-cond); }
+.card .band { height: 5px; background: var(--p-sage); }
+.card .type { font: 400 17px/22px var(--f-ui); color: var(--ink-2); }
+.card .rules { font: 400 20px/24px var(--f-ui); }
+.card .vp { color: var(--positive); }
+.glyph { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--g-ochre); vertical-align: -2px; }
+.price-tag .glyph { background: var(--on-signal); width: 18px; height: 18px; }
+
+/* Price tag (232). */
+.pile { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.price-tag { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--g-ochre); color: var(--on-signal); font: 600 20px/24px var(--f-cond); }
+.price-tag.dim { opacity: 0.4; }
+.left { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
+
+/* Modal (§15.11). */
+.modal { position: relative; z-index: 2; margin: -260px auto 0; width: min(900px, 100%); background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); }
+.modal .titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding: var(--space-3) var(--space-5) 0; }
+.modal .titleblock h3 { margin: 0; font: 500 28px/34px var(--f-display); }
+.modal .titleblock .caps { margin-left: auto; }
+.modal .content { display: flex; gap: var(--space-5); padding: var(--space-4) var(--space-5) var(--space-5); flex-wrap: wrap; }
+.modal .body { flex: 1; min-width: 260px; max-width: 560px; font-size: 18px; line-height: 1.45; }
+.modal .body .sub { font: 600 15px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: var(--space-3); }
+.modal .body b { display: block; margin-top: var(--space-3); }
+.term { color: var(--g-ochre); }
+.modal footer { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--rule-fine); flex-wrap: wrap; }
+.modal footer .why { margin-right: auto; color: var(--danger); font-size: 15px; }
+
+/* Buttons (§15.1, §15.2). */
+.btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) 20px; border-radius: 2px; font: 500 17px/20px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; }
+.btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
+.btn.primary .glyph { background: var(--on-signal); }
+.btn:disabled { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; }
+.btn:disabled .glyph { background: var(--ink-3); }
+.pair { display: grid; grid-template-columns: 1fr; gap: var(--space-6); }
+</style>
+</head>
+<body>
+<main>
+	<button class="btn toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'night' ? 'paper' : 'night'">Paper / Night</button>
+	<h1>Supply card details</h1>
+	<span class="caps">Click a supply pile → its details → Buy</span>
+	<p class="note">Both options reuse the existing card details modal (056): big card in the aside, rules and terms in the body,
+		footer rule with buttons right, primary rightmost (§15.11). They differ in where the price lives. Each shows a
+		buyable pile, then one you can't afford.</p>
+
+	<section class="option">
+		<h2>A · Price on the Buy key</h2>
+		<p class="note">The aside is the plain card. The price and copies left join the subtitle; the primary key says
+			<b>Buy</b> with the wealth glyph and price, like the Play key on a hand card. When the engine refuses, the key goes
+			dashed and its reason sits on the footer's left (not only a tooltip).</p>
+		<div class="pair" id="a"></div>
+	</section>
+
+	<section class="option">
+		<h2>B · Price tag hangs under the card</h2>
+		<p class="note">The aside repeats the supply pile exactly: the card with its gold price tag and "6 left" below it
+			(232), so the modal reads as "this pile, picked up". The footer key is just <b>Buy</b>. Refused: the tag dims as
+			on the supply screen and the reason sits on the footer's left.</p>
+		<div class="pair" id="b"></div>
+	</section>
+</main>
+<script>
+const card = () => `<div class="card"><div class="head"><span class="name">Granary</span><span class="cost-item"><i class="glyph"></i>1</span></div>
+	<div class="band"></div><div class="type">Building</div><div class="rules">⟳ +1 food.<br>Your territories hold 1 more pop.</div><div class="vp" style="margin-top:auto">1 VP</div></div>`;
+const tag = (n, dim) => `<span class="price-tag${dim ? " dim" : ""}">Buy <span><i class="glyph"></i> ${n}</span></span>`;
+const body = (sub) => `<div class="body"><div class="sub">${sub}</div><i>Stores laid by against the lean months.</i>
+	<b>Rules</b>⟳ Upkeep: +1 food.<br>Your territories hold 1 more pop.
+	<b>How it works</b><span class="term">Upkeep</span>: happens at the start of each of your turns.</div>`;
+const behind = `<div class="behind">${card()}${card()}${card()}${card()}</div>`;
+const modal = (aside, sub, footer) => `<div class="stage">${behind}<div class="modal"><div class="titleblock"><h3>Granary</h3><span class="caps">Building · Supply</span></div>
+	<div class="content">${aside}${body(sub)}</div><footer>${footer}</footer></div></div>`;
+
+document.getElementById("a").innerHTML =
+	modal(card(), "Play <i class='glyph'></i> 1 · 1 VP · 6 left",
+		`<button class="btn">Close (Esc)</button><button class="btn primary">Buy <i class="glyph"></i> 3</button>`) +
+	modal(card(), "Play <i class='glyph'></i> 1 · 1 VP · 6 left",
+		`<span class="why">You need 3 wealth; you have 2.</span><button class="btn">Close (Esc)</button><button class="btn primary" disabled>Buy <i class="glyph"></i> 3</button>`);
+
+document.getElementById("b").innerHTML =
+	modal(`<div class="pile">${card()}${tag(3)}<span class="left">6 left</span></div>`, "Play <i class='glyph'></i> 1 · 1 VP",
+		`<button class="btn">Close (Esc)</button><button class="btn primary">Buy</button>`) +
+	modal(`<div class="pile">${card()}${tag(3, true)}<span class="left">6 left</span></div>`, "Play <i class='glyph'></i> 1 · 1 VP",
+		`<span class="why">You need 3 wealth; you have 2.</span><button class="btn">Close (Esc)</button><button class="btn primary" disabled>Buy</button>`);
+</script>
+</body>
+</html>

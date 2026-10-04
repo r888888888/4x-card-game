@@ -42,7 +42,6 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.choices = ChoiceOverlays.new(main)
 	main.doors = main.choices.doors
 	main.supply = SupplyScreen.new(main, main.open_supply)
-	main.supply.refused.connect(func(message: String): main.log_note("[color=#e88]%s[/color]" % message))
 	main.supply.closed.connect(func(): main.focus.clear())
 	top_bar.add_supply_button(main.supply.button)
 	main.log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
@@ -65,6 +64,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	menu.settings_requested.connect(func(): main.settings_modal.open(Game.engine.seed_value))
 	main.details = CardDetailsModal.new(main.modals)
 	main.details.play_requested.connect(main.on_double_clicked)  # Play acts as a double-click would (225)
+	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
 	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
 	event_modal = EventModal.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)

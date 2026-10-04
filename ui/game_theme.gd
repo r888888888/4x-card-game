@@ -33,6 +33,7 @@ static func build() -> Theme:
 	_label(t, "Body", Tokens.TYPE_BODY, Palette.TEXT)
 	_label(t, "BodySmall", Tokens.TYPE_BODY_S, Palette.TEXT)
 	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
+	_label(t, "Refusal", Tokens.TYPE_BODY_S, Palette.COST)  # why an action can't be done, beside its disabled key (259)
 	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
 	_label(t, "CardTitle", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a card's name, bold beside its rules (198)
 	_label(t, "BigLabel", Tokens.TYPE_TITLE, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a BigButton's caps label (213)
