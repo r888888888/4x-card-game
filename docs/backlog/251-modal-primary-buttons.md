@@ -2,7 +2,7 @@
 id: 251
 title: Modal footers show their primary action in the signal colour
 type: feature
-status: review
+status: red-review
 branch: feat/251-modal-primary-buttons
 ---
 
@@ -32,6 +32,10 @@ orders the primary; it looks the same as the others.
   footer button is an `AccentButton` (at most one primary per view, none when there is nothing to do).
 - [x] AC5: Given Rename or Play is disabled by its engine error, then the primary key shows the disabled look (no
   `ACCENT` fill) and keeps its error tooltip.
+- [ ] AC6: Given the theme, then a `LineEdit` (the Rename field, the seed fields) draws no focus ring: its `focus`
+  stylebox draws nothing, in pointer and keyboard mode alike; its caret and selection show where typing goes. (Added
+  2026-10-04: Godot draws a field's focus box even when FocusRing hides the focus, so Rename's field always showed the
+  teal ring.)
 
 ## Out of scope
 - Renaming dismiss buttons to "Cancel" (each keeps its current label: user's call, 2026-10-04).
@@ -55,6 +59,7 @@ orders the primary; it looks the same as the others.
 | AC2 | `test_modal_sheets::test_a_primary_footer_button_wears_the_accent_look_and_the_others_stay_plain` |
 | AC3 | `test_rename_modal::test_rename_is_the_primary_and_disabled_it_loses_the_accent`, `test_revolt_modal::test_revolt_opens_a_confirmation_with_the_flavor_and_the_summary`, `test_modal_sheets::test_card_details_is_a_sheet_titled_with_the_card_and_its_type`, `test_knowledge_screen::test_research_in_a_techs_details_learns_it_and_closes_the_details`, `test_modal_sheets::test_the_event_modal_is_a_sheet_with_the_turn_as_context`, `test_modal_sheets::test_game_over_is_a_sheet_on_the_modal_stack_that_stays` |
 | AC4 | `test_modal_sheets::test_settings_and_board_card_details_have_no_primary`, `…::test_the_civilization_modal_is_a_sheet`, `…::test_the_menu_is_a_sheet_on_the_modal_stack` (pass already: they pin that close-only modals stay plain) |
+| AC6 | `test_theme::test_a_field_draws_no_focus_ring` |
 | AC5 | `test_rename_modal::test_rename_is_the_primary_and_disabled_it_loses_the_accent`, `test_details_modal::test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card` |
 
 ## Manual check

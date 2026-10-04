@@ -187,6 +187,12 @@ func test_the_focus_ring_is_square_and_outside_the_control() -> void:
 	close_main(main)
 
 
+func test_a_field_draws_no_focus_ring() -> void:
+	var t: Theme = load(GAME_THEME_PATH).build()
+	var ring := t.get_stylebox("focus", "LineEdit")
+	check(ring is StyleBoxEmpty, "251: a field's focus box draws nothing (its caret shows the focus), got %s" % ring)
+
+
 func test_fields_and_card_colours_look_as_before() -> void:
 	var main := open_main()
 	var field: LineEdit = in_main(main, LineEdit.new())
