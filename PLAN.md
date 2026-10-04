@@ -77,8 +77,8 @@ res://
                          # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
                          # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
                          # (148) buttons below the Realm),
-                         # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116: notices under the
-                         # top bar), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
+                         # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116, 250: notices as flags
+                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
                          # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
                          # cabinet_doors.gd, 209),
                          # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
@@ -281,7 +281,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   territory as a card with its slots and pop, then cards on no territory, 102; every card in the row one fixed height
   with one line per field, the rest in its details, frontier territories hatched with a dashed border and a badge,
   events badged with their turns left, 138; a click opens the territory view with
-  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as toasts under the top bar (116); drag or double-click to play, E ends turn, full keyboard play (017)
+  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as notification flags out of the rail (116, 250); drag or double-click to play, E ends turn, full keyboard play (017)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests

@@ -1560,7 +1560,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Counters | `TopBar` stats + `UIKit.float_token` (126) | An `OdometerLabel` control (a clip `Control` with one digit strip per column) and a `DeltaTag`; tokens stop flying. |
 | Navigation | `Navigator` grows a screen out of its card (104) | Swap the scale tween for a clip-rect wipe from the card's rect (`clip_contents` on a wrapper whose size/position tween). |
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
-| Toasts | `ui/toasts.gd` (116) | Become flags from the left rail; requires the left-rail layout in `BoardLayout`. |
+| Toasts | `ui/toasts.gd` (116) | Done in 250: flags out of the game's rail (on the right, so they slide leftward); rail lamps and the count badge not yet. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |
 | Toggles | `UIKit.motion_toggle()` and the settings screen's buttons | A `LegendKey` control (a square toggle `Button` with a centred lamp window; its `state_label` prints ON/OFF beside it in `UIKit.setting_row`; latched = pressed stylebox with no shadow; 182, 219). |
 | Resource glyphs | `assets/icons/food.svg` etc., tinted by `Icons` | New SVGs on the 24 grid: sprout, cash coin, open book, solid bolt; wealth tinted with `glyph-ochre` in Paper. |
