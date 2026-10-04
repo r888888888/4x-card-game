@@ -262,6 +262,17 @@ func unit_strength_tag(uid: int) -> String:
 	return Military.strength_tag(self, uid)
 
 
+## The realm's size (257): config territory_value per settled territory plus the total cost of every city, building
+## and unit in the tableau. Raids wait until it reaches config raid_min_size.
+func realm_size() -> int:
+	return Military.realm_size(self)
+
+
+## Event phases until active raid uid strikes (257): 2 on the turn it is drawn, then 1; 0 for anything else.
+func raid_turns_left(uid: int) -> int:
+	return Military.raid_turns_left(self, uid)
+
+
 ## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
 func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)

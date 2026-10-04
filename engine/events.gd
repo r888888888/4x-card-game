@@ -42,7 +42,8 @@ static func turns_left(e: GameEngine, uid: int) -> int:
 
 
 ## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event (shuffling the event discard back in when the deck is empty), makes it
-## active for its discard_turns, and resolves its play effects. Does nothing when both piles are empty.
+## active for its discard_turns, and resolves its play effects. A raid drawn while raids aren't allowed goes to the
+## deck's bottom and the next event is drawn instead (257). Does nothing when both piles are empty or only such raids are left.
 static func draw(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")
 	if deck.is_empty():
@@ -53,7 +54,9 @@ static func draw(e: GameEngine) -> void:
 			deck.add(card)
 		e.rng.shuffle(deck.cards)
 		e._log("  Reshuffled the event discard into the event deck (%d cards)." % deck.size())
-	var event := deck.take_top()
+	var event := _take_allowed(e, deck)
+	if event == null:
+		return
 	event.turns_left = event.def.discard_turns
 	e.zone("active_events").add(event)
 	e._log("Event: %s." % event.def.name)
@@ -65,6 +68,17 @@ static func draw(e: GameEngine) -> void:
 	var outcome := e._outcome
 	e._outcome = {}
 	e.event_drawn.emit(outcome)
+
+
+## The top card of deck, after moving each raid on top to the bottom while raids aren't allowed (257); null when every
+## card is such a raid.
+static func _take_allowed(e: GameEngine, deck: Zone) -> CardInstance:
+	for i in deck.size():
+		var top := deck.take_top()
+		if not Military.is_raid(top) or Military.raids_allowed(e):
+			return top
+		deck.add_bottom(top)
+	return null
 
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is

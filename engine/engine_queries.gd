@@ -378,7 +378,7 @@ func raid_forecast() -> Array[Dictionary]:
 	return Military.raid_forecast(self)
 
 
-## Active raid uid's announcement, "Raiders will strike Hills next turn: 3 against your 0.", with the target's current
+## Active raid uid's announcement, "Raiders will strike Hills in 2 turns: 3 against your 0.", with the target's current
 ## defence (162); "" for anything else.
 func raid_line(uid: int) -> String:
 	return Military.raid_line(self, uid)
@@ -394,7 +394,7 @@ func raid_short(uid: int) -> bool:
 	return Military.raid_short(self, uid)
 
 
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike next turn: 3 vs 0" (one line each,
+## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
 ## 162); "" when none is.
 func raid_warning(territory_uid: int) -> String:
 	return Military.raid_warning(self, territory_uid)

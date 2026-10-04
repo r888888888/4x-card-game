@@ -13,6 +13,7 @@ const GOVERNMENT := "government"  # played from the hand to replace the ruling g
 const UNIT := "unit"  # stays in the tableau, homed on a territory where it uses a worker; stationed somewhere (160)
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT, UNIT]
 ## The prefix of a raid effect's line by trigger (162).
+const RAID_WARNING := 2  # event phases between a raid being drawn and striking (257)
 const RAID_PREFIXES := {"repel": "If repelled: ", "pillage": "If pillaged: "}
 ## Each modifier key's noun in card text, [singular, plural] (129).
 ## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
@@ -209,14 +210,15 @@ func raid_face_text() -> String:
 	return "Raid %d (%s)" % [raid.strength, "/".join(PackedStringArray(raid.targets.map(func(k): return k.replace("_", " "))))]
 
 
-## A raid's tooltip line (162): "Raid 3: strikes your least defended mountain or hills territory next turn" (any territory
+## A raid's tooltip line (162, 257): "Raid 3: strikes your least defended mountain or hills territory 2 turns after it is
+## drawn" (any territory
 ## without targets).
 func raid_text() -> String:
 	var names: PackedStringArray = []
 	for k in raid.targets:
 		names.append(k.replace("_", " "))
 	var where := " or ".join(names) + " territory" if not names.is_empty() else "territory"
-	return "Raid %d: strikes your least defended %s next turn" % [raid.strength, where]
+	return "Raid %d: strikes your least defended %s %d turns after it is drawn" % [raid.strength, where, RAID_WARNING]
 
 
 ## A building's or city's defence line (161): "Defence 2".

@@ -1,7 +1,7 @@
 class_name Military
 extends RefCounted
 ## Military rules (backlog 161 on): a settled territory's defence from the units stationed there, its working walls,
-## its cities and its terrain; raids (162), aimed when drawn and striking at the next event phase. Static functions on the engine's state; GameEngine's public methods call them.
+## its cities and its terrain; raids (162), aimed when drawn and striking two event phases later (257), once the realm is large enough. Static functions on the engine's state; GameEngine's public methods call them.
 
 const NOT_A_UNIT := "That isn't a unit in your realm."
 
@@ -63,6 +63,40 @@ static func is_raid(event: CardInstance) -> bool:
 	return event != null and not event.def.raid.is_empty()
 
 
+## The realm's size (257): config territory_value per settled territory plus the total cost of every city, building
+## and unit in the tableau, idle or not.
+static func realm_size(e: GameEngine) -> int:
+	var size := 0
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.TERRITORY:
+			size += e.config.get("territory_value", 0)
+		elif card.def.type in [CardDef.CITY, CardDef.BUILDING, CardDef.UNIT]:
+			for amount in card.def.cost.values():
+				size += amount
+	return size
+
+
+## Whether a raid may be drawn now (257): the realm is at least raid_min_size, no raid is active, and raid_gap turns
+## have passed since the last strike (no gap before the first).
+static func raids_allowed(e: GameEngine) -> bool:
+	if realm_size(e) < e.config.get("raid_min_size", 0):
+		return false
+	if e.zone("active_events").cards.any(is_raid):
+		return false
+	return e.state.last_raid_turn == 0 or e.turn >= e.state.last_raid_turn + e.config.get("raid_gap", 0)
+
+
+## Event phases until active raid uid strikes (257): 2 on the turn it is drawn, then 1; 0 when uid isn't an active raid.
+static func raid_turns_left(e: GameEngine, uid: int) -> int:
+	var event := e.zone("active_events").find(uid)
+	return event.turns_left if is_raid(event) else 0
+
+
+## "in 2 turns" or "next turn" for raid's strike (257).
+static func _when(raid: CardInstance) -> String:
+	return "in %d turns" % raid.turns_left if raid.turns_left > 1 else "next turn"
+
+
 ## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
 static func raid_target(e: GameEngine, uid: int) -> int:
 	var event := e.zone("active_events").find(uid)
@@ -89,6 +123,7 @@ static func announce(e: GameEngine, raid: CardInstance) -> void:
 		if target == null or _weaker(e, land, target):
 			target = land
 	raid.territory_uid = target.uid if target != null else -1
+	raid.turns_left = CardDef.RAID_WARNING
 	if target != null:
 		e._notice(raid_line(e, raid.uid), GameEngine.NOTICE_CAUTION)
 
@@ -100,12 +135,12 @@ static func _aimed(e: GameEngine, uid: int) -> Dictionary:
 	return {"raid": raid, "target": target} if target != null else {}
 
 
-## "Raiders will strike Hills next turn: 3 against your 0." for active raid uid, or "".
+## "Raiders will strike Hills in 2 turns: 3 against your 0." (or "next turn") for active raid uid, or "".
 static func raid_line(e: GameEngine, uid: int) -> String:
 	var a := _aimed(e, uid)
 	if a.is_empty():
 		return ""
-	return "%s will strike %s next turn: %d against your %d." % [a.raid.def.name, a.target.shown_name(),
+	return "%s will strike %s %s: %d against your %d." % [a.raid.def.name, a.target.shown_name(), _when(a.raid),
 		a.raid.def.raid.strength, e.defense(a.target.uid)]
 
 
@@ -123,12 +158,13 @@ static func raid_short(e: GameEngine, uid: int) -> bool:
 	return not a.is_empty() and e.defense(a.target.uid) < a.raid.def.raid.strength
 
 
-## A line per active raid aimed at territory uid, "Raiders strike next turn: 3 vs 0", or "" when none is.
+## A line per active raid aimed at territory uid, "Raiders strike in 2 turns: 3 vs 0" (or "next turn"), or "" when
+## none is.
 static func raid_warning(e: GameEngine, territory_uid: int) -> String:
 	var lines: PackedStringArray = []
 	for raid in e.zone("active_events").cards:
 		if is_raid(raid) and raid.territory_uid == territory_uid and Territories.settled(e, territory_uid) != null:
-			lines.append("%s strike next turn: %d vs %d" % [raid.def.name, raid.def.raid.strength, e.defense(territory_uid)])
+			lines.append("%s strike %s: %d vs %d" % [raid.def.name, _when(raid), raid.def.raid.strength, e.defense(territory_uid)])
 	return "\n".join(lines)
 
 
@@ -139,11 +175,15 @@ static func _weaker(e: GameEngine, a: CardInstance, b: CardInstance) -> bool:
 	return da < db or (da == db and a.pop > b.pop)
 
 
-## Every active raid strikes, in the order drawn (TurnLoop.start_turn, before the turn's event is drawn), then goes to
-## the event discard.
+## Counts down each active raid, in the order drawn (TurnLoop.start_turn, before the turn's event is drawn); one at 0
+## strikes, then goes to the event discard, and the turn is recorded for raid_gap (257).
 static func strike_raids(e: GameEngine) -> void:
 	var active := e.zone("active_events")
 	for raid in active.cards.filter(is_raid):
+		raid.turns_left -= 1
+		if raid.turns_left > 0:
+			continue
+		e.state.last_raid_turn = e.turn
 		_strike(e, raid)
 		active.remove(raid)
 		e.zone("event_discard").add(raid)
