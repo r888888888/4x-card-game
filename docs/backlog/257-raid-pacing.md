@@ -2,7 +2,7 @@
 id: 257
 title: Raids wait for a large enough realm, warn 2 turns ahead and come further apart
 type: feature
-status: red-review
+status: in-progress
 branch: feat/257-raid-pacing
 ---
 
@@ -14,7 +14,7 @@ prepare, and a quiet stretch follows each strike.
 
 ## Acceptance criteria
 - [ ] AC1 (size): Given a tableau with 2 settled territories, a city costing 2 wealth, a building costing 1 food and
-  2 wealth and a unit costing 2 food, and config `territory_value` 3, when `realm_size()` is read, then it is 15
+  2 wealth and a unit costing 2 food, and config `territory_value` 3, when `realm_size()` is read, then it is 13
   (3 + 3 + 2 + 3 + 2). Idle cards in the tableau count; cards in hand, deck or discard, pop, techs, the civilization
   and the government add nothing.
 - [ ] AC2 (size gate): Given config `raid_min_size` 15 and an event deck whose top is a raid and next a non-raid

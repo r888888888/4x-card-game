@@ -9,7 +9,7 @@ const BASE_SIZE := 6
 
 
 ## A raid_engine game with territory_value 3 and these overrides.
-func paced_engine(ids_on_top: Array, overrides := {}, event_deck := {"raiders": 1, "horde": 1, "omen": 6}) -> Object:
+func paced_engine(ids_on_top: Array, overrides := {}, event_deck := {"raiders": 1, "horde": 1, "omen": 6}) -> GameEngine:
 	var o := {"territory_value": 3}
 	o.merge(overrides, true)
 	return raid_engine(ids_on_top, event_deck, o)
@@ -23,19 +23,19 @@ func pacing_config_errors(overrides: Dictionary) -> Array[String]:
 
 
 ## Records every event_drawn outcome e emits into the returned array.
-func record_events(e: Object) -> Array[Dictionary]:
+func record_events(e: GameEngine) -> Array[Dictionary]:
 	var outcomes: Array[Dictionary] = []
 	e.event_drawn.connect(func(o: Dictionary): outcomes.append(o))
 	return outcomes
 
 
 ## The ids of the active events in e.
-func active_ids(e: Object) -> Array[String]:
+func active_ids(e: GameEngine) -> Array[String]:
 	return card_ids(e.zone("active_events"))
 
 
 ## The id of the card at the bottom of e's event deck, or "".
-func deck_bottom(e: Object) -> String:
+func deck_bottom(e: GameEngine) -> String:
 	var deck: Zone = e.zone("event_deck")
 	return deck.cards[0].def.id if not deck.is_empty() else ""
 
@@ -43,7 +43,7 @@ func deck_bottom(e: Object) -> String:
 # --- config ---
 
 func test_raid_pacing_config_defaults_to_0_and_rejects_negatives() -> void:
-	var e: Object = raid_engine()
+	var e: GameEngine = raid_engine()
 	if e == null:
 		return
 	eq([e.config.get("territory_value"), e.config.get("raid_min_size"), e.config.get("raid_gap")], [0, 0, 0], "defaults")
@@ -58,7 +58,7 @@ func test_raid_pacing_config_defaults_to_0_and_rejects_negatives() -> void:
 # --- AC1: the realm's size ---
 
 func test_realm_size_counts_territories_and_the_cost_of_cities_buildings_and_units() -> void:
-	var e: Object = paced_engine(["omen"])
+	var e: GameEngine = paced_engine(["omen"])
 	if e == null:
 		return
 	eq(e.realm_size(), BASE_SIZE, "Homeland and Hills at 3 each; the Capital costs nothing")
@@ -67,18 +67,18 @@ func test_realm_size_counts_territories_and_the_cost_of_cities_buildings_and_uni
 	build_on(e, hills_of(e), ["fort"])
 	build_on(e, home_uid(e), ["stockade"])
 	e.create_card("spearmen", "tableau", null)
-	eq(e.realm_size(), 15, "3 + 3 + Fort 2 + Stockade 3 + Spearmen 2")
+	eq(e.realm_size(), 13, "3 + 3 + Fort 2 + Stockade 3 + Spearmen 2")
 	e.create_card("stockade", "hand", null)
 	e.create_card("spearmen", "discard", null)
 	e.zone("tableau").find(hills_of(e)).pop = 4
 	e.resources.wealth = 30
-	eq(e.realm_size(), 15, "cards outside the tableau, pop and resources add nothing")
+	eq(e.realm_size(), 13, "cards outside the tableau, pop and resources add nothing")
 
 
 # --- AC2: a raid waits for a large enough realm ---
 
 func test_a_raid_drawn_while_the_realm_is_too_small_goes_to_the_bottom_and_the_next_event_is_drawn() -> void:
-	var e: Object = paced_engine(["raiders", "omen"], {"raid_min_size": BASE_SIZE + 1})
+	var e: GameEngine = paced_engine(["raiders", "omen"], {"raid_min_size": BASE_SIZE + 1})
 	if e == null:
 		return
 	var events := record_events(e)
@@ -91,7 +91,7 @@ func test_a_raid_drawn_while_the_realm_is_too_small_goes_to_the_bottom_and_the_n
 
 
 func test_a_raid_is_drawn_once_the_realm_reaches_the_minimum() -> void:
-	var e: Object = paced_engine(["raiders", "omen"], {"raid_min_size": BASE_SIZE + 3})
+	var e: GameEngine = paced_engine(["raiders", "omen"], {"raid_min_size": BASE_SIZE + 3})
 	if e == null:
 		return
 	build_on(e, home_uid(e), ["stockade"])
@@ -104,7 +104,7 @@ func test_a_raid_is_drawn_once_the_realm_reaches_the_minimum() -> void:
 # --- AC3: only raids left ---
 
 func test_with_only_raids_left_and_none_allowed_no_event_is_drawn() -> void:
-	var e: Object = paced_engine(["raiders", "horde"], {"raid_min_size": 99}, {"raiders": 1, "horde": 1})
+	var e: GameEngine = paced_engine(["raiders", "horde"], {"raid_min_size": 99}, {"raiders": 1, "horde": 1})
 	if e == null:
 		return
 	var events := record_events(e)
@@ -120,7 +120,7 @@ func test_with_only_raids_left_and_none_allowed_no_event_is_drawn() -> void:
 # --- AC4: two turns' warning ---
 
 func test_raid_turns_left_counts_down_from_2() -> void:
-	var e: Object = paced_engine(["raiders", "omen", "omen"])
+	var e: GameEngine = paced_engine(["raiders", "omen", "omen"])
 	if e == null:
 		return
 	e.end_turn()
@@ -135,7 +135,7 @@ func test_raid_turns_left_counts_down_from_2() -> void:
 
 
 func test_a_raid_drawn_on_the_turn_before_the_final_turn_never_strikes() -> void:
-	var e: Object = paced_engine(["raiders", "omen"], {"turn_limit": 3})
+	var e: GameEngine = paced_engine(["raiders", "omen"], {"turn_limit": 3})
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -149,7 +149,7 @@ func test_a_raid_drawn_on_the_turn_before_the_final_turn_never_strikes() -> void
 # --- AC5: the gap after a strike ---
 
 func test_no_raid_is_drawn_until_raid_gap_turns_after_the_last_strike() -> void:
-	var e: Object = paced_engine(["raiders", "omen", "omen"], {"raid_gap": 4})
+	var e: GameEngine = paced_engine(["raiders", "omen", "omen"], {"raid_gap": 4})
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -169,13 +169,13 @@ func test_no_raid_is_drawn_until_raid_gap_turns_after_the_last_strike() -> void:
 
 
 func test_a_fork_keeps_the_gap() -> void:
-	var e: Object = paced_engine(["raiders", "omen", "omen"], {"raid_gap": 4})
+	var e: GameEngine = paced_engine(["raiders", "omen", "omen"], {"raid_gap": 4})
 	if e == null:
 		return
 	e.end_turn()
 	e.end_turn()
 	e.end_turn()
-	var f: Object = e.fork()
+	var f: GameEngine = e.fork()
 	arrange(f.zone("event_deck"), ["horde"])
 	f.end_turn()
 	eq(active_uid(f, "horde"), -1, "Horde deferred in the fork on turn 5")
@@ -184,7 +184,7 @@ func test_a_fork_keeps_the_gap() -> void:
 # --- AC5b: one raid at a time ---
 
 func test_a_raid_drawn_while_another_is_active_is_deferred() -> void:
-	var e: Object = paced_engine(["raiders", "horde", "omen"])
+	var e: GameEngine = paced_engine(["raiders", "horde", "omen"])
 	if e == null:
 		return
 	e.end_turn()
@@ -199,7 +199,7 @@ func test_a_raid_drawn_while_another_is_active_is_deferred() -> void:
 # --- AC6: what the UI says ---
 
 func test_raid_text_says_in_2_turns_then_next_turn() -> void:
-	var e: Object = paced_engine(["raiders", "omen", "omen"])
+	var e: GameEngine = paced_engine(["raiders", "omen", "omen"])
 	if e == null:
 		return
 	e.end_turn()

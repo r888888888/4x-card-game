@@ -135,11 +135,13 @@ func test_a_raid_strikes_two_event_phases_after_it_is_drawn_then_is_discarded() 
 	eq(outcomes.size(), 0, "not at the next event phase either")
 	eq(active_uid(e, "raiders"), raid, "still active on turn 3")
 	eq(e.raid_target(raid), target, "its target unchanged")
+	var deck_size := e.zone("event_deck").size()
 	e.end_turn()
 	eq(outcomes.size(), 1, "struck once at the turn-4 event phase")
 	eq(uid_of(e.zone("event_discard"), "raiders"), raid, "Raiders in the event discard")
 	eq(active_uid(e, "raiders"), -1, "no longer active")
-	eq(e.zone("active_events").cards.filter(func(c): return c.def.id == "omen").size(), 2, "the turn-4 event drawn after it")
+	eq(e.zone("event_deck").size(), deck_size - 1, "the turn-4 event drawn after it")
+	check(active_uid(e, "omen") != -1, "an Omen active")
 	if outcomes.is_empty():
 		return
 	var o: Dictionary = outcomes[0]
