@@ -198,9 +198,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   freeing its worker, for no action. `move_targets`, `unit_move_block` and `unit_origin` ("from Homeland") feed the
   details modal's Move… and Disband and the unit's face.
 - Defence (161): buildings and cities may set `defense` (int ≥ 1), and config `terrain_defense` maps keywords (resource
-  keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the strength of the working units stationed
+  keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the `unit_strength` of the units stationed
   there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;
   `defense_parts(uid)` gives `{units, buildings, cities, terrain, total}`. Rules in `engine/military.gd` (`Military`).
+- Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
+  `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
+  `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or

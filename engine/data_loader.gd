@@ -15,6 +15,7 @@ const TYPE_FIELDS := {
 	"famine_guard": [CardDef.BUILDING],
 	"strength": [CardDef.UNIT],
 	"defense": [CardDef.BUILDING, CardDef.CITY],
+	"training": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"eureka": [CardDef.TECH],
@@ -277,6 +278,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.housing = Fields.read_int(c, "housing", errs, 1, 0)
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
 		def.defense = Fields.read_int(c, "defense", errs, 1, 0)
+		def.training = Fields.read_int(c, "training", errs, 1, 0)
 	elif def.type == CardDef.UNIT:
 		def.strength = Fields.read_int(c, "strength", errs, 1)
 	elif def.type == CardDef.GOVERNMENT:

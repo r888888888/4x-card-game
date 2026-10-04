@@ -210,6 +210,12 @@ func set_unit_origin(origin: String) -> void:
 		_face.set_reason(origin)
 
 
+## Shows a trained unit's strength ("Strength 3", 164) on its info line; "" clears it.
+func set_unit_strength(tag: String) -> void:
+	_replays["unit_strength"] = set_unit_strength.bind(tag)
+	_face.replace_info("StrengthInfo", tag)
+
+
 ## The text set_event_info shows, or "" when it was never called.
 func event_info_text() -> String:
 	return _face.info_text("EventInfo")

@@ -14,8 +14,8 @@ static func defense_parts(e: GameEngine, uid: int) -> Dictionary:
 		return {}
 	var parts := {"units": 0, "buildings": 0, "cities": 0, "terrain": 0}
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.UNIT and card.station_uid == uid and not e.is_idle(card.uid):
-			parts.units += card.def.strength
+		if card.def.type == CardDef.UNIT and card.station_uid == uid:
+			parts.units += unit_strength(e, card.uid)
 		elif card.def.type == CardDef.BUILDING and card.territory_uid == uid and not e.is_idle(card.uid):
 			parts.buildings += card.def.defense
 		elif card.def.type == CardDef.CITY and card.territory_uid == uid:
@@ -25,6 +25,37 @@ static func defense_parts(e: GameEngine, uid: int) -> Dictionary:
 		parts.terrain += terrain.get(k, 0)
 	parts.total = parts.units + parts.buildings + parts.cities + parts.terrain
 	return parts
+
+
+## Unit uid's strength (164): its printed strength plus the training of the working buildings on its station; 0 when
+## it is idle or isn't a unit in the tableau.
+static func unit_strength(e: GameEngine, uid: int) -> int:
+	var unit := _unit(e, uid)
+	if unit == null or e.is_idle(uid):
+		return 0
+	var strength := unit.def.strength
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.BUILDING and card.territory_uid == unit.station_uid and not e.is_idle(card.uid):
+			strength += card.def.training
+	return strength
+
+
+## The training unit uid gets from its station (164): unit_strength less its printed strength, or 0.
+static func training(e: GameEngine, uid: int) -> int:
+	var strength := unit_strength(e, uid)
+	return strength - _unit(e, uid).def.strength if strength > 0 else 0
+
+
+## "Strength 3" for a trained unit (164), shown on its face; "" for anything else.
+static func strength_tag(e: GameEngine, uid: int) -> String:
+	return "Strength %d" % unit_strength(e, uid) if training(e, uid) > 0 else ""
+
+
+## "Strength 3 (printed 2, +1 training)" for a trained unit (164), its details' line; "" for anything else.
+static func strength_line(e: GameEngine, uid: int) -> String:
+	if training(e, uid) <= 0:
+		return ""
+	return "Strength %d (printed %d, +%d training)" % [unit_strength(e, uid), _unit(e, uid).def.strength, training(e, uid)]
 
 
 ## Whether event is a raid (162).

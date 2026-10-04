@@ -51,6 +51,7 @@
     "caravan": { "price": 2, "count": 6, "locked": true },
     "monument": { "price": 3, "count": 1, "locked": true },
     "forge": { "price": 3, "count": 1, "locked": true },
+    "barracks": { "price": 3, "count": 6, "locked": true },
     "library": { "price": 3, "count": 1, "locked": true },
     "market": { "price": 3, "count": 6, "locked": true },
     "harbor": { "price": 3, "count": 6, "locked": true }
