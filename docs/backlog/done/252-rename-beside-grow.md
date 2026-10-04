@@ -2,7 +2,7 @@
 id: 252
 title: Move Rename… into the territory's action row, beside Grow
 type: feature
-status: review
+status: done
 branch: feat/252-rename-beside-grow
 ---
 
