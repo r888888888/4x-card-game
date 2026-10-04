@@ -2,7 +2,7 @@
 id: 255
 title: Renewal trashes from your whole library, chosen in a ledger and confirmed
 type: feature
-status: review
+status: done
 branch: feat/255-renew-from-library
 ---
 
