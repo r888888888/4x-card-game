@@ -266,6 +266,7 @@ and Reduce motion off), so the player's own settings never change a result; afte
 | `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI tests: run `body(main)` on the real main scene started on seed 1: on `engine`; on a `make_engine` game with Grassland and Hills to explore; on the real game with Reduce motion `calm` |
 | `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text (script objects by their variables, a CardDef by id, an RNG by seed and state), equality on it, and the variables of two objects that differ (171) |
 | `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | An object's script variables; the paths where a value and its copy share an array, dictionary or object; change everything reachable in place (171) |
+| `accent_footer(modal)` | UI tests: the texts of a modal's visible footer buttons in the primary look (`AccentButton`, 251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before

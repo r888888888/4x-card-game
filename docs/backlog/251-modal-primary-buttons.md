@@ -2,7 +2,7 @@
 id: 251
 title: Modal footers show their primary action in the signal colour
 type: feature
-status: in-progress
+status: review
 branch: feat/251-modal-primary-buttons
 ---
 
@@ -13,13 +13,13 @@ way out (Cancel, Keep, Close, New game) is a plain steel key left of it. Today `
 orders the primary; it looks the same as the others.
 
 ## Acceptance criteria
-- [ ] AC1: Given the theme, then the `AccentButton` variation (the guide's primary button) has an `ACCENT` fill,
+- [x] AC1: Given the theme, then the `AccentButton` variation (the guide's primary button) has an `ACCENT` fill,
   `TEXT_ON_ACCENT` label in the semibold label face, a **3 px** `TEXT` (ink) border, `RADIUS_1` corners and the 2,2
   plinth (today its border is 2 px; specimen `.btn.primary` and §7.1 say 3); its disabled look is the plain
   `Button`'s disabled look.
-- [ ] AC2: Given any modal, when a button is added with `add_footer_button(button, true)`, then its
+- [x] AC2: Given any modal, when a button is added with `add_footer_button(button, true)`, then its
   `theme_type_variation` is `AccentButton`; a button added without `primary` keeps the default `Button` look.
-- [ ] AC3: Given each action modal open and settled, then its footer reads left to right as below, the last one the
+- [x] AC3: Given each action modal open and settled, then its footer reads left to right as below, the last one the
   only `AccentButton` among its visible footer buttons:
   - Rename territory: Cancel · **Rename**
   - Revolution: Keep <government> · **Revolt**
@@ -27,10 +27,10 @@ orders the primary; it looks the same as the others.
     **Learn**
   - Drawn event: **OK (Enter)** (its only button)
   - Game over: New game · **Replay this seed**
-- [ ] AC4: Given a modal with no action to take — Settings, the civilization and government modal, the menu (Close
+- [x] AC4: Given a modal with no action to take — Settings, the civilization and government modal, the menu (Close
   (Esc) · Exit), card details of a card that is neither playable from hand nor a learnable tech — then no visible
   footer button is an `AccentButton` (at most one primary per view, none when there is nothing to do).
-- [ ] AC5: Given Rename or Play is disabled by its engine error, then the primary key shows the disabled look (no
+- [x] AC5: Given Rename or Play is disabled by its engine error, then the primary key shows the disabled look (no
   `ACCENT` fill) and keeps its error tooltip.
 
 ## Out of scope
@@ -58,8 +58,15 @@ orders the primary; it looks the same as the others.
 | AC5 | `test_rename_modal::test_rename_is_the_primary_and_disabled_it_loses_the_accent`, `test_details_modal::test_play_button_is_disabled_with_the_reason_for_an_unplayable_hand_card` |
 
 ## Manual check
-- [ ] Open Rename, Revolution, a hand card's details, an event and game over in Night and Day: the primary is the
-  signal colour, sits rightmost, and stands the same height as its neighbour.
+- [ ] `godot --path . -- --civ egypt --seed 5`: open the home territory, Rename…: Cancel plain, Rename orange with a
+  thick ink border, same height; clear the field: Rename turns the plain disabled grey. Repeat in Day mode (Settings).
+- [ ] Sidebar civilization card → Revolt…: Keep <government> plain, Revolt orange.
+- [ ] I on a playable hand card: Close (Esc) plain, Play orange; hover and press it: the border stays thick.
+- [ ] End turns until an event: OK (Enter) orange. Knowledge (T) → a tech: Learn orange.
 - [ ] Settings, the civilization modal and the menu show no accent key in the footer.
 
 ## Log
+- Every enabled state of `AccentButton` (normal, hover, pressed, latched) has the 3 px border, so it doesn't thin on
+  hover; disabled stays the plain 2 px disabled look.
+- Follow-up (not in this item): §7.1's heavier key sound for a primary (`ui.button.press` pitched −2), and the
+  specimen's dashed disabled look.
