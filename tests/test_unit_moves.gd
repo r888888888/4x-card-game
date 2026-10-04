@@ -302,3 +302,42 @@ func test_details_move_and_disband_a_unit() -> void:
 		main.details.open_card(e.zone("tableau").find(home_uid(e)))
 		check(not main.details.unit_buttons()[0].visible, "no Move… on a territory")
 		main.details.close())
+
+
+# --- Found at review: a moved unit is grouped with the territory it stands on ---
+
+func test_territory_groups_put_a_unit_with_its_station() -> void:
+	var e: GameEngine = move_engine()
+	if e == null:
+		return
+	var levy := levy_of(e)
+	var hills := hills_of(e)
+	check(e.move_unit(levy, hills), "moved to Hills")
+	for group in e.territory_groups():
+		if group.territory == home_uid(e):
+			check(not group.cards.has(levy), "not in Homeland's group: %s" % [group.cards])
+		elif group.territory == hills:
+			check(group.cards.has(levy), "in Hills' group: %s" % [group.cards])
+
+
+func test_a_moved_unit_shows_only_in_the_view_of_the_territory_it_stands_on() -> void:
+	var engine := move_engine()
+	if engine == null:
+		return
+	await with_main(engine, func(main: Node):
+		var e := Game.engine
+		var levy := setup_on_main(e)
+		check(e.move_unit(levy, hills_of(e)), "moved to Hills")
+		await wait_frames()
+		main.territory_view.open(home_uid(e))
+		await wait_frames()
+		check(not main.territory_view.card_uids().has(levy), "not in Homeland's view")
+		main.territory_view.close()
+		await wait_frames()
+		main.territory_view.open(hills_of(e))
+		await wait_frames()
+		check(main.territory_view.card_uids().has(levy), "in Hills' view")
+		var view: CardView = main.views.get(levy)
+		check(view != null, "the Levy has a view")
+		if view != null:
+			eq(view.slot.get_parent(), main.territory_view.units_row, "in its units row"))

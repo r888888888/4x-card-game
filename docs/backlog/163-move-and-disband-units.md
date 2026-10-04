@@ -49,6 +49,7 @@ territory. Disbanding frees that worker; no pop moves. Follows 160 and 162.
 | AC4 | `test_unit_moves::test_disbanding_a_unit_frees_its_worker_and_its_strength`, `test_disband_error_reasons`; `test_blocking` rows for `disband` |
 | AC5 | `test_raids::test_163_a_unit_moved_onto_the_target_defends_it`, `test_163_a_unit_moved_off_the_target_doesnt_defend_it`, `test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home` |
 | AC6 | `test_unit_moves::test_move_targets_list_where_a_unit_can_go_now`, `test_unit_move_block_says_why_a_unit_cant_move_anywhere`, `test_unit_origin_names_the_home_of_a_unit_stationed_away`; UI: `test_details_move_and_disband_a_unit` |
+| Review fix | `test_unit_moves::test_territory_groups_put_a_unit_with_its_station`, `test_a_moved_unit_shows_only_in_the_view_of_the_territory_it_stands_on` |
 
 ## Manual check
 Run `godot --path ../4x-163 -- --seed 5`. Buy Warriors (Buy Cards), play it on your home when drawn, settle a second
@@ -74,3 +75,6 @@ territory, then open the home's territory view and click the Warriors.
   the next query lands.
 - Balance: moving now costs an action, which competes with plays under a limiting government; raids' tuning may want
   a look in a balance item (the bot doesn't move units yet, 168).
+- Review (user): a moved unit still showed in its home's territory view. `territory_groups` grouped every card by its
+  home (`territory_uid`), and the territory view, keyboard focus and the Realm all read it; a unit is now grouped
+  with its station. Tests reproduced it first (engine and the real main scene).

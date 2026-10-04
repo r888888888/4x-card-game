@@ -435,9 +435,9 @@ func territory_of(card: CardInstance) -> CardInstance:
 	return Territories.territory_of(self, card)
 
 
-## The tableau in territory groups: [{territory: uid, cards: [uids]}]. Each settled territory is first in
-## its group, followed by the cards on it in tableau order; groups come in order of first appearance, and
-## cards on no territory come last in a group with territory -1.
+## The tableau in territory groups: [{territory: uid, cards: [uids]}]. Each settled territory is first in its group,
+## followed by the cards on it (a unit on its station, 163) in tableau order; groups come in order of first
+## appearance, and cards on no territory come last in a group with territory -1.
 func territory_groups() -> Array[Dictionary]:
 	return Territories.groups(self)
 
