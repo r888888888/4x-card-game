@@ -2,7 +2,7 @@
 id: 249
 title: Split GameEngine's read queries into EngineQueries
 type: feature
-status: review
+status: done
 branch: feat/249-split-engine-queries
 ---
 
