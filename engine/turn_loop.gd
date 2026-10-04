@@ -146,7 +146,8 @@ static func start_turn(e: GameEngine) -> void:
 	Anarchy.drain(e)
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 	Anarchy.start_renewal(e)
-	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237)
+	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
+		Military.strike_raids(e)
 		Events.draw(e)
 
 

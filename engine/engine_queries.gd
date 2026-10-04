@@ -361,6 +361,17 @@ func defense_parts(uid: int) -> Dictionary:
 	return Military.defense_parts(self, uid)
 
 
+## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
+func raid_target(uid: int) -> int:
+	return Military.raid_target(self, uid)
+
+
+## Each announced raid as {uid, target, strength, defense}, in the order drawn, with its target's current defence
+## (162); [] with no raid active.
+func raid_forecast() -> Array[Dictionary]:
+	return Military.raid_forecast(self)
+
+
 ## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.
 func units_at(uid: int) -> Array[int]:
 	return Territories.units_at(self, uid)

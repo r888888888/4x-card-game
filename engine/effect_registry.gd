@@ -35,8 +35,8 @@ static func create(data: Variant, ctx: Dictionary, errors: Array[String], warnin
 	var effect: Effect = OPS[op].new()
 	effect.op = op
 	effect.trigger = Fields.read_string(data, "trigger", errors, Effect.TRIGGERS, "play")
-	if effect.trigger == "upkeep" and not effect.upkeep_ok():
-		errors.append("'%s' only works on play (got trigger 'upkeep')" % op)
+	if Effect.UPKEEP_SAFE_TRIGGERS.has(effect.trigger) and not effect.upkeep_ok():
+		errors.append("'%s' only works on play (got trigger '%s')" % [op, effect.trigger])
 	effect.keyword = Fields.read_string(data, "keyword", errors, [], "")
 	if effect.keyword != "" and not ctx.keywords.has(effect.keyword):
 		errors.append("unknown keyword '%s' in 'keyword'" % effect.keyword)

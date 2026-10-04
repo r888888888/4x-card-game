@@ -20,6 +20,7 @@ const TYPE_FIELDS := {
 	"eureka": [CardDef.TECH],
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
+	"raid": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
@@ -230,6 +231,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				errs.append("effects[%d]: %s" % [j, m])
 			for m in e_warns:
 				warns.append("effects[%d]: %s" % [j, m])
+			if effect != null and e_errs.is_empty() and Effect.RAID_TRIGGERS.has(effect.trigger) and not _is_raid(c):
+				errs.append("effects[%d]: trigger '%s' only works on a raid (an event with 'raid')" % [j, effect.trigger])
+				continue
 			if effect != null and e_errs.is_empty() and effect.trigger == "start":
 				var start_problem := _start_effect_problem(effect, def.type)
 				if start_problem != "":
@@ -294,6 +298,10 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	if def.type == CardDef.EVENT:
 		def.discard_turns = _parse_discard(c.get("discard", {}), errs)
 		def.has_discard = c.has("discard")
+		if c.has("raid"):
+			def.raid = _parse_raid(c.raid, ctx.keywords, errs)
+			if def.has_discard:
+				errs.append("raid: a raid can't have 'discard' (it lasts until it strikes)")
 
 	if def.type in [CardDef.TECH, CardDef.EVENT] and c.has("era"):
 		var era: Variant = Fields.as_int(c.era)
@@ -324,6 +332,35 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		if not CARD_FIELDS.has(key) and not TYPE_FIELDS.has(key):
 			warns.append("unknown field '%s'" % key)
 	return def
+
+
+## Whether raw card c is a raid: an event with a raid field (162).
+static func _is_raid(c: Dictionary) -> bool:
+	return c.get("type") == CardDef.EVENT and c.has("raid")
+
+
+## An event's raid (162): {strength (int >= 1), targets (config keywords, [] for any), pop (int >= 0, default 1)}.
+## Problems go to errs, prefixed "raid: ".
+static func _parse_raid(raw: Variant, keywords: Array, errs: Array[String]) -> Dictionary:
+	if not (raw is Dictionary):
+		errs.append("raid: must be an object like {\"strength\": 2}")
+		return {}
+	var problems: Array[String] = []
+	var targets: Array[String] = []
+	var raw_targets: Variant = raw.get("targets", [])
+	if raw_targets is Array:
+		for k in raw_targets:
+			if not (k is String and keywords.has(k)):
+				problems.append("unknown keyword '%s' in 'targets'" % [k])
+			else:
+				targets.append(k)
+	else:
+		problems.append("'targets' must be an array of keyword ids")
+	var raid := {"strength": Fields.read_int(raw, "strength", problems, 1),
+		"targets": targets, "pop": Fields.read_int(raw, "pop", problems, 0, 1)}
+	for m in problems:
+		errs.append("raid: " + m)
+	return raid
 
 
 ## Why effect, a start create into the tableau, can't place its card (only a building goes on the home, 133), or "".

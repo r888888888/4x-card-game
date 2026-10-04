@@ -24,8 +24,8 @@ signal changed
 signal logged(message: String)
 ## Emitted after logged for a notable line the player should see even with the log closed (116): a famine arriving,
 ## ending, saving pop or relieved, a tech lost, a pile unlocked, an era's techs or events added, an event ending.
-## priority (190): NOTICE_URGENT for a famine striking, a revolution or Anarchy beginning; NOTICE_CAUTION for a loss
-## averted or unrest an era adds; NOTICE_INFO for everything else.
+## priority (190): NOTICE_URGENT for a famine striking, a raid pillaging, a revolution or Anarchy beginning;
+## NOTICE_CAUTION for a loss averted, unrest an era adds or a raid announced; NOTICE_INFO for everything else.
 signal noticed(message: String, priority: StringName)
 signal game_over(final_score: int)
 ## Emitted by play_card, before changed. outcome: {uid, to_zone, target, paid, gained, lost, vp, drawn, created};
@@ -36,6 +36,9 @@ signal card_played(outcome: Dictionary)
 ## gained, lost, vp, drawn, created}, as card_played's plus the event's card id; lost maps resource -> what a lose
 ## effect actually took.
 signal event_drawn(outcome: Dictionary)
+## Emitted when a raid strikes (162), at the turn start before the turn's event is drawn. outcome: {uid, target,
+## strength, defense, repelled, units_lost (uids), pop_lost, gained, lost, vp, drawn, created}.
+signal raid_resolved(outcome: Dictionary)
 ## Emitted when revolt() declares a revolution (155), before changed; the sim counts them (158).
 signal revolted
 ## Emitted for one of the game's rare, important moments (191), before changed: MILESTONE_TECH when a tech is learned,
