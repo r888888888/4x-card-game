@@ -429,11 +429,16 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   (never with `discard`), and only a raid's effects may use the triggers `repel` and `pillage` (upkeep-safe ops only).
   When drawn it is announced: its play effects resolve and its target is fixed (`raid_target(uid)`, kept in the
   event's `territory_uid`) on the settled territory with any of `targets` (all of them when none has one) with the
-  lowest `defense`, then the most pop, then tableau order. It skips upkeep and at the next turn's event phase, before
-  the new event is drawn, it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
+  lowest `defense`, then the most pop, then tableau order. It skips upkeep and two event phases later (257: at turn T+2's
+  start when drawn on turn T, before the new event is drawn; `raid_turns_left(uid)` counts 2, 1), it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
   pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
   goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, target, strength, defense, repelled, units_lost,
-  pop_lost, gained, lost, vp}`. A raid drawn on the final turn never strikes. `raid_forecast()` lists the announced
+  pop_lost, gained, lost, vp}`. A raid drawn on the final turn or the one before never strikes.
+  Pacing (257): a raid is drawn only while raids are allowed: `realm_size()` (config `territory_value` per settled
+  territory plus the total cost of every city, building and unit in the tableau) is at least `raid_min_size`, no raid
+  is active, and `raid_gap` turns have passed since the last strike (`GameState.last_raid_turn`; no gap before the
+  first). Otherwise it goes to the event deck's bottom and the next event is drawn; with only such raids left, no
+  event that turn. Shipped: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4. `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
   Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
   `Military`.

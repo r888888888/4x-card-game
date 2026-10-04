@@ -2,7 +2,7 @@
 id: 257
 title: Raids wait for a large enough realm, warn 2 turns ahead and come further apart
 type: feature
-status: in-progress
+status: review
 branch: feat/257-raid-pacing
 ---
 
@@ -13,27 +13,27 @@ to a minimum size (by what its territories, cities, buildings and units are wort
 prepare, and a quiet stretch follows each strike.
 
 ## Acceptance criteria
-- [ ] AC1 (size): Given a tableau with 2 settled territories, a city costing 2 wealth, a building costing 1 food and
+- [x] AC1 (size): Given a tableau with 2 settled territories, a city costing 2 wealth, a building costing 1 food and
   2 wealth and a unit costing 2 food, and config `territory_value` 3, when `realm_size()` is read, then it is 13
   (3 + 3 + 2 + 3 + 2). Idle cards in the tableau count; cards in hand, deck or discard, pop, techs, the civilization
   and the government add nothing.
-- [ ] AC2 (size gate): Given config `raid_min_size` 15 and an event deck whose top is a raid and next a non-raid
+- [x] AC2 (size gate): Given config `raid_min_size` 15 and an event deck whose top is a raid and next a non-raid
   event, when the turn's event is drawn with `realm_size()` 14, then the non-raid event is drawn and made active, the
   raid is at the bottom of the event deck and isn't active, and `event_drawn` reports the non-raid event only. With
   `realm_size()` 15 the raid is drawn and announced as now.
-- [ ] AC3 (only raids left): Given raids aren't allowed and the event deck and discard hold only raids, when the turn's
+- [x] AC3 (only raids left): Given raids aren't allowed and the event deck and discard hold only raids, when the turn's
   event is drawn, then no event becomes active, `event_drawn` isn't emitted, and the raids stay in the event deck
   (none lost, none in the discard).
-- [ ] AC4 (2-turn warning): Given a raid drawn and announced at turn T's event phase, then it doesn't strike at turn
+- [x] AC4 (2-turn warning): Given a raid drawn and announced at turn T's event phase, then it doesn't strike at turn
   T+1's start (still active, `raid_target` unchanged), and strikes at turn T+2's start before that turn's event is
   drawn. A raid drawn on the final turn or the turn before never strikes. `raid_turns_left(uid)` is 2 on turn T, 1 on
   turn T+1, and 0 for anything not an active raid.
-- [ ] AC5 (gap): Given config `raid_gap` 4 and a raid that struck at turn S, when a raid tops the event deck at turns
+- [x] AC5 (gap): Given config `raid_gap` 4 and a raid that struck at turn S, when a raid tops the event deck at turns
   S to S+3, then it is deferred as in AC2; at turn S+4 it is drawn and announced. Before any raid has struck there is
   no gap. `copy()` keeps the turn of the last strike.
-- [ ] AC5b (one at a time): Given a raid is active (announced, not yet struck), when another raid tops the event deck,
+- [x] AC5b (one at a time): Given a raid is active (announced, not yet struck), when another raid tops the event deck,
   then it is deferred as in AC2, whatever the size and gap; at most one raid is ever active.
-- [ ] AC6 (text): `raid_line`, `raid_warning` and the raid's card text say "in 2 turns" while 2 turns are left and
+- [x] AC6 (text): `raid_line`, `raid_warning` and the raid's card text say "in 2 turns" while 2 turns are left and
   "next turn" at 1 ("Raiders will strike Hills in 2 turns: 3 against your 0."; "Raiders strike in 2 turns: 3 vs 0";
   card text "Raid 3: strikes your least defended hills or mountain territory 2 turns after it is drawn").
 
@@ -70,7 +70,9 @@ prepare, and a quiet stretch follows each strike.
 
 ## Manual check
 - [ ] Shipped numbers for review: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4. Start a game: no raid is
-  announced until the realm reaches 12 (check `realm_size` in the log or by counting).
+  announced until the realm reaches 12: count 3 per settled territory plus the printed cost of each city, building
+  and unit on the board. Raiders, Sea Raiders and Hill Tribes should start appearing only after a second territory
+  and a few buildings; after a strike, none for 4 turns.
 - [ ] An announced raid's board card and its target's tooltip say "in 2 turns", then "next turn".
 
 ## Log
@@ -80,3 +82,10 @@ prepare, and a quiet stretch follows each strike.
 - User: only one raid may be active at a time; shipped `raid_min_size` is 12.
 - Balance worry: the starting realm (1 territory + city) sits under 12, so early unit and wall cards may feel
   useless for longer; revisit in a balance item.
+- Green: two red tests were wrong and were fixed before production code relied on them: AC1's sum is 13, not 15
+  (3 + 3 + 2 + 3 + 2; the spec had the same slip), and the AC4 strike test counted two active Omens, but Omen lasts
+  one turn; it now checks the turn-4 event was drawn from the deck.
+- `realm_size` and `raid_turns_left` sit in `game_engine.gd` beside the other military queries (`unit_strength`,
+  `move_targets`): `engine_queries.gd` has a 500-line cap (249) and would have gone to 511.
+- A raid deferred while the event deck is short is never swapped for a non-raid in the event discard (no reshuffle
+  until the deck is empty); fine for now.

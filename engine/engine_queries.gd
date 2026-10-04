@@ -394,7 +394,7 @@ func raid_short(uid: int) -> bool:
 	return Military.raid_short(self, uid)
 
 
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike next turn: 3 vs 0" (one line each,
+## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
 ## 162); "" when none is.
 func raid_warning(territory_uid: int) -> String:
 	return Military.raid_warning(self, territory_uid)

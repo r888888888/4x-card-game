@@ -1,7 +1,7 @@
 class_name Military
 extends RefCounted
 ## Military rules (backlog 161 on): a settled territory's defence from the units stationed there, its working walls,
-## its cities and its terrain; raids (162), aimed when drawn and striking at the next event phase. Static functions on the engine's state; GameEngine's public methods call them.
+## its cities and its terrain; raids (162), aimed when drawn and striking two event phases later (257), once the realm is large enough. Static functions on the engine's state; GameEngine's public methods call them.
 
 const NOT_A_UNIT := "That isn't a unit in your realm."
 
