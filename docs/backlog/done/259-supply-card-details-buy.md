@@ -2,7 +2,7 @@
 id: 259
 title: A click on a supply pile opens its details, which offer Buy
 type: feature
-status: review
+status: done
 branch: feat/259-supply-card-details-buy
 ---
 
