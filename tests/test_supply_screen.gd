@@ -99,3 +99,46 @@ func test_pile_cards_share_the_height_of_the_tallest() -> void:
 		var tallest := maxf(views[0].size.y, views[1].size.y)
 		eq(views[0].size.y, tallest, "the first card")
 		eq(views[1].size.y, tallest, "the second card"))
+
+
+# --- 258: a click outside the panel closes the screen ---
+
+## A left click (press and release) at viewport position at in main.
+func click_at(main: Node, at: Vector2) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = at
+		event.global_position = at
+		event.pressed = pressed
+		main.get_viewport().push_input(event, true)  # viewport coordinates, not the window's
+
+
+## The far corner of main's viewport, outside any panel.
+func corner(main: Node) -> Vector2:
+	return main.get_viewport().get_visible_rect().end - Vector2(5, 5)
+
+
+func test_a_click_outside_the_panel_closes_the_supply() -> void:
+	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
+		var closed := [false]
+		main.supply.closed.connect(func(): closed[0] = true)
+		click_at(main, corner(main))
+		check(not main.supply.is_open(), "the screen is closed")
+		check(closed[0], "closed is emitted"))
+
+
+func test_a_click_inside_the_panel_keeps_the_supply_open() -> void:
+	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
+		click_at(main, main.supply.counter(GameEngine.WEALTH).get_global_rect().get_center())
+		check(main.supply.is_open(), "a click on the panel's Wealth counter leaves it open"))
+
+
+func test_a_click_outside_a_details_modal_closes_only_the_modal() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		main.details.open(views[0])
+		await wait_frames()
+		check(not main.details.shown().is_empty(), "the details modal is open")
+		click_at(main, corner(main))
+		check(main.details.shown().is_empty(), "the details modal closes")
+		check(main.supply.is_open(), "the supply stays open"))
