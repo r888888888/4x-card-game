@@ -580,8 +580,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   Real data: Settler +1 unrest; Famine ⟳ +1 per counter; Temple ⟳ −1; Shrine and Monument raise the limit by 1 and 2;
   Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Omen of Doom
   (+2) and Bandit Raids (⟳ +1, 2 turns), the only events that harm.
-- Real data: Chiefdom (2 actions, unrest limit 5; no other bonus; the start), Kingship (3 actions, limit 7, ⟳ +1 wealth; from Code of Laws),
-  Theocracy (3 actions, limit 10, ⟳ +1 VP; from Priesthood). Techs that give a government add it to the government deck (154); it has no supply pile.
+- Real data: Chiefdom (2 actions, unrest limit 8; no other bonus; the start), Kingship (3 actions, limit 10, ⟳ +1 wealth; from Code of Laws),
+  Theocracy (3 actions, limit 13, ⟳ +1 VP; from Priesthood). Techs that give a government add it to the government deck (154); it has no supply pile.
 - UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
   Knowledge (088, 115, 119); it opens a modal showing both (flavor, quote, rules), and a played government flies to it.
 
