@@ -134,7 +134,7 @@ func to_government_choice(e: GameEngine) -> void:
 			GameEngine.PENDING_GOVERNMENT:
 				return
 			GameEngine.PENDING_RENEWAL:
-				(e as Object).renew(p.options.slice(0, p.count))
+				e.renew(p.options.slice(0, p.count))
 			GameEngine.PENDING_DISCARD:
 				e.discard_card(first)
 			GameEngine.PENDING_EXPLORE:

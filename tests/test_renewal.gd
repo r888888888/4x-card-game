@@ -54,7 +54,7 @@ func test_renewal_offers_the_hand_deck_and_discard_in_name_order() -> void:
 
 
 ## Pays the renewal owed with the first options (255: one call for the whole count).
-func pay_renewal(e: Object) -> void:
+func pay_renewal(e: GameEngine) -> void:
 	var p: Dictionary = e.pending()
 	check(e.renew(p.options.slice(0, p.count)), "renew: %s" % e.renew_error(p.options.slice(0, p.count)))
 
@@ -113,7 +113,7 @@ func test_unrest_renewal_validation() -> void:
 # --- AC2: renewing ---
 
 func test_renewing_trashes_the_chosen_cards_at_once_and_keeps_the_deck_order() -> void:
-	var e: Object = renewal_engine(["scout"], {"renewal": 2})
+	var e := renewal_engine(["scout"], {"renewal": 2})
 	var lib := set_library(e, ["shrine"], ["farm", "scout", "calm"], [])
 	e.resources["unrest"] = 4
 	var chosen := [lib.hand[0], lib.deck[1]]
@@ -126,7 +126,7 @@ func test_renewing_trashes_the_chosen_cards_at_once_and_keeps_the_deck_order() -
 
 
 func test_renewing_one_card_calms_1_unrest() -> void:
-	var e: Object = renewal_engine(["farm", "scout"])
+	var e := renewal_engine(["farm", "scout"])
 	e.resources["unrest"] = 4
 	var farm := uid_of(e.zone("discard"), "farm")
 	check(e.renew([farm]), "renew: %s" % e.renew_error([farm]))
@@ -138,7 +138,7 @@ func test_renewing_one_card_calms_1_unrest() -> void:
 # --- AC3: renew_error ---
 
 func test_renew_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
-	var e: Object = renewal_engine(["farm", "kings"], {"renewal": 2})
+	var e := renewal_engine(["farm", "kings"], {"renewal": 2})
 	var wrong := "Trash a card from your hand, deck or discard (not a government)."
 	var kings := uid_of(e.zone("discard"), "kings")
 	var farm := uid_of(e.zone("discard"), "farm")
@@ -151,7 +151,7 @@ func test_renew_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
 	eq(e.renew_error([farm]), "Choose 2 cards to trash.", "too few")
 	eq(e.renew_error([farm, hand, e.zone("deck").cards[0].uid]), "Choose 2 cards to trash.", "too many")
 	eq(e.renew_error([farm, hand]), "", "a discard and a hand card (255)")
-	var before: GameState = e.state.copy()
+	var before := e.state.copy()
 	check(not e.renew([kings, farm]), "renew refuses")
 	check(not e.renew([farm]), "renew refuses too few")
 	eq(state_diff(e.state, before), "", "a refusal changes nothing")
@@ -160,7 +160,7 @@ func test_renew_error_names_each_reason_and_a_refusal_changes_nothing() -> void:
 
 
 func test_renew_error_says_1_card_when_1_is_owed() -> void:
-	var e: Object = renewal_engine(["farm", "scout"])
+	var e := renewal_engine(["farm", "scout"])
 	eq(e.renew_error([]), "Choose 1 card to trash.", "none chosen")
 
 

@@ -14,7 +14,7 @@ func with_renewal(block: Dictionary, discard_ids: Array, body: Callable) -> void
 		e.resources["unrest"] = 5
 		e.end_turn()
 		await wait_frames()
-		await body.call(main, main.get("renewal_modal")))
+		await body.call(main, main.renewal_modal))
 
 
 func tokens(main: Node) -> Array:
@@ -24,7 +24,7 @@ func tokens(main: Node) -> Array:
 # --- AC7: the sheet ---
 
 func test_the_renewal_modal_lists_every_option_in_order() -> void:
-	await with_renewal({"renewal": 1}, ["scout", "kings"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 1}, ["scout", "kings"], func(main: Node, modal: RenewalModal):
 		var e := Game.engine
 		check(modal != null and modal.is_open(), "the Renewal modal is open")
 		if modal == null:
@@ -39,7 +39,7 @@ func test_the_renewal_modal_lists_every_option_in_order() -> void:
 
 
 func test_the_renewal_modal_cant_be_dismissed() -> void:
-	await with_renewal({"renewal": 1}, ["scout"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 1}, ["scout"], func(main: Node, modal: RenewalModal):
 		press_key(main, KEY_ESCAPE)
 		for pressed in [true, false]:
 			var event := InputEventMouseButton.new()
@@ -53,7 +53,7 @@ func test_the_renewal_modal_cant_be_dismissed() -> void:
 
 
 func test_rows_are_chosen_and_put_back_up_to_the_count() -> void:
-	await with_renewal({"renewal": 2}, ["scout", "shrine", "farm"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 2}, ["scout", "shrine", "farm"], func(main: Node, modal: RenewalModal):
 		var rows: Array = modal.rows()
 		var ids: Array = modal.row_uids()
 		rows[0].pressed.emit()
@@ -66,7 +66,7 @@ func test_rows_are_chosen_and_put_back_up_to_the_count() -> void:
 
 
 func test_trash_is_refused_until_the_count_then_pays_and_closes() -> void:
-	await with_renewal({"renewal": 2}, ["scout", "shrine"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 2}, ["scout", "shrine"], func(main: Node, modal: RenewalModal):
 		var e := Game.engine
 		var rows: Array = modal.rows()
 		var ids: Array = modal.row_uids()
@@ -86,7 +86,7 @@ func test_trash_is_refused_until_the_count_then_pays_and_closes() -> void:
 # --- AC8: sounds ---
 
 func test_choosing_sounds_like_a_lamp_key_and_past_the_count_is_locked() -> void:
-	await with_renewal({"renewal": 1}, ["scout", "shrine"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 1}, ["scout", "shrine"], func(main: Node, modal: RenewalModal):
 		var rows: Array = modal.rows()
 		var before: int = main.sfx.played().size()
 		rows[0].pressed.emit()
@@ -99,7 +99,7 @@ func test_choosing_sounds_like_a_lamp_key_and_past_the_count_is_locked() -> void
 
 
 func test_the_renewal_sheet_opens_and_closes_with_the_sheet_sounds() -> void:
-	await with_renewal({"renewal": 1}, ["scout"], func(main: Node, modal: Object):
+	await with_renewal({"renewal": 1}, ["scout"], func(main: Node, modal: RenewalModal):
 		check(tokens(main).has(Sfx.SHEET_OPEN), "ui.sheet.open as it opens")
 		modal.rows()[0].pressed.emit()
 		modal.trash_button.pressed.emit()
