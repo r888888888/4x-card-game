@@ -2,7 +2,7 @@
 id: 258
 title: A click outside the supply panel closes the supply screen
 type: feature
-status: in-progress
+status: review
 branch: feat/258-supply-click-outside-closes
 ---
 
@@ -11,11 +11,11 @@ The supply screen closes like a modal does: a click on the dimmer, outside its p
 needn't find the Close button or press S / Esc.
 
 ## Acceptance criteria
-- [ ] AC1: Given the supply screen open, when the player clicks the dimmer outside its panel (the window's far
+- [x] AC1: Given the supply screen open, when the player clicks the dimmer outside its panel (the window's far
   corner), then the screen closes (`is_open()` is false) and `closed` is emitted.
-- [ ] AC2: Given the supply screen open, when the player clicks inside its panel but on no card or button (its
+- [x] AC2: Given the supply screen open, when the player clicks inside its panel but on no card or button (its
   title), then it stays open.
-- [ ] AC3: Given the supply screen open and a pile card's details modal open over it, when the player clicks outside
+- [x] AC3: Given the supply screen open and a pile card's details modal open over it, when the player clicks outside
   the details modal's sheet, then only the details modal closes and the supply screen stays open.
 
 ## Out of scope
@@ -33,6 +33,9 @@ as `Modal._on_scrim_input` does.
 | AC3 | `test_supply_screen::test_a_click_outside_a_details_modal_closes_only_the_modal` |
 
 ## Manual check
-- [ ] Open the supply (S), click beside the panel: it closes. Click between cards: it stays open.
+- [ ] `godot --path .`, press S to open the supply, click the dimmer beside the panel: it closes.
+- [ ] Reopen it, click the panel's empty space between cards and on its title: it stays open.
+- [ ] Right-click a pile card to open its details, click outside the details sheet: only the details close.
 
 ## Log
+- AC2 and AC3 passed at red: they guard against closing on clicks inside the panel or through a modal above it.
