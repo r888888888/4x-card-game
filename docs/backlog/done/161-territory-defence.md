@@ -2,7 +2,7 @@
 id: 161
 title: Territory defence from units, walls, cities and terrain
 type: feature
-status: review
+status: done
 branch: feat/161-territory-defence
 ---
 
