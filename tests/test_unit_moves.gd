@@ -64,7 +64,6 @@ func test_moving_a_unit_changes_its_station_for_an_action() -> void:
 	var e: GameEngine = move_engine("band")
 	if e == null:
 		return
-	var m: Object = e
 	var home := home_uid(e)
 	var hills := hills_of(e)
 	var levy := levy_of(e)
@@ -72,8 +71,8 @@ func test_moving_a_unit_changes_its_station_for_an_action() -> void:
 	var defense := [e.defense(home), e.defense(hills)]
 	var resources := e.resources.duplicate()
 	eq(e.actions_left(), 1, "Band: 1 action left after the Levy")
-	eq(m.move_unit_error(levy, hills), "", "the move is legal")
-	check(m.move_unit(levy, hills), "Levy moved to Hills")
+	eq(e.move_unit_error(levy, hills), "", "the move is legal")
+	check(e.move_unit(levy, hills), "Levy moved to Hills")
 	eq(e.unit_station(levy), hills, "stationed on Hills")
 	eq(e.zone("tableau").find(levy).territory_uid, home, "still homed on Homeland")
 	eq([e.free_workers(home), e.free_workers(hills)], workers, "free workers unchanged")
@@ -89,17 +88,16 @@ func test_a_unit_moves_once_a_turn() -> void:
 	var e: GameEngine = move_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var home := home_uid(e)
 	var hills := hills_of(e)
 	var levy := levy_of(e)
-	check(m.move_unit(levy, hills), "first move")
-	check_refusals(e, [["second move this turn", func(): return m.move_unit_error(levy, home),
-		func(): return m.move_unit(levy, home), "Levy has already moved this turn."]])
+	check(e.move_unit(levy, hills), "first move")
+	check_refusals(e, [["second move this turn", func(): return e.move_unit_error(levy, home),
+		func(): return e.move_unit(levy, home), "Levy has already moved this turn."]])
 	eq(e.unit_station(levy), hills, "still on Hills")
 	e.end_turn()
-	eq(m.move_unit_error(levy, home), "", "next turn it can move")
-	check(m.move_unit(levy, home), "moved back")
+	eq(e.move_unit_error(levy, home), "", "next turn it can move")
+	check(e.move_unit(levy, home), "moved back")
 	eq(e.unit_station(levy), home, "back on Homeland")
 
 
@@ -107,10 +105,9 @@ func test_moves_this_turn_survive_a_fork() -> void:
 	var e: GameEngine = move_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var levy := levy_of(e)
-	check(m.move_unit(levy, hills_of(e)), "moved")
-	var f: Object = e.fork()
+	check(e.move_unit(levy, hills_of(e)), "moved")
+	var f: GameEngine = e.fork()
 	eq(f.move_unit_error(levy, home_uid(e)), "Levy has already moved this turn.", "the fork knows it moved")
 
 
@@ -120,25 +117,23 @@ func test_moving_needs_an_action_left() -> void:
 	var e: GameEngine = move_engine("band")
 	if e == null:
 		return
-	var m: Object = e
 	var levy := levy_of(e)
 	var home := home_uid(e)
-	check(m.move_unit(levy, hills_of(e)), "the last action moves the Levy")
+	check(e.move_unit(levy, hills_of(e)), "the last action moves the Levy")
 	check_refusals(e, [
-		["no action left", func(): return m.move_unit_error(levy, home), func(): return m.move_unit(levy, home),
+		["no action left", func(): return e.move_unit_error(levy, home), func(): return e.move_unit(levy, home),
 			"No actions left this turn."],
-		["no action left comes before the unit checks", func(): return m.move_unit_error(-1, -1),
-			func(): return m.move_unit(-1, -1), "No actions left this turn."],
+		["no action left comes before the unit checks", func(): return e.move_unit_error(-1, -1),
+			func(): return e.move_unit(-1, -1), "No actions left this turn."],
 	])
 	e.end_turn()
-	eq(m.move_unit_error(levy, home), "", "a new turn's actions")
+	eq(e.move_unit_error(levy, home), "", "a new turn's actions")
 
 
 func test_move_unit_error_reasons() -> void:
 	var e: GameEngine = move_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var home := home_uid(e)
 	var hills := hills_of(e)
 	var levy := levy_of(e)
@@ -146,7 +141,7 @@ func test_move_unit_error_reasons() -> void:
 	var in_hand := uid_of(e.zone("hand"), "levy")
 	var frontier := uid_of(e.zone("frontier"), "grassland")
 	var move := func(label: String, uid: int, to: int, expected: String) -> Array:
-		return [label, func(): return m.move_unit_error(uid, to), func(): return m.move_unit(uid, to), expected]
+		return [label, func(): return e.move_unit_error(uid, to), func(): return e.move_unit(uid, to), expected]
 	var not_unit := "That isn't a unit in your realm."
 	var not_settled := "Units can only move to a settled territory."
 	check_refusals(e, [
@@ -160,7 +155,7 @@ func test_move_unit_error_reasons() -> void:
 	])
 	set_home_pop(e, 0)
 	check(e.is_idle(levy), "the Levy is idle")
-	eq(m.move_unit_error(levy, hills), "", "an idle unit can move")
+	eq(e.move_unit_error(levy, hills), "", "an idle unit can move")
 	set_home_pop(e, 2)
 	e.state.pending = {"kind": GameEngine.PENDING_DISCARD, "count": 1}
 	var owed := e.end_turn_error()
@@ -177,17 +172,16 @@ func test_disbanding_a_unit_frees_its_worker_and_its_strength() -> void:
 	var e: GameEngine = move_engine("band")
 	if e == null:
 		return
-	var m: Object = e
 	var home := home_uid(e)
 	var hills := hills_of(e)
 	var levy := levy_of(e)
-	check(m.move_unit(levy, hills), "moved to Hills with the last action")
+	check(e.move_unit(levy, hills), "moved to Hills with the last action")
 	var workers: int = e.free_workers(home)
 	var hills_workers: int = e.free_workers(hills)
 	var defense: int = e.defense(hills)
 	var actions := e.state.actions_used
-	eq(m.disband_error(levy), "", "the Levy can be disbanded with no action left")
-	check(m.disband(levy), "disbanded")
+	eq(e.disband_error(levy), "", "the Levy can be disbanded with no action left")
+	check(e.disband(levy), "disbanded")
 	check(e.zone("tableau").find(levy) == null, "out of the tableau")
 	check(e.zone("discard").find(levy) != null, "in the discard")
 	eq(e.unit_station(levy), -1, "no station")
@@ -201,10 +195,9 @@ func test_disband_error_reasons() -> void:
 	var e: GameEngine = move_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var levy := levy_of(e)
 	var disband := func(label: String, uid: int, expected: String) -> Array:
-		return [label, func(): return m.disband_error(uid), func(): return m.disband(uid), expected]
+		return [label, func(): return e.disband_error(uid), func(): return e.disband(uid), expected]
 	var not_unit := "That isn't a unit in your realm."
 	check_refusals(e, [
 		disband.call("an unknown uid", -1, not_unit),

@@ -323,14 +323,13 @@ func test_163_a_unit_moved_onto_the_target_defends_it() -> void:
 	var e: GameEngine = raid_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var outcomes := record_raids(e)
 	e.end_turn()
 	var hills := hills_of(e)
 	build_on(e, hills, ["town"])
 	recruit(e, home_uid(e))
 	var levy := levy_in(e)
-	check(m.move_unit(levy, hills), "the Levy marches to Hills")
+	check(e.move_unit(levy, hills), "the Levy marches to Hills")
 	eq(e.raid_target(active_uid(e, "raiders")), hills, "the target stays Hills")
 	e.end_turn()
 	if outcomes.size() != 1:
@@ -344,14 +343,13 @@ func test_163_a_unit_moved_off_the_target_doesnt_defend_it() -> void:
 	var e: GameEngine = raid_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var outcomes := record_raids(e)
 	e.end_turn()
 	var hills := hills_of(e)
 	build_on(e, hills, ["town"])
 	recruit(e, hills)
 	var levy := levy_in(e)
-	check(m.move_unit(levy, home_uid(e)), "the Levy leaves Hills")
+	check(e.move_unit(levy, home_uid(e)), "the Levy leaves Hills")
 	e.end_turn()
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
@@ -365,13 +363,12 @@ func test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home() -> void:
 	var e: GameEngine = raid_engine()
 	if e == null:
 		return
-	var m: Object = e
 	var outcomes := record_raids(e)
 	e.end_turn()
 	var home := home_uid(e)
 	recruit(e, home)
 	var levy := levy_in(e)
-	check(m.move_unit(levy, hills_of(e)), "the Levy marches to Hills")
+	check(e.move_unit(levy, hills_of(e)), "the Levy marches to Hills")
 	var workers: int = e.free_workers(home)
 	e.end_turn()
 	if outcomes.size() != 1:
