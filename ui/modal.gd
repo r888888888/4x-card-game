@@ -106,11 +106,13 @@ func _init(p_stack: ModalStack) -> void:
 	sheet.add_child(footer)
 
 
-## Adds button to the footer: a primary one at the right end, the others before the primary.
+## Adds button to the footer: a primary one at the right end in the signal colour (AccentButton, 251), the others
+## before the primary.
 func add_footer_button(button: Button, primary := false) -> Button:
 	footer.add_child(button)
 	if primary:
 		button.set_meta("primary", true)
+		button.theme_type_variation = &"AccentButton"
 	else:
 		for b in footer.get_children():
 			if b.get_meta("primary", false):

@@ -2,7 +2,7 @@
 id: 251
 title: Modal footers show their primary action in the signal colour
 type: feature
-status: red-review
+status: in-progress
 branch: feat/251-modal-primary-buttons
 ---
 

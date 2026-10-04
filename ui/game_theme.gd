@@ -366,10 +366,12 @@ static func _controls(t: Theme) -> void:
 			t.set_type_variation(type, "Button")
 		var fill := Palette.ACCENT if accent else Palette.CONTROL
 		var text := Palette.TEXT_ON_ACCENT if accent else Palette.TEXT
-		t.set_stylebox("normal", type, _box(fill, Palette.TEXT if accent else Palette.CONTROL_BORDER))
-		t.set_stylebox("hover", type, _box(fill.lightened(0.08), Palette.TEXT))
-		t.set_stylebox("pressed", type, _pressed(_box(fill.darkened(0.1), Palette.TEXT)))
-		t.set_stylebox("hover_pressed", type, _pressed(_box(fill.darkened(0.04), Palette.TEXT)))  # a latched toggle
+		var rim := 3 if accent else 2  # the guide's primary button has a 3 px ink border (§7.1, 251)
+		t.set_stylebox("normal", type, _rim(_box(fill, Palette.TEXT if accent else Palette.CONTROL_BORDER), rim))
+		t.set_stylebox("hover", type, _rim(_box(fill.lightened(0.08), Palette.TEXT), rim))
+		t.set_stylebox("pressed", type, _pressed(_rim(_box(fill.darkened(0.1), Palette.TEXT), rim)))
+		# a latched toggle
+		t.set_stylebox("hover_pressed", type, _pressed(_rim(_box(fill.darkened(0.04), Palette.TEXT), rim)))
 		t.set_stylebox("disabled", type, _flat(_box(Palette.CONTROL_DISABLED, Palette.CONTROL_DISABLED_BORDER)))
 		t.set_font("font", type, tabular(LABEL_SEMIBOLD if accent else LABEL_FONT))
 		t.set_stylebox("focus", type, focus_ring())
@@ -440,6 +442,12 @@ static func _box(bg: Color, border: Color) -> StyleBoxFlat:
 	style.shadow_offset = PLINTH
 	style.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
 	style.anti_aliasing = false
+	return style
+
+
+## style with its border width px on every side.
+static func _rim(style: StyleBoxFlat, width: int) -> StyleBoxFlat:
+	style.set_border_width_all(width)
 	return style
 
 
