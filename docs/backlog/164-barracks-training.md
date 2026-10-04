@@ -2,7 +2,7 @@
 id: 164
 title: Barracks train the units stationed with them
 type: feature
-status: red-review
+status: in-progress
 branch: feat/164-barracks-training
 ---
 

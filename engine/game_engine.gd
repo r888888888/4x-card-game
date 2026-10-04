@@ -245,6 +245,12 @@ func unit_move_block(uid: int) -> String:
 	return Military.move_block(self, uid)
 
 
+## Unit uid's strength (164): printed strength plus the training of working buildings on its station; 0 when idle or
+## not a unit in the tableau.
+func unit_strength(uid: int) -> int:
+	return Military.unit_strength(self, uid)
+
+
 ## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
 func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)
