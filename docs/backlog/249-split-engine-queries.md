@@ -2,7 +2,7 @@
 id: 249
 title: Split GameEngine's read queries into EngineQueries
 type: feature
-status: red-review
+status: review
 branch: feat/249-split-engine-queries
 ---
 
@@ -12,12 +12,12 @@ enforces. GameEngine is a facade of read queries (~450 lines) and player actions
 (~250). Split it along that seam, with no behavior change, so engine work can keep adding queries.
 
 ## Acceptance criteria
-- [ ] AC1: `engine/engine_queries.gd` declares `class_name EngineQueries` and extends `EngineCore`; `GameEngine` extends
+- [x] AC1: `engine/engine_queries.gd` declares `class_name EngineQueries` and extends `EngineCore`; `GameEngine` extends
   `EngineQueries`. Every method GameEngine had stays callable on a `GameEngine` with the same signature.
-- [ ] AC2: The read queries (the methods under `# --- Queries ---` today: `turn_limit` through `supply_error`) are
+- [x] AC2: The read queries (the methods under `# --- Queries ---` today: `turn_limit` through `supply_error`) are
   declared in `engine_queries.gd` and not in `game_engine.gd`; `game_engine.gd` keeps `fork`, the actions with their
   `*_error` queries, and the internals.
-- [ ] AC3: Neither file reaches 500 lines (no `WARN` from the script-size test).
+- [x] AC3: Neither file reaches 500 lines (no `WARN` from the script-size test).
 
 ## Out of scope
 - Any behavior change, renaming a method, or moving logic into or out of the rules modules.
@@ -37,3 +37,8 @@ enforces. GameEngine is a facade of read queries (~450 lines) and player actions
 | AC3 | `test_engine_structure::test_both_files_are_under_the_soft_limit` |
 
 ## Log
+- 2026-10-03: The constants stay on GameEngine (test_research reads them with `get_script_constant_map`, which sees
+  only a script's own), so EngineQueries names them `GameEngine.X`. Three queries need the action side:
+  `playable_error` calls `CardPlay.error` directly (what `play_error` does), and `upkeep_forecast`, `hand_input_error`
+  and `supply_error` reach `fork` and `_blocked_error` through `_as_engine()`, self typed as the GameEngine it is.
+  Sizes: game_engine.gd 257, engine_queries.gd 450.

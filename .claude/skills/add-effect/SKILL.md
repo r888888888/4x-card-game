@@ -38,7 +38,7 @@ together, so the op's behavior reads in one place.
      `ctx.resources` / `ctx.zones` where relevant;
    - `apply(engine, source)` calls a **public helper on the engine**. Don't manipulate zones or
      resources directly from the effect, so that logging, signals and the play outcome stay in one place.
-     Add the helper to `engine/engine_core.gd` (`EngineCore`, `GameEngine`'s parent since 125) under
+     Add the helper to `engine/engine_core.gd` (`EngineCore`, at the root of `GameEngine`'s chain since 125) under
      "Helpers called by effects" if none fits; if the op changes
      something the `card_played` outcome reports (gained, vp, drawn, created, trashed), the helper records it
      there (`if not _outcome.is_empty(): …`, as `gain` and `create_card` do);
