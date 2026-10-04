@@ -2,7 +2,7 @@
 id: 257
 title: Raids wait for a large enough realm, warn 2 turns ahead and come further apart
 type: feature
-status: review
+status: done
 branch: feat/257-raid-pacing
 ---
 
