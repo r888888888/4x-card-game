@@ -548,11 +548,16 @@ Your people have one government at a time; its bonuses apply while it rules.
   famine below the Realm. The bot pays from the second turn with 2+ counters left or a starving upkeep ahead.
 - Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
   owes, after the draw, `pending()` `{kind: PENDING_RENEWAL, count, options}`: count = renewal + (Anarchy's turn − 1)
-  + the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options, the discard's cards but governments.
-  `renew(uid)` / `renew_error(uid)` trash one (−1 unrest); until done every other action is refused ("Anarchy: trash
-  2 cards from your discard first."). The Renewal overlay shows the discard pile; a click renews. The bot trashes the
-  card worth least (cost + 2 × VP, +4 building, +3 calms unrest, +3 explores/settles while land remains, +3 gains
-  insight). Real data: renewal 1, Mysticism +1.
+  + the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options: the hand's, deck's and discard's
+  cards but governments, by name then uid (255). `renew(uids)` / `renew_error(uids)` pay it at once, exactly count
+  distinct options, each trashed from wherever it is (−1 unrest each; the deck keeps its order); refusals: "Trash a
+  card from your hand, deck or discard (not a government).", "Each card can be trashed once.", "Choose 2 cards to
+  trash.". Until paid every other action is refused ("Anarchy: trash 2 cards from your hand, deck or discard
+  first."). The Renewal modal (`RenewalModal`, not dismissable) lists the options as a ledger: hover or Up/Down shows
+  a row's card, a click or Enter chooses it (its lamp lights, `ui.toggle.on`; again, `ui.toggle.off`; past the count
+  `ui.reject.locked`), and "Trash N cards" unlocks at the count. The bot trashes the count's cards worth least (cost
+  + 2 × VP, +4 building, +3 calms unrest, +3 explores/settles while land remains, +3 gains insight), ties by option
+  order. Real data: renewal 1, Mysticism +1.
 - Revolution (148, 155): `revolt()` declares one at any time (`GameState.revolt_pending`); Anarchy falls at the next
   turn's start, before upkeep, so its first turn has an Anarchy upkeep. No action used. `revolt_error()`: game over or
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",
