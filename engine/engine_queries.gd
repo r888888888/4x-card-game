@@ -361,6 +361,39 @@ func defense_parts(uid: int) -> Dictionary:
 	return Military.defense_parts(self, uid)
 
 
+## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
+func raid_target(uid: int) -> int:
+	return Military.raid_target(self, uid)
+
+
+## Each announced raid as {uid, target, strength, defense}, in the order drawn, with its target's current defence
+## (162); [] with no raid active.
+func raid_forecast() -> Array[Dictionary]:
+	return Military.raid_forecast(self)
+
+
+## Active raid uid's announcement, "Raiders will strike Hills next turn: 3 against your 0.", with the target's current
+## defence (162); "" for anything else.
+func raid_line(uid: int) -> String:
+	return Military.raid_line(self, uid)
+
+
+## Active raid uid's board tag, "Hills 3 vs 0" (162); "" for anything else.
+func raid_tag(uid: int) -> String:
+	return Military.raid_tag(self, uid)
+
+
+## Whether active raid uid's target is short of its strength now (162); false for anything else.
+func raid_short(uid: int) -> bool:
+	return Military.raid_short(self, uid)
+
+
+## The mark on settled territory uid while raids are aimed at it, "Raiders strike next turn: 3 vs 0" (one line each,
+## 162); "" when none is.
+func raid_warning(territory_uid: int) -> String:
+	return Military.raid_warning(self, territory_uid)
+
+
 ## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.
 func units_at(uid: int) -> Array[int]:
 	return Territories.units_at(self, uid)

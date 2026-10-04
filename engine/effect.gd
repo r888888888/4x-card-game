@@ -3,7 +3,12 @@ extends RefCounted
 ## Base class for card effects. Each op lives in engine/effects/ and is
 ## registered by name in EffectRegistry.
 
-const TRIGGERS: Array[String] = ["play", "upkeep", "start"]  # start: civilizations only, once at new_game
+const TRIGGERS: Array[String] = ["play", "upkeep", "start", "repel", "pillage"]  # start: civilizations only, once at
+## new_game; repel and pillage: raids only, when the raid strikes (162)
+## The triggers that resolve where nobody can choose or target, so they take only upkeep_ok ops (162).
+const UPKEEP_SAFE_TRIGGERS: Array[String] = ["upkeep", "repel", "pillage"]
+## The triggers only a raid's effects may use (162).
+const RAID_TRIGGERS: Array[String] = ["repel", "pillage"]
 
 var op: String = ""
 var trigger: String = "play"

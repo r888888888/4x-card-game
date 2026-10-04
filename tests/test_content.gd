@@ -126,7 +126,8 @@ func test_every_real_event_is_in_the_event_deck() -> void:
 	eq(unused, [] as Array[String], "events not in event_deck")
 
 
-## Backlog 144: gaining unrest is the only harm an event deals; an event may also calm it (lose unrest).
+## Backlog 144: gaining unrest is the only harm an event deals; an event may also calm it (lose unrest). A raid's
+## repel and pillage effects are exempt (162): announced a turn ahead, its harm can be answered.
 func test_real_events_harm_only_by_unrest() -> void:
 	var r := load_real()
 	var blank := 0
@@ -139,6 +140,8 @@ func test_real_events_harm_only_by_unrest() -> void:
 		else:
 			active += 1
 		for effect in def.effects:
+			if Effect.RAID_TRIGGERS.has(effect.trigger):
+				continue
 			if not EVENT_OPS.has(effect.op) and not (effect.op == "lose" and effect.get("resource") == "unrest"):
 				bad_ops.append("%s: %s" % [id, effect.op])
 	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score, grow or lose of unrest")

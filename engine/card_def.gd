@@ -12,6 +12,8 @@ const CIVILIZATION := "civilization"  # the civilization you play as; in its own
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
 const UNIT := "unit"  # stays in the tableau, homed on a territory where it uses a worker; stationed somewhere (160)
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT, UNIT]
+## The prefix of a raid effect's line by trigger (162).
+const RAID_PREFIXES := {"repel": "If repelled: ", "pillage": "If pillaged: "}
 ## Each modifier key's noun in card text, [singular, plural] (129).
 ## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
 ## since "pop" has no plural); [for a gain, for a loss].
@@ -46,6 +48,7 @@ var era := 1  # techs: the era whose research deck holds this tech (see the add_
 var prereq: String = ""  # techs: id of the tech that must be researched first (140)
 var eureka: Dictionary = {}  # techs: {card | tag, count, off}: off insight while the tableau holds count matches (141)
 var discard_turns := 1  # events: upkeeps the event stays active for
+var raid: Dictionary = {}  # events: {strength, targets, pop} when the event is a raid (162), else {}
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
 var flavor: String = ""  # civilizations, governments, techs, events: a line of history, shown in the details
@@ -107,6 +110,8 @@ func rules_text(card_db: Dictionary) -> String:
 				line = "⟳ " + line
 			elif e.trigger == "start":
 				line = "Start: " + line
+			elif RAID_PREFIXES.has(e.trigger):
+				line = RAID_PREFIXES[e.trigger] + line
 			if e.keyword != "":
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
@@ -123,7 +128,9 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append("Needs %s" % card_db[prereq].name)
 	if not eureka.is_empty():
 		parts.append(eureka_text(card_db))
-	if type == EVENT:
+	if not raid.is_empty():
+		parts.insert(0, raid_face_text())
+	elif type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
 
@@ -150,6 +157,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 			line = "Each upkeep: " + line
 		elif e.trigger == "start":
 			line = "When the game starts: " + line
+		elif RAID_PREFIXES.has(e.trigger):
+			line = RAID_PREFIXES[e.trigger] + line
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
@@ -167,7 +176,9 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append("Needs %s researched first." % card_db[prereq].name)
 	if not eureka.is_empty():
 		parts.append(eureka_text(card_db) + ".")
-	if type == EVENT:
+	if not raid.is_empty():
+		parts.insert(0, raid_text())
+	elif type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
 
@@ -184,6 +195,23 @@ func eureka_text(card_db: Dictionary) -> String:
 ## A unit's strength line (160): "Strength 2".
 func strength_text() -> String:
 	return "Strength %d" % strength
+
+
+## A raid's line on the card face (162): "Raid 3 (mountain/hills)", or "Raid 3" without targets.
+func raid_face_text() -> String:
+	if raid.targets.is_empty():
+		return "Raid %d" % raid.strength
+	return "Raid %d (%s)" % [raid.strength, "/".join(PackedStringArray(raid.targets.map(func(k): return k.replace("_", " "))))]
+
+
+## A raid's tooltip line (162): "Raid 3: strikes your least defended mountain or hills territory next turn" (any territory
+## without targets).
+func raid_text() -> String:
+	var names: PackedStringArray = []
+	for k in raid.targets:
+		names.append(k.replace("_", " "))
+	var where := " or ".join(names) + " territory" if not names.is_empty() else "territory"
+	return "Raid %d: strikes your least defended %s next turn" % [raid.strength, where]
 
 
 ## A building's or city's defence line (161): "Defence 2".

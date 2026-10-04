@@ -55,17 +55,20 @@ static func draw(e: GameEngine) -> void:
 	e._outcome = CardPlay.new_outcome(event.uid)
 	e._outcome.id = event.def.id
 	e._resolve(event, "play")
+	if Military.is_raid(event):
+		Military.announce(e, event)
 	var outcome := e._outcome
 	e._outcome = {}
 	e.event_drawn.emit(outcome)
 
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
-## skipped: Famine.after_feeding resolves it, and it ends when pop is fed (083).
+## skipped: Famine.after_feeding resolves it, and it ends when pop is fed (083). So are raids: they last until they
+## strike (Military.strike_raids, 162).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var active := e.zone("active_events")
 	for event in active.cards.duplicate():
-		if Famine.is_famine(e, event):
+		if Famine.is_famine(e, event) or Military.is_raid(event):
 			continue
 		e._resolve(event, "upkeep")
 		event.turns_left -= 1
