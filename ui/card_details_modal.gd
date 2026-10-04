@@ -5,9 +5,13 @@ extends Modal
 ## the board and blocks no engine action; while on top it takes every key. Esc, I or a click outside closes it.
 ## A hand card's details also offer Play (225), and a tech's from the Knowledge screen Research (229), each disabled
 ## with the engine's reason when it can't be done. A unit's in the realm offer Move… and Disband (163), likewise.
+## A supply pile's, opened from the supply screen, show the pile's price tag and copies left under the card and offer
+## Buy, disabled with the engine's reason on the footer's left when the pile can't be bought (259).
 
 ## Play was pressed on a hand card's details: the modal has closed, and view is the card to play.
 signal play_requested(view: CardView)
+## Buy was pressed on a supply pile's details: the modal has closed, and view is the pile card to buy from (259).
+signal buy_requested(view: CardView)
 ## Move… was pressed on a unit's details: the modal has closed, and uid is the unit to move (163).
 signal move_requested(uid: int)
 
@@ -21,6 +25,10 @@ var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidd
 var _move: Button
 var _disband: Button
 var _unit := -1  # the unit in the realm Move… and Disband act on (163); -1 when they are hidden
+var _buy: Button
+var _reason: Label  # why Buy is disabled, on the footer's left (259)
+var _pile: CardView  # the supply pile card Buy buys from; null when Buy is hidden
+var _column: VBoxContainer  # the pile's card, price tag and copies left in the aside; null unless a pile is on show
 
 
 ## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close and (for a
@@ -37,7 +45,14 @@ func _init(p_stack: ModalStack) -> void:
 	_body.custom_minimum_size = Vector2(BODY_MAX_WIDTH - Tokens.SPACE_6, 0)
 	_body.theme_type_variation = &"RichBody"
 	body.add_child(_body)
+	_reason = Label.new()
+	_reason.theme_type_variation = &"Refusal"
+	_reason.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reason.visible = false
+	footer.add_child(_reason)
 	add_footer_button(UIKit.button("Close (Esc)", close))
+	_buy = add_footer_button(UIKit.button("Buy", _on_buy), true)
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
 	_disband = add_footer_button(UIKit.button("Disband", _on_disband))
@@ -64,6 +79,26 @@ func unit_buttons() -> Array[Button]:
 	return [_move, _disband]
 
 
+## Test hook (259): the Buy button, hidden unless a supply pile's details are on show.
+func buy_button() -> Button:
+	return _buy
+
+
+## Test hook (259): the footer's reason Buy is disabled, hidden unless it is.
+func buy_reason() -> Label:
+	return _reason
+
+
+## Test hook (259): the pile's price tag in the aside, or null unless a supply pile's details are on show.
+func pile_tag() -> Control:
+	return _column.get_meta("tag") if _column != null else null
+
+
+## Test hook (259): the Label under the aside's price tag ("6 left"), or null unless a supply pile is on show.
+func pile_left() -> Label:
+	return _column.get_meta("left") if _column != null else null
+
+
 ## Test hook: the body text on show, without markup.
 func body_text() -> String:
 	return _body.get_parsed_text()
@@ -75,6 +110,12 @@ func open(view: CardView) -> void:
 	var details := Game.engine.card_details(view.uid)
 	_show(details if not details.is_empty() else Game.engine.def_details(view.card_id), view.card_id,
 		view if view.in_hand else null, -1, view.uid)
+
+
+## Opens the details of supply pile card_id from the supply screen, whose card is view: the pile's price tag and copies
+## left under the card, and Buy (259).
+func open_pile(view: CardView, card_id: String) -> void:
+	_show(Game.engine.def_details(card_id), card_id, null, -1, -1, view)
 
 
 ## Opens the live details of card, in whatever zone it is (the civilization modal's cards and deck tabs, 231).
@@ -95,11 +136,19 @@ func open_tech(card_id: String, uid: int) -> void:
 
 
 ## uid is the live card shown (-1 for a definition): a unit in the realm gets Move… and Disband.
-func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tech := -1, uid := -1) -> void:
+## pile is the supply pile card (259): Buy and the pile's tag and count.
+func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tech := -1, uid := -1,
+		pile: CardView = null) -> void:
 	if details.is_empty():
 		return
 	var e := Game.engine
 	_details = details
+	_pile = pile
+	_buy.visible = pile != null
+	var cant := e.buy_error(card_id) if pile != null else ""
+	_buy.disabled = cant != ""
+	_reason.text = cant
+	_reason.visible = cant != ""
 	_view = hand_view
 	_tech = tech
 	_research.visible = tech >= 0
@@ -114,9 +163,9 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		var block := e.unit_move_block(_unit)
 		_move.disabled = block != ""
 		_move.tooltip_text = block if block != "" else "March to another territory (an action)."
-		var cant := e.disband_error(_unit)
-		_disband.disabled = cant != ""
-		_disband.tooltip_text = cant if cant != "" else "Send it to your discard; its worker is freed."
+		var no := e.disband_error(_unit)
+		_disband.disabled = no != ""
+		_disband.tooltip_text = no if no != "" else "Send it to your discard; its worker is freed."
 	_play.visible = hand_view != null
 	if hand_view != null:
 		var error := e.playable_error(hand_view.uid)
@@ -137,8 +186,16 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 	var card := CardView.new()
 	card.setup(CardInstance.new(-1, e.card_db[card_id]), e.card_db, true)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	aside.custom_minimum_size = card.slot_size()
-	card.attach(aside)
+	_column = null
+	if pile == null:
+		aside.custom_minimum_size = card.slot_size()
+		card.attach(aside)
+	else:
+		_column = SupplyScreen.pile_column(card.slot_size())
+		aside.add_child(_column)
+		SupplyScreen.show_pile(_column, e, card_id)
+		aside.custom_minimum_size = _column.get_combined_minimum_size()
+		card.attach(_column.get_meta("slot"))
 	present()  # last among its siblings, so a screen added later (the new game screen) can't take its input (107)
 
 
@@ -147,6 +204,14 @@ func closed() -> void:
 	_view = null
 	_tech = -1
 	_unit = -1
+	_pile = null
+
+
+func _on_buy() -> void:
+	var view := _pile
+	close()
+	if view != null and is_instance_valid(view):
+		buy_requested.emit(view)
 
 
 func _on_move() -> void:
