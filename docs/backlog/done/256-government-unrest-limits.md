@@ -2,7 +2,7 @@
 id: 256
 title: Raise the governments' unrest limits so a run of bad events rarely forces Anarchy
 type: feature
-status: review
+status: done
 branch: feat/256-government-unrest-limits
 ---
 
