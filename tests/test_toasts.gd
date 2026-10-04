@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Toasts and the Log button's unread marker in the real main scene (backlog 116). The engine's noticed signal shows a
-## toast under the top bar (engine tests: the notice tests beside each scenario, e.g. test_famine). Hook: main.toasts
+## toast, a notification flag out of the rail since 250 (its place and look: test_notification_flags) (engine tests: the notice tests beside each scenario, e.g. test_famine). Hook: main.toasts
 ## (shown(): the toasts top to bottom, texts(): their text). Tweens are stepped by hand (step_tweens) to pass time.
 
 const TARGET_HINT := "Esc cancels."
@@ -36,32 +36,24 @@ func shown_button(root: Node, prefix: String) -> Button:
 
 # --- AC3: a notice shows a toast ---
 
-func test_a_notice_shows_a_toast_under_the_top_bar_for_toast_time() -> void:
+func test_an_information_notice_shows_a_flag_for_toast_time() -> void:
 	await with_game(false, func(main: Node):
 		check(toast_time() == 3.0, "Anim.TOAST_TIME is 3 s: %s" % toast_time())
-		notice("Famine! Pop went hungry.")
+		notice("Famine ends.")
 		await wait_frames()
-		eq(main.toasts.texts(), ["Famine! Pop went hungry."], "one toast")
-		await step_tweens(main, 0.5)  # past any slide in
-		var shown: Array = main.toasts.shown()
-		if shown.size() == 1:
-			var r: Rect2 = (shown[0] as Control).get_global_rect()
-			var centre: float = main.get_viewport_rect().size.x / 2
-			check(absf(r.get_center().x - centre) <= 2.0, "centred: %s, screen centre %s" % [r, centre])
-			var bar_bottom: float = shown_button(main, "Menu").get_parent().get_global_rect().end.y
-			check(r.position.y >= bar_bottom, "under the top bar (ends at %s): %s" % [bar_bottom, r])
-		await step_tweens(main, toast_time() - 0.5 - 0.2)
-		eq(main.toasts.texts(), ["Famine! Pop went hungry."], "still there just before TOAST_TIME")
+		eq(main.toasts.texts(), ["Famine ends."], "one flag (where it shows: test_notification_flags)")
+		await step_tweens(main, toast_time() - 0.2)
+		eq(main.toasts.texts(), ["Famine ends."], "still there just before TOAST_TIME")
 		await step_tweens(main, 1.0)
-		eq(main.toasts.texts(), [], "faded out and gone after it"))
+		eq(main.toasts.texts(), [], "gone after it"))
 
 
-func test_at_most_three_toasts_show_newest_on_top() -> void:
+func test_at_most_three_flags_show_newest_at_the_bottom() -> void:
 	await with_game(false, func(main: Node):
 		for text in ["A", "B", "C", "D"]:
 			notice(text)
 		await wait_frames()
-		eq(main.toasts.texts(), ["D", "C", "B"], "the oldest goes when a fourth arrives"))
+		eq(main.toasts.texts(), ["B", "C", "D"], "the oldest goes when a fourth arrives (250: newest at the bottom)"))
 
 
 func test_with_reduce_motion_toasts_fade_in_place() -> void:
@@ -148,21 +140,7 @@ func test_the_log_button_marks_lines_not_yet_seen() -> void:
 		eq(button.text, "Log", "a new game clears it"))
 
 
-# --- AC6: toasts never block play ---
-
-func test_toasts_ignore_the_mouse_and_never_take_focus() -> void:
-	await with_game(false, func(main: Node):
-		notice("Famine ends.")
-		await wait_frames()
-		var controls: Array = [main.toasts]
-		for toast in main.toasts.shown():
-			controls.append(toast)
-			controls.append_array(toast.find_children("*", "Control", true, false))
-		check(controls.size() > 1, "a toast")
-		for c: Control in controls:
-			eq(c.mouse_filter, Control.MOUSE_FILTER_IGNORE, "%s ignores the mouse" % c)
-			eq(c.focus_mode, Control.FOCUS_NONE, "%s takes no focus" % c))
-
+# --- AC6: toasts never block play (the mouse and focus: test_notification_flags, 250) ---
 
 func test_toasts_hide_while_the_menu_is_open_and_show_when_it_closes() -> void:
 	await with_game(false, func(main: Node):

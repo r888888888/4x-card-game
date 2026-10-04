@@ -36,7 +36,7 @@ var nav := Navigator.new()  # the open start screens, title first (103); empty w
 var knowledge: KnowledgeScreen  # the techs by era, a screen over the Realm (208)
 var territory_view: TerritoryView  # one territory in place of the Realm, opened by a click on it (101)
 var log_drawer: LogDrawer  # the game log, opened by L or the top bar's Log button (115)
-var toasts: Toasts  # notices and the targeting hint under the top bar (116)
+var toasts: Toasts  # notices and the targeting hint, as flags out of the rail (116, 250)
 var identity_modal: IdentityModal  # the civilization and government, from the sidebar (119, 202)
 var sidebar: Sidebar  # the right rail: the civilization and government (202)
 var vellum: Vellum  # over the play area while a card waits for one of several targets (210)
@@ -107,6 +107,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	_board.show()
 	log_drawer.clear()
 	log_drawer.close()
+	toasts.clear()  # an old game's flags, urgent ones included (250)
 	supply.close()
 	modals.close_all()  # an old game's event, details or tree
 	_drawn = {}
