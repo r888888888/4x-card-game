@@ -3,7 +3,7 @@ extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
 ## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
 ## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel),
-## IconButton (227), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
+## IconButton (227), a notification's Flag, FlagText and FlagClose (250), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
 ## BarHeading and DividerTab (241). A control takes one with
 ## theme_type_variation instead of its own overrides.
 
@@ -57,7 +57,32 @@ static func build() -> Theme:
 	_tech_tiles(t)
 	_identity_cards(t)
 	_tooltips(t)
+	_flags(t)
 	return t
+
+
+## A notification flag (250, guide §15.9): Flag, a RAISED strip in a 2 px ink rule open on its right (the rail's
+## side, where its hue bar sits flush), cut square on a hard plinth; FlagText its one line at the label size; FlagClose
+## its ×, flat text, ink on hover.
+static func _flags(t: Theme) -> void:
+	var strip := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_2)
+	strip.border_width_right = 0
+	strip.content_margin_left = Tokens.SPACE_3
+	strip.content_margin_right = Tokens.SPACE_0
+	strip.shadow_color = Palette.SHADOW
+	strip.shadow_offset = PLINTH
+	strip.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
+	strip.anti_aliasing = false
+	t.set_type_variation("Flag", "PanelContainer")
+	t.set_stylebox("panel", "Flag", strip)
+	_label(t, "FlagText", Tokens.TYPE_LABEL, Palette.TEXT, tabular(LABEL_FONT))
+	t.set_type_variation("FlagClose", "Button")
+	t.set_font_size("font_size", "FlagClose", Tokens.TYPE_BODY)
+	t.set_color("font_color", "FlagClose", Palette.TEXT_DIM)
+	for state in ["font_hover_color", "font_pressed_color", "font_focus_color"]:
+		t.set_color(state, "FlagClose", Palette.TEXT)
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:  # no box: it reads as a printed ×
+		t.set_stylebox(state, "FlagClose", StyleBoxEmpty.new())
 
 
 ## A tooltip, and the locked tip that uses the same types (187): a printed tab (233, guide §11.11), ink with sheet text

@@ -48,7 +48,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.log_drawer = LogDrawer.new()  # before the modals, which open over it and take the keys first
 	main.add_child(main.log_drawer)
 	main.log_drawer.unread_changed.connect(top_bar.set_log_unread)
-	main.toasts = Toasts.new(top_bar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
+	main.toasts = Toasts.new(main.sidebar, func(): return menu.is_open() or main.nav.depth() > 0 or main.modals.is_open() \
 		or main.era_sheet.is_open() or main.knowledge.is_open())
 	main.add_child(main.toasts)
 

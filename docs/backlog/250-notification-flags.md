@@ -2,7 +2,7 @@
 id: 250
 title: Notification flags out of the rail, as in the MCM specimen
 type: feature
-status: red-review
+status: in-progress
 branch: feat/250-notification-flags
 ---
 
@@ -73,3 +73,6 @@ Superseded by this item (116 AC3/AC6, 190 AC6): `test_toasts::test_a_notice_show
 ## Manual check
 
 ## Log
+- Test fix agreed with the user at green: `test_a_flag_slides_out_of_the_rail_and_rests_against_it` checked "wholly
+  behind the rail" after two frames (1/60 s), when the 200 ms slide is already ≈ 29% out. It now checks right after
+  the notice, before a frame passes, that the flag sits a full width right of its place; the rest is unchanged.

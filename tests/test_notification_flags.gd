@@ -46,13 +46,13 @@ func clip_of(main: Node, flag: Control) -> Control:
 func test_a_flag_slides_out_of_the_rail_and_rests_against_it() -> void:
 	await with_game(false, func(main: Node):
 		main.toasts.notice("Famine ends.")
-		await wait_frames()
 		var flag := only_flag(main)
 		if flag == null:
 			return
+		check(flag.position.x >= flag.size.x - 0.5,
+			"at first a full width right of its place, behind the rail: at %s, %s wide" % [flag.position.x, flag.size.x])
+		await wait_frames()
 		var rail: Rect2 = (main.sidebar as Control).get_global_rect()
-		check(flag.get_global_rect().position.x >= rail.position.x - 0.5,
-			"at first wholly behind the rail (left edge %s): %s" % [rail.position.x, flag.get_global_rect()])
 		var clip := clip_of(main, flag)
 		check(clip != null, "clipped by an ancestor")
 		if clip != null:
