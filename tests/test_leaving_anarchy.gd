@@ -113,7 +113,7 @@ func test_the_bot_restores_order_from_the_second_turn_with_2_counters_left() -> 
 	var first := fallen_engine()
 	first.resources["wealth"] = 30
 	ScriptedBot.take_turn(first, "baseline")
-	eq(ruling(first), "anarchy", "first turn: the bot can't")
+	check(first.anarchy() != -1, "first turn: the bot can't")
 	var second := second_turn_engine(5, 30)
 	ScriptedBot.take_turn(second, "baseline")
 	eq(second.anarchy(), -1, "3 counters left on the second turn: the bot pays")
@@ -121,14 +121,14 @@ func test_the_bot_restores_order_from_the_second_turn_with_2_counters_left() -> 
 	eq(second.pending(), {}, "and chooses a government")
 	var poor := second_turn_engine(5, 11)
 	ScriptedBot.take_turn(poor, "baseline")
-	eq(ruling(poor), "anarchy", "short of 12: the bot waits")
+	check(poor.anarchy() != -1, "short of 12: the bot waits")
 
 
 func test_with_1_counter_left_the_bot_pays_only_to_avoid_starving() -> void:
 	var calm := second_turn_engine(2, 30)
 	eq(calm.anarchy_counters(), 1, "1 counter left")
 	ScriptedBot.take_turn(calm, "baseline")
-	eq(ruling(calm), "anarchy", "it ends this turn anyway: the bot waits")
+	check(calm.anarchy() != -1, "it ends this turn anyway: the bot waits")
 	var hungry := second_turn_engine(2, 30, {"population": {"start": 6, "food_upkeep": 1, "vp_per_pop": 0,
 		"famine": FAMINE}})
 	hungry.resources["food"] = 0

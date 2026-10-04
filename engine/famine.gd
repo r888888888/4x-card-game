@@ -8,11 +8,7 @@ extends RefCounted
 
 ## The active Famine, or null.
 static func active(e: GameEngine) -> CardInstance:
-	var id: String = e.config.get("famine", {}).get("card", "")
-	for card in e.zone("active_events").cards:
-		if card.def.id == id:
-			return card
-	return null
+	return Events.find_active(e, e.config.get("famine", {}).get("card", ""))
 
 
 ## Whether event is the active Famine (Events.resolve_upkeep leaves it to after_feeding).

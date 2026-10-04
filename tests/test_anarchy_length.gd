@@ -10,7 +10,7 @@ extends "res://tests/lib/anarchy_case.gd"
 func test_anarchy_gets_counters_by_its_share_of_the_fallen_limit() -> void:
 	for row in [[5, 4], [2, 2], [1, 1], [0, 1]]:
 		var e := revolted_engine(row[0])
-		eq([ruling(e), e.anarchy_counters()], ["anarchy", row[1]], "Chiefs (limit 5), unrest %d" % row[0])
+		eq([e.anarchy() != -1, e.anarchy_counters()], [true, row[1]], "Chiefs (limit 5), unrest %d" % row[0])
 	eq(revolted_engine(3, ["altar"]).anarchy_counters(), 2, "Altar: limit 6, unrest 3: ⌈4 × 3 ÷ 6⌉")
 
 
@@ -40,7 +40,7 @@ func test_a_counter_comes_off_at_the_end_of_each_anarchy_turn() -> void:
 	var e := fallen_engine()
 	for left in [3, 2, 1]:
 		e.end_turn()
-		eq([ruling(e), e.anarchy_counters()], ["anarchy", left], "turn %d" % e.turn)
+		eq([e.anarchy() != -1, e.anarchy_counters()], [true, left], "turn %d" % e.turn)
 	e.end_turn()
 	eq(e.turn, 5, "the 4th Anarchy turn hasn't ended yet")
 	eq(e.anarchy(), -1, "the last counter came off: no Anarchy")
@@ -50,7 +50,7 @@ func test_a_counter_comes_off_at_the_end_of_each_anarchy_turn() -> void:
 func test_a_1_counter_anarchy_lasts_one_turn_and_the_next_upkeep_runs_under_the_chosen_government() -> void:
 	var e := revolted_engine(1)
 	var home := home_uid(e)
-	eq([e.turn, ruling(e), e.anarchy_counters()], [2, "anarchy", 1], "Anarchy rules turn 2 with 1 counter")
+	eq([e.turn, e.anarchy() != -1, e.anarchy_counters()], [2, true, 1], "Anarchy rules turn 2 with 1 counter")
 	eq(e.pop(home), 5, "turn 2 had an Anarchy upkeep (⟳ −1 pop)")
 	e.end_turn()
 	eq([e.turn, e.anarchy()], [2, -1], "the end of turn 2 ends it, before turn 3 starts")
@@ -67,7 +67,7 @@ func test_the_counter_comes_off_after_the_hand_limit_discard() -> void:
 		put_in_hand(e, "farm")
 	e.end_turn()
 	eq(e.pending().get("kind"), GameEngine.PENDING_DISCARD, "the discard comes first")
-	eq(ruling(e), "anarchy", "Anarchy still rules while the discard is owed")
+	check(e.anarchy() != -1, "Anarchy still rules while the discard is owed")
 	e.discard_card(first_in_hand(e))
 	eq([e.turn, e.anarchy(), e.pending().get("kind")], [2, -1, GameEngine.PENDING_GOVERNMENT],
 		"then the counter comes off and the choice is owed")

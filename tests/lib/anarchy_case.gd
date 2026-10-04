@@ -1,14 +1,15 @@
 extends "res://tests/lib/test_case.gd"
 ## Base class for Anarchy tests (backlogs 145, 146): fixture governments and cards, a config with the unrest block, and
 ## games that start or have fallen into Anarchy. Fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5),
-## Kings (limit 7), Anarchy (government, 1 action, ⟳ −1 pop), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
+## Kings (limit 7), Anarchy (event, +1 action, ⟳ −1 pop; 253), Fleeting (event, 2 turns), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
 ## Dawn (adds era 2), Lore (a tech) and Altar (building, unrest limit +1).
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
 const KINGS := {"id": "kings", "name": "Kings", "type": "government", "unrest_limit": 7}
-const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
+const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": {"actions": 1},
 	"effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]}
+const FLEETING := {"id": "fleeting", "name": "Fleeting", "type": "event", "discard": {"turns": 2}}  # 253: no Anarchy
 const FEAST := {"id": "feast", "name": "Feast", "type": "action", "tags": ["order"],
 	"effects": [{"op": "lose", "resource": "unrest", "amount": 2}]}
 const CALM := {"id": "calm", "name": "Calm", "type": "building",
@@ -16,7 +17,7 @@ const CALM := {"id": "calm", "name": "Calm", "type": "building",
 const DAWN := {"id": "dawn", "name": "Dawn", "type": "action", "effects": [{"op": "add_era", "era": 2}]}
 const LORE := {"id": "lore", "name": "Lore", "type": "tech", "cost": {"insight": 1}}
 const ALTAR := {"id": "altar", "name": "Altar", "type": "building", "modifiers": {"unrest_limit": 1}}
-const FIXTURES := [CHIEFS, KINGS, ANARCHY, FEAST, CALM, DAWN, LORE, ALTAR]
+const FIXTURES := [CHIEFS, KINGS, ANARCHY, FLEETING, FEAST, CALM, DAWN, LORE, ALTAR]
 const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3, "allowed_tag": "order"}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 const ONLY_ORDER := "Anarchy: only an order card can be played."

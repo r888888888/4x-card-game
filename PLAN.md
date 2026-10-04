@@ -528,15 +528,18 @@ Your people have one government at a time; its bonuses apply while it rules.
   be paid (it is only gained and lost)", `Fields.unpayable`).
 - Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, max_counters, era_unrest (0), allowed_tag
   ("")}`, only with unrest listed (`fallback` dropped in 154, `relief` in 155: unknown fields); `anarchy` is a
-  government that sets no `unrest_limit` and doesn't start. A turn that starts (after upkeep, feeding and era unlocks,
-  before the draw) with unrest at the limit falls: the government goes to the government deck (154) and the anarchy
-  card rules (`anarchy()` its uid, so `unrest_limit()` is -1). While it rules only `allowed_tag` cards play ("Anarchy:
-  only an order card can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or
-  researched."), and its `actions` and upkeep apply as any government's. Each added era adds `era_unrest` (capped).
+  event (253) with no `discard`, never in `event_deck` (it may carry a `quote`, as any event may). A turn that starts
+  (after upkeep, feeding and era unlocks, before the draw) with unrest at the limit falls: the government goes to the
+  government deck (154), the anarchy event joins `active_events` (`anarchy()` its uid) and no government rules
+  (`government()` -1, so `unrest_limit()` is -1). While it lasts only `allowed_tag` cards play ("Anarchy: only an order
+  card can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."),
+  `actions_per_turn()` is the actions modifier alone (the event's `modifiers: {actions: 1}` included, never below 1),
+  and its upkeep resolves with the other events' without counting it down. `event_counters(uid)` shows its counters
+  left on the board, and the sidebar names it in the government's place. Each added era adds `era_unrest` (capped).
 - Anarchy's length (155): it falls with ⌈max_counters × unrest ÷ L⌉ counters, 1 to max_counters, L the fallen
   government's `unrest_limit()` (`GameState.anarchy_limit`). `anarchy_counters()` is the counters left: calming lowers
   them for good (`EngineCore._unrest_lowered` → `Anarchy.calm`), never below 1 while it rules. One comes off at the end
-  of each Anarchy turn (after the hand-limit discard, in `TurnLoop.finish_turn`); at 0 the anarchy card goes to
+  of each Anarchy turn (after the hand-limit discard, in `TurnLoop.finish_turn`); at 0 the anarchy event goes to
   `removed` and the government choice is owed (154). From its second turn (`GameState.anarchy_turn`) `restore_order()`
   buys the rest off for c × (c + 1) wealth (`order_relief()`; `restore_order_error()`: "Order can't be restored on
   Anarchy's first turn.", the price short); the choice is owed at once. The Restore order button sits beside Relieve
@@ -554,7 +557,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   "There is no government to overthrow.". `revolt_forecast()` is the counters it would bring. The Revolt button sits
   beside Relieve famine and Restore order whenever you may revolt; its tooltip says Anarchy starts next turn and lasts
   about N turns. The bot weighs a revolt by lookahead (159, below). Real data: Calls for Reform (2 turns, renewal +1),
-  Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (1 action), 4 counters, era
+  Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (an event, +1 action), 4 counters, era
   unrest 3, drain 20%, Feast is the `order` card.
 - Anarchy's drain (156): config `unrest.drain_pct` (0–100, absent = 0). Each turn that starts under Anarchy (after any
   fall, before the draw) loses that share of stored food and wealth, rounded up (`Anarchy.drain`, logged as the Anarchy

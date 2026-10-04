@@ -101,10 +101,13 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	return true
 
 
-## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; -1
-## (unlimited) when no government rules or it sets none.
+## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; under
+## Anarchy with no government, the modifier alone (Anarchy's +1 included, 253); -1 (unlimited) when no government rules
+## or it sets none.
 static func actions_per_turn(e: GameEngine) -> int:
 	var gov := e.zone("government")
+	if gov.is_empty() and Anarchy.active(e) != null:
+		return maxi(1, Modifiers.total(e, Modifiers.ACTIONS))  # Anarchy's +1 action and the rest (253)
 	if gov.is_empty() or gov.cards[0].def.actions == 0:
 		return -1
 	return maxi(1, gov.cards[0].def.actions + Modifiers.total(e, Modifiers.ACTIONS))

@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Flavor for techs and events (backlog 215): a tech may carry a `flavor` line and a `quote` {text, by}, an event a
-## `flavor` line, as civilizations do (107). The details window shows them; card faces never do.
+## `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
 
 const FIRE := {"id": "fire", "name": "Fire", "type": "tech", "cost": {"insight": 1},
 	"flavor": "Fire, tamed.", "quote": {"text": "Knowledge is power.", "by": "Francis Bacon"}}
@@ -61,17 +61,6 @@ func test_an_event_may_have_flavor() -> void:
 	eq(active.size(), 1, "the Comet was drawn")
 	if active.size() == 1:
 		eq(e.card_details(active.cards[0].uid).get("flavor"), "The sky burned.", "flavor in the drawn event's card_details")
-
-
-# --- AC3: no quotes on events ---
-
-func test_a_quote_on_an_event_is_ignored_with_a_warning() -> void:
-	var event := with_field(COMET, "quote", {"text": "Look up.", "by": "An astronomer"})
-	var r := fixture_load([event])
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "card 'comet': 'quote' only applies to civilizations (ignored)")
-	var def: CardDef = r.cards["comet"]
-	eq([def.quote_text, def.quote_by], ["", ""], "the quote is dropped")
 
 
 # --- AC4: the same validation as a civilization's ---

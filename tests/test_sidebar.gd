@@ -86,8 +86,8 @@ func test_under_anarchy_the_sidebar_reads_anarchy() -> void:
 	if not main.event_modal().is_empty():
 		main.event_modal_ok_button().pressed.emit()
 	await wait_frames()
-	eq(gov_name(), "Anarchy", "precondition: Anarchy rules")
-	eq(main.sidebar.government_button.text, "ANARCHY ›", "the sidebar follows")
+	check(e.anarchy() != -1 and e.government() == -1, "precondition: Anarchy, no government (253)")
+	eq(main.sidebar.government_button.text, "ANARCHY ›", "the sidebar names Anarchy while no government rules")
 	close_at(main)
 
 

@@ -58,8 +58,10 @@ func refresh(e: GameEngine) -> void:
 	name_button.text = civ.cards[0].def.name if not civ.is_empty() else ""
 	name_button.visible = not civ.is_empty()
 	var gov := e.zone("government")
-	government_button.text = (gov.cards[0].def.name.to_upper() + " ›") if not gov.is_empty() else ""
-	government_button.visible = not gov.is_empty()
+	var ruler: String = gov.cards[0].def.name if not gov.is_empty() \
+		else e.card_db[e.anarchy_id()].name if e.anarchy() != -1 else ""  # 253: Anarchy, while no government rules
+	government_button.text = (ruler.to_upper() + " ›") if ruler != "" else ""
+	government_button.visible = ruler != ""
 
 
 ## Where a card leaving for the government flies to (the government a player just played).

@@ -30,6 +30,16 @@ static func add_era(e: GameEngine, n: int) -> void:
 	e._notice("  Era %d events added to the event deck." % n)
 
 
+## The active event with card id id (the Famine, Anarchy), or null; null for "".
+static func find_active(e: GameEngine, id: String) -> CardInstance:
+	if id == "":
+		return null
+	for card in e.zone("active_events").cards:
+		if card.def.id == id:
+			return card
+	return null
+
+
 ## Upkeeps left for active event uid (0 if uid isn't an active event).
 static func turns_left(e: GameEngine, uid: int) -> int:
 	var card := e.zone("active_events").find(uid)
@@ -64,13 +74,15 @@ static func draw(e: GameEngine) -> void:
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
 ## skipped: Famine.after_feeding resolves it, and it ends when pop is fed (083). So are raids: they last until they
-## strike (Military.strike_raids, 162).
+## strike (Military.strike_raids, 162). Anarchy resolves but isn't counted down: its counters end it (253).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var active := e.zone("active_events")
 	for event in active.cards.duplicate():
 		if Famine.is_famine(e, event) or Military.is_raid(event):
 			continue
 		e._resolve(event, "upkeep")
+		if Anarchy.is_anarchy(e, event):
+			continue
 		event.turns_left -= 1
 		if event.turns_left <= 0:
 			active.remove(event)

@@ -121,6 +121,8 @@ func test_every_real_event_is_in_the_event_deck() -> void:
 	for id in r.cards:
 		if id == r.config.famine.get("card", ""):  # 083: the Famine comes from hunger, never from the deck
 			continue
+		if id == r.config.get("unrest", {}).get("anarchy", ""):  # 253: Anarchy comes from unrest, never from the deck
+			continue
 		if r.cards[id].type == CardDef.EVENT and not r.config.get("event_deck", {}).has(id):
 			unused.append(id)
 	eq(unused, [] as Array[String], "events not in event_deck")
@@ -664,9 +666,9 @@ func test_every_eureka_counts_cards_the_player_can_get() -> void:
 
 
 
-func test_the_anarchy_government_has_flavor_and_a_quote() -> void:
+func test_the_anarchy_event_has_flavor_and_a_quote() -> void:
 	var anarchy: String = Game.engine.config.get("unrest", {}).get("anarchy", "")
-	check(anarchy != "", "the config names an Anarchy government")
+	check(anarchy != "", "the config names an Anarchy event")
 	if anarchy != "":
 		var def: CardDef = Game.engine.card_db[anarchy]
 		check(def.flavor != "", "Anarchy has flavor (205: the revolution's confirmation shows it)")

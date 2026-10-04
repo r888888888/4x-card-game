@@ -124,7 +124,7 @@ func test_an_unrest_event_reaching_the_limit_lets_the_turn_play_before_anarchy()
 	eq(e.resources.get("unrest"), 5, "Stir brought unrest to Chiefs' limit 5")
 	eq(ruling(e), "chiefs", "no Anarchy on the turn Stir is drawn")
 	e.end_turn()
-	eq(ruling(e), "anarchy", "still at the limit as turn 3 starts: Anarchy falls")
+	check(e.anarchy() != -1, "still at the limit as turn 3 starts: Anarchy falls")
 
 
 # --- AC6: under Anarchy the event comes after the drain and renewal ---
@@ -138,8 +138,8 @@ func test_an_event_drawn_under_anarchy_comes_after_the_drain_and_renewal() -> vo
 			put_in(e, id, "discard")
 		e.resources["unrest"] = 5
 		e.end_turn()
-		eq(ruling(e), "anarchy", "%s game: Anarchy fell at turn 2's start" % top)
-		eq(card_ids(e.zone("active_events")), [top], "%s game: the event is active" % top)
+		check(e.anarchy() != -1, "%s game: Anarchy fell at turn 2's start" % top)
+		eq(card_ids(e.zone("active_events")), ["anarchy", top], "%s game: the event is active beside Anarchy (253)" % top)
 		foods.append(e.resources.food)
 	eq(foods[0] - foods[1], 2, "Windfall's 2 food aren't drained")
 
@@ -150,7 +150,7 @@ func test_an_event_drawn_this_turn_adds_nothing_to_this_turns_renewal() -> void:
 		put_in(e, id, "discard")
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(card_ids(e.zone("active_events")), ["reform"], "Reform active")
+	eq(card_ids(e.zone("active_events")), ["anarchy", "reform"], "Reform active beside Anarchy (253)")
 	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
 	eq(e.pending().get("count"), 1, "1 + its first turn − 1, without Reform's +1")
 
@@ -172,7 +172,7 @@ func test_anarchy_burning_out_draws_the_next_event_once_the_government_is_chosen
 	var e := anarchy_events_engine({}, {"omen": 3}, [])
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(ruling(e), "anarchy", "Anarchy fell at turn 2's start")
+	check(e.anarchy() != -1, "Anarchy fell at turn 2's start")
 	var deck_size: int = e.zone("event_deck").size()
 	e.set_unrest(1)  # calmed to 1 counter: it burns out at the end of this turn
 	e.end_turn()
