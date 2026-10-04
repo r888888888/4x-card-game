@@ -291,6 +291,23 @@ static func _end(e: GameEngine, anarchy: CardInstance) -> void:
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 
 
+## The government choice's default (254): the config's starting government when it's in the government deck, else the
+## deck's first; -1 when no choice is owed.
+static func default_government(e: GameEngine) -> int:
+	if e.state.pending.get("kind", "") != GameEngine.PENDING_GOVERNMENT or e.zone("governments").is_empty():
+		return -1
+	var start: String = e.config.get("starting", {}).get("government", "")
+	var card := e.zone("governments").find_id(start) if start != "" else null
+	return card.uid if card != null else e.zone("governments").cards[0].uid
+
+
+## The government deck's uids for the choice (254): the default first, the rest in deck order.
+static func government_options(e: GameEngine) -> Array:
+	var first := default_government(e)
+	var rest: Array = e.zone("governments").cards.map(func(c): return c.uid).filter(func(u): return u != first)
+	return ([first] if first != -1 else []) + rest
+
+
 ## Why choose_government(uid) would refuse, or "" (154).
 static func choose_government_error(e: GameEngine, uid: int) -> String:
 	var owed := e._owed_error(GameEngine.PENDING_GOVERNMENT, "No government to choose.")

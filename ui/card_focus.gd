@@ -19,9 +19,9 @@ func _init(board: MainScreen) -> void:
 func row() -> Array[CardView]:
 	if _board.supply.is_open():
 		return _board.supply.views()
-	var kind := _board.pending_kind()
-	if kind == GameEngine.PENDING_EXPLORE:
-		return _board.views_in(_board.choices.reveal)
+	var choice := _choice_row()
+	if choice != null:
+		return _board.views_in(choice)
 	if _board.drag.targeting != null:
 		var targets: Array[CardView] = []
 		for uid in _board.drag.lit:
@@ -129,7 +129,18 @@ func move(step: int) -> void:
 		hand_index = i
 
 
-## Enter on the focused card: buy it (supply), keep it (explore choice), buy it (research), play onto it
+## The choice row the card focus moves through while a choice is owed: the explore reveal, or the government deck
+## (254: the default first); null otherwise.
+func _choice_row() -> Container:
+	match _board.pending_kind():
+		GameEngine.PENDING_EXPLORE:
+			return _board.choices.reveal
+		GameEngine.PENDING_GOVERNMENT:
+			return _board.choices.government_row
+	return null
+
+
+## Enter on the focused card: buy it (supply), keep it (explore choice, a government), buy it (research), play onto it
 ## (targeting), or play it, which starts targeting when it has several targets (same as a double-click).
 func activate() -> void:
 	var view := focused
@@ -138,7 +149,7 @@ func activate() -> void:
 	var drag := _board.drag
 	if _board.supply.is_open():
 		_board.supply.pick(view)
-	elif _board.pending_kind() == GameEngine.PENDING_EXPLORE or (drag.targeting != null and drag.lit.has(view.uid)):
+	elif _choice_row() != null or (drag.targeting != null and drag.lit.has(view.uid)):
 		_board.on_picked(view)
 	elif on_board and not _board.territory_view.is_open():
 		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its first card
@@ -166,13 +177,12 @@ func set_card(view: CardView, shown := true) -> void:
 		_board.hand_scroll.ensure_control_visible(view.slot)
 
 
-## After the board changes, keeps the focus somewhere sensible: on the first choice card while
-## choosing, else on the same hand card, or the one now in its place (or the new last card).
+## After the board changes, keeps the focus somewhere sensible: on the first choice card (the default government, 254)
+## while choosing, else on the same hand card, or the one now in its place (or the new last card).
 func sync() -> void:
 	if _board.supply.is_open():  # the focus stays on the pile card (or nothing) while buying
 		return
-	var kind := _board.pending_kind()
-	if kind == GameEngine.PENDING_EXPLORE:
+	if _choice_row() != null:
 		var choice := row()
 		if not choice.has(focused) and not choice.is_empty():
 			set_card(choice[0], FocusRing.keyboard)

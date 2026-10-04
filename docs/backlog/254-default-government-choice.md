@@ -2,7 +2,7 @@
 id: 254
 title: The government choice defaults to the starting government
 type: feature
-status: ready
+status: review
 branch: feat/254-default-government-choice
 ---
 
@@ -12,12 +12,12 @@ config's starting government (Chiefdom in the shipped data), so going back to it
 governments read as deliberate alternatives.
 
 ## Acceptance criteria
-- [ ] AC1: Given the government choice is owed and the government deck holds the config's `starting.government`, then
+- [x] AC1: Given the government choice is owed and the government deck holds the config's `starting.government`, then
   `default_government()` is that card's uid, and `pending().options` lists it first (the rest keep deck order).
-- [ ] AC2: Given the government choice is owed and the deck lacks the starting government (or the config sets none),
+- [x] AC2: Given the government choice is owed and the deck lacks the starting government (or the config sets none),
   then `default_government()` is the deck's first card's uid.
-- [ ] AC3: Given no government choice is owed, then `default_government()` is -1.
-- [ ] AC4: Given the government choice is owed, then every other action still refuses ("Choose a government first.")
+- [x] AC3: Given no government choice is owed, then `default_government()` is -1.
+- [x] AC4: Given the government choice is owed, then every other action still refuses ("Choose a government first.")
   and ending the turn doesn't skip the choice: the choice stays owed until `choose_government` succeeds.
 
 ## Out of scope
@@ -34,10 +34,23 @@ governments read as deliberate alternatives.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
+| AC1 | `test_default_government::test_the_default_government_is_the_starting_one_listed_first` |
+| AC2 | `test_default_government::test_without_a_starting_government_the_default_is_the_decks_first` |
+| AC3 | `test_default_government::test_with_no_choice_owed_there_is_no_default_government` |
+| AC4 | `test_government_deck::test_while_the_choice_is_owed_everything_else_refuses` (existing, already green) |
+| Design (overlay) | `test_default_government::test_the_government_overlay_lists_and_focuses_the_default_first` |
 
 ## Manual check
-- [ ] Let Anarchy burn out after a revolt from Kingship (or any government that isn't the starting one): the overlay
-  shows the starting government first and focused (ring after Tab); Enter chooses it.
+- [ ] `godot --path ../4x-254 -- --civ egypt --seed 5`: revolt from the civilization modal, end turns until Anarchy
+  burns out. The Government overlay shows Chiefdom first; press Tab (ring on Chiefdom), Left/Right moves between cards,
+  Enter chooses. With only Chiefdom in the deck, it's the one card.
 - [ ] Esc and clicking outside the overlay don't dismiss it.
 
 ## Log
+- Green: the overlay built its row from the deck zone, so `BoardViews.sync` orders the government row by
+  `pending().options`. The card focus only covered the explore choice: `CardFocus` now treats the government row as a
+  choice row too (Left/Right, Enter picks, the focus lands on its first card). Not in the spec's design notes, which
+  assumed it already did.
+- `default_government()` sits in `game_engine.gd` beside `choose_government`, as `engine_queries.gd` would pass 500
+  lines. Refactor: `Zone.find_id(id)` serves `Events.find_active` and the default.
+- Built on `feat/253-anarchy-as-event` (unmerged; this item's file was committed there): merge 253 first.

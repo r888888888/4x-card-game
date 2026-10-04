@@ -52,6 +52,10 @@ func sync(e: GameEngine) -> void:
 			views[t].set_raid_warning(e.raid_warning(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
+		if zone_name == "governments" and m.pending_kind() == GameEngine.PENDING_GOVERNMENT:  # the default first (254)
+			var options: Array = e.pending().options
+			cards = cards.duplicate()
+			cards.sort_custom(func(a: CardInstance, b: CardInstance): return options.find(a.uid) < options.find(b.uid))
 		for i in cards.size():
 			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
 			place(card, rows[zone_name], i, 0.0)

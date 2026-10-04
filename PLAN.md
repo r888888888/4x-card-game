@@ -499,11 +499,13 @@ Your people have one government at a time; its bonuses apply while it rules.
   `keyword` or act on their own territory (like a tech's). Config `starting.government` (optional, a government id)
   puts it in the `government` zone at `new_game`. `government()` is its uid, or -1.
 - Government deck (154): when Anarchy ends (burning out or `restore_order`), no government rules and `pending()` is
-  `{kind: PENDING_GOVERNMENT, options: the deck's uids}`; every other action refuses ("Choose a government first.").
+  `{kind: PENDING_GOVERNMENT, options: the deck's uids}`, `default_government()` first (254: the config's
+  starting government when it's in the deck, else the deck's first; -1 with no choice owed); every other action
+  refuses ("Choose a government first.").
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
-  first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck,
-  a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
+  first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
+  that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
 - Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
   `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
   owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every
