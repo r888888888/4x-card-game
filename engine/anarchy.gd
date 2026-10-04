@@ -16,11 +16,20 @@ const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
 const RENEW_ERROR := "Trash a card from your discard (not a government)."
 
 
-## The ruling Anarchy card, or null.
+## The active Anarchy event (253), or null.
 static func active(e: GameEngine) -> CardInstance:
 	var id: String = e.config.get("unrest", {}).get("anarchy", "")
-	var gov := e.zone("government")
-	return gov.cards[0] if id != "" and not gov.is_empty() and gov.cards[0].def.id == id else null
+	if id == "":
+		return null
+	for card in e.zone("active_events").cards:
+		if card.def.id == id:
+			return card
+	return null
+
+
+## Whether event is the active Anarchy (Events.resolve_upkeep resolves it without counting it down, 253).
+static func is_anarchy(e: GameEngine, event: CardInstance) -> bool:
+	return event != null and event == active(e)
 
 
 ## The start of a turn, before upkeep (155): a turn under Anarchy counts as its next; otherwise a revolution declared
@@ -189,7 +198,7 @@ static func revolt_summary(e: GameEngine) -> Array[String]:
 	var n := revolt_forecast(e)
 	out.append("Anarchy falls at the start of next turn.")
 	out.append("It lasts up to %d turn%s; calming shortens it." % [n, "" if n == 1 else "s"])
-	var actions: int = e.card_db[unrest.anarchy].actions
+	var actions: int = e.card_db[unrest.anarchy].modifiers.get(Modifiers.ACTIONS, 0)  # 253: an event's +N actions
 	var tag: String = unrest.get("allowed_tag", "")
 	var allowed := ("only %s cards can be played" % tag) if tag != "" else "no cards can be played"
 	out.append("%d action%s each turn; %s." % [actions, "" if actions == 1 else "s", allowed])
@@ -272,7 +281,7 @@ static func _fall(e: GameEngine) -> void:
 		fallen = old.def.name
 		e.zone("governments").add(old)
 	var anarchy := e._make_card(e.config.unrest.anarchy)
-	gov.add(anarchy)
+	e.zone("active_events").add(anarchy)
 	anarchy.counters = counters_for(e, e.state.anarchy_limit)
 	e.state.anarchy_turn = 1
 	e._notice("Anarchy!%s It lasts up to %d turn%s." % [" %s falls into your government deck." % fallen if fallen != ""
@@ -281,7 +290,7 @@ static func _fall(e: GameEngine) -> void:
 
 ## The Anarchy card leaves the game and no government rules until one is chosen from the government deck (154).
 static func _end(e: GameEngine, anarchy: CardInstance) -> void:
-	e.zone("government").remove(anarchy)
+	e.zone("active_events").remove(anarchy)
 	e.zone("removed").add(anarchy)
 	e.state.anarchy_turn = 0
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}

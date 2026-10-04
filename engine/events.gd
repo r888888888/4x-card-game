@@ -64,13 +64,15 @@ static func draw(e: GameEngine) -> void:
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
 ## skipped: Famine.after_feeding resolves it, and it ends when pop is fed (083). So are raids: they last until they
-## strike (Military.strike_raids, 162).
+## strike (Military.strike_raids, 162). Anarchy resolves but isn't counted down: its counters end it (253).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var active := e.zone("active_events")
 	for event in active.cards.duplicate():
 		if Famine.is_famine(e, event) or Military.is_raid(event):
 			continue
 		e._resolve(event, "upkeep")
+		if Anarchy.is_anarchy(e, event):
+			continue
 		event.turns_left -= 1
 		if event.turns_left <= 0:
 			active.remove(event)

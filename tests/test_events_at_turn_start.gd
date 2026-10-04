@@ -139,7 +139,7 @@ func test_an_event_drawn_under_anarchy_comes_after_the_drain_and_renewal() -> vo
 		e.resources["unrest"] = 5
 		e.end_turn()
 		check(e.anarchy() != -1, "%s game: Anarchy fell at turn 2's start" % top)
-		eq(card_ids(e.zone("active_events")), [top], "%s game: the event is active" % top)
+		eq(card_ids(e.zone("active_events")), ["anarchy", top], "%s game: the event is active beside Anarchy (253)" % top)
 		foods.append(e.resources.food)
 	eq(foods[0] - foods[1], 2, "Windfall's 2 food aren't drained")
 
@@ -150,7 +150,7 @@ func test_an_event_drawn_this_turn_adds_nothing_to_this_turns_renewal() -> void:
 		put_in(e, id, "discard")
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(card_ids(e.zone("active_events")), ["reform"], "Reform active")
+	eq(card_ids(e.zone("active_events")), ["anarchy", "reform"], "Reform active beside Anarchy (253)")
 	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
 	eq(e.pending().get("count"), 1, "1 + its first turn − 1, without Reform's +1")
 

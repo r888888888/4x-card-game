@@ -288,8 +288,8 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 
 
 ## Normalizes the unrest block (145) {anarchy, max_counters, era_unrest (default 0), allowed_tag (default
-## ""), renewal (147, only when given; 0 when absent), drain_pct (156, only when given: 0 to 100)}: only with unrest in resources; anarchy is a government (154: no fallback), and the anarchy card sets no
-## unrest_limit and isn't starting.government. Returns {} when invalid.
+## ""), renewal (147, only when given; 0 when absent), drain_pct (156, only when given: 0 to 100)}: only with unrest in
+## resources; anarchy is an event (253) with no discard, never in event_deck. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
 		errs.append("unrest: needs '%s' in resources" % GameEngine.UNREST)
@@ -299,20 +299,19 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 		return {}
 	var u_errs: Array[String] = []
 	var out := {}
-	for key in ["anarchy"]:
-		var id: Variant = raw.get(key)
-		if not raw.has(key):
-			u_errs.append("unrest.%s: missing (a government id)" % key)
-		elif not (id is String and cards.has(id)):
-			u_errs.append("unrest.%s: unknown card '%s'" % [key, id])
-		elif cards[id].type != CardDef.GOVERNMENT:
-			u_errs.append("unrest.%s: '%s' is not a government" % [key, id])
-		else:
-			out[key] = id
-	if out.has("anarchy") and cards[out.anarchy].unrest_limit > 0:
-		u_errs.append("unrest.anarchy: '%s' can't set unrest_limit (it rules whatever the unrest)" % out.anarchy)
-	if out.has("anarchy") and out.anarchy == config.starting.government:
-		u_errs.append("unrest.anarchy: '%s' can't be starting.government (unrest brings it)" % out.anarchy)
+	var id: Variant = raw.get("anarchy")
+	if not raw.has("anarchy"):
+		u_errs.append("unrest.anarchy: missing (an event id)")
+	elif not (id is String and cards.has(id)):
+		u_errs.append("unrest.anarchy: unknown card '%s'" % [id])
+	elif cards[id].type != CardDef.EVENT:
+		u_errs.append("unrest.anarchy '%s' is not an event" % id)
+	elif cards[id].has_discard:
+		u_errs.append("unrest.anarchy '%s' can't have a discard (Anarchy ends when its counters run out)" % id)
+	elif config.event_deck.has(id):
+		u_errs.append("unrest.anarchy '%s' can't be in event_deck (unrest brings it)" % id)
+	else:
+		out.anarchy = id
 	for key in [["max_counters", 1, null], ["era_unrest", 0, 0]]:
 		var n: Variant = Fields.as_int(raw.get(key[0], key[2]))
 		if typeof(n) != TYPE_INT or n < key[1]:

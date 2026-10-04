@@ -187,8 +187,8 @@
       ]
     },
     {
-      "id": "anarchy", "name": "Anarchy", "type": "government", "actions": 1,
-      "vp": 0, "tags": [],
+      "id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": { "actions": 1 },
+      "tags": [],
       "flavor": "When the old order breaks, no one rules and everyone does: granaries are thrown open, debts are burned, and whoever shouts loudest in the square decides each day anew.",
       "quote": { "text": "Things fall apart; the centre cannot hold; mere anarchy is loosed upon the world.", "by": "W. B. Yeats, The Second Coming" },
       "text": "1 action each turn. Only order cards can be played; nothing can be grown, bought or researched. Each turn it eats 20% of stored food and wealth. Lasts up to 4 turns, fewer the calmer the people; calming shortens it. From its second turn, buy order for 2, 6, 12 or 20 wealth with 1–4 turns left. When it ends, choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your discard (−1 unrest each).",

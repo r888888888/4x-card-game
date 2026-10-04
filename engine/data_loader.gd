@@ -24,7 +24,7 @@ const TYPE_FIELDS := {
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
-	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH],
+	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"discounts": [CardDef.CIVILIZATION],
@@ -471,7 +471,7 @@ static func _parse_modifiers(raw: Variant, errs: Array[String]) -> Dictionary:
 
 
 ## Reads a card's optional flavor line and quote {text, by} into def, each only on the types TYPE_FIELDS gives it
-## (civilizations and governments, 205; techs and, without a quote, events, 215).
+## (civilizations and governments, 205; techs and events, 215; an event's quote, 253: Anarchy's).
 static func _parse_flavor(c: Dictionary, def: CardDef, errs: Array[String]) -> void:
 	if c.has("flavor") and TYPE_FIELDS.flavor.has(def.type):
 		if c.flavor is String and c.flavor != "":
