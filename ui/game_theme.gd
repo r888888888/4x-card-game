@@ -379,7 +379,8 @@ static func _controls(t: Theme) -> void:
 			t.set_color(state, type, text)
 		t.set_color("font_disabled_color", type, Palette.TEXT_DISABLED)
 	t.set_stylebox("normal", "LineEdit", _box(Palette.FIELD, Palette.CONTROL_BORDER))
-	t.set_stylebox("focus", "LineEdit", focus_ring())
+	t.set_stylebox("focus", "LineEdit", StyleBoxEmpty.new())  # its caret shows the focus; Godot draws this box even when
+	# FocusRing hides the focus (251)
 	t.set_color("font_color", "LineEdit", Palette.TEXT)
 	_slider(t)
 

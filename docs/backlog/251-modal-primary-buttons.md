@@ -2,7 +2,7 @@
 id: 251
 title: Modal footers show their primary action in the signal colour
 type: feature
-status: red-review
+status: review
 branch: feat/251-modal-primary-buttons
 ---
 
@@ -32,7 +32,7 @@ orders the primary; it looks the same as the others.
   footer button is an `AccentButton` (at most one primary per view, none when there is nothing to do).
 - [x] AC5: Given Rename or Play is disabled by its engine error, then the primary key shows the disabled look (no
   `ACCENT` fill) and keeps its error tooltip.
-- [ ] AC6: Given the theme, then a `LineEdit` (the Rename field, the seed fields) draws no focus ring: its `focus`
+- [x] AC6: Given the theme, then a `LineEdit` (the Rename field, the seed fields) draws no focus ring: its `focus`
   stylebox draws nothing, in pointer and keyboard mode alike; its caret and selection show where typing goes. (Added
   2026-10-04: Godot draws a field's focus box even when FocusRing hides the focus, so Rename's field always showed the
   teal ring.)
@@ -68,6 +68,8 @@ orders the primary; it looks the same as the others.
 - [ ] Sidebar civilization card → Revolt…: Keep <government> plain, Revolt orange.
 - [ ] I on a playable hand card: Close (Esc) plain, Play orange; hover and press it: the border stays thick.
 - [ ] End turns until an event: OK (Enter) orange. Knowledge (T) → a tech: Learn orange.
+- [ ] Rename…'s field shows its caret and selected name but no teal ring, clicked open or tabbed into; so do the seed
+  fields in Settings and New game.
 - [ ] Settings, the civilization modal and the menu show no accent key in the footer.
 
 ## Log
@@ -75,3 +77,4 @@ orders the primary; it looks the same as the others.
   hover; disabled stays the plain 2 px disabled look.
 - Follow-up (not in this item): §7.1's heavier key sound for a primary (`ui.button.press` pitched −2), and the
   specimen's dashed disabled look.
+- AC6 added after review: fields draw no focus ring at all (keyboard mode too); the caret shows the focus.
