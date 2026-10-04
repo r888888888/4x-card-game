@@ -105,7 +105,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 		if engine.pending().get("kind", "") == GameEngine.PENDING_GOVERNMENT:
 			engine.choose_government(_pick_government(engine, strategy).uid)
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
-			engine.renew(_renewal_pick(engine))
+			engine.renew(_renewal_picks(engine))
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_EXPLORE:
 			engine.choose(engine.pending().options[0])
 		elif _restore_order(engine):
@@ -267,16 +267,16 @@ static func _rank(def: CardDef) -> Array:
 	return [def.actions, def.unrest_limit]
 
 
-## The renewal option worth least to keep (147, see _keep_value); a tie goes to the first in discard order.
-static func _renewal_pick(engine: GameEngine) -> int:
-	var best := -1
-	var best_value := 0
-	for uid in engine.pending().options:
-		var value := _keep_value(engine, engine.zone("discard").find(uid).def)
-		if best == -1 or value < best_value:
-			best = uid
-			best_value = value
-	return best
+## The count's renewal options worth least to keep (147, 255, see _keep_value); a tie goes to the earlier option.
+static func _renewal_picks(engine: GameEngine) -> Array:
+	var p := engine.pending()
+	var options: Array = p.options.duplicate()
+	var value := func(uid: int) -> int: return _keep_value(engine, engine.zone(engine.zone_of(uid)).find(uid).def)
+	options.sort_custom(func(a, b):
+		var va: int = value.call(a)
+		var vb: int = value.call(b)
+		return va < vb or (va == vb and p.options.find(a) < p.options.find(b)))
+	return options.slice(0, p.count)
 
 
 ## A rough worth of keeping def in the deck: its cost + 2 × VP, +4 for a building, +3 for a card that loses unrest,

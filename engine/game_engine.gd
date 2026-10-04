@@ -186,16 +186,16 @@ func revolt_summary() -> Array[String]:
 	return Anarchy.revolt_summary(self)
 
 
-## Why renew(uid) would refuse (147): renewal isn't pending, or uid isn't a discard card other than a government. ""
-## if it can.
-func renew_error(uid: int) -> String:
-	return Anarchy.renew_error(self, uid)
+## Why renew(uids) would refuse (147, 255): renewal isn't pending, a uid isn't an option (a hand, deck or discard
+## card other than a government), a uid comes twice, or there aren't exactly the count owed. "" if it can.
+func renew_error(uids: Array) -> String:
+	return Anarchy.renew_error(self, uids)
 
 
-## Trashes discard card uid for Anarchy's renewal: it leaves the game and unrest drops by 1 (147). False (and no
-## change) if renew_error says no.
-func renew(uid: int) -> bool:
-	return Anarchy.renew(self, uid)
+## Trashes cards uids for Anarchy's renewal, paying all of it at once: each leaves the game and unrest drops by 1
+## (147, 255). False (and no change) if renew_error says no.
+func renew(uids: Array) -> bool:
+	return Anarchy.renew(self, uids)
 
 
 ## Why restore_order would refuse: game over or a pending decision, no Anarchy, its first turn, or not enough wealth.
@@ -282,7 +282,7 @@ func _blocked_error(action: String) -> String:
 			return "Choose a territory first."
 		PENDING_RENEWAL:
 			var n: int = state.pending.count
-			return "Anarchy: trash %d card%s from your discard first." % [n, "" if n == 1 else "s"]
+			return "Anarchy: trash %d card%s from your hand, deck or discard first." % [n, "" if n == 1 else "s"]
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""

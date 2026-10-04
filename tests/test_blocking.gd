@@ -135,7 +135,7 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 	const OVER := "The game is over."
 	const EXPLORE := "Choose a territory first."
 	const DISCARD := "Discard down to 5 cards first."
-	const RENEWAL := "Anarchy: trash 1 card from your discard first."
+	const RENEWAL := "Anarchy: trash 1 card from your hand, deck or discard first."
 	const GOVERNMENT := "Choose a government first."
 	var states := {"nothing owed": blocking_engine()}
 	for scenario in scenarios():
@@ -187,7 +187,7 @@ func test_hand_input_error_names_what_blocks_picking_up_a_hand_card() -> void:
 	var expected := {
 		"explore": "Choose a territory first.",
 		"discard": "",
-		"renewal": "Anarchy: trash 1 card from your discard first.",
+		"renewal": "Anarchy: trash 1 card from your hand, deck or discard first.",
 		"government": "Choose a government first.",
 		"game over": "The game is over.",
 	}

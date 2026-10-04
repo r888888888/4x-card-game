@@ -14,7 +14,8 @@ extends RefCounted
 
 const PLAY_ERROR := "Anarchy: only an order card can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
-const RENEW_ERROR := "Trash a card from your discard (not a government)."
+const RENEW_ERROR := "Trash a card from your hand, deck or discard (not a government)."
+const RENEWAL_ZONES: Array[String] = ["hand", "deck", "discard"]  # what renewal may trash from (255)
 
 
 ## The active Anarchy event (253), or null.
@@ -126,33 +127,46 @@ static func start_renewal(e: GameEngine) -> void:
 		e.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": n}
 
 
-## The discard cards renewal may trash, in discard order: all but governments.
+## The cards renewal may trash (255): the hand, deck and discard but governments, by name then uid (so the draw
+## order stays hidden).
 static func renewal_options(e: GameEngine) -> Array[int]:
+	var cards: Array[CardInstance] = []
+	for zone_name in RENEWAL_ZONES:
+		cards.append_array(e.zone(zone_name).cards.filter(func(c): return c.def.type != CardDef.GOVERNMENT))
+	cards.sort_custom(func(a: CardInstance, b: CardInstance):
+		return a.def.name < b.def.name or (a.def.name == b.def.name and a.uid < b.uid))
 	var out: Array[int] = []
-	for card in e.zone("discard").cards:
-		if card.def.type != CardDef.GOVERNMENT:
-			out.append(card.uid)
+	out.assign(cards.map(func(c): return c.uid))
 	return out
 
 
-static func renew_error(e: GameEngine, uid: int) -> String:
+## Why renew(uids) would refuse, or "" (255): blocked, a uid that isn't an option, a uid twice, or not the count.
+static func renew_error(e: GameEngine, uids: Array) -> String:
 	var owed := e._owed_error(GameEngine.PENDING_RENEWAL, "Nothing to renew.")
 	if owed != "":
 		return owed
-	return "" if renewal_options(e).has(uid) else RENEW_ERROR
+	var options := renewal_options(e)
+	if uids.any(func(u): return not options.has(u)):
+		return RENEW_ERROR
+	if uids.any(func(u): return uids.count(u) > 1):
+		return "Each card can be trashed once."
+	var n: int = e.state.pending.count
+	return "" if uids.size() == n else "Choose %d card%s to trash." % [n, "" if n == 1 else "s"]
 
 
-static func renew(e: GameEngine, uid: int) -> bool:
-	if renew_error(e, uid) != "":
+## Trashes the cards uids from wherever they are, each calming 1 unrest, and pays the renewal (255). False (and no
+## change) if renew_error says no.
+static func renew(e: GameEngine, uids: Array) -> bool:
+	if renew_error(e, uids) != "":
 		return false
-	var card := e.zone("discard").find(uid)
-	e.zone("discard").remove(card)
-	e.zone("trashed").add(card)
-	e.state.pending.count -= 1
-	if e.state.pending.count == 0:
-		e.state.pending = {}
-	e._log("Renewal: trashed %s." % card.def.name)
-	e.lose(GameEngine.UNREST, 1, card)
+	e.state.pending = {}
+	for uid in uids:
+		var zone := e.zone(e.zone_of(uid))
+		var card := zone.find(uid)
+		zone.remove(card)
+		e.zone("trashed").add(card)
+		e._log("Renewal: trashed %s." % card.def.name)
+		e.lose(GameEngine.UNREST, 1, card)
 	e.changed.emit()
 	return true
 
@@ -202,7 +216,7 @@ static func revolt_summary(e: GameEngine) -> Array[String]:
 		out.append("Each turn it eats %d%% of stored food and wealth." % unrest.drain_pct)
 	if unrest.has("renewal"):
 		var r: int = unrest.renewal
-		out.append("Each turn: trash %d card%s, +1 per turn so far, from your discard (−1 unrest each)." % [r, "" if r == 1 else "s"])
+		out.append("Each turn: trash %d card%s, +1 per turn so far, from your hand, deck or discard (−1 unrest each)." % [r, "" if r == 1 else "s"])
 	out.append("When it ends, choose a government from your government deck.")
 	return out
 
