@@ -2,7 +2,7 @@
 id: 162
 title: Barbarian raids, announced a turn ahead
 type: feature
-status: in-progress
+status: review
 branch: feat/162-barbarian-raids
 ---
 
@@ -69,6 +69,7 @@ forecast, with no choice during upkeep. Follows 161.
 | AC8 | `test_raids::test_raid_line_tag_and_shortfall_for_the_ui`, `test_the_strike_notice_says_what_it_cost_or_gave`, `test_raid_text` (face line) |
 
 ## Manual check
+Run `godot --path . -- --seed 5` and end turns until a raid is drawn (or put one on top of the event deck).
 - [ ] Shipped era-1 raids in `event_deck`: Raiders (strength 2, grassland/desert; pillage −2 food, +1 unrest; repel
   +2 wealth, −1 unrest), Sea Raiders (3, coastal; pillage −3 wealth), Hill Tribes (3, hills/mountain; pillage −2 food,
   −1 wealth).
@@ -86,5 +87,10 @@ forecast, with no choice during upkeep. Follows 161.
   `territory_uid`, so `CardInstance.copy` carries it. Repelled means defence ≥ strength. `units_lost` lists uids.
 - UI: the event modal shows `raid_line` in place of "Lasts"; an active raid's board face shows `raid_tag` where turns
   left go (Palette.WARN while `raid_short`); the target territory's card carries `raid_warning` in its bottom strip.
-- Content held back: the shipped raids' pillage effects (lose food or wealth) break `test_content::
-  test_real_events_harm_only_by_unrest` (144: an event harms only by unrest). Waiting on the user before narrowing it.
+- Content: the shipped raids' pillage effects (lose food or wealth) broke `test_content::
+  test_real_events_harm_only_by_unrest` (144: an event harms only by unrest). The user chose to exempt raids' `repel`
+  and `pillage` effects (announced a turn ahead, the harm can be answered); the invariant still holds for every
+  event's play and upkeep effects.
+- Changed tests: `test_content::test_real_events_harm_only_by_unrest` (above).
+- Balance worry: Raiders often hit the Homeland on turn 3 before any unit is affordable; Capital defence 2 covers
+  strength 2, so the Sea Raiders and Hill Tribes (3) are the real early threat. Check in a balance item.

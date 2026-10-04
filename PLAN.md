@@ -418,6 +418,18 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   `event_discard`, so a 1-turn event is active for the turn it is drawn and gives exactly one upkeep, at the next
   turn's start. An unrest event that reaches the limit leaves a turn to calm before the Anarchy check. `event_turns_left(uid)` reads it; the forecast
   includes active events.
+- Raids (162): an event may set `raid` `{strength (≥ 1), targets (config keywords, optional), pop (≥ 0, default 1)}`
+  (never with `discard`), and only a raid's effects may use the triggers `repel` and `pillage` (upkeep-safe ops only).
+  When drawn it is announced: its play effects resolve and its target is fixed (`raid_target(uid)`, kept in the
+  event's `territory_uid`) on the settled territory with any of `targets` (all of them when none has one) with the
+  lowest `defense`, then the most pop, then tableau order. It skips upkeep and at the next turn's event phase, before
+  the new event is drawn, it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
+  pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
+  goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, target, strength, defense, repelled, units_lost,
+  pop_lost, gained, lost, vp}`. A raid drawn on the final turn never strikes. `raid_forecast()` lists the announced
+  raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
+  Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
+  `Military`.
 - Code: `engine/events.gd`.
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
