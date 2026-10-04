@@ -277,13 +277,13 @@ func _show_outlines(n: int) -> void:
 		row.move_child(outline, -1)
 
 
-## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W" (free slots, pop / housing, free workers), or "▢ F" with
-## population off. The card in the Realm and the view's header both show it.
+## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence 161), or
+## "▢ F   ⛨ D" with population off. The card in the Realm and the view's header both show it.
 static func stats(e: GameEngine, t: int) -> String:
 	var s := e.territory_status(t)
 	if not e.population_on():
-		return "▢ %d" % s.free_slots
-	return "▢ %d   ⌂ %d/%d   ⚒ %d" % [s.free_slots, s.pop, s.housing, s.free_workers]
+		return "▢ %d   ⛨ %d" % [s.free_slots, e.defense(t)]
+	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [s.free_slots, s.pop, s.housing, s.free_workers, e.defense(t)]
 
 
 ## The pop meter's pips in order (124); none with population off.

@@ -2,7 +2,7 @@
   "cards": [
     {
       "id": "capital", "name": "Capital", "type": "city",
-      "cost": {}, "vp": 2, "slots": 3, "tags": ["city"],
+      "cost": {}, "vp": 2, "slots": 3, "tags": ["city"], "defense": 2,
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -11,7 +11,7 @@
     },
     {
       "id": "city", "name": "City", "type": "city",
-      "cost": {}, "vp": 2, "tags": ["city"],
+      "cost": {}, "vp": 2, "tags": ["city"], "defense": 1,
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -21,6 +21,10 @@
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain" }
       ]
+    },
+    {
+      "id": "palisade", "name": "Palisade", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["wall"], "defense": 2
     },
     {
       "id": "warriors", "name": "Warriors", "type": "unit",

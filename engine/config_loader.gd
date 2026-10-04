@@ -6,7 +6,7 @@ extends RefCounted
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
@@ -17,7 +17,8 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
-## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145)}.
+## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
+## terrain_defense: {keyword: int}, the defence each keyword gives a territory (161), {} when there is none}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -129,6 +130,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	_check_unlocks(config, cards, errs)
 	_check_start_buildings(config, cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, config.terrains, errs)
+	config.terrain_defense = _parse_terrain_defense(raw.get("terrain_defense", {}), config.keywords + config.resource_keywords, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
 	config.era_names = _parse_era_names(raw.get("era_names", {}), errs)
@@ -461,6 +463,23 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 			valid = false
 		if valid:
 			out[id] = {"price": Fields.as_int(entry.price), "count": Fields.as_int(entry.count), "locked": locked}
+	return out
+
+
+## Normalizes terrain_defense {keyword: int >= 1} (161): each key a config keyword or resource keyword.
+static func _parse_terrain_defense(raw: Variant, keywords: Array[String], errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'terrain_defense' must be an object like {\"mountain\": 1}")
+		return out
+	for k in raw:
+		var n: Variant = Fields.as_int(raw[k])
+		if not keywords.has(k):
+			errs.append("terrain_defense: unknown keyword '%s'" % k)
+		elif typeof(n) != TYPE_INT or n < 1:
+			errs.append("terrain_defense: '%s' must be an integer >= 1" % k)
+		else:
+			out[k] = n
 	return out
 
 

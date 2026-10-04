@@ -4,6 +4,7 @@
     "grassland", "forest", "hills", "mountain", "desert", "marsh",
     "fresh_water", "coastal", "flood_plain"
   ],
+  "terrain_defense": { "hills": 1, "mountain": 2, "marsh": 1, "forest": 1 },
   "terrains": ["grassland", "forest", "hills", "mountain", "desert", "marsh"],
   "resource_keywords": ["gold", "tin", "copper"],
   "turn_limit": 100,
@@ -42,6 +43,7 @@
     "quarry": { "price": 2, "count": 6 },
     "shrine": { "price": 2, "count": 6 },
     "warriors": { "price": 2, "count": 6 },
+    "palisade": { "price": 3, "count": 6 },
     "granary": { "price": 2, "count": 12, "locked": true },
     "pasture": { "price": 2, "count": 6, "locked": true },
     "mine": { "price": 2, "count": 6, "locked": true },
