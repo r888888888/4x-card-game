@@ -153,6 +153,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_growth.gd` | Buying growth: `grow`, `grow_error`, `grow_cost` |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
+| `tests/test_unit_moves.gd` | Moving and disbanding units (163): `move_unit` (station only, once a turn, no action), `disband` (to the discard, worker freed), their error queries; a local `MOVE_UNITS` fixture (Levy) and `move_engine` |
 | `tests/test_units.gd` | Unit cards (160): the `unit` type and `strength` (loading, fixed-land errors, decks), recruiting onto a home (`unit_station`), units using a worker but no slot, targets, idle units after earlier buildings, card text and score; a local `TEST_UNITS` fixture (Levy) and `unit_engine` |
 | `tests/test_defence.gd` | Territory defence (161): `defense` on buildings and cities, config `terrain_defense`, `defense` / `defense_parts` (units on their station, working walls, cities, terrain keywords rolled ones included), idle cards, card text, the territory tooltip's breakdown; a local `TEST_DEFENCE` fixture (Levy, Palisade, Town) and `defence_engine` |
 | `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, `day_mode` (183) and `civilization`, `Settings.set_day_mode`, `civilization_in` fallback, bad or missing files |

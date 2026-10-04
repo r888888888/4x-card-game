@@ -44,6 +44,10 @@ func actions() -> Array:
 		["revolt", func(e): return e.revolt_error(), func(e): return e.revolt()],
 		["rename_territory", func(e): return e.call("rename_territory_error", home_uid(e), "Delta"),
 			func(e): return e.call("rename_territory", home_uid(e), "Delta")],
+		["move_unit", func(e): return e.call("move_unit_error", first_in(e, "tableau"), home_uid(e)),
+			func(e): return e.call("move_unit", first_in(e, "tableau"), home_uid(e))],
+		["disband", func(e): return e.call("disband_error", first_in(e, "tableau")),
+			func(e): return e.call("disband", first_in(e, "tableau"))],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
 	]
 

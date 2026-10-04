@@ -2,7 +2,7 @@
 id: 163
 title: Move and disband units
 type: feature
-status: ready
+status: red-review
 branch: feat/163-move-and-disband-units
 ---
 
@@ -38,6 +38,11 @@ territory. Disbanding frees that worker; no pop moves. Follows 160 and 162.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_unit_moves::test_moving_a_unit_changes_only_its_station` |
+| AC2 | `test_unit_moves::test_a_unit_moves_once_a_turn`, `test_moves_this_turn_survive_a_fork` |
+| AC3 | `test_unit_moves::test_move_unit_error_reasons`; `test_blocking` rows for `move_unit` |
+| AC4 | `test_unit_moves::test_disbanding_a_unit_frees_its_worker_and_its_strength`, `test_disband_error_reasons`; `test_blocking` rows for `disband` |
+| AC5 | `test_raids::test_163_a_unit_moved_onto_the_target_defends_it`, `test_163_a_unit_moved_off_the_target_doesnt_defend_it`, `test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home` |
 
 ## Manual check
 - [ ] Drag a unit from the territory view onto another territory in the Realm row to move it; the moved unit shows on
