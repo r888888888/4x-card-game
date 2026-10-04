@@ -1,19 +1,9 @@
 extends "res://tests/lib/test_case.gd"
 ## Notice priorities (190): the engine's three priorities, and the toast that hears and shows them in the real
-## main.tscn (a bell pattern each, a hue bar on its left edge, an urgent toast staying twice as long). Each notice's
+## main.tscn (a bell pattern each, a hue bar on its rail side; how long a flag stays: test_notification_flags, 250). Each notice's
 ## priority is checked beside its scenario (check_noticed in test_famine, test_anarchy, test_revolution, …).
 
 const PRIORITIES := [[&"info", &"INSIGHT"], [&"caution", &"WEALTH"], [&"urgent", &"WARN"]]
-
-
-## Advances every running tween by seconds, in 0.05 s steps, then lets freed nodes go.
-func step_tweens(main: Node, seconds: float) -> void:
-	var t := 0.0
-	while t < seconds:
-		for tween in main.get_tree().get_processed_tweens():
-			tween.custom_step(0.05)
-		t += 0.05
-	await wait_frames()
 
 
 func open_game() -> Node:
@@ -49,11 +39,11 @@ func test_each_toast_carries_its_priority_as_a_hue_bar() -> void:
 	var main: Node = await open_game()
 	for p in PRIORITIES:
 		main.toasts.notice("A %s notice." % p[0], p[0])
-	eq(main.toasts.priorities(), [GameEngine.NOTICE_URGENT, GameEngine.NOTICE_CAUTION, GameEngine.NOTICE_INFO],
-		"the toasts' priorities, top (newest) first")
+	eq(main.toasts.priorities(), [GameEngine.NOTICE_INFO, GameEngine.NOTICE_CAUTION, GameEngine.NOTICE_URGENT],
+		"the flags' priorities, top to bottom (250: newest at the bottom)")
 	var shown: Array = main.toasts.shown()
 	for i in shown.size():
-		var want: Array = PRIORITIES[shown.size() - 1 - i]
+		var want: Array = PRIORITIES[i]
 		eq(main.toasts.bar_role(shown[i]), want[1], "a %s toast's bar" % want[0])
 	eq((Toasts as Script).get_script_constant_map().get("BAR_WIDTH"), 4, "4 px")
 	close_main(main)
@@ -67,14 +57,4 @@ func test_the_engines_notice_reaches_the_toast_with_its_priority() -> void:
 	close_main(main)
 
 
-# --- AC6: urgent stays longer ---
-
-func test_an_urgent_toast_stays_twice_as_long() -> void:
-	var main: Node = await open_game()
-	main.toasts.notice("Order restored.", GameEngine.NOTICE_INFO)
-	main.toasts.notice("Revolution! Anarchy begins next turn.", GameEngine.NOTICE_URGENT)
-	await step_tweens(main, Anim.TOAST_TIME + 0.5)
-	eq(main.toasts.priorities(), [GameEngine.NOTICE_URGENT], "after TOAST_TIME the information has gone, the urgent stays")
-	await step_tweens(main, Anim.TOAST_TIME)
-	eq(main.toasts.priorities(), [], "after twice TOAST_TIME it has gone too")
-	close_main(main)
+# --- AC6: urgent stays longer (until dismissed since 250: test_notification_flags) ---
