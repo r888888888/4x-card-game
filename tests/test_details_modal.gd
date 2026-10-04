@@ -171,3 +171,24 @@ func test_research_button_is_hidden_for_supply_pile_details() -> void:
 		main.details.open(piles[0])
 		check(not main.details.research_button().visible, "no Research for a supply pile")
 	close_main(main)
+
+
+# --- Backlog 259: Buy, its reason and the pile's tag show only for a supply pile's details. ---
+
+## Asserts main's details offer no Buy, no reason, and no price tag or count; what names the details.
+func assert_no_buy(main: Node, what: String) -> void:
+	var d = main.details
+	check(not d.buy_button().visible, "no Buy for " + what)
+	check(not d.buy_reason().visible, "no reason for " + what)
+	check(d.pile_tag() == null and d.pile_left() == null, "no tag or count for " + what)
+
+
+func test_buy_and_the_pile_tag_are_absent_outside_a_supply_pile() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		main.details.open(main.views[hand_card("study")])
+		assert_no_buy(main, "a hand card")
+		main.details.open(main.views[home_uid(e)])
+		assert_no_buy(main, "a Realm card")
+		main.details.open_tech("study", -1)
+		assert_no_buy(main, "a tech"))

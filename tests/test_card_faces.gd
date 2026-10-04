@@ -193,7 +193,7 @@ func test_a_card_bought_on_the_supply_screen_doesnt_squash() -> void:
 			main.supply.open(Game.engine)
 			await (Engine.get_main_loop() as SceneTree).create_timer(Anim.POP_IN_TIME + 0.2).timeout  # piles popped in
 			var pile: CardView = main.supply.views()[0]
-			main.supply.pick(pile)
+			main.supply.buy(pile)
 			var largest := 0.0
 			for i in 30:
 				largest = maxf(largest, pile.fx_scale.distance_to(Vector2.ONE))

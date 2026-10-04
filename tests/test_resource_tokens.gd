@@ -196,7 +196,7 @@ func test_closing_the_supply_screen_after_buying_shows_no_top_bar_tag() -> void:
 	await with_token_main(func(main: Node):
 		main.supply.open(Game.engine)
 		await wait_frames()
-		main.supply.pick(main.supply.views()[0])
+		main.supply.buy(main.supply.views()[0])
 		step_tweens(main, LONG)
 		main.supply.close()
 		await wait_frames()
@@ -213,7 +213,7 @@ func test_buying_rolls_the_supply_screens_wealth_down_with_no_tag() -> void:
 		main.supply.open(Game.engine)
 		await wait_frames()
 		var counter: Control = main.supply.counter(GameEngine.WEALTH)
-		main.supply.pick(main.supply.views()[0])
+		main.supply.buy(main.supply.views()[0])
 		await wait_frames()
 		eq(counter.figure().value, START - 3, "the screen's wealth figure rolls 20 → 17")
 		var tags := []
