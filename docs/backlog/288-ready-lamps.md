@@ -2,7 +2,7 @@
 id: 288
 title: Light a lamp on Knowledge and Buy Cards when something new can be bought
 type: feature
-status: ready
+status: red-review
 branch: feat/288-ready-lamps
 ---
 
@@ -78,7 +78,13 @@ for a supply pile. Rules tests use `TEST_CARDS` + `make_engine`.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_ready_lamps::test_a_tech_becoming_learnable_lights_the_tech_lamp`, `test_ready_techs_are_in_research_deck_order` |
+| AC2 | `test_ready_lamps::test_seeing_the_techs_puts_the_lamp_out_while_nothing_new_is_learnable` |
+| AC3 | `test_ready_lamps::test_a_tech_not_learnable_when_seen_relights_the_lamp`, `test_after_seeing_nothing_any_learnable_tech_lights_the_lamp` |
+| AC4 | `test_ready_lamps::test_a_tech_whose_prereq_is_missing_lights_nothing_until_it_is_met`, `test_a_pending_choice_keeps_the_lamps_dark_until_it_is_made`, `test_a_finished_game_lights_nothing`; `test_anarchy::test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules` |
+| AC5 | `test_ready_lamps::test_a_pile_becoming_buyable_lights_the_supply_lamp`, `test_seeing_the_supply_puts_the_lamp_out_until_a_new_pile_is_buyable`, `test_a_sold_out_or_locked_pile_lights_nothing` (and the pending, game-over and Anarchy tests above) |
+| AC6 | `test_ready_lamps::test_a_copy_reports_the_same_lamps_and_seeing_on_it_leaves_the_original`, `test_a_new_game_starts_with_nothing_seen`, `test_seeing_changes_no_resource_log_or_zone` |
+| AC7 | `test_ready_lamp_keys::test_the_keys_lamps_follow_the_engine`, `test_opening_knowledge_sees_the_techs_and_puts_its_lamp_out`, `test_closing_knowledge_sees_what_became_learnable_while_it_was_open`, `test_opening_the_supply_sees_the_piles_and_puts_its_lamp_out`, `test_closing_the_supply_sees_what_became_buyable_while_it_was_open` |
 
 ## Manual check
 - [ ] Night and Day: the dark lamp reads as an unlit well; the lit lamp matches the specimen's lit "Learn Pottery"
