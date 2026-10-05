@@ -1,7 +1,7 @@
 extends SceneTree
 ## Minimal test runner (no addon needed). Finds every tests/**/test_*.gd file and
-## runs each test_* method on a fresh instance. Use scripts/test.sh rather than
-## calling this directly; it also re-imports new classes and catches script errors.
+## runs each test_* method on a fresh instance (one that takes arguments fails, uncalled: 284).
+## Use scripts/test.sh rather than calling this directly; it also re-imports new classes and catches script errors.
 ##   godot --headless --fixed-fps 120 --path . --script res://tests/run_tests.gd [-- [--balance] <filter>]
 ## <filter> is a substring of "file::method", e.g. "rules" or "test_create_card".
 ## tests/balance/ (real-data sim runs) is left out; --balance runs only it.
@@ -17,6 +17,7 @@ const TEST_ROOT := "res://tests"
 const BALANCE_ROOT := "res://tests/balance"
 const RUN_SETTINGS := "user://test_run_settings.cfg"  # the settings every test starts on (195)
 const TestShards := preload("res://tests/lib/test_shards.gd")
+const TestMethods := preload("res://tests/lib/test_methods.gd")
 const SettingsWatch := preload("res://tests/lib/settings_watch.gd")
 const PLAYER_SETTINGS := SettingsWatch.PLAYER_SETTINGS
 
@@ -62,11 +63,10 @@ func _initialize() -> void:
 			failures.append("%s: failed to load (parse error? see output above)" % path)
 			continue
 		var file_label := path.get_file().get_basename()
-		for m in script.get_script_method_list():
-			var method_name: String = m.name
+		var picked := TestMethods.select(script, file_label, filter)
+		failures.append_array(picked.failures)
+		for method_name: String in picked.run:
 			var test_name := "%s::%s" % [file_label, method_name]
-			if not method_name.begins_with("test_") or not (filter.is_empty() or filter in test_name):
-				continue
 			count += 1
 			var t: Object = script.new()
 			t.test_name = test_name
