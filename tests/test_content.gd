@@ -1145,6 +1145,60 @@ func test_at_least_2_reachable_buildings_require_hills() -> void:
 	check(hill_buildings.size() >= 2, "only %s require hills" % [hill_buildings])
 
 
+## Backlog 275: some tech or building makes every insight gain bigger (modifiers.insight_per_gain above 0).
+func test_some_tech_or_building_raises_insight_per_gain() -> void:
+	var r := load_real()
+	var sources: Array[CardDef] = techs_in_research_deck(r)
+	for id in reachable_cards(r):
+		if r.cards[id].type == CardDef.BUILDING:
+			sources.append(r.cards[id])
+	var found: Array[String] = []
+	for def in sources:
+		if def.modifiers.get(Modifiers.INSIGHT_PER_GAIN, 0) > 0:
+			found.append(def.id)
+	check(not found.is_empty(), "no tech or reachable building sets insight_per_gain above 0")
+
+
+## Backlog 275: dry desert and dry hills can feed people: for each, some reachable building with an upkeep food gain
+## can be built on a territory in the deck that has that terrain and no fresh water.
+func test_dry_desert_and_hills_each_take_a_food_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	for terrain in ["desert", "hills"]:
+		var fed: Array[String] = []
+		for territory_id in r.config.territory_deck:
+			var keywords: Array[String] = r.cards[territory_id].keywords
+			if not keywords.has(terrain) or keywords.has("fresh_water"):
+				continue
+			for id in reachable:
+				var def: CardDef = r.cards[id]
+				if def.type != CardDef.BUILDING or not (def.requires.is_empty() or def.requires.any(func(k): return keywords.has(k))):
+					continue
+				if def.effects.any(func(e): return e.op == "gain" and e.trigger == "upkeep" \
+						and e.get("resource") == GameEngine.FOOD and (e.keyword == "" or keywords.has(e.keyword))):
+					fed.append("%s on %s" % [id, territory_id])
+		check(not fed.is_empty(), "no food building fits a dry %s territory" % terrain)
+
+
+## Backlog 275: a gain_per_tag counts a tag at least 2 reachable cards carry, on any reachable card or research tech.
+func test_every_gain_per_tag_tag_is_on_2_reachable_cards() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var carriers := {}
+	for id in reachable:
+		for tag in r.cards[id].tags:
+			carriers[tag] = carriers.get(tag, 0) + 1
+	var counters: Array[CardDef] = techs_in_research_deck(r)
+	for id in reachable:
+		counters.append(r.cards[id])
+	var thin: Array[String] = []
+	for def in counters:
+		for effect in def.effects:
+			if effect.op == "gain_per_tag" and carriers.get(effect.get("tag"), 0) < 2:
+				thin.append("%s: %s on %d" % [def.id, effect.get("tag"), carriers.get(effect.get("tag"), 0)])
+	eq(thin, [] as Array[String], "gain_per_tag tags fewer than 2 reachable cards carry")
+
+
 ## Backlog 143: a eureka only counts cards the player can get: its card can reach a game, its tag is on such a card.
 func test_every_eureka_counts_cards_the_player_can_get() -> void:
 	var r := load_real()

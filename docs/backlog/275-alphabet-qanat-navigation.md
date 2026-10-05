@@ -2,7 +2,7 @@
 id: 275
 title: Iron Age reach techs (Alphabet, Qanat, Navigation)
 type: feature
-status: ready
+status: red-review
 branch: feat/275-alphabet-qanat-navigation
 ---
 
@@ -52,7 +52,10 @@ Data only. Each tech goes into `research_deck` with a `flavor` and a real, attri
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_some_tech_or_building_raises_insight_per_gain` |
+| AC2 | `test_content::test_dry_desert_and_hills_each_take_a_food_building` |
+| AC3 | `test_content::test_every_gain_per_tag_tag_is_on_2_reachable_cards` (passes today: a guard) |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
