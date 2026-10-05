@@ -253,3 +253,64 @@ func test_an_unlock_may_name_a_build_menu_entry() -> void:
 	eq(r.errors, [] as Array[String], "Kiln unlocks the Granary entry")
 	r = menu_load({}, {"research_deck": {"kiln": 1}})
 	check(has_message(r.errors, "'kiln' unlocks 'granary', which has no supply pile"), "neither: %s" % [r.errors])
+
+
+# --- Backlog 299: build_preview ---
+
+## A unit of strength 2 for 1 food.
+const SPEARS := {"id": "spears", "name": "Spears", "type": "unit", "cost": {"food": 1}, "strength": 2}
+
+
+## build_engine with Paddy, Well and Spears on the menu and River settled at 2 pop; 4 food. gov "" for no government.
+func preview_engine(gov := "band") -> GameEngine:
+	var starting := {"resources": {"food": 4, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+		"territory": "homeland"}
+	if gov != "":
+		starting["government"] = gov
+	var o := {"build_menu": {"paddy": {}, "well": {}, "spears": {}, "granary": {"locked": true}}, "population": POP, "starting": starting,
+		"territory_deck": {"river": 1}}
+	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o, [OBELISK, POTTERY_KILN, FARMERS, SPEARS] + TEST_GOVS)
+	settle(e, ["river"])
+	e.zone("tableau").find(river_of(e)).pop = 2
+	e.resources.food = 4
+	return e
+
+
+func river_of(e: GameEngine) -> int:
+	return uid_of(e.zone("tableau"), "river")
+
+
+func test_a_preview_lists_the_cost_and_what_building_would_change() -> void:
+	var e := preview_engine()
+	var river := river_of(e)
+	var food: int = e.upkeep_forecast().get(GameEngine.FOOD, 0)
+	eq([e.free_slots(river), e.free_workers(river), e.actions_left()], [2, 2, 2], "precondition: slots, workers, actions")
+	eq(e.build_preview("paddy", river), {"cost": {"food": 2}, "lines": [["food", food, food + 2], ["free_slots", 2, 1],
+		["free_workers", 2, 1], ["actions_left", 2, 1]]}, "Paddy on River (+1, +1 on a flood plain)")
+
+
+func test_a_preview_lists_only_what_changes() -> void:
+	var e := preview_engine()
+	var river := river_of(e)
+	eq(e.build_preview("well", river).get("lines"), [["free_slots", 2, 1], ["free_workers", 2, 1], ["actions_left", 2, 1]],
+		"a Well changes no forecast")
+	var d: int = e.defense(river)
+	eq(e.build_preview("spears", river).get("lines"), [["free_workers", 2, 1], ["defense", d, d + 2],
+		["actions_left", 2, 1]], "a unit takes no slot and defends")
+	var free := preview_engine("")
+	eq(free.build_preview("well", river_of(free)).get("lines"), [["free_slots", 2, 1], ["free_workers", 2, 1]],
+		"no actions line while actions are unlimited")
+
+
+func test_a_refused_preview_is_empty_and_a_preview_changes_nothing() -> void:
+	var e := preview_engine()
+	var river := river_of(e)
+	eq(e.build_preview("granary", river), {}, "a locked entry")
+	eq(e.build_preview("well", home_uid(e)), {}, "a territory it can't go on")
+	var before := e.state.copy()
+	var signals: Array[String] = []
+	e.changed.connect(func(): signals.append("changed"))
+	e.card_played.connect(func(_o): signals.append("card_played"))
+	e.build_preview("paddy", river)
+	eq(state_diff(e.state, before), "", "the game is untouched")
+	eq(signals, [] as Array[String], "no signal")

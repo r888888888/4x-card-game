@@ -21,7 +21,7 @@ const QUERIES: Array[String] = ["turn_limit", "score", "civilization", "governme
 	"play_shortfall", "playable_error", "valid_targets", "total_slots", "free_slots", "free_workers", "is_idle",
 	"unit_station", "units_at", "needs_target_choice", "needs_target", "def_details", "card_details", "territory_name",
 	"territory_of", "territory_groups", "territory_summary", "territory_status", "territory_tooltip", "zone_of",
-	"hand_limit", "research_on", "hand_input_error", "discard_needed", "supply_error"]
+	"hand_limit", "research_on", "hand_input_error", "discard_needed", "supply_error", "build_preview"]
 ## Some of what stays in GameEngine: fork, actions with their error queries, internals.
 const STAYS: Array[String] = ["fork", "new_game", "play_card", "play_error", "end_turn", "end_turn_error",
 	"_blocked_error", "_owed_error"]

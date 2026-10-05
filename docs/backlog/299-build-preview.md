@@ -2,7 +2,7 @@
 id: 299
 title: Preview what building an entry on a territory would change
 type: feature
-status: ready
+status: red-review
 branch: feat/299-build-preview
 ---
 
@@ -44,6 +44,8 @@ differences. Follows 296; 297 uses it.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_build_menu::test_…` |
+| AC1 | `test_build_menu::test_a_preview_lists_the_cost_and_what_building_would_change` |
+| AC2 | `test_build_menu::test_a_preview_lists_only_what_changes`; `test_engine_structure` (`build_preview` in the query list) |
+| AC3 | `test_build_menu::test_a_refused_preview_is_empty_and_a_preview_changes_nothing` |
 
 ## Log
