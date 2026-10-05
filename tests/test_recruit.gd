@@ -127,3 +127,15 @@ func test_unlocking_a_unit_entry_says_it_can_now_be_recruited() -> void:
 	check(e.buy_tech(uid_of(e.zone("research_deck"), "drill")), "learn Drill")
 	check_noticed(recorded, "Levy can now be recruited.", GameEngine.NOTICE_INFO)
 	eq(e.build_error("levy", home_uid(e)), "", "the Levy can be recruited")
+
+
+# --- Backlog 297: what Disband does, for the details' wording ---
+
+func test_disbands_to_discard_tells_a_dealt_unit_from_a_recruited_one() -> void:
+	var e := recruit_engine({"levy": {}})
+	check(e.build("levy", home_uid(e)), "recruit a Levy")
+	eq(e.call("disbands_to_discard", newest_levy(e)), false, "a recruited unit leaves play")
+	var dealt := raid_engine()
+	var levy := uid_of(dealt.zone("hand"), "levy")
+	check(dealt.play_card(levy, home_uid(dealt)), "play a Levy from the hand")
+	eq(dealt.call("disbands_to_discard", levy), true, "a dealt unit goes to the discard")

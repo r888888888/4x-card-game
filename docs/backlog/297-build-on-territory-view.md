@@ -2,7 +2,7 @@
 id: 297
 title: Build and recruit from a territory's view
 type: feature
-status: ready
+status: red-review
 branch: feat/297-build-on-territory-view
 ---
 
@@ -60,7 +60,12 @@ Buy screen, which goes back to selling action cards only. Follows 299.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_build_modal::test_…` |
+| AC1 | `test_build_modal::test_build_opens_a_modal_listing_the_build_menu_by_kind`, `test_b_opens_the_build_modal_from_the_territory_view`; engine: `test_build_menu::test_build_cost_is_an_entrys_cost_after_discounts` |
+| AC2 | `test_build_modal::test_the_first_buildable_row_is_selected_and_the_sheet_previews_it`, `test_a_refused_first_row_is_skipped_and_none_buildable_selects_the_first`, `test_arrows_and_clicks_select_another_row` |
+| AC3 | `test_build_modal::test_build_builds_the_selected_entry_and_closes`, `test_enter_builds_and_a_unit_reads_recruit`, `test_a_refused_row_shows_its_reason_and_disables_the_key` |
+| AC4 | `test_build_modal::test_a_free_slot_reads_build_and_opens_the_modal`; existing `test_territory_view` outline tests |
+| AC5 | `test_build_modal::test_esc_and_cancel_close_without_building`, `test_build_is_disabled_with_the_reason_while_a_decision_is_owed`, `test_an_empty_build_menu_hides_build_and_leaves_plain_outlines`; engine: `test_build_menu::test_build_menu_error_says_why_nothing_can_be_built` |
+| AC6 | `test_build_modal::test_the_buy_screen_sells_no_buildings_or_units_on_the_real_data` (passes already: 295, 296), `test_a_recruited_units_disband_says_dismiss`; engine: `test_recruit::test_disbands_to_discard_tells_a_dealt_unit_from_a_recruited_one` |
 
 ## Manual check
 - [ ] Open a territory, press Build…: the modal reads well at 1280×720 and 1920×1080 with the full era-1 build menu
