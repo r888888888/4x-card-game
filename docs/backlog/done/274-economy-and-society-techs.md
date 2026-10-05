@@ -2,7 +2,7 @@
 id: 274
 title: Economy and society techs (Fermentation, Olive and Vine, Medicine, Credit)
 type: feature
-status: review
+status: done
 branch: feat/274-economy-and-society-techs
 ---
 
