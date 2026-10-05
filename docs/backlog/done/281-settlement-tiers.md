@@ -2,7 +2,7 @@
 id: 281
 title: Settlement tiers add building slots as pop grows
 type: feature
-status: review
+status: done
 branch: feat/281-settlement-tiers
 ---
 
