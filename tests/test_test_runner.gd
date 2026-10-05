@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## into shards for parallel processes (tests/lib/test_shards.gd).
 
 const SHARDS_PATH := "res://tests/lib/test_shards.gd"
+const WATCH_PATH := "res://tests/lib/settings_watch.gd"
 
 
 # --- AC1, AC2: frames ---
@@ -38,3 +39,24 @@ func test_one_shard_takes_every_file() -> void:
 	var shards: Object = load(SHARDS_PATH)
 	var files: Array[String] = ["a", "b", "c"]
 	eq(shards.pick(files, 0, 1), files, "one shard: every file")
+
+
+# --- 196: the player's settings file changing is a warning ---
+
+func test_bug_196_different_settings_bytes_warn_naming_the_file() -> void:
+	var watch: Object = load(WATCH_PATH)
+	var warning: String = watch.settings_change_warning("a=1".to_utf8_buffer(), "a=2".to_utf8_buffer())
+	check("user://settings.cfg" in warning, "the warning names the file: '%s'" % warning)
+	check("test" in warning and "game" in warning, "it says a test or a running game changed it: '%s'" % warning)
+
+
+func test_bug_196_a_file_that_appears_or_vanishes_warns() -> void:
+	var watch: Object = load(WATCH_PATH)
+	check(watch.settings_change_warning(null, "a=1".to_utf8_buffer()) != "", "no file, then a file")
+	check(watch.settings_change_warning("a=1".to_utf8_buffer(), null) != "", "a file, then none")
+
+
+func test_bug_196_same_settings_bytes_give_no_warning() -> void:
+	var watch: Object = load(WATCH_PATH)
+	eq(watch.settings_change_warning("a=1".to_utf8_buffer(), "a=1".to_utf8_buffer()), "", "same bytes")
+	eq(watch.settings_change_warning(null, null), "", "no file both times")
