@@ -150,6 +150,31 @@ func see_supply() -> void:
 	state.seen_supply = ready_supply()
 
 
+## The build menu's unlocked entries, in config order (295).
+func build_menu() -> Array[String]:
+	return BuildMenu.entries(self)
+
+
+## The settled territories build-menu entry card_id could go on now (slot, worker, terrain), whatever it costs; [] for
+## a locked or unknown entry (295).
+func build_targets(card_id: String) -> Array[int]:
+	return BuildMenu.targets(self, card_id)
+
+
+## Why card_id can't be built on territory_uid now, or "" if it can (295): game over or a pending decision, no
+## build-menu entry, locked, a once entry already built, or what playing it there would refuse for (actions, Anarchy,
+## cost, the territory; -1 with several territories that take it).
+func build_error(card_id: String, territory_uid := -1) -> String:
+	return BuildMenu.error(self, card_id, territory_uid)
+
+
+## Builds a new copy of build-menu entry card_id on territory_uid (-1: the only territory that takes it), as playing
+## it there would: an action, its cost, its play effects and card_played (295). False (and no change) if build_error
+## says no.
+func build(card_id: String, territory_uid := -1) -> bool:
+	return BuildMenu.build(self, card_id, territory_uid)
+
+
 ## Why discard_card(uid) would refuse: the game is over, a choice is pending, or uid isn't in the hand. "" if it
 ## can, including while an end-of-turn discard is owed.
 func discard_error(uid: int) -> String:

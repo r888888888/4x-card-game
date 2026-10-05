@@ -424,13 +424,14 @@ func makes_wealth(def: CardDef) -> bool:
 	return false
 
 
+## Since 295 what costs wealth from the start may be an open build-menu entry rather than a deck card.
 func test_real_deck_has_wealth_costs_and_the_starting_tableau_makes_wealth() -> void:
 	var r := load_real()
 	var costs_wealth := 0
-	for id in r.config.deck:
+	for id in r.config.deck.keys() + open_entries(r):
 		if r.cards[id].cost.get("wealth", 0) > 0:
 			costs_wealth += 1
-	check(costs_wealth >= 1, "at least 1 deck card costs wealth (got %d)" % costs_wealth)
+	check(costs_wealth >= 1, "at least 1 deck card or open build-menu entry costs wealth (got %d)" % costs_wealth)
 	var upkeep_wealth := false
 	for id in r.config.starting.tableau:
 		for effect in r.cards[id].effects:

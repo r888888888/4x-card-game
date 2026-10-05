@@ -21,6 +21,9 @@ static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 		e.state.supply[id] = e.config.supply[id].count
 		if e.config.supply[id].locked:
 			e.state.locked_supply[id] = true
+	for id in e.config.get("build_menu", {}):
+		if e.config.build_menu[id].locked:
+			e.state.locked_builds[id] = true
 
 	var deck := e.zone("deck")
 	for id in e.config.deck:

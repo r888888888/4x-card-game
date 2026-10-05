@@ -143,7 +143,7 @@ func test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules() -> 
 
 ## 295 AC2: under Anarchy a building can't be built from the build menu, as it can't be played.
 func test_under_anarchy_nothing_is_built_from_the_build_menu() -> void:
-	var e: Object = anarchy_engine({}, {"build_menu": {"well": {}}, "supply": null})
+	var e := anarchy_engine({}, {"build_menu": {"well": {}}, "supply": null})
 	e.resources["unrest"] = 5
 	e.end_turn()
 	check(e.anarchy() != -1, "precondition: Anarchy rules")

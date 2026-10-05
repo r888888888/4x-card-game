@@ -22,6 +22,8 @@ var actions_used := 0  # cards played from hand and units moved this turn (127, 
 var actions_gained := 0  # actions gain_actions effects gave this turn (128)
 var supply: Dictionary = {}  # card_id -> copies left to buy, in config order
 var locked_supply: Dictionary = {}  # card_id -> true for piles not yet unlocked (057)
+var locked_builds: Dictionary = {}  # card_id -> true for build-menu entries not yet unlocked (295)
+var built_once: Array[String] = []  # the once build-menu entries built this game (295)
 var next_uid := 1
 var revolt_pending := false  # a revolution was declared: Anarchy falls at the next turn's start (155)
 var anarchy_turn := 0  # the ruling Anarchy's turn, 1 the turn it fell; 0 without Anarchy (155)
@@ -55,6 +57,8 @@ func copy() -> GameState:
 	s.actions_gained = actions_gained
 	s.supply = supply.duplicate()
 	s.locked_supply = locked_supply.duplicate()
+	s.locked_builds = locked_builds.duplicate()
+	s.built_once = built_once.duplicate()
 	s.next_uid = next_uid
 	s.revolt_pending = revolt_pending
 	s.anarchy_turn = anarchy_turn

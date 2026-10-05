@@ -17,8 +17,8 @@ const MENU := {"farm": {}, "obelisk": {}, "well": {}, "granary": {"locked": true
 
 
 ## A game with Band ruling (2 actions), population on (2 pop on the home), build_menu menu, Kiln and Pottery to learn,
-## and food food (wealth and insight 10). overrides last. Typed Object for the red phase.
-func build_engine(food := 3, menu := MENU, overrides := {}) -> Object:
+## and food food (wealth and insight 10). overrides last.
+func build_engine(food := 3, menu := MENU, overrides := {}) -> GameEngine:
 	var o := {"build_menu": menu, "population": POP,
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
@@ -29,12 +29,12 @@ func build_engine(food := 3, menu := MENU, overrides := {}) -> Object:
 
 
 ## Card ids in zone name, sorted.
-func ids_in(e: Object, name: String) -> Array:
+func ids_in(e: GameEngine, name: String) -> Array:
 	return sorted(card_ids(e.zone(name)))
 
 
 ## Settles Grassland too, so two territories could take a building.
-func two_territories(e: Object) -> int:
+func two_territories(e: GameEngine) -> int:
 	settle(e, ["grassland"])
 	var grass := uid_of(e.zone("tableau"), "grassland")
 	e.zone("tableau").find(grass).pop = 2
@@ -42,12 +42,12 @@ func two_territories(e: Object) -> int:
 
 
 ## What build changes: [food, actions used, tableau ids, hand, deck, discard].
-func snapshot(e: Object) -> Array:
+func snapshot(e: GameEngine) -> Array:
 	return [e.resources.food, e.actions_left(), ids_in(e, "tableau"), ids_in(e, "hand"), ids_in(e, "deck"),
 		ids_in(e, "discard")]
 
 
-func assert_refused(e: Object, card_id: String, territory: int, message: String) -> void:
+func assert_refused(e: GameEngine, card_id: String, territory: int, message: String) -> void:
 	eq(e.build_error(card_id, territory), message, "build_error(%s)" % card_id)
 	var before := snapshot(e)
 	check(not e.build(card_id, territory), "build(%s) refuses" % card_id)
@@ -117,11 +117,11 @@ func test_build_refuses_without_a_slot_or_a_worker() -> void:
 	e.resources.food = 10
 	assert_refused(e, "farm", -1, "No territory with a free worker.")
 	eq(e.build_targets("farm"), [] as Array[int], "no targets")
-	var full := build_engine(10, MENU, {"population": {"start": 9, "food_upkeep": 0, "vp_per_pop": 0}})
+	var full := build_engine(10, MENU, {"population": {"start": 7, "food_upkeep": 0, "vp_per_pop": 0}})
 	var temples := []
 	for i in full.free_slots(home_uid(full)):
 		temples.append("temple")
-	check(temples.size() < 9, "precondition: workers to spare once the slots are full (%d slots)" % temples.size())
+	check(temples.size() < 7, "precondition: workers to spare once the slots are full (%d slots)" % temples.size())
 	build_on(full, home_uid(full), temples)
 	assert_refused(full, "farm", -1, "No territory with a free slot.")
 
@@ -203,7 +203,7 @@ func test_an_entry_without_once_builds_any_number_of_times() -> void:
 
 func test_a_copy_keeps_what_is_unlocked_and_built() -> void:
 	var e := build_engine(10, {"granary": {"once": true, "locked": true}, "farm": {}})
-	var f: Object = e.fork()
+	var f := e.fork()
 	check(f.buy_tech(uid_of(f.zone("research_deck"), "kiln")), "learn Kiln on the copy")
 	check(f.build_menu().has("granary"), "unlocked on the copy")
 	check(not e.build_menu().has("granary"), "still locked on the original")
