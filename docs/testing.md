@@ -106,7 +106,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_card_landing.gd` | How a card lands (117): a dealt card settles with no squash but still flies and fades in; since 179 no flight squashes; a rejected card still shakes. CardViews in a plain Control tree, stepped by frames |
 | `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
-| `tests/test_test_runner.gd` | The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes all |
+| `tests/test_test_runner.gd` | The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes all; the warning when the player's settings file changes during a run (196, `tests/lib/settings_watch.gd`) |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; `time_ratio` of two timings in alternating runs (test_case.gd, 236), never absolute times |
 | `tests/test_engine_structure.gd` | GameEngine's split (249): `EngineCore` → `EngineQueries` (the read queries) → `GameEngine` (fork, actions and their error queries, internals); every method still on a `GameEngine`; both files under 500 lines |
 | `tests/test_sim.gd` | The simulator on fixtures: `ScriptedBot` policy, `SimStats.run` metrics, `run_files`' loader errors |
@@ -228,8 +228,9 @@ awaits every test: a UI test that measures laid-out sizes or positions calls `aw
 Minimum sizes before a layout pass are meaningless. After each test the runner frees anything the test left in the
 tree (a UI test that crashed before `close_main`), so one crash doesn't fail every later UI test (087).
 Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, Day mode
-and Reduce motion off), so the player's own settings never change a result; after the run it fails if the player's
-`user://settings.cfg` changed (195). A test that needs a setting on uses `with_temp_settings` or `with_reduce_motion`.
+and Reduce motion off), so the player's own settings never change a result; after the run it prints a `WARN` line (not a
+failure) if the player's `user://settings.cfg` changed (195, 196: `tests/lib/settings_watch.gd`), since a game running
+beside the suite may have saved it. A test that needs a setting on uses `with_temp_settings` or `with_reduce_motion`.
 
 ### Available in every test (`tests/lib/test_case.gd`)
 
