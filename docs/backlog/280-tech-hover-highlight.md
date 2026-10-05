@@ -2,7 +2,7 @@
 id: 280
 title: Highlight the hovered tech tile
 type: feature
-status: in-progress
+status: review
 branch: feat/280-tech-hover-highlight
 ---
 
@@ -13,12 +13,12 @@ the game's existing hovers rather than a new look: the index cards' ink rule on 
 `IdentityCard`) plus the buttons' lighter fill (`Button`, End turn).
 
 ## Acceptance criteria
-- [ ] AC1: Given a tech tile of any state (researched, available, locked, or a later era's under its vellum), when it
+- [x] AC1: Given a tech tile of any state (researched, available, locked, or a later era's under its vellum), when it
   is hovered, then its hover look has a `Palette.TEXT` border, a solid `Palette.SHADOW` shadow (size 1) at offset
   `GameTheme.SELECTED_SHADOW` (4, 4), and its resting fill lightened by 0.08.
-- [ ] AC2: Given a tile marked as linked (278), when it is hovered, then its hover look is the same as that state's
+- [x] AC2: Given a tile marked as linked (278), when it is hovered, then its hover look is the same as that state's
   unlinked hover look (ink border, not the gold `TECH_LINK` one): the hovered tile wins over the link mark.
-- [ ] AC3: Given the hover look, then the tile's border width (2 px) and content margins are the same as at rest, so
+- [x] AC3: Given the hover look, then the tile's border width (2 px) and content margins are the same as at rest, so
   nothing moves.
 
 ## Out of scope
@@ -46,3 +46,5 @@ the game's existing hovers rather than a new look: the index cards' ink rule on 
 - [ ] Day mode: the same, the shadow now clearly visible.
 
 ## Log
+- Built from `spike/tech-hover-highlight` (left unmerged). `PLINTH` is no longer used by the tech tiles but stays for
+  the other controls that use it.
