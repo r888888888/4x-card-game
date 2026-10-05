@@ -2,7 +2,7 @@
 id: 313
 title: A generic sim bot that values positions instead of following rules
 type: feature
-status: in-progress
+status: review
 branch: feat/313-generic-bot
 ---
 
@@ -16,17 +16,17 @@ the strategy `generic` beside ScriptedBot's. 314 then makes it the only bot.
 ## Acceptance criteria
 Fixture games (`make_engine`, a few turns); the value function is in Design notes.
 
-- [ ] AC1: Given 1 action, food to pay, 10 turns left and a Temple (⟳ +1 score) and a Shrine (+1 score now) in the hand,
+- [x] AC1: Given 1 action, food to pay, 10 turns left and a Temple (⟳ +1 score) and a Shrine (+1 score now) in the hand,
   when `take_turn` runs, then it plays the Temple. With 1 turn left it plays the Shrine (no upkeep left to score).
-- [ ] AC2: Given a hand whose only playable card costs food and does nothing (a Guildhall with no effects), when
+- [x] AC2: Given a hand whose only playable card costs food and does nothing (a Guildhall with no effects), when
   `take_turn` runs, then it plays nothing and returns; the turn is left for `play` to end.
-- [ ] AC3: Given 2 actions, a Scout (draw 2) and a Shrine in the hand and a deck of 4 Temples, when `take_turn` runs,
+- [x] AC3: Given 2 actions, a Scout (draw 2) and a Shrine in the hand and a deck of 4 Temples, when `take_turn` runs,
   then it plays the Scout first and a Temple second (a draw is worth what it lets you play next).
-- [ ] AC4: Given 1 action, an Explorer and a Forager in the hand, an empty frontier and a Pioneer (settle) in the deck,
+- [x] AC4: Given 1 action, an Explorer and a Forager in the hand, an empty frontier and a Pioneer (settle) in the deck,
   then it plays the Explorer (the Pioneer gains a target); with no Pioneer anywhere it plays the Forager.
-- [ ] AC5: Given an owed decision, it takes the option whose sample fork values most: given an event choice whose
+- [x] AC5: Given an owed decision, it takes the option whose sample fork values most: given an event choice whose
   options differ only in gaining 1 or 3 food, it chooses the 3-food option.
-- [ ] AC6: Given unrest 2 below the limit, a card that gains 2 unrest and a Forager, it plays the Forager. `GenericBot`
+- [x] AC6: Given unrest 2 below the limit, a card that gains 2 unrest and a Forager, it plays the Forager. `GenericBot`
   only does what `legal_actions()` lists, never changes the real game while valuing (a fixture game's state is the
   same before and after `best_action`), and with the same seed plays the same game twice.
 
@@ -64,7 +64,7 @@ Fixture games (`make_engine`, a few turns); the value function is in Design note
 | Goal (the sim runs `generic`) | `test_generic_bot::test_sim_stats_plays_the_generic_strategy` |
 
 ## Manual check
-- [ ] `scripts/sim.sh 10 generic --civ <each>` against `baseline`: note scores per civ and seconds per game in the Log
+- [x] `scripts/sim.sh 10 generic --civ <each>` against `baseline`: note scores per civ and seconds per game in the Log
   (no tuning here).
 
 ## Log
@@ -73,3 +73,24 @@ Fixture games (`make_engine`, a few turns); the value function is in Design note
   (+1 or +3 food). `generic` is a strategy SimStats accepts but not one of `ScriptedBot.STRATEGIES`, so `sim.sh` with
   no strategy (all) still plays only the scripted five (each generic game is ~10× slower); 314 makes it the only bot.
   The bot never lists `end_turn` (play ends the turn) or `revolt` (314's rollouts) among its candidates.
+- 2026-10-05: green. Ported from the spike onto 309–312 (`legal_actions` less `end_turn`/`revolt`, `sample_fork` with a
+  seed from the game's seed, turn and step, `turn_forecast`, `would_target`); a `Context` per game holds the weights,
+  card values and step, so no state leaks between games. To meet AC6 (Riot played far from the limit) unrest got no
+  flat weight (it costs only through the risk term) and the risk margin went from 3 to 2. SimStats plays `generic`
+  (`GenericBot.STRATEGY`); `run_files` accepts it.
+- 2026-10-05: manual check, `scripts/sim.sh 10 <strategy> --civ <civ>` on real data (mean score, min–max; techs;
+  anarchies; wall time for 10 games on 7 workers):
+
+  | Civ | baseline | generic | techs b → g | anarchies b → g | generic time |
+  |---|---|---|---|---|---|
+  | Egypt | 95 (25–208) | 315 (141–475) | 20 → 31 | 7.4 → 0.2 | 36 s |
+  | Sumer | 64 (39–122) | 199 (82–363) | 20 → 31 | 8.5 → 0.2 | 25 s |
+  | Phoenicia | 71 (46–92) | 259 (101–478) | 22 → 31 | 7.4 → 0.5 | 42 s |
+  | Babylon | 88 (57–140) | 268 (110–584) | 20 → 31 | 10.8 → 0.5 | 36 s |
+  | Greece | 51 (31–118) | 255 (68–554) | 20 → 30 | 8.3 → 0.4 | 34 s |
+  | Persia | 73 (35–105) | 202 (102–335) | 20 → 31 | 8.3 → 0.7 | 25 s |
+
+  The baseline fell from the spike's 102–237 since 295: ScriptedBot never builds from the build menu (298 is blocked
+  in favour of 314), while the generic bot builds through `legal_actions` with no change. Generic never revolts (314's
+  rollouts) and rarely falls into Anarchy. About 20–30 s a game, as in the spike; 315 is the speed item. No tuning
+  here: balance worries go to the balance item after 315.

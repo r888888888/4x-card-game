@@ -9,7 +9,7 @@
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
+| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall), plus `generic` (313: `GenericBot`, valuing every legal action on a sample fork; not in "all" until 314); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
@@ -111,7 +111,7 @@ res://
                          # docs/design/sound-export.html from the specimen's synthesis (186)
   default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
-  sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
+  sim/                   # bot.gd (ScriptedBot and its strategies, 134), generic_bot.gd (GenericBot, 313), sim_stats.gd (SimStats: per-seed metrics, per
                          # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
                          # game by game, 293), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
@@ -616,6 +616,14 @@ Your people have one government at a time; its bonuses apply while it rules.
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
   first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
   that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
+- Generic bot (313, `sim/generic_bot.gd`, strategy `generic`): no rule for any mechanic. Each step it tries every
+  entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
+  `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
+  × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
+  diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
+  `would_target` nothing) + learned techs' printed cost − a squared penalty as unrest nears its limit (unrest has no
+  other cost). A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
+  best by card value per price. 314 makes it the only bot.
 - Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
   `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
   owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every
