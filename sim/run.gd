@@ -4,7 +4,8 @@ extends SceneTree
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
 ## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's
-## result is cached under CACHE_DIR by the code and data that played it (292).
+## result is cached under CACHE_DIR by the code and data that played it (292). With --compare <checkout> (293) it
+## compares that checkout ("main") with this one game by game instead: the seed count is the most a cell gets.
 
 ## The lock every checkout's parallel runs share, in the per-user temp directory (291).
 const LOCK_NAME := "4x-card-game-sim.lock"
@@ -19,7 +20,9 @@ func _initialize() -> void:
 	var config_path: String = child.get("config", "res://data/config.json")
 	var data := DataLoader.load_all(cards_path, config_path)
 	var civs: Array = data.config.get("civilizations", []) if data.errors.is_empty() else []
-	var options := LaunchOptions.parse(args.slice(0, args.size() - child.size()), civs)
+	var own := _without_compare(args.slice(0, args.size() - child.size()))  # the game's launch options don't know it
+	var against := _compare_path(args.slice(0, args.size() - child.size()))
+	var options := LaunchOptions.parse(own, civs)
 	var positional: Array = options.positional
 	var seed_count := int(positional[0]) if not positional.is_empty() and positional[0].is_valid_int() else 20
 	var strategy: String = positional[1] if positional.size() > 1 else "all"
@@ -33,14 +36,38 @@ func _initialize() -> void:
 	options["lock_path"] = OS.get_temp_dir().path_join(LOCK_NAME)
 	options["cache_dir"] = CACHE_DIR
 	options["cache"] = OS.get_environment("SIM_CACHE") != "0"
-	var out := {"code": 1, "lines": options.errors} if not options.errors.is_empty() \
-		else SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
+	var out := {"code": 1, "lines": options.errors}
+	if not options.errors.is_empty():
+		pass
+	elif against != "":
+		var main_side := {"root": against, "cards": "res://data/cards.json", "config": "res://data/config.json"}
+		out = SimStats.compare(main_side, SimStats.here(cards_path, config_path), seed_count, strategy, options)
+	else:
+		out = SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
 	for line in out.lines:
 		if out.code == 0:
 			print(line)
 		else:
 			printerr(line)
 	quit(out.code)
+
+
+## The checkout after --compare in args (293), absolute (a relative one is from SIM_CWD, where scripts/sim.sh was
+## started), "" without one.
+func _compare_path(args: PackedStringArray) -> String:
+	var at := args.find("--compare")
+	if at == -1 or at + 1 >= args.size():
+		return ""
+	var path := args[at + 1]
+	if path.is_relative_path():
+		path = OS.get_environment("SIM_CWD").path_join(path)
+	return path.simplify_path().trim_suffix("/")
+
+
+## args without --compare and its checkout.
+func _without_compare(args: PackedStringArray) -> PackedStringArray:
+	var at := args.find("--compare")
+	return args if at == -1 else args.slice(0, at) + args.slice(at + 2)
 
 
 ## The key=value arguments a parallel run passes its children at the end of their args (cards, config, dir, worker):
