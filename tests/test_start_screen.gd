@@ -411,7 +411,7 @@ func test_settings_opens_the_settings_modal_with_the_motion_toggle() -> void:
 	check(toggle_row.get_children().any(func(c): return c is Label and c.text == "Reduce motion"),
 		"Reduce motion: a labelled key (182)")
 	check(modal.is_ancestor_of(modal.motion_toggle), "the key on the modal")
-	eq(modal.close_button.text, "Close (Esc)", "its Close")
+	eq(modal.close_button.text, "Close", "its Close")
 	close_main(main)
 
 

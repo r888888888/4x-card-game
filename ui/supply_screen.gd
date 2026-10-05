@@ -8,6 +8,7 @@ extends RefCounted
 ## The screen closed (Close, S or Esc, a click outside its panel, or a new game).
 signal closed
 
+var close_button: Button
 var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the config has no supply
 var _overlay: Control
 var _row: HFlowContainer  # slots for the pile cards, in config order; wraps (see _fit_row)
@@ -50,7 +51,8 @@ func _init(parent: MainScreen, on_open: Callable) -> void:
 	_row.add_theme_constant_override("h_separation", UIKit.CARD_GAP)
 	_row.add_theme_constant_override("v_separation", UIKit.CARD_GAP)
 	pad.add_child(_row)
-	box.add_child(UIKit.button("Close (S / Esc)", close))
+	close_button = UIKit.button("Close", close)
+	box.add_child(close_button)
 	_fx = Control.new()
 	_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -102,7 +102,7 @@ func test_card_details_is_a_sheet_titled_with_the_card_and_its_type() -> void:
 		main.details.open(main.views[card.uid])
 		await wait_sheet()
 		check_sheet(main.details, "card details", card.def.name, card.def.type.capitalize(),
-			["Close (Esc)", "Play"] as Array[String])  # a hand card's details offer Play (225)
+			["Close", "Play"] as Array[String])  # a hand card's details offer Play (225)
 		eq(accent_footer(main.details), ["Play"] as Array[String], "251: Play is the one primary")
 		close_main(main))
 
@@ -112,7 +112,7 @@ func test_the_civilization_modal_is_a_sheet() -> void:
 		var main: Node = await open_game()
 		main.identity_modal.open()
 		await wait_sheet()
-		check_sheet(main.identity_modal, "civilization", "Civilization", "", ["Close (Esc)"] as Array[String])
+		check_sheet(main.identity_modal, "civilization", "Civilization", "", ["Close"] as Array[String])
 		eq(accent_footer(main.identity_modal), [] as Array[String], "251: nothing to do, no primary")
 		close_main(main))
 
@@ -139,7 +139,7 @@ func test_the_menu_is_a_sheet_on_the_modal_stack() -> void:
 		main.open_menu()
 		await wait_sheet()
 		eq(main.modals.depth(), 1, "the menu is on main.modals")
-		check_sheet(main.modals.top(), "menu", "Menu", "", ["Close (Esc)", "Exit"] as Array[String])
+		check_sheet(main.modals.top(), "menu", "Menu", "", ["Close", "Exit"] as Array[String])
 		eq(accent_footer(main.modals.top()), [] as Array[String], "251: the menu has no primary")
 		press_key(main, KEY_ESCAPE)
 		await wait_frames()
@@ -197,7 +197,7 @@ func test_settings_and_board_card_details_have_no_primary() -> void:
 		main.settings_modal.close()
 		main.details.open(main.views[home_uid(Game.engine)])
 		await wait_frames()
-		eq(footer_texts(main.details), ["Close (Esc)"] as Array[String], "a board card's details: Close only")
+		eq(footer_texts(main.details), ["Close"] as Array[String], "a board card's details: Close only")
 		eq(accent_footer(main.details), [] as Array[String], "a board card's details: no primary")
 		close_main(main))
 

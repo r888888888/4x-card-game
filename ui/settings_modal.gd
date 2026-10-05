@@ -60,7 +60,7 @@ func _init(p_stack: ModalStack) -> void:
 	restart_button = UIKit.button("Restart with seed", _restart)
 	restart_button.tooltip_text = "Start this game again as this civilization, with the seed above."
 	game_section.add_child(restart_button)
-	close_button = add_footer_button(UIKit.button("Close (Esc)", close))
+	close_button = add_footer_button(UIKit.button("Close", close))
 
 
 ## Opens it with Reduce motion focused; with seed_value (a game's, 0 or more) the Game section shows it, without

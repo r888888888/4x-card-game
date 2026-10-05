@@ -38,7 +38,7 @@ func _init(p_stack: ModalStack) -> void:
 	var settings := UIKit.button("Settings", func(): settings_requested.emit())
 	settings.tooltip_text = "Motion, day mode, sound, and restarting with another seed."
 	UIKit.button_column(body, [_restart_button, new_game, settings])
-	var close_button := add_footer_button(UIKit.button("Close (Esc)", close))
+	var close_button := add_footer_button(UIKit.button("Close", close))
 	var exit := add_footer_button(UIKit.button("Exit", func(): exit_requested.emit()))
 	exit.tooltip_text = "Quit the game. It isn't saved."
 	UIKit.focus_loop([_restart_button, new_game, settings, close_button, exit])
