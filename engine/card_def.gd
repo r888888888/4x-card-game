@@ -42,6 +42,8 @@ var defense: int = 0  # buildings and cities: defence added to their territory w
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
+var tolerates: String = ""  # governments: the id of the largest settlement tier it keeps calm (282); "" for any
+var tolerates_name: String = ""  # governments: that tier's name, set by ConfigLoader (CardDef has no config)
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
 var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts: {resource: int}}] (108)
 var keywords: Array[String] = []  # territories: keyword ids from config
@@ -99,6 +101,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append(actions_text())
 	if unrest_limit > 0:
 		parts.append(unrest_limit_text())
+	if tolerates_name != "":
+		parts.append(tolerates_text())
 	if home != "":
 		parts.append("Starts on: %s" % card_db[home].name)
 	if not requires.is_empty():
@@ -156,6 +160,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append(actions_text())
 	if unrest_limit > 0:
 		parts.append(unrest_limit_text())
+	if tolerates_name != "":
+		parts.append(tolerates_text())
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
@@ -272,6 +278,11 @@ func actions_text() -> String:
 ## A government's unrest limit line (144): "Unrest limit 5."
 func unrest_limit_text() -> String:
 	return "Unrest limit %d." % unrest_limit
+
+
+## A government's tolerated tier line (282): "Tolerates up to Village."
+func tolerates_text() -> String:
+	return "Tolerates up to %s." % tolerates_name
 
 
 ## One line per modifier (129): "+1 action each turn"; long (the tooltip) adds " while active" on an event.

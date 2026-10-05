@@ -116,6 +116,21 @@ static func tier_name(e: GameEngine, territory_uid: int) -> String:
 	return tiers(e)[i].name if i >= 0 else ""
 
 
+## See GameEngine.size_unrest (282).
+static func size_unrest(e: GameEngine) -> int:
+	var gov := e.zone("government")
+	if not e.unrest_on() or gov.is_empty() or gov.cards[0].def.tolerates == "":
+		return 0
+	var tolerated := tiers(e).map(func(t): return t.id).find(gov.cards[0].def.tolerates)
+	if tolerated < 0:
+		return 0
+	var sum := 0
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.TERRITORY:
+			sum += maxi(0, tier_at_pop(e, card.pop) - tolerated)
+	return sum
+
+
 ## The pop territory uid's next tier needs; 0 at the top tier or when it has none.
 static func next_tier_pop(e: GameEngine, territory_uid: int) -> int:
 	var i := tier(e, territory_uid)

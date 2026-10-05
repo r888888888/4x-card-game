@@ -29,6 +29,7 @@ const TYPE_FIELDS := {
 	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
+	"tolerates": [CardDef.GOVERNMENT],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
@@ -285,6 +286,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 	elif def.type == CardDef.GOVERNMENT:
 		def.actions = Fields.read_int(c, "actions", errs, 1, 0)
 		def.unrest_limit = Fields.read_int(c, "unrest_limit", errs, 1, 0)
+		def.tolerates = Fields.read_string(c, "tolerates", errs, [], "")
 	for key in TYPE_FIELDS:
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):
