@@ -241,7 +241,7 @@ and Reduce motion off), so the player's own settings never change a result; afte
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording; given a priority, it was noticed with it (190) |
 | `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test; it doesn't fail it (186) |
-| `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (plus `extra_cards`, raw card dicts a single file needs); `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |
 | `tests/lib/raid_case.gd` | Base class for raid tests: fixture `RAID_CARDS`, `raid_load`, `raid_engine` (Homeland and Hills settled, raids on top of the event deck), `record_raids` |
