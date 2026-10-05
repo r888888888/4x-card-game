@@ -52,6 +52,16 @@
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
     },
     {
+      "id": "bread_and_beer", "name": "Bread and Beer", "type": "action",
+      "cost": { "food": 2 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "grow", "amount": 1, "where": "best" } ]
+    },
+    {
+      "id": "land_grants", "name": "Land Grants", "type": "action",
+      "cost": { "food": 5 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "grow", "amount": 1, "where": "each", "count": 3 } ]
+    },
+    {
       "id": "winnow", "name": "Winnow", "type": "action",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "trash" } ]

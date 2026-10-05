@@ -10,13 +10,14 @@ extends RefCounted
 ##
 ## Strategies (134) change which playable card goes first and add end-of-turn steps; "baseline" is the bot above.
 ## They read what cards do from their effects, never their ids: growth and tall play cards that make food on upkeep
-## first and buy one from the supply each turn (239), wealth does the same with cards that make wealth, wide plays
-## cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Pop grows by itself at upkeep (260),
-## so no strategy grows it. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
-## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
-## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159),
-## valued by score and the insight they gathered (240). Before Anarchy rules, a seeded coin decides whether it spends
-## its wealth on the supply instead of letting the drain take it (239): see _spend_before_drain.
+## (and growth cards, 262) first and buy one from the supply each turn (239), wealth does the same with cards that make
+## wealth, wide plays cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy
+## plays a growth card only when it adds pop and the next upkeep still nets food (see _growth_ok), and plays around the
+## unrest limit (144): see _unrest_ok; under Anarchy it pays to restore order from the second turn with 2+ counters
+## left or a starving upkeep ahead (155), renews the card worth least to keep (147), and chooses governments and
+## revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159), valued by score and the insight they gathered (240).
+## Before Anarchy rules, a seeded coin decides whether it spends its wealth on the supply instead of letting the drain
+## take it (239): see _spend_before_drain.
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -148,7 +149,7 @@ static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> 
 	for card in order:
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
-		if not _unrest_ok(engine, card.def) or _explores_nothing(engine, card.def):
+		if not _unrest_ok(engine, card.def) or _explores_nothing(engine, card.def) or not _growth_ok(engine, card):
 			continue
 		var targets := engine.valid_targets(card.uid)
 		var target: int = targets[0] if engine.needs_target(card.uid) and not targets.is_empty() else -1
@@ -180,12 +181,28 @@ static func _hand_order(engine: GameEngine, strategy: String) -> Array:
 static func _prefers(strategy: String, def: CardDef) -> bool:
 	match strategy:
 		"growth", "tall":
-			return def.effects.any(func(e): return e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD)
+			return _grows(def) or def.effects.any(func(e): return e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD)
 		"wealth":
 			return _makes_wealth(def)
 		"wide":
 			return def.effects.any(func(e): return e.op == "explore" or e.op == "settle")
 	return false
+
+
+## Whether playing card is sensible for growth (262): a card that grows pop is played only when, played on a fork, it
+## adds pop and the next upkeep still nets at least 1 food. Any other card is fine; play_error decides the rest.
+static func _growth_ok(engine: GameEngine, card: CardInstance) -> bool:
+	if not _grows(card.def):
+		return true
+	var trial := engine.fork()
+	var pop := trial.total_pop()
+	if not trial.play_card(card.uid):
+		return true
+	return trial.total_pop() > pop and trial.upkeep_forecast().get(GameEngine.FOOD, 0) >= 1
+
+
+static func _grows(def: CardDef) -> bool:
+	return def.effects.any(func(e): return e.op == "grow")
 
 
 ## Whether playing def is sensible for unrest (144), with a limit set: next = unrest + the next upkeep's change + 1 (a

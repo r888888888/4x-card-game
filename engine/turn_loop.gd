@@ -139,11 +139,9 @@ static func start_turn(e: GameEngine) -> void:
 	e.state.moved_units.clear()
 	e._log("— Turn %d —" % e.turn)
 	Anarchy.before_upkeep(e)
-	var food_before: int = e.resources[GameEngine.FOOD]
 	resolve_upkeep(e)
 	if e.population_on():
 		Population.feed(e)
-		Population.auto_grow(e, e.resources[GameEngine.FOOD] - food_before)
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
 	Anarchy.drain(e)
