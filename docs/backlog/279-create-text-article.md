@@ -2,7 +2,7 @@
 id: 279
 title: Create text says "a" before vowel-initial card names
 type: bug
-status: in-progress
+status: review
 branch: fix/279-create-text-article
 ---
 
@@ -16,13 +16,13 @@ branch: fix/279-create-text-article
 `create_effect.gd`'s `describe()` hard-codes "a" for both wordings ("Create a %s", "Add a %s to your %s").
 
 ## Acceptance criteria
-- [ ] AC1: Given a card whose effect is `{"op": "create", "card": "explorer", "zone": "discard"}` (Explorer from TEST_CARDS),
+- [x] AC1: Given a card whose effect is `{"op": "create", "card": "explorer", "zone": "discard"}` (Explorer from TEST_CARDS),
   when its rules text is generated, then it reads "Add an Explorer to your discard".
-- [ ] AC2: Given a card whose effect is `{"op": "create", "card": "explorer"}` (Explorer from TEST_CARDS, default
+- [x] AC2: Given a card whose effect is `{"op": "create", "card": "explorer"}` (Explorer from TEST_CARDS, default
   tableau zone), when its rules text is generated, then it reads "Create an Explorer".
-- [ ] AC3: Given a consonant-initial card (City), the text is unchanged: "Create a City" and, with
+- [x] AC3: Given a consonant-initial card (City), the text is unchanged: "Create a City" and, with
   `"zone": "discard"`, "Add a City to your discard".
-- [ ] AC4: The rule is by first letter, case-insensitive: a name starting with A, E, I, O or U (either case) takes "an",
+- [x] AC4: The rule is by first letter, case-insensitive: a name starting with A, E, I, O or U (either case) takes "an",
   anything else takes "a".
 
 ## Test plan
@@ -38,7 +38,8 @@ A simple vowel-letter rule, not true pronunciation ("a Unit", "an Hour" edge cas
 hits them).
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`CreateEffect.describe()` wrote a literal "a" in both phrasings. Text tests only covered City, a consonant name, so
+nothing exercised a vowel-initial card. The fix picks the article by first letter (`_article`).
 
 ## Manual check
 - Mysticism reads "Add an Oracle of Delphi to your discard"; Irrigation reads "Add an Irrigation Canals to your discard".
@@ -46,3 +47,6 @@ hits them).
 ## Log
 - 2026-10-04: specced.
 - 2026-10-04: red. AC1 uses Explorer (Omen is in TEST_EVENTS, not TEST_CARDS). AC3 passes already (regression guard).
+- 2026-10-04: green (1191 → 1194 tests). A helper first named `test_card` was run as a test by the runner and hung the
+  suite; renamed `fixture_card`, added the naming rule to CLAUDE.md's Test conventions, and flagged a runner guard as a
+  follow-up.
