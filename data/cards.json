@@ -107,8 +107,44 @@
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "cost": { "wealth": 13 }, "vp": 10, "tags": ["wonder"],
+      "cost": { "wealth": 13 }, "vp": 10, "tags": ["wonder", "culture"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
+    },
+    {
+      "id": "oracle_of_delphi", "name": "Oracle of Delphi", "type": "building",
+      "cost": { "wealth": 10 }, "vp": 5, "tags": ["wonder", "culture"],
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "walls_of_uruk", "name": "Walls of Uruk", "type": "building",
+      "cost": { "wealth": 10 }, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
+      "effects": []
+    },
+    {
+      "id": "great_ziggurat", "name": "Great Ziggurat", "type": "building",
+      "cost": { "wealth": 14 }, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "hanging_gardens", "name": "Hanging Gardens", "type": "building",
+      "cost": { "wealth": 16 }, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
+      "modifiers": { "housing": 1 },
+      "effects": []
+    },
+    {
+      "id": "great_library", "name": "Great Library", "type": "building",
+      "cost": { "wealth": 16 }, "vp": 8, "tags": ["wonder", "culture"],
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 3, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "great_harbor_of_tyre", "name": "Great Harbor of Tyre", "type": "building",
+      "cost": { "wealth": 15 }, "vp": 8, "tags": ["wonder", "culture"], "requires": ["coastal"],
+      "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
+    },
+    {
+      "id": "royal_road", "name": "Royal Road", "type": "building",
+      "cost": { "wealth": 15 }, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1 },
+      "effects": []
     },
     {
       "id": "pasture", "name": "Pasture", "type": "building",
@@ -450,7 +486,8 @@
       "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
       "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" },
-        { "op": "unlock", "card": "stone_circle" } ]
+        { "op": "unlock", "card": "stone_circle" },
+        { "op": "create", "card": "oracle_of_delphi", "zone": "discard" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
@@ -465,7 +502,8 @@
       "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
       "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
+      "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" },
+        { "op": "create", "card": "walls_of_uruk", "zone": "discard" } ]
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
@@ -479,21 +517,24 @@
       "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
       "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 } ]
+      "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 },
+        { "op": "create", "card": "great_library", "zone": "discard" } ]
     },
     {
       "id": "currency", "name": "Currency", "type": "tech", "era": 2, "prereq": "bronze_working",
       "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and value fits in a purse.",
       "quote": { "text": "Money does not stink.", "by": "Vespasian, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
+      "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" },
+        { "op": "create", "card": "royal_road", "zone": "discard" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
       "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts.",
       "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" } ]
+      "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" },
+        { "op": "create", "card": "great_harbor_of_tyre", "zone": "discard" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
@@ -508,14 +549,15 @@
       "flavor": "Written laws, set in stone for all to read, replace the whim of the chief with fixed rules.",
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" } ]
+      "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" },
+        { "op": "create", "card": "great_ziggurat", "zone": "discard" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
       "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days.",
       "quote": { "text": "To every thing there is a season, and a time to every purpose under the heaven.", "by": "Ecclesiastes 3:1" },
       "cost": { "insight": 19 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
-      "effects": []
+      "effects": [ { "op": "create", "card": "hanging_gardens", "zone": "discard" } ]
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
