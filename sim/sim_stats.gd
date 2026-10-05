@@ -6,7 +6,7 @@ extends RefCounted
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
 const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
-	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
+	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "lookahead_turns"]
 ## How long a parallel run waits for its child processes before killing them (their shards then fail the run).
 const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
 ## The file in a parallel run's directory listing its jobs (293), so a worker plays exactly the parent's list.
@@ -21,6 +21,7 @@ const JOBS_FILE := "jobs.json"
 ## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
 ## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
 ## trashed by the end), and <id>_turns per government (see _governments): turns that started with it ruling.
+## lookahead_turns (294) is the turns the bot's lookahead forks played (ScriptedBot.lookahead_turns).
 static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := "baseline", civ := "") -> Dictionary:
 	return _summaries(_values(cards, config, seeds, strategy, civ))
 
@@ -94,6 +95,7 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 	engine.order_restored.connect(on_restored)
 	on_changed.call()  # an empty territory deck from the start, era 1 open
 	on_state.call()  # turn 1 as it started
+	ScriptedBot.lookahead_turns = 0
 	ScriptedBot.play(engine, job[1])
 	engine.changed.disconnect(on_changed)  # the callables hold engine: break the cycle so it is freed
 	engine.changed.disconnect(on_state)
@@ -101,6 +103,7 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 	engine.order_restored.disconnect(on_restored)
 	var game := game_metrics(engine, config)
 	game.merge(tally)
+	game.lookahead_turns = ScriptedBot.lookahead_turns
 	var out := {}
 	for m in names:
 		out[m] = game[m] if game.has(m) else seen.get(m, engine.turn)

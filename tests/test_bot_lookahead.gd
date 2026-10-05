@@ -191,14 +191,14 @@ func test_score_still_beats_insight() -> void:
 
 func test_weighing_a_revolution_plays_a_lookahead_for_staying_and_for_each_government() -> void:
 	var e := deck_game(["dull", "plain"], ScriptedBot.REVOLT_EVERY, ScriptedBot.REVOLT_EVERY + ScriptedBot.LOOKAHEAD_TURNS)
-	BOT.lookahead_turns = 0
+	ScriptedBot.lookahead_turns = 0
 	ScriptedBot.take_turn(e, "baseline")
 	check(not revolted(e), "neither scores more than Chiefs: every lookahead played")
-	eq(BOT.lookahead_turns, 3 * ScriptedBot.LOOKAHEAD_TURNS, "staying, Dull and Plain, LOOKAHEAD_TURNS turns each")
+	eq(ScriptedBot.lookahead_turns, 3 * ScriptedBot.LOOKAHEAD_TURNS, "staying, Dull and Plain, LOOKAHEAD_TURNS turns each")
 
 
 func test_a_game_with_no_government_deck_and_no_choice_events_plays_no_lookahead_turns() -> void:
 	var e := deck_game([], 1, 3 * ScriptedBot.REVOLT_EVERY)
-	BOT.lookahead_turns = 0
+	ScriptedBot.lookahead_turns = 0
 	check(ScriptedBot.play(e), "the game ends")
-	eq(BOT.lookahead_turns, 0, "nothing to weigh")
+	eq(ScriptedBot.lookahead_turns, 0, "nothing to weigh")

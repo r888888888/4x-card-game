@@ -35,6 +35,8 @@ const SPEND_RESERVE := 6
 const INSIGHT_PER_POINT := 4
 
 static var _depth := 0  # > 0 while a lookahead plays (159): no revolts, the forced government chosen
+## The turns lookahead forks have played (294), for the sim's lookahead_turns: SimStats resets it before each game.
+static var lookahead_turns := 0
 static var _forced_government := ""  # the government a lookahead was opened for ("" for the ranking)
 
 
@@ -83,6 +85,7 @@ static func lookahead(engine: GameEngine, strategy: String, government_id := "",
 			break
 		_close_turn(f)
 		steps += 1
+	lookahead_turns += f.turn - engine.turn
 	_depth -= 1
 	_forced_government = saved
 	return f.score() + insight_gathered(engine, f) / INSIGHT_PER_POINT

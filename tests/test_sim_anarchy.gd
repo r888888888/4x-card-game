@@ -51,7 +51,8 @@ func test_the_new_metrics_and_one_per_government_in_order() -> void:
 	var names := SimStats.metric_names(cards, config)
 	for m in NEW_METRICS:
 		check(names.has(m), "%s in %s" % [m, names])
-	var govs := names.filter(func(n): return n.ends_with("_turns") and n != "anarchy_turns" and n != "famine_turns")
+	var govs := names.filter(func(n): return n.ends_with("_turns") and not n in ["anarchy_turns", "famine_turns",
+			"lookahead_turns"])
 	eq(govs, ["chiefs_turns", "glory_turns"], "the starting government, then those a card creates; no Anarchy")
 
 
