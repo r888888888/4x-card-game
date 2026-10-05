@@ -84,7 +84,8 @@ res://
                          # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
                          # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116, 250: notices as flags
-                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
+                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys), card_actions.gd (playing,
+                         # clicking, discarding and picking a card view, out of main.gd: 316)
                          # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
                          # cabinet_doors.gd, 209),
                          # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),

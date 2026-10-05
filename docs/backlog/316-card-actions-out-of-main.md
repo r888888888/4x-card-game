@@ -2,7 +2,7 @@
 id: 316
 title: Move the card handlers out of main.gd into CardActions
 type: feature
-status: in-progress
+status: review
 branch: feat/316-card-actions-out-of-main
 ---
 
@@ -14,15 +14,15 @@ or choice, start dragging it), which main only wires up. They move to their own 
 gets room to grow. No behaviour changes.
 
 ## Acceptance criteria
-- [ ] AC1: `ui/card_actions.gd` declares `class_name CardActions` and holds `try_play(view, target_uid := -1)`,
+- [x] AC1: `ui/card_actions.gd` declares `class_name CardActions` and holds `try_play(view, target_uid := -1)`,
   `on_clicked(view)`, `on_double_clicked(view)`, `discard(view)`, `on_picked(view)` and
   `on_drag_requested(view, grab_offset)`; `ui/main.gd` declares none of them (nor `_refuse`) and holds the component as
   `main.card_actions`. `test_ui_structure`'s component table lists it, so main is checked to use it.
-- [ ] AC2: `ui/main.gd` is at most 450 lines.
-- [ ] AC3: The engine questions 094 and 175 check main for now live in `card_actions.gd`: it asks
+- [x] AC2: `ui/main.gd` is at most 450 lines.
+- [x] AC3: The engine questions 094 and 175 check main for now live in `card_actions.gd`: it asks
   `needs_target_choice(` and `hand_input_error()`; `test_ui_structure`'s two checks read `card_actions.gd` instead of
   `main.gd`.
-- [ ] AC4: Behaviour is unchanged: every existing test passes with its calls moved from `main.try_play`,
+- [x] AC4: Behaviour is unchanged: every existing test passes with its calls moved from `main.try_play`,
   `main.on_double_clicked`, `main.on_picked` and `main.discard` to `main.card_actions.…` (the drag controller, card
   focus and card views' signals call the component too), and with no other change to any test.
 
@@ -52,3 +52,7 @@ gets room to grow. No behaviour changes.
 ## Log
 - 2026-10-05: Specced while building 297, which needs a `build_modal` field on main; the user chose a split over a
   raised limit or moving the hook to the territory view.
+- 2026-10-05: Built. `ui/card_actions.gd` (95 lines) holds the seven handlers word for word, reaching main's parts as
+  `_board.…`; `BoardLayout` builds it after `CardFocus`. `main.gd` is 418 lines. Callers moved: `BoardViews` (the card
+  views' signals, the right-click discard included), `DragController`, `CardFocus`, the details' Play; eleven test
+  files' `main.<handler>(` calls became `main.card_actions.<handler>(`.
