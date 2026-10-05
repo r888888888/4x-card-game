@@ -2,7 +2,7 @@
 id: 290
 title: Ending the turn returns to the Realm
 type: feature
-status: review
+status: done
 branch: feat/290-end-turn-returns-to-realm
 ---
 
