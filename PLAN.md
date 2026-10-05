@@ -367,7 +367,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
   techs into the research deck, once per era (`era()` is the highest added). Learning the last tech of the research
-  deck adds the lowest waiting era (140). The Library makes ⟳ +2 insight (139).
+  deck adds the lowest waiting era (140). The Library makes ⟳ +2 insight (139; a pile of 6 since 264), the Stone Circle ⟳ +1 (Mysticism, 264).
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
   already added isn't added again. `era_unlocks()` returns the thresholds; the tech tree shows them.
@@ -391,6 +391,10 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
 starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies). Since 058
 the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Library, Market, Harbor) start locked.
+264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Mud-Brick Houses (Pottery, housing 2), Caravanserai
+(The Wheel, desert, ⟳ +1 wealth, +1 more on fresh water), Bathhouse (Priesthood, fresh water, housing 1, ⟳ −1 unrest),
+Courthouse (Code of Laws, ⟳ −1 unrest, unrest limit +1) and Aqueduct (Engineering, housing 2; Engineering gave a second
+Monument until then): every terrain has a building, every era opens a new one.
 - Config `supply: { "scout": { "price": 2, "count": 2 } }`: only `action` and `building` cards; `price`
   (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.

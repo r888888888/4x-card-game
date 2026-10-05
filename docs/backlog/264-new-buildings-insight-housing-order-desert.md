@@ -2,7 +2,7 @@
 id: 264
 title: New buildings for insight, housing, order and the desert
 type: feature
-status: red-review
+status: review
 branch: feat/264-new-buildings
 ---
 
@@ -13,14 +13,14 @@ wide realm have answers past Granary and Temple. The desert gets a building of i
 building. Content only: no engine change. Follows 263.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Some building with an `upkeep` insight gain is obtainable in era 1: it is in the starting
+- [x] AC1 (invariant): Some building with an `upkeep` insight gain is obtainable in era 1: it is in the starting
   `deck`, has an open supply pile, or a tech of era 1 in `research_deck` creates or unlocks it. Fails today: Library
   is era 2.
-- [ ] AC2 (invariant): Every terrain in config `terrains` is in the `requires` of some reachable building. Fails
+- [x] AC2 (invariant): Every terrain in config `terrains` is in the `requires` of some reachable building. Fails
   today for desert.
-- [ ] AC3 (invariant): Each era 1–3 has a tech in `research_deck` that unlocks a building no tech of an earlier era
+- [x] AC3 (invariant): Each era 1–3 has a tech in `research_deck` that unlocks a building no tech of an earlier era
   unlocks. Fails today for era 3: Engineering only re-unlocks Monument, which Masonry already unlocks.
-- [ ] AC4 (invariant): At least 3 reachable non-wonder buildings set `housing`, and at least 3 reachable non-wonder
+- [x] AC4 (invariant): At least 3 reachable non-wonder buildings set `housing`, and at least 3 reachable non-wonder
   buildings have an `upkeep` effect that loses unrest. Fails today: Granary and Temple are the only ones.
 
 ## Out of scope
@@ -63,3 +63,4 @@ Data changes only. New locked piles are `{"price": 3, "count": 6}` unless noted;
 - Balance worries for a later balance item: Stone Circles may speed era 1 research a lot (5–8 insight techs against
   +1 each); several Libraries may run era 3 out early; Mud-Brick Houses at 3 wealth for 2 housing may outclass
   Granary.
+- Green: data only. Stone Circle, Mud-Brick Houses and Caravanserai piles are priced 2, the rest 3. Suite 1725 → 1729.
