@@ -182,8 +182,9 @@ func _add_line(text: String, look: StringName) -> void:
 	var label := Label.new()
 	label.text = text
 	label.theme_type_variation = look
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size.x = CardView.TABLEAU_SIZE.x
+	if look == &"Refusal":  # a reason may be long; the preview's lines stay whole
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.custom_minimum_size.x = CardView.TABLEAU_SIZE.x
 	_lines.add_child(label)
 
 

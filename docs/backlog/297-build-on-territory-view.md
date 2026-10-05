@@ -2,7 +2,7 @@
 id: 297
 title: Build and recruit from a territory's view
 type: feature
-status: in-progress
+status: review
 branch: feat/297-build-on-territory-view
 ---
 
@@ -15,27 +15,27 @@ building it here would change, and one key builds it. Building happens where you
 Buy screen, which goes back to selling action cards only. Follows 299.
 
 ## Acceptance criteria
-- [ ] AC1: Given a territory view open on Homeland and a game whose `build_menu()` is Farm, Well, Granary (buildings)
+- [x] AC1: Given a territory view open on Homeland and a game whose `build_menu()` is Farm, Well, Granary (buildings)
   then Warriors (a unit), when Build… is pressed (or B while the view is open), then a modal titled "Build on Homeland"
   opens over the view. Its list, in a well, has a "Buildings" heading over Farm, Well, Granary and a "Units" heading
   over Warriors, in `build_menu()` order; each row shows the entry's name and its cost after discounts. A row that
   `build_error(id, Homeland)` refuses is dimmed with that reason under its name; the others are not. No row has a lamp
   or other state light.
-- [ ] AC2: When the modal opens, the first row `build_error` allows is selected (the first row when none is): it is
+- [x] AC2: When the modal opens, the first row `build_error` allows is selected (the first row when none is): it is
   drawn as the selectable list's selected row (an index card pulled out, with the orange index tab). ↑/↓ or a click
   selects another row. The sheet beside the list shows the selected entry's card face and, under "If built on
   Homeland", one line per `build_preview(id, Homeland)` line ("Food at next upkeep +1 → +3", "Free slots 2 → 1", …)
   and the cost it pays.
-- [ ] AC3: With a row selected that `build_error` allows, the sheet's key reads "Build Farm" ("Recruit Warriors" for a
+- [x] AC3: With a row selected that `build_error` allows, the sheet's key reads "Build Farm" ("Recruit Warriors" for a
   unit); pressing it, or Enter, calls `build(id, Homeland)`: the modal closes, the territory view stays open and shows
   the new card, and the top bar's figures and actions update. With a refused row selected, the sheet shows its card
   and the refusal in place of the preview, and the key is disabled.
-- [ ] AC4: Each free slot outline in the territory view reads "+ Build" and is a button: clicking it opens the same
+- [x] AC4: Each free slot outline in the territory view reads "+ Build" and is a button: clicking it opens the same
   modal on that territory, as Build… does. A territory with no free slot shows no outlines (as today).
-- [ ] AC5: Esc, Cancel or a click outside the panel closes the modal and builds nothing. Given a game over or a
+- [x] AC5: Esc, Cancel or a click outside the panel closes the modal and builds nothing. Given a game over or a
   decision owed, Build… and the "+ Build" outlines are disabled with the engine's reason (`build_error`'s blocked
   message) as their tooltip; given an empty `build_menu()`, Build… is hidden and outlines don't read "+ Build".
-- [ ] AC6: The Buy screen (Buy Cards, S) lists the supply's open piles only; with the real data that is action cards,
+- [x] AC6: The Buy screen (Buy Cards, S) lists the supply's open piles only; with the real data that is action cards,
   and its intro and tooltip no longer say buildings are bought. A build-menu unit's details offer Disband with the text
   "Dismiss it; its worker is freed." instead of "Send it to your discard; …".
 
@@ -77,3 +77,13 @@ Buy screen, which goes back to selling action cards only. Follows 299.
 ## Log
 - Redesigned before work started: from a grid of card tiles to the list-and-forecast modal ("Ledger"), with empty
   slots as a second way in; state lamps dropped at the user's request.
+- 2026-10-05: Built after 299 (the preview) and 316 (room in main.gd), both at the user's call. Engine: `build_cost`,
+  `build_menu_error` and `disbands_to_discard`, declared in `game_engine.gd` beside 295's `build_menu` and
+  `build_targets`: `engine_queries.gd` reached 509 lines once main's 309–312 queries landed, past its 500 limit, so
+  the three left `test_engine_structure`'s query list. `build_menu` is a query-only row like `supply` in
+  `test_blocking` (`QUERY_ONLY`) and `test_legal_actions` (`NEVER_LISTED`).
+- UI: `BuildModal` on `SelectList` (which gained `add_heading`); nothing is focused when it opens, so `key_pressed`
+  takes Up, Down and Enter. The "+ Build" key is a `SlotButton` (an empty box with the focus ring) filling each
+  outline, which stays a Panel. The Buy screen already sold only action cards after 295 and 296.
+- Test fix after the checkpoint: `test_build_modal`'s food fixtures forgot the Capital's turn-1 upkeep (+2 food), so
+  two tests now set the food after the game starts (`set_food`); what they check is unchanged.
