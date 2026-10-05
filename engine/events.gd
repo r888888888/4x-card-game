@@ -64,6 +64,7 @@ static func draw(e: GameEngine) -> void:
 		Military.announce(e, event)
 	var outcome := e._outcome
 	e._outcome = {}
+	EventChoices.drawn(e, event)
 	e.event_drawn.emit(outcome)
 
 

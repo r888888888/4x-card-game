@@ -46,6 +46,7 @@ func actions() -> Array:
 		["move_unit", func(e): return e.move_unit_error(first_in(e, "tableau"), home_uid(e)),
 			func(e): return e.move_unit(first_in(e, "tableau"), home_uid(e))],
 		["disband", func(e): return e.disband_error(first_in(e, "tableau")), func(e): return e.disband(first_in(e, "tableau"))],
+		["choose_option", func(e): return e.choose_option_error(0), func(e): return e.choose_option(0)],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
 	]
 
@@ -75,18 +76,22 @@ func scenarios() -> Array:
 	government.end_turn()  # 155: order can be restored from Anarchy's second turn
 	government.resources["wealth"] = 30
 	check(government.restore_order(), "restore order: the government choice is owed")
+	var event_choice := choice_engine()  # 269: Envoys drawn at turn 2's start
+	event_choice.end_turn()
 	var over := blocking_engine({}, {"turn_limit": 1})
 	over.end_turn()
 	eq(explore.pending().get("kind"), GameEngine.PENDING_EXPLORE, "explore owed")
 	eq(discard.pending().get("kind"), GameEngine.PENDING_DISCARD, "discard owed")
 	eq(renewal.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
 	eq(government.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "government choice owed")
+	eq(event_choice.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "event choice owed")
 	check(over.is_over, "the game is over")
 	return [
 		["explore", explore, ["choose"]],
 		["discard", discard, ["discard_card", "buy", "buy_tech", "supply"]],
 		["renewal", renewal, ["renew"]],
 		["government", government, ["choose_government"]],
+		["event choice", event_choice, ["choose_option"]],
 		["game over", over, []],
 	]
 
@@ -136,22 +141,28 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 	const DISCARD := "Discard down to 5 cards first."
 	const RENEWAL := "Anarchy: trash 1 card from your hand, deck or discard first."
 	const GOVERNMENT := "Choose a government first."
+	const EVENT_CHOICE := "Choose how to answer Envoys first."
 	var states := {"nothing owed": blocking_engine()}
 	for scenario in scenarios():
 		states[scenario[0]] = scenario[1]
 	# Each row: the action's error query for uid -1, then its message in each state, in the order of states' keys.
 	var rows := [
 		["choose", func(e): return e.choose_error(-1),
-			["There is no territory to choose.", "That territory isn't an option.", DISCARD, RENEWAL, GOVERNMENT, OVER]],
+			["There is no territory to choose.", "That territory isn't an option.", DISCARD, RENEWAL, GOVERNMENT,
+			EVENT_CHOICE, OVER]],
 		["renew", func(e): return e.renew_error([-1]),
-			["Nothing to renew.", EXPLORE, DISCARD, Anarchy.RENEW_ERROR, GOVERNMENT, OVER]],
+			["Nothing to renew.", EXPLORE, DISCARD, Anarchy.RENEW_ERROR, GOVERNMENT, EVENT_CHOICE, OVER]],
 		["choose_government", func(e): return e.choose_government_error(-1),
 			["No government to choose.", EXPLORE, DISCARD, RENEWAL,
-			"That government isn't in your government deck.", OVER]],
+			"That government isn't in your government deck.", EVENT_CHOICE, OVER]],
 		["discard_card", func(e): return e.discard_error(-1),
-			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", RENEWAL, GOVERNMENT, OVER]],
+			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", RENEWAL, GOVERNMENT,
+			EVENT_CHOICE, OVER]],
+		["choose_option", func(e): return e.choose_option_error(-1),
+			["No event choice is waiting.", EXPLORE, DISCARD, RENEWAL, GOVERNMENT, "No such option.", OVER]],
 	]
-	eq(states.keys(), ["nothing owed", "explore", "discard", "renewal", "government", "game over"], "states")
+	eq(states.keys(), ["nothing owed", "explore", "discard", "renewal", "government", "event choice", "game over"],
+		"states")
 	for row in rows:
 		var labels: Array = states.keys()
 		for i in labels.size():
@@ -188,6 +199,7 @@ func test_hand_input_error_names_what_blocks_picking_up_a_hand_card() -> void:
 		"discard": "",
 		"renewal": "Anarchy: trash 1 card from your hand, deck or discard first.",
 		"government": "Choose a government first.",
+		"event choice": "Choose how to answer Envoys first.",
 		"game over": "The game is over.",
 	}
 	var free := blocking_engine()

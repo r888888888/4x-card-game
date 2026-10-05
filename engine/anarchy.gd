@@ -167,6 +167,7 @@ static func renew(e: GameEngine, uids: Array) -> bool:
 		e.zone("trashed").add(card)
 		e._log("Renewal: trashed %s." % card.def.name)
 		e.lose(GameEngine.UNREST, 1, card)
+	EventChoices.next(e)  # a choice event drawn this turn start waited for the renewal (269)
 	e.changed.emit()
 	return true
 

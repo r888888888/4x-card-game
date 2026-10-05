@@ -36,6 +36,9 @@ signal card_played(outcome: Dictionary)
 ## gained, lost, vp, drawn, created}, as card_played's plus the event's card id; lost maps resource -> what a lose
 ## effect actually took.
 signal event_drawn(outcome: Dictionary)
+## Emitted by choose_option (269), before changed. outcome: {uid, id, index, gained, lost, vp, drawn, created}, as
+## event_drawn's plus the option's index; lost includes the option's cost.
+signal option_chosen(outcome: Dictionary)
 ## Emitted when a raid strikes (162), at the turn start before the turn's event is drawn. outcome: {uid, id, target,
 ## strength, defense, repelled, units_lost (uids), pop_lost, gained, lost, vp, drawn, created}.
 signal raid_resolved(outcome: Dictionary)

@@ -68,7 +68,7 @@ func _ready() -> void:
 	Game.engine.logged.connect(log_drawer.append_log)
 	Game.engine.noticed.connect(toasts.notice)
 	Game.engine.card_played.connect(_on_card_played)
-	_news.listen(Game.engine)
+	_news.listen(Game.engine, toasts.notice)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	if LaunchOptions.starts_game(Game.launch):  # --civ / --seed on the command line (135)
 		start_game(Game.launch.seed, Game.launch.civ)
@@ -216,6 +216,11 @@ func event_modal() -> Dictionary:
 ## Test hook (079): the drawn-event modal's OK button.
 func event_modal_ok_button() -> Button:
 	return _news.event_modal.ok_button
+
+
+## Test hook (269): a choice event's option buttons in the event modal, in order.
+func event_option_buttons() -> Array[Button]:
+	return _news.event_modal.option_buttons
 
 
 ## Test hook (271): the raid modal on show, {uid, id, repelled, result, title, context}; {} while closed.

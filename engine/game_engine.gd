@@ -22,6 +22,7 @@ const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
 const PENDING_GOVERNMENT := "government"  # Anarchy has ended: choose a government from the government deck (154)
+const PENDING_EVENT_CHOICE := "event_choice"  # a choice event was drawn: choose one of its options (269)
 ## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
 ## in an era not added yet.
 const TECH_RESEARCHED := "researched"
@@ -273,6 +274,23 @@ func disband(uid: int) -> bool:
 	return Military.disband(self, uid)
 
 
+## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,
+## or its cost can't be paid. "" if it can.
+func choose_option_error(index: int) -> String:
+	return EventChoices.choose_error(self, index)
+
+
+## Answers the owed choice event with option index: pays its cost and resolves its effects, then emits option_chosen.
+## Uses no action. False (and no change) if choose_option_error says no.
+func choose_option(index: int) -> bool:
+	return EventChoices.choose(self, index)
+
+
+## Option index's text on choice event uid (269): "Pay 2 wealth: +1 VP", "+1 unrest".
+func option_text(uid: int, index: int) -> String:
+	return zone(zone_of(uid)).find(uid).def.option_text(index, card_db)
+
+
 # --- Internals (the modules call these too) ---
 
 ## Unrest dropped: a ruling Anarchy keeps its lowered counters (155).
@@ -289,6 +307,8 @@ func _blocked_error(action: String) -> String:
 	match state.pending.get("kind", ""):
 		PENDING_GOVERNMENT:
 			return "Choose a government first."
+		PENDING_EVENT_CHOICE:
+			return "Choose how to answer %s first." % EventChoices.owed_event(self).def.name
 		PENDING_EXPLORE:
 			return "Choose a territory first."
 		PENDING_RENEWAL:

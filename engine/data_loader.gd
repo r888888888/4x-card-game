@@ -22,6 +22,7 @@ const TYPE_FIELDS := {
 	"era": [CardDef.TECH, CardDef.EVENT],
 	"discard": [CardDef.EVENT],
 	"raid": [CardDef.EVENT],
+	"choices": [CardDef.EVENT],
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
@@ -241,7 +242,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 					errs.append("effects[%d]: %s" % [j, start_problem])
 					continue
 			if effect != null and e_errs.is_empty() and NO_TERRITORY_TYPES.has(def.type):
-				var problem := _no_territory_effect_problem(effect, def.type)
+				var problem := no_territory_effect_problem(effect, def.type)
 				if problem != "":
 					errs.append("effects[%d]: %s" % [j, problem])
 					continue
@@ -304,6 +305,13 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 			def.raid = _parse_raid(c.raid, ctx.keywords, errs)
 			if def.has_discard:
 				errs.append("raid: a raid can't have 'discard' (it lasts until it strikes)")
+	if c.has("choices"):
+		if def.type != CardDef.EVENT:
+			errs.append("choices: only an event can have choices")
+		elif _is_raid(c):
+			errs.append("choices: a raid can't have choices")
+		else:
+			def.choices = EventChoices.parse(c.choices, ctx, errs)
 
 	if def.type in [CardDef.TECH, CardDef.EVENT] and c.has("era"):
 		var era: Variant = Fields.as_int(c.era)
@@ -388,7 +396,7 @@ static func _start_effect_problem(effect: Effect, type: String) -> String:
 
 
 ## Why effect can't be on a card of type (a tech or an event, which has no territory to aim at), or "" if it can.
-static func _no_territory_effect_problem(effect: Effect, type: String) -> String:
+static func no_territory_effect_problem(effect: Effect, type: String) -> String:
 	var article := "an" if type == CardDef.EVENT else "a"
 	if effect.keyword != "":
 		return "%s %s effect can't use 'keyword' (%s %s has no territory)" % [article, type, article, type]

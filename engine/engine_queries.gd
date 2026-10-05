@@ -92,11 +92,11 @@ func total_pop() -> int:
 	return Population.total_pop(self)
 
 
-## The decision the player owes before the game can go on, or {} when none:
-## {kind: PENDING_GOVERNMENT, options: the government deck's uids (154)} or
-## {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card that explored} or
-## {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)} or
-## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids}.
+## The decision the player owes before the game can go on, or {} when none: {kind: PENDING_GOVERNMENT, options: the
+## government deck's uids (154)}, {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card
+## that explored}, {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)},
+## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the
+## choice event's, options: its option indices (269)}.
 func pending() -> Dictionary:
 	var p := state.pending.duplicate(true)
 	match p.get("kind", ""):

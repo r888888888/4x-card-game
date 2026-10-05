@@ -18,6 +18,20 @@ const DAWN := {"id": "dawn", "name": "Dawn", "type": "action", "effects": [{"op"
 const LORE := {"id": "lore", "name": "Lore", "type": "tech", "cost": {"insight": 1}}
 const ALTAR := {"id": "altar", "name": "Altar", "type": "building", "modifiers": {"unrest_limit": 1}}
 const FIXTURES := [CHIEFS, KINGS, ANARCHY, FLEETING, FEAST, CALM, DAWN, LORE, ALTAR]
+## Choice events (269), loaded by choice_engine: Envoys (+1 food; pay 2 wealth for +1 VP, or +1 unrest), Boons (+1 VP
+## or +2 VP), Twins (+1 VP or +1 VP) and Dear (pay 50 wealth for +5 VP, or +1 unrest).
+const ENVOYS := {"id": "envoys", "name": "Envoys", "type": "event", "discard": {"turns": 2},
+	"effects": [{"op": "gain", "resource": "food", "amount": 1}],
+	"choices": [{"cost": {"wealth": 2}, "effects": [{"op": "score", "amount": 1}]},
+		{"effects": [{"op": "gain", "resource": "unrest", "amount": 1}]}]}
+const BOONS := {"id": "boons", "name": "Boons", "type": "event",
+	"choices": [{"effects": [{"op": "score", "amount": 1}]}, {"effects": [{"op": "score", "amount": 2}]}]}
+const TWINS := {"id": "twins", "name": "Twins", "type": "event",
+	"choices": [{"effects": [{"op": "score", "amount": 1}]}, {"effects": [{"op": "score", "amount": 1}]}]}
+const DEAR := {"id": "dear", "name": "Dear", "type": "event",
+	"choices": [{"cost": {"wealth": 50}, "effects": [{"op": "score", "amount": 5}]},
+		{"effects": [{"op": "gain", "resource": "unrest", "amount": 1}]}]}
+const CHOICE_EVENTS := [ENVOYS, BOONS, TWINS, DEAR]
 const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3, "allowed_tag": "order"}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 const ONLY_ORDER := "Anarchy: only an order card can be played."
@@ -71,6 +85,14 @@ func anarchy_engine(unrest := {}, overrides := {}, extra := []) -> GameEngine:
 	check(errors.is_empty(), "test config should load: %s" % [errors])
 	var e := GameEngine.new(cards, config)
 	e.new_game(1)
+	return e
+
+
+## An anarchy game (unrest block merged with unrest, overrides last) with CHOICE_EVENTS loaded and event_deck as its
+## event deck, top_first on top (269).
+func choice_engine(top_first := ["envoys"], event_deck := {"envoys": 1, "fleeting": 1}, unrest := {}, overrides := {}) -> GameEngine:
+	var e := anarchy_engine(unrest, {"event_deck": event_deck}.merged(overrides, true), CHOICE_EVENTS)
+	arrange(e.zone("event_deck"), top_first)
 	return e
 
 

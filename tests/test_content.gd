@@ -182,14 +182,21 @@ func test_real_events_harm_only_by_unrest() -> void:
 # --- Era-1 unrest cap (backlog 267) ---
 
 ## The most unrest the event def can add (267): its play gains, plus its upkeep gains times its turns, plus for a raid
-## the larger of what its pillage and its repel effects gain.
+## the larger of what its pillage and its repel effects gain, plus for a choice event the option that gains most (269).
 func unrest_added(def: CardDef) -> int:
 	var by_trigger := {}
 	for effect in def.effects:
 		if effect.op == "gain" and effect.get("resource") == "unrest":
 			by_trigger[effect.trigger] = by_trigger.get(effect.trigger, 0) + effect.get("amount")
+	var most_by_option := 0
+	for option in def.choices:
+		var n := 0
+		for effect in option.effects:
+			if effect.op == "gain" and effect.get("resource") == "unrest":
+				n += effect.get("amount")
+		most_by_option = maxi(most_by_option, n)
 	return by_trigger.get("play", 0) + by_trigger.get("upkeep", 0) * def.discard_turns \
-		+ maxi(by_trigger.get("pillage", 0), by_trigger.get("repel", 0))
+		+ maxi(by_trigger.get("pillage", 0), by_trigger.get("repel", 0)) + most_by_option
 
 
 func test_no_era_1_event_adds_more_than_1_unrest() -> void:

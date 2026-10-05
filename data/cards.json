@@ -349,6 +349,14 @@
       ]
     },
     {
+      "id": "envoys_from_the_hills", "name": "Envoys from the Hills", "type": "event", "tags": [], "effects": [],
+      "flavor": "Hill chieftains arrive with gifts of furs and honey, and they expect gifts in return.",
+      "choices": [
+        { "cost": { "wealth": 2 }, "effects": [ { "op": "score", "amount": 1 } ] },
+        { "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ] }
+      ]
+    },
+    {
       "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": [],
       "flavor": "On the longest night, fires burn on every hill and the elders watch for the sun to turn back."
     },
