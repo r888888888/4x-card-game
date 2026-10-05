@@ -2,7 +2,7 @@
 id: 284
 title: The test runner calls a test_* helper that takes arguments, and hangs
 type: bug
-status: in-progress
+status: review
 branch: fix/284-test-methods-with-args
 ---
 
@@ -17,14 +17,14 @@ branch: fix/284-test-methods-with-args
   argument; the run hangs indefinitely with no output.
 
 ## Acceptance criteria
-- [ ] AC1: Given a test file with `test_plain()` (no arguments) and `test_helper(id: String)`, when the runner picks the
+- [x] AC1: Given a test file with `test_plain()` (no arguments) and `test_helper(id: String)`, when the runner picks the
   methods to run from it with no filter, then it runs `test_plain` only, and reports one failure
   `<file>::test_helper: test methods take no arguments; rename the helper`, without calling `test_helper`.
-- [ ] AC2: Given the same file, when the filter matches only `test_plain`, then `test_plain` runs and nothing is
+- [x] AC2: Given the same file, when the filter matches only `test_plain`, then `test_plain` runs and nothing is
   reported for `test_helper` (a method the filter leaves out is never reported).
-- [ ] AC3: Given the same file, methods whose names don't begin with `test_` (with or without arguments) are neither
+- [x] AC3: Given the same file, methods whose names don't begin with `test_` (with or without arguments) are neither
   run nor reported.
-- [ ] AC4: The real suite still runs green: no test file in `tests/` has a `test_*` method with arguments.
+- [x] AC4: The real suite still runs green: no test file in `tests/` has a `test_*` method with arguments.
 
 ## Test plan
 | AC | Test |
@@ -35,7 +35,11 @@ branch: fix/284-test-methods-with-args
 | AC4 | the suite itself (`scripts/test.sh`) |
 
 ## Root cause
-<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+`tests/run_tests.gd` chose methods by name alone (`begins_with("test_")`) and called each with no arguments. A
+helper named `test_*` that takes an argument then ran with a missing argument, and in 279 that hung the run before
+any shard printed output. No test covered the runner's method selection. It now lives in
+`tests/lib/test_methods.gd` (`select`), which reads each method's `args` and reports such a method as a failure
+instead of calling it.
 
 ## Design notes
 - The method selection moves out of `tests/run_tests.gd` into `tests/lib/test_methods.gd` (like `test_shards.gd`,
@@ -46,3 +50,7 @@ branch: fix/284-test-methods-with-args
 
 ## Log
 - 2026-10-05: specced from 279, where `test_card(id)` hung the suite.
+- 2026-10-05: green. A misnamed helper filtered out by the run's filter isn't reported, so a filtered run isn't failed
+  by unrelated files. A rejected method doesn't count in "N tests" but is one of the failures, so the run exits 1.
+  Checked end to end with a throwaway `tests/test_zz_probe.gd` holding `test_card(id: String)`: the run finished in
+  ~5 s with `FAIL test_zz_probe::test_card: test methods take no arguments; rename the helper` and exit 1.
