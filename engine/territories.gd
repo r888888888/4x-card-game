@@ -86,11 +86,27 @@ static func requires_error(card: CardInstance) -> String:
 	return "%s needs a territory with %s." % [card.def.name, CardDef.keyword_names(card.def.requires)]
 
 
-## The settled territories building card can go on: room, a free worker and a required keyword.
+## The settled territories building card can go on: room, a free worker and a required keyword. One pass over the
+## tableau (294) counts what free_slots and free_workers would for each territory.
 static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
-	for territory in e.zone("tableau").cards:
-		if has_room(e, territory) and Population.has_worker(e, territory) and meets_requires(card, territory):
+	var tableau := e.zone("tableau").cards
+	var tiers := Population.tiers(e)
+	var slots := {}  # territory uid -> city slots on it minus the buildings on it (see total_slots, free_slots)
+	var workers := {}  # territory uid -> cards using its workers (see free_workers)
+	for c in tableau:
+		if c.def.type == CardDef.CITY:
+			slots[c.territory_uid] = slots.get(c.territory_uid, 0) + c.def.slots
+		elif c.def.type == CardDef.BUILDING:
+			slots[c.territory_uid] = slots.get(c.territory_uid, 0) - 1
+		if c.def.uses_worker():
+			workers[c.territory_uid] = workers.get(c.territory_uid, 0) + 1
+	var pop_on := e.population_on()
+	for territory in tableau:
+		if territory.def.type != CardDef.TERRITORY or not meets_requires(card, territory):
+			continue
+		var room: int = territory.def.slots + Population.tier_slots(tiers, territory.pop) + slots.get(territory.uid, 0)
+		if room > 0 and (not pop_on or territory.pop - workers.get(territory.uid, 0) > 0):
 			out.append(territory.uid)
 	return out
 

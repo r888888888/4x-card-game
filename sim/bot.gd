@@ -154,10 +154,11 @@ static func learn_cheapest_tech(engine: GameEngine) -> bool:
 ## was played.
 static func _play_first_playable(engine: GameEngine, strategy := "baseline") -> bool:
 	var order := _hand_order(engine, strategy)
+	var forecast := []  # see _unrest_ok: nothing changes until a card is played
 	for card in order:
 		if strategy == "tall" and _settles(card.def) and _settled_count(engine) >= TALL_TERRITORIES:
 			continue
-		if not _unrest_ok(engine, card.def) or _explores_nothing(engine, card.def) or not _growth_ok(engine, card):
+		if not _unrest_ok(engine, card.def, forecast) or _explores_nothing(engine, card.def) or not _growth_ok(engine, card):
 			continue
 		var targets := engine.valid_targets(card.uid)
 		var target: int = targets[0] if engine.needs_target(card.uid) and not targets.is_empty() else -1
@@ -215,8 +216,9 @@ static func _grows(def: CardDef) -> bool:
 
 ## Whether playing def is sensible for unrest (144), with a limit set: next = unrest + the next upkeep's change + 1 (a
 ## margin for the event). A card that gains unrest is skipped when next plus its gain reaches the limit, and one that
-## loses unrest while next is below the limit − CALM_MARGIN.
-static func _unrest_ok(engine: GameEngine, def: CardDef) -> bool:
+## loses unrest while next is below the limit − CALM_MARGIN. forecast holds the upkeep forecast once made ([] until a
+## card needs it), so one scan of the hand makes it at most once (294).
+static func _unrest_ok(engine: GameEngine, def: CardDef, forecast := []) -> bool:
 	var change := 0
 	for e in def.effects:
 		if e.trigger == "play" and e.get("resource") == GameEngine.UNREST:
@@ -224,7 +226,9 @@ static func _unrest_ok(engine: GameEngine, def: CardDef) -> bool:
 	var limit := engine.unrest_limit()
 	if change == 0 or limit < 0:
 		return true
-	var next: int = engine.resources.get(GameEngine.UNREST, 0) + engine.upkeep_forecast().get(GameEngine.UNREST, 0) + 1
+	if forecast.is_empty():
+		forecast.append(engine.upkeep_forecast())
+	var next: int = engine.resources.get(GameEngine.UNREST, 0) + forecast[0].get(GameEngine.UNREST, 0) + 1
 	return next + change < limit if change > 0 else next >= limit - CALM_MARGIN
 
 
@@ -359,12 +363,15 @@ static func _settled_count(engine: GameEngine) -> int:
 ## reserve wealth; a tie goes to the pile listed first. Returns whether it bought one.
 static func _buy_cheapest(engine: GameEngine, wanted: Callable, reserve := 0) -> bool:
 	var best := ""
+	var best_price := 0
 	var wealth: int = engine.resources.get(GameEngine.WEALTH, 0)
-	for id in engine.open_supply_piles():
-		if wanted.call(engine.card_db[id]) and engine.buy_error(id) == "" \
-				and wealth - engine.buy_price(id) >= reserve \
-				and (best == "" or engine.buy_price(id) < engine.buy_price(best)):
+	for id in engine.open_supply_piles():  # the cheap tests first
+		var price := engine.buy_price(id)
+		if wealth - price < reserve or (best != "" and price >= best_price):
+			continue
+		if wanted.call(engine.card_db[id]) and engine.buy_error(id) == "":
 			best = id
+			best_price = price
 	return best != "" and engine.buy(best)
 
 
@@ -378,7 +385,7 @@ static func spends_before_drain(engine: GameEngine) -> bool:
 ## (239): the cheapest card strategy buys (wealth: makes wealth; growth and tall: makes food on upkeep; any for the
 ## others), then the cheapest of any.
 static func _spend_before_drain(engine: GameEngine, strategy: String) -> void:
-	if not (Anarchy.rules_next_turn(engine) or engine.anarchy_ahead()) or not spends_before_drain(engine):
+	if not spends_before_drain(engine) or not (Anarchy.rules_next_turn(engine) or engine.anarchy_ahead()):
 		return
 	var preferred := func(def): return strategy in ["baseline", "wide"] or _prefers(strategy, def)
 	while _buy_cheapest(engine, preferred, SPEND_RESERVE) or _buy_cheapest(engine, func(_def): return true, SPEND_RESERVE):

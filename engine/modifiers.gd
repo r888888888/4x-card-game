@@ -25,10 +25,11 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
 	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
 	if pop_on:
+		var tiers := Population.tiers(e)
 		for c in tableau:
 			if c.def.type == CardDef.TERRITORY:
 				workers[c.uid] = c.pop
-				slots[c.uid] = c.def.slots + Population.slots_at_pop(e, c.pop)
+				slots[c.uid] = c.def.slots + Population.tier_slots(tiers, c.pop)
 		for c in tableau:
 			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
 				slots[c.territory_uid] += c.def.slots
@@ -62,9 +63,18 @@ static func unrest_limit(e: GameEngine) -> int:
 	return maxi(0, gov.cards[0].def.unrest_limit + total(e, UNREST_LIMIT))
 
 
-## key summed over the working cards and the active events; 0 when none has it.
+## key summed over the working cards and the active events; 0 when none has it. The idle pass (working_cards) runs only
+## when a tableau card has key (294): otherwise only ALWAYS_ON_ZONES and the active events can.
 static func total(e: GameEngine, key: String) -> int:
 	var sum := 0
-	for card in working_cards(e) + e.zone("active_events").cards:
-		sum += card.def.modifiers.get(key, 0)
+	for card in e.zone("tableau").cards:
+		if card.def.modifiers.has(key):
+			for c in working_cards(e) + e.zone("active_events").cards:
+				sum += c.def.modifiers.get(key, 0)
+			return sum
+	for z in GameEngine.ALWAYS_ON_ZONES:
+		for c in e.zone(z).cards:
+			sum += c.def.modifiers.get(key, 0)
+	for c in e.zone("active_events").cards:
+		sum += c.def.modifiers.get(key, 0)
 	return sum
