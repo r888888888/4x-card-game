@@ -1199,6 +1199,12 @@ func test_every_gain_per_tag_tag_is_on_2_reachable_cards() -> void:
 	eq(thin, [] as Array[String], "gain_per_tag tags fewer than 2 reachable cards carry")
 
 
+## Backlog 281: the real data has settlement tiers, at least 2 of them.
+func test_population_has_at_least_2_tiers() -> void:
+	var r := load_real()
+	check(r.config.population.get("tiers", []).size() >= 2, "population.tiers: %s" % [r.config.population.get("tiers")])
+
+
 ## Backlog 143: a eureka only counts cards the player can get: its card can reach a game, its tag is on such a card.
 func test_every_eureka_counts_cards_the_player_can_get() -> void:
 	var r := load_real()
