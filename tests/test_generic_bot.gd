@@ -160,3 +160,56 @@ func test_sim_stats_plays_the_generic_strategy() -> void:
 	var start := e.score()
 	var stats: Dictionary = SimStats.run(e.card_db, e.config, [1], "generic")
 	check(stats.get("score", {}).get("min", 0) >= start + 2, "Shrines played over 3 turns: %s from %d" % [stats.get("score"), start])
+
+
+# --- 314 AC1: the strategies ---
+
+func test_the_bot_plays_generic_wide_and_tall() -> void:
+	check(BOT != null, "sim/generic_bot.gd exists")
+	if BOT != null:
+		eq(BOT.get_script_constant_map().get("STRATEGIES"), ["generic", "wide", "tall"], "GenericBot.STRATEGIES")
+
+
+func test_sim_stats_plays_every_strategy_for_all_and_refuses_others() -> void:
+	var jobs: Array = SimStats.job_list({"civilizations": []}, 1, "all", "")
+	eq(jobs.map(func(j): return j[1]), ["generic", "wide", "tall"], "all: one job per strategy")
+	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 1, "baseline", {})
+	check(out.get("code", 0) == 1 and str(out.get("lines", [])).contains("unknown strategy 'baseline'"),
+		"baseline is gone: %s" % [out.get("lines")])
+
+
+# --- 314 AC2: tall stops at 2 territories, wide likes land ---
+
+## A Lone game (1 action, 10 turns left) with Hills settled, Grassland in the frontier and hand in the hand.
+func land_game(hand: Array) -> GameEngine:
+	var e := bot_game(hand, [])
+	settle(e, ["hills"])
+	to_frontier(e, ["grassland"])
+	return e
+
+
+func test_tall_never_settles_a_third_territory_and_generic_does() -> void:
+	var tall := land_game(["pioneer"])
+	eq(tall.play_error(first_in_hand(tall), uid_of(tall.zone("frontier"), "grassland")), "", "the Pioneer could settle")
+	if BOT != null:
+		BOT.take_turn(tall, "tall")
+	eq(tall.zone("frontier").size(), 1, "tall: Grassland stays in the frontier")
+	var generic := land_game(["pioneer"])
+	take_turn(generic)
+	eq(generic.zone("frontier").size(), 0, "generic: Grassland settled")
+
+
+func test_wide_settles_where_generic_builds_a_temple() -> void:
+	var generic := land_game(["pioneer", "temple"])
+	eq(played(generic, func(): take_turn(generic)), ["temple"], "generic: the Temple's 10 turns of score")
+	var wide := land_game(["pioneer", "temple"])
+	var wide_turn := func():
+		if BOT != null:
+			BOT.take_turn(wide, "wide")
+	eq(played(wide, wide_turn), ["pioneer"], "wide: a third territory")
+
+
+# --- 314 AC5: ScriptedBot is gone ---
+
+func test_scripted_bot_is_gone() -> void:
+	check(not ResourceLoader.exists("res://sim/bot.gd"), "sim/bot.gd removed")

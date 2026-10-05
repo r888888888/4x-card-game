@@ -2,7 +2,7 @@
 id: 314
 title: The generic bot replaces ScriptedBot; strategies generic, wide and tall
 type: feature
-status: ready
+status: red-review
 branch: feat/314-generic-bot-replaces-scripted
 ---
 
@@ -50,7 +50,12 @@ per-mechanic bot items (298, 303, 168) are closed as superseded.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_generic_bot::test_…` |
+| AC1 | `test_generic_bot::test_the_bot_plays_generic_wide_and_tall`, `test_sim_stats_plays_every_strategy_for_all_and_refuses_others` |
+| AC2 | `test_generic_bot::test_tall_never_settles_a_third_territory_and_generic_does`, `test_wide_settles_where_generic_builds_a_temple` |
+| AC3 | `test_generic_rollouts` (all 11) |
+| AC4 | `test_generic_raids::test_the_bot_moves_a_unit_onto_a_short_target`, `test_the_bot_keeps_a_unit_on_a_raided_target_it_holds` (pass already: 313's bot meets raids through `turn_forecast`) |
+| AC5 | `test_generic_bot::test_scripted_bot_is_gone`; the ScriptedBot tests removed or ported (Log) |
+| AC6 | docs (manual review) |
 
 ## Manual check
 - [ ] `scripts/sim.sh 10` (all strategies) for each civ: note scores, revolts and seconds per game in the Log. Balance
@@ -58,3 +63,9 @@ per-mechanic bot items (298, 303, 168) are closed as superseded.
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309–313, 315. Supersedes 298, 303, 168. Follows 313.
+- 2026-10-05: red. AC4's two tests already pass on 313's bot: the raid's strike is in `turn_forecast`, so moving a
+  Levy onto a short Hills values more with no raid rule. Rollouts' value is `value()` of the fork at the horizon (cheap
+  mode), not score plus insight as 159/240 had. In green, the ScriptedBot tests go: `test_bot_lookahead.gd` (ported
+  as `test_generic_rollouts.gd`), `test_bot_spending.gd`, the bot cases in `test_unrest`, `test_leaving_anarchy`,
+  `test_renewal`, `test_wonder_sites`, `test_choice_events` and `test_sim`/`test_sim_anarchy`/`test_sim_strategies`
+  (ported where they test SimStats rather than ScriptedBot's rules); `play_seed_1` (the UI smoke games) needs a driver.
