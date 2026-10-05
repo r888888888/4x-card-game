@@ -2,7 +2,7 @@
 id: 265
 title: Wonders for eras 1 and 2
 type: feature
-status: red-review
+status: review
 branch: feat/265-era-1-2-wonders
 ---
 
@@ -13,13 +13,13 @@ sink with a distinct lasting effect. Like Pyramids, they are created by techs, o
 only: no engine change. Follows 264.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Eras 1 and 2 each have at least 2 wonders (tag `wonder`) created by a tech of that era in
+- [x] AC1 (invariant): Eras 1 and 2 each have at least 2 wonders (tag `wonder`) created by a tech of that era in
   `research_deck`. Fails today: era 1 has none.
-- [ ] AC2 (invariant): Every wonder reaches a game only through one tech: exactly one tech in `research_deck`
+- [x] AC2 (invariant): Every wonder reaches a game only through one tech: exactly one tech in `research_deck`
   creates it, it has no supply pile, and it isn't in the starting `deck`.
-- [ ] AC3 (invariant): Every wonder costs more wealth than any non-wonder building and prints more VP than any
+- [x] AC3 (invariant): Every wonder costs more wealth than any non-wonder building and prints more VP than any
   non-wonder building.
-- [ ] AC4 (invariant): Every wonder also carries the `culture` tag, so it counts for culture eurekas (Writing) and
+- [x] AC4 (invariant): Every wonder also carries the `culture` tag, so it counts for culture eurekas (Writing) and
   Mathematics. Fails today: Pyramids.
 
 ## Out of scope
@@ -68,3 +68,6 @@ discard by its tech (a `create` effect, no `unlock`). All effects use existing o
 ## Log
 - Balance worries for a later balance item: Oracle (+2 insight for 10 wealth) may rush era 1 research; Royal Road's
   extra card is worth more than its VP suggests; with eight wonders, Egypt's discount gets much stronger.
+- Green: data only. Suite 1729 → 1733.
+- Found while checking card text: Great Ziggurat (and Monument, already on main) read "Unrest limit +2s": `%.0s` in
+  `CardDef.MODIFIER_TEXT` doesn't drop the plural in Godot. An engine text bug, flagged as its own task.

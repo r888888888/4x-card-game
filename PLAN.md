@@ -337,7 +337,11 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141–142 (eurekas, diffusion; built), 143
 (Iron Age: 6 era-3 techs in the deck, opened by Writing; eurekas on every tech; pacing; built).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
-  (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
+  (057), so more copies can be bought. Wonders (tag `wonder`) are created only, one copy each, and also carry `culture` (265): era 1 Oracle of Delphi
+  (Mysticism, ⟳ +2 insight) and Walls of Uruk (Masonry, defence 4, unrest limit +1); era 2 Pyramids (Priesthood),
+  Great Ziggurat (Code of Laws, ⟳ −1 unrest, limit +2), Hanging Gardens (Calendar, fresh water, every territory houses
+  1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
+  territory) and Royal Road (Currency, hand size +1). The
   starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles,
   Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food) and Shrine (anywhere, 1 VP,
