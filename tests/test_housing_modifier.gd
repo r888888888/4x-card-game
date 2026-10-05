@@ -70,10 +70,13 @@ func test_growth_stops_at_the_raised_cap() -> void:
 	var home := home_uid(e)
 	var cap: int = e.housing(home)
 	e.zone("tableau").find(home).pop = cap - 1
-	for i in 2:
-		var festival := put_in_hand(e, "festival")
-		check(e.play_card(festival), "play Festival: %s" % e.play_error(festival))
-	eq(e.pop(home), cap, "two Festivals stop at the raised cap")
+	var festival := put_in_hand(e, "festival")
+	check(e.play_card(festival), "play Festival: %s" % e.play_error(festival))
+	eq(e.pop(home), cap, "Festival grows to the raised cap")
+	var another := put_in_hand(e, "festival")
+	check(e.play_error(another).contains("room"), "another Festival is blocked at the cap (276): %s" % e.play_error(another))
+	check(not e.play_card(another), "another Festival can't be played")
+	eq(e.pop(home), cap, "stays at the raised cap")
 
 
 # --- AC4: an idle building's modifier stops ---

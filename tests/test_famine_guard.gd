@@ -73,8 +73,10 @@ func test_silo_housing_caps_card_growth_at_8() -> void:
 	var home := home_uid(e)
 	check(e.play_card(first_in_hand(e)), "play Festival")
 	eq(e.pop(home), 8, "Festival grows Homeland to 8")
-	check(e.play_card(first_in_hand(e)), "play another Festival")
-	eq(e.pop(home), 8, "stops at housing 8")
+	var another := first_in_hand(e)
+	check(e.play_error(another).contains("room"), "another Festival is blocked at housing 8 (276): %s" % e.play_error(another))
+	check(not e.play_card(another), "another Festival can't be played")
+	eq(e.pop(home), 8, "stays at housing 8")
 
 
 func test_idle_silo_still_adds_housing() -> void:

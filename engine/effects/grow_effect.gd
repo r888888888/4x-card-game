@@ -51,6 +51,20 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 			engine.add_pop(card.uid, amount, source)
 
 
+## A card whose play effects are all grows can't be played when it would add no pop (276): during a Famine, or with no
+## territory below its housing. "here" and the population rules being off are left alone.
+func play_block_error(engine: GameEngine, card: CardInstance) -> String:
+	if where == "here" or not engine.population_on():
+		return ""
+	if card.def.effects.any(func(e: Effect) -> bool: return e.trigger == "play" and e.op != op):
+		return ""
+	var famine := Famine.growth_error(engine)
+	if famine != "":
+		return famine
+	if Population.smallest_with_room(engine).is_empty():
+		return "No territory has room to grow."
+	return ""
+
 
 func terms() -> Array[String]:
 	var out := super()

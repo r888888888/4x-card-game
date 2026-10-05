@@ -324,7 +324,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   settled territory (Harvest Festival until 069, now an event), or with `count` on at most that many, smallest pop
   first among those with room (ties: tableau order; 261). `best` adds it all to one territory: one with idle buildings
   first, else the smallest with room (`Population.best_to_grow`, 261). `here` is a load error on a tech or an event,
-  which has no territory (069); `count` only goes with `each`.
+  which has no territory (069); `count` only goes with `each`. A card whose play effects are all `each`/`best` grows
+  can't be played when it would add no pop: during a Famine, or with every territory at its housing (276).
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.

@@ -137,8 +137,9 @@ func test_no_growth_during_a_famine() -> void:
 	var e := famine_engine(4)
 	e.end_turn()  # famine 1: 4 -> 3
 	var festival := put_in_hand(e, "festival")
-	check(e.play_card(festival), "Festival can still be played: %s" % e.play_error(festival))
-	eq(home_pop(e), 3, "Festival adds no pop")
+	eq(e.play_error(festival), Famine.growth_error(e), "Festival is blocked by the Famine (276)")
+	check(not e.play_card(festival), "Festival can't be played")
+	eq(home_pop(e), 3, "no pop added")
 
 
 func test_growth_works_again_after_the_famine() -> void:
