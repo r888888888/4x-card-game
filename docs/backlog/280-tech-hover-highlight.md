@@ -2,7 +2,7 @@
 id: 280
 title: Highlight the hovered tech tile
 type: feature
-status: red-review
+status: in-progress
 branch: feat/280-tech-hover-highlight
 ---
 
