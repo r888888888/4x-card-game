@@ -2,7 +2,7 @@
 id: 316
 title: Move the card handlers out of main.gd into CardActions
 type: feature
-status: review
+status: done
 branch: feat/316-card-actions-out-of-main
 ---
 
