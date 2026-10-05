@@ -2,7 +2,7 @@
 id: 296
 title: Recruit units from the build menu
 type: feature
-status: ready
+status: red-review
 branch: feat/296-recruit-units-from-build-menu
 ---
 
@@ -54,6 +54,11 @@ early raids still have an answer (285's reason for a Warriors card in the starti
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_units::test_…` |
+| AC1 | `test_recruit::test_recruiting_a_unit_homes_and_stations_it_using_a_worker_but_no_slot` (passes already: 295's build) |
+| AC2 | `test_recruit::test_a_unit_entry_goes_on_any_territory_with_a_free_worker_and_nowhere_else` (passes already) |
+| AC3 | `test_recruit::test_a_recruited_unit_disbanded_leaves_play_and_can_be_recruited_again`, `test_a_recruited_unit_lost_to_a_pillage_leaves_play` |
+| AC4 | existing: `test_unit_moves::test_disbanding_a_unit_frees_its_worker_and_its_strength`, `test_raids::test_163_a_lost_garrison_goes_to_the_discard_whatever_its_home` (deck units, no entry) |
+| AC5 | `test_recruit::test_unlocking_a_unit_entry_says_it_can_now_be_recruited` |
+| AC6 | `test_content::test_units_are_in_the_build_menu_not_the_deck_or_supply`, `test_a_military_unit_can_be_recruited_on_turn_1` (replace 285's two starting-deck tests and 160's supply-pile test) |
 
 ## Log

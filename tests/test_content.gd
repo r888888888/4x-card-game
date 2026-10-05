@@ -108,33 +108,30 @@ func test_real_deck_has_growth_cards() -> void:
 	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
-# --- Military in the starting deck (285) ---
+# --- Military from turn 1 (285; recruited from the build menu since 296) ---
 
-## Ids in the starting deck that are military units.
-func military_units(r: Dictionary) -> Array[String]:
-	var out: Array[String] = []
-	for id in r.config.deck:
-		var def: CardDef = r.cards[id]
-		if def.type == CardDef.UNIT and def.has_tag("military"):
-			out.append(id)
-	return out
-
-
-func test_the_starting_deck_holds_a_military_unit() -> void:
+## Backlog 296 (replaces 285's "the starting deck holds a military unit" and 160's "every unit has a supply pile or a
+## tech that creates it"): units are recruited from the build menu, never dealt or bought, and every unit has an entry.
+func test_units_are_in_the_build_menu_not_the_deck_or_supply() -> void:
 	var r := load_real()
-	check(not military_units(r).is_empty(), "the starting deck %s has a military unit" % [r.config.deck.keys()])
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var units := 0
+	for id in r.cards:
+		if r.cards[id].type == CardDef.UNIT:
+			units += 1
+			check(not r.config.deck.has(id) and not r.config.supply.has(id), "%s isn't in the deck or supply" % id)
+			check(menu.has(id), "%s has a build-menu entry" % id)
+	check(units > 0, "the real data has units")
 
 
-func test_a_new_game_deals_a_military_unit_among_the_opening_cards() -> void:
-	var r := load_real()
+## Backlog 296 (replaces 285's "a new game deals a military unit"): the early raids have an answer: on turn 1 a
+## military unit can be recruited on the home with the starting resources.
+func test_a_military_unit_can_be_recruited_on_turn_1() -> void:
 	var e := real_engine(5)
-	var dealt: Array[String] = card_ids(e.zone("deck")) + card_ids(e.zone("hand"))
-	var found := dealt.filter(func(id): return military_units(r).has(id))
-	check(not found.is_empty(), "a military unit is in the draw pile or hand (got %s)" % [dealt])
-	var total := 0
-	for id in r.config.deck:
-		total += int(r.config.deck[id])
-	eq(dealt.size(), total, "the opening deck and hand hold every starting-deck card")
+	var home := home_uid(e)
+	var recruitable: Array = e.build_menu().filter(func(id): return e.card_db[id].type == CardDef.UNIT \
+		and e.card_db[id].has_tag("military") and e.build_error(id, home) == "")
+	check(not recruitable.is_empty(), "a military unit can be recruited on turn 1 (menu %s)" % [e.build_menu()])
 
 
 # --- Growth cards (262) ---
@@ -957,21 +954,6 @@ func test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks() -> void:
 			check(pile.get("locked", false), "%s (from %s) is a locked supply pile" % [id, tech.id])
 			check(unlocks.has(id), "%s unlocks %s" % [tech.id, id])
 	check(checked > 0, "some tech gives a card")
-
-
-## Backlog 160: every unit can be had, from a supply pile or a tech that creates it; the data has some.
-func test_every_unit_has_a_supply_pile_or_a_tech_that_creates_it() -> void:
-	var r := load_real()
-	var from_techs := {}
-	for tech in techs_in_research_deck(r):
-		for id in created_by(tech):
-			from_techs[id] = true
-	var units := 0
-	for id in r.cards:
-		if r.cards[id].type == CardDef.UNIT:
-			units += 1
-			check(r.config.supply.has(id) or from_techs.has(id), "%s has a supply pile or a tech creates it" % id)
-	check(units > 0, "the real data has units")
 
 
 ## Backlog 065: the game starts with a government, and every other government comes from a researchable tech (but
