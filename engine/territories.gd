@@ -21,11 +21,12 @@ static func keywords_of(e: GameEngine, uid: int) -> Array[String]:
 	return [] as Array[String]
 
 
+## A settled territory's building slots: its own, its cities' and its tier's (281); 0 if unsettled.
 static func total_slots(e: GameEngine, territory_uid: int) -> int:
 	var territory := settled(e, territory_uid)
 	if territory == null:
 		return 0
-	var total := territory.def.slots
+	var total := territory.def.slots + Population.slots_at_pop(e, territory.pop)
 	for card in e.zone("tableau").cards:
 		if card.def.type == CardDef.CITY and card.territory_uid == territory_uid:
 			total += card.def.slots
@@ -35,7 +36,7 @@ static func total_slots(e: GameEngine, territory_uid: int) -> int:
 static func free_slots(e: GameEngine, territory_uid: int) -> int:
 	if settled(e, territory_uid) == null:
 		return 0
-	return total_slots(e, territory_uid) - buildings_on(e, territory_uid).size()
+	return maxi(0, total_slots(e, territory_uid) - buildings_on(e, territory_uid).size())
 
 
 ## The buildings on territory territory_uid, in the order they were placed.
@@ -136,8 +137,12 @@ static func summary(e: GameEngine, uid: int) -> Dictionary:
 static func status(e: GameEngine, uid: int) -> Dictionary:
 	if summary(e, uid).is_empty():
 		return {}
-	return {"free_slots": e.free_slots(uid), "total_slots": e.total_slots(uid), "pop": e.pop(uid),
+	var out := {"free_slots": e.free_slots(uid), "total_slots": e.total_slots(uid), "pop": e.pop(uid),
 		"housing": e.housing(uid), "free_workers": e.free_workers(uid)}
+	if Population.tier(e, uid) >= 0:  # with tiers on (281)
+		out["tier_name"] = Population.tier_name(e, uid)
+		out["next_tier_pop"] = Population.next_tier_pop(e, uid)
+	return out
 
 
 static func tooltip(e: GameEngine, uid: int) -> String:
@@ -147,6 +152,8 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	var lines: PackedStringArray = ["Building slots: %d free of %d" % [s.free_slots, s.total_slots]]
 	if e.population_on():
 		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
+		if s.has("tier_name"):
+			lines.append(_tier_line(e, uid))
 		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
 	var d := Military.defense_parts(e, uid)
 	lines.append("Defence %d: units %d, walls %d, cities %d, terrain %d" % [d.total, d.units, d.buildings, d.cities,
@@ -158,6 +165,15 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	if raids != "":
 		lines.append(raids)
 	return "\n".join(lines)
+
+
+## Territory uid's tier and the next one's pop ("Village: a Town at 8 pop"), or just the name at the top tier (281).
+static func _tier_line(e: GameEngine, uid: int) -> String:
+	var i := Population.tier(e, uid)
+	var all := Population.tiers(e)
+	if i + 1 >= all.size():
+		return all[i].name
+	return "%s: %s at %d pop" % [all[i].name, Population.with_article(all[i + 1].name), all[i + 1].pop]
 
 
 static func groups(e: GameEngine) -> Array[Dictionary]:

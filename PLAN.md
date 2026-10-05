@@ -29,8 +29,9 @@ res://
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
     game_engine.gd       # public API: actions and their *_error queries, fork(), the constants; calls the modules below
-    engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, pop, targets, forecast, …)
-    engine_core.gd       # EngineCore, EngineQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
+    engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, targets, forecast, …)
+    territory_queries.gd # TerritoryQueries, EngineQueries' parent (281): pop, housing, slots, workers, tiers, territory status
+    engine_core.gd       # EngineCore, TerritoryQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
     game_state.gd        # GameState: everything that changes during a game; copy() is a deep copy (051)
     turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
     card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
@@ -329,6 +330,12 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
+- Settlement tiers (281): optional `population.tiers` (`[{ "id", "name", "pop", "slots" }]`, the first at pop 0, pop
+  rising strictly, slots never falling; real data Hamlet 0 / Village 4 / Town 8 / Metropolis 13, adding 0 / 1 / 2 / 3
+  slots). A settled territory's tier is the last whose `pop` it has reached, derived from pop and never stored
+  (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`). Its `slots` add to the territory's and its cities'. A
+  building past its territory's slots (placed last first) is idle, as one past its pop is. Reaching or losing a tier
+  is a notice ("Grassland grows into a Village."); the territory tooltip names the tier and the next one's pop.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth (262): pop grows only from growth cards, never by itself (260's automatic growth from a food surplus is
   gone, and 010's bought Grow with it). Bread and Beer (action, 2 food: +1 pop where it's needed most; 1 in the

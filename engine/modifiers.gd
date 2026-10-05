@@ -16,22 +16,31 @@ const INSIGHT_PER_GAIN := "insight_per_gain"
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government). Active events come on top (see total).
-## One pass over the tableau (150): a building or unit is idle once its territory's earlier ones use up its pop, as
-## is_idle says, without looking each one up.
+## One pass over the tableau (150): a building or unit is idle once its territory's earlier ones use up its pop, or a
+## building once they use up its slots (281), as is_idle says, without looking each one up.
 static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	var tableau := e.zone("tableau").cards
 	var pop_on := e.population_on()
 	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
+	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
 	if pop_on:
 		for c in tableau:
 			if c.def.type == CardDef.TERRITORY:
 				workers[c.uid] = c.pop
+				slots[c.uid] = c.def.slots + Population.slots_at_pop(e, c.pop)
+		for c in tableau:
+			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
+				slots[c.territory_uid] += c.def.slots
 	for c in tableau:
 		if pop_on and c.def.uses_worker():
 			var left: int = workers.get(c.territory_uid, 0)
 			workers[c.territory_uid] = left - 1
-			if left <= 0:
+			var room: int = 1
+			if c.def.type == CardDef.BUILDING:
+				room = slots.get(c.territory_uid, 0)
+				slots[c.territory_uid] = room - 1
+			if left <= 0 or room <= 0:
 				continue
 		out.append(c)
 	for z in GameEngine.ALWAYS_ON_ZONES:

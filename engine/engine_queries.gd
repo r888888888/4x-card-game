@@ -1,7 +1,8 @@
 class_name EngineQueries
-extends EngineCore
+extends TerritoryQueries
 ## The read queries the UI, the sim and the tests ask (backlog 249): state, derived values and the error queries that
-## gate several actions at once. They change nothing. GameEngine extends this with fork, the player actions and their
+## gate several actions at once. They change nothing. The territory queries come from TerritoryQueries, which this
+## extends (281). GameEngine extends this with fork, the player actions and their
 ## *_error queries. The constants (zones, pending kinds, tech states) stay on GameEngine, so these name them through it.
 
 
@@ -55,27 +56,6 @@ func unrest_on() -> bool:
 	return config.get("resources", []).has(UNREST)
 
 
-## Pop on settled territory territory_uid (0 for anything else).
-func pop(territory_uid: int) -> int:
-	return Population.pop(self, territory_uid)
-
-
-## The most pop settled territory territory_uid can hold (0 if it isn't one).
-func housing(territory_uid: int) -> int:
-	return Population.housing(self, territory_uid)
-
-
-## Keywords of territory uid in any zone: printed, then rolled resources ([] if it isn't a territory).
-func territory_keywords(uid: int) -> Array[String]:
-	return Territories.keywords_of(self, uid)
-
-
-## How many settled territories (in the tableau) have any of keywords, printed or rolled; each counts once.
-func count_territories_with(keywords: Array[String]) -> int:
-	return zone("tableau").cards.filter(func(c: CardInstance):
-		return c.def.type == CardDef.TERRITORY and keywords.any(func(k): return c.keywords.has(k))).size()
-
-
 ## What relieve_famine costs: population.famine.relief ({resource: amount}), or {} when the Famine can't be relieved.
 func famine_relief() -> Dictionary:
 	return config.get("famine", {}).get("relief", {}).duplicate()
@@ -85,11 +65,6 @@ func famine_relief() -> Dictionary:
 ## it did nothing.
 func outcome_summary(outcome: Dictionary) -> String:
 	return Events.outcome_summary(outcome)
-
-
-## Pop summed over every settled territory.
-func total_pop() -> int:
-	return Population.total_pop(self)
 
 
 ## The decision the player owes before the game can go on, or {} when none: {kind: PENDING_GOVERNMENT, options: the
@@ -319,28 +294,6 @@ func valid_targets(uid: int) -> Array[int]:
 	return CardPlay.targets_of(self, uid)
 
 
-## Building slots on settled territory territory_uid: its own plus the `slots` of cities on it
-## (0 if it isn't settled).
-func total_slots(territory_uid: int) -> int:
-	return Territories.total_slots(self, territory_uid)
-
-
-## Building slots left on settled territory territory_uid (0 if it isn't settled). Cities don't use slots.
-func free_slots(territory_uid: int) -> int:
-	return Territories.free_slots(self, territory_uid)
-
-
-## Pop on settled territory territory_uid not yet working a building (0 if none, or not a territory).
-func free_workers(territory_uid: int) -> int:
-	return Population.free_workers(self, territory_uid)
-
-
-## Whether building uid is idle: with population on, a territory's buildings beyond its pop are idle,
-## the ones placed last first. Idle buildings skip upkeep but keep their printed VP.
-func is_idle(uid: int) -> bool:
-	return Population.is_idle(self, uid)
-
-
 ## Where unit uid in the tableau is stationed (160): a territory uid, or -1 when uid isn't a unit in the tableau.
 func unit_station(uid: int) -> int:
 	var card := zone("tableau").find(uid)
@@ -424,39 +377,6 @@ func def_details(card_id: String) -> Dictionary:
 ## Like def_details for card uid in any zone, with its live state (pop, slots, idle, price now); {} if not found.
 func card_details(uid: int) -> Dictionary:
 	return CardDetails.of_card(self, uid)
-
-
-## The name territory uid goes by (248): its city name once settled, else its card's name; "" when uid isn't a territory.
-func territory_name(uid: int) -> String:
-	return Territories.territory_name(self, uid)
-
-
-## The settled territory card sits on, or null.
-func territory_of(card: CardInstance) -> CardInstance:
-	return Territories.territory_of(self, card)
-
-
-## The tableau in territory groups: [{territory: uid, cards: [uids]}]. Each settled territory is first in its group,
-## followed by the cards on it (a unit on its station, 163) in tableau order; groups come in order of first
-## appearance, and cards on no territory come last in a group with territory -1.
-func territory_groups() -> Array[Dictionary]:
-	return Territories.groups(self)
-
-
-## What is built on settled territory uid: {cities, buildings, idle}, or {} when uid isn't a territory in the
-## tableau (the UI asks it whether a card is a settled territory, 101).
-func territory_summary(uid: int) -> Dictionary:
-	return Territories.summary(self, uid)
-
-
-## Settled territory uid's {free_slots, total_slots, pop, housing, free_workers} (123), or {} for anything else.
-func territory_status(uid: int) -> Dictionary:
-	return Territories.status(self, uid)
-
-
-## Settled territory uid's tooltip (123): its slots, pop and free workers spelled out, then its keywords; "" if not one.
-func territory_tooltip(uid: int) -> String:
-	return Territories.tooltip(self, uid)
 
 
 ## The name of the zone holding card uid, or "" when none does (176).
