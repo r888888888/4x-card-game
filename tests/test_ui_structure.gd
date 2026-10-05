@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## reads engine state that an engine query covers. Checks the source files; behavior is covered by the UI smoke test.
 
 const MAIN_PATH := "res://ui/main.gd"
+const CARD_ACTIONS_PATH := "res://ui/card_actions.gd"  # 316: the card handlers, out of main
 ## Component script -> the class_name it declares.
 const COMPONENTS := {
 	"res://ui/supply_screen.gd": "SupplyScreen",
@@ -29,6 +30,7 @@ const COMPONENTS := {
 	"res://ui/cabinet_doors.gd": "CabinetDoors",  # 209: the government choice's doors
 	"res://ui/vellum.gd": "Vellum",  # 210: targeting under vellum
 	"res://ui/revolt_modal.gd": "RevoltModal",  # 205: the revolution's confirmation
+	"res://ui/card_actions.gd": "CardActions",  # 316: what the player does with a card view
 }
 const CARD_VIEW_PATH := "res://ui/card_view.gd"
 ## CardView's parts (backlog 086): script -> the class_name it declares.
@@ -123,7 +125,7 @@ func test_ui_names_no_card_from_the_real_data() -> void:
 # --- Backlog 094: the targeting choice, tech eras and open piles come from the engine ---
 
 func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
-	check(source(MAIN_PATH).contains("needs_target_choice("), "main.gd asks needs_target_choice")
+	check(source(CARD_ACTIONS_PATH).contains("needs_target_choice("), "card_actions.gd asks needs_target_choice (316)")
 	var tree := source("res://ui/knowledge_screen.gd")
 	check(tree.contains("tech_eras()"), "knowledge_screen.gd builds from tech_eras()")
 	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "knowledge_screen.gd reads no config or tech_tree()")
@@ -140,7 +142,7 @@ func test_the_board_action_buttons_share_one_class() -> void:
 
 
 func test_main_asks_the_engine_whether_a_hand_card_can_be_picked_up() -> void:
-	check(source(MAIN_PATH).contains("hand_input_error()"), "main.gd asks hand_input_error")
+	check(source(CARD_ACTIONS_PATH).contains("hand_input_error()"), "card_actions.gd asks hand_input_error (316)")
 
 
 # --- Backlog 176: main.gd split along the view-sync and layout boundaries ---
@@ -238,3 +240,35 @@ func test_bug_197_card_faces_derive_no_text_colour_by_lightening_or_darkening() 
 		if lines[i].contains(".lightened(") or lines[i].contains(".darkened("):
 			found.append("card_face.gd:%d" % (i + 1))
 	eq(found, [] as Array[String], "text colours lightened or darkened from a Palette colour (use a palette role)")
+
+
+# --- Backlog 316: the card handlers out of main.gd ---
+
+## The card handlers CardActions holds and main.gd no longer declares.
+const CARD_HANDLERS: Array[String] = ["try_play", "on_clicked", "on_double_clicked", "discard", "on_picked",
+	"on_drag_requested"]
+
+
+## The functions path declares, by name.
+func declared_funcs(path: String) -> Array[String]:
+	var out: Array[String] = []
+	for line in source(path).split("\n"):
+		if line.begins_with("func "):
+			out.append(line.trim_prefix("func ").get_slice("(", 0))
+	return out
+
+
+func test_the_card_handlers_live_in_card_actions_not_main() -> void:
+	var in_main := declared_funcs(MAIN_PATH)
+	var in_actions := declared_funcs(CARD_ACTIONS_PATH)
+	for name in CARD_HANDLERS + ["_refuse"]:
+		check(not in_main.has(name), "main.gd doesn't declare %s" % name)
+	for name in CARD_HANDLERS:
+		check(in_actions.has(name), "card_actions.gd declares %s" % name)
+	check(source(MAIN_PATH).contains("var card_actions: CardActions"), "main holds the component as card_actions")
+
+
+func test_main_has_room_under_its_limit() -> void:
+	var lines := source(MAIN_PATH).count("\n")
+	check(lines <= 450, "ui/main.gd: %d lines, want at most 450 (316)" % lines)
+
