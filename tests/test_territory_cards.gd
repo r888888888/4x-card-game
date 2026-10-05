@@ -103,7 +103,7 @@ func test_dragging_a_building_lights_its_targets_and_a_drop_plays_it_there() -> 
 		var at: Vector2 = (main.views[grass] as CardView).get_global_rect().get_center()
 		eq(main.drag.target_at(at), grass, "a drop on Grassland's card targets it")
 		main.drag.end_drag()
-		main.try_play(main.views[temple], grass)  # what the drop does with that target
+		main.card_actions.try_play(main.views[temple], grass)  # what the drop does with that target
 		eq(territory_of(e, temple), grass, "the Temple went on Grassland"))
 
 
@@ -118,7 +118,7 @@ func test_dropping_on_a_territory_that_cannot_take_it_says_why() -> void:
 		await wait_frames()
 		var reason := e.play_error(well, grass)
 		check(reason != "", "Well can't go on Grassland")
-		main.try_play(main.views[well], grass)  # a drop of the Well on Grassland's card
+		main.card_actions.try_play(main.views[well], grass)  # a drop of the Well on Grassland's card
 		check(e.zone("hand").find(well) != null, "Well stays in the hand")
 		var log := ""
 		for c in main.find_children("*", "RichTextLabel", true, false):
@@ -134,9 +134,9 @@ func test_clicking_a_lit_territory_card_while_targeting_plays_there() -> void:
 		var temple := put_in_hand(e, "temple")
 		e.changed.emit()
 		await wait_frames()
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		check(main.drag.targeting != null, "targeting")
-		main.on_picked(main.views[grass])  # the lit card's click
+		main.card_actions.on_picked(main.views[grass])  # the lit card's click
 		eq(territory_of(e, temple), grass, "played on Grassland")
 		check(not main.territory_view.is_open(), "no territory view"))
 
@@ -150,7 +150,7 @@ func test_keyboard_targeting_moves_between_territory_cards() -> void:
 		var temple := put_in_hand(e, "temple")
 		e.changed.emit()
 		await wait_frames()
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		main.focus.move(1)
 		var first: int = main.focus.focused.uid if main.focus.focused != null else -1
 		main.focus.move(1)

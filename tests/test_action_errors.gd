@@ -79,7 +79,7 @@ func test_discarding_during_an_explore_choice_logs_why() -> void:
 		var e := Game.engine
 		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 		var hand := card_ids(e.zone("hand"))
-		main.discard(main.views[first_in_hand(e)])
+		main.card_actions.discard(main.views[first_in_hand(e)])
 		eq(card_ids(e.zone("hand")), hand, "hand unchanged")
 		check(log_text(main).contains("Choose a territory first."), "the log says why: %s" % log_text(main)))
 
@@ -88,7 +88,7 @@ func test_picking_a_card_that_isnt_an_option_logs_why() -> void:
 	with_action_main(func(main: Node):
 		var e := Game.engine
 		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
-		main.on_picked(main.views[first_in_hand(e)])
+		main.card_actions.on_picked(main.views[first_in_hand(e)])
 		eq(e.pending().get("kind", ""), GameEngine.PENDING_EXPLORE, "the choice is still open")
 		check(log_text(main).contains("That territory isn't an option."), "the log says why: %s" % log_text(main)))
 

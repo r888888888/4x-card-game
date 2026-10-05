@@ -39,6 +39,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.add_child(main.vellum)
 	main.drag = DragController.new(main)
 	main.focus = CardFocus.new(main)
+	main.card_actions = CardActions.new(main)
 	main.choices = ChoiceOverlays.new(main)
 	main.doors = main.choices.doors
 	main.supply = SupplyScreen.new(main, main.open_supply)
@@ -63,7 +64,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	menu.exit_requested.connect(func(): main.quit_hook.call())
 	menu.settings_requested.connect(func(): main.settings_modal.open(Game.engine.seed_value))
 	main.details = CardDetailsModal.new(main.modals)
-	main.details.play_requested.connect(main.on_double_clicked)  # Play acts as a double-click would (225)
+	main.details.play_requested.connect(main.card_actions.on_double_clicked)  # Play acts as a double-click would (225)
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
 	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
 	var lamps := func():  # the keys' lamps, after a see (288)

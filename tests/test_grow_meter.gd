@@ -122,7 +122,7 @@ func test_pop_from_a_card_fills_pips() -> void:
 		var festival := put_in_hand(e, "festival")  # grows every settled territory by 1
 		e.changed.emit()
 		await wait_frames()
-		main.try_play(main.views[festival])
+		main.card_actions.try_play(main.views[festival])
 		await wait_frames()
 		eq(e.pop(home), 3, "Festival grew home")
 		eq(filled_count(view.pips()), 3, "3 pips filled")

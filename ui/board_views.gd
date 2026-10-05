@@ -86,11 +86,11 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		view.set_pickable(m.choices.is_choice_row(container), m.choices.pick_hint(container))
 		if leading != "":
 			view.set_hint(TableauView.LEADING_ZONES[leading])
-		view.drag_requested.connect(m.on_drag_requested)
-		view.double_clicked.connect(m.on_double_clicked)
-		view.discard_requested.connect(m.discard)
-		view.picked.connect(m.on_picked)
-		view.details_requested.connect(m.on_clicked)
+		view.drag_requested.connect(m.card_actions.on_drag_requested)
+		view.double_clicked.connect(m.card_actions.on_double_clicked)
+		view.discard_requested.connect(m.card_actions.discard)
+		view.picked.connect(m.card_actions.on_picked)
+		view.details_requested.connect(m.card_actions.on_clicked)
 		views[card.uid] = view
 		var slot := new_slot(view, container, index)
 		if in_hand:

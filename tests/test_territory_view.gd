@@ -179,7 +179,7 @@ func test_double_clicking_a_building_plays_it_onto_the_viewed_territory() -> voi
 		await wait_frames()
 		check(main.territory_view.is_open(), "Grassland's view is open")
 		check(e.needs_target_choice(temple), "Temple could go on either territory")
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_frames()
 		var card: CardInstance = e.zone("tableau").find(temple)
 		check(card != null, "Temple played")
@@ -202,7 +202,7 @@ func test_double_clicking_a_building_the_viewed_territory_cannot_take_says_why()
 		check(main.territory_view.is_open(), "Grassland's view is open")
 		var reason := e.play_error(well, grass)
 		check(reason != "", "Well can't go on Grassland")
-		main.on_double_clicked(main.views[well])
+		main.card_actions.on_double_clicked(main.views[well])
 		check(e.zone("hand").find(well) != null, "Well stays in the hand")
 		eq(main.drag.targeting, null, "no targeting mode")
 		var log := ""
@@ -221,7 +221,7 @@ func test_clicking_a_territory_while_targeting_picks_it() -> void:
 		var temple := put_in_hand(e, "temple")
 		e.changed.emit()
 		await wait_frames()
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		check(main.drag.targeting != null, "targeting")
 		mouse_click(main, grass)  # the lit territory card
 		await (Engine.get_main_loop() as SceneTree).create_timer(Anim.DETAILS_CLICK_DELAY + 0.1).timeout
@@ -343,7 +343,7 @@ func test_free_slots_show_as_outlines_after_the_cards() -> void:
 		for outline in view.outlines():
 			check(outline.get_index() > last_card, "the outlines come after the cards")
 		var before: int = view.free_slot_count()
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_frames()
 		eq(view.free_slot_count(), before - 1, "one fewer after the Temple")
 		eq(view.free_slot_count(), e.free_slots(home), "still one per free slot"))
@@ -419,7 +419,7 @@ func test_a_card_played_in_the_view_still_flies_in() -> void:
 		await wait_frames()
 		click(main, home)
 		await wait_screen_transition()
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		eq(main.views[temple].state, CardView.State.FLYING, "the Temple flies to its slot"))
 
 
