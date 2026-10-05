@@ -2,7 +2,7 @@
 id: 299
 title: Preview what building an entry on a territory would change
 type: feature
-status: in-progress
+status: review
 branch: feat/299-build-preview
 ---
 
@@ -13,18 +13,18 @@ rules), so the engine answers it: `build_preview(card_id, territory)` builds the
 differences. Follows 296; 297 uses it.
 
 ## Acceptance criteria
-- [ ] AC1: Given `build_menu` `{"paddy": {}}` (fixture Paddy: cost 2 food; ⟳ +1 food, +1 more on a flood plain), a
+- [x] AC1: Given `build_menu` `{"paddy": {}}` (fixture Paddy: cost 2 food; ⟳ +1 food, +1 more on a flood plain), a
   settled River (fresh water, flood plain) with 2 free slots and 2 free workers, 4 food and 2 actions left, and an upkeep
   forecast of +1 food, when `build_preview("paddy", river)` is asked, then it returns `{"cost": {"food": 2}, "lines":
   [["food", 1, 3], ["free_slots", 2, 1], ["free_workers", 2, 1], ["actions_left", 2, 1]]}`: each line is
   `[key, before, after]`; resource keys compare `upkeep_forecast()` before and on a fork after building; `cost` is
   what `build` would pay (after discounts).
-- [ ] AC2: Only what changes is listed, in this order: the resources in config order, then `free_slots`,
+- [x] AC2: Only what changes is listed, in this order: the resources in config order, then `free_slots`,
   `free_workers`, `defense`, `housing`, `actions_left`. A building that changes no forecast (fixture Well: no effects)
   lists no resource line; a unit lists no `free_slots` line and lists `defense` when its strength raises the
   territory's defence (Warriors, strength 2: `["defense", d, d + 2]`). With unlimited actions (no government) there is
   no `actions_left` line.
-- [ ] AC3: When `build_error(card_id, territory)` is not "", `build_preview` returns `{}`. The game itself is untouched
+- [x] AC3: When `build_error(card_id, territory)` is not "", `build_preview` returns `{}`. The game itself is untouched
   by a preview: resources, zones, actions used, the log and the RNG state are the same before and after, and no signal
   is emitted (the fork is discarded, as `upkeep_forecast` does).
 
@@ -49,3 +49,7 @@ differences. Follows 296; 297 uses it.
 | AC3 | `test_build_menu::test_a_refused_preview_is_empty_and_a_preview_changes_nothing` |
 
 ## Log
+- 2026-10-05: Built ahead of 297 (the user's call: 297 shows the preview). The query is declared in
+  `engine_queries.gd` and calls `BuildMenu.preview`, which builds on `fork()` and compares `_readings` before and
+  after. Line keys are plain Strings; resources in `config.resources` order. Food paid shows in `cost` only: the food
+  line compares upkeep forecasts.
