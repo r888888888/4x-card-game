@@ -2,7 +2,7 @@
 id: 285
 title: Seed the starting deck with a warrior card
 type: feature
-status: red-review
+status: review
 branch: feat/285-warrior-in-starting-deck
 ---
 
@@ -11,11 +11,11 @@ Every game starts with a military unit in the deck, so the player meets Warriors
 a food upkeep) from the first shuffle instead of only after buying one from the supply.
 
 ## Acceptance criteria
-- [ ] AC1: Given the real `data/config.json`, when the loader reads it, then the starting `deck` holds at least one
+- [x] AC1: Given the real `data/config.json`, when the loader reads it, then the starting `deck` holds at least one
   card of type `unit` tagged `military`, and every such id is a card in `data/cards.json`.
-- [ ] AC2: Given a new game on the real data, when the deck is dealt, then at least one `military` unit is among the
+- [x] AC2: Given a new game on the real data, when the deck is dealt, then at least one `military` unit is among the
   cards in the draw pile and hand (the opening zones), and the count of cards matches the sum of `deck` counts.
-- [ ] AC3: Given the starting deck has a `military` unit, when `test_every_starting_deck_building_has_a_supply_pile`
+- [x] AC3: Given the starting deck has a `military` unit, when `test_every_starting_deck_building_has_a_supply_pile`
   and the other deck invariants in `test_content.gd` run, then they still pass (a deck unit's supply pile, if any,
   keeps a positive count).
 
@@ -40,3 +40,4 @@ a food upkeep) from the first shuffle instead of only after buying one from the 
   in the deck view.
 
 ## Log
+- Data-only change; suite 1828 → 1830 tests, green. Warriors' 1-food upkeep may slow the opening: a balance worry, not tuned here.
