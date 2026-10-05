@@ -2,7 +2,7 @@
 id: 275
 title: Iron Age reach techs (Alphabet, Qanat, Navigation)
 type: feature
-status: review
+status: done
 branch: feat/275-alphabet-qanat-navigation
 ---
 
