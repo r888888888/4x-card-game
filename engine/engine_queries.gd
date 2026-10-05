@@ -405,6 +405,11 @@ func needs_target(uid: int) -> bool:
 	return card != null and CardPlay.needs_target(card)
 
 
+## Every action the engine would allow now, as [action, args…] in a fixed order (312, LegalActions.of): for bots.
+func legal_actions() -> Array:
+	return LegalActions.of(_as_engine())
+
+
 ## Whether card uid, in any zone, would need a target if it were in the hand (310); false for no such card or after
 ## game over.
 func would_need_target(uid: int) -> bool:

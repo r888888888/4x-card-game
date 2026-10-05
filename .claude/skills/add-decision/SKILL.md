@@ -29,10 +29,12 @@ Copy from the government choice (154: `Anarchy.choose_government`) or renewal (1
    Only one decision is owed at a time: never set it over another kind. Store uids, never `CardInstance`s, so
    `GameState.copy()` needs no change (171's guard checks it).
 6. `_blocked_error`: a `match` branch with the message every other action gives ("Choose a … first."). If some
-   actions go on meanwhile (as a discard lets you buy and learn), say which, like `_DISCARD_ALLOWS`.
+   actions go on meanwhile (as a discard lets you learn techs), say which, like `_DISCARD_ALLOWS`.
 7. The action and its `<action>_error` query, side by side under `# --- Actions ---`. The query starts with
    `_owed_error(PENDING_<KIND>, "<nothing owed message>")`, then checks the argument.
-8. `sim/bot.gd`: a branch in `take_turn` that answers it, so the sim never stalls.
+8. `engine/legal_actions.gd` (312): the decision's options as entries (`LegalActions.DECISIONS`, or `_decision` when
+   the options aren't one-per-call), and a row in `tests/test_legal_actions.gd`'s coverage table: bots see the choice
+   through `legal_actions()`. Until 314 replaces it, `sim/bot.gd` also needs a branch in `take_turn` that answers it.
 
 ## UI
 

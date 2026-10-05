@@ -7,8 +7,8 @@ extends "res://tests/lib/anarchy_case.gd"
 
 ## Actions with an error query that no decision blocks.
 const NOT_BLOCKED := ["new_game"]
-## Actions whose error query isn't named <action>_error.
-const ERROR_OF := {"play_card": "play_error", "discard_card": "discard_error"}
+## Actions whose error query isn't named <action>_error: the engine's table (312).
+const ERROR_OF := LegalActions.ERROR_OF
 
 
 ## A uid from options, or -1 when it is empty.
