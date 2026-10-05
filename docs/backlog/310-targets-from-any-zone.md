@@ -2,7 +2,7 @@
 id: 310
 title: Ask what a card would target from any zone, not only the hand
 type: feature
-status: ready
+status: red-review
 branch: feat/310-targets-from-any-zone
 ---
 
@@ -37,7 +37,10 @@ internals. After this, the engine says what any card would target if it were in 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_targets::test_…` |
+| AC1 | `test_would_target::test_a_farm_in_the_deck_would_target_the_territory_with_a_free_slot`, `test_engine_structure` (both queries declared in `engine_queries.gd`) |
+| AC2 | `test_would_target::test_a_pioneer_in_the_discard_has_a_target_once_a_territory_is_discovered` |
+| AC3 | `test_would_target::test_for_a_hand_card_the_answers_match_needs_target_and_valid_targets`, `test_a_forager_anywhere_needs_no_target` |
+| AC4 | `test_would_target::test_a_uid_in_no_zone_or_a_finished_game_has_no_targets`, `test_asking_changes_nothing` |
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309, 311–315.
