@@ -1,8 +1,9 @@
 class_name SimStats
 extends RefCounted
 ## Plays one ScriptedBot game per seed and summarizes the results (backlog 042); per strategy and civilization (134). Used by sim/run.gd
-## (scripts/sim.sh) and the balance skill. run_files can spread the games over child processes (152): each plays one
-## shard of the job list (play_shard) and writes its games to a file, which the parent reads back (read_shards).
+## (scripts/sim.sh) and the balance skill. run_files can spread the games over child processes (152): each claims the next
+## unplayed game from one queue until none is left (play_claimed, 291) and writes its games to a file, which the parent
+## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
 const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
 	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
@@ -158,11 +159,13 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 	}
 
 
-## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs}: code 0 and one line
+## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs, games_per_proc}: code 0 and one line
 ## per metric; with strategy "all", a block per strategy: its mean score per listed civilization, then its metrics over
 ## all of them. Code 1 and the loader errors (or an unknown strategy, or the shards that wrote no results). options
 ## (LaunchOptions.parse, 135): turns replaces the turn limit, civ plays only that civilization; procs (152, default 1)
-## is how many processes play the games, never more than there are games. procs in the result is how many did.
+## is how many processes play the games, never more than there are games. procs in the result is how many did, and
+## games_per_proc how many games each played. lock_path (291): with procs 2+, the run takes that lock first and fails
+## at once (code 1, playing nothing) while another live run holds it; "" or absent for no lock.
 static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline",
 		options := {}) -> Dictionary:
 	var data := _load(cards_path, config_path, strategy, options)
@@ -171,14 +174,16 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 	var jobs := _jobs(data.config, seed_count, strategy, options.get("civ", ""))
 	var names := metric_names(data.cards, data.config)
 	var procs := clampi(options.get("procs", 1), 1, jobs.size())
-	var games: Variant = jobs.map(func(job): return _play_one(data.cards, data.config, job, names)) if procs == 1 \
-		else _play_children(cards_path, config_path, seed_count, strategy, options, procs, jobs.size(), names)
-	if games is Dictionary:  # read_shards' errors
-		return {"code": 1, "lines": games.errors, "procs": procs}
+	var played := {"games": jobs.map(func(job): return _play_one(data.cards, data.config, job, names)),
+		"errors": [], "per_proc": [jobs.size()]} if procs == 1 \
+		else _play_locked(cards_path, config_path, seed_count, strategy, options, procs, jobs.size(), names)
+	if not played.errors.is_empty():
+		return {"code": 1, "lines": played.errors, "procs": procs, "games_per_proc": played.per_proc}
+	var games: Array = played.games
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
 	if strategy != "all":
 		lines.append_array(_metric_lines(_summaries(_collect(games, names))))
-		return {"code": 0, "lines": lines, "procs": procs}
+		return {"code": 0, "lines": lines, "procs": procs, "games_per_proc": played.per_proc}
 	var per_civ: int = jobs.size() / ScriptedBot.STRATEGIES.size() / seed_count
 	var next := 0
 	for s in ScriptedBot.STRATEGIES:
@@ -194,7 +199,7 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 				all[m] = all.get(m, []) + values[m]
 		lines.append("score by civilization: " + ", ".join(scores))
 		lines.append_array(_metric_lines(_summaries(all)))
-	return {"code": 0, "lines": lines, "procs": procs}
+	return {"code": 0, "lines": lines, "procs": procs, "games_per_proc": played.per_proc}
 
 
 ## The data files loaded with options' turn limit applied: {cards, config, errors}; errors also name an unknown
@@ -223,58 +228,130 @@ static func _jobs(config: Dictionary, seed_count: int, strategy: String, only_ci
 	return jobs
 
 
-## Plays shard index of count (jobs index, index + count, …) of the run run_files would make, and writes their
-## metrics to out_path as JSON {job index: {metric: value}}. Returns 0, or 1 when the data doesn't load (no file).
-## sim/run.gd calls it in a child process.
-static func play_shard(cards_path: String, config_path: String, seed_count: int, strategy: String, options: Dictionary,
-		index: int, count: int, out_path: String) -> int:
+## How many processes a run uses (291), from env's SIM_PROCS (a whole number of at least 1), else SIM_PERF_CORES (the
+## performance cores, which scripts/sim.sh reads from sysctl) but one, else cpu_count but one; never fewer than 1.
+static func procs_from_env(env: Dictionary, cpu_count: int) -> int:
+	var procs: String = env.get("SIM_PROCS", "")
+	if procs.is_valid_int() and int(procs) >= 1:
+		return int(procs)
+	var perf: String = env.get("SIM_PERF_CORES", "")
+	var cores := int(perf) if perf.is_valid_int() and int(perf) >= 1 else cpu_count
+	return maxi(1, cores - 1)
+
+
+## Plays, as worker, every job of the run run_files would make that no worker has claimed in dir yet, one at a time: a
+## job is claimed by making its claim_path, which only one worker can do. Writes the games it played to
+## worker_path(dir, worker) as JSON {job index: {metric: value}} after each one, {} when none was left. Returns 0, or 1
+## when the data doesn't load (no file). sim/run.gd calls it in a child process.
+static func play_claimed(cards_path: String, config_path: String, seed_count: int, strategy: String,
+		options: Dictionary, dir: String, worker: int) -> int:
 	var data := _load(cards_path, config_path, strategy, options)
 	if not data.errors.is_empty():
 		return 1
 	var jobs := _jobs(data.config, seed_count, strategy, options.get("civ", ""))
 	var names := metric_names(data.cards, data.config)
+	DirAccess.make_dir_recursive_absolute(claim_path(dir, 0).get_base_dir())
 	var games := {}
-	for i in range(index, jobs.size(), count):
-		games[str(i)] = _play_one(data.cards, data.config, jobs[i], names)
-	var file := FileAccess.open(out_path, FileAccess.WRITE)
-	if file == null:
+	if not _write_json(worker_path(dir, worker), games):
 		return 1
-	file.store_string(JSON.stringify(games))
+	for i in jobs.size():
+		if DirAccess.make_dir_absolute(claim_path(dir, i)) != OK:  # another worker has it
+			continue
+		games[str(i)] = _play_one(data.cards, data.config, jobs[i], names)
+		_write_json(worker_path(dir, worker), games)
 	return 0
 
 
-## Where shard index writes its games in dir.
-static func shard_path(dir: String, index: int) -> String:
-	return dir.path_join("%d.json" % index)
+## The directory whose making claims job index of the run in dir (291).
+static func claim_path(dir: String, index: int) -> String:
+	return dir.path_join("claims").path_join(str(index))
 
 
-## Reads the count shards' files in dir back into one list of job_count games ({metric: int} for names, in names'
-## order; null for a game no shard wrote), then removes the files and dir. Returns {games, errors}: an error per
-## shard with no readable file ("shard 2 of 4 wrote no results").
-static func read_shards(dir: String, count: int, job_count: int, names: Array[String]) -> Dictionary:
+## Where worker writes its games in dir.
+static func worker_path(dir: String, worker: int) -> String:
+	return dir.path_join("%d.json" % worker)
+
+
+## Reads the count workers' files in dir back into one list of job_count games ({metric: int} for names, in names'
+## order; null for a game no worker wrote), then removes dir. Returns {games, errors, per_proc}: an error per game
+## with no result ("game 2 of 4 has no result"), and how many games each worker wrote.
+static func read_workers(dir: String, count: int, job_count: int, names: Array[String]) -> Dictionary:
 	var games := []
 	games.resize(job_count)
-	var errors: Array[String] = []
+	var per_proc := []
 	for i in count:
-		var path := shard_path(dir, i)
+		var path := worker_path(dir, i)
 		var part: Variant = JSON.parse_string(FileAccess.get_file_as_string(path)) if FileAccess.file_exists(path) else null
 		if not part is Dictionary:
-			errors.append("shard %d of %d wrote no results" % [i + 1, count])
+			per_proc.append(0)
 			continue
+		per_proc.append(part.size())
 		for k in part:
 			var game := {}
 			for m in names:  # JSON sorts keys: back in report order
 				game[m] = int(part[k][m])
 			games[int(k)] = game
-		DirAccess.remove_absolute(path)
-	DirAccess.remove_absolute(dir)
-	return {"games": games, "errors": errors}
+	var errors: Array[String] = []
+	for i in job_count:
+		if games[i] == null:
+			errors.append("game %d of %d has no result" % [i + 1, job_count])
+	_remove_tree(dir)
+	return {"games": games, "errors": errors, "per_proc": per_proc}
 
 
-## Plays the run on procs child processes (sim/run.gd with a shard=i/procs argument each) and returns its games in job
-## order, or {errors} when a shard wrote no results. A child still running after CHILD_TIMEOUT_MSEC is killed.
+## Takes the lock at path for this process (291): a directory holding its pid, made atomically. A lock whose process
+## isn't running is taken over. Returns "", or why not (another live run holds it).
+static func take_lock(path: String) -> String:
+	for attempt in 2:
+		if DirAccess.make_dir_absolute(path) == OK:
+			_write_text(path.path_join("pid"), str(OS.get_process_id()))
+			return ""
+		var pid := _lock_pid(path)
+		if pid == 0:  # just made, its pid not written yet: look once more
+			OS.delay_msec(200)
+			pid = _lock_pid(path)
+		if pid > 0 and _running(pid):
+			return "another sim run is using the CPU (pid %d); try again when it ends" % pid
+		release_lock(path)
+	return "could not take the sim lock %s" % path
+
+
+## Releases the lock at path (take_lock).
+static func release_lock(path: String) -> void:
+	DirAccess.remove_absolute(path.path_join("pid"))
+	DirAccess.remove_absolute(path)
+
+
+## The pid in the lock at path, 0 when there is none.
+static func _lock_pid(path: String) -> int:
+	var text := FileAccess.get_file_as_string(path.path_join("pid")).strip_edges()
+	return int(text) if text.is_valid_int() else 0
+
+
+## Whether process pid is running (any process, not only this one's children).
+static func _running(pid: int) -> bool:
+	return OS.execute("kill", ["-0", str(pid)]) == 0
+
+
+## Plays the run on procs workers (_play_children), holding options' lock_path (if any) while they play.
+## Returns _play_children's {games, errors, per_proc}; errors is the lock's message when another run holds it.
+static func _play_locked(cards_path: String, config_path: String, seed_count: int, strategy: String,
+		options: Dictionary, procs: int, job_count: int, names: Array[String]) -> Dictionary:
+	var lock: String = options.get("lock_path", "")
+	if lock != "":
+		var refused := take_lock(lock)
+		if refused != "":
+			return {"games": [], "errors": [refused], "per_proc": []}
+	var played := _play_children(cards_path, config_path, seed_count, strategy, options, procs, job_count, names)
+	if lock != "":
+		release_lock(lock)
+	return played
+
+
+## Plays the run on procs child processes (sim/run.gd with worker=i and dir= arguments, claiming jobs from one queue)
+## and returns read_workers' {games, errors, per_proc}. A child still running after CHILD_TIMEOUT_MSEC is killed.
 static func _play_children(cards_path: String, config_path: String, seed_count: int, strategy: String,
-		options: Dictionary, procs: int, job_count: int, names: Array[String]) -> Variant:
+		options: Dictionary, procs: int, job_count: int, names: Array[String]) -> Dictionary:
 	var dir := OS.get_temp_dir().path_join("sim-%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()])
 	DirAccess.make_dir_recursive_absolute(dir)
 	var base := PackedStringArray(["--headless", "--path", ProjectSettings.globalize_path("res://"), "--script",
@@ -283,11 +360,11 @@ static func _play_children(cards_path: String, config_path: String, seed_count: 
 		base.append_array(["--civ", options.civ])
 	if options.get("turns", 0) > 0:
 		base.append_array(["--turns", str(options.turns)])
-	base.append_array(["cards=" + cards_path, "config=" + config_path])
+	base.append_array(["cards=" + cards_path, "config=" + config_path, "dir=" + dir])
 	var pids := []
 	for i in procs:
 		var args := base.duplicate()
-		args.append_array(["shard=%d/%d" % [i, procs], "out=" + shard_path(dir, i)])
+		args.append("worker=%d" % i)
 		pids.append(OS.create_process(OS.get_executable_path(), args))
 	var deadline := Time.get_ticks_msec() + CHILD_TIMEOUT_MSEC
 	for pid in pids:
@@ -295,8 +372,29 @@ static func _play_children(cards_path: String, config_path: String, seed_count: 
 			OS.delay_msec(20)
 		if OS.is_process_running(pid):
 			OS.kill(pid)
-	var read := read_shards(dir, procs, job_count, names)
-	return read.games if read.errors.is_empty() else {"errors": read.errors}
+	return read_workers(dir, procs, job_count, names)
+
+
+## Writes value to path as JSON; whether it could.
+static func _write_json(path: String, value: Variant) -> bool:
+	return _write_text(path, JSON.stringify(value))
+
+
+static func _write_text(path: String, text: String) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(text)
+	return true
+
+
+## Removes dir and everything in it.
+static func _remove_tree(dir: String) -> void:
+	for sub in DirAccess.get_directories_at(dir):
+		_remove_tree(dir.path_join(sub))
+	for f in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(f))
+	DirAccess.remove_absolute(dir)
 
 
 static func _metric_lines(stats: Dictionary) -> Array[String]:

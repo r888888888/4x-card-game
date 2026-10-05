@@ -2,7 +2,11 @@ extends SceneTree
 ## Balance simulator entry point (backlog 042). Use scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (135): plays seeds 1..N (default 20)
 ## with ScriptedBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
-## SIM_PROCS processes (152; default the CPU count, SIM_PROCS=1 for this one only).
+## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
+## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291).
+
+## The lock every checkout's parallel runs share, in the per-user temp directory (291).
+const LOCK_NAME := "4x-card-game-sim.lock"
 
 
 func _initialize() -> void:
@@ -16,13 +20,14 @@ func _initialize() -> void:
 	var positional: Array = options.positional
 	var seed_count := int(positional[0]) if not positional.is_empty() and positional[0].is_valid_int() else 20
 	var strategy: String = positional[1] if positional.size() > 1 else "all"
-	if child.has("shard"):  # a child process of a parallel run (152): play one shard, print nothing
-		var shard: PackedStringArray = child.shard.split("/")
-		quit(SimStats.play_shard(cards_path, config_path, seed_count, strategy, options, int(shard[0]), int(shard[1]),
-			child.out))
+	if child.has("worker"):  # a child process of a parallel run (152): play from its queue (291), print nothing
+		quit(SimStats.play_claimed(cards_path, config_path, seed_count, strategy, options, child.dir, int(child.worker)))
 		return
-	var procs := OS.get_environment("SIM_PROCS")
-	options["procs"] = int(procs) if procs.is_valid_int() else OS.get_processor_count()
+	var env := {}
+	for key in ["SIM_PROCS", "SIM_PERF_CORES"]:
+		env[key] = OS.get_environment(key)
+	options["procs"] = SimStats.procs_from_env(env, OS.get_processor_count())
+	options["lock_path"] = OS.get_temp_dir().path_join(LOCK_NAME)
 	var out := {"code": 1, "lines": options.errors} if not options.errors.is_empty() \
 		else SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
 	for line in out.lines:
@@ -33,13 +38,13 @@ func _initialize() -> void:
 	quit(out.code)
 
 
-## The key=value arguments a parallel run passes its children at the end of their args (cards, config, shard, out):
+## The key=value arguments a parallel run passes its children at the end of their args (cards, config, dir, worker):
 ## {key: value}, {} for a run started by hand.
 func _child_args(args: PackedStringArray) -> Dictionary:
 	var out := {}
 	for i in range(args.size() - 1, -1, -1):
 		var kv := args[i].split("=", true, 1)
-		if kv.size() != 2 or not kv[0] in ["cards", "config", "shard", "out"]:
+		if kv.size() != 2 or not kv[0] in ["cards", "config", "dir", "worker"]:
 			break
 		out[kv[0]] = kv[1]
 	return out
