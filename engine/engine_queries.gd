@@ -125,6 +125,14 @@ func upkeep_forecast() -> Dictionary:
 	return forecast
 
 
+## What starting the next turn would change (309): {score, pop, starve, resource: change} after upkeep, feeding, era
+## unlocks, Anarchy's fall and drain and the raids that strike; not the cards drawn or the new event. Unlike
+## upkeep_forecast it counts score and raids, and food can't go below what is held. {} on the last turn or after game
+## over. Plays on a fork: nothing here changes, is logged or emitted.
+func turn_forecast() -> Dictionary:
+	return TurnLoop.forecast(_as_engine())
+
+
 ## Upkeeps left for active event uid before it is discarded (0 if uid isn't an active event).
 func event_turns_left(uid: int) -> int:
 	return Events.turns_left(self, uid)

@@ -264,6 +264,10 @@ pop eats (may be negative), plus `starve` (pop the Famine would kill, after guar
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
 with the food stat in the warning color when pop would starve.
+`turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
+change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
+that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
+(`_settle_in`), so the forecast can't drift from the real turn. The sim bot doesn't use it yet (313).
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
 choice (154) or a choice event's options (269). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the

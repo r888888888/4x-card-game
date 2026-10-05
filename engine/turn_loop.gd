@@ -136,24 +136,56 @@ static func finish_turn(e: GameEngine) -> void:
 
 
 static func start_turn(e: GameEngine) -> void:
+	_begin(e)
+	_settle_in(e)
+	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
+	Anarchy.start_renewal(e)
+	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
+		Military.strike_raids(e)
+		Events.draw(e)
+
+
+## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
+## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and drain and the raids
+## that strike; not the draw, the renewal or the new event. {} on the last turn or after game over.
+static func forecast(e: GameEngine) -> Dictionary:
+	if e.is_over or e.turn >= e.turn_limit():
+		return {}
+	var f := e.fork()
+	_begin(f)
+	var starve := _settle_in(f)
+	if f.turn >= 2:
+		Military.strike_raids(f)
+	var out := {"score": f.score() - e.score(), "pop": f.total_pop() - e.total_pop(), "starve": starve}
+	for r in e.resources:
+		out[r] = f.resources.get(r, 0) - e.resources[r]
+	return out
+
+
+## A new turn's number, its counts reset and its log line.
+static func _begin(e: GameEngine) -> void:
 	e.turn += 1
 	e.state.actions_used = 0
 	e.state.actions_gained = 0
 	e.state.moved_units.clear()
 	Sites.start_turn(e)
 	e._log("— Turn %d —" % e.turn)
+
+
+## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, era unlocks and
+## Anarchy's fall and drain. Returns the pop feeding starved.
+static func _settle_in(e: GameEngine) -> int:
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
+	var starved := 0
 	if e.population_on():
+		var pop := e.total_pop()
 		Population.feed(e)
+		starved = pop - e.total_pop()
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
 	Anarchy.drain(e)
-	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
-	Anarchy.start_renewal(e)
-	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
-		Military.strike_raids(e)
-		Events.draw(e)
+	return starved
 
 
 ## Adds size unrest (282), then resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
