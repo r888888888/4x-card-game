@@ -86,7 +86,7 @@ res://
                          # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I),
-                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), identity_modal.gd (119; Revolt… since 205),
+                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), raid_modal.gd (each raid that strikes, above the event; both opened by turn_news.gd, 271), identity_modal.gd (119; Revolt… since 205),
                          # revolt_modal.gd (205: the revolution's confirmation), rename_modal.gd (248: naming a territory)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
@@ -452,8 +452,9 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   lowest `defense`, then the most pop, then tableau order. It skips upkeep and two event phases later (257: at turn T+2's
   start when drawn on turn T, before the new event is drawn; `raid_turns_left(uid)` counts 2, 1), it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
   pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
-  goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, target, strength, defense, repelled, units_lost,
-  pop_lost, gained, lost, vp}`. A raid drawn on the final turn or the one before never strikes.
+  goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, id, target, strength, defense, repelled, units_lost,
+  pop_lost, gained, lost, vp}`; `raid_outcome_text(outcome)` is its result line, logged (not a notice) and shown in
+  the raid modal with `ui.milestone.pillaged` or `ui.milestone.repelled` (271). A raid drawn on the final turn or the one before never strikes.
   Pacing (257): a raid is drawn only while raids are allowed: `realm_size()` (config `territory_value` per settled
   territory plus the total cost of every city, building and unit in the tableau) is at least `raid_min_size`, no raid
   is active, and `raid_gap` turns have passed since the last strike (`GameState.last_raid_turn`; no gap before the

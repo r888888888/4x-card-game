@@ -2,7 +2,7 @@
 id: 271
 title: A raid that strikes opens a modal with its outcome and its own sound
 type: feature
-status: in-progress
+status: review
 branch: feat/271-raid-outcome-modal
 ---
 
@@ -13,21 +13,21 @@ was repelled or pillaged, and what it cost or gained. A repelled raid and a pill
 sound.
 
 ## Acceptance criteria
-- [ ] AC1 (engine): Given a raid that strikes (162), then `raid_outcome_text(outcome)` for its `raid_resolved` outcome
+- [x] AC1 (engine): Given a raid that strikes (162), then `raid_outcome_text(outcome)` for its `raid_resolved` outcome
   returns the result line the toast shows today: "<raid> repelled at <territory>[: <what>]." or
   "<raid> pillaged <territory>[: <what>].", where <what> lists gains and losses, "−N pop" and "N unit(s) lost".
   The line is logged as before, but `noticed` is no longer emitted for a raid striking, so no toast appears.
-- [ ] AC2: Given main with a raid of strength 3 aimed at a territory with defence 0 and 1 turn left, when the player
+- [x] AC2: Given main with a raid of strength 3 aimed at a territory with defence 0 and 1 turn left, when the player
   ends the turn, then the raid modal is open with `shown()` = {uid, id, repelled: false, result (AC1's line)}, the
   raid's card in its aside, titled with the raid's name, context "Turn N" (the new turn), and OK focused. With defence
   ≥ 3 instead, `repelled` is true and the line says "repelled".
-- [ ] AC3: Given the same turn draws an event, when the turn starts, then the raid modal sits above the event modal
+- [x] AC3: Given the same turn draws an event, when the turn starts, then the raid modal sits above the event modal
   (raid on top); closing it with OK, Enter, Esc or a click outside leaves the event modal open.
-- [ ] AC4: Given a raid strikes, then `Sfx` plays `ui.milestone.pillaged` when it was pillaged and
+- [x] AC4: Given a raid strikes, then `Sfx` plays `ui.milestone.pillaged` when it was pillaged and
   `ui.milestone.repelled` when it was repelled. Both tokens are Level 3 (Game bus) and each has its file under
   `assets/sounds/events/`. A raid sound outranks the milestones on the same change except the era
   (era > pillaged > repelled > city > tech).
-- [ ] AC5: Given an era begins on the same turn, then the raid modal waits for the era sheet to close, as the event
+- [x] AC5: Given an era begins on the same turn, then the raid modal waits for the era sheet to close, as the event
   modal does (211), then opens.
 
 ## Out of scope
@@ -66,11 +66,16 @@ sound.
 | AC5 | `test_raid_modal::test_the_raid_modal_waits_for_the_era_sheet` |
 
 ## Manual check
-- [ ] Let a raid pillage an undefended territory: the modal shows the raid card and "pillaged", the sound is a falling
-  figure, distinct from the city and tech sounds.
-- [ ] Station enough units to repel one: the modal says "repelled" and the rising sound plays.
-- [ ] On a turn with a raid and a new event: the raid comes first, then the event after OK.
-- [ ] The two sounds sit at the level of the other milestones, not louder.
+Run `godot --path . -- --civ sumer --seed 5` (or any seed) and play until a raid is announced (the event modal says
+"Raiders will strike … in 2 turns").
+- [ ] Leave the target undefended and end two turns: the raid modal opens over the turn's new event with the raid's
+  card, "Pillaged", and the line (e.g. "… pillaged Hills: −1 pop, 1 unit lost."). OK closes it and leaves the event
+  showing. No red toast for it; the log still has the line.
+- [ ] The pillaged sound: a relay and a low thud, then a falling piano figure. Distinct from the city (marimba) and
+  tech (vibraphone) sounds, and not alarming.
+- [ ] Next raid, station enough units on its target: "Repelled", and a latch then a rising marimba.
+- [ ] Both sounds sit at the level of the other milestones, not louder. If not, change the token's `level` in
+  `docs/design/sound-export.html`, serve that folder over http, and call `SoundExport.renderToken(...)` to re-render.
 
 ## Log
 - Spec'd 2026-10-04. Decisions from the user: two sounds (repelled / pillaged), one modal per raid, raid modal above
@@ -79,3 +84,9 @@ sound.
   active raid at a time, so two can never strike on the same turn; that path would be unreachable. The game can't end
   between a strike and the refresh that shows it (raids strike at a turn's start, the game ends at a turn's end), so
   the game-over clause went too.
+- Green: `main.gd` crossed its 500-line limit, so the turn-start modals moved into `TurnNews` (`ui/turn_news.gd`):
+  it owns the event and raid modals, hears `event_drawn` / `raid_resolved` and opens both in the refresh. The
+  outcome now carries the raid's card `id` (like `event_drawn`'s), so its line can name the raid after it's discarded.
+- Sounds rendered by `docs/design/sound-export.html` (new `renderToken(name)` to render one token); the guide's §14.1
+  table has both rows.
+- Refactor: the event and raid modals' card goes in with `Modal.show_card`.
