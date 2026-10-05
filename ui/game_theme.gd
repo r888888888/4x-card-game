@@ -130,10 +130,10 @@ static func _identity_cards(t: Theme) -> void:
 
 
 ## The Knowledge screen's tech tiles (222, guide §11.3), index cards cut square: TechTile (available, or a later
-## era's under its vellum) the sheet with an ink border, lifted onto its plinth on hover; TechTileResearched the teal
-## plane; TechTileLocked the well with a rule border. Each has a <name>Linked twin, the same with a TECH_LINK border,
-## for the tiles linked to the hovered tech (278). TechTileText* is the text on each, and EraVellum the sheet at
-## 88% laid over an era not reached.
+## era's under its vellum) the sheet with an ink border; TechTileResearched the teal plane; TechTileLocked the well
+## with a rule border. On hover each takes the index cards' ink rule on a 4 px shadow and the buttons' lighter fill
+## (280). Each has a <name>Linked twin, the same with a TECH_LINK border at rest, for the tiles linked to the hovered
+## tech (278). TechTileText* is the text on each, and EraVellum the sheet at 88% laid over an era not reached.
 static func _tech_tiles(t: Theme) -> void:
 	var looks := {
 		"TechTile": [Palette.TILE, Palette.TEXT, Palette.TEXT],
@@ -147,8 +147,10 @@ static func _tech_tiles(t: Theme) -> void:
 		box.set_border_width_all(2)
 		t.set_stylebox("normal", type, box)
 		var lifted := box.duplicate() as StyleBoxFlat
+		lifted.border_color = Palette.TEXT  # the index cards' hover (179, 231): an ink rule on a 4 px shadow
+		lifted.bg_color = look[0].lightened(0.08)  # and the buttons' lighter fill, which shows in Night too
 		lifted.shadow_color = Palette.SHADOW
-		lifted.shadow_offset = PLINTH
+		lifted.shadow_offset = SELECTED_SHADOW
 		lifted.shadow_size = 1  # solid, unblurred
 		lifted.anti_aliasing = false
 		t.set_stylebox("hover", type, lifted)
@@ -159,10 +161,8 @@ static func _tech_tiles(t: Theme) -> void:
 		t.set_type_variation(type + "Linked", type)
 		var link := box.duplicate() as StyleBoxFlat
 		link.border_color = Palette.TECH_LINK
-		var link_lifted := lifted.duplicate() as StyleBoxFlat
-		link_lifted.border_color = Palette.TECH_LINK
 		t.set_stylebox("normal", type + "Linked", link)
-		t.set_stylebox("hover", type + "Linked", link_lifted)
+		t.set_stylebox("hover", type + "Linked", lifted)  # the hovered tile wins over its link mark
 		t.set_stylebox("pressed", type + "Linked", link)
 		t.set_stylebox("disabled", type + "Linked", link)
 	t.set_type_variation("EraVellum", "PanelContainer")

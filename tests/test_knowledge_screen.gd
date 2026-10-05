@@ -708,3 +708,50 @@ func test_a_rebuild_leaves_no_mark_behind() -> void:
 		tile(main, "Bronze Working").mouse_entered.emit()
 		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))  # rebuilds the screen, no mouse_exited
 		eq(marked(main), [] as Array[String], "no stale mark"))
+
+
+# --- 280: the hovered tile is highlighted (the cards' ink rule on a 4 px shadow, the buttons' lighter fill) ---
+
+## Checks that tile t's hover look is the shared one: an ink border, a solid 4 px shadow, its resting fill lightened.
+func check_hover(t: Button, what: String) -> void:
+	var hover := t.get_theme_stylebox("hover") as StyleBoxFlat
+	var normal := t.get_theme_stylebox("normal") as StyleBoxFlat
+	eq(hover.border_color, Palette.TEXT, "%s: an ink border on hover" % what)
+	eq(hover.shadow_color, Palette.SHADOW, "%s: the shadow colour" % what)
+	eq(hover.shadow_size, 1, "%s: a solid shadow" % what)
+	eq(hover.shadow_offset, GameTheme.SELECTED_SHADOW, "%s: a 4 px shadow" % what)
+	eq(hover.bg_color, normal.bg_color.lightened(0.08), "%s: its fill lightened" % what)
+
+
+func test_a_hovered_tile_of_any_state_reuses_the_cards_and_buttons_hover() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		for tech_name in ["Pottery", "Writing", "Iron Working"]:
+			check_hover(tile(main, tech_name), tech_name))
+
+
+func test_a_hovered_tile_of_a_later_era_reuses_the_hover() -> void:
+	await with_two_eras(func(main: Node):
+		check_hover(tile(main, "Optics"), "Optics"))
+
+
+func test_a_hovered_linked_tile_shows_the_hover_not_the_link() -> void:
+	await with_tree(func(main: Node):
+		var unlinked := tile(main, "Iron Working").get_theme_stylebox("hover") as StyleBoxFlat
+		var rest_fill := (tile(main, "Iron Working").get_theme_stylebox("normal") as StyleBoxFlat).bg_color
+		tile(main, "Bronze Working").mouse_entered.emit()  # marks Iron Working
+		check(linked(main, "Iron Working"), "Iron Working is linked")
+		var hover := tile(main, "Iron Working").get_theme_stylebox("hover") as StyleBoxFlat
+		eq(hover.border_color, Palette.TEXT, "an ink border, not the link's gold")
+		eq(hover.bg_color, rest_fill.lightened(0.08), "its unlinked fill lightened")
+		eq(hover.shadow_offset, unlinked.shadow_offset, "the same shadow as unlinked"))
+
+
+func test_the_hover_keeps_the_tiles_border_and_margins() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		for tech_name in ["Pottery", "Writing", "Iron Working"]:
+			var hover := tile(main, tech_name).get_theme_stylebox("hover") as StyleBoxFlat
+			var normal := tile(main, tech_name).get_theme_stylebox("normal") as StyleBoxFlat
+			eq(hover.border_width_left, normal.border_width_left, "%s: the same border width" % tech_name)
+			eq(hover.get_minimum_size(), normal.get_minimum_size(), "%s: the same margins" % tech_name))
