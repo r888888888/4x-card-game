@@ -2,7 +2,7 @@
 id: 312
 title: legal_actions lists every action the engine would allow now
 type: feature
-status: in-progress
+status: review
 branch: feat/312-legal-actions
 ---
 
@@ -13,23 +13,23 @@ can consider all of them, and the suite fails when a new action isn't listed, so
 it lands.
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture game with nothing owed, when `legal_actions()` is called, then it returns entries
+- [x] AC1: Given a fixture game with nothing owed, when `legal_actions()` is called, then it returns entries
   `[action, args…]`: `["play_card", uid, target]` for each hand card and each of its `valid_targets` (target −1 for a
   card that needs none), `["build", id, territory]` per build-menu entry and each of its `build_targets` (295 landed first), `["buy", id]`
   per open supply pile, `["buy_tech", uid]` per research-deck tech,
   `["contribute", uid, contribute_limit]` per site with a limit above 0, `["move_unit", uid, territory]` per move
   target, `["discard_card", uid]` per hand card, the argument-free actions (`relieve_famine`, `restore_order`, `revolt`,
   `abandon`/`disband` per card) and `["end_turn"]`, each only when its error query returns "" for those arguments.
-- [ ] AC2: Every entry is legal: for each, the action's error query called with its args returns "". Given a Farm in
+- [x] AC2: Every entry is legal: for each, the action's error query called with its args returns "". Given a Farm in
   the hand and food 1 (it costs 2), no `play_card` entry names it; given wealth below every buy price, no `buy` entry.
-- [ ] AC3: Given an owed decision, only its options are listed: explore → `["choose", uid]` per option; event choice →
+- [x] AC3: Given an owed decision, only its options are listed: explore → `["choose", uid]` per option; event choice →
   `["choose_option", i]` per option `choose_option_error` allows; government → `["choose_government", uid]` per option;
   hand-limit discard → `["discard_card", uid]` per hand card; renewal → one entry `["renew", options, count]`, meaning
   any `count` of `options` (`renew_error` is "" for the first `count`).
-- [ ] AC4: After game over it returns `[]`.
-- [ ] AC5: The list is in a fixed order (the order above, each zone in its order) and changes nothing: called twice it
+- [x] AC4: After game over it returns `[]`.
+- [x] AC5: The list is in a fixed order (the order above, each zone in its order) and changes nothing: called twice it
   returns equal lists, and a fork's list equals the game's.
-- [ ] AC6: The suite checks coverage: every `GameEngine` action that has an error query (found the way
+- [x] AC6: The suite checks coverage: every `GameEngine` action that has an error query (found the way
   `test_blocking.gd` finds them), except `new_game` and `rename_territory`, has a row in a table that sets up a game
   where `legal_actions()` lists it. A new action with an error query and no row fails the suite.
 
@@ -66,3 +66,7 @@ it lands.
   action: left out with `new_game` and `rename_territory`.
 - 2026-10-05: green phase: the discard test expected `buy` too, from a misread of `test_blocking`; buying is blocked
   while a discard is owed. Corrected with the user's approval to research then the discards.
+- 2026-10-05: built as `LegalActions.of` (`engine/legal_actions.gd`) behind `EngineQueries.legal_actions()`: every
+  candidate in the fixed order, filtered by its error query (`LegalActions.error`). `ERROR_OF` now lives there;
+  `test_blocking` and this item's tests use it. The `add-decision` skill's sim-bot step names `LegalActions` (and
+  `sim/bot.gd` until 314). Not yet used by any bot (313).

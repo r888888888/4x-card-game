@@ -8,8 +8,8 @@ extends "res://tests/lib/anarchy_case.gd"
 const LEVY := {"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2}
 const COLOSSUS := {"id": "colossus", "name": "Colossus", "type": "building", "cost": {"wealth": 12}, "vp": 5,
 	"tags": ["wonder"], "project": true}
-## Actions whose error query isn't named <action>_error (as in test_blocking.gd).
-const ERROR_OF := {"play_card": "play_error", "discard_card": "discard_error"}
+## Actions whose error query isn't named <action>_error: the engine's table (312).
+const ERROR_OF := LegalActions.ERROR_OF
 ## Names with an error query that legal_actions never lists: starting a game, naming a territory, and supply (the
 ## Supply screen's query, not an action).
 const NEVER_LISTED := ["new_game", "rename_territory", "supply"]

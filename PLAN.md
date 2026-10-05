@@ -39,6 +39,7 @@ res://
     research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
     build_menu.gd        # BuildMenu (295): building unlocked entries straight onto a territory
+    legal_actions.gd     # LegalActions (312): every action allowed now as [action, args…], for bots (legal_actions())
     sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
     ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
