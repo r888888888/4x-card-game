@@ -2,7 +2,7 @@
 id: 283
 title: Growth "where needed most" prefers a territory one pop short of its next tier
 type: feature
-status: red-review
+status: in-progress
 branch: feat/283-growth-prefers-next-tier
 ---
 
