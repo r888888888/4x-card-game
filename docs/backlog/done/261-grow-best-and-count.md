@@ -2,7 +2,7 @@
 id: 261
 title: The grow op can pick its territory and cap how many it grows
 type: feature
-status: review
+status: done
 branch: feat/261-grow-best-and-count
 ---
 
