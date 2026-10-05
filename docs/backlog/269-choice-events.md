@@ -2,7 +2,7 @@
 id: 269
 title: Choice events: an event that makes you pick one of 2–3 options
 type: feature
-status: ready
+status: red-review
 branch: feat/269-choice-events
 ---
 
@@ -71,7 +71,15 @@ you can always choose.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_choice_events::test_…` |
+| AC1 | `test_choice_events::test_choices_load_on_an_event`, `test_bad_choices_are_a_load_error` |
+| AC2 | `test_choice_events::test_a_drawn_choice_event_resolves_its_own_effects_then_owes_the_choice`, `test_every_other_action_refuses_while_the_choice_is_owed`; `test_blocking` (the "event choice" scenario, the `choose_option` row and column, `hand_input_error`) |
+| AC3 | `test_choice_events::test_choosing_a_paid_option_pays_its_cost_and_resolves_its_effects`, `test_choosing_a_free_option_changes_nothing_else`, `test_choosing_emits_what_the_option_did` |
+| AC4 | `test_choice_events::test_choose_option_error_gives_the_reason_and_choose_option_changes_nothing`; `test_blocking::test_each_decision_action_names_game_over_then_the_owed_decision_then_nothing_owed` |
+| AC5 | `test_choice_events::test_a_renewal_owed_at_turn_start_comes_before_the_choice`, `test_the_choice_follows_a_government_chosen_at_the_turns_end`, `test_a_copy_keeps_an_owed_or_waiting_choice` |
+| AC6 | `test_choice_events::test_card_text_lists_the_options_after_its_other_effects`, `test_option_text_gives_one_options_text` |
+| AC7 | `test_choice_events::test_the_bot_picks_the_option_whose_lookahead_scores_most`, `test_lookahead_ties_go_to_the_lowest_index`, `test_the_bot_never_picks_a_refused_option`, `test_the_bot_answers_the_choice_in_its_turn`, `test_a_bot_game_of_choice_events_plays_to_its_last_turn` |
+| 267 invariant | `test_content::test_no_era_1_event_adds_more_than_1_unrest` (counts the option that adds most unrest) |
+| UI | `test_choice_modal::test_a_choice_event_shows_its_options_in_place_of_ok`, `test_the_choice_modal_cant_be_dismissed`, `test_a_refused_option_is_disabled_with_the_reason_as_its_tooltip`, `test_choosing_closes_the_modal_and_notices_what_the_option_did`, `test_under_anarchy_the_renewal_comes_first_then_the_choice` |
 
 ## Manual check
 - [ ] Shipped for review: "Envoys from the Hills" (era 1, 1 copy): "Choose: pay 2 wealth for +1 VP; or +1 unrest."
