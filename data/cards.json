@@ -339,12 +339,12 @@
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
-      "id": "omen_of_doom", "name": "Omen of Doom", "type": "event", "tags": [],
+      "id": "omen_of_doom", "name": "Omen of Doom", "type": "event", "tags": [], "era": 2,
       "flavor": "A calf is born with two heads and the moon turns red; the soothsayers will not meet anyone's eye.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ]
     },
     {
-      "id": "bandit_raids", "name": "Bandit Raids", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "id": "bandit_raids", "name": "Bandit Raids", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
       "flavor": "Masked riders strike the roads at dusk, and caravans arrive late, light, or not at all.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
