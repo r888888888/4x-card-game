@@ -2,7 +2,7 @@
 id: 284
 title: The test runner calls a test_* helper that takes arguments, and hangs
 type: bug
-status: review
+status: done
 branch: fix/284-test-methods-with-args
 ---
 
