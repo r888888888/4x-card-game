@@ -338,6 +338,11 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`). Its `slots` add to the territory's and its cities'. A
   building past its territory's slots (placed last first) is idle, as one past its pop is. Reaching or losing a tier
   is a notice ("Grassland grows into a Village."); the territory tooltip names the tier and the next one's pop.
+- Size unrest (282): a government's optional `tolerates` (a tier id from `population.tiers`; text "Tolerates up to
+  Village."; ignored with a warning when tiers are off) is the largest tier it keeps calm. Each upkeep starts by adding
+  `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),
+  before any card's upkeep and so before upkeep takes pop. 0 with unrest or tiers off, no government (Anarchy) or no
+  `tolerates`. The forecast counts it.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth (262): pop grows only from growth cards, never by itself (260's automatic growth from a food surplus is
   gone, and 010's bought Grow with it). Bread and Beer (action, 2 food: +1 pop where it's needed most; 1 in the

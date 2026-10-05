@@ -2,7 +2,7 @@
 id: 282
 title: Governments tolerate territories up to a tier; bigger ones add unrest
 type: feature
-status: in-progress
+status: review
 branch: feat/282-government-tolerates-tier
 ---
 
@@ -16,21 +16,21 @@ territories for free (going wide); this item handles going tall. Needs 281.
 Fixtures: 281's tiers (hamlet 0, village 4, town 8, metropolis 13), unrest on, and a government with
 `unrest_limit` 10 and `"tolerates": "village"`.
 
-- [ ] AC1: Size unrest at upkeep: given four settled territories at pop 2 (Hamlet), 5 (Village), 9 (Town) and 13
+- [x] AC1: Size unrest at upkeep: given four settled territories at pop 2 (Hamlet), 5 (Village), 9 (Town) and 13
   (Metropolis) with ample food and unrest 0, when the turn ends, then the next turn starts with unrest 3 (0 + 0 + 1 +
   2), and `size_unrest()` was 3 before the end. With one territory at pop 9 alone it is 1.
-- [ ] AC2: It counts the pop at upkeep, before pop eats: given a lone territory at pop 8 (Town) and a Famine that will
+- [x] AC2: It counts the pop at upkeep, before pop eats: given a lone territory at pop 8 (Town) and a Famine that will
   take 1 pop at this upkeep, when the turn ends, then size unrest still adds 1 (the tier is read when upkeep starts,
   like idle buildings). The next upkeep, at pop 7 (Village), adds 0.
-- [ ] AC3: It stops at the limit: given unrest 9 and the AC1 territories, when the turn ends, then unrest is 10, not 12
+- [x] AC3: It stops at the limit: given unrest 9 and the AC1 territories, when the turn ends, then unrest is 10, not 12
   (the same stop as `gain`), and the turn then falls into Anarchy as usual.
-- [ ] AC4: When it doesn't apply: a government with no `tolerates` adds no size unrest, even with a Metropolis. With no
+- [x] AC4: When it doesn't apply: a government with no `tolerates` adds no size unrest, even with a Metropolis. With no
   government (Anarchy rules) none is added. With unrest off (`resources` without unrest) none is added and
   `size_unrest()` is 0. With tiers off it is 0 too.
-- [ ] AC5: Forecast: given the AC1 territories, `upkeep_forecast()[UNREST]` includes the +3, alongside any card
+- [x] AC5: Forecast: given the AC1 territories, `upkeep_forecast()[UNREST]` includes the +3, alongside any card
   upkeep unrest. With a working Temple-like building (⟳ −1 unrest), the forecast is +2 and the next turn starts with
   unrest 2.
-- [ ] AC6: Loader and text: `tolerates` is a government-only field (on another type it gets the usual "only applies to
+- [x] AC6: Loader and text: `tolerates` is a government-only field (on another type it gets the usual "only applies to
   governments" warning) whose value must be the `id` of a tier in `population.tiers`. An unknown id is a load error
   naming the card, `tolerates` and the id. A `tolerates` with tiers off is a warning that it is ignored. The
   government's generated card text gains a line naming the tier, e.g. "Tolerates up to Village.". Real data: every
@@ -79,3 +79,11 @@ Fixtures: 281's tiers (hamlet 0, village 4, town 8, metropolis 13), unrest on, a
 - Red: AC2 uses a fixture event with ⟳ −1 pop (Plague, 2 turns) instead of the Famine: the Famine takes pop while
   feeding, after `resolve_upkeep`, so it couldn't tell whether the tier is read before or after the upkeep effects.
   A ⟳ lose_pop event resolves in `Events.resolve_upkeep`, after the working cards, the same path as Anarchy's.
+- Built. `size_unrest()` is `Population.size_unrest`, exposed on EngineQueries; `TurnLoop.resolve_upkeep` adds it
+  first through `set_unrest` (not `gain`, which needs a source card) and logs "Crowded territories: +N unrest."; no
+  notice (the forecast and the top bar already show it). `ConfigLoader._check_tolerates` validates the id and sets
+  `CardDef.tolerates_name` for the text. Shipped: Chiefdom Village, Kingship Town, Theocracy Town.
+- Balance worries for a later balance item: Chiefdom (limit 8, tolerates Village) now drains 1 unrest per Town each
+  turn, which pushes early growth past pop 8 toward Anarchy; the bot doesn't weigh tolerance when choosing a
+  government or a growth target, so sim games under Chiefdom may fall into Anarchy more often.
+- Suite 1874 → 1890 tests.
