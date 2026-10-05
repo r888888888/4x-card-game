@@ -2,7 +2,7 @@
 id: 275
 title: Iron Age reach techs (Alphabet, Qanat, Navigation)
 type: feature
-status: ready
+status: review
 branch: feat/275-alphabet-qanat-navigation
 ---
 
@@ -14,14 +14,14 @@ river. Navigation: steering by the stars, Phoenician ships crossed open sea to C
 gained a network to trade with. Content only: no engine change. Follows 274.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Some tech in `research_deck` or reachable building sets `modifiers.insight_per_gain` above 0.
+- [x] AC1 (invariant): Some tech in `research_deck` or reachable building sets `modifiers.insight_per_gain` above 0.
   Fails today: only Theocracy sets it, to −1.
-- [ ] AC2 (invariant): For each of `desert` and `hills`, some reachable building with an `upkeep` food gain can be
+- [x] AC2 (invariant): For each of `desert` and `hills`, some reachable building with an `upkeep` food gain can be
   built on a territory in the territory deck that has that terrain and no `fresh_water`. Fails today for both: Farm
   and Irrigation Canals need fresh water, Mine and Caravanserai make no food.
-- [ ] AC3 (invariant): Every tag counted by a `gain_per_tag` on a reachable card or a tech in `research_deck` is carried
+- [x] AC3 (invariant): Every tag counted by a `gain_per_tag` on a reachable card or a tech in `research_deck` is carried
   by at least 2 reachable cards. Holds today; guards Navigation's new `port` tag.
-- [ ] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
+- [x] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
   `test_every_gain_per_tag_tag_is_on_a_reachable_card`, `test_every_eureka_counts_cards_the_player_can_get`,
   `test_only_food_buildings_cost_food_and_at_most_1` and `test_real_data_loads_without_warnings`.
 
@@ -52,15 +52,24 @@ Data only. Each tech goes into `research_deck` with a `flavor` and a real, attri
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_some_tech_or_building_raises_insight_per_gain` |
+| AC2 | `test_content::test_dry_desert_and_hills_each_take_a_food_building` |
+| AC3 | `test_content::test_every_gain_per_tag_tag_is_on_2_reachable_cards` (passes today: a guard) |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
 - [ ] Learn Alphabet: the Capital's ⟳ +1 insight now gives 2, and a Library gives 3.
 - [ ] Build a Qanat on Dunes: housing goes from 2 to 4 and the forecast shows ⟳ +1 food.
-- [ ] With 2 Harbors, learn Navigation: the forecast shows ⟳ +2 wealth more.
+- [ ] With 2 Harbors, learn Navigation: the forecast shows ⟳ +2 wealth more (each Fishing Huts adds 1 more).
+- [ ] The tech Qanat and the building Qanat read well side by side on the Knowledge screen (else rename the building "Qanat Channel").
 
 ## Log
 - Balance worries for a later balance item: Alphabet's +1 per gain multiplies with every insight source (Stone Circle,
   Library, Research cards) and may run era 3 out early. With Qanat and Mud-Brick Houses, Dunes may become a good
   territory.
+
+- Built as specced, plus `port` on Fishing Huts (user's choice): 273's `test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings`
+  needs 3 buildings with a tech's counted tag, and Harbor and Great Harbor of Tyre were only 2. Balance worry: Navigation
+  now pays for cheap Fishing Huts too, marsh ones included. Quotes: John 1:1 (Alphabet), Isaiah 35:6 (Qanat), Psalm
+  107:23 (Navigation), all KJV. Suite 1825 → 1828 tests.

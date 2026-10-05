@@ -69,7 +69,8 @@
     "weavers_workshop": { "price": 3, "count": 6, "locked": true },
     "brewery": { "price": 3, "count": 6, "locked": true },
     "olive_groves": { "price": 3, "count": 6, "locked": true },
-    "house_of_life": { "price": 3, "count": 6, "locked": true }
+    "house_of_life": { "price": 3, "count": 6, "locked": true },
+    "qanat_channel": { "price": 3, "count": 6, "locked": true }
   },
   "event_deck": {
     "solstice_rites": 1,
@@ -140,6 +141,9 @@
     "mathematics": 1,
     "coinage": 1,
     "bureaucracy": 1,
+    "alphabet": 1,
+    "qanat": 1,
+    "navigation": 1,
     "astronomy": 1,
     "engineering": 1
   },
