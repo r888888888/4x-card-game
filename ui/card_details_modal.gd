@@ -51,7 +51,7 @@ func _init(p_stack: ModalStack) -> void:
 	_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_reason.visible = false
 	footer.add_child(_reason)
-	add_footer_button(UIKit.button("Close (Esc)", close))
+	add_footer_button(UIKit.button("Close", close))
 	_buy = add_footer_button(UIKit.button("Buy", _on_buy), true)
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word

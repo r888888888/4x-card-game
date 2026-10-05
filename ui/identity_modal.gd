@@ -34,7 +34,7 @@ func _init(p_stack: ModalStack) -> void:
 	_deck = HBoxContainer.new()
 	_deck.add_theme_constant_override("separation", Tokens.SPACE_2)
 	body.add_child(_deck)
-	close_button = add_footer_button(UIKit.button("Close (Esc)", close))
+	close_button = add_footer_button(UIKit.button("Close", close))
 	revolt_button = UIKit.button("Revolt…", func(): revolt_requested.emit())
 
 

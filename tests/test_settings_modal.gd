@@ -31,7 +31,7 @@ func test_the_menu_holds_only_game_actions() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
 		var texts: Array = main.menu_buttons().map(func(b): return b.text)
-		eq(texts, ["Restart", "New game", "Settings", "Close (Esc)", "Exit"], "the menu's buttons, in order")
+		eq(texts, ["Restart", "New game", "Settings", "Close", "Exit"], "the menu's buttons, in order")
 		var menu: Control = main.modals.top()
 		eq(menu.find_children("*", "LineEdit", true, false).size(), 0, "no seed field")
 		eq(menu.find_children("*", "LegendKey", true, false).size(), 0, "no Reduce motion, Day mode or sound keys")
