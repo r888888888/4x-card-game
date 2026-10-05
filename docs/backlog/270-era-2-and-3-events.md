@@ -2,7 +2,7 @@
 id: 270
 title: Era 2 and 3 events, so the event deck escalates
 type: feature
-status: ready
+status: red-review
 branch: feat/270-era-2-and-3-events
 ---
 
@@ -52,7 +52,12 @@ Duplicates are fine where they add flavour.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_era_the_research_deck_reaches_has_events` |
+| AC2 | `test_content::test_every_later_era_has_a_harmful_and_a_helpful_event`; `test_real_era_1_events_harm_only_by_unrest` (144's test, now era 1 only) |
+| AC3 | `test_content::test_every_later_era_has_an_event_that_scales_with_the_realm` |
+| AC4 | `test_content::test_every_per_keyword_and_per_tag_event_effect_can_fire` |
+| AC5 | `test_content::test_events_both_give_and_take_food_wealth_and_insight` |
+| AC6 | `test_content::test_the_most_unrest_an_event_adds_never_falls_from_one_era_to_the_next` |
 
 ## Manual check
 Proposed cards, 1 copy each, for review. Flavour to be written in the item, in the voice of the existing events.
@@ -85,3 +90,8 @@ Proposed cards, 1 copy each, for review. Flavour to be written in the item, in t
 - Balance worry, for the next balance item: the deck grows from 22 to about 43 events over a game of 39 draws. Era-1
   boons get rarer late, and some era-3 events may never come up. Consider fewer era-3 cards, or removing era-1 blanks
   when era 2 arrives.
+- Red: 144's `test_real_events_harm_only_by_unrest` forbade the new harms on every event (268's follow-up). It now
+  checks era-1 events only, renamed `test_real_era_1_events_harm_only_by_unrest`: era 1 stays unrest-only.
+- AC2: "a positive / negative modifier" reads as `actions` or `hand_size` only; renewal and the rest don't count either
+  way. AC5 counts effects only, not an option's cost.
+- AC4's test passes before the change (only Harvest Festival counts a tag today); it guards the new cards.
