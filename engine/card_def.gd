@@ -194,20 +194,28 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	return "\n".join(parts)
 
 
-## A choice event's line (269): "Choose: pay 2 wealth for +1 VP; or +1 unrest."
+## A choice event's line (269): "Choose: pay 2 wealth for +1 VP; or +1 unrest." An option without effects reads
+## "pay 4 wealth", or "nothing" when free (270).
 func choices_text(card_db: Dictionary) -> String:
 	var options: PackedStringArray = []
 	for option in choices:
 		var does := _option_effects_text(option, card_db)
-		options.append(does if option.cost.is_empty() else "pay %s for %s" % [Fields.amounts_text(option.cost), does])
+		if option.cost.is_empty():
+			options.append(does if does != "" else "nothing")
+		else:
+			var pay := "pay %s" % Fields.amounts_text(option.cost)
+			options.append(pay if does == "" else "%s for %s" % [pay, does])
 	return "Choose: %s." % "; or ".join(options)
 
 
-## Option i's text (269): "Pay 2 wealth: +1 VP", "+1 unrest".
+## Option i's text (269): "Pay 2 wealth: +1 VP", "+1 unrest"; "Pay 4 wealth" or "Nothing" without effects (270).
 func option_text(i: int, card_db: Dictionary) -> String:
 	var option: Dictionary = choices[i]
 	var does := _option_effects_text(option, card_db)
-	return does if option.cost.is_empty() else "Pay %s: %s" % [Fields.amounts_text(option.cost), does]
+	if option.cost.is_empty():
+		return does if does != "" else "Nothing"
+	var pay := "Pay %s" % Fields.amounts_text(option.cost)
+	return pay if does == "" else "%s: %s" % [pay, does]
 
 
 func _option_effects_text(option: Dictionary, card_db: Dictionary) -> String:

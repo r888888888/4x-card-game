@@ -357,6 +357,109 @@
       ]
     },
     {
+      "id": "plague", "name": "Plague", "type": "event", "tags": [], "era": 2,
+      "flavor": "A fever comes up the river with the boats; the healers burn herbs, and the gravediggers never rest.",
+      "effects": [ { "op": "lose_pop", "amount": 1 }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
+    },
+    {
+      "id": "granary_fire", "name": "Granary Fire", "type": "event", "tags": [], "era": 2,
+      "flavor": "A lamp tips over in the night, and by dawn a season's grain is ash and smoke.",
+      "effects": [ { "op": "lose_pct", "resource": "food", "pct": 25 } ]
+    },
+    {
+      "id": "drought", "name": "Drought", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
+      "flavor": "No rain since the spring sowing; the plains crack, and the herds walk farther each day to drink.",
+      "effects": [ { "op": "lose_per_keyword", "resource": "food", "amount": 1, "keywords": ["desert", "grassland"], "trigger": "upkeep" } ]
+    },
+    {
+      "id": "silt_flood", "name": "Silt Flood", "type": "event", "tags": [], "era": 2,
+      "flavor": "The river rises over its banks and leaves behind a gift of black mud, thick and rich.",
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 2, "keywords": ["flood_plain"] } ]
+    },
+    {
+      "id": "bumper_harvest", "name": "Bumper Harvest", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
+      "flavor": "The ears hang so heavy the stalks bend, and every barn in the land is full to the rafters.",
+      "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" } ]
+    },
+    {
+      "id": "busy_harbours", "name": "Busy Harbours", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
+      "flavor": "Sails crowd every bay, and the quays ring with tongues from across the sea.",
+      "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
+    },
+    {
+      "id": "visiting_scholar", "name": "Visiting Scholar", "type": "event", "tags": [], "era": 2,
+      "flavor": "A stranger who reads the stars and counts in strange numerals asks only for a roof and a lamp.",
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ]
+    },
+    {
+      "id": "labour_shortage", "name": "Labour Shortage", "type": "event", "tags": [], "era": 2,
+      "flavor": "The young men have gone to the mines and the boats, and the fields wait for hands that do not come.",
+      "modifiers": { "actions": -1 }, "effects": []
+    },
+    {
+      "id": "tax_revolt", "name": "Tax Revolt", "type": "event", "tags": [], "era": 2, "effects": [],
+      "flavor": "The tax collectors come back empty-handed and bloodied; the villages say they have paid enough.",
+      "choices": [
+        { "cost": { "wealth": 4 }, "effects": [] },
+        { "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ] }
+      ]
+    },
+    {
+      "id": "wandering_smiths", "name": "Wandering Smiths", "type": "event", "tags": [], "era": 2, "effects": [],
+      "flavor": "Smiths from the far hills set up their forge by the gate and offer to teach their secrets, for a price.",
+      "choices": [
+        { "cost": { "wealth": 3 }, "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ] },
+        { "effects": [] }
+      ]
+    },
+    {
+      "id": "pestilence", "name": "Pestilence", "type": "event", "tags": [], "era": 3,
+      "flavor": "The sickness spreads through the crowded streets faster than the priests can name it.",
+      "effects": [ { "op": "lose_pop", "amount": 2 }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
+    },
+    {
+      "id": "library_burns", "name": "Library Burns", "type": "event", "tags": [], "era": 3,
+      "flavor": "The scrolls catch like dry grass, and a hundred years of learning rises into the night sky.",
+      "effects": [ { "op": "lose_pct", "resource": "insight", "pct": 50 } ]
+    },
+    {
+      "id": "debased_coin", "name": "Debased Coin", "type": "event", "tags": [], "era": 3,
+      "flavor": "The mint cuts the silver with lead, and soon the merchants weigh every coin twice and trust none.",
+      "effects": [ { "op": "lose_pct", "resource": "wealth", "pct": 30 } ]
+    },
+    {
+      "id": "storm_at_sea", "name": "Storm at Sea", "type": "event", "tags": [], "era": 3,
+      "flavor": "Three days of gales, and the harbours fill with wreckage instead of cargo.",
+      "effects": [ { "op": "lose_per_keyword", "resource": "wealth", "amount": 2, "keywords": ["coastal"] } ]
+    },
+    {
+      "id": "golden_age", "name": "Golden Age", "type": "event", "tags": [], "era": 3, "discard": { "turns": 3 },
+      "flavor": "Peace, full granaries and clever hands: for a few bright years, everything the realm attempts succeeds.",
+      "modifiers": { "actions": 1, "hand_size": 1 }, "effects": []
+    },
+    {
+      "id": "school_of_philosophers", "name": "School of Philosophers", "type": "event", "tags": [], "era": 3,
+      "flavor": "Under the plane trees, old men argue about the nature of things, and their students write it all down.",
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 5 } ]
+    },
+    {
+      "id": "succession_crisis", "name": "Succession Crisis", "type": "event", "tags": [], "era": 3, "effects": [],
+      "flavor": "The old ruler dies with three heirs and no will, and each one has friends with swords.",
+      "choices": [
+        { "cost": { "wealth": 6 }, "effects": [] },
+        { "effects": [ { "op": "gain", "resource": "unrest", "amount": 3 } ] },
+        { "effects": [ { "op": "lose_pop", "amount": 1 }, { "op": "gain", "resource": "unrest", "amount": 1 } ] }
+      ]
+    },
+    {
+      "id": "mercenaries_offer", "name": "Mercenaries' Offer", "type": "event", "tags": [], "era": 3, "effects": [],
+      "flavor": "Hard men with foreign shields wait at the gate; they will fight for anyone who pays in silver.",
+      "choices": [
+        { "cost": { "wealth": 4 }, "effects": [ { "op": "create", "card": "warriors", "zone": "discard" } ] },
+        { "effects": [] }
+      ]
+    },
+    {
       "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": [],
       "flavor": "On the longest night, fires burn on every hill and the elders watch for the sun to turn back."
     },
