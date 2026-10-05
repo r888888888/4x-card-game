@@ -2,7 +2,7 @@
 id: 296
 title: Recruit units from the build menu
 type: feature
-status: review
+status: done
 branch: feat/296-recruit-units-from-build-menu
 ---
 
