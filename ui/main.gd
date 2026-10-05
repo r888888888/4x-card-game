@@ -5,7 +5,7 @@ extends Control
 ## BoardLayout builds the layout in code; BoardViews keeps the card views (views, keyed by uid) in line with the engine
 ## (176). Cards in motion live on fx, a layer above the board.
 ## The components: TopBar, Sidebar, TableauView, ChoiceOverlays, SupplyScreen, the modals (GameMenu, CardDetailsModal,
-## EventModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
+## TurnNews's EventModal and RaidModal, IdentityModal, SettingsModal, GameOverOverlay, stacked on a ModalStack, modals),
 ## StartScreen and NewGameScreen (opened and closed through the Navigator, nav), DragController (dragging and
 ## targeting) and CardFocus (the keyboard focus on the cards).
 
@@ -54,8 +54,7 @@ var _relief: ActionButton  # below the Realm while a Famine can be relieved
 var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
 var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var _game_over: GameOverOverlay
-var _drawn := {}  # the last event_drawn outcome, shown by the next _refresh unless the game is over (079)
-var _event_modal: EventModal
+var _news: TurnNews  # the turn start's event and raid, shown by the next _refresh (079, 271)
 var _palette_day := false  # the palette main's theme was built in (183)
 
 
@@ -69,7 +68,7 @@ func _ready() -> void:
 	Game.engine.logged.connect(log_drawer.append_log)
 	Game.engine.noticed.connect(toasts.notice)
 	Game.engine.card_played.connect(_on_card_played)
-	Game.engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
+	_news.listen(Game.engine)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	if LaunchOptions.starts_game(Game.launch):  # --civ / --seed on the command line (135)
 		start_game(Game.launch.seed, Game.launch.civ)
@@ -112,7 +111,7 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	toasts.clear()  # an old game's flags, urgent ones included (250)
 	supply.close()
 	modals.close_all()  # an old game's event, details or tree
-	_drawn = {}
+	_news.clear()
 	territory_view.reset()
 	_views.reset()
 	choices.refresh(null)  # an old game's choice goes at once, without doors (209)
@@ -211,12 +210,22 @@ func restore_order_button() -> Button:
 
 ## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
 func event_modal() -> Dictionary:
-	return _event_modal.shown()
+	return _news.event_modal.shown()
 
 
 ## Test hook (079): the drawn-event modal's OK button.
 func event_modal_ok_button() -> Button:
-	return _event_modal.ok_button
+	return _news.event_modal.ok_button
+
+
+## Test hook (271): the raid modal on show, {uid, id, repelled, result, title, context}; {} while closed.
+func raid_modal() -> Dictionary:
+	return _news.raid_modal.shown()
+
+
+## Test hook (271): the raid modal's OK button.
+func raid_modal_ok_button() -> Button:
+	return _news.raid_modal.ok_button
 
 
 ## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
@@ -431,10 +440,8 @@ func _refresh() -> void:
 	focus.sync()
 	_game_over.refresh(e)
 	era_sheet.refresh(e)
-	if not _drawn.is_empty() and not era_sheet.is_open():  # the event waits for the era ceremony (211)
-		if not e.is_over:
-			_event_modal.open(_drawn)
-		_drawn = {}
+	if not era_sheet.is_open():  # the event and the raid wait for the era ceremony (211)
+		_news.show(e)
 
 
 # --- Layout ---
@@ -458,7 +465,7 @@ func _build_layout() -> void:
 	_menu.closed_giving_back.connect(_on_menu_closed)
 	era_sheet.closed.connect(func(): if board_shown(): _refresh())
 	_game_over = layout.game_over
-	_event_modal = layout.event_modal
+	_news = layout.news
 	_views = BoardViews.new(self, _top_bar)
 	territory_view.navigated.connect(func():  # the view carries its cards as it grows or shrinks (105)
 		_views.quiet = true

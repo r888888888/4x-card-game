@@ -45,6 +45,8 @@ const MILESTONE_CITY := &"ui.milestone.city"
 const MILESTONE_WONDER := &"ui.milestone.wonder"
 const MILESTONE_ACCORD := &"ui.milestone.accord"
 const MILESTONE_ERA := &"ui.milestone.era"
+const MILESTONE_PILLAGED := &"ui.milestone.pillaged"  # a raid pillaged (271)
+const MILESTONE_REPELLED := &"ui.milestone.repelled"  # a raid repelled (271)
 const MILESTONE_VICTORY := &"ui.milestone.victory"
 const MILESTONE_DEFEAT := &"ui.milestone.defeat"
 ## Each token's level (§16.4): 1 micro-feedback and 2 structural on the Interface bus, 3 events on the Game bus.
@@ -55,7 +57,7 @@ const TOKENS := {
 	CABINET_PART: 2, PILE_DEAL: 2, PILE_GATHER: 2, CONFIRM: 2, REJECT: 2, NOTIFICATION_INFO: 2,
 	NOTIFICATION_CAUTION: 2, NOTIFICATION_URGENT: 2, ENDTURN_PRESS: 2, ENDTURN_COMMIT: 2, ENDTURN_TURN: 2,
 	MILESTONE: 3, MILESTONE_BREAKTHROUGH: 3, MILESTONE_CITY: 3, MILESTONE_WONDER: 3, MILESTONE_ACCORD: 3,
-	MILESTONE_ERA: 3, MILESTONE_VICTORY: 3, MILESTONE_DEFEAT: 3,
+	MILESTONE_ERA: 3, MILESTONE_VICTORY: 3, MILESTONE_DEFEAT: 3, MILESTONE_PILLAGED: 3, MILESTONE_REPELLED: 3,
 }
 const NOTIFICATIONS: Array[StringName] = [NOTIFICATION_INFO, NOTIFICATION_CAUTION, NOTIFICATION_URGENT]
 ## Two-stage sounds start this early (s), so their last stage lands on contact and the snap just before (§16.5).

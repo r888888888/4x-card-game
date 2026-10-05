@@ -1087,6 +1087,8 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.milestone.era` | A brushed swish under the wipe, a flutter for the title, relays with the motif, vibraphone and muted piano rising to D | 1600–2000 ms (+ ≤ 0.8 s tail) | event (+12) | brushes, vibraphone, muted piano, a soft organ under the last chord | as base | swish at 0; flutter with the type; chord on the `settle` | a few per game |
 | `ui.milestone.victory` | The era sequence, extended; closes on D major (add 9) | 2000–2600 ms (+ tail) | event (+12) | as era | as base | as era | once |
 | `ui.milestone.defeat` | The same mechanism; a falling cadence, dignified | 2000–2600 ms (+ tail) | event (+10) | as era, ending on B minor → D | as base | as era | once |
+| `ui.milestone.repelled` | A raid repelled (271): a gate barred (a heavy latch), then marimba rising D4–A4–D5 | 600–900 ms | event (+10) | marimba, as `ui.milestone.city` | as base | with the raid modal | rare (once per raid) |
+| `ui.milestone.pillaged` | A raid pillaged (271): a relay drop and a low drum, then muted piano falling B3 → F♯3–B3–D4 (B minor); dignified, never an alarm | 700–1000 ms | event (+10) | muted piano, as `ui.milestone.defeat` | as base | with the raid modal | rare (once per raid) |
 
 ---
 

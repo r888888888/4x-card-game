@@ -53,12 +53,18 @@ func raid_engine(ids_on_top := ["raiders"], event_deck := {"raiders": 1, "horde"
 		return null
 	var e := GameEngine.new(r.cards, config)
 	e.new_game(1)
+	raid_setup(e, ids_on_top)
+	return e
+
+
+## raid_engine's game as it starts: Hills settled at 1 pop, 50 food, 1 unrest and ids_on_top on top of the event deck.
+## For a game that was started again (main.start_game).
+func raid_setup(e: GameEngine, ids_on_top: Array) -> void:
 	settle(e, ["hills"])
 	e.zone("tableau").find(hills_of(e)).pop = 1
 	e.resources.food = 50
 	e.resources.unrest = 1
 	arrange(e.zone("event_deck"), ids_on_top)
-	return e
 
 
 ## Hills' uid in e's tableau.

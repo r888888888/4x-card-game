@@ -190,13 +190,14 @@ static func strike_raids(e: GameEngine) -> void:
 
 
 ## raid strikes its target: repelled (its repel effects) when the target's defence is at least its strength, else
-## pillaged (its pillage effects, the units stationed there to the discard, pop pop lost). Emits raid_resolved.
+## pillaged (its pillage effects, the units stationed there to the discard, pop pop lost). Logs what happened (a raid
+## modal shows it, 271, so it's no notice) and emits raid_resolved.
 static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	var target := Territories.settled(e, raid.territory_uid)
 	var outcome := CardPlay.new_outcome(raid.uid)
 	var units_lost: Array[int] = []
-	outcome.merge({"target": raid.territory_uid, "strength": raid.def.raid.strength, "defense": e.defense(raid.territory_uid),
-		"units_lost": units_lost, "pop_lost": 0})
+	outcome.merge({"id": raid.def.id, "target": raid.territory_uid, "strength": raid.def.raid.strength,
+		"defense": e.defense(raid.territory_uid), "units_lost": units_lost, "pop_lost": 0})
 	outcome.repelled = target != null and outcome.defense >= outcome.strength
 	e._outcome = outcome
 	e._resolve(raid, "repel" if outcome.repelled else "pillage")
@@ -208,6 +209,15 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 			units_lost.append(unit.uid)
 		outcome.pop_lost = mini(target.pop, raid.def.raid.pop)
 		target.pop -= outcome.pop_lost
+	e._log(outcome_text(e, outcome))
+	e.raid_resolved.emit(outcome)
+
+
+## A raid_resolved outcome as its result line (271): "Raiders pillaged Hills: +1 unrest, −2 food, −1 pop, 1 unit lost." or
+## "Raiders repelled at Hills: +2 wealth."; the part after the colon lists what it gave and took, and is left out when
+## it did nothing.
+static func outcome_text(e: GameEngine, outcome: Dictionary) -> String:
+	var target := Territories.settled(e, outcome.target)
 	var where := target.shown_name() if target != null else "nothing"
 	var parts: PackedStringArray = []
 	var summary := Events.outcome_summary(outcome)
@@ -215,14 +225,14 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 		parts.append(summary)
 	if outcome.pop_lost > 0:
 		parts.append("−%d pop" % outcome.pop_lost)
-	if not units_lost.is_empty():
-		parts.append("%d unit%s lost" % [units_lost.size(), "" if units_lost.size() == 1 else "s"])
+	var units: int = outcome.units_lost.size()
+	if units > 0:
+		parts.append("%d unit%s lost" % [units, "" if units == 1 else "s"])
 	var what := (": " + ", ".join(parts)) if not parts.is_empty() else ""
+	var name: String = e.card_db[outcome.id].name
 	if outcome.repelled:
-		e._notice("%s repelled at %s%s." % [raid.def.name, where, what])
-	else:
-		e._notice("%s pillaged %s%s." % [raid.def.name, where, what], GameEngine.NOTICE_URGENT)
-	e.raid_resolved.emit(outcome)
+		return "%s repelled at %s%s." % [name, where, what]
+	return "%s pillaged %s%s." % [name, where, what]
 
 
 ## Why unit uid can't move to territory_uid now (163), or "": unit_move_block's reasons, then not a settled
