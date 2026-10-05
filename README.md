@@ -15,7 +15,7 @@ screen), and `--turns <n>` sets the turn limit, e.g. `godot --path . -- --civ su
 `--civ` and `--turns`: `scripts/sim.sh 20 all --civ sumer --turns 15`.
 
 Drag a card from your hand into the tableau (or double-click it) to play it; press E or "End turn" to
-end the turn. Click a territory in the Realm to see it on its own: a box titled with the territory, its slots, pop and Grow, then
+end the turn. Click a territory in the Realm to see it on its own: a box titled with the territory, its slots and pop, then
 its city and buildings and an outline for each free slot.
 While it is open, a building dropped anywhere on it (or double-clicked) goes there; "Back" or Esc returns.
 

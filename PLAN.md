@@ -11,8 +11,8 @@
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests; the games run on one process per core (152) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (growth, upkeep, Settlers), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
-| Actions (127) | Playing a card from hand uses 1 action; nothing else does (growing, buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers; a surplus grows pop, 260), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
+| Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074) and revolutionary events (148); barbarians are specced (160–168) |
 
 ## Architecture principle
@@ -232,7 +232,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 3. Event (237: from turn 2): draw one event from the event deck and resolve its `play` effects (see Events). It is
    drawn last so it is active all turn: you see it in the Realm and play around it, and an event that lasts N turns
    is active for N play phases.
-4. Play: play cards while actions (127) and resources allow, buy cards, buy growth for territories, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
+4. Play: play cards while actions (127) and resources allow, buy cards, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After the last turn (`turn_limit`, 100 in the real data), show final score.
 
 Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
@@ -288,7 +288,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   territory as a card with its slots and pop, then cards on no territory, 102; every card in the row one fixed height
   with one line per field, the rest in its details, frontier territories hatched with a dashed border and a badge,
   events badged with their turns left, 138; a click opens the territory view with
-  its city, buildings and Grow, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as notification flags out of the rail (116, 250); drag or double-click to play, E ends turn, full keyboard play (017)
+  its city, buildings and pop meter, 101; 087's collapsing groups are gone), top bar (stats; civilization and government, Buy Cards, Knowledge, Log, End turn, Menu; keys in the tooltips, 120), the game log in a drawer (L; 115, no sidebar) with the deck and discard counts (121; cards deal from and discard to the Log button) whose notable lines also show as notification flags out of the rail (116, 250); drag or double-click to play, E ends turn, full keyboard play (017)
 - [x] End-of-game score screen, restart with seed
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
@@ -305,8 +305,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   death per unpaid food): when pop can't be fed in full, the famine card (an event, never in `event_deck`, with no
   `discard`) becomes active if it isn't, gains a counter up to `max_counters`, and its upkeep effects resolve once
   per counter (real data: −1 pop from the territory with the most pop, ties settled first). A fed upkeep, even
-  with 0 food left, removes it from the game. One Famine at a time; no growth while it lasts (`grow_error`, and
-  `grow` adds nothing); `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
+  with 0 food left, removes it from the game. One Famine at a time; the `grow` op adds nothing while it lasts (automatic
+  growth can't happen then: a fed upkeep has ended it); `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
   reach 0; the city stays. Famine guard (060): the working buildings on a territory (decided before pop eats) save
   up to their total `famine_guard` of the Famine's deaths there each upkeep; `upkeep_forecast().starve` counts only
   the pop that die. A guard save skips one counter's upkeep effects (096).
@@ -322,10 +322,11 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
-- Growth: during play, `grow(territory_uid)` pays `grow_cost` = pop + 1 food for +1 pop, up to housing, with no
-  limit per turn. `grow_error` says why not (like `play_error`). In the territory view pop is a meter of pips, one per
-  housing (124), and Grow is a "Grow N" button in the view's actions row below it; when it can't be used it is
-  disabled with `grow_error` as its tooltip (227).
+- Growth (260, replacing 010's bought growth): right after pop eats, if the upkeep netted at least
+  `population.growth_surplus` food (default 2; made less eaten, `upkeep_forecast()[FOOD]`'s figure), the settled
+  territory with the most pop and room (ties: tableau order) gets +1 pop, free, with a notice ("Homeland grew to 3
+  pop."). One a turn; none under Anarchy. Each pop eats, so growth settles at a surplus of `growth_surplus` − 1. Test
+  fixtures default it to `NO_GROWTH` (1000). In the territory view pop is a meter of pips, one per housing (124).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)

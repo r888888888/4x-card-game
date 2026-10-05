@@ -2,7 +2,7 @@
 id: 260
 title: Territories grow automatically from a food surplus
 type: feature
-status: in-progress
+status: review
 branch: feat/260-automatic-growth
 ---
 
@@ -16,23 +16,23 @@ default), leaving a trickle of food for Settlers and Feast. The manual Grow acti
 "Net food" is the food the upkeep's effects gained minus what pop ate (food after feeding − food before upkeep),
 the figure `upkeep_forecast()[FOOD]` predicts. It doesn't include the Anarchy drain that comes after feeding.
 
-- [ ] AC1: Given population on, `growth_surplus` 2, one settled territory with 2 pop and housing 5, and upkeep effects
+- [x] AC1: Given population on, `growth_surplus` 2, one settled territory with 2 pop and housing 5, and upkeep effects
   that make 4 food, when the next turn starts, then after feeding (2 eaten, net +2) the territory has 3 pop and food
   is 2 more than before upkeep (growth costs no food).
-- [ ] AC2: Given the same setup but upkeep making 3 food (net +1), when the next turn starts, then pop stays 2.
+- [x] AC2: Given the same setup but upkeep making 3 food (net +1), when the next turn starts, then pop stays 2.
   With `growth_surplus` 1 in the config, the same net +1 grows it to 3.
-- [ ] AC3: Given two settled territories, A with 3 pop and B with 2 pop, both with room, and net food +5, when the turn
+- [x] AC3: Given two settled territories, A with 3 pop and B with 2 pop, both with room, and net food +5, when the turn
   starts, then A grows to 4 and B stays 2. At most 1 pop grows per turn, whatever the surplus.
-- [ ] AC4: Given A with 3 pop at its housing 3 and B with 2 pop and room, and net food ≥ 2, when the turn starts, then
+- [x] AC4: Given A with 3 pop at its housing 3 and B with 2 pop and room, and net food ≥ 2, when the turn starts, then
   B grows to 3. Given A and B both with 2 pop and room, A first in tableau order, then A grows. Given every
   territory at its housing, nothing grows and nothing errors.
-- [ ] AC5: No growth happens, even with net food ≥ `growth_surplus`, when Anarchy rules after feeding
+- [x] AC5: No growth happens, even with net food ≥ `growth_surplus`, when Anarchy rules after feeding
   (`Anarchy.build_error` non-empty) or the population rules are off.
-- [ ] AC6: When a territory grows, the engine logs and emits `noticed` at `NOTICE_INFO` naming the territory and its
+- [x] AC6: When a territory grows, the engine logs and emits `noticed` at `NOTICE_INFO` naming the territory and its
   new pop (e.g. "River Meadow grew to 3 pop."). No growth means no notice.
-- [ ] AC7: The config loader reads `population.growth_surplus` (an integer ≥ 1, default 2 when it's missing) and
+- [x] AC7: The config loader reads `population.growth_surplus` (an integer ≥ 1, default 2 when it's missing) and
   reports an error naming the field when it is not an integer or is below 1. `data/config.json` sets it to 2.
-- [ ] AC8: The manual growth action is gone: `GameEngine` has no `grow`, `grow_error` or `grow_cost`, the territory
+- [x] AC8: The manual growth action is gone: `GameEngine` has no `grow`, `grow_error` or `grow_cost`, the territory
   view has no Grow button, and `"grow"` is not one of the actions `_blocked_error` takes. The `grow` effect op
   (+pop from cards) still works as before.
 
@@ -81,8 +81,11 @@ Fixtures: `raw_config` gives a population block without `growth_surplus` `NO_GRO
 don't start growing; tests opt in by setting it.
 
 ## Manual check
-- [ ] Start a game, play a Farm. Once net food shows +2, the next turn's upkeep grows the Capital's territory by 1
-  and a notice flag appears. The territory view has no Grow button.
+- [ ] `godot --path . -- --civ egypt --seed 5`: play a Farm on the home territory. When the top bar's food forecast
+  reads +2 or more, End turn: the home territory gains 1 pop and an info notice "<territory> grew to N pop." flags out
+  of the rail. The next turn's forecast is 1 lower.
+- [ ] Open a territory (click its card): pips and Rename… show, no Grow button.
+- [ ] `data/config.json` has `population.growth_surplus: 2`.
 
 ## Log
 - Balance: growth no longer costs food, and Farms now turn straight into pop and VP (`vp_per_pop`). Settlers

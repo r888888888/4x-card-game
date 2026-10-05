@@ -3,7 +3,7 @@ extends RefCounted
 ## Swaps the text glyphs the game uses (the engine's "⟳", the UI's type marks and so on) for icon
 ## images, in card labels and in the log. Icons are white SVGs in assets/icons/, tinted here.
 
-const FOOD := preload("res://assets/icons/food.svg")  # the sprout: food everywhere, the Grow pip included (124, 180)
+const FOOD := preload("res://assets/icons/food.svg")  # the sprout: food everywhere (180)
 ## The resource glyphs (180), by counter key: the top bar's counters and a hand card's cost.
 const RESOURCES := {
 	GameEngine.FOOD: FOOD,
