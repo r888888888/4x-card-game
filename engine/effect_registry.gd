@@ -19,6 +19,8 @@ const OPS := {
 	"trash": preload("res://engine/effects/trash_effect.gd"),
 	"lose": preload("res://engine/effects/lose_effect.gd"),
 	"lose_pop": preload("res://engine/effects/lose_pop_effect.gd"),
+	"lose_pct": preload("res://engine/effects/lose_pct_effect.gd"),
+	"lose_per_keyword": preload("res://engine/effects/lose_per_keyword_effect.gd"),
 	"gain_actions": preload("res://engine/effects/gain_actions_effect.gd"),
 }
 

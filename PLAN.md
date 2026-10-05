@@ -146,7 +146,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 }
 ```
 - `trigger` is `play` (default), `upkeep`, or `start` (062: civilizations only, once at `new_game`; no op that needs a
-  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `lose`, `lose_pop`, `score` and `grow` may use
+  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `lose`, `lose_pct`, `lose_per_keyword`, `lose_pop`, `score` and
+  `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
@@ -157,6 +158,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Harmful ops (072), on any card type: `{ "op": "lose", "resource": "food", "amount": 2 }` takes a resource, never
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
+- Loss ops that scale (268): `{ "op": "lose_pct", "resource": "food", "pct": 25 }` takes `pct`% (1–100) of the stored
+  resource, rounded up like Anarchy's drain ("−25% food"); `{ "op": "lose_per_keyword", "resource": "food", "amount": 1,
+  "keywords": ["desert"] }` is `gain_per_keyword`'s mirror ("−1 food per desert territory"). Both go through `lose`, so
+  they never go below 0 and report `lost`. No shipped card uses them yet (270).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
   object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`) to non-zero ints, e.g.
   `"modifiers": {"actions": 1}`. `insight_per_gain` (157) is added to each insight gain in `EngineCore.gain`, never below
