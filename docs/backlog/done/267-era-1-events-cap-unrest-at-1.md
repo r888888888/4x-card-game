@@ -2,7 +2,7 @@
 id: 267
 title: Era-1 events add at most 1 unrest
 type: feature
-status: review
+status: done
 branch: feat/267-era-1-events-cap-unrest-at-1
 ---
 

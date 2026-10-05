@@ -2,7 +2,7 @@
 id: 268
 title: Loss ops that scale with the realm: lose_pct and lose_per_keyword
 type: feature
-status: review
+status: done
 branch: feat/268-scaling-loss-ops
 ---
 
