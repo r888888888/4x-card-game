@@ -2,7 +2,7 @@
 id: 299
 title: Preview what building an entry on a territory would change
 type: feature
-status: review
+status: done
 branch: feat/299-build-preview
 ---
 
