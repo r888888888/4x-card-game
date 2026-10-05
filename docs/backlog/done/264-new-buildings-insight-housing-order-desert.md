@@ -2,7 +2,7 @@
 id: 264
 title: New buildings for insight, housing, order and the desert
 type: feature
-status: review
+status: done
 branch: feat/264-new-buildings
 ---
 

@@ -2,7 +2,7 @@
 id: 263
 title: Revise existing buildings (Quarry out, Hunters' Camp, Harbor, Temple, Mine)
 type: feature
-status: review
+status: done
 branch: feat/263-revise-existing-buildings
 ---
 

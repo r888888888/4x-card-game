@@ -2,7 +2,7 @@
 id: 265
 title: Wonders for eras 1 and 2
 type: feature
-status: review
+status: done
 branch: feat/265-era-1-2-wonders
 ---
 
