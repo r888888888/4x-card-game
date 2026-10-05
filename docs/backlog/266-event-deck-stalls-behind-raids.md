@@ -2,7 +2,7 @@
 id: 266
 title: Events stop when the event deck holds only raids that can't be drawn yet
 type: bug
-status: ready
+status: red-review
 branch: fix/266-event-deck-stalls-behind-raids
 ---
 
@@ -39,7 +39,10 @@ branch: fix/266-event-deck-stalls-behind-raids
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_raid_pacing::test_bug_266_…` |
+| AC1 | `test_raid_pacing::test_bug_266_a_deck_of_raids_too_soon_to_draw_shuffles_the_discard_back_in` |
+| AC2 | `test_raid_pacing::test_bug_266_raids_held_back_by_the_gap_dont_stop_the_events` |
+| AC3 | `test_raid_pacing::test_bug_266_with_only_raids_in_both_piles_none_is_drawn_or_lost`, `test_with_only_raids_left_and_none_allowed_no_event_is_drawn` (257) |
+| AC4 | `test_raid_pacing::test_bug_266_a_drawable_event_in_the_deck_leaves_the_discard_alone` |
 
 ## Root cause
 <!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
