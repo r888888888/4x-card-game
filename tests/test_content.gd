@@ -108,6 +108,35 @@ func test_real_deck_has_growth_cards() -> void:
 	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
+# --- Military in the starting deck (285) ---
+
+## Ids in the starting deck that are military units.
+func military_units(r: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for id in r.config.deck:
+		var def: CardDef = r.cards[id]
+		if def.type == CardDef.UNIT and def.has_tag("military"):
+			out.append(id)
+	return out
+
+
+func test_the_starting_deck_holds_a_military_unit() -> void:
+	var r := load_real()
+	check(not military_units(r).is_empty(), "the starting deck %s has a military unit" % [r.config.deck.keys()])
+
+
+func test_a_new_game_deals_a_military_unit_among_the_opening_cards() -> void:
+	var r := load_real()
+	var e := real_engine(5)
+	var dealt: Array[String] = card_ids(e.zone("deck")) + card_ids(e.zone("hand"))
+	var found := dealt.filter(func(id): return military_units(r).has(id))
+	check(not found.is_empty(), "a military unit is in the draw pile or hand (got %s)" % [dealt])
+	var total := 0
+	for id in r.config.deck:
+		total += int(r.config.deck[id])
+	eq(dealt.size(), total, "the opening deck and hand hold every starting-deck card")
+
+
 # --- Growth cards (262) ---
 
 ## The action cards among ids whose effects include a grow op that ok accepts.
