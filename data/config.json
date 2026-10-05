@@ -123,7 +123,7 @@
     "masonry": 1,
     "bronze_working": 1,
     "writing": 1,
-    "currency": 1,
+    "weights_and_measures": 1,
     "sailing": 1,
     "priesthood": 1,
     "code_of_laws": 1,
@@ -131,7 +131,8 @@
     "philosophy": 1,
     "iron_working": 1,
     "mathematics": 1,
-    "monarchy": 1,
+    "coinage": 1,
+    "bureaucracy": 1,
     "astronomy": 1,
     "engineering": 1
   },
