@@ -2,7 +2,7 @@
 id: 273
 title: Fix tech dates: Weights and Measures, Coinage, and Bureaucracy for Monarchy
 type: feature
-status: review
+status: done
 branch: feat/273-weights-coinage-bureaucracy
 ---
 
