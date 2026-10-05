@@ -1,9 +1,15 @@
 extends "res://tests/lib/test_case.gd"
 ## GameEngine's split (backlog 249): the read queries live in EngineQueries, between EngineCore and GameEngine; the
-## actions, their *_error queries and the internals stay in GameEngine.
+## actions, their *_error queries and the internals stay in GameEngine. The territory queries moved down into
+## TerritoryQueries, between EngineCore and EngineQueries (281).
 
 const QUERIES_PATH := "res://engine/engine_queries.gd"
 const ENGINE_PATH := "res://engine/game_engine.gd"
+const TERRITORY_PATH := "res://engine/territory_queries.gd"
+## The queries TerritoryQueries took from EngineQueries (281), plus the tier queries it added.
+const TERRITORY_QUERIES: Array[String] = ["pop", "housing", "territory_keywords", "count_territories_with", "total_pop",
+	"total_slots", "free_slots", "free_workers", "tier", "tier_name", "next_tier_pop", "is_idle", "territory_name",
+	"territory_of", "territory_groups", "territory_summary", "territory_status", "territory_tooltip"]
 ## The read queries GameEngine had under "# --- Queries ---" when 249 was specced.
 const QUERIES: Array[String] = ["turn_limit", "score", "civilization", "government", "event_counters",
 	"famine_counters", "population_on", "unrest_on", "pop", "housing", "territory_keywords", "count_territories_with",
@@ -43,13 +49,15 @@ func test_game_engine_extends_engine_queries_which_extends_engine_core() -> void
 		return
 	var queries: Script = load(QUERIES_PATH)
 	eq(queries.get_global_name(), &"EngineQueries", "class_name")
-	eq(queries.get_base_script(), load("res://engine/engine_core.gd"), "EngineQueries extends EngineCore")
+	eq(queries.get_base_script(), load(TERRITORY_PATH), "EngineQueries extends TerritoryQueries (281)")
+	eq((load(TERRITORY_PATH) as Script).get_base_script(), load("res://engine/engine_core.gd"),
+		"TerritoryQueries extends EngineCore")
 	eq((load(ENGINE_PATH) as Script).get_base_script(), queries, "GameEngine extends EngineQueries")
 
 
 func test_every_query_and_action_is_still_on_a_game_engine() -> void:
 	var e := make_engine({"farm": 10})
-	for name in QUERIES + STAYS:
+	for name in QUERIES + TERRITORY_QUERIES + STAYS:
 		check(e.has_method(name), "GameEngine.%s" % name)
 
 
@@ -57,10 +65,16 @@ func test_every_query_and_action_is_still_on_a_game_engine() -> void:
 
 func test_queries_are_declared_in_engine_queries_only() -> void:
 	var in_queries := declared(QUERIES_PATH)
+	var in_territory := declared(TERRITORY_PATH)
 	var in_engine := declared(ENGINE_PATH)
 	for name in QUERIES:
+		if TERRITORY_QUERIES.has(name):
+			continue
 		check(in_queries.has(name), "%s in engine_queries.gd" % name)
 		check(not in_engine.has(name), "%s not in game_engine.gd" % name)
+	for name in TERRITORY_QUERIES:
+		check(in_territory.has(name), "%s in territory_queries.gd" % name)
+		check(not in_queries.has(name) and not in_engine.has(name), "%s only in territory_queries.gd" % name)
 	for name in STAYS:
 		check(in_engine.has(name), "%s stays in game_engine.gd" % name)
 
@@ -71,3 +85,4 @@ func test_both_files_are_under_the_soft_limit() -> void:
 	check(lines_in(QUERIES_PATH) > 0, "engine_queries.gd has lines")
 	check(lines_in(QUERIES_PATH) <= 500, "engine_queries.gd: %d lines" % lines_in(QUERIES_PATH))
 	check(lines_in(ENGINE_PATH) <= 500, "game_engine.gd: %d lines" % lines_in(ENGINE_PATH))
+	check(lines_in(TERRITORY_PATH) <= 500, "territory_queries.gd: %d lines" % lines_in(TERRITORY_PATH))

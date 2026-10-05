@@ -17,27 +17,27 @@ const TIER_CARDS := [
 
 ## Population on with the fixture tiers (or none when tiers is null), Grassland settled; Homeland at pop 0 so lose_pop
 ## and the Famine take from Grassland. vp_per_pop 0, food_upkeep 0 unless given, plenty of food.
-func tier_engine(deck := {"farm": 10}, tiers: Variant = TIERS, food_upkeep := 0) -> Object:
+func tier_engine(deck := {"farm": 10}, tiers: Variant = TIERS, food_upkeep := 0) -> GameEngine:
 	var population := {"start": 1, "food_upkeep": food_upkeep, "vp_per_pop": 0}
 	if tiers != null:
 		population["tiers"] = tiers
-	var e: Object = make_engine(deck, {"population": population, "territory_deck": {"grassland": 2}}, 1, TIER_CARDS)
+	var e: GameEngine = make_engine(deck, {"population": population, "territory_deck": {"grassland": 2}}, 1, TIER_CARDS)
 	settle(e, ["grassland"])
 	e.zone("tableau").find(home_uid(e)).pop = 0
 	e.resources.food = 50
 	return e
 
 
-func grassland_uid(e: Object) -> int:
+func grassland_uid(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "grassland")
 
 
-func set_pop(e: Object, territory_uid: int, n: int) -> void:
+func set_pop(e: GameEngine, territory_uid: int, n: int) -> void:
 	e.zone("tableau").find(territory_uid).pop = n
 
 
 ## The uids of the buildings on territory_uid, in the order they were placed.
-func buildings_here(e: Object, territory_uid: int) -> Array[int]:
+func buildings_here(e: GameEngine, territory_uid: int) -> Array[int]:
 	var out: Array[int] = []
 	for c in e.zone("tableau").cards:
 		if c.def.type == CardDef.BUILDING and c.territory_uid == territory_uid:
@@ -46,7 +46,7 @@ func buildings_here(e: Object, territory_uid: int) -> Array[int]:
 
 
 ## Collects every noticed message the engine emits into the returned array.
-func notices(e: Object) -> Array[String]:
+func notices(e: GameEngine) -> Array[String]:
 	var out: Array[String] = []
 	e.noticed.connect(func(message: String, _priority: StringName): out.append(message))
 	return out

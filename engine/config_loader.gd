@@ -14,7 +14,7 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
 ## starting: {resources, tableau, territory, civilization}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## event_deck: {card_id: count},
-## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
+## population: {start, food_upkeep, vp_per_pop, tiers} (tiers: [{id, name, pop, slots}], [] when off; 281), or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
 ## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
@@ -217,11 +217,52 @@ static func _parse_population(raw: Variant, cards: Dictionary, start_territory: 
 			errs.append("'population.%s' must be an integer >= %d" % [field, min_value])
 			n = POPULATION_FIELDS[field][1]
 		out[field] = n
+	out["tiers"] = _parse_tiers(raw.tiers, errs, warnings, src) if raw.has("tiers") else []
 	for key in raw:
-		if not POPULATION_FIELDS.has(key) and key != "famine":
+		if not POPULATION_FIELDS.has(key) and not key in ["famine", "tiers"]:
 			warnings.append("%s: population: unknown field '%s'" % [src, key])
 	if start_territory != "" and out.start > cards[start_territory].housing:
 		errs.append("'population.start' (%d) is more than the housing of starting territory '%s' (%d)" % [out.start, start_territory, cards[start_territory].housing])
+	return out
+
+
+## Normalizes population.tiers (281): a non-empty array of {id, name, pop, slots}, ids unique and names non-empty,
+## the first at pop 0, pop rising strictly and slots never falling.
+static func _parse_tiers(raw: Variant, errs: Array[String], warnings: Array[String], src: String) -> Array:
+	var out := []
+	if not (raw is Array) or raw.is_empty():
+		errs.append("'population.tiers' must be a non-empty array of tiers like {\"id\": \"hamlet\", \"name\": \"Hamlet\", \"pop\": 0, \"slots\": 0}")
+		return out
+	var ids := {}
+	for i in raw.size():
+		var where := "population.tiers[%d]" % i
+		var t: Variant = raw[i]
+		if not (t is Dictionary):
+			errs.append("%s must be an object" % where)
+			continue
+		for field in ["id", "name"]:
+			if not (t.get(field) is String) or t.get(field) == "":
+				errs.append("%s.%s must be a non-empty string" % [where, field])
+		if ids.has(t.get("id")):
+			errs.append("%s.id '%s' is used by another tier" % [where, t.id])
+		ids[t.get("id")] = true
+		var tier := {"id": str(t.get("id", "")), "name": str(t.get("name", ""))}
+		for field in ["pop", "slots"]:
+			var n: Variant = Fields.as_int(t.get(field))
+			if typeof(n) != TYPE_INT or n < 0:
+				errs.append("%s.%s must be an integer >= 0" % [where, field])
+				n = 0
+			tier[field] = n
+		if i == 0 and tier.pop != 0:
+			errs.append("%s.pop must be 0 (the first tier starts at pop 0)" % where)
+		if not out.is_empty() and tier.pop <= out[-1].pop:
+			errs.append("%s.pop must be more than the tier before's (%d)" % [where, out[-1].pop])
+		if not out.is_empty() and tier.slots < out[-1].slots:
+			errs.append("%s.slots must be at least the tier before's (%d)" % [where, out[-1].slots])
+		for key in t:
+			if not key in ["id", "name", "pop", "slots"]:
+				warnings.append("%s: %s: unknown field '%s'" % [src, where, key])
+		out.append(tier)
 	return out
 
 

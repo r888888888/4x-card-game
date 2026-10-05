@@ -7,7 +7,7 @@ extends EngineQueries
 ##
 ## The state, its accessors, the signals and the helpers effects call (gain, draw, create_card, …) live in
 ## EngineCore (engine/engine_core.gd, 125), and the read queries in EngineQueries (engine/engine_queries.gd, 249),
-## which this extends. The rules live in modules of static functions that the methods here
+## which this extends, and the territory ones in TerritoryQueries (engine/territory_queries.gd, 281) under it. The rules live in modules of static functions that the methods here
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, and Events. The modules may call the
 ## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
 

@@ -12,7 +12,13 @@
   "hand_size": 5,
   "hand_limit": 7,
   "deck_model": "fixed",
-  "population": { "start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": { "card": "famine", "max_counters": 3, "relief": { "wealth": 5 } } },
+  "population": { "start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": { "card": "famine", "max_counters": 3, "relief": { "wealth": 5 } },
+    "tiers": [
+      { "id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0 },
+      { "id": "village", "name": "Village", "pop": 4, "slots": 1 },
+      { "id": "town", "name": "Town", "pop": 8, "slots": 2 },
+      { "id": "metropolis", "name": "Metropolis", "pop": 13, "slots": 3 }
+    ] },
   "unrest": { "anarchy": "anarchy", "max_counters": 4, "era_unrest": 3, "allowed_tag": "order", "renewal": 1, "drain_pct": 20 },
   "starting": {
     "resources": { "food": 2, "wealth": 2, "insight": 0 },
