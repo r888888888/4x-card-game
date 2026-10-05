@@ -50,7 +50,12 @@ static func build(e: GameEngine, card_id: String, territory_uid: int) -> bool:
 static func unlock(e: GameEngine, card_id: String, source: CardInstance) -> void:
 	if e.state.locked_builds.erase(card_id):
 		var prefix := "  %s: " % source.def.name if source != null else "  "
-		e._notice("%s%s can now be built." % [prefix, e.card_db[card_id].name])
+		e._notice("%s%s can now be %s." % [prefix, e.card_db[card_id].name, made(e.card_db[card_id])])
+
+
+## How def comes out of the build menu (296): a unit is "recruited", a building "built".
+static func made(def: CardDef) -> String:
+	return "recruited" if def.type == CardDef.UNIT else "built"
 
 
 ## A stand-in copy of card_id for the checks, with no uid: building makes the real one.

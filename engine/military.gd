@@ -192,7 +192,7 @@ static func strike_raids(e: GameEngine) -> void:
 
 
 ## raid strikes its target: repelled (its repel effects) when the target's defence is at least its strength, else
-## pillaged (its pillage effects, the units stationed there to the discard, pop pop lost). Logs what happened (a raid
+## pillaged (its pillage effects, the units stationed there lost (_leave_play), pop pop lost). Logs what happened (a raid
 ## modal shows it, 271, so it's no notice) and emits raid_resolved.
 static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	var target := Territories.settled(e, raid.territory_uid)
@@ -206,8 +206,7 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	e._outcome = {}
 	if target != null and not outcome.repelled:
 		for unit in e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.UNIT and c.station_uid == target.uid):
-			e.zone("tableau").remove(unit)
-			e.zone("discard").add(unit)
+			_leave_play(e, unit)
 			units_lost.append(unit.uid)
 		outcome.pop_lost = mini(target.pop, raid.def.raid.pop)
 		target.pop -= outcome.pop_lost
@@ -324,17 +323,24 @@ static func disband_error(e: GameEngine, uid: int) -> String:
 	return NOT_A_UNIT if _unit(e, uid) == null else ""
 
 
-## Unit uid goes from the tableau to the discard (163), freeing its worker on its home. False (and no change) if
+## Unit uid leaves play (to the discard, 163; gone if it came from the build menu, 296), freeing its worker on its home. False (and no change) if
 ## disband_error says no.
 static func disband(e: GameEngine, uid: int) -> bool:
 	if disband_error(e, uid) != "":
 		return false
 	var unit := _unit(e, uid)
-	e.zone("tableau").remove(unit)
-	e.zone("discard").add(unit)
+	_leave_play(e, unit)
 	e._log("%s disbanded." % unit.def.name)
 	e.changed.emit()
 	return true
+
+
+## Unit leaves the tableau (disbanded or lost to a pillage): a unit recruited from the build menu is gone, to be
+## recruited again (296); one with no build-menu entry (dealt from a deck) goes to the discard (163).
+static func _leave_play(e: GameEngine, unit: CardInstance) -> void:
+	e.zone("tableau").remove(unit)
+	if not e.config.get("build_menu", {}).has(unit.def.id):
+		e.zone("discard").add(unit)
 
 
 ## Unit uid in the tableau, or null.

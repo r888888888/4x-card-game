@@ -26,10 +26,10 @@ func describe(card_db: Dictionary) -> String:
 	return "Unlock %s" % _card_name(card_db)
 
 
-## A building or unit is built from the build menu (295); anything else is bought in the supply.
+## A building is built and a unit recruited from the build menu (295, 296); anything else is bought in the supply.
 func describe_long(card_db: Dictionary) -> String:
 	if card_db.has(card_id) and (card_db[card_id] as CardDef).uses_worker():
-		return "%s can now be built." % _card_name(card_db)
+		return "%s can now be %s." % [_card_name(card_db), BuildMenu.made(card_db[card_id])]
 	return "%s can now be bought in the supply." % _card_name(card_db)
 
 
