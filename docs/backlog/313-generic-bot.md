@@ -2,7 +2,7 @@
 id: 313
 title: A generic sim bot that values positions instead of following rules
 type: feature
-status: ready
+status: red-review
 branch: feat/313-generic-bot
 ---
 
@@ -55,7 +55,13 @@ Fixture games (`make_engine`, a few turns); the value function is in Design note
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_generic_bot::test_…` |
+| AC1 | `test_generic_bot::test_with_10_turns_left_it_plays_the_temple_that_scores_every_turn`, `test_on_the_last_turn_it_plays_the_shrine` |
+| AC2 | `test_generic_bot::test_it_plays_nothing_when_nothing_helps` |
+| AC3 | `test_generic_bot::test_it_plays_a_draw_first_when_it_draws_something_better` |
+| AC4 | `test_generic_bot::test_it_explores_when_a_settler_would_gain_a_target`, `test_without_a_settler_it_forages_instead_of_exploring` |
+| AC5 | `test_generic_bot::test_it_answers_an_event_choice_with_the_option_that_values_most` |
+| AC6 | `test_generic_bot::test_it_stays_clear_of_the_unrest_limit`, `test_it_only_does_what_legal_actions_lists_and_valuing_changes_nothing`, `test_the_same_seed_plays_the_same_game` |
+| Goal (the sim runs `generic`) | `test_generic_bot::test_sim_stats_plays_the_generic_strategy` |
 
 ## Manual check
 - [ ] `scripts/sim.sh 10 generic --civ <each>` against `baseline`: note scores per civ and seconds per game in the Log
@@ -63,3 +69,7 @@ Fixture games (`make_engine`, a few turns); the value function is in Design note
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309–312, 314, 315. Follows 309–312.
+- 2026-10-05: red. "1 turn left" in AC1 is the last turn (turn = turn_limit). AC5 uses a fixture choice event, Gift
+  (+1 or +3 food). `generic` is a strategy SimStats accepts but not one of `ScriptedBot.STRATEGIES`, so `sim.sh` with
+  no strategy (all) still plays only the scripted five (each generic game is ~10× slower); 314 makes it the only bot.
+  The bot never lists `end_turn` (play ends the turn) or `revolt` (314's rollouts) among its candidates.
