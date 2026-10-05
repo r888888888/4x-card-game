@@ -2,7 +2,7 @@
 id: 263
 title: Revise existing buildings (Quarry out, Hunters' Camp, Harbor, Temple, Mine)
 type: feature
-status: red-review
+status: review
 branch: feat/263-revise-existing-buildings
 ---
 
@@ -14,14 +14,14 @@ VP engine and is kept for calming unrest. Mine rewards the gold, tin and copper 
 Content only: no engine change.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every building in the starting `deck` also has a supply pile (open or locked). Fails today:
+- [x] AC1 (invariant): Every building in the starting `deck` also has a supply pile (open or locked). Fails today:
   Lumber Camp has none.
-- [ ] AC2 (invariant): Every real building gives something that lasts: printed VP ≥ 1, an `upkeep` effect, or a
+- [x] AC2 (invariant): Every real building gives something that lasts: printed VP ≥ 1, an `upkeep` effect, or a
   standing field (`modifiers`, `housing`, `famine_guard`, `defense`, `training`). An effect that only scores on play
   doesn't count. Fails today: Quarry.
-- [ ] AC3 (invariant): Every resource keyword in config `resource_keywords` is the `keyword` of an `upkeep` wealth
+- [x] AC3 (invariant): Every resource keyword in config `resource_keywords` is the `keyword` of an `upkeep` wealth
   gain on some reachable building. Fails today for tin and copper.
-- [ ] AC4: The existing content invariants stay green, in particular
+- [x] AC4: The existing content invariants stay green, in particular
   `test_every_eureka_counts_cards_the_player_can_get` and `test_real_data_loads_without_warnings`: no card, eureka
   or config entry names `quarry` or `lumber_camp` afterwards.
 
@@ -61,3 +61,4 @@ Data changes only (`data/cards.json`, `data/config.json`), plus PLAN.md lines th
 ## Log
 - Balance worries for a later balance item: Temple without ⟳ +1 VP may now lose to Shrine; Mine on a tin-and-copper
   mountain (+3 wealth) may be the best wealth building in era 1.
+- Green: data only (`data/cards.json`, `data/config.json`); no code referenced Quarry or Lumber Camp. Suite 1722 → 1725.
