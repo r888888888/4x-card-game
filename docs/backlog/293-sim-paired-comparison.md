@@ -2,7 +2,7 @@
 id: 293
 title: Compare two checkouts game by game, adding seeds only where the difference isn't clear yet
 type: feature
-status: red-review
+status: in-progress
 branch: feat/293-sim-paired-comparison
 ---
 

@@ -9,6 +9,8 @@ const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "er
 	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
 ## How long a parallel run waits for its child processes before killing them (their shards then fail the run).
 const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
+## The file in a parallel run's directory listing its jobs (293), so a worker plays exactly the parent's list.
+const JOBS_FILE := "jobs.json"
 
 
 ## Plays one game per seed with strategy (a ScriptedBot.STRATEGIES name, 134) as civ ("" for the default) and returns
@@ -175,33 +177,18 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 	var data := _load(cards_path, config_path, strategy, options)
 	if not data.errors.is_empty():
 		return {"code": 1, "lines": data.errors, "procs": 1}
-	var jobs := _jobs(data.config, seed_count, strategy, options.get("civ", ""))
+	var jobs := job_list(data.config, seed_count, strategy, options.get("civ", ""))
 	var names := metric_names(data.cards, data.config)
-	var cache := _cache_folder(cards_path, config_path, data.config, options)
-	var games := []
-	games.resize(jobs.size())
-	var todo := []  # the job indices no cache entry has
-	for i in jobs.size():
-		games[i] = _cache_read(cache, jobs[i], names)
-		if games[i] == null:
-			todo.append(i)
-	var procs := clampi(options.get("procs", 1), 1, maxi(todo.size(), 1))
-	var played := {"games": games, "errors": [], "per_proc": []}
-	if todo.is_empty():
-		pass
-	elif procs == 1:
-		for i in todo:
-			games[i] = _play_one(data.cards, data.config, jobs[i], names)
-		played.per_proc = [todo.size()]
-	else:
-		played = _play_locked(cards_path, config_path, seed_count, strategy, options, procs, jobs.size(), names, todo)
-	var out := {"code": 1, "lines": played.errors, "procs": procs, "games_per_proc": played.per_proc,
-		"played": todo.size(), "cached": jobs.size() - todo.size()}
+	var refused := take_run_lock(options)
+	if refused != "":
+		return {"code": 1, "lines": [refused], "procs": options.get("procs", 1), "games_per_proc": []}
+	var played := play_side(here(cards_path, config_path), data, jobs, names, options)
+	release_run_lock(options)
+	var out := {"code": 1, "lines": played.errors, "procs": played.procs, "games_per_proc": played.per_proc,
+		"played": played.played, "cached": played.cached}
 	if not played.errors.is_empty():
 		return out
-	for i in todo:
-		games[i] = played.games[i]
-		_cache_write(cache, jobs[i], games[i])
+	var games: Array = played.games
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
 	if out.cached > 0:
 		lines[0] += ", %d of %d games cached" % [out.cached, jobs.size()]
@@ -228,6 +215,22 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 	return out
 
 
+## Compares two checkouts game by game, adding seeds where the change isn't clear yet (293): see SimCompare.run.
+static func compare(main_side: Dictionary, this_side: Dictionary, max_seeds: int, strategy: String,
+		options: Dictionary) -> Dictionary:
+	return SimCompare.run(main_side, this_side, max_seeds, strategy, options)
+
+
+## Whether a compared cell needs no more seeds (293): see SimCompare.cell_done.
+static func cell_done(deltas: Array, main_mean: float, max_seeds: int) -> bool:
+	return SimCompare.cell_done(deltas, main_mean, max_seeds)
+
+
+## A compared cell's report line (293): see SimCompare.cell_line.
+static func cell_line(cell: Dictionary) -> String:
+	return SimCompare.cell_line(cell)
+
+
 ## The data files loaded with options' turn limit applied: {cards, config, errors}; errors also name an unknown
 ## strategy.
 static func _load(cards_path: String, config_path: String, strategy: String, options: Dictionary) -> Dictionary:
@@ -240,8 +243,9 @@ static func _load(cards_path: String, config_path: String, strategy: String, opt
 
 
 ## Every game a run plays, [seed, strategy, civ] each, in report order: by strategy, then civilization, then seed.
+## Also the cells a comparison plays (293), with seed_count 1.
 ## A single strategy plays only_civ ("" for the default); "all" plays each listed civilization, or only_civ.
-static func _jobs(config: Dictionary, seed_count: int, strategy: String, only_civ: String) -> Array:
+static func job_list(config: Dictionary, seed_count: int, strategy: String, only_civ: String) -> Array:
 	var strategies: Array = ScriptedBot.STRATEGIES if strategy == "all" else [strategy]
 	var civs: Array = [only_civ] if only_civ != "" or strategy != "all" else config.get("civilizations", [])
 	if civs.is_empty():
@@ -265,7 +269,8 @@ static func procs_from_env(env: Dictionary, cpu_count: int) -> int:
 	return maxi(1, cores - 1)
 
 
-## Plays, as worker, every job of the run run_files would make that no worker has claimed in dir yet, one at a time: a
+## Plays, as worker, every job in dir's jobs.json (293; else of the run run_files would make) that no worker has claimed
+## in dir yet, one at a time: a
 ## job is claimed by making its claim_path, which only one worker can do. Writes the games it played to
 ## worker_path(dir, worker) as JSON {job index: {metric: value}} after each one, {} when none was left. Returns 0, or 1
 ## when the data doesn't load (no file). sim/run.gd calls it in a child process.
@@ -274,7 +279,8 @@ static func play_claimed(cards_path: String, config_path: String, seed_count: in
 	var data := _load(cards_path, config_path, strategy, options)
 	if not data.errors.is_empty():
 		return 1
-	var jobs := _jobs(data.config, seed_count, strategy, options.get("civ", ""))
+	var jobs := _jobs_in(dir) if FileAccess.file_exists(dir.path_join(JOBS_FILE)) \
+		else job_list(data.config, seed_count, strategy, options.get("civ", ""))
 	var names := metric_names(data.cards, data.config)
 	DirAccess.make_dir_recursive_absolute(claim_path(dir, 0).get_base_dir())
 	var games := {}
@@ -286,6 +292,12 @@ static func play_claimed(cards_path: String, config_path: String, seed_count: in
 		games[str(i)] = _play_one(data.cards, data.config, jobs[i], names)
 		_write_json(worker_path(dir, worker), games)
 	return 0
+
+
+## The jobs a parent wrote to dir's jobs.json ([seed, strategy, civ] each).
+static func _jobs_in(dir: String) -> Array:
+	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join(JOBS_FILE)))
+	return (raw if raw is Array else []).map(func(j): return [int(j[0]), j[1], j[2]])
 
 
 ## The directory whose making claims job index of the run in dir (291).
@@ -360,38 +372,96 @@ static func _running(pid: int) -> bool:
 	return OS.execute("kill", ["-0", str(pid)]) == 0
 
 
-## Plays the run on procs workers (_play_children), holding options' lock_path (if any) while they play.
-## Returns _play_children's {games, errors, per_proc}; errors is the lock's message when another run holds it.
-static func _play_locked(cards_path: String, config_path: String, seed_count: int, strategy: String,
-		options: Dictionary, procs: int, job_count: int, names: Array[String], todo: Array) -> Dictionary:
-	var lock: String = options.get("lock_path", "")
-	if lock != "":
-		var refused := take_lock(lock)
-		if refused != "":
-			return {"games": [], "errors": [refused], "per_proc": []}
-	var played := _play_children(cards_path, config_path, seed_count, strategy, options, procs, job_count, names, todo)
-	if lock != "":
-		release_lock(lock)
-	return played
+## A side of a run (293): this project with these data files. A side is {root, cards, config}: a checkout's absolute
+## root and its data files (res:// paths are that checkout's).
+static func here(cards_path: String, config_path: String) -> Dictionary:
+	return {"root": project_root(), "cards": cards_path, "config": config_path}
 
 
-## Plays the todo jobs of the run on procs child processes (sim/run.gd with worker=i and dir= arguments, claiming jobs
-## from one queue; the others are claimed up front) and returns read_workers' {games, errors, per_proc}. A child still
+## This project's absolute root, with no trailing slash.
+static func project_root() -> String:
+	return ProjectSettings.globalize_path("res://").trim_suffix("/")
+
+
+## Whether root (an absolute path, with or without a trailing slash) is this project's.
+static func is_this_project(root: String) -> bool:
+	return root.simplify_path().trim_suffix("/") == project_root()
+
+
+## path of side as this process can open it: a res:// path of another checkout under its root.
+static func side_path(side: Dictionary, path: String) -> String:
+	if path.begins_with("res://") and not is_this_project(side.root):
+		return side.root.path_join(path.trim_prefix("res://"))
+	return path
+
+
+## side's data files loaded with options' turn limit applied: {cards, config, errors} (see _load).
+static func load_side(side: Dictionary, strategy: String, options: Dictionary) -> Dictionary:
+	return _load(side_path(side, side.cards), side_path(side, side.config), strategy, options)
+
+
+## Plays jobs ([seed, strategy, civ] each) on side with its loaded data, reading and writing options' cache (292), on
+## options' procs: in this process for procs 1 (this project only), else on child processes running side's own code.
+## Returns {games (one per job, null where none came back), errors, procs, per_proc, played, cached}.
+static func play_side(side: Dictionary, data: Dictionary, jobs: Array, names: Array[String], options: Dictionary) -> Dictionary:
+	var cache := _cache_folder(side, data.config, options)
+	var games := []
+	games.resize(jobs.size())
+	var todo := []  # the job indices no cache entry has
+	for i in jobs.size():
+		games[i] = _cache_read(cache, jobs[i], names)
+		if games[i] == null:
+			todo.append(i)
+	var procs := clampi(options.get("procs", 1), 1, maxi(todo.size(), 1))
+	var out := {"games": games, "errors": [], "procs": procs, "per_proc": [], "played": todo.size(),
+		"cached": jobs.size() - todo.size()}
+	if todo.is_empty():
+		return out
+	if procs == 1:
+		for i in todo:
+			games[i] = _play_one(data.cards, data.config, jobs[i], names)
+		out.per_proc = [todo.size()]
+	else:
+		var read := _play_children(side, options, procs, jobs, names, todo)
+		out.errors = read.errors
+		out.per_proc = read.per_proc
+		for i in todo:
+			games[i] = read.games[i]
+	if out.errors.is_empty():
+		for i in todo:
+			_cache_write(cache, jobs[i], games[i])
+	return out
+
+
+## Takes options' lock_path when the run is parallel (procs 2+, 291). Returns "", or why another run holds it.
+static func take_run_lock(options: Dictionary) -> String:
+	if options.get("lock_path", "") == "" or options.get("procs", 1) < 2:
+		return ""
+	return take_lock(options.lock_path)
+
+
+## Releases what take_run_lock took.
+static func release_run_lock(options: Dictionary) -> void:
+	if options.get("lock_path", "") != "" and options.get("procs", 1) >= 2:
+		release_lock(options.lock_path)
+
+
+## Plays the todo indices of jobs on procs child processes running side's code (sim/run.gd with --path side's root,
+## and worker=i and dir= arguments): the parent writes jobs to the run directory's jobs.json and claims the others up
+## front, and the workers claim the rest from one queue. Returns read_workers' {games, errors, per_proc}. A child still
 ## running after CHILD_TIMEOUT_MSEC is killed.
-static func _play_children(cards_path: String, config_path: String, seed_count: int, strategy: String,
-		options: Dictionary, procs: int, job_count: int, names: Array[String], todo: Array) -> Dictionary:
+static func _play_children(side: Dictionary, options: Dictionary, procs: int, jobs: Array, names: Array[String],
+		todo: Array) -> Dictionary:
 	var dir := OS.get_temp_dir().path_join("sim-%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()])
-	for i in job_count:
+	for i in jobs.size():
 		if not i in todo:
 			DirAccess.make_dir_recursive_absolute(claim_path(dir, i))
 	DirAccess.make_dir_recursive_absolute(dir)
-	var base := PackedStringArray(["--headless", "--path", ProjectSettings.globalize_path("res://"), "--script",
-		"res://sim/run.gd", "--", str(seed_count), strategy])
-	if options.get("civ", "") != "":
-		base.append_array(["--civ", options.civ])
+	_write_json(dir.path_join(JOBS_FILE), jobs)
+	var base := PackedStringArray(["--headless", "--path", side.root, "--script", "res://sim/run.gd", "--", "1", "all"])
 	if options.get("turns", 0) > 0:
 		base.append_array(["--turns", str(options.turns)])
-	base.append_array(["cards=" + cards_path, "config=" + config_path, "dir=" + dir])
+	base.append_array(["cards=" + side.cards, "config=" + side.config, "dir=" + dir])
 	var pids := []
 	for i in procs:
 		var args := base.duplicate()
@@ -403,7 +473,7 @@ static func _play_children(cards_path: String, config_path: String, seed_count: 
 			OS.delay_msec(20)
 		if OS.is_process_running(pid):
 			OS.kill(pid)
-	return read_workers(dir, procs, job_count, names, todo)
+	return read_workers(dir, procs, jobs.size(), names, todo)
 
 
 ## A hash of the code that plays a game (292): every .gd script under root's engine/, sim/ and autoload/ (paths and
@@ -434,17 +504,17 @@ static func _scripts_under(root: String, folder: String, out: Array[String]) -> 
 		_scripts_under(root, folder.path_join(sub), out)
 
 
-## The cache folder for this project's code and the data files' bytes under options' cache_dir, "" for no cache.
-static func _cache_folder(cards_path: String, config_path: String, config: Dictionary, options: Dictionary) -> String:
+## The cache folder for side's code and data files' bytes under options' cache_dir, "" for no cache.
+static func _cache_folder(side: Dictionary, config: Dictionary, options: Dictionary) -> String:
 	var base: String = options.get("cache_dir", "")
 	if base == "" or not options.get("cache", true):
 		return ""
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
-	for path in [cards_path, config_path]:
-		ctx.update(FileAccess.get_file_as_bytes(path))
+	for path in [side.cards, side.config]:
+		ctx.update(FileAccess.get_file_as_bytes(side_path(side, path)))
 		ctx.update("\n".to_utf8_buffer())
-	var code := source_hash(ProjectSettings.globalize_path("res://"))
+	var code := source_hash(side.root)
 	return base.path_join("%s-%s" % [code.left(16), ctx.finish().hex_encode().left(16)]).path_join(
 		"turns-%d" % config.get("turn_limit", 0))
 
