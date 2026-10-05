@@ -2,7 +2,7 @@
 id: 270
 title: Era 2 and 3 events, so the event deck escalates
 type: feature
-status: review
+status: done
 branch: feat/270-era-2-and-3-events
 ---
 
