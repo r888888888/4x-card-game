@@ -102,43 +102,43 @@
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "cost": { "wealth": 13 }, "vp": 10, "tags": ["wonder", "culture"],
+      "cost": { "wealth": 40 }, "project": true, "vp": 10, "tags": ["wonder", "culture"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "oracle_of_delphi", "name": "Oracle of Delphi", "type": "building",
-      "cost": { "wealth": 10 }, "vp": 5, "tags": ["wonder", "culture"],
+      "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "walls_of_uruk", "name": "Walls of Uruk", "type": "building",
-      "cost": { "wealth": 10 }, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
+      "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
       "effects": []
     },
     {
       "id": "great_ziggurat", "name": "Great Ziggurat", "type": "building",
-      "cost": { "wealth": 14 }, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
+      "cost": { "wealth": 42 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "hanging_gardens", "name": "Hanging Gardens", "type": "building",
-      "cost": { "wealth": 16 }, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
+      "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
       "modifiers": { "housing": 1 },
       "effects": []
     },
     {
       "id": "great_library", "name": "Great Library", "type": "building",
-      "cost": { "wealth": 16 }, "vp": 8, "tags": ["wonder", "culture"],
+      "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "great_harbor_of_tyre", "name": "Great Harbor of Tyre", "type": "building",
-      "cost": { "wealth": 15 }, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
+      "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
       "id": "royal_road", "name": "Royal Road", "type": "building",
-      "cost": { "wealth": 15 }, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1 },
+      "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1 },
       "effects": []
     },
     {
@@ -282,7 +282,7 @@
       "effects": []
     },
     {
-      "id": "egypt", "name": "Egypt", "type": "civilization", "city_names": ["Thebes", "Memphis", "Heliopolis", "Abydos", "Hermopolis", "Elephantine", "Avaris", "Bubastis", "Sais", "Tanis", "Akhetaten", "Edfu"], "home": "desert_floodplain", "discounts": [{ "tag": "wonder", "wealth": 3 }],
+      "id": "egypt", "name": "Egypt", "type": "civilization", "city_names": ["Thebes", "Memphis", "Heliopolis", "Abydos", "Hermopolis", "Elephantine", "Avaris", "Bubastis", "Sais", "Tanis", "Akhetaten", "Edfu"], "home": "desert_floodplain", "discounts": [{ "tag": "wonder", "wealth": 10 }],
       "vp": 0, "tags": [],
       "flavor": "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.",
       "quote": { "text": "Egypt is the gift of the river.", "by": "Herodotus, Histories" },

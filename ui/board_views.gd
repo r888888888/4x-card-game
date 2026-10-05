@@ -124,6 +124,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		view.set_hint(TableauView.LEADING_ZONES[leading])
 	else:
 		view.set_idle(e.is_idle(card.uid))
+		view.set_site_info("%d / %d wealth" % [e.site_progress(card.uid), e.site_cost(card.uid)] if e.is_site(card.uid) else "")
 	return false
 
 

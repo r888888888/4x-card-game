@@ -269,6 +269,29 @@ func raid_turns_left(uid: int) -> int:
 	return Military.raid_turns_left(self, uid)
 
 
+## Why contribute(uid, amount) would refuse (286), or "": game over or a pending decision, uid not an unfinished
+## site, the site idle, or amount below 1, above the wealth held or above contribute_limit.
+func contribute_error(uid: int, amount: int) -> String:
+	return Sites.contribute_error(self, uid, amount)
+
+
+## Pays amount wealth into site uid (286), using no action; paying the last of it completes the site, resolving its
+## play effects. False (and no change) if contribute_error says no.
+func contribute(uid: int, amount: int) -> bool:
+	return Sites.contribute(self, uid, amount)
+
+
+## Why abandon(uid) would refuse (286), or "": game over or a pending decision, or uid not an unfinished site.
+func abandon_error(uid: int) -> String:
+	return Sites.abandon_error(self, uid)
+
+
+## Site uid goes from the tableau to the discard, its progress lost and its slot and worker freed (286). Uses no
+## action. False (and no change) if abandon_error says no.
+func abandon(uid: int) -> bool:
+	return Sites.abandon(self, uid)
+
+
 ## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
 func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)

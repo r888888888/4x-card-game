@@ -38,6 +38,7 @@ res://
     population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
     research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
+    sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
     discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
     modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
@@ -210,6 +211,17 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the `unit_strength` of the units stationed
   there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;
   `defense_parts(uid)` gives `{units, buildings, cities, terrain, total}`. Rules in `engine/military.gd` (`Military`).
+- Wonders built over turns (286): a building may set `project: true` (its cost must be wealth only, ≥ 1: the total to
+  pay in; text "Built over turns: up to 1 wealth per pop here each turn."). It plays for just the action
+  (`play_cost` {}) as a site on its territory, taking a slot and a worker, with no play effect, upkeep, modifier,
+  defence or VP until complete (`is_site`, `site_progress`, `site_cost` = the discounted wealth). `contribute(uid, n)`
+  pays wealth in for no action, at most `contribute_limit(uid)`: the least of its territory's pop less what went in
+  this turn (`CardInstance.given_this_turn`, reset at turn start), the wealth still owed and the wealth held; 0 while
+  idle. Paying the last of it completes the site ("Completed X.") and resolves its play effects. `abandon(uid)` sends
+  a site to the discard for no action, its progress lost. Rules in `engine/sites.gd` (`Sites`); `ScriptedBot` pays
+  into each site at the end of its turn down to `SITE_RESERVE` (3) wealth and never abandons. A site's details show
+  "Being built: 4 / 12 wealth" and offer Contribute and Abandon… (confirmed by `AbandonModal`); its card shows its
+  progress.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
@@ -359,7 +371,9 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141–142 (eurekas, diffusion; built), 143
 (Iron Age: 6 era-3 techs in the deck, opened by Writing; eurekas on every tech; pacing; built).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
-  (057), so more copies can be bought. Wonders (tag `wonder`) are created only, one copy each, and also carry `culture` (265): era 1 Oracle of Delphi
+  (057), so more copies can be bought. Wonders (tag `wonder`) are created only, one copy each, are projects built over
+  turns (286: Oracle and Walls 30 wealth, Pyramids 40, Great Ziggurat 42, Tyre and Royal Road 45, Hanging Gardens and
+  Great Library 48), and also carry `culture` (265): era 1 Oracle of Delphi
   (Mysticism, ⟳ +2 insight) and Walls of Uruk (Masonry, defence 4, unrest limit +1); era 2 Pyramids (Priesthood),
   Great Ziggurat (Code of Laws, ⟳ −1 unrest, limit +2), Hanging Gardens (Calendar, fresh water, every territory houses
   1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
@@ -531,8 +545,8 @@ A game is played as one civilization: a permanent card with a starting gift and 
   type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
   or tag discount lowers a hand card's `play_cost(uid)` (what `play_error` checks and `play_card` charges, never below 0
   per resource) and a tech's `tech_cost` (never below 1); a supply discount lowers `buy_price` (never below 0). Text
-  "Wonders cost 3 less wealth." Real data: Babylon techs −1 insight, Phoenicia supply −1 wealth, Egypt wonders −3
-  wealth. Hand cards show their cost after discounts; card details show the printed cost.
+  "Wonders cost 3 less wealth." Real data: Babylon techs −1 insight, Phoenicia supply −1 wealth, Egypt wonders −10
+  wealth (−3 until 286 made wonders 3× dearer). Hand cards show their cost after discounts; card details show the printed cost.
 - Home (111): a civilization may set `home`, a territory card id. A game as it starts on that territory (the
   Capital on it, `population.start` pop) instead of `starting.territory`; the home isn't drawn from `territory_deck`,
   and its resource roll uses a copy of the rng, so the same seed deals and rolls the same whatever the civilization.

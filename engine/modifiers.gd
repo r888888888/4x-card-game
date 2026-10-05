@@ -43,6 +43,8 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 				slots[c.territory_uid] = room - 1
 			if left <= 0 or room <= 0:
 				continue
+		if c.def.project and Sites.unfinished(e, c):  # takes its worker and slot, but works once completed (286)
+			continue
 		out.append(c)
 	for z in GameEngine.ALWAYS_ON_ZONES:
 		out.append_array(e.zone(z).cards)

@@ -137,6 +137,7 @@ static func start_turn(e: GameEngine) -> void:
 	e.state.actions_used = 0
 	e.state.actions_gained = 0
 	e.state.moved_units.clear()
+	Sites.start_turn(e)
 	e._log("— Turn %d —" % e.turn)
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)

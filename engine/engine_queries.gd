@@ -16,7 +16,8 @@ func score() -> int:
 	var total := bonus_score
 	for z in ["tableau"] + GameEngine.ALWAYS_ON_ZONES:
 		for card in zone(z).cards:
-			total += card.def.vp
+			if not Sites.unfinished(_as_engine(), card):  # a site scores once completed (286)
+				total += card.def.vp
 	if population_on():
 		total += total_pop() * config.population.vp_per_pop
 	return total
@@ -272,13 +273,35 @@ func actions_left() -> int:
 	return CardPlay.actions_left(self)
 
 
+## Whether tableau card uid is an unfinished wonder site (286): a project whose wealth isn't all paid in yet.
+func is_site(uid: int) -> bool:
+	return Sites.site(_as_engine(), uid) != null
+
+
+## The wealth paid into tableau project uid so far (286); 0 for any other card.
+func site_progress(uid: int) -> int:
+	return Sites.progress(_as_engine(), uid)
+
+
+## The wealth tableau project uid needs in all (286): its cost's wealth after discounts; 0 for any other card.
+func site_cost(uid: int) -> int:
+	return Sites.cost(_as_engine(), uid)
+
+
+## The most wealth contribute can put into site uid now (286): the least of its territory's pop less what went in this
+## turn, the wealth it still needs and the wealth held; 0 when uid isn't a working unfinished site.
+func contribute_limit(uid: int) -> int:
+	return Sites.limit(_as_engine(), uid)
+
+
 ## What hand card uid costs to play now: its cost less the civilization's discounts (108), never below 0 per
-## resource; {} if uid isn't in the hand, or there's no hand yet (before new_game, 136).
+## resource; {} for a project (paid in over turns, 286), if uid isn't in the hand, or there's no hand yet (before
+## new_game, 136).
 func play_cost(uid: int) -> Dictionary:
 	if not zones.has("hand"):
 		return {}
 	var card := zone("hand").find(uid)
-	return Discounts.cost(self, card.def) if card != null else {}
+	return CardPlay.cost_to_play(self, card.def) if card != null else {}
 
 
 ## The resources of hand card uid's play_cost the player is short of, in the cost's order (180); [] if uid isn't in

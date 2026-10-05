@@ -18,7 +18,7 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	var anarchy := Anarchy.play_error(e, card)
 	if anarchy != "":
 		return anarchy
-	var cost := Discounts.cost(e, card.def)
+	var cost := cost_to_play(e, card.def)
 	if not e.can_pay(cost):  # names the first resource it is short of
 		for r in cost:
 			if not e.can_pay({r: cost[r]}):
@@ -77,7 +77,7 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	var to_zone := _destination(card)
 	e._outcome = _new_outcome(uid, to_zone, target)
 	e.play_target = target
-	var cost := Discounts.cost(e, card.def)
+	var cost := cost_to_play(e, card.def)
 	e.pay(cost)
 	for r in cost:
 		if cost[r] > 0:
@@ -90,7 +90,8 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 		card.station_uid = target
 	if to_zone == "tableau":
 		e.zone("tableau").add(card)
-	e._resolve(card, "play")
+	if not card.def.project:  # a site resolves its play effects when it is completed (286)
+		e._resolve(card, "play")
 	if to_zone == "discard":
 		e.zone("discard").add(card)
 	var outcome := e._outcome
@@ -99,6 +100,12 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e.card_played.emit(outcome)
 	e.changed.emit()
 	return true
+
+
+## What def costs to play: its cost less the civilization's discounts (108); {} for a project, whose cost is paid into
+## its site over turns (286).
+static func cost_to_play(e: GameEngine, def: CardDef) -> Dictionary:
+	return {} if def.project else Discounts.cost(e, def)
 
 
 ## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; under

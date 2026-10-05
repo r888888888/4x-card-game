@@ -11,6 +11,8 @@ var keywords: Array[String] = []  # territories: printed keywords, then rolled r
 var turns_left := 0  # active events: upkeeps left before the event is discarded
 var counters := 0  # the Famine: how bad it is, 1 to max_counters (083)
 var choice_waiting := false  # choice events: drawn while another decision was owed; owed once it is paid (269)
+var progress := 0  # project sites: the wealth paid in so far (286)
+var given_this_turn := 0  # project sites: the wealth paid in this turn (286)
 var city_name := ""  # settled territories: the name it goes by (248); "" for its card's name
 
 
@@ -35,5 +37,7 @@ func copy() -> CardInstance:
 	c.turns_left = turns_left
 	c.counters = counters
 	c.city_name = city_name
+	c.progress = progress
+	c.given_this_turn = given_this_turn
 	c.choice_waiting = choice_waiting
 	return c

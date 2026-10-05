@@ -30,6 +30,7 @@ const TYPE_FIELDS := {
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"tolerates": [CardDef.GOVERNMENT],
+	"project": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
@@ -281,6 +282,13 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.famine_guard = Fields.read_int(c, "famine_guard", errs, 1, 0)
 		def.defense = Fields.read_int(c, "defense", errs, 1, 0)
 		def.training = Fields.read_int(c, "training", errs, 1, 0)
+		if c.has("project"):
+			if not (c.project is bool):
+				errs.append("'project' must be true or false")
+			else:
+				def.project = c.project
+		if def.project and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
+			errs.append("project: its cost must be wealth only, at least 1 (like {\"wealth\": 30})")
 	elif def.type == CardDef.UNIT:
 		def.strength = Fields.read_int(c, "strength", errs, 1)
 	elif def.type == CardDef.GOVERNMENT:
