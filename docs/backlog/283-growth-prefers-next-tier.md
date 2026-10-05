@@ -2,7 +2,7 @@
 id: 283
 title: Growth "where needed most" prefers a territory one pop short of its next tier
 type: feature
-status: ready
+status: red-review
 branch: feat/283-growth-prefers-next-tier
 ---
 
@@ -44,7 +44,11 @@ housing 4, Hills housing 5, Jungle housing 3), and a `grow` action with `where: 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_growth_cards::test_…` |
+| AC1 | `test_growth_cards::test_best_grows_a_territory_one_short_of_its_next_tier` |
+| AC2 | `test_growth_cards::test_best_grows_idle_buildings_before_one_short_of_a_tier` (guard: passes before and after) |
+| AC3 | `test_growth_cards::test_best_among_several_one_short_grows_the_smallest_then_tableau_order` |
+| AC4 | `test_growth_cards::test_best_ignores_one_short_of_a_tier_without_room` (guard) |
+| AC5 | `test_growth_cards::test_best_without_tiers_grows_the_smallest`, `test_a_metropolis_is_never_one_short` (guards) |
 
 ## Log
 - 2026-10-04: specced with the user as a follow-up to the tier critique ("prefer crossing" over a player choice).
