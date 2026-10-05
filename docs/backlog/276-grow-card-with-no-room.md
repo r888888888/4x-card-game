@@ -2,7 +2,7 @@
 id: 276
 title: A growth card plays and is wasted when no territory has room to grow
 type: bug
-status: red-review
+status: in-progress
 branch: fix/276-grow-card-with-no-room
 ---
 
