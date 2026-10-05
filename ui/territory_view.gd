@@ -32,6 +32,7 @@ var _meter: HBoxContainer  # the pop meter (124): a pip per housing
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
 var _outside_press := false  # the left button went down on the view outside the box (200)
+var _turn := -1  # the turn close_if_stale last saw; -1 before a game's first refresh (290)
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
 var _board: MainScreen
@@ -144,6 +145,7 @@ func close() -> void:
 func reset() -> void:
 	nav.set_root(_realm, null, _realm_title())
 	uid = -1
+	_turn = -1
 
 
 ## The Realm section's heading: the root of the view's navigator, the title its tab back names.
@@ -204,10 +206,19 @@ func target_at(point: Vector2) -> int:
 	return uid if is_open() and get_global_rect().has_point(point) else -1
 
 
-## Closes the view when the game is over or its territory is gone. Call before laying out the board.
+## Closes the view when the game is over or its territory is gone, and once the turn has moved on goes back to the
+## Realm, closing the view and the Knowledge screen with their transitions (290). Call before laying out the board.
 func close_if_stale(e: GameEngine) -> void:
 	if is_open() and (e.is_over or not is_territory(e, uid)):
 		reset()
+	var turn_ended := _turn != -1 and e.turn != _turn
+	_turn = e.turn
+	if turn_ended:
+		while nav.depth() > 1:
+			if nav.top() == self:
+				close()
+			else:
+				nav.back()
 
 
 ## Lays out the open view: stats, the pop meter, and place(card, row, index) for each card.
