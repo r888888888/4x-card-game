@@ -2,7 +2,7 @@
 id: 272
 title: Era-1 farming and accounting techs (Irrigation, The Plough, Weaving, Clay Tokens)
 type: feature
-status: ready
+status: review
 branch: feat/272-era-1-farming-and-accounting-techs
 ---
 
@@ -14,11 +14,11 @@ counting tokens. Add four era-1 techs, make Writing and Sailing build on them, a
 every other tech has. Content only: no engine change. From the tech review (docs/TODO.md line); follows 263–265.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every tech in `research_deck` above era 1 has a `prereq`. Fails today: Writing and Sailing.
-- [ ] AC2 (invariant): Every tech in `research_deck` has a `eureka`. Fails today: Animal Husbandry.
-- [ ] AC3 (invariant): At least 3 buildings tagged `farm` are unlocked by era-1 techs in `research_deck`. Fails today:
+- [x] AC1 (invariant): Every tech in `research_deck` above era 1 has a `prereq`. Fails today: Writing and Sailing.
+- [x] AC2 (invariant): Every tech in `research_deck` has a `eureka`. Fails today: Animal Husbandry.
+- [x] AC3 (invariant): At least 3 buildings tagged `farm` are unlocked by era-1 techs in `research_deck`. Fails today:
   only Pasture (Animal Husbandry).
-- [ ] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
+- [x] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
   `test_every_eureka_counts_cards_the_player_can_get`, `test_only_food_buildings_cost_food_and_at_most_1`,
   `test_every_tech_has_flavor_and_a_quote_and_every_event_flavor` and `test_real_data_loads_without_warnings`.
 
@@ -60,7 +60,10 @@ The bot needs no change: it learns the cheapest tech it can afford and builds bu
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tech_above_era_1_has_a_prereq` |
+| AC2 | `test_content::test_every_tech_has_a_eureka` |
+| AC3 | `test_content::test_era_1_techs_unlock_at_least_3_farm_buildings` |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
@@ -73,3 +76,8 @@ The bot needs no change: it learns the cheapest tech it can afford and builds bu
 - Balance worries for a later balance item: era 1 grows from 7 to 11 techs (12 after 274), so era 1 lasts longer than
   the ~18 turns 143 tuned for. Clay Tokens' ⟳ +1 insight speeds up the rest of era 1. Ploughed Fields (+3 food) may
   make Pasture pointless once it's unlocked. Sailing now needs Weaving, which slows Phoenicia's Harbor.
+- Built as specced. Irrigation Canals uses the building `housing` field (as Granary does); the "more on desert/grassland"
+  lines are keyword-gated upkeep `gain`s, as Mine's are. Quotes: Herodotus as the common short form ("after Herodotus").
+  Suite 1798 → 1801 tests.
+- Follow-up (engine, not this item): created-card text always says "a": Irrigation reads "Add a Irrigation Canals to your
+  discard", and Mysticism already reads "Add a Oracle of Delphi". Needs a/an in the create op's text.

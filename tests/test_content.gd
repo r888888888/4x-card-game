@@ -786,6 +786,40 @@ func test_every_tech_prereq_is_in_the_same_era_or_an_earlier_one() -> void:
 			check(prereq.era <= tech.era, "%s (era %d) needs %s from era %d" % [tech.id, tech.era, prereq.id, prereq.era])
 
 
+## Backlog 272: only the first era's techs stand alone; every later one builds on an earlier advance.
+func test_every_tech_above_era_1_has_a_prereq() -> void:
+	var r := load_real()
+	var missing: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		if tech.era > 1 and tech.prereq == "":
+			missing.append(tech.id)
+	eq(missing, [] as Array[String], "techs above era 1 with no prereq")
+
+
+## Backlog 272: every tech in the research deck has a eureka.
+func test_every_tech_has_a_eureka() -> void:
+	var r := load_real()
+	var missing: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		if tech.eureka.is_empty():
+			missing.append(tech.id)
+	eq(missing, [] as Array[String], "techs with no eureka")
+
+
+## Backlog 272: era 1 grows the food supply in several ways: at least 3 farm buildings unlock from era-1 techs.
+func test_era_1_techs_unlock_at_least_3_farm_buildings() -> void:
+	var r := load_real()
+	var farms := {}
+	for tech in techs_in_research_deck(r):
+		if tech.era != 1:
+			continue
+		for effect in tech.effects:
+			if effect.op == "unlock" and r.cards[effect.card_id].type == CardDef.BUILDING \
+					and r.cards[effect.card_id].has_tag("farm"):
+				farms[effect.card_id] = true
+	check(farms.size() >= 3, "era-1 techs unlock %d farm buildings (%s), want at least 3" % [farms.size(), farms.keys()])
+
+
 ## Techs in research_deck per era: {era: count}.
 func techs_per_era(r: Dictionary) -> Dictionary:
 	var out := {}

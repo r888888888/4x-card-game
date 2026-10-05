@@ -170,6 +170,27 @@
       ]
     },
     {
+      "id": "irrigation_canals", "name": "Irrigation Canals", "type": "building",
+      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"], "housing": 1,
+      "effects": [
+        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "desert" }
+      ]
+    },
+    {
+      "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
+      "cost": { "food": 1, "wealth": 4 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
+      "effects": [ { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "grassland" }
+      ]
+    },
+    {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
@@ -581,8 +602,36 @@
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
       "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides and patient strength for the plough.",
       "quote": { "text": "The master's eye fattens the horse.", "by": "Persian saying, in Xenophon's Oeconomicus" },
-      "cost": { "insight": 6 }, "vp": 0, "tags": [],
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "hunters_camp", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "pasture", "zone": "discard" }, { "op": "unlock", "card": "pasture" } ]
+    },
+    {
+      "id": "irrigation", "name": "Irrigation", "type": "tech",
+      "flavor": "Canals and ditches lead river water out to thirsty fields, and the desert's edge turns green.",
+      "quote": { "text": "Egypt is the gift of the river.", "by": "after Herodotus, Histories 2.5" },
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "farm", "count": 2, "off": 2 }, "tags": [],
+      "effects": [ { "op": "create", "card": "irrigation_canals", "zone": "discard" }, { "op": "unlock", "card": "irrigation_canals" } ]
+    },
+    {
+      "id": "the_plough", "name": "The Plough", "type": "tech", "prereq": "animal_husbandry",
+      "flavor": "Yoked oxen drag a wooden share through heavy soil, and one family can sow fields that once took a village.",
+      "quote": { "text": "He that by the plough would thrive, himself must either hold or drive.", "by": "Benjamin Franklin, Poor Richard's Almanack" },
+      "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "pasture", "count": 2, "off": 2 }, "tags": [],
+      "effects": [ { "op": "create", "card": "ploughed_fields", "zone": "discard" }, { "op": "unlock", "card": "ploughed_fields" } ]
+    },
+    {
+      "id": "weaving", "name": "Weaving", "type": "tech",
+      "flavor": "Flax and wool spun and woven on upright looms make cloth, the greatest trade of the ancient world after bread.",
+      "quote": { "text": "She seeketh wool, and flax, and worketh willingly with her hands.", "by": "Proverbs 31:13" },
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 2 }, "tags": [],
+      "effects": [ { "op": "create", "card": "weavers_workshop", "zone": "discard" }, { "op": "unlock", "card": "weavers_workshop" } ]
+    },
+    {
+      "id": "clay_tokens", "name": "Clay Tokens", "type": "tech", "prereq": "pottery",
+      "flavor": "Little clay cones, spheres and discs stand for sheep and measures of grain, sealed in envelopes as a receipt.",
+      "quote": { "text": "God made the integers; all else is the work of man.", "by": "Leopold Kronecker" },
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "granary", "count": 1, "off": 2 }, "tags": [],
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
@@ -624,7 +673,7 @@
       "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "add_era", "era": 2 } ]
     },
     {
-      "id": "writing", "name": "Writing", "type": "tech", "era": 2,
+      "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
       "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
       "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
@@ -640,7 +689,7 @@
         { "op": "create", "card": "royal_road", "zone": "discard" } ]
     },
     {
-      "id": "sailing", "name": "Sailing", "type": "tech", "era": 2,
+      "id": "sailing", "name": "Sailing", "type": "tech", "era": 2, "prereq": "weaving",
       "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts.",
       "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
