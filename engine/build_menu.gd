@@ -46,6 +46,37 @@ static func build(e: GameEngine, card_id: String, territory_uid: int) -> bool:
 	return true
 
 
+static func preview(e: GameEngine, card_id: String, territory_uid: int) -> Dictionary:
+	if error(e, card_id, territory_uid) != "":
+		return {}
+	var cost := CardPlay.cost_to_play(e, e.card_db[card_id])
+	var f := e.fork()
+	var before := _readings(e, territory_uid)
+	build(f, card_id, territory_uid)
+	var after := _readings(f, territory_uid)
+	var lines: Array = []
+	for key in before:
+		if before[key] != after[key]:
+			lines.append([key, before[key], after[key]])
+	return {"cost": cost, "lines": lines}
+
+
+## What build_preview compares on e, in its line order: each resource's upkeep forecast, then territory_uid's figures
+## and the actions left (while limited).
+static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
+	var out := {}
+	var forecast := e.upkeep_forecast()
+	for r in e.config.resources:
+		out[r] = forecast.get(r, 0)
+	out["free_slots"] = e.free_slots(territory_uid)
+	out["free_workers"] = e.free_workers(territory_uid)
+	out["defense"] = e.defense(territory_uid)
+	out["housing"] = e.housing(territory_uid)
+	if e.actions_per_turn() >= 0:
+		out["actions_left"] = e.actions_left()
+	return out
+
+
 ## Opens build-menu entry card_id (the unlock op); a notice says so. Nothing if it was open.
 static func unlock(e: GameEngine, card_id: String, source: CardInstance) -> void:
 	if e.state.locked_builds.erase(card_id):
