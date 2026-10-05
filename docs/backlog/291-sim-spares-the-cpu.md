@@ -2,7 +2,7 @@
 id: 291
 title: Run the sim on the performance cores but one, from a shared job queue, one run at a time
 type: feature
-status: red-review
+status: in-progress
 branch: feat/291-sim-spares-the-cpu
 ---
 

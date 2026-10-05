@@ -150,6 +150,8 @@ func test_an_in_process_run_ignores_the_lock() -> void:
 
 
 func remove_tree(dir: String) -> void:
+	if not DirAccess.dir_exists_absolute(dir):
+		return
 	for sub in DirAccess.get_directories_at(dir):
 		remove_tree(dir.path_join(sub))
 	for f in DirAccess.get_files_at(dir):
