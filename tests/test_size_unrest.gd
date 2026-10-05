@@ -52,7 +52,7 @@ func set_pops(e: GameEngine, pops: Dictionary) -> void:
 
 ## A size_engine with the AC1 territories.
 func ac1_engine(gov := "elders", unrest := 0, tiers: Variant = TIERS, overrides := {}) -> GameEngine:
-	var e: Object = size_engine(gov, unrest, tiers, overrides)
+	var e := size_engine(gov, unrest, tiers, overrides)
 	set_pops(e, AC1_POPS)
 	return e
 
@@ -76,14 +76,14 @@ func size_load(extra := [], tiers: Variant = TIERS) -> Dictionary:
 # --- AC1: size unrest at upkeep ---
 
 func test_each_tier_above_the_tolerated_one_adds_1_unrest_at_upkeep() -> void:
-	var e: Object = ac1_engine()
+	var e := ac1_engine()
 	eq(e.size_unrest(), 3, "size_unrest: Hamlet 0 + Village 0 + Town 1 + Metropolis 2")
 	e.end_turn()
 	eq(e.resources.unrest, 3, "the next turn starts with unrest 3")
 
 
 func test_a_lone_town_adds_1_unrest() -> void:
-	var e: Object = size_engine()
+	var e := size_engine()
 	set_pop_of(e, "hills", 9)
 	eq(e.size_unrest(), 1, "size_unrest: one Town")
 	e.end_turn()
@@ -93,7 +93,7 @@ func test_a_lone_town_adds_1_unrest() -> void:
 # --- AC2: the tier is read when upkeep starts ---
 
 func test_size_unrest_counts_the_pop_before_upkeep_takes_any() -> void:
-	var e: Object = size_engine()
+	var e := size_engine()
 	set_pop_of(e, "grassland", 8)
 	put_in(e, "plague", "active_events")
 	e.end_turn()
@@ -106,7 +106,7 @@ func test_size_unrest_counts_the_pop_before_upkeep_takes_any() -> void:
 # --- AC3: it stops at the limit ---
 
 func test_size_unrest_stops_at_the_unrest_limit() -> void:
-	var e: Object = ac1_engine("elders", 9)
+	var e := ac1_engine("elders", 9)
 	e.end_turn()
 	eq(e.resources.unrest, 10, "9 + 3 stops at the limit 10")
 	check(Anarchy.active(e) != null, "the turn falls into Anarchy")
@@ -115,21 +115,21 @@ func test_size_unrest_stops_at_the_unrest_limit() -> void:
 # --- AC4: when it doesn't apply ---
 
 func test_a_government_without_tolerates_adds_no_size_unrest() -> void:
-	var e: Object = ac1_engine("chiefs")
+	var e := ac1_engine("chiefs")
 	eq(e.size_unrest(), 0, "Chiefs tolerates any size")
 	e.end_turn()
 	eq(e.resources.unrest, 0, "unrest after upkeep")
 
 
 func test_no_government_adds_no_size_unrest() -> void:
-	var e: Object = ac1_engine("")
+	var e := ac1_engine("")
 	eq([e.government(), e.size_unrest()], [-1, 0], "[government, size_unrest] with none ruling")
 	e.end_turn()
 	eq(e.resources.unrest, 0, "unrest after upkeep")
 
 
 func test_anarchy_adds_no_size_unrest() -> void:
-	var e: Object = ac1_engine("elders", 10)
+	var e := ac1_engine("elders", 10)
 	e.end_turn()
 	check(Anarchy.active(e) != null, "precondition: Anarchy rules")
 	eq(e.size_unrest(), 0, "size_unrest under Anarchy")
@@ -139,7 +139,7 @@ func test_anarchy_adds_no_size_unrest() -> void:
 
 
 func test_without_unrest_there_is_no_size_unrest() -> void:
-	var e: Object = ac1_engine("elders", 0, TIERS, {"resources": ["food", "wealth", "insight"], "unrest": null})
+	var e := ac1_engine("elders", 0, TIERS, {"resources": ["food", "wealth", "insight"], "unrest": null})
 	check(not e.unrest_on(), "precondition: unrest off")
 	eq(e.size_unrest(), 0, "size_unrest with unrest off")
 	e.end_turn()
@@ -147,7 +147,7 @@ func test_without_unrest_there_is_no_size_unrest() -> void:
 
 
 func test_without_tiers_there_is_no_size_unrest() -> void:
-	var e: Object = ac1_engine("elders", 0, null)
+	var e := ac1_engine("elders", 0, null)
 	eq(e.size_unrest(), 0, "size_unrest with tiers off")
 	e.end_turn()
 	eq(e.resources.unrest, 0, "unrest after upkeep")
@@ -156,12 +156,12 @@ func test_without_tiers_there_is_no_size_unrest() -> void:
 # --- AC5: the forecast ---
 
 func test_the_forecast_counts_size_unrest() -> void:
-	var e: Object = ac1_engine()
+	var e := ac1_engine()
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 3, "forecast unrest")
 
 
 func test_size_unrest_comes_before_calming_upkeep() -> void:
-	var e: Object = ac1_engine()
+	var e := ac1_engine()
 	build_on(e, home_uid(e), ["calm"])
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 2, "forecast: +3 size, −1 Calm")
 	e.end_turn()

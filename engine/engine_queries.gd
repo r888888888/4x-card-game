@@ -209,6 +209,12 @@ func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
 
 
+## The unrest the next upkeep adds for big territories (282): +1 per tier each settled territory is above the ruling
+## government's tolerated tier. 0 with unrest or tiers off, no government, or one that tolerates any size.
+func size_unrest() -> int:
+	return Population.size_unrest(self)
+
+
 ## The id of the government Anarchy plays as (the config's unrest.anarchy), or "" without unrest (205: the
 ## revolution's confirmation shows its flavor).
 func anarchy_id() -> String:

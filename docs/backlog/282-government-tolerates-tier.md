@@ -2,7 +2,7 @@
 id: 282
 title: Governments tolerate territories up to a tier; bigger ones add unrest
 type: feature
-status: red-review
+status: in-progress
 branch: feat/282-government-tolerates-tier
 ---
 
