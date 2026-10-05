@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech Gives Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (§14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", sans-serif; --f-ui: "Barlow", sans-serif; --f-cond: "Barlow Semi Condensed", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --positive: #4E6B47; --danger: #9B3424; --info: #2F5E7A;
+	--g-ochre: #A07514; --p-olive: #8C8A4E; --p-teal: #4F8A86; --p-indigo: #5A5F93; --scrim: rgba(34, 33, 31, 0.4);
+	--link: #D9A441; --focus: #2F5E7A;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --positive: #93B585; --danger: #E07A63; --info: #7FB3CF;
+	--g-ochre: #D9A441; --p-olive: #A9A766; --p-teal: #6FAAA5; --p-indigo: #8C91C7; --scrim: rgba(0, 0, 0, 0.6);
+	--link: #FFD966; --focus: #7FB3CF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) 16px 96px; }
+h1 { font: 500 28px/34px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 var(--space-2); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.note { color: var(--ink-2); max-width: 75ch; margin: var(--space-2) 0 var(--space-4); }
+.note b { color: var(--ink); }
+.verdict { border-left: 4px solid var(--signal); padding: var(--space-2) var(--space-4); background: var(--sheet); max-width: 80ch; margin: var(--space-4) 0 var(--space-6); }
+.option { margin-bottom: var(--space-7); }
+.option > h2 { font: 500 22px/28px var(--f-display); margin: 0; border-top: 4px solid var(--ink); padding-top: var(--space-3); }
+.option > h2 .rec { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; background: var(--signal); color: var(--on-signal); padding: 2px var(--space-2); margin-left: var(--space-3); vertical-align: 4px; }
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); max-width: 75ch; margin-bottom: var(--space-4); font-size: 15px; }
+.pc ul { margin: var(--space-1) 0 0; padding-left: 18px; color: var(--ink-2); }
+.toggle { float: right; }
+.label { margin: var(--space-4) 0 var(--space-2); }
+
+/* The Knowledge screen under the scrim. */
+.stage { position: relative; background: var(--board); padding: var(--space-6) var(--space-4); overflow: hidden; border: 1px solid var(--rule-fine); }
+.stage::before { content: ""; position: absolute; inset: 0; background: var(--scrim); z-index: 1; }
+.behind { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); opacity: 0.6; height: 120px; }
+.behind div { background: var(--sheet); border: 2px solid var(--rule); }
+
+/* Card (§15.6). Full hand size and the compact tableau size. */
+.card { position: relative; width: 264px; min-height: 320px; padding: var(--space-3); flex: none; display: flex; flex-direction: column; gap: var(--space-2); background: var(--sheet); border: 2px solid var(--rule); text-align: left; color: var(--ink); font: inherit; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card .name { font: 600 20px/24px var(--f-cond); }
+.cost { display: inline-flex; align-items: center; gap: 3px; font: 500 20px/24px var(--f-cond); white-space: nowrap; }
+.card .band { height: 5px; background: var(--p-olive); }
+.card.tech .band { background: var(--p-teal); }
+.card.gov .band { background: var(--p-indigo); }
+.card .type { font: 400 17px/22px var(--f-ui); color: var(--ink-2); }
+.card .rules { font: 400 18px/23px var(--f-ui); }
+.card .vp { color: var(--positive); margin-top: auto; font: 500 17px/20px var(--f-cond); }
+.card.mini { width: 245px; min-height: 175px; gap: var(--space-1); padding: var(--space-2) var(--space-3); }
+.card.mini .name, .card.mini .cost { font-size: 18px; }
+.card.mini .rules { font-size: 16px; line-height: 20px; }
+.card.mini .type { font-size: 14px; line-height: 18px; }
+button.card { cursor: pointer; box-shadow: 2px 2px 0 var(--shadow); }
+button.card:hover { border-color: var(--link); }
+button.card.focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+.glyph { display: inline-block; width: 15px; height: 15px; border-radius: 50%; background: var(--g-ochre); vertical-align: -2px; }
+.glyph.ins { background: var(--info); }
+
+/* Modal (§15.11). */
+.modal { position: relative; z-index: 2; margin: -110px auto 0; width: min(980px, 100%); background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); }
+.modal.upper { position: absolute; z-index: 4; top: 80px; left: 50%; width: min(880px, 92%); transform: translateX(calc(-50% + 8px)); margin: 0; }
+.stage.stacked .modal:not(.upper) { filter: brightness(0.7); }
+.stage.stacked::after { content: ""; position: absolute; inset: 0; z-index: 3; background: var(--scrim); opacity: 0.5; }
+.modal .titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding: var(--space-3) var(--space-5) 0; }
+.modal .titleblock h3 { margin: 0; font: 500 28px/34px var(--f-display); }
+.modal .titleblock .caps { margin-left: auto; }
+.modal .content { display: flex; gap: var(--space-5); padding: var(--space-4) var(--space-5) var(--space-5); flex-wrap: wrap; align-items: flex-start; }
+.modal .body { flex: 1; min-width: 260px; max-width: 640px; font-size: 18px; line-height: 1.45; }
+.modal .body .sub { font: 600 15px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: var(--space-3); }
+.modal .body b { display: block; margin-top: var(--space-3); }
+.term { color: var(--link); }
+a.cardlink { color: var(--link); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.modal footer { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--rule-fine); }
+
+/* Option B: the gives row, full width under content. */
+.gives { padding: 0 var(--space-5) var(--space-5); }
+.gives .heading { font: 600 15px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: var(--space-2); border-top: 1px solid var(--rule-fine); padding-top: var(--space-4); }
+.gives .row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.gives .tagline { font: 400 14px/18px var(--f-ui); color: var(--ink-2); margin-top: var(--space-1); }
+.gives .slot { display: flex; flex-direction: column; }
+
+/* Option C: the aside holds the tech and its cards. */
+.aside-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+
+/* Option D: a text section per card. */
+.givecard { border-left: 3px solid var(--p-olive); padding-left: var(--space-3); margin-top: var(--space-2); }
+.givecard .gh { font: 600 18px/22px var(--f-cond); display: flex; gap: var(--space-3); align-items: baseline; }
+.givecard .gh .meta { font: 400 15px/18px var(--f-ui); color: var(--ink-2); }
+
+/* Buttons (§15.1, §15.2). */
+.btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) 20px; border-radius: 2px; font: 500 17px/20px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; }
+.btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
+.btn.chip { min-height: 32px; padding: var(--space-1) var(--space-3); font-size: 16px; }
+
+@media (max-width: 720px) { .pc { grid-template-columns: 1fr; } .card { width: 100%; } }
+</style>
+</head>
+<body>
+<main>
+	<button class="btn toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'night' ? 'paper' : 'night'">Paper / Night</button>
+	<h1>What a tech gives</h1>
+	<span class="caps">Knowledge screen → a tech's details → the cards it gives</span>
+	<p class="note">Today a tech's details say <i>"Granary can now be bought in the supply."</i> but never what a Granary does.
+		Techs give 0–3 cards (13 give one, 6 give two, 3 give three: Mysticism, Priesthood, Code of Laws); some are
+		wonders or governments (Kingship, Theocracy). Each option is shown with <b>Pottery</b> (two cards), and the
+		recommended one also with <b>Mysticism</b> (three) and with a given card opened on top. The card text is the
+		engine's real generated text.</p>
+	<div class="verdict"><b>Recommendation: B, inline compact cards that open their details.</b> You see every given card at
+		a glance in the game's own card language (cost, type, rules), with no click; the click is only for the deeper
+		layer (the "How it works" terms, flavour), and it uses the modal stack that already exists, so Esc returns to the
+		tech. Three compact cards (245 px, the tableau size) fit the modal's width.</div>
+
+	<section class="option">
+		<h2>A · Card names are links</h2>
+		<p class="note">The rules lines stay as they are; each given card's name becomes a link (and a row of chips under the
+			rules, so a keyboard can Tab to them). A click opens that card's details over the tech's.</p>
+		<div class="pc"><div><b>For</b><ul><li>Smallest change; nothing new on screen.</li><li>Scales to any number of cards.</li></ul></div>
+			<div><b>Against</b><ul><li>Still hides what the card does behind a click per card.</li><li>Links inside RichText are new to the UI; focus and Tab need their own work.</li></ul></div></div>
+		<div id="a"></div>
+	</section>
+
+	<section class="option">
+		<h2>B · Inline compact cards <span class="rec">Recommended</span></h2>
+		<p class="note">A <b>Gives</b> row spans the modal under the body: each given card as its compact face (the tableau
+			size), with a caption saying how you get it (<i>"1 to your discard · in the supply"</i> or <i>"in the supply"</i>).
+			The "can now be bought" rules lines it repeats leave the Rules list. Each card is a button: click, Enter or I
+			opens its full details on top; Esc comes back. A tech that gives nothing has no row.</p>
+		<div class="pc"><div><b>For</b><ul><li>Answers "what does it do" with no click.</li><li>Uses the existing card face and modal stack.</li><li>The Rules list gets shorter, not longer.</li></ul></div>
+			<div><b>Against</b><ul><li>The modal grows ~210 px taller.</li><li>Compact faces show one line per field; the long tail (terms) is a click away.</li></ul></div></div>
+		<div class="label caps">Pottery · two cards</div><div id="b1"></div>
+		<div class="label caps">Mysticism · three cards (widest case)</div><div id="b2"></div>
+		<div class="label caps">Granary clicked: its details on top, 8 px down-right (Esc returns to Pottery)</div><div id="b3"></div>
+	</section>
+
+	<section class="option">
+		<h2>C · Given cards stacked in the aside</h2>
+		<p class="note">The aside under the tech card holds its given cards at compact size, a column of paper. The body is
+			unchanged.</p>
+		<div class="pc"><div><b>For</b><ul><li>The body text is untouched.</li><li>Reads as "this tech, and what comes with it".</li></ul></div>
+			<div><b>Against</b><ul><li>With three cards the aside is ~900 px tall and the modal scrolls.</li><li>Two different card sizes side by side in one column.</li></ul></div></div>
+		<div id="c"></div>
+	</section>
+
+	<section class="option">
+		<h2>D · Text section per card</h2>
+		<p class="note">A <b>Gives</b> section in the body: each card's name, type and cost, then its rules lines, as text.
+			Its terms merge into the tech's "How it works".</p>
+		<div class="pc"><div><b>For</b><ul><li>Pure text; fits the RichText body as it is.</li><li>Shows everything, terms included, no click.</li></ul></div>
+			<div><b>Against</b><ul><li>Doesn't look like cards; the reader translates.</li><li>Long: three cards plus their terms is a wall of text.</li></ul></div></div>
+		<div id="d"></div>
+	</section>
+</main>
+<script>
+const ins = n => `<span class="cost">${n} <i class="glyph ins"></i></span>`;
+const wl = n => `<span class="cost">${n} <i class="glyph"></i></span>`;
+const CARDS = {
+	granary: { name: "Granary", type: "Building", cost: wl(3), vp: 0, rules: ["+1 housing on its territory", "Each upkeep, 1 pop here that would starve survives"], how: "1 to your discard · in the supply" },
+	mud: { name: "Mud-Brick Houses", type: "Building", cost: wl(3), vp: 0, rules: ["+2 housing on its territory"], how: "in the supply" },
+	temple: { name: "Temple", type: "Building", cost: wl(4), vp: 1, rules: ["Each upkeep: −1 unrest", "Each upkeep: +1 VP if on a mountain"], how: "1 to your discard · in the supply" },
+	stone: { name: "Stone Circle", type: "Building", cost: wl(3), vp: 0, rules: ["Each upkeep: +1 insight"], how: "in the supply" },
+	oracle: { name: "Oracle of Delphi", type: "Building · Wonder", cost: wl(10), vp: 5, rules: ["Each upkeep: +2 insight"], how: "1 to your discard" },
+};
+const face = (c, mini, btn, focus) => {
+	const tag = btn ? "button" : "div";
+	return `<${tag} class="card${mini ? " mini" : ""}${focus ? " focus" : ""}"><div class="head"><span class="name">${c.name}</span>${c.cost}</div>
+		<div class="band"></div><div class="type">${c.type}</div><div class="rules">${c.rules.join("<br>")}</div>${c.vp ? `<div class="vp">${c.vp} VP</div>` : ""}</${tag}>`;
+};
+const techFace = (name, cost, rules, vp) => `<div class="card tech"><div class="head"><span class="name">${name}</span>${cost}</div>
+	<div class="band"></div><div class="type">Tech</div><div class="rules">${rules.join("<br>")}</div>${vp ? `<div class="vp">${vp} VP</div>` : ""}</div>`;
+const POTTERY = techFace("Pottery", ins(5), ["Add a Granary to your discard", "Granary and Mud-Brick Houses can now be bought"], 1);
+const MYST = techFace("Mysticism", ins(5), ["Add a Temple and the Oracle of Delphi to your discard", "Temple and Stone Circle can now be bought"], 0);
+const behind = `<div class="behind">${"<div></div>".repeat(6)}</div>`;
+const modal = (title, ctx, aside, body, extra = "", cls = "") => `<div class="modal ${cls}"><div class="titleblock"><h3>${title}</h3><span class="caps">${ctx}</span></div>
+	<div class="content">${aside}<div class="body">${body}</div></div>${extra}<footer><button class="btn">Close</button>${ctx === "Tech" ? '<button class="btn primary">Learn</button>' : ""}</footer></div>`;
+const stage = (inner, stacked) => `<div class="stage${stacked ? " stacked" : ""}">${behind}${inner}</div>`;
+const flavor = "<i>Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.</i>";
+const sub = s => `<div class="sub">${s}</div>`;
+
+// A
+const link = id => `<a class="cardlink">${CARDS[id].name}</a>`;
+document.getElementById("a").innerHTML = stage(modal("Pottery", "Tech", POTTERY,
+	sub("5 insight · 1 VP") + flavor +
+	`<b>Rules</b>Add a ${link("granary")} to your discard<br>${link("granary")} can now be bought in the supply.<br>${link("mud")} can now be bought in the supply.<br>Eureka: −2 insight with 2 farm cards.
+	<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn chip">Granary ›</button><button class="btn chip">Mud-Brick Houses ›</button></div>`));
+
+// B
+const givesRow = ids => `<div class="gives"><div class="heading">Gives</div><div class="row">${ids.map((id, i) =>
+	`<div class="slot">${face(CARDS[id], true, true)}<span class="tagline">${CARDS[id].how}</span></div>`).join("")}</div></div>`;
+const potteryB = modal("Pottery", "Tech", POTTERY,
+	sub("5 insight · 1 VP") + flavor + `<b>Rules</b>Eureka: −2 insight with 2 farm cards.`, givesRow(["granary", "mud"]));
+document.getElementById("b1").innerHTML = stage(potteryB);
+document.getElementById("b2").innerHTML = stage(modal("Mysticism", "Tech", MYST,
+	sub("5 insight") + "<i>Sky, stone and spring are given voices, and the first priests learn to listen.</i>" + `<b>Rules</b>Eureka: −2 insight with 1 Hunters' Camp.`,
+	givesRow(["temple", "stone", "oracle"])));
+document.getElementById("b3").innerHTML = stage(potteryB + modal("Granary", "Building", face(CARDS.granary),
+	sub("3 wealth") + `<b>Rules</b>+1 housing on its territory<br>Each upkeep, 1 pop here that would starve survives
+	<b>How it works</b><span class="term">Housing</span>: The most pop a territory can hold. Growth stops there.<br><span class="term">Famine Guard</span>: Each upkeep, a working building with a famine guard saves pop on its territory that would starve for lack of food.<br><span class="term">Workers</span>: Each building needs a free pop on its territory to be placed and to work.`,
+	"", "upper"), true);
+
+// C
+document.getElementById("c").innerHTML = stage(modal("Pottery", "Tech",
+	`<div class="aside-stack">${POTTERY}<span class="caps">Gives</span>${face(CARDS.granary, true, true)}${face(CARDS.mud, true, true)}</div>`,
+	sub("5 insight · 1 VP") + flavor + `<b>Rules</b>Add a Granary to your discard<br>Granary can now be bought in the supply.<br>Mud-Brick Houses can now be bought in the supply.<br>Eureka: −2 insight with 2 farm cards.`));
+
+// D
+const gc = (id, how) => { const c = CARDS[id]; return `<div class="givecard"><div class="gh">${c.name}<span class="meta">${c.type} · ${c.cost} · ${how}</span></div>${c.rules.join("<br>")}</div>`; };
+document.getElementById("d").innerHTML = stage(modal("Pottery", "Tech", POTTERY,
+	sub("5 insight · 1 VP") + flavor + `<b>Rules</b>Eureka: −2 insight with 2 farm cards.<b>Gives</b>${gc("granary", "1 to your discard, and in the supply")}${gc("mud", "in the supply")}
+	<b>How it works</b><span class="term">Housing</span>: The most pop a territory can hold. Growth stops there.<br><span class="term">Famine Guard</span>: Each upkeep, a working building with a famine guard saves pop…<br><span class="term">Workers</span>: Each building needs a free pop on its territory…`));
+</script>
+</body>
+</html>
