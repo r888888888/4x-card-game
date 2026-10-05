@@ -2,7 +2,7 @@
 id: 292
 title: Cache each sim game's result by the code and data that produced it
 type: feature
-status: ready
+status: red-review
 branch: feat/292-sim-result-cache
 ---
 
@@ -57,7 +57,12 @@ reuses what the main checkout played.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `balance/test_sim_cache_runs::test_a_second_run_reads_every_game_from_the_cache` |
+| AC2 | `balance/test_sim_cache_runs::test_a_different_turn_limit_civ_strategy_or_seed_misses` |
+| AC3 | `balance/test_sim_cache_runs::test_changed_data_misses_and_a_byte_identical_copy_hits` |
+| AC4 | `test_sim_cache::test_identical_trees_hash_the_same`, `…::test_a_changed_line_in_the_game_code_changes_the_hash`, `…::test_a_new_script_changes_the_hash`, `…::test_other_files_leave_the_hash_alone` |
+| AC5 | `balance/test_sim_cache_runs::test_a_parallel_run_plays_only_the_uncached_games` |
+| AC6 | `balance/test_sim_cache_runs::test_a_bad_cache_entry_is_played_again_and_overwritten`, `…::test_with_the_cache_off_every_game_is_played_and_nothing_written` |
 
 ## Manual check
 - [ ] `scripts/sim.sh 20` twice: the second run says `600 of 600 games cached` and takes a few seconds.
