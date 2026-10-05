@@ -2,7 +2,7 @@
 id: 311
 title: A sample fork reshuffles what the player can't see
 type: feature
-status: ready
+status: red-review
 branch: feat/311-sample-fork
 ---
 
@@ -39,7 +39,11 @@ reshuffled from a seed: one possible future, not the real one.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_game_state::test_…` |
+| AC1 | `test_game_state::test_a_sample_fork_reshuffles_the_deck_from_its_seed`, `test_engine_structure` (`sample_fork` in `game_engine.gd`) |
+| AC2 | `test_game_state::test_a_sample_fork_reshuffles_the_event_and_territory_decks` |
+| AC3 | `test_game_state::test_everything_the_player_sees_is_the_same_in_a_sample` |
+| AC4 | `test_game_state::test_a_samples_later_shuffles_come_from_its_seed_not_the_games_rng` |
+| AC5 | `test_game_state::test_a_sample_leaves_the_game_untouched` (and the existing fork tests, unchanged) |
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309, 310, 312–315. The spike found forks are clairvoyant.
