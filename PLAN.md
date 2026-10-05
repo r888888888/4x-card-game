@@ -462,6 +462,9 @@ Monument until then): every terrain has a building, every era opens a new one.
   with a free worker (no slot, no terrain); "X can now be recruited." A recruited unit that is disbanded or lost to a
   pillage leaves play (no zone), to be recruited again; a unit with no entry (dealt from a deck) still goes to the
   discard. Warriors is an open entry from turn 1.
+- `build_preview(card_id, territory_uid)` (299): `{cost, lines}`, each line `[key, before, after]` for what building
+  there would change (each resource's `upkeep_forecast`, then `free_slots`, `free_workers`, `defense`, `housing`,
+  `actions_left`), from a build on a fork; `{}` when `build_error` refuses. The Build modal (297) shows it.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the
