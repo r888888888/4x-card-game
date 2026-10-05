@@ -2,7 +2,7 @@
 id: 309
 title: turn_forecast reports what starting the next turn changes, score and raids included
 type: feature
-status: in-progress
+status: review
 branch: feat/309-turn-forecast
 ---
 
@@ -14,21 +14,21 @@ unrest and the raids that strike. Today the generic-bot spike (`spike/generic-bo
 without a rule written for them.
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture game (`make_engine`) with a Temple (⟳ +1 score) on the tableau, enough food and no raid
+- [x] AC1: Given a fixture game (`make_engine`) with a Temple (⟳ +1 score) on the tableau, enough food and no raid
   active, when `turn_forecast()` is called, then it returns `score` +1 and, for each resource, the same change as
   `upkeep_forecast()`, plus `pop` 0 and `starve` 0.
-- [ ] AC2: Given food that leaves the next feeding 1 short with `vp_per_pop` 1, then `turn_forecast()` has `starve` 1,
+- [x] AC2: Given food that leaves the next feeding 1 short with `vp_per_pop` 1, then `turn_forecast()` has `starve` 1,
   `pop` −1 and `score` −1 (the starved pop no longer scores).
-- [ ] AC3: Given an announced raid that strikes at the next turn's start with strength 1 above its target's defence
+- [x] AC3: Given an announced raid that strikes at the next turn's start with strength 1 above its target's defence
   and `pop` 1, then the forecast includes the raid's loss: `pop` −1 and `score` −1 more than without the raid, and any
   resources its `pillage` effects take. Given the target's defence ≥ the strength, the raid's `repel` effects count
   instead.
-- [ ] AC4: Given wealth at era 2's `era_unlocks` threshold so that era 2 arrives at the next turn's start, then the
+- [x] AC4: Given wealth at era 2's `era_unlocks` threshold so that era 2 arrives at the next turn's start, then the
   forecast's `unrest` includes the era's unrest (config `unrest.era_unrest`).
-- [ ] AC5: The forecast changes nothing: after the call the game's state, log, zone orders and rng draw the same as
+- [x] AC5: The forecast changes nothing: after the call the game's state, log, zone orders and rng draw the same as
   before (a shuffle after the call gives the same order as one without it), no signal is emitted, and two calls in a
   row return equal results.
-- [ ] AC6: On the last turn and after game over it returns `{}` (as `upkeep_forecast` does).
+- [x] AC6: On the last turn and after game over it returns `{}` (as `upkeep_forecast` does).
 
 ## Out of scope
 - The cards the next turn draws and the event it draws (random; 311's sample fork is for that).
@@ -58,3 +58,7 @@ without a rule written for them.
 - 2026-10-05: specced from the generic-bot spike, with 310–315.
 - 2026-10-05: AC4 reworded: an era arrives at a turn's start from `era_unlocks` (pop or wealth), not from learning techs
   (a tech's `add_era` is immediate). Its test sits in `test_anarchy.gd`, which has the unrest fixtures.
+- 2026-10-05: built as `TurnLoop.forecast`, with `start_turn` split into `_begin` and `_settle_in` (upkeep, feeding, era
+  unlocks, Anarchy's fall and drain) so the real turn and the forecast share the steps; the forecast then strikes raids
+  but skips the draw, the renewal and the event. `starve` is the pop feeding took; `pop` counts pillage too. Food is
+  the real change in stock (never below 0), unlike `upkeep_forecast`'s net food.

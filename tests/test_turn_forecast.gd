@@ -9,10 +9,6 @@ const POP_ON := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 const RAID_POP := {"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 1}}
 
 
-func forecast(e: GameEngine) -> Dictionary:
-	return e.turn_forecast()
-
-
 ## A raid_engine game (VP per pop on) at turn 3, with Raiders announced on turn 2 to strike at the turn-4 start.
 ## before_strike runs on turn 2, after the raid is drawn.
 func raid_turn_3(before_strike := func(_e): pass) -> GameEngine:
@@ -32,7 +28,7 @@ func test_the_forecast_counts_upkeep_score_and_resources_like_upkeep_forecast() 
 	var e := make_engine({"farm": 10}, POP_ON)
 	build_on(e, home_uid(e), ["temple"])
 	var upkeep := e.upkeep_forecast()
-	var f := forecast(e)
+	var f := e.turn_forecast()
 	eq(f.get("score"), 1, "Temple ⟳ +1 score")
 	for r in resources():
 		eq(f.get(r), upkeep.get(r), "%s as upkeep_forecast" % r)
@@ -47,7 +43,7 @@ func test_pop_starved_by_feeding_is_lost_from_pop_and_score() -> void:
 	e.zone("tableau").find(home_uid(e)).pop = 3
 	e.resources.food = 0
 	eq(e.upkeep_forecast().get("starve"), 1, "Capital's 2 food feed 2 of 3 pop")
-	var f := forecast(e)
+	var f := e.turn_forecast()
 	eq(f.get("starve"), 1, "1 starves")
 	eq(f.get("pop"), -1, "pop −1")
 	eq(f.get("score"), -1, "1 VP per pop lost")
@@ -62,7 +58,7 @@ func test_a_raid_short_of_defence_counts_its_pillage() -> void:
 	var raid: Dictionary = e.raid_forecast()[0]
 	check(raid.defense < raid.strength, "Hills is short: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
-	var f := forecast(e)
+	var f := e.turn_forecast()
 	eq(f.get("pop"), -1, "Hills loses 1 pop")
 	eq(f.get("score"), -1, "1 VP per pop lost")
 	eq(f.get("food"), upkeep.food - 2, "pillage −2 food")
@@ -78,7 +74,7 @@ func test_a_raid_meeting_enough_defence_counts_its_repel() -> void:
 	var raid: Dictionary = e.raid_forecast()[0]
 	check(raid.defense >= raid.strength, "Hills holds: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
-	var f := forecast(e)
+	var f := e.turn_forecast()
 	eq(f.get("pop"), 0, "no pop lost")
 	eq(f.get("score"), 0, "no score lost")
 	eq(f.get("wealth"), upkeep.wealth + 2, "repel +2 wealth")
@@ -102,8 +98,8 @@ func test_the_forecast_changes_nothing_in_the_game() -> void:
 	var emitted := []
 	for s in ["changed", "logged", "noticed", "raid_resolved", "milestone", "event_drawn"]:
 		e.connect(s, func(_a = null, _b = null): emitted.append(s))
-	var first := forecast(e)
-	var second := forecast(e)
+	var first := e.turn_forecast()
+	var second := e.turn_forecast()
 	eq(second, first, "two calls agree")
 	for name in GameEngine.ZONES:
 		eq(e.zone(name).cards.map(func(c): return [c.uid, c.def.id, c.pop]), zones[name], "zone %s" % name)
@@ -122,5 +118,5 @@ func test_the_forecast_changes_nothing_in_the_game() -> void:
 # --- AC6: no next turn ---
 
 func test_no_forecast_on_the_last_turn_or_after_game_over() -> void:
-	eq(forecast(make_engine({"farm": 10}, {"turn_limit": 1})), {}, "turn 1 of 1")
-	eq(forecast(over_engine()), {}, "game over")
+	eq(make_engine({"farm": 10}, {"turn_limit": 1}).turn_forecast(), {}, "turn 1 of 1")
+	eq(over_engine().turn_forecast(), {}, "game over")
