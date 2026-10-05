@@ -2,7 +2,7 @@
 id: 294
 title: "Balance: make the bot's lookahead and the engine's hot path cheaper without changing results"
 type: feature
-status: review
+status: done
 branch: feat/294-cheaper-bot-lookahead
 ---
 
