@@ -45,6 +45,32 @@ static func auto_grow(e: GameEngine, net_food: int) -> void:
 	e._notice("%s grew to %d pop." % [biggest.def.name, biggest.pop])
 
 
+## The settled territories with room to grow, smallest pop first (ties: tableau order): what a grow op with "each" and
+## a count reaches (261). [] with population off or during a Famine.
+static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	if not e.population_on() or Famine.growth_error(e) != "":
+		return out
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.TERRITORY and card.pop < housing(e, card.uid):
+			out.append(card)
+	var order := {}
+	for i in out.size():
+		order[out[i]] = i
+	out.sort_custom(func(a, b): return a.pop < b.pop or (a.pop == b.pop and order[a] < order[b]))
+	return out
+
+
+## Where pop helps most (261): among the territories with room, one with idle buildings (more workers on it than pop)
+## first, then the smallest pop (ties: tableau order); null when nothing can grow.
+static func best_to_grow(e: GameEngine) -> CardInstance:
+	var lands := smallest_with_room(e)
+	for card in lands:
+		if Territories.workers_on(e, card.uid).size() > card.pop:
+			return card
+	return lands[0] if not lands.is_empty() else null
+
+
 static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: CardInstance) -> void:
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null or not e.population_on() or Famine.growth_error(e) != "":  # no growth during a Famine (083)

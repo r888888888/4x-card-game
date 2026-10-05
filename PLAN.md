@@ -314,10 +314,12 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   end an active Famine at once (`relieve_famine()` / `relieve_famine_error()`, the Relieve button below the
   Realm; `famine_relief()` gives the price). A later hungry upkeep brings a new Famine with 1 counter. The sim bot
   relieves before ending a turn when it can pay and `upkeep_forecast().starve` is still above 0.
-- Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" }`) adds pop for free,
-  capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every settled territory
-  (Harvest Festival until 069, now an event; no shipped card uses `each` today). `here` is a load error on a tech
-  or an event, which has no territory (069).
+- Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" | "best", "count": 3 }`) adds
+  pop for free, capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every
+  settled territory (Harvest Festival until 069, now an event), or with `count` on at most that many, smallest pop
+  first among those with room (ties: tableau order; 261). `best` adds it all to one territory: one with idle buildings
+  first, else the smallest with room (`Population.best_to_grow`, 261). `here` is a load error on a tech or an event,
+  which has no territory (069); `count` only goes with `each`.
 - Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.

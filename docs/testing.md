@@ -150,7 +150,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_vellum.gd` | Targeting under vellum (210) in the real `main.tscn` on a TEST_CARDS game with a Temple and two territories: `main.vellum` (`covered_rect()`, `lifted()`) wipes in from the left over the Realm and hand with the card and its targets above it (2 px FOCUS outlines), off to the right after a play or a cancel (Esc, right-click, a click on it, a click on a card under it); a fade with Reduce motion; none while dragging |
 | `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked Winnow lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
 | `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
-| `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap |
+| `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap; 261: `best` (idle buildings, then smallest pop) and `each` with `count` (fixture `GROW_CARDS`) |
 | `tests/test_auto_growth.gd` | Automatic growth (260): a surplus of `population.growth_surplus` grows the largest territory with room by 1, once a turn, free, with a notice; the config field; manual Grow gone |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
@@ -241,7 +241,7 @@ and Reduce motion off), so the player's own settings never change a result; afte
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording; given a priority, it was noticed with it (190) |
 | `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test; it doesn't fail it (186) |
-| `make_engine(deck, overrides, seed)` | New game from `TEST_CARDS`; `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (plus `extra_cards`, raw card dicts a single file needs); `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
 | `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |
 | `tests/lib/raid_case.gd` | Base class for raid tests: fixture `RAID_CARDS`, `raid_load`, `raid_engine` (Homeland and Hills settled, raids on top of the event deck), `record_raids` |
