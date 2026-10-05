@@ -2,7 +2,7 @@
 id: 290
 title: Ending the turn returns to the Realm
 type: feature
-status: ready
+status: red-review
 branch: feat/290-end-turn-returns-to-realm
 ---
 
@@ -43,7 +43,12 @@ instead of leaving the player inside a detail screen from the last turn.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_end_turn_returns::test_ending_the_turn_from_knowledge_returns_to_the_realm` (End turn key and E) |
+| AC2 | `test_end_turn_returns::test_ending_the_turn_from_a_territory_view_returns_to_the_realm` (End turn key and E) |
+| AC3 | `test_end_turn_returns::test_ending_the_turn_from_knowledge_over_a_territory_view_closes_both` |
+| AC4 | `test_end_turn_returns::test_a_refused_end_turn_leaves_the_open_screen` (guard: passes before the change) |
+| AC5 | `test_end_turn_returns::test_ending_the_turn_on_the_realm_stays_on_the_realm` (guard) |
+| AC6 | `test_end_turn_returns::test_a_refresh_within_the_turn_leaves_the_territory_view_open` (guard) |
 
 ## Manual check
 - [ ] Open the tech tree (T), press E: the tree slides away and the Realm shows the new hand.
