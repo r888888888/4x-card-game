@@ -121,12 +121,6 @@ func hidden_game(seed_value := 1) -> GameEngine:
 		"territory_deck": {"hills": 3, "grassland": 3, "jungle": 2, "river": 2}}, seed_value, TEST_EVENTS)
 
 
-## e.sample_fork(s), held as Object until the method exists (red phase).
-func sample(e: GameEngine, s: int) -> GameEngine:
-	var o: Object = e
-	return o.call("sample_fork", s)
-
-
 ## A zone's cards as [uid, id, pop, territory_uid, turns_left], in order.
 func cards_of_zone(z: Zone) -> Array:
 	return z.cards.map(func(c): return [c.uid, c.def.id, c.pop, c.territory_uid, c.turns_left])
@@ -139,13 +133,13 @@ func check_reshuffled(e: GameEngine, zone_name: String) -> void:
 	check(game_order.size() >= 10, "%s holds %d cards" % [zone_name, game_order.size()])
 	var differs := false
 	for s in range(1, 21):
-		var order := uids(sample(e, s).zone(zone_name))
+		var order := uids(e.sample_fork(s).zone(zone_name))
 		var sorted_order := order.duplicate()
 		sorted_order.sort()
 		var sorted_game := game_order.duplicate()
 		sorted_game.sort()
 		eq(sorted_order, sorted_game, "%s seed %d: the same cards" % [zone_name, s])
-		eq(uids(sample(e, s).zone(zone_name)), order, "%s seed %d twice: the same order" % [zone_name, s])
+		eq(uids(e.sample_fork(s).zone(zone_name)), order, "%s seed %d twice: the same order" % [zone_name, s])
 		differs = differs or order != game_order
 	check(differs, "%s: some seed in 1–20 reorders it" % zone_name)
 
@@ -171,7 +165,7 @@ func test_everything_the_player_sees_is_the_same_in_a_sample() -> void:
 	check(not e.zone("active_events").is_empty(), "an event active")
 	check(not e.zone("frontier").is_empty(), "a frontier territory")
 	check(not e.zone("discard").is_empty(), "cards in the discard")
-	var f := sample(e, 7)
+	var f := e.sample_fork(7)
 	for zone_name in GameEngine.ZONES:
 		if zone_name in ["deck", "event_deck", "territory_deck"]:
 			continue
@@ -190,9 +184,9 @@ func test_a_samples_later_shuffles_come_from_its_seed_not_the_games_rng() -> voi
 		return a
 	var e1 := hidden_game(1)
 	var e2 := hidden_game(2)
-	eq(draws.call(sample(e1, 7)), draws.call(sample(e2, 7)), "seed 7 draws alike whatever the game's seed")
-	eq(draws.call(sample(e1, 7)), draws.call(sample(e1, 7)), "seed 7 twice")
-	check(draws.call(sample(e1, 7)) != draws.call(sample(e1, 8)), "seeds 7 and 8 draw differently")
+	eq(draws.call(e1.sample_fork(7)), draws.call(e2.sample_fork(7)), "seed 7 draws alike whatever the game's seed")
+	eq(draws.call(e1.sample_fork(7)), draws.call(e1.sample_fork(7)), "seed 7 twice")
+	check(draws.call(e1.sample_fork(7)) != draws.call(e1.sample_fork(8)), "seeds 7 and 8 draw differently")
 
 
 func test_a_sample_leaves_the_game_untouched() -> void:
@@ -202,7 +196,7 @@ func test_a_sample_leaves_the_game_untouched() -> void:
 	for zone_name in GameEngine.ZONES:
 		before[zone_name] = uids(e.zone(zone_name))
 	for s in range(1, 6):
-		sample(e, s)
+		e.sample_fork(s)
 	for zone_name in GameEngine.ZONES:
 		eq(uids(e.zone(zone_name)), before[zone_name], "zone %s" % zone_name)
 	var a := range(20)

@@ -2,7 +2,7 @@
 id: 311
 title: A sample fork reshuffles what the player can't see
 type: feature
-status: red-review
+status: in-progress
 branch: feat/311-sample-fork
 ---
 
