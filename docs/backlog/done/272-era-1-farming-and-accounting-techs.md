@@ -2,7 +2,7 @@
 id: 272
 title: Era-1 farming and accounting techs (Irrigation, The Plough, Weaving, Clay Tokens)
 type: feature
-status: review
+status: done
 branch: feat/272-era-1-farming-and-accounting-techs
 ---
 
