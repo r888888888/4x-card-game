@@ -3,10 +3,13 @@ extends SceneTree
 ## with ScriptedBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
-## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291).
+## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's
+## result is cached under CACHE_DIR by the code and data that played it (292).
 
 ## The lock every checkout's parallel runs share, in the per-user temp directory (291).
 const LOCK_NAME := "4x-card-game-sim.lock"
+## Where games' results are cached (292): user:// is shared by every checkout of the project. SIM_CACHE=0 turns it off.
+const CACHE_DIR := "user://sim-cache"
 
 
 func _initialize() -> void:
@@ -28,6 +31,8 @@ func _initialize() -> void:
 		env[key] = OS.get_environment(key)
 	options["procs"] = SimStats.procs_from_env(env, OS.get_processor_count())
 	options["lock_path"] = OS.get_temp_dir().path_join(LOCK_NAME)
+	options["cache_dir"] = CACHE_DIR
+	options["cache"] = OS.get_environment("SIM_CACHE") != "0"
 	var out := {"code": 1, "lines": options.errors} if not options.errors.is_empty() \
 		else SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
 	for line in out.lines:

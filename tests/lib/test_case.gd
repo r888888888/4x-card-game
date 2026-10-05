@@ -527,6 +527,17 @@ func with_reduce_motion(calm: bool, body: Callable) -> void:
 		DirAccess.remove_absolute(path)
 
 
+## Removes dir and everything in it; nothing when it doesn't exist (temp trees the sim tests make, 291, 292).
+func remove_tree(dir: String) -> void:
+	if not DirAccess.dir_exists_absolute(dir):
+		return
+	for sub in DirAccess.get_directories_at(dir):
+		remove_tree(dir.path_join(sub))
+	for f in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(f))
+	DirAccess.remove_absolute(dir)
+
+
 ## The state a toggle key shows, ON or OFF: the text of its state label beside it (219), or "" if it has none.
 func shown_state(key: Object) -> String:
 	var word: Variant = key.get("state_label") if key != null else null
