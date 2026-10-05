@@ -64,7 +64,10 @@
     "caravanserai": { "price": 2, "count": 6, "locked": true },
     "bathhouse": { "price": 3, "count": 6, "locked": true },
     "courthouse": { "price": 3, "count": 6, "locked": true },
-    "aqueduct": { "price": 3, "count": 6, "locked": true }
+    "aqueduct": { "price": 3, "count": 6, "locked": true },
+    "irrigation_canals": { "price": 3, "count": 6, "locked": true },
+    "ploughed_fields": { "price": 3, "count": 6, "locked": true },
+    "weavers_workshop": { "price": 3, "count": 6, "locked": true }
   },
   "event_deck": {
     "solstice_rites": 1,
@@ -111,6 +114,10 @@
   "research_deck": {
     "pottery": 1,
     "animal_husbandry": 1,
+    "irrigation": 1,
+    "the_plough": 1,
+    "weaving": 1,
+    "clay_tokens": 1,
     "mining": 1,
     "mysticism": 1,
     "the_wheel": 1,
