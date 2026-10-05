@@ -13,6 +13,7 @@ the era was added / its last tech was learned; the turn limit if never).
 Anarchy and governments (158): `anarchies`, `revolts`, `anarchy_turns` (turns that started under it), `restored`
 (order bought), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
 `<id>_turns` per government a game can have (turns that started with it ruling).
+Cost (294): `lookahead_turns`, the turns the bot's lookahead forks played (most of a game's CPU).
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.

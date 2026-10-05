@@ -29,13 +29,19 @@ static func total_pop(e: GameEngine) -> int:
 
 
 ## The settled territories with room to grow, smallest pop first (ties: tableau order): what a grow op with "each" and
-## a count reaches (261). [] with population off or during a Famine.
+## a count reaches (261). [] with population off or during a Famine. Counts housing as housing() does, in one pass (294).
 static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	if not e.population_on() or Famine.growth_error(e) != "":
 		return out
-	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.TERRITORY and card.pop < housing(e, card.uid):
+	var tableau := e.zone("tableau").cards
+	var built := {}  # territory uid -> the housing of the buildings on it (see housing)
+	for card in tableau:
+		if card.def.type == CardDef.BUILDING:
+			built[card.territory_uid] = built.get(card.territory_uid, 0) + card.def.housing
+	var extra := Modifiers.total(e, Modifiers.HOUSING)
+	for card in tableau:
+		if card.def.type == CardDef.TERRITORY and card.pop < maxi(1, card.def.housing + extra + built.get(card.uid, 0)):
 			out.append(card)
 	var order := {}
 	for i in out.size():
@@ -91,8 +97,17 @@ static func tier_at_pop(e: GameEngine, n: int) -> int:
 
 ## The building slots the tier of a territory with pop n adds (0 with tiers off).
 static func slots_at_pop(e: GameEngine, n: int) -> int:
-	var i := tier_at_pop(e, n)
-	return tiers(e)[i].slots if i >= 0 else 0
+	return tier_slots(tiers(e), n)
+
+
+## The building slots tiers (as tiers() returns them) give a territory with pop n: the last tier's it has reached, 0
+## for none. For a pass over many territories, with the tiers looked up once (294).
+static func tier_slots(all: Array, n: int) -> int:
+	var out := 0
+	for t in all:
+		if n >= t.pop:
+			out = t.slots
+	return out
 
 
 ## The name of territory uid's tier, or "" when it has none.

@@ -70,13 +70,13 @@ func test_lookahead_ties_go_to_zone_order() -> void:
 
 # --- AC2: revolting by lookahead ---
 
-func test_the_bot_revolts_every_4_turns_when_a_revolution_scores_more() -> void:
-	var e := deck_game(["glory"], 4)
+func test_the_bot_revolts_every_revolt_every_turns_when_a_revolution_scores_more() -> void:
+	var e := deck_game(["glory"], ScriptedBot.REVOLT_EVERY)
 	ScriptedBot.take_turn(e, "baseline")
-	check(revolted(e), "turn 4: a revolution to Glory outscores Chiefs")
-	var early := deck_game(["glory"], 3)
+	check(revolted(e), "turn %d: a revolution to Glory outscores Chiefs" % e.turn)
+	var early := deck_game(["glory"], ScriptedBot.REVOLT_EVERY - 1)
 	ScriptedBot.take_turn(early, "baseline")
-	check(not revolted(early), "turn 3: not weighed")
+	check(not revolted(early), "turn %d: not weighed" % early.turn)
 
 
 func test_the_bot_doesnt_revolt_when_no_revolution_scores_more() -> void:
@@ -86,9 +86,10 @@ func test_the_bot_doesnt_revolt_when_no_revolution_scores_more() -> void:
 
 
 func test_the_bot_doesnt_weigh_a_revolt_in_the_last_half_lookahead() -> void:
-	var e := deck_game(["glory"], 4, 8)
+	var last := ScriptedBot.REVOLT_EVERY + ScriptedBot.LOOKAHEAD_TURNS / 2 - 2
+	var e := deck_game(["glory"], ScriptedBot.REVOLT_EVERY, last)
 	ScriptedBot.take_turn(e, "baseline")
-	check(not revolted(e), "turn 4 of 8 is within the last 6 turns")
+	check(not revolted(e), "turn %d of %d is within the last %d turns" % [e.turn, last, ScriptedBot.LOOKAHEAD_TURNS / 2])
 
 
 # --- AC3: a lookahead ---
@@ -111,12 +112,12 @@ func test_a_lookahead_chooses_the_government_it_was_opened_for() -> void:
 	var glory: int = ScriptedBot.lookahead(e, "baseline", "glory")
 	var dull: int = ScriptedBot.lookahead(e, "baseline", "dull")
 	eq(dull, e.score(), "under Dull nothing scores")
-	eq(glory, e.score() + 3 * ScriptedBot.LOOKAHEAD_TURNS, "Glory's ⟳ +3 for each of the 12 turns played")
+	eq(glory, e.score() + 3 * ScriptedBot.LOOKAHEAD_TURNS, "Glory's ⟳ +3 for each of the LOOKAHEAD_TURNS turns played")
 
 
 func test_inside_a_lookahead_the_bot_never_revolts() -> void:
-	var e := deck_game(["glory"], 4)
-	eq(ScriptedBot.lookahead(e, "baseline"), e.score(), "staying on Chiefs for 12 turns, never revolting to Glory")
+	var e := deck_game(["glory"], ScriptedBot.REVOLT_EVERY)
+	eq(ScriptedBot.lookahead(e, "baseline"), e.score(), "staying on Chiefs for LOOKAHEAD_TURNS turns, never revolting to Glory")
 	check(ScriptedBot.lookahead(e, "baseline", "glory", true) > e.score(), "the revolting fork does reach Glory")
 
 
@@ -147,7 +148,8 @@ func test_a_lookahead_values_insight_at_1_point_per_4() -> void:
 	var e := choice_game(["plain", "scholars"])
 	var scholars: int = ScriptedBot.lookahead(e, "baseline", "scholars")
 	var plain: int = ScriptedBot.lookahead(e, "baseline", "plain")
-	eq(scholars - plain, 6, "Scholars' ⟳ +2 insight over 12 turns: 24 insight, 6 points")
+	eq(scholars - plain, 2 * ScriptedBot.LOOKAHEAD_TURNS / ScriptedBot.INSIGHT_PER_POINT,
+			"Scholars' ⟳ +2 insight each of LOOKAHEAD_TURNS turns, 1 point per INSIGHT_PER_POINT")
 
 
 func test_insight_gathered_counts_techs_learned_and_not_insight_held_at_the_start() -> void:
@@ -182,4 +184,21 @@ func test_the_bot_avoids_a_government_that_costs_insight() -> void:
 func test_score_still_beats_insight() -> void:
 	var e := choice_game(["scholars", "glory"])
 	ScriptedBot.take_turn(e, "baseline")
-	eq(ruling(e), "glory", "Glory's 36 points beat Scholars' 6")
+	eq(ruling(e), "glory", "Glory's 3 points a turn beat Scholars' 2 insight a turn")
+
+
+# --- 294: the turns lookahead plays ---
+
+func test_weighing_a_revolution_plays_a_lookahead_for_staying_and_for_each_government() -> void:
+	var e := deck_game(["dull", "plain"], ScriptedBot.REVOLT_EVERY, ScriptedBot.REVOLT_EVERY + ScriptedBot.LOOKAHEAD_TURNS)
+	ScriptedBot.lookahead_turns = 0
+	ScriptedBot.take_turn(e, "baseline")
+	check(not revolted(e), "neither scores more than Chiefs: every lookahead played")
+	eq(ScriptedBot.lookahead_turns, 3 * ScriptedBot.LOOKAHEAD_TURNS, "staying, Dull and Plain, LOOKAHEAD_TURNS turns each")
+
+
+func test_a_game_with_no_government_deck_and_no_choice_events_plays_no_lookahead_turns() -> void:
+	var e := deck_game([], 1, 3 * ScriptedBot.REVOLT_EVERY)
+	ScriptedBot.lookahead_turns = 0
+	check(ScriptedBot.play(e), "the game ends")
+	eq(ScriptedBot.lookahead_turns, 0, "nothing to weigh")

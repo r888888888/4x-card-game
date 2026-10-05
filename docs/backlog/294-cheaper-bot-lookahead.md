@@ -2,7 +2,7 @@
 id: 294
 title: "Balance: make the bot's lookahead and the engine's hot path cheaper without changing results"
 type: feature
-status: ready
+status: review
 branch: feat/294-cheaper-bot-lookahead
 ---
 
@@ -19,17 +19,17 @@ This is the dedicated balance item for that work. It has two parts:
   meaningful.
 
 ## Acceptance criteria
-- [ ] AC1: The sim reports a per-game metric `lookahead_turns`: the turns played inside lookahead copies. Given a
+- [x] AC1: The sim reports a per-game metric `lookahead_turns`: the turns played inside lookahead copies. Given a
   fixture game in which the bot weighs one revolution, with 2 governments in the deck and 12+ turns before the end,
   then `lookahead_turns` is 3 × `LOOKAHEAD_TURNS`. Given a fixture game with no government deck and no choice events,
   it is 0.
-- [ ] AC2: The behaviour-neutral speedups (engine hot path, bot bookkeeping such as reading `pending()` once per step)
+- [x] AC2: The behaviour-neutral speedups (engine hot path, bot bookkeeping such as reading `pending()` once per step)
   change no game. `scripts/sim.sh --compare <the AC1 commit's worktree>` stops every cell at 5 seeds with Δ 0 ±0, and
   prints no metric line. The main suite passes with no test changed.
-- [ ] AC3: Every bot-rule test that pins the revolution cadence or the lookahead horizon names
+- [x] AC3: Every bot-rule test that pins the revolution cadence or the lookahead horizon names
   `ScriptedBot.REVOLT_EVERY` / `LOOKAHEAD_TURNS` rather than the numbers 4 and 12, so a settings change can't silently
   break them. Where one hardcodes them now, that's a rename-only change, noted in the Log.
-- [ ] AC4: If a pre-filter is adopted, one that skips a revolution's lookaheads when no government in the deck could
+- [x] AC4 (not applicable: no pre-filter adopted; the settings stay as they are): If a pre-filter is adopted, one that skips a revolution's lookaheads when no government in the deck could
   beat the current one, then it gets its own rule criterion and fixture tests before it's built. Add them as
   AC4a, b, … at the red checkpoint, with the user's approval.
 
@@ -58,16 +58,62 @@ This is the dedicated balance item for that work. It has two parts:
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_bot_lookahead::test_weighing_a_revolution_plays_a_lookahead_for_staying_and_for_each_government`, `test_bot_lookahead::test_a_game_with_no_government_deck_and_no_choice_events_plays_no_lookahead_turns`, `test_sim::test_a_game_with_nothing_to_weigh_reports_no_lookahead_turns`, `test_sim_anarchy::test_lookahead_turns_counts_each_game_on_its_own`; `test_sim::test_sim_stats_reports_mean_min_max_per_metric` (its `METRICS` list gains `lookahead_turns`) |
+| AC2 | the whole main suite, unchanged after the red commit; `scripts/sim.sh --compare` against the AC1 commit (manual) |
+| AC3 | rename-only: `test_bot_lookahead::test_the_bot_revolts_every_revolt_every_turns_when_a_revolution_scores_more` (was `…_every_4_turns_…`), `…::test_the_bot_doesnt_weigh_a_revolt_in_the_last_half_lookahead`, `…::test_inside_a_lookahead_the_bot_never_revolts`, `…::test_a_lookahead_values_insight_at_1_point_per_4`, `test_sim_anarchy::test_a_revolution_counts_as_a_revolt_and_an_anarchy` |
+| AC4 | not applicable: no pre-filter adopted |
 
 ## Manual check
-- [ ] CPU per game, seed 1, real data, one process: baseline ≤ 6 s and wide ≤ 12 s (from 12.2 s and 24.5 s). Record
+- [x] CPU per game, seed 1, real data, one process: baseline ≤ 6 s and wide ≤ 12 s (from 12.2 s and 24.5 s). Record
   before/after for each part.
-- [ ] The adopted settings: in `--compare` against the AC2 commit, no strategy × civ cell has a `!` (|Δ score| > 10%).
+- [x] (n/a: settings unchanged, so the AC2 comparison is the whole story) The adopted settings: in `--compare` against the AC2 commit, no strategy × civ cell has a `!` (|Δ score| > 10%).
   Every cell's Δ is within ±5% of main's mean score, or its CI includes 0. `gov_changes`, `anarchies` and `revolts` may
   move: note by how much.
-- [ ] Record the shipped `REVOLT_EVERY` / `LOOKAHEAD_TURNS` and the full comparison report in the Log.
+- [x] Record the shipped `REVOLT_EVERY` / `LOOKAHEAD_TURNS` and the full comparison report in the Log.
 
 ## Log
 - 2026-10-05: specced from the sim-CPU discussion as the separate balance item. Measured on `main` (8b12303):
   seed 1 baseline 12.2 s / wide 24.5 s with lookahead, 0.67 s / 1.56 s with it off (`ScriptedBot._depth = 1`).
+- 2026-10-05: red. AC3's renames (values unchanged with REVOLT_EVERY 4, LOOKAHEAD_TURNS 12): the cadence test takes
+  turn REVOLT_EVERY (and REVOLT_EVERY − 1 for "not weighed"); the last-half test's turn limit is REVOLT_EVERY +
+  LOOKAHEAD_TURNS ÷ 2 − 2 (8); the insight test expects 2 × LOOKAHEAD_TURNS ÷ INSIGHT_PER_POINT (6); 158's revolution
+  game runs REVOLT_EVERY + LOOKAHEAD_TURNS turns (16) and expects Chiefs for REVOLT_EVERY turns and Glory for
+  LOOKAHEAD_TURNS − 1; messages that said 12 or 36 now name the constants. `sim_game` in test_sim_anarchy now wraps a
+  `sim_stats` helper taking seeds.
+
+- 2026-10-05: spike `spike/fast-lookahead` (worktree `.claude/worktrees/prof-294`, `prof.gd` times one game and
+  fingerprints it by score, turn and a hash of the log). Profiled seed 1 wide: a lookahead turn costs what a real
+  turn costs (~30 ms), and 88% of the turns played are inside lookaheads. Fork itself is cheap (0.45 ms; copying the
+  log is free, the ~400 card instances are the cost). The time went to O(tableau²) queries:
+  - `Modifiers.working_cards` ran 58k times (163 µs): `total()` rebuilds it for every modifier query, and
+    `smallest_with_room` asked `housing()` (so `total(housing)`) once per territory (~45 in wide).
+  - `Territories.building_targets` scanned the tableau 4 times per territory (2.3 ms a call, 3 calls per building tried).
+  - `_resolve` looked up the card's territory before checking it had effects for the trigger (274k calls).
+  - Bot: `anarchy_ahead()` forecast before the cheap spend coin; one forecast per candidate card; `_buy_cheapest`
+    priced each pile 3 times.
+  Fixed each without changing a game (all 15 fingerprints, 5 strategies × seeds 1–3, identical; suite green): seed 1
+  baseline 12.6 → 5.9 s, wide 24.8 → 7.2 s, one process. That alone meets the Manual check's CPU bar.
+  Not worth it: deduping governments by id (the real deck never holds two of one); a lighter fork (10% left).
+  Tried, behaviour-changing: back off a revolt weigh when the ruling government and deck are unchanged since a weigh
+  that stayed (re-check every 3rd) — a further −29% CPU, but scores moved up to −21% (wide seed 3: 247 → 194).
+  Recommendation: build the neutral speedups as AC2 and keep REVOLT_EVERY 4 / LOOKAHEAD_TURNS 12 unless the user
+  wants more; settings and back-off then become optional, judged by `--compare`.
+- 2026-10-05: green. AC1 (99f433a): `ScriptedBot.lookahead_turns` adds each fork's turns played (its turn − the
+  game's); `SimStats._play_one` resets it before each game and reports it as `lookahead_turns` (last in METRICS).
+  Besides the planned METRICS list in test_sim, `test_sim_anarchy::test_the_new_metrics_and_one_per_government_in_order`
+  picked governments' metrics as every `*_turns` name but anarchy_turns and famine_turns: it now excludes
+  lookahead_turns too (the new name matched its filter).
+- 2026-10-05: AC2 (6f175ec), rebuilt from the spike: `Modifiers.total` runs the idle pass only when a tableau card has
+  the key; `working_cards`, `building_targets` and `smallest_with_room` each take one pass over the tableau
+  (`Population.tier_slots` looks the tiers up once); `_resolve` skips the territory lookup for a card with no effect
+  for the trigger; the bot checks its spend coin before `anarchy_ahead()`, makes one upkeep forecast per hand scan
+  and prices each supply pile once. No test changed. `SIM_CACHE=0 scripts/sim.sh --compare <AC1 worktree> 5`: all 30
+  cells Δ +0.0 ±0.0 at 5 seeds, no metric line (3.5 min for both sides). Balance suite green (29). Seed 1, one process:
+  baseline 12.6 → 5.5 s, wide 24.8 → 6.4 s.
+- Shipped settings: REVOLT_EVERY 4, LOOKAHEAD_TURNS 12 (unchanged, the user's call after the spike). Comparison report:
+  every strategy × civ cell `Δ +0.0 ±0.0 (+0.0%) seeds 5` (baseline, growth, wealth, wide, tall × egypt, sumer,
+  phoenicia, babylon, greece, persia).
+- Follow-up: `scripts/sim.sh --compare` against a fresh worktree fails with parse errors ("game n of 150 has no
+  result") until that checkout has been imported once (`godot --headless --path <it> --import`); the script could do
+  it, as it does for its own checkout.
+

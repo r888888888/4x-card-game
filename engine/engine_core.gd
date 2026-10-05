@@ -275,8 +275,11 @@ func add_score(amount: int, source: CardInstance) -> void:
 
 ## Applies card's effects for trigger. A keyword effect applies only if the card's territory has it.
 func _resolve(card: CardInstance, trigger: String) -> void:
+	var effects := card.def.effects_for(trigger)
+	if effects.is_empty():  # most cards have nothing for most triggers: skip the territory lookup
+		return
 	var territory := Territories.territory_of(self, card)
-	for e in card.def.effects_for(trigger):
+	for e in effects:
 		if e.keyword == "" or (territory != null and territory.keywords.has(e.keyword)):
 			e.apply(self, card)
 

@@ -2,7 +2,8 @@ extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the scripted bot (sim/bot.gd) and per-seed stats (sim/sim_stats.gd).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
-	"pop", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158 added the Anarchy and famine ones)
+	"lookahead_turns", "pop", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158 added the Anarchy and
+	# famine ones, 294 lookahead_turns)
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
@@ -166,6 +167,12 @@ func test_sim_stats_reports_mean_min_max_per_metric() -> void:
 	eq(stats.get("bought"), {"mean": 0.0, "min": 0, "max": 0}, "bought")
 	eq(stats.get("era"), {"mean": 1.0, "min": 1, "max": 1}, "era")
 	eq(stats.get("pop"), {"mean": 0.0, "min": 0, "max": 0}, "pop (no population block)")
+
+
+func test_a_game_with_nothing_to_weigh_reports_no_lookahead_turns() -> void:
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3 * ScriptedBot.REVOLT_EVERY})
+	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
+	eq(stats.get("lookahead_turns"), {"mean": 0.0, "min": 0, "max": 0}, "no government deck, no choice events (294)")
 
 
 func test_sim_stats_counts_founded_cities() -> void:
