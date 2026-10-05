@@ -56,9 +56,15 @@
     "monument": { "price": 3, "count": 1, "locked": true },
     "forge": { "price": 3, "count": 1, "locked": true },
     "barracks": { "price": 3, "count": 6, "locked": true },
-    "library": { "price": 3, "count": 1, "locked": true },
+    "library": { "price": 3, "count": 6, "locked": true },
     "market": { "price": 3, "count": 6, "locked": true },
-    "harbor": { "price": 3, "count": 6, "locked": true }
+    "harbor": { "price": 3, "count": 6, "locked": true },
+    "stone_circle": { "price": 2, "count": 6, "locked": true },
+    "mud_brick_houses": { "price": 2, "count": 6, "locked": true },
+    "caravanserai": { "price": 2, "count": 6, "locked": true },
+    "bathhouse": { "price": 3, "count": 6, "locked": true },
+    "courthouse": { "price": 3, "count": 6, "locked": true },
+    "aqueduct": { "price": 3, "count": 6, "locked": true }
   },
   "event_deck": {
     "solstice_rites": 1,

@@ -276,8 +276,41 @@
     },
     {
       "id": "library", "name": "Library", "type": "building",
-      "cost": { "wealth": 4 }, "vp": 1, "tags": [],
+      "cost": { "wealth": 5 }, "vp": 1, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "stone_circle", "name": "Stone Circle", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "mud_brick_houses", "name": "Mud-Brick Houses", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 2,
+      "effects": []
+    },
+    {
+      "id": "bathhouse", "name": "Bathhouse", "type": "building",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [], "requires": ["fresh_water"], "housing": 1,
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "courthouse", "name": "Courthouse", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "modifiers": { "unrest_limit": 1 },
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "aqueduct", "name": "Aqueduct", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "housing": 2,
+      "effects": []
+    },
+    {
+      "id": "caravanserai", "name": "Caravanserai", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"], "requires": ["desert"],
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "fresh_water" }
+      ]
     },
     {
       "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": [],
@@ -394,7 +427,8 @@
       "flavor": "Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.",
       "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" } ]
+      "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" },
+        { "op": "unlock", "card": "mud_brick_houses" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
@@ -415,14 +449,16 @@
       "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise.",
       "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
-      "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" } ]
+      "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" },
+        { "op": "unlock", "card": "stone_circle" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
       "flavor": "First spun by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains.",
       "quote": { "text": "As it were a wheel in the middle of a wheel.", "by": "Ezekiel 1:16" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
+      "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" },
+        { "op": "unlock", "card": "caravanserai" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
@@ -464,14 +500,15 @@
       "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods.",
       "quote": { "text": "Thou art a priest for ever after the order of Melchizedek.", "by": "Psalm 110:4" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" } ]
+      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" },
+        { "op": "unlock", "card": "bathhouse" } ]
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
       "flavor": "Written laws, set in stone for all to read, replace the whim of the chief with fixed rules.",
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "kingship", "zone": "discard" } ]
+      "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
@@ -520,7 +557,7 @@
       "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
       "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
+      "effects": [ { "op": "create", "card": "aqueduct", "zone": "discard" }, { "op": "unlock", "card": "aqueduct" } ]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",
