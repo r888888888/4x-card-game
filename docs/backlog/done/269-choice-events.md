@@ -2,7 +2,7 @@
 id: 269
 title: Choice events: an event that makes you pick one of 2–3 options
 type: feature
-status: review
+status: done
 branch: feat/269-choice-events
 ---
 
