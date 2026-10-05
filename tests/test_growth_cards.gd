@@ -312,3 +312,11 @@ func test_manual_growth_is_gone() -> void:
 	var view_vars: Array = (load("res://ui/territory_view.gd") as Script).get_script_property_list().map(
 		func(p): return p.name)
 	check(not view_vars.has("grow_button"), "the territory view has no Grow button")
+
+
+func test_the_grow_op_still_adds_pop() -> void:
+	var e := make_engine({"festival": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}})
+	var home := home_uid(e)
+	var before := e.pop(home)
+	check(e.play_card(first_in_hand(e)), "play Festival")
+	eq(e.pop(home), before + 1, "Festival's +1 pop")
