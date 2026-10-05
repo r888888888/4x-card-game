@@ -57,4 +57,4 @@ not raids in the deck with events in the discard. Fix: when nothing in the deck 
 
 ## Log
 - AC3 and AC4 tests passed before the fix: they guard behaviour the fix must keep.
-- With only raids in both piles, each turn now reshuffles them together and logs the reshuffle; harmless.
+- With only raids in both piles, the first such turn now shuffles the discarded raids into the deck (logged); none is lost.
