@@ -2,7 +2,7 @@
 id: 295
 title: Build buildings from a build menu instead of buying their cards
 type: feature
-status: review
+status: done
 branch: feat/295-build-menu-for-buildings
 ---
 
