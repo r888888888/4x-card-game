@@ -179,6 +179,50 @@ func test_real_events_harm_only_by_unrest() -> void:
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
 
+# --- Era-1 unrest cap (backlog 267) ---
+
+## The most unrest the event def can add (267): its play gains, plus its upkeep gains times its turns, plus for a raid
+## the larger of what its pillage and its repel effects gain.
+func unrest_added(def: CardDef) -> int:
+	var by_trigger := {}
+	for effect in def.effects:
+		if effect.op == "gain" and effect.get("resource") == "unrest":
+			by_trigger[effect.trigger] = by_trigger.get(effect.trigger, 0) + effect.get("amount")
+	return by_trigger.get("play", 0) + by_trigger.get("upkeep", 0) * def.discard_turns \
+		+ maxi(by_trigger.get("pillage", 0), by_trigger.get("repel", 0))
+
+
+func test_no_era_1_event_adds_more_than_1_unrest() -> void:
+	var r := load_real()
+	var over: Array[String] = []
+	var adding := 0
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		if def.era != 1:
+			continue
+		var n := unrest_added(def)
+		if n > 0:
+			adding += 1
+		if n > 1:
+			over.append("%s: +%d" % [id, n])
+	eq(over, [] as Array[String], "era-1 events that add more than 1 unrest")
+	check(adding >= 1, "some era-1 event still adds unrest")
+
+
+func test_every_event_era_can_be_reached() -> void:
+	var r := load_real()
+	var reachable := {1: true}
+	for tech in techs_in_research_deck(r):
+		for effect in tech.effects:
+			if effect.op == "add_era":
+				reachable[effect.era] = true
+	for era in r.config.era_unlocks:
+		reachable[era] = true
+	for id in r.config.get("event_deck", {}):
+		var era: int = r.cards[id].era
+		check(reachable.has(era), "%s is an era-%d event, but nothing adds era %d" % [id, era, era])
+
+
 # --- Wealth content (backlog 022) ---
 
 ## Whether any effect on def produces wealth (gain or gain_per_tag with resource "wealth").

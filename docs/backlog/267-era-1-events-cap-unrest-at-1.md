@@ -2,7 +2,7 @@
 id: 267
 title: Era-1 events add at most 1 unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/267-era-1-events-cap-unrest-at-1
 ---
 
@@ -36,7 +36,8 @@ they add flavour.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_no_era_1_event_adds_more_than_1_unrest` |
+| AC2 | `test_content::test_every_event_era_can_be_reached` |
 
 ## Manual check
 - [ ] Shipped numbers for review:
