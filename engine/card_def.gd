@@ -152,8 +152,9 @@ func rules_text(card_db: Dictionary) -> String:
 
 
 ## Full card text for the hover tooltip: one line per effect, spelled out. For a territory, its
-## slots, housing and keywords; for an event, how long it lasts (070).
-func rules_tooltip(card_db: Dictionary) -> String:
+## slots, housing and keywords; for an event, how long it lasts (070). Effects whose op is in skip_ops leave out their
+## lines (a tech's details show what it gives on their own, 289).
+func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
@@ -170,6 +171,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
+		if skip_ops.has(e.op):
+			continue
 		var line := e.describe_long(card_db)
 		if e.trigger == "upkeep":
 			line = "Each upkeep: " + line

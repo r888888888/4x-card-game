@@ -173,3 +173,65 @@ func test_no_card_lists_a_basic_term() -> void:
 func test_a_card_with_only_basic_terms_has_none() -> void:
 	var e := pop_engine(2)
 	eq(e.def_details("capital").get("terms"), [] as Array[Dictionary], "Capital (upkeep and slots only) has no terms")
+
+
+# --- Backlog 289: what a tech gives ---
+
+## A tech that gains food each upkeep, needs Bronze Working, has a eureka, and gives Granary (made and unlocked) and
+## Silo (unlocked). MASONRY_PLAIN is the same tech without its create and unlock effects.
+const MASONRY := {"id": "masonry", "name": "Masonry", "type": "tech", "cost": {"insight": 3}, "prereq": "bronze",
+	"eureka": {"card": "farm", "count": 1, "off": 1}, "effects": [
+		{"op": "create", "card": "granary", "zone": "discard"},
+		{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"},
+		{"op": "unlock", "card": "granary"},
+		{"op": "unlock", "card": "silo"}]}
+const MASONRY_PLAIN := {"id": "masonry_plain", "name": "Masonry", "type": "tech", "cost": {"insight": 3},
+	"prereq": "bronze", "eureka": {"card": "farm", "count": 1, "off": 1}, "effects": [
+		{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}
+## Two Granaries made, nothing unlocked.
+const GRANARIES := {"id": "granaries", "name": "Granaries", "type": "tech", "cost": {"insight": 2}, "effects": [
+	{"op": "create", "card": "granary", "zone": "discard"}, {"op": "create", "card": "granary", "zone": "discard"}]}
+## Non-techs that make a card: an action, and a civilization at the start.
+const BUILDERS := {"id": "builders", "name": "Builders", "type": "action", "effects": [
+	{"op": "create", "card": "granary", "zone": "discard"}]}
+const FOUNDERS := {"id": "founders", "name": "Founders", "type": "civilization", "effects": [
+	{"op": "create", "card": "granary", "zone": "discard", "trigger": "start"}]}
+
+
+## A game with MASONRY and GRANARIES in the research deck (Masonry on top), Granary and Silo locked in the supply.
+func gives_engine() -> GameEngine:
+	return tech_engine(["masonry", "granaries", "bronze"], {"farm": 10}, {"supply": {
+		"granary": {"price": 2, "count": 2, "locked": true}, "silo": {"price": 2, "count": 2, "locked": true}}},
+		[MASONRY, MASONRY_PLAIN, GRANARIES, BUILDERS, FOUNDERS])
+
+
+func test_a_techs_details_list_each_card_it_gives_with_how_you_get_it() -> void:
+	var e := gives_engine()
+	eq(e.def_details("masonry").get("gives"), [
+		{"card_id": "granary", "how": "1 to your discard · in the supply"},
+		{"card_id": "silo", "how": "in the supply"}], "Masonry's gives, in first-effect order")
+	eq(e.def_details("granaries").get("gives"), [{"card_id": "granary", "how": "2 to your discard"}],
+		"two creates of one card")
+
+
+func test_a_techs_rules_leave_out_the_lines_of_what_it_gives() -> void:
+	var e := gives_engine()
+	var rules: Array = e.def_details("masonry").get("rules", [])
+	var plain: Array = e.def_details("masonry_plain").get("rules", [])
+	check(plain.size() >= 3, "the plain tech has its gain, prerequisite and eureka lines: %s" % [plain])
+	eq(rules, plain, "Masonry's rules are the plain tech's")
+	var live: Dictionary = e.card_details(uid_of(e.zone("research_deck"), "masonry"))
+	eq(live.get("gives"), e.def_details("masonry").get("gives"), "a live copy's gives")
+	eq(live.get("rules"), plain, "a live copy's rules")
+	var def: CardDef = e.card_db["masonry"]
+	eq(def.rules_tooltip(e.card_db).split("\n").size(), plain.size() + 3, "the card's own text keeps every line")
+
+
+func test_cards_that_give_nothing_or_are_not_techs_have_no_gives() -> void:
+	var e := gives_engine()
+	for id in ["bronze", "farm", "builders", "founders"]:
+		eq(e.def_details(id).get("gives"), [], "%s gives nothing" % id)
+	var full: String = (e.card_db["builders"] as CardDef).rules_tooltip(e.card_db)
+	eq(e.def_details("builders").get("rules"), Array(full.split("\n")), "an action keeps its create line")
+	full = (e.card_db["founders"] as CardDef).rules_tooltip(e.card_db)
+	eq(e.def_details("founders").get("rules"), Array(full.split("\n")), "a civilization keeps its create line")

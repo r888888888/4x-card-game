@@ -4,6 +4,40 @@ extends RefCounted
 ## mechanic it uses. Static functions on the engine's state; GameEngine.def_details / card_details call them.
 
 
+## The effect ops whose cards a tech gives (289).
+const GIVES_OPS: Array[String] = ["create", "unlock"]
+
+
+## What tech def gives (289): one {card_id, how} per card its create and unlock effects name, in first-effect order;
+## how is "1 to your discard", "in the supply", or both joined by " · ". [] for a card that isn't a tech.
+static func gives(def: CardDef) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if def.type != CardDef.TECH:
+		return out
+	var order: Array[String] = []
+	var made := {}  # card_id -> {zone: copies}
+	var unlocked := {}  # card_id -> true
+	for effect in def.effects:
+		if not GIVES_OPS.has(effect.op):
+			continue
+		if not order.has(effect.card_id):
+			order.append(effect.card_id)
+		if effect.op == "create":
+			var zones: Dictionary = made.get_or_add(effect.card_id, {})
+			zones[effect.zone] = zones.get(effect.zone, 0) + 1
+		else:
+			unlocked[effect.card_id] = true
+	for id in order:
+		var how: PackedStringArray = []
+		var zones: Dictionary = made.get(id, {})
+		for zone in zones:
+			how.append("%d to your %s" % [zones[zone], zone])
+		if unlocked.has(id):
+			how.append("in the supply")
+		out.append({"card_id": id, "how": " · ".join(how)})
+	return out
+
+
 ## Details of card definition card_id with no live state, or {} if there is no such card.
 static func of_def(e: GameEngine, card_id: String) -> Dictionary:
 	if not e.card_db.has(card_id):
@@ -25,12 +59,15 @@ static func of_card(e: GameEngine, uid: int) -> Dictionary:
 
 static func _details(e: GameEngine, def: CardDef, keywords: Array[String], state: Array[String]) -> Dictionary:
 	var rules: Array[String] = []
-	var text := def.territory_text(keywords) if def.type == CardDef.TERRITORY else def.rules_tooltip(e.card_db)
+	var skip: Array[String] = []
+	if def.type == CardDef.TECH:
+		skip = GIVES_OPS  # shown in gives instead (289)
+	var text := def.territory_text(keywords) if def.type == CardDef.TERRITORY else def.rules_tooltip(e.card_db, skip)
 	if text != "":
 		rules.assign(text.split("\n"))
 	return {
 		"name": def.name, "type": def.type.capitalize(), "cost": _cost_text(def.cost), "vp": def.vp,
-		"rules": rules, "state": state, "terms": _terms(e, def, keywords),
+		"rules": rules, "gives": gives(def), "state": state, "terms": _terms(e, def, keywords),
 		"flavor": def.flavor, "quote": {"text": def.quote_text, "by": def.quote_by} if def.quote_text != "" else {},
 	}
 

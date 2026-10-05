@@ -77,9 +77,8 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 	if state == GameEngine.TECH_AVAILABLE and not prereq_met(e, def):
 		state = GameEngine.TECH_LOCKED
 	var gives: Array[String] = []
-	for effect in def.effects:
-		if effect.op in ["create", "unlock"] and not gives.has(effect.card_id):
-			gives.append(effect.card_id)
+	for given in CardDetails.gives(def):
+		gives.append(given.card_id)
 	var future := tech == null or state == GameEngine.TECH_FUTURE
 	return {
 		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
