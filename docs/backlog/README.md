@@ -55,3 +55,9 @@ Settlement tiers (pop sets a territory's tier, which adds slots; governments tol
 1. 281 settlement tiers add building slots, and buildings past the slots go idle
 2. 282 governments tolerate territories up to a tier; bigger ones add unrest
 3. 283 growth "where needed most" prefers a territory one pop short of its next tier
+
+Build menu (buildings and units leave the deck: techs unlock them, you build them onto a territory):
+1. 295 buildings are built from a build menu instead of bought
+2. 296 units are recruited from the build menu
+3. 297 Build… on a territory's view
+4. 298 the sim bot builds, recruits and keeps Settlers (then a balance item for costs and wealth)
