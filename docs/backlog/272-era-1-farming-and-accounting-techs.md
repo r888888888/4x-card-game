@@ -2,7 +2,7 @@
 id: 272
 title: Era-1 farming and accounting techs (Irrigation, The Plough, Weaving, Clay Tokens)
 type: feature
-status: ready
+status: red-review
 branch: feat/272-era-1-farming-and-accounting-techs
 ---
 
@@ -60,7 +60,10 @@ The bot needs no change: it learns the cheapest tech it can afford and builds bu
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tech_above_era_1_has_a_prereq` |
+| AC2 | `test_content::test_every_tech_has_a_eureka` |
+| AC3 | `test_content::test_era_1_techs_unlock_at_least_3_farm_buildings` |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
