@@ -2,7 +2,7 @@
 id: 266
 title: Events stop when the event deck holds only raids that can't be drawn yet
 type: bug
-status: red-review
+status: in-progress
 branch: fix/266-event-deck-stalls-behind-raids
 ---
 
