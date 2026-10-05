@@ -2,7 +2,7 @@
 id: 269
 title: Choice events: an event that makes you pick one of 2–3 options
 type: feature
-status: in-progress
+status: review
 branch: feat/269-choice-events
 ---
 
@@ -13,7 +13,7 @@ turns the event deck into decisions and gives stockpiles a use beyond spending. 
 you can always choose.
 
 ## Acceptance criteria
-- [ ] AC1 (loader): An event may set `choices`, a list of options. Each option is `{cost?: {resource: n}, effects: [...]}`.
+- [x] AC1 (loader): An event may set `choices`, a list of options. Each option is `{cost?: {resource: n}, effects: [...]}`.
   Each of these is a load error naming the file, the card and the field:
   - fewer than 2 or more than 3 options;
   - no option without a cost;
@@ -22,28 +22,28 @@ you can always choose.
   - an unknown resource in a cost;
   - `choices` on a card that isn't an event;
   - `choices` on a raid.
-- [ ] AC2 (owed): Given an event with 2 choices on top of the event deck, when it is drawn at turn 2's start, then its
+- [x] AC2 (owed): Given an event with 2 choices on top of the event deck, when it is drawn at turn 2's start, then its
   own play effects resolve first, and `pending()` is `{kind: PENDING_EVENT_CHOICE, uid, options: [0, 1]}`. Every other
   action (play, buy, research, end turn, …) refuses with "Choose how to answer <event> first.". The event stays active
   for its `discard.turns`, as now.
-- [ ] AC3 (choose): Given options [cost 2 wealth → +1 VP] and [free → +1 unrest], and 3 wealth:
+- [x] AC3 (choose): Given options [cost 2 wealth → +1 VP] and [free → +1 unrest], and 3 wealth:
   - `choose_option(0)` leaves 1 wealth and +1 VP, and clears `pending()`.
   - Instead, `choose_option(1)` adds +1 unrest and changes nothing else.
 
   Each choice emits `event_drawn`'s outcome shape for what the option did (`gained`, `lost`, `vp`, …), so the UI can
   summarise it.
-- [ ] AC4 (refusals): `choose_option_error(i)` is "" when legal. Otherwise it gives a reason, and `choose_option` then
+- [x] AC4 (refusals): `choose_option_error(i)` is "" when legal. Otherwise it gives a reason, and `choose_option` then
   changes nothing:
   - "Not enough wealth: needs 2." for option 0 with 1 wealth;
   - "No such option." for index 2 of 2, or −1;
   - "No event choice is waiting." when none is owed;
   - "The game is over." after the end.
-- [ ] AC5 (other decisions first): Given Anarchy owes a renewal at turn start and a choice event is drawn that same turn,
+- [x] AC5 (other decisions first): Given Anarchy owes a renewal at turn start and a choice event is drawn that same turn,
   then `pending()` is the renewal. Once it is paid, `pending()` is the event choice. The same holds for a government
   choice owed at turn start. `copy()` keeps an owed or waiting choice.
-- [ ] AC6 (text): Card text lists the options after its other effects: "Choose: pay 2 wealth for +1 VP; or +1 unrest."
+- [x] AC6 (text): Card text lists the options after its other effects: "Choose: pay 2 wealth for +1 VP; or +1 unrest."
   `option_text(uid, i)` returns one option's text: "Pay 2 wealth: +1 VP", "+1 unrest".
-- [ ] AC7 (bot): Given a fixture where option 0 gives the higher lookahead score, `ScriptedBot` picks option 0. Ties go
+- [x] AC7 (bot): Given a fixture where option 0 gives the higher lookahead score, `ScriptedBot` picks option 0. Ties go
   to the lowest index, and the bot never picks an option `choose_option_error` refuses. A bot game whose event deck is
   all choice events plays to its last turn without stalling.
 
@@ -82,6 +82,8 @@ you can always choose.
 | UI | `test_choice_modal::test_a_choice_event_shows_its_options_in_place_of_ok`, `test_the_choice_modal_cant_be_dismissed`, `test_a_refused_option_is_disabled_with_the_reason_as_its_tooltip`, `test_choosing_closes_the_modal_and_notices_what_the_option_did`, `test_under_anarchy_the_renewal_comes_first_then_the_choice` |
 
 ## Manual check
+- [ ] Launch `godot --path .` and play until "Envoys from the Hills" is drawn (it's one of ~22 era-1 events; or move it
+  to the top of `event_deck` in a local copy of `data/config.json`).
 - [ ] Shipped for review: "Envoys from the Hills" (era 1, 1 copy): "Choose: pay 2 wealth for +1 VP; or +1 unrest."
   Flavour: hill chieftains arrive with gifts and expect gifts in return.
 - [ ] When it is drawn, the event modal shows 2 option buttons and no Close. Esc and clicking outside do nothing. With
@@ -90,3 +92,16 @@ you can always choose.
 - [ ] Under Anarchy, the renewal modal comes first and the choice follows it.
 
 ## Log
+- 269 build: the options are stored in `state.pending` when the choice is owed (they never change while owed), so
+  `pending()` needs no branch for them. The engine logic lives in `engine/event_choices.gd` (`EventChoices`), which
+  keeps `data_loader.gd` from growing much further (it is at 554, past the 500 warning).
+- `option_chosen` is a new signal rather than a second `event_drawn`, which would reopen the event modal. The option's
+  cost is reported in `lost`, so `outcome_summary` reads "−2 wealth, +1 VP" with no change to played-card summaries.
+- AC5's government half as written can't happen: the government choice is owed only at a turn's end or mid-turn, never
+  as an event is drawn. Tested instead: Anarchy runs out at a turn's end, the government is chosen, and the choice event
+  drawn as the next turn starts is owed.
+- UI: `TurnNews` holds a choice event's modal back while another decision (the renewal) is owed, so its options aren't
+  shown disabled over the renewal sheet. The choice modal focuses no button, so Enter can't pick an option by accident.
+- `TurnNews.listen` takes the notify callable and checks it is still valid: the real engine outlives a closed main
+  scene, and real-data UI tests drew Envoys after an earlier main was freed.
+- Balance (not tuned here): Envoys gives the bot 2 wealth → 1 VP or +1 unrest; worth a look in the balance item for 270.

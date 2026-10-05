@@ -44,6 +44,7 @@ res://
     anarchy.gd           # Anarchy (145–148, 154, 155): falling at the unrest limit, counters, restore order, renewal, revolt,
                          # the government deck and choice
     events.gd            # Events: event deck setup, drawing one at each turn start, active events' upkeep and discard
+    event_choices.gd     # EventChoices: choice events' options (269): loading them, owing, waiting and choosing
     card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
     glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated;
                          # BASIC ones (Upkeep, Slots, Pop) are left out of card details (112)
@@ -86,7 +87,7 @@ res://
                          # sheet with its title block, body and footer, risen in and dropped off),
                          # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
                          # those above it), card_details_modal.gd (click, right-click or I),
-                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), raid_modal.gd (each raid that strikes, above the event; both opened by turn_news.gd, 271), identity_modal.gd (119; Revolt… since 205),
+                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), raid_modal.gd (each raid that strikes, above the event; both opened by turn_news.gd, 271; a choice event's options in the event modal, 269), identity_modal.gd (119; Revolt… since 205),
                          # revolt_modal.gd (205: the revolution's confirmation), rename_modal.gd (248: naming a territory)
                          # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
                          # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
@@ -246,8 +247,8 @@ It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameSt
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
 with the food stat in the warning color when pop would starve.
 
-Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147) or the government
-choice (154). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
+Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
+choice (154) or a choice event's options (269). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
 options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
 message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
 and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
@@ -459,11 +460,21 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   territory plus the total cost of every city, building and unit in the tableau) is at least `raid_min_size`, no raid
   is active, and `raid_gap` turns have passed since the last strike (`GameState.last_raid_turn`; no gap before the
   first). Otherwise it goes to the event deck's bottom and the next event is drawn; with only such raids left, no
-  event that turn. Shipped: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4. `raid_forecast()` lists the announced
+  event that turn. Shipped: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4.
+- Choice events (269, `EventChoices`): an event (not a raid) may set `choices`, 2–3 options `{cost?: {resource: n ≥ 1},
+  effects}`, at least one free; option effects have no `trigger` and follow an event's own rules (no target, no
+  choice). When drawn, after its own play effects, `pending()` is `{kind: PENDING_EVENT_CHOICE, uid, options: [0, …]}`
+  and every other action says "Choose how to answer <event> first."; drawn while another decision is owed (a renewal),
+  it waits (`CardInstance.choice_waiting`) and is owed once that is paid. `choose_option(i)` / `choose_option_error(i)`
+  pay the cost and resolve the effects once, emitting `option_chosen` (`{uid, id, index, gained, lost, vp, …}`, the
+  cost in `lost`). Card text: "Choose: pay 2 wealth for +1 VP; or +1 unrest."; `option_text(uid, i)`: "Pay 2 wealth:
+  +1 VP". The event modal shows the options as buttons in place of OK (a refused one disabled, its reason the tooltip)
+  and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
+  bot answers by per-option lookahead (`ScriptedBot.pick_option`). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
   Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
   `Military`.
-- Code: `engine/events.gd`.
+- Code: `engine/events.gd`, `engine/event_choices.gd` (269).
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
@@ -607,7 +618,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Peasant Uprising
   (+1), and in era 2 Omen of Doom (+2) and Bandit Raids (⟳ +1, 2 turns), the only events that harm besides raids.
   No era-1 event adds more than 1 unrest in all (267: play gains, upkeep gains × turns, a raid's larger of pillage and
-  repel).
+  repel, a choice event's option that adds most, 269).
 - Real data: Chiefdom (2 actions, unrest limit 8; no other bonus; the start), Kingship (3 actions, limit 10, ⟳ +1 wealth; from Code of Laws),
   Theocracy (3 actions, limit 13, ⟳ +1 VP; from Priesthood). Techs that give a government add it to the government deck (154); it has no supply pile.
 - UI: one top-bar button names the civilization and the government ("Egypt · Chiefdom"), before Buy Cards and
