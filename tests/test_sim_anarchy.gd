@@ -15,6 +15,15 @@ const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "restored", "gov_
 ## SimStats.run on one seed of a game with a deck of Charters, block merged into the unrest block, starting resources
 ## starting (food, wealth and insight 10 unless given) and overrides: {metric: value}.
 func sim_game(block := {}, starting := {}, overrides := {}) -> Dictionary:
+	var stats := sim_stats(block, starting, overrides, [1])
+	var out := {}
+	for m in stats:
+		out[m] = stats[m].min
+	return out
+
+
+## SimStats.run on seeds of sim_game's game: {metric: {mean, min, max}}.
+func sim_stats(block: Dictionary, starting: Dictionary, overrides: Dictionary, seeds: Array) -> Dictionary:
 	var cards := anarchy_db([GLORY, CHARTER])
 	var resources := {"food": 10, "wealth": 10, "insight": 10}
 	resources.merge(starting, true)
@@ -29,11 +38,7 @@ func sim_game(block := {}, starting := {}, overrides := {}) -> Dictionary:
 	listed.assign(raw.resources)
 	var config := DataLoader.parse_config(raw, listed, cards, "config.json", errors, warnings)
 	check(errors.is_empty(), "test config should load: %s" % [errors])
-	var stats := SimStats.run(cards, config, [1])
-	var out := {}
-	for m in stats:
-		out[m] = stats[m].min
-	return out
+	return SimStats.run(cards, config, seeds)
 
 
 # --- AC1, AC2: the metric names ---
@@ -61,10 +66,23 @@ func test_a_forced_anarchy_of_2_turns_then_glory() -> void:
 
 
 func test_a_revolution_counts_as_a_revolt_and_an_anarchy() -> void:
-	var m := sim_game({}, {"unrest": 1}, {"turn_limit": 16})
+	var revolt := ScriptedBot.REVOLT_EVERY
+	var last := revolt + ScriptedBot.LOOKAHEAD_TURNS
+	var m := sim_game({}, {"unrest": 1}, {"turn_limit": last})
 	eq([m.get("revolts"), m.get("anarchies"), m.get("anarchy_turns")], [1, 1, 1],
-		"Charter makes Glory on turn 1, the bot revolts at the end of turn 4; a 1-turn Anarchy on turn 5")
-	eq([m.get("chiefs_turns"), m.get("glory_turns"), m.get("gov_changes")], [4, 11, 1], "Chiefs turns 1–4, Glory 6–16")
+		"Charter makes Glory on turn 1, the bot revolts at the end of turn %d; a 1-turn Anarchy on turn %d" % [revolt,
+		revolt + 1])
+	eq([m.get("chiefs_turns"), m.get("glory_turns"), m.get("gov_changes")], [revolt, last - revolt - 1, 1],
+		"Chiefs turns 1–%d, Glory %d–%d" % [revolt, revolt + 2, last])
+
+
+# --- 294: lookahead_turns ---
+
+func test_lookahead_turns_counts_each_game_on_its_own() -> void:
+	var stats := sim_stats({}, {"unrest": 1}, {"turn_limit": ScriptedBot.REVOLT_EVERY + ScriptedBot.LOOKAHEAD_TURNS}, [1, 1])
+	var turns: Dictionary = stats.get("lookahead_turns", {})
+	check(turns.get("min", 0) > 0, "the bot weighed a revolution: %s" % [turns])
+	eq(turns.get("max"), turns.get("min"), "the same game twice counts the same: the count restarts each game")
 
 
 func test_buying_order_counts_as_restored() -> void:

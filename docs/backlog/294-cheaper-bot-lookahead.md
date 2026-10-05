@@ -2,7 +2,7 @@
 id: 294
 title: "Balance: make the bot's lookahead and the engine's hot path cheaper without changing results"
 type: feature
-status: ready
+status: red-review
 branch: feat/294-cheaper-bot-lookahead
 ---
 
@@ -58,7 +58,10 @@ This is the dedicated balance item for that work. It has two parts:
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_bot_lookahead::test_weighing_a_revolution_plays_a_lookahead_for_staying_and_for_each_government`, `test_bot_lookahead::test_a_game_with_no_government_deck_and_no_choice_events_plays_no_lookahead_turns`, `test_sim::test_a_game_with_nothing_to_weigh_reports_no_lookahead_turns`, `test_sim_anarchy::test_lookahead_turns_counts_each_game_on_its_own`; `test_sim::test_sim_stats_reports_mean_min_max_per_metric` (its `METRICS` list gains `lookahead_turns`) |
+| AC2 | the whole main suite, unchanged after the red commit; `scripts/sim.sh --compare` against the AC1 commit (manual) |
+| AC3 | rename-only: `test_bot_lookahead::test_the_bot_revolts_every_revolt_every_turns_when_a_revolution_scores_more` (was `…_every_4_turns_…`), `…::test_the_bot_doesnt_weigh_a_revolt_in_the_last_half_lookahead`, `…::test_inside_a_lookahead_the_bot_never_revolts`, `…::test_a_lookahead_values_insight_at_1_point_per_4`, `test_sim_anarchy::test_a_revolution_counts_as_a_revolt_and_an_anarchy` |
+| AC4 | deferred: only if Part 2's measurements favour the pre-filter (a second red checkpoint) |
 
 ## Manual check
 - [ ] CPU per game, seed 1, real data, one process: baseline ≤ 6 s and wide ≤ 12 s (from 12.2 s and 24.5 s). Record
@@ -71,3 +74,10 @@ This is the dedicated balance item for that work. It has two parts:
 ## Log
 - 2026-10-05: specced from the sim-CPU discussion as the separate balance item. Measured on `main` (8b12303):
   seed 1 baseline 12.2 s / wide 24.5 s with lookahead, 0.67 s / 1.56 s with it off (`ScriptedBot._depth = 1`).
+- 2026-10-05: red. AC3's renames (values unchanged with REVOLT_EVERY 4, LOOKAHEAD_TURNS 12): the cadence test takes
+  turn REVOLT_EVERY (and REVOLT_EVERY − 1 for "not weighed"); the last-half test's turn limit is REVOLT_EVERY +
+  LOOKAHEAD_TURNS ÷ 2 − 2 (8); the insight test expects 2 × LOOKAHEAD_TURNS ÷ INSIGHT_PER_POINT (6); 158's revolution
+  game runs REVOLT_EVERY + LOOKAHEAD_TURNS turns (16) and expects Chiefs for REVOLT_EVERY turns and Glory for
+  LOOKAHEAD_TURNS − 1; messages that said 12 or 36 now name the constants. `sim_game` in test_sim_anarchy now wraps a
+  `sim_stats` helper taking seeds.
+
