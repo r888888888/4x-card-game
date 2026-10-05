@@ -2,7 +2,7 @@
 id: 274
 title: Economy and society techs (Fermentation, Olive and Vine, Medicine, Credit)
 type: feature
-status: ready
+status: red-review
 branch: feat/274-economy-and-society-techs
 ---
 
@@ -52,7 +52,10 @@ Data only. Each tech goes into `research_deck` with a `flavor` and a real, attri
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_at_least_2_reachable_buildings_guard_against_famine` |
+| AC2 | `test_content::test_some_tech_pays_income_for_unrest_each_upkeep` |
+| AC3 | `test_content::test_at_least_2_reachable_buildings_require_hills` |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
