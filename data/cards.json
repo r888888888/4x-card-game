@@ -96,7 +96,6 @@
       "id": "temple", "name": "Temple", "type": "building",
       "cost": { "wealth": 4 }, "vp": 1, "tags": ["culture"],
       "effects": [
-        { "op": "score", "amount": 1, "trigger": "upkeep" },
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" },
         { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" }
       ]
@@ -122,11 +121,12 @@
       "id": "harbor", "name": "Harbor", "type": "building",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": [], "requires": ["coastal"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
+        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" }
       ]
     },
     {
-      "id": "lumber_camp", "name": "Lumber Camp", "type": "building",
+      "id": "hunters_camp", "name": "Hunters' Camp", "type": "building",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -139,11 +139,6 @@
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
-      "id": "quarry", "name": "Quarry", "type": "building",
-      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
-      "effects": [ { "op": "score", "amount": 1 } ]
-    },
-    {
       "id": "shrine", "name": "Shrine", "type": "building",
       "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"], "modifiers": { "unrest_limit": 1 },
       "effects": []
@@ -152,7 +147,10 @@
       "id": "mine", "name": "Mine", "type": "building",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "tin" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "copper" }
       ]
     },
     {
@@ -409,7 +407,7 @@
       "id": "mining", "name": "Mining", "type": "tech",
       "flavor": "Copper, tin and flint are dug from the hills in narrow shafts lit by oil lamps.",
       "quote": { "text": "Surely there is a vein for the silver, and a place for gold where they fine it.", "by": "Job 28:1" },
-      "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "quarry", "count": 1, "off": 2 }, "tags": [],
+      "cost": { "insight": 5 }, "vp": 0, "eureka": { "tag": "wall", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "mine", "zone": "discard" }, { "op": "unlock", "card": "mine" } ]
     },
     {
@@ -430,7 +428,7 @@
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
       "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
       "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
-      "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "quarry", "count": 2, "off": 2 }, "tags": [],
+      "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
@@ -521,7 +519,7 @@
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
       "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
       "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
-      "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "quarry", "count": 3, "off": 6 }, "tags": [],
+      "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" } ]
     },
     {
