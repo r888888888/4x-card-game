@@ -338,10 +338,12 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 (Iron Age: 6 era-3 techs in the deck, opened by Writing; eurekas on every tech; pacing; built).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
   (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
-  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Lumber Camp 2,
+  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles,
-  Farm too (232), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
-  culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
+  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food) and Shrine (anywhere, 1 VP,
+  culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
+  gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
+  makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).
 - Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 5–8, era 2 13–19, era 3 27–32, set by 143 so era 1 runs out around turn 18 and era 2
   around 50 in the sim); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
