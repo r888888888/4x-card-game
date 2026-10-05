@@ -46,7 +46,7 @@ func vellum_shown(main: Node) -> bool:
 
 func test_targeting_wipes_vellum_in_from_the_left_with_the_targets_above_it() -> void:
 	await with_two_targets(false, func(main: Node, temple: int, targets: Array[int]):
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		check(main.drag.targeting != null, "targeting")
 		check(vellum_shown(main), "the vellum is down")
 		var start: Rect2 = main.vellum.covered_rect()
@@ -76,9 +76,9 @@ func test_targeting_wipes_vellum_in_from_the_left_with_the_targets_above_it() ->
 
 func test_a_click_on_a_target_plays_there_and_the_vellum_wipes_off_right() -> void:
 	await with_two_targets(false, func(main: Node, temple: int, targets: Array[int]):
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_seconds(WIPE_IN + SLACK)
-		main.on_picked(main.views[targets[1]])
+		main.card_actions.on_picked(main.views[targets[1]])
 		var e := Game.engine
 		var played := e.zone("tableau").find(temple)
 		check(played != null and played.territory_uid == targets[1], "played on the clicked target")
@@ -98,7 +98,7 @@ func test_a_click_on_a_non_target_card_reaches_only_the_vellum() -> void:
 			if c.uid != temple:
 				other = c.uid
 		check(other != -1, "precondition: another hand card")
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_seconds(WIPE_IN + SLACK)
 		var before := e.zone("hand").cards.size()
 		click_at(main, (main.views[other] as CardView).get_global_rect().get_center())
@@ -114,7 +114,7 @@ func test_esc_right_click_or_a_click_on_the_vellum_cancel_and_wipe_it_off() -> v
 	for way in ["esc", "right", "vellum"]:
 		await with_two_targets(false, func(main: Node, temple: int, _targets: Array[int]):
 			var e := Game.engine
-			main.on_double_clicked(main.views[temple])
+			main.card_actions.on_double_clicked(main.views[temple])
 			await wait_seconds(WIPE_IN + SLACK)
 			var empty: Vector2 = main.tableau.row.get_global_rect().end - Vector2(4, 4)
 			match way:
@@ -137,7 +137,7 @@ func test_esc_right_click_or_a_click_on_the_vellum_cancel_and_wipe_it_off() -> v
 
 func test_with_reduce_motion_the_vellum_fades_in_and_out() -> void:
 	await with_two_targets(true, func(main: Node, temple: int, _targets: Array[int]):
-		main.on_double_clicked(main.views[temple])
+		main.card_actions.on_double_clicked(main.views[temple])
 		var full: Rect2 = main.vellum.covered_rect()
 		check(full.encloses(main.tableau.row.get_global_rect()), "whole at once, no wipe: %s" % full)
 		check((main.vellum as Control).modulate.a < 1.0, "fading in")

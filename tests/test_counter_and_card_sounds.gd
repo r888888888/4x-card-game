@@ -215,7 +215,7 @@ func test_a_refused_drop_taps_twice_as_the_card_shakes() -> void:
 			await (Engine.get_main_loop() as SceneTree).create_timer(1.0).timeout  # dealt in: at rest in the hand
 			main.sfx.set_clock(0.0)
 			var before: int = main.sfx.played().size()
-			main.try_play(main.views[hall])
+			main.card_actions.try_play(main.views[hall])
 			eq(heard(main, before), [[Sfx.REJECT, 0.0, 0.0]], "the refusal's double tap, as the shake starts")))
 
 
@@ -230,7 +230,7 @@ func test_a_click_that_waits_for_a_target_ticks_and_cancelling_is_silent() -> vo
 			e.changed.emit()
 			await wait_frames()
 			main.sfx.set_clock(0.0)
-			main.on_double_clicked(main.views[temple])
+			main.card_actions.on_double_clicked(main.views[temple])
 			check(main.drag.targeting != null, "targeting")
 			eq(tokens(main), [Sfx.SELECTION], "the index tab clips on")
 			check(main.sfx.played()[0].input if not main.sfx.played().is_empty() else false, "the player's own click")

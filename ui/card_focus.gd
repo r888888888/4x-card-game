@@ -69,7 +69,7 @@ func handle_key(event: InputEventKey) -> bool:
 		Game.engine.end_turn()  # refused while end_turn_error() says so
 	elif event.keycode == KEY_D and not event.echo:
 		if focused != null and is_instance_valid(focused) and focused.in_hand:
-			_board.discard(focused)
+			_board.card_actions.discard(focused)
 	elif event.keycode == KEY_ESCAPE and not event.echo and _board.drag.targeting == null:
 		if focused != null:
 			clear()
@@ -151,13 +151,13 @@ func activate() -> void:
 	if _board.supply.is_open():
 		_board.supply.pick(view)
 	elif _choice_row() != null or (drag.targeting != null and drag.lit.has(view.uid)):
-		_board.on_picked(view)
+		_board.card_actions.on_picked(view)
 	elif on_board and not _board.territory_view.is_open():
 		_board.territory_view.open(view.uid)  # Enter on a Realm territory: its view, focus on its first card
 		on_board = true  # the refresh dropped it: the territory's own card isn't in the view's row
 		set_card(_first(board_row()))
 	elif view.in_hand:
-		_board.on_double_clicked(view)
+		_board.card_actions.on_double_clicked(view)
 		if drag.targeting != null:
 			var targets := row()
 			if not targets.is_empty():
