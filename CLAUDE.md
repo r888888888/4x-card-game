@@ -115,6 +115,9 @@ in a dedicated balance item, or when the user asks.
 - You may create the item branch and commit on it without asking: once at the red checkpoint
   (the failing tests), then at each green point (suite green). Messages: `<id>: <summary>` plus the attribution trailer.
 - Ask before merging to `main`, pushing, rebasing, amending, or deleting branches.
+- After every merge to `main`, clean up without asking: remove the merged branch and its worktree, plus any other
+  branch already merged into `main` (`git branch --merged main`) and its worktree (`git worktree remove`, then
+  `git worktree prune`). Leave unmerged branches, and any worktree with uncommitted changes: other sessions own them.
 - Other sessions work in this checkout: build items in a worktree.
 
 ## Style

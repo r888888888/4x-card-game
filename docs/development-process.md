@@ -100,8 +100,8 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
   the tests come first). You may still ask to merge a spike as-is when it changes no rules, e.g.
   tooling, docs or a UI experiment you liked, provided the suite is green. Untested changes to
   `engine/`, `autoload/` or the loader never merge.
-- **Cleanup.** Claude asks before deleting a spike branch, as with any branch. Keeping one around
-  for reference is fine.
+- **Cleanup.** Claude asks before deleting an unmerged spike branch, as with any branch. Keeping one around
+  for reference is fine. Once a spike is merged, its branch and worktree are cleaned up like any merged branch.
 
 ## Files
 
