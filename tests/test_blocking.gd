@@ -29,6 +29,7 @@ func actions() -> Array:
 	return [
 		["play_card", func(e): return e.play_error(first_in(e, "hand")), func(e): return e.play_card(first_in(e, "hand"))],
 		["buy", func(e): return e.buy_error("farm"), func(e): return e.buy("farm")],
+		["build", func(e): return e.call("build_error", "farm", home_uid(e)), func(e): return e.call("build", "farm", home_uid(e))],  # 295
 		["buy_tech", func(e): return e.buy_tech_error(first_in(e, "research_deck")),
 			func(e): return e.buy_tech(first_in(e, "research_deck"))],
 		["end_turn", func(e): return e.end_turn_error(), func(e): return e.end_turn()],

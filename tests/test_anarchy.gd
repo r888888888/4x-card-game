@@ -141,6 +141,16 @@ func test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules() -> 
 	check(e.supply_lamp(), "Farm buyable and unseen: lit")
 
 
+## 295 AC2: under Anarchy a building can't be built from the build menu, as it can't be played.
+func test_under_anarchy_nothing_is_built_from_the_build_menu() -> void:
+	var e: Object = anarchy_engine({}, {"build_menu": {"well": {}}, "supply": null})
+	e.resources["unrest"] = 5
+	e.end_turn()
+	check(e.anarchy() != -1, "precondition: Anarchy rules")
+	eq(e.build_error("well", home_uid(e)), ONLY_ORDER, "build_error")
+	check(not e.build("well", home_uid(e)), "build refuses")
+
+
 func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
 	var e := fallen_engine()
 	var card: int = e.zone("hand").cards[0].uid

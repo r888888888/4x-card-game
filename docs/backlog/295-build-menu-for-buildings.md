@@ -2,7 +2,7 @@
 id: 295
 title: Build buildings from a build menu instead of buying their cards
 type: feature
-status: ready
+status: red-review
 branch: feat/295-build-menu-for-buildings
 ---
 
@@ -92,7 +92,12 @@ straight onto a settled territory for 1 action plus its cost, whenever you can p
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_build_menu::test_building_puts_a_new_copy_on_the_territory_for_an_action_and_its_cost`, `test_building_resolves_play_effects_and_pays_the_discounted_cost`, `test_with_no_territory_named_it_builds_on_the_only_one_that_takes_it` |
+| AC2 | `test_build_menu::test_build_refuses_with_a_reason_and_changes_nothing`, `test_build_refuses_without_a_slot_or_a_worker`, `test_build_refuses_an_invalid_target_or_an_unnamed_choice`, `test_build_targets_ignore_cost_and_are_empty_for_a_locked_or_unknown_entry`, `test_build_refuses_when_the_game_is_over_or_a_decision_is_owed`; `test_anarchy::test_under_anarchy_nothing_is_built_from_the_build_menu`; `test_blocking` (a `build` row) |
+| AC3 | `test_build_menu::test_a_tech_unlocks_a_build_menu_entry_without_creating_a_card`, `test_an_unlock_of_a_building_reads_can_now_be_built` |
+| AC4 | `test_build_menu::test_a_once_entry_is_built_once_for_the_whole_game`, `test_an_entry_without_once_builds_any_number_of_times`, `test_a_copy_keeps_what_is_unlocked_and_built` |
+| AC5 | `test_build_menu::test_build_menu_loads_with_defaults`, `test_build_menu_validation`, `test_an_unlock_may_name_a_build_menu_entry` |
+| AC6 | `test_content::test_buildings_are_in_the_build_menu_not_the_deck_or_supply`, `test_every_locked_build_menu_entry_is_unlocked_by_a_tech_and_back`, `test_every_wonder_is_a_once_entry`, `test_no_tech_creates_a_building_outside_the_tableau`, `test_every_civilization_can_build_on_its_home_on_turn_1`, `test_every_listed_civilization_has_its_own_home_that_takes_most_open_entries`; changed: `test_eras_1_and_2_each_have_2_wonders_from_their_techs`, `test_every_wonder_comes_only_from_one_tech` (unlocks, not creates) |
 
 ## Manual check
 - [ ] `data/config.json`: the `build_menu` lists every building, open ones first as today's turn-1 piles; the starting
