@@ -51,6 +51,13 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 7. 167 era units and era 2–3 raids
 
 
+Sim CPU (a balance run stops taking over the machine; each builds on the one before):
+1. 291 performance cores but one, a shared job queue, one parallel run at a time
+2. 292 cache each game's result by code and data
+3. 293 compare two checkouts game by game, adding seeds only where unclear
+4. 294 balance: cheaper bot lookahead and engine hot path
+
+
 Settlement tiers (pop sets a territory's tier, which adds slots; governments tolerate tiers up to one):
 1. 281 settlement tiers add building slots, and buildings past the slots go idle
 2. 282 governments tolerate territories up to a tier; bigger ones add unrest
