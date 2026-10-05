@@ -2,7 +2,7 @@
 id: 288
 title: Light a lamp on Knowledge and Buy Cards when something new can be bought
 type: feature
-status: in-progress
+status: review
 branch: feat/288-ready-lamps
 ---
 
@@ -17,27 +17,27 @@ out when the player opens that screen. Design: option A of
 "Learnable" means `buy_tech_error(uid) == ""` for a tech in the research deck; "buyable" means `buy_error(card_id) == ""`
 for a supply pile. Rules tests use `TEST_CARDS` + `make_engine`.
 
-- [ ] AC1: Given a game where no tech is learnable (insight below every offered tech's `tech_cost`), when insight
+- [x] AC1: Given a game where no tech is learnable (insight below every offered tech's `tech_cost`), when insight
   rises so that exactly one tech becomes learnable, then `tech_lamp()` turns from false to true and
   `ready_techs()` returns that tech's id only.
-- [ ] AC2: Given `tech_lamp()` is true, when `see_techs()` is called (the Knowledge screen opens), then `tech_lamp()`
+- [x] AC2: Given `tech_lamp()` is true, when `see_techs()` is called (the Knowledge screen opens), then `tech_lamp()`
   is false, and it stays false while the same techs remain the only learnable ones: after more insight that
   makes no other tech learnable, after `end_turn()`, and after insight drops below that tech's cost and later rises
   to it again.
-- [ ] AC3: Given `see_techs()` was called while tech A was learnable, when tech B (not learnable then) becomes
+- [x] AC3: Given `see_techs()` was called while tech A was learnable, when tech B (not learnable then) becomes
   learnable, then `tech_lamp()` is true. Given `see_techs()` was called while nothing was learnable, any tech becoming
   learnable lights it.
-- [ ] AC4: Given a tech that is affordable but can't be learned (its prereq isn't researched, a choice is pending,
+- [x] AC4: Given a tech that is affordable but can't be learned (its prereq isn't researched, a choice is pending,
   Anarchy forbids building, or the game is over), then it isn't in `ready_techs()` and lights nothing; when the block
   lifts and it hasn't been seen, then `tech_lamp()` is true.
-- [ ] AC5: The supply works the same way with `supply_lamp()`, `ready_supply()` (buyable card ids) and
+- [x] AC5: The supply works the same way with `supply_lamp()`, `ready_supply()` (buyable card ids) and
   `see_supply()`: a pile becoming buyable (wealth reaching its `buy_price`, or a locked pile unlocking while
   affordable) lights it; `see_supply()` puts it out until a pile not buyable at that call becomes buyable; a sold-out
   or locked pile lights nothing.
-- [ ] AC6: The seen sets live in `GameState`, so an engine copy reports the same `tech_lamp()` / `supply_lamp()` and
+- [x] AC6: The seen sets live in `GameState`, so an engine copy reports the same `tech_lamp()` / `supply_lamp()` and
   calling `see_*` on the copy leaves the original's lamp as it was. A new game starts with both sets empty (so the
   lamp is lit at once if something is already purchasable).
-- [ ] AC7 (UI): The Knowledge key shows a lit lamp exactly when `tech_lamp()` is true and the Buy Cards key exactly
+- [x] AC7 (UI): The Knowledge key shows a lit lamp exactly when `tech_lamp()` is true and the Buy Cards key exactly
   when `supply_lamp()` is true (test hooks on the keys, e.g. `TopBar.knowledge_lamp_lit()`); opening the Knowledge
   screen or the Supply calls `see_techs()` / `see_supply()`, and closing it calls it again, so whatever became
   purchasable while the screen was open counts as seen.
@@ -95,3 +95,13 @@ for a supply pile. Rules tests use `TEST_CARDS` + `make_engine`.
 - [ ] The keys don't shift width when a lamp lights.
 
 ## Log
+- 2026-10-05: Built. Engine: `ReadyLamps` (`engine/ready_lamps.gd`) behind `GameEngine.ready_techs`, `ready_supply`,
+  `tech_lamp`, `supply_lamp`, `see_techs`, `see_supply`; `GameState.seen_techs` / `seen_supply`. "Research-deck order"
+  is top card first. UI: `ReadyLamp` (`ui/ready_lamp.gd`) sits on a blank 12 px icon of its key, so the key's width
+  never changes; `TopBar` lights both lamps (quietly on a new game's first refresh) and adds the "New: …" tooltip line
+  to Knowledge, `SupplyScreen` to Buy Cards. `KnowledgeScreen` and `SupplyScreen` emit `looked` on open and close, and
+  `BoardLayout` sees and refreshes the lamps then (main.gd stayed at its 500-line soft limit).
+- The lamp's lit ring and highlight are `Palette.GAIN` darkened and lightened, not new palette roles. The rays ease on
+  `TRANS_CUBIC`/`EASE_OUT`, approximating `ease.machined`. `EndTurnKey`'s lamp isn't shared: it changes colour by
+  role, has no burst, and is drawn as a `StyleBoxFlat` panel. A follow-up could merge the two if a third lamp
+  appears.
