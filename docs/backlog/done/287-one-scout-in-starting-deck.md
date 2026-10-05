@@ -2,7 +2,7 @@
 id: 287
 title: Start with a single Scout in the deck
 type: feature
-status: ready
+status: done
 branch: feat/287-one-scout-in-starting-deck
 ---
 
@@ -11,9 +11,9 @@ The starting deck holds one Scout instead of two, so exploration is less front-l
 for other cards. More Scouts are still bought from the supply.
 
 ## Acceptance criteria
-- [ ] AC1: Given the real `data/config.json`, when the loader reads it, then it loads without errors and every starting
+- [x] AC1: Given the real `data/config.json`, when the loader reads it, then it loads without errors and every starting
   `deck` id is a card in `data/cards.json` (existing deck invariants stay green).
-- [ ] AC2: Given a new game on the real data, when the deck is dealt, then the opening zones (draw pile and hand) hold as
+- [x] AC2: Given a new game on the real data, when the deck is dealt, then the opening zones (draw pile and hand) hold as
   many cards as the sum of the `deck` counts (existing deal invariant stays green).
 
 ## Out of scope
@@ -36,3 +36,4 @@ for other cards. More Scouts are still bought from the supply.
 - [ ] Shipped number: one Scout copy in `deck`; start `godot --path . -- --civ sumer --seed 5` and check the deck view.
 
 ## Log
+- Data-only change: `scout` 2 → 1 in `deck`; suite 1855 tests, green.
