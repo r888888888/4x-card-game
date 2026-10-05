@@ -35,10 +35,15 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 
 func describe(_card_db: Dictionary) -> String:
+	return "+%d %s per %s territory" % [amount, resource, keyword_list()]
+
+
+## The keywords for short card text: "mountain or fresh water".
+func keyword_list() -> String:
 	var names: PackedStringArray = []
 	for k in keywords:
 		names.append(k.replace("_", " "))
-	return "+%d %s per %s territory" % [amount, resource, " or ".join(names)]
+	return " or ".join(names)
 
 
 func describe_long(_card_db: Dictionary) -> String:
