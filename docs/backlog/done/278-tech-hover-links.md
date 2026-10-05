@@ -2,7 +2,7 @@
 id: 278
 title: Hovering an available tech highlights its prerequisite and the techs it opens
 type: feature
-status: review
+status: done
 branch: feat/278-tech-hover-links
 ---
 
