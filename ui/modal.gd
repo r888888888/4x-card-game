@@ -124,6 +124,17 @@ func add_footer_button(button: Button, primary := false) -> Button:
 	return button
 
 
+## Puts card def, face up and not clickable, alone in the aside (the event and raid modals' card).
+func show_card(def: CardDef, card_db: Dictionary) -> void:
+	for child in aside.get_children():
+		child.queue_free()
+	var card := CardView.new()
+	card.setup(CardInstance.new(-1, def), card_db, true)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	aside.custom_minimum_size = card.slot_size()
+	card.attach(aside)
+
+
 ## Shows it on top of the open modals.
 func present() -> void:
 	stack.push(self)

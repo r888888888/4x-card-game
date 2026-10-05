@@ -53,13 +53,7 @@ func open(outcome: Dictionary) -> void:
 	_flavor.visible = def.flavor != ""
 	_summary.text = _shown.summary
 	_lasts.text = _shown.lasts
-	for child in aside.get_children():
-		child.queue_free()
-	var card := CardView.new()
-	card.setup(CardInstance.new(-1, def), e.card_db, true)
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	aside.custom_minimum_size = card.slot_size()
-	card.attach(aside)
+	show_card(def, e.card_db)
 	present()
 	FocusRing.focus(ok_button)
 
