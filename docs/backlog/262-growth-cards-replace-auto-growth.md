@@ -2,7 +2,7 @@
 id: 262
 title: Growth cards replace automatic growth
 type: feature
-status: in-progress
+status: review
 branch: feat/262-growth-cards
 ---
 
@@ -12,19 +12,19 @@ stays gone). Growth becomes a deck choice that competes for actions and food: Br
 is) and Land Grants (a pop on each of your 3 smallest territories). Needs 261. Spike: `spike/growth-cards`.
 
 ## Acceptance criteria
-- [ ] AC1: No automatic growth: given population on and an upkeep netting +5 food with room everywhere, when the next
+- [x] AC1: No automatic growth: given population on and an upkeep netting +5 food with room everywhere, when the next
   turn starts, then no territory's pop changes and no "grew to" notice is emitted.
-- [ ] AC2: `population.growth_surplus` is no longer read: a config with it loads without errors and with the loader's
+- [x] AC2: `population.growth_surplus` is no longer read: a config with it loads without errors and with the loader's
   usual warning "population: unknown field 'growth_surplus'"; the normalized population block has no
   `growth_surplus`. Test fixtures no longer add it (`NO_GROWTH` is gone).
-- [ ] AC3: Real data: the starting deck and the supply hold at least one action whose effects include `grow` with
+- [x] AC3: Real data: the starting deck and the supply hold at least one action whose effects include `grow` with
   `where: "best"`, and at least one with `where: "each"` and a `count`; every growth card costs food. (Content
   invariants: no card ids or numbers in the test.)
-- [ ] AC4: Bot: given a hand with a growth card it can afford, it plays it only when that adds pop and the next
+- [x] AC4: Bot: given a hand with a growth card it can afford, it plays it only when that adds pop and the next
   upkeep's net food (`upkeep_forecast()[FOOD]`) after playing it is still ≥ +1. Fixture: food_upkeep 1, Capital +2,
   pop 2, one Farm (+1): net +1 → it skips a `best` growth card (net would be 0); with two Farms (net +2) it plays one.
   With every territory full it skips it.
-- [ ] AC5: Bot strategies: `growth` and `tall` play growth cards first (with food-on-upkeep cards) and may buy them
+- [x] AC5: Bot strategies: `growth` and `tall` play growth cards first (with food-on-upkeep cards) and may buy them
   as their preferred supply cards; `baseline`, `wealth` and `wide` play them in hand order under the AC4 rule.
 
 ## Out of scope
@@ -73,3 +73,10 @@ to `test_growth_cards`), `test_anarchy::test_under_anarchy_nothing_grows_by_itse
   automatic growth, slowed early pop, and left food for Settlers; Famines rose because the spike bot only checked the
   next upkeep (AC4 fixes that). Uncapped Land Grants drove wide bots into famine (net −5 to −7 by turn 60); capped at 3
   it didn't. Run the `balance` skill in the next item.
+- Built (stacked on 261's branch): `Population.auto_grow`, its call and `food_before` in `TurnLoop.start_turn`,
+  `growth_surplus` (loader, config.json) and `NO_GROWTH` removed; Bread and Beer and Land Grants added with the spike
+  values; `ScriptedBot._growth_ok` (fork, pop up, next upkeep nets ≥ +1 food) for every strategy, `_prefers` for
+  growth/tall takes `grow` cards. Generated text checked: "+1 pop where it's needed most", "+1 pop on each of your 3
+  smallest territories with room". `scripts/test.sh --balance` green.
+- Balance worry: on the last turn `upkeep_forecast()` is `{}`, so the bot reads net food 0 and never plays a growth
+  card then, though the pop would still score. For the balance item.

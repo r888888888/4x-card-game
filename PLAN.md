@@ -11,7 +11,7 @@
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
 | Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests; the games run on one process per core (152) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers; a surplus grows pop, 260), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074) and revolutionary events (148); barbarians are specced (160–168) |
 
@@ -305,8 +305,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   death per unpaid food): when pop can't be fed in full, the famine card (an event, never in `event_deck`, with no
   `discard`) becomes active if it isn't, gains a counter up to `max_counters`, and its upkeep effects resolve once
   per counter (real data: −1 pop from the territory with the most pop, ties settled first). A fed upkeep, even
-  with 0 food left, removes it from the game. One Famine at a time; the `grow` op adds nothing while it lasts (automatic
-  growth can't happen then: a fed upkeep has ended it); `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
+  with 0 food left, removes it from the game. One Famine at a time; the `grow` op adds nothing while it lasts; `famine_counters()` / `event_counters(uid)`; the event panel shows "N counters". Pop can
   reach 0; the city stays. Famine guard (060): the working buildings on a territory (decided before pop eats) save
   up to their total `famine_guard` of the Famine's deaths there each upkeep; `upkeep_forecast().starve` counts only
   the pop that die. A guard save skips one counter's upkeep effects (096).
@@ -324,11 +323,11 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
-- Growth (260, replacing 010's bought growth): right after pop eats, if the upkeep netted at least
-  `population.growth_surplus` food (default 2; made less eaten, `upkeep_forecast()[FOOD]`'s figure), the settled
-  territory with the most pop and room (ties: tableau order) gets +1 pop, free, with a notice ("Homeland grew to 3
-  pop."). One a turn; none under Anarchy. Each pop eats, so growth settles at a surplus of `growth_surplus` − 1. Test
-  fixtures default it to `NO_GROWTH` (1000). In the territory view pop is a meter of pips, one per housing (124).
+- Growth (262): pop grows only from growth cards, never by itself (260's automatic growth from a food surplus is
+  gone, and 010's bought Grow with it). Bread and Beer (action, 2 food: +1 pop where it's needed most; 1 in the
+  starting deck, 8 in the supply at 2) and Land Grants (action, 5 food: +1 pop on each of your 3 smallest territories
+  with room; 4 in the supply at 3). Growth competes for actions and food. In the territory view pop is a meter of pips,
+  one per housing (124).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
 ## Techs (Milestone 4 — in progress)

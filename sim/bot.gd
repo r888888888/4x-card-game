@@ -12,11 +12,12 @@ extends RefCounted
 ## They read what cards do from their effects, never their ids: growth and tall play cards that make food on upkeep
 ## (and growth cards, 262) first and buy one from the supply each turn (239), wealth does the same with cards that make
 ## wealth, wide plays cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy
-## plays a growth card only when it adds pop and the next upkeep still nets food (see _growth_ok). Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
-## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
-## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159),
-## valued by score and the insight they gathered (240). Before Anarchy rules, a seeded coin decides whether it spends
-## its wealth on the supply instead of letting the drain take it (239): see _spend_before_drain.
+## plays a growth card only when it adds pop and the next upkeep still nets food (see _growth_ok), and plays around the
+## unrest limit (144): see _unrest_ok; under Anarchy it pays to restore order from the second turn with 2+ counters
+## left or a starving upkeep ahead (155), renews the card worth least to keep (147), and chooses governments and
+## revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159), valued by score and the insight they gathered (240).
+## Before Anarchy rules, a seeded coin decides whether it spends its wealth on the supply instead of letting the drain
+## take it (239): see _spend_before_drain.
 
 const MAX_STEPS := 2000
 const MAX_PLAYS_PER_TURN := 40
@@ -180,8 +181,7 @@ static func _hand_order(engine: GameEngine, strategy: String) -> Array:
 static func _prefers(strategy: String, def: CardDef) -> bool:
 	match strategy:
 		"growth", "tall":
-			return def.effects.any(func(e): return _grows(def) \
-				or (e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD))
+			return _grows(def) or def.effects.any(func(e): return e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD)
 		"wealth":
 			return _makes_wealth(def)
 		"wide":
