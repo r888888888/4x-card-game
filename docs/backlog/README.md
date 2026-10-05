@@ -59,5 +59,6 @@ Settlement tiers (pop sets a territory's tier, which adds slots; governments tol
 Build menu (buildings and units leave the deck: techs unlock them, you build them onto a territory):
 1. 295 buildings are built from a build menu instead of bought
 2. 296 units are recruited from the build menu
-3. 297 Build… on a territory's view
-4. 298 the sim bot builds, recruits and keeps Settlers (then a balance item for costs and wealth)
+3. 299 preview what building an entry on a territory would change
+4. 297 Build… on a territory's view: the list-and-forecast modal, and "+ Build" on empty slots
+5. 298 the sim bot builds, recruits and keeps Settlers (then a balance item for costs and wealth)

@@ -10,7 +10,7 @@ branch: feat/298-bot-builds-and-buys-settlers
 After 295–296 buildings and units come from the build menu, so a bot that only plays its hand never builds and the
 simulator stops measuring anything real. After this, `ScriptedBot` builds and recruits as part of its play order, and
 the expanding strategies buy Settlers on purpose instead of relying on wealth dumped before Anarchy's drain (the
-spike's baseline and wide played half as many Settlers without it). Follows 296; the balance item that retunes costs
+spike's baseline and wide played half as many Settlers without it). Follows 296 (independent of 299 and 297); the balance item that retunes costs
 comes after this one.
 
 ## Acceptance criteria
