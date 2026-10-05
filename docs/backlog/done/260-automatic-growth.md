@@ -2,7 +2,7 @@
 id: 260
 title: Territories grow automatically from a food surplus
 type: feature
-status: review
+status: done
 branch: feat/260-automatic-growth
 ---
 
