@@ -3,7 +3,8 @@
 # Prints mean, min and max per metric over seeds 1..N (a block per strategy, scored per civilization, 134); exits 1 if the data has loader errors.
 # Plays the games on the performance cores but one (152, 291; every core but one where the count is unknown), each
 # worker taking the next game from one queue; SIM_PROCS=n sets how many, SIM_PROCS=1 plays them in one process.
-# One parallel run at a time across every checkout: a second one exits 1 at once, naming the running one's pid (291).
+# Each game's result is cached by the code and data that played it (292), shared by every checkout; SIM_CACHE=0 skips
+# the cache. One parallel run at a time across every checkout: a second one exits 1 at once, naming the running one's pid (291).
 # Runs at nice 10 (SIM_NICE=n overrides; the worker processes inherit it) so a run on every core leaves the desktop responsive.
 set -uo pipefail
 cd "$(dirname "$0")/.."

@@ -159,13 +159,17 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 	}
 
 
-## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs, games_per_proc}: code 0 and one line
+## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs, games_per_proc, played,
+## cached}: code 0 and one line
 ## per metric; with strategy "all", a block per strategy: its mean score per listed civilization, then its metrics over
 ## all of them. Code 1 and the loader errors (or an unknown strategy, or the shards that wrote no results). options
 ## (LaunchOptions.parse, 135): turns replaces the turn limit, civ plays only that civilization; procs (152, default 1)
 ## is how many processes play the games, never more than there are games. procs in the result is how many did, and
 ## games_per_proc how many games each played. lock_path (291): with procs 2+, the run takes that lock first and fails
-## at once (code 1, playing nothing) while another live run holds it; "" or absent for no lock.
+## at once (code 1, playing nothing) while another live run holds it; "" or absent for no lock. cache_dir (292): reads
+## each game a run with the same code (source_hash), data bytes, seed, strategy, civ and turn limit played before, and
+## writes each game it plays; "" or absent (or cache false) for no cache. played and cached count the games each way;
+## the header names the cached ones.
 static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline",
 		options := {}) -> Dictionary:
 	var data := _load(cards_path, config_path, strategy, options)
@@ -173,17 +177,39 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 		return {"code": 1, "lines": data.errors, "procs": 1}
 	var jobs := _jobs(data.config, seed_count, strategy, options.get("civ", ""))
 	var names := metric_names(data.cards, data.config)
-	var procs := clampi(options.get("procs", 1), 1, jobs.size())
-	var played := {"games": jobs.map(func(job): return _play_one(data.cards, data.config, job, names)),
-		"errors": [], "per_proc": [jobs.size()]} if procs == 1 \
-		else _play_locked(cards_path, config_path, seed_count, strategy, options, procs, jobs.size(), names)
+	var cache := _cache_folder(cards_path, config_path, data.config, options)
+	var games := []
+	games.resize(jobs.size())
+	var todo := []  # the job indices no cache entry has
+	for i in jobs.size():
+		games[i] = _cache_read(cache, jobs[i], names)
+		if games[i] == null:
+			todo.append(i)
+	var procs := clampi(options.get("procs", 1), 1, maxi(todo.size(), 1))
+	var played := {"games": games, "errors": [], "per_proc": []}
+	if todo.is_empty():
+		pass
+	elif procs == 1:
+		for i in todo:
+			games[i] = _play_one(data.cards, data.config, jobs[i], names)
+		played.per_proc = [todo.size()]
+	else:
+		played = _play_locked(cards_path, config_path, seed_count, strategy, options, procs, jobs.size(), names, todo)
+	var out := {"code": 1, "lines": played.errors, "procs": procs, "games_per_proc": played.per_proc,
+		"played": todo.size(), "cached": jobs.size() - todo.size()}
 	if not played.errors.is_empty():
-		return {"code": 1, "lines": played.errors, "procs": procs, "games_per_proc": played.per_proc}
-	var games: Array = played.games
+		return out
+	for i in todo:
+		games[i] = played.games[i]
+		_cache_write(cache, jobs[i], games[i])
 	var lines: Array[String] = ["%d seeds (1-%d)" % [seed_count, seed_count]]
+	if out.cached > 0:
+		lines[0] += ", %d of %d games cached" % [out.cached, jobs.size()]
+	out.code = 0
+	out.lines = lines
 	if strategy != "all":
 		lines.append_array(_metric_lines(_summaries(_collect(games, names))))
-		return {"code": 0, "lines": lines, "procs": procs, "games_per_proc": played.per_proc}
+		return out
 	var per_civ: int = jobs.size() / ScriptedBot.STRATEGIES.size() / seed_count
 	var next := 0
 	for s in ScriptedBot.STRATEGIES:
@@ -199,7 +225,7 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 				all[m] = all.get(m, []) + values[m]
 		lines.append("score by civilization: " + ", ".join(scores))
 		lines.append_array(_metric_lines(_summaries(all)))
-	return {"code": 0, "lines": lines, "procs": procs, "games_per_proc": played.per_proc}
+	return out
 
 
 ## The data files loaded with options' turn limit applied: {cards, config, errors}; errors also name an unknown
@@ -274,8 +300,9 @@ static func worker_path(dir: String, worker: int) -> String:
 
 ## Reads the count workers' files in dir back into one list of job_count games ({metric: int} for names, in names'
 ## order; null for a game no worker wrote), then removes dir. Returns {games, errors, per_proc}: an error per game
-## with no result ("game 2 of 4 has no result"), and how many games each worker wrote.
-static func read_workers(dir: String, count: int, job_count: int, names: Array[String]) -> Dictionary:
+## with no result ("game 2 of 4 has no result"; only those in expected, when given), and how many games each worker
+## wrote.
+static func read_workers(dir: String, count: int, job_count: int, names: Array[String], expected := []) -> Dictionary:
 	var games := []
 	games.resize(job_count)
 	var per_proc := []
@@ -293,7 +320,7 @@ static func read_workers(dir: String, count: int, job_count: int, names: Array[S
 			games[int(k)] = game
 	var errors: Array[String] = []
 	for i in job_count:
-		if games[i] == null:
+		if games[i] == null and (expected.is_empty() or i in expected):
 			errors.append("game %d of %d has no result" % [i + 1, job_count])
 	_remove_tree(dir)
 	return {"games": games, "errors": errors, "per_proc": per_proc}
@@ -336,23 +363,27 @@ static func _running(pid: int) -> bool:
 ## Plays the run on procs workers (_play_children), holding options' lock_path (if any) while they play.
 ## Returns _play_children's {games, errors, per_proc}; errors is the lock's message when another run holds it.
 static func _play_locked(cards_path: String, config_path: String, seed_count: int, strategy: String,
-		options: Dictionary, procs: int, job_count: int, names: Array[String]) -> Dictionary:
+		options: Dictionary, procs: int, job_count: int, names: Array[String], todo: Array) -> Dictionary:
 	var lock: String = options.get("lock_path", "")
 	if lock != "":
 		var refused := take_lock(lock)
 		if refused != "":
 			return {"games": [], "errors": [refused], "per_proc": []}
-	var played := _play_children(cards_path, config_path, seed_count, strategy, options, procs, job_count, names)
+	var played := _play_children(cards_path, config_path, seed_count, strategy, options, procs, job_count, names, todo)
 	if lock != "":
 		release_lock(lock)
 	return played
 
 
-## Plays the run on procs child processes (sim/run.gd with worker=i and dir= arguments, claiming jobs from one queue)
-## and returns read_workers' {games, errors, per_proc}. A child still running after CHILD_TIMEOUT_MSEC is killed.
+## Plays the todo jobs of the run on procs child processes (sim/run.gd with worker=i and dir= arguments, claiming jobs
+## from one queue; the others are claimed up front) and returns read_workers' {games, errors, per_proc}. A child still
+## running after CHILD_TIMEOUT_MSEC is killed.
 static func _play_children(cards_path: String, config_path: String, seed_count: int, strategy: String,
-		options: Dictionary, procs: int, job_count: int, names: Array[String]) -> Dictionary:
+		options: Dictionary, procs: int, job_count: int, names: Array[String], todo: Array) -> Dictionary:
 	var dir := OS.get_temp_dir().path_join("sim-%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()])
+	for i in job_count:
+		if not i in todo:
+			DirAccess.make_dir_recursive_absolute(claim_path(dir, i))
 	DirAccess.make_dir_recursive_absolute(dir)
 	var base := PackedStringArray(["--headless", "--path", ProjectSettings.globalize_path("res://"), "--script",
 		"res://sim/run.gd", "--", str(seed_count), strategy])
@@ -372,7 +403,81 @@ static func _play_children(cards_path: String, config_path: String, seed_count: 
 			OS.delay_msec(20)
 		if OS.is_process_running(pid):
 			OS.kill(pid)
-	return read_workers(dir, procs, job_count, names)
+	return read_workers(dir, procs, job_count, names, todo)
+
+
+## A hash of the code that plays a game (292): every .gd script under root's engine/, sim/ and autoload/ (paths and
+## contents, in path order) and the Godot version.
+static func source_hash(root: String) -> String:
+	var paths: Array[String] = []
+	for folder in ["engine", "sim", "autoload"]:
+		_scripts_under(root, folder, paths)
+	paths.sort()
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update(Engine.get_version_info().string.to_utf8_buffer())
+	for path in paths:
+		ctx.update(("\n%s\n" % path).to_utf8_buffer())
+		ctx.update(FileAccess.get_file_as_bytes(root.path_join(path)))
+	return ctx.finish().hex_encode()
+
+
+## Appends to out the .gd scripts under root/folder, as paths relative to root.
+static func _scripts_under(root: String, folder: String, out: Array[String]) -> void:
+	var dir := root.path_join(folder)
+	if not DirAccess.dir_exists_absolute(dir):
+		return
+	for f in DirAccess.get_files_at(dir):
+		if f.get_extension() == "gd":
+			out.append(folder.path_join(f))
+	for sub in DirAccess.get_directories_at(dir):
+		_scripts_under(root, folder.path_join(sub), out)
+
+
+## The cache folder for this project's code and the data files' bytes under options' cache_dir, "" for no cache.
+static func _cache_folder(cards_path: String, config_path: String, config: Dictionary, options: Dictionary) -> String:
+	var base: String = options.get("cache_dir", "")
+	if base == "" or not options.get("cache", true):
+		return ""
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	for path in [cards_path, config_path]:
+		ctx.update(FileAccess.get_file_as_bytes(path))
+		ctx.update("\n".to_utf8_buffer())
+	var code := source_hash(ProjectSettings.globalize_path("res://"))
+	return base.path_join("%s-%s" % [code.left(16), ctx.finish().hex_encode().left(16)]).path_join(
+		"turns-%d" % config.get("turn_limit", 0))
+
+
+## The cache entry of job ([seed, strategy, civ]) in folder.
+static func _cache_entry(folder: String, job: Array) -> String:
+	return folder.path_join("%s-%s-%d.json" % [job[1], job[2] if job[2] != "" else "default", job[0]])
+
+
+## job's metrics from the cache folder ({metric: int} for names, in names' order), null when it has no entry, the entry
+## isn't JSON or lacks one of names.
+static func _cache_read(folder: String, job: Array, names: Array[String]) -> Variant:
+	if folder == "" or not FileAccess.file_exists(_cache_entry(folder, job)):
+		return null
+	var json := JSON.new()  # parse(), unlike parse_string, logs no error for a bad entry
+	var entry: Variant = json.data if json.parse(FileAccess.get_file_as_string(_cache_entry(folder, job))) == OK else null
+	if not entry is Dictionary or names.any(func(m): return not entry.has(m)):
+		return null
+	var game := {}
+	for m in names:
+		game[m] = int(entry[m])
+	return game
+
+
+## Writes job's metrics (game) to the cache folder, through a temp file so a reader never sees half an entry.
+static func _cache_write(folder: String, job: Array, game: Dictionary) -> void:
+	if folder == "":
+		return
+	DirAccess.make_dir_recursive_absolute(folder)
+	var path := _cache_entry(folder, job)
+	var temp := "%s.%d.tmp" % [path, OS.get_process_id()]
+	if _write_json(temp, game):
+		DirAccess.rename_absolute(temp, path)
 
 
 ## Writes value to path as JSON; whether it could.

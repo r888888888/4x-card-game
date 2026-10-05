@@ -2,7 +2,7 @@
 id: 292
 title: Cache each sim game's result by the code and data that produced it
 type: feature
-status: red-review
+status: in-progress
 branch: feat/292-sim-result-cache
 ---
 
