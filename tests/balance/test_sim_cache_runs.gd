@@ -23,15 +23,6 @@ func run_with(seed_count: int, strategy := "baseline", options := {}, config := 
 	return SimStats.run_files(CARDS, config, seed_count, strategy, o)
 
 
-func remove_tree(dir: String) -> void:
-	if not DirAccess.dir_exists_absolute(dir):
-		return
-	for sub in DirAccess.get_directories_at(dir):
-		remove_tree(dir.path_join(sub))
-	for f in DirAccess.get_files_at(dir):
-		DirAccess.remove_absolute(dir.path_join(f))
-	DirAccess.remove_absolute(dir)
-
 
 ## Every file in the cache, by path.
 func cache_files(dir := cache_dir()) -> Array:

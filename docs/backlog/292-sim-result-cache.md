@@ -2,7 +2,7 @@
 id: 292
 title: Cache each sim game's result by the code and data that produced it
 type: feature
-status: in-progress
+status: review
 branch: feat/292-sim-result-cache
 ---
 
@@ -14,20 +14,20 @@ key reads them instead of playing. The cache is shared by every checkout and wor
 reuses what the main checkout played.
 
 ## Acceptance criteria
-- [ ] AC1: Given an empty cache directory, when `run_files` runs seeds 1–2 of `baseline` (`--civ sumer`, `--turns 4`),
+- [x] AC1: Given an empty cache directory, when `run_files` runs seeds 1–2 of `baseline` (`--civ sumer`, `--turns 4`),
   then the result has `played` 2 and `cached` 0. When it runs again, it has `played` 0 and `cached` 2, and the report
   lines are identical except the header's cache count.
-- [ ] AC2: Given those 2 cached games, when the run changes any part of the key (`--turns 5`, `--civ greece`,
+- [x] AC2: Given those 2 cached games, when the run changes any part of the key (`--turns 5`, `--civ greece`,
   `wealth`, or seed 3), then the changed games are played (`played` 2, or 1 for seeds 1–3), not read.
-- [ ] AC3: Given those 2 cached games, when the run uses a copy of `config.json` with one value changed (its path in
+- [x] AC3: Given those 2 cached games, when the run uses a copy of `config.json` with one value changed (its path in
   the `config` option), then both games are played again. A byte-identical copy at another path reads both from the
   cache: the key hashes the data's contents, not its path.
-- [ ] AC4: `SimStats.source_hash(root)` hashes every `.gd` file under `root`'s `engine/`, `sim/` and `autoload/`. Given
+- [x] AC4: `SimStats.source_hash(root)` hashes every `.gd` file under `root`'s `engine/`, `sim/` and `autoload/`. Given
   two temp trees that are identical, they hash the same. When one line of one `.gd` file changes, they differ. When a
   file outside those folders or a `.uid` file changes, they still hash the same.
-- [ ] AC5: Given half the jobs of a 4-game run cached (seeds 1–2 of 4), when it runs on `procs` 2, then only seeds 3–4
+- [x] AC5: Given half the jobs of a 4-game run cached (seeds 1–2 of 4), when it runs on `procs` 2, then only seeds 3–4
   go to the workers and the report equals an uncached `procs` 1 run. Given all 4 cached, it starts no child process.
-- [ ] AC6: Given a cache entry that isn't valid JSON, or lacks a metric the run reports, then that game is played
+- [x] AC6: Given a cache entry that isn't valid JSON, or lacks a metric the run reports, then that game is played
   again, the entry is overwritten, and the run succeeds. Given the `cache` option false (`SIM_CACHE=0`), then every
   game is played and nothing is written to the cache.
 
@@ -70,3 +70,14 @@ reuses what the main checkout played.
 
 ## Log
 - 2026-10-05: specced from the sim-CPU discussion. User chose: one cache shared by all checkouts.
+- 2026-10-05: built on 291's branch (it needs the queue).
+  - **Cache only when asked.** The cache is on only when `run_files` gets a `cache_dir`. `sim/run.gd` passes
+    `user://sim-cache`, so existing tests never see cache state.
+  - **Folder layout.** Folders are `<cache_dir>/<code hash 16>-<data hash 16>/turns-<n>/<strategy>-<civ>-<seed>.json`.
+  - **Parallel runs.** A parallel run claims the cached games up front, so its workers only see the rest.
+    `read_workers` gained `expected` (the jobs it must find).
+  - **Bad entries.** These are read with a `JSON` instance: `JSON.parse_string` logs an engine error on a bad entry.
+  - `remove_tree` moved into `tests/lib/test_case.gd` (three test files had it).
+- Verified: `SIM_CACHE=0 scripts/sim.sh 3 wealth --civ greece --turns 30` prints exactly what `main` prints. Run
+  twice with the cache: the second says `3 of 3 games cached` (0.4 s).
+- Suite 1860 → 1864 tests; balance suite 17 → 23.
