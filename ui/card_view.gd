@@ -216,6 +216,12 @@ func set_unit_strength(tag: String) -> void:
 	_face.replace_info("StrengthInfo", tag)
 
 
+## Shows a wonder site's progress ("4 / 12 wealth", 286) on its info line; "" clears it.
+func set_site_info(tag: String) -> void:
+	_replays["site_info"] = set_site_info.bind(tag)
+	_face.replace_info("SiteInfo", tag)
+
+
 ## The text set_event_info shows, or "" when it was never called.
 func event_info_text() -> String:
 	return _face.info_text("EventInfo")

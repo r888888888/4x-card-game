@@ -6,7 +6,8 @@ extends Modal
 ## A hand card's details also offer Play (225), and a tech's from the Knowledge screen Research (229), each disabled
 ## with the engine's reason when it can't be done. A unit's in the realm offer Move… and Disband (163), likewise.
 ## A supply pile's, opened from the supply screen, show the pile's price tag and copies left under the card and offer
-## Buy, disabled with the engine's reason on the footer's left when the pile can't be bought (259).
+## Buy, disabled with the engine's reason on the footer's left when the pile can't be bought (259). A wonder site's
+## offer Contribute, which puts in GameEngine.contribute_limit, and Abandon…, which asks first (286).
 
 ## Play was pressed on a hand card's details: the modal has closed, and view is the card to play.
 signal play_requested(view: CardView)
@@ -25,6 +26,10 @@ var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidd
 var _move: Button
 var _disband: Button
 var _unit := -1  # the unit in the realm Move… and Disband act on (163); -1 when they are hidden
+var _contribute: Button
+var _abandon: Button
+var _site := -1  # the wonder site Contribute and Abandon… act on (286); -1 when they are hidden
+var abandon_modal: AbandonModal  # Abandon…'s confirmation, on this modal's stack (286)
 var _buy: Button
 var _reason: Label  # why Buy is disabled, on the footer's left (259)
 var _pile: CardView  # the supply pile card Buy buys from; null when Buy is hidden
@@ -57,6 +62,9 @@ func _init(p_stack: ModalStack) -> void:
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
 	_disband = add_footer_button(UIKit.button("Disband", _on_disband))
 	_move = add_footer_button(UIKit.button("Move…", _on_move), true)
+	_abandon = add_footer_button(UIKit.button("Abandon…", _on_abandon))
+	_contribute = add_footer_button(UIKit.button("Contribute", _on_contribute), true)
+	abandon_modal = AbandonModal.new(p_stack)
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -77,6 +85,11 @@ func research_button() -> Button:
 ## Test hook (163): the Move… and Disband buttons, hidden unless a unit in the realm is on show.
 func unit_buttons() -> Array[Button]:
 	return [_move, _disband]
+
+
+## Test hook (286): the Contribute and Abandon… buttons, hidden unless a wonder site is on show.
+func site_buttons() -> Array[Button]:
+	return [_contribute, _abandon]
 
 
 ## Test hook (259): the Buy button, hidden unless a supply pile's details are on show.
@@ -166,6 +179,18 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		var no := e.disband_error(_unit)
 		_disband.disabled = no != ""
 		_disband.tooltip_text = no if no != "" else "Send it to your discard; its worker is freed."
+	_site = uid if uid != -1 and e.is_site(uid) else -1
+	_contribute.visible = _site != -1
+	_abandon.visible = _site != -1
+	if _site != -1:
+		var most := e.contribute_limit(_site)
+		var no := e.contribute_error(_site, maxi(1, most))
+		_contribute.text = "Contribute %d wealth" % most if no == "" else "Contribute"
+		_contribute.disabled = no != ""
+		_contribute.tooltip_text = no if no != "" else "Pay wealth into it now (no action)."
+		var stop := e.abandon_error(_site)
+		_abandon.disabled = stop != ""
+		_abandon.tooltip_text = stop if stop != "" else "Stop building: it goes to your discard and what went in is lost."
 	_play.visible = hand_view != null
 	if hand_view != null:
 		var error := e.playable_error(hand_view.uid)
@@ -204,6 +229,7 @@ func closed() -> void:
 	_view = null
 	_tech = -1
 	_unit = -1
+	_site = -1
 	_pile = null
 
 
@@ -225,6 +251,21 @@ func _on_disband() -> void:
 	close()
 	if Game.engine.disband_error(uid) == "":
 		Game.engine.disband(uid)
+
+
+func _on_contribute() -> void:
+	var uid := _site
+	close()
+	var e := Game.engine
+	var most := e.contribute_limit(uid)
+	if e.contribute_error(uid, most) == "":
+		e.contribute(uid, most)
+
+
+func _on_abandon() -> void:
+	var uid := _site
+	close()
+	abandon_modal.open(Game.engine, uid)
 
 
 func _on_play() -> void:

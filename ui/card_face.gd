@@ -42,7 +42,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	if in_hand:
 		var e := Game.engine
 		var now: Dictionary = e.play_cost(card.uid) if e != null else {}  # after discounts (108)
-		show_cost(now if not now.is_empty() else def.cost)
+		show_cost({} if def.project else now if not now.is_empty() else def.cost)  # a wonder is paid in over turns (286)
 	if in_hand and Game.engine != null:
 		show_shortfall(Game.engine.play_shortfall(card.uid))
 	_add_band(color)

@@ -239,6 +239,48 @@ func test_paying_the_last_wealth_completes_the_site() -> void:
 	eq([e.hand_size(), e.zone("hand").size()], [6, 6], "[hand_size, hand]: +1")
 
 
+# --- Design notes: the details of a site ---
+
+func test_a_sites_details_show_its_progress() -> void:
+	var e := site_engine(10)
+	var uid := site_at(e, 4)
+	has_msg(e.card_details(uid).state, "Being built: 4 / 12 wealth")
+	e.zone("tableau").find(uid).progress = 12
+	check(not e.card_details(uid).state.any(func(line): return line.contains("Being built")), "no line once complete")
+
+
+# --- Manual check support: the details modal's Contribute and Abandon ---
+
+func test_details_contribute_to_and_abandon_a_site() -> void:
+	await with_main(site_engine(10), func(main: Node):
+		var e := Game.engine
+		set_home_pop(e, 4)  # start_game began a new game
+		e.resources.wealth = 10
+		var uid := place(e)
+		await wait_frames()
+		main.details.open_card(e.zone("tableau").find(uid))
+		var buttons: Array[Button] = main.details.site_buttons()
+		check(buttons[0].visible and not buttons[0].disabled, "Contribute offered")
+		check(buttons[1].visible and not buttons[1].disabled, "Abandon offered")
+		buttons[0].pressed.emit()
+		await wait_frames()
+		eq([e.site_progress(uid), e.resources.wealth], [4, 6], "Contribute put in contribute_limit")
+		main.details.open_card(e.zone("tableau").find(uid))
+		buttons = main.details.site_buttons()
+		check(buttons[0].disabled, "Contribute disabled once the turn's limit is in")
+		eq(buttons[0].tooltip_text, e.contribute_error(uid, 1), "with the reason")
+		buttons[1].pressed.emit()
+		await wait_frames()
+		check(main.details.abandon_modal.is_open() and e.zone("tableau").find(uid) != null, "Abandon asks first")
+		check(main.details.abandon_modal.body_text().contains("4 wealth"), "naming the wealth lost: %s" % main.details.abandon_modal.body_text())
+		main.details.abandon_modal.confirm_button.pressed.emit()
+		await wait_frames()
+		check(e.zone("discard").find(uid) != null, "abandoned to the discard")
+		main.details.open_card(e.zone("tableau").find(home_uid(e)))
+		check(not main.details.site_buttons()[0].visible, "no Contribute on a territory")
+		main.details.close())
+
+
 # --- AC6: data and text ---
 
 func test_project_loads_on_a_building_with_its_text() -> void:
