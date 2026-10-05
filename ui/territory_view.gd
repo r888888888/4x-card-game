@@ -12,12 +12,15 @@ extends VBoxContainer
 signal navigated
 ## Rename… pressed: the board opens the naming modal for territory t (248).
 signal rename_requested(t: int)
+## Build… (B) or a free slot's "+ Build" pressed: the board opens the Build modal on territory t (297).
+signal build_requested(t: int)
 
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
 var actions: HBoxContainer  # the territory's actions, under the stats and meter (227)
 var rename_button: Button  # in actions after Grow: Rename…, opening the naming modal (248, 252)
+var build_button: Button  # in actions before Rename…: Build…, opening the Build modal (297); hidden with no build menu
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
 var units_row: HFlowContainer  # the units stationed here (160), under their caption; hidden when there are none
@@ -90,6 +93,9 @@ func _init(board: MainScreen, realm: Control) -> void:
 	actions = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
 	body.add_child(actions)
+	build_button = UIKit.button("Build…", func(): build_requested.emit(uid))
+	build_button.theme_type_variation = "IconButton"
+	actions.add_child(build_button)
 	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
 	rename_button.theme_type_variation = "IconButton"  # the actions row's keys (252)
 	actions.add_child(rename_button)
@@ -167,10 +173,15 @@ func _gui_input(event: InputEvent) -> void:
 		close()
 
 
-## Esc closes the view. Returns whether the key was used.
+## Esc closes the view, B opens the Build modal (297). Returns whether the key was used.
 func handle_key(event: InputEvent) -> bool:
-	if is_open() and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+	if not (is_open() and event is InputEventKey and event.pressed and not event.echo):
+		return false
+	if event.keycode == KEY_ESCAPE:
 		close()
+		return true
+	if event.keycode == KEY_B and build_button.visible and not build_button.disabled:
+		build_requested.emit(uid)
 		return true
 	return false
 
@@ -249,10 +260,31 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)
 	_show_outlines(e.free_slots(uid))
+	_show_build(e)
 	for i in units.size():  # the units stationed here, in a row of their own (160)
 		place.call(tableau.find(units[i]), units_row, i)
 	_units_caption.visible = not units.is_empty()
 	units_row.visible = not units.is_empty()
+
+
+## Build… and the free slots' "+ Build" (297): shown while the build menu has entries, disabled with the reason while
+## nothing can be built.
+func _show_build(e: GameEngine) -> void:
+	var reason := e.build_menu_error()
+	var keys: Array[Button] = [build_button]
+	for outline in _outlines:
+		keys.append(outline.get_child(0))
+	for key in keys:
+		key.visible = not e.build_menu().is_empty()
+		key.disabled = reason != ""
+	build_button.tooltip_text = reason if reason != "" else "Shortcut: B. Build or recruit on this territory."
+	for key in keys.slice(1):
+		key.tooltip_text = reason if reason != "" else "Build or recruit on this territory."
+
+
+## Test hook (297): free slot i's "+ Build" key, or null.
+func slot_button(i: int) -> Button:
+	return _outlines[i].get_child(0) if i < _outlines.size() else null
 
 
 ## The free-slot outlines, in order.
@@ -272,6 +304,10 @@ func _show_outlines(n: int) -> void:
 		gone.queue_free()
 	while _outlines.size() < n:
 		var outline := UIKit.slot_outline()
+		var key := UIKit.button("+ Build", func(): build_requested.emit(uid))  # 297
+		key.theme_type_variation = &"SlotButton"
+		key.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		outline.add_child(key)
 		row.add_child(outline)
 		_outlines.append(outline)
 	for outline in _outlines:

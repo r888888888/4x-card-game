@@ -21,6 +21,13 @@ func modal_engine(food := 5, menu := MENU, overrides := {}) -> GameEngine:
 	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS] + TEST_GOVS)
 
 
+## Sets the food on hand to food (the Capital's upkeep has already paid turn 1's) and lets the board show it.
+func set_food(food: int) -> void:
+	Game.engine.resources.food = food
+	Game.engine.changed.emit()
+	await wait_frames()
+
+
 ## Opens the home's territory view; returns the home's uid.
 func open_home(main: Node) -> int:
 	var home := home_uid(Game.engine)
@@ -87,10 +94,12 @@ func test_the_first_buildable_row_is_selected_and_the_sheet_previews_it() -> voi
 
 
 func test_a_refused_first_row_is_skipped_and_none_buildable_selects_the_first() -> void:
-	await with_main(modal_engine(1), func(main: Node):
+	await with_main(modal_engine(), func(main: Node):
+		await set_food(1)
 		var modal: Object = await open_build(main)
 		eq(modal.list.selected, "granary", "Farm (2 food) and Well (no fresh water) refused: Granary"))
-	await with_main(modal_engine(0), func(main: Node):
+	await with_main(modal_engine(), func(main: Node):
+		await set_food(0)
 		var modal: Object = await open_build(main)
 		eq(modal.list.selected, "farm", "nothing buildable: the first row"))
 
@@ -116,6 +125,7 @@ func test_build_builds_the_selected_entry_and_closes() -> void:
 	await with_main(modal_engine(), func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
+		await set_food(5)
 		var modal: Object = await open_build(main)
 		eq(modal.build_button.text, "Build Farm", "the key")
 		(modal.build_button as Button).pressed.emit()

@@ -7,6 +7,8 @@ extends "res://tests/lib/anarchy_case.gd"
 
 ## Actions with an error query that no decision blocks.
 const NOT_BLOCKED := ["new_game"]
+## Rows that are queries only (a screen's gate), with no action beside them in GameEngine.
+const QUERY_ONLY := ["supply", "build_menu"]
 ## Actions whose error query isn't named <action>_error: the engine's table (312).
 const ERROR_OF := LegalActions.ERROR_OF
 
@@ -52,6 +54,7 @@ func actions() -> Array:
 			func(e): return e.contribute(first_in(e, "tableau"), 1)],
 		["abandon", func(e): return e.abandon_error(first_in(e, "tableau")), func(e): return e.abandon(first_in(e, "tableau"))],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
+		["build_menu", func(e): return e.build_menu_error(), func(_e): return false],  # Build… (297): a query only
 	]
 
 
@@ -185,7 +188,7 @@ func test_every_action_sits_under_actions_beside_its_error_query() -> void:
 			break
 		if lines[i].begins_with("func "):
 			funcs.append(lines[i].trim_prefix("func ").get_slice("(", 0))
-	var names: Array = actions().map(func(row): return row[0]).filter(func(n): return n != "supply")
+	var names: Array = actions().map(func(row): return row[0]).filter(func(n): return not QUERY_ONLY.has(n))
 	names.append_array(NOT_BLOCKED)
 	for name in names:
 		var query: String = ERROR_OF.get(name, name + "_error")

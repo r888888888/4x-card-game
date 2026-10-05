@@ -52,7 +52,15 @@ func add_row(id: String, text: String) -> Button:
 	return row
 
 
-## Removes every row.
+## Adds a heading over the rows added after it (the Build modal's Buildings and Units, 297); not a row: ids() and the
+## arrows skip it.
+func add_heading(text: String) -> Label:
+	var label := UIKit.heading(text)
+	_box.add_child(label)
+	return label
+
+
+## Removes every row and heading.
 func clear() -> void:
 	for row in _box.get_children():
 		_box.remove_child(row)
