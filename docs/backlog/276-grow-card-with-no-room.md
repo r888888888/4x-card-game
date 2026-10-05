@@ -2,7 +2,7 @@
 id: 276
 title: A growth card plays and is wasted when no territory has room to grow
 type: bug
-status: in-progress
+status: review
 branch: fix/276-grow-card-with-no-room
 ---
 
@@ -16,16 +16,16 @@ branch: fix/276-grow-card-with-no-room
   housing, and `best_to_grow` returns null).
 
 ## Acceptance criteria
-- [ ] AC1: Given population on, every settled territory at its housing, 50 food, and a card in hand whose only effect
+- [x] AC1: Given population on, every settled territory at its housing, 50 food, and a card in hand whose only effect
   is `{"op": "grow", "amount": 1, "where": "best"}`, when I ask `play_error` for it, then it is non-empty (it says no
   territory has room to grow), and `play_card` returns false with the card still in hand, food 50 and actions unspent.
-- [ ] AC2: Same as AC1 with `{"op": "grow", "amount": 1, "where": "each"}` (with and without `"count"`): blocked the
+- [x] AC2: Same as AC1 with `{"op": "grow", "amount": 1, "where": "each"}` (with and without `"count"`): blocked the
   same way.
-- [ ] AC3: Given the same card and an active Famine while a territory still has room, then `play_error` is the
+- [x] AC3: Given the same card and an active Famine while a territory still has room, then `play_error` is the
   Famine's growth error (`Famine.growth_error`) and the card can't be played.
-- [ ] AC4: Given one settled territory below its housing (the others at housing), then `play_error` is "" and playing
+- [x] AC4: Given one settled territory below its housing (the others at housing), then `play_error` is "" and playing
   the card adds 1 pop to that territory (existing behaviour unchanged).
-- [ ] AC5: Given a card whose play effects are a `grow` plus another op (e.g. `gain` 1 wealth) and no room to grow,
+- [x] AC5: Given a card whose play effects are a `grow` plus another op (e.g. `gain` 1 wealth) and no room to grow,
   then the card is still playable (the other effect isn't wasted): the block applies only when every play effect is
   a `grow` that would add nothing.
 
@@ -49,6 +49,9 @@ branch: fix/276-grow-card-with-no-room
 - `ScriptedBot` already skips growth cards that add no pop (`_growth_ok`); no bot change.
 
 ## Root cause
+`GrowEffect` had no `play_block_error`, so `CardPlay.error` saw nothing wrong with a growth card that had nowhere to
+add pop; `apply` then quietly skipped every territory (capped by housing, or the Famine). The 261 and housing tests
+even asserted that play went through and did nothing, so the waste looked intended.
 
 ## Manual check
 - With the Capital at its housing and no other territory with room, Bread and Beer in hand shows as unplayable with
@@ -59,3 +62,7 @@ branch: fix/276-grow-card-with-no-room
 - Red: `test_best_does_nothing_when_it_cannot_grow` (261) played Bread when full and during a Famine and expected no
   pop; those cases now are blocked, so it keeps only its population-off case (renamed
   `test_best_does_nothing_without_population`). AC4 and AC5 pass already: they guard what must not change.
+- Green: three older tests played Festival with no room or in a Famine and expected it to play and add nothing; with
+  the user's approval they now expect the play refused, keeping what they check (the cap, no Famine growth):
+  `test_famine::test_no_growth_during_a_famine`, `test_famine_guard::test_silo_housing_caps_card_growth_at_8`,
+  `test_housing_modifier::test_growth_stops_at_the_raised_cap`.
