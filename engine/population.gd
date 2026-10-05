@@ -113,12 +113,16 @@ static func _notice_tier(e: GameEngine, territory: CardInstance, before: int) ->
 	var now := tier(e, territory.uid)
 	if now == before:
 		return
-	var name := tier_name(e, territory.uid)
-	var article := "an" if "AEIOU".contains(name.left(1).to_upper()) else "a"
+	var tier_text := with_article(tier_name(e, territory.uid))
 	if now > before:
-		e._notice("%s grows into %s %s." % [territory.shown_name(), article, name])
+		e._notice("%s grows into %s." % [territory.shown_name(), tier_text])
 	else:
-		e._notice("%s shrinks to %s %s." % [territory.shown_name(), article, name], GameEngine.NOTICE_CAUTION)
+		e._notice("%s shrinks to %s." % [territory.shown_name(), tier_text], GameEngine.NOTICE_CAUTION)
+
+
+## name with "a" or "an" before it ("a Village", "an Outpost").
+static func with_article(name: String) -> String:
+	return ("an " if "AEIOU".contains(name.left(1).to_upper()) else "a ") + name
 
 
 static func free_workers(e: GameEngine, territory_uid: int) -> int:

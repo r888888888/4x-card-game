@@ -173,9 +173,7 @@ static func _tier_line(e: GameEngine, uid: int) -> String:
 	var all := Population.tiers(e)
 	if i + 1 >= all.size():
 		return all[i].name
-	var next: String = all[i + 1].name
-	return "%s: %s %s at %d pop" % [all[i].name, "an" if "AEIOU".contains(next.left(1).to_upper()) else "a", next,
-		all[i + 1].pop]
+	return "%s: %s at %d pop" % [all[i].name, Population.with_article(all[i + 1].name), all[i + 1].pop]
 
 
 static func groups(e: GameEngine) -> Array[Dictionary]:
