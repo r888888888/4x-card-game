@@ -17,6 +17,8 @@ var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in i
 var _turn_label: Label  # the turn plate, "T 001" (201)
 var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden while off, 144), score, pop (hidden while off)
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
+var _knowledge_lamp: ReadyLamp  # lit while a tech can be learned that wasn't seen (288)
+var _supply_lamp: ReadyLamp  # on Buy Cards: lit while a pile can be bought from that wasn't seen (288)
 var _fresh := true  # a new game's first refresh shows its values at once, without rolling (126)
 
 
@@ -41,6 +43,7 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
 	_knowledge = UIKit.button("Knowledge", on_knowledge)
+	_knowledge_lamp = ReadyLamp.attach(_knowledge)
 	add_child(_knowledge)
 	log_button = UIKit.button("Log", on_log)
 	log_button.tooltip_text = "Shortcut: L. The game log: everything that happened."
@@ -63,7 +66,8 @@ func counter_text(key: String) -> String:
 	return (_counters[key] as Counter).text() if _counters.has(key) else ""
 
 
-## Makes the next refresh show its values at once, without rolling: a new game (126).
+## Makes the next refresh show its values at once, without rolling, and light its lamps without a burst: a new game
+## (126, 288).
 func reset_counters() -> void:
 	_fresh = true
 
@@ -94,6 +98,9 @@ func refresh(e: GameEngine, quiet := false) -> void:
 		var counter: Counter = _counters[key]
 		var change := counter.show_value(readings[key], _fresh, roll_at, not quiet and counter.visible)
 		roll_at += mini(absi(change), Anim.ODOMETER_MAX_STEPS) * Anim.ODOMETER_STEP
+	_knowledge_lamp.set_lit(e.tech_lamp(), _fresh)
+	if _supply_lamp != null:
+		_supply_lamp.set_lit(e.supply_lamp(), _fresh)
 	_fresh = false
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
 	_counters[GameEngine.FOOD].tooltip_text = "Food: feeds your pop at each upkeep and pays for Grow. " + (
@@ -111,6 +118,17 @@ func refresh(e: GameEngine, quiet := false) -> void:
 		e.era_name(e.era()))  # the era is here, not on the button, to make room for Insight (139)
 	if e.research_card_name() != "":
 		_knowledge.tooltip_text += "\nPlay %s card for more insight." % UIKit.with_article(e.research_card_name())
+	if e.tech_lamp():
+		_knowledge.tooltip_text += "\nNew: a tech you can learn."
+
+
+## Test hooks (288): whether the Knowledge and Buy Cards keys' lamps are lit.
+func knowledge_lamp_lit() -> bool:
+	return _knowledge_lamp.is_lit()
+
+
+func supply_lamp_lit() -> bool:
+	return _supply_lamp != null and _supply_lamp.is_lit()
 
 
 ## Where the deck and discard are on screen (121): the Log button, whose drawer shows their counts. Dealt cards come
@@ -124,8 +142,9 @@ func set_log_unread(unread: bool) -> void:
 	log_button.text = "Log •" if unread else "Log"
 
 
-## Puts the Supply button before Knowledge.
+## Puts the Supply button before Knowledge, with its ready lamp (288).
 func add_supply_button(button: Button) -> void:
+	_supply_lamp = ReadyLamp.attach(button)
 	add_child(button)
 	move_child(button, _knowledge.get_index())
 

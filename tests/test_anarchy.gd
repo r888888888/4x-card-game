@@ -125,6 +125,22 @@ func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 	check(not e.buy_tech(lore), "buy_tech refuses")
 
 
+## 288 AC4: nothing can be learned or bought under Anarchy, so its lamps stay dark; once a government rules they light
+## for what wasn't seen.
+func test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules() -> void:
+	var e := fallen_engine()
+	eq(e.ready_techs(), [] as Array[String], "no tech under Anarchy")
+	eq(e.ready_supply(), [] as Array[String], "no pile under Anarchy")
+	check(not e.tech_lamp() and not e.supply_lamp(), "both lamps dark")
+	e.set_unrest(1)  # 1 counter left: Anarchy burns out at the end of the turn
+	e.end_turn()
+	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "Chiefs chosen")
+	e.resources["insight"] = 10
+	e.resources["wealth"] = 10
+	check(e.tech_lamp(), "Lore learnable and unseen: lit")
+	check(e.supply_lamp(), "Farm buyable and unseen: lit")
+
+
 func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
 	var e := fallen_engine()
 	var card: int = e.zone("hand").cards[0].uid

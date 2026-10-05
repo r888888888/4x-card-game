@@ -116,6 +116,40 @@ func buy(card_id: String) -> bool:
 	return Supply.buy(self, card_id)
 
 
+## The ids of the techs in the research deck that can be learned now (buy_tech_error is ""), in research deck order,
+## top first (288).
+func ready_techs() -> Array[String]:
+	return ReadyLamps.ready_techs(self)
+
+
+## The card ids of the supply piles that can be bought from now (buy_error is ""), in config order (288).
+func ready_supply() -> Array[String]:
+	return ReadyLamps.ready_supply(self)
+
+
+## Whether a tech can be learned now that couldn't be at the last see_techs (288): the Knowledge key's lamp.
+func tech_lamp() -> bool:
+	return ReadyLamps.lit(ready_techs(), state.seen_techs)
+
+
+## Whether a pile can be bought from now that couldn't be at the last see_supply (288): the Buy Cards key's lamp.
+func supply_lamp() -> bool:
+	return ReadyLamps.lit(ready_supply(), state.seen_supply)
+
+
+## The player has looked at the techs (the Knowledge screen opened or closed): what is learnable now counts as seen,
+## and tech_lamp goes out (288). Bookkeeping, not a player action: nothing refuses it (no *_error, not blocked by a
+## pending decision), and it logs nothing and changes no resource, score or zone.
+func see_techs() -> void:
+	state.seen_techs = ready_techs()
+
+
+## The player has looked at the supply (the Supply screen opened or closed): what is buyable now counts as seen, and
+## supply_lamp goes out (288). Bookkeeping like see_techs: nothing refuses it and it changes nothing else.
+func see_supply() -> void:
+	state.seen_supply = ready_supply()
+
+
 ## Why discard_card(uid) would refuse: the game is over, a choice is pending, or uid isn't in the hand. "" if it
 ## can, including while an end-of-turn discard is owed.
 func discard_error(uid: int) -> String:

@@ -9,6 +9,9 @@ extends VBoxContainer
 ## button learns it (229). It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
 ## back. It is an opaque sheet (224), so nothing under it shows through as it slides.
 
+## The screen opened or closed (288): what is learnable then counts as seen.
+signal looked
+
 const STATE_WORD := {
 	GameEngine.TECH_RESEARCHED: "Researched",
 	GameEngine.TECH_AVAILABLE: "Available",
@@ -37,6 +40,7 @@ var _vellums: Array = []  # per era row, its vellum, or null once reached
 var _tiles := {}  # tech name -> its tile
 var _tile_texts := {}  # tech name -> the texts its tile shows
 var _linked: Array[String] = []  # the names of the tiles marked as linked to the hovered tech (278)
+var _was_open := false  # is_open() at the navigator's last change, for looked
 
 
 ## Builds the screen beside place (the Realm section) for nav, hidden. Its techs open their details with
@@ -64,6 +68,7 @@ func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
 	UIKit.painted(self, queue_redraw)
 	hide()
 	place.get_parent().add_child(self)
+	nav.changed.connect(_on_nav_changed)
 
 
 ## The colour the sheet is filled with: the board's.
@@ -143,6 +148,12 @@ func open() -> void:
 	global_position = at.global_position  # where its container will put it: the place of the screen it covers
 	size = at.size
 	_nav.push(self, null, "Knowledge", Rect2(), true)
+
+
+func _on_nav_changed() -> void:
+	if is_open() != _was_open:
+		_was_open = is_open()
+		looked.emit()
 
 
 ## Back to the screen under it.

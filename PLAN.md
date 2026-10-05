@@ -39,6 +39,7 @@ res://
     research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
     sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
+    ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
     discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
     modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
@@ -72,7 +73,8 @@ res://
                          # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
                          # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
                          # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, Menu; on a ruled Strip, 221), sidebar.gd
+                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, Menu; on a ruled Strip, 221; ready_lamp.gd lights Buy Cards and
+                         # Knowledge for something new to buy or learn, 288), sidebar.gd
                          # (202: the right rail, open on the board, 221: the civilization, government and End turn),
                          # counter.gd (181: Counter, a glyph, an odometer figure and the forecast; no tag since 218),
                          # odometer.gd (181: Odometer, a figure whose digits roll),

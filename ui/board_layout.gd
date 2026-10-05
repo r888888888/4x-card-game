@@ -66,6 +66,15 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.details.play_requested.connect(main.on_double_clicked)  # Play acts as a double-click would (225)
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
 	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
+	var lamps := func():  # the keys' lamps, after a see (288)
+		top_bar.refresh(Game.engine, true)
+		main.supply.refresh(Game.engine)
+	main.supply.looked.connect(func():
+		Game.engine.see_supply()
+		lamps.call())
+	main.knowledge.looked.connect(func():
+		Game.engine.see_techs()
+		lamps.call())
 	news = TurnNews.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	main.revolt_modal = RevoltModal.new(main.modals)
