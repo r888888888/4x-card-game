@@ -2,7 +2,7 @@
 id: 310
 title: Ask what a card would target from any zone, not only the hand
 type: feature
-status: red-review
+status: in-progress
 branch: feat/310-targets-from-any-zone
 ---
 
