@@ -1,9 +1,12 @@
 extends "res://tests/lib/test_case.gd"
 ## The test runner itself (223): frames run without the headless sleep on a fixed time step, and the test files split
-## into shards for parallel processes (tests/lib/test_shards.gd).
+## into shards for parallel processes (tests/lib/test_shards.gd); a test_* method that takes arguments is reported
+## instead of called (284, tests/lib/test_methods.gd).
 
 const SHARDS_PATH := "res://tests/lib/test_shards.gd"
 const WATCH_PATH := "res://tests/lib/settings_watch.gd"
+const METHODS_PATH := "res://tests/lib/test_methods.gd"
+const FIXTURE_PATH := "res://tests/lib/fixtures/runner_fixture.gd"
 
 
 # --- AC1, AC2: frames ---
@@ -60,3 +63,28 @@ func test_bug_196_same_settings_bytes_give_no_warning() -> void:
 	var watch: Object = load(WATCH_PATH)
 	eq(watch.settings_change_warning("a=1".to_utf8_buffer(), "a=1".to_utf8_buffer()), "", "same bytes")
 	eq(watch.settings_change_warning(null, null), "", "no file both times")
+
+
+# --- 284: a test_* method that takes arguments is reported, not called ---
+
+func test_bug_284_a_test_method_with_arguments_is_reported_not_run() -> void:
+	var methods: Object = load(METHODS_PATH)
+	var picked: Dictionary = methods.select(load(FIXTURE_PATH), "runner_fixture", "")
+	eq(picked.run, ["test_plain"] as Array[String], "only the method without arguments runs")
+	eq(picked.failures, ["runner_fixture::test_helper: test methods take no arguments; rename the helper"] as Array[String],
+			"the helper is reported by file::method")
+
+
+func test_bug_284_a_filtered_out_method_with_arguments_is_not_reported() -> void:
+	var methods: Object = load(METHODS_PATH)
+	var picked: Dictionary = methods.select(load(FIXTURE_PATH), "runner_fixture", "test_plain")
+	eq(picked.run, ["test_plain"] as Array[String], "the filter keeps test_plain")
+	eq(picked.failures, [] as Array[String], "test_helper is left out by the filter, so not reported")
+
+
+func test_bug_284_methods_not_named_test_are_ignored() -> void:
+	var methods: Object = load(METHODS_PATH)
+	var picked: Dictionary = methods.select(load(FIXTURE_PATH), "runner_fixture", "")
+	for name: String in ["helper", "plain"]:
+		check(not picked.run.has(name), "%s doesn't run" % name)
+		check(not picked.failures.any(func(f: String): return f.get_slice(":", 2) == name), "%s isn't reported" % name)
