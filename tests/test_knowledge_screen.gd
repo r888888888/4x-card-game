@@ -708,3 +708,37 @@ func test_a_rebuild_leaves_no_mark_behind() -> void:
 		tile(main, "Bronze Working").mouse_entered.emit()
 		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))  # rebuilds the screen, no mouse_exited
 		eq(marked(main), [] as Array[String], "no stale mark"))
+
+
+# --- 280: the hovered tile is highlighted ---
+
+func test_a_hovered_tile_of_any_state_has_an_accent_border() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		for tech_name in ["Pottery", "Writing", "Iron Working"]:
+			var hover := tile(main, tech_name).get_theme_stylebox("hover") as StyleBoxFlat
+			var normal := tile(main, tech_name).get_theme_stylebox("normal") as StyleBoxFlat
+			eq(hover.border_color, Palette.ACCENT, "%s: an accent border on hover" % tech_name)
+			check(hover.border_color != normal.border_color, "%s: unlike its resting border" % tech_name)
+			eq(hover.shadow_size, 1, "%s: the shadow stays" % tech_name))
+
+
+func test_a_hovered_tile_of_a_later_era_has_an_accent_border() -> void:
+	await with_two_eras(func(main: Node):
+		eq((tile(main, "Optics").get_theme_stylebox("hover") as StyleBoxFlat).border_color, Palette.ACCENT, "Optics"))
+
+
+func test_a_hovered_linked_tile_shows_the_hover_border() -> void:
+	await with_tree(func(main: Node):
+		tile(main, "Bronze Working").mouse_entered.emit()  # marks Iron Working
+		var iron := tile(main, "Iron Working")
+		check(linked(main, "Iron Working"), "Iron Working is linked")
+		eq((iron.get_theme_stylebox("hover") as StyleBoxFlat).border_color, Palette.ACCENT, "the hover border wins"))
+
+
+func test_the_hover_border_keeps_the_tiles_width() -> void:
+	await with_tree(func(main: Node):
+		var hover := tile(main, "Writing").get_theme_stylebox("hover") as StyleBoxFlat
+		var normal := tile(main, "Writing").get_theme_stylebox("normal") as StyleBoxFlat
+		eq(hover.border_width_left, normal.border_width_left, "the same border width")
+		eq(hover.get_minimum_size(), normal.get_minimum_size(), "the same margins"))
