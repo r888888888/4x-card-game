@@ -28,7 +28,7 @@ res://
     cards.json           # player card definitions
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # public API: actions and their *_error queries, fork(), the constants; calls the modules below
+    game_engine.gd       # public API: actions and their *_error queries, fork(), sample_fork() (311), the constants; calls the modules below
     engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, targets, forecast, …)
     territory_queries.gd # TerritoryQueries, EngineQueries' parent (281): pop, housing, slots, workers, tiers, territory status
     engine_core.gd       # EngineCore, TerritoryQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
@@ -270,6 +270,9 @@ with the food stat in the warning color when pop would starve.
 change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
 that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
 (`_settle_in`), so the forecast can't drift from the real turn. The sim bot doesn't use it yet (313).
+`fork()` copies the game exactly, the rng and every deck's order included, so a lookahead on it knows the future.
+`sample_fork(seed)` (311) is one possible future instead: a fork with a new `SeededRng` from seed that reshuffles
+`HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
 choice (154) or a choice event's options (269). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the

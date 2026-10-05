@@ -145,7 +145,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows; 172: one `GameState.pending`, `pending()` a copy |
 | `tests/test_state_copy.gd` | Guards (171): `GameState.copy()` and `CardInstance.copy()` carry every script variable (read from the property list) and share nothing that can change |
 | `tests/test_blocking.gd` | Guards (171): while each decision is owed (explore, discard, renewal, government) and after game over, every other action refuses with a reason and changes nothing; the table of actions is checked against `GameEngine`'s methods with an error query; 172: each decision action's message order, every action under `# --- Actions ---` beside its query |
-| `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand |
+| `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand; `sample_fork` (311): the deck, event deck and territory deck reshuffled from a seed, everything visible the same, later shuffles from the seed, the game untouched |
 | `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
 | `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
 | `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
