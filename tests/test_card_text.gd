@@ -103,6 +103,35 @@ func test_gain_score_draw_create_keep_their_text() -> void:
 	eq(short_text([{"op": "create", "card": "city"}], [], "action"), "Create a City", "create")
 
 
+
+## A TEST_CARDS card by id, for text tests that create it.
+func fixture_card(id: String) -> Dictionary:
+	return TEST_CARDS.cards.filter(func(c: Dictionary) -> bool: return c.id == id)[0]
+
+
+## Short text of an action that creates `card` (from `cards`) in `zone`.
+func create_text(cards: Array, card: String, zone := "tableau") -> String:
+	var x := {"id": "x", "name": "X", "type": "action", "effects": [{"op": "create", "card": card, "zone": zone}]}
+	var db := text_db(cards + [x])
+	return db.x.rules_text(db) if db.has("x") else "<not loaded>"
+
+
+func test_bug_279_create_uses_an_before_a_vowel() -> void:
+	eq(create_text([fixture_card("explorer")], "explorer", "discard"), "Add an Explorer to your discard", "AC1 discard")
+	eq(create_text([fixture_card("explorer")], "explorer"), "Create an Explorer", "AC2 tableau")
+
+
+func test_bug_279_create_keeps_a_before_a_consonant() -> void:
+	eq(create_text([], "city"), "Create a City", "tableau")
+	eq(create_text([], "city", "discard"), "Add a City to your discard", "discard")
+
+
+func test_bug_279_article_is_by_first_letter_either_case() -> void:
+	for name: String in ["Aqueduct", "Ear", "idol", "Ox", "urn"]:
+		eq(create_text([{"id": "v", "name": name, "type": "action"}], "v"), "Create an " + name, name)
+	for name: String in ["Bank", "yurt", "Zen"]:
+		eq(create_text([{"id": "c", "name": name, "type": "action"}], "c"), "Create a " + name, name)
+
 # --- AC4: full wording ---
 
 func test_tooltip_is_the_full_unmerged_wording() -> void:

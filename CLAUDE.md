@@ -97,6 +97,8 @@ in a dedicated balance item, or when the user asks.
 - Files: `tests/test_<area>.gd`, extending `"res://tests/lib/test_case.gd"`. Helpers and
   fixtures (`make_engine`, `TEST_CARDS`, `eq`, `check`, `has_msg`, …) live there.
 - Name tests after the behavior: `test_<what_happens>`; for bugs `test_bug_<id>_<what>`.
+- The runner runs every method named `test_*` as a test, so a helper never starts with `test_` (`fixture_card`,
+  not `test_card`): one that takes arguments hangs the whole suite.
 - Rules tests use `TEST_CARDS` + `make_engine`, never `data/cards.json` (balance edits must not break them).
 - A test that plays ScriptedBot games on the real data goes in `tests/balance/`, never the main suite; bot rules are
   tested on fixture games of a few turns.

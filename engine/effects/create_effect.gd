@@ -21,7 +21,13 @@ func apply(engine: GameEngine, source: CardInstance) -> void:
 
 func describe(card_db: Dictionary) -> String:
 	var card_name: String = card_db[card_id].name if card_db.has(card_id) else card_id
-	return "Create a %s" % card_name if zone == "tableau" else "Add a %s to your %s" % [card_name, zone]
+	var noun := "%s %s" % [_article(card_name), card_name]
+	return "Create %s" % noun if zone == "tableau" else "Add %s to your %s" % [noun, zone]
+
+
+## "an" before a name starting with a vowel letter, else "a".
+static func _article(card_name: String) -> String:
+	return "an" if card_name.left(1).to_lower() in ["a", "e", "i", "o", "u"] else "a"
 
 
 func referenced_cards() -> Array[String]:
