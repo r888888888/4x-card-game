@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ready Lamp Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (§14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", sans-serif; --f-ui: "Barlow", sans-serif; --f-cond: "Barlow Semi Condensed", sans-serif;
+	--f-mono: "IBM Plex Mono", monospace;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1); --ease-lamp-on: cubic-bezier(0, 0, 0.2, 1); --ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --positive: #4E6B47; --info: #35597C; --g-ochre: #A07514;
+	--p-ochre: #D9A441; --l-ochre: #7C5810; --p-blue: #8AA7C4; --l-blue: #35597C; --p-sage: #9DB592; --l-sage: #4E6B47;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --positive: #93B585; --info: #86A9CC; --g-ochre: #D9A441;
+	--p-ochre: #D9A441; --l-ochre: #D9A441; --p-blue: #86A9CC; --l-blue: #86A9CC; --p-sage: #93B585; --l-sage: #93B585;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); }
+main { max-width: 1200px; margin: 0 auto; padding: var(--space-6) 16px 96px; }
+h1 { font: 500 28px/34px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 var(--space-2); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.note { color: var(--ink-2); max-width: 75ch; margin: var(--space-2) 0 var(--space-4); }
+.note b { color: var(--ink); }
+.option { margin-bottom: var(--space-7); }
+.option > h2 { font: 500 22px/28px var(--f-display); margin: 0; border-top: 4px solid var(--ink); padding-top: var(--space-3); display: flex; gap: var(--space-3); align-items: baseline; flex-wrap: wrap; }
+.option > h2 .tag { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--positive); }
+.toggle { float: right; }
+
+/* The top bar strip (218): turn plate, counters, spacer, keys. */
+.bar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--board); border: 1px solid var(--rule-fine); overflow-x: auto; }
+.chosen { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--positive); }
+.replay { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+.bar + .bar { border-top: 0; }
+.bar .stats { display: flex; align-items: center; gap: var(--space-5); flex: none; }
+.plate { font: 500 17px/1 var(--f-mono); background: var(--well); padding: var(--space-1) var(--space-2); }
+.stat { display: inline-flex; align-items: center; gap: 3px; font: 500 26px/1 var(--f-cond); }
+.stat small { font: 400 14px/1 var(--f-ui); color: var(--ink-2); margin-left: var(--space-1); }
+.g { display: inline-block; width: 22px; height: 22px; border-radius: 50%; }
+.g.food { background: var(--positive); } .g.wealth { background: var(--g-ochre); } .g.insight { background: var(--info); }
+.bar .spacer { flex: 1; min-width: var(--space-4); }
+.bar .rowlabel { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); width: 56px; flex: none; }
+
+/* Buttons (§15.1). */
+.btn {
+	position: relative; display: inline-flex; align-items: center; gap: var(--space-2); flex: none;
+	min-height: 40px; padding: var(--space-2) 20px; border-radius: 2px; cursor: pointer;
+	font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em; white-space: nowrap;
+	background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow);
+	transition: background-color 90ms var(--ease-machined), border-color 90ms var(--ease-machined);
+}
+.btn:hover { background: color-mix(in srgb, var(--steel) 65%, var(--sheet)); border-color: var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.btn.small { min-height: 32px; padding: var(--space-1) var(--space-3); font-size: 15px; }
+.btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 -3px 0 var(--signal), 2px 2px 0 var(--shadow); }
+.btn:disabled { background: var(--well); color: var(--ink-3); border: 2px dashed var(--rule); box-shadow: none; cursor: not-allowed; transform: none; }
+.k-tech { --lamp: var(--p-blue); --lamp-line: var(--l-blue); }
+.k-supply { --lamp: var(--p-ochre); --lamp-line: var(--l-ochre); }
+
+/* A · Indicator lamp (§7.11) in the key, before its label: the specimen's "Learn Pottery" lamp, sage on both keys. */
+.lamp { --lamp: var(--p-sage); --lamp-line: var(--l-sage); width: 12px; height: 12px; border-radius: 50%; flex: none; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule);
+	transition: background-color 120ms var(--ease-lamp-off), box-shadow 120ms var(--ease-lamp-off); }
+.lit .lamp { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--lamp) 40%, white) 0 18%, var(--lamp) 22%);
+	box-shadow: inset 0 0 0 2px var(--lamp-line), 0 0 0 1px var(--shadow); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+.lit.fresh .badge { animation: bloom 400ms var(--ease-lamp-on); }
+/* The confirmation starburst (§10.8), as the specimen's: six 2×8 px rays wipe out from 9 px, then fade moving to 13 px. */
+.lamp-wrap { position: relative; display: inline-flex; margin-right: var(--space-1); }  /* 12 px to the label, as in the specimen: the rays end 17 px from the centre, clear of it */
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.burst i { position: absolute; left: -1px; top: 0; width: 2px; height: 8px; background: var(--positive); opacity: 0;
+	transform-origin: 50% 0; transform: rotate(var(--a)) translateY(9px) scaleY(0); }
+.lit.fresh .burst i { animation: ray 400ms var(--ease-machined) forwards; }
+@keyframes ray {
+	0% { opacity: 1; transform: rotate(var(--a)) translateY(9px) scaleY(0); }
+	60% { opacity: 1; transform: rotate(var(--a)) translateY(9px) scaleY(1); }
+	100% { opacity: 0; transform: rotate(var(--a)) translateY(13px) scaleY(1); }
+}
+/* Reduce motion: the rays are drawn whole for 1.5 s, then go. */
+:root[data-calm="true"] .lit.fresh .burst i { animation: ray-calm 1500ms linear forwards; }
+@keyframes ray-calm {
+	0%, 85% { opacity: 1; transform: rotate(var(--a)) translateY(9px) scaleY(1); }
+	100% { opacity: 0; transform: rotate(var(--a)) translateY(9px) scaleY(1); }
+}
+@keyframes bloom { 0% { box-shadow: inset 0 0 0 2px var(--lamp-line), 0 0 0 0 var(--lamp); } 40% { box-shadow: inset 0 0 0 2px var(--lamp-line), 0 0 0 5px color-mix(in srgb, var(--lamp) 45%, transparent); } 100% { box-shadow: inset 0 0 0 2px var(--lamp-line), 0 0 0 7px transparent; } }
+
+/* B · Lamp strip: a 4 px window along the inside of the key's bottom edge. */
+.strip { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 4px; background: var(--well); box-shadow: inset 0 0 0 1px var(--rule-fine); transition: background-color 120ms var(--ease-lamp-off); }
+.s-b .btn { padding-bottom: 12px; }
+.lit .strip { background: var(--lamp); box-shadow: inset 0 0 0 1px var(--lamp-line); transition-duration: 40ms; }
+.lit.fresh .strip { animation: flash 400ms var(--ease-lamp-on); }
+@keyframes flash { 0% { filter: brightness(1.6); } 100% { filter: none; } }
+
+/* C · Count badge (radius.2) riding the key's top-right corner. */
+.badge { position: absolute; top: -9px; right: -9px; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 4px;
+	background: var(--lamp); color: var(--on-signal); border: 2px solid var(--ink); font: 600 13px/16px var(--f-cond); text-align: center; display: none; }
+:root[data-theme="paper"] .badge { color: var(--ink); }
+.lit .badge { display: block; }
+
+/* D · Bullet after the label, like "Log •" (116), in the resource's hue. */
+.dot { color: var(--lamp); font-weight: 600; display: none; }
+.lit .dot { display: inline; }
+
+/* E · Lamp plus count: the A lamp, with how many on a mono plate after the label. */
+.count { font: 500 14px/1 var(--f-mono); background: var(--well); color: var(--ink-2); padding: 3px 5px; display: none; }
+.lit .count { display: inline; color: var(--ink); }
+
+/* Sandbox. */
+.sandbox { background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); margin-bottom: var(--space-7); }
+.sandbox .titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding: var(--space-3) var(--space-5) 0; flex-wrap: wrap; }
+.sandbox .titleblock h2 { margin: 0; font: 500 28px/34px var(--f-display); }
+.sandbox .body { padding: var(--space-4) var(--space-5) var(--space-5); display: grid; gap: var(--space-4); }
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.controls fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.controls legend { padding: 0; margin-bottom: var(--space-2); }
+.drawer { background: var(--well); padding: var(--space-3) var(--space-4); display: none; }
+.drawer.open { display: block; }
+.drawer .row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.log { font: 400 15px/1.5 var(--f-ui); color: var(--ink-2); min-height: 66px; max-height: 110px; overflow: auto; background: var(--well); padding: var(--space-2) var(--space-3); }
+.rules-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.rules-table th, .rules-table td { text-align: left; padding: var(--space-2) var(--space-3); border-top: 1px solid var(--rule-fine); vertical-align: top; }
+.rules-table th { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+:root[data-calm="true"] .lit.fresh .badge, :root[data-calm="true"] .lit.fresh .strip { animation: none; }
+</style>
+</head>
+<body>
+<main>
+	<button class="btn toggle" id="calm" onclick="const r = document.documentElement; r.dataset.calm = r.dataset.calm === 'true' ? 'false' : 'true'; this.setAttribute('aria-pressed', r.dataset.calm)" aria-pressed="false" style="margin-left: var(--space-2)">Reduce motion</button>
+	<button class="btn toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'night' ? 'paper' : 'night'">Paper / Night</button>
+	<h1>Ready lamps</h1>
+	<span class="caps">Knowledge and Buy Cards light when you can afford something</span>
+	<p class="note">Each option shows the top bar twice: <b>dark</b> (nothing you can afford, or already seen) and
+		<b>lit</b> (a tech you can learn now; a supply pile you can buy now). In B–D Knowledge takes the insight hue and Buy
+		Cards the wealth hue; the chosen A (and E's lamp) is sage on both, as the specimen's "Learn Pottery" lamp. Opening the
+		screen puts that key's lamp out. In 288 the lamp relights only when something new becomes purchasable (rule 1).
+		The sandbox at the bottom lets you try each look against each relight rule.</p>
+
+	<div id="options"></div>
+
+	<section class="sandbox">
+		<div class="titleblock"><h2>Sandbox</h2><span class="caps">Gain, spend, end turns, open screens</span></div>
+		<div class="body">
+			<div class="controls">
+				<fieldset id="look"><legend class="caps">Look</legend></fieldset>
+				<fieldset id="rule"><legend class="caps">Relight rule</legend></fieldset>
+			</div>
+			<div id="sandbar"></div>
+			<div class="drawer" id="drawer"></div>
+			<div class="controls">
+				<fieldset><legend class="caps">Game</legend>
+					<button class="btn small" onclick="gain('insight', 2)">+2 insight</button>
+					<button class="btn small" onclick="gain('wealth', 2)">+2 wealth</button>
+					<button class="btn small" onclick="endTurn()">End turn (+1 / +1)</button>
+					<button class="btn small" onclick="reset()">Reset</button>
+				</fieldset>
+			</div>
+			<div class="log" id="log"></div>
+			<table class="rules-table">
+				<tr><th>Rule</th><th>The lamp is lit when…</th><th>Opening the screen…</th></tr>
+				<tr><td><b>1 · Something new</b> (recommended)</td><td>you can afford a tech (pile) you couldn't afford when you last opened the screen</td><td>remembers what was affordable then</td></tr>
+				<tr><td><b>2 · Each turn</b></td><td>you can afford anything and haven't opened the screen this turn</td><td>puts it out until next turn</td></tr>
+				<tr><td><b>3 · Until it goes dark</b></td><td>you can afford anything and haven't opened the screen since you last could afford nothing</td><td>puts it out until you can afford nothing, then something again</td></tr>
+			</table>
+		</div>
+	</section>
+</main>
+<script>
+const LOOKS = {
+	A: { name: "Indicator lamp in the key", chosen: true, note: "Chosen (288). The guide's indicator lamp (§7.11), drawn like the specimen's \"Learn Pottery\" lamp: a 12 px disc before the label, always present so the key never changes width. Dark it is an unlit well with a hairline ring; lit it is sage on both keys, with its 2 px ring and the single highlight dot. As it lights, the confirmation starburst (§10.8) fires once: six sage rays wipe out from the lamp and fade (400 ms, with ui.confirm). Reduce motion: the rays sit still for 1.5 s, then go. It goes out silently." },
+	B: { name: "Lamp strip along the key's foot", tag: "", note: "A 4 px window inset along the bottom of the key face, like the lamp key's window (219) stretched across. Quiet and wide; risk: on a steel key it can read as a pressed/selected rail (the token key's inset rail is the same place)." },
+	C: { name: "Count badge on the corner", tag: "", note: "The familiar app badge: a radius.2 tag in the hue, inked border, riding the key's top-right corner, with how many techs (piles) you can afford. Hidden when dark. Loudest and most informative; the count needs an engine query, and the corner overhangs the bar's 12 px gap." },
+	D: { name: "Bullet after the label", tag: "", note: "Exactly the Log's unread mark (116), \"Knowledge •\", with the bullet in the hue. Cheapest and already a convention here, but the key's width changes when it lights, nudging its neighbours." },
+	E: { name: "Lamp plus count plate", tag: "", note: "Option A's lamp, plus a small mono plate after the label with how many you can afford, shown only when lit. Says more than A without C's overhang; the key widens when lit (like D)." },
+};
+const TECH_LABEL = "Knowledge", SUPPLY_LABEL = "Buy Cards";
+const RAYS = Array.from({ length: 6 }, (_, i) => `<i style="--a:${i * 60}deg"></i>`).join("");
+
+function key(look, kind, lit, count, fresh) {
+	const label = kind === "tech" ? TECH_LABEL : SUPPLY_LABEL;
+	const cls = `btn ${kind === "tech" ? "k-tech" : "k-supply"} ${lit ? "lit" : ""} ${fresh ? "fresh" : ""}`;
+	const on = `onclick="openScreen('${kind}')"`;
+	const lamp = `<span class="lamp-wrap"><span class="lamp"></span><span class="burst">${RAYS}</span></span>`;
+	switch (look) {
+		case "A": return `<button class="${cls}" ${on}>${lamp}${label}</button>`;
+		case "B": return `<button class="${cls}" ${on}>${label}<span class="strip"></span></button>`;
+		case "C": return `<button class="${cls}" ${on}>${label}<span class="badge">${count}</span></button>`;
+		case "D": return `<button class="${cls}" ${on}>${label}<span class="dot">•</span></button>`;
+		case "E": return `<button class="${cls}" ${on}>${lamp}${label}<span class="count">${count}</span></button>`;
+	}
+}
+function bar(look, label, s, litT, litS, nT, nS, fresh = {}) {
+	return `<div class="bar s-${look.toLowerCase()}"><span class="rowlabel">${label}</span><div class="stats">
+		<span class="plate">T ${String(s.turn).padStart(3, "0")}</span>
+		<span class="stat"><i class="g food"></i>4<small>+1</small></span>
+		<span class="stat"><i class="g wealth"></i>${s.wealth}<small>+1</small></span>
+		<span class="stat"><i class="g insight"></i>${s.insight}<small>+1</small></span></div>
+		<span class="spacer"></span>${key(look, "supply", litS, nS, fresh.supply)}${key(look, "tech", litT, nT, fresh.tech)}
+		<button class="btn">Log</button><button class="btn">Menu</button></div>`;
+}
+document.getElementById("options").innerHTML = Object.entries(LOOKS).map(([id, o]) => `<section class="option">
+	<h2>${id} · ${o.name}${o.chosen ? ' <span class="chosen">Chosen</span>' : ""}</h2><p class="note">${o.note}</p>
+	${bar(id, "Dark", { turn: 12, wealth: 1, insight: 2 }, false, false, 0, 0)}
+	<div id="lit-${id}">${bar(id, "Lit", { turn: 13, wealth: 5, insight: 7 }, true, true, 2, 3)}</div>
+	${o.chosen ? `<div class="replay"><button class="btn small" onclick="lightA({ tech: true })">Light Knowledge</button>
+		<button class="btn small" onclick="lightA({ supply: true })">Light Buy Cards</button>
+		<button class="btn small" onclick="lightA({ tech: true, supply: true })">Light both</button></div>` : ""}</section>`).join("");
+/* Replays A's lighting: the lamp goes dark, then comes on with the burst a moment later. */
+function lightA(which) {
+	const host = document.getElementById("lit-A"), s = { turn: 13, wealth: 5, insight: 7 };
+	host.innerHTML = bar("A", "Lit", s, !which.tech, !which.supply, 2, 3);
+	setTimeout(() => { host.innerHTML = bar("A", "Lit", s, true, true, 2, 3, which); }, 350);
+}
+window.addEventListener("load", () => setTimeout(() => lightA({ tech: true, supply: true }), 600));
+
+/* Sandbox model. Prereqs and eras are left out: "affordable" is cost <= what you have and not yet learned. */
+const TECHS = [["Pottery", 3], ["Writing", 5], ["Bronze Working", 6], ["Mathematics", 9]];
+const PILES = [["Granary", 3], ["Warrior", 2], ["Library", 5], ["Temple", 4]];
+let s, look = "A", rule = 1;
+function reset() {
+	s = { turn: 1, insight: 0, wealth: 0, learned: new Set(), open: null, lit: { tech: false, supply: false },
+		seen: { tech: new Set(), supply: new Set() }, openedTurn: { tech: 0, supply: 0 }, dismissed: { tech: false, supply: false }, log: [] };
+	render();
+}
+const affordable = (kind) => kind === "tech"
+	? TECHS.filter(([n, c]) => !s.learned.has(n) && c <= s.insight).map(([n]) => n)
+	: PILES.filter(([, c]) => c <= s.wealth).map(([n]) => n);
+function isLit(kind) {
+	const now = affordable(kind);
+	if (rule === 1) return now.some((n) => !s.seen[kind].has(n));
+	if (rule === 2) return now.length > 0 && s.openedTurn[kind] !== s.turn;
+	if (now.length === 0) s.dismissed[kind] = false;
+	return now.length > 0 && !s.dismissed[kind];
+}
+function openScreen(kind) {
+	if (!s) return;
+	s.open = s.open === kind ? null : kind;
+	if (s.open) {
+		s.seen[kind] = new Set(affordable(kind)); s.openedTurn[kind] = s.turn; s.dismissed[kind] = true;
+		note(`Opened ${kind === "tech" ? TECH_LABEL : SUPPLY_LABEL}.`);
+	}
+	render();
+}
+function gain(res, n) { s[res] += n; note(`+${n} ${res}.`); render(); }
+function endTurn() { s.turn++; s.insight++; s.wealth++; s.open = null; note(`Turn ${s.turn}: upkeep +1 insight, +1 wealth.`); render(); }
+function learn(n, c) { s.insight -= c; s.learned.add(n); note(`Learned ${n} (−${c} insight).`); render(); }
+function buy(n, c) { s.wealth -= c; note(`Bought ${n} (−${c} wealth).`); render(); }
+function note(t) { s.log.unshift(t); }
+function render() {
+	const lit = { tech: isLit("tech"), supply: isLit("supply") };
+	const fresh = { tech: lit.tech && !s.lit.tech, supply: lit.supply && !s.lit.supply };
+	s.lit = lit;
+	document.getElementById("sandbar").innerHTML = bar(look, "Now", s, lit.tech, lit.supply, affordable("tech").length, affordable("supply").length, fresh);
+	const d = document.getElementById("drawer");
+	d.className = "drawer" + (s.open ? " open" : "");
+	if (s.open === "tech") d.innerHTML = `<span class="caps">Knowledge (click the key again to close)</span><div class="row">${TECHS.map(([n, c]) =>
+		`<button class="btn small" ${s.learned.has(n) || c > s.insight ? "disabled" : ""} onclick="learn('${n}', ${c})">${s.learned.has(n) ? "✓ " : ""}${n} · ${c} insight</button>`).join("")}</div>`;
+	if (s.open === "supply") d.innerHTML = `<span class="caps">Supply (click the key again to close)</span><div class="row">${PILES.map(([n, c]) =>
+		`<button class="btn small" ${c > s.wealth ? "disabled" : ""} onclick="buy('${n}', ${c})">${n} · ${c} wealth</button>`).join("")}</div>`;
+	document.getElementById("log").innerHTML = s.log.slice(0, 12).join("<br>") || "Nothing yet. Gain insight or wealth.";
+	document.querySelectorAll("#look button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === look));
+	document.querySelectorAll("#rule button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === rule));
+}
+document.getElementById("look").insertAdjacentHTML("beforeend", Object.keys(LOOKS).map((k) =>
+	`<button class="btn small" data-v="${k}" onclick="look='${k}'; render()">${k}</button>`).join(""));
+document.getElementById("rule").insertAdjacentHTML("beforeend", ["1 · Something new", "2 · Each turn", "3 · Until it goes dark"].map((t, i) =>
+	`<button class="btn small" data-v="${i + 1}" onclick="rule=${i + 1}; render()">${t}</button>`).join(""));
+reset();
+</script>
+</body>
+</html>
