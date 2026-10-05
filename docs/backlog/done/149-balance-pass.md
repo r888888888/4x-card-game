@@ -2,7 +2,7 @@
 id: 149
 title: Balance pass for the action economy, Insight and Unrest
 type: feature
-status: draft
+status: wontfix
 branch: feat/149-balance-pass
 ---
 
@@ -40,3 +40,4 @@ of them, so costs, yields and the 100-turn pacing have not been checked against 
 ## Log
 - From the backlog tidy-up: the README listed this as "Balance pass for the action economy (to spec)" and it
   never became an item; 143 and 144 each deferred a general balance pass.
+- 2026-10-04: wontfix at the user's request. Balance still happens in a dedicated balance item when wanted.

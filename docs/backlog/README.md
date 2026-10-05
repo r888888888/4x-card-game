@@ -41,8 +41,6 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
 
-149's balance pass can cover the reworked unrest (155–159 are done).
-
 Barbarians and military (units are homed on a territory, using a worker there, and stationed where they defend):
 1. 160 unit cards garrisoned on a home territory
 2. 161 territory defence from units, walls, cities and terrain
@@ -52,4 +50,3 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
-Not scheduled: 149 balance pass for the action economy, Insight and Unrest (draft: its scope questions are open).
