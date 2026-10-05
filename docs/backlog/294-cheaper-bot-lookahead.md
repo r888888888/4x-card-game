@@ -81,3 +81,20 @@ This is the dedicated balance item for that work. It has two parts:
   LOOKAHEAD_TURNS − 1; messages that said 12 or 36 now name the constants. `sim_game` in test_sim_anarchy now wraps a
   `sim_stats` helper taking seeds.
 
+- 2026-10-05: spike `spike/fast-lookahead` (worktree `.claude/worktrees/prof-294`, `prof.gd` times one game and
+  fingerprints it by score, turn and a hash of the log). Profiled seed 1 wide: a lookahead turn costs what a real
+  turn costs (~30 ms), and 88% of the turns played are inside lookaheads. Fork itself is cheap (0.45 ms; copying the
+  log is free, the ~400 card instances are the cost). The time went to O(tableau²) queries:
+  - `Modifiers.working_cards` ran 58k times (163 µs): `total()` rebuilds it for every modifier query, and
+    `smallest_with_room` asked `housing()` (so `total(housing)`) once per territory (~45 in wide).
+  - `Territories.building_targets` scanned the tableau 4 times per territory (2.3 ms a call, 3 calls per building tried).
+  - `_resolve` looked up the card's territory before checking it had effects for the trigger (274k calls).
+  - Bot: `anarchy_ahead()` forecast before the cheap spend coin; one forecast per candidate card; `_buy_cheapest`
+    priced each pile 3 times.
+  Fixed each without changing a game (all 15 fingerprints, 5 strategies × seeds 1–3, identical; suite green): seed 1
+  baseline 12.6 → 5.9 s, wide 24.8 → 7.2 s, one process. That alone meets the Manual check's CPU bar.
+  Not worth it: deduping governments by id (the real deck never holds two of one); a lighter fork (10% left).
+  Tried, behaviour-changing: back off a revolt weigh when the ruling government and deck are unchanged since a weigh
+  that stayed (re-check every 3rd) — a further −29% CPU, but scores moved up to −21% (wide seed 3: 247 → 194).
+  Recommendation: build the neutral speedups as AC2 and keep REVOLT_EVERY 4 / LOOKAHEAD_TURNS 12 unless the user
+  wants more; settings and back-off then become optional, judged by `--compare`.
