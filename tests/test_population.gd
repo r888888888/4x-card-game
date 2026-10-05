@@ -85,7 +85,7 @@ func test_population_block_values_load() -> void:
 	var r := load_config({"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}})
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.population, {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}, "values")
+	eq(r.config.population, {"start": 3, "food_upkeep": 0, "vp_per_pop": 2, "growth_surplus": NO_GROWTH}, "values (the fixture's growth_surplus, 260)")
 
 
 func test_no_population_block_leaves_population_off() -> void:

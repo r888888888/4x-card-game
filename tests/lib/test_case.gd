@@ -66,6 +66,8 @@ const SEED_1_TURNS := 20
 var _real_turn_limit := 0
 ## The famine block raw_config adds to a population block that has none (backlog 083: required with population on).
 const FAMINE := {"card": "famine", "max_counters": 3}
+## A growth_surplus no fixture's upkeep reaches: raw_config's default, so pop grows by itself only when a test sets one.
+const NO_GROWTH := 1000
 
 ## Fixture events (backlog 039), loaded with TEST_CARDS by event_db. Not in TEST_CARDS itself, so make_engine games
 ## have no event deck.
@@ -177,7 +179,8 @@ func keywords() -> Array[String]:
 	return k
 
 
-## A population block without "famine" gets FAMINE (083), so fixtures that turn population on stay short.
+## A population block without "famine" gets FAMINE (083), so fixtures that turn population on stay short. One without
+## "growth_surplus" gets NO_GROWTH (260): pop grows by itself only in fixtures that ask for it.
 func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	var c := {
 		"resources": ["food", "wealth", "insight"], "turn_limit": 20, "hand_size": 5, "deck_model": "fixed",
@@ -188,6 +191,9 @@ func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 	if c.get("population") is Dictionary and not c.population.has("famine"):
 		c.population = c.population.duplicate()
 		c.population["famine"] = FAMINE
+	if c.get("population") is Dictionary and not c.population.has("growth_surplus"):
+		c.population = c.population.duplicate()
+		c.population["growth_surplus"] = NO_GROWTH
 	return c
 
 
