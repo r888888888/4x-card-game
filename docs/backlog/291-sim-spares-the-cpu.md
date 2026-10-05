@@ -2,7 +2,7 @@
 id: 291
 title: Run the sim on the performance cores but one, from a shared job queue, one run at a time
 type: feature
-status: ready
+status: red-review
 branch: feat/291-sim-spares-the-cpu
 ---
 
@@ -71,7 +71,13 @@ shards last. Two sessions running a sim at once start 24 processes. After this i
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_sim_procs::test_sim_procs_overrides_the_default`, `…::test_the_default_is_the_performance_cores_but_one`, `…::test_with_no_performance_core_count_it_is_every_core_but_one`, `…::test_a_run_never_uses_fewer_than_one_process`, `…::test_an_invalid_sim_procs_is_ignored` |
+| AC2 | `balance/test_parallel_sim::test_a_worker_plays_only_the_unclaimed_games` |
+| AC3 | `balance/test_parallel_sim::test_every_game_is_played_exactly_once_from_the_queue` |
+| AC4 | `balance/test_parallel_sim::test_a_parallel_run_fails_fast_while_another_holds_the_lock` |
+| AC5 | `balance/test_parallel_sim::test_a_parallel_run_takes_over_a_dead_runs_lock_and_releases_it` |
+| AC6 | `balance/test_parallel_sim::test_an_in_process_run_ignores_the_lock` |
+| (152 AC5, rewritten) | `balance/test_parallel_sim::test_a_game_with_no_result_fails_the_run_and_its_directory_goes` |
 
 ## Manual check
 - [ ] `time scripts/sim.sh 20` on this machine with nothing else running: note wall time and confirm Activity Monitor
