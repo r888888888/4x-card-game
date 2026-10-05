@@ -9,7 +9,7 @@
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main`, not pinned in tests; the games run on one process per core (152) |
+| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
@@ -107,9 +107,11 @@ res://
   default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
-                         # strategy and civilization), run.gd (CLI)
+                         # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
+                         # game by game, 293), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
-  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all)
+  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all);
+                         # scripts/sim.sh --compare <checkout> [max seeds] [strategy] … compares two checkouts
   docs/                  # development process, testing guide, backlog
 ```
 Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on

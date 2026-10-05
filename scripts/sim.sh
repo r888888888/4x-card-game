@@ -10,7 +10,18 @@
 # the cache. One parallel run at a time across every checkout: a second one exits 1 at once, naming the running one's pid (291).
 # Runs at nice 10 (SIM_NICE=n overrides; the worker processes inherit it) so a run on every core leaves the desktop responsive.
 set -uo pipefail
-export SIM_CWD="$PWD"  # --compare's relative path is from here
+args=()
+while (($#)); do  # --compare <checkout> goes to sim/run.gd as SIM_COMPARE (an absolute path), not as a launch option
+	if [[ "$1" == --compare ]]; then
+		[[ $# -ge 2 && -f "$2/project.godot" ]] || { echo "--compare needs a checkout: ${2:-}" >&2; exit 1; }
+		export SIM_COMPARE="$(cd "$2" && pwd)"
+		shift 2
+	else
+		args+=("$1")
+		shift
+	fi
+done
+set -- ${args[@]+"${args[@]}"}
 cd "$(dirname "$0")/.."
 
 GODOT="${GODOT:-godot}"
