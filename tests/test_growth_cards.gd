@@ -277,3 +277,38 @@ func test_best_and_count_text() -> void:
 		["+1 pop", "+1 pop where it's needed most"], "best: short, long")
 	eq(grow_texts({"op": "grow", "amount": 1, "where": "each", "count": 3}),
 		["+1 pop on 3 territories", "+1 pop on each of your 3 smallest territories with room"], "count: short, long")
+
+
+# --- 262: growth cards replace automatic growth ---
+
+func test_pop_never_grows_by_itself() -> void:
+	var e := make_engine({"scout": 10},
+		{"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1, "growth_surplus": 1}})
+	build_on(e, home_uid(e), ["farm", "farm", "farm"])  # Capital 2 + 3 Farms: net +5
+	var before := e.total_pop()
+	var recorded := record_messages(e)
+	e.end_turn()
+	eq(e.turn, 2, "the next turn started")
+	eq(e.total_pop(), before, "no territory grew")
+	eq(notices_in(recorded).filter(func(n): return n.contains("grew to")), [], "no growth notice")
+
+
+func test_growth_surplus_is_an_unknown_population_field() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var raw := raw_config({"farm": 1})
+	raw.population = {"start": 2, "growth_surplus": 2, "famine": FAMINE}
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
+	eq(errors, [] as Array[String], "errors")
+	has_msg(warnings, "population: unknown field 'growth_surplus'")
+	check(not config.population.has("growth_surplus"), "the normalized block has no growth_surplus: %s" % [config.population])
+
+
+func test_manual_growth_is_gone() -> void:
+	var e := cards_engine(2, {"scout": 10})
+	for method in ["grow", "grow_error", "grow_cost"]:
+		check(not e.has_method(method), "GameEngine.%s is gone" % method)
+	var view_vars: Array = (load("res://ui/territory_view.gd") as Script).get_script_property_list().map(
+		func(p): return p.name)
+	check(not view_vars.has("grow_button"), "the territory view has no Grow button")

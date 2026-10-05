@@ -2,7 +2,7 @@
 id: 262
 title: Growth cards replace automatic growth
 type: feature
-status: ready
+status: red-review
 branch: feat/262-growth-cards
 ---
 
@@ -52,7 +52,14 @@ is) and Land Grants (a pop on each of your 3 smallest territories). Needs 261. S
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_growth_cards::test_pop_never_grows_by_itself` |
+| AC2 | `test_growth_cards::test_growth_surplus_is_an_unknown_population_field`; `test_population::test_population_block_defaults`, `test_population_block_values_load` (dicts reverted: fixtures add no `growth_surplus`) |
+| AC3 | `test_content::test_the_deck_and_supply_hold_both_kinds_of_growth_action`, `test_every_growth_card_costs_food` |
+| AC4 | `test_sim_strategies::test_every_strategy_skips_a_growth_card_that_leaves_less_than_1_net_food`, `test_every_strategy_plays_a_growth_card_that_leaves_net_food_of_1`, `test_every_strategy_skips_a_growth_card_that_adds_no_pop` |
+| AC5 | `test_sim_strategies::test_growth_and_tall_play_growth_cards_first`, `test_growth_and_tall_may_buy_growth_cards`, `test_other_strategies_play_growth_cards_in_hand_order` |
+
+Removed with 260's rule: `tests/test_auto_growth.gd` (its "manual growth is gone" moved to `test_growth_cards`; "the grow
+op still adds pop" is covered there by Festival and 261's tests), `test_anarchy::test_under_anarchy_nothing_grows_by_itself`.
 
 ## Manual check
 - [ ] `data/cards.json` / `config.json`: Bread and Beer and Land Grants as above (costs, piles, 1 Bread and Beer in

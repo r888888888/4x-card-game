@@ -78,15 +78,14 @@ func test_housing_validation() -> void:
 func test_population_block_defaults() -> void:
 	var r := load_config({"population": {}})
 	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.population, {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "growth_surplus": NO_GROWTH},
-		"defaults (growth_surplus is the fixture's; the loader's default: test_auto_growth)")
+	eq(r.config.population, {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}, "defaults")
 
 
 func test_population_block_values_load() -> void:
 	var r := load_config({"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}})
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.population, {"start": 3, "food_upkeep": 0, "vp_per_pop": 2, "growth_surplus": NO_GROWTH}, "values (the fixture's growth_surplus, 260)")
+	eq(r.config.population, {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}, "values")
 
 
 func test_no_population_block_leaves_population_off() -> void:

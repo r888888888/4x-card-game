@@ -108,6 +108,34 @@ func test_real_deck_has_growth_cards() -> void:
 	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
+# --- Growth cards (262) ---
+
+## The action cards among ids whose effects include a grow op that ok accepts.
+func growth_actions(r: Dictionary, ids: Array, ok: Callable) -> Array:
+	return ids.filter(func(id): return r.cards[id].type == CardDef.ACTION \
+		and r.cards[id].effects.any(func(effect): return effect.op == "grow" and ok.call(effect)))
+
+
+func test_the_deck_and_supply_hold_both_kinds_of_growth_action() -> void:
+	var r := load_real()
+	var best := func(effect): return effect.where == "best"
+	var counted := func(effect): return effect.where == "each" and effect.count > 0
+	var deck: Array = r.config.deck.keys()
+	var supply: Array = r.config.get("supply", {}).keys()
+	check(not growth_actions(r, deck, best).is_empty(), "the starting deck has a 'best' growth action")
+	check(not growth_actions(r, supply, best).is_empty(), "the supply has a 'best' growth action")
+	check(not growth_actions(r, supply, counted).is_empty(), "the supply has an 'each' growth action with a count")
+
+
+func test_every_growth_card_costs_food() -> void:
+	var r := load_real()
+	var ids: Array = r.config.deck.keys() + r.config.get("supply", {}).keys()
+	var growth := growth_actions(r, ids, func(_effect): return true)
+	check(not growth.is_empty(), "the deck and supply have growth cards")
+	for id in growth:
+		check(r.cards[id].cost.get(GameEngine.FOOD, 0) > 0, "%s costs food" % id)
+
+
 # --- Starter events (backlog 069) ---
 
 ## The ops a real event may use: they only give (see 072 for harmful ops).
