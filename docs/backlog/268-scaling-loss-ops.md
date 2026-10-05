@@ -2,7 +2,7 @@
 id: 268
 title: Loss ops that scale with the realm: lose_pct and lose_per_keyword
 type: feature
-status: ready
+status: red-review
 branch: feat/268-scaling-loss-ops
 ---
 
@@ -51,6 +51,10 @@ The era-2 and era-3 events (270) use both.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_effects::test_…` |
+| AC1 | `test_lose_pct::test_lose_pct_takes_a_share_of_the_store_rounded_up`, `test_lose_pct_of_an_empty_store_takes_nothing` |
+| AC2 | `test_lose_pct::test_upkeep_lose_pct_is_forecast_and_taken`, `test_forecast::test_upkeep_safe_ops_may_trigger_on_upkeep` (rows) |
+| AC3 | `test_lose_per_keyword::test_lose_per_keyword_takes_amount_per_matching_territory`, `test_lose_per_keyword_never_goes_below_zero`, `test_lose_per_keyword_with_no_matching_territory_takes_nothing`, `test_upkeep_lose_per_keyword_is_forecast_and_taken` |
+| AC4 | `test_lose_pct::test_lose_pct_loads_and_may_trigger_on_upkeep`, `test_lose_pct_validation`, `test_lose_per_keyword::test_lose_per_keyword_loads_and_may_trigger_on_upkeep`, `test_lose_per_keyword_validation` |
+| AC5 | `test_lose_pct::test_lose_pct_card_text`, `test_lose_per_keyword::test_lose_per_keyword_card_text` |
 
 ## Log
