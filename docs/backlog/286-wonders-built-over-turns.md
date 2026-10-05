@@ -2,7 +2,7 @@
 id: 286
 title: Wonders are built over turns, a pop-capped share of wealth each turn
 type: feature
-status: in-progress
+status: review
 branch: feat/286-wonders-built-over-turns
 ---
 
@@ -19,39 +19,39 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
 1}, "effects": [{"op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep"}, {"op": "gain", "resource":
 "food", "amount": 3}]}`. Homeland's pop is 4 (`set_home_pop`) unless a criterion says otherwise.
 
-- [ ] AC1: Playing places a site: given Colossus in hand and 0 wealth, then `play_cost` of it is `{}` and
+- [x] AC1: Playing places a site: given Colossus in hand and 0 wealth, then `play_cost` of it is `{}` and
   `play_error` is "". When it is played on Homeland, then 1 action is used, wealth is still 0, Colossus is on the
   tableau on Homeland, `is_site(uid)` is true, `site_progress(uid)` is 0 and `site_cost(uid)` is 12, and Homeland
   has 1 fewer free slot and 1 fewer free worker. With a civilization discount of 3 wealth on tag `wonder`,
   `site_cost` is 9. A non-project building (Farm) is unchanged: `is_site` false, its cost paid on play.
-- [ ] AC2: An unfinished site does nothing: given Colossus placed as a site, then food did not rise by 3 when it was
+- [x] AC2: An unfinished site does nothing: given Colossus placed as a site, then food did not rise by 3 when it was
   played, `score()` doesn't include its 5 VP (also when the game ends with it unfinished), the next upkeep gains no
   insight from it, the next turn draws the hand size without its +1, and it still uses its worker (a building
   placed after it on Homeland at pop 2 with one other building is idle).
-- [ ] AC3: Contributing: given a site on Homeland (pop 4) and 10 wealth, then `contribute_limit(uid)` is 4. When
+- [x] AC3: Contributing: given a site on Homeland (pop 4) and 10 wealth, then `contribute_limit(uid)` is 4. When
   `contribute(uid, 3)`, then wealth is 7, `site_progress` is 3, no action is used and `contribute_limit` is 1; after
   `contribute(uid, 1)` it is 0. After `end_turn`, `contribute_limit` is 4 again. The limit is the least of the
   territory's pop less what went in this turn, `site_cost − site_progress`, and wealth held: with 2 wealth it is 2,
   and with progress 10 of 12 it is 2. Contributing works on the turn the site was played. A `fork()` mid-build and
   `GameState.copy()` keep progress and this turn's contributions.
-- [ ] AC4: Contributing is refused, with `contribute_error` non-empty and nothing changed, when: the amount is below 1;
+- [x] AC4: Contributing is refused, with `contribute_error` non-empty and nothing changed, when: the amount is below 1;
   the amount is more than the wealth held ("needs 5 wealth (you have 2)"); the amount is more than
   `contribute_limit` (pop 4, 4 already in this turn); the uid is not an unfinished site (a Farm on the tableau, a
   completed Colossus, a Colossus in hand); the site is idle (Homeland's pop dropped below its buildings and the site
   is past its pop: `contribute_limit` 0); a decision is owed (the `_blocked_error` message); or the game is over.
-- [ ] AC5: Completion: given a site at progress 8 of 12 and 10 wealth, when `contribute(uid, 4)`, then `is_site` is
+- [x] AC5: Completion: given a site at progress 8 of 12 and 10 wealth, when `contribute(uid, 4)`, then `is_site` is
   false, food rises by 3 (its play effects resolve now), `score()` rises by 5, `contribute_limit` is 0, the next
   upkeep gains 2 insight from it and the next turn draws 1 more card. Completing logs "Completed Colossus." and
   emits `changed`.
-- [ ] AC6: Data: the loader accepts `project: true` on a building and rejects it on any other type, a non-bool value,
+- [x] AC6: Data: the loader accepts `project: true` on a building and rejects it on any other type, a non-bool value,
   and a project whose cost is not wealth alone, at least 1 (`{"food": 1, "wealth": 10}`, `{}`), each error naming
   file, card and field. A project's generated text adds "Built over turns: up to 1 wealth per pop here each turn."
   Real data (`test_content`): every card tagged `wonder` is a project, and every project is tagged `wonder`.
-- [ ] AC7: Bot: given a fixture game of a few turns where ScriptedBot has a Colossus site on Homeland (pop 4), after
+- [x] AC7: Bot: given a fixture game of a few turns where ScriptedBot has a Colossus site on Homeland (pop 4), after
   its plays and buys at the end of `take_turn` it contributes `min(contribute_limit, wealth − SITE_RESERVE)` to each
   site in tableau order (`SITE_RESERVE` = 3): with 10 wealth it puts in 4 and keeps 6; with 5 wealth it puts in 2;
   with 3 or less it puts in nothing. It plays a wonder card like any building, and never abandons a site.
-- [ ] AC8: Abandoning: given a Colossus site on Homeland at progress 7 and 2 wealth, when `abandon(uid)`, then no
+- [x] AC8: Abandoning: given a Colossus site on Homeland at progress 7 and 2 wealth, when `abandon(uid)`, then no
   action is used, wealth is still 2, Colossus is in the discard pile (not the tableau), Homeland has its slot and
   worker back, and a building that was idle because of the site now works. Played again later, it is a new site at
   progress 0 with a full `contribute_limit`. `abandon_error` is non-empty and nothing changes for a card that isn't
@@ -114,3 +114,17 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
   the Oracle may come much later in the game; whether sites crowd out supply buys for the bot.
 - Red: `project` on a non-building gets the usual TYPE_FIELDS warning ("only applies to buildings (ignored)"), as AC6's
   "rejects" reads with the house rule for type-only fields; a non-bool value and a non-wealth cost are errors.
+- Built. Rules in a new `engine/sites.gd` (`Sites`); `CardPlay.cost_to_play` returns {} for a project, and a project
+  skips its play effects until completed. Unfinished sites are left out of `Modifiers.working_cards`, `score()`, defence
+  and training, but still count as a worker and a slot. The blocking test's action table gained `contribute` and
+  `abandon`.
+- Green: `test_the_bot_plays_a_wonder_and_never_abandons_its_site` had a fixture flaw: with Court's 3 actions the bot
+  spent them on the hand's 5 Shrines before reaching the Colossus. Its deck went from 20 Shrines to 2; the assertions
+  are unchanged.
+- Added at green (design notes and Manual check): `card_details` state "Being built: N / M wealth"
+  (`test_a_sites_details_show_its_progress`); the details modal's Contribute (puts in `contribute_limit`, disabled with
+  `contribute_error` as its tooltip) and Abandon… with an `AbandonModal` confirmation naming the wealth lost
+  (`test_details_contribute_to_and_abandon_a_site`); a site's board card shows "N / M wealth"; a wonder in hand shows no
+  cost. The modal hangs off the details modal (`CardDetailsModal.abandon_modal`), since `main.gd` is at its 500-line cap.
+- Real data: costs as in the Manual check, each with `project: true`. The balance suite passes.
+- Suite 1896 → 1922 tests.
