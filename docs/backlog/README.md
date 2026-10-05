@@ -50,3 +50,8 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
+
+Settlement tiers (pop sets a territory's tier, which adds slots; governments tolerate tiers up to one):
+1. 281 settlement tiers add building slots, and buildings past the slots go idle
+2. 282 governments tolerate territories up to a tier; bigger ones add unrest
+3. 283 growth "where needed most" prefers a territory one pop short of its next tier

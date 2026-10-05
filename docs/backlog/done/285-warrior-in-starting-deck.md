@@ -2,7 +2,7 @@
 id: 285
 title: Seed the starting deck with a warrior card
 type: feature
-status: review
+status: done
 branch: feat/285-warrior-in-starting-deck
 ---
 
