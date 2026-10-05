@@ -122,9 +122,10 @@ func test_the_event_modal_is_a_sheet_with_the_turn_as_context() -> void:
 		var main: Node = await open_game()
 		for i in 10:
 			Game.engine.end_turn()
-			if not main.event_modal().is_empty():
+			if not main.event_modal().is_empty() and main.event_option_buttons().is_empty():
 				break
-		check(not main.event_modal().is_empty(), "precondition: an event within 10 turns of seed 1")
+			close_event(main)  # a choice event has no OK: wait for one that does
+		check(not main.event_modal().is_empty(), "precondition: an event without choices within 10 turns of seed 1")
 		await wait_sheet()
 		var modal: Object = main.modals.top()
 		var def: CardDef = Game.engine.card_db[main.event_modal().id]
