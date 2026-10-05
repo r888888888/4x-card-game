@@ -2,7 +2,7 @@
 id: 286
 title: Wonders are built over turns, a pop-capped share of wealth each turn
 type: feature
-status: ready
+status: red-review
 branch: feat/286-wonders-built-over-turns
 ---
 
@@ -87,7 +87,14 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_wonder_sites::test_a_project_costs_nothing_to_play_and_is_placed_as_a_site`, `test_a_site_cost_is_the_discounted_wealth_cost`, `test_a_building_that_isnt_a_project_is_paid_on_play` |
+| AC2 | `test_wonder_sites::test_an_unfinished_site_resolves_no_play_effect_and_scores_nothing`, `test_an_unfinished_site_scores_nothing_at_the_end`, `test_an_unfinished_site_has_no_upkeep_and_no_modifiers`, `test_an_unfinished_site_still_uses_a_worker` |
+| AC3 | `test_wonder_sites::test_contributing_puts_in_wealth_up_to_the_pop_each_turn`, `test_the_contribute_limit_is_the_least_of_pop_cost_left_and_wealth`, `test_a_fork_and_a_copy_keep_progress_and_this_turns_contributions` |
+| AC4 | `test_wonder_sites::test_contributing_below_1_or_past_wealth_or_the_limit_is_refused`, `test_contributing_to_a_card_that_isnt_an_unfinished_site_is_refused`, `test_contributing_to_an_idle_site_is_refused`, `test_contributing_is_refused_while_a_decision_is_owed_or_the_game_is_over` |
+| AC5 | `test_wonder_sites::test_paying_the_last_wealth_completes_the_site` |
+| AC6 | `test_wonder_sites::test_project_loads_on_a_building_with_its_text`, `test_project_validation`; `test_content::test_every_wonder_is_a_project_and_every_project_a_wonder` |
+| AC7 | `test_wonder_sites::test_the_bot_contributes_down_to_its_reserve_at_the_end_of_its_turn`, `test_the_bot_plays_a_wonder_and_never_abandons_its_site` |
+| AC8 | `test_wonder_sites::test_abandoning_a_site_discards_it_and_frees_its_slot_and_worker`, `test_a_site_played_again_after_abandoning_starts_over`, `test_abandoning_is_refused_for_a_card_that_isnt_an_unfinished_site`, `test_abandoning_is_refused_while_a_decision_is_owed_or_the_game_is_over` |
 
 ## Manual check
 - [ ] Real wonder costs (about 3× before): Oracle of Delphi 30, Walls of Uruk 30, Pyramids 40, Great Ziggurat 42,
@@ -105,3 +112,5 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
   contributes at turn end down to a reserve. Added after: abandoning, free, card to the discard, progress lost.
 - Balance worries for a later balance item: Egypt's −3 wealth on wonders is now ~7% instead of ~25%; Royal Road and
   the Oracle may come much later in the game; whether sites crowd out supply buys for the bot.
+- Red: `project` on a non-building gets the usual TYPE_FIELDS warning ("only applies to buildings (ignored)"), as AC6's
+  "rejects" reads with the house rule for type-only fields; a non-bool value and a non-wealth cost are errors.

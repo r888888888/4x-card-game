@@ -956,6 +956,14 @@ func test_every_government_sets_actions() -> void:
 			check(r.cards[id].get("actions") > 0, "government %s sets actions" % id)
 
 
+## 286: wonders are built over turns, and only wonders are.
+func test_every_wonder_is_a_project_and_every_project_a_wonder() -> void:
+	var r := load_real()
+	for id in r.cards:
+		var def: CardDef = r.cards[id]
+		eq(def.get("project") == true, def.has_tag("wonder"), "%s: project iff wonder" % id)
+
+
 ## 282: each government names the largest settlement tier it keeps calm.
 func test_every_government_sets_tolerates() -> void:
 	var r := load_real()
