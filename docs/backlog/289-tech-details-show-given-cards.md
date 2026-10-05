@@ -2,7 +2,7 @@
 id: 289
 title: A tech's details show the cards it gives
 type: feature
-status: in-progress
+status: review
 branch: feat/289-tech-details-show-given-cards
 ---
 
@@ -14,20 +14,20 @@ click on one opens that card's full details on top. Design B of
 [tech-gives-options.html](../design/tech-gives-options.html).
 
 ## Acceptance criteria
-- [ ] AC1: Given a tech whose effects are `create` granary (zone discard), `unlock` granary and `unlock` houses, when
+- [x] AC1: Given a tech whose effects are `create` granary (zone discard), `unlock` granary and `unlock` houses, when
   `def_details(tech)` is asked, then its `gives` is `[{card_id: "granary", how: "1 to your discard · in the supply"},
   {card_id: "houses", how: "in the supply"}]`: one entry per card, in first-effect order. A card only created gives
   `how` "1 to your discard"; two `create` effects of one card give "2 to your discard".
-- [ ] AC2: Given that tech, when `def_details(tech)` is asked, then its `rules` no longer hold the lines of the
+- [x] AC2: Given that tech, when `def_details(tech)` is asked, then its `rules` no longer hold the lines of the
   `create` and `unlock` effects ("Add a Granary to your discard", "Granary can now be bought in the supply.") while
   its other lines stay (a `gain` effect's line, the prerequisite and eureka lines). `card_details(uid)` of a live copy
   of the tech gives the same `gives` and `rules`. The tech's card face text is unchanged.
-- [ ] AC3: Given a tech with no `create` or `unlock` effect, or a card of any other type (a civilization whose start
+- [x] AC3: Given a tech with no `create` or `unlock` effect, or a card of any other type (a civilization whose start
   effect creates a card included), when its details are asked, then `gives` is `[]` and its rules are as before.
-- [ ] AC4: Given the details modal opened on the AC1 tech (from the Knowledge screen, `open_tech`), then it shows a
+- [x] AC4: Given the details modal opened on the AC1 tech (from the Knowledge screen, `open_tech`), then it shows a
   Gives row of two compact card faces, Granary then Houses, each with its `how` caption under it; opened on a card
   whose `gives` is empty, it shows no Gives row.
-- [ ] AC5: Given the AC4 modal, when a Gives card is clicked (or focused and Enter or I pressed), then a second details
+- [x] AC5: Given the AC4 modal, when a Gives card is clicked (or focused and Enter or I pressed), then a second details
   modal opens on top of the tech's showing that card's `def_details`, with no footer action (no Learn, Play, Buy); the
   tech's modal stays open beneath. When Esc is pressed, only the top modal closes and the tech's details are back on
   top. A given card's own details have no Gives row unless that card is a tech that gives cards.
@@ -76,3 +76,13 @@ click on one opens that card's full details on top. Design B of
 ## Log
 - 2026-10-05: Designs in [tech-gives-options.html](../design/tech-gives-options.html) (A links, B inline compact
   cards, C aside stack, D text section); the user picked B.
+- 2026-10-05: Built. Engine: `CardDetails.gives(def)` (one walk, also used by `Research.tree`'s `gives`), the `gives`
+  field on `def_details` / `card_details`, and `CardDef.rules_tooltip(card_db, skip_ops)` so a tech's details leave out
+  `CardDetails.GIVES_OPS` lines while its face and tooltip keep them. UI: `CardDetailsModal`'s Gives row (heading, then a
+  `GivesCard` button holding a `CardView` at `TABLEAU_SIZE` with a `Caption` under it), `given_details` built on first
+  use, and I on a focused Gives card opening it (I otherwise closes). Fixture Silo stands in for Houses.
+- Seen on the real data (Mysticism): the three cards fit, but a card with more text (Oracle of Delphi) grows taller
+  than the others, so the captions don't line up across the row. Each caption still sits under its own card.
+- The given card's sheet is smaller than the tech's and the stack centres each sheet, so it opens over the middle of
+  the tech's sheet rather than visibly 8 px down-right of its corner. That is the existing `ModalStack` cascade, not
+  something this item changed.
