@@ -125,6 +125,8 @@ Adding an effect: follow the `add-effect` skill. The engine API is documented by
 Buildings always target a settled territory with a free slot (`free_slots`).
 An effect that targets a card overrides `target_zone()` (and its two error messages); the engine then
 derives `needs_target`, `valid_targets` and the target checks in `play_error` from it.
+`would_need_target(uid)` / `would_target(uid)` (310) give the same answers for a card in any zone, as if it were in the
+hand (false and `[]` for no card or after game over): a bot tells a card with nothing to act on from one with.
 
 ## Card data format
 JSON only. Effects are structured objects, so no mini-language parser is needed.
