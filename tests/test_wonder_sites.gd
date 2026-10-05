@@ -3,7 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## unfinished site that takes a slot and a worker and does nothing; wealth goes in with contribute, at most 1 per pop on
 ## its territory each turn, until its (discounted) wealth cost is paid and it completes. abandon sends a site to the
 ## discard. Fixtures: Colossus (project, 12 wealth, 5 VP, +1 hand size, ⟳ +2 insight, play: +3 food), the civilization
-## Builders (wonders −3 wealth), TEST_GOVS (Court: 3 actions). The bot script is loaded untyped.
+## Builders (wonders −3 wealth), TEST_GOVS (Court: 3 actions).
 
 const COLOSSUS := {"id": "colossus", "name": "Colossus", "type": "building", "cost": {"wealth": 12}, "vp": 5,
 	"tags": ["wonder"], "project": true, "modifiers": {"hand_size": 1},
@@ -14,7 +14,6 @@ const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization",
 const SITE_FIXTURES := [COLOSSUS, BUILDERS]
 const BUILT_TEXT := "Built over turns: up to 1 wealth per pop here each turn."
 
-var BOT: Variant = load("res://sim/bot.gd")
 
 
 ## A game with population on (no food upkeep, no pop VP), Court ruling (3 actions), civilization civ ("" for none),
@@ -38,21 +37,21 @@ func site_engine(wealth := 0, deck := {"farm": 20}, civ := "", overrides := {}) 
 
 
 ## Puts a Colossus in hand and plays it on the Homeland; returns its uid.
-func place(e: Object) -> int:
+func place(e: GameEngine) -> int:
 	var uid := put_in_hand(e, "colossus")
 	check(e.play_card(uid, home_uid(e)), "play Colossus: %s" % e.play_error(uid, home_uid(e)))
 	return uid
 
 
 ## A placed Colossus with progress already paid in (set directly).
-func site_at(e: Object, progress: int) -> int:
+func site_at(e: GameEngine, progress: int) -> int:
 	var uid := place(e)
 	e.zone("tableau").find(uid).progress = progress
 	return uid
 
 
 ## The zone card uid is in, or "".
-func zone_of(e: Object, uid: int) -> String:
+func zone_of(e: GameEngine, uid: int) -> String:
 	for z in GameEngine.ZONES:
 		if e.zone(z).find(uid) != null:
 			return z
@@ -60,14 +59,14 @@ func zone_of(e: Object, uid: int) -> String:
 
 
 ## [wealth, progress, zone] of card uid in e: what a refused contribute must leave unchanged.
-func snapshot(e: Object, uid: int) -> Array:
+func snapshot(e: GameEngine, uid: int) -> Array:
 	return [e.resources.wealth, e.site_progress(uid), zone_of(e, uid)]
 
 
 # --- AC1: playing places a site ---
 
 func test_a_project_costs_nothing_to_play_and_is_placed_as_a_site() -> void:
-	var e: Object = site_engine(0)
+	var e := site_engine(0)
 	var home := home_uid(e)
 	var uid := put_in_hand(e, "colossus")
 	eq([e.play_cost(uid), e.play_error(uid, home)], [{}, ""], "[play_cost, play_error] with 0 wealth")
@@ -84,12 +83,12 @@ func test_a_project_costs_nothing_to_play_and_is_placed_as_a_site() -> void:
 
 
 func test_a_site_cost_is_the_discounted_wealth_cost() -> void:
-	var e: Object = site_engine(0, {"farm": 20}, "builders")
+	var e := site_engine(0, {"farm": 20}, "builders")
 	eq(e.site_cost(place(e)), 9, "12 − Builders' 3")
 
 
 func test_a_building_that_isnt_a_project_is_paid_on_play() -> void:
-	var e: Object = site_engine(0)
+	var e := site_engine(0)
 	var uid := put_in_hand(e, "farm")
 	var food: int = e.resources.food
 	check(e.play_card(uid, home_uid(e)), "play Farm")
@@ -99,7 +98,7 @@ func test_a_building_that_isnt_a_project_is_paid_on_play() -> void:
 # --- AC2: an unfinished site does nothing ---
 
 func test_an_unfinished_site_resolves_no_play_effect_and_scores_nothing() -> void:
-	var e: Object = site_engine(0)
+	var e := site_engine(0)
 	var food: int = e.resources.food
 	var score: int = e.score()
 	place(e)
@@ -108,7 +107,7 @@ func test_an_unfinished_site_resolves_no_play_effect_and_scores_nothing() -> voi
 
 
 func test_an_unfinished_site_scores_nothing_at_the_end() -> void:
-	var e: Object = site_engine(0, {"farm": 20}, "", {"turn_limit": 1})
+	var e := site_engine(0, {"farm": 20}, "", {"turn_limit": 1})
 	place(e)
 	var score: int = e.score()
 	e.end_turn()
@@ -117,7 +116,7 @@ func test_an_unfinished_site_scores_nothing_at_the_end() -> void:
 
 
 func test_an_unfinished_site_has_no_upkeep_and_no_modifiers() -> void:
-	var e: Object = site_engine(0)
+	var e := site_engine(0)
 	place(e)
 	var insight: int = e.resources.insight
 	e.end_turn()
@@ -126,7 +125,7 @@ func test_an_unfinished_site_has_no_upkeep_and_no_modifiers() -> void:
 
 
 func test_an_unfinished_site_still_uses_a_worker() -> void:
-	var e: Object = site_engine(0)
+	var e := site_engine(0)
 	set_home_pop(e, 2)
 	build_on(e, home_uid(e), ["farm"])
 	place(e)
@@ -138,7 +137,7 @@ func test_an_unfinished_site_still_uses_a_worker() -> void:
 # --- AC3: contributing ---
 
 func test_contributing_puts_in_wealth_up_to_the_pop_each_turn() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := place(e)
 	eq(e.contribute_limit(uid), 4, "limit: Homeland pop 4")
 	var actions: int = e.actions_left()
@@ -152,17 +151,17 @@ func test_contributing_puts_in_wealth_up_to_the_pop_each_turn() -> void:
 
 
 func test_the_contribute_limit_is_the_least_of_pop_cost_left_and_wealth() -> void:
-	var poor: Object = site_engine(2)
+	var poor := site_engine(2)
 	eq(poor.contribute_limit(place(poor)), 2, "2 wealth held")
-	var nearly: Object = site_engine(10)
+	var nearly := site_engine(10)
 	eq(nearly.contribute_limit(site_at(nearly, 10)), 2, "10 of 12 paid")
 
 
 func test_a_fork_and_a_copy_keep_progress_and_this_turns_contributions() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := place(e)
 	e.contribute(uid, 3)
-	var f: Object = e.fork()
+	var f := e.fork()
 	eq([f.site_progress(uid), f.contribute_limit(uid)], [3, 1], "fork: [progress, limit]")
 	var c: CardInstance = e.state.copy().zones.tableau.find(uid)
 	eq([c.get("progress"), c.get("given_this_turn")], [3, 3], "GameState.copy: [progress, given this turn]")
@@ -170,7 +169,7 @@ func test_a_fork_and_a_copy_keep_progress_and_this_turns_contributions() -> void
 
 # --- AC4: refused contributions ---
 
-func check_refused(e: Object, uid: int, amount: int, what: String, fragment := "") -> void:
+func check_refused(e: GameEngine, uid: int, amount: int, what: String, fragment := "") -> void:
 	var before := snapshot(e, uid)
 	var error: String = e.contribute_error(uid, amount)
 	check(error != "", "%s: contribute_error is non-empty" % what)
@@ -181,17 +180,17 @@ func check_refused(e: Object, uid: int, amount: int, what: String, fragment := "
 
 
 func test_contributing_below_1_or_past_wealth_or_the_limit_is_refused() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := place(e)
 	check_refused(e, uid, 0, "amount 0")
-	var poor: Object = site_engine(2)
+	var poor := site_engine(2)
 	check_refused(poor, place(poor), 5, "more than the wealth held", "needs 5 wealth (you have 2)")
 	e.contribute(uid, 4)
 	check_refused(e, uid, 1, "past the limit (4 in this turn)")
 
 
 func test_contributing_to_a_card_that_isnt_an_unfinished_site_is_refused() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	build_on(e, home_uid(e), ["farm"])
 	check_refused(e, e.zone("tableau").cards[-1].uid, 1, "a Farm")
 	check_refused(e, site_at(e, 12), 1, "a completed Colossus")
@@ -199,7 +198,7 @@ func test_contributing_to_a_card_that_isnt_an_unfinished_site_is_refused() -> vo
 
 
 func test_contributing_to_an_idle_site_is_refused() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	build_on(e, home_uid(e), ["farm", "farm"])
 	var uid := place(e)
 	set_home_pop(e, 2)
@@ -209,11 +208,11 @@ func test_contributing_to_an_idle_site_is_refused() -> void:
 
 
 func test_contributing_is_refused_while_a_decision_is_owed_or_the_game_is_over() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := place(e)
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 	check_refused(e, uid, 1, "a decision owed", "Choose a government first.")
-	var over: Object = site_engine(10, {"farm": 20}, "", {"turn_limit": 1})
+	var over := site_engine(10, {"farm": 20}, "", {"turn_limit": 1})
 	var site := place(over)
 	over.end_turn()
 	check_refused(over, site, 1, "the game over", "The game is over.")
@@ -222,7 +221,7 @@ func test_contributing_is_refused_while_a_decision_is_owed_or_the_game_is_over()
 # --- AC5: completion ---
 
 func test_paying_the_last_wealth_completes_the_site() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := site_at(e, 8)
 	var food: int = e.resources.food
 	var score: int = e.score()
@@ -269,36 +268,36 @@ func test_project_validation() -> void:
 ## A bot game: a Colossus site placed on the Homeland (pop 4) on turn 1, the hand Shrines (free, no wealth), wealth
 ## set after.
 func bot_site_game(wealth: int) -> Array:
-	var e: Object = site_engine(0, {"shrine": 20})
+	var e := site_engine(0, {"shrine": 20})
 	var uid := place(e)
 	e.resources.wealth = wealth
 	return [e, uid]
 
 
 func test_the_bot_contributes_down_to_its_reserve_at_the_end_of_its_turn() -> void:
-	eq(BOT.SITE_RESERVE, 3, "SITE_RESERVE")
+	eq(ScriptedBot.SITE_RESERVE, 3, "SITE_RESERVE")
 	for case in [[10, 4, 6], [5, 2, 3], [3, 0, 3], [1, 0, 1]]:
 		var game := bot_site_game(case[0])
-		var e: Object = game[0]
-		BOT.take_turn(e, "baseline")
+		var e: GameEngine = game[0]
+		ScriptedBot.take_turn(e, "baseline")
 		eq([e.site_progress(game[1]), e.resources.wealth], [case[1], case[2]], "with %d wealth: [in, kept]" % case[0])
 
 
 func test_the_bot_plays_a_wonder_and_never_abandons_its_site() -> void:
-	var e: Object = site_engine(0, {"shrine": 20})
+	var e := site_engine(0, {"shrine": 2})  # a hand of 2 Shrines and the Colossus: Court's 3 actions play all
 	var uid := put_in_hand(e, "colossus")
-	BOT.take_turn(e, "baseline")
+	ScriptedBot.take_turn(e, "baseline")
 	check(e.zone("tableau").find(uid) != null and e.is_site(uid), "the bot placed the Colossus as a site")
 	for turn in 2:
 		e.end_turn()
-		BOT.take_turn(e, "baseline")
+		ScriptedBot.take_turn(e, "baseline")
 	check(e.zone("tableau").find(uid) != null, "the site is still on the tableau")
 
 
 # --- AC8: abandoning ---
 
 func test_abandoning_a_site_discards_it_and_frees_its_slot_and_worker() -> void:
-	var e: Object = site_engine(2)
+	var e := site_engine(2)
 	var home := home_uid(e)
 	set_home_pop(e, 1)
 	var slots: int = e.free_slots(home)
@@ -316,7 +315,7 @@ func test_abandoning_a_site_discards_it_and_frees_its_slot_and_worker() -> void:
 
 
 func test_a_site_played_again_after_abandoning_starts_over() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := site_at(e, 7)
 	e.contribute(uid, 2)
 	check(e.abandon(uid), "abandon")
@@ -328,7 +327,7 @@ func test_a_site_played_again_after_abandoning_starts_over() -> void:
 
 
 func test_abandoning_is_refused_for_a_card_that_isnt_an_unfinished_site() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	build_on(e, home_uid(e), ["farm"])
 	var farm: int = e.zone("tableau").cards[-1].uid
 	var done := site_at(e, 12)
@@ -340,12 +339,12 @@ func test_abandoning_is_refused_for_a_card_that_isnt_an_unfinished_site() -> voi
 
 
 func test_abandoning_is_refused_while_a_decision_is_owed_or_the_game_is_over() -> void:
-	var e: Object = site_engine(10)
+	var e := site_engine(10)
 	var uid := place(e)
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 	eq(e.abandon_error(uid), "Choose a government first.", "a decision owed")
 	check(not e.abandon(uid) and e.zone("tableau").find(uid) != null, "the site stays")
-	var over: Object = site_engine(10, {"farm": 20}, "", {"turn_limit": 1})
+	var over := site_engine(10, {"farm": 20}, "", {"turn_limit": 1})
 	var site := place(over)
 	over.end_turn()
 	eq(over.abandon_error(site), "The game is over.", "the game over")

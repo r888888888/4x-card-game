@@ -47,6 +47,9 @@ func actions() -> Array:
 			func(e): return e.move_unit(first_in(e, "tableau"), home_uid(e))],
 		["disband", func(e): return e.disband_error(first_in(e, "tableau")), func(e): return e.disband(first_in(e, "tableau"))],
 		["choose_option", func(e): return e.choose_option_error(0), func(e): return e.choose_option(0)],
+		["contribute", func(e): return e.contribute_error(first_in(e, "tableau"), 1),
+			func(e): return e.contribute(first_in(e, "tableau"), 1)],
+		["abandon", func(e): return e.abandon_error(first_in(e, "tableau")), func(e): return e.abandon(first_in(e, "tableau"))],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
 	]
 

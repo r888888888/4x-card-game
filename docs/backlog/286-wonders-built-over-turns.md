@@ -2,7 +2,7 @@
 id: 286
 title: Wonders are built over turns, a pop-capped share of wealth each turn
 type: feature
-status: red-review
+status: in-progress
 branch: feat/286-wonders-built-over-turns
 ---
 

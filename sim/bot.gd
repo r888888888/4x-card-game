@@ -31,6 +31,8 @@ const LOOKAHEAD_TURNS := 12
 const REVOLT_EVERY := 4
 ## The wealth the bot keeps when it spends before Anarchy's drain (239): enough to buy order with 2 turns left.
 const SPEND_RESERVE := 6
+## The wealth the bot keeps when it pays into its wonder sites at the end of its turn (286).
+const SITE_RESERVE := 3
 ## The insight a lookahead's fork gathers that is worth 1 point of its value (240): research pays off past the horizon.
 const INSIGHT_PER_POINT := 4
 
@@ -126,6 +128,7 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			plays += 1
 	if strategy in ["wealth", "growth", "tall"]:
 		_buy_cheapest(engine, func(def): return _prefers(strategy, def))
+	_fund_sites(engine)
 	_revolt(engine, strategy)
 	_spend_before_drain(engine, strategy)
 	return steps
@@ -134,6 +137,15 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 ## Learns the cheapest tech the engine allows (140: any tech in the open tree); a tie goes to the lower era, then the
 ## one listed first in config research_deck (tech_tree()'s order). Returns whether it learned one. Looks only at the
 ## research deck, without building tech_tree() (151).
+## Pays into each wonder site in tableau order (286) as much as it can take this turn, keeping SITE_RESERVE wealth.
+## It never abandons one.
+static func _fund_sites(engine: GameEngine) -> void:
+	for card in engine.zone("tableau").cards.duplicate():
+		var amount := mini(engine.contribute_limit(card.uid), engine.resources.get(GameEngine.WEALTH, 0) - SITE_RESERVE)
+		if amount > 0:
+			engine.contribute(card.uid, amount)
+
+
 static func learn_cheapest_tech(engine: GameEngine) -> bool:
 	var listed: Array = engine.config.get("research_deck", {}).keys()
 	var insight: int = engine.resources.get(GameEngine.INSIGHT, 0)

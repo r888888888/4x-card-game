@@ -16,7 +16,8 @@ static func defense_parts(e: GameEngine, uid: int) -> Dictionary:
 	for card in e.zone("tableau").cards:
 		if card.def.type == CardDef.UNIT and card.station_uid == uid:
 			parts.units += unit_strength(e, card.uid)
-		elif card.def.type == CardDef.BUILDING and card.territory_uid == uid and not e.is_idle(card.uid):
+		elif card.def.type == CardDef.BUILDING and card.territory_uid == uid and not e.is_idle(card.uid) \
+				and not Sites.unfinished(e, card):
 			parts.buildings += card.def.defense
 		elif card.def.type == CardDef.CITY and card.territory_uid == uid:
 			parts.cities += card.def.defense
@@ -35,7 +36,8 @@ static func unit_strength(e: GameEngine, uid: int) -> int:
 		return 0
 	var strength := unit.def.strength
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == unit.station_uid and not e.is_idle(card.uid):
+		if card.def.type == CardDef.BUILDING and card.territory_uid == unit.station_uid and not e.is_idle(card.uid) \
+				and not Sites.unfinished(e, card):
 			strength += card.def.training
 	return strength
 

@@ -11,6 +11,8 @@ const EVENT := "event"  # from the event deck; drawn at each turn start from tur
 const CIVILIZATION := "civilization"  # the civilization you play as; in its own zone all game, never in a deck
 const GOVERNMENT := "government"  # played from the hand to replace the ruling government, which leaves the game
 const UNIT := "unit"  # stays in the tableau, homed on a territory where it uses a worker; stationed somewhere (160)
+## A project building's line (286): how it is built.
+const PROJECT_TEXT := "Built over turns: up to 1 wealth per pop here each turn."
 const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CIVILIZATION, GOVERNMENT, UNIT]
 ## The prefix of a raid effect's line by trigger (162).
 const RAID_WARNING := 2  # event phases between a raid being drawn and striking (257)
@@ -39,6 +41,7 @@ var housing: int = 0  # territories: most pop the territory can hold; buildings:
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var strength: int = 0  # units: how much it counts in defence (160)
 var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
+var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
@@ -135,6 +138,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append(defense_text())
 	if training > 0:
 		parts.append(training_text())
+	if project:
+		parts.append(PROJECT_TEXT)
 	if prereq != "":
 		parts.append("Needs %s" % card_db[prereq].name)
 	if not eureka.is_empty():
@@ -189,6 +194,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		parts.append(defense_text() + " on its territory")
 	if training > 0:
 		parts.append(training_text())
+	if project:
+		parts.append(PROJECT_TEXT)
 	if prereq != "":
 		parts.append("Needs %s researched first." % card_db[prereq].name)
 	if not eureka.is_empty():
