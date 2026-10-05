@@ -2,7 +2,7 @@
 id: 270
 title: Era 2 and 3 events, so the event deck escalates
 type: feature
-status: in-progress
+status: review
 branch: feat/270-era-2-and-3-events
 ---
 
@@ -18,23 +18,23 @@ Content only, apart from the ops and rules it uses (267, 268, 269). Numbers are 
 Duplicates are fine where they add flavour.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every era a tech in `research_deck` belongs to, or adds with `add_era`, has at least one event of
+- [x] AC1 (invariant): Every era a tech in `research_deck` belongs to, or adds with `add_era`, has at least one event of
   that era in `event_deck`.
-- [ ] AC2 (invariant): Every era from 2 up has at least one harmful event and one helpful event in `event_deck`.
+- [x] AC2 (invariant): Every era from 2 up has at least one harmful event and one helpful event in `event_deck`.
   - Harmful: gains unrest; takes food, wealth or insight (`lose`, `lose_pct`, `lose_per_keyword`); takes pop
     (`lose_pop`); or sets a negative `actions` or `hand_size` modifier.
   - Helpful: gains a resource other than unrest, scores, grows pop, or sets a positive modifier.
 
   Effects inside a choice event's options count.
-- [ ] AC3 (invariant): Every era from 2 up has at least one event in `event_deck` whose effect scales with the realm:
+- [x] AC3 (invariant): Every era from 2 up has at least one event in `event_deck` whose effect scales with the realm:
   `gain_per_tag`, `gain_per_keyword`, `lose_per_keyword` or `lose_pct`.
-- [ ] AC4 (invariant): Every per-keyword and per-tag effect on an event can fire.
+- [x] AC4 (invariant): Every per-keyword and per-tag effect on an event can fire.
   - Each keyword is on a territory in `territory_deck` or the starting territory, printed or a possible roll in
     `territory_resources`.
   - Each tag is on a card in `deck` or `supply`, or on a card some card creates.
-- [ ] AC5 (invariant): Food, wealth and insight are each gained by some event in `event_deck` and lost by some event in
+- [x] AC5 (invariant): Food, wealth and insight are each gained by some event in `event_deck` and lost by some event in
   `event_deck`, including raid triggers and choice options.
-- [ ] AC6 (invariant): Unrest escalates by era. The most unrest any era-n event adds (267's measure, with 269's rule for
+- [x] AC6 (invariant): Unrest escalates by era. The most unrest any era-n event adds (267's measure, with 269's rule for
   choices) is at least the most any era-(n−1) event adds, for each era from 2 up.
 
 ## Out of scope
@@ -78,7 +78,7 @@ Proposed cards, 1 copy each, for review. Flavour to be written in the item, in t
   - Library Burns: −50% insight.
   - Debased Coin: −30% wealth.
   - Storm at Sea: −2 wealth per coastal territory.
-  - Golden Age (2 turns): +1 action and +1 hand size each turn.
+  - Golden Age (3 turns, the user's change at the checkpoint): +1 action and +1 hand size each turn.
   - School of Philosophers: +5 insight.
   - Succession Crisis (choice): pay 6 wealth; or +3 unrest; or −1 pop and +1 unrest.
   - Mercenaries' Offer (choice): pay 4 wealth for a Warriors in your discard (Swordsmen once 167 lands); or nothing.
@@ -95,3 +95,14 @@ Proposed cards, 1 copy each, for review. Flavour to be written in the item, in t
 - AC2: "a positive / negative modifier" reads as `actions` or `hand_size` only; renewal and the rest don't count either
   way. AC5 counts effects only, not an option's cost.
 - AC4's test passes before the change (only Harvest Festival counts a tag today); it guards the new cards.
+- Green: the 18 proposed cards, 1 copy each, as listed (Golden Age 3 turns). Mercenaries' Offer creates Warriors in the
+  discard (`create`, zone `discard`).
+- Empty options read badly ("pay 4 wealth for ; or ."): `CardDef.choices_text` / `option_text` now read "pay 4 wealth"
+  and "nothing" ("Pay 4 wealth", "Nothing" on the buttons), test `test_choice_events::test_an_option_without_effects_reads_as_its_cost_or_nothing`.
+- Golden Age's hand size: the hand is drawn before the turn's event, so its +1 hand size applies to 2 of its 3 turns'
+  draws; +1 action to all 3.
+- Follow-up (text): Mercenaries' Offer reads "pay 4 wealth for Add a Warriors to your discard" (create's own text,
+  capitalised mid-line). Small, but worth a fix with Swordsmen (167).
+- Balance worries, for the next balance item: Library Burns (−50%) and Debased Coin (−30%) bite hardest on a big
+  stockpile; Storm at Sea (−2 per coastal) can be −6 wealth or more; Tax Revolt's +2 and Succession Crisis's +3 are
+  the deck's largest single unrest hits.
