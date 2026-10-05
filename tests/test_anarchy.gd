@@ -218,8 +218,7 @@ func test_turn_forecast_counts_the_unrest_of_an_era_arriving_at_the_next_turn_st
 	e.resources["unrest"] = 0
 	e.resources["wealth"] = 12
 	var upkeep := e.upkeep_forecast()
-	var o: Object = e
-	var f: Dictionary = o.call("turn_forecast")
+	var f := e.turn_forecast()
 	eq(f.get("unrest"), upkeep.get("unrest", 0) + 3, "era 2 arrives at the next start: +3 unrest")
 	eq(e.era(), 1, "still era 1")
 

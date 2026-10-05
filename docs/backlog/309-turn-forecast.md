@@ -2,7 +2,7 @@
 id: 309
 title: turn_forecast reports what starting the next turn changes, score and raids included
 type: feature
-status: red-review
+status: in-progress
 branch: feat/309-turn-forecast
 ---
 

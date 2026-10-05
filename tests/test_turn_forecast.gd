@@ -9,10 +9,8 @@ const POP_ON := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 const RAID_POP := {"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 1}}
 
 
-## e.turn_forecast(), held as Object until the query exists (red phase).
 func forecast(e: GameEngine) -> Dictionary:
-	var o: Object = e
-	return o.call("turn_forecast")
+	return e.turn_forecast()
 
 
 ## A raid_engine game (VP per pop on) at turn 3, with Raiders announced on turn 2 to strike at the turn-4 start.
