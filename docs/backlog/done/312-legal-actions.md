@@ -2,7 +2,7 @@
 id: 312
 title: legal_actions lists every action the engine would allow now
 type: feature
-status: review
+status: done
 branch: feat/312-legal-actions
 ---
 
