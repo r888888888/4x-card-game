@@ -105,7 +105,7 @@ func test_gain_score_draw_create_keep_their_text() -> void:
 
 
 ## A TEST_CARDS card by id, for text tests that create it.
-func test_card(id: String) -> Dictionary:
+func fixture_card(id: String) -> Dictionary:
 	return TEST_CARDS.cards.filter(func(c: Dictionary) -> bool: return c.id == id)[0]
 
 
@@ -117,8 +117,8 @@ func create_text(cards: Array, card: String, zone := "tableau") -> String:
 
 
 func test_bug_279_create_uses_an_before_a_vowel() -> void:
-	eq(create_text([test_card("explorer")], "explorer", "discard"), "Add an Explorer to your discard", "AC1 discard")
-	eq(create_text([test_card("explorer")], "explorer"), "Create an Explorer", "AC2 tableau")
+	eq(create_text([fixture_card("explorer")], "explorer", "discard"), "Add an Explorer to your discard", "AC1 discard")
+	eq(create_text([fixture_card("explorer")], "explorer"), "Create an Explorer", "AC2 tableau")
 
 
 func test_bug_279_create_keeps_a_before_a_consonant() -> void:
