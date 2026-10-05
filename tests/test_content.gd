@@ -236,6 +236,29 @@ func real_buildings(r: Dictionary) -> Array[CardDef]:
 	return out
 
 
+## Backlog 263: a building holds a slot and a worker for good, so it gives something that lasts too: printed VP, an
+## upkeep effect, or a standing field. Scoring once on play isn't enough.
+func test_every_building_gives_something_lasting() -> void:
+	var r := load_real()
+	var fleeting: Array[String] = []
+	for def in real_buildings(r):
+		var lasting := def.vp >= 1 or not def.modifiers.is_empty() or def.housing > 0 or def.famine_guard > 0 \
+				or def.defense > 0 or def.training > 0 or def.effects.any(func(e): return e.trigger == "upkeep")
+		if not lasting:
+			fleeting.append(def.id)
+	eq(fleeting, [] as Array[String], "buildings that give nothing lasting")
+
+
+## Backlog 263: a building dealt from the starting deck can be bought again.
+func test_every_starting_deck_building_has_a_supply_pile() -> void:
+	var r := load_real()
+	var missing: Array[String] = []
+	for id in r.config.deck:
+		if r.cards[id].type == CardDef.BUILDING and not r.config.supply.has(id):
+			missing.append(id)
+	eq(missing, [] as Array[String], "starting-deck buildings with no supply pile")
+
+
 func test_every_building_costs_wealth() -> void:
 	var r := load_real()
 	var no_wealth: Array[String] = []
@@ -571,6 +594,24 @@ func test_every_resource_keyword_is_rolled_and_used() -> void:
 			not_used.append(k)
 	eq(not_rolled, [] as Array[String], "resource keywords no territory in the deck rolls")
 	eq(not_used, [] as Array[String], "resource keywords no card uses")
+
+
+## Backlog 263: a rolled resource is worth wealth: each one is the keyword of a reachable building's upkeep wealth gain.
+func test_every_resource_keyword_raises_a_buildings_upkeep_wealth() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var paid := {}
+	for def in real_buildings(r):
+		if not reachable.has(def.id):
+			continue
+		for e in def.effects:
+			if e.trigger == "upkeep" and e.keyword != "" and e.get("resource") == GameEngine.WEALTH:
+				paid[e.keyword] = true
+	var unpaid: Array[String] = []
+	for k in r.config.resource_keywords:
+		if not paid.has(k):
+			unpaid.append(k)
+	eq(unpaid, [] as Array[String], "resource keywords no reachable building's upkeep wealth gain uses")
 
 
 # --- Territories and what they take (054, 080, backlog 092) ---
