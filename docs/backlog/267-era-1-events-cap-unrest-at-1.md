@@ -2,7 +2,7 @@
 id: 267
 title: Era-1 events add at most 1 unrest
 type: feature
-status: ready
+status: review
 branch: feat/267-era-1-events-cap-unrest-at-1
 ---
 
@@ -13,13 +13,13 @@ by era (PLAN.md's "Solo opposition"). Era 1 is balanced around +1 as the most an
 they add flavour.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every era-1 event in config `event_deck` adds at most 1 unrest in total. The total is:
+- [x] AC1 (invariant): Every era-1 event in config `event_deck` adds at most 1 unrest in total. The total is:
   - every `gain unrest` in its play effects,
   - plus every `gain unrest` in its upkeep effects × its `discard.turns`,
   - plus, for a raid, the larger of what its `pillage` and its `repel` effects gain.
 
   The Famine and Anarchy aren't in `event_deck` and aren't counted.
-- [ ] AC2 (invariant): Every era named in config `event_deck`'s events can be reached: it is 1, or some tech in
+- [x] AC2 (invariant): Every era named in config `event_deck`'s events can be reached: it is 1, or some tech in
   `research_deck` adds that era with `add_era`, or `era_unlocks` names it. A moved event then still enters the game.
 
 ## Out of scope
@@ -36,7 +36,8 @@ they add flavour.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_no_era_1_event_adds_more_than_1_unrest` |
+| AC2 | `test_content::test_every_event_era_can_be_reached` |
 
 ## Manual check
 - [ ] Shipped numbers for review:
@@ -48,3 +49,4 @@ they add flavour.
 ## Log
 - Balance worry, for the next balance item: era-1 events now add about 3 unrest per pass through the deck, down from
   about 7. Settlers (+1 each) become the main source of early unrest. Chiefdom's limit (8) and Feast may now be loose.
+- AC2's test passed before the change (Radical Thinkers was already a reachable era-2 event); it guards the move.
