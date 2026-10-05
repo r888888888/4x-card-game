@@ -458,6 +458,10 @@ Monument until then): every terrain has a building, every era opens a new one.
   a `once` entry (the wonders, Monument, Forge) is built once a game. State: `GameState.locked_builds`, `built_once`.
   Techs unlock their buildings instead of creating a copy. A building card in a deck or the supply still plays (the
   rules fixtures use it). No UI yet: Build… on the territory view is 297.
+- Units in the build menu (296): a unit entry is recruited the same way (`build`), homed and stationed on a territory
+  with a free worker (no slot, no terrain); "X can now be recruited." A recruited unit that is disbanded or lost to a
+  pillage leaves play (no zone), to be recruited again; a unit with no entry (dealt from a deck) still goes to the
+  discard. Warriors is an open entry from turn 1.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the
