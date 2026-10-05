@@ -2,7 +2,7 @@
 id: 281
 title: Settlement tiers add building slots as pop grows
 type: feature
-status: red-review
+status: review
 branch: feat/281-settlement-tiers
 ---
 
@@ -16,34 +16,34 @@ small (the critique's option A + B). Government tolerance of big territories is 
 Fixture tiers below: `[{id: hamlet, pop: 0, slots: 0}, {id: village, pop: 4, slots: 1}, {id: town, pop: 8, slots: 2},
 {id: metropolis, pop: 13, slots: 3}]` (each with a `name`), on `TEST_CARDS` with population on.
 
-- [ ] AC1: Tier from pop: given the fixture tiers and a settled Homeland, when its pop is 0, 3, 4, 7, 8, 12 and 13,
+- [x] AC1: Tier from pop: given the fixture tiers and a settled Homeland, when its pop is 0, 3, 4, 7, 8, 12 and 13,
   then `tier(uid)` is 0, 0, 1, 1, 2, 2 and 3. `tier_name(uid)` is the tier's `name` ("Hamlet" … "Metropolis"), and
   `next_tier_pop(uid)` is 4, 4, 8, 8, 13, 13 and 0 (0 at the top tier). Given a config with no `population.tiers`, or
   a uid that isn't a settled territory, then `tier` is -1, `tier_name` is "" and `next_tier_pop` is 0.
-- [ ] AC2: Slots: given the fixture tiers and a settled Grassland (slots 2) with no city card on it, when its pop is 3,
+- [x] AC2: Slots: given the fixture tiers and a settled Grassland (slots 2) with no city card on it, when its pop is 3,
   4, 8 and 13, then `total_slots(uid)` is 2, 3, 4 and 5. Tier slots add to city slots: the starting Homeland (slots 5)
   with a Citadel (slots 4) at pop 4 has 10. Without tiers, Grassland at pop 13 has 2. Placing a building: Grassland at
   pop 3 with 2 buildings has no target for a third (`valid_targets` of a building in hand leaves it out). At pop 4 it is a target, and the
   third building can be played there.
-- [ ] AC3: Dropping a tier idles buildings past the slots: given Grassland at pop 4 (3 slots) with 3 buildings that each
+- [x] AC3: Dropping a tier idles buildings past the slots: given Grassland at pop 4 (3 slots) with 3 buildings that each
   give ⟳ +1 food, when `lose_pop` takes it to 3 (Hamlet, 2 slots), then `is_idle` is true for the building placed
   last and false for the first two. The next upkeep gains +2 food from them, not +3. The idle building keeps its
   printed VP in `score()`, `free_slots(uid)` is 0 (never negative), and `territory_summary` counts it in `idle`. When
   pop returns to 4, it works again (the next upkeep gains +3). A building idle from slots also skips its modifiers, its
   famine guard and its defence, the same as a worker-idle one.
-- [ ] AC4: Slot idling and worker idling combine: given Grassland at pop 4 with 3 buildings (3 slots, 4 workers), when
+- [x] AC4: Slot idling and worker idling combine: given Grassland at pop 4 with 3 buildings (3 slots, 4 workers), when
   pop drops to 2, then the last building is idle for both reasons and the second is idle for workers. The count stays
   2 idle, not 3 (a building is idle when either rule says so).
-- [ ] AC5: Notices: given the fixture tiers and Grassland at pop 3, when a `grow` effect takes it to 4, then the engine
+- [x] AC5: Notices: given the fixture tiers and Grassland at pop 3, when a `grow` effect takes it to 4, then the engine
   emits `noticed` once with a message naming the territory and "Village" (e.g. "Grassland grows into a Village.").
   When `lose_pop` takes it back to 3, `noticed` names "Hamlet" (e.g. "Grassland shrinks to a Hamlet."). Growing from
   4 to 5, or settling a new territory at pop 1, emits no tier notice.
-- [ ] AC6: Loader: `population.tiers` is optional (absent = tiers off). When present it must be a non-empty array of
+- [x] AC6: Loader: `population.tiers` is optional (absent = tiers off). When present it must be a non-empty array of
   objects, each with a unique non-empty `id`, a non-empty `name`, an int `pop` ≥ 0 and an int `slots` ≥ 0. The first
   tier's `pop` must be 0, `pop` must rise strictly from tier to tier, and `slots` must never fall. Each break is a load
   error naming `population.tiers`, the tier's index and the field. An unknown field in a tier is a warning. Real data:
   `data/config.json` loads with tiers on and at least 2 tiers (content invariant, no numbers).
-- [ ] AC7: Territory status and tooltip: `territory_status(uid)` adds `tier_name` and `next_tier_pop`. The territory
+- [x] AC7: Territory status and tooltip: `territory_status(uid)` adds `tier_name` and `next_tier_pop`. The territory
   tooltip gains a line with the tier name and the pop of the next tier (e.g. "Village: a Town at 8 pop"), or just the
   tier name at the top tier, and no tier line with tiers off. The glossary's idle line says buildings past a
   territory's slots are idle too.
@@ -91,3 +91,16 @@ Fixture tiers below: `[{id: hamlet, pop: 0, slots: 0}, {id: village, pop: 4, slo
 ## Log
 - 2026-10-04: specced from the size-tier critique. The user chose four tiers with widening bands, slots only (A + B),
   and government tolerance (D, item 282). Assumed the bot needs no new rule.
+- Built. AC4's numbers didn't add up at pop 2 (2 workers keep the first 2 working, so only 1 idle); the test uses pop 1
+  (2nd and 3rd lack a worker, the 3rd is also past the slots: 2 idle, not 3).
+- `territory_status` carries `tier_name` and `next_tier_pop` only with tiers on, so the status of a game without
+  tiers is unchanged. Tier notices use the territory's shown name and "a"/"an" (`Population.with_article`).
+- engine_queries.gd went past its 500-line cap (test_engine_structure). With the user's approval the territory
+  queries (pop, housing, slots, workers, tiers, is_idle, territory_*) moved into a new `TerritoryQueries`
+  (engine/territory_queries.gd) between EngineCore and EngineQueries; test_engine_structure checks the new chain.
+  With the user's approval, test_population's two exact population-block tests gained `"tiers": []`.
+- The territory view itself shows no tier yet: only its tooltip (AC7). If the Manual check wants it on the card face,
+  that's a UI follow-up.
+- Balance worries for a later balance item: a Metropolis gets +3 slots on top of the Capital's; housing buildings now
+  also open slots indirectly, so Mud-Brick Houses, Granary and Qanat gain value.
+- Suite 1828 → 1853 tests.
