@@ -430,7 +430,8 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   and the event discard stay as they are. The event pile line's tooltip says how many events wait.
 - The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check and drain, the
   hand draw and renewal; none on turn 1 or after the final turn): draws the top event,
-  shuffling `event_discard` back in when the deck is empty (nothing when both are empty), makes it active with
+  shuffling `event_discard` back in when the deck is empty or holds only raids that can't be drawn yet (266; nothing
+  when both are empty), makes it active with
   `turns_left` = its `discard.turns`, and resolves its `play` effects. Then `event_drawn(outcome)` reports it (079:
   `{uid, id, gained, lost, vp, drawn, created}`, before `changed`); the UI pops up a modal with the event and
   `outcome_summary(outcome)` ("No immediate effect" when empty), except when the game just ended. Play outcomes

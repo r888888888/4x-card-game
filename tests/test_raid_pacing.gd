@@ -213,3 +213,72 @@ func test_raid_text_says_in_2_turns_then_next_turn() -> void:
 	var db: Dictionary = raid_load().cards
 	var tip: String = db.raiders.rules_tooltip(db)
 	check("Raid 3: strikes your least defended mountain territory 2 turns after it is drawn" in tip, tip)
+
+
+# --- 266: the discard comes back when only blocked raids are left in the deck ---
+
+## Moves every id card from e's event deck to its event discard.
+func discard_events(e: GameEngine, id: String) -> void:
+	var deck: Zone = e.zone("event_deck")
+	for c in deck.cards.duplicate():
+		if c.def.id == id:
+			deck.remove(c)
+			e.zone("event_discard").add(c)
+
+
+func test_bug_266_a_deck_of_raids_too_soon_to_draw_shuffles_the_discard_back_in() -> void:
+	var e: GameEngine = paced_engine(["raiders"], {"raid_min_size": 99}, {"raiders": 1, "omen": 1})
+	if e == null:
+		return
+	discard_events(e, "omen")
+	var events := record_events(e)
+	e.end_turn()
+	eq(active_ids(e), ["omen"] as Array[String], "the Omen from the discard drawn")
+	eq(events.size(), 1, "one event_drawn")
+	if events.size() == 1:
+		eq(events[0].id, "omen", "for the Omen")
+	eq(card_ids(e.zone("event_deck")), ["raiders"] as Array[String], "Raiders still in the event deck")
+	eq(e.zone("event_discard").size(), 0, "the event discard shuffled in")
+
+
+func test_bug_266_raids_held_back_by_the_gap_dont_stop_the_events() -> void:
+	var e: GameEngine = paced_engine(["raiders", "omen", "omen"], {"raid_gap": 4}, {"raiders": 1, "horde": 1, "omen": 3})
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	for i in 3:
+		e.end_turn()
+	eq(outcomes.size(), 1, "Raiders struck on turn 4")
+	discard_events(e, "omen")
+	eq(card_ids(e.zone("event_deck")), ["horde"] as Array[String], "only Horde left in the event deck")
+	e.end_turn()
+	eq(e.state.turn, 5, "turn 5, a turn after the strike")
+	check("omen" in active_ids(e), "an Omen drawn from the discard: %s" % [active_ids(e)])
+	eq(active_uid(e, "horde"), -1, "Horde not drawn inside the gap")
+	check(e.zone("event_deck").find_id("horde") != null, "Horde back in the event deck")
+
+
+func test_bug_266_with_only_raids_in_both_piles_none_is_drawn_or_lost() -> void:
+	var e: GameEngine = paced_engine(["raiders"], {"raid_min_size": 99}, {"raiders": 1, "horde": 1})
+	if e == null:
+		return
+	discard_events(e, "horde")
+	var events := record_events(e)
+	for i in 2:
+		e.end_turn()
+		eq(active_ids(e), [] as Array[String], "no event active on turn %d" % e.state.turn)
+		eq(e.zone("event_deck").size() + e.zone("event_discard").size(), 2, "both raids kept on turn %d" % e.state.turn)
+	eq(events.size(), 0, "no event_drawn")
+
+
+func test_bug_266_a_drawable_event_in_the_deck_leaves_the_discard_alone() -> void:
+	var e: GameEngine = paced_engine(["raiders", "omen"], {"raid_min_size": 99}, {"raiders": 1, "omen": 2})
+	if e == null:
+		return
+	var spare: CardInstance = e.zone("event_deck").cards[0]
+	e.zone("event_deck").remove(spare)
+	e.zone("event_discard").add(spare)
+	e.end_turn()
+	eq(active_ids(e), ["omen"] as Array[String], "the Omen under Raiders drawn")
+	eq(e.zone("event_discard").cards, [spare], "the discard not shuffled in")
+	eq(card_ids(e.zone("event_deck")), ["raiders"] as Array[String], "Raiders at the bottom")

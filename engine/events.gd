@@ -41,20 +41,17 @@ static func turns_left(e: GameEngine, uid: int) -> int:
 	return card.turns_left if card != null else 0
 
 
-## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event (shuffling the event discard back in when the deck is empty), makes it
-## active for its discard_turns, and resolves its play effects. A raid drawn while raids aren't allowed goes to the
-## deck's bottom and the next event is drawn instead (257). Does nothing when both piles are empty or only such raids are left.
+## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event, makes it active for its
+## discard_turns, and resolves its play effects. A raid drawn while raids aren't allowed goes to the deck's bottom and
+## the next event is drawn instead (257). When the deck is empty, or holds only such raids (266), the event discard is
+## shuffled in first. Does nothing when both piles are empty or only such raids are left in either.
 static func draw(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")
 	if deck.is_empty():
-		var discard := e.zone("event_discard")
-		if discard.is_empty():
-			return
-		for card in discard.take_all():
-			deck.add(card)
-		e.rng.shuffle(deck.cards)
-		e._log("  Reshuffled the event discard into the event deck (%d cards)." % deck.size())
+		_reshuffle(e, deck)
 	var event := _take_allowed(e, deck)
+	if event == null and _reshuffle(e, deck):
+		event = _take_allowed(e, deck)
 	if event == null:
 		return
 	event.turns_left = event.def.discard_turns
@@ -68,6 +65,18 @@ static func draw(e: GameEngine) -> void:
 	var outcome := e._outcome
 	e._outcome = {}
 	e.event_drawn.emit(outcome)
+
+
+## Shuffles the event discard into deck with the cards already there; false when the discard is empty.
+static func _reshuffle(e: GameEngine, deck: Zone) -> bool:
+	var discard := e.zone("event_discard")
+	if discard.is_empty():
+		return false
+	for card in discard.take_all():
+		deck.add(card)
+	e.rng.shuffle(deck.cards)
+	e._log("  Reshuffled the event discard into the event deck (%d cards)." % deck.size())
+	return true
 
 
 ## The top card of deck, after moving each raid on top to the bottom while raids aren't allowed (257); null when every
