@@ -487,4 +487,3 @@ func _as_engine() -> GameEngine:
 ## Builds on a fork: nothing here changes, is logged or emitted.
 func build_preview(card_id: String, territory_uid: int) -> Dictionary:
 	return BuildMenu.preview(_as_engine(), card_id, territory_uid)
-

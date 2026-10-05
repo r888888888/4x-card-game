@@ -468,7 +468,7 @@ Monument until then): every terrain has a building, every era opens a new one.
   `build_targets(card_id)` the territories it fits now. An `unlock` naming an entry opens it ("X can now be built.");
   a `once` entry (the wonders, Monument, Forge) is built once a game. State: `GameState.locked_builds`, `built_once`.
   Techs unlock their buildings instead of creating a copy. A building card in a deck or the supply still plays (the
-  rules fixtures use it). No UI yet: Build… on the territory view is 297.
+  rules fixtures use it).
 - Units in the build menu (296): a unit entry is recruited the same way (`build`), homed and stationed on a territory
   with a free worker (no slot, no terrain); "X can now be recruited." A recruited unit that is disbanded or lost to a
   pillage leaves play (no zone), to be recruited again; a unit with no entry (dealt from a deck) still goes to the
@@ -476,6 +476,12 @@ Monument until then): every terrain has a building, every era opens a new one.
 - `build_preview(card_id, territory_uid)` (299): `{cost, lines}`, each line `[key, before, after]` for what building
   there would change (each resource's `upkeep_forecast`, then `free_slots`, `free_workers`, `defense`, `housing`,
   `actions_left`), from a build on a fork; `{}` when `build_error` refuses. The Build modal (297) shows it.
+- UI (297): a territory's view has Build… (B) beside Rename…, and each free slot outline is a "+ Build" key; both open
+  the Build modal (`ui/build_modal.gd`, "Build on <territory>"): a selectable list of the build menu under Buildings and
+  Units (name and `build_cost`; a refused row dimmed with `build_error`'s reason), and a sheet with the selected
+  entry's card, "If built on <territory>" and `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
+  Build… and the slots are disabled with `build_menu_error()` while nothing can be built and hidden with an empty menu.
+  A recruited unit's Disband reads "Dismiss it" (`disbands_to_discard`).
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the

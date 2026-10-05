@@ -338,8 +338,9 @@ static func disband(e: GameEngine, uid: int) -> bool:
 ## Unit leaves the tableau (disbanded or lost to a pillage): a unit recruited from the build menu is gone, to be
 ## recruited again (296); one with no build-menu entry (dealt from a deck) goes to the discard (163).
 static func _leave_play(e: GameEngine, unit: CardInstance) -> void:
+	var to_discard := e.disbands_to_discard(unit.uid)
 	e.zone("tableau").remove(unit)
-	if not e.config.get("build_menu", {}).has(unit.def.id):
+	if to_discard:
 		e.zone("discard").add(unit)
 
 

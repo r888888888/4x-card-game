@@ -12,7 +12,7 @@ const COLOSSUS := {"id": "colossus", "name": "Colossus", "type": "building", "co
 const ERROR_OF := LegalActions.ERROR_OF
 ## Names with an error query that legal_actions never lists: starting a game, naming a territory, and supply (the
 ## Supply screen's query, not an action).
-const NEVER_LISTED := ["new_game", "rename_territory", "supply"]
+const NEVER_LISTED := ["new_game", "rename_territory", "supply", "build_menu"]  # build_menu: Build…'s gate (297)
 const HILLS_DECK := {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}}
 
 

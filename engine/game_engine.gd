@@ -174,6 +174,25 @@ func build_targets(card_id: String) -> Array[int]:
 	return BuildMenu.targets(self, card_id)
 
 
+## Build-menu entry card_id's cost after the civilization's discounts (297), locked or not; {} when it has no entry.
+func build_cost(card_id: String) -> Dictionary:
+	if not config.get("build_menu", {}).has(card_id):
+		return {}
+	return CardPlay.cost_to_play(self, card_db[card_id])
+
+
+## Why nothing can be built now, whatever the entry: game over or a decision owed (297); "" otherwise.
+func build_menu_error() -> String:
+	return _blocked_error("build")
+
+
+## Whether disbanding unit uid sends it to the discard (a unit dealt from a deck), rather than out of play (one
+## recruited from the build menu, 296).
+func disbands_to_discard(uid: int) -> bool:
+	var card := zone("tableau").find(uid)
+	return card != null and not config.get("build_menu", {}).has(card.def.id)
+
+
 ## Why card_id can't be built on territory_uid now, or "" if it can (295): game over or a pending decision, no
 ## build-menu entry, locked, a once entry already built, or what playing it there would refuse for (actions, Anarchy,
 ## cost, the territory; -1 with several territories that take it).

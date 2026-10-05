@@ -212,7 +212,8 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		_move.tooltip_text = block if block != "" else "March to another territory (an action)."
 		var no := e.disband_error(_unit)
 		_disband.disabled = no != ""
-		_disband.tooltip_text = no if no != "" else "Send it to your discard; its worker is freed."
+		var gone := "Send it to your discard" if e.disbands_to_discard(_unit) else "Dismiss it"  # 296, 297
+		_disband.tooltip_text = no if no != "" else "%s; its worker is freed." % gone
 	_site = uid if uid != -1 and e.is_site(uid) else -1
 	_contribute.visible = _site != -1
 	_abandon.visible = _site != -1

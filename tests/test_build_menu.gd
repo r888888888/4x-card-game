@@ -314,3 +314,26 @@ func test_a_refused_preview_is_empty_and_a_preview_changes_nothing() -> void:
 	e.build_preview("paddy", river)
 	eq(state_diff(e.state, before), "", "the game is untouched")
 	eq(signals, [] as Array[String], "no signal")
+
+
+# --- Backlog 297: the cost the Build modal shows ---
+
+func test_build_cost_is_an_entrys_cost_after_discounts() -> void:
+	var e := build_engine(3)
+	eq(e.call("build_cost", "farm"), {"food": 2}, "Farm's printed cost")
+	eq(e.call("build_cost", "granary"), {"food": 1}, "a locked entry still has a cost")
+	eq(e.call("build_cost", "scout"), {}, "no entry: {}")
+	var sumer := build_engine(3, MENU, {"starting": {"resources": {"food": 3, "wealth": 10, "insight": 10},
+		"tableau": ["capital"], "territory": "homeland", "government": "band", "civilization": "farmers"}})
+	eq(sumer.call("build_cost", "farm"), {"food": 1}, "Farmers' discount")
+
+
+## 297: why nothing can be built now, whatever the entry (Build… and the "+ Build" slots' reason), or "".
+func test_build_menu_error_says_why_nothing_can_be_built() -> void:
+	var e := build_engine(3, MENU, {"territory_deck": {"hills": 1, "grassland": 1}})
+	eq(e.call("build_menu_error"), "", "nothing blocks building")
+	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
+	eq(e.call("build_menu_error"), "Choose a territory first.", "a territory choice owed")
+	var over := build_engine(3, MENU, {"turn_limit": 1})
+	over.end_turn()
+	eq(over.call("build_menu_error"), "The game is over.", "game over")
