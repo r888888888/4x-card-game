@@ -2,7 +2,7 @@
 id: 290
 title: Ending the turn returns to the Realm
 type: feature
-status: in-progress
+status: review
 branch: feat/290-end-turn-returns-to-realm
 ---
 
@@ -12,18 +12,18 @@ the Realm, so the new turn starts on the view that shows the whole realm and the
 instead of leaving the player inside a detail screen from the last turn.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game on the board with the Knowledge screen open over the Realm, when the turn ends (the End turn
+- [x] AC1: Given a game on the board with the Knowledge screen open over the Realm, when the turn ends (the End turn
   key is pressed, or E), then the Knowledge screen is no longer shown and the Realm is the navigator's only screen
   (`territory_view.nav.depth() == 1`, its top is the Realm).
-- [ ] AC2: Given a territory view open, when the turn ends, then the territory view is closed (`is_open()` false,
+- [x] AC2: Given a territory view open, when the turn ends, then the territory view is closed (`is_open()` false,
   `uid == -1`) and the Realm is shown.
-- [ ] AC3: Given the Knowledge screen open over a territory view (navigator depth 3), when the turn ends, then both
+- [x] AC3: Given the Knowledge screen open over a territory view (navigator depth 3), when the turn ends, then both
   close and the Realm is the only screen (depth 1).
-- [ ] AC4: Given the Knowledge screen or a territory view open and `end_turn_error()` non-empty (a decision is owed),
+- [x] AC4: Given the Knowledge screen or a territory view open and `end_turn_error()` non-empty (a decision is owed),
   when End turn is pressed, then the turn doesn't end and the open screen stays open (depth unchanged).
-- [ ] AC5: Given the Realm already shown (no screen over it), when the turn ends, then the Realm is still the only
+- [x] AC5: Given the Realm already shown (no screen over it), when the turn ends, then the Realm is still the only
   screen and nothing else changes (no error, depth 1).
-- [ ] AC6: Given a territory view open while the player still has the turn (no turn ended: a card played, a card
+- [x] AC6: Given a territory view open while the player still has the turn (no turn ended: a card played, a card
   bought), when the board refreshes, then the territory view stays open (only a turn change returns to the Realm).
 
 ## Out of scope
@@ -56,3 +56,8 @@ instead of leaving the player inside a detail screen from the last turn.
 - [ ] Open a territory, then the tech tree over it, end the turn: both go, the Realm shows, nothing flickers.
 
 ## Log
+- 2026-10-05: Built in `TerritoryView.close_if_stale` rather than `main._refresh`, which calls it: `main.gd` sits at its
+  500-line soft limit, and the view owns the play area's navigator. It remembers the turn it last saw (`reset()`,
+  run by a new game, forgets it) and, once the turn moves on, pops the navigator back to the Realm, closing the view
+  through `close()` and Knowledge through `nav.back()`, so both leave with their transitions and Knowledge's lamp sees
+  the techs (288). AC4–AC6 passed before the change: they guard what must stay.
