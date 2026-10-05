@@ -4,7 +4,9 @@ extends SceneTree
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
 ## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's
-## result is cached under CACHE_DIR by the code and data that played it (292).
+## result is cached under CACHE_DIR by the code and data that played it (292). With SIM_COMPARE set to a checkout's
+## absolute root (293; scripts/sim.sh --compare <checkout> sets it) it compares that checkout ("main") with this one game
+## by game instead: the seed count is the most a cell gets.
 
 ## The lock every checkout's parallel runs share, in the per-user temp directory (291).
 const LOCK_NAME := "4x-card-game-sim.lock"
@@ -33,8 +35,14 @@ func _initialize() -> void:
 	options["lock_path"] = OS.get_temp_dir().path_join(LOCK_NAME)
 	options["cache_dir"] = CACHE_DIR
 	options["cache"] = OS.get_environment("SIM_CACHE") != "0"
-	var out := {"code": 1, "lines": options.errors} if not options.errors.is_empty() \
-		else SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
+	var out := {"code": 1, "lines": options.errors}
+	if not options.errors.is_empty():
+		pass
+	elif OS.get_environment("SIM_COMPARE") != "":
+		var main_side := {"root": OS.get_environment("SIM_COMPARE").simplify_path().trim_suffix("/"), "cards": "res://data/cards.json", "config": "res://data/config.json"}
+		out = SimStats.compare(main_side, SimStats.here(cards_path, config_path), seed_count, strategy, options)
+	else:
+		out = SimStats.run_files(cards_path, config_path, seed_count, strategy, options)
 	for line in out.lines:
 		if out.code == 0:
 			print(line)

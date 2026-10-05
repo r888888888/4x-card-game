@@ -27,24 +27,26 @@ as the default civilization (seconds). `baseline` is the pre-134 bot: it never g
 
 ## Run it
 
-1. Seeds: the argument, or 20.
-2. Current checkout: `scripts/sim.sh <seeds>` (all strategies), or `scripts/sim.sh <seeds> baseline` for a quick
-   check. If it exits 1, show the loader errors and stop.
-3. `main`, without touching the working tree:
+1. Max seeds: the argument, or 20.
+2. Make a `main` worktree without touching the working tree, compare against it from the checkout, then remove it:
    ```bash
    git worktree add --detach "$SCRATCH/balance-main" main
-   (cd "$SCRATCH/balance-main" && scripts/sim.sh <seeds>)   # same strategy argument as step 2
+   (cd "$SCRATCH/balance-main" && godot --headless --path . --import >/dev/null 2>&1)
+   scripts/sim.sh --compare "$SCRATCH/balance-main" <max seeds>   # [strategy] [--civ id] [--turns n] narrow it
    git worktree remove --force "$SCRATCH/balance-main"
    ```
-   If `main` has no `scripts/sim.sh` yet, or no strategies (before 134), copy `sim/` and `scripts/sim.sh` from the
-   checkout into the worktree before running, and say so.
-   Use the session scratchpad directory for `$SCRATCH`. The worktree has no `.godot/` cache, so its first run
-   imports the project (a few seconds). Always remove the worktree, also when the run fails.
-   If the current branch *is* `main` with no changes, say so and show one table.
-4. Show one table: metric | main mean (min–max) | this mean (min–max) | Δ mean; with all strategies, one row per
-   strategy × civilization for score, then that table per strategy only where something moved. Then two or three sentences
-   on what moved and the likely cause from the diff (`git diff main -- data/`). Flag any metric whose mean
-   moved by more than ~10%, and any `min` of `cities` or `techs` that fell to 0.
+   `--compare` (293) plays each seed × strategy × civ on both checkouts and pairs them. Each strategy × civ cell gets
+   seeds in rounds of 5 until its score change is known to ±5% of main's mean score, or it reaches max seeds. A branch
+   that changes no rule stops every cell at 5. Games already played by the same code and data come from the cache.
+   Both checkouts need 293's `sim/`: if `main` predates it, copy `sim/` and `scripts/sim.sh` from the checkout into
+   the worktree before running, and say so.
+   Use the session scratchpad directory for `$SCRATCH`. Always remove the worktree, also when the run fails. If it
+   exits 1, show its errors (each names its side) and stop.
+   If the current branch *is* `main` with no changes, say so and show a plain `scripts/sim.sh <seeds>` table instead.
+3. Show the report. It already is the table: per strategy, one line per civ (`main`, `this`, `Δ ±` the 95% interval,
+   the change in %, seeds played; `!` past 10%), then each other metric whose mean moved. Then two or three sentences
+   on what moved and the likely cause from the diff (`git diff main -- data/`). Read a `!` whose interval includes 0
+   as noise worth more seeds, not a finding.
 
 ## Content changes
 
@@ -54,5 +56,5 @@ For an edit that only touches `data/*.json` (numbers, new cards made from existi
   (fix the data, or ask whether the invariant should change).
 - Run `scripts/test.sh` (includes `test_real_data_loads` and the 20-seed smoke sweep). Don't run this comparison
   as part of an ordinary content item: balance is a separate step. Note any balance worry in the item's Log.
-- In a balance item: run this comparison, and put the exact shipped numbers and the table in its Manual check / Log.
+- In a balance item: run this comparison, and put the exact shipped numbers and the report in its Manual check / Log.
 - If a rule changed (not just a number), update PLAN.md.
