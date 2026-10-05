@@ -13,7 +13,7 @@
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
-| Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074) and revolutionary events (148); barbarians are specced (160–168) |
+| Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074), revolutionary events (148), choice events (269) and era 2 and 3 events that escalate (270); barbarians are specced (160–168) |
 
 ## Architecture principle
 The rules engine is plain GDScript (`RefCounted`/`Resource` classes, no scene nodes).
@@ -469,13 +469,24 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   it waits (`CardInstance.choice_waiting`) and is owed once that is paid. `choose_option(i)` / `choose_option_error(i)`
   pay the cost and resolve the effects once, emitting `option_chosen` (`{uid, id, index, gained, lost, vp, …}`, the
   cost in `lost`). Card text: "Choose: pay 2 wealth for +1 VP; or +1 unrest."; `option_text(uid, i)`: "Pay 2 wealth:
-  +1 VP". The event modal shows the options as buttons in place of OK (a refused one disabled, its reason the tooltip)
+  +1 VP". An option without effects reads "pay 4 wealth" / "Pay 4 wealth", or "nothing" / "Nothing" when free (270). The event modal shows the options as buttons in place of OK (a refused one disabled, its reason the tooltip)
   and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
   bot answers by per-option lookahead (`ScriptedBot.pick_option`). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
   Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
   `Military`.
 - Code: `engine/events.gd`, `engine/event_choices.gd` (269).
+- Era 2 and 3 events (270): each era the research deck reaches has events; from era 2 each era has a harmful and a
+  helpful one and one that scales with the realm, and the most unrest an event adds never falls from one era to the
+  next (`test_content`). Era 1 events still harm only by unrest. Shipped era 2 (with Omen of Doom, Bandit Raids, Radical
+  Thinkers): Plague (−1 pop, +1 unrest), Granary Fire (−25% food), Drought (2 turns, ⟳ −1 food per desert or grassland
+  territory), Silt Flood (+2 food per flood plain), Bumper Harvest (2 turns, ⟳ +1 food per farm), Busy Harbours
+  (2 turns, ⟳ +1 wealth per coastal territory), Visiting Scholar (+3 insight), Labour Shortage (−1 action), Tax Revolt
+  (pay 4 wealth, or +2 unrest), Wandering Smiths (pay 3 wealth for +3 insight, or nothing). Era 3: Pestilence (−2 pop,
+  +1 unrest), Library Burns (−50% insight), Debased Coin (−30% wealth), Storm at Sea (−2 wealth per coastal
+  territory), Golden Age (3 turns, +1 action, +1 hand size), School of Philosophers (+5 insight), Succession Crisis
+  (pay 6 wealth, or +3 unrest, or −1 pop and +1 unrest), Mercenaries' Offer (pay 4 wealth for a Warriors in the
+  discard, or nothing).
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
@@ -617,7 +628,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.
   Real data: Settler +1 unrest; Famine ⟳ +1 per counter; Temple ⟳ −1; Shrine and Monument raise the limit by 1 and 2;
   Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Peasant Uprising
-  (+1), and in era 2 Omen of Doom (+2) and Bandit Raids (⟳ +1, 2 turns), the only events that harm besides raids.
+  (+1), Envoys from the Hills (or +1), in era 2 Omen of Doom (+2), Bandit Raids (⟳ +1, 2 turns), Plague (+1) and Tax
+  Revolt (or +2), and in era 3 Pestilence (+1) and Succession Crisis (or +3); era 2 and 3 events also harm otherwise (270).
   No era-1 event adds more than 1 unrest in all (267: play gains, upkeep gains × turns, a raid's larger of pillage and
   repel, a choice event's option that adds most, 269).
 - Real data: Chiefdom (2 actions, unrest limit 8; no other bonus; the start), Kingship (3 actions, limit 10, ⟳ +1 wealth; from Code of Laws),

@@ -212,6 +212,20 @@ func test_option_text_gives_one_options_text() -> void:
 	eq(e.option_text(uid, 1), "+1 unrest", "the free option")
 
 
+
+## Backlog 270: an option that does nothing reads as a payment alone, or as "nothing".
+func test_an_option_without_effects_reads_as_its_cost_or_nothing() -> void:
+	var r := choice_load(event_with([{"cost": {"wealth": 4}, "effects": []}, {"effects": []}]))
+	eq(r.errors, [] as Array[String], "errors")
+	if not r.cards.has("x"):
+		return
+	var def: CardDef = r.cards.x
+	var lines: Array = Array(def.rules_text(r.cards).split("\n"))
+	var choose := "Choose: pay 4 wealth; or nothing."
+	check(lines.has(choose), "'%s' in %s" % [choose, lines])
+	eq(def.option_text(0, r.cards), "Pay 4 wealth", "the paid option")
+	eq(def.option_text(1, r.cards), "Nothing", "the free option")
+
 # --- AC7: the bot ---
 
 ## A choice_engine game with event id drawn at turn 2's start.

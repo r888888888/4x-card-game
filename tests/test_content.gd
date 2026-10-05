@@ -156,15 +156,18 @@ func test_every_real_event_is_in_the_event_deck() -> void:
 	eq(unused, [] as Array[String], "events not in event_deck")
 
 
-## Backlog 144: gaining unrest is the only harm an event deals; an event may also calm it (lose unrest). A raid's
-## repel and pillage effects are exempt (162): announced a turn ahead, its harm can be answered.
-func test_real_events_harm_only_by_unrest() -> void:
+## Backlog 144: gaining unrest is the only harm an era-1 event deals; an event may also calm it (lose unrest). A raid's
+## repel and pillage effects are exempt (162): announced a turn ahead, its harm can be answered. Harsher harm arrives
+## with the later eras (270).
+func test_real_era_1_events_harm_only_by_unrest() -> void:
 	var r := load_real()
 	var blank := 0
 	var active := 0
 	var bad_ops: Array[String] = []
 	for id in r.config.get("event_deck", {}):
 		var def: CardDef = r.cards[id]
+		if def.era != 1:
+			continue
 		if def.effects.is_empty():
 			blank += 1
 		else:
@@ -229,6 +232,158 @@ func test_every_event_era_can_be_reached() -> void:
 		var era: int = r.cards[id].era
 		check(reachable.has(era), "%s is an era-%d event, but nothing adds era %d" % [id, era, era])
 
+
+
+# --- Era 2 and 3 events (backlog 270) ---
+
+## The ops that take food, wealth or insight from the realm, flat or scaled (268).
+const LOSS_OPS: Array[String] = ["lose", "lose_pct", "lose_per_keyword"]
+## The ops that give a resource.
+const GAIN_OPS: Array[String] = ["gain", "gain_per_tag", "gain_per_keyword"]
+## The ops whose amount scales with the realm.
+const SCALING_OPS: Array[String] = ["gain_per_tag", "gain_per_keyword", "lose_per_keyword", "lose_pct"]
+## The modifiers that change the turn itself; their sign says whether an event helps or harms.
+const TURN_MODIFIERS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE]
+
+
+## Every effect on an event: its own (any trigger, raids' included) and each choice option's (269).
+func event_effects(def: CardDef) -> Array:
+	var out: Array = def.effects.duplicate()
+	for option in def.choices:
+		out.append_array(option.effects)
+	return out
+
+
+## Era -> the event defs of that era in event_deck.
+func events_by_era(r: Dictionary) -> Dictionary:
+	var out := {}
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		if not out.has(def.era):
+			out[def.era] = []
+		out[def.era].append(def)
+	return out
+
+
+## The eras the game can reach: those of the techs in research_deck and those they add.
+func research_eras(r: Dictionary) -> Array[int]:
+	var eras: Array[int] = []
+	for tech in techs_in_research_deck(r):
+		var reached := [tech.era]
+		for effect in tech.effects:
+			if effect.op == "add_era":
+				reached.append(effect.era)
+		for era in reached:
+			if not eras.has(era):
+				eras.append(era)
+	eras.sort()
+	return eras
+
+
+func harms(def: CardDef) -> bool:
+	for effect in event_effects(def):
+		var resource: Variant = effect.get("resource")
+		if effect.op == "gain" and resource == GameEngine.UNREST:
+			return true
+		if LOSS_OPS.has(effect.op) and resource != GameEngine.UNREST:
+			return true
+		if effect.op == "lose_pop":
+			return true
+	return TURN_MODIFIERS.any(func(k): return def.modifiers.get(k, 0) < 0)
+
+
+func helps(def: CardDef) -> bool:
+	for effect in event_effects(def):
+		if GAIN_OPS.has(effect.op) and effect.get("resource") != GameEngine.UNREST:
+			return true
+		if effect.op == "score" or effect.op == "grow":
+			return true
+	return TURN_MODIFIERS.any(func(k): return def.modifiers.get(k, 0) > 0)
+
+
+func test_every_era_the_research_deck_reaches_has_events() -> void:
+	var r := load_real()
+	var by_era := events_by_era(r)
+	var missing: Array[int] = []
+	for era in research_eras(r):
+		if not by_era.has(era):
+			missing.append(era)
+	eq(missing, [] as Array[int], "eras the research deck reaches with no event in event_deck")
+
+
+func test_every_later_era_has_a_harmful_and_a_helpful_event() -> void:
+	var r := load_real()
+	var by_era := events_by_era(r)
+	for era in research_eras(r):
+		if era < 2:
+			continue
+		var defs: Array = by_era.get(era, [])
+		check(defs.any(harms), "era %d has a harmful event" % era)
+		check(defs.any(helps), "era %d has a helpful event" % era)
+
+
+func test_every_later_era_has_an_event_that_scales_with_the_realm() -> void:
+	var r := load_real()
+	var by_era := events_by_era(r)
+	for era in research_eras(r):
+		if era < 2:
+			continue
+		var scales := (by_era.get(era, []) as Array).any(func(def):
+			return event_effects(def).any(func(effect): return SCALING_OPS.has(effect.op)))
+		check(scales, "era %d has an event that scales with the realm (%s)" % [era, ", ".join(SCALING_OPS)])
+
+
+func test_every_per_keyword_and_per_tag_event_effect_can_fire() -> void:
+	var r := load_real()
+	var keywords := keywords_in_play(r)
+	var tagged: Array = r.config.deck.keys() + r.config.supply.keys()
+	for id in r.cards:
+		for effect in r.cards[id].effects:
+			if effect.op == "create":
+				tagged.append(effect.card_id)
+	var tags := {}
+	for id in tagged:
+		for tag in r.cards[id].tags:
+			tags[tag] = true
+	var dead: Array[String] = []
+	for id in r.config.get("event_deck", {}):
+		for effect in event_effects(r.cards[id]):
+			if effect.op == "gain_per_keyword" or effect.op == "lose_per_keyword":
+				for k in effect.get("keywords"):
+					if not keywords.has(k):
+						dead.append("%s: keyword %s" % [id, k])
+			if effect.op == "gain_per_tag" and not tags.has(effect.get("tag")):
+				dead.append("%s: tag %s" % [id, effect.get("tag")])
+	eq(dead, [] as Array[String], "event effects that count a keyword or tag nothing in play has")
+
+
+func test_events_both_give_and_take_food_wealth_and_insight() -> void:
+	var r := load_real()
+	var gained := {}
+	var lost := {}
+	for id in r.config.get("event_deck", {}):
+		for effect in event_effects(r.cards[id]):
+			if GAIN_OPS.has(effect.op):
+				gained[effect.get("resource")] = true
+			if LOSS_OPS.has(effect.op):
+				lost[effect.get("resource")] = true
+	for resource in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT]:
+		check(gained.has(resource), "some event gains %s" % resource)
+		check(lost.has(resource), "some event takes %s" % resource)
+
+
+func test_the_most_unrest_an_event_adds_never_falls_from_one_era_to_the_next() -> void:
+	var r := load_real()
+	var by_era := events_by_era(r)
+	var most := {}
+	for era in by_era:
+		for def in by_era[era]:
+			most[era] = maxi(most.get(era, 0), unrest_added(def))
+	for era in research_eras(r):
+		if era < 2:
+			continue
+		check(most.get(era, 0) >= most.get(era - 1, 0), "era %d's events add at most +%d unrest, era %d's +%d"
+			% [era, most.get(era, 0), era - 1, most.get(era - 1, 0)])
 
 # --- Wealth content (backlog 022) ---
 
