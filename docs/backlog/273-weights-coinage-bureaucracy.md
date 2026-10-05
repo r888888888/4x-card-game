@@ -2,7 +2,7 @@
 id: 273
 title: Fix tech dates: Weights and Measures, Coinage, and Bureaucracy for Monarchy
 type: feature
-status: ready
+status: review
 branch: feat/273-weights-coinage-bureaucracy
 ---
 
@@ -16,9 +16,9 @@ Persian satrapies and the Royal Road), the real innovation that held large empir
 change. Follows 272 (Weights and Measures needs Clay Tokens).
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every `gain_per_tag` on a tech in `research_deck` counts a tag carried by at least 3 reachable
+- [x] AC1 (invariant): Every `gain_per_tag` on a tech in `research_deck` counts a tag carried by at least 3 reachable
   buildings. Holds today (Mathematics counts `culture`); guards Coinage's `trade`.
-- [ ] AC2: The existing content invariants stay green, in particular `test_every_tech_prereq_is_in_the_research_deck`,
+- [x] AC2: The existing content invariants stay green, in particular `test_every_tech_prereq_is_in_the_research_deck`,
   `test_eras_1_and_2_each_have_2_wonders_from_their_techs`, `test_every_wonder_comes_only_from_one_tech`,
   `test_every_eureka_counts_cards_the_player_can_get` and `test_real_data_loads_without_warnings`. Afterwards no card,
   eureka or config entry names `currency` or `monarchy`.
@@ -50,15 +50,23 @@ Data only (`data/cards.json`, `data/config.json`). New techs need a `flavor` and
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings` (passes today: a guard) |
+| AC2 | existing `test_content` invariants (unchanged); `grep` for `currency`/`monarchy` under Manual check |
 
 ## Manual check
 - [ ] Review the table's numbers and names in `data/cards.json`.
 - [ ] The Knowledge screen shows Weights and Measures in the Bronze Age (needs Clay Tokens), and Coinage and
   Bureaucracy in the Iron Age. No Currency or Monarchy.
 - [ ] Learn Bureaucracy: the unrest limit shown in the sidebar goes up by 2 and a Royal Road copy lands in the discard.
+- [ ] Coinage's quote is Godley's Loeb translation of Herodotus 1.94 verbatim (check against Perseus); Bureaucracy's
+  is the New York post office's paraphrase of Herodotus 8.98, attributed "after Herodotus".
+- [ ] `grep -rn 'currency"\|monarchy' data` finds nothing.
 - [ ] With a Market and a Caravanserai built, learn Coinage: the forecast shows ⟳ +2 wealth more.
 
 ## Log
 - Balance worries for a later balance item: Persia's wonder (Royal Road) moves to era 3, later in the game. Coinage
   grows with every `trade` building, which may beat Market. Bureaucracy loses Monarchy's ⟳ +1 wealth and 1 VP.
+- Built as specced: Weights and Measures takes Currency's slot (same cost, eureka and Market), keeping Currency's
+  Lydian flavor for Coinage. Bureaucracy uses the tech `modifiers.unrest_limit` (as Mysticism uses `renewal`).
+  PLAN.md's wonder list updated; the design mockups in `docs/design/` still show Currency and are left as they are.
+  Suite 1821 → 1822 tests.

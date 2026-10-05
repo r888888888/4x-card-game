@@ -676,12 +676,11 @@
         { "op": "create", "card": "great_library", "zone": "discard" } ]
     },
     {
-      "id": "currency", "name": "Currency", "type": "tech", "era": 2, "prereq": "bronze_working",
-      "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and value fits in a purse.",
-      "quote": { "text": "Money does not stink.", "by": "Vespasian, in Suetonius' Lives of the Caesars" },
+      "id": "weights_and_measures", "name": "Weights and Measures", "type": "tech", "era": 2, "prereq": "clay_tokens",
+      "flavor": "Silver weighed out in shekels and grain in fixed measures let strangers trade without haggling over every sack.",
+      "quote": { "text": "A false balance is abomination to the Lord: but a just weight is his delight.", "by": "Proverbs 11:1" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" },
-        { "op": "create", "card": "royal_road", "zone": "discard" } ]
+      "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2, "prereq": "weaving",
@@ -729,18 +728,25 @@
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
     },
     {
-      "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "currency",
+      "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "weights_and_measures",
       "flavor": "Babylonian tables, Egyptian surveyors and Greek geometers turn counting into proof.",
       "quote": { "text": "There is no royal road to geometry.", "by": "Euclid to Ptolemy I, in Proclus" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "market", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
     },
     {
-      "id": "monarchy", "name": "Monarchy", "type": "tech", "era": 3, "prereq": "philosophy",
-      "flavor": "A crown passes from parent to heir, and loyalty to a dynasty binds the realm together.",
-      "quote": { "text": "Uneasy lies the head that wears a crown.", "by": "William Shakespeare, Henry IV, Part 2" },
-      "cost": { "insight": 32 }, "vp": 3, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+      "id": "coinage", "name": "Coinage", "type": "tech", "era": 3, "prereq": "weights_and_measures",
+      "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and a coin's worth no longer needs a balance.",
+      "quote": { "text": "The Lydians were the first men whom we know who coined and used gold and silver currency.", "by": "Herodotus, Histories 1.94 (tr. A. D. Godley)" },
+      "cost": { "insight": 27 }, "vp": 1, "eureka": { "card": "market", "count": 1, "off": 6 }, "tags": [],
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "trade", "trigger": "upkeep" } ]
+    },
+    {
+      "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
+      "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride the roads between them.",
+      "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "after Herodotus, Histories 8.98" },
+      "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2 },
+      "effects": [ { "op": "create", "card": "royal_road", "zone": "discard" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
