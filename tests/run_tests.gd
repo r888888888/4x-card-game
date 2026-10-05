@@ -15,9 +15,10 @@ extends SceneTree
 
 const TEST_ROOT := "res://tests"
 const BALANCE_ROOT := "res://tests/balance"
-const PLAYER_SETTINGS := "user://settings.cfg"
 const RUN_SETTINGS := "user://test_run_settings.cfg"  # the settings every test starts on (195)
 const TestShards := preload("res://tests/lib/test_shards.gd")
+const SettingsWatch := preload("res://tests/lib/settings_watch.gd")
+const PLAYER_SETTINGS := SettingsWatch.PLAYER_SETTINGS
 
 
 ## Collects errors (not warnings) logged while a test runs.
@@ -48,7 +49,8 @@ func _initialize() -> void:
 	OS.add_logger(collector)
 	var kept := root.get_children()  # the autoloads; anything else a test leaves behind is freed after it
 	# The player's settings (Day mode, Reduce motion) must not change a result, nor a run change them (195): every test
-	# starts on a fresh store with both off, and the player's file is compared before and after.
+	# starts on a fresh store with both off, and the player's file is compared before and after: a change only warns, as
+	# a running game may have saved it (196).
 	var player_settings: Variant = _read(PLAYER_SETTINGS)
 	var settings: Node = root.get_node("Settings")
 	settings.store = SettingsStore.new(RUN_SETTINGS)
@@ -86,8 +88,9 @@ func _initialize() -> void:
 
 	if FileAccess.file_exists(RUN_SETTINGS):
 		DirAccess.remove_absolute(RUN_SETTINGS)
-	if _read(PLAYER_SETTINGS) != player_settings:
-		failures.append("the run changed the player's %s (tests must use a temp settings store)" % PLAYER_SETTINGS)
+	var settings_warning := SettingsWatch.settings_change_warning(player_settings, _read(PLAYER_SETTINGS))
+	if settings_warning != "":
+		printerr("WARN ", settings_warning)
 
 	for f in failures:
 		printerr("FAIL ", f)
