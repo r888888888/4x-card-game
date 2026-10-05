@@ -128,7 +128,7 @@ func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 ## 288 AC4: nothing can be learned or bought under Anarchy, so its lamps stay dark; once a government rules they light
 ## for what wasn't seen.
 func test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules() -> void:
-	var e: Object = fallen_engine()
+	var e := fallen_engine()
 	eq(e.ready_techs(), [] as Array[String], "no tech under Anarchy")
 	eq(e.ready_supply(), [] as Array[String], "no pile under Anarchy")
 	check(not e.tech_lamp() and not e.supply_lamp(), "both lamps dark")

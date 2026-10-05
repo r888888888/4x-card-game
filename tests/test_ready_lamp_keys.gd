@@ -14,13 +14,8 @@ func keys_engine(insight: int, wealth: int) -> GameEngine:
 
 
 ## main's top bar.
-func top_bar(main: Node) -> Object:
+func top_bar(main: Node) -> TopBar:
 	return main.find_children("*", "HBoxContainer", true, false).filter(func(n): return n is TopBar)[0]
-
-
-## Game.engine, typed Object for the red phase.
-func engine() -> Object:
-	return Game.engine
 
 
 ## Sets resource to amount and has main show it.
@@ -35,7 +30,7 @@ func give(main: Node, resource: String, amount: int) -> void:
 func test_the_keys_lamps_follow_the_engine() -> void:
 	await with_main(keys_engine(2, 0), func(main: Node):
 		var bar := top_bar(main)
-		check(engine().tech_lamp(), "precondition: a tech is learnable")
+		check(Game.engine.tech_lamp(), "precondition: a tech is learnable")
 		check(bar.knowledge_lamp_lit(), "Knowledge lit with the engine")
 		check(not bar.supply_lamp_lit(), "Buy Cards dark: nothing buyable")
 		await give(main, GameEngine.WEALTH, 2)
@@ -46,7 +41,7 @@ func test_opening_knowledge_sees_the_techs_and_puts_its_lamp_out() -> void:
 	await with_main(keys_engine(2, 0), func(main: Node):
 		main.knowledge.open()
 		await wait_frames()
-		check(not engine().tech_lamp(), "opening Knowledge saw the techs")
+		check(not Game.engine.tech_lamp(), "opening Knowledge saw the techs")
 		check(not top_bar(main).knowledge_lamp_lit(), "Knowledge dark"))
 
 
@@ -55,10 +50,10 @@ func test_closing_knowledge_sees_what_became_learnable_while_it_was_open() -> vo
 		main.knowledge.open()
 		await wait_screen_transition()
 		await give(main, GameEngine.INSIGHT, 5)
-		check(engine().tech_lamp(), "precondition: Bronze Working became learnable while open")
+		check(Game.engine.tech_lamp(), "precondition: Bronze Working became learnable while open")
 		main.knowledge.close()
 		await wait_screen_transition()
-		check(not engine().tech_lamp(), "closing Knowledge saw it")
+		check(not Game.engine.tech_lamp(), "closing Knowledge saw it")
 		check(not top_bar(main).knowledge_lamp_lit(), "Knowledge dark"))
 
 
@@ -67,7 +62,7 @@ func test_opening_the_supply_sees_the_piles_and_puts_its_lamp_out() -> void:
 		check(top_bar(main).supply_lamp_lit(), "precondition: Buy Cards lit")
 		main.open_supply()
 		await wait_frames()
-		check(not engine().supply_lamp(), "opening the Supply saw the piles")
+		check(not Game.engine.supply_lamp(), "opening the Supply saw the piles")
 		check(not top_bar(main).supply_lamp_lit(), "Buy Cards dark"))
 
 
@@ -76,8 +71,8 @@ func test_closing_the_supply_sees_what_became_buyable_while_it_was_open() -> voi
 		main.open_supply()
 		await wait_frames()
 		await give(main, GameEngine.WEALTH, 3)
-		check(engine().supply_lamp(), "precondition: Temple became buyable while open")
+		check(Game.engine.supply_lamp(), "precondition: Temple became buyable while open")
 		main.supply.close()
 		await wait_frames()
-		check(not engine().supply_lamp(), "closing the Supply saw it")
+		check(not Game.engine.supply_lamp(), "closing the Supply saw it")
 		check(not top_bar(main).supply_lamp_lit(), "Buy Cards dark"))

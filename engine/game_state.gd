@@ -29,6 +29,8 @@ var anarchy_limit := 1  # the fallen government's unrest_limit(), recorded as An
 var moved_units: Array[int] = []  # uids of the units moved this turn (163)
 var last_raid_turn := 0  # the turn a raid last struck, 0 before any has (257)
 var names_given := 0  # default city names handed out (248): the next settled territory takes the next
+var seen_techs: Array[String] = []  # the tech ids learnable at the last see_techs (288)
+var seen_supply: Array[String] = []  # the pile card ids buyable at the last see_supply (288)
 
 
 ## A deep copy: new zones holding new card instances, its own RNG in the same state.
@@ -60,4 +62,6 @@ func copy() -> GameState:
 	s.moved_units = moved_units.duplicate()
 	s.names_given = names_given
 	s.last_raid_turn = last_raid_turn
+	s.seen_techs = seen_techs.duplicate()
+	s.seen_supply = seen_supply.duplicate()
 	return s

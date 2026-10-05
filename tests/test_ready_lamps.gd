@@ -9,9 +9,8 @@ const GUILDS := {"id": "guilds", "name": "Guilds", "type": "tech", "cost": {"ins
 const SUPPLY := {"scout": {"price": 2, "count": 2}, "guildhall": {"price": 2, "count": 2, "locked": true}}
 
 
-## A game with the research deck order_top_first, SUPPLY, and the given insight and wealth; overrides last. Typed
-## Object for the red phase (the lamp methods don't exist yet).
-func lamp_engine(order_top_first: Array, insight: int, wealth := 0, deck := {"farm": 10}, overrides := {}) -> Object:
+## A game with the research deck order_top_first, SUPPLY, and the given insight and wealth; overrides last..
+func lamp_engine(order_top_first: Array, insight: int, wealth := 0, deck := {"farm": 10}, overrides := {}) -> GameEngine:
 	var o := {"supply": SUPPLY, "starting": {"resources": {"food": 2, "wealth": wealth, "insight": insight},
 		"tableau": ["capital"], "territory": "homeland"}}
 	o.merge(overrides, true)
@@ -142,7 +141,7 @@ func test_a_sold_out_or_locked_pile_lights_nothing() -> void:
 
 func test_a_copy_reports_the_same_lamps_and_seeing_on_it_leaves_the_original() -> void:
 	var e := lamp_engine(["pottery"], 2, 2)
-	var f: Object = e.fork()
+	var f := e.fork()
 	check(f.tech_lamp() and f.supply_lamp(), "the copy's lamps are lit too")
 	f.see_techs()
 	f.see_supply()

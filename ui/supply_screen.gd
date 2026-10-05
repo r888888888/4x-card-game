@@ -7,6 +7,8 @@ extends RefCounted
 
 ## The screen closed (Close, S or Esc, a click outside its panel, or a new game).
 signal closed
+## The screen opened or closed (288): what is buyable then counts as seen.
+signal looked
 
 var close_button: Button
 var button: Button  # "Buy Cards" (S, in its tooltip: 120), hidden when the config has no supply
@@ -119,6 +121,7 @@ func open(e: GameEngine) -> void:
 	refresh(e)  # after show: it only fills in the cards while the screen is open
 	_overlay.modulate.a = 0.0
 	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, Anim.CALM_FADE_TIME)
+	looked.emit()
 
 
 ## A pile's column (232): a slot of slot_size for its card, the price tag hanging from the card's edge and the copies
@@ -218,6 +221,7 @@ func close() -> void:
 	for child in _fx.get_children():
 		child.queue_free()
 	closed.emit()
+	looked.emit()
 
 
 ## A click on the dimmer, outside the panel, closes the screen, as a click beside a modal's sheet does (258).
@@ -256,6 +260,8 @@ func refresh(e: GameEngine) -> void:
 	button.visible = not e.supply().is_empty()
 	button.disabled = reason != ""
 	button.tooltip_text = reason if reason != "" else "Shortcut: S. Buy copies of cards into your discard."
+	if e.supply_lamp():
+		button.tooltip_text += "\nNew: a card you can buy."  # its lamp is lit (288)
 	if not is_open():
 		return
 	_wealth.show_value(e.resources.get(GameEngine.WEALTH, 0), _fresh)
