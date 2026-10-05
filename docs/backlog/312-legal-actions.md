@@ -2,7 +2,7 @@
 id: 312
 title: legal_actions lists every action the engine would allow now
 type: feature
-status: red-review
+status: in-progress
 branch: feat/312-legal-actions
 ---
 
@@ -61,6 +61,8 @@ it lands.
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309–311, 313–315.
 - 2026-10-05: red. `build` is in AC1 (295 landed before this item). AC3's "only its options" is what the error queries
-  give, with one exception they already make: while a hand-limit discard is owed, buying and research stay allowed
-  (`_DISCARD_ALLOWS`, test_blocking), so they are listed too. `supply` pairs a query with `supply_error` but is no
+  give, with one exception they already make: while a hand-limit discard is owed, research stays allowed
+  (`_DISCARD_ALLOWS`: discard, the supply screen's query, research; buying is blocked), so it is listed too. `supply` pairs a query with `supply_error` but is no
   action: left out with `new_game` and `rename_territory`.
+- 2026-10-05: green phase: the discard test expected `buy` too, from a misread of `test_blocking`; buying is blocked
+  while a discard is owed. Corrected with the user's approval to research then the discards.

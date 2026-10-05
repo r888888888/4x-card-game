@@ -16,13 +16,6 @@ const NEVER_LISTED := ["new_game", "rename_territory", "supply"]
 const HILLS_DECK := {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}}
 
 
-## e.legal_actions(), held as Object until the query exists (red phase).
-func legal(e: GameEngine) -> Array:
-	var o: Object = e
-	var out: Variant = o.call("legal_actions")
-	return out if out is Array else []
-
-
 ## An anarchy game with LEVY and COLOSSUS loaded and overrides merged (Hills, Grassland, Jungle to explore).
 func game(unrest := {}, overrides := {}) -> GameEngine:
 	return anarchy_engine(unrest, HILLS_DECK.merged(overrides, true), [LEVY, COLOSSUS])
@@ -59,13 +52,13 @@ func test_with_nothing_owed_every_allowed_action_is_listed_in_order() -> void:
 	for uid in hand:
 		expected.append(["discard_card", uid])
 	expected.append_array([["revolt"], ["end_turn"]])
-	eq(legal(e), expected, "plays, build, buy, tech, discards, revolt, end turn")
+	eq(e.legal_actions(), expected, "plays, build, buy, tech, discards, revolt, end turn")
 
 
 func test_a_card_that_needs_no_target_is_listed_with_target_minus_1() -> void:
 	var e := game()
 	var feast := put_in_hand(e, "feast")
-	check(of_kind(legal(e), "play_card").has(["play_card", feast, -1]), "Feast with target -1")
+	check(of_kind(e.legal_actions(), "play_card").has(["play_card", feast, -1]), "Feast with target -1")
 
 
 func test_units_and_sites_list_their_moves_contributions_disbands_and_abandons() -> void:
@@ -78,7 +71,7 @@ func test_units_and_sites_list_their_moves_contributions_disbands_and_abandons()
 	check(e.play_card(colossus, home_uid(e)), "Colossus placed as a site: %s" % e.play_error(colossus, home_uid(e)))
 	var limit := e.contribute_limit(colossus)
 	check(limit > 0, "the site can take wealth: %d" % limit)
-	var list := legal(e)
+	var list := e.legal_actions()
 	eq(of_kind(list, "contribute"), [["contribute", colossus, limit]], "one contribution, at the limit")
 	eq(of_kind(list, "move_unit"), [["move_unit", levy, hills]] if e.move_targets(levy) == [hills] else [],
 		"the Levy's moves are its move_targets")
@@ -90,11 +83,11 @@ func test_units_and_sites_list_their_moves_contributions_disbands_and_abandons()
 
 func test_every_entry_is_legal_and_nothing_unaffordable_is_listed() -> void:
 	var e := game({}, {"build_menu": {"temple": {}}})
-	for entry in legal(e):
+	for entry in e.legal_actions():
 		eq(entry_error(e, entry), "", "%s" % [entry])
 	e.resources["food"] = 0
 	e.resources["wealth"] = 0
-	var list := legal(e)
+	var list := e.legal_actions()
 	check(not list.is_empty(), "something is still listed")
 	eq(of_kind(list, "play_card"), [], "no Farm play with 0 food (it costs 2)")
 	eq(of_kind(list, "build"), [], "no Temple build with 0 food (it costs 1)")
@@ -109,16 +102,16 @@ func test_an_explore_choice_lists_only_its_options() -> void:
 	var e := game()
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 	var options: Array = e.pending().options
-	eq(legal(e), options.map(func(o): return ["choose", o]), "one choose per revealed territory")
+	eq(e.legal_actions(), options.map(func(o): return ["choose", o]), "one choose per revealed territory")
 
 
 func test_an_event_choice_lists_the_options_it_allows() -> void:
 	var envoys := choice_engine()
 	envoys.end_turn()
-	eq(legal(envoys), [["choose_option", 0], ["choose_option", 1]], "Envoys: both options")
+	eq(envoys.legal_actions(), [["choose_option", 0], ["choose_option", 1]], "Envoys: both options")
 	var dear := choice_engine(["dear"], {"dear": 1, "fleeting": 1})
 	dear.end_turn()
-	eq(legal(dear), [["choose_option", 1]], "Dear: 50 wealth is too dear, only the free option")
+	eq(dear.legal_actions(), [["choose_option", 1]], "Dear: 50 wealth is too dear, only the free option")
 
 
 func test_the_government_choice_lists_each_government() -> void:
@@ -130,7 +123,7 @@ func test_the_government_choice_lists_each_government() -> void:
 	check(e.restore_order(), "restore order: the government choice is owed")
 	var options: Array = e.pending().options
 	check(not options.is_empty(), "governments to choose from")
-	eq(legal(e), options.map(func(o): return ["choose_government", o]), "one entry per government")
+	eq(e.legal_actions(), options.map(func(o): return ["choose_government", o]), "one entry per government")
 
 
 func test_a_hand_limit_discard_lists_each_hand_card_and_what_it_still_allows() -> void:
@@ -139,10 +132,10 @@ func test_a_hand_limit_discard_lists_each_hand_card_and_what_it_still_allows() -
 		put_in_hand(e, "farm")
 	e.end_turn()
 	eq(e.pending().get("kind"), GameEngine.PENDING_DISCARD, "a discard owed")
-	var expected := [["buy", "farm"], ["buy_tech", uid_of(e.zone("research_deck"), "lore")]]
+	var expected := [["buy_tech", uid_of(e.zone("research_deck"), "lore")]]
 	for card in e.zone("hand").cards:
 		expected.append(["discard_card", card.uid])
-	eq(legal(e), expected, "buying and research stay allowed (test_blocking), then a discard per hand card")
+	eq(e.legal_actions(), expected, "research stays allowed (_DISCARD_ALLOWS), then a discard per hand card")
 
 
 func test_a_renewal_is_one_entry_choose_count_of_the_options() -> void:
@@ -152,13 +145,13 @@ func test_a_renewal_is_one_entry_choose_count_of_the_options() -> void:
 	e.end_turn()
 	var p := e.pending()
 	eq(p.get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
-	eq(legal(e), [["renew", p.options, p.count]], "one entry: choose count of options")
+	eq(e.legal_actions(), [["renew", p.options, p.count]], "one entry: choose count of options")
 
 
 # --- AC4 and AC5: game over, order, nothing changes ---
 
 func test_nothing_is_listed_after_game_over() -> void:
-	eq(legal(over_engine()), [], "game over")
+	eq(over_engine().legal_actions(), [], "game over")
 
 
 func test_the_list_is_the_same_twice_and_on_a_fork_and_changes_nothing() -> void:
@@ -167,10 +160,10 @@ func test_the_list_is_the_same_twice_and_on_a_fork_and_changes_nothing() -> void
 	for name in GameEngine.ZONES:
 		zones[name] = e.zone(name).cards.map(func(c): return c.uid)
 	var resources_before: Dictionary = e.resources.duplicate()
-	var first := legal(e)
+	var first := e.legal_actions()
 	check(not first.is_empty(), "something listed")
-	eq(legal(e), first, "twice")
-	eq(legal(e.fork()), first, "on a fork")
+	eq(e.legal_actions(), first, "twice")
+	eq(e.fork().legal_actions(), first, "on a fork")
 	for name in GameEngine.ZONES:
 		eq(e.zone(name).cards.map(func(c): return c.uid), zones[name], "zone %s" % name)
 	eq(e.resources, resources_before, "resources")
@@ -258,5 +251,5 @@ func test_each_coverage_game_lists_its_action() -> void:
 	var rows := coverage()
 	for name in rows:
 		var e: GameEngine = rows[name].call()
-		var kinds: Array = legal(e).map(func(entry): return entry[0])
+		var kinds: Array = e.legal_actions().map(func(entry): return entry[0])
 		check(kinds.has(name), "%s listed: %s" % [name, kinds])
