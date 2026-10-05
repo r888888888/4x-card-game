@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building Upgrades</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (§14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", sans-serif; --f-ui: "Barlow", sans-serif; --f-cond: "Barlow Semi Condensed", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --positive: #4E6B47; --caution: #7C5810; --danger: #9B3424; --info: #2F5E7A;
+	--g-ochre: #A07514; --p-olive: #A3AA6A; --p-ochre: #D9A441; --p-sage: #9DB592; --p-teal: #5E9C97;
+	--scrim: rgba(34, 33, 31, 0.4); --link: #A07514; --focus: #1F6A68;
+	--dim-bg: #E8E1D3; --dim-border: #B9AF9C; --hatch: rgba(34, 33, 31, 0.1);
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --positive: #93B585; --caution: #D9A441; --danger: #E07A63; --info: #7FB3CF;
+	--g-ochre: #D9A441; --p-olive: #A9B26C; --p-ochre: #D9A441; --p-sage: #93B585; --p-teal: #5FB0A9;
+	--scrim: rgba(0, 0, 0, 0.6); --link: #FFD966; --focus: #6CC3BC;
+	--dim-bg: #232220; --dim-border: #5A554D; --hatch: rgba(255, 255, 255, 0.05);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); }
+main { max-width: 1280px; margin: 0 auto; padding: var(--space-6) 16px 96px; }
+h1 { font: 500 28px/34px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 var(--space-2); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.note { color: var(--ink-2); max-width: 80ch; margin: var(--space-2) 0 var(--space-4); }
+.note b { color: var(--ink); }
+.verdict { border-left: 4px solid var(--signal); padding: var(--space-2) var(--space-4); background: var(--sheet); max-width: 84ch; margin: var(--space-4) 0 var(--space-6); }
+.part { font: 500 15px/20px var(--f-cond); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: var(--space-7) 0 var(--space-2); border-bottom: 1px solid var(--rule-fine); padding-bottom: var(--space-2); }
+.option { margin-bottom: var(--space-7); }
+.option > h2 { font: 500 22px/28px var(--f-display); margin: 0; border-top: 4px solid var(--ink); padding-top: var(--space-3); }
+.rec { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; background: var(--signal); color: var(--on-signal); padding: 2px var(--space-2); margin-left: var(--space-3); vertical-align: 4px; }
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); max-width: 80ch; margin-bottom: var(--space-4); font-size: 15px; }
+.pc ul { margin: var(--space-1) 0 0; padding-left: 18px; color: var(--ink-2); }
+.toggle { float: right; }
+.label { margin: var(--space-4) 0 var(--space-2); }
+
+/* The territory view's box (101, 105): a frame in the territory colour. */
+.terr { border: 3px solid var(--p-sage); background: var(--board); padding: var(--space-4); overflow-x: auto; }
+.terr .tb { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+.terr .tb h3 { margin: 0; font: 500 26px/32px var(--f-display); }
+.terr .tb .land { color: var(--ink-2); font-size: 15px; }
+.terr .stats { margin: var(--space-2) 0 var(--space-4); font: 500 17px/22px var(--f-cond); color: var(--ink-2); display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.terr .stats b { color: var(--ink); }
+.tierchip { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--p-sage); color: var(--p-sage); padding: 1px 6px; }
+.row { display: flex; gap: var(--space-3); align-items: flex-end; flex-wrap: wrap; }
+
+/* Card faces (§15.6), the compact tableau size. */
+.card { position: relative; width: 210px; min-height: 160px; padding: var(--space-2) var(--space-3); flex: none; display: flex; flex-direction: column; gap: var(--space-1); background: var(--sheet); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); color: var(--ink); text-align: left; font: inherit; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card .name { font: 600 18px/22px var(--f-cond); }
+.card .band { height: 5px; background: var(--p-olive); }
+.card.city .band { background: var(--p-ochre); }
+.card .type { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
+.card .rules { font: 400 16px/20px var(--f-ui); }
+.card .vp { color: var(--positive); margin-top: auto; font: 500 16px/20px var(--f-cond); }
+.cost { display: inline-flex; align-items: center; gap: 3px; font: 500 18px/22px var(--f-cond); white-space: nowrap; }
+.glyph { display: inline-block; width: 13px; height: 13px; border-radius: 50%; background: var(--g-ochre); vertical-align: -1px; }
+.glyph.food { background: var(--positive); }
+.glyph.ins { background: var(--info); }
+.slot-outline { width: 210px; min-height: 160px; border: 2px dashed var(--rule); display: grid; place-items: center; color: var(--ink-2); font: 600 15px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; flex: none; }
+
+/* Lamps and the dormant look (§11.6: idle is a hatched floor and an ochre lamp). */
+.lamp { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--p-ochre) 40%, white) 0 18%, var(--p-ochre) 22%); box-shadow: inset 0 0 0 1px var(--caution); vertical-align: 0; }
+.dormant { background: var(--dim-bg) repeating-linear-gradient(-45deg, var(--hatch) 0 1px, transparent 1px 8px); color: var(--ink-3); }
+.dormant .why { font: 600 12px/16px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--caution); display: flex; align-items: center; gap: 6px; }
+
+/* A: ribbons along the card's foot. */
+.ribbons { margin-top: auto; display: flex; flex-direction: column; gap: 2px; margin-left: calc(-1 * var(--space-3)); margin-right: calc(-1 * var(--space-3)); margin-bottom: calc(-1 * var(--space-2)); }
+.ribbon { border-top: 1px solid var(--rule-fine); padding: 3px var(--space-3); display: flex; justify-content: space-between; gap: var(--space-2); font: 500 15px/19px var(--f-cond); }
+.ribbon .rn { font-weight: 600; }
+.ribbon .rn::before { content: "▲ "; color: var(--p-olive); font-size: 11px; }
+.ribbon .rr { color: var(--ink-2); white-space: nowrap; }
+.ribbon.dormant .rn::before { color: var(--ink-3); }
+.ribbon.dormant { flex-wrap: wrap; }
+.addchip { align-self: flex-start; margin-top: var(--space-1); font: 600 13px/16px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; border: 1px dashed var(--rule); padding: 2px 8px; color: var(--ink-2); background: transparent; cursor: pointer; }
+.addchip:hover { border-color: var(--link); color: var(--ink); }
+
+/* B: a stack: the upgrades are cards tucked behind, their title strips showing above. */
+.stack { position: relative; flex: none; }
+.stack .under { position: absolute; left: 0; right: 0; height: 160px; border: 2px solid var(--rule); background: var(--sheet); box-shadow: 2px 2px 0 var(--shadow); padding: 3px var(--space-3); font: 600 15px/18px var(--f-cond); display: flex; justify-content: space-between; }
+.stack .under .rr { color: var(--ink-2); font-weight: 500; }
+.stack .under.dormant { background: var(--dim-bg) repeating-linear-gradient(-45deg, var(--hatch) 0 1px, transparent 1px 8px); color: var(--ink-3); }
+
+/* C: merged face. */
+.subline { font: 400 13px/17px var(--f-ui); color: var(--ink-2); }
+.pips { display: flex; gap: 4px; margin-top: 2px; }
+.pip { width: 10px; height: 10px; border: 1px solid var(--p-olive); background: var(--p-olive); transform: rotate(45deg); }
+.pip.off { background: transparent; border-color: var(--ink-3); }
+
+/* D: chained cards. */
+.chain { display: flex; align-items: flex-end; flex: none; }
+.chain .card + .card { margin-left: -2px; }
+.chain .link { width: 16px; height: 4px; background: var(--p-olive); align-self: center; flex: none; }
+.card.half { width: 150px; min-height: 120px; }
+.card.half .name { font-size: 16px; }
+.card.half .rules { font-size: 14px; line-height: 18px; }
+.card .uptype { font: 600 12px/16px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+
+/* Modal (§15.11) over the territory view. */
+.stage { position: relative; background: var(--board); padding: var(--space-6) var(--space-4); overflow: hidden; border: 1px solid var(--rule-fine); }
+.stage::before { content: ""; position: absolute; inset: 0; background: var(--scrim); z-index: 1; }
+.behind { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); opacity: 0.6; height: 120px; }
+.behind div { background: var(--sheet); border: 2px solid var(--rule); }
+.modal { position: relative; z-index: 2; margin: -100px auto 0; width: min(980px, 100%); background: var(--sheet); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow); }
+.modal .titleblock { display: flex; align-items: baseline; gap: var(--space-4); border-top: 4px solid var(--ink); padding: var(--space-3) var(--space-5) 0; flex-wrap: wrap; }
+.modal .titleblock h3 { margin: 0; font: 500 28px/34px var(--f-display); }
+.modal .titleblock .caps { margin-left: auto; }
+.modal .content { display: flex; gap: var(--space-5); padding: var(--space-4) var(--space-5) var(--space-5); flex-wrap: wrap; align-items: flex-start; }
+.modal footer { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--rule-fine); }
+.modal .body { flex: 1; min-width: 260px; font-size: 17px; }
+.modal .body .h { font: 600 14px/18px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin: var(--space-3) 0 var(--space-2); }
+.preview div { display: flex; justify-content: space-between; border-bottom: 1px solid var(--rule-fine); padding: 3px 0; max-width: 360px; }
+.preview .up { color: var(--positive); }
+
+/* The selectable list (§7.16) in a well. */
+.list { background: var(--well); padding: var(--space-2); width: 300px; flex: none; }
+.list .lh { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); padding: var(--space-2) var(--space-2) var(--space-1); }
+.lrow { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding: 6px var(--space-3); background: var(--sheet); border: 1px solid var(--rule-fine); margin-bottom: 4px; font: 500 16px/20px var(--f-cond); }
+.lrow small { display: block; font: 400 13px/16px var(--f-ui); color: var(--ink-2); }
+.lrow.sel { box-shadow: 4px 4px 0 var(--shadow); transform: translate(-4px, -4px); border: 2px solid var(--ink); position: relative; }
+.lrow.sel::before { content: ""; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 6px; background: var(--signal); }
+.lrow.dim { color: var(--ink-3); background: var(--dim-bg); }
+.lrow.dim small { color: var(--caution); }
+
+.btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) 20px; border-radius: 2px; font: 500 17px/20px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; }
+.btn.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); font-weight: 600; }
+.btn.chip { min-height: 32px; padding: var(--space-1) var(--space-3); font-size: 16px; }
+
+/* The upgrade's own face. */
+.tierstamp { position: absolute; bottom: 10px; right: 10px; font: 600 12px/14px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; border: 2px solid var(--p-sage); color: var(--p-sage); padding: 1px 5px; transform: rotate(-4deg); }
+.card .plus { color: var(--ink-2); font-size: 14px; }
+
+@media (max-width: 720px) { .pc { grid-template-columns: 1fr; } .list { width: 100%; } }
+</style>
+</head>
+<body>
+<main>
+	<button class="btn toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'night' ? 'paper' : 'night'">Paper / Night</button>
+	<h1>Building upgrades</h1>
+	<span class="caps">Territory view → buildings that carry upgrades</span>
+	<p class="note">An upgrade builds on a building already there. It takes no slot and no worker, and it adds to what its
+		base does. Rural upgrades need only their tech; urban ones need the territory's tier, and they <b>fall back</b>
+		(stop working) while the territory is below it, then return when it grows back. A base can carry several upgrades
+		(a Farm takes both Ploughed Fields and Irrigation Canals) or a chain (Shrine → Temple → Great Temple).</p>
+	<p class="note">Every option uses the same territory: <b>Ur</b> on a River Meadow, a <b>Town</b> at 9 pop. It holds a
+		Farm with both rural upgrades, a Shrine with Temple and a fallen-back Great Temple (needs a Metropolis), a Market
+		with a Merchant Quarter, and a Scribal School whose Library upgrade is on offer. Numbers are illustrative; balance
+		comes later.</p>
+	<div class="verdict"><b>Recommendation: A (ribbons) for the face, X (a "+ Upgrade" chip opening the Build modal) to
+		start one, and the stamped upgrade face in lists.</b> One card per slot keeps the room-per-slot plan the territory
+		view already draws, and each ribbon is one upgrade with its own added effect, so a fallen-back upgrade can be
+		hatched on its own line with the idle look the guide already uses. Starting from the building reuses 297's Build
+		modal rather than adding a second place to build.</div>
+
+	<div class="part">1 · How an upgraded building looks on the territory view</div>
+
+	<section class="option">
+		<h2>A · Ribbons on the base card <span class="rec">Recommended</span></h2>
+		<p class="note">The base card keeps its face. Each upgrade is a ribbon along its foot: the upgrade's name and what it
+			adds. A fallen-back ribbon is hatched with the ochre lamp and the tier it needs. A building with an upgrade on
+			offer shows a dashed <b>+ Upgrade</b> chip, like the "+ Build" outline on an empty slot.</p>
+		<div class="pc"><div><b>For</b><ul><li>One card per slot: the row still counts slots at a glance.</li><li>Each upgrade's effect stays separate, which is how the engine resolves it.</li><li>Fall-back is per line, with the existing idle look.</li></ul></div>
+			<div><b>Against</b><ul><li>Cards with upgrades are taller than their neighbours; the row aligns to the bottom.</li><li>Three ribbons is about the most a compact face holds.</li></ul></div></div>
+		<div id="optA"></div>
+	</section>
+
+	<section class="option">
+		<h2>B · Upgrades as cards stacked behind</h2>
+		<p class="note">Each upgrade is a card tucked behind its base, its title strip showing above, like a pile on a slot.
+			The top strip is the newest. A click opens the stack's details.</p>
+		<div class="pc"><div><b>For</b><ul><li>Reads as "cards on cards", true to a card game.</li><li>Base card face unchanged.</li></ul></div>
+			<div><b>Against</b><ul><li>Only the names show; what each adds is a click away.</li><li>Looks like a pile you could draw from, and a stack resembles the deck and discard counters.</li><li>Tall stacks push the row down unevenly.</li></ul></div></div>
+		<div id="optB"></div>
+	</section>
+
+	<section class="option">
+		<h2>C · One merged face</h2>
+		<p class="note">The card shows the building's total output as one set of rules ("⟳ +4 food"), its upgrades named in a
+			sub-line, with a diamond per upgrade (hollow when fallen back). The details break it down.</p>
+		<div class="pc"><div><b>For</b><ul><li>Most compact; every card stays the same height.</li><li>Shows what the building makes now, the number you plan with.</li></ul></div>
+			<div><b>Against</b><ul><li>Totals need an engine query per building, and card text is generated per card today.</li><li>Fall-back is only a hollow diamond; the cost of shrinking is hidden.</li></ul></div></div>
+		<div id="optC"></div>
+	</section>
+
+	<section class="option">
+		<h2>D · Upgrades as half cards chained to the base</h2>
+		<p class="note">Each upgrade is its own small card right after its base, joined by an olive link: the engine's model
+			drawn literally.</p>
+		<div class="pc"><div><b>For</b><ul><li>Each upgrade is a full card face with its own text and click.</li><li>Easy to build from today's card view.</li></ul></div>
+			<div><b>Against</b><ul><li>Upgrades look like they fill slots; the row no longer counts slots.</li><li>A realm with many upgrades runs off the screen.</li></ul></div></div>
+		<div id="optD"></div>
+	</section>
+
+	<div class="part">2 · How you start an upgrade</div>
+
+	<section class="option">
+		<h2>X · "+ Upgrade" on the building opens the Build modal <span class="rec">Recommended</span></h2>
+		<p class="note">297's Build modal gains an <b>Upgrades</b> heading under Buildings and Units, one row per upgrade a
+			building here could take ("Library · on Scribal School"). The chip on a card opens the modal with that
+			building's first upgrade selected. A tier-gated upgrade below its tier is listed dimmed with the reason, so you
+			can see what growing would open.</p>
+		<div class="pc"><div><b>For</b><ul><li>One place to build anything on a territory, with 299's preview.</li><li>Dimmed rows teach the tiers.</li></ul></div>
+			<div><b>Against</b><ul><li>The list gets longer on a big territory (Upgrades can collapse when empty).</li></ul></div></div>
+		<div id="optX"></div>
+	</section>
+
+	<section class="option">
+		<h2>Y · From the building's details</h2>
+		<p class="note">Clicking the building opens its card details (as today), which gain an <b>Upgrades</b> section: each
+			upgrade it could take, built or not, with an Upgrade key on the available one.</p>
+		<div class="pc"><div><b>For</b><ul><li>Everything about one building in one place, chain included.</li><li>No change to the Build modal.</li></ul></div>
+			<div><b>Against</b><ul><li>A second place to build, without the Build modal's preview.</li><li>You only find upgrades by opening each building.</li></ul></div></div>
+		<div id="optY"></div>
+	</section>
+
+	<div class="part">3 · The upgrade's own card face (lists, a tech's Gives row, details)</div>
+	<section class="option">
+		<h2>Stamped upgrade face</h2>
+		<p class="note">The type line names the base ("Upgrade · Shrine"); every rules line starts with "Also", since it adds;
+			a tier-gated upgrade carries a sage stamp with its tier. A rural upgrade has no stamp.</p>
+		<div class="row" id="faces"></div>
+	</section>
+</main>
+<script>
+const food = n => `${n} <i class="glyph food"></i>`;
+const wl = n => `<span class="cost">${n} <i class="glyph"></i></span>`;
+const ins = n => `${n} <i class="glyph ins"></i>`;
+const wealth = n => `${n} <i class="glyph"></i>`;
+
+const terr = (row, extra = "") => `<div class="terr">
+	<div class="tb"><h3>Ur</h3><span class="land">River Meadow · Grassland · Fresh Water</span><span class="tierchip">Town</span></div>
+	<div class="stats"><span>Pop <b>9</b>/10</span><span>Slots <b>7</b>/8</span><span>Workers <b>2</b> free</span><span>Next tier: Metropolis at 13</span></div>
+	<div class="row">${row}</div>${extra}</div>`;
+const card = (name, cost, type, rules, opts = {}) => `<div class="card${opts.cls ? " " + opts.cls : ""}"${opts.style ? ` style="${opts.style}"` : ""}>
+	<div class="head"><span class="name">${name}</span>${cost || ""}</div><div class="band"></div>
+	<div class="type">${type}</div>${opts.uptype ? `<div class="uptype">${opts.uptype}</div>` : ""}<div class="rules">${rules.join("<br>")}</div>
+	${opts.sub || ""}${opts.vp ? `<div class="vp">${opts.vp} VP</div>` : ""}${opts.foot || ""}${opts.stamp ? `<span class="tierstamp">${opts.stamp}</span>` : ""}</div>`;
+const capital = card("Capital", "", "City", [`⟳ +${food(2)} +${wealth(1)} +${ins(1)}`, "+3 slots"], { cls: "city", vp: 2 });
+const granary = card("Granary", wl(3), "Building", ["+1 housing", "Famine guard 1"]);
+const empty = `<div class="slot-outline">+ Build</div>`;
+
+// A: ribbons
+const rib = (n, r, dormant) => dormant
+	? `<div class="ribbon dormant"><span class="rn">${n}</span><span class="rr">${r}</span><span class="why" style="width:100%"><i class="lamp"></i>Needs a Metropolis</span></div>`
+	: `<div class="ribbon"><span class="rn">${n}</span><span class="rr">${r}</span></div>`;
+const ribbons = list => `<div class="ribbons">${list.join("")}</div>`;
+const chip = `<button class="addchip">+ Upgrade</button>`;
+const A_ROW = [
+	capital,
+	card("Farm", wl(2), "Building · Farm", [`⟳ +${food(2)}`], { foot: ribbons([rib("Ploughed Fields", `+${food(1)}`), rib("Irrigation Canals", `+${food(1)} · +1 housing`)]) }),
+	card("Shrine", wl(3), "Building · Culture", ["Unrest limit +1"], { vp: 1, foot: ribbons([rib("Temple", "⟳ −1 unrest"), rib("Great Temple", "⟳ +1 VP, −1 unrest", true)]) }),
+	card("Market", wl(4), "Building · Trade", [`⟳ +${wealth(1)} per city`], { foot: ribbons([rib("Merchant Quarter", `+${wealth(1)} per 3 pop`)]) }),
+	card("Scribal School", wl(5), "Building", [`⟳ +${ins(2)}`], { vp: 1, foot: chip }),
+	granary, empty,
+].join("");
+document.getElementById("optA").innerHTML = terr(A_ROW);
+
+// B: stacks
+const stack = (base, unders) => {
+	const h = unders.length * 22;
+	return `<div class="stack" style="padding-top:${h}px">${unders.map((u, i) =>
+		`<div class="under${u.d ? " dormant" : ""}" style="top:${(unders.length - 1 - i) * 22}px;z-index:${unders.length - i}"><span>${u.n}</span><span class="rr">${u.d ? '<i class="lamp"></i>' : ""}</span></div>`).join("")}
+		<div style="position:relative;z-index:${unders.length + 1}">${base}</div></div>`;
+};
+const B_ROW = [
+	capital,
+	stack(card("Farm", wl(2), "Building · Farm", [`⟳ +${food(2)}`]), [{ n: "Ploughed Fields" }, { n: "Irrigation Canals" }]),
+	stack(card("Shrine", wl(3), "Building · Culture", ["Unrest limit +1"], { vp: 1 }), [{ n: "Temple" }, { n: "Great Temple", d: true }]),
+	stack(card("Market", wl(4), "Building · Trade", [`⟳ +${wealth(1)} per city`]), [{ n: "Merchant Quarter" }]),
+	card("Scribal School", wl(5), "Building", [`⟳ +${ins(2)}`], { vp: 1, foot: chip }),
+	granary, empty,
+].join("");
+document.getElementById("optB").innerHTML = terr(B_ROW);
+
+// C: merged
+const pips = list => `<div class="pips">${list.map(on => `<i class="pip${on ? "" : " off"}"></i>`).join("")}</div>`;
+const C_ROW = [
+	capital,
+	card("Farm", wl(2), "Building · Farm", [`⟳ +${food(4)}`, "+1 housing"], { sub: `<div class="subline">Ploughed · Irrigated</div>${pips([1, 1])}` }),
+	card("Shrine", wl(3), "Building · Culture", ["Unrest limit +1", "⟳ −1 unrest"], { vp: 1, sub: `<div class="subline">Temple · <s>Great Temple</s> (needs a Metropolis)</div>${pips([1, 0])}` }),
+	card("Market", wl(4), "Building · Trade", [`⟳ +${wealth(5)}`], { sub: `<div class="subline">Merchant Quarter</div>${pips([1])}` }),
+	card("Scribal School", wl(5), "Building", [`⟳ +${ins(2)}`], { vp: 1, foot: chip }),
+	granary, empty,
+].join("");
+document.getElementById("optC").innerHTML = terr(C_ROW);
+
+// D: chained half cards
+const half = (name, rules, opts = {}) => card(name, "", "", rules, { cls: "half" + (opts.d ? " dormant" : ""), uptype: opts.of ? `Upgrade · ${opts.of}` : "", foot: opts.d ? `<span class="why"><i class="lamp"></i>Needs a Metropolis</span>` : "" });
+const chain = (base, halves) => `<div class="chain">${base}${halves.map(h => `<span class="link"></span>${h}`).join("")}</div>`;
+const D_ROW = [
+	capital,
+	chain(card("Farm", wl(2), "Building · Farm", [`⟳ +${food(2)}`]), [half("Ploughed Fields", [`Also ⟳ +${food(1)}`], { of: "Farm" }), half("Irrigation Canals", [`Also ⟳ +${food(1)}`, "+1 housing"], { of: "Farm" })]),
+	chain(card("Shrine", wl(3), "Building · Culture", ["Unrest limit +1"], { vp: 1 }), [half("Temple", ["Also ⟳ −1 unrest"], { of: "Shrine" }), half("Great Temple", ["Also ⟳ +1 VP, −1 unrest"], { of: "Temple", d: true })]),
+	empty,
+].join("");
+document.getElementById("optD").innerHTML = terr(D_ROW, `<p class="caps" style="margin-top:12px">Market, Scribal School and Granary scroll off to the right</p>`);
+
+// X: the Build modal with an Upgrades heading
+const behind = `<div class="behind">${"<div></div>".repeat(6)}</div>`;
+const lrow = (n, c, opts = {}) => `<div class="lrow${opts.sel ? " sel" : ""}${opts.dim ? " dim" : ""}"><span>${n}${opts.small ? `<small>${opts.small}</small>` : ""}</span>${c}</div>`;
+const upFace = (name, cost, base, rules, stamp) => card(name, cost, `Upgrade · ${base}`, rules.map(r => `<span class="plus">Also</span> ${r}`), { stamp });
+document.getElementById("optX").innerHTML = `<div class="stage">${behind}<div class="modal">
+	<div class="titleblock"><h3>Build on Ur</h3><span class="caps">Town · 1 slot free</span></div>
+	<div class="content">
+		<div class="list">
+			<div class="lh">Buildings</div>
+			${lrow("Granary", wl(3))}${lrow("Mud-Brick Houses", wl(3))}
+			<div class="lh">Upgrades</div>
+			${lrow("Library", wl(6), { sel: true, small: "on Scribal School" })}
+			${lrow("Storehouse", wl(5), { small: "on Granary" })}
+			${lrow("Great Temple", wl(9), { dim: true, small: "Needs a Metropolis (Ur is a Town)" })}
+			<div class="lh">Units</div>
+			${lrow("Warriors", wl(2))}
+		</div>
+		${upFace("Library", wl(6), "Scribal School", [`⟳ +${ins(1)} per 3 pop here`], "Town")}
+		<div class="body">
+			<div class="h">If built on Scribal School</div>
+			<div class="preview"><div><span>Insight at next upkeep</span><span class="up">+4 → +7</span></div>
+				<div><span>Free slots</span><span>1 → 1</span></div><div><span>Free workers</span><span>2 → 2</span></div>
+				<div><span>Cost</span><span>${wl(6)} · 1 action</span></div></div>
+			<p class="caps" style="margin-top:12px">Falls back while Ur is below a Town</p>
+		</div>
+	</div>
+	<footer><button class="btn">Cancel</button><button class="btn primary">Build Library</button></footer></div></div>`;
+
+// Y: the building's details
+document.getElementById("optY").innerHTML = `<div class="stage">${behind}<div class="modal">
+	<div class="titleblock"><h3>Shrine</h3><span class="caps">Building · on Ur</span></div>
+	<div class="content">
+		${card("Shrine", wl(3), "Building · Culture", ["Unrest limit +1"], { vp: 1, foot: ribbons([rib("Temple", "⟳ −1 unrest")]) })}
+		<div class="body">
+			<div class="h">Upgrades</div>
+			<div class="lrow"><span>Temple<small>Built · needs a Village</small></span><span class="caps">Working</span></div>
+			<div class="lrow"><span>Great Temple<small>Also ⟳ +1 VP, −1 unrest · needs a Metropolis</small></span><button class="btn chip" disabled style="opacity:.5">Upgrade ${wl(9)}</button></div>
+			<div class="lrow"><span>House of Life<small>Also ⟳ +1 insight, +1 housing · needs Medicine</small></span><span class="caps">Not unlocked</span></div>
+		</div>
+	</div>
+	<footer><button class="btn">Close</button></footer></div></div>`;
+
+// Faces
+document.getElementById("faces").innerHTML = [
+	upFace("Temple", wl(3), "Shrine", ["⟳ −1 unrest"], "Village"),
+	upFace("Great Temple", wl(9), "Temple", ["⟳ +1 VP", "⟳ −1 unrest"], "Metropolis"),
+	upFace("Ploughed Fields", wl(3), "Farm", [`⟳ +${food(1)}`]),
+	upFace("Merchant Quarter", wl(5), "Market", [`⟳ +${wealth(1)} per 3 pop here`], "Town"),
+].join("");
+</script>
+</body>
+</html>

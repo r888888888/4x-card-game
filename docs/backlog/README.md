@@ -62,3 +62,12 @@ Build menu (buildings and units leave the deck: techs unlock them, you build the
 3. 299 preview what building an entry on a territory would change
 4. 297 Build… on a territory's view: the list-and-forecast modal, and "+ Build" on empty slots
 5. 298 the sim bot builds, recruits and keeps Settlers (then a balance item for costs and wealth)
+
+Building upgrades (upgrades build onto a building, add to it, and may need a settlement tier; makes tall worth it):
+1. 300 upgrades built onto buildings: no slot or worker, they add to their base, stack and chain
+2. 301 a building or upgrade may need a tier, and falls back below it (returns by itself)
+3. 304 the `gain_per_pop` op (independent; needed by 306)
+4. 302 ribbons on the territory view, "+ Upgrade", the Build modal's Upgrades heading (after 297)
+5. 303 the sim bot builds upgrades, the tall strategy first
+6. 305 rural upgrades and realism fixes, 306 Temple and Library become urban upgrades, 307 new urban chains, 308 gap
+   buildings (then a balance item for the whole roster)
