@@ -118,8 +118,6 @@ func test_anarchy_has_its_cards_actions() -> void:
 
 func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 	var e := fallen_engine()
-	eq(e.grow_error(home_uid(e)), NOTHING_BUILT, "grow_error")
-	check(not e.grow(home_uid(e)), "grow refuses")
 	eq(e.buy_error("farm"), NOTHING_BUILT, "buy_error")
 	check(not e.buy("farm"), "buy refuses")
 	var lore := uid_of(e.zone("research_deck"), "lore")
@@ -129,6 +127,7 @@ func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 
 func test_under_anarchy_nothing_grows_by_itself() -> void:
 	var e := anarchy_engine({}, {"population": POP.merged({"start": 2, "growth_surplus": 2}, true)})
+	set_home_pop(e, 2)  # turn 1's upkeep grew it already
 	e.resources["unrest"] = 5
 	e.end_turn()  # turn 2: Capital nets +2, so Homeland grows before Anarchy falls (260)
 	check(e.anarchy() != -1, "Anarchy rules")

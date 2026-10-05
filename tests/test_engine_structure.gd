@@ -7,7 +7,7 @@ const ENGINE_PATH := "res://engine/game_engine.gd"
 ## The read queries GameEngine had under "# --- Queries ---" when 249 was specced.
 const QUERIES: Array[String] = ["turn_limit", "score", "civilization", "government", "event_counters",
 	"famine_counters", "population_on", "unrest_on", "pop", "housing", "territory_keywords", "count_territories_with",
-	"grow_cost", "famine_relief", "outcome_summary", "total_pop", "pending", "research_card_name", "era",
+	"famine_relief", "outcome_summary", "total_pop", "pending", "research_card_name", "era",
 	"upkeep_forecast", "event_turns_left", "era_unlocks", "upcoming_era_unlocks", "tech_eras", "tech_tree", "era_name",
 	"tech_cost", "supply", "supply_left", "open_supply_piles", "supply_locked", "buy_price", "supply_play_cost",
 	"count_tag", "actions_per_turn", "unrest_limit", "anarchy_id", "anarchy", "order_relief", "anarchy_counters",

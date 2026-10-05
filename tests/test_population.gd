@@ -78,7 +78,8 @@ func test_housing_validation() -> void:
 func test_population_block_defaults() -> void:
 	var r := load_config({"population": {}})
 	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.population, {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}, "defaults")
+	eq(r.config.population, {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "growth_surplus": NO_GROWTH},
+		"defaults (growth_surplus is the fixture's; the loader's default: test_auto_growth)")
 
 
 func test_population_block_values_load() -> void:

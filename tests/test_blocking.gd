@@ -28,7 +28,6 @@ func actions() -> Array:
 	var option := func(e: GameEngine) -> int: return first_of(e.pending().get("options", []))
 	return [
 		["play_card", func(e): return e.play_error(first_in(e, "hand")), func(e): return e.play_card(first_in(e, "hand"))],
-		["grow", func(e): return e.grow_error(home_uid(e)), func(e): return e.grow(home_uid(e))],
 		["buy", func(e): return e.buy_error("farm"), func(e): return e.buy("farm")],
 		["buy_tech", func(e): return e.buy_tech_error(first_in(e, "research_deck")),
 			func(e): return e.buy_tech(first_in(e, "research_deck"))],

@@ -102,7 +102,7 @@ func test_a_working_modifier_adds_to_the_limit_and_an_idle_one_does_not() -> voi
 	build_on(e, home, ["lookout", "lookout", "altar"])
 	check(e.is_idle(uid_of(e.zone("tableau"), "altar")), "Altar is the third building on 2 pop")
 	eq(e.unrest_limit(), 5, "idle Altar: 5")
-	check(e.grow(home), "grow: %s" % e.grow_error(home))
+	e.zone("tableau").find(home).pop += 1
 	eq(e.unrest_limit(), 6, "working Altar: 5 + 1")
 
 

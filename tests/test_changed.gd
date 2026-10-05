@@ -41,10 +41,6 @@ func test_bug_048_each_successful_action_emits_changed_once() -> void:
 	e = explore_engine()
 	expect_changes("choose", e, func(): return e.choose(e.pending().options[0]), true, 1)
 
-	e = make_engine({"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}})
-	e.resources.food = 5
-	expect_changes("grow", e, func(): return e.grow(home_uid(e)), true, 1)
-
 	e = tech_engine(["pottery", "writing"], {"farm": 10}, {"supply": {"scout": {"price": 2, "count": 2}}})
 	expect_changes("buy", e, func(): return e.buy("scout"), true, 1)
 
@@ -70,7 +66,6 @@ func test_bug_048_refused_actions_emit_no_changed() -> void:
 	var e: GameEngine = make_engine({"farm": 10})
 	expect_changes("play_card", e, func(): return e.play_card(-1), false, 0)
 	expect_changes("choose", e, func(): return e.choose(-1), false, 0)
-	expect_changes("grow", e, func(): return e.grow(-1), false, 0)
 	expect_changes("discard_card", e, func(): return e.discard_card(-1), false, 0)
 
 	e = tech_engine(["pottery", "writing"], {"farm": 10}, {"supply": {"scout": {"price": 2, "count": 2}}})

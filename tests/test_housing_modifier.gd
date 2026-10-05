@@ -70,10 +70,10 @@ func test_growth_stops_at_the_raised_cap() -> void:
 	var home := home_uid(e)
 	var cap: int = e.housing(home)
 	e.zone("tableau").find(home).pop = cap - 1
-	check(e.grow(home), "grows to the raised cap: %s" % e.grow_error(home))
-	eq(e.pop(home), cap, "pop at the cap")
-	check(e.grow_error(home) != "", "no growth past it")
-	check(not e.grow(home), "grow refuses")
+	for i in 2:
+		var festival := put_in_hand(e, "festival")
+		check(e.play_card(festival), "play Festival: %s" % e.play_error(festival))
+	eq(e.pop(home), cap, "two Festivals stop at the raised cap")
 
 
 # --- AC4: an idle building's modifier stops ---
@@ -84,7 +84,7 @@ func test_an_idle_buildings_housing_modifier_stops_but_its_own_housing_doesnt() 
 	build_on(e, home, ["silo", "lookout", "aqueduct"])
 	check(e.is_idle(uid_of(e.zone("tableau"), "aqueduct")), "Aqueduct is the third building on 2 pop")
 	eq(e.housing(home), printed(e) + 1, "only Silo's own +1")
-	check(e.grow(home), "grow: %s" % e.grow_error(home))
+	e.zone("tableau").find(home).pop += 1
 	check(not e.is_idle(uid_of(e.zone("tableau"), "aqueduct")), "staffed")
 	eq(e.housing(home), printed(e) + 2, "and Aqueduct's +1")
 

@@ -2,7 +2,7 @@
 id: 260
 title: Territories grow automatically from a food surplus
 type: feature
-status: red-review
+status: in-progress
 branch: feat/260-automatic-growth
 ---
 
@@ -88,3 +88,7 @@ don't start growing; tests opt in by setting it.
 - Balance: growth no longer costs food, and Farms now turn straight into pop and VP (`vp_per_pop`). Settlers
   compete with growth for food only through the surplus that's left. Expect pop and score to rise in the sim; check in
   a balance item.
+- Turn 1's upkeep (run by `new_game`) grows too, like any other. Two approved tests assumed it didn't; with the
+  user's OK they reset home pop to 2 after setup (`set_home_pop`). Rally (grow "here" from hand) adds no pop, so tests
+  that grew pop by card use Festival; that also made `test_famine::test_no_growth_during_a_famine` really test the
+  Famine's block on the grow op.

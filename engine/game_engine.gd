@@ -133,17 +133,6 @@ func end_turn() -> void:
 	TurnLoop.end_turn(self)
 
 
-## Why settled territory territory_uid can't grow right now, or "" if it can.
-func grow_error(territory_uid: int) -> String:
-	return Population.grow_error(self, territory_uid)
-
-
-## Pays grow_cost food for +1 pop on settled territory territory_uid. False (and no change) if
-## grow_error says it can't.
-func grow(territory_uid: int) -> bool:
-	return Population.grow(self, territory_uid)
-
-
 ## Why relieve_famine would refuse: game over or a pending decision, no active Famine, no relief price in the config,
 ## or not enough to pay it. "" if it can.
 func relieve_famine_error() -> String:
@@ -291,7 +280,7 @@ func _unrest_lowered() -> void:
 	Anarchy.calm(self)
 
 
-## Why action ("play", "grow", "buy", "end_turn", "supply", "discard", "research") is blocked by the game being over
+## Why action ("play", "buy", "end_turn", "supply", "discard", "research") is blocked by the game being over
 ## or by a pending() decision, or "". Only discarding, browsing the supply and learning techs go on while a discard is
 ## owed.
 func _blocked_error(action: String) -> String:

@@ -128,15 +128,6 @@ func test_starvation_does_not_spend_wealth() -> void:
 	eq(e.resources.wealth, 5, "wealth untouched")
 
 
-func test_growth_needs_food_not_wealth() -> void:
-	var e := make_engine({"farm": 10}, pop_overrides(0, {"food": 0, "wealth": 10}, ["village"]))
-	var home := home_uid(e)
-	check("food" in e.grow_error(home), "error names food: '%s'" % e.grow_error(home))
-	check(not e.grow(home), "grow fails")
-	eq(e.pop(home), 2, "pop unchanged")
-	eq(e.resources.wealth, 10, "wealth unchanged")
-
-
 # --- Backlog 077: upkeep wealth per city (the Market's rule), as a regression guard ---
 
 ## A game whose tableau holds the Capital, cities more City cards and a building "bank" making +1 wealth per city at

@@ -192,7 +192,7 @@ func test_no_tween_overshoots_or_bounces() -> void:
 
 
 func test_the_pulses_pops_and_slides_ease_out_quartically() -> void:
-	for path in ["res://ui/ui_kit.gd", "res://ui/territory_view.gd", "res://ui/card_motion.gd"]:
+	for path in ["res://ui/ui_kit.gd", "res://ui/card_motion.gd"]:  # territory_view's pip pop-in went with Grow (260)
 		check(source(path).contains(".set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)"),
 			"%s eases out with TRANS_QUART" % path)
 

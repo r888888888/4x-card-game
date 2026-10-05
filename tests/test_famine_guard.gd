@@ -68,14 +68,6 @@ func test_silo_adds_1_housing_to_its_territory() -> void:
 	eq(e.housing(home_uid(e)), 8, "7 + 1 Silo")
 
 
-func test_silo_lets_homeland_grow_to_8() -> void:
-	var e: GameEngine = guard_engine(7, ["silo"], 100)
-	var home := home_uid(e)
-	check(e.grow(home), "grow 7 -> 8")
-	eq(e.pop(home), 8, "pop")
-	check(e.grow_error(home) != "", "then at housing 8")
-
-
 func test_silo_housing_caps_card_growth_at_8() -> void:
 	var e: GameEngine = guard_engine(7, ["silo"], 0, {"festival": 10})
 	var home := home_uid(e)

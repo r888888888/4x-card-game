@@ -95,7 +95,7 @@ func test_an_idle_building_stops_counting() -> void:
 	var palace := uid_of(e.zone("tableau"), "palace")
 	check(e.is_idle(palace), "Palace is the third building on 2 pop")
 	eq(e.modifier("actions"), 0, "idle: no modifier")
-	check(e.grow(home), "grow: %s" % e.grow_error(home))
+	e.zone("tableau").find(home).pop += 1
 	check(not e.is_idle(palace), "staffed again")
 	eq(e.modifier("actions"), 1, "working: counts again")
 

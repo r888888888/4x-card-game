@@ -105,6 +105,7 @@ func test_nothing_grows_with_population_off() -> void:
 
 func test_growing_logs_and_notices_the_territory_and_its_pop() -> void:
 	var e := growth_engine(2, 0)
+	set_home_pop(e, 2)  # turn 1's upkeep grew it already
 	var recorded := record_messages(e)
 	e.end_turn()  # Capital: net +2
 	check_noticed(recorded, "Homeland grew to 3 pop.", GameEngine.NOTICE_INFO)

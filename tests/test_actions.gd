@@ -104,11 +104,9 @@ func test_other_actions_dont_use_or_need_actions() -> void:
 	var e: GameEngine = spent_band(POP.merged({"supply": {"shrine": {"price": 1, "count": 2}}}))
 	e.resources[GameEngine.FOOD] = 10
 	e.resources[GameEngine.WEALTH] = 10
-	var home := home_uid(e)
-	for err in [e.grow_error(home), e.buy_error("shrine"), e.discard_error(first_in_hand(e)),
+	for err in [e.buy_error("shrine"), e.discard_error(first_in_hand(e)),
 			e.relieve_famine_error(), e.end_turn_error()]:
 		check(not "action" in err, "'%s' shouldn't be about actions" % err)
-	check(e.grow(home), "grow: %s" % e.grow_error(home))
 	check(e.buy("shrine"), "buy: %s" % e.buy_error("shrine"))
 	check(e.discard_card(first_in_hand(e)), "discard")
 	eq(e.actions_left(), 0, "still 0 left")
