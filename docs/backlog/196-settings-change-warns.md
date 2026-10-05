@@ -2,7 +2,7 @@
 id: 196
 title: A run that sees the player's settings change warns instead of failing
 type: bug
-status: ready
+status: red-review
 branch: fix/196-settings-change-warns
 ---
 
@@ -31,6 +31,9 @@ is unlikely; a warning still points at it.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_test_runner::test_bug_196_different_settings_bytes_warn_naming_the_file`, `test_bug_196_a_file_that_appears_or_vanishes_warns` |
+| AC2 | `test_test_runner::test_bug_196_same_settings_bytes_give_no_warning` |
+| AC3 | Manual check: a deliberate break under a scratch `HOME` (runner behavior, as 195's AC4) |
 
 ## Root cause
 <!-- Filled in by Claude after the fix. -->
