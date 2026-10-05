@@ -356,8 +356,8 @@ func disband_error(uid: int) -> String:
 	return Military.disband_error(self, uid)
 
 
-## Unit uid goes from the tableau to the discard, freeing its worker on its home (163). Uses no action. False (and no
-## change) if disband_error says no.
+## Unit uid leaves play, freeing its worker on its home (163): to the discard, or gone if it came from the build menu
+## (296). Uses no action. False (and no change) if disband_error says no.
 func disband(uid: int) -> bool:
 	return Military.disband(self, uid)
 

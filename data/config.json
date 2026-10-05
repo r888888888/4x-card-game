@@ -35,8 +35,7 @@
     "barter": 2,
     "storyteller": 1,
     "hunt": 1,
-    "bread_and_beer": 1,
-    "warriors": 1
+    "bread_and_beer": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 6 },
@@ -46,10 +45,10 @@
     "bread_and_beer": { "price": 2, "count": 8 },
     "land_grants": { "price": 3, "count": 4 },
     "feast": { "price": 2, "count": 6 },
-    "warriors": { "price": 2, "count": 6 },
     "caravan": { "price": 2, "count": 6, "locked": true }
   },
   "build_menu": {
+    "warriors": {},
     "farm": {},
     "fishing_huts": {},
     "hunters_camp": {},
