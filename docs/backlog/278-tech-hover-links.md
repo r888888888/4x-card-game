@@ -2,7 +2,7 @@
 id: 278
 title: Hovering an available tech highlights its prerequisite and the techs it opens
 type: feature
-status: red-review
+status: review
 branch: feat/278-tech-hover-links
 ---
 
@@ -11,15 +11,15 @@ On the Knowledge screen, hovering a tech you can research shows where it sits in
 the tiles that need it light up, so the player can trace dependencies without opening each tech.
 
 ## Acceptance criteria
-- [ ] AC1: Given a tree where tech B has prereq A and techs C and D have prereq B, when the engine is asked for the
+- [x] AC1: Given a tree where tech B has prereq A and techs C and D have prereq B, when the engine is asked for the
   links of B, then it returns prereq `A` and unlocks `[C, D]` (in tree order); for A, prereq is "" and unlocks is `[B]`;
   for an unknown id, both are empty.
-- [ ] AC2: Given the Knowledge screen with tech B available, when the mouse enters B's tile, then A's tile and the
+- [x] AC2: Given the Knowledge screen with tech B available, when the mouse enters B's tile, then A's tile and the
   tiles of C and D are marked as linked (a distinct look from normal, and from B's own hover look).
-- [ ] AC3: Given linked tiles marked by AC2, when the mouse leaves B's tile, then no tile is marked.
-- [ ] AC4: Given a researched, locked or later-era tile, when the mouse enters it, then no tile is marked (those
+- [x] AC3: Given linked tiles marked by AC2, when the mouse leaves B's tile, then no tile is marked.
+- [x] AC4: Given a researched, locked or later-era tile, when the mouse enters it, then no tile is marked (those
   keep today's hover only).
-- [ ] AC5: Given tiles marked by AC2, when the screen is rebuilt (a tech researched, a new turn), then no stale mark
+- [x] AC5: Given tiles marked by AC2, when the screen is rebuilt (a tech researched, a new turn), then no stale mark
   remains and the new tiles are unmarked until hovered again.
 
 ## Out of scope
@@ -51,3 +51,6 @@ the tiles that need it light up, so the player can trace dependencies without op
   and it clears. Hover a researched or locked tech: nothing else lights up. Check it reads in Reduce motion too.
 
 ## Log
+- `tech_links` sits in `game_engine.gd`, not `engine_queries.gd`: that file was at the 500-line soft limit (249).
+- Linked tiles swap to a `<look>Linked` theme variation (gold `TECH_LINK` border); the hover shadow is kept.
+- Follow-up idea: hover links on focus, or the whole prerequisite chain (out of scope here).

@@ -4,7 +4,7 @@ extends "res://tests/lib/tech_case.gd"
 ## tiles per era, named from era_names; T, Esc or the header's link go back. A click on an available tech's tile
 ## learns it (222; a Learn button before it, 140). Hooks on main.knowledge: shown() (the era names, top to bottom; []
 ## while closed), is_open(), open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label),
-## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), slide_offset() (how
+## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), linked(name) (278), slide_offset() (how
 ## far the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
 
 
