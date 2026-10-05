@@ -124,6 +124,8 @@ const GROW_CARDS := [
 	{"id": "banquet", "name": "Banquet", "type": "action", "effects": [{"op": "grow", "amount": 2, "where": "best"}]},
 	{"id": "grants", "name": "Grants", "type": "action",
 	 "effects": [{"op": "grow", "amount": 1, "where": "each", "count": 3}]},
+	{"id": "harvest_feast", "name": "Harvest Feast", "type": "action",
+	 "effects": [{"op": "grow", "amount": 1, "where": "best"}, {"op": "gain", "resource": "food", "amount": 1}]},
 ]
 
 ## cards_engine with the Homeland first and Grassland, Hills (and the rest of settled) after it, at these pops in
@@ -184,14 +186,7 @@ func test_best_skips_full_territories() -> void:
 	eq(pops(e), [4, 4], "Homeland grows")
 
 
-func test_best_does_nothing_when_it_cannot_grow() -> void:
-	var full := best_engine([7, 4, 5], [0, 0, 0])
-	play(full, "bread")
-	eq(pops(full), [7, 4, 5], "every territory full")
-	var famine := best_engine([3, 1, 2], [0, 0, 0])
-	put_in(famine, "famine", "active_events")
-	play(famine, "bread")
-	eq(pops(famine), [3, 1, 2], "during a Famine")
+func test_best_does_nothing_without_population() -> void:  # full and Famine: blocked instead (276)
 	var off := best_engine([0, 0, 0], [0, 0, 0], ["grassland", "hills"], false)
 	play(off, "bread")
 	eq(pops(off), [0, 0, 0], "population off")
@@ -320,3 +315,53 @@ func test_the_grow_op_still_adds_pop() -> void:
 	var before := e.pop(home)
 	check(e.play_card(first_in_hand(e)), "play Festival")
 	eq(e.pop(home), before + 1, "Festival's +1 pop")
+
+
+# --- 276: a growth card can't be played when it would add no pop ---
+
+## Plays id from the hand of e and checks it's refused with an error containing want, leaving the hand, food and
+## actions as they were.
+func check_grow_blocked(e: GameEngine, id: String, want: String, label: String) -> void:
+	var uid := put_in_hand(e, id)
+	var food: int = e.resources.food
+	var actions: int = e.actions_left()
+	var before := pops(e)
+	var err: String = e.play_error(uid)
+	check(err.contains(want), "%s: play_error names '%s': '%s'" % [label, want, err])
+	check(not e.play_card(uid), "%s: play_card refuses" % label)
+	check(e.zone("hand").find(uid) != null, "%s: the card stays in hand" % label)
+	eq(e.resources.food, food, "%s: food unchanged" % label)
+	eq(e.actions_left(), actions, "%s: no action spent" % label)
+	eq(pops(e), before, "%s: pop unchanged" % label)
+
+
+func test_bug_276_best_is_blocked_when_every_territory_is_full() -> void:
+	check_grow_blocked(best_engine([7, 4, 5], [0, 0, 0]), "bread", "room", "every territory at housing")
+
+
+func test_bug_276_each_is_blocked_when_every_territory_is_full() -> void:
+	check_grow_blocked(best_engine([7, 4, 5], [0, 0, 0]), "grants", "room", "each with count")
+	check_grow_blocked(best_engine([7, 4, 5], [0, 0, 0]), "festival", "room", "each without count")
+
+
+func test_bug_276_growth_is_blocked_during_a_famine() -> void:
+	for id in ["bread", "grants", "festival"]:
+		var e := best_engine([3, 1, 2], [0, 0, 0])
+		put_in(e, "famine", "active_events")
+		check_grow_blocked(e, id, Famine.growth_error(e), "%s during a Famine" % id)
+		check(Famine.growth_error(e) != "", "the Famine blocks growth")
+
+
+func test_bug_276_growth_plays_when_one_territory_has_room() -> void:
+	for id in ["bread", "grants", "festival"]:
+		var e := best_engine([7, 3, 5], [0, 0, 0])  # Grassland 3 of 4
+		eq(e.play_error(put_in_hand(e, id)), "", "%s: playable" % id)
+		play(e, id)
+		eq(pops(e), [7, 4, 5], "%s: Grassland grows" % id)
+
+
+func test_bug_276_a_card_with_another_effect_still_plays_with_no_room() -> void:
+	var e := best_engine([7, 4, 5], [0, 0, 0])
+	play(e, "harvest_feast")
+	eq(e.resources.food, 51, "the food gain still happens")
+	eq(pops(e), [7, 4, 5], "no pop added")
