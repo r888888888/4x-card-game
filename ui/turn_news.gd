@@ -20,7 +20,7 @@ func listen(engine: GameEngine, notify: Callable) -> void:
 	engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
 	engine.option_chosen.connect(func(outcome: Dictionary):
 		var summary := engine.outcome_summary(outcome)
-		if summary != "":
+		if summary != "" and notify.is_valid():  # the engine outlives a closed main scene and its toasts
 			notify.call("%s: %s" % [engine.card_db[outcome.id].name, summary]))
 	engine.raid_resolved.connect(func(outcome: Dictionary): _raid = outcome)
 
