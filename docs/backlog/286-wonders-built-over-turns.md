@@ -97,6 +97,7 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
 | AC8 | `test_wonder_sites::test_abandoning_a_site_discards_it_and_frees_its_slot_and_worker`, `test_a_site_played_again_after_abandoning_starts_over`, `test_abandoning_is_refused_for_a_card_that_isnt_an_unfinished_site`, `test_abandoning_is_refused_while_a_decision_is_owed_or_the_game_is_over` |
 
 ## Manual check
+- [ ] Egypt's discount is now −10 wealth on wonders (was −3): about the ~25% share it had before; its card reads "Wonders cost 10 less wealth."
 - [ ] Real wonder costs (about 3× before): Oracle of Delphi 30, Walls of Uruk 30, Pyramids 40, Great Ziggurat 42,
   Hanging Gardens 48, Great Library 48, Great Harbor of Tyre 45, Royal Road 45; each has `project: true`.
 - [ ] A wonder in hand shows no wealth cost to play, and its details show the total and the build rule.
@@ -128,3 +129,6 @@ Fixture: `TEST_CARDS` with population on, plus an extra card Colossus: `{"id": "
   cost. The modal hangs off the details modal (`CardDetailsModal.abandon_modal`), since `main.gd` is at its 500-line cap.
 - Real data: costs as in the Manual check, each with `project: true`. The balance suite passes.
 - Suite 1896 → 1922 tests.
+- Rebalanced Egypt with the user: wonders −10 wealth instead of −3, folded into this item. −3 was ~25% of the old 10–16
+  costs but ~7% of the new 30–48; −10 restores ~21–33% and shortens each wonder by a couple of turns of pop-capped
+  payments. Data only.

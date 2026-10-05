@@ -545,8 +545,8 @@ A game is played as one civilization: a permanent card with a starting gift and 
   type, `tag`, or `supply: true`) and amounts of resources (ints ≥ 1), e.g. `{"tag": "wonder", "wealth": 3}`. A type
   or tag discount lowers a hand card's `play_cost(uid)` (what `play_error` checks and `play_card` charges, never below 0
   per resource) and a tech's `tech_cost` (never below 1); a supply discount lowers `buy_price` (never below 0). Text
-  "Wonders cost 3 less wealth." Real data: Babylon techs −1 insight, Phoenicia supply −1 wealth, Egypt wonders −3
-  wealth. Hand cards show their cost after discounts; card details show the printed cost.
+  "Wonders cost 3 less wealth." Real data: Babylon techs −1 insight, Phoenicia supply −1 wealth, Egypt wonders −10
+  wealth (−3 until 286 made wonders 3× dearer). Hand cards show their cost after discounts; card details show the printed cost.
 - Home (111): a civilization may set `home`, a territory card id. A game as it starts on that territory (the
   Capital on it, `population.start` pop) instead of `starting.territory`; the home isn't drawn from `territory_deck`,
   and its resource roll uses a copy of the rng, so the same seed deals and rolls the same whatever the civilization.
