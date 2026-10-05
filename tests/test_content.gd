@@ -1093,6 +1093,23 @@ func test_every_gain_per_tag_tag_is_on_a_reachable_card() -> void:
 	eq(missing, [] as Array[String], "gain_per_tag tags no reachable card carries")
 
 
+## Backlog 273: a tech's gain_per_tag counts a tag at least 3 reachable buildings carry, so it grows as you build.
+func test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var buildings := {}
+	for id in reachable:
+		if r.cards[id].type == CardDef.BUILDING:
+			for tag in r.cards[id].tags:
+				buildings[tag] = buildings.get(tag, 0) + 1
+	var thin: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		for effect in tech.effects:
+			if effect.op == "gain_per_tag" and buildings.get(effect.get("tag"), 0) < 3:
+				thin.append("%s: %s on %d" % [tech.id, effect.get("tag"), buildings.get(effect.get("tag"), 0)])
+	eq(thin, [] as Array[String], "tech gain_per_tag tags fewer than 3 reachable buildings carry")
+
+
 ## Backlog 143: a eureka only counts cards the player can get: its card can reach a game, its tag is on such a card.
 func test_every_eureka_counts_cards_the_player_can_get() -> void:
 	var r := load_real()

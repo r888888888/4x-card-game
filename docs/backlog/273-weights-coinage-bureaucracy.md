@@ -2,7 +2,7 @@
 id: 273
 title: Fix tech dates: Weights and Measures, Coinage, and Bureaucracy for Monarchy
 type: feature
-status: ready
+status: red-review
 branch: feat/273-weights-coinage-bureaucracy
 ---
 
@@ -50,7 +50,8 @@ Data only (`data/cards.json`, `data/config.json`). New techs need a `flavor` and
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings` (passes today: a guard) |
+| AC2 | existing `test_content` invariants (unchanged); `grep` for `currency`/`monarchy` under Manual check |
 
 ## Manual check
 - [ ] Review the table's numbers and names in `data/cards.json`.
