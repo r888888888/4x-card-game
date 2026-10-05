@@ -2,7 +2,7 @@
 id: 313
 title: A generic sim bot that values positions instead of following rules
 type: feature
-status: red-review
+status: in-progress
 branch: feat/313-generic-bot
 ---
 
