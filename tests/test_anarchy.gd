@@ -212,6 +212,18 @@ func test_a_new_era_adds_era_unrest_up_to_the_limit() -> void:
 	check(e.anarchy() != -1, "the next turn falls into Anarchy")
 
 
+func test_turn_forecast_counts_the_unrest_of_an_era_arriving_at_the_next_turn_start() -> void:  # 309
+	var e := anarchy_engine({}, {"era_unlocks": {"2": {"wealth": 12}}})
+	eq(e.era(), 1, "era 1 at the start")
+	e.resources["unrest"] = 0
+	e.resources["wealth"] = 12
+	var upkeep := e.upkeep_forecast()
+	var o: Object = e
+	var f: Dictionary = o.call("turn_forecast")
+	eq(f.get("unrest"), upkeep.get("unrest", 0) + 3, "era 2 arrives at the next start: +3 unrest")
+	eq(e.era(), 1, "still era 1")
+
+
 func test_era_unrest_0_adds_nothing() -> void:
 	var e := anarchy_engine({"era_unrest": 0})
 	e.resources["unrest"] = 3

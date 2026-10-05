@@ -2,7 +2,7 @@
 id: 309
 title: turn_forecast reports what starting the next turn changes, score and raids included
 type: feature
-status: ready
+status: red-review
 branch: feat/309-turn-forecast
 ---
 
@@ -23,8 +23,8 @@ without a rule written for them.
   and `pop` 1, then the forecast includes the raid's loss: `pop` −1 and `score` −1 more than without the raid, and any
   resources its `pillage` effects take. Given the target's defence ≥ the strength, the raid's `repel` effects count
   instead.
-- [ ] AC4: Given the techs that add era 2 learned so that era 2 arrives at the next turn's start, then the forecast's
-  `unrest` includes the era's unrest (config `unrest.era_unrest`).
+- [ ] AC4: Given wealth at era 2's `era_unlocks` threshold so that era 2 arrives at the next turn's start, then the
+  forecast's `unrest` includes the era's unrest (config `unrest.era_unrest`).
 - [ ] AC5: The forecast changes nothing: after the call the game's state, log, zone orders and rng draw the same as
   before (a shuffle after the call gives the same order as one without it), no signal is emitted, and two calls in a
   row return equal results.
@@ -47,7 +47,14 @@ without a rule written for them.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_turn_forecast::test_…` |
+| AC1 | `test_turn_forecast::test_the_forecast_counts_upkeep_score_and_resources_like_upkeep_forecast`, `test_engine_structure::test_every_query_and_action_is_still_on_a_game_engine` (and the declared-in check) |
+| AC2 | `test_turn_forecast::test_pop_starved_by_feeding_is_lost_from_pop_and_score` |
+| AC3 | `test_turn_forecast::test_a_raid_short_of_defence_counts_its_pillage`, `test_a_raid_meeting_enough_defence_counts_its_repel` |
+| AC4 | `test_anarchy::test_turn_forecast_counts_the_unrest_of_an_era_arriving_at_the_next_turn_start` |
+| AC5 | `test_turn_forecast::test_the_forecast_changes_nothing_in_the_game` |
+| AC6 | `test_turn_forecast::test_no_forecast_on_the_last_turn_or_after_game_over` |
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 310–315.
+- 2026-10-05: AC4 reworded: an era arrives at a turn's start from `era_unlocks` (pop or wealth), not from learning techs
+  (a tech's `add_era` is immediate). Its test sits in `test_anarchy.gd`, which has the unrest fixtures.
