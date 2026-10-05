@@ -2,7 +2,7 @@
 id: 298
 title: The sim bot builds, recruits and keeps Settlers
 type: feature
-status: ready
+status: blocked
 branch: feat/298-bot-builds-and-buys-settlers
 ---
 
@@ -54,3 +54,4 @@ comes after this one.
   per strategy (no tuning here).
 
 ## Log
+- 2026-10-05: blocked: to be superseded by 314 (the generic bot); don't build. 314 closes it as wontfix.

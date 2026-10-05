@@ -2,7 +2,7 @@
 id: 168
 title: The sim bot recruits and moves units to meet raids
 type: feature
-status: ready
+status: blocked
 branch: feat/168-bot-defends-raids
 ---
 
@@ -30,3 +30,4 @@ built).
 |---|---|
 
 ## Log
+- 2026-10-05: blocked: to be superseded by 314 (the generic bot); don't build. 314 closes it as wontfix.

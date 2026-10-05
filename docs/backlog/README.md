@@ -46,7 +46,7 @@ Barbarians and military (units are homed on a territory, using a worker there, a
 2. 161 territory defence from units, walls, cities and terrain
 3. 162 barbarian raids, announced a turn ahead
 4. 163 move and disband units
-5. 168 the sim bot meets raids (before more military, so the sim stays meaningful)
+5. ~~168 the sim bot meets raids~~: superseded by 314 (the generic bot defends through its value)
 6. 164 Barracks training, then 165 veterans, then 166 upgrades
 7. 167 era units and era 2–3 raids
 
@@ -61,13 +61,21 @@ Build menu (buildings and units leave the deck: techs unlock them, you build the
 2. 296 units are recruited from the build menu
 3. 299 preview what building an entry on a territory would change
 4. 297 Build… on a territory's view: the list-and-forecast modal, and "+ Build" on empty slots
-5. 298 the sim bot builds, recruits and keeps Settlers (then a balance item for costs and wealth)
+5. ~~298 the sim bot builds, recruits and keeps Settlers~~: superseded by 314 (`build` joins `legal_actions`); then a
+   balance item for costs and wealth
 
 Building upgrades (upgrades build onto a building, add to it, and may need a settlement tier; makes tall worth it):
 1. 300 upgrades built onto buildings: no slot or worker, they add to their base, stack and chain
 2. 301 a building or upgrade may need a tier, and falls back below it (returns by itself)
 3. 304 the `gain_per_pop` op (independent; needed by 306)
 4. 302 ribbons on the territory view, "+ Upgrade", the Build modal's Upgrades heading (after 297)
-5. 303 the sim bot builds upgrades, the tall strategy first
+5. ~~303 the sim bot builds upgrades~~: superseded by 314
 6. 305 rural upgrades and realism fixes, 306 Temple and Library become urban upgrades, 307 new urban chains, 308 gap
    buildings (then a balance item for the whole roster)
+
+Generic sim bot (from `spike/generic-bot`: one value function over every legal action instead of a rule per mechanic):
+1. 309 `turn_forecast`, 310 targets from any zone, 311 sample fork (independent engine queries)
+2. 312 `legal_actions` with a coverage check
+3. 313 `GenericBot` plays as the strategy `generic`
+4. 314 it replaces ScriptedBot (generic, wide, tall; rollouts in cheap mode; raids), closing 168, 298 and 303
+5. 315 forecast cache (then a balance item re-baselines the sim)
