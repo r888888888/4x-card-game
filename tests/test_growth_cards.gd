@@ -3,15 +3,17 @@ extends "res://tests/lib/test_case.gd"
 ## territory, capped by housing and free of food.
 
 
-## Population on (no food upkeep, no pop VP), Homeland pop start, 50 food. settled: extra territory ids moved
-## straight to the tableau with pop 1 each.
-func cards_engine(start: int, deck: Dictionary, settled: Array[String] = [], population := true, extra := []) -> GameEngine:
+## Population on (no food upkeep, no pop VP, settlement tiers when tiers isn't empty), Homeland pop start, 50 food.
+## settled: extra territory ids moved straight to the tableau with pop 1 each.
+func cards_engine(start: int, deck: Dictionary, settled: Array[String] = [], population := true, extra := [], tiers := []) -> GameEngine:
 	var counts := {}
 	for id in settled:
 		counts[id] = counts.get(id, 0) + 1
 	var o := {"territory_deck": counts}
 	if population:
 		o["population"] = {"start": start, "food_upkeep": 0, "vp_per_pop": 0}
+		if not tiers.is_empty():
+			o.population["tiers"] = tiers
 	var e := make_engine(deck, o, 1, extra)
 	settle(e, settled)
 	for c in e.zone("tableau").cards:
@@ -129,9 +131,9 @@ const GROW_CARDS := [
 ]
 
 ## cards_engine with the Homeland first and Grassland, Hills (and the rest of settled) after it, at these pops in
-## tableau order, and these stalls (buildings with no housing) on each.
-func best_engine(pops: Array, stalls: Array, settled: Array[String] = ["grassland", "hills"], population := true) -> GameEngine:
-	var e := cards_engine(2, {"farm": 10}, settled, population, GROW_CARDS)
+## tableau order, and these stalls (buildings with no housing) on each; settlement tiers when tiers isn't empty.
+func best_engine(pops: Array, stalls: Array, settled: Array[String] = ["grassland", "hills"], population := true, tiers := []) -> GameEngine:
+	var e := cards_engine(2, {"farm": 10}, settled, population, GROW_CARDS, tiers)
 	var lands := territories(e)
 	for i in lands.size():
 		if population:
@@ -220,6 +222,61 @@ func test_each_without_count_still_grows_every_territory() -> void:
 	var e := best_engine([3, 1, 2, 2], [0, 0, 0, 0], ["grassland", "hills", "jungle"])
 	play(e, "festival")
 	eq(pops(e), [4, 2, 3, 3], "all four grow")
+
+
+
+# --- 283: "best" prefers a territory one pop short of its next tier ---
+
+## 281's tiers: Village at 4, Town at 8, Metropolis at 13.
+const TIERS := [
+	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
+	{"id": "village", "name": "Village", "pop": 4, "slots": 1},
+	{"id": "town", "name": "Town", "pop": 8, "slots": 2},
+	{"id": "metropolis", "name": "Metropolis", "pop": 13, "slots": 3},
+]
+
+
+func test_best_grows_a_territory_one_short_of_its_next_tier() -> void:
+	var e := best_engine([2, 1, 3], [0, 0, 0], ["grassland", "hills"], true, TIERS)
+	play(e, "bread")
+	eq(pops(e), [2, 1, 4], "Hills (3, one short of a Village) grows, not Grassland (smallest)")
+
+
+func test_best_grows_idle_buildings_before_one_short_of_a_tier() -> void:
+	var e := best_engine([2, 1, 3], [0, 2, 0], ["grassland", "hills"], true, TIERS)  # Grassland: 2 stalls, 1 pop
+	play(e, "bread")
+	eq(pops(e), [2, 2, 3], "Grassland (an idle building) grows, Hills stays")
+
+
+func test_best_among_several_one_short_grows_the_smallest_then_tableau_order() -> void:
+	var e := best_engine([7, 1, 3], [0, 0, 0], ["grassland", "hills"], true, TIERS)
+	build_on(e, home_uid(e), ["silo"])  # Homeland housing 8: 7 is one short of a Town, with room
+	play(e, "bread")
+	eq(pops(e), [7, 1, 4], "Hills (3) grows before the Homeland (7)")
+	var tie := best_engine([2, 3, 3], [0, 0, 0], ["grassland", "hills"], true, TIERS)
+	play(tie, "bread")
+	eq(pops(tie), [2, 4, 3], "Grassland and Hills both at 3: the first in tableau order")
+
+
+func test_best_ignores_one_short_of_a_tier_without_room() -> void:
+	var e := best_engine([2, 1, 2, 3], [0, 0, 0, 0], ["grassland", "hills", "jungle"], true, TIERS)  # Jungle 3 of 3
+	play(e, "bread")
+	eq(pops(e), [2, 2, 2, 3], "Grassland (smallest) grows; Jungle is full")
+
+
+func test_best_without_tiers_grows_the_smallest() -> void:
+	var e := best_engine([2, 1, 3], [0, 0, 0])
+	play(e, "bread")
+	eq(pops(e), [2, 2, 3], "no tiers: Grassland (smallest) grows")
+
+
+func test_a_metropolis_is_never_one_short() -> void:
+	var e := best_engine([13, 1], [0, 0], ["grassland"], true, TIERS)
+	for c in territories(e):
+		if c.uid == home_uid(e):
+			build_on(e, c.uid, ["silo", "silo", "silo", "silo", "silo", "silo", "silo"])  # Homeland housing 14
+	play(e, "bread")
+	eq(pops(e), [13, 2], "Grassland (smallest) grows, not the Metropolis at 13")
 
 
 func grow_on(type: String, effect: Dictionary) -> Dictionary:

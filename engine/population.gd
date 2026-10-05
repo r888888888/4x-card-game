@@ -51,11 +51,15 @@ static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 
 
 ## Where pop helps most (261): among the territories with room, one with idle buildings (more workers on it than pop)
-## first, then the smallest pop (ties: tableau order); null when nothing can grow.
+## first, then one a pop short of its next settlement tier (283), then the smallest pop. Each step takes the smallest
+## pop first (ties: tableau order); null when nothing can grow.
 static func best_to_grow(e: GameEngine) -> CardInstance:
 	var lands := smallest_with_room(e)
 	for card in lands:
 		if Territories.workers_on(e, card.uid).size() > card.pop:
+			return card
+	for card in lands:
+		if next_tier_pop(e, card.uid) == card.pop + 1:
 			return card
 	return lands[0] if not lands.is_empty() else null
 
