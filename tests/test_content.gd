@@ -1110,6 +1110,41 @@ func test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings() -> void:
 	eq(thin, [] as Array[String], "tech gain_per_tag tags fewer than 3 reachable buildings carry")
 
 
+## Backlog 274: famine has more than one answer: at least 2 reachable buildings guard pop from starving.
+func test_at_least_2_reachable_buildings_guard_against_famine() -> void:
+	var r := load_real()
+	var guards: Array[String] = []
+	for id in reachable_cards(r):
+		var def: CardDef = r.cards[id]
+		if def.type == CardDef.BUILDING and def.famine_guard > 0:
+			guards.append(id)
+	check(guards.size() >= 2, "only %s set famine_guard" % [guards])
+
+
+## Backlog 274: some tech trades unrest for income: an upkeep gain of wealth or insight and an upkeep gain of unrest.
+func test_some_tech_pays_income_for_unrest_each_upkeep() -> void:
+	var r := load_real()
+	var found: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		var upkeep_gains: Array = tech.effects.filter(func(e): return e.trigger == "upkeep" and e.op == "gain")
+		var income := upkeep_gains.any(func(e): return e.get("resource") in [GameEngine.WEALTH, GameEngine.INSIGHT])
+		var unrest := upkeep_gains.any(func(e): return e.get("resource") == GameEngine.UNREST)
+		if income and unrest:
+			found.append(tech.id)
+	check(not found.is_empty(), "no tech in the research deck gains wealth or insight and unrest each upkeep")
+
+
+## Backlog 274: hills take more than one building: at least 2 reachable non-wonder buildings require hills.
+func test_at_least_2_reachable_buildings_require_hills() -> void:
+	var r := load_real()
+	var hill_buildings: Array[String] = []
+	for id in reachable_cards(r):
+		var def: CardDef = r.cards[id]
+		if def.type == CardDef.BUILDING and not def.has_tag("wonder") and def.requires.has("hills"):
+			hill_buildings.append(id)
+	check(hill_buildings.size() >= 2, "only %s require hills" % [hill_buildings])
+
+
 ## Backlog 143: a eureka only counts cards the player can get: its card can reach a game, its tag is on such a card.
 func test_every_eureka_counts_cards_the_player_can_get() -> void:
 	var r := load_real()

@@ -186,6 +186,24 @@
       ]
     },
     {
+      "id": "brewery", "name": "Brewery", "type": "building",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [], "famine_guard": 1,
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "olive_groves", "name": "Olive Groves", "type": "building",
+      "cost": { "wealth": 4 }, "vp": 1, "tags": ["trade"], "requires": ["hills"],
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "coastal" }
+      ]
+    },
+    {
+      "id": "house_of_life", "name": "House of Life", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "housing": 1,
+      "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
@@ -629,6 +647,13 @@
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
+      "id": "fermentation", "name": "Fermentation", "type": "tech", "prereq": "pottery",
+      "flavor": "Grain left wet in a jar turns to beer: it keeps for months, and Sumerian workers draw their wages in it.",
+      "quote": { "text": "And wine that maketh glad the heart of man.", "by": "Psalm 104:15" },
+      "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "farm", "count": 3, "off": 2 }, "tags": [],
+      "effects": [ { "op": "create", "card": "brewery", "zone": "discard" }, { "op": "unlock", "card": "brewery" } ]
+    },
+    {
       "id": "mining", "name": "Mining", "type": "tech",
       "flavor": "Copper, tin and flint are dug from the hills in narrow shafts lit by oil lamps.",
       "quote": { "text": "Surely there is a vein for the silver, and a place for gold where they fine it.", "by": "Job 28:1" },
@@ -681,6 +706,28 @@
       "quote": { "text": "A false balance is abomination to the Lord: but a just weight is his delight.", "by": "Proverbs 11:1" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
+    },
+    {
+      "id": "olive_and_vine", "name": "Olive and Vine", "type": "tech", "era": 2, "prereq": "pottery",
+      "flavor": "Olive trees and vines take years to bear, then bear for lifetimes; their oil and wine sail out in amphorae.",
+      "quote": { "text": "A land of wheat, and barley, and vines, and fig trees, and pomegranates; a land of oil olive, and honey.", "by": "Deuteronomy 8:8" },
+      "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 1, "off": 4 }, "tags": [],
+      "effects": [ { "op": "create", "card": "olive_groves", "zone": "discard" }, { "op": "unlock", "card": "olive_groves" } ]
+    },
+    {
+      "id": "medicine", "name": "Medicine", "type": "tech", "era": 2, "prereq": "writing",
+      "flavor": "In Egypt's Houses of Life, priest-physicians copy papyri on wounds, fevers and remedies, and tend the sick.",
+      "quote": { "text": "Life is short, the art long.", "by": "Hippocrates, Aphorisms 1.1" },
+      "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "bathhouse", "count": 1, "off": 4 }, "tags": [],
+      "effects": [ { "op": "create", "card": "house_of_life", "zone": "discard" }, { "op": "unlock", "card": "house_of_life" } ]
+    },
+    {
+      "id": "credit", "name": "Credit", "type": "tech", "era": 2, "prereq": "writing",
+      "flavor": "Temple and palace lend silver and barley at interest on clay contracts, and debtors who cannot repay are sold.",
+      "quote": { "text": "The rich ruleth over the poor, and the borrower is servant to the lender.", "by": "Proverbs 22:7" },
+      "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 2, "off": 4 }, "tags": [],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
+        { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2, "prereq": "weaving",

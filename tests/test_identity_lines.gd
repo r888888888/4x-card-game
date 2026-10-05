@@ -139,6 +139,8 @@ func to_government_choice(e: GameEngine) -> void:
 				e.discard_card(first)
 			GameEngine.PENDING_EXPLORE:
 				e.choose(first)
+			GameEngine.PENDING_EVENT_CHOICE:
+				e.choose_option(first)
 			_:
 				e.end_turn()
 	check(false, "the government choice never came: %s" % [e.pending()])

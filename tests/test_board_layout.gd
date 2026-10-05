@@ -192,6 +192,8 @@ func test_end_turn_still_ends_the_turn_and_shows_a_pending_discard() -> void:
 	var e := Game.engine
 	press_key(main, KEY_E)
 	eq(e.turn, 2, "E ends the turn")
+	close_event(main)  # whichever event the seed drew
+	await wait_frames()
 	for i in e.config.hand_limit + 2 - e.zone("hand").size():
 		put_in_hand(e, e.zone("hand").cards[0].def.id)
 	e.end_turn()

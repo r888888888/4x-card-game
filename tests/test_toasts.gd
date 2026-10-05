@@ -113,11 +113,10 @@ func test_refusals_are_logged_but_do_not_toast() -> void:
 
 # --- AC5: the unread marker ---
 
-## Ends the turn and presses OK on the drawn event's pop-up, which otherwise takes the keys (L included).
+## Ends the turn and closes the drawn event's pop-up, which otherwise takes the keys (L included).
 func end_turn_and_close_event(main: Node) -> void:
 	Game.engine.end_turn()
-	if not main.event_modal().is_empty():
-		main.event_modal_ok_button().pressed.emit()
+	close_event(main)
 
 
 func test_the_log_button_marks_lines_not_yet_seen() -> void:

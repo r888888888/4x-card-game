@@ -2,7 +2,7 @@
 id: 274
 title: Economy and society techs (Fermentation, Olive and Vine, Medicine, Credit)
 type: feature
-status: ready
+status: review
 branch: feat/274-economy-and-society-techs
 ---
 
@@ -15,11 +15,11 @@ grew wealth and also bred debt slavery, so the tech pays wealth at a cost in unr
 Content only: no engine change. Follows 272 and 273.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): At least 2 reachable buildings set `famine_guard`. Fails today: only Granary.
-- [ ] AC2 (invariant): Some tech in `research_deck` has an `upkeep` gain of wealth or insight and an `upkeep` gain of
+- [x] AC1 (invariant): At least 2 reachable buildings set `famine_guard`. Fails today: only Granary.
+- [x] AC2 (invariant): Some tech in `research_deck` has an `upkeep` gain of wealth or insight and an `upkeep` gain of
   unrest. Fails today: no tech costs unrest.
-- [ ] AC3 (invariant): At least 2 reachable non-wonder buildings have `hills` in `requires`. Fails today: only Mine.
-- [ ] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
+- [x] AC3 (invariant): At least 2 reachable non-wonder buildings have `hills` in `requires`. Fails today: only Mine.
+- [x] AC4: The existing content invariants stay green, in particular `test_every_card_a_tech_gives_is_a_locked_pile_it_unlocks`,
   `test_every_building_gives_something_lasting`, `test_every_eureka_counts_cards_the_player_can_get`,
   `test_every_tech_has_flavor_and_a_quote_and_every_event_flavor` and `test_real_data_loads_without_warnings`.
 
@@ -52,7 +52,10 @@ Data only. Each tech goes into `research_deck` with a `flavor` and a real, attri
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_at_least_2_reachable_buildings_guard_against_famine` |
+| AC2 | `test_content::test_some_tech_pays_income_for_unrest_each_upkeep` |
+| AC3 | `test_content::test_at_least_2_reachable_buildings_require_hills` |
+| AC4 | existing `test_content` invariants (unchanged) |
 
 ## Manual check
 - [ ] Review the tables' numbers and names in `data/cards.json` and `data/config.json`.
@@ -63,3 +66,10 @@ Data only. Each tech goes into `research_deck` with a `flavor` and a real, attri
 ## Log
 - Balance worries for a later balance item: Credit's unrest has no off switch, so it may be a trap or a must-pick
   depending on the unrest limit. Brewery may outclass Granary. House of Life stacks insight with Library.
+- Built as specced. Quotes: Psalm 104:15 (Fermentation), Deuteronomy 8:8 (Olive and Vine), Hippocrates, Aphorisms 1.1
+  (Medicine), Proverbs 22:7 (Credit), all KJV or the common English form.
+- Adding Fermentation to the era-1 research deck shifted seed 1's draws, so Envoys from the Hills (a choice event) came
+  up early and blocked 5 real-data UI tests that only pressed an event's OK. With the user's approval, the fixtures now
+  answer whichever event the seed draws: new `close_event(main)` in `test_case.gd` (used by `mid_game`, test_toasts and
+  test_board_layout), `to_government_choice` answers `PENDING_EVENT_CHOICE`, and the event-modal sheet test waits for
+  an event without choices. No assertions changed. Suite 1822 → 1825 tests.

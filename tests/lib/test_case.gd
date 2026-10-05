@@ -553,10 +553,18 @@ func mid_game() -> Node:
 	main.start_game(1)
 	for i in 2:
 		Game.engine.end_turn()
-		if not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		close_event(main)
 	await wait_frames()
 	return main
+
+
+## Closes the drawn-event modal if one is up, whichever event the seed drew: a choice event's first open option,
+## else OK.
+func close_event(main: Node) -> void:
+	if main.event_modal().is_empty():
+		return
+	var open_options: Array[Button] = main.event_option_buttons().filter(func(b: Button): return not b.disabled)
+	(open_options[0] if not open_options.is_empty() else main.event_modal_ok_button()).pressed.emit()
 
 
 ## Calls visit(main, name) on each screen to check: the board mid-game, then each modal and screen open over it, the
