@@ -119,6 +119,8 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_sim_procs.gd` | How many processes a sim run uses (291): `SimStats.procs_from_env` (SIM_PROCS, else the performance cores but one, else every core but one) |
 | `tests/test_sim_cache.gd` | The sim cache's code hash (292): `SimStats.source_hash` over `engine/`, `sim/` and `autoload/` scripts on temp trees |
 | `tests/balance/test_sim_cache_runs.gd` | Balance suite: the sim's result cache (292): a second run reads every game, the key (turns, civ, strategy, seed, the data's bytes), a parallel run plays only uncached games, bad entries replayed, the cache off. Temp trees go with `remove_tree` (test_case.gd) |
+| `tests/test_sim_compare.gd` | Comparing two checkouts (293): `SimStats.cell_done` (95% interval within ±5% of main, at least 1 point, or the seed maximum) and `cell_line` (the `!` past 10%) |
+| `tests/balance/test_sim_compare_runs.gd` | Balance suite: `SimStats.compare` on the real data (293): identical sides stop at 5 seeds, a changed side paired by seed, a block per strategy with metric lines only for metrics that moved, a side that isn't a checkout or doesn't load, the cache |
 | `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game (the sim's options on real data: `tests/balance/`) |
 | `tests/test_sim_strategies.gd` | Sim strategies (134): each strategy's card order, buying and safe growth (`ScriptedBot.take_turn`), `SimStats` per strategy and civilization |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms |

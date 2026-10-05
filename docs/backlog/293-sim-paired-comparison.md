@@ -2,7 +2,7 @@
 id: 293
 title: Compare two checkouts game by game, adding seeds only where the difference isn't clear yet
 type: feature
-status: ready
+status: red-review
 branch: feat/293-sim-paired-comparison
 ---
 
@@ -70,7 +70,12 @@ everywhere after the first round.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_sim_compare::test_a_cell_with_no_spread_is_done`, `…::test_a_cell_whose_interval_is_wider_than_5_percent_is_not_done`, `…::test_a_cell_at_the_maximum_seeds_is_done`, `…::test_the_tolerance_is_at_least_one_point` |
+| AC2 | `balance/test_sim_compare_runs::test_identical_sides_stop_every_cell_after_5_seeds_with_no_change` |
+| AC3 | `balance/test_sim_compare_runs::test_a_changed_side_is_compared_seed_by_seed` |
+| AC4 | `test_sim_compare::test_a_cell_line_shows_both_means_the_change_its_interval_and_the_seeds`, `…::test_a_cell_that_moved_more_than_10_percent_is_flagged`; the block shape in AC2's and AC3's tests |
+| AC5 | `balance/test_sim_compare_runs::test_a_side_that_is_not_a_checkout_fails`, `…::test_a_side_whose_data_does_not_load_fails_with_its_errors`, `…::test_an_unknown_strategy_fails` |
+| AC6 | `balance/test_sim_compare_runs::test_a_second_comparison_reads_every_game_from_the_cache` |
 
 ## Manual check
 - [ ] On a branch that only touches `ui/`: `scripts/sim.sh --compare <main worktree>` stops every cell at 5 seeds.
