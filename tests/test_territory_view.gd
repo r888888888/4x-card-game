@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The territory view in the real main scene (backlog 101): a click on a settled territory's card (the single-click
-## signal, details_requested) shows that territory, its city and buildings, stats and Grow in place of the Realm.
-## Hooks on main.territory_view (a Control in the play area): is_open(), uid, back_button, grow_button, card_uids()
+## signal, details_requested) shows that territory, its city and buildings and stats in place of the Realm (no Grow
+## since 260). Hooks on main.territory_view (a Control in the play area): is_open(), uid, back_button, card_uids()
 ## (the cards shown, the territory first), stats_text() and target_at(global point) (the territory a drop there
 ## would target, or -1).
 
@@ -86,9 +86,9 @@ func test_clicking_a_city_or_building_still_shows_its_details() -> void:
 		eq(main.details.shown().get("name", ""), "Capital", "the Capital's details"))
 
 
-# --- AC2: stats and Grow ---
+# --- AC2: stats ---
 
-func test_the_view_shows_slots_and_pop_and_grow() -> void:
+func test_the_view_shows_slots_and_pop() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
@@ -100,54 +100,18 @@ func test_the_view_shows_slots_and_pop_and_grow() -> void:
 		var stats: String = view.stats_text()
 		eq(stats, "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(home), e.pop(home), e.housing(home),
 			e.free_workers(home), e.defense(home)],
-			"the card's live line (123)")
-		var grow: Button = view.grow_button
-		check(shown(grow), "Grow shown")
-		eq(grow.text, "Grow %d" % e.grow_cost(home), "Grow shows its food cost (227: in the actions row)")
-		eq(grow.disabled, e.grow_error(home) != "", "disabled exactly when grow_error says so"), \
+			"the card's live line (123)"), \
 		{"farm": 10}, POP)
 
 
-func test_grow_in_the_view_adds_pop() -> void:
-	await with_territories_main(func(main: Node):
-		var e := Game.engine
-		var home := home_uid(e)
-		e.resources.food = 20  # enough to grow
-		e.changed.emit()
-		click(main, home)
-		await wait_frames()
-		var view: Object = main.territory_view
-		eq(e.grow_error(home), "", "can grow")
-		var pop := e.pop(home)
-		view.grow_button.pressed.emit()
-		eq(e.pop(home), pop + 1, "pop +1")
-		check(view.stats_text().contains("⌂ %d/%d" % [pop + 1, e.housing(home)]), "stat updated: %s" % view.stats_text()), \
-		{"farm": 10}, POP)
-
-
-func test_grow_is_disabled_with_the_reason_when_it_cannot_grow() -> void:
-	await with_territories_main(func(main: Node):
-		var e := Game.engine
-		var home := home_uid(e)
-		e.resources.food = 0
-		e.changed.emit()
-		click(main, home)
-		await wait_frames()
-		var grow: Button = main.territory_view.grow_button
-		check(e.grow_error(home) != "", "can't grow with no food")
-		check(grow.disabled, "disabled")
-		eq(grow.tooltip_text, e.grow_error(home), "the reason as its tooltip (227)"), {"farm": 10}, POP)
-
-
-func test_without_population_there_is_no_pop_stat_or_grow() -> void:
+func test_without_population_there_is_no_pop_stat() -> void:
 	await with_territories_main(func(main: Node):
 		click(main, home_uid(Game.engine))
 		await wait_frames()
 		var view: Object = main.territory_view
 		var home := home_uid(Game.engine)
 		eq(view.stats_text(), "▢ %d   ⛨ %d" % [Game.engine.free_slots(home), Game.engine.defense(home)],
-			"free slots and defence (123, 161)")
-		check(not shown(view.grow_button), "no Grow"))
+			"free slots and defence (123, 161)"))
 
 
 # --- AC3: back ---
@@ -339,7 +303,7 @@ func test_the_view_is_framed_in_the_territory_colour() -> void:
 		check(frame.is_ancestor_of(main.territory_view.row), "the cards are inside it"))
 
 
-func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() -> void:
+func test_the_territory_is_the_box_with_its_name_info_stats_and_actions_on_top() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home: int = await open_home(main)
@@ -357,7 +321,7 @@ func test_the_territory_is_the_box_with_its_name_info_stats_and_grow_on_top() ->
 		var stats: Array = view.find_children("*", "RichTextLabel", true, false).filter(
 			func(l): return l.get_meta("source", "") == view.stats_text())  # drawn with icons since 123
 		check(not stats.is_empty(), "the stats line")
-		for c in stats + [view.grow_button]:
+		for c in stats + [view.rename_button]:
 			check(view.frame.is_ancestor_of(c), "%s in the box" % c)
 			check((c as Control).get_global_rect().end.y <= top + 1.0, "%s above the cards" % c), \
 		{"farm": 10}, POP)

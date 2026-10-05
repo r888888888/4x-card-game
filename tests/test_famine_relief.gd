@@ -57,8 +57,10 @@ func test_relieving_pays_wealth_and_the_famine_leaves_the_game() -> void:
 	eq(famines_anywhere(e), 0, "the Famine is in no zone")
 	eq(e.famine_counters(), 0, "no counters")
 	eq(changes[0], 1, "changed emitted once")
-	e.resources.food = 20
-	check(not e.grow_error(home_uid(e)).contains("Famine"), "growth works again: %s" % e.grow_error(home_uid(e)))
+	var pop := e.total_pop()
+	var festival := put_in_hand(e, "festival")
+	check(e.play_card(festival), "play Festival: %s" % e.play_error(festival))
+	eq(e.total_pop(), pop + 1, "growth works again")
 
 
 ## Backlog 116: relieving the famine is a notice.

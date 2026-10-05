@@ -166,9 +166,9 @@ func test_a_figure_the_player_is_short_of_is_red_until_they_have_it() -> void:
 
 # --- AC6: one food glyph everywhere ---
 
-func test_the_grow_pip_uses_the_top_bars_food_glyph() -> void:
+func test_the_food_counter_uses_the_sprout() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON.merged({"territory_deck": {"grassland": 1}})), func(main: Node):
 		var glyph := glyph_of(main.counter(GameEngine.FOOD))
 		check(glyph != null, "the food counter's glyph")
 		if glyph != null:
-			eq(Icons.FOOD.resource_path, glyph.texture.resource_path, "the Grow pip's icon is the sprout"))
+			eq(Icons.FOOD.resource_path, glyph.texture.resource_path, "the food glyph is the sprout (the Grow button that shared it went in 260)"))

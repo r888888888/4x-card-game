@@ -118,13 +118,25 @@ func test_anarchy_has_its_cards_actions() -> void:
 
 func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
 	var e := fallen_engine()
-	eq(e.grow_error(home_uid(e)), NOTHING_BUILT, "grow_error")
-	check(not e.grow(home_uid(e)), "grow refuses")
 	eq(e.buy_error("farm"), NOTHING_BUILT, "buy_error")
 	check(not e.buy("farm"), "buy refuses")
 	var lore := uid_of(e.zone("research_deck"), "lore")
 	eq(e.buy_tech_error(lore), NOTHING_BUILT, "buy_tech_error")
 	check(not e.buy_tech(lore), "buy_tech refuses")
+
+
+func test_under_anarchy_nothing_grows_by_itself() -> void:
+	var e := anarchy_engine({}, {"population": POP.merged({"start": 2, "growth_surplus": 2}, true)})
+	set_home_pop(e, 2)  # turn 1's upkeep grew it already
+	e.resources["unrest"] = 5
+	e.end_turn()  # turn 2: Capital nets +2, so Homeland grows before Anarchy falls (260)
+	check(e.anarchy() != -1, "Anarchy rules")
+	var pop := e.total_pop()
+	eq(pop, 3, "grew on turn 2")
+	e.end_turn()  # turn 3 starts under Anarchy
+	eq(e.turn, 3, "turn 3")
+	check(e.anarchy() != -1, "Anarchy still rules")
+	eq(e.total_pop(), pop - 1, "Anarchy's upkeep takes 1 pop, and net +2 grows none back")
 
 
 func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:

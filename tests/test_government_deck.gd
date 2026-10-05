@@ -76,7 +76,6 @@ func test_while_the_choice_is_owed_everything_else_refuses() -> void:
 	var lore := uid_of(e.zone("research_deck"), "lore")
 	e.create_card("farm", "discard", null)
 	eq(e.play_error(farm), CHOOSE_FIRST, "play")
-	eq(e.grow_error(home_uid(e)), CHOOSE_FIRST, "grow")
 	eq(e.buy_error("farm"), CHOOSE_FIRST, "buy")
 	eq(e.buy_tech_error(lore), CHOOSE_FIRST, "research")
 	eq(e.renew_error([uid_of(e.zone("discard"), "farm")]), CHOOSE_FIRST, "renew")

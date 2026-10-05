@@ -1,6 +1,6 @@
 class_name Population
 extends RefCounted
-## Population rules (backlog 009 on): pop on settled territories, buying growth, workers and idle buildings,
+## Population rules (backlog 009 on): pop on settled territories, growing by itself (260), workers and idle buildings,
 ## and pop eating food at upkeep. Static functions on the engine's state; GameEngine's public methods call them.
 
 
@@ -28,38 +28,21 @@ static func total_pop(e: GameEngine) -> int:
 	return total
 
 
-static func grow_error(e: GameEngine, territory_uid: int) -> String:
-	if e.is_over:
-		return "The game is over."
-	if not e.population_on():
-		return "This game has no population."
-	var blocked := e._blocked_error("grow")
-	if blocked != "":
-		return blocked
-	var famine := Famine.growth_error(e)
-	if famine != "":
-		return famine
-	if Anarchy.build_error(e) != "":
-		return Anarchy.build_error(e)
-	var territory := Territories.settled(e, territory_uid)
-	if territory == null:
-		return "Only a settled territory can grow."
-	var cap := housing(e, territory_uid)
-	if territory.pop >= cap:
-		return "%s is at its housing (%d)." % [territory.def.name, cap]
-	return e.price_error("Growing %s" % territory.def.name, {GameEngine.FOOD: e.grow_cost(territory_uid)})
-
-
-static func grow(e: GameEngine, territory_uid: int) -> bool:
-	if grow_error(e, territory_uid) != "":
-		return false
-	var territory := Territories.settled(e, territory_uid)
-	var cost := e.grow_cost(territory_uid)
-	e.pay({GameEngine.FOOD: cost})
-	territory.pop += 1
-	e._log("%s grew to %d pop (%d food)." % [territory.def.name, territory.pop, cost])
-	e.changed.emit()
-	return true
+## Grows pop by itself after feeding (260): when this upkeep netted at least growth_surplus food (made, less what pop
+## ate), the settled territory with the most pop and room to grow (ties: tableau order) gets +1 pop, free. Not under
+## Anarchy. No Famine check: a positive net means pop was fed, which ends any Famine.
+static func auto_grow(e: GameEngine, net_food: int) -> void:
+	if net_food < e.config.population.growth_surplus or Anarchy.build_error(e) != "":
+		return
+	var biggest: CardInstance = null
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.TERRITORY and card.pop < housing(e, card.uid) \
+				and (biggest == null or card.pop > biggest.pop):
+			biggest = card
+	if biggest == null:
+		return
+	biggest.pop += 1
+	e._notice("%s grew to %d pop." % [biggest.def.name, biggest.pop])
 
 
 static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: CardInstance) -> void:

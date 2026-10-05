@@ -17,7 +17,6 @@ var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
 var back_button: Button  # the header's
 var actions: HBoxContainer  # the territory's actions, under the stats and meter (227)
-var grow_button: Button  # in actions: Grow and its food cost; disabled with the reason as its tooltip (227)
 var rename_button: Button  # in actions after Grow: Rename…, opening the naming modal (248, 252)
 var frame: PanelContainer  # the framed body, bordered in the territory colour: the territory itself
 var row: HFlowContainer  # the territory's city and buildings in tableau order, then the free-slot outlines
@@ -33,7 +32,6 @@ var _meter: HBoxContainer  # the pop meter (124): a pip per housing
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
 var _outside_press := false  # the left button went down on the view outside the box (200)
-var _growing := false  # while a grow from Grow runs, so the refresh it causes pops the new pip in
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
 var _board: MainScreen
@@ -91,16 +89,8 @@ func _init(board: MainScreen, realm: Control) -> void:
 	actions = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
 	body.add_child(actions)
-	grow_button = UIKit.button("", _grow)
-	grow_button.theme_type_variation = "IconButton"
-	grow_button.icon = Icons.FOOD
-	UIKit.painted(grow_button, func():  # food's green, as everywhere else (242)
-		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
-			grow_button.add_theme_color_override(state, Palette.GAIN))
-	grow_button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	actions.add_child(grow_button)
 	rename_button = UIKit.button("Rename…", func(): rename_requested.emit(uid))
-	rename_button.theme_type_variation = grow_button.theme_type_variation  # one set of keys in the row (252)
+	rename_button.theme_type_variation = "IconButton"  # the actions row's keys (252)
 	actions.add_child(rename_button)
 	row = HFlowContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -296,26 +286,13 @@ func pips() -> Array[Control]:
 	return out
 
 
-## Grows the shown territory from Grow; the refresh that follows animates it (124).
-func _grow() -> void:
-	_growing = true
-	Game.engine.grow(uid)
-	_growing = false
-
-
-## Shows the pop meter and the actions row (with population on): a pip per housing, the first pop filled, and Grow
-## with its food cost, disabled with grow_error as its tooltip when it can't be used (227). After a grow from Grow,
-## the new pip pops in; the top bar rolls the food and pop (181).
+## Shows the pop meter and the actions row (with population on): a pip per housing, the first pop filled (pop grows
+## by itself at upkeep, 260).
 func _show_meter(e: GameEngine) -> void:
 	_meter.visible = e.population_on()
 	actions.visible = _meter.visible
 	if not _meter.visible:
 		return
-	var error := e.grow_error(uid)
-	var cost := e.grow_cost(uid)
-	grow_button.text = "Grow %d" % cost
-	grow_button.disabled = error != ""
-	grow_button.tooltip_text = error if error != "" else "Grow: +1 pop for %d food." % cost
 	var pop := e.pop(uid)
 	while _pips.size() > e.housing(uid):
 		_pips.pop_back().free()
@@ -326,8 +303,6 @@ func _show_meter(e: GameEngine) -> void:
 		_pips.append(pip)
 	_filled = pop
 	_tint_pips()
-	if _growing and not UIKit.calm():
-		_pop_in(_pips[pop - 1])
 
 
 ## Tints the first _filled pips POP and the rest a faint POP, as the palette reads now (242).
@@ -336,11 +311,3 @@ func _tint_pips() -> void:
 	faint.a = 0.35
 	for i in _pips.size():
 		_pips[i].self_modulate = Palette.POP if i < _filled else faint
-
-
-## pip (the one a grow from Grow just filled) pops in (124).
-static func _pop_in(pip: Control) -> void:
-	pip.pivot_offset = Vector2.ONE * Tokens.TYPE_BODY / 2
-	pip.scale = Vector2.ONE * 0.4
-	pip.create_tween().tween_property(pip, "scale", Vector2.ONE, Anim.POP_IN_TIME) \
-		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)

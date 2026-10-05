@@ -171,7 +171,6 @@ func test_renewal_blocks_everything_else() -> void:
 	var message := "Anarchy: trash 2 cards from your hand, deck or discard first."
 	var hand: int = e.zone("hand").cards[0].uid
 	eq(e.play_error(put_in_hand(e, "feast")), message, "play")
-	eq(e.grow_error(home_uid(e)), message, "grow")
 	eq(e.buy_error("farm"), message, "buy")
 	eq(e.discard_error(hand), message, "discard")
 	eq(e.end_turn_error(), message, "end turn")

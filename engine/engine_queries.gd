@@ -76,11 +76,6 @@ func count_territories_with(keywords: Array[String]) -> int:
 		return c.def.type == CardDef.TERRITORY and keywords.any(func(k): return c.keywords.has(k))).size()
 
 
-## Food to grow settled territory territory_uid by 1 pop: its current pop + 1.
-func grow_cost(territory_uid: int) -> int:
-	return pop(territory_uid) + 1
-
-
 ## What relieve_famine costs: population.famine.relief ({resource: amount}), or {} when the Famine can't be relieved.
 func famine_relief() -> Dictionary:
 	return config.get("famine", {}).get("relief", {}).duplicate()

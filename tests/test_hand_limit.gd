@@ -104,17 +104,6 @@ func test_play_is_blocked_while_discarding() -> void:
 	eq(e.zone("tableau").size(), 2, "tableau unchanged")
 
 
-func test_grow_is_blocked_while_discarding() -> void:
-	var e := scout_engine(3, {"population": {"start": 1, "food_upkeep": 0, "vp_per_pop": 1}})
-	e.resources.food = 50
-	e.end_turn()
-	var home := home_uid(e)
-	eq(e.grow_error(home), "Discard down to 7 cards first.", "grow_error")
-	check(not e.grow(home), "grow fails")
-	eq(e.pop(home), 1, "pop unchanged")
-	eq(e.resources.food, 50, "food unchanged")
-
-
 func test_end_turn_again_does_nothing_while_discarding() -> void:
 	var e := scout_engine(4)
 	e.end_turn()

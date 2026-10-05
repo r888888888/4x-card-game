@@ -11,9 +11,8 @@ extends RefCounted
 ## Strategies (134) change which playable card goes first and add end-of-turn steps; "baseline" is the bot above.
 ## They read what cards do from their effects, never their ids: growth and tall play cards that make food on upkeep
 ## first and buy one from the supply each turn (239), wealth does the same with cards that make wealth, wide plays
-## cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Every strategy but baseline then grows pop
-## while the next upkeep would still feed everyone: growth and wealth the cheapest territory first, wide the lowest pop,
-## tall the most housing. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
+## cards that explore or settle first, and tall stops settling at TALL_TERRITORIES. Pop grows by itself at upkeep (260),
+## so no strategy grows it. Every strategy plays around the unrest limit (144): see _unrest_ok; under Anarchy it pays to
 ## restore order from the second turn with 2+ counters left or a starving upkeep ahead (155), renews the card worth
 ## least to keep (147), and chooses governments and revolts by lookahead: playing forks LOOKAHEAD_TURNS on (159),
 ## valued by score and the insight they gathered (240). Before Anarchy rules, a seeded coin decides whether it spends
@@ -96,7 +95,7 @@ static func insight_gathered(start: GameEngine, end: GameEngine) -> int:
 
 
 ## Plays one turn with strategy up to, not including, discarding and ending it: choices, techs and hand cards, then
-## the strategy's buy and growth. Returns the steps it took.
+## the strategy's buy. Returns the steps it took.
 static func take_turn(engine: GameEngine, strategy: String) -> int:
 	var steps := 0
 	var plays := 0
@@ -118,8 +117,6 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			plays += 1
 	if strategy in ["wealth", "growth", "tall"]:
 		_buy_cheapest(engine, func(def): return _prefers(strategy, def))
-	if strategy != "baseline":
-		_grow(engine, strategy)
 	_revolt(engine, strategy)
 	_spend_before_drain(engine, strategy)
 	return steps
@@ -343,36 +340,3 @@ static func _spend_before_drain(engine: GameEngine, strategy: String) -> void:
 	var preferred := func(def): return strategy in ["baseline", "wide"] or _prefers(strategy, def)
 	while _buy_cheapest(engine, preferred, SPEND_RESERVE) or _buy_cheapest(engine, func(_def): return true, SPEND_RESERVE):
 		pass
-
-
-## Grows one pop at a time, on the first territory in strategy's order whose growth leaves the next upkeep fed, until
-## none does.
-static func _grow(engine: GameEngine, strategy: String) -> void:
-	var grew := true
-	while grew:
-		grew = false
-		for uid in _growth_order(engine, strategy):
-			if engine.grow_error(uid) != "":
-				continue
-			var trial := engine.fork()
-			trial.grow(uid)
-			if trial.upkeep_forecast().get("starve", 0) == 0:
-				engine.grow(uid)
-				grew = true
-				break
-
-
-## The settled territories' uids in the order strategy grows them (ties: tableau order).
-static func _growth_order(engine: GameEngine, strategy: String) -> Array:
-	var lands := engine.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY)
-	var key := func(c: CardInstance) -> int:
-		match strategy:
-			"wide":
-				return engine.pop(c.uid)
-			"tall":
-				return -engine.housing(c.uid)
-		return engine.grow_cost(c.uid)
-	var order := range(lands.size())
-	order.sort_custom(func(i, j): return key.call(lands[i]) < key.call(lands[j]) \
-			or (key.call(lands[i]) == key.call(lands[j]) and i < j))
-	return order.map(func(i): return lands[i].uid)

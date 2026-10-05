@@ -86,7 +86,6 @@ func test_each_pending_kind_blocks_actions_as_before() -> void:
 		var msg: String = row[2]
 		eq(e.pending().get("kind", ""), kind, "%s: pending kind" % kind)
 		eq(e.play_error(first_in_hand(e)), msg, "%s: play_error" % kind)
-		eq(e.grow_error(home_uid(e)), msg, "%s: grow_error" % kind)
 		eq(e.buy_error("scout"), msg, "%s: buy_error" % kind)
 		eq(e.end_turn_error(), msg, "%s: end_turn_error" % kind)
 		eq(e.supply_error(), row[3], "%s: supply_error" % kind)

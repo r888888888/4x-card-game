@@ -136,13 +136,9 @@ func test_a_later_short_upkeep_brings_a_new_famine() -> void:
 func test_no_growth_during_a_famine() -> void:
 	var e := famine_engine(4)
 	e.end_turn()  # famine 1: 4 -> 3
-	e.resources.food = 20
-	var home := home_uid(e)
-	eq(e.grow_error(home), "Famine: pop can't grow.", "grow_error")
-	check(not e.grow(home), "grow refused")
-	var rally := put_in_hand(e, "rally")
-	check(e.play_card(rally, home), "Rally can still be played: %s" % e.play_error(rally, home))
-	eq(home_pop(e), 3, "Rally adds no pop")
+	var festival := put_in_hand(e, "festival")
+	check(e.play_card(festival), "Festival can still be played: %s" % e.play_error(festival))
+	eq(home_pop(e), 3, "Festival adds no pop")
 
 
 func test_growth_works_again_after_the_famine() -> void:
@@ -150,10 +146,8 @@ func test_growth_works_again_after_the_famine() -> void:
 	e.end_turn()  # famine 1: 4 -> 3
 	e.zone("tableau").find(home_uid(e)).pop = 1
 	e.end_turn()  # fed: ends
-	e.resources.food = 20
-	var home := home_uid(e)
-	eq(e.grow_error(home), "", "grow allowed")
-	check(e.grow(home), "grow")
+	var festival := put_in_hand(e, "festival")
+	check(e.play_card(festival), "play Festival: %s" % e.play_error(festival))
 	eq(home_pop(e), 2, "1 -> 2")
 
 

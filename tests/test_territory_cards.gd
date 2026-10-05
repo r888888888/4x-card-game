@@ -252,7 +252,8 @@ func test_the_live_line_follows_building_and_growth() -> void:
 		var farm := put_in_hand(e, "farm")
 		e.resources.food = 20
 		check(e.play_card(farm, home), "build a Farm on Homeland")
-		check(e.grow(home), "grow Homeland")
+		e.zone("tableau").find(home).pop += 1
+		e.changed.emit()
 		await wait_frames()
 		var text := (main.views[home] as CardView).face_text()
 		check(text.ends_with(live_line(e, home)), "the live line now: %s (want %s)" % [text, live_line(e, home)]), \
