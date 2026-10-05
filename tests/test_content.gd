@@ -259,6 +259,94 @@ func test_every_starting_deck_building_has_a_supply_pile() -> void:
 	eq(missing, [] as Array[String], "starting-deck buildings with no supply pile")
 
 
+## Card ids a tech's unlock effects open a supply pile for.
+func unlocked_by(tech: CardDef) -> Array[String]:
+	var out: Array[String] = []
+	for effect in tech.effects:
+		if effect.op == "unlock":
+			out.append(effect.card_id)
+	return out
+
+
+## Backlog 264: building ids the player can get in era 1: the starting deck, an open supply pile, or a card an era-1
+## tech in the research deck creates or unlocks.
+func era_1_building_ids(r: Dictionary) -> Dictionary:
+	var ids: Array = r.config.deck.keys()
+	for id in r.config.supply:
+		if not r.config.supply[id].get("locked", false):
+			ids.append(id)
+	for tech in techs_in_research_deck(r):
+		if tech.era == 1:
+			ids += created_by(tech) + unlocked_by(tech)
+	var out := {}
+	for id in ids:
+		if r.cards[id].type == CardDef.BUILDING:
+			out[id] = true
+	return out
+
+
+## Backlog 264: insight has a building from the first era, not only the Capital and Research cards.
+func test_a_building_making_insight_is_obtainable_in_era_1() -> void:
+	var r := load_real()
+	var makers: Array[String] = []
+	for id in era_1_building_ids(r):
+		if r.cards[id].effects.any(func(e): return e.trigger == "upkeep" and e.get("resource") == GameEngine.INSIGHT):
+			makers.append(id)
+	check(not makers.is_empty(), "an era-1 building makes insight each upkeep (era-1 buildings: %s)" % [era_1_building_ids(r).keys()])
+
+
+## Backlog 264: every terrain has a building of its own: one whose requires names it.
+func test_every_terrain_is_required_by_a_reachable_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var required := {}
+	for def in real_buildings(r):
+		if reachable.has(def.id):
+			for k in def.requires:
+				required[k] = true
+	var missing: Array[String] = []
+	for terrain in r.config.terrains:
+		if not required.has(terrain):
+			missing.append(terrain)
+	eq(missing, [] as Array[String], "terrains no reachable building requires")
+
+
+## Backlog 264: every researchable era opens a building no earlier era's tech opened.
+func test_every_era_unlocks_a_new_building() -> void:
+	var r := load_real()
+	var first_era := {}  # building id -> lowest era of a tech that unlocks it
+	for tech in techs_in_research_deck(r):
+		for id in unlocked_by(tech):
+			if r.cards[id].type == CardDef.BUILDING:
+				first_era[id] = mini(first_era.get(id, tech.era), tech.era)
+	var missing: Array[int] = []
+	for era in [1, 2, 3]:
+		var opens_new := false
+		for tech in techs_in_research_deck(r):
+			if tech.era == era and unlocked_by(tech).any(func(id): return first_era.get(id, 0) == era):
+				opens_new = true
+		if not opens_new:
+			missing.append(era)
+	eq(missing, [] as Array[int], "eras with no tech unlocking a building first")
+
+
+## Backlog 264: housing and calm each have several buildings, not just the Granary and the Temple.
+func test_several_buildings_add_housing_and_calm_unrest() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var housing: Array[String] = []
+	var calming: Array[String] = []
+	for def in real_buildings(r):
+		if not reachable.has(def.id) or def.has_tag("wonder"):
+			continue
+		if def.housing > 0:
+			housing.append(def.id)
+		if def.effects.any(func(e): return e.trigger == "upkeep" and e.op == "lose" and e.get("resource") == GameEngine.UNREST):
+			calming.append(def.id)
+	check(housing.size() >= 3, "at least 3 buildings add housing (got %s)" % [housing])
+	check(calming.size() >= 3, "at least 3 buildings lose unrest each upkeep (got %s)" % [calming])
+
+
 func test_every_building_costs_wealth() -> void:
 	var r := load_real()
 	var no_wealth: Array[String] = []
