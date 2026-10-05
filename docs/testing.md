@@ -150,7 +150,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | `tests/test_vellum.gd` | Targeting under vellum (210) in the real `main.tscn` on a TEST_CARDS game with a Temple and two territories: `main.vellum` (`covered_rect()`, `lifted()`) wipes in from the left over the Realm and hand with the card and its targets above it (2 px FOCUS outlines), off to the right after a play or a cancel (Esc, right-click, a click on it, a click on a card under it); a fade with Reduce motion; none while dragging |
 | `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked Winnow lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
 | `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
-| `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap |
+| `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap; 261: `best` (idle buildings, then smallest pop) and `each` with `count` (fixture `GROW_CARDS`) |
 | `tests/test_auto_growth.gd` | Automatic growth (260): a surplus of `population.growth_surplus` grows the largest territory with room by 1, once a turn, free, with a notice; the config field; manual Grow gone |
 | `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
 | `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |

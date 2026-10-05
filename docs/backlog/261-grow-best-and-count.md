@@ -2,7 +2,7 @@
 id: 261
 title: The grow op can pick its territory and cap how many it grows
 type: feature
-status: in-progress
+status: review
 branch: feat/261-grow-best-and-count
 ---
 
@@ -15,23 +15,23 @@ Grants on this (spike `spike/growth-cards`).
 Fixtures: population on, food_upkeep 0; Homeland (housing 7) first in the tableau, Grassland (housing 4) and Hills
 (housing 5) settled after it.
 
-- [ ] AC1: `where: "best"` grows the settled territory with idle buildings first: given Homeland 3 pop with 2
+- [x] AC1: `where: "best"` grows the settled territory with idle buildings first: given Homeland 3 pop with 2
   buildings, and Grassland 1 pop with 2 buildings (one idle), when a card with `{op: grow, amount: 1, where: best}`
   resolves, then Grassland has 2 pop and Homeland stays 3.
-- [ ] AC2: with no idle buildings anywhere, `best` grows the lowest pop with room: Homeland 3, Grassland 1, Hills 2 →
+- [x] AC2: with no idle buildings anywhere, `best` grows the lowest pop with room: Homeland 3, Grassland 1, Hills 2 →
   Grassland 2. On a tie of the lowest pop (Grassland 2, Hills 2), the first in tableau order grows (Grassland). Among
   several territories with idle buildings, the lowest pop (then tableau order) goes first.
-- [ ] AC3: `best` skips full territories (Grassland 4 of 4 with an idle building, Homeland 3 of 7 → Homeland grows),
+- [x] AC3: `best` skips full territories (Grassland 4 of 4 with an idle building, Homeland 3 of 7 → Homeland grows),
   and does nothing (no pop change, no error) when every territory is full, during a Famine, or with population off.
   `amount: 2` adds 2 to the one chosen territory, capped by its housing.
-- [ ] AC4: `where: "each"` with `count: 3` grows at most 3 territories, smallest pop first among those with room (ties:
+- [x] AC4: `where: "each"` with `count: 3` grows at most 3 territories, smallest pop first among those with room (ties:
   tableau order): given 4 settled territories with pop 1, 2, 2, 3 (all with room), the three with 1, 2, 2 grow and
   the one with 3 doesn't. With 2 territories with room it grows both. Without `count`, `each` still grows every
   territory (unchanged).
-- [ ] AC5: The loader reads `where: "best"` on any card type (actions, buildings, units, events, techs: it needs no
+- [x] AC5: The loader reads `where: "best"` on any card type (actions, buildings, units, events, techs: it needs no
   territory of its own) and `count` as an integer ≥ 1. It reports an error naming the card and field for `count` 0 or
   not an integer, and for `count` with a `where` other than `each`.
-- [ ] AC6: Card text: `best` reads "+1 pop" short and "+1 pop where it's needed most" long; `each` with count 3 reads
+- [x] AC6: Card text: `best` reads "+1 pop" short and "+1 pop where it's needed most" long; `each` with count 3 reads
   "+1 pop on 3 territories" short and "+1 pop on each of your 3 smallest territories with room" long. The rules text
   for these is generated, so no card names a count by hand.
 
@@ -61,3 +61,6 @@ count 3; `make_engine` gained an `extra_cards` argument).
 | AC6 | `test_best_and_count_text` |
 
 ## Log
+- Built: `Population.smallest_with_room` (the `each`+`count` order) and `Population.best_to_grow` (the `best` pick),
+  both empty/null with population off or during a Famine. `make_engine` takes `extra_cards` so fixture cards with new
+  fields can stay in one test file. No UI change (card text is generated).
