@@ -14,6 +14,8 @@ const COMPONENTS := {
 	"res://ui/card_details_modal.gd": "CardDetailsModal",
 	"res://ui/knowledge_screen.gd": "KnowledgeScreen",  # 208: the tech tree modal before it
 	"res://ui/event_modal.gd": "EventModal",
+	"res://ui/raid_modal.gd": "RaidModal",  # 271: a raid's outcome
+	"res://ui/turn_news.gd": "TurnNews",  # 271: the event and raid modals a turn's start opens
 	"res://ui/new_game_screen.gd": "NewGameScreen",
 	"res://ui/settings_modal.gd": "SettingsModal",  # 206: replaced the settings screen
 	"res://ui/navigator.gd": "Navigator",

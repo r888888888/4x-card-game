@@ -35,7 +35,7 @@ const SoundExport = (() => {
 	const REF_DB = -26;  // ui.button.press peak at full volume; levels are dB from it
 	const db = (d) => 10 ** (d / 20);
 	const st = (n) => 2 ** (n / 12);
-	const NOTE = { A3: 220, B3: 247, Cs4: 277, D4: 294, E4: 330, Fs4: 370, A4: 440, B4: 494, D5: 587, E5: 659, Fs5: 740, A5: 880, B5: 988, D6: 1175, E6: 1319 };
+	const NOTE = { Fs3: 185, A3: 220, B3: 247, Cs4: 277, D4: 294, E4: 330, Fs4: 370, A4: 440, B4: 494, D5: 587, E5: 659, Fs5: 740, A5: 880, B5: 988, D6: 1175, E6: 1319 };
 	const SR = 48000;
 	const noiseBuf = new AudioBuffer({ length: SR, sampleRate: SR });
 	{ const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
@@ -182,6 +182,10 @@ const SoundExport = (() => {
 		"ui.milestone.city": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.8, fn: (c, o, t) => { body(c, o, t, { f: 150, dur: 0.09, g: 0.4, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.05, g: 0.25 }); marimba(c, o, t + 0.12, { f: NOTE.D4, dur: 0.5 }); marimba(c, o, t + 0.3, { f: NOTE.A4, dur: 0.6 }); } },
 		"ui.milestone.wonder": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 1.2, fn: (c, o, t) => { relay(c, o, t, { g: 0.6 }); relay(c, o, t + 0.08, { g: 0.5 }); motor(c, o, t + 0.05, { dur: 0.35, g: 0.35 }); chord(vib, c, o, t + 0.42, ["D5", "Fs5", "A5", "E6"], { dur: 0.95 }); bell(c, o, t + 0.42, { f: NOTE.D6, dur: 0.6, g: 0.2 }); } },
 		"ui.milestone.accord": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 1.1, fn: (c, o, t) => { body(c, o, t, { f: 170, dur: 0.07, g: 0.3, to: 0.8 }); click(c, o, t, { f: 900, q: 1, dur: 0.04, g: 0.2 }); chord(piano, c, o, t + 0.08, ["A3", "Cs4", "E4"], { dur: 0.5, g: 0.8 }); chord(piano, c, o, t + 0.4, ["D4", "Fs4", "A4"], { dur: 0.75 }); } },
+		// A raid's outcome (271): repelled, a gate barred then a rising marimba; pillaged, a relay drop and a low drum,
+		// then muted piano falling to B minor (dignified, not an alarm).
+		"ui.milestone.repelled": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 0.9, fn: (c, o, t) => { body(c, o, t, { f: 140, dur: 0.1, g: 0.45, to: 0.8 }); click(c, o, t, { f: 800, q: 1, dur: 0.05, g: 0.3 }); ["D4", "A4", "D5"].forEach((n, i) => marimba(c, o, t + 0.12 + i * 0.11, { f: NOTE[n], dur: 0.7 - i * 0.1 })); } },
+		"ui.milestone.pillaged": { l: 3, level: 10, wet: 0.18, tonal: true, freq: "rare", dur: 1.0, fn: (c, o, t) => { relay(c, o, t, { g: 0.45 }); body(c, o, t + 0.06, { f: 80, dur: 0.25, g: 0.8, to: 0.7 }); piano(c, o, t + 0.2, { f: NOTE.B3, dur: 0.4, g: 0.8 }); chord(piano, c, o, t + 0.48, ["Fs3", "B3", "D4"], { dur: 0.6 }); } },
 		"ui.milestone.era": { l: 3, level: 12, wet: 0.18, tonal: true, freq: "rare", dur: 2.0, fn: (c, o, t) => {
 			brush(c, o, t, { dur: 0.45, g: 0.5 }); flutter(c, o, t + 0.3, { n: 14, span: 0.35, g: 0.4 }); relay(c, o, t + 0.6, { g: 0.4 }); relay(c, o, t + 0.7, { g: 0.35 });
 			["D5", "A5", "D6"].forEach((n, i) => vib(c, o, t + 0.8 + i * 0.15, { f: NOTE[n], dur: 0.8, g: 0.6 }));
@@ -254,7 +258,16 @@ const SoundExport = (() => {
 		}
 		return out;
 	}
-	return { renderAll };
+	// One token's files, for rendering a new token alone: [{path, bytes, seconds}].
+	async function renderToken(name) {
+		const tk = T[name], ps = paths(name, tk), out = [];
+		for (let k = 0; k < ps.length; k++) {
+			const samples = await renderOne(tk, tk.tonal || tk.l === 3 ? 1 : VARIANTS[k], k);
+			out.push({ path: ps[k], bytes: wav(samples), seconds: samples.length / SR });
+		}
+		return out;
+	}
+	return { renderAll, renderToken };
 })();
 
 document.getElementById("render").addEventListener("click", async () => {

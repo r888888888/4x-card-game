@@ -373,6 +373,11 @@ func raid_forecast() -> Array[Dictionary]:
 	return Military.raid_forecast(self)
 
 
+## A raid_resolved outcome as its result line (271), "Raiders pillaged Hills: −2 food, −1 pop."; the raid modal shows it.
+func raid_outcome_text(outcome: Dictionary) -> String:
+	return Military.outcome_text(self, outcome)
+
+
 ## Active raid uid's announcement, "Raiders will strike Hills in 2 turns: 3 against your 0.", with the target's current
 ## defence (162); "" for anything else.
 func raid_line(uid: int) -> String:

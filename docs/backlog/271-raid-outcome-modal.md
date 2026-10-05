@@ -2,7 +2,7 @@
 id: 271
 title: A raid that strikes opens a modal with its outcome and its own sound
 type: feature
-status: red-review
+status: in-progress
 branch: feat/271-raid-outcome-modal
 ---
 

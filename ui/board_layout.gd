@@ -13,7 +13,7 @@ var relief: ActionButton  # below the Realm while a Famine can be relieved
 var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
 var menu: GameMenu
 var game_over: GameOverOverlay
-var event_modal: EventModal
+var news: TurnNews
 
 
 ## Builds main's layout. restart(seed) starts again as this game's civilization (-1: a random seed);
@@ -66,7 +66,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.details.play_requested.connect(main.on_double_clicked)  # Play acts as a double-click would (225)
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
 	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
-	event_modal = EventModal.new(main.modals)
+	news = TurnNews.new(main.modals)
 	main.identity_modal = IdentityModal.new(main.modals)
 	main.revolt_modal = RevoltModal.new(main.modals)
 	main.move_modal = MoveModal.new(main.modals)
