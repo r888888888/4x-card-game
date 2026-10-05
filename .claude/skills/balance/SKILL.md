@@ -17,7 +17,10 @@ The bot is fixed and simple, so read the numbers as *relative*: compare against 
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.
 `scripts/sim.sh <seeds>` prints a block per strategy (its mean score per civilization, then its metrics over all of
-them) and takes about 15 seconds at 20 seeds on 12 cores (152: one process per core; `SIM_PROCS=n` to change); `scripts/sim.sh <seeds> <strategy>` prints one table for that strategy
+them). That is 600 games at 20 seeds, and since the bot looks ahead (159, 240, 269) one 100-turn game costs 12–25 s of
+CPU: about 3 CPU-hours, so 20–30 minutes on this machine. It runs on the performance cores but one (291; `SIM_PROCS=n`
+to change). Only one parallel run at a time, across every checkout: a second one exits 1 at once with "another sim run
+is using the CPU (pid N)". Wait for that run, don't start the two sides side by side. `scripts/sim.sh <seeds> <strategy>` prints one table for that strategy
 as the default civilization (seconds). `baseline` is the pre-134 bot: it never grows pop.
 
 ## Run it

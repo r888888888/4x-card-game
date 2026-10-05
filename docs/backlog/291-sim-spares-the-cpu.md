@@ -2,7 +2,7 @@
 id: 291
 title: Run the sim on the performance cores but one, from a shared job queue, one run at a time
 type: feature
-status: in-progress
+status: review
 branch: feat/291-sim-spares-the-cpu
 ---
 
@@ -17,24 +17,24 @@ shards last. Two sessions running a sim at once start 24 processes. After this i
 - a second parallel run fails at once instead of piling onto the first.
 
 ## Acceptance criteria
-- [ ] AC1: `SimStats.procs_from_env(env, cpu_count)` returns how many processes a run uses:
+- [x] AC1: `SimStats.procs_from_env(env, cpu_count)` returns how many processes a run uses:
   - `{"SIM_PROCS": "3"}` with 12 CPUs → 3, and `{"SIM_PROCS": "1"}` → 1 (SIM_PROCS overrides);
   - `{"SIM_PERF_CORES": "8"}` with 12 CPUs → 7 (the performance cores but one);
   - `{}` with 12 CPUs → 11 (the performance-core count is unknown: every core but one);
   - `{}` with 1 CPU → 1, and `{"SIM_PERF_CORES": "1"}` → 1 (never fewer than 1);
   - `{"SIM_PROCS": "0"}` or `{"SIM_PROCS": "x"}` with `{"SIM_PERF_CORES": "8"}` → 7 (an invalid SIM_PROCS is ignored).
-- [ ] AC2: Given a run directory for 6 jobs in which jobs 0–3 are already claimed, when a worker plays from it
+- [x] AC2: Given a run directory for 6 jobs in which jobs 0–3 are already claimed, when a worker plays from it
   (`SimStats.play_claimed`), then it plays and writes exactly jobs 4 and 5. Then, given a second worker on the same
   directory, it plays none.
-- [ ] AC3: Given 7 games (seeds 1–7, `baseline`, `--civ sumer`, `--turns 3`) on `procs` 2, when `run_files` runs, then
+- [x] AC3: Given 7 games (seeds 1–7, `baseline`, `--civ sumer`, `--turns 3`) on `procs` 2, when `run_files` runs, then
   the report equals the `procs` 1 report. The result's `games_per_proc` has 2 entries summing to 7 (each game played
   exactly once).
-- [ ] AC4: Given the sim lock held by a running process (the test's own pid), when `run_files` runs with `procs` 2, then
+- [x] AC4: Given the sim lock held by a running process (the test's own pid), when `run_files` runs with `procs` 2, then
   it returns code 1 and the line "another sim run is using the CPU (pid <pid>); try again when it ends". It plays no
   game, starts no child, and leaves the lock in place.
-- [ ] AC5: Given the sim lock naming a pid that isn't running, when `run_files` runs with `procs` 2, then it takes the
+- [x] AC5: Given the sim lock naming a pid that isn't running, when `run_files` runs with `procs` 2, then it takes the
   lock and runs (code 0). After the run, the lock is gone, also when a shard failed (152's AC5 case).
-- [ ] AC6: Given the sim lock held by a running process, when `run_files` runs with `procs` 1 (in-process, as the tests
+- [x] AC6: Given the sim lock held by a running process, when `run_files` runs with `procs` 1 (in-process, as the tests
   and the main suite do), then it ignores the lock and runs (code 0).
 
 ## Out of scope
@@ -89,3 +89,19 @@ shards last. Two sessions running a sim at once start 24 processes. After this i
 ## Log
 - 2026-10-05: specced from the sim-CPU discussion (with 292, 293, 294). User chose: a second parallel run fails fast
   rather than waiting.
+- 2026-10-05: built. Departures from the design notes:
+  - **Lock only when asked.** The lock applies only when `run_files` gets a `lock_path`. `sim/run.gd` passes
+    `<temp>/4x-card-game-sim.lock`; tests that call `run_files` directly pass none, so a real sim never fails them.
+  - **Errors name the game.** A missing result names the game ("game 2 of 4 has no result") rather than the worker
+    that claimed it.
+  - **Shards removed.** `play_shard` / `read_shards` became `play_claimed` / `read_workers`, and 152's failed-shard
+    test was rewritten for the queue (a game claimed by hand stands for a dead worker).
+  - **Worker files.** A worker writes its file after every game, `{}` before the first, so a crash keeps what it
+    played.
+  - **Test helper fix.** The approved AC5 test's cleanup helper got an exists guard after the green code released the
+    lock first; the assertions are unchanged.
+- Verified by hand: while a 4-game `wide --turns 60` run held the lock, `scripts/sim.sh 2 baseline --turns 5` exited 1
+  with "another sim run is using the CPU (pid 40031); try again when it ends". The lock was gone after the first run.
+  Not timed: a full `scripts/sim.sh 20` (the Manual check). The balance skill's timing is now an estimate from the
+  measured per-game cost.
+- Suite 1855 → 1860 tests; balance suite 11 → 17.
