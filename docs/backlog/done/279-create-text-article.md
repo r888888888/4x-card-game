@@ -2,7 +2,7 @@
 id: 279
 title: Create text says "a" before vowel-initial card names
 type: bug
-status: review
+status: done
 branch: fix/279-create-text-article
 ---
 
