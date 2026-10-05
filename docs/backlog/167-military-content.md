@@ -39,3 +39,7 @@ with the threat. Content only; numbers are a first guess until a balance item. F
 - [ ] Each new tech appears in the tech tree with what it gives.
 
 ## Log
+- 2026-10-04, tech review (272–275): for realism, consider replacing era-1 Horseback Riding with the **Chariot** (era
+  2, needs The Wheel, eureka 1 Pasture): chariots ruled Bronze Age warfare from about 1700 BCE, and war-horses
+  carrying riders came only around 900 BCE. Horsemen could then come with an era-3 Cavalry tech. 274 and 275 leave
+  the Chariot to this item.
