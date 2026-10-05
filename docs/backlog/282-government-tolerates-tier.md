@@ -2,7 +2,7 @@
 id: 282
 title: Governments tolerate territories up to a tier; bigger ones add unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/282-government-tolerates-tier
 ---
 
@@ -61,7 +61,12 @@ Fixtures: 281's tiers (hamlet 0, village 4, town 8, metropolis 13), unrest on, a
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_size_unrest::test_…` |
+| AC1 | `test_size_unrest::test_each_tier_above_the_tolerated_one_adds_1_unrest_at_upkeep`, `test_a_lone_town_adds_1_unrest` |
+| AC2 | `test_size_unrest::test_size_unrest_counts_the_pop_before_upkeep_takes_any` |
+| AC3 | `test_size_unrest::test_size_unrest_stops_at_the_unrest_limit` |
+| AC4 | `test_size_unrest::test_a_government_without_tolerates_adds_no_size_unrest`, `test_no_government_adds_no_size_unrest`, `test_anarchy_adds_no_size_unrest`, `test_without_unrest_there_is_no_size_unrest`, `test_without_tiers_there_is_no_size_unrest` |
+| AC5 | `test_size_unrest::test_the_forecast_counts_size_unrest`, `test_size_unrest_comes_before_calming_upkeep` |
+| AC6 | `test_size_unrest::test_tolerates_loads_and_shows_in_the_government_text`, `test_tolerates_only_applies_to_governments`, `test_tolerates_must_be_a_tier_id`, `test_tolerates_with_tiers_off_is_a_warning`; `test_content::test_every_government_sets_tolerates` |
 
 ## Manual check
 - [ ] Shipped tolerances: Chiefdom tolerates Village, Kingship Town, Theocracy Town (review before merging).
@@ -71,3 +76,6 @@ Fixtures: 281's tiers (hamlet 0, village 4, town 8, metropolis 13), unrest on, a
 ## Log
 - 2026-10-04: specced with the user: +1 unrest per tier above the tolerated one, and none under Anarchy. Assumed the
   bot's government ranking stays as it is.
+- Red: AC2 uses a fixture event with ⟳ −1 pop (Plague, 2 turns) instead of the Famine: the Famine takes pop while
+  feeding, after `resolve_upkeep`, so it couldn't tell whether the tier is read before or after the upkeep effects.
+  A ⟳ lose_pop event resolves in `Events.resolve_upkeep`, after the working cards, the same path as Anarchy's.

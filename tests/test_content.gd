@@ -956,6 +956,14 @@ func test_every_government_sets_actions() -> void:
 			check(r.cards[id].get("actions") > 0, "government %s sets actions" % id)
 
 
+## 282: each government names the largest settlement tier it keeps calm.
+func test_every_government_sets_tolerates() -> void:
+	var r := load_real()
+	for id in r.cards:
+		if r.cards[id].type == CardDef.GOVERNMENT:
+			check(r.cards[id].get("tolerates") is String and r.cards[id].get("tolerates") != "", "government %s sets tolerates" % id)
+
+
 # --- Supply (backlog 032) ---
 
 ## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.
