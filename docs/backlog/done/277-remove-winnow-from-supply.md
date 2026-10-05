@@ -2,7 +2,7 @@
 id: 277
 title: Remove the Winnow card from the supply
 type: feature
-status: review
+status: done
 branch: feat/277-remove-winnow-from-supply
 ---
 
@@ -11,11 +11,11 @@ Winnow (trash another card in hand) is no longer for sale, so the player can't t
 was listed in `docs/TODO.md`.
 
 ## Acceptance criteria
-- [ ] AC1: Given the real data, when the supply is built for a new game, then it has no Winnow pile, and no other
+- [x] AC1: Given the real data, when the supply is built for a new game, then it has no Winnow pile, and no other
   supply pile changes.
-- [ ] AC2: Given the real data, when it loads, then the loader accepts it and every real card still reaches a game:
+- [x] AC2: Given the real data, when it loads, then the loader accepts it and every real card still reaches a game:
   Winnow's card definition is deleted too (the `every real card can reach a game` invariant requires it).
-- [ ] AC3: Given the `trash` op, when the two UI tests that target a card in hand run, then they use a fixture Purge,
+- [x] AC3: Given the `trash` op, when the two UI tests that target a card in hand run, then they use a fixture Purge,
   not a real card, and pass.
 
 ## Out of scope
