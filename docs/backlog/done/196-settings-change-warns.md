@@ -2,7 +2,7 @@
 id: 196
 title: A run that sees the player's settings change warns instead of failing
 type: bug
-status: review
+status: done
 branch: fix/196-settings-change-warns
 ---
 
