@@ -181,7 +181,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   Text "+1 action" (tooltip "+1 action this turn"). Real data: Scout and Barter.
 - `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
-  (Winnow, supply only).
+  (no real card uses it since 277; tests use a fixture).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error.
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
