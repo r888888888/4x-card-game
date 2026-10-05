@@ -2,7 +2,7 @@
 id: 266
 title: Events stop when the event deck holds only raids that can't be drawn yet
 type: bug
-status: in-progress
+status: review
 branch: fix/266-event-deck-stalls-behind-raids
 ---
 
@@ -23,16 +23,16 @@ branch: fix/266-event-deck-stalls-behind-raids
   - A realm that stays under 12 never gets another event.
 
 ## Acceptance criteria
-- [ ] AC1: Given config `raid_min_size` 99, an event deck holding only a raid, and an event discard holding one
+- [x] AC1: Given config `raid_min_size` 99, an event deck holding only a raid, and an event discard holding one
   non-raid event, when the turn's event is drawn, then the discard is shuffled into the deck, the non-raid event is
   active and reported by `event_drawn`, the raid is in the event deck, and the event discard is empty.
-- [ ] AC2: The same happens when raids are blocked by the gap or by an announced raid rather than by size. Given a
+- [x] AC2: The same happens when raids are blocked by the gap or by an announced raid rather than by size. Given a
   raid struck at turn S with `raid_gap` 4, an event deck holding only a second raid, and a non-raid event in the
   discard, when the event is drawn at turn S+1, then the non-raid event is drawn and the raid stays in the deck.
-- [ ] AC3 (unchanged, 257 AC3): Given raids aren't allowed and the event deck and discard together hold only raids,
+- [x] AC3 (unchanged, 257 AC3): Given raids aren't allowed and the event deck and discard together hold only raids,
   when the turn's event is drawn, then no event is active, `event_drawn` isn't emitted, and every raid is still in the
   event deck or discard. The same holds turn after turn.
-- [ ] AC4 (unchanged): Given an event deck whose top is a blocked raid followed by a non-raid event, and a non-empty
+- [x] AC4 (unchanged): Given an event deck whose top is a blocked raid followed by a non-raid event, and a non-empty
   discard, when the turn's event is drawn, then the non-raid event is drawn from the deck and the discard isn't
   shuffled in. Only a deck with nothing drawable triggers the reshuffle.
 
@@ -45,10 +45,16 @@ branch: fix/266-event-deck-stalls-behind-raids
 | AC4 | `test_raid_pacing::test_bug_266_a_drawable_event_in_the_deck_leaves_the_discard_alone` |
 
 ## Root cause
-<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+`Events.draw` reshuffled the event discard only when the event deck was empty. Raid pacing (257) made some deck
+cards undrawable for a while, and `_take_allowed` returns null when every card left is such a raid, so a deck of
+blocked raids counted as non-empty and the turn passed with no event. 257's AC3 tested only raids in *both* piles,
+not raids in the deck with events in the discard. Fix: when nothing in the deck can be drawn, shuffle the discard in
+(with the raids) and try once more (`Events._reshuffle`).
 
 ## Manual check
 - [ ] Play a long game without expanding (stay under 12): an event is still drawn every turn after the first pass
   through the deck.
 
 ## Log
+- AC3 and AC4 tests passed before the fix: they guard behaviour the fix must keep.
+- With only raids in both piles, each turn now reshuffles them together and logs the reshuffle; harmless.
