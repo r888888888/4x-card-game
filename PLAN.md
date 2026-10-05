@@ -38,6 +38,7 @@ res://
     population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
     research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
+    build_menu.gd        # BuildMenu (295): building unlocked entries straight onto a territory
     sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
     ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
@@ -448,6 +449,15 @@ Monument until then): every terrain has a building, every era opens a new one.
   "X isn't unlocked yet.", and the Supply screen hides them. Every `unlock` on a card the config uses must name a
   supply pile. The lock state is in `GameState.locked_supply` and copied by `fork()`.
 - Code: supply and `buy` in `engine/supply.gd`.
+- Build menu (295): buildings aren't dealt or bought in the real data. Config `build_menu: { "farm": {}, "granary":
+  { "locked": true }, "pyramids": { "locked": true, "once": true } }` (buildings and units only, never also in
+  `supply`; default {}) lists them in menu order. `build(card_id, territory_uid := -1)` puts a new copy of an unlocked
+  entry on a settled territory for an action and its cost after discounts, as playing it there would (its play
+  effects, `card_played`; Anarchy's play rule); `build_error` says why not, `build_menu()` lists the unlocked entries,
+  `build_targets(card_id)` the territories it fits now. An `unlock` naming an entry opens it ("X can now be built.");
+  a `once` entry (the wonders, Monument, Forge) is built once a game. State: `GameState.locked_builds`, `built_once`.
+  Techs unlock their buildings instead of creating a copy. A building card in a deck or the supply still plays (the
+  rules fixtures use it). No UI yet: Build… on the territory view is 297.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the

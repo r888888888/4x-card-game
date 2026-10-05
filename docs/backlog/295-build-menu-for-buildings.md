@@ -2,7 +2,7 @@
 id: 295
 title: Build buildings from a build menu instead of buying their cards
 type: feature
-status: in-progress
+status: review
 branch: feat/295-build-menu-for-buildings
 ---
 
@@ -14,13 +14,13 @@ straight onto a settled territory for 1 action plus its cost, whenever you can p
 (action cards); the build menu is your civilization's infrastructure. Follows the build-menu spike (see Design notes).
 
 ## Acceptance criteria
-- [ ] AC1: Given config `build_menu` `{"farm": {}}`, a settled territory with a free slot and a free worker, 2 actions
+- [x] AC1: Given config `build_menu` `{"farm": {}}`, a settled territory with a free slot and a free worker, 2 actions
   left and 3 food, when `build("farm", territory)` is called, then it returns true; a new Farm (a fresh uid) is in the
   tableau on that territory; food is 1 (Farm costs 2 food, after discounts as for playing it); actions left is 1;
   `card_played` is emitted with the Farm's uid and the territory as target, and its `play` effects resolve; the hand,
   deck and discard are unchanged. `build_menu()` returns `["farm"]` (unlocked entries, in config order). With
   `territory` −1 and exactly one territory that takes it, it builds there.
-- [ ] AC2: `build_error(card_id, territory)` is "" exactly when `build` would succeed, and `build` returns false and
+- [x] AC2: `build_error(card_id, territory)` is "" exactly when `build` would succeed, and `build` returns false and
   changes nothing otherwise. Each refusal, with its message: game over or a decision owed (`_blocked_error`'s message);
   a card with no build-menu entry ("Scout can't be built."); a locked entry ("Granary isn't unlocked yet."); no actions
   left ("No actions left this turn."); under Anarchy (Anarchy's play refusal, as for a hand card); short of its cost
@@ -29,21 +29,21 @@ straight onto a settled territory for 1 action plus its cost, whenever you can p
   target isn't valid.", or its requires message when only its terrain is wrong); `territory` −1 with two or more valid
   territories ("Choose a territory for Farm."). `build_targets(card_id)` lists the territories it could go on now
   (slot, worker, terrain), whatever it costs; [] for a locked or unknown entry.
-- [ ] AC3: Given `build_menu` `{"granary": {"locked": true}}` and a tech whose effect is `{"op": "unlock", "card":
+- [x] AC3: Given `build_menu` `{"granary": {"locked": true}}` and a tech whose effect is `{"op": "unlock", "card":
   "granary"}`, when the tech is learned, then `build_menu()` includes "granary", `build_error("granary", t)` no longer
   says it is locked, and the notice "Granary can now be built." is logged; no Granary card is created in any zone.
   The unlock effect's card text reads "Granary can now be built." (an action card's unlock keeps "… can now be bought
   in the supply.").
-- [ ] AC4: Given an entry with `"once": true` (a wonder), when it has been built once, then `build_error` refuses
+- [x] AC4: Given an entry with `"once": true` (a wonder), when it has been built once, then `build_error` refuses
   ("Granary is already built.") for the rest of the game, even if that copy leaves play; an entry without `once` can be
   built any number of times (three Farms on a territory with 3 free slots and workers, 6 food and 3 actions).
   `GameState.copy()` copies which entries are unlocked and which `once` entries are built.
-- [ ] AC5: The loader validates config `build_menu` (`{card_id: {locked?, once?}}`, default `{}`): an unknown card
+- [x] AC5: The loader validates config `build_menu` (`{card_id: {locked?, once?}}`, default `{}`): an unknown card
   ("build_menu: unknown card 'x'"); a card that isn't a building or unit ("build_menu: 'scout' is an action"); `locked`
   or `once` not a bool; an unknown field (a warning); a card also in `supply` ("build_menu: 'farm' is also in the
   supply"). An `unlock` effect must name a supply pile or a build-menu entry (today: a supply pile). Buildings and units
   stay allowed in `deck` and `supply` (the rules fixtures use them; see Design notes).
-- [ ] AC6: Content (real data): no building is in `deck` or `supply`; every building that a tech created or unlocked
+- [x] AC6: Content (real data): no building is in `deck` or `supply`; every building that a tech created or unlocked
   before this item has a build-menu entry that the same tech unlocks; every locked entry is unlocked by some tech;
   every building tagged `wonder` has `once`; no tech `create`s a building into a zone other than the tableau; and the
   starting resources pay for at least one entry unlocked from turn 1 that every listed civilization's home can take.
@@ -105,3 +105,20 @@ straight onto a settled territory for 1 action plus its cost, whenever you can p
 - [ ] A tech's card text and details say "X can now be built." for each building it unlocks.
 
 ## Log
+- 2026-10-05: The user chose to land 295 without a build UI and build 297 straight after: until 297 the real game
+  can't build anything (buildings left the deck and supply).
+- Built. `engine/build_menu.gd` (`BuildMenu`); `CardPlay` split into `place_error(e, card, target)` (actions, Anarchy,
+  cost, play blocks, target) and `put_into_play(e, card, target, verb)` (pay, move, resolve, emit), shared by playing a
+  hand card and building; `targets_for(e, card)`. The unlock op opens a build-menu entry when the config has one, else
+  a supply pile; its long text is "… can now be built." for a building or unit (by type: card text can't see the
+  config). Loader: `build_menu`, and an `unlock` may name an entry. The log says "Built Farm.".
+- Real data: the five turn-1 building piles became open entries, the locked building piles locked entries, Monument
+  and Forge (one-copy piles) and the eight wonders locked `once` entries; Farm and Hunters' Camp left the deck. Techs
+  lost their building `create`s; wonder `create`s became `unlock`s.
+- Test changes beyond the red checkpoint: `test_supply::test_unlock_text` (Guildhall is a building: "can now be
+  built.", named at the checkpoint); `test_content::test_real_deck_has_wealth_costs_and_the_starting_tableau_makes_wealth`
+  now counts open build-menu entries too (the deck holds no wealth cost any more; missed in the red-phase trial, which
+  left out test_content); `test_build_menu`'s full-slots fixture starts with 7 pop, not 9 (9 is over the home's
+  housing, so the fixture didn't load).
+- Follow-ups: 289's Gives captions still say "in the supply" for a build-menu entry; `ScriptedBot` never builds, so
+  sim games now place no buildings beyond Sumer's start Farm (298). The balance suite still passes.
