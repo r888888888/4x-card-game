@@ -424,13 +424,14 @@ func makes_wealth(def: CardDef) -> bool:
 	return false
 
 
+## Since 295 what costs wealth from the start may be an open build-menu entry rather than a deck card.
 func test_real_deck_has_wealth_costs_and_the_starting_tableau_makes_wealth() -> void:
 	var r := load_real()
 	var costs_wealth := 0
-	for id in r.config.deck:
+	for id in r.config.deck.keys() + open_entries(r):
 		if r.cards[id].cost.get("wealth", 0) > 0:
 			costs_wealth += 1
-	check(costs_wealth >= 1, "at least 1 deck card costs wealth (got %d)" % costs_wealth)
+	check(costs_wealth >= 1, "at least 1 deck card or open build-menu entry costs wealth (got %d)" % costs_wealth)
 	var upkeep_wealth := false
 	for id in r.config.starting.tableau:
 		for effect in r.cards[id].effects:
@@ -484,17 +485,65 @@ func test_every_building_gives_something_lasting() -> void:
 	eq(fleeting, [] as Array[String], "buildings that give nothing lasting")
 
 
-## Backlog 263: a building dealt from the starting deck can be bought again.
-func test_every_starting_deck_building_has_a_supply_pile() -> void:
+## Backlog 295 (replaces 263's every starting-deck building has a supply pile): buildings are built from the build
+## menu, never dealt or bought, and every building has an entry.
+func test_buildings_are_in_the_build_menu_not_the_deck_or_supply() -> void:
 	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var dealt: Array[String] = []
 	var missing: Array[String] = []
-	for id in r.config.deck:
-		if r.cards[id].type == CardDef.BUILDING and not r.config.supply.has(id):
-			missing.append(id)
-	eq(missing, [] as Array[String], "starting-deck buildings with no supply pile")
+	for def in real_buildings(r):
+		if r.config.deck.has(def.id) or r.config.supply.has(def.id):
+			dealt.append(def.id)
+		if not menu.has(def.id):
+			missing.append(def.id)
+	eq(dealt, [] as Array[String], "buildings in the deck or supply")
+	eq(missing, [] as Array[String], "buildings with no build-menu entry")
 
 
-## Card ids a tech's unlock effects open a supply pile for.
+## Backlog 295: a locked entry opens through a tech, and every building a tech unlocks is a locked entry.
+func test_every_locked_build_menu_entry_is_unlocked_by_a_tech_and_back() -> void:
+	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var opened := {}
+	for tech in techs_in_research_deck(r):
+		for id in unlocked_by(tech):
+			opened[id] = true
+			if r.cards[id].type == CardDef.BUILDING:
+				check(menu.get(id, {}).get("locked", false), "%s (from %s) is a locked build-menu entry" % [id, tech.id])
+	for id in menu:
+		if menu[id].locked:
+			check(opened.has(id), "locked entry %s is unlocked by a tech in research_deck" % id)
+	check(not menu.is_empty(), "the real config has a build menu")
+
+
+## Backlog 295: a wonder is built once a game.
+func test_every_wonder_is_a_once_entry() -> void:
+	var r := load_real()
+	for def in real_wonders(r):
+		check(r.config.get("build_menu", {}).get(def.id, {}).get("once", false), "%s is a once entry" % def.id)
+
+
+## Backlog 295: techs open buildings rather than hand them out; only a start gift may put one straight into play.
+func test_no_tech_creates_a_building_outside_the_tableau() -> void:
+	var r := load_real()
+	for tech in techs_in_research_deck(r):
+		for effect in tech.effects:
+			if effect.op == "create" and r.cards[effect.card_id].type == CardDef.BUILDING:
+				eq(effect.zone, "tableau", "%s creates %s into" % [tech.id, effect.card_id])
+
+
+## The build menu's entries open from turn 1 (295).
+func open_entries(r: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	var menu: Dictionary = r.config.get("build_menu", {})
+	for id in menu:
+		if not menu[id].locked:
+			out.append(id)
+	return out
+
+
+## Card ids a tech's unlock effects open a supply pile or build-menu entry for.
 func unlocked_by(tech: CardDef) -> Array[String]:
 	var out: Array[String] = []
 	for effect in tech.effects:
@@ -503,10 +552,10 @@ func unlocked_by(tech: CardDef) -> Array[String]:
 	return out
 
 
-## Backlog 264: building ids the player can get in era 1: the starting deck, an open supply pile, or a card an era-1
-## tech in the research deck creates or unlocks.
+## Backlog 264: building ids the player can get in era 1: the starting deck, an open supply pile or build-menu entry
+## (295), or a card an era-1 tech in the research deck creates or unlocks.
 func era_1_building_ids(r: Dictionary) -> Dictionary:
-	var ids: Array = r.config.deck.keys()
+	var ids: Array = r.config.deck.keys() + open_entries(r)
 	for id in r.config.supply:
 		if not r.config.supply[id].get("locked", false):
 			ids.append(id)
@@ -593,18 +642,18 @@ func test_eras_1_and_2_each_have_2_wonders_from_their_techs() -> void:
 	var per_era := {1: [], 2: []}
 	for tech in techs_in_research_deck(r):
 		if per_era.has(tech.era):
-			for id in created_by(tech):
+			for id in unlocked_by(tech):  # 295: unlocked, was created
 				if r.cards[id].has_tag("wonder"):
 					per_era[tech.era].append(id)
 	for era in per_era:
-		check(per_era[era].size() >= 2, "era %d techs create at least 2 wonders (got %s)" % [era, per_era[era]])
+		check(per_era[era].size() >= 2, "era %d techs unlock at least 2 wonders (got %s)" % [era, per_era[era]])
 
 
 func test_every_wonder_comes_only_from_one_tech() -> void:
 	var r := load_real()
 	for def in real_wonders(r):
-		var creators := techs_in_research_deck(r).filter(func(t): return created_by(t).has(def.id))
-		eq(creators.size(), 1, "techs that create %s" % def.id)
+		var creators := techs_in_research_deck(r).filter(func(t): return unlocked_by(t).has(def.id))  # 295: was create
+		eq(creators.size(), 1, "techs that unlock %s" % def.id)
 		check(not r.config.supply.has(def.id), "%s has no supply pile" % def.id)
 		check(not r.config.deck.has(def.id), "%s isn't in the starting deck" % def.id)
 
@@ -650,22 +699,18 @@ func test_only_food_buildings_cost_food_and_at_most_1() -> void:
 	eq(too_much_food, [] as Array[String], "buildings costing more food than allowed (0, or 1 if they make food)")
 
 
-func test_starting_resources_afford_a_starting_deck_building() -> void:
+## Backlog 295 (replaces "starting resources afford a starting-deck building"): on turn 1 each listed civilization can
+## build some open entry on its home with what it starts with.
+func test_every_civilization_can_build_on_its_home_on_turn_1() -> void:
 	var r := load_real()
 	var start: Dictionary = r.config.starting.get("resources", {})
 	check(start.get(GameEngine.WEALTH, 0) >= 1, "start with at least 1 wealth (got %d)" % start.get(GameEngine.WEALTH, 0))
-	var affordable: Array[String] = []
-	for id in r.config.deck:
-		var def: CardDef = r.cards[id]
-		if def.type != CardDef.BUILDING:
-			continue
-		var ok := true
-		for res in def.cost:
-			if def.cost[res] > start.get(res, 0):
-				ok = false
-		if ok:
-			affordable.append(id)
-	check(not affordable.is_empty(), "starting resources %s pay for no building in the starting deck" % [start])
+	for civ in r.config.civilizations:
+		var e := GameEngine.new(r.cards, r.config)
+		e.new_game(1, civ)
+		var home := home_uid(e)
+		var buildable: Array = e.build_menu().filter(func(id): return e.build_error(id, home) == "")
+		check(not buildable.is_empty(), "%s can build nothing on its home on turn 1 (menu %s)" % [civ, e.build_menu()])
 
 
 # --- Tech content (backlog 028) ---
@@ -727,10 +772,11 @@ func test_every_civilization_card_is_listed() -> void:
 			check(civs.has(id), "civilization %s is listed in config civilizations" % id)
 
 
-## Card ids the player can get without a civilization: the starting deck, the supply, and what techs create.
+## Card ids the player can get without a civilization: the starting deck, the supply, the build menu (295), and what
+## techs create.
 func obtainable_cards(r: Dictionary) -> Dictionary:
 	var out := {}
-	for id in r.config.deck:
+	for id in r.config.deck.keys() + r.config.get("build_menu", {}).keys():
 		out[id] = true
 	for id in r.config.get("supply", {}):
 		out[id] = true
@@ -757,15 +803,14 @@ func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void
 	check(gifts > 0, "some civilization starts with a card")
 
 
-## Backlog 107: a game starts as each listed civilization.
-func test_every_listed_civilization_has_its_own_home_that_takes_most_starting_buildings() -> void:
+## Backlog 107: a game starts as each listed civilization. Since 295 its home takes most of the build menu's open
+## entries (was: most starting-deck building copies).
+func test_every_listed_civilization_has_its_own_home_that_takes_most_open_entries() -> void:
 	var r := load_real()
 	var buildings: Array[CardDef] = []
-	var copies := 0
-	for id in r.config.deck:
-		if r.cards[id].type == CardDef.BUILDING:
-			buildings.append(r.cards[id])
-			copies += r.config.deck[id]
+	for id in open_entries(r):
+		buildings.append(r.cards[id])
+	var copies := buildings.size()
 	var homes := {}
 	for civ in r.config.civilizations:
 		var home: String = r.cards[civ].home
@@ -778,8 +823,8 @@ func test_every_listed_civilization_has_its_own_home_that_takes_most_starting_bu
 		var fit := 0
 		for b in buildings:
 			if b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)):
-				fit += r.config.deck[b.id]
-		check(fit * 2 > copies, "%s's home %s takes %d of %d starting building copies" % [civ, home, fit, copies])
+				fit += 1
+		check(fit * 2 > copies, "%s's home %s takes %d of %d open build-menu entries" % [civ, home, fit, copies])
 
 
 func test_a_new_game_starts_as_each_listed_civilization() -> void:
@@ -1061,10 +1106,12 @@ func test_every_territory_can_take_a_building_from_the_start() -> void:
 	for id in r.config.supply:
 		if r.cards[id].type == CardDef.BUILDING and not r.config.supply[id].get("locked", false):
 			early.append(r.cards[id])
+	for id in open_entries(r):  # 295
+		early.append(r.cards[id])
 	for id in [r.config.starting.territory] + r.config.territory_deck.keys():
 		var land: CardDef = r.cards[id]
 		var fits := early.filter(func(b): return b.requires.is_empty() or b.requires.any(func(k): return land.keywords.has(k)))
-		check(not fits.is_empty(), "territory %s %s can take a starting-deck or open-supply building" % [id, land.keywords])
+		check(not fits.is_empty(), "territory %s %s can take an open build-menu entry" % [id, land.keywords])
 
 
 func test_every_building_requirement_is_met_by_a_territory_in_play() -> void:
@@ -1097,7 +1144,7 @@ func reachable_cards(r: Dictionary) -> Dictionary:
 	var start: Array = [r.config.starting.territory, r.config.starting.government]
 	start.append(r.config.get("unrest", {}).get("anarchy", ""))
 	start += r.config.starting.tableau + r.config.get("civilizations", [])
-	for key in ["deck", "supply", "territory_deck", "event_deck", "research_deck"]:
+	for key in ["deck", "supply", "build_menu", "territory_deck", "event_deck", "research_deck"]:
 		start += r.config.get(key, {}).keys()
 	var out := {}
 	while not start.is_empty():

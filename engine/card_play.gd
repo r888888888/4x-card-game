@@ -13,6 +13,12 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 		return "That card is not in your hand."
 	if card.def.type == CardDef.GOVERNMENT:  # chosen from the government deck (154, 155)
 		return "A government is chosen, not played."
+	return place_error(e, card, target_uid)
+
+
+## Why card (in the hand, or a new copy to build, 295) can't be put into play on target_uid now, or "": actions, Anarchy,
+## its cost, its play effects' blocks and its target.
+static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> String:
 	if actions_left(e) == 0:
 		return "No actions left this turn."
 	var anarchy := Anarchy.play_error(e, card)
@@ -30,7 +36,7 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 				return blocked
 	if not needs_target(card):
 		return ""
-	var targets := targets_of(e, uid)
+	var targets := targets_for(e, card)
 	var building := card.def.type == CardDef.BUILDING
 	var placed := building or card.def.type == CardDef.UNIT  # goes on a territory (160)
 	if target_uid != -1:
@@ -50,9 +56,14 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 
 
 static func targets_of(e: GameEngine, uid: int) -> Array[int]:
-	var out: Array[int] = []
 	var card := e.zone("hand").find(uid)
-	if card == null or not needs_target(card):
+	return targets_for(e, card) if card != null else [] as Array[int]
+
+
+## The targets card (in the hand, or a new copy to build) could be played on; [] when it needs none.
+static func targets_for(e: GameEngine, card: CardInstance) -> Array[int]:
+	var out: Array[int] = []
+	if not needs_target(card):
 		return out
 	if card.def.type == CardDef.BUILDING:
 		return Territories.building_targets(e, card)
@@ -73,6 +84,15 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	var hand := e.zone("hand")
 	var card := hand.find(uid)
 	hand.remove(card)
+	put_into_play(e, card, target)
+	return true
+
+
+## Puts card, out of any zone, into play on target (-1 for none): uses an action, pays its cost, moves it (a permanent
+## to the tableau on target, an action to the discard), resolves its play effects and emits card_played and changed.
+## Playing a hand card and building a build-menu entry (295) both end here; verb starts the log line.
+static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb := "Played") -> void:
+	var uid := card.uid
 	e.state.actions_used += 1
 	var to_zone := _destination(card)
 	e._outcome = _new_outcome(uid, to_zone, target)
@@ -82,7 +102,7 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	for r in cost:
 		if cost[r] > 0:
 			e._outcome.paid[r] = cost[r]
-	e._log("Played %s." % card.def.name)
+	e._log("%s %s." % [verb, card.def.name])
 	if card.def.type == CardDef.BUILDING:
 		card.territory_uid = target
 	if card.def.type == CardDef.UNIT:  # homed and stationed where it is recruited (160)
@@ -99,7 +119,6 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 	e.play_target = -1
 	e.card_played.emit(outcome)
 	e.changed.emit()
-	return true
 
 
 ## What def costs to play: its cost less the civilization's discounts (108); {} for a project, whose cost is paid into

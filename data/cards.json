@@ -613,7 +613,7 @@
       "flavor": "Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.",
       "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "granary", "zone": "discard" }, { "op": "unlock", "card": "granary" },
+      "effects": [ { "op": "unlock", "card": "granary" },
         { "op": "unlock", "card": "mud_brick_houses" } ]
     },
     {
@@ -621,28 +621,28 @@
       "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides and patient strength for the plough.",
       "quote": { "text": "The master's eye fattens the horse.", "by": "Persian saying, in Xenophon's Oeconomicus" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "hunters_camp", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "pasture", "zone": "discard" }, { "op": "unlock", "card": "pasture" } ]
+      "effects": [ { "op": "unlock", "card": "pasture" } ]
     },
     {
       "id": "irrigation", "name": "Irrigation", "type": "tech",
       "flavor": "Canals and ditches lead river water out to thirsty fields, and the desert's edge turns green.",
       "quote": { "text": "Egypt is the gift of the river.", "by": "after Herodotus, Histories 2.5" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "farm", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "irrigation_canals", "zone": "discard" }, { "op": "unlock", "card": "irrigation_canals" } ]
+      "effects": [ { "op": "unlock", "card": "irrigation_canals" } ]
     },
     {
       "id": "the_plough", "name": "The Plough", "type": "tech", "prereq": "animal_husbandry",
       "flavor": "Yoked oxen drag a wooden share through heavy soil, and one family can sow fields that once took a village.",
       "quote": { "text": "He that by the plough would thrive, himself must either hold or drive.", "by": "Benjamin Franklin, Poor Richard's Almanack" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "pasture", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "ploughed_fields", "zone": "discard" }, { "op": "unlock", "card": "ploughed_fields" } ]
+      "effects": [ { "op": "unlock", "card": "ploughed_fields" } ]
     },
     {
       "id": "weaving", "name": "Weaving", "type": "tech",
       "flavor": "Flax and wool spun and woven on upright looms make cloth, the greatest trade of the ancient world after bread.",
       "quote": { "text": "She seeketh wool, and flax, and worketh willingly with her hands.", "by": "Proverbs 31:13" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "weavers_workshop", "zone": "discard" }, { "op": "unlock", "card": "weavers_workshop" } ]
+      "effects": [ { "op": "unlock", "card": "weavers_workshop" } ]
     },
     {
       "id": "clay_tokens", "name": "Clay Tokens", "type": "tech", "prereq": "pottery",
@@ -656,23 +656,23 @@
       "flavor": "Grain left wet in a jar turns to beer: it keeps for months, and Sumerian workers draw their wages in it.",
       "quote": { "text": "And wine that maketh glad the heart of man.", "by": "Psalm 104:15" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "farm", "count": 3, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "brewery", "zone": "discard" }, { "op": "unlock", "card": "brewery" } ]
+      "effects": [ { "op": "unlock", "card": "brewery" } ]
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
       "flavor": "Copper, tin and flint are dug from the hills in narrow shafts lit by oil lamps.",
       "quote": { "text": "Surely there is a vein for the silver, and a place for gold where they fine it.", "by": "Job 28:1" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "tag": "wall", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "mine", "zone": "discard" }, { "op": "unlock", "card": "mine" } ]
+      "effects": [ { "op": "unlock", "card": "mine" } ]
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
       "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise.",
       "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
-      "effects": [ { "op": "create", "card": "temple", "zone": "discard" }, { "op": "unlock", "card": "temple" },
+      "effects": [ { "op": "unlock", "card": "temple" },
         { "op": "unlock", "card": "stone_circle" },
-        { "op": "create", "card": "oracle_of_delphi", "zone": "discard" } ]
+        { "op": "unlock", "card": "oracle_of_delphi" } ]
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
@@ -687,44 +687,44 @@
       "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
       "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "monument", "zone": "discard" }, { "op": "unlock", "card": "monument" },
-        { "op": "create", "card": "walls_of_uruk", "zone": "discard" } ]
+      "effects": [ { "op": "unlock", "card": "monument" },
+        { "op": "unlock", "card": "walls_of_uruk" } ]
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
       "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across the seas.",
       "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "forge", "zone": "discard" }, { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "add_era", "era": 2 } ]
+      "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
       "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
       "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "library", "zone": "discard" }, { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 },
-        { "op": "create", "card": "great_library", "zone": "discard" } ]
+      "effects": [ { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 },
+        { "op": "unlock", "card": "great_library" } ]
     },
     {
       "id": "weights_and_measures", "name": "Weights and Measures", "type": "tech", "era": 2, "prereq": "clay_tokens",
       "flavor": "Silver weighed out in shekels and grain in fixed measures let strangers trade without haggling over every sack.",
       "quote": { "text": "A false balance is abomination to the Lord: but a just weight is his delight.", "by": "Proverbs 11:1" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "market", "zone": "discard" }, { "op": "unlock", "card": "market" } ]
+      "effects": [ { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "olive_and_vine", "name": "Olive and Vine", "type": "tech", "era": 2, "prereq": "pottery",
       "flavor": "Olive trees and vines take years to bear, then bear for lifetimes; their oil and wine sail out in amphorae.",
       "quote": { "text": "A land of wheat, and barley, and vines, and fig trees, and pomegranates; a land of oil olive, and honey.", "by": "Deuteronomy 8:8" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "olive_groves", "zone": "discard" }, { "op": "unlock", "card": "olive_groves" } ]
+      "effects": [ { "op": "unlock", "card": "olive_groves" } ]
     },
     {
       "id": "medicine", "name": "Medicine", "type": "tech", "era": 2, "prereq": "writing",
       "flavor": "In Egypt's Houses of Life, priest-physicians copy papyri on wounds, fevers and remedies, and tend the sick.",
       "quote": { "text": "Life is short, the art long.", "by": "Hippocrates, Aphorisms 1.1" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "bathhouse", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "house_of_life", "zone": "discard" }, { "op": "unlock", "card": "house_of_life" } ]
+      "effects": [ { "op": "unlock", "card": "house_of_life" } ]
     },
     {
       "id": "credit", "name": "Credit", "type": "tech", "era": 2, "prereq": "writing",
@@ -739,15 +739,15 @@
       "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts.",
       "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "harbor", "zone": "discard" }, { "op": "unlock", "card": "harbor" },
-        { "op": "create", "card": "great_harbor_of_tyre", "zone": "discard" } ]
+      "effects": [ { "op": "unlock", "card": "harbor" },
+        { "op": "unlock", "card": "great_harbor_of_tyre" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
       "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods.",
       "quote": { "text": "Thou art a priest for ever after the order of Melchizedek.", "by": "Psalm 110:4" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "pyramids", "zone": "discard" }, { "op": "create", "card": "theocracy", "zone": "discard" },
+      "effects": [ { "op": "unlock", "card": "pyramids" }, { "op": "create", "card": "theocracy", "zone": "discard" },
         { "op": "unlock", "card": "bathhouse" } ]
     },
     {
@@ -756,14 +756,14 @@
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" },
-        { "op": "create", "card": "great_ziggurat", "zone": "discard" } ]
+        { "op": "unlock", "card": "great_ziggurat" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
       "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days.",
       "quote": { "text": "To every thing there is a season, and a time to every purpose under the heaven.", "by": "Ecclesiastes 3:1" },
       "cost": { "insight": 19 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
-      "effects": [ { "op": "create", "card": "hanging_gardens", "zone": "discard" } ]
+      "effects": [ { "op": "unlock", "card": "hanging_gardens" } ]
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
@@ -798,7 +798,7 @@
       "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride the roads between them.",
       "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "after Herodotus, Histories 8.98" },
       "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2 },
-      "effects": [ { "op": "create", "card": "royal_road", "zone": "discard" } ]
+      "effects": [ { "op": "unlock", "card": "royal_road" } ]
     },
     {
       "id": "alphabet", "name": "Alphabet", "type": "tech", "era": 3, "prereq": "writing",
@@ -812,7 +812,7 @@
       "flavor": "Persian diggers tunnel gently downhill from a mountain's water table, and fields grow green in the desert.",
       "quote": { "text": "For in the wilderness shall waters break out, and streams in the desert.", "by": "Isaiah 35:6" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "caravanserai", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "create", "card": "qanat_channel", "zone": "discard" }, { "op": "unlock", "card": "qanat_channel" } ]
+      "effects": [ { "op": "unlock", "card": "qanat_channel" } ]
     },
     {
       "id": "navigation", "name": "Navigation", "type": "tech", "era": 3, "prereq": "sailing",
@@ -833,7 +833,7 @@
       "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
       "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "create", "card": "aqueduct", "zone": "discard" }, { "op": "unlock", "card": "aqueduct" } ]
+      "effects": [ { "op": "unlock", "card": "aqueduct" } ]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",

@@ -6,8 +6,10 @@ extends RefCounted
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
+const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
+const BUILD_FIELDS: Array[String] = ["locked", "once"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
 
 
@@ -16,6 +18,7 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## event_deck: {card_id: count},
 ## population: {start, food_upkeep, vp_per_pop, tiers} (tiers: [{id, name, pop, slots}], [] when off; 281), or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
+## build_menu: {card_id: {locked, once}}, in the order the menu lists them, {} when there is none (295),
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
 ## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
 ## terrain_defense: {keyword: int}, the defence each keyword gives a territory (161), {} when there is none,
@@ -47,6 +50,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"population": {},
 		"famine": {},  # population.famine, normalized: {card, max_counters} (083); {} with population off
 		"supply": {},
+		"build_menu": {},
 		"territory_resources": {},
 		"civilizations": [] as Array[String],
 	}
@@ -131,6 +135,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		errs.append("'event_deck' must be an object like {\"windfall\": 1}")
 
 	config.supply = _parse_supply(raw.get("supply", {}), cards, errs)
+	config.build_menu = _parse_build_menu(raw.get("build_menu", {}), cards, config.supply, errs, warnings, src)
 	_check_unlocks(config, cards, errs)
 	_check_start_buildings(config, cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, config.terrains, errs)
@@ -528,6 +533,41 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 	return out
 
 
+## Normalizes the build menu {card_id: {locked, once}} (295): each card a building or unit not also in the supply,
+## locked and once bools (default false); another field is a warning.
+static func _parse_build_menu(raw: Variant, cards: Dictionary, supply: Dictionary, errs: Array[String],
+		warnings: Array[String], src: String) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'build_menu' must be an object like {\"farm\": {}}")
+		return out
+	for id in raw:
+		var entry: Variant = raw[id]
+		if not cards.has(id):
+			errs.append("build_menu: unknown card '%s'" % id)
+			continue
+		if not BUILD_TYPES.has(cards[id].type):
+			errs.append("build_menu: '%s' is %s %s" % [id, "an" if cards[id].type == CardDef.ACTION else "a", cards[id].type])
+			continue
+		if supply.has(id):
+			errs.append("build_menu: '%s' is also in the supply" % id)
+			continue
+		if not (entry is Dictionary):
+			errs.append("build_menu: '%s' must be an object like {\"locked\": true}" % id)
+			continue
+		var valid := true
+		for field in entry:
+			if not BUILD_FIELDS.has(field):
+				warnings.append("%s: build_menu: '%s': unknown field '%s'" % [src, id, field])
+		for field in BUILD_FIELDS:
+			if not (entry.get(field, false) is bool):
+				errs.append("build_menu: '%s': '%s' must be true or false" % [id, field])
+				valid = false
+		if valid:
+			out[id] = {"locked": entry.get("locked", false), "once": entry.get("once", false)}
+	return out
+
+
 ## Normalizes terrain_defense {keyword: int >= 1} (161): each key a config keyword or resource keyword.
 static func _parse_terrain_defense(raw: Variant, keywords: Array[String], errs: Array[String]) -> Dictionary:
 	var out := {}
@@ -545,10 +585,11 @@ static func _parse_terrain_defense(raw: Variant, keywords: Array[String], errs: 
 	return out
 
 
-## Every unlock effect on a card the game uses (decks, starting tableau, supply) must name a supply pile.
+## Every unlock effect on a card the game uses (decks, starting tableau, supply, build menu) must name a supply pile or
+## a build-menu entry (295).
 static func _check_unlocks(config: Dictionary, cards: Dictionary, errs: Array[String]) -> void:
 	var used := {}
-	for field in ["deck", "research_deck", "event_deck", "supply"]:
+	for field in ["deck", "research_deck", "event_deck", "supply", "build_menu"]:
 		for id in config[field]:
 			used[id] = true
 	for id in config.starting.tableau:
@@ -557,8 +598,8 @@ static func _check_unlocks(config: Dictionary, cards: Dictionary, errs: Array[St
 		if not cards.has(id):
 			continue
 		for effect in cards[id].effects:
-			if effect.op == "unlock" and not config.supply.has(effect.card_id):
-				errs.append("'%s' unlocks '%s', which has no supply pile" % [id, effect.card_id])
+			if effect.op == "unlock" and not config.supply.has(effect.card_id) and not config.build_menu.has(effect.card_id):
+				errs.append("'%s' unlocks '%s', which has no supply pile or build-menu entry" % [id, effect.card_id])
 
 
 ## The config's civilizations list: civilization ids, each once.
