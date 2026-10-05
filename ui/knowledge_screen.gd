@@ -36,6 +36,7 @@ var _era_tiles: Array = []  # per era row, its tiles (Array[Button])
 var _vellums: Array = []  # per era row, its vellum, or null once reached
 var _tiles := {}  # tech name -> its tile
 var _tile_texts := {}  # tech name -> the texts its tile shows
+var _linked: Array[String] = []  # the names of the tiles marked as linked to the hovered tech (278)
 
 
 ## Builds the screen beside place (the Realm section) for nav, hidden. Its techs open their details with
@@ -96,6 +97,11 @@ func era_heading(i: int) -> Label:
 ## "✔ Eureka"), era row i's tiles, and its vellum (null once reached) and the vellum's text.
 func tile(tech_name: String) -> Button:
 	return _tiles.get(tech_name)
+
+
+## Whether the tile of tech_name is marked as linked to the hovered tech (278).
+func linked(tech_name: String) -> bool:
+	return _linked.has(tech_name)
 
 
 func tile_texts(tech_name: String) -> Array[String]:
@@ -182,6 +188,7 @@ func _fill(e: GameEngine) -> void:
 	_vellums.clear()
 	_tiles.clear()
 	_tile_texts.clear()
+	_linked.clear()
 	for era in e.tech_eras():
 		_titles.append(era.name)
 		_rows.add_child(_row(e, era))
@@ -249,6 +256,17 @@ static func _opens(era: Dictionary) -> String:
 	return "Opens at %s" % " or ".join(parts)
 
 
+## Marks the tiles called names as linked to the hovered tech, or clears the mark (278).
+func _mark_linked(names: Array[String], on: bool) -> void:
+	for tech_name in names:
+		var tile := _tiles.get(tech_name) as Button
+		if tile == null:
+			continue
+		var look := String(tile.theme_type_variation).trim_suffix("Linked")
+		tile.theme_type_variation = StringName(look + "Linked" if on else look)
+	_linked = names.duplicate() if on else ([] as Array[String])
+
+
 ## A tech's index-card tile: its name, its marker (✓, its cost now, or "needs <prerequisite>"), and "✔ Eureka" when
 ## its eureka is met. A click, a right click or I shows its details. Its tooltip says its state in words, why it can't be learned, what it gives and its eureka.
 func _tile(e: GameEngine, tech: Dictionary) -> Button:
@@ -287,6 +305,15 @@ func _tile(e: GameEngine, tech: Dictionary) -> Button:
 		box.add_child(_tile_label(texts[-1], text, true))
 	_tiles[texts[0]] = b
 	_tile_texts[texts[0]] = texts
+	if state == GameEngine.TECH_AVAILABLE:
+		var links := e.tech_links(tech.id)
+		var names: Array[String] = []
+		if links.prereq != "":
+			names.append(e.card_db[links.prereq].name)
+		for id: String in links.unlocks:
+			names.append(e.card_db[id].name)
+		b.mouse_entered.connect(_mark_linked.bind(names, true))
+		b.mouse_exited.connect(_mark_linked.bind(names, false))
 	var learnable := state == GameEngine.TECH_AVAILABLE or state == GameEngine.TECH_LOCKED
 	var details := func(): _open_tech.call(tech.id, tech.uid if learnable else -1)
 	b.pressed.connect(details)

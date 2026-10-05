@@ -99,6 +99,12 @@ func buy_tech(uid: int) -> bool:
 	return Research.buy(self, uid)
 
 
+## The tech id's neighbours in the tree: {prereq (its prerequisite's id, "" if none), unlocks (the ids of the techs
+## that need it, in tree order)}; both empty for an id that isn't a tech.
+func tech_links(id: String) -> Dictionary:
+	return Research.links(self, id)
+
+
 ## Why a copy of card_id can't be bought from the supply right now, or "" if it can.
 func buy_error(card_id: String) -> String:
 	return Supply.buy_error(self, card_id)

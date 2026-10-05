@@ -4,7 +4,7 @@ extends "res://tests/lib/tech_case.gd"
 ## tiles per era, named from era_names; T, Esc or the header's link go back. A click on an available tech's tile
 ## learns it (222; a Learn button before it, 140). Hooks on main.knowledge: shown() (the era names, top to bottom; []
 ## while closed), is_open(), open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label),
-## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), slide_offset() (how
+## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), linked(name) (278), slide_offset() (how
 ## far the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
 
 
@@ -635,3 +635,76 @@ func test_over_a_territory_its_tab_goes_back_one_step_to_the_view() -> void:
 		check(main.territory_view.is_open(), "the territory view is still open")
 	close_main(main)
 	Game.engine = real
+
+
+# --- 278: hovering an available tile marks its prerequisite and the techs it opens ---
+
+## Whether tech_name's tile is marked as linked to the hovered one.
+func linked(main: Node, tech_name: String) -> bool:
+	return main.knowledge.linked(tech_name)
+
+
+## Every tech's name in with_tree.
+const TREE_NAMES := ["Pottery", "Writing", "Bronze Working", "Iron Working"]
+
+
+func marked(main: Node) -> Array[String]:
+	var out: Array[String] = []
+	for n in TREE_NAMES:
+		if linked(main, n):
+			out.append(n)
+	return out
+
+
+func test_hovering_an_available_tile_marks_the_techs_it_opens() -> void:
+	await with_tree(func(main: Node):
+		tile(main, "Bronze Working").mouse_entered.emit()
+		eq(marked(main), ["Iron Working"] as Array[String], "Bronze Working opens Iron Working"))
+
+
+func test_hovering_an_available_tile_marks_its_prerequisite() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "bronze"))  # Iron Working is available now
+		tile(main, "Iron Working").mouse_entered.emit()
+		eq(marked(main), ["Bronze Working"] as Array[String], "Iron Working needs Bronze Working"))
+
+
+func test_the_mark_is_a_look_of_its_own() -> void:
+	await with_tree(func(main: Node):
+		var before := tile(main, "Iron Working").get_theme_stylebox("normal") as StyleBoxFlat
+		tile(main, "Bronze Working").mouse_entered.emit()
+		var after := tile(main, "Iron Working").get_theme_stylebox("normal") as StyleBoxFlat
+		check(before.border_color != after.border_color or before.bg_color != after.bg_color,
+			"a linked tile's look differs from its unmarked look")
+		eq(tile(main, "Iron Working").custom_minimum_size, tile_size(), "still a tile of one size"))
+
+
+func test_the_mark_clears_when_the_mouse_leaves() -> void:
+	await with_tree(func(main: Node):
+		tile(main, "Bronze Working").mouse_entered.emit()
+		tile(main, "Bronze Working").mouse_exited.emit()
+		eq(marked(main), [] as Array[String], "nothing marked"))
+
+
+func test_hovering_a_researched_or_locked_tile_marks_nothing() -> void:
+	await with_tree(func(main: Node):
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))
+		tile(main, "Pottery").mouse_entered.emit()
+		eq(marked(main), [] as Array[String], "researched: nothing")
+		tile(main, "Pottery").mouse_exited.emit()
+		tile(main, "Iron Working").mouse_entered.emit()  # locked: Bronze Working isn't researched
+		eq(marked(main), [] as Array[String], "locked: nothing"))
+
+
+func test_hovering_a_later_era_tile_marks_nothing() -> void:
+	await with_two_eras(func(main: Node):
+		tile(main, "Optics").mouse_entered.emit()
+		check(not linked(main, "Pottery") and not linked(main, "Writing") and not linked(main, "Optics"),
+			"a tile under its vellum marks nothing"))
+
+
+func test_a_rebuild_leaves_no_mark_behind() -> void:
+	await with_tree(func(main: Node):
+		tile(main, "Bronze Working").mouse_entered.emit()
+		Game.engine.buy_tech(uid_of(Game.engine.zone("research_deck"), "pottery"))  # rebuilds the screen, no mouse_exited
+		eq(marked(main), [] as Array[String], "no stale mark"))

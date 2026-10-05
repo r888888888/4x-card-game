@@ -63,6 +63,7 @@ static var FRONTIER_HATCH: Color = NIGHT["FRONTIER_HATCH"]  # its diagonal lines
 
 # The tech tree (222).
 static var RESEARCHED_FILL: Color = NIGHT["RESEARCHED_FILL"]  # a researched tech's tile: the teal plane (222)
+static var TECH_LINK: Color = NIGHT["TECH_LINK"]  # the border of the tiles linked to the hovered tech (278)
 static var TEXT_ON_PLANE: Color = NIGHT["TEXT_ON_PLANE"]  # text on a filled plane, such as a researched tile (222)
 
 # The title screen's art (214): a sun over a hill, its own roles so it can drift from the cards' planes.
@@ -129,6 +130,7 @@ const NIGHT := {
 	"FRONTIER_BG": Color("1f1e1c"),
 	"FRONTIER_HATCH": Color(1, 1, 1, 0.05),
 	"RESEARCHED_FILL": Color("5fb0a9"),
+	"TECH_LINK": Color("e3b94f"),
 	"TEXT_ON_PLANE": Color("1f1e1c"),
 	"DIMMER": Color(0, 0, 0, 0.65),
 	"SCRIM": Color(0, 0, 0, 0.6),
@@ -191,6 +193,7 @@ const DAY := {
 	"FRONTIER_BG": Color("efe8da"),
 	"FRONTIER_HATCH": Color("22211f1a"),
 	"RESEARCHED_FILL": Color("5e9c97"),
+	"TECH_LINK": Color("9a6f12"),
 	"TEXT_ON_PLANE": Color("22211f"),
 	"DIMMER": Color("22211f66"),
 	"SCRIM": Color("22211f66"),
