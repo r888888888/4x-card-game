@@ -2,7 +2,7 @@
 id: 289
 title: A tech's details show the cards it gives
 type: feature
-status: red-review
+status: in-progress
 branch: feat/289-tech-details-show-given-cards
 ---
 

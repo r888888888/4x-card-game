@@ -112,6 +112,10 @@ static func _identity_cards(t: Theme) -> void:
 		t.set_stylebox(state, "IdentityCard", card)
 	t.set_stylebox("hover", "IdentityCard", lifted)
 	t.set_stylebox("focus", "IdentityCard", focus_ring())
+	t.set_type_variation("GivesCard", "Button")  # a tech's details: a card it gives, just its face (289)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		t.set_stylebox(state, "GivesCard", StyleBoxEmpty.new())
+	t.set_stylebox("focus", "GivesCard", focus_ring())
 	_label(t, "Flavor", Tokens.TYPE_BODY_S, Palette.TEXT_DIM, tabular(ITALIC_FONT))
 	t.set_type_variation("DeckTab", "Button")
 	t.set_font_size("font_size", "DeckTab", Tokens.TYPE_BODY_S)

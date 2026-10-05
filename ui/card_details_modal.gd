@@ -8,6 +8,8 @@ extends Modal
 ## A supply pile's, opened from the supply screen, show the pile's price tag and copies left under the card and offer
 ## Buy, disabled with the engine's reason on the footer's left when the pile can't be bought (259). A wonder site's
 ## offer Contribute, which puts in GameEngine.contribute_limit, and Abandon…, which asks first (286).
+## A tech's show the cards it gives in a Gives row across the sheet, each captioned with how you get it; a click, or
+## Enter or I on a focused one, opens that card's details on given_details, over this one (289).
 
 ## Play was pressed on a hand card's details: the modal has closed, and view is the card to play.
 signal play_requested(view: CardView)
@@ -34,6 +36,9 @@ var _buy: Button
 var _reason: Label  # why Buy is disabled, on the footer's left (259)
 var _pile: CardView  # the supply pile card Buy buys from; null when Buy is hidden
 var _column: VBoxContainer  # the pile's card, price tag and copies left in the aside; null unless a pile is on show
+var _gives: VBoxContainer  # the Gives row (289): its heading and the cards; hidden when the card gives nothing
+var _gives_row: HBoxContainer  # per given card, a column: its card as a button, its caption under it
+var given_details: CardDetailsModal  # where a Gives card's details open, over this one; built on first use
 
 
 ## Builds the modal on stack's host, hidden: the card in the aside, its facts and text in the body, Close and (for a
@@ -65,6 +70,15 @@ func _init(p_stack: ModalStack) -> void:
 	_abandon = add_footer_button(UIKit.button("Abandon…", _on_abandon))
 	_contribute = add_footer_button(UIKit.button("Contribute", _on_contribute), true)
 	abandon_modal = AbandonModal.new(p_stack)
+	_gives = VBoxContainer.new()
+	_gives.add_theme_constant_override("separation", Tokens.SPACE_2)
+	_gives.visible = false
+	footer_rule.get_parent().add_child(_gives)
+	footer_rule.get_parent().move_child(_gives, footer_rule.get_index())  # under the card and body, over the footer
+	_gives.add_child(UIKit.heading("Gives"))
+	_gives_row = HBoxContainer.new()
+	_gives_row.add_theme_constant_override("separation", UIKit.CARD_GAP)
+	_gives.add_child(_gives_row)
 
 
 ## Test hook: the details on show, {} while hidden.
@@ -110,6 +124,26 @@ func pile_tag() -> Control:
 ## Test hook (259): the Label under the aside's price tag ("6 left"), or null unless a supply pile is on show.
 func pile_left() -> Label:
 	return _column.get_meta("left") if _column != null else null
+
+
+## Test hooks (289): the Gives row's card ids and captions, in order; its card button i, or null.
+func gives_ids() -> Array[String]:
+	var out: Array[String] = []
+	for column in _gives_columns():
+		out.append(column.get_meta("card_id"))
+	return out
+
+
+func gives_captions() -> Array[String]:
+	var out: Array[String] = []
+	for column in _gives_columns():
+		out.append((column.get_meta("caption") as Label).text)
+	return out
+
+
+func gives_card(i: int) -> Button:
+	var columns := _gives_columns()
+	return columns[i].get_meta("button") if i < columns.size() else null
 
 
 ## Test hook: the body text on show, without markup.
@@ -221,7 +255,62 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		SupplyScreen.show_pile(_column, e, card_id)
 		aside.custom_minimum_size = _column.get_combined_minimum_size()
 		card.attach(_column.get_meta("slot"))
+	_show_gives(details.get("gives", []))
 	present()  # last among its siblings, so a screen added later (the new game screen) can't take its input (107)
+
+
+## Fills the Gives row with a column per given card (289): its card, at TABLEAU_SIZE, as a button, and how you get it
+## under it. Hidden when gives is empty.
+func _show_gives(gives: Array) -> void:
+	for column in _gives_row.get_children():
+		_gives_row.remove_child(column)
+		column.queue_free()
+	_gives.visible = not gives.is_empty()
+	var e := Game.engine
+	for given in gives:
+		var column := VBoxContainer.new()
+		column.add_theme_constant_override("separation", Tokens.SPACE_1)
+		_gives_row.add_child(column)
+		var button := Button.new()
+		button.theme_type_variation = &"GivesCard"
+		button.custom_minimum_size = CardView.TABLEAU_SIZE
+		button.tooltip_text = "See its details."
+		button.pressed.connect(_open_given.bind(given.card_id))
+		column.add_child(button)
+		var card := CardView.new()
+		card.setup(CardInstance.new(-1, e.card_db[given.card_id]), e.card_db, false)
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.attach(button)
+		var caption := Label.new()
+		caption.theme_type_variation = &"Caption"
+		caption.text = given.how
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.custom_minimum_size.x = CardView.TABLEAU_SIZE.x
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		column.add_child(caption)
+		column.set_meta("card_id", given.card_id)
+		column.set_meta("button", button)
+		column.set_meta("caption", caption)
+
+
+func _gives_columns() -> Array[Node]:
+	return _gives_row.get_children().filter(func(c): return not c.is_queued_for_deletion()) if is_open() else []
+
+
+## Opens given card card_id's details over this modal, with no footer action (289).
+func _open_given(card_id: String) -> void:
+	if given_details == null:
+		given_details = CardDetailsModal.new(stack)
+	given_details.open_def(card_id)
+
+
+## I on a focused Gives card opens it, as Enter does (289); otherwise the close keys close.
+func key_pressed(keycode: Key) -> void:
+	var focused := get_viewport().gui_get_focus_owner()
+	if keycode == KEY_I and focused != null and _gives_row.is_ancestor_of(focused):
+		(focused as Button).pressed.emit()
+		return
+	super(keycode)
 
 
 func closed() -> void:
