@@ -2,7 +2,7 @@
 id: 311
 title: A sample fork reshuffles what the player can't see
 type: feature
-status: in-progress
+status: review
 branch: feat/311-sample-fork
 ---
 
@@ -13,15 +13,15 @@ a player never has, which flatters the sim. After this, `sample_fork(seed)` give
 reshuffled from a seed: one possible future, not the real one.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game whose deck holds 10 cards, when `sample_fork(s)` is called, then its deck holds the same cards
+- [x] AC1: Given a game whose deck holds 10 cards, when `sample_fork(s)` is called, then its deck holds the same cards
   (same uids) as the game's; for seeds 1 to 20 at least one sample's order differs from the game's, and the same seed
   gives the same order twice.
-- [ ] AC2: The same holds for `event_deck` and `territory_deck`: same cards, an order drawn from the seed.
-- [ ] AC3: Everything else in the sample equals the game: hand, discard, tableau, frontier, reveal, research deck,
+- [x] AC2: The same holds for `event_deck` and `territory_deck`: same cards, an order drawn from the seed.
+- [x] AC3: Everything else in the sample equals the game: hand, discard, tableau, frontier, reveal, research deck,
   researched, supply, resources, turn, pending (with its options), active events and each raid's target.
-- [ ] AC4: The sample's later shuffles come from the seed, not the game's rng: two samples with seeds 1 and 2, after
+- [x] AC4: The sample's later shuffles come from the seed, not the game's rng: two samples with seeds 1 and 2, after
   their decks run out and the discard is reshuffled, may differ, and the same seed twice gives the same order.
-- [ ] AC5: The game is untouched: its zone orders, and the order its next reshuffle gives, are the same as without the
+- [x] AC5: The game is untouched: its zone orders, and the order its next reshuffle gives, are the same as without the
   call. `fork()` still copies the game exactly (its tests unchanged).
 
 ## Out of scope
@@ -47,3 +47,5 @@ reshuffled from a seed: one possible future, not the real one.
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309, 310, 312–315. The spike found forks are clairvoyant.
+- 2026-10-05: built as `fork()` + a new `SeededRng` + a shuffle of each of `GameEngine.HIDDEN_ZONES`. ScriptedBot's
+  lookahead still uses `fork()` (clairvoyant) until 314 replaces it.
