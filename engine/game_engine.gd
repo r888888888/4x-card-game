@@ -29,6 +29,8 @@ const TECH_RESEARCHED := "researched"
 const TECH_AVAILABLE := "available"
 const TECH_LOCKED := "locked"
 const TECH_FUTURE := "future"
+## The zones whose order the player can't see (311): sample_fork reshuffles them. Their cards are known, not their order.
+const HIDDEN_ZONES: Array[String] = ["deck", "event_deck", "territory_deck"]
 ## The actions still allowed while a discard is owed (see _blocked_error).
 const _DISCARD_ALLOWS: Array[String] = ["discard", "supply", "research"]
 
@@ -37,6 +39,17 @@ const _DISCARD_ALLOWS: Array[String] = ["discard", "supply", "research"]
 func fork() -> GameEngine:
 	var f := GameEngine.new(card_db, config)
 	f.state = state.copy()
+	return f
+
+
+## A fork whose hidden orders are drawn from p_seed instead of copied (311): one possible future, not the real one. It
+## gets a new SeededRng from p_seed, which reshuffles each of HIDDEN_ZONES and makes its later draws; the cards in each
+## zone and everything the player sees stay as they are. This game is untouched.
+func sample_fork(p_seed: int) -> GameEngine:
+	var f := fork()
+	f.rng = SeededRng.new(p_seed)
+	for name in HIDDEN_ZONES:
+		f.rng.shuffle(f.zone(name).cards)
 	return f
 
 

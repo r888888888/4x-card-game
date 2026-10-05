@@ -112,7 +112,7 @@ func play(main: Node, id: String) -> void:
 	e.changed.emit()  # so the board deals it a view
 	await wait_frames()
 	var view: CardView = main.views[uid]
-	main.try_play(view, home_uid(e) if e.needs_target(uid) else -1)
+	main.card_actions.try_play(view, home_uid(e) if e.needs_target(uid) else -1)
 	await wait_frames()
 
 

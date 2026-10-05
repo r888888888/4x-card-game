@@ -124,7 +124,7 @@ func click_vellum(point: Vector2) -> void:
 	for target in lit:
 		var view: CardView = _board.views.get(target)
 		if view != null and view.get_global_rect().has_point(point):
-			_board.on_picked(view)
+			_board.card_actions.on_picked(view)
 			return
 	end_targeting()
 
@@ -232,7 +232,7 @@ func _drop() -> void:
 	var target := _target_under_mouse() if Game.engine.needs_target(view.uid) else -1
 	end_drag()
 	if over:
-		_board.try_play(view, target)
+		_board.card_actions.try_play(view, target)
 	else:
 		view.return_home()
 

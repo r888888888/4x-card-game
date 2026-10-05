@@ -2,7 +2,7 @@
 id: 311
 title: A sample fork reshuffles what the player can't see
 type: feature
-status: ready
+status: done
 branch: feat/311-sample-fork
 ---
 
@@ -13,15 +13,15 @@ a player never has, which flatters the sim. After this, `sample_fork(seed)` give
 reshuffled from a seed: one possible future, not the real one.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game whose deck holds 10 cards, when `sample_fork(s)` is called, then its deck holds the same cards
+- [x] AC1: Given a game whose deck holds 10 cards, when `sample_fork(s)` is called, then its deck holds the same cards
   (same uids) as the game's; for seeds 1 to 20 at least one sample's order differs from the game's, and the same seed
   gives the same order twice.
-- [ ] AC2: The same holds for `event_deck` and `territory_deck`: same cards, an order drawn from the seed.
-- [ ] AC3: Everything else in the sample equals the game: hand, discard, tableau, frontier, reveal, research deck,
+- [x] AC2: The same holds for `event_deck` and `territory_deck`: same cards, an order drawn from the seed.
+- [x] AC3: Everything else in the sample equals the game: hand, discard, tableau, frontier, reveal, research deck,
   researched, supply, resources, turn, pending (with its options), active events and each raid's target.
-- [ ] AC4: The sample's later shuffles come from the seed, not the game's rng: two samples with seeds 1 and 2, after
+- [x] AC4: The sample's later shuffles come from the seed, not the game's rng: two samples with seeds 1 and 2, after
   their decks run out and the discard is reshuffled, may differ, and the same seed twice gives the same order.
-- [ ] AC5: The game is untouched: its zone orders, and the order its next reshuffle gives, are the same as without the
+- [x] AC5: The game is untouched: its zone orders, and the order its next reshuffle gives, are the same as without the
   call. `fork()` still copies the game exactly (its tests unchanged).
 
 ## Out of scope
@@ -39,7 +39,13 @@ reshuffled from a seed: one possible future, not the real one.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_game_state::test_…` |
+| AC1 | `test_game_state::test_a_sample_fork_reshuffles_the_deck_from_its_seed`, `test_engine_structure` (`sample_fork` in `game_engine.gd`) |
+| AC2 | `test_game_state::test_a_sample_fork_reshuffles_the_event_and_territory_decks` |
+| AC3 | `test_game_state::test_everything_the_player_sees_is_the_same_in_a_sample` |
+| AC4 | `test_game_state::test_a_samples_later_shuffles_come_from_its_seed_not_the_games_rng` |
+| AC5 | `test_game_state::test_a_sample_leaves_the_game_untouched` (and the existing fork tests, unchanged) |
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309, 310, 312–315. The spike found forks are clairvoyant.
+- 2026-10-05: built as `fork()` + a new `SeededRng` + a shuffle of each of `GameEngine.HIDDEN_ZONES`. ScriptedBot's
+  lookahead still uses `fork()` (clairvoyant) until 314 replaces it.

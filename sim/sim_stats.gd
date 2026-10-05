@@ -96,7 +96,10 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 	on_changed.call()  # an empty territory deck from the start, era 1 open
 	on_state.call()  # turn 1 as it started
 	ScriptedBot.lookahead_turns = 0
-	ScriptedBot.play(engine, job[1])
+	if job[1] == GenericBot.STRATEGY:  # 313: not one of ScriptedBot's, so not in "all"
+		GenericBot.play(engine)
+	else:
+		ScriptedBot.play(engine, job[1])
 	engine.changed.disconnect(on_changed)  # the callables hold engine: break the cycle so it is freed
 	engine.changed.disconnect(on_state)
 	engine.revolted.disconnect(on_revolted)
@@ -238,8 +241,8 @@ static func cell_line(cell: Dictionary) -> String:
 ## strategy.
 static func _load(cards_path: String, config_path: String, strategy: String, options: Dictionary) -> Dictionary:
 	var data := DataLoader.load_all(cards_path, config_path)
-	if data.errors.is_empty() and strategy != "all" and not ScriptedBot.STRATEGIES.has(strategy):
-		data.errors.append("unknown strategy '%s' (one of %s, or all)" % [strategy, ScriptedBot.STRATEGIES])
+	if data.errors.is_empty() and strategy not in ["all", GenericBot.STRATEGY] and not ScriptedBot.STRATEGIES.has(strategy):
+		data.errors.append("unknown strategy '%s' (one of %s, %s, or all)" % [strategy, ScriptedBot.STRATEGIES, GenericBot.STRATEGY])
 	if data.errors.is_empty() and options.get("turns", 0) > 0:
 		data.config.turn_limit = options.turns
 	return data

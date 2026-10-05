@@ -9,7 +9,7 @@
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
+| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall), plus `generic` (313: `GenericBot`, valuing every legal action on a sample fork; not in "all" until 314); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
@@ -28,7 +28,7 @@ res://
     cards.json           # player card definitions
     config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
   engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # public API: actions and their *_error queries, fork(), the constants; calls the modules below
+    game_engine.gd       # public API: actions and their *_error queries, fork(), sample_fork() (311), the constants; calls the modules below
     engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, targets, forecast, …)
     territory_queries.gd # TerritoryQueries, EngineQueries' parent (281): pop, housing, slots, workers, tiers, territory status
     engine_core.gd       # EngineCore, TerritoryQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
@@ -39,6 +39,7 @@ res://
     research.gd          # Research: learning techs from the open tree, prerequisites, eras
     supply.gd            # Supply: buying from the card supply
     build_menu.gd        # BuildMenu (295): building unlocked entries straight onto a territory
+    legal_actions.gd     # LegalActions (312): every action allowed now as [action, args…], for bots (legal_actions())
     sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
     ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
     territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
@@ -84,7 +85,8 @@ res://
                          # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
                          # (148) buttons below the Realm),
                          # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116, 250: notices as flags
-                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys)
+                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys), card_actions.gd (playing,
+                         # clicking, discarding and picking a card view, out of main.gd: 316)
                          # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
                          # cabinet_doors.gd, 209),
                          # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
@@ -110,7 +112,7 @@ res://
                          # docs/design/sound-export.html from the specimen's synthesis (186)
   default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
-  sim/                   # bot.gd (ScriptedBot and its strategies, 134), sim_stats.gd (SimStats: per-seed metrics, per
+  sim/                   # bot.gd (ScriptedBot and its strategies, 134), generic_bot.gd (GenericBot, 313), sim_stats.gd (SimStats: per-seed metrics, per
                          # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
                          # game by game, 293), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
@@ -125,6 +127,8 @@ Adding an effect: follow the `add-effect` skill. The engine API is documented by
 Buildings always target a settled territory with a free slot (`free_slots`).
 An effect that targets a card overrides `target_zone()` (and its two error messages); the engine then
 derives `needs_target`, `valid_targets` and the target checks in `play_error` from it.
+`would_need_target(uid)` / `would_target(uid)` (310) give the same answers for a card in any zone, as if it were in the
+hand (false and `[]` for no card or after game over): a bot tells a card with nothing to act on from one with.
 
 ## Card data format
 JSON only. Effects are structured objects, so no mini-language parser is needed.
@@ -264,6 +268,13 @@ pop eats (may be negative), plus `starve` (pop the Famine would kill, after guar
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
 with the food stat in the warning color when pop would starve.
+`turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
+change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
+that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
+(`_settle_in`), so the forecast can't drift from the real turn. The sim bot doesn't use it yet (313).
+`fork()` copies the game exactly, the rng and every deck's order included, so a lookahead on it knows the future.
+`sample_fork(seed)` (311) is one possible future instead: a fork with a new `SeededRng` from seed that reshuffles
+`HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
 choice (154) or a choice event's options (269). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
@@ -606,6 +617,14 @@ Your people have one government at a time; its bonuses apply while it rules.
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
   first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
   that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
+- Generic bot (313, `sim/generic_bot.gd`, strategy `generic`): no rule for any mechanic. Each step it tries every
+  entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
+  `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
+  × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
+  diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
+  `would_target` nothing) + learned techs' printed cost − a squared penalty as unrest nears its limit (unrest has no
+  other cost). A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
+  best by card value per price. 314 makes it the only bot.
 - Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
   `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
   owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every

@@ -22,7 +22,7 @@ func test_double_clicked_trash_card_lights_the_other_hand_cards() -> void:
 		for card in Game.engine.zone("hand").cards:
 			if card.uid != purge:
 				others.append(card.uid)
-		main.on_double_clicked(main.views[purge])
+		main.card_actions.on_double_clicked(main.views[purge])
 		check(main.drag.targeting == main.views[purge], "targeting Purge")
 		eq(sorted(main.drag.lit), sorted(others), "the other hand cards are lit")
 		for uid in others:
@@ -31,11 +31,11 @@ func test_double_clicked_trash_card_lights_the_other_hand_cards() -> void:
 
 func test_picking_a_lit_hand_card_trashes_it() -> void:
 	await with_purge(func(main: Node, purge: int):
-		main.on_double_clicked(main.views[purge])
+		main.card_actions.on_double_clicked(main.views[purge])
 		var target: int = main.drag.lit[0] if not main.drag.lit.is_empty() else -1
 		check(target != -1, "a lit target")
 		if target != -1:
-			main.on_picked(main.views[target])
+			main.card_actions.on_picked(main.views[target])
 			check(Game.engine.zone("trashed").find(target) != null, "the picked card is trashed")
 			check(main.drag.targeting == null, "targeting ended")
 			check(not main.views.has(target), "its view left the board"))

@@ -82,7 +82,7 @@ func test_the_targeting_hint_is_a_toast_until_targeting_ends() -> void:
 		Game.engine.resources.food = 5
 		Game.engine.changed.emit()  # put_in_hand bypasses the actions that refresh the board
 		await wait_frames()
-		main.on_double_clicked(main.views[purge])
+		main.card_actions.on_double_clicked(main.views[purge])
 		check(main.drag.targeting != null, "targeting Purge")
 		var hints: Array = main.toasts.texts().filter(func(t: String): return t.contains(TARGET_HINT))
 		eq(hints.size(), 1, "the hint is a toast: %s" % [main.toasts.texts()])
@@ -105,7 +105,7 @@ func test_refusals_are_logged_but_do_not_toast() -> void:
 		await wait_frames()
 		var error := Game.engine.play_error(settler)
 		check(error != "", "Settler can't be afforded")
-		main.try_play(main.views[settler])
+		main.card_actions.try_play(main.views[settler])
 		await wait_frames()
 		eq(main.toasts.texts(), [], "no toast: the refusal floats over the card")
 		check(main.log_drawer.text().contains(error), "the log still says why"))
