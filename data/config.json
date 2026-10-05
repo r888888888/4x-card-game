@@ -38,7 +38,6 @@
     "settler": { "price": 3, "count": 6 },
     "research": { "price": 3, "count": 6 },
     "hunt": { "price": 2, "count": 6 },
-    "winnow": { "price": 2, "count": 6 },
     "bread_and_beer": { "price": 2, "count": 8 },
     "land_grants": { "price": 3, "count": 4 },
     "feast": { "price": 2, "count": 6 },

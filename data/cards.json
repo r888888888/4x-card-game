@@ -62,11 +62,6 @@
       "effects": [ { "op": "grow", "amount": 1, "where": "each", "count": 3 } ]
     },
     {
-      "id": "winnow", "name": "Winnow", "type": "action",
-      "cost": { "food": 1 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "trash" } ]
-    },
-    {
       "id": "feast", "name": "Feast", "type": "action",
       "cost": { "food": 3 }, "vp": 0, "tags": ["order"],
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 2 } ]

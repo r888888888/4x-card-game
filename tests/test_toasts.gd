@@ -4,6 +4,7 @@ extends "res://tests/lib/test_case.gd"
 ## (shown(): the toasts top to bottom, texts(): their text). Tweens are stepped by hand (step_tweens) to pass time.
 
 const TARGET_HINT := "Esc cancels."
+const PURGE := {"id": "purge", "name": "Purge", "type": "action", "cost": {"food": 1}, "effects": [{"op": "trash"}]}
 
 
 ## Emits the engine's noticed signal, as the engine does for a notable log line (an information notice, 190).
@@ -76,13 +77,13 @@ func test_with_reduce_motion_toasts_fade_in_place() -> void:
 # --- AC4: the targeting hint ---
 
 func test_the_targeting_hint_is_a_toast_until_targeting_ends() -> void:
-	await with_game(false, func(main: Node):
-		var winnow := put_in_hand(Game.engine, "winnow")
+	await with_main(make_engine({"farm": 10}, {}, 1, [PURGE]), func(main: Node):
+		var purge := put_in_hand(Game.engine, "purge")
 		Game.engine.resources.food = 5
 		Game.engine.changed.emit()  # put_in_hand bypasses the actions that refresh the board
 		await wait_frames()
-		main.on_double_clicked(main.views[winnow])
-		check(main.drag.targeting != null, "targeting Winnow")
+		main.on_double_clicked(main.views[purge])
+		check(main.drag.targeting != null, "targeting Purge")
 		var hints: Array = main.toasts.texts().filter(func(t: String): return t.contains(TARGET_HINT))
 		eq(hints.size(), 1, "the hint is a toast: %s" % [main.toasts.texts()])
 		if hints.size() == 1:
