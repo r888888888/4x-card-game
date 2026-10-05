@@ -15,9 +15,13 @@ func _init(stack: ModalStack) -> void:
 	raid_modal = RaidModal.new(stack)
 
 
-## Hears engine's events and raids.
-func listen(engine: GameEngine) -> void:
+## Hears engine's events and raids, and calls notify(text) with what a chosen option did (269).
+func listen(engine: GameEngine, notify: Callable) -> void:
 	engine.event_drawn.connect(func(outcome: Dictionary): _drawn = outcome)
+	engine.option_chosen.connect(func(outcome: Dictionary):
+		var summary := engine.outcome_summary(outcome)
+		if summary != "":
+			notify.call("%s: %s" % [engine.card_db[outcome.id].name, summary]))
 	engine.raid_resolved.connect(func(outcome: Dictionary): _raid = outcome)
 
 
@@ -27,11 +31,25 @@ func clear() -> void:
 	_raid = {}
 
 
-## Opens what e's turn start brought, unless e is over, and forgets it.
+## Opens what e's turn start brought, unless e is over, and forgets it. A choice event waits, still remembered, while
+## another decision is owed before its choice (269).
 func show(e: GameEngine) -> void:
-	if not e.is_over:
-		if not _drawn.is_empty():
-			event_modal.open(_drawn)
-		if not _raid.is_empty():
-			raid_modal.open(_raid)
+	var drawn := _drawn
+	var raid := _raid
 	clear()
+	if e.is_over:
+		return
+	if not drawn.is_empty():
+		if _choice_waits(e, drawn):
+			_drawn = drawn
+		else:
+			event_modal.open(drawn)
+	if not raid.is_empty():
+		raid_modal.open(raid)
+
+
+## Whether drawn is a choice event whose choice isn't owed yet.
+func _choice_waits(e: GameEngine, drawn: Dictionary) -> bool:
+	var pending := e.pending()
+	return not e.card_db[drawn.id].choices.is_empty() \
+		and not (pending.get("kind", "") == GameEngine.PENDING_EVENT_CHOICE and pending.uid == drawn.uid)

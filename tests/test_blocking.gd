@@ -46,7 +46,7 @@ func actions() -> Array:
 		["move_unit", func(e): return e.move_unit_error(first_in(e, "tableau"), home_uid(e)),
 			func(e): return e.move_unit(first_in(e, "tableau"), home_uid(e))],
 		["disband", func(e): return e.disband_error(first_in(e, "tableau")), func(e): return e.disband(first_in(e, "tableau"))],
-		["choose_option", func(e): return e.call("choose_option_error", 0), func(e): return e.call("choose_option", 0)],
+		["choose_option", func(e): return e.choose_option_error(0), func(e): return e.choose_option(0)],
 		["supply", func(e): return e.supply_error(), func(_e): return false],  # the supply screen: a query only
 	]
 
@@ -84,8 +84,7 @@ func scenarios() -> Array:
 	eq(discard.pending().get("kind"), GameEngine.PENDING_DISCARD, "discard owed")
 	eq(renewal.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
 	eq(government.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "government choice owed")
-	eq(event_choice.pending().get("kind"), (GameEngine as Script).get_script_constant_map().get("PENDING_EVENT_CHOICE"),
-		"event choice owed")
+	eq(event_choice.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "event choice owed")
 	check(over.is_over, "the game is over")
 	return [
 		["explore", explore, ["choose"]],
@@ -159,7 +158,7 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 		["discard_card", func(e): return e.discard_error(-1),
 			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", RENEWAL, GOVERNMENT,
 			EVENT_CHOICE, OVER]],
-		["choose_option", func(e): return e.call("choose_option_error", -1),
+		["choose_option", func(e): return e.choose_option_error(-1),
 			["No event choice is waiting.", EXPLORE, DISCARD, RENEWAL, GOVERNMENT, "No such option.", OVER]],
 	]
 	eq(states.keys(), ["nothing owed", "explore", "discard", "renewal", "government", "event choice", "game over"],

@@ -51,6 +51,7 @@ var prereq: String = ""  # techs: id of the tech that must be researched first (
 var eureka: Dictionary = {}  # techs: {card | tag, count, off}: off insight while the tableau holds count matches (141)
 var discard_turns := 1  # events: upkeeps the event stays active for
 var raid: Dictionary = {}  # events: {strength, targets, pop} when the event is a raid (162), else {}
+var choices: Array = []  # events: the options a choice event offers (269), each {cost: {resource: n}, effects: Array[Effect]}
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
 var flavor: String = ""  # civilizations, governments, techs, events: a line of history, shown in the details
@@ -118,6 +119,8 @@ func rules_text(card_db: Dictionary) -> String:
 				line = "%s: %s" % [e.keyword.capitalize(), line]
 			parts.append(line)
 		prev = e
+	if not choices.is_empty():
+		parts.append(choices_text(card_db))
 	parts.append_array(modifier_lines(false))
 	parts.append_array(discount_lines())
 	if type == BUILDING and housing > 0:
@@ -166,6 +169,8 @@ func rules_tooltip(card_db: Dictionary) -> String:
 		if e.keyword != "":
 			line += " (on %s)" % e.keyword.capitalize()
 		parts.append(line)
+	if not choices.is_empty():
+		parts.append(choices_text(card_db))
 	parts.append_array(modifier_lines(true))
 	parts.append_array(discount_lines())
 	if type == CITY and slots > 0:
@@ -187,6 +192,26 @@ func rules_tooltip(card_db: Dictionary) -> String:
 	elif type == EVENT:
 		parts.append(lasts_text())
 	return "\n".join(parts)
+
+
+## A choice event's line (269): "Choose: pay 2 wealth for +1 VP; or +1 unrest."
+func choices_text(card_db: Dictionary) -> String:
+	var options: PackedStringArray = []
+	for option in choices:
+		var does := _option_effects_text(option, card_db)
+		options.append(does if option.cost.is_empty() else "pay %s for %s" % [Fields.amounts_text(option.cost), does])
+	return "Choose: %s." % "; or ".join(options)
+
+
+## Option i's text (269): "Pay 2 wealth: +1 VP", "+1 unrest".
+func option_text(i: int, card_db: Dictionary) -> String:
+	var option: Dictionary = choices[i]
+	var does := _option_effects_text(option, card_db)
+	return does if option.cost.is_empty() else "Pay %s: %s" % [Fields.amounts_text(option.cost), does]
+
+
+func _option_effects_text(option: Dictionary, card_db: Dictionary) -> String:
+	return ", ".join(PackedStringArray(option.effects.map(func(e: Effect): return e.describe(card_db))))
 
 
 ## A tech's eureka line (141): "Eureka: -2 insight with 2 Farms", "Eureka: -2 insight with 2 city cards"; "" without.

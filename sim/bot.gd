@@ -63,15 +63,18 @@ static func _close_turn(engine: GameEngine) -> void:
 
 
 ## Plays a fork of engine LOOKAHEAD_TURNS turns on (or to the game's end) with strategy and returns its value then:
-## its score (159) + 1 point per INSIGHT_PER_POINT insight it gathered (240). The fork revolts first when revolt is true, chooses government_id whenever the government choice is owed
-## ("" for best_government), and never revolts; engine itself is untouched.
-static func lookahead(engine: GameEngine, strategy: String, government_id := "", revolt := false) -> int:
+## its score (159) + 1 point per INSIGHT_PER_POINT insight it gathered (240). The fork revolts first when revolt is true,
+## answers the owed event choice with option first when it isn't -1 (269), chooses government_id whenever the government
+## choice is owed ("" for best_government), and never revolts; engine itself is untouched.
+static func lookahead(engine: GameEngine, strategy: String, government_id := "", revolt := false, option := -1) -> int:
 	var f := engine.fork()
 	var saved := _forced_government
 	_depth += 1
 	_forced_government = government_id
 	if revolt:
 		f.revolt()
+	if option != -1:
+		f.choose_option(option)
 	var end := mini(f.turn + LOOKAHEAD_TURNS, f.turn_limit())
 	var steps := 0
 	while not f.is_over and f.turn < end and steps < MAX_STEPS:
@@ -106,6 +109,8 @@ static func take_turn(engine: GameEngine, strategy: String) -> int:
 			engine.choose_government(_pick_government(engine, strategy).uid)
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_RENEWAL:
 			engine.renew(_renewal_picks(engine))
+		elif engine.pending().get("kind", "") == GameEngine.PENDING_EVENT_CHOICE:
+			engine.choose_option(pick_option(engine, strategy))
 		elif engine.pending().get("kind", "") == GameEngine.PENDING_EXPLORE:
 			engine.choose(engine.pending().options[0])
 		elif _restore_order(engine):
@@ -247,6 +252,24 @@ static func _revolt(engine: GameEngine, strategy: String) -> void:
 ## The government to choose when the choice is owed (159): the one whose lookahead scores most, ties to the first in
 ## the government deck, and the only one without looking ahead. Inside a lookahead: the government it was opened for,
 ## else best_government.
+## The option the bot answers the owed event choice with (269): of those choose_option_error allows, the one whose
+## lookahead scores most, ties to the lowest index; inside a lookahead, the first allowed.
+static func pick_option(engine: GameEngine, strategy: String) -> int:
+	var allowed: Array = engine.pending().get("options", []).filter(func(i): return engine.choose_option_error(i) == "")
+	if allowed.is_empty():
+		return -1
+	if _depth > 0 or allowed.size() == 1:
+		return allowed[0]
+	var best: int = allowed[0]
+	var best_score := lookahead(engine, strategy, "", false, best)
+	for i in allowed.slice(1):
+		var score := lookahead(engine, strategy, "", false, i)
+		if score > best_score:
+			best = i
+			best_score = score
+	return best
+
+
 static func _pick_government(engine: GameEngine, strategy: String) -> CardInstance:
 	var options: Array = engine.zone("governments").cards
 	if _depth > 0:

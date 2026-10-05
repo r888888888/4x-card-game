@@ -5,11 +5,6 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Fixtures: tests/lib/anarchy_case.gd (Envoys, Boons, Twins, Dear; choice_engine).
 
 
-## PENDING_EVENT_CHOICE, read by name while the red phase has no such constant.
-func choice_kind() -> String:
-	return (GameEngine as Script).get_script_constant_map().get("PENDING_EVENT_CHOICE", "<no PENDING_EVENT_CHOICE>")
-
-
 ## TEST_CARDS, TEST_GOVS, FIXTURES and extra, parsed with unrest a resource: {cards, errors, warnings}.
 func choice_load(extra := [ENVOYS]) -> Dictionary:
 	return fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES)
@@ -25,7 +20,7 @@ const PAID := {"cost": {"wealth": 2}, "effects": [{"op": "score", "amount": 1}]}
 
 
 ## A choice_engine game with wealth set to wealth at the end of turn 1, then ended: Envoys drawn at turn 2's start.
-func drawn(wealth := 3) -> Object:
+func drawn(wealth := 3) -> GameEngine:
 	var e := choice_engine()
 	e.end_turn()
 	e.resources["wealth"] = wealth
@@ -40,15 +35,15 @@ func test_choices_load_on_an_event() -> void:
 	eq(r.warnings, [] as Array[String], "warnings")
 	if not r.cards.has("envoys"):
 		return
-	var choices: Variant = r.cards.envoys.get("choices")
-	check(choices is Array and choices.size() == 2, "two options: %s" % [choices])
-	if not (choices is Array and choices.size() == 2):
+	var choices: Array = r.cards.envoys.choices
+	eq(choices.size(), 2, "two options")
+	if choices.size() != 2:
 		return
 	eq(choices[0].cost, {"wealth": 2}, "option 0's cost")
 	eq(choices[0].effects.map(func(x): return x.op), ["score"], "option 0's effects")
 	eq(choices[1].cost, {}, "option 1 is free")
 	eq(choices[1].effects.map(func(x): return x.op), ["gain"], "option 1's effects")
-	eq(r.cards.fleeting.get("choices"), [], "a plain event has none")
+	eq(r.cards.fleeting.choices, [], "a plain event has none")
 
 
 func test_bad_choices_are_a_load_error() -> void:
@@ -82,12 +77,12 @@ func test_a_drawn_choice_event_resolves_its_own_effects_then_owes_the_choice() -
 	eq(seen.size(), 1, "event_drawn once")
 	if seen.size() == 1:
 		eq(seen[0].gained, {"food": 1}, "its own play effects resolved")
-	eq(e.pending(), {"kind": choice_kind(), "uid": uid, "options": [0, 1]}, "the choice is owed")
+	eq(e.pending(), {"kind": GameEngine.PENDING_EVENT_CHOICE, "uid": uid, "options": [0, 1]}, "the choice is owed")
 	eq(e.zone("active_events").find(uid).turns_left, 2, "it stays active for its discard turns")
 
 
 func test_every_other_action_refuses_while_the_choice_is_owed() -> void:
-	var e: Object = drawn()
+	var e := drawn()
 	const OWED := "Choose how to answer Envoys first."
 	eq(e.end_turn_error(), OWED, "end turn")
 	eq(e.play_error(first_in_hand(e)), OWED, "play")
@@ -99,20 +94,20 @@ func test_every_other_action_refuses_while_the_choice_is_owed() -> void:
 # --- AC3: choosing ---
 
 func test_choosing_a_paid_option_pays_its_cost_and_resolves_its_effects() -> void:
-	var e: Object = drawn(3)
+	var e := drawn(3)
 	var score: int = e.score()
-	check(e.call("choose_option", 0) == true, "choose_option(0) succeeds")
+	check(e.choose_option(0) == true, "choose_option(0) succeeds")
 	eq(e.resources.wealth, 1, "paid 2 wealth")
 	eq(e.score() - score, 1, "+1 VP")
 	eq(e.pending(), {}, "nothing owed")
 
 
 func test_choosing_a_free_option_changes_nothing_else() -> void:
-	var e: Object = drawn(3)
+	var e := drawn(3)
 	var before: Dictionary = e.resources.duplicate()
 	var score: int = e.score()
 	var hand := card_ids(e.zone("hand"))
-	check(e.call("choose_option", 1) == true, "choose_option(1) succeeds")
+	check(e.choose_option(1) == true, "choose_option(1) succeeds")
 	before.unrest += 1
 	eq(e.resources, before, "+1 unrest, nothing else")
 	eq(e.score(), score, "score")
@@ -122,13 +117,10 @@ func test_choosing_a_free_option_changes_nothing_else() -> void:
 
 func test_choosing_emits_what_the_option_did() -> void:
 	for i in 2:
-		var e: Object = drawn(3)
+		var e := drawn(3)
 		var seen := []
-		if not e.has_signal("option_chosen"):
-			check(false, "no option_chosen signal")
-			return
-		e.connect("option_chosen", func(o): seen.append(o))
-		e.call("choose_option", i)
+		e.option_chosen.connect(func(o): seen.append(o))
+		e.choose_option(i)
 		eq(seen.size(), 1, "option %d: option_chosen once" % i)
 		if seen.size() != 1:
 			continue
@@ -142,7 +134,7 @@ func test_choosing_emits_what_the_option_did() -> void:
 # --- AC4: refusals ---
 
 func test_choose_option_error_gives_the_reason_and_choose_option_changes_nothing() -> void:
-	var poor: Object = drawn(1)
+	var poor := drawn(1)
 	var nothing := choice_engine()
 	var over := choice_engine([], {"envoys": 1, "fleeting": 1}, {}, {"turn_limit": 1})
 	over.end_turn()
@@ -154,15 +146,12 @@ func test_choose_option_error_gives_the_reason_and_choose_option_changes_nothing
 		["game over", over, 0, "The game is over."],
 	]
 	for row in cases:
-		var e: Object = row[1]
-		if not e.has_method("choose_option_error"):
-			check(false, "no choose_option_error")
-			return
-		eq(e.call("choose_option_error", row[2]), row[3], row[0])
+		var e: GameEngine = row[1]
+		eq(e.choose_option_error(row[2]), row[3], row[0])
 		var before: GameState = e.state.copy()
-		check(e.call("choose_option", row[2]) == false, "%s: choose_option refuses" % row[0])
+		check(e.choose_option(row[2]) == false, "%s: choose_option refuses" % row[0])
 		eq(state_diff(e.state, before), "", "%s: changes nothing; changed" % row[0])
-	eq(poor.call("choose_option_error", 1), "", "the free option is legal")
+	eq(poor.choose_option_error(1), "", "the free option is legal")
 
 
 # --- AC5: other decisions first ---
@@ -177,15 +166,15 @@ func renewal_first() -> GameEngine:
 
 
 func test_a_renewal_owed_at_turn_start_comes_before_the_choice() -> void:
-	var e: Object = renewal_first()
+	var e := renewal_first()
 	var uid := uid_of(e.zone("active_events"), "envoys")
 	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "the renewal first")
 	check(e.renew([e.pending().options[0]]), "renew")
-	eq(e.pending(), {"kind": choice_kind(), "uid": uid, "options": [0, 1]}, "then the choice")
+	eq(e.pending(), {"kind": GameEngine.PENDING_EVENT_CHOICE, "uid": uid, "options": [0, 1]}, "then the choice")
 
 
 func test_the_choice_follows_a_government_chosen_at_the_turns_end() -> void:
-	var e: Object = choice_engine(["fleeting", "envoys"])
+	var e := choice_engine(["fleeting", "envoys"])
 	e.resources["unrest"] = 5
 	e.end_turn()  # Anarchy falls at turn 2's start; Fleeting drawn
 	Anarchy.active(e).counters = 1
@@ -193,16 +182,16 @@ func test_the_choice_follows_a_government_chosen_at_the_turns_end() -> void:
 	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "the government first")
 	check(e.choose_government(e.pending().options[0]), "choose a government")
 	eq(e.turn, 3, "turn 3 started")
-	eq(e.pending().get("kind"), choice_kind(), "then the choice")
+	eq(e.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "then the choice")
 
 
 func test_a_copy_keeps_an_owed_or_waiting_choice() -> void:
-	var owed: Object = drawn()
+	var owed := drawn()
 	eq(owed.fork().pending(), owed.pending(), "an owed choice")
 	var waiting := renewal_first()
 	var f: GameEngine = waiting.fork()
 	check(f.renew([f.pending().options[0]]), "renew on the copy")
-	eq(f.pending().get("kind"), choice_kind(), "the copy's waiting choice is owed next")
+	eq(f.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "the copy's waiting choice is owed next")
 	eq(waiting.pending().get("kind"), GameEngine.PENDING_RENEWAL, "the game itself still owes the renewal")
 
 
@@ -217,13 +206,10 @@ func test_card_text_lists_the_options_after_its_other_effects() -> void:
 
 
 func test_option_text_gives_one_options_text() -> void:
-	var e: Object = drawn()
+	var e := drawn()
 	var uid := uid_of(e.zone("active_events"), "envoys")
-	if not e.has_method("option_text"):
-		check(false, "no option_text")
-		return
-	eq(e.call("option_text", uid, 0), "Pay 2 wealth: +1 VP", "the paid option")
-	eq(e.call("option_text", uid, 1), "+1 unrest", "the free option")
+	eq(e.option_text(uid, 0), "Pay 2 wealth: +1 VP", "the paid option")
+	eq(e.option_text(uid, 1), "+1 unrest", "the free option")
 
 
 # --- AC7: the bot ---
@@ -236,15 +222,15 @@ func bot_drawn(id: String) -> GameEngine:
 
 
 func test_the_bot_picks_the_option_whose_lookahead_scores_most() -> void:
-	eq((ScriptedBot as Script).call("pick_option", bot_drawn("boons"), "baseline"), 1, "Boons: +2 VP beats +1 VP")
+	eq(ScriptedBot.pick_option(bot_drawn("boons"), "baseline"), 1, "Boons: +2 VP beats +1 VP")
 
 
 func test_lookahead_ties_go_to_the_lowest_index() -> void:
-	eq((ScriptedBot as Script).call("pick_option", bot_drawn("twins"), "baseline"), 0, "Twins: a tie")
+	eq(ScriptedBot.pick_option(bot_drawn("twins"), "baseline"), 0, "Twins: a tie")
 
 
 func test_the_bot_never_picks_a_refused_option() -> void:
-	eq((ScriptedBot as Script).call("pick_option", bot_drawn("dear"), "baseline"), 1, "Dear: 50 wealth can't be paid")
+	eq(ScriptedBot.pick_option(bot_drawn("dear"), "baseline"), 1, "Dear: 50 wealth can't be paid")
 
 
 func test_the_bot_answers_the_choice_in_its_turn() -> void:

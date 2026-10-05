@@ -12,8 +12,9 @@ var bonus_score := 0  # VP from effects, on top of VP printed on tableau cards
 var is_over := false
 var log_lines: Array[String] = []
 ## The decision the player owes (172), {} when none: {kind: GameEngine.PENDING_EXPLORE, options: territory uids top
-## first, source: the exploring card's uid}, {kind: PENDING_DISCARD or PENDING_RENEWAL, count: cards still owed} or
-## {kind: PENDING_GOVERNMENT, ends_turn: true when choosing finishes the turn (155)}. GameEngine.pending() adds the options a discard, renewal or government choice has now.
+## first, source: the exploring card's uid}, {kind: PENDING_DISCARD or PENDING_RENEWAL, count: cards still owed},
+## {kind: PENDING_GOVERNMENT, ends_turn: true when choosing finishes the turn (155)} or {kind: PENDING_EVENT_CHOICE,
+## uid: the choice event's uid, options: its option indices (269)}. GameEngine.pending() adds the options a discard, renewal or government choice has now.
 var pending: Dictionary = {}
 var era := 1  # the highest era of techs added to the research deck
 var eras_added: Array[int] = []  # eras add_era has already shuffled in

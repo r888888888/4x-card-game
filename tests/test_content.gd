@@ -189,7 +189,7 @@ func unrest_added(def: CardDef) -> int:
 		if effect.op == "gain" and effect.get("resource") == "unrest":
 			by_trigger[effect.trigger] = by_trigger.get(effect.trigger, 0) + effect.get("amount")
 	var most_by_option := 0
-	for option in def.get("choices"):
+	for option in def.choices:
 		var n := 0
 		for effect in option.effects:
 			if effect.op == "gain" and effect.get("resource") == "unrest":

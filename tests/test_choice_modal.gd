@@ -10,13 +10,11 @@ extends "res://tests/lib/anarchy_case.gd"
 func with_choice(wealth: int, body: Callable, setup := func(_e): pass, unrest := {}) -> void:
 	await with_main(choice_engine(["envoys"], {"envoys": 1, "fleeting": 1}, unrest), func(main: Node):
 		var e := Game.engine
+		arrange(e.zone("event_deck"), ["envoys"])  # start_game dealt a new game
 		e.resources["wealth"] = wealth
 		setup.call(e)
 		e.end_turn()
 		await wait_frames()
-		if not main.has_method("event_option_buttons"):
-			check(false, "main has no event_option_buttons() hook")
-			return
 		await body.call(main))
 
 
@@ -48,7 +46,7 @@ func test_a_refused_option_is_disabled_with_the_reason_as_its_tooltip() -> void:
 	await with_choice(1, func(main: Node):
 		var buttons: Array = main.event_option_buttons()
 		check(buttons[0].disabled, "the pay option is disabled")
-		eq(buttons[0].tooltip_text, Game.engine.call("choose_option_error", 0), "its tooltip is the reason")
+		eq(buttons[0].tooltip_text, Game.engine.choose_option_error(0), "its tooltip is the reason")
 		check(not buttons[1].disabled, "the free option isn't"))
 
 
