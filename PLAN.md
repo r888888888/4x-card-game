@@ -337,11 +337,17 @@ Pyramids and Forge left the deck and come back through techs), 034 (Research is 
 Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141–142 (eurekas, diffusion; built), 143
 (Iron Age: 6 era-3 techs in the deck, opened by Writing; eurekas on every tech; pacing; built).
 - Gating (058): a tech that gives a card creates 1 free copy in the discard and unlocks that card's locked supply pile
-  (057), so more copies can be bought. Wonders (tag `wonder`, e.g. Pyramids via Priesthood) are created only. The
-  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Lumber Camp 2,
+  (057), so more copies can be bought. Wonders (tag `wonder`) are created only, one copy each, and also carry `culture` (265): era 1 Oracle of Delphi
+  (Mysticism, ⟳ +2 insight) and Walls of Uruk (Masonry, defence 4, unrest limit +1); era 2 Pyramids (Priesthood),
+  Great Ziggurat (Code of Laws, ⟳ −1 unrest, limit +2), Hanging Gardens (Calendar, fresh water, every territory houses
+  1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
+  territory) and Royal Road (Currency, hand size +1). The
+  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1. Early buildings (080) are on sale from turn 1, in unlocked supply piles,
-  Farm too (232), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food), Quarry (hills/mountain, +1 VP) and Shrine (anywhere, 1 VP,
-  culture), so every territory can take a building before any tech. Mines (Mining) make ⟳ +1 wealth (132).
+  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food) and Shrine (anywhere, 1 VP,
+  culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
+  gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
+  makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).
 - Card type `tech`: cost is insight only (≥ 1, 139; era 1 costs 5–8, era 2 13–19, era 3 27–32, set by 143 so era 1 runs out around turn 18 and era 2
   around 50 in the sim); no `keyword` and no targeting effects. Config `research_deck` ({tech_id: count}).
   Techs are not allowed in `deck`.
@@ -365,7 +371,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Eras (027): a tech's `era` (default 1) decides where it starts: era 1 in `research_deck`, later eras in
   `future_techs`. The `add_era` op (`{ "op": "add_era", "era": 2 }`, on a tech or building) shuffles that era's
   techs into the research deck, once per era (`era()` is the highest added). Learning the last tech of the research
-  deck adds the lowest waiting era (140). The Library makes ⟳ +2 insight (139).
+  deck adds the lowest waiting era (140). The Library makes ⟳ +2 insight (139; a pile of 6 since 264), the Stone Circle ⟳ +1 (Mysticism, 264).
 - Era thresholds (029): config `era_unlocks` ({"2": {"pop": 8, "wealth": 15}}) adds an era at the start of a turn
   (after upkeep and pop eating) when total pop or wealth on hand reaches either number. Wealth is not spent; an era
   already added isn't added again. `era_unlocks()` returns the thresholds; the tech tree shows them.
@@ -389,6 +395,10 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
 starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies). Since 058
 the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Library, Market, Harbor) start locked.
+264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Mud-Brick Houses (Pottery, housing 2), Caravanserai
+(The Wheel, desert, ⟳ +1 wealth, +1 more on fresh water), Bathhouse (Priesthood, fresh water, housing 1, ⟳ −1 unrest),
+Courthouse (Code of Laws, ⟳ −1 unrest, unrest limit +1) and Aqueduct (Engineering, housing 2; Engineering gave a second
+Monument until then): every terrain has a building, every era opens a new one.
 - Config `supply: { "scout": { "price": 2, "count": 2 } }`: only `action` and `building` cards; `price`
   (wealth) and `count` are integers ≥ 1. Without the block the supply is empty. `deck_model` stays `fixed`.
 - `buy(card_id)` pays `buy_price` wealth, puts a new copy on top of the discard and lowers the pile by 1.
