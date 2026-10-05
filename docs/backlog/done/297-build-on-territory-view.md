@@ -2,7 +2,7 @@
 id: 297
 title: Build and recruit from a territory's view
 type: feature
-status: review
+status: done
 branch: feat/297-build-on-territory-view
 ---
 
