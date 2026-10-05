@@ -2,7 +2,7 @@
 id: 262
 title: Growth cards replace automatic growth
 type: feature
-status: red-review
+status: in-progress
 branch: feat/262-growth-cards
 ---
 

@@ -1,6 +1,6 @@
 class_name Population
 extends RefCounted
-## Population rules (backlog 009 on): pop on settled territories, growing by itself (260), workers and idle buildings,
+## Population rules (backlog 009 on): pop on settled territories, growth from cards (262), workers and idle buildings,
 ## and pop eating food at upkeep. Static functions on the engine's state; GameEngine's public methods call them.
 
 
@@ -26,23 +26,6 @@ static func total_pop(e: GameEngine) -> int:
 		if card.def.type == CardDef.TERRITORY:
 			total += card.pop
 	return total
-
-
-## Grows pop by itself after feeding (260): when this upkeep netted at least growth_surplus food (made, less what pop
-## ate), the settled territory with the most pop and room to grow (ties: tableau order) gets +1 pop, free. Not under
-## Anarchy. No Famine check: a positive net means pop was fed, which ends any Famine.
-static func auto_grow(e: GameEngine, net_food: int) -> void:
-	if net_food < e.config.population.growth_surplus or Anarchy.build_error(e) != "":
-		return
-	var biggest: CardInstance = null
-	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.TERRITORY and card.pop < housing(e, card.uid) \
-				and (biggest == null or card.pop > biggest.pop):
-			biggest = card
-	if biggest == null:
-		return
-	biggest.pop += 1
-	e._notice("%s grew to %d pop." % [biggest.def.name, biggest.pop])
 
 
 ## The settled territories with room to grow, smallest pop first (ties: tableau order): what a grow op with "each" and

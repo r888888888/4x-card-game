@@ -5,7 +5,7 @@ extends RefCounted
 
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 ## Population block fields: name -> [minimum, default].
-const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1], "growth_surplus": [1, 2]}
+const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
@@ -14,7 +14,7 @@ const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are pla
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
 ## starting: {resources, tableau, territory, civilization}, deck: {card_id: count}, territory_deck: {card_id: count}, research_deck: {card_id: count},
 ## event_deck: {card_id: count},
-## population: {start, food_upkeep, vp_per_pop, growth_surplus}, or {} when the config has no population block (rules off),
+## population: {start, food_upkeep, vp_per_pop}, or {} when the config has no population block (rules off),
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
 ## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
