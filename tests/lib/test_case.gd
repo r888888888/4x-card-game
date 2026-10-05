@@ -198,10 +198,11 @@ func raw_config(deck: Dictionary, overrides := {}) -> Dictionary:
 
 
 ## A new game using TEST_CARDS. deck is {card_id: count}; overrides replace config keys.
-func make_engine(deck: Dictionary, overrides := {}, seed_value := 1) -> GameEngine:
+func make_engine(deck: Dictionary, overrides := {}, seed_value := 1, extra_cards := []) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + extra_cards}, resources(), "test", errors, warnings,
+		keywords())
 	var config := DataLoader.parse_config(raw_config(deck, overrides), resources(), cards, "test", errors, warnings)
 	check(errors.is_empty(), "test data should load: %s" % [errors])
 	var engine := GameEngine.new(cards, config)

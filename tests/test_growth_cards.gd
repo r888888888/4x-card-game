@@ -5,14 +5,14 @@ extends "res://tests/lib/test_case.gd"
 
 ## Population on (no food upkeep, no pop VP), Homeland pop start, 50 food. settled: extra territory ids moved
 ## straight to the tableau with pop 1 each.
-func cards_engine(start: int, deck: Dictionary, settled: Array[String] = [], population := true) -> GameEngine:
+func cards_engine(start: int, deck: Dictionary, settled: Array[String] = [], population := true, extra := []) -> GameEngine:
 	var counts := {}
 	for id in settled:
 		counts[id] = counts.get(id, 0) + 1
 	var o := {"territory_deck": counts}
 	if population:
 		o["population"] = {"start": start, "food_upkeep": 0, "vp_per_pop": 0}
-	var e := make_engine(deck, o)
+	var e := make_engine(deck, o, 1, extra)
 	settle(e, settled)
 	for c in e.zone("tableau").cards:
 		if c.def.type == "territory" and c.uid != home_uid(e):
@@ -114,3 +114,166 @@ func test_grow_text() -> void:
 	eq(cards.granary.rules_tooltip(cards), "Each upkeep: +1 pop here", "Granary")
 	eq(cards.festival.rules_tooltip(cards), "+1 pop in each territory", "Festival")
 	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")
+
+
+# --- 261: where "best" and count ---
+
+## Growth cards for 261's tests (not in TEST_CARDS).
+const GROW_CARDS := [
+	{"id": "bread", "name": "Bread", "type": "action", "effects": [{"op": "grow", "amount": 1, "where": "best"}]},
+	{"id": "banquet", "name": "Banquet", "type": "action", "effects": [{"op": "grow", "amount": 2, "where": "best"}]},
+	{"id": "grants", "name": "Grants", "type": "action",
+	 "effects": [{"op": "grow", "amount": 1, "where": "each", "count": 3}]},
+]
+
+## cards_engine with the Homeland first and Grassland, Hills (and the rest of settled) after it, at these pops in
+## tableau order, and these stalls (buildings with no housing) on each.
+func best_engine(pops: Array, stalls: Array, settled: Array[String] = ["grassland", "hills"], population := true) -> GameEngine:
+	var e := cards_engine(2, {"farm": 10}, settled, population, GROW_CARDS)
+	var lands := territories(e)
+	for i in lands.size():
+		if population:
+			lands[i].pop = pops[i]
+		for n in stalls[i]:
+			build_on(e, lands[i].uid, ["stall"])
+	return e
+
+
+func territories(e: GameEngine) -> Array:
+	return e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY)
+
+
+func pops(e: GameEngine) -> Array:
+	return territories(e).map(func(c): return c.pop)
+
+
+func play(e: GameEngine, id: String) -> void:
+	check(e.play_card(put_in_hand(e, id)), "play %s" % id)
+
+
+func test_best_grows_the_territory_with_idle_buildings() -> void:
+	var e := best_engine([3, 1], [2, 2], ["grassland"])  # Grassland: 2 buildings, 1 pop: one idle
+	play(e, "bread")
+	eq(pops(e), [3, 2], "Grassland grows, Homeland stays")
+
+
+func test_best_without_idle_buildings_grows_the_lowest_pop() -> void:
+	var e := best_engine([3, 1, 2], [0, 0, 0])
+	play(e, "bread")
+	eq(pops(e), [3, 2, 2], "Grassland (lowest pop) grows")
+
+
+func test_best_breaks_a_tie_in_tableau_order() -> void:
+	var e := best_engine([3, 2, 2], [0, 0, 0])
+	play(e, "bread")
+	eq(pops(e), [3, 3, 2], "Grassland (first of the tied) grows")
+
+
+func test_best_among_idle_territories_picks_the_lowest_pop() -> void:
+	var e := best_engine([3, 2, 1], [4, 3, 0])  # Homeland and Grassland idle; Hills lowest but not idle
+	play(e, "bread")
+	eq(pops(e), [3, 3, 1], "Grassland: lowest pop among those with idle buildings")
+	var tie := best_engine([3, 2, 2], [0, 3, 3])
+	play(tie, "bread")
+	eq(pops(tie), [3, 3, 2], "tie among idle: tableau order")
+
+
+func test_best_skips_full_territories() -> void:
+	var e := best_engine([3, 4], [0, 5], ["grassland"])  # Grassland 4 of 4 with an idle building
+	play(e, "bread")
+	eq(pops(e), [4, 4], "Homeland grows")
+
+
+func test_best_does_nothing_when_it_cannot_grow() -> void:
+	var full := best_engine([7, 4, 5], [0, 0, 0])
+	play(full, "bread")
+	eq(pops(full), [7, 4, 5], "every territory full")
+	var famine := best_engine([3, 1, 2], [0, 0, 0])
+	put_in(famine, "famine", "active_events")
+	play(famine, "bread")
+	eq(pops(famine), [3, 1, 2], "during a Famine")
+	var off := best_engine([0, 0, 0], [0, 0, 0], ["grassland", "hills"], false)
+	play(off, "bread")
+	eq(pops(off), [0, 0, 0], "population off")
+
+
+func test_best_adds_the_whole_amount_to_one_territory_capped_by_housing() -> void:
+	var e := best_engine([3, 1, 2], [0, 0, 0])
+	play(e, "banquet")
+	eq(pops(e), [3, 3, 2], "+2 on Grassland")
+	var capped := best_engine([5, 3], [0, 0], ["grassland"])  # Grassland housing 4
+	play(capped, "banquet")
+	eq(pops(capped), [5, 4], "capped at Grassland's housing")
+
+
+func test_each_with_count_grows_the_smallest_territories_with_room() -> void:
+	var e := best_engine([3, 1, 2, 2], [0, 0, 0, 0], ["grassland", "hills", "jungle"])
+	play(e, "grants")
+	eq(pops(e), [3, 2, 3, 3], "pop 1, 2, 2 grow; 3 doesn't")
+	var tie := best_engine([2, 1, 2, 2], [0, 0, 0, 0], ["grassland", "hills", "jungle"])
+	play(tie, "grants")
+	eq(pops(tie), [3, 2, 3, 2], "ties in tableau order: Homeland and Hills before Jungle")
+
+
+func test_each_with_count_skips_full_territories() -> void:
+	var e := best_engine([7, 4, 2, 1], [0, 0, 0, 0], ["grassland", "hills", "jungle"])
+	play(e, "grants")
+	eq(pops(e), [7, 4, 3, 2], "only the two with room grow")
+
+
+func test_each_without_count_still_grows_every_territory() -> void:
+	var e := best_engine([3, 1, 2, 2], [0, 0, 0, 0], ["grassland", "hills", "jungle"])
+	play(e, "festival")
+	eq(pops(e), [4, 2, 3, 3], "all four grow")
+
+
+func grow_on(type: String, effect: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var x := {"id": "x", "name": "X", "type": type, "effects": [effect]}
+	if type == CardDef.UNIT:
+		x["strength"] = 1
+	if type == CardDef.TECH:
+		x["cost"] = {"insight": 2}
+	var cards := DataLoader.parse_cards({"cards": [x]}, resources(), "cards.json", errors, warnings, keywords())
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+func test_best_loads_on_any_card_type() -> void:
+	for type in [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT, CardDef.EVENT, CardDef.TECH]:
+		var r := grow_on(type, {"op": "grow", "amount": 1, "where": "best"})
+		eq(r.errors, [] as Array[String], "%s: errors" % type)
+
+
+func test_count_loads_with_each() -> void:
+	var r := grow_card_errors({"op": "grow", "amount": 1, "where": "each", "count": 3})
+	eq(r.errors, [] as Array[String], "errors")
+	eq(r.warnings, [] as Array[String], "warnings")
+
+
+func test_count_validation() -> void:
+	check_cases([
+		["count 0", {"op": "grow", "amount": 1, "where": "each", "count": 0},
+			"cards.json: card 'x': effects[0]: 'count' must be an integer >= 1"],
+		["count not an integer", {"op": "grow", "amount": 1, "where": "each", "count": "three"},
+			"cards.json: card 'x': effects[0]: 'count' must be an integer >= 1"],
+		["count with best", {"op": "grow", "amount": 1, "where": "best", "count": 2},
+			["cards.json: card 'x': effects[0]", "'count'", "each"]],
+		["count with here", {"op": "grow", "amount": 1, "where": "here", "count": 2},
+			["cards.json: card 'x': effects[0]", "'count'", "each"]],
+	], grow_card_errors)
+
+
+## The grow effect's short and long text on an action, or "<not loaded>".
+func grow_texts(effect: Dictionary) -> Array:
+	var cards: Dictionary = grow_card_errors(effect).cards
+	if not cards.has("x"):
+		return ["<not loaded>", "<not loaded>"]
+	return [cards.x.rules_text(cards), cards.x.rules_tooltip(cards)]
+
+
+func test_best_and_count_text() -> void:
+	eq(grow_texts({"op": "grow", "amount": 1, "where": "best"}),
+		["+1 pop", "+1 pop where it's needed most"], "best: short, long")
+	eq(grow_texts({"op": "grow", "amount": 1, "where": "each", "count": 3}),
+		["+1 pop on 3 territories", "+1 pop on each of your 3 smallest territories with room"], "count: short, long")
