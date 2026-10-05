@@ -2,7 +2,7 @@
 id: 289
 title: A tech's details show the cards it gives
 type: feature
-status: ready
+status: red-review
 branch: feat/289-tech-details-show-given-cards
 ---
 
@@ -57,7 +57,11 @@ click on one opens that card's full details on top. Design B of
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_card_details::test_…` |
+| AC1 | `test_card_details::test_a_techs_details_list_each_card_it_gives_with_how_you_get_it` |
+| AC2 | `test_card_details::test_a_techs_rules_leave_out_the_lines_of_what_it_gives` |
+| AC3 | `test_card_details::test_cards_that_give_nothing_or_are_not_techs_have_no_gives` |
+| AC4 | `test_tech_gives_modal::test_a_techs_details_show_a_gives_row_of_its_cards_with_captions`, `test_a_card_that_gives_nothing_shows_no_gives_row` |
+| AC5 | `test_tech_gives_modal::test_clicking_a_gives_card_opens_its_details_on_top_and_esc_returns_to_the_tech`, `test_enter_or_i_on_a_focused_gives_card_opens_its_details` |
 
 ## Manual check
 - [ ] Knowledge screen → Mysticism: three compact cards (Temple, Stone Circle, Oracle of Delphi) fit across the modal
