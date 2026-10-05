@@ -347,6 +347,55 @@ func test_several_buildings_add_housing_and_calm_unrest() -> void:
 	check(calming.size() >= 3, "at least 3 buildings lose unrest each upkeep (got %s)" % [calming])
 
 
+# --- Wonders (backlog 265) ---
+
+func real_wonders(r: Dictionary) -> Array[CardDef]:
+	return real_buildings(r).filter(func(def): return def.has_tag("wonder"))
+
+
+func test_eras_1_and_2_each_have_2_wonders_from_their_techs() -> void:
+	var r := load_real()
+	var per_era := {1: [], 2: []}
+	for tech in techs_in_research_deck(r):
+		if per_era.has(tech.era):
+			for id in created_by(tech):
+				if r.cards[id].has_tag("wonder"):
+					per_era[tech.era].append(id)
+	for era in per_era:
+		check(per_era[era].size() >= 2, "era %d techs create at least 2 wonders (got %s)" % [era, per_era[era]])
+
+
+func test_every_wonder_comes_only_from_one_tech() -> void:
+	var r := load_real()
+	for def in real_wonders(r):
+		var creators := techs_in_research_deck(r).filter(func(t): return created_by(t).has(def.id))
+		eq(creators.size(), 1, "techs that create %s" % def.id)
+		check(not r.config.supply.has(def.id), "%s has no supply pile" % def.id)
+		check(not r.config.deck.has(def.id), "%s isn't in the starting deck" % def.id)
+
+
+func test_every_wonder_outcosts_and_outscores_every_other_building() -> void:
+	var r := load_real()
+	var top_cost := 0
+	var top_vp := 0
+	for def in real_buildings(r):
+		if not def.has_tag("wonder"):
+			top_cost = maxi(top_cost, def.cost.get(GameEngine.WEALTH, 0))
+			top_vp = maxi(top_vp, def.vp)
+	for def in real_wonders(r):
+		check(def.cost.get(GameEngine.WEALTH, 0) > top_cost, "%s costs more than %d wealth" % [def.id, top_cost])
+		check(def.vp > top_vp, "%s prints more than %d VP" % [def.id, top_vp])
+
+
+func test_every_wonder_counts_as_culture() -> void:
+	var r := load_real()
+	var missing: Array[String] = []
+	for def in real_wonders(r):
+		if not def.has_tag("culture"):
+			missing.append(def.id)
+	eq(missing, [] as Array[String], "wonders without the culture tag")
+
+
 func test_every_building_costs_wealth() -> void:
 	var r := load_real()
 	var no_wealth: Array[String] = []
