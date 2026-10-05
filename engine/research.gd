@@ -42,6 +42,17 @@ static func eras(e: GameEngine) -> Array[Dictionary]:
 	return out
 
 
+static func links(e: GameEngine, id: String) -> Dictionary:
+	var out := {"prereq": "", "unlocks": [] as Array[String]}
+	if not e.card_db.has(id):
+		return out
+	out.prereq = e.card_db[id].prereq
+	for tech in tree(e):
+		if tech.prereq == id:
+			out.unlocks.append(tech.id)
+	return out
+
+
 static func tree(e: GameEngine) -> Array[Dictionary]:
 	var ids: Array = e.config.get("research_deck", {}).keys()
 	var order := {}
