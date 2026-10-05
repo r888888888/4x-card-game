@@ -385,24 +385,38 @@ func test_raid_line_tag_and_shortfall_for_the_ui() -> void:
 		eq([e.raid_line(uid), e.raid_tag(uid), e.raid_short(uid)], ["", "", false], "nothing for %d" % uid)
 
 
-func test_the_strike_notice_says_what_it_cost_or_gave() -> void:
-	var e: GameEngine = raid_engine()
+## 271 AC1: the strike's line is logged and returned by raid_outcome_text, but no longer a notice (the raid modal shows it).
+func test_the_strike_line_says_what_it_cost_or_gave_and_is_logged_not_noticed() -> void:
+	var e: Object = raid_engine()
 	if e == null:
 		return
+	var outcomes := record_raids(e)
 	e.end_turn()
 	recruit(e, hills_of(e))
 	var recorded := record_messages(e)
 	e.end_turn()  # announced 2 turns ahead (257)
 	e.end_turn()
-	check_noticed(recorded, "Raiders pillaged Hills", GameEngine.NOTICE_URGENT)
+	if outcomes.size() != 1:
+		check(false, "one raid resolved: %s" % [outcomes])
+		return
+	var line: String = e.raid_outcome_text(outcomes[0])
+	check(line.begins_with("Raiders pillaged Hills: "), "pillaged line: %s" % line)
 	for fragment in ["+1 unrest", "−2 food", "−1 pop", "1 unit lost"]:
-		check(notices_in(recorded).any(func(m): return "pillaged" in m and fragment in m), "'%s' in %s" % [fragment, notices_in(recorded)])
+		check(fragment in line, "'%s' in %s" % [fragment, line])
+	check(recorded.has("log: " + line), "logged: %s" % [recorded])
+	eq(notices_in(recorded).filter(func(m): return "pillaged" in m), [], "no notice")
 
-	var r: GameEngine = raid_engine()
+	var r: Object = raid_engine()
+	var repels := record_raids(r)
 	r.end_turn()
 	build_on(r, hills_of(r), ["town"])
 	recruit(r, hills_of(r))
 	var repelled := record_messages(r)
 	r.end_turn()  # announced 2 turns ahead (257)
 	r.end_turn()
-	check_noticed(repelled, "Raiders repelled at Hills: +2 wealth, −1 unrest", GameEngine.NOTICE_INFO)
+	if repels.size() != 1:
+		check(false, "one raid resolved: %s" % [repels])
+		return
+	eq(r.raid_outcome_text(repels[0]), "Raiders repelled at Hills: +2 wealth, −1 unrest.", "repelled line")
+	check(repelled.has("log: Raiders repelled at Hills: +2 wealth, −1 unrest."), "logged: %s" % [repelled])
+	eq(notices_in(repelled).filter(func(m): return "repelled" in m), [], "no notice")
