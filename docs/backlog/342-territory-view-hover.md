@@ -2,7 +2,7 @@
 id: 342
 title: Hover the territory view's building cards and free slots, with the hover tick
 type: feature
-status: in-progress
+status: review
 branch: feat/342-territory-view-hover
 ---
 
@@ -13,20 +13,20 @@ inks its border like a hand card does, the free slot inks its outline, and each 
 show nothing on hover), and a free slot's "+ Build" ticks but doesn't change at all.
 
 ## Acceptance criteria
-- [ ] AC1: Given a territory view open on a territory with a city and 1 building, when the mouse enters the building's
+- [x] AC1: Given a territory view open on a territory with a city and 1 building, when the mouse enters the building's
   card, then the card shows the hover look (border `Palette.TEXT`, `Surfaces.CARD_HOVER` lift, no scale) and `Sfx.HOVER`
   plays once; the city card does the same.
-- [ ] AC2: Given a hovered building card, when the mouse leaves it, then it returns to its rest look and nothing plays;
+- [x] AC2: Given a hovered building card, when the mouse leaves it, then it returns to its rest look and nothing plays;
   a fresh entry plays `Sfx.HOVER` again (subject to the existing `Sfx.HOVER_GAP`).
-- [ ] AC3: Given the territory view closed (back on the Realm), when the mouse enters the territory's card in the
+- [x] AC3: Given the territory view closed (back on the Realm), when the mouse enters the territory's card in the
   Realm, then it keeps today's behaviour: no hover look and no sound. (Buildings aren't shown in the Realm; the view's
   units row also stays as today.)
-- [ ] AC4: Given a territory with 2 free slots and a non-empty build menu with no `build_menu_error`, when the mouse
+- [x] AC4: Given a territory with 2 free slots and a non-empty build menu with no `build_menu_error`, when the mouse
   enters free slot 0, then that outline's border turns `Palette.TEXT` (slot 1 unchanged) and `Sfx.HOVER` plays once
   (not twice: the outline and its "+ Build" key are one target); leaving restores `Palette.GHOST_EDGE`.
-- [ ] AC5: Given a free slot whose "+ Build" is disabled (`build_menu_error` non-empty) or hidden (empty build menu),
+- [x] AC5: Given a free slot whose "+ Build" is disabled (`build_menu_error` non-empty) or hidden (empty build menu),
   when the mouse enters it, then the outline doesn't change and nothing plays.
-- [ ] AC6: Given a drag in progress or a mouse button held, when the cursor enters a building card or free slot, then no
+- [x] AC6: Given a drag in progress or a mouse button held, when the cursor enters a building card or free slot, then no
   hover sound plays (as for every hover tick, 245).
 
 ## Out of scope
@@ -59,9 +59,19 @@ show nothing on hover), and a free slot's "+ Build" ticks but doesn't change at 
 | AC6 | `test_territory_view::test_entering_a_building_or_slot_with_the_mouse_held_is_silent` (guard: passes today) |
 
 ## Manual check
-- [ ] Open a territory and sweep the cursor over the city, buildings and free slots: each lifts or inks with a faint
-  tick, never louder than a click.
+- [ ] `godot --path . -- --seed 5`: click your home territory in the Realm, then sweep the cursor over the city, the
+  buildings and the free slots' "+ Build": each inks its border (cards also deepen their shadow, no slide or growth)
+  with a faint tick, never louder than a click.
 - [ ] With nothing buildable, hover a free slot: silent and unchanged.
 - [ ] Back on the Realm, hovering those same cards does nothing.
 
 ## Log
+- Tests went into `tests/test_territory_view.gd` (a section for 342), not a file of their own: a new row pushed
+  `docs/testing.md` past its 25 KB cap.
+- Buildings aren't shown in the Realm (their views are freed when the view closes), so AC3 guards the territory's own
+  card there; `hoverable` is set by `TerritoryView.refresh` on each view it places in its row.
+- Refactor: `move_mouse`, `away`, `centre` and `hovers` moved to `tests/lib/test_case.gd` (copied in
+  `test_hover_sound`, `test_key_sounds` and here). `docs/testing.md` is now 1 byte under its cap: the next helper row
+  will need a trim.
+- Guide: the `ui.hover` row and §16.8's silent-by-design line name the territory view; the specimen's territory note too
+  (its CSS already inked an empty slot on hover).
