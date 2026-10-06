@@ -880,3 +880,25 @@ func test_a_click_on_the_hand_works_as_before_once_the_screen_is_closed_or_leavi
 		click_control(main, card)
 		await wait_details_delay()
 		eq(main.details.shown().get("name", ""), Game.engine.def_details(card.card_id).get("name", "?"), "the click shows the card's details"))
+
+
+# --- Backlog 362: the era rows glide ---
+
+## Opens the Knowledge screen on the real game in a 1280 × 720 window (more era rows than fit) and checks a wheel
+## notch over its rows moves them a step, gliding unless calm (check_wheel_step).
+func check_knowledge_wheel_step(calm: bool) -> void:
+	await with_reduce_motion(calm, func(): await with_window_size(Vector2i(1280, 720), func():
+		var main := open_main()
+		main.start_game(1)
+		press_key(main, KEY_T)
+		await wait_screen_transition()
+		await check_wheel_step(main, scroll_around(main.knowledge.era_heading(0)), "the era rows")
+		close_main(main)))
+
+
+func test_a_wheel_notch_glides_the_era_rows_a_step() -> void:
+	await check_knowledge_wheel_step(false)
+
+
+func test_with_reduce_motion_a_wheel_notch_jumps_the_era_rows_a_step() -> void:
+	await check_knowledge_wheel_step(true)

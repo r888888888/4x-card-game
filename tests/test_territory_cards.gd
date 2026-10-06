@@ -19,11 +19,6 @@ func realm_uids(main: Node) -> Array[int]:
 	return out
 
 
-## Waits until cards have popped in and flown to their slots (so their rects are laid out).
-func settle_motion() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(0.8).timeout
-
-
 func territory_of(e: GameEngine, uid: int) -> int:
 	var card := e.zone("tableau").find(uid)
 	return card.territory_uid if card != null else -1

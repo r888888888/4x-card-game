@@ -655,6 +655,21 @@ func wait_screen_transition() -> void:
 	await (Engine.get_main_loop() as SceneTree).create_timer(longest + 0.15).timeout
 
 
+## Runs body with the window at size, then puts it back (362: a scroll area with more content than fits). Use with
+## await.
+func with_window_size(size: Vector2i, body: Callable) -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var before := window.size
+	window.size = size
+	await body.call()
+	window.size = before
+
+
+## Waits until cards have popped in and flown to their slots (so their rects are laid out).
+func settle_motion() -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.8).timeout
+
+
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
 func wait_frames(n := 2) -> void:
 	for i in n:
@@ -797,6 +812,51 @@ func press_key(main: Node, keycode: Key) -> void:
 		event.physical_keycode = keycode
 		event.pressed = pressed
 		main.get_viewport().push_input(event)
+
+
+## One wheel notch (down, or up) at point on main's viewport (the centre of scroll when omitted), as the mouse sends
+## it: pressed, then released (356).
+func wheel_notch(main: Node, scroll: ScrollContainer, down := true, point := Vector2.INF) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_WHEEL_DOWN if down else MOUSE_BUTTON_WHEEL_UP
+		event.pressed = pressed
+		event.factor = 1.0
+		event.position = scroll.get_global_rect().get_center() if point == Vector2.INF else point
+		event.global_position = event.position
+		main.get_viewport().push_input(event, true)
+
+
+## The furthest scroll's scroll_vertical can go.
+func scroll_bottom(scroll: ScrollContainer) -> int:
+	var bar := scroll.get_v_scroll_bar()
+	return int(bar.max_value - bar.page)
+
+
+## The nearest ScrollContainer holding control, or null.
+func scroll_around(control: Node) -> ScrollContainer:
+	var node := control.get_parent()
+	while node != null and not node is ScrollContainer:
+		node = node.get_parent()
+	return node as ScrollContainer
+
+
+## Checks that scroll (what) is a SmoothScroll with room to scroll, and that one wheel notch down at point (its centre
+## when omitted), from the top, moves it Anim.SCROLL_STEP px (± 2): at once with Reduce motion, else gliding there
+## from rest (356, 362). Use with await, inside with_reduce_motion.
+func check_wheel_step(main: Node, scroll: ScrollContainer, what: String, point := Vector2.INF) -> void:
+	check(scroll is SmoothScroll, "%s: a SmoothScroll, not a %s" % [what, scroll.get_class()])
+	check(scroll_bottom(scroll) > Anim.SCROLL_STEP, "%s: room to scroll a step: %d" % [what, scroll_bottom(scroll)])
+	scroll.scroll_vertical = 0
+	await wait_frames()
+	wheel_notch(main, scroll, true, point)
+	var step := int(Anim.SCROLL_STEP)
+	if UIKit.calm():
+		eq(scroll.scroll_vertical, step, "%s: a step down at once" % what)
+		return
+	eq(scroll.scroll_vertical, 0, "%s: nothing moves in the notch's own frame" % what)
+	await wait_frames(240)
+	check(absi(scroll.scroll_vertical - step) <= 2, "%s: at rest one step down: %d" % [what, scroll.scroll_vertical])
 
 
 func close_main(main: Node) -> void:

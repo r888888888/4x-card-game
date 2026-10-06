@@ -2,7 +2,7 @@
 id: 362
 title: The Knowledge screen, the renewal ledger and the Realm scroll smoothly
 type: feature
-status: ready
+status: red-review
 branch: feat/362-smooth-scroll-everywhere
 ---
 
@@ -39,7 +39,17 @@ everywhere.
 - `docs/testing.md` is at its 25 KB cap: adding no new test file avoids a new index row.
 
 ## Test plan
-<!-- Filled in by Claude during the red phase. -->
+| AC | Tests |
+|----|-------|
+| AC1 | `test_knowledge_screen::test_a_wheel_notch_glides_the_era_rows_a_step` |
+| AC2 | `test_renewal_modal::test_a_wheel_notch_glides_the_ledger_a_step` |
+| AC3 | `test_board_row::test_a_wheel_notch_over_a_card_glides_the_realm_a_step` |
+| AC4 | `test_board_row::test_a_card_dropped_on_a_scrolled_realm_targets_the_card_under_it` (a guard: passes before), and the existing drag tests |
+| AC5 | `test_with_reduce_motion_a_wheel_notch_jumps_the_{era_rows,ledger,realm}_a_step` in the same three files |
+
+Shared helpers moved or added in `tests/lib/test_case.gd`: `wheel_notch` and `scroll_bottom` (were `wheel` and
+`bottom` in `test_smooth_scroll.gd`), `scroll_around`, `check_wheel_step`, `with_window_size`, and `settle_motion`
+(from `test_territory_cards.gd`).
 
 ## Manual check
 
