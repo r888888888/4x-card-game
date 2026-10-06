@@ -2,7 +2,7 @@
 id: 336
 title: The engine says what a forecast reads, so the bot's forecast cache can't go stale
 type: feature
-status: draft
+status: red-review
 branch: feat/336-forecast-reads
 ---
 
@@ -45,6 +45,11 @@ when a new field isn't classified.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_turn_forecast::test_a_gain_per_tag_reads_the_zone_it_counts`, `test_a_create_into_the_discard_reads_no_zone`, `test_every_other_op_reads_no_zone` |
+| AC2 | `test_turn_forecast::test_the_forecast_reads_the_board_plus_the_zones_effects_count`, `test_generic_bot_cache::test_the_key_uses_the_engines_forecast_zones_and_names_no_op`; the cache tests unedited |
+| AC3 | `test_generic_bot_cache::test_every_game_state_field_is_in_the_key_or_listed_as_unread`, `test_every_card_instance_field_is_in_the_key_or_listed_as_unread`, `test_the_key_reads_every_field_its_lists_name`, `test_positions_differing_in_eras_added_keywords_or_base_have_different_keys` |
+| AC4 | `scripts/sim.sh 20` before/after (Log); `test_every_cached_forecast_equals_a_fresh_one` |
+| AC5 | the add-effect skill (doc) |
 
 ## Log
 - 2026-10-06: specced from the project review; the user chose an engine hook plus a field check.
