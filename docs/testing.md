@@ -26,7 +26,7 @@ Exit code 0 means green.
 - The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
   `TEST_JOBS=1` runs serially). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
   the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`
-  (with no `//` in its path, 330: Godot would list the project for a `user://` folder), so no two share `user://`
+  (no `//` in its path, 330), so no two share `user://`
   and a run never touches the player's settings. Tests must not depend on which other files ran before them in the
   same process.
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
@@ -207,7 +207,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sunrise_art.gd` | The title screen's art (214) |
 | `tests/test_supply.gd` | The card supply (032, 057) |
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
-| `tests/test_surfaces.gd` | Walnut grain, paper and soft shadows on the board, bar, rail and modals (341; UI) |
+| `tests/test_surfaces.gd` | Wood grain, paper and soft shadows (341; UI) |
 | `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era arriving (027) |
 | `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
