@@ -2,7 +2,7 @@
 id: 347
 title: Explain a build refused for want of a free worker
 type: feature
-status: review
+status: done
 branch: feat/347-explain-no-free-worker
 ---
 
