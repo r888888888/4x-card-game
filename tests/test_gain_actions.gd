@@ -32,13 +32,12 @@ func play_new(e: GameEngine, id: String) -> void:
 # --- AC1: loading ---
 
 func test_gain_actions_loads() -> void:
-	var r := fixture_load([DRILL, MUSTER], [TEST_GOVS, TEST_CIVS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["Drill and Muster", [DRILL, MUSTER], {}],
+	], fixture_load.bind([TEST_GOVS, TEST_CIVS]))
 
 
 func test_gain_actions_validation() -> void:
-	var load_one := func(card: Dictionary) -> Dictionary: return fixture_load([card], [TEST_GOVS, TEST_CIVS])
 	check_cases([
 		["amount 0", card_with("action", {"op": "gain_actions", "amount": 0}), ["card 'x'", "'amount' must be an integer >= 1"]],
 		["amount not an int", card_with("action", {"op": "gain_actions", "amount": "one"}), ["card 'x'", "'amount'"]],
@@ -48,7 +47,7 @@ func test_gain_actions_validation() -> void:
 			["card 'x'", "'gain_actions' can't trigger on start"]],
 		["on an event", card_with("event", {"op": "gain_actions", "amount": 1}),
 			["card 'x'", "an event effect can't use 'gain_actions'"]],
-	], load_one)
+	], card_load.bind([TEST_GOVS, TEST_CIVS]))
 
 
 func test_gain_actions_amount_defaults_to_1() -> void:

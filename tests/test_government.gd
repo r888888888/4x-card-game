@@ -26,7 +26,7 @@ func test_government_outside_its_place_is_a_load_error() -> void:
 		["in supply", {"supply": {"kingdom": {"price": 1, "count": 1}}}, "config.json: supply: 'kingdom' is a government"],
 		["in territory_deck", {"territory_deck": {"kingdom": 1}}, "config.json: territory_deck: 'kingdom' is not a territory"],
 		["in research_deck", {"research_deck": {"kingdom": 1}}, "config.json: research_deck: 'kingdom' is not a tech"],
-	], func(overrides): return config_errors(overrides, [TEST_GOVS]))
+	], config_load.bind([TEST_GOVS]))
 
 
 func test_starting_government_validation() -> void:
@@ -34,7 +34,7 @@ func test_starting_government_validation() -> void:
 		["unknown id", starting_with("zzz"), "config.json: starting.government: unknown card 'zzz'", "one_error"],
 		["not a government", starting_with("farm"), "config.json: starting.government: 'farm' is not a government", "one_error"],
 		["not a string", starting_with(3), "config.json: starting.government", "one_error"],
-	], func(overrides): return config_errors(overrides, [TEST_GOVS]))
+	], config_load.bind([TEST_GOVS]))
 
 
 func test_bad_government_card_is_a_load_error() -> void:

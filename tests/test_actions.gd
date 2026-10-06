@@ -41,7 +41,7 @@ func test_bad_government_actions_are_load_errors() -> void:
 		["below 1", [{"id": "x", "name": "X", "type": "government", "actions": 0}], ["'x'", "actions"]],
 		["not an int", [{"id": "x", "name": "X", "type": "government", "actions": "two"}], ["'x'", "actions"]],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "'actions' only applies to governments", "warning_only"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS]))
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_government_actions_text() -> void:

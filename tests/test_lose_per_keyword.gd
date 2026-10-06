@@ -109,7 +109,7 @@ func test_lose_per_keyword_validation() -> void:
 		["unknown keyword", storm_with("keywords", ["mountain", "swamp"]), [prefix, "unknown keyword 'swamp' in 'keywords'"]],
 		["missing resource", storm_with("resource", null), prefix + "missing 'resource'"],
 		["amount 0", storm_with("amount", 0), prefix + "'amount' must be an integer >= 1"],
-	], func(effect): return load_action(effect).errors)
+	], load_action)
 
 
 func test_lose_per_keyword_card_text() -> void:

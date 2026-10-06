@@ -214,7 +214,7 @@ func test_famine_config_validation() -> void:
 		["unknown card", pop.call({"card": "zzz", "max_counters": 3}), "config.json: population.famine.card: unknown card 'zzz'"],
 		["not an event", pop.call({"card": "farm", "max_counters": 3}), "population.famine.card 'farm' is not an event"],
 		["max_counters 0", pop.call({"card": "famine", "max_counters": 0}), "population.famine: 'max_counters' must be an integer >= 1"],
-	], func(p): return population_errors(p))
+	], population_errors)
 	eq(population_errors(pop.call(FAMINE)), [] as Array[String], "a valid famine block")
 
 

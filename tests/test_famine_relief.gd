@@ -142,7 +142,7 @@ func test_famine_relief_validation() -> void:
 		["0", {"wealth": 0}, "population.famine.relief: 'wealth' must be an integer >= 1"],
 		["not an integer", {"wealth": "x"}, "population.famine.relief: 'wealth' must be an integer >= 1"],
 		["empty", {}, "population.famine.relief"],
-	], func(relief): return relief_errors(relief))
+	], relief_errors)
 
 
 func test_a_famine_without_relief_cant_be_relieved() -> void:

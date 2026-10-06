@@ -57,12 +57,9 @@ func fortify_hills(e: GameEngine) -> int:
 # --- AC1: loading ---
 
 func test_defense_loads_on_buildings_and_cities() -> void:
-	var r := defence_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("palisade"):
-		eq(r.cards.palisade.defense, 2, "Palisade")
-		eq(r.cards.town.defense, 1, "Town")
+	check_loads([
+		["Palisade and Town", [], {"cards.palisade.defense": 2, "cards.town.defense": 1}],
+	], defence_load)
 
 
 func test_bad_defense_is_a_load_error() -> void:

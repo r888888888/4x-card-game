@@ -118,7 +118,7 @@ func test_a_prereq_cycle_is_one_load_error() -> void:
 			"cards.json: card 'a': prereq: cycle a → b → a", "one_error"],
 		["its own prereq", [tech("a", "a")], "cards.json: card 'a': prereq: a tech can't be its own prerequisite",
 			"one_error"],
-	], func(extra): return fixture_load(extra, [TECHS]))
+	], fixture_load.bind([TECHS]))
 	eq(fixture_load([tech("a"), tech("b", "a"), tech("c", "b")], [TECHS]).errors, [] as Array[String], "a chain loads")
 
 

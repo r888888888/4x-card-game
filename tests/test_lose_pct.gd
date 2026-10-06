@@ -108,7 +108,7 @@ func test_lose_pct_validation() -> void:
 		["pct 101", fire_with("pct", 101), prefix + "'pct' must be an integer from 1 to 100"],
 		["missing resource", fire_with("resource", null), prefix + "missing 'resource'"],
 		["unknown resource", fire_with("resource", "gold"), prefix + "'resource'"],
-	], func(effect): return load_action(effect).errors)
+	], load_action)
 
 
 func test_lose_pct_card_text() -> void:

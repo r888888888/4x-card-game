@@ -51,7 +51,7 @@ func test_era_field_validation() -> void:
 		["era on a building", [{"era": 2}, "building", []], "cards.json: card 'x': 'era' only applies to techs", "warning_only"],
 		["add_era without era", [{}, "tech", [{"op": "add_era"}]], "cards.json: card 'x': effects[0]: missing 'era'"],
 		["add_era 1", [{}, "tech", [{"op": "add_era", "era": 1}]], "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2"],
-	], func(args): return load_x(args[0], args[1], args[2]))
+	], load_x.callv)
 
 
 func test_add_era_loads() -> void:

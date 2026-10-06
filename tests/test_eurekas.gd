@@ -52,10 +52,10 @@ func entry(e: GameEngine, id: String) -> Dictionary:
 # --- AC1: loading ---
 
 func test_card_and_tag_eurekas_load() -> void:
-	for eureka in [FARMS, CITIES]:
-		var r := load_x({"eureka": eureka})
-		eq(r.errors, [] as Array[String], "%s: errors" % [eureka])
-		eq(r.warnings, [] as Array[String], "%s: warnings" % [eureka])
+	check_loads([
+		["a card eureka", {"eureka": FARMS}, {}],
+		["a tag eureka", {"eureka": CITIES}, {}],
+	], load_x)
 
 
 func test_eureka_validation() -> void:

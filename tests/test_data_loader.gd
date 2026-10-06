@@ -7,12 +7,12 @@ func test_real_data_loads() -> void:
 	check(r.errors.is_empty(), "errors: %s" % [r.errors])
 
 
-## Parses a card list (no keywords config); returns {errors, warnings}.
+## Parses a card list (no keywords config); returns {cards, errors, warnings}.
 func parse(cards: Array) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": cards}, resources(), "t", errors, warnings)
-	return {"errors": errors, "warnings": warnings}
+	var parsed := DataLoader.parse_cards({"cards": cards}, resources(), "t", errors, warnings)
+	return {"cards": parsed, "errors": errors, "warnings": warnings}
 
 
 func test_card_validation() -> void:
@@ -51,11 +51,6 @@ func test_bug_048_create_refuses_zones_where_a_new_card_makes_no_sense() -> void
 	check_cases(cases, parse)
 
 
-func test_bug_048_create_loads_into_tableau_hand_discard_and_deck() -> void:
-	for zone in ["tableau", "hand", "discard", "deck"]:
-		eq(parse(creator(zone)).errors, [] as Array[String], "%s: errors" % zone)
-
-
 func test_config_unknown_deck_card() -> void:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
@@ -74,11 +69,11 @@ func test_json_syntax_error_reports_line() -> void:
 	check(has_message(errors, "broken.json: JSON syntax error on line"), str(errors))
 
 
-func test_city_slots_loads() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": [{"id": "hub", "name": "Hub", "type": "city", "slots": 4}]},
-		resources(), "t", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.hub.slots, 4, "slots")
+func test_cards_load() -> void:
+	check_loads([
+		["city slots", [{"id": "hub", "name": "Hub", "type": "city", "slots": 4}], {"cards.hub.slots": 4}],
+		["048: create into the tableau", creator("tableau"), {}],
+		["048: create into the hand", creator("hand"), {}],
+		["048: create into the discard", creator("discard"), {}],
+		["048: create into the deck", creator("deck"), {}],
+	], parse)

@@ -106,7 +106,7 @@ func test_upgrade_of_validation() -> void:
 			"cards.json: card 'x': 'upgrade_of' must be a string"],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "upgrade_of": "farm"}],
 			"cards.json: card 'x': 'upgrade_of' only applies to buildings (ignored)", "warning_only"],
-	], func(extra): return upgrade_load(extra))
+	], upgrade_load)
 
 
 func test_an_upgrade_cycle_is_reported_once_on_its_first_card() -> void:

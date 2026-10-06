@@ -65,7 +65,7 @@ func test_modifiers_validation() -> void:
 		["on an action", [with_modifiers("action", {"actions": 1})], "'modifiers' only applies to", "warning_only"],
 		["on a territory", [{"id": "x", "name": "X", "type": "territory", "slots": 1, "modifiers": {"actions": 1}}],
 			"'modifiers' only applies to", "warning_only"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS]))
+	], fixture_load.bind([TEST_GOVS]))
 	for type in ["building", "city", "tech", "civilization", "government", "event"]:
 		var r := fixture_load([with_modifiers(type, {"actions": 1})], [TEST_GOVS])
 		eq(r.errors, [] as Array[String], "%s: errors" % type)

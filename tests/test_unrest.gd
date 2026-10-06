@@ -76,7 +76,7 @@ func test_unrest_limit_validation() -> void:
 		["a string", [{"id": "x", "name": "X", "type": "government", "unrest_limit": "5"}], message, "one_error"],
 		["on a building", [{"id": "x", "name": "X", "type": "building", "unrest_limit": 5}],
 			"'unrest_limit' only applies to governments (ignored)", "warning_only"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES))
+	], fixture_load.bind([TEST_GOVS, FIXTURES], RESOURCES))
 
 
 func test_the_unrest_limit_modifier_loads_with_its_text() -> void:
@@ -167,7 +167,7 @@ func test_unrest_cant_be_paid() -> void:
 		["traded", [{"id": "x", "name": "X", "type": "action", "effects": [
 			{"op": "trade", "resource": "unrest", "per_root_city": 2, "pop_per": 5, "min_cities": 2}]}],
 			"cards.json: card 'x': effects[0]: " + UNPAYABLE, "one_error"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS, FIXTURES], RESOURCES))
+	], fixture_load.bind([TEST_GOVS, FIXTURES], RESOURCES))
 
 
 func test_unrest_cant_be_famine_relief() -> void:

@@ -86,7 +86,7 @@ func test_lose_and_lose_pop_validation() -> void:
 		["lose amount 1.5", [card_x("action", [{"op": "lose", "resource": "food", "amount": 1.5}])], prefix + "'amount' must be an integer >= 1"],
 		["lose_pop amount 0", [card_x("action", [{"op": "lose_pop", "amount": 0}])], prefix + "'amount' must be an integer >= 1"],
 		["lose_pop missing amount", [card_x("action", [{"op": "lose_pop"}])], prefix + "missing 'amount'"],
-	], func(extra): return fixture_load(extra).errors)
+	], fixture_load)
 
 
 # --- AC3: lose_pop ---
