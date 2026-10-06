@@ -61,7 +61,7 @@ func _init(parent: Control) -> void:
 	new_game_button = _key("New game", "Choose a civilization and a seed", new_game_requested, true)
 	new_game_button.tooltip_text = "Choose a civilization and a seed, then start."
 	settings_button = _key("Settings", "Motion, day mode, sound", settings_requested)
-	exit_button = _key("Exit", "Close the game", exit_requested)
+	exit_button = _key("Exit game", "Close the game", exit_requested)
 	exit_button.tooltip_text = "Quit the game."
 	var keys := UIKit.button_column(column, [new_game_button, settings_button, exit_button])
 	keys.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN  # flush left, one width
