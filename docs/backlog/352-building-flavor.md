@@ -2,7 +2,7 @@
 id: 352
 title: Flavor text for buildings
 type: feature
-status: in-progress
+status: review
 branch: feat/352-building-flavor
 ---
 
@@ -12,18 +12,18 @@ line in its details window, like actions (351), techs and events (215). Building
 are the loader's standard example of a card that may not set `flavor`.
 
 ## Acceptance criteria
-- [ ] AC1: Given a `TEST_CARDS` building with `"flavor": "Mud brick, baked hard."`, when the cards load, then there
+- [x] AC1: Given a `TEST_CARDS` building with `"flavor": "Mud brick, baked hard."`, when the cards load, then there
   are no errors or warnings, and both `def_details(id)` and `card_details(uid)` of that building on a territory
   return that `flavor`.
-- [ ] AC2: Given a building whose `flavor` is `3` or `""`, when the cards load, then the loader reports
+- [x] AC2: Given a building whose `flavor` is `3` or `""`, when the cards load, then the loader reports
   "'flavor' must be a non-empty string", naming the card (as for a civilization, 107).
-- [ ] AC3: Given a building with `"quote": {"text": …, "by": …}`, when the cards load, then it warns that `quote`
+- [x] AC3: Given a building with `"quote": {"text": …, "by": …}`, when the cards load, then it warns that `quote`
   doesn't apply (ignored), and its details' `quote` is `{}`.
-- [ ] AC4: Given a territory with `flavor`, when the cards load, then it warns "'flavor' only applies to
+- [x] AC4: Given a territory with `flavor`, when the cards load, then it warns "'flavor' only applies to
   civilizations (ignored)": territories, cities and units still take no flavor.
-- [ ] AC5: Given a building with a flavor, when its card face is built (`CardView.setup`, in hand and not),
+- [x] AC5: Given a building with a flavor, when its card face is built (`CardView.setup`, in hand and not),
   then the face's lines are the same as for the card without it: flavor shows only in the details window.
-- [ ] AC6 (content): in `data/cards.json` every building, projects and upgrades included, has a `flavor`
+- [x] AC6 (content): in `data/cards.json` every building, projects and upgrades included, has a `flavor`
   (`test_content.gd` invariant).
 
 ## Out of scope
@@ -61,3 +61,9 @@ are the loader's standard example of a card that may not set `flavor`.
 - [ ] Read through all building lines for tone, accuracy and length.
 
 ## Log
+- 2026-10-06: AC3 and AC4 held before the change; their tests guard the rules. The two tests that used a building as
+  the card that may not have flavor now use a territory (same warning).
+- `docs/testing.md` unchanged (at its 25 KB cap); the test file's `##` header names 352.
+- Lines to double-check at the manual check: Hanging Gardens (hedged with "it was said": its existence is debated),
+  Walls of Uruk (credited to Gilgamesh by the epic; ~9 km is the usual estimate), Mint (Lydian electrum, the lion
+  stamp), Dye Works (Tyrian purple's value varies by source).
