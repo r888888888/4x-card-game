@@ -727,6 +727,42 @@ func test_every_metropolis_building_is_an_upgrade_a_wonder_or_once() -> void:
 	eq(stand_alone, [] as Array[String], "stand-alone %s buildings that aren't wonders or once" % top)
 
 
+## Backlog 308: whether def makes food each upkeep.
+func makes_food_on_upkeep(def: CardDef) -> bool:
+	return def.effects.any(func(e: Effect) -> bool:
+		return e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD and (e.op in GAIN_OPS or e.op == "gain_per_pop"))
+
+
+## Backlog 308: every territory a game can hold (the territory deck and every civilization's home) can hold a building
+## of its own, not an upgrade, that makes food each upkeep: its requires met by the territory's printed keywords.
+func test_every_territory_can_hold_a_food_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var farms := real_buildings(r).filter(func(def: CardDef) -> bool:
+		return reachable.has(def.id) and not def.is_upgrade() and makes_food_on_upkeep(def))
+	var ids: Array = r.config.territory_deck.keys()
+	for civ in r.config.get("civilizations", []):
+		if r.cards[civ].home != "":
+			ids.append(r.cards[civ].home)
+	var hungry: Array[String] = []
+	for id in ids:
+		var land: CardDef = r.cards[id]
+		if not farms.any(func(def: CardDef) -> bool: return meets(land.keywords, def.requires)):
+			hungry.append("%s %s" % [id, land.keywords])
+	eq(hungry, [] as Array[String], "territories with no food building they can hold")
+
+
+## Backlog 308: a one-per-realm building that isn't a wonder is the reward of a large settlement, so it needs a tier.
+func test_every_once_building_that_is_not_a_wonder_has_a_tier() -> void:
+	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var untiered: Array[String] = []
+	for def in real_buildings(r):
+		if menu.get(def.id, {}).get("once", false) and not def.has_tag("wonder") and def.tier == "":
+			untiered.append(def.id)
+	eq(untiered, [] as Array[String], "once buildings that aren't wonders and need no tier")
+
+
 ## Backlog 295: a wonder is built once a game.
 func test_every_wonder_is_a_once_entry() -> void:
 	var r := load_real()

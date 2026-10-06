@@ -2,7 +2,7 @@
 id: 308
 title: Fill the building roster's gaps: Palace, Shipyard, Terraced Fields, Reed Works, Cistern, Dye Works, Kiln
 type: feature
-status: ready
+status: red-review
 branch: feat/308-gap-buildings
 ---
 
@@ -43,7 +43,8 @@ Content tests, naming no card id:
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_territory_can_hold_a_food_building` |
+| AC2 | `test_content::test_every_once_building_that_is_not_a_wonder_has_a_tier` |
 
 ## Manual check
 - [ ] Palace: Code of Laws, 10 wealth, tier Metropolis, once, 3 VP, +1 action.
