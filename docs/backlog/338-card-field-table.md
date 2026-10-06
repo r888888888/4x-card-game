@@ -2,7 +2,7 @@
 id: 338
 title: DataLoader reads per-type fields from one table; 'requires' only applies to buildings
 type: feature
-status: red-review
+status: in-progress
 branch: feat/338-card-field-table
 ---
 
