@@ -207,7 +207,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
 | `tests/test_surfaces.gd` | Wood grain, paper and soft shadows (341; UI) |
 | `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era arriving (027) |
-| `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215) |
+| `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event and action `flavor` (215, 351) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`) and `era_name` / config `era_names` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |

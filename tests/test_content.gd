@@ -1589,6 +1589,13 @@ func test_the_anarchy_event_has_flavor_and_a_quote() -> void:
 		check(def.quote_text != "" and def.quote_by != "", "and a quote")
 
 
+## Backlog 351: every action has a flavor line.
+func test_every_action_has_flavor() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.ACTION:
+			check(def.flavor != "", "%s has flavor" % def.id)
+
+
 ## Backlog 215: every tech has a flavor line and a quote with its source, and every event a flavor line.
 func test_every_tech_has_flavor_and_a_quote_and_every_event_flavor() -> void:
 	var r := load_real()

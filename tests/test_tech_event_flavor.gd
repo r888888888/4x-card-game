@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Flavor for techs and events (backlog 215): a tech may carry a `flavor` line and a `quote` {text, by}, an event a
-## `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
+## Flavor for techs, events and actions (backlog 215, 351): a tech may carry a `flavor` line and a `quote` {text, by}, an
+## event or action a `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
 
 const FIRE := {"id": "fire", "name": "Fire", "type": "tech", "cost": {"insight": 1},
 	"flavor": "Fire, tamed.", "quote": {"text": "Knowledge is power.", "by": "Francis Bacon"}}
@@ -116,3 +116,46 @@ func test_an_event_face_shows_no_flavor() -> void:
 		var face := face_of(flavored, "comet", kind)
 		eq(face, face_of(plain, "comet", kind), "the %s face is the same as without flavor" % (kind if kind != "" else "card"))
 		check(not face.contains("The sky burned."), "no flavor: %s" % face)
+
+
+# --- 351: an action's flavor ---
+
+const TREK := {"id": "trek", "name": "Trek", "type": "action", "flavor": "They went over the hill.",
+	"effects": [{"op": "gain", "resource": "food", "amount": 1}]}
+
+
+func test_an_action_may_have_flavor() -> void:
+	var m := card_messages(TREK)
+	eq(m.errors, [] as Array[String], "errors")
+	eq(m.warnings, [] as Array[String], "warnings")
+	var e := make_engine({"farm": 10}, {}, 1, [TREK])
+	eq(e.def_details("trek").get("flavor"), "They went over the hill.", "flavor in def_details")
+	var uid := put_in_hand(e, "trek")
+	eq(e.card_details(uid).get("flavor"), "They went over the hill.", "flavor in the card in hand's card_details")
+
+
+func test_action_flavor_validation() -> void:
+	check_cases([
+		["action flavor not a string", with_field(TREK, "flavor", 3),
+			"cards.json: card 'trek': 'flavor' must be a non-empty string", "one_error"],
+		["action flavor empty", with_field(TREK, "flavor", ""),
+			"cards.json: card 'trek': 'flavor' must be a non-empty string", "one_error"],
+	], card_messages)
+
+
+func test_a_quote_on_an_action_is_ignored_with_a_warning() -> void:
+	var quoted := with_field(TREK, "quote", {"text": "Onward.", "by": "A guide"})
+	var m := card_messages(quoted)
+	eq(m.errors, [] as Array[String], "errors")
+	has_msg(m.warnings, "card 'trek': 'quote' only applies to civilizations (ignored)")
+	var e := make_engine({"farm": 10}, {}, 1, [quoted])
+	eq(e.def_details("trek").get("quote"), {}, "no quote in def_details")
+
+
+func test_an_action_face_shows_no_flavor() -> void:
+	var flavored := fixture_db([TREK])
+	var plain := fixture_db([with_field(TREK, "flavor", null)])
+	check((flavored["trek"] as CardDef).flavor != "", "the action has flavor")
+	var face := face_of(flavored, "trek")
+	eq(face, face_of(plain, "trek"), "the face is the same as without flavor")
+	check(not face.contains("over the hill"), "no flavor: %s" % face)
