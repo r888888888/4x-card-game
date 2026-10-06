@@ -66,7 +66,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.details = CardDetailsModal.new(main.modals)
 	main.details.play_requested.connect(main.card_actions.on_double_clicked)  # Play acts as a double-click would (225)
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
-	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
+	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech,
+		main.modals)
 	var lamps := func():  # the keys' lamps, after a see (288)
 		top_bar.refresh(Game.engine, true)
 		main.supply.refresh(Game.engine)
