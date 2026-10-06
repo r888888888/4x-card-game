@@ -4,7 +4,8 @@ extends "res://tests/lib/tech_case.gd"
 ## refused rows dimmed with their reason, and a sheet with the selected entry's card, its build_preview lines and one
 ## key (Build / Recruit). Hooks on BuildModal: list (SelectList), headings(), row_text(id), row_reason(id),
 ## row_dimmed(id), shown_card(), preview_lines(), refusal_text(), build_button, cancel_button; on TerritoryView:
-## build_button, slot_button(i).
+## build_button, slot_button(i). 343: laid out as a ledger sheet (Modal.LEDGER_*), the card hand size and still,
+## long rows wrapping in the list column; hook card_view().
 
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
