@@ -2,7 +2,7 @@
 id: 332
 title: The upkeep forecast counts a government a declared revolution will have removed
 type: bug
-status: review
+status: done
 branch: fix/332-forecast-after-revolt
 ---
 
