@@ -2,7 +2,7 @@
 id: 305
 title: Rural upgrades (plough, irrigation, harbour, timber, shafts) and building realism fixes
 type: feature
-status: in-progress
+status: review
 branch: feat/305-rural-upgrades
 ---
 
@@ -15,13 +15,13 @@ anachronisms. Content only. Follows 300 (and 295).
 
 ## Acceptance criteria
 Content tests (`tests/test_content.gd`) assert invariants of the real data, naming no card id:
-- [ ] AC1: Every building with `upgrade_of` is a `build_menu` entry, and so is its base; every locked upgrade entry is
+- [x] AC1: Every building with `upgrade_of` is a `build_menu` entry, and so is its base; every locked upgrade entry is
   unlocked by some tech's `unlock`.
-- [ ] AC2: Every upgrade can stand somewhere: some territory card in the territory deck (or a civilization's home)
+- [x] AC2: Every upgrade can stand somewhere: some territory card in the territory deck (or a civilization's home)
   meets both its base's `requires` and its own (each any-of; an empty list meets anything).
-- [ ] AC3: No upgrade is unlocked in an earlier era than its base: the era of the tech that unlocks an upgrade is at
+- [x] AC3: No upgrade is unlocked in an earlier era than its base: the era of the tech that unlocks an upgrade is at
   least the era of the tech that unlocks its base (an entry open from turn 1 counts as era 1).
-- [ ] AC4: 295's invariants still hold (no building in `deck` or `supply`; every locked entry has an unlocking tech),
+- [x] AC4: 295's invariants still hold (no building in `deck` or `supply`; every locked entry has an unlocking tech),
   and 263's `test_every_building_gives_something_lasting` covers upgrades too (each gives VP, an upkeep effect or a
   standing field). New: every terrain in config `terrains` has a non-upgrade building that can stand on it, so no
   terrain lost its only building to a restructure.
@@ -71,3 +71,7 @@ Content tests (`tests/test_content.gd`) assert invariants of the real data, nami
 
 ## Log
 - 2026-10-05: specced from the realism pass of the tall-buildings design. Farm takes both upgrades with no limit.
+- 2026-10-06: built (data only). Irrigation Canals also drops its own `requires: ["fresh_water"]` (the Farm already
+  needs it), as Ploughed Fields drops grassland; both keep the `farm` tag, so farm-tag eurekas still count them. The
+  terrain test (AC4) passed before the change: it guards the restructure. Follow-up: an upgrade's text reads "Builds on
+  a Fishing Huts." (`Population.with_article` doesn't know plural names).
