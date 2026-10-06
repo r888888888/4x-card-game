@@ -151,7 +151,7 @@ func open() -> void:
 	get_parent().move_child(self, at.get_index() + 1)
 	global_position = at.global_position  # where its container will put it: the place of the screen it covers
 	size = at.size
-	_nav.push(self, null, "Knowledge", Rect2(), true)
+	_nav.push(self, null, "Knowledge", true)
 
 
 func _on_nav_changed() -> void:

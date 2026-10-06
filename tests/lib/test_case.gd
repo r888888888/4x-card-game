@@ -649,9 +649,9 @@ func visible_controls(root: Node) -> Array[Control]:
 	return found
 
 
-## Waits until a navigated screen's transition (Anim.SCREEN_TIME, 104) is over. Use with await.
+## Waits until a navigated screen's transition (a fade, Anim.SCREEN_TIME, 104; or a slide, 208) is over. Use with await.
 func wait_screen_transition() -> void:
-	var longest := maxf(Anim.SCREEN_TIME, maxf(Anim.WIPE_IN + Anim.WIPE_LINGER, Anim.WIPE_OUT))  # 350
+	var longest := maxf(Anim.SCREEN_TIME, maxf(Navigator.SLIDE_IN, Navigator.SLIDE_OUT))
 	await (Engine.get_main_loop() as SceneTree).create_timer(longest + 0.15).timeout
 
 

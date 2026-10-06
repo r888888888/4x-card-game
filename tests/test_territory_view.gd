@@ -70,7 +70,7 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 		e.changed.emit()  # build_on and settle bypass the actions that refresh the board
 		await wait_frames()
 		open_details(main, home)
-		await wait_frames()
+		await wait_screen_transition()  # the Realm moves aside while the view slides in (359)
 		var view: Object = main.territory_view
 		check(view.is_open(), "the view is open")
 		eq(view.uid, home, "for the home territory")
