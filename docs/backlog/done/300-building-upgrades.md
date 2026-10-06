@@ -2,7 +2,7 @@
 id: 300
 title: Build upgrades onto buildings: they add to their base, stack, and chain
 type: feature
-status: review
+status: done
 branch: feat/300-building-upgrades
 ---
 
