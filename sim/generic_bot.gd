@@ -6,15 +6,16 @@ extends RefCounted
 ## beats doing nothing. A new action reaches it through legal_actions with no change here.
 ##
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
-## its forecast change) for food, wealth and insight − weight × unrest − a squared penalty as unrest nears its limit +
-## the deck's worth (what its cards would add if played, 0 for one with nothing to act on, 310) + the printed cost of
-## the techs learned (+ a weight per settled territory for wide). Turns ahead = min(HORIZON, turns left): income counts
-## early, only points at the end.
+## its forecast change) for food, wealth and insight − weight × unrest − weight × the unrest coming in over the turns
+## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
+## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
+## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
 ## values, no extra lookahead step), never revolting and choosing the government it was opened for, and returns its
-## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory); tall (never settles a third).
+## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory up to the admin cap); tall (never
+## settles a third).
 
 ## The strategy played when none is named.
 const STRATEGY := "generic"
@@ -48,16 +49,17 @@ const RISK_MARGIN := 2
 const RENEWAL_COMBOS := 40
 ## Actions the bot never takes itself: play ends the turn; revolts are weighed by rollouts (314).
 const SKIPPED := ["end_turn", "revolt"]
-## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest (0: unrest costs
-## through its risk only), the deck's worth (× turns ahead × plays a turn), the unrest risk (squared) and each point of
-## learned techs' printed cost, and per settled territory.
+## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest held (0: held
+## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns ahead
+## × plays a turn), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
+## up to the admin cap (321).
 const WEIGHTS := {
-	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
-		"land": 0.0},
-	"wide": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
-		"land": 20.0},
-	"tall": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
-		"land": 0.0},
+	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05,
+		"risk": 3.0, "owned": 0.5, "land": 0.0},
+	"wide": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05, "risk": 3.0,
+		"owned": 0.5, "land": 20.0},
+	"tall": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05, "risk": 3.0,
+		"owned": 0.5, "land": 0.0},
 }
 
 ## The turns rollouts played (for the sim's lookahead_turns): SimStats resets it before each game.
@@ -242,7 +244,13 @@ static func _settles_too_far(e: GameEngine, entry: Array) -> bool:
 
 ## The settled territories (in the tableau).
 static func _settled(e: GameEngine) -> int:
-	return e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
+	return Territories.count_settled(e)
+
+
+## The settled territories wide's land weight counts: up to the admin cap (321), all of them without one.
+static func _land(e: GameEngine) -> int:
+	var cap := e.admin_cap()
+	return _settled(e) if cap < 0 else mini(_settled(e), cap)
 
 
 ## Whether c is a play that gave back some of what a play spends: a card (a draw) or an action.
@@ -289,6 +297,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		v += w[r] * _concave(e.resources.get(r, 0) + ahead * next.get(r, 0))
 	var unrest: int = e.resources.get(GameEngine.UNREST, 0)
 	v += w.unrest * unrest
+	v -= w.unrest_rate * maxi(ahead * next.get(GameEngine.UNREST, 0), -unrest)  # calming counts only what there is
 	var limit := e.unrest_limit()
 	if limit >= 0:
 		var over: int = unrest + 2 * next.get(GameEngine.UNREST, 0) + 1 - (limit - RISK_MARGIN)
@@ -299,7 +308,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 	for tech in e.zone("researched").cards:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
-	return v + w.land * _settled(e)
+	return v + w.land * _land(e)
 
 
 ## The cards a turn can play: the actions a turn, at most the hand size (the hand size for unlimited actions).
