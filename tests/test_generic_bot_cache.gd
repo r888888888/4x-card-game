@@ -151,3 +151,63 @@ func test_a_game_plays_the_same_after_another_as_alone() -> void:
 	eq(after[0], alone[0], "score")
 	eq(after[1], alone[1], "zones")
 	eq(after[2], alone[2], "log")
+
+
+# --- 336: the key reads what the forecast reads ---
+
+## The fields of o (a GameState or CardInstance) that are neither in key nor in unread (with a reason), and those in
+## both.
+func unclassified(o: Object, key: Array[String], unread: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for field in script_vars(o):
+		var reason: String = unread.get(field, "")
+		if key.has(field) == (reason != ""):
+			out.append(field)
+	return out
+
+
+func test_every_game_state_field_is_in_the_key_or_listed_as_unread() -> void:
+	eq(unclassified(GameState.new(), GenericBot.KEY_STATE_FIELDS, GenericBot.UNREAD_STATE_FIELDS), [] as Array[String],
+		"GameState fields neither in GenericBot.KEY_STATE_FIELDS nor in UNREAD_STATE_FIELDS with a reason, or in both")
+
+
+func test_every_card_instance_field_is_in_the_key_or_listed_as_unread() -> void:
+	var card := CardInstance.new(1, cache_game().card_db["farm"])
+	eq(unclassified(card, GenericBot.KEY_CARD_FIELDS, GenericBot.UNREAD_CARD_FIELDS), [] as Array[String],
+		"CardInstance fields neither in GenericBot.KEY_CARD_FIELDS nor in UNREAD_CARD_FIELDS with a reason, or in both")
+
+
+func test_the_key_reads_every_field_its_lists_name() -> void:
+	var source := FileAccess.get_file_as_string("res://sim/generic_bot.gd")
+	var at := source.find("static func forecast_key(")
+	var body := source.substr(at, source.find("\n\n\n", at) - at)
+	var fields := GenericBot.KEY_STATE_FIELDS + GenericBot.KEY_CARD_FIELDS
+	check(fields.size() >= 15, "the key's lists: %s" % [fields])
+	for field in fields:
+		check(body.contains("." + field), "forecast_key reads %s" % field)
+
+
+func test_the_key_uses_the_engines_forecast_zones_and_names_no_op() -> void:
+	var source := FileAccess.get_file_as_string("res://sim/generic_bot.gd")
+	check(source.contains("forecast_zones()"), "GenericBot asks the engine for forecast_zones()")
+	check(not source.contains("\"gain_per_tag\""), "GenericBot names no op")
+
+
+## The forecast keys of e and of its fork after change(fork).
+func keys_after(e: GameEngine, change: Callable) -> Array:
+	var f := e.fork()
+	change.call(f)
+	return [GenericBot.forecast_key(e, GenericBot.Context.new("generic")),
+		GenericBot.forecast_key(f, GenericBot.Context.new("generic"))]
+
+
+func test_positions_differing_in_eras_added_keywords_or_base_have_different_keys() -> void:
+	var e := cache_game()
+	var home := home_uid(e)
+	var eras := keys_after(e, func(f: GameEngine): f.state.eras_added.append(3))
+	check(eras[0] != eras[1], "eras added (an era unlock's check reads them)")
+	var keywords := keys_after(e, func(f: GameEngine): f.zone("tableau").find(home).keywords.append("river"))
+	check(keywords[0] != keywords[1], "a territory's keywords (keyword effects and raids read them)")
+	var base := keys_after(e, func(f: GameEngine): f.zone("tableau").find(home).base_uid = 99)
+	check(base[0] != base[1], "a card's base (a pillage's fallback reads it)")
+

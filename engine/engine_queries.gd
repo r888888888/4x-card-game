@@ -136,6 +136,12 @@ func turn_forecast() -> Dictionary:
 	return TurnLoop.forecast(_as_engine())
 
 
+## The zones whose cards turn_forecast reads (336): the board and the always-on zones, plus any zone an effect in the
+## card db counts. A cache of forecasts keys on these zones' cards.
+func forecast_zones() -> Array[String]:
+	return TurnLoop.forecast_zones(_as_engine())
+
+
 ## Upkeeps left for active event uid before it is discarded (0 if uid isn't an active event).
 func event_turns_left(uid: int) -> int:
 	return Events.turns_left(self, uid)

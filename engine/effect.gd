@@ -94,6 +94,13 @@ func check_references(_card_db: Dictionary, _errors: Array[String]) -> void:
 	pass
 
 
+## The zones whose cards this effect counts when it resolves, so a turn forecast reads them (336): gain_per_tag's zone.
+## An op that counts a zone's cards overrides it; ops that count only the board (TurnLoop.FORECAST_ZONES, read by
+## every forecast) needn't.
+func reads_zones() -> Array[String]:
+	return []
+
+
 ## The zone whose cards this effect targets, or "" if it needs no target.
 func target_zone() -> String:
 	return ""

@@ -76,8 +76,34 @@ static var forecast_lookups := 0
 static var forecasts_computed := 0
 static var forecast_checks := 0
 static var forecast_mismatches := 0
-## The zones whose cards a forecast reads (_forecast_zones adds any zone a gain_per_tag counts cards in).
-const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
+## The GameState and CardInstance fields forecast_key reads (336); the suite fails on a field in neither these nor the
+## UNREAD lists, so a new field upkeep reads can't leave the cache serving stale forecasts.
+const KEY_STATE_FIELDS: Array[String] = ["turn", "is_over", "bonus_score", "era", "eras_added", "revolt_pending",
+	"anarchy_turn", "anarchy_limit", "last_raid_turn", "resources", "zones"]
+const KEY_CARD_FIELDS: Array[String] = ["uid", "def", "territory_uid", "base_uid", "station_uid", "pop", "keywords",
+	"turns_left", "counters", "progress", "given_this_turn"]
+## The fields the key leaves out, each with why the forecast doesn't depend on it.
+const UNREAD_STATE_FIELDS := {
+	"seed_value": "the rng is already seeded; the forecast only shuffles decks, which changes none of its numbers",
+	"rng": "the forecast only shuffles decks (an era unlock), which changes none of its numbers",
+	"log_lines": "upkeep writes the log but never reads it",
+	"pending": "forecasts are taken between decisions, and starting a turn opens none before the draw",
+	"actions_used": "reset as the turn begins",
+	"actions_gained": "reset as the turn begins",
+	"moved_units": "reset as the turn begins",
+	"supply": "only buying reads it",
+	"locked_supply": "only buying and unlocking read it",
+	"locked_builds": "only building and unlocking read it",
+	"built_once": "only building reads it",
+	"next_uid": "a new card's uid changes none of the forecast's numbers",
+	"names_given": "only naming a settled territory reads it",
+	"seen_techs": "only the new-tech marks read it",
+	"seen_supply": "only the new-pile marks read it",
+}
+const UNREAD_CARD_FIELDS := {
+	"choice_waiting": "only an event's draw reads it, and the forecast draws none",
+	"city_name": "a name: no rule reads it",
+}
 
 
 ## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
@@ -374,32 +400,24 @@ static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 	return fresh
 
 
-## What turn_forecast reads of e (315): the turn, resources, effect score, era, Anarchy and raid state, and each card in
-## the zones an upkeep can read (its uid, id, territory, station, pop, turns left, counters and site progress). The
-## hand, deck, discard, supply and the unturned decks aren't in it.
+## What turn_forecast reads of e (315, 336): KEY_STATE_FIELDS (the turn, resources, effect score, eras, Anarchy and
+## raid state) and each card in the engine's forecast_zones() with KEY_CARD_FIELDS. The hand, deck, supply and the
+## unturned decks aren't in it, nor a zone no effect counts.
 static func forecast_key(e: GameEngine, ctx: Context) -> Array:
 	if ctx.forecast_zones.is_empty():
-		ctx.forecast_zones = _forecast_zones(e)
+		ctx.forecast_zones = e.forecast_zones()
 	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending, e.state.anarchy_turn,
-		e.state.anarchy_limit, e.state.last_raid_turn]
-	for r in e.resources:
+		e.state.anarchy_limit, e.state.last_raid_turn, e.state.eras_added.size()]
+	key.append_array(e.state.eras_added)  # the arrays' contents, flattened: a key mustn't hold a live array
+	for r in e.state.resources:
 		key.append_array([r, e.resources[r]])
 	for z in ctx.forecast_zones:
 		key.append(z)
-		for c in e.zone(z).cards:
-			key.append_array([c.uid, c.def.id, c.territory_uid, c.station_uid, c.pop, c.turns_left, c.counters, c.progress,
-				c.given_this_turn])
+		for c in e.state.zones[z].cards:
+			key.append_array([c.uid, c.def.id, c.territory_uid, c.base_uid, c.station_uid, c.pop, c.turns_left, c.counters,
+				c.progress, c.given_this_turn, c.keywords.size()])
+			key.append_array(c.keywords)
 	return key
-
-
-## FORECAST_ZONES plus any zone a card's gain_per_tag counts in (read from the card db).
-static func _forecast_zones(e: GameEngine) -> Array[String]:
-	var out: Array[String] = FORECAST_ZONES.duplicate()
-	for id in e.card_db:
-		for effect in e.card_db[id].effects:
-			if effect.op == "gain_per_tag" and not out.has(effect.zone):  # a create's zone is where it puts a card
-				out.append(effect.zone)
-	return out
 
 
 ## The cards a turn can play: the actions a turn, at most the hand size (the hand size for unlimited actions).
