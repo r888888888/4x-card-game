@@ -89,10 +89,15 @@
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
-      "cost": { "wealth": 4 }, "vp": 1, "tags": ["culture"],
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "great_temple", "name": "Great Temple", "type": "building",
+      "cost": { "wealth": 9 }, "vp": 0, "tags": ["culture"], "upgrade_of": "temple", "tier": "metropolis",
       "effects": [
-        { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" },
-        { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" }
+        { "op": "score", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain_per_pop", "resource": "food", "amount": 1, "per": 3, "trigger": "upkeep" }
       ]
     },
     {
@@ -202,7 +207,7 @@
     },
     {
       "id": "house_of_life", "name": "House of Life", "type": "building",
-      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "housing": 1,
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "temple", "tier": "town", "housing": 1,
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -218,7 +223,7 @@
     {
       "id": "shrine", "name": "Shrine", "type": "building",
       "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"], "modifiers": { "unrest_limit": 1 },
-      "effects": []
+      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" } ]
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
@@ -360,9 +365,14 @@
       ]
     },
     {
-      "id": "library", "name": "Library", "type": "building",
+      "id": "scribal_school", "name": "Scribal School", "type": "building",
       "cost": { "wealth": 5 }, "vp": 1, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "library", "name": "Library", "type": "building",
+      "cost": { "wealth": 6 }, "vp": 0, "tags": [], "upgrade_of": "scribal_school", "tier": "town",
+      "effects": [ { "op": "gain_per_pop", "resource": "insight", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "stone_circle", "name": "Stone Circle", "type": "building",
@@ -711,7 +721,7 @@
       "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
       "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "library" }, { "op": "add_era", "era": 3 },
+      "effects": [ { "op": "unlock", "card": "scribal_school" }, { "op": "add_era", "era": 3 },
         { "op": "unlock", "card": "great_library" } ]
     },
     {
@@ -779,7 +789,7 @@
       "flavor": "Greek thinkers ask what the world is made of and how one should live, and answer with reason, not myth.",
       "quote": { "text": "Philosophy begins in wonder.", "by": "Plato, Theaetetus" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "temple", "count": 2, "off": 6 }, "tags": [],
-      "effects": []
+      "effects": [ { "op": "unlock", "card": "great_temple" } ]
     },
     {
       "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 3, "prereq": "bronze_working",
@@ -813,8 +823,8 @@
       "id": "alphabet", "name": "Alphabet", "type": "tech", "era": 3, "prereq": "writing",
       "flavor": "Phoenician traders cut hundreds of signs down to 22 letters, and reading is no longer for scribes alone.",
       "quote": { "text": "In the beginning was the Word.", "by": "John 1:1" },
-      "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "library", "count": 2, "off": 6 }, "tags": [], "modifiers": { "insight_per_gain": 1 },
-      "effects": []
+      "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "scribal_school", "count": 2, "off": 6 }, "tags": [], "modifiers": { "insight_per_gain": 1 },
+      "effects": [ { "op": "unlock", "card": "library" } ]
     },
     {
       "id": "qanat", "name": "Qanat", "type": "tech", "era": 3, "prereq": "mining",

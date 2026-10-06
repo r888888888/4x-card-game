@@ -2,7 +2,7 @@
 id: 306
 title: Temple and Library become urban upgrades (Shrine → Temple → Great Temple, Scribal School → Library)
 type: feature
-status: ready
+status: review
 branch: feat/306-temple-and-library-upgrades
 ---
 
@@ -16,13 +16,13 @@ basics (Shrine, Scribal School with today's Library numbers); tall ones earn the
 
 ## Acceptance criteria
 Content tests (`tests/test_content.gd`), naming no card id:
-- [ ] AC1: Every building with a `tier` names a tier of `population.tiers`, and every tier-gated upgrade's tier is at
+- [x] AC1: Every building with a `tier` names a tier of `population.tiers`, and every tier-gated upgrade's tier is at
   least its base's tier (a chain never asks for less as it rises).
-- [ ] AC2: No tech's eureka counts a card that only that tech (or a tech that needs it) makes available: a eureka can be
+- [x] AC2: No tech's eureka counts a card that only that tech (or a tech that needs it) makes available: a eureka can be
   met before its tech is learned.
-- [ ] AC3: Every upgrade's `unrest_limit` modifier, if any, is ≥ 0: falling back never lowers the unrest limit below
+- [x] AC3: Every upgrade's `unrest_limit` modifier, if any, is ≥ 0: falling back never lowers the unrest limit below
   what its base gives (the "no Anarchy from shrinking" rule of the design).
-- [ ] AC4: An upgrade that scales with its territory's pop (`gain_per_pop`, 304) has a tier: per-pop output is urban.
+- [x] AC4: An upgrade that scales with its territory's pop (`gain_per_pop`, 304) has a tier: per-pop output is urban.
 
 ## Out of scope
 - New urban chains (Market, Granary, Palisade, houses, harbour, workshop): 307. Gap buildings: 308.
@@ -51,7 +51,10 @@ Content tests (`tests/test_content.gd`), naming no card id:
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tier_is_real_and_no_upgrade_needs_less_than_its_base` |
+| AC2 | `test_content::test_no_eureka_counts_only_what_its_own_tech_makes_available` |
+| AC3 | `test_content::test_no_upgrade_lowers_the_unrest_limit` |
+| AC4 | `test_content::test_every_upgrade_that_scales_with_pop_needs_a_tier` |
 
 ## Manual check
 - [ ] Shrine: 3 wealth, 1 VP, unrest limit +1, ⟳ +1 VP on a mountain; open from turn 1.
@@ -65,3 +68,7 @@ Content tests (`tests/test_content.gd`), naming no card id:
 
 ## Log
 - 2026-10-05: specced. The user asked for Temple as an upgrade card and for the Library split.
+- 2026-10-06: built (data only). AC2 and AC3 passed before the change (guards); with Alphabet unlocking the Library
+  and its eureka still on Libraries, AC2 failed ("alphabet: card library"), then passed once the eureka counted Scribal
+  Schools. The spec gave no VP for Temple, Great Temple or Library: all 0 (Temple drops its printed 1 VP; the Shrine
+  under it keeps its 1). Temple, Great Temple keep the `culture` tag (Writing's eureka counts culture).

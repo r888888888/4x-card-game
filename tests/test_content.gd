@@ -602,6 +602,99 @@ func test_every_terrain_keeps_a_building_that_is_not_an_upgrade() -> void:
 	eq(missing, [] as Array[String], "terrains whose only buildings are upgrades")
 
 
+## Backlog 306: a tier's place in population.tiers (0 for a building with no tier, which any settlement takes; -1 if
+## the config has no such tier).
+func tier_rank(r: Dictionary, tier: String) -> int:
+	if tier == "":
+		return 0
+	var tiers: Array = r.config.population.get("tiers", [])
+	for i in tiers.size():
+		if tiers[i].id == tier:
+			return i
+	return -1
+
+
+## Backlog 306: every building's tier is a real one, and a chain of upgrades never asks for a smaller settlement as it
+## rises.
+func test_every_tier_is_real_and_no_upgrade_needs_less_than_its_base() -> void:
+	var r := load_real()
+	var tiered := real_buildings(r).filter(func(def: CardDef) -> bool: return def.tier != "")
+	check(not tiered.is_empty(), "the real data has buildings that need a tier")
+	for def in tiered:
+		check(tier_rank(r, def.tier) >= 0, "%s's tier %s is one of population.tiers" % [def.id, def.tier])
+	var lower: Array[String] = []
+	for def in real_upgrades(r):
+		var base: CardDef = r.cards[def.upgrade_of]
+		if tier_rank(r, def.tier) < tier_rank(r, base.tier):
+			lower.append("%s (%s) on %s (%s)" % [def.id, def.tier, base.id, base.tier])
+	eq(lower, [] as Array[String], "upgrades that need a smaller settlement than their base")
+
+
+## Backlog 306: the techs that need tech, directly or through other techs, and tech itself.
+func tech_and_later(r: Dictionary, tech: CardDef) -> Dictionary:
+	var out := {tech.id: true}
+	var grew := true
+	while grew:
+		grew = false
+		for t in techs_in_research_deck(r):
+			if not out.has(t.id) and out.has(t.prereq):
+				out[t.id] = true
+				grew = true
+	return out
+
+
+## Backlog 306: the cards the player can have without researching tech or any tech that needs it: the starting deck
+## and tableau, open supply piles and build-menu entries, and what every other research-deck tech unlocks or creates.
+func cards_without(r: Dictionary, tech: CardDef) -> Dictionary:
+	var ids: Array = r.config.deck.keys() + r.config.starting.tableau + open_entries(r)
+	for id in r.config.supply:
+		if not r.config.supply[id].get("locked", false):
+			ids.append(id)
+	var later := tech_and_later(r, tech)
+	for t in techs_in_research_deck(r):
+		if not later.has(t.id):
+			ids += unlocked_by(t) + created_by(t)
+	var out := {}
+	for id in ids:
+		out[id] = true
+	return out
+
+
+## Backlog 306: a eureka can be met before its tech is learned, so it never counts only cards that tech (or a tech
+## after it) makes available.
+func test_no_eureka_counts_only_what_its_own_tech_makes_available() -> void:
+	var r := load_real()
+	var unmeetable: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		var eureka: Dictionary = tech.eureka
+		var available := cards_without(r, tech)
+		if eureka.has("card") and not available.has(eureka.card):
+			unmeetable.append("%s: card %s" % [tech.id, eureka.card])
+		if eureka.has("tag") and not available.keys().any(func(id): return r.cards[id].tags.has(eureka.tag)):
+			unmeetable.append("%s: tag %s" % [tech.id, eureka.tag])
+	eq(unmeetable, [] as Array[String], "eurekas only their own tech (or a later one) can meet")
+
+
+## Backlog 306: an upgrade that falls back never lowers the unrest limit below what its base gives.
+func test_no_upgrade_lowers_the_unrest_limit() -> void:
+	var r := load_real()
+	var lowering: Array[String] = []
+	for def in real_upgrades(r):
+		if def.modifiers.get(Modifiers.UNREST_LIMIT, 0) < 0:
+			lowering.append(def.id)
+	eq(lowering, [] as Array[String], "upgrades with a negative unrest_limit")
+
+
+## Backlog 306: output that grows with a territory's pop is urban: an upgrade using gain_per_pop needs a tier.
+func test_every_upgrade_that_scales_with_pop_needs_a_tier() -> void:
+	var r := load_real()
+	var scaling := real_upgrades(r).filter(func(def: CardDef) -> bool:
+		return def.effects.any(func(e: Effect) -> bool: return e.op == "gain_per_pop"))
+	check(not scaling.is_empty(), "the real data has upgrades that scale with pop")
+	for def in scaling:
+		check(def.tier != "", "%s scales with pop, so it needs a tier" % def.id)
+
+
 ## Backlog 295: a wonder is built once a game.
 func test_every_wonder_is_a_once_entry() -> void:
 	var r := load_real()
