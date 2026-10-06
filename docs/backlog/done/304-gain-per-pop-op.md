@@ -2,7 +2,7 @@
 id: 304
 title: A gain_per_pop op: gain for every N pop on the card's own territory
 type: feature
-status: review
+status: done
 branch: feat/304-gain-per-pop-op
 ---
 
