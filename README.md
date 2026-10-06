@@ -50,7 +50,8 @@ scripts/sim.sh --compare ../main-checkout  # this checkout against another, game
 ```
 It plays the games on the performance cores but one (`SIM_PROCS=1 scripts/sim.sh 20` plays them in one), one parallel
 run at a time across checkouts, and caches each game's result by the code and data that played it (`SIM_CACHE=0` skips
-the cache). In Claude Code, `/balance` compares your changes with `main`.
+the cache). In Claude Code, `/balance` compares your changes with `main`. To run it (and the tests) in a Claude Code
+cloud session, see [docs/cloud.md](docs/cloud.md).
 
 ## Tests
 ```bash
