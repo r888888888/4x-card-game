@@ -2,7 +2,7 @@
 id: 320
 title: Settling costs more for each territory you hold
 type: feature
-status: review
+status: done
 branch: feat/320-settler-cost-per-territory
 ---
 
