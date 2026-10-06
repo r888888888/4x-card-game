@@ -44,6 +44,7 @@ static func build() -> Theme:
 		t.set_font_size(size, "RichBody", Tokens.TYPE_BODY)
 	t.set_font("italics_font", "RichBody", tabular(ITALIC_FONT))
 	t.set_font("bold_font", "RichBody", tabular(LABEL_SEMIBOLD))  # a real bold for [b] headers, not a synthesized one
+	t.set_color("default_color", "RichBody", Palette.TEXT)  # Godot's default is white, unreadable on Day's paper (323)
 	_link(t)
 	_big_buttons(t)
 	_end_turn_key(t)

@@ -2,7 +2,7 @@
 id: 323
 title: Modal rich text (an event's flavour) is near-white on paper in Day mode
 type: bug
-status: red-review
+status: in-progress
 branch: fix/323-day-mode-rich-text-colour
 ---
 
