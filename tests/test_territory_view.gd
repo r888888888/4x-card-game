@@ -150,6 +150,23 @@ func test_without_tiers_the_view_shows_no_tier() -> void:
 		{"farm": 10}, POP)
 
 
+func test_bug_349_cards_open_no_taller_than_the_tallest_needs() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		await open_home(main)
+		await wait_frames()
+		var view: TerritoryView = main.territory_view
+		var tallest := CardView.TABLEAU_SIZE.y
+		for v: CardView in main.views_in(view.row):
+			tallest = maxf(tallest, v.get_combined_minimum_size().y)
+		for v: CardView in main.views_in(view.row):
+			eq(v.size.y, tallest, "%s is the tallest card's height, measured at its width" % v.card_id)
+		for outline in view.outlines():
+			eq(outline.size.y, tallest, "an outline too"), \
+		{"farm": 10}, POP)
+
+
 # --- AC3: back ---
 
 func test_back_and_esc_return_to_the_realm() -> void:
