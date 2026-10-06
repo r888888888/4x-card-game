@@ -657,23 +657,6 @@ func with_view(body: Callable, menu := MENU) -> void:
 	window.size = before
 
 
-func move_mouse(main: Node, at: Vector2, held := false) -> void:
-	var event := InputEventMouseMotion.new()
-	event.position = at
-	event.global_position = at
-	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
-	main.get_viewport().push_input(event, true)
-
-
-## Moves the mouse well away from everything.
-func away(main: Node) -> void:
-	move_mouse(main, Vector2(2, 2))
-
-
-func hovers(main: Node) -> int:
-	return main.sfx.played().filter(func(r): return r.token == Sfx.HOVER).size()
-
-
 ## The Farm's view in the open territory view.
 func farm_view(main: Node) -> CardView:
 	for v in main.views_in(main.territory_view.row):
@@ -702,10 +685,6 @@ func outline_border(outline: Panel) -> Color:
 func hovered(view: CardView) -> bool:
 	var frame := Looks.frame_of(view.get_theme_stylebox("panel"))
 	return frame.border_color == Palette.TEXT and frame.shadow_size == Surfaces.CARD_HOVER[1]
-
-
-func centre(c: Control) -> Vector2:
-	return c.get_global_rect().get_center()
 
 
 # --- AC1, AC2: building and city cards ---

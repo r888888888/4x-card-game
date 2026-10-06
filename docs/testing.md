@@ -320,7 +320,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI tests: main on seed 1 (1920 × 1080, the sound clock frozen, if asked) (334) |
-| `click_control(main, c)` / `click_point(main, at)` / `open_details(main, uid)` | UI tests: real clicks; a card's details, no click |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI tests: real clicks and moves, hover ticks, a card's details |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | The first shown button by text; game seconds; Hills' uid |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.

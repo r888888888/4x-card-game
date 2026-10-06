@@ -7,28 +7,6 @@ const HOVER := Sfx.HOVER
 const GAP := Sfx.HOVER_GAP
 
 
-
-func move_mouse(main: Node, at: Vector2, held := false) -> void:
-	var event := InputEventMouseMotion.new()
-	event.position = at
-	event.global_position = at
-	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
-	main.get_viewport().push_input(event, true)
-
-
-func centre(c: Control) -> Vector2:
-	return c.get_global_rect().get_center()
-
-
-## Moves the mouse well away from everything (and lets Godot notice).
-func away(main: Node) -> void:
-	move_mouse(main, Vector2(2, 2))
-
-
-func hovers(main: Node) -> int:
-	return main.sfx.played().filter(func(r): return r.token == HOVER).size()
-
-
 ## A button added after main opened, in a layer over the board.
 func late_button(main: Node, disabled := false) -> Button:
 	var layer := CanvasLayer.new()
