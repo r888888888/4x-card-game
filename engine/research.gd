@@ -80,10 +80,11 @@ static func _tree_entry(e: GameEngine, def: CardDef) -> Dictionary:
 	for given in CardDetails.gives(def):
 		gives.append(given.card_id)
 	var future := tech == null or state == GameEngine.TECH_FUTURE
+	var price: int = def.cost.get(GameEngine.INSIGHT, 0) if future else cost(e, tech.uid)
 	return {
-		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state,
-		"cost": def.cost.get(GameEngine.INSIGHT, 0) if future else cost(e, tech.uid),
+		"id": def.id, "era": def.era, "prereq": def.prereq, "state": state, "cost": price,
 		"gives": gives, "uid": -1 if future else tech.uid, "eureka": eureka_met(e, def),
+		"affordable": state == GameEngine.TECH_AVAILABLE and e.resources.get(GameEngine.INSIGHT, 0) >= price,
 	}
 
 

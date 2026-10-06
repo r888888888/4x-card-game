@@ -285,7 +285,7 @@ func _tile(e: GameEngine, tech: Dictionary) -> Button:
 	var b := Button.new()
 	b.custom_minimum_size = TILE_SIZE
 	b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	b.theme_type_variation = TILE_LOOK.get(state, &"TechTile")
+	b.theme_type_variation = TILE_LOOK.get(state, &"TechTile" if tech.affordable or state != GameEngine.TECH_AVAILABLE else &"TechTileShort")
 	b.tooltip_text = _tooltip(e, tech)
 	var text := StringName(String(b.theme_type_variation).replace("TechTile", "TechTileText"))
 	var box := VBoxContainer.new()

@@ -137,13 +137,15 @@ static func _identity_cards(t: Theme) -> void:
 
 
 ## The Knowledge screen's tech tiles (222, guide §11.3), index cards cut square: TechTile (available, or a later
-## era's under its vellum) the sheet with an ink border; TechTileResearched the teal plane; TechTileLocked the well
+## era's under its vellum) the sheet with an ink border; TechTileShort the same with muted text, for an available tech
+## the insight doesn't cover yet (325); TechTileResearched the teal plane; TechTileLocked the well
 ## with a rule border. On hover each takes the index cards' ink rule on a 4 px shadow and the buttons' lighter fill
 ## (280). Each has a <name>Linked twin, the same with a TECH_LINK border at rest, for the tiles linked to the hovered
 ## tech (278). TechTileText* is the text on each, and EraVellum the sheet at 88% laid over an era not reached.
 static func _tech_tiles(t: Theme) -> void:
 	var looks := {
 		"TechTile": [Palette.TILE, Palette.TEXT, Palette.TEXT],
+		"TechTileShort": [Palette.TILE, Palette.TEXT, Palette.TEXT_DISABLED],
 		"TechTileResearched": [Palette.RESEARCHED_FILL, Palette.TEXT, Palette.TEXT_ON_PLANE],
 		"TechTileLocked": [Palette.FIELD, Palette.CONTROL_BORDER, Palette.TEXT_DISABLED],
 	}
