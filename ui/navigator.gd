@@ -3,8 +3,8 @@ extends RefCounted
 ## A stack of screens (backlog 103), the master–detail pattern: push opens a screen and hides the one below, back (or
 ## Esc) closes it, shows the one below and gives the keyboard focus back to what had it. Each screen has a title, so a
 ## ScreenHeader can name where you are and where Back goes (104). An animated navigator also transitions (104): a
-## screen pushed from a rect (the card it opens) grows out of it and shrinks back into it; others fade; with Reduce
-## motion everything only fades. A leaving screen no longer counts as shown and takes no clicks while it goes. It knows
+## screen pushed from a rect (the card it opens) wipes out of it, unscaled, and a snapshot of it wipes back in (350);
+## others fade; with Reduce motion everything only fades. A leaving screen no longer counts as shown and takes no clicks while it goes. It knows
 ## nothing about the game; a screen is any Control, shown and hidden as it comes and goes. A screen is a sheet run along
 ## a rail (189): push runs it in, back runs it out; set_root and clear are silent. A screen pushed to slide (208) runs in
 ## from the right edge (SLIDE_IN) while the screen below moves SHIFT px left, and back runs it out to the right
@@ -18,6 +18,9 @@ signal changed
 const LEAVING := &"navigator_leaving"  # meta on a screen still drawn while it transitions out
 const OFFSET := &"navigator_offset"  # meta: a sliding screen's or the one below's offset from its place (208)
 const STAND_IN := &"navigator_stand_in"  # meta: the empty Control holding a lifted screen's slot in its container (224)
+const CLIP := &"navigator_clip"  # meta: the local rect a wiping screen shows (350)
+const OUTLINE := &"navigator_outline"  # meta: the Panel tracing a wipe's edge (350)
+const CLIP_DRAW := &"navigator_clip_draw"  # meta: the draw callback painting a wiping screen's mask (350)
 const SLIDE_IN := 0.32  # Anim.MACHINED
 const SLIDE_OUT := 0.26  # Anim.RELEASE
 const SLIDE_FADE := 0.12
@@ -31,11 +34,30 @@ var _from: Array[Rect2] = []  # per screen: the rect it grew out of (no area: it
 var _slides: Array[bool] = []  # per screen: it slid in (208)
 var _return_focus: Array[Control] = []  # per screen: the Control that had the focus when it was pushed
 var _tween: Tween  # the running transition
+var _shot: Control  # the snapshot of the screen wiping back into its card, while it does (350)
 
 
 ## Whether screen is showing and not on its way out.
 static func is_shown(screen: Control) -> bool:
 	return screen.visible and not screen.get_meta(LEAVING, false)
+
+
+## The global rect screen shows while it wipes out of its card (350); empty when it isn't wiping.
+static func wipe_rect(screen: Control) -> Rect2:
+	if not screen.has_meta(CLIP):
+		return Rect2()
+	var r: Rect2 = screen.get_meta(CLIP)
+	return Rect2(screen.get_global_rect().position + r.position, r.size)
+
+
+## The outline tracing screen's wipe (350), or null.
+static func wipe_outline(screen: Control) -> Control:
+	return screen.get_meta(OUTLINE) if screen.has_meta(OUTLINE) else null
+
+
+## The snapshot of the last screen wiping back into its card (350), or null once it has.
+func leaving_shot() -> Control:
+	return _shot if is_instance_valid(_shot) else null
 
 
 ## Opens screen (titled title) over the current top, giving focus (a Control on screen) the keyboard focus. from: the
@@ -167,19 +189,28 @@ func _enter(screen: Control, from: Rect2) -> void:
 		return
 	_tween = screen.create_tween()
 	if from.has_area() and not UIKit.calm():
-		screen.scale = _scale_onto(screen, from)
-		_tween.tween_property(screen, "scale", Vector2.ONE, Anim.SCREEN_TIME).set_trans(Tween.TRANS_CUBIC) \
+		var at := screen.get_global_rect().position
+		var content := _content_rect(screen)
+		var start := Rect2(from.position - at, from.size)
+		var full := Rect2(content.position - at, content.size)
+		_clip(start, screen)
+		_tween.tween_method(_clip.bind(screen), start, full, Anim.WIPE_IN).set_trans(Tween.TRANS_QUART) \
 			.set_ease(Tween.EASE_OUT)
+		_tween.tween_interval(Anim.WIPE_LINGER)
+		_tween.tween_callback(_unclip.bind(screen))
 	else:
 		screen.modulate.a = 0.0
 		_tween.tween_property(screen, "modulate:a", 1.0, Anim.SCREEN_TIME)
 
 
 ## Plays screen's way out, then hides it and puts it back to rest. It is out of its container's layout meanwhile,
-## so the screen below takes its place at once.
+## so the screen below takes its place at once. One pushed from a rect wipes back into it as a snapshot (350).
 func _leave(screen: Control, from: Rect2) -> void:
 	if not animated:
 		screen.hide()
+		return
+	if from.has_area() and not UIKit.calm():
+		_wipe_out(screen, from)
 		return
 	screen.set_meta(LEAVING, true)
 	screen.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_DISABLED
@@ -189,11 +220,7 @@ func _leave(screen: Control, from: Rect2) -> void:
 		screen.global_position = rect.position
 		screen.size = rect.size
 	_tween = screen.create_tween()
-	if from.has_area() and not UIKit.calm():
-		_tween.tween_property(screen, "scale", _scale_onto(screen, from), Anim.SCREEN_TIME) \
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	else:
-		_tween.tween_property(screen, "modulate:a", 0.0, Anim.SCREEN_TIME)
+	_tween.tween_property(screen, "modulate:a", 0.0, Anim.SCREEN_TIME)
 	_tween.tween_callback(_rest.bind(screen))
 
 
@@ -310,28 +337,123 @@ static func _offset(by: Vector2, screen: Control, place: Vector2) -> void:
 	screen.global_position = place + by
 
 
-## Sets screen's pivot so that scaling it by the returned factor lays it exactly over from (both global rects).
-static func _scale_onto(screen: Control, from: Rect2) -> Vector2:
-	var at := screen.get_global_rect()  # at full size
-	var s := Vector2(from.size.x / maxf(at.size.x, 1.0), from.size.y / maxf(at.size.y, 1.0))
-	var pivot := Vector2.ZERO
-	for axis in 2:
-		if absf(1.0 - s[axis]) > 0.001:
-			pivot[axis] = (from.position[axis] - at.position[axis]) / (1.0 - s[axis])
-	screen.pivot_offset = pivot
-	return s
-
-
-## A screen that finished leaving: hidden, and back at full size, opaque, clickable and in its container.
+## A screen that finished leaving: hidden, and back opaque, unclipped, clickable and in its container.
 static func _rest(screen: Control) -> void:
 	screen.hide()
-	screen.scale = Vector2.ONE
 	screen.modulate.a = 1.0
 	screen.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_INHERITED
 	screen.top_level = false
 	screen.remove_meta(LEAVING)
 	screen.remove_meta(OFFSET)
+	_unclip(screen)
 	_release(screen)
+
+
+# --- The wipe (350, guide §10.2) ---
+
+## The global rect screen's content covers: its shown children (the territory view's header and box), not the empty
+## room under them.
+static func _content_rect(screen: Control) -> Rect2:
+	var out := Rect2()
+	for child in screen.get_children():
+		var c := child as Control
+		if c == null or not c.visible or c.top_level:
+			continue
+		out = c.get_global_rect() if not out.has_area() else out.merge(c.get_global_rect())
+	return out if out.has_area() else screen.get_global_rect()
+
+
+## Shows only local rect r of screen (its children masked by the rect its draw paints), outlined on its edge.
+static func _clip(r: Rect2, screen: Control) -> void:
+	if not screen.has_meta(CLIP):
+		screen.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+		var paint := _paint_clip.bind(screen)
+		screen.draw.connect(paint)
+		screen.set_meta(CLIP_DRAW, paint)
+		var outline := _outline()
+		outline.top_level = true  # out of the screen's layout
+		screen.add_child(outline)
+		screen.set_meta(OUTLINE, outline)
+	screen.set_meta(CLIP, r)
+	var outline: Control = screen.get_meta(OUTLINE)
+	outline.global_position = screen.get_global_rect().position + r.position
+	outline.size = r.size
+	screen.queue_redraw()
+
+
+static func _paint_clip(screen: Control) -> void:
+	if screen.has_meta(CLIP):
+		screen.draw_rect(screen.get_meta(CLIP), Color.WHITE)  # a mask: only its shape counts
+
+
+## Shows all of screen again, its outline gone.
+static func _unclip(screen: Control) -> void:
+	if not screen.has_meta(CLIP):
+		return
+	screen.remove_meta(CLIP)
+	screen.clip_children = CanvasItem.CLIP_CHILDREN_DISABLED
+	screen.draw.disconnect(screen.get_meta(CLIP_DRAW))
+	screen.remove_meta(CLIP_DRAW)
+	var outline: Control = screen.get_meta(OUTLINE)
+	screen.remove_meta(OUTLINE)
+	outline.get_parent().remove_child(outline)
+	outline.queue_free()
+	screen.queue_redraw()
+
+
+## The wipe's 2 px ink outline, its insides clear.
+static func _outline() -> Panel:
+	var outline := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.draw_center = false
+	style.set_border_width_all(2)
+	outline.add_theme_stylebox_override("panel", style)
+	UIKit.painted(outline, func(): style.border_color = Palette.TEXT)
+	outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return outline
+
+
+## Hides screen at once and wipes a snapshot of its content, as last drawn, back into from: the board drops the
+## screen's cards as it closes, which would show on the screen itself.
+func _wipe_out(screen: Control, from: Rect2) -> void:
+	var content := _content_rect(screen)
+	_shot = Control.new()
+	_shot.top_level = true
+	_shot.clip_contents = true
+	_shot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var picture := TextureRect.new()
+	picture.texture = _snapshot(screen, content)
+	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	picture.stretch_mode = TextureRect.STRETCH_SCALE
+	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shot.add_child(picture)
+	_shot.add_child(_outline())
+	(_shot.get_child(1) as Control).set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	screen.get_parent().add_child(_shot)
+	var place := func(r: Rect2) -> void:
+		_shot.global_position = r.position
+		_shot.size = r.size
+		picture.position = content.position - r.position  # the picture stays put as the clip closes on it
+		picture.size = content.size
+	place.call(content)
+	_rest(screen)
+	var shot := _shot
+	_tween = shot.create_tween()
+	_tween.tween_method(place, content, from, Anim.WIPE_OUT).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN_OUT)
+	_tween.tween_callback(func():
+		shot.get_parent().remove_child(shot)
+		shot.queue_free())
+
+
+## The part rect (global) of what screen's viewport last drew, or null where nothing is drawn (headless runs).
+static func _snapshot(screen: Control, rect: Rect2) -> Texture2D:
+	if DisplayServer.get_name() == "headless":
+		return null
+	var image := screen.get_viewport().get_texture().get_image()
+	if image == null or image.is_empty():
+		return null
+	var scale := Vector2(image.get_size()) / screen.get_viewport().get_visible_rect().size
+	return ImageTexture.create_from_image(image.get_region(Rect2i(Rect2(rect.position * scale, rect.size * scale))))
 
 
 ## Completes a running transition at once (a new push or back came first).
