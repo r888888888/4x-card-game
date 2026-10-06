@@ -2,7 +2,7 @@
 id: 346
 title: The territory view shows the settlement tier
 type: feature
-status: in-progress
+status: review
 branch: feat/346-territory-view-tier
 ---
 
@@ -13,15 +13,15 @@ this the view shows the tier and the pop the next one needs, next to the pop met
 growing will unlock.
 
 ## Acceptance criteria
-- [ ] AC1: Given tiers Hamlet 0, Village 4, Town 8, Metropolis 13 and a settled territory at pop 5, then
+- [x] AC1: Given tiers Hamlet 0, Village 4, Town 8, Metropolis 13 and a settled territory at pop 5, then
   `tier_line(uid)` is "Village: a Town at 8 pop".
-- [ ] AC2: Given that territory at pop 13 (the top tier), then `tier_line(uid)` is "Metropolis".
-- [ ] AC3: Given tiers off (no `population.tiers`), population off, or a uid that is not a settled territory, then
+- [x] AC2: Given that territory at pop 13 (the top tier), then `tier_line(uid)` is "Metropolis".
+- [x] AC3: Given tiers off (no `population.tiers`), population off, or a uid that is not a settled territory, then
   `tier_line(uid)` is "".
-- [ ] AC4: Given the territory view open on that territory at pop 5, then it shows "Village: a Town at 8 pop" beside
+- [x] AC4: Given the territory view open on that territory at pop 5, then it shows "Village: a Town at 8 pop" beside
   the pop meter; when its pop grows to 8 the shown line becomes "Town: a Metropolis at 13 pop" without reopening.
-- [ ] AC5: Given tiers off, then the view shows no tier line.
-- [ ] AC6: The Realm card's tooltip still names the tier as before (it now reads `tier_line`).
+- [x] AC5: Given tiers off, then the view shows no tier line.
+- [x] AC6: The Realm card's tooltip still names the tier as before (it now reads `tier_line`).
 
 ## Out of scope
 - The Realm's territory cards stay as they are (tier only in the tooltip).
@@ -43,6 +43,8 @@ growing will unlock.
 | AC6 | `test_tiers::test_the_territory_tooltip_has_a_tier_line` (existing, unchanged) |
 
 ## Manual check
-- [ ] Open a territory: beside the pop pips it reads e.g. "Hamlet: a Village at 4 pop", and it changes as pop grows.
+- [ ] `godot --path . -- --civ egypt --seed 5`: click your home territory. Beside the pop pips it reads e.g.
+  "Hamlet: a Village at 4 pop" in the dim caption style; grow it (or end turns) and the line follows pop.
 
 ## Log
+- `Territories._tier_line` moved to `Population.tier_line` (public `tier_line(uid)`); the tooltip calls it.

@@ -351,9 +351,10 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Settlement tiers (281): optional `population.tiers` (`[{ "id", "name", "pop", "slots" }]`, the first at pop 0, pop
   rising strictly, slots never falling; real data Hamlet 0 / Village 4 / Town 8 / Metropolis 13, adding 0 / 1 / 2 / 3
   slots). A settled territory's tier is the last whose `pop` it has reached, derived from pop and never stored
-  (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`). Its `slots` add to the territory's and its cities'. A
+  (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`, `tier_line(uid)`). Its `slots` add to the territory's and its cities'. A
   building past its territory's slots (placed last first) is idle, as one past its pop is. Reaching or losing a tier
-  is a notice ("Grassland grows into a Village."); the territory tooltip names the tier and the next one's pop.
+  is a notice ("Grassland grows into a Village."); the territory tooltip, and the territory view beside its
+  pop meter (346), name the tier and the next one's pop ("Village: a Town at 8 pop").
 - Size unrest (282): a government's optional `tolerates` (a tier id from `population.tiers`; text "Tolerates up to
   Village."; ignored with a warning when tiers are off) is the largest tier it keeps calm. Each upkeep starts by adding
   `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),

@@ -2,9 +2,9 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
 ## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name (its city name over its land's, 248) and info, its stats and pop meter, a row of its actions (Grow, 227;
-## then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units (160); its card
-## stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
+## its name (its city name over its land's, 248) and info, its stats, pop meter and settlement tier (346), a row of its
+## actions (Grow, 227; then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units
+## (160); its card stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
 ## stays empty while a game is on, 103), and grows out of the territory's card when it opens (104). A drop anywhere on
 ## it targets its territory. The board places the view's cards through refresh; navigated asks the board to refresh
 ## after it opens or closes.

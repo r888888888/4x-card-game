@@ -12,7 +12,8 @@ extends "res://tests/lib/test_case.gd"
 ## free-slot outlines after the cards, no pop-in or fly-off when opening or closing (`frame`, `title_text()`,
 ## `outlines()`, `free_slot_count()`); 200, 327: a left click anywhere outside the box (the hand, top bar, sidebar, a
 ## card or button there) only closes it, a drag from the hand still targets it, a modal over it takes the click first;
-## 342: the city, buildings and enabled free slots take a hover look and the `ui.hover` tick
+## 342: the city, buildings and enabled free slots take a hover look and the `ui.hover` tick; 346: the tier line
+## beside the pop meter (`tier_text()`)
 
 
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
