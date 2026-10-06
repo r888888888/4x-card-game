@@ -135,7 +135,7 @@ func test_the_menu_is_a_sheet_on_the_modal_stack() -> void:
 		main.open_menu()
 		await wait_sheet()
 		eq(main.modals.depth(), 1, "the menu is on main.modals")
-		check_sheet(main.modals.top(), "menu", "Menu", "", ["Close", "Exit"] as Array[String])
+		check_sheet(main.modals.top(), "menu", "Menu", "", ["Close", "Exit Game"] as Array[String])
 		eq(accent_footer(main.modals.top()), [] as Array[String], "251: the menu has no primary")
 		press_key(main, KEY_ESCAPE)
 		await wait_frames()

@@ -99,7 +99,7 @@ func test_title_screen_has_the_title_and_three_buttons() -> void:
 	var titles: Array = overlay.find_children("*", "Label", true, false).filter(
 		func(l): return l.text.replace("\n", " ") == ProjectSettings.get_setting("application/config/name"))  # on two lines (213)
 	eq(titles.size(), 1, "one title label with the game's name")
-	eq(button_texts(overlay), ["New game", "Settings", "Exit"] as Array[String], "exactly three buttons, in order")
+	eq(button_texts(overlay), ["New game", "Settings", "Exit Game"] as Array[String], "exactly three buttons, in order")
 	eq(overlay.find_children("*", "LineEdit", true, false).size(), 0, "no seed field")
 	eq(overlay.find_children("*", "CardView", true, false).size(), 0, "no civilization cards")
 	close_main(main)

@@ -23,7 +23,7 @@ func button_texts(buttons: Array) -> Array[String]:
 func test_menu_ends_with_an_exit_button() -> void:
 	var main := open_main_counting_quits([0])
 	var texts := button_texts(main.menu_buttons())
-	eq(texts.back() if not texts.is_empty() else "", "Exit", "last menu button in %s" % [texts])
+	eq(texts.back() if not texts.is_empty() else "", "Exit Game", "last menu button in %s" % [texts])
 	check(texts.size() >= 2 and texts[-2].begins_with("Close"), "Close comes just before Exit in %s" % [texts])
 	close_main(main)
 
@@ -49,7 +49,7 @@ func test_tab_from_close_reaches_exit_then_wraps_to_restart() -> void:
 	close.grab_focus()
 	press_key(main, KEY_TAB)
 	var owner := main.get_viewport().gui_get_focus_owner()
-	eq(owner.get("text") if owner != null else null, "Exit", "focus after Tab from Close")
+	eq(owner.get("text") if owner != null else null, "Exit Game", "focus after Tab from Close")
 	press_key(main, KEY_TAB)
 	owner = main.get_viewport().gui_get_focus_owner()
 	eq(owner.get("text") if owner != null else null, "Restart", "Tab from Exit wraps to Restart (206: no seed field)")
@@ -73,5 +73,5 @@ func test_game_over_overlay_has_no_exit_button() -> void:
 	var main := open_main_counting_quits([0])
 	var texts := button_texts(main.game_over_buttons())
 	check(not texts.is_empty(), "game-over buttons found")
-	check(not texts.has("Exit"), "no Exit in %s" % [texts])
+	check(not texts.has("Exit Game"), "no Exit Game in %s" % [texts])
 	close_main(main)
