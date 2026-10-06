@@ -2,7 +2,7 @@
 id: 288
 title: Light a lamp on Knowledge and Buy Cards when something new can be bought
 type: feature
-status: review
+status: done
 branch: feat/288-ready-lamps
 ---
 

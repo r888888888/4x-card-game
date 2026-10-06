@@ -177,7 +177,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   "keywords": ["desert"] }` is `gain_per_keyword`'s mirror ("−1 food per desert territory"). Both go through `lose`, so
   they never go below 0 and report `lost`. No shipped card uses them yet (270).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
-  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`) to non-zero ints, e.g.
+  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`, `administers`) to non-zero ints, e.g.
   `"modifiers": {"actions": 1}`. `insight_per_gain` (157) is added to each insight gain in `EngineCore.gain`, never below
   0 ("Each insight gain −1"); a per-count op or `trade` is one gain. Real data: Theocracy −1.
   `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
@@ -299,6 +299,11 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   taken automatically; with 0 nothing happens.
 - **Settle** (`settle` op, on Settler): move a frontier territory to the tableau and found a City
   on it. Each territory holds one city. The Capital starts on `starting.territory`.
+- **Cost per territory** (320): any card may set `cost_per_territory` ({resource: int ≥ 1}, never unrest, not on a
+  project), added to its cost once per settled territory before the civilization's discounts (`Discounts.cost`, so
+  `play_cost`, `supply_play_cost`, `build_cost`, `play_error` and the bot all see it). Text "Costs 1 more food for each
+  territory you hold.". Real data: Settler 5 food + 1 per territory (6 for the 2nd settlement, 16 for the 12th); every
+  card that settles sets it (content test). With 319's admin unrest it makes the soft cap on going wide.
 - **Slots**: a city card may add `slots` to its territory (the Capital gives +3, 113). A building must be placed in a settled territory with a free slot. The player picks
   the territory; if only one is valid, the engine picks it.
 - **Keywords are tags; card data gives them meaning:**
@@ -372,6 +377,13 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),
   before any card's upkeep and so before upkeep takes pop. 0 with unrest or tiers off, no government (Anarchy) or no
   `tolerates`. The forecast counts it.
+- Admin unrest (319): a government's optional `administers` (int ≥ 1; text "Administers up to 7 territories.") plus
+  the `administers` modifier ("Administration cap +2") is `admin_cap()`, never below 0; -1 (no cap) with no
+  government (Anarchy) or one that sets none. `admin_unrest()` is n × (n + 1) ÷ 2 for n settled territories past the
+  cap (the k-th past it adds k: 1, 3, 6, 10 in all), 0 with unrest off or no cap. Each upkeep adds it right after size
+  unrest, through `set_unrest` (so the limit stops it), before any card's upkeep; the forecast counts it. Real data:
+  Chiefdom 4, Kingship 7, Theocracy 6; Code of Laws +1, Bureaucracy +2, Royal Road +1. Only unique cards (techs,
+  governments, civilizations, wonders) carry the modifier, so copies can't stack it (content test).
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth (262): pop grows only from growth cards, never by itself (260's automatic growth from a food surplus is
   gone, and 010's bought Grow with it). Bread and Beer (action, 2 food: +1 pop where it's needed most; 1 in the
@@ -630,8 +642,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
   × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
   diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
-  `would_target` nothing) + learned techs' printed cost − a squared penalty as unrest nears its limit (unrest has no
-  other cost). A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
+  `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
+  (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
   best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
 - Bot rollouts (314, porting 159): `GenericBot.rollout(engine, strategy, government_id, revolt)` plays a sample fork
   `ROLLOUT_TURNS` (12) turns on in cheap mode (no card values, no extra lookahead step) and returns its value; the real
@@ -639,7 +651,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   option whose rollout values most (ties: deck order; one option: no rollout). Every `REVOLT_EVERY` (4) turns, at the
   end of the turn and not in the last 6, it revolts when a rollout that revolts to some government in the deck values
   more than staying. Inside a rollout it never revolts and chooses the government the rollout was opened for, else
-  the best by value. Strategies: generic, wide (+20 value per settled territory) and tall (never plays a `settle` card
+  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall (never plays a `settle` card
   past 2 territories). `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the

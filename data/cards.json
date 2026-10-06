@@ -33,7 +33,7 @@
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
-      "cost": { "food": 5 }, "vp": 0, "tags": ["expand"],
+      "cost": { "food": 5 }, "cost_per_territory": { "food": 1 }, "vp": 0, "tags": ["expand"],
       "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
@@ -138,7 +138,7 @@
     },
     {
       "id": "royal_road", "name": "Royal Road", "type": "building",
-      "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1 },
+      "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1, "administers": 1 },
       "effects": []
     },
     {
@@ -254,19 +254,19 @@
       "effects": []
     },
     {
-      "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2, "unrest_limit": 8, "tolerates": "village",
+      "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2, "unrest_limit": 8, "tolerates": "village", "administers": 4,
       "vp": 0, "tags": [],
       "effects": []
     },
     {
-      "id": "kingship", "name": "Kingship", "type": "government", "actions": 3, "unrest_limit": 10, "tolerates": "town",
+      "id": "kingship", "name": "Kingship", "type": "government", "actions": 3, "unrest_limit": 10, "tolerates": "town", "administers": 7,
       "vp": 0, "tags": [],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
     },
     {
-      "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3, "unrest_limit": 13, "tolerates": "town",
+      "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3, "unrest_limit": 13, "tolerates": "town", "administers": 6,
       "vp": 0, "tags": [],
       "modifiers": { "insight_per_gain": -1 },
       "effects": [
@@ -754,7 +754,7 @@
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
       "flavor": "Written laws, set in stone for all to read, replace the whim of the chief with fixed rules.",
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
-      "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
+      "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [], "modifiers": { "administers": 1 },
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" },
         { "op": "unlock", "card": "great_ziggurat" } ]
     },
@@ -797,7 +797,7 @@
       "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
       "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride the roads between them.",
       "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "after Herodotus, Histories 8.98" },
-      "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2 },
+      "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2, "administers": 2 },
       "effects": [ { "op": "unlock", "card": "royal_road" } ]
     },
     {

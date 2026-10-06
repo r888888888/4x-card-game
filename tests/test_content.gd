@@ -999,6 +999,35 @@ func test_every_government_sets_tolerates() -> void:
 			check(r.cards[id].get("tolerates") is String and r.cards[id].get("tolerates") != "", "government %s sets tolerates" % id)
 
 
+## 319: each government administers some territories.
+func test_every_government_sets_administers() -> void:
+	var r := load_real()
+	for id in r.cards:
+		if r.cards[id].type == CardDef.GOVERNMENT:
+			check(r.cards[id].get("administers") is int and r.cards[id].get("administers") >= 1,
+				"government %s sets administers" % id)
+
+
+## 320: every card that settles costs more for each territory held.
+func test_every_settling_card_costs_more_per_territory() -> void:
+	var r := load_real()
+	for id in r.cards:
+		var def: CardDef = r.cards[id]
+		if def.effects.any(func(effect): return effect.op == "settle"):
+			check(def.get("cost_per_territory") is Dictionary and not def.get("cost_per_territory").is_empty(),
+				"%s settles but sets no cost_per_territory" % id)
+
+
+## 319: only cards a player holds one of raise the admin cap; copies of a building would stack it without end.
+func test_only_unique_cards_raise_the_admin_cap() -> void:
+	var r := load_real()
+	var unique: Array[String] = [CardDef.TECH, CardDef.GOVERNMENT, CardDef.CIVILIZATION]
+	for id in r.cards:
+		var def: CardDef = r.cards[id]
+		if def.modifiers.has("administers"):
+			check(unique.has(def.type) or def.tags.has("wonder"), "%s raises the admin cap but isn't unique" % id)
+
+
 # --- Supply (backlog 032) ---
 
 ## Replaces test_every_supply_card_also_starts_in_the_deck (057): a locked pile is reached through a tech instead.
