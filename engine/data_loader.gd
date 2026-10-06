@@ -6,7 +6,8 @@ extends RefCounted
 
 const CARD_TYPES := CardDef.TYPES
 ## Fields every card type may have.
-const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "vp", "tags", "effects", "text", "requires"]
+const CARD_FIELDS: Array[String] = ["id", "name", "type", "cost", "cost_per_territory", "vp", "tags", "effects", "text",
+	"requires"]
 ## Fields only some card types use: field -> those types, the first being the one the field is for. On any other
 ## type the field is ignored with a warning ("'era' only applies to techs (ignored)").
 const TYPE_FIELDS := {
@@ -187,6 +188,25 @@ static func _prereq_cycles(db: Dictionary, src: String) -> Array[String]:
 	return out
 
 
+## A card's cost_per_territory (320): {resource: int >= 1} over resources, never unrest.
+static func _parse_cost_per_territory(raw: Variant, resources: Array, errs: Array[String]) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		errs.append("'cost_per_territory' must be an object like {\"food\": 1}")
+		return out
+	for r in raw:
+		var n: Variant = Fields.as_int(raw[r])
+		if not resources.has(r):
+			errs.append("cost_per_territory: unknown resource '%s'" % r)
+		elif Fields.unpayable(r) != "":
+			errs.append("cost_per_territory: " + Fields.unpayable(r))
+		elif typeof(n) != TYPE_INT or n < 1:
+			errs.append("cost_per_territory: '%s' must be an integer >= 1" % r)
+		else:
+			out[r] = n
+	return out
+
+
 static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], warns: Array[String]) -> CardDef:
 	var def := CardDef.new()
 	def.id = Fields.read_string(c, "id", errs)
@@ -209,6 +229,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				def.cost[r] = n
 	else:
 		errs.append("'cost' must be an object like {\"food\": 2}")
+
+	if c.has("cost_per_territory"):
+		def.cost_per_territory = _parse_cost_per_territory(c.cost_per_territory, ctx.resources, errs)
 
 	if def.type == CardDef.TECH and not (def.cost.size() == 1 and def.cost.get(GameEngine.INSIGHT, 0) >= 1):
 		errs.append("cost: a tech must cost insight only, at least 1 (like {\"insight\": 2})")
@@ -291,6 +314,8 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				def.project = c.project
 		if def.project and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
 			errs.append("project: its cost must be wealth only, at least 1 (like {\"wealth\": 30})")
+		if def.project and not def.cost_per_territory.is_empty():
+			errs.append("cost_per_territory: a project's cost is paid in over turns, so it can't grow")
 	elif def.type == CardDef.UNIT:
 		def.strength = Fields.read_int(c, "strength", errs, 1)
 	elif def.type == CardDef.GOVERNMENT:

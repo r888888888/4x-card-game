@@ -20,12 +20,18 @@ static func off(e: GameEngine, def: CardDef, for_supply: bool) -> Dictionary:
 	return out
 
 
-## def's cost to play after discounts, never below 0 per resource.
+## def's cost to play: its printed cost plus its cost_per_territory once per settled territory (320), less the
+## discounts, never below 0 per resource.
 static func cost(e: GameEngine, def: CardDef) -> Dictionary:
 	var less := off(e, def, false)
+	var full := def.cost.duplicate()
+	if not def.cost_per_territory.is_empty():
+		var held := Territories.count_settled(e)
+		for r in def.cost_per_territory:
+			full[r] = full.get(r, 0) + def.cost_per_territory[r] * held
 	var out := {}
-	for r in def.cost:
-		out[r] = maxi(0, def.cost[r] - less.get(r, 0))
+	for r in full:
+		out[r] = maxi(0, full[r] - less.get(r, 0))
 	return out
 
 

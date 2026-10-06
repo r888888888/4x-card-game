@@ -34,6 +34,7 @@ var id: String = ""
 var name: String = ""
 var type: String = ""  # one of TYPES
 var cost: Dictionary = {}  # resource -> int
+var cost_per_territory: Dictionary = {}  # resource -> int added to cost per settled territory (320)
 var vp: int = 0
 var tags: Array[String] = []
 var effects: Array[Effect] = []
@@ -132,6 +133,8 @@ func rules_text(card_db: Dictionary) -> String:
 		prev = e
 	if not choices.is_empty():
 		parts.append(choices_text(card_db))
+	if not cost_per_territory.is_empty():
+		parts.append(cost_per_territory_text())
 	parts.append_array(modifier_lines(false))
 	parts.append_array(discount_lines())
 	if type == BUILDING and housing > 0:
@@ -191,6 +194,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		parts.append(line)
 	if not choices.is_empty():
 		parts.append(choices_text(card_db))
+	if not cost_per_territory.is_empty():
+		parts.append(cost_per_territory_text())
 	parts.append_array(modifier_lines(true))
 	parts.append_array(discount_lines())
 	if type == CITY and slots > 0:
@@ -304,6 +309,14 @@ func tolerates_text() -> String:
 ## A government's administration line (319): "Administers up to 3 territories."
 func administers_text() -> String:
 	return "Administers up to %d territor%s." % [administers, "y" if administers == 1 else "ies"]
+
+
+## The cost step line (320): "Costs 1 more food for each territory you hold."
+func cost_per_territory_text() -> String:
+	var steps := PackedStringArray()
+	for r in cost_per_territory:
+		steps.append("%d more %s" % [cost_per_territory[r], r])
+	return "Costs %s for each territory you hold." % " and ".join(steps)
 
 
 ## One line per modifier (129): "+1 action each turn"; long (the tooltip) adds " while active" on an event.
