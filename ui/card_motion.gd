@@ -256,7 +256,7 @@ func _fit_to_slot() -> void:
 
 
 func _rest_pos() -> Vector2:
-	return Vector2(0, Anim.LIFT_ROOM) if view.in_hand else Vector2.ZERO
+	return Vector2(0, Anim.LIFT_ROOM) if view.in_hand and not view.still else Vector2.ZERO
 
 
 func _play_fx() -> Tween:

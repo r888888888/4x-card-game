@@ -8,7 +8,6 @@ extends Modal
 ## lines and the cost, or the refusal. One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
 ## move the selection. Everything shown comes from the engine.
 
-const LIST_WIDTH := Tokens.SPACE_9 * 3  # the ledger's column
 const DIMMED := 0.5  # a refused row's opacity
 ## build_preview's line keys beside the resources, as the sheet labels them.
 const LINE_LABELS := {"free_slots": "Free slots", "free_workers": "Free workers", "defense": "Defence",
@@ -33,11 +32,11 @@ var _lines: VBoxContainer  # the preview's heading and lines, or the refusal
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", Tokens.SPACE_6)
+	row.add_theme_constant_override("separation", LEDGER_GAP)  # a ledger sheet (343, 344)
 	body.add_child(row)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size = Vector2(LIST_WIDTH, CardView.TABLEAU_SIZE.y * 2)
+	scroll.custom_minimum_size = Vector2(LEDGER_LIST_WIDTH, LEDGER_LIST_HEIGHT)
 	row.add_child(scroll)
 	list = UIKit.select_list()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -48,7 +47,7 @@ func _init(p_stack: ModalStack) -> void:
 	row.add_child(sheet)
 	_card_slot = Control.new()
 	_card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card_slot.custom_minimum_size = CardView.TABLEAU_SIZE
+	_card_slot.custom_minimum_size = CardView.HAND_SIZE
 	sheet.add_child(_card_slot)
 	_lines = VBoxContainer.new()
 	_lines.add_theme_constant_override("separation", Tokens.SPACE_1)
@@ -119,6 +118,7 @@ func _add_row(row_id: String, card_id: String, target: int, text: String) -> voi
 	_targets[row_id] = [card_id, target]
 	var entry := list.add_row(row_id, text + ("\n" + reason if reason != "" else ""))
 	entry.modulate.a = DIMMED if reason != "" else 1.0
+	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # a long name or reason wraps inside the column (343)
 
 
 func closed() -> void:
@@ -140,6 +140,11 @@ func row_reason(id: String) -> String:
 
 func row_dimmed(id: String) -> bool:
 	return list.row(id) != null and list.row(id).modulate.a < 1.0
+
+
+## Test hook (343): the card on the sheet, or null.
+func card_view() -> CardView:
+	return _card if is_instance_valid(_card) else null
 
 
 func shown_card() -> String:
@@ -197,8 +202,9 @@ func _show_entry(id: String) -> void:
 	var def: CardDef = e.card_db[_shown]
 	var target: int = _targets[id][1]
 	_card = CardView.new()
-	_card.setup(CardInstance.new(-1, def), e.card_db, false)
+	_card.setup(CardInstance.new(-1, def), e.card_db, true)  # a hand-size face
 	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card.still = true
 	_card.attach(_card_slot)
 	var reason: String = _reasons.get(id, "")
 	build_button.text = "%s %s" % ["Recruit" if def.type == CardDef.UNIT else "Build", def.name]
@@ -228,7 +234,7 @@ func _add_line(text: String, look: StringName) -> void:
 	label.theme_type_variation = look
 	if look == &"Refusal":  # a reason may be long; the preview's lines stay whole
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.custom_minimum_size.x = CardView.TABLEAU_SIZE.x
+		label.custom_minimum_size.x = LEDGER_DETAIL_WIDTH
 	_lines.add_child(label)
 
 
