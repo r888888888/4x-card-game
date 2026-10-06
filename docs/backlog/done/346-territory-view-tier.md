@@ -2,7 +2,7 @@
 id: 346
 title: The territory view shows the settlement tier
 type: feature
-status: review
+status: done
 branch: feat/346-territory-view-tier
 ---
 
