@@ -1,7 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
 ## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
-## The summary the civilization modal's confirmation shows (205). The bot's revolts: test_bot_lookahead.gd (159).
+## The summary the civilization modal's confirmation shows (205). The upkeep forecast after a revolt leaves out the
+## falling government (332). The bot's revolts: test_bot_lookahead.gd (159).
 ## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
 
 
