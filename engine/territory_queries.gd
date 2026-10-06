@@ -70,6 +70,12 @@ func tier_name(uid: int) -> String:
 	return Population.tier_name(self, uid)
 
 
+## Territory uid's tier and the pop the next one needs ("Village: a Town at 8 pop"), just the name at the top tier, or
+## "" when it has none (346).
+func tier_line(uid: int) -> String:
+	return Population.tier_line(self, uid)
+
+
 ## The pop territory uid's next tier needs, or 0 at the top tier or with none.
 func next_tier_pop(uid: int) -> int:
 	return Population.next_tier_pop(self, uid)

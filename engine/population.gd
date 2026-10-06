@@ -123,6 +123,18 @@ static func tier_name(e: GameEngine, territory_uid: int) -> String:
 	return tiers(e)[i].name if i >= 0 else ""
 
 
+## Territory uid's tier and the next one's pop ("Village: a Town at 8 pop"), just the name at the top tier (281), or ""
+## when it has none.
+static func tier_line(e: GameEngine, territory_uid: int) -> String:
+	var i := tier(e, territory_uid)
+	var all := tiers(e)
+	if i < 0:
+		return ""
+	if i + 1 >= all.size():
+		return all[i].name
+	return "%s: %s at %d pop" % [all[i].name, with_article(all[i + 1].name), all[i + 1].pop]
+
+
 ## See GameEngine.size_unrest (282).
 static func size_unrest(e: GameEngine) -> int:
 	var gov := e.zone("government")
