@@ -140,12 +140,12 @@ func effect_of(id: String, extra := []) -> Effect:
 
 
 func test_a_gain_per_tag_reads_the_zone_it_counts() -> void:
-	var tally: Object = effect_of("tally", [TALLY])
+	var tally := effect_of("tally", [TALLY])
 	eq(tally.reads_zones(), ["discard"] as Array[String], "Tally counts farms in the discard")
 
 
 func test_a_create_into_the_discard_reads_no_zone() -> void:
-	var scribe: Object = effect_of("scribe", [SCRIBE])
+	var scribe := effect_of("scribe", [SCRIBE])
 	eq(scribe.reads_zones(), [] as Array[String], "Scribe puts a card there; it counts none")
 
 
@@ -153,12 +153,12 @@ func test_every_other_op_reads_no_zone() -> void:
 	for op in EffectRegistry.OPS:
 		if op == "gain_per_tag":
 			continue
-		var effect: Object = EffectRegistry.OPS[op].new()
+		var effect: Effect = EffectRegistry.OPS[op].new()
 		eq(effect.reads_zones(), [] as Array[String], op)
 
 
 func test_the_forecast_reads_the_board_plus_the_zones_effects_count() -> void:
-	var plain: Object = make_engine({"farm": 10}, {}, 1, [SCRIBE])
+	var plain := make_engine({"farm": 10}, {}, 1, [SCRIBE])
 	eq(plain.forecast_zones(), BOARD_ZONES, "Scribe's discard isn't read")
-	var counting: Object = make_engine({"farm": 10}, {}, 1, [TALLY])
+	var counting := make_engine({"farm": 10}, {}, 1, [TALLY])
 	eq(counting.forecast_zones(), BOARD_ZONES + (["discard"] as Array[String]), "Tally's discard is")

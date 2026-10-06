@@ -155,32 +155,25 @@ func test_a_game_plays_the_same_after_another_as_alone() -> void:
 
 # --- 336: the key reads what the forecast reads ---
 
-## GenericBot's constant name ([] or {} until it exists).
-func bot_list(name: String) -> Variant:
-	return (GenericBot as Script).get_script_constant_map().get(name, [])
-
-
-## The fields of o (a GameState or CardInstance) that are neither in the key's list nor in the unread list (with a
-## reason), and those in both.
-func unclassified(o: Object, key_list: String, unread_list: String) -> Array[String]:
-	var key: Array = bot_list(key_list)
-	var unread: Variant = bot_list(unread_list)
+## The fields of o (a GameState or CardInstance) that are neither in key nor in unread (with a reason), and those in
+## both.
+func unclassified(o: Object, key: Array[String], unread: Dictionary) -> Array[String]:
 	var out: Array[String] = []
 	for field in script_vars(o):
-		var reason: String = unread.get(field, "") if unread is Dictionary else ""
+		var reason: String = unread.get(field, "")
 		if key.has(field) == (reason != ""):
 			out.append(field)
 	return out
 
 
 func test_every_game_state_field_is_in_the_key_or_listed_as_unread() -> void:
-	eq(unclassified(GameState.new(), "KEY_STATE_FIELDS", "UNREAD_STATE_FIELDS"), [] as Array[String],
+	eq(unclassified(GameState.new(), GenericBot.KEY_STATE_FIELDS, GenericBot.UNREAD_STATE_FIELDS), [] as Array[String],
 		"GameState fields neither in GenericBot.KEY_STATE_FIELDS nor in UNREAD_STATE_FIELDS with a reason, or in both")
 
 
 func test_every_card_instance_field_is_in_the_key_or_listed_as_unread() -> void:
 	var card := CardInstance.new(1, cache_game().card_db["farm"])
-	eq(unclassified(card, "KEY_CARD_FIELDS", "UNREAD_CARD_FIELDS"), [] as Array[String],
+	eq(unclassified(card, GenericBot.KEY_CARD_FIELDS, GenericBot.UNREAD_CARD_FIELDS), [] as Array[String],
 		"CardInstance fields neither in GenericBot.KEY_CARD_FIELDS nor in UNREAD_CARD_FIELDS with a reason, or in both")
 
 
@@ -188,7 +181,7 @@ func test_the_key_reads_every_field_its_lists_name() -> void:
 	var source := FileAccess.get_file_as_string("res://sim/generic_bot.gd")
 	var at := source.find("static func forecast_key(")
 	var body := source.substr(at, source.find("\n\n\n", at) - at)
-	var fields: Array = bot_list("KEY_STATE_FIELDS") + bot_list("KEY_CARD_FIELDS")
+	var fields := GenericBot.KEY_STATE_FIELDS + GenericBot.KEY_CARD_FIELDS
 	check(fields.size() >= 15, "the key's lists: %s" % [fields])
 	for field in fields:
 		check(body.contains("." + field), "forecast_key reads %s" % field)

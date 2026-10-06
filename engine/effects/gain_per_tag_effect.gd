@@ -13,6 +13,11 @@ func upkeep_ok() -> bool:
 	return true
 
 
+## The zone it counts tagged cards in (336).
+func reads_zones() -> Array[String]:
+	return [zone]
+
+
 func fields() -> Array[String]:
 	return ["resource", "amount", "tag", "zone"]
 
