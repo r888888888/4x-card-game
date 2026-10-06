@@ -2,7 +2,7 @@
 id: 351
 title: Flavor text for action cards
 type: feature
-status: in-progress
+status: review
 branch: feat/351-action-flavor
 ---
 
@@ -12,16 +12,16 @@ line in its details window, like techs and events (215). Actions take no quote. 
 governments, techs and events may set `flavor`.
 
 ## Acceptance criteria
-- [ ] AC1: Given a `TEST_CARDS` action with `"flavor": "They went over the hill."`, when the cards load, then there
+- [x] AC1: Given a `TEST_CARDS` action with `"flavor": "They went over the hill."`, when the cards load, then there
   are no errors or warnings, and both `def_details(id)` and `card_details(uid)` of that action in hand return that
   `flavor`.
-- [ ] AC2: Given an action whose `flavor` is `3` or `""`, when the cards load, then the loader reports
+- [x] AC2: Given an action whose `flavor` is `3` or `""`, when the cards load, then the loader reports
   "'flavor' must be a non-empty string", naming the card (as for a civilization, 107).
-- [ ] AC3: Given an action with `"quote": {"text": …, "by": …}`, when the cards load, then it warns that `quote`
+- [x] AC3: Given an action with `"quote": {"text": …, "by": …}`, when the cards load, then it warns that `quote`
   doesn't apply (ignored), and its details' `quote` is `{}`.
-- [ ] AC4: Given an action with a flavor, when its card face is built (`CardFace.build`), then the face's lines are
+- [x] AC4: Given an action with a flavor, when its card face is built (`CardFace.build`), then the face's lines are
   the same as for the card without it: flavor shows only in the details window.
-- [ ] AC5 (content): in `data/cards.json` every action has a `flavor` (`test_content.gd` invariant).
+- [x] AC5 (content): in `data/cards.json` every action has a `flavor` (`test_content.gd` invariant).
 
 ## Out of scope
 - Quotes on actions.
@@ -52,3 +52,6 @@ governments, techs and events may set `flavor`.
 - [ ] Read through the 10 lines for tone and length.
 
 ## Log
+- 2026-10-06: AC3 held before the change (`quote` already excluded actions); its test guards the rule.
+- `docs/testing.md` sits at its 25 KB cap (1 byte under on main), so the test file's row kept its length and cites
+  215 only; the file's `##` header names 351. Any future row will need the file trimmed or split.
