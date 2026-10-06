@@ -64,11 +64,25 @@ const WEIGHTS := {
 
 ## The turns rollouts played (for the sim's lookahead_turns): SimStats resets it before each game.
 static var lookahead_turns := 0
+## The forecast cache (315): value() looks each position's turn_forecast up by what the forecast reads (forecast_key),
+## so a position already forecast this turn isn't forecast again. Off: every lookup is computed. check_forecasts
+## computes a fresh forecast at every hit too and counts the ones that differ (a test of the key).
+static var forecast_cache := true
+static var check_forecasts := false
+## Forecasts looked up, computed, checked and found to differ (check mode) since the last play() or
+## reset_forecast_counts().
+static var forecast_lookups := 0
+static var forecasts_computed := 0
+static var forecast_checks := 0
+static var forecast_mismatches := 0
+## The zones whose cards a forecast reads beyond the ones any upkeep can (a gain_per_tag's zone adds its own).
+const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
 
 
 ## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
 ## counter for sample seeds, whether a card value is being measured (the deck's worth is then left out, or it would
-## recurse), and in a rollout: cheap mode and the government it was opened for ("" for the best by value).
+## recurse), in a rollout: cheap mode and the government it was opened for ("" for the best by value), and the forecast
+## cache: {forecast_key: turn_forecast} for forecast_turn, and the zones the key reads (315).
 class Context:
 	var strategy: String
 	var w: Dictionary
@@ -77,6 +91,9 @@ class Context:
 	var valuing := false
 	var rollout := false
 	var government := ""
+	var forecasts := {}
+	var forecast_turn := -1
+	var forecast_zones: Array[String] = []
 
 	func _init(p_strategy: String) -> void:
 		strategy = p_strategy
@@ -86,6 +103,7 @@ class Context:
 ## Plays engine's game to the end with strategy: each turn take_turn, then the hand discarded (it never cycles
 ## otherwise, 024) and the turn ended. Returns whether it ended within MAX_STEPS.
 static func play(engine: GameEngine, strategy := STRATEGY) -> bool:
+	reset_forecast_counts()
 	var ctx := Context.new(strategy)
 	var steps := 0
 	while not engine.is_over and steps < MAX_STEPS:
@@ -291,7 +309,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		return e.score()
 	var w := ctx.w
 	var ahead := mini(HORIZON, e.turn_limit() - e.turn)
-	var next := e.turn_forecast()
+	var next := _forecast(e, ctx)
 	var v: float = e.score() + ahead * next.get("score", 0)
 	for r in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT]:
 		v += w[r] * _concave(e.resources.get(r, 0) + ahead * next.get(r, 0))
@@ -309,6 +327,66 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
 	return v + w.land * _land(e)
+
+
+## Zeroes the forecast counters (315).
+static func reset_forecast_counts() -> void:
+	forecast_lookups = 0
+	forecasts_computed = 0
+	forecast_checks = 0
+	forecast_mismatches = 0
+
+
+## e's turn_forecast(), from ctx's cache when this turn has already forecast a position with the same forecast_key.
+static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
+	forecast_lookups += 1
+	if not forecast_cache:
+		forecasts_computed += 1
+		return e.turn_forecast()
+	if ctx.forecast_turn != e.turn:
+		ctx.forecasts.clear()
+		ctx.forecast_turn = e.turn
+	var key := forecast_key(e, ctx)
+	var cached: Variant = ctx.forecasts.get(key)
+	if cached != null:
+		if check_forecasts:
+			forecast_checks += 1
+			if e.turn_forecast() != cached:
+				forecast_mismatches += 1
+		return cached
+	forecasts_computed += 1
+	var fresh := e.turn_forecast()
+	ctx.forecasts[key] = fresh
+	return fresh
+
+
+## What turn_forecast reads of e (315): the turn, resources, effect score, era, Anarchy and raid state, and each card in
+## the zones an upkeep can read (its uid, id, territory, station, pop, turns left, counters and site progress). The
+## hand, deck, discard, supply and the unturned decks aren't in it.
+static func forecast_key(e: GameEngine, ctx: Context) -> Array:
+	if ctx.forecast_zones.is_empty():
+		ctx.forecast_zones = _forecast_zones(e)
+	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending, e.state.anarchy_turn,
+		e.state.anarchy_limit, e.state.last_raid_turn]
+	for r in e.resources:
+		key.append_array([r, e.resources[r]])
+	for z in ctx.forecast_zones:
+		key.append(z)
+		for c in e.zone(z).cards:
+			key.append_array([c.uid, c.def.id, c.territory_uid, c.station_uid, c.pop, c.turns_left, c.counters, c.progress,
+				c.given_this_turn])
+	return key
+
+
+## FORECAST_ZONES plus any zone a card's gain_per_tag counts in (read from the card db).
+static func _forecast_zones(e: GameEngine) -> Array[String]:
+	var out: Array[String] = FORECAST_ZONES.duplicate()
+	for id in e.card_db:
+		for effect in e.card_db[id].effects:
+			var zone: Variant = effect.get("zone") if "zone" in effect else null
+			if zone is String and zone != "" and not out.has(zone):
+				out.append(zone)
+	return out
 
 
 ## The cards a turn can play: the actions a turn, at most the hand size (the hand size for unlimited actions).

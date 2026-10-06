@@ -83,6 +83,7 @@ func test_positions_that_differ_only_in_the_hand_share_one_forecast() -> void:
 	var f := e.fork()
 	f.discard_card(first_in_hand(f))  # the hand isn't read by the forecast
 	var ctx: Variant = BOT.Context.new("generic")
+	ctx.valuing = true  # no card values: measuring one forecasts its own forks
 	BOT.reset_forecast_counts()
 	BOT.value(e, ctx)
 	BOT.value(f, ctx)
