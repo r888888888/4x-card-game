@@ -2,7 +2,7 @@
 id: 329
 title: Modifier text prints a stray "s" for nouns with no plural
 type: bug
-status: review
+status: done
 branch: fix/329-modifier-plural-text
 ---
 
