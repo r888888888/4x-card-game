@@ -2,7 +2,7 @@
 id: 350
 title: The territory view wipes out of its card instead of zooming
 type: feature
-status: review
+status: done
 branch: feat/350-wipe-from-card
 ---
 
