@@ -2,7 +2,7 @@
 id: 307
 title: New urban upgrades for markets, stores, walls, houses, workshops and harbours; Aqueduct needs a Town
 type: feature
-status: in-progress
+status: review
 branch: feat/307-urban-upgrade-chains
 ---
 
@@ -15,9 +15,9 @@ raise. Several era 3 techs that unlock nothing today get a purpose. Content only
 
 ## Acceptance criteria
 Content tests, naming no card id (306's invariants cover tiers, eurekas and unrest limits):
-- [ ] AC1: Every tech that unlocks nothing (no `unlock`, `create` or `add_era`) is listed in a content-test allowlist of
+- [x] AC1: Every tech that unlocks nothing (no `unlock`, `create` or `add_era`) is listed in a content-test allowlist of
   pure discount techs, so a tech left empty by a content change is a deliberate choice. (Today: Mathematics, Astronomy.)
-- [ ] AC2: Every building with a tier of Metropolis that isn't a wonder is an upgrade: stand-alone Metropolis buildings
+- [x] AC2: Every building with a tier of Metropolis that isn't a wonder is an upgrade: stand-alone Metropolis buildings
   are for 308's one-per-realm buildings only, which set `once`.
 
 ## Out of scope
@@ -59,3 +59,7 @@ Content tests, naming no card id (306's invariants cover tiers, eurekas and unre
 
 ## Log
 - 2026-10-05: specced from the realism pass of the tall-buildings design.
+- 2026-10-06: built (data only). Tags the spec left open: Merchant Quarter, Mint and Textile Works are `trade` (Coinage
+  pays per trade card, Credit's eureka counts them), City Walls `wall`, Dockyard `port` (Navigation pays per port).
+  AC2 passed before the change (a guard for 308). In a fresh worktree the first `--import` came out incomplete (fonts
+  and icons unloaded, every test failed); a second import fixed it.
