@@ -65,6 +65,11 @@ static func root(e: GameEngine, card: CardInstance) -> CardInstance:
 	return at
 
 
+## Whether card is an upgrade that counts for nothing now: the building at the root of its chain is idle.
+static func fallen_back(e: GameEngine, card: CardInstance) -> bool:
+	return card.base_uid >= 0 and e.is_idle(card.uid)
+
+
 ## Why upgrade uid counts for nothing ("Its Farm is idle."), or "" while it counts or isn't an upgrade.
 static func fallen_back_reason(e: GameEngine, uid: int) -> String:
 	var card := e.zone("tableau").find(uid)

@@ -17,14 +17,9 @@ static func housing(e: GameEngine, territory_uid: int) -> int:
 		return 0
 	var total := territory.def.housing + Modifiers.total(e, Modifiers.HOUSING)
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not _fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not Upgrades.fallen_back(e, card):
 			total += card.def.housing
 	return maxi(1, total)
-
-
-## Whether card is an upgrade whose base doesn't work (300).
-static func _fallen_back(e: GameEngine, card: CardInstance) -> bool:
-	return card.def.is_upgrade() and is_idle(e, card.uid)
 
 
 static func total_pop(e: GameEngine) -> int:
@@ -44,7 +39,7 @@ static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 	var tableau := e.zone("tableau").cards
 	var built := {}  # territory uid -> the housing of the buildings on it (see housing)
 	for card in tableau:
-		if card.def.type == CardDef.BUILDING and not _fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and not Upgrades.fallen_back(e, card):
 			built[card.territory_uid] = built.get(card.territory_uid, 0) + card.def.housing
 	var extra := Modifiers.total(e, Modifiers.HOUSING)
 	for card in tableau:

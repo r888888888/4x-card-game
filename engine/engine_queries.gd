@@ -16,10 +16,9 @@ func score() -> int:
 	var total := bonus_score
 	for z in ["tableau"] + GameEngine.ALWAYS_ON_ZONES:
 		for card in zone(z).cards:
-			if card.def.is_upgrade() and is_idle(card.uid):
-				continue
-			if not Sites.unfinished(_as_engine(), card):  # a site scores once completed (286)
-				total += card.def.vp
+			if Sites.unfinished(_as_engine(), card) or Upgrades.fallen_back(_as_engine(), card):
+				continue  # a site scores once completed (286), an upgrade while its base works (300)
+			total += card.def.vp
 	if population_on():
 		total += total_pop() * config.population.vp_per_pop
 	return total
