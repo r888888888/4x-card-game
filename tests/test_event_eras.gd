@@ -44,8 +44,8 @@ func test_event_era_validation() -> void:
 	var load_event := func(fields: Dictionary) -> Dictionary:
 		return card_load({"id": "x", "name": "X", "type": "event"}.merged(fields, true))
 	check_cases([
-		["era 0", {"era": 0}, "cards.json: card 'x': era: must be an integer >= 1"],
-		["era not an integer", {"era": "two"}, "cards.json: card 'x': era: must be an integer >= 1"],
+		["era 0", {"era": 0}, "cards.json: card 'x': 'era' must be an integer >= 1, not 0"],
+		["era not an integer", {"era": "two"}, "cards.json: card 'x': 'era' must be an integer >= 1, not \"two\""],
 	], load_event)
 
 

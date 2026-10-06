@@ -45,7 +45,7 @@ func test_era_and_add_era_load() -> void:
 
 func test_era_field_validation() -> void:
 	check_cases([
-		["era 0", [{"era": 0}, "tech", []], "cards.json: card 'x': era"],
+		["era 0", [{"era": 0}, "tech", []], "cards.json: card 'x': 'era' must be an integer >= 1, not 0"],
 		["era on a building", [{"era": 2}, "building", []], "cards.json: card 'x': 'era' only applies to techs", "warning_only"],
 		["add_era without era", [{}, "tech", [{"op": "add_era"}]], "cards.json: card 'x': effects[0]: missing 'era'"],
 		["add_era 1", [{}, "tech", [{"op": "add_era", "era": 1}]], "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2"],

@@ -34,8 +34,10 @@ suite checks every path named here exists.
   - `engine/game_state.gd`: `GameState`, everything that changes during a game; `copy()` is a deep copy (051).
   - Rules modules: one class of static functions per subsystem (`TurnLoop`, `CardPlay`, `Population`, `Research`,
     `Supply`, `BuildMenu`, `Territories`, `Military`, `Anarchy`, `Events`, …), which `GameEngine` calls.
-  - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected)
-    and `engine/config_loader.gd` (config.json, normalized and checked against the cards, 095).
+  - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected;
+    `TYPE_FIELDS` and `INT_FIELDS` say which types take a field and an integer field's minimum and default, and
+    `engine/card_type_fields.gd` reads each type's own fields, 338) and `engine/config_loader.gd` (config.json,
+    normalized and checked against the cards, 095).
   - Cards: `engine/card_def.gd` (the immutable definition and its generated text), `engine/card_instance.gd` (a card
     in play), `engine/zone.gd` (an ordered pile).
   - Effects: `engine/effect.gd` (the base class), `engine/effect_registry.gd` (op name to script) and one
@@ -228,7 +230,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Shipped set (131): six terrains (grassland, forest, hills, mountain, desert, marsh) times the features fresh water,
   flood plain (always with fresh water) and coastal; every keyword is on at least 2 territory types. Slots/housing come
   from a terrain base plus +1 housing per feature (flood plain also −1 slot, min 1), until a balance pass.
-- Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
+- Buildings may list `requires` (keyword ids, any-of; on another type it is ignored with a warning, and on a unit it is
+  an error, 338). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
 ## The deck model
