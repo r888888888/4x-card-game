@@ -197,6 +197,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sim_strategies.gd` | `SimStats` per strategy and civilization (134) |
 | `tests/test_size_unrest.gd` | Size unrest (282) |
 | `tests/test_slots.gd` | Building slots |
+| `tests/test_smooth_scroll.gd` | A scroll area that glides, and the scrollbar (356; UI) |
 | `tests/test_sound_rows.gd` | The sound rows (185; UI) |
 | `tests/test_sound_settings.gd` | Sound settings and the audio buses (184) |
 | `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193) |

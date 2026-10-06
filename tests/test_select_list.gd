@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The selectable list (backlog 217, guide §7 "Selectable list", the index card): UIKit.select_list() builds a SelectList,
-## a well of ListRow rows of which one is selected, pulled out onto a plinth with the signal index tab on its leading
-## edge. Held as Object so this file parses before SelectList exists.
+## a well of ListRow rows of which one is selected, a filled strip in place (356: no pull, no shadow) with the signal index
+## tab on its leading edge. Held as Object so this file parses before SelectList exists.
 
 
 ## UIKit.select_list(), called through the loaded script so this file parses before it exists.
@@ -52,10 +52,11 @@ func test_a_list_row_draws_no_box_until_selected() -> void:
 		if box == null:
 			continue
 		eq(box.bg_color.to_html(), Palette.RAISED.to_html(), "ListRow %s: the sheet" % state)
-		eq(box.shadow_color.to_html(), Palette.SHADOW.to_html(), "ListRow %s: a hard shadow" % state)
-		check(box.shadow_size > 0 and box.shadow_offset.x > 0 and box.shadow_offset.y > 0, "ListRow %s: on a plinth" % state)
-		eq([box.expand_margin_left, box.expand_margin_right], [-float(Tokens.SPACE_2), float(Tokens.SPACE_2)],
-			"ListRow %s: pulled 8 px out toward the trailing side" % state)
+		eq(box.shadow_size, 0, "ListRow %s: no shadow (356)" % state)
+		eq([box.expand_margin_left, box.expand_margin_right], [0.0, 0.0], "ListRow %s: in place, not pulled (356)" % state)
+		var normal := row.get_theme_stylebox("normal")
+		eq([box.content_margin_left, box.content_margin_right], [normal.content_margin_left, normal.content_margin_right],
+			"ListRow %s: its text doesn't move (356)" % state)
 	for state in ["font_pressed_color", "font_hover_pressed_color"]:
 		eq(row.get_theme_color(state).to_html(), Palette.TEXT.to_html(), "ListRow %s is ink" % state)
 	close_main(main)
@@ -87,8 +88,8 @@ func test_only_the_selected_row_shows_its_index_tab() -> void:
 	if tab != null:
 		eq(tab.color.to_html(), Palette.ACCENT.to_html(), "signal orange")
 		eq(tab.size.x, float(Tokens.SPACE_1), "4 px wide")
-		var strip_left: float = (list.row("b") as Control).get_global_rect().position.x + Tokens.SPACE_2
-		eq(tab.get_global_rect().position.x, strip_left, "on the pulled strip's leading edge")
+		eq(tab.get_global_rect().position.x, (list.row("b") as Control).get_global_rect().position.x,
+			"on the row's own leading edge (356)")
 	list.select("c")
 	await wait_frames()
 	eq(shown_tabs(list), ["c"] as Array[String], "the tab moves to c")
