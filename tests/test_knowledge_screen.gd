@@ -12,7 +12,7 @@ extends "res://tests/lib/tech_case.gd"
 ## future era dimmed with its unlocks), compact tiles (222: `tile(name)`, `tile_texts(name)`, `era_tiles(i)`,
 ## `era_vellum(i)`, `vellum_text(i)`) whose click, Enter, right-click or I opens the details, whose Learn button
 ## researches (229), a future era under vellum, back by Back / Esc / T / the link or a left click outside it that does
-## nothing else (326), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
+## nothing else (326; on End turn it also ends the turn, 348), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
 
 
 ## Whether main has its Knowledge screen (checked, so a test without it fails instead of crashing and leaving a

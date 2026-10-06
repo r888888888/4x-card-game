@@ -2,7 +2,7 @@
 id: 348
 title: End Turn from the territory view or the Knowledge screen ends the turn
 type: feature
-status: in-progress
+status: review
 branch: feat/348-end-turn-from-screens
 ---
 
@@ -12,13 +12,13 @@ the player has to click End Turn twice. After this a click on End Turn closes th
 every other outside click still only closes it.
 
 ## Acceptance criteria
-- [ ] AC1: Given a settled territory's view open, when the player left-clicks End Turn, then the view closes (back to
+- [x] AC1: Given a settled territory's view open, when the player left-clicks End Turn, then the view closes (back to
   the Realm, one `Sfx.NAV_BACK`) and the turn ends (`turn` goes up by 1). This replaces 327's AC2 for End Turn.
-- [ ] AC2: Given the Knowledge screen open, when the player left-clicks End Turn, then the screen closes and the turn
+- [x] AC2: Given the Knowledge screen open, when the player left-clicks End Turn, then the screen closes and the turn
   ends. This replaces 326's "does nothing else" for End Turn.
-- [ ] AC3: Given either screen open, a left click on any other control outside it (a hand card, a top-bar counter, the
+- [x] AC3: Given either screen open, a left click on any other control outside it (a hand card, a top-bar counter, the
   civilization's name) still only closes it (unchanged from 326, 327).
-- [ ] AC4: Given either screen open, when the player presses E (end turn), then the turn ends and the screen closes
+- [x] AC4: Given either screen open, when the player presses E (end turn), then the turn ends and the screen closes
   (290).
 
 ## Out of scope
@@ -43,3 +43,5 @@ every other outside click still only closes it.
 - [ ] The same from the Knowledge screen (T).
 
 ## Log
+- The territory view closes a beat later (deferred) on an End turn click: closing during the release starts the
+  transition before the key sees it, so the key got button_up without pressed.
