@@ -342,3 +342,31 @@ func test_bug_323_rich_body_text_follows_day_mode() -> void:
 				eq(label.get_theme_color("default_color"), palette("TEXT"),
 					"%s: %s reads TEXT" % ["day" if day else "night", label.get_path()])
 		close_main(main))
+
+
+# --- 324: the data-load-error overlay ---
+
+## Opens main with one load error in day or night mode and checks the overlay shows it in TEXT's value hex.
+func check_load_error_text(day: bool, hex: String) -> void:
+	await with_temp_settings(func():
+		set_day(day)
+		var real := Game.load_errors.duplicate()
+		Game.load_errors.assign(["cards.json: card 'x': unknown op 'y'"])
+		var main := open_main()
+		await wait_frames()
+		var texts := main.find_children("*", "RichTextLabel", true, false).filter(func(label: RichTextLabel):
+			return label.is_visible_in_tree() and "unknown op" in label.text)
+		eq(texts.size(), 1, "the overlay shows the error")
+		for text: RichTextLabel in texts:
+			eq(text.get_theme_color("default_color").to_html(false), hex, "its text reads TEXT")
+		close_main(main)
+		Game.load_errors.assign(real)
+		set_day(false))
+
+
+func test_bug_324_load_errors_read_on_paper_in_day_mode() -> void:
+	await check_load_error_text(true, "22211f")
+
+
+func test_bug_324_load_errors_read_text_in_night_mode() -> void:
+	await check_load_error_text(false, "ede6d6")
