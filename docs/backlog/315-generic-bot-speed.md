@@ -2,7 +2,7 @@
 id: 315
 title: The generic bot caches forecasts by state, without changing a single decision
 type: feature
-status: ready
+status: review
 branch: feat/315-generic-bot-speed
 ---
 
@@ -12,14 +12,14 @@ turn (one forecast per position valued) and a third measuring card values. A 6-c
 take hours. After this, the bot computes each distinct forecast once, and plays exactly the same games, only faster.
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture game played to the end by `GenericBot` with the forecast cache on and again with it off
+- [x] AC1: Given a fixture game played to the end by `GenericBot` with the forecast cache on and again with it off
   (same seed and strategy), then both games end with the same score, the same zones (ids in order) and the same log.
-- [ ] AC2: In AC1's game, every forecast the cache returned equals a fresh `turn_forecast()` of the same position
+- [x] AC2: In AC1's game, every forecast the cache returned equals a fresh `turn_forecast()` of the same position
   (a check mode compares them at every lookup).
-- [ ] AC3: In AC1's game, the cache on computes fewer forecasts than it looks up (a counter on `GenericBot`, reset per
+- [x] AC3: In AC1's game, the cache on computes fewer forecasts than it looks up (a counter on `GenericBot`, reset per
   game): two candidates that differ only in what the forecast doesn't read (a `buy` adds a card to the discard) share
   one forecast.
-- [ ] AC4: The cache lives for one call of `best_action` (or one rollout turn) and holds nothing between games: two
+- [x] AC4: The cache lives for one call of `best_action` (or one rollout turn) and holds nothing between games: two
   games played one after the other give the same results as each played alone.
 
 ## Out of scope
@@ -36,11 +36,14 @@ take hours. After this, the bot computes each distinct forecast once, and plays 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_generic_bot_cache::test_…` |
+| AC1 | `test_generic_bot_cache::test_the_cache_plays_the_same_game_as_without_it` |
+| AC2 | `test_generic_bot_cache::test_every_cached_forecast_equals_a_fresh_one` |
+| AC3 | `test_generic_bot_cache::test_the_cache_computes_fewer_forecasts_than_it_looks_up`, `test_positions_that_differ_only_in_the_hand_share_one_forecast`, `test_without_the_cache_every_lookup_is_computed` |
+| AC4 | `test_generic_bot_cache::test_a_game_plays_the_same_after_another_as_alone` |
 
 ## Manual check
-- [ ] Seconds per game (mean of `scripts/sim.sh 10 generic`) before and after, in the Log. Target: under 10 s. If
-  314's cheap-mode rollouts keep it above, say so in the Log with where the time goes.
+- [x] Seconds per game before and after, in the Log (measured per game with the cache off and on side by side, not
+  with `scripts/sim.sh`). Target under 10 s: not met, see the Log for where the time goes.
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309–314. Follows 314.
@@ -48,3 +51,32 @@ take hours. After this, the bot computes each distinct forecast once, and plays 
   turn-by-turn probe, 631 s of it on the every-4th-turn revolt rollouts, 772 s after turn 50; the tableau reaches 179
   cards). Per position valued, `legal_actions` grows from 0.5 to 17 ms and `value` from 0.6 to 3.7 ms between turns 10
   and 90. Use it as the slow benchmark beside the 10-seed mean: forecast caching alone may not bring it down.
+- Baseline profile (2026-10-05, after 319–321; one 100-turn generic/egypt seed-1 game with timers, machine busy with
+  other runs): 67 s in all, 54 s of it in the 43 revolt and government rollouts. Forecasts: 37.8k calls, 37 s (8.5k
+  outside rollouts, 29.3k inside); `sample_fork` 31.6k calls, 13 s; `legal_actions` 3.9k calls, 7 s; card values 0.7 s.
+  A probe key (turn, resources, score, era, Anarchy and raid state, and each card in the tableau, always-on zones and
+  active events with its territory, station, pop, turns left, counters and site progress) costs 0.03 ms against a
+  forecast's ~1 ms and repeats for 54% of forecasts: the cache should save about 20 s of the 37, so the game would still
+  take ~45 s, above the 10 s target. The rest is forking each candidate and `legal_actions`, mostly inside rollouts.
+- Red: the fixture game (10 turns, Kings in the government deck) runs revolt rollouts and revolts. AC3's example uses a
+  discard, not a buy: a buy spends wealth, which the forecast reads (Anarchy's drain is a share of the stock), so it
+  can't share a forecast. AC4 plays seed 2 alone, then seed 1, then seed 2 again. The cache's members: static
+  `forecast_cache` (on by default) and `check_forecasts` switches, `forecast_lookups`, `forecasts_computed`,
+  `forecast_checks` and `forecast_mismatches` counters reset by `play()` and `reset_forecast_counts()`.
+- Green, then two fixes found by timing real games. (1) Per-`Context` caches saved only 6%: each rollout had its own.
+  Rollouts now share the game's cache (`rollout(…, parent)`), keyed by turn and dropping only turns already past, since
+  rollouts from later turns revisit earlier rollouts' positions. (2) The key read every effect's `zone`, so a `create`
+  into the discard (real data: civilizations and techs) put the discard in the key and no two plays shared a forecast.
+  Only `gain_per_tag` zones count now (tests `test_a_card_that_creates_into_the_discard_doesnt_put_the_discard_in_the_key`,
+  `test_an_upkeep_that_counts_the_discard_puts_it_in_the_key`).
+- Real-data check mode (cache hits compared with a fresh forecast): 5 civilizations × 3 strategies at 40 turns, and
+  generic/sumer seed 2 at 100 turns (14,226 hits checked): 0 mismatches.
+- Timing, 100 turns, five games at once on this machine (so slower than alone), cache off → on, same score both ways:
+  generic/egypt seed 1 73.2 → 57.3 s (forecasts computed 37,779 → 18,545); wide/greece seed 1 82.3 → 63.7 s (38,548 →
+  18,108). That's −22%. The 10 s target isn't met. From the earlier profile, what's left per game is about 15 s of
+  forecasts still computed, ~13 s forking each candidate (`sample_fork`, 31.6k a game), ~7 s `legal_actions`, and the
+  rest in playing candidates and valuing; about 80% of it inside the 43 revolt and government rollouts. Next levers
+  (not in this item): fewer or shorter rollouts (weigh a revolt only when a government in the deck could beat the
+  ruling one, or roll out fewer turns), and cheaper candidate forks in cheap mode.
+- Wide/greece seed 1, 13–20 minutes before 319–321 (318), now takes about a minute: the admin cap stops wide expanding.
+- Suite 2030 → 2038 tests.
