@@ -109,4 +109,4 @@ Fixture: `TEST_CARDS` plus these extra cards, with config `build_menu` `{"farm":
   Rampart (play effect, defence, training, famine guard), Weir (requires), Furrow (unlock), Spears (training).
 - Follow-ups: the Build modal (297) lists an upgrade entry on a territory's view, where it is refused ("Plough builds
   on a Farm."); 302 gives upgrades their own place. The real data has no upgrades yet (305–307), so nothing shows.
-  `data_loader.gd` is 636 lines and `config_loader.gd` 669, near the 700 limit.
+  `data_loader.gd` is 636 lines and `config_loader.gd` 662, near the 700 limit.
