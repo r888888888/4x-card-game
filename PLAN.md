@@ -239,9 +239,17 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   farm_uid)` puts it on the base's territory (`CardInstance.base_uid`), taking no slot and no worker; `build_targets`
   lists the bases that could take it, and a base takes each different upgrade once. An upgrade can be a base
   (Shrine → Temple → Great Temple). It adds its effects, modifiers, housing, defence, training, famine guard and VP
-  while the building at the root of its chain works, and counts for nothing while that one is idle (`is_idle` true,
-  `fallen_back_reason` "Its Farm is idle."). `upgrade_base(uid)`, `upgrades_on(uid)`; rules in `engine/upgrades.gd`
-  (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be built on a Farm."
+  while its base works, and falls back (counts for nothing) while its base is idle or fallen back
+  (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
+  rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
+  built on a Farm."
+- Buildings that need a tier (301): a building or upgrade may set `tier` (a `population.tiers` id; ignored with a
+  warning when tiers are off). It is built only on a territory at that tier or larger ("Forum needs a Town (Homeland is
+  a Village)."), and while its territory is smaller it falls back: it keeps its slot and worker but counts for nothing,
+  housing and printed VP included (`fallen_back_reason` "Needs a Town."), and works again by itself when the territory
+  grows back. Unlike an idle building (which keeps its housing and VP), a fallen-back card counts for nothing; the
+  rule is `engine/fallback.gd` (`Fallback`), derived from pop, never stored. The tier notice names the cards that fall
+  back or work again ("Homeland shrinks to a Hamlet. Sanctum falls back."). Text: "Needs a Village."
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or
