@@ -100,12 +100,14 @@ func era() -> int:
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
 ## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
-## includes the drain on the stores after upkeep and feeding (156). {} on the last turn or after game over.
+## includes the drain on the stores after upkeep and feeding (156); a declared revolution's government has fallen
+## first (332). {} on the last turn or after game over.
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
 		return {}
 	var f := _as_engine().fork()
+	Anarchy.before_upkeep(f)  # a declared revolution falls first, as at the turn's start (332)
 	TurnLoop.resolve_upkeep(f)
 	var forecast := {}
 	for r in resources:
