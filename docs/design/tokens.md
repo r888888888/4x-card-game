@@ -21,6 +21,7 @@ The live picture of the same is [mcm-specimen.html](mcm-specimen.html), the mast
 | Surfaces (341) | `ui/surfaces.gd` (`Surfaces`), `ui/surface_box.gd` (`SurfaceBox`) | Walnut grain and paper under the Palette colours, baked once per mode; a `SurfaceBox` draws its `frame` (rule, soft shadow and a fill the paper covers: without it Godot leaves a pale gap between the rule and the shadow), then the texture inside the rule. Opacities and shadow looks are `Surfaces` constants. Keys stay `StyleBoxFlat`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
 | Modals, screens | `Modal` on `main.modals`, `Navigator` + `ScreenHeader` | See CLAUDE.md's UI design section. |
+| Modal layouts (§11.10) | `Modal.BODY_MAX_WIDTH` (640), `Modal.LEDGER_*` (list 384 × 480 = 12 rows, gap 32, detail 264, width 680) | Text, card and ledger sheets (344). |
 
 ## Colour: which kind of colour you are setting
 
