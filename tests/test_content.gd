@@ -1620,3 +1620,11 @@ func test_flavor_lines_are_short() -> void:
 		var limit := 200 if def.type == CardDef.CIVILIZATION else 150
 		check(def.flavor.length() <= limit,
 			"%s's flavor is %d characters (at most %d)" % [def.id, def.flavor.length(), limit])
+
+
+## Backlog 353: every government has a flavor paragraph and a quote with its source, as the civilizations do.
+func test_every_government_has_flavor_and_a_quote() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.GOVERNMENT:
+			check(def.flavor != "", "%s has flavor" % def.id)
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
