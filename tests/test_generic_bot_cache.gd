@@ -32,32 +32,63 @@ func cache_game(seed_value := 1, extra := []) -> GameEngine:
 	return e
 
 
-## Plays seed's fixture game to its end with strategy, the cache on or off; returns [score, zones (ids in order), log].
+## The fixture games, played once per run in this order (335): seed 2 alone, seed 1's generic and wide games with the
+## cache off then on (generic's in check mode, which changes nothing but its counts), then seed 2 again after them.
+## Keys "seed/strategy/cache" ("2/generic/on/after" for the second seed 2); each holds [score, zones, log] and the
+## bot's counters after the game.
+static var _shared := {}
+## How many bot games shared_games has played this run.
+static var game_plays := 0
+
+
+## Plays seed's fixture game to its end with strategy, the cache on or off; returns [score, zones (ids in order), log],
+## then the bot's counters {lookups, computed, checks, mismatches}.
 func played_game(cache_on: bool, seed_value := 1, strategy := "generic") -> Array:
 	var e := cache_game(seed_value)
 	GenericBot.forecast_cache = cache_on
 	check(GenericBot.play(e, strategy), "the game ends")
 	GenericBot.forecast_cache = true
+	game_plays += 1
 	var zones := {}
 	for name in GameEngine.ZONES:
 		zones[name] = card_ids(e.zone(name))
-	return [e.score(), zones, e.log_lines.duplicate()]
+	var counts := {"lookups": GenericBot.forecast_lookups, "computed": GenericBot.forecasts_computed,
+		"checks": GenericBot.forecast_checks, "mismatches": GenericBot.forecast_mismatches}
+	return [e.score(), zones, e.log_lines.duplicate(), counts]
+
+
+## The shared fixture games (see _shared), played on the first call.
+func shared_games() -> Dictionary:
+	if _shared.is_empty():
+		_shared["2/generic/on"] = played_game(true, 2)
+		for strategy in ["generic", "wide"]:
+			_shared["1/%s/off" % strategy] = played_game(false, 1, strategy)
+			GenericBot.check_forecasts = strategy == "generic"
+			_shared["1/%s/on" % strategy] = played_game(true, 1, strategy)
+			GenericBot.check_forecasts = false
+		_shared["2/generic/on/after"] = played_game(true, 2)
+	return _shared
+
+
+## The shared game under key (see _shared).
+func shared(key: String) -> Array:
+	return shared_games()[key]
 
 
 # --- 335: each fixture game played once per run ---
 
 func test_the_shared_games_are_played_once_per_run() -> void:
-	var first: Variant = call("shared_games")
-	var second: Variant = call("shared_games")
-	check(first is Dictionary and first == second, "the same games both times")
-	eq(get("game_plays"), 6, "6 bot games: seed 1 generic and wide, cache off and on; seed 2 alone and after seed 1")
+	var first := shared_games()
+	var second := shared_games()
+	check(first == second, "the same games both times")
+	eq(game_plays, 6, "6 bot games: seed 1 generic and wide, cache off and on; seed 2 alone and after seed 1")
 
 # --- AC1: the same games ---
 
 func test_the_cache_plays_the_same_game_as_without_it() -> void:
 	for strategy in ["generic", "wide"]:
-		var off := played_game(false, 1, strategy)
-		var on := played_game(true, 1, strategy)
+		var off := shared("1/%s/off" % strategy)
+		var on := shared("1/%s/on" % strategy)
 		eq(on[0], off[0], "%s: score" % strategy)
 		eq(on[1], off[1], "%s: zones" % strategy)
 		eq(on[2], off[2], "%s: log" % strategy)
@@ -66,31 +97,21 @@ func test_the_cache_plays_the_same_game_as_without_it() -> void:
 # --- AC2: every cached forecast is right ---
 
 func test_every_cached_forecast_equals_a_fresh_one() -> void:
-	GenericBot.check_forecasts = true
-	played_game(true)
-	GenericBot.check_forecasts = false
-	check(GenericBot.forecast_checks > 0, "check mode compared cached forecasts: %d" % GenericBot.forecast_checks)
-	eq(GenericBot.forecast_mismatches, 0, "cached forecasts that differ from a fresh turn_forecast()")
+	var counts: Dictionary = shared("1/generic/on")[3]
+	check(counts.checks > 0, "check mode compared cached forecasts: %d" % counts.checks)
+	eq(counts.mismatches, 0, "cached forecasts that differ from a fresh turn_forecast()")
 
 
 # --- AC3: fewer forecasts computed than looked up ---
 
 func test_the_cache_computes_fewer_forecasts_than_it_looks_up() -> void:
-	played_game(true)
-	check(GenericBot.forecasts_computed > 0 and GenericBot.forecasts_computed < GenericBot.forecast_lookups,
-		"computed %d of %d looked up" % [GenericBot.forecasts_computed, GenericBot.forecast_lookups])
+	var counts: Dictionary = shared("1/generic/on")[3]
+	check(counts.computed > 0 and counts.computed < counts.lookups,
+		"computed %d of %d looked up" % [counts.computed, counts.lookups])
 
 
 func test_positions_that_differ_only_in_the_hand_share_one_forecast() -> void:
-	var e := cache_game()
-	var f := e.fork()
-	f.discard_card(first_in_hand(f))  # the hand isn't read by the forecast
-	var ctx := GenericBot.Context.new("generic")
-	ctx.valuing = true  # no card values: measuring one forecasts its own forks
-	GenericBot.reset_forecast_counts()
-	GenericBot.value(e, ctx)
-	GenericBot.value(f, ctx)
-	eq([GenericBot.forecast_lookups, GenericBot.forecasts_computed], [2, 1], "[looked up, computed]")
+	eq(lookups_for_a_discard(cache_game()), [2, 1], "[looked up, computed]: the hand isn't read by the forecast")
 
 
 ## [looked up, computed] for valuing e and then e with its first hand card discarded, without card values.
@@ -116,17 +137,16 @@ func test_an_upkeep_that_counts_the_discard_puts_it_in_the_key() -> void:
 
 
 func test_without_the_cache_every_lookup_is_computed() -> void:
-	played_game(false)
-	check(GenericBot.forecast_lookups > 0, "forecasts were looked up")
-	eq(GenericBot.forecasts_computed, GenericBot.forecast_lookups, "computed every one")
+	var counts: Dictionary = shared("1/generic/off")[3]
+	check(counts.lookups > 0, "forecasts were looked up")
+	eq(counts.computed, counts.lookups, "computed every one")
 
 
 # --- AC4: nothing carries over between games ---
 
 func test_a_game_plays_the_same_after_another_as_alone() -> void:
-	var alone := played_game(true, 2)
-	played_game(true, 1)
-	var after := played_game(true, 2)
+	var alone := shared("2/generic/on")
+	var after := shared("2/generic/on/after")
 	eq(after[0], alone[0], "score")
 	eq(after[1], alone[1], "zones")
 	eq(after[2], alone[2], "log")

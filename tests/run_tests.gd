@@ -57,7 +57,7 @@ func _initialize() -> void:
 	settings.store = SettingsStore.new(RUN_SETTINGS)
 	settings.changed.emit()  # the palette follows the fresh store: Night
 
-	for path in TestShards.pick(_find_test_files(BALANCE_ROOT if balance else TEST_ROOT), shard[0], shard[1]):
+	for path in TestShards.pick(TestShards.slow_first(_find_test_files(BALANCE_ROOT if balance else TEST_ROOT)), shard[0], shard[1]):
 		var script: GDScript = load(path)
 		if script == null or not script.can_instantiate():
 			failures.append("%s: failed to load (parse error? see output above)" % path)
