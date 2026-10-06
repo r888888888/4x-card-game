@@ -2,7 +2,7 @@
 id: 325
 title: Show which techs I can afford on the tech tree
 type: feature
-status: review
+status: done
 branch: feat/325-tech-tree-affordability
 ---
 
