@@ -2,7 +2,7 @@
 id: 329
 title: Modifier text prints a stray "s" for nouns with no plural
 type: bug
-status: red-review
+status: review
 branch: fix/329-modifier-plural-text
 ---
 
@@ -16,13 +16,13 @@ branch: fix/329-modifier-plural-text
   precision and prints the "s". Amount ±1 hides it, since the plural argument is then "".
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture building with modifiers `{"unrest_limit": 2}`, its `rules_text` is "Unrest limit +2";
+- [x] AC1: Given a fixture building with modifiers `{"unrest_limit": 2}`, its `rules_text` is "Unrest limit +2";
   with `{"unrest_limit": -2}`, "Unrest limit −2".
-- [ ] AC2: Given a fixture building with modifiers `{"housing": 2}`, its `rules_text` is
+- [x] AC2: Given a fixture building with modifiers `{"housing": 2}`, its `rules_text` is
   "Every territory houses 2 more pop"; with `{"housing": -2}`, "Every territory houses 2 less pop".
-- [ ] AC3: Given fixture buildings with `{"insight_per_gain": 2}` and `{"administers": 2}`, their `rules_text` is
+- [x] AC3: Given fixture buildings with `{"insight_per_gain": 2}` and `{"administers": 2}`, their `rules_text` is
   "Each insight gain +2" and "Administration cap +2".
-- [ ] AC4: Keys whose noun has a plural still take it: `{"actions": 2}` reads "+2 actions each turn",
+- [x] AC4: Keys whose noun has a plural still take it: `{"actions": 2}` reads "+2 actions each turn",
   `{"renewal": 2}` "Renewal trashes 2 more cards", and `{"actions": 1}` "+1 action each turn".
 
 ## Test plan
@@ -34,7 +34,10 @@ branch: fix/329-modifier-plural-text
 | AC4 | `test_card_text::test_bug_329_countable_modifiers_keep_their_plural` (passes already: a regression guard) |
 
 ## Root cause
-<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+`MODIFIER_TEXT` gave every key the same two format arguments (amount, plural "s") and wrote "%.0s" where the noun
+has no plural, expecting C-style precision to print nothing; Godot's `String %` ignores the precision on `%s`, so
+the "s" was printed. Tests only covered ±1, where the plural argument is "". Now only the keys in
+`CardDef.PLURAL_MODIFIERS` (actions, hand_size, renewal) get the plural argument; the rest format the amount alone.
 
 ## Manual check
 - Monument's card face and tooltip read "Unrest limit +2" (and "Unrest limit +2 while active" never applies: it's a
@@ -42,3 +45,4 @@ branch: fix/329-modifier-plural-text
 
 ## Log
 - 2026-10-06: spec'd from a user report.
+- 2026-10-06: fixed; suite 2146 → 2150 tests.
