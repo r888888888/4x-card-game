@@ -18,7 +18,7 @@ func grassland_engine(hills: bool) -> GameEngine:
 
 
 ## A game with an explore choice open (Hills and Grassland revealed).
-func choice_engine() -> GameEngine:
+func explore_engine() -> GameEngine:
 	var e: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
 	check(e.pending().get("kind") == GameEngine.PENDING_EXPLORE, "a choice is open")
@@ -65,7 +65,7 @@ func test_end_turn_error_is_empty_normally() -> void:
 
 func test_end_turn_error_names_what_blocks_it_and_end_turn_does_nothing() -> void:
 	var cases := [
-		["explore choice", choice_engine(), "Choose a territory first."],
+		["explore choice", explore_engine(), "Choose a territory first."],
 		["discard owed", discard_engine(), "Discard down to 7 cards first."],
 		["game over", over_engine(), "The game is over."],
 	]
@@ -87,7 +87,7 @@ func test_supply_error_allows_browsing_normally_and_while_discarding() -> void:
 
 
 func test_supply_error_blocks_during_choices_and_after_the_game() -> void:
-	eq(choice_engine().supply_error(), "Choose a territory first.", "explore choice")
+	eq(explore_engine().supply_error(), "Choose a territory first.", "explore choice")
 	eq(over_engine().supply_error(), "The game is over.", "game over")
 
 

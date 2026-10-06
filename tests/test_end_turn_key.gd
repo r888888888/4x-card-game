@@ -11,7 +11,6 @@ extends "res://tests/lib/test_case.gd"
 
 const TOLERANCE := 1.0
 
-var _old_window_size := Vector2i.ZERO
 
 
 ## Runs body(main) on main at 1920×1080 on engine (the real data's when null), started on seed 1; then closes main and

@@ -115,7 +115,7 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_rolls_its_change_with_
 	var counter: Control = main.counter(GameEngine.INSIGHT)
 	check(counter != null and counter.is_visible_in_tree(), "an Insight counter in the top bar")
 	eq(main.counter_text(GameEngine.INSIGHT), "0", "insight")
-	eq(forecast(main, GameEngine.INSIGHT), "+1", "its forecast apart (201)")
+	eq(main.forecast_text(GameEngine.INSIGHT), "+1", "its forecast apart (201)")
 	Game.engine.resources["insight"] = 3
 	Game.engine.changed.emit()
 	await wait_frames()
@@ -123,7 +123,3 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_rolls_its_change_with_
 	close_main(main)
 	Game.engine = real
 
-
-## main.forecast_text(key) (201).
-func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key)

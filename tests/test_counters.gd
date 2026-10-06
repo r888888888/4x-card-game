@@ -58,7 +58,7 @@ func test_the_food_counter_text_is_the_reading_the_bar_shows() -> void:
 		await wait_frames()
 		eq(e.upkeep_forecast().get(GameEngine.FOOD), 1, "precondition: +1 food at the next upkeep")
 		eq(main.counter_text(GameEngine.FOOD), "3", "food: its figure (180: no word; 201: the forecast apart)")
-		eq(forecast(main, GameEngine.FOOD), "+1", "and its forecast"))
+		eq(main.forecast_text(GameEngine.FOOD), "+1", "and its forecast"))
 
 
 func test_each_counter_text_is_that_counters_text() -> void:
@@ -110,7 +110,7 @@ func test_the_supply_screen_names_its_wealth_and_discard_counters() -> void:
 func forecast_label(main: Node, key: String) -> Label:
 	var counter: Control = main.counter(key)
 	for l in counter.find_children("*", "Label", true, false):
-		if (l as Label).is_visible_in_tree() and (l as Label).text == forecast(main, key) and l.text != "":
+		if (l as Label).is_visible_in_tree() and (l as Label).text == main.forecast_text(key) and l.text != "":
 			return l
 	return null
 
@@ -133,7 +133,7 @@ func test_each_resource_shows_its_forecast_as_a_separate_quieter_figure() -> voi
 		await wait_frames()
 		var ahead: int = e.upkeep_forecast()[GameEngine.FOOD]
 		eq(main.counter_text(GameEngine.FOOD), "6", "the figure alone")
-		eq(forecast(main, GameEngine.FOOD), "%+d" % ahead, "the forecast, signed, no brackets")
+		eq(main.forecast_text(GameEngine.FOOD), "%+d" % ahead, "the forecast, signed, no brackets")
 		var label := forecast_label(main, GameEngine.FOOD)
 		check(label != null, "a label of its own")
 		if label != null:
@@ -146,13 +146,13 @@ func test_each_resource_shows_its_forecast_as_a_separate_quieter_figure() -> voi
 		var ahead_all: Dictionary = e.upkeep_forecast()
 		for key in [GameEngine.WEALTH, GameEngine.INSIGHT]:
 			var want: String = ("%+d" % ahead_all[key]) if ahead_all.has(key) else ""  # no entry: no forecast label
-			eq(forecast(main, key), want, "%s's forecast" % key))
+			eq(main.forecast_text(key), want, "%s's forecast" % key))
 
 
 func test_score_and_pop_show_no_forecast() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		for key in [TopBar.SCORE, TopBar.POP]:
-			eq(forecast(main, key), "", "%s: none" % key)
+			eq(main.forecast_text(key), "", "%s: none" % key)
 			check(forecast_label(main, key) == null, "%s: no forecast label" % key))
 
 
@@ -188,11 +188,6 @@ func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> voi
 	var texts: Array = UIKit.buttons_in(strip).filter(func(b): return b.is_visible_in_tree()).map(func(b): return b.text)
 	eq(texts, ["Buy Cards", "Knowledge", "Log", "Menu"], "the strip's buttons (the civilization and End turn left: 202, 203)")
 	close_main(main)
-
-
-## main.forecast_text(key) (201).
-func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key)
 
 
 # --- 242 AC1: the glyphs match the figures ---
