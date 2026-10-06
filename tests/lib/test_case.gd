@@ -732,8 +732,23 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 			state.turn = e.turn
 			after_turn.call(main)
 	e.changed.connect(on_changed)
-	ScriptedBot.play(e)
+	play_first_legal(e)
 	e.changed.disconnect(on_changed)
+
+
+## Plays e to its end by always doing the first of its legal_actions (312), but revolts, abandons, disbands and
+## discards unless a discard is owed (end_turn is listed last, so each turn plays, builds and buys first): a fast game
+## for UI tests (314: the sim's GenericBot takes ~30× longer), not a good one.
+func play_first_legal(e: GameEngine) -> void:
+	var skip := ["revolt", "abandon", "disband", "discard_card"]
+	for step in 20000:
+		if e.is_over:
+			return
+		var owed_discard: bool = e.pending().get("kind", "") == GameEngine.PENDING_DISCARD
+		var actions := e.legal_actions().filter(func(a): return not skip.has(a[0]) or (owed_discard and a[0] == "discard_card"))
+		if actions.is_empty():
+			return
+		e.callv(actions[0][0], actions[0].slice(1))
 
 
 ## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116), and each notice's

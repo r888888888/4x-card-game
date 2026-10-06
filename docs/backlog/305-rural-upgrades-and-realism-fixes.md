@@ -48,7 +48,7 @@ Content tests (`tests/test_content.gd`) assert invariants of the real data, nami
     Mud-Brick Houses.
 - Techs: each tech whose `unlock` now names an upgrade reads "X can now be built on a Y." (300). Eurekas that count
   Harbors (Navigation, Astronomy) or Ploughed Fields still work: an upgrade is a tableau card with its own id.
-- Check `sim/bot.gd`'s growth preference picks up food upgrades by effect (303).
+- The sim bot (`GenericBot`, 314) builds upgrades through `legal_actions` and values them by what they make; no bot change (303 is wontfix).
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->

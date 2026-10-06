@@ -1,6 +1,6 @@
 class_name SimStats
 extends RefCounted
-## Plays one ScriptedBot game per seed and summarizes the results (backlog 042); per strategy and civilization (134). Used by sim/run.gd
+## Plays one GenericBot game per seed and summarizes the results (backlog 042); per strategy and civilization (134). Used by sim/run.gd
 ## (scripts/sim.sh) and the balance skill. run_files can spread the games over child processes (152): each claims the next
 ## unplayed game from one queue until none is left (play_claimed, 291) and writes its games to a file, which the parent
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
@@ -13,7 +13,7 @@ const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
 const JOBS_FILE := "jobs.json"
 
 
-## Plays one game per seed with strategy (a ScriptedBot.STRATEGIES name, 134) as civ ("" for the default) and returns
+## Plays one game per seed with strategy (a GenericBot.STRATEGIES name, 134, 314) as civ ("" for the default) and returns
 ## {metric: {mean: float, min: int, max: int}} for each of METRICS. explored is how many turns the territory deck lasted:
 ## the turn it ran out, or the last turn played if it never did. For each era with techs in the research deck (143),
 ## era_<n>_open is the turn it was added (1 for era 1) and era_<n>_done the turn its last tech was researched; either
@@ -21,8 +21,8 @@ const JOBS_FILE := "jobs.json"
 ## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
 ## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
 ## trashed by the end), and <id>_turns per government (see _governments): turns that started with it ruling.
-## lookahead_turns (294) is the turns the bot's lookahead forks played (ScriptedBot.lookahead_turns).
-static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := "baseline", civ := "") -> Dictionary:
+## lookahead_turns (294) is the turns the bot's rollouts played (GenericBot.lookahead_turns).
+static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := GenericBot.STRATEGY, civ := "") -> Dictionary:
 	return _summaries(_values(cards, config, seeds, strategy, civ))
 
 
@@ -95,18 +95,15 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 	engine.order_restored.connect(on_restored)
 	on_changed.call()  # an empty territory deck from the start, era 1 open
 	on_state.call()  # turn 1 as it started
-	ScriptedBot.lookahead_turns = 0
-	if job[1] == GenericBot.STRATEGY:  # 313: not one of ScriptedBot's, so not in "all"
-		GenericBot.play(engine)
-	else:
-		ScriptedBot.play(engine, job[1])
+	GenericBot.lookahead_turns = 0
+	GenericBot.play(engine, job[1])
 	engine.changed.disconnect(on_changed)  # the callables hold engine: break the cycle so it is freed
 	engine.changed.disconnect(on_state)
 	engine.revolted.disconnect(on_revolted)
 	engine.order_restored.disconnect(on_restored)
 	var game := game_metrics(engine, config)
 	game.merge(tally)
-	game.lookahead_turns = ScriptedBot.lookahead_turns
+	game.lookahead_turns = GenericBot.lookahead_turns
 	var out := {}
 	for m in names:
 		out[m] = game[m] if game.has(m) else seen.get(m, engine.turn)
@@ -178,7 +175,7 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 ## each game a run with the same code (source_hash), data bytes, seed, strategy, civ and turn limit played before, and
 ## writes each game it plays; "" or absent (or cache false) for no cache. played and cached count the games each way;
 ## the header names the cached ones.
-static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := "baseline",
+static func run_files(cards_path: String, config_path: String, seed_count: int, strategy := GenericBot.STRATEGY,
 		options := {}) -> Dictionary:
 	var data := _load(cards_path, config_path, strategy, options)
 	if not data.errors.is_empty():
@@ -203,9 +200,9 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 	if strategy != "all":
 		lines.append_array(_metric_lines(_summaries(_collect(games, names))))
 		return out
-	var per_civ: int = jobs.size() / ScriptedBot.STRATEGIES.size() / seed_count
+	var per_civ: int = jobs.size() / GenericBot.STRATEGIES.size() / seed_count
 	var next := 0
-	for s in ScriptedBot.STRATEGIES:
+	for s in GenericBot.STRATEGIES:
 		lines.append("== %s" % s)
 		var all := {}
 		var scores: PackedStringArray = []
@@ -241,8 +238,8 @@ static func cell_line(cell: Dictionary) -> String:
 ## strategy.
 static func _load(cards_path: String, config_path: String, strategy: String, options: Dictionary) -> Dictionary:
 	var data := DataLoader.load_all(cards_path, config_path)
-	if data.errors.is_empty() and strategy not in ["all", GenericBot.STRATEGY] and not ScriptedBot.STRATEGIES.has(strategy):
-		data.errors.append("unknown strategy '%s' (one of %s, %s, or all)" % [strategy, ScriptedBot.STRATEGIES, GenericBot.STRATEGY])
+	if data.errors.is_empty() and strategy != "all" and not GenericBot.STRATEGIES.has(strategy):
+		data.errors.append("unknown strategy '%s' (one of %s, or all)" % [strategy, GenericBot.STRATEGIES])
 	if data.errors.is_empty() and options.get("turns", 0) > 0:
 		data.config.turn_limit = options.turns
 	return data
@@ -252,7 +249,7 @@ static func _load(cards_path: String, config_path: String, strategy: String, opt
 ## Also the cells a comparison plays (293), with seed_count 1.
 ## A single strategy plays only_civ ("" for the default); "all" plays each listed civilization, or only_civ.
 static func job_list(config: Dictionary, seed_count: int, strategy: String, only_civ: String) -> Array:
-	var strategies: Array = ScriptedBot.STRATEGIES if strategy == "all" else [strategy]
+	var strategies: Array = GenericBot.STRATEGIES if strategy == "all" else [strategy]
 	var civs: Array = [only_civ] if only_civ != "" or strategy != "all" else config.get("civilizations", [])
 	if civs.is_empty():
 		civs = [""]

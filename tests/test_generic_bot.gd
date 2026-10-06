@@ -174,7 +174,7 @@ func test_sim_stats_plays_every_strategy_for_all_and_refuses_others() -> void:
 	var jobs: Array = SimStats.job_list({"civilizations": []}, 1, "all", "")
 	eq(jobs.map(func(j): return j[1]), ["generic", "wide", "tall"], "all: one job per strategy")
 	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 1, "baseline", {})
-	check(out.get("code", 0) == 1 and str(out.get("lines", [])).contains("unknown strategy 'baseline'"),
+	check(out.get("code", 0) == 1 and out.get("lines", [""])[0].contains("unknown strategy 'baseline'"),
 		"baseline is gone: %s" % [out.get("lines")])
 
 

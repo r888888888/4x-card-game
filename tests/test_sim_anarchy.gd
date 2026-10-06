@@ -2,13 +2,13 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Sim metrics for Anarchy, governments and famine (backlog 158): per game, anarchies, revolts, anarchy_turns, restored,
 ## gov_changes, famine_turns, trashed, and <id>_turns per government a game can have. Counted from the engine's
 ## changed signal and its revolted and order_restored signals. Fixture games from tests/lib/anarchy_case.gd plus
-## Charter (an order card that creates Glory into the government deck) and Glory (government, ⟳ +3 VP, limit 5), which
-## the lookahead bot (159) prefers to Chiefs. The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
+## Charter (an order card that creates Glory into the government deck and gains 1 food, so the generic bot plays it,
+## 314) and Glory (government, ⟳ +3 VP, limit 5), which the bot's rollouts prefer to Chiefs. The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
 
 const GLORY := {"id": "glory", "name": "Glory", "type": "government", "unrest_limit": 5,
 	"effects": [{"op": "score", "amount": 3, "trigger": "upkeep"}]}
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action", "tags": ["order"],
-	"effects": [{"op": "create", "card": "glory", "zone": "discard"}]}
+	"effects": [{"op": "create", "card": "glory", "zone": "discard"}, {"op": "gain", "resource": "food", "amount": 1}]}
 const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
 
 
@@ -59,7 +59,7 @@ func test_the_new_metrics_and_one_per_government_in_order() -> void:
 # --- AC3: a known script ---
 
 func test_a_forced_anarchy_of_2_turns_then_glory() -> void:
-	var m := sim_game({"max_counters": 2}, {"unrest": 5})
+	var m := sim_game({"max_counters": 2}, {"unrest": 5, "wealth": 0})  # no wealth: order can't be bought
 	eq([m.get("anarchies"), m.get("anarchy_turns"), m.get("revolts"), m.get("restored")], [1, 2, 0, 0],
 		"turn 1 starts at the limit: Anarchy for turns 1 and 2, burning out")
 	eq([m.get("gov_changes"), m.get("glory_turns"), m.get("chiefs_turns")], [1, 3, 0],
@@ -67,8 +67,8 @@ func test_a_forced_anarchy_of_2_turns_then_glory() -> void:
 
 
 func test_a_revolution_counts_as_a_revolt_and_an_anarchy() -> void:
-	var revolt := ScriptedBot.REVOLT_EVERY
-	var last := revolt + ScriptedBot.LOOKAHEAD_TURNS
+	var revolt := GenericBot.REVOLT_EVERY
+	var last := revolt + GenericBot.ROLLOUT_TURNS
 	var m := sim_game({}, {"unrest": 1}, {"turn_limit": last})
 	eq([m.get("revolts"), m.get("anarchies"), m.get("anarchy_turns")], [1, 1, 1],
 		"Charter makes Glory on turn 1, the bot revolts at the end of turn %d; a 1-turn Anarchy on turn %d" % [revolt,
@@ -80,14 +80,14 @@ func test_a_revolution_counts_as_a_revolt_and_an_anarchy() -> void:
 # --- 294: lookahead_turns ---
 
 func test_lookahead_turns_counts_each_game_on_its_own() -> void:
-	var stats := sim_stats({}, {"unrest": 1}, {"turn_limit": ScriptedBot.REVOLT_EVERY + ScriptedBot.LOOKAHEAD_TURNS}, [1, 1])
+	var stats := sim_stats({}, {"unrest": 1}, {"turn_limit": GenericBot.REVOLT_EVERY + GenericBot.ROLLOUT_TURNS}, [1, 1])
 	var turns: Dictionary = stats.get("lookahead_turns", {})
 	check(turns.get("min", 0) > 0, "the bot weighed a revolution: %s" % [turns])
 	eq(turns.get("max"), turns.get("min"), "the same game twice counts the same: the count restarts each game")
 
 
 func test_buying_order_counts_as_restored() -> void:
-	var m := sim_game({}, {"unrest": 5, "wealth": 30})
+	var m := sim_game({}, {"unrest": 5, "wealth": 30}, {"population": POP.merged({"vp_per_pop": 1}, true)})  # pop scores: Anarchy's pop loss costs
 	eq([m.get("restored"), m.get("anarchy_turns")], [1, 2], "the bot buys order on Anarchy's second turn")
 
 

@@ -17,7 +17,7 @@ func clean() -> void:
 
 
 ## run_files' result for seed_count seeds of strategy, sumer for 4 turns unless options say otherwise, with the cache.
-func run_with(seed_count: int, strategy := "baseline", options := {}, config := CONFIG) -> Dictionary:
+func run_with(seed_count: int, strategy := "generic", options := {}, config := CONFIG) -> Dictionary:
 	var o := {"civ": "sumer", "turns": 4, "seed": -1, "procs": 1, "cache_dir": cache_dir()}
 	o.merge(options, true)
 	return SimStats.run_files(CARDS, config, seed_count, strategy, o)
@@ -70,9 +70,9 @@ func test_a_second_run_reads_every_game_from_the_cache() -> void:
 func test_a_different_turn_limit_civ_strategy_or_seed_misses() -> void:
 	clean()
 	run_with(2)
-	eq(run_with(2, "baseline", {"turns": 5}).get("played"), 2, "--turns 5")
-	eq(run_with(2, "baseline", {"civ": "greece"}).get("played"), 2, "--civ greece")
-	eq(run_with(2, "wealth").get("played"), 2, "wealth")
+	eq(run_with(2, "generic", {"turns": 5}).get("played"), 2, "--turns 5")
+	eq(run_with(2, "generic", {"civ": "greece"}).get("played"), 2, "--civ greece")
+	eq(run_with(2, "wide").get("played"), 2, "wide")
 	var three := run_with(3)
 	eq([three.get("played"), three.get("cached")], [1, 2], "seeds 1-3: seed 3 played")
 	clean()
@@ -84,9 +84,9 @@ func test_changed_data_misses_and_a_byte_identical_copy_hits() -> void:
 	clean()
 	run_with(2)
 	var changed := config_copy("changed.json", "\"turn_limit\": 100", "\"turn_limit\": 99")
-	eq(run_with(2, "baseline", {}, changed).get("played"), 2, "a config with one value changed")
+	eq(run_with(2, "generic", {}, changed).get("played"), 2, "a config with one value changed")
 	var same := config_copy("same.json")
-	var out := run_with(2, "baseline", {}, same)
+	var out := run_with(2, "generic", {}, same)
 	eq([out.get("played"), out.get("cached")], [0, 2], "a byte-identical copy at another path")
 	clean()
 
@@ -95,13 +95,13 @@ func test_changed_data_misses_and_a_byte_identical_copy_hits() -> void:
 
 func test_a_parallel_run_plays_only_the_uncached_games() -> void:
 	clean()
-	var plain := run_with(4, "baseline", {"cache_dir": ""})
+	var plain := run_with(4, "generic", {"cache_dir": ""})
 	run_with(2)
-	var mixed := run_with(4, "baseline", {"procs": 2})
+	var mixed := run_with(4, "generic", {"procs": 2})
 	eq([mixed.get("played"), mixed.get("cached")], [2, 2], "seeds 3-4 played, 1-2 cached")
 	eq(mixed.get("games_per_proc", []).reduce(func(a, b): return a + b, 0), 2, "the workers played 2 games")
 	eq(mixed.get("lines", []).slice(1), plain.get("lines", []).slice(1), "the report equals an uncached run")
-	var all := run_with(4, "baseline", {"procs": 2})
+	var all := run_with(4, "generic", {"procs": 2})
 	eq([all.get("played"), all.get("cached")], [0, 4], "all 4 cached")
 	eq(all.get("games_per_proc"), [], "no worker started")
 	clean()
@@ -128,9 +128,9 @@ func test_a_bad_cache_entry_is_played_again_and_overwritten() -> void:
 func test_with_the_cache_off_every_game_is_played_and_nothing_written() -> void:
 	clean()
 	run_with(2)
-	var out := run_with(2, "baseline", {"cache": false})
+	var out := run_with(2, "generic", {"cache": false})
 	eq([out.get("played"), out.get("cached")], [2, 0], "played, cached")
-	var fresh := run_with(2, "baseline", {"cache": false, "cache_dir": cache_dir("fresh")})
+	var fresh := run_with(2, "generic", {"cache": false, "cache_dir": cache_dir("fresh")})
 	eq(fresh.get("played"), 2, "played")
 	eq(cache_files(cache_dir("fresh")), [], "nothing written")
 	clean()

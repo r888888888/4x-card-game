@@ -212,7 +212,6 @@ func test_option_text_gives_one_options_text() -> void:
 	eq(e.option_text(uid, 1), "+1 unrest", "the free option")
 
 
-
 ## Backlog 270: an option that does nothing reads as a payment alone, or as "nothing".
 func test_an_option_without_effects_reads_as_its_cost_or_nothing() -> void:
 	var r := choice_load(event_with([{"cost": {"wealth": 4}, "effects": []}, {"effects": []}]))
@@ -235,27 +234,15 @@ func bot_drawn(id: String) -> GameEngine:
 	return e
 
 
-func test_the_bot_picks_the_option_whose_lookahead_scores_most() -> void:
-	eq(ScriptedBot.pick_option(bot_drawn("boons"), "baseline"), 1, "Boons: +2 VP beats +1 VP")
-
-
-func test_lookahead_ties_go_to_the_lowest_index() -> void:
-	eq(ScriptedBot.pick_option(bot_drawn("twins"), "baseline"), 0, "Twins: a tie")
-
-
-func test_the_bot_never_picks_a_refused_option() -> void:
-	eq(ScriptedBot.pick_option(bot_drawn("dear"), "baseline"), 1, "Dear: 50 wealth can't be paid")
-
-
 func test_the_bot_answers_the_choice_in_its_turn() -> void:
 	var e := bot_drawn("boons")
 	var score := e.score()
-	ScriptedBot.take_turn(e, "baseline")
+	GenericBot.take_turn(e)
 	eq(e.pending().get("kind", ""), "", "answered")
 	check(e.score() - score >= 2, "with Boons' +2 VP (score %d → %d)" % [score, e.score()])
 
 
 func test_a_bot_game_of_choice_events_plays_to_its_last_turn() -> void:
 	var e := choice_engine([], {"envoys": 2, "boons": 2, "twins": 2, "dear": 2}, {}, {"turn_limit": 8})
-	check(ScriptedBot.play(e), "the game ends")
+	check(GenericBot.play(e), "the game ends")
 	eq(e.turn, 8, "on its last turn")

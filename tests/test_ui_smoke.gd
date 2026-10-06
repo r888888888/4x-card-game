@@ -1,5 +1,5 @@
 extends "res://tests/lib/test_case.gd"
-## Headless UI smoke test (backlog 045): the real main scene follows a ScriptedBot game on the real data (shortened to
+## Headless UI smoke test (backlog 045): the real main scene follows a game played by `play_first_legal` (314) on the real data (shortened to
 ## SEED_1_TURNS turns by play_seed_1, 066) without script errors (the runner fails a test on any logged error). No
 ## frames run, so animations never finish; the checks are on structure (views, overlay text), not on rendering.
 

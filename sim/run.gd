@@ -1,6 +1,6 @@
 extends SceneTree
 ## Balance simulator entry point (backlog 042). Use scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (135): plays seeds 1..N (default 20)
-## with ScriptedBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
+## with GenericBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
 ## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's

@@ -100,7 +100,7 @@ in a dedicated balance item, or when the user asks.
 - The runner runs every method named `test_*` as a test, so a helper never starts with `test_` (`fixture_card`,
   not `test_card`): one that takes arguments hangs the whole suite.
 - Rules tests use `TEST_CARDS` + `make_engine`, never `data/cards.json` (balance edits must not break them).
-- A test that plays ScriptedBot games on the real data goes in `tests/balance/`, never the main suite; bot rules are
+- A test that plays sim bot (GenericBot) games on the real data goes in `tests/balance/`, never the main suite; bot rules are
   tested on fixture games of a few turns.
 - Content tests (`tests/test_content.gd`) assert invariants of the real data, never exact numbers from `data/`.
   A test in `test_content.gd` that names a card id is a smell: assert the invariant and put per-card facts under
