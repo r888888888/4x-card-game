@@ -156,7 +156,7 @@ func tech_eras() -> Array[Dictionary]:
 
 ## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (insight
 ## now; printed for a future tech), gives (card ids it creates or unlocks), uid (-1 for a future tech), eureka (whether
-## its eureka is met, 141)}].
+## its eureka is met, 141), affordable (available and the insight covers its cost now, pending choices aside, 325)}].
 func tech_tree() -> Array[Dictionary]:
 	return Research.tree(self)
 

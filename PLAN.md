@@ -444,12 +444,14 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Tech tree (059): `tech_tree()` lists every tech in `research_deck` by era, then config order, as
   `{id, era, prereq, state, cost, gives, uid}`; `state` is `GameEngine.TECH_RESEARCHED` / `TECH_AVAILABLE` (in the
   research deck, prereq met) / `TECH_LOCKED` (prereq not researched) / `TECH_FUTURE`, `gives` the cards it creates or
-  unlocks, `uid` −1 for a future tech. Optional config
+  unlocks, `uid` −1 for a future tech, `affordable` whether it is available and the insight covers its cost now (325).
+  Optional config
   `era_names` (`{"1": "Stone Age"}`) feeds `era_name(n)`, default "Era n".
 - UI: a Knowledge button (T) in the top bar (the current era's name in its tooltip; hidden when the config has no
   research deck) opens the Knowledge screen (208), drawn as a drafting sheet (222): "Insight N · play a Research card
   for more", then one band per era with its title block at the left and its techs as index-card tiles of one size.
-  A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked) and "✔ Eureka"
+  A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked; an available tile the insight
+  doesn't cover has muted text, 325) and "✔ Eureka"
   when met, and is filled by state (teal researched, well locked); its tooltip has the state in words, why it can't
   be learned (`buy_tech_error`), what it gives and its eureka. A click, Enter, a right click or I opens the
   details, whose Learn button researches a tech not yet learned (disabled with `buy_tech_error`, 229). An era not reached lies under a vellum printed "<ERA> · OPENS AT 8

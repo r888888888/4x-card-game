@@ -4,8 +4,8 @@ extends VBoxContainer
 ## area's navigator (the Realm at its root, 101), its header a teal bar ("◂ Realm", "Knowledge", 241) with the turn and era at its right.
 ## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
 ## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
-## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
-## printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
+## for its state (✓, its cost now, "needs <prerequisite>") and filled by state, an available one the insight doesn't
+## cover with muted text (325); an era not reached lies under a vellum printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
 ## button learns it (229). It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
 ## back. It is an opaque sheet (224), so nothing under it shows through as it slides.
 
@@ -286,6 +286,8 @@ func _tile(e: GameEngine, tech: Dictionary) -> Button:
 	b.custom_minimum_size = TILE_SIZE
 	b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	b.theme_type_variation = TILE_LOOK.get(state, &"TechTile")
+	if state == GameEngine.TECH_AVAILABLE and not tech.affordable:  # the insight doesn't cover it yet (325)
+		b.theme_type_variation = &"TechTileShort"
 	b.tooltip_text = _tooltip(e, tech)
 	var text := StringName(String(b.theme_type_variation).replace("TechTile", "TechTileText"))
 	var box := VBoxContainer.new()

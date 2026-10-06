@@ -755,3 +755,26 @@ func test_the_hover_keeps_the_tiles_border_and_margins() -> void:
 			var normal := tile(main, tech_name).get_theme_stylebox("normal") as StyleBoxFlat
 			eq(hover.border_width_left, normal.border_width_left, "%s: the same border width" % tech_name)
 			eq(hover.get_minimum_size(), normal.get_minimum_size(), "%s: the same margins" % tech_name))
+
+
+# --- Backlog 325: what the insight covers ---
+
+func test_an_available_tile_the_insight_doesnt_cover_looks_short_until_it_does() -> void:
+	await with_tree(func(main: Node):
+		var e := Game.engine
+		e.resources["insight"] = 4
+		e.changed.emit()
+		await wait_screen_transition()
+		eq(tile(main, "Writing").theme_type_variation, &"TechTile", "Writing (3) is covered")
+		var short := tile(main, "Bronze Working")
+		eq(short.theme_type_variation, &"TechTileShort", "Bronze Working (5) is short")
+		var box := short.get_theme_stylebox("normal") as StyleBoxFlat
+		eq(box.bg_color if box != null else Color.TRANSPARENT, Palette.TILE, "short: still the sheet, not the locked well")
+		for label in short.find_children("*", "Label", true, false):
+			eq(label.get_theme_color("font_color"), Palette.TEXT_DISABLED, "short: muted text")
+		var error := e.buy_tech_error(uid_of(e.zone("research_deck"), "bronze"))
+		check(error != "" and short.tooltip_text.contains(error), "the tooltip says what's short: %s" % short.tooltip_text)
+		e.resources["insight"] = 5
+		e.changed.emit()
+		await wait_screen_transition()
+		eq(tile(main, "Bronze Working").theme_type_variation, &"TechTile", "5 insight covers it"))
