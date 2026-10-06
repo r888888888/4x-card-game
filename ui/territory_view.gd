@@ -309,6 +309,12 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	_equalize_heights()
 
 
+## Keeps the cards one height while open: a card made by the last refresh is measured again once it has its width (349).
+func _process(_delta: float) -> void:
+	if is_open():
+		_equalize_heights()
+
+
 ## Gives the view's cards and free-slot outlines the height of the tallest card, so a building's ribbons or a long
 ## text don't make the rows ragged (345), like the supply row.
 func _equalize_heights() -> void:
