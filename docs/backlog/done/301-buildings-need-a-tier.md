@@ -2,7 +2,7 @@
 id: 301
 title: A building or upgrade may need a settlement tier, and falls back below it
 type: feature
-status: review
+status: done
 branch: feat/301-buildings-need-a-tier
 ---
 
