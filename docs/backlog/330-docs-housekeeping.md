@@ -2,7 +2,7 @@
 id: 330
 title: Bring PLAN.md and the docs back in line with the code, and clear tracked junk
 type: chore
-status: in-progress
+status: red-review
 branch: feat/330-docs-housekeeping
 ---
 
@@ -49,6 +49,11 @@ named paths can't drift again.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_docs::test_paths_in_finds_backticked_and_linked_repo_paths`, `test_placeholders_globs_commands_and_web_links_are_skipped`, `test_link_paths_resolve_from_the_docs_folder`, `test_missing_paths_names_the_doc_and_the_path`, `test_the_checked_docs_are_plan_claude_readme_the_docs_and_the_skills`, `test_every_path_the_docs_name_exists` |
+| AC2 | `test_docs::test_every_path_the_docs_name_exists` (the layout's named files), plus Manual check |
+| AC3 | `test_docs::test_a_uid_with_no_script_beside_it_is_an_orphan`, `test_no_uid_file_in_the_project_has_lost_its_script` |
+| AC4 | The deletion itself; the suite's count drops by 1 (checked at verify) |
+| AC5 | The full suite, unedited |
 
 ## Manual check
 - [ ] PLAN.md's deck-model, layout, forecast and milestone text read true against the code.

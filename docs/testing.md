@@ -50,6 +50,7 @@ Put tests in `tests/test_<area>.gd`. Current areas:
 | File | Covers |
 |---|---|
 | `tests/test_content.gd` | The real data: invariants over the whole data set, never a single card (every keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs and supply consistent). No many-seed bot sweeps: real games over seeds are sim runs (`scripts/sim.sh`), not tests (145) |
+| `tests/test_docs.gd` | The docs stay true to the tree (330): every repo path PLAN.md, CLAUDE.md, README.md, `docs/*.md` and the skills name exists (in backticks or a link; placeholders, globs and web links skipped), and no `.gd.uid` is left without its script; the checks are in `tests/lib/doc_checks.gd` |
 | `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole game played by `play_first_legal` (314): no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
 | `tests/test_event_modal.gd` | `event_drawn`, `outcome_summary`, and the drawn-event modal in the real `main.tscn` (079): what it shows, closing it, hand-limit and last-turn order |
 | `tests/test_event_panel.gd` | The active events in the real `main.tscn` (in the Realm's row since 137): event views match `active_events`, turns left, none without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
