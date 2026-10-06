@@ -150,11 +150,8 @@
     },
     {
       "id": "harbor", "name": "Harbor", "type": "building",
-      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["port"], "requires": ["coastal"],
-      "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
-        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" }
-      ]
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "upgrade_of": "fishing_huts", "requires": ["coastal"],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "hunters_camp", "name": "Hunters' Camp", "type": "building",
@@ -165,8 +162,13 @@
       ]
     },
     {
+      "id": "timber_camp", "name": "Timber Camp", "type": "building",
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "upgrade_of": "hunters_camp",
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
       "id": "irrigation_canals", "name": "Irrigation Canals", "type": "building",
-      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"], "housing": 1,
+      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm", "housing": 1,
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "desert" }
@@ -174,8 +176,8 @@
     },
     {
       "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
-      "cost": { "food": 1, "wealth": 4 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
-      "effects": [ { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" } ]
+      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm",
+      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
@@ -226,6 +228,14 @@
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "tin" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "copper" }
+      ]
+    },
+    {
+      "id": "shaft_mine", "name": "Shaft Mine", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mine",
+      "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
       ]
     },
     {
@@ -380,7 +390,7 @@
       "effects": []
     },
     {
-      "id": "caravanserai", "name": "Caravanserai", "type": "building",
+      "id": "caravanserai", "name": "Caravan Station", "type": "building",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"], "requires": ["desert"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -613,15 +623,14 @@
       "flavor": "Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.",
       "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "granary" },
-        { "op": "unlock", "card": "mud_brick_houses" } ]
+      "effects": [ { "op": "unlock", "card": "mud_brick_houses" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
       "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides and patient strength for the plough.",
       "quote": { "text": "The master's eye fattens the horse.", "by": "Persian saying, in Xenophon's Oeconomicus" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "hunters_camp", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "pasture" } ]
+      "effects": [ { "op": "unlock", "card": "pasture" }, { "op": "unlock", "card": "caravanserai" } ]
     },
     {
       "id": "irrigation", "name": "Irrigation", "type": "tech",
@@ -679,8 +688,7 @@
       "flavor": "First spun by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains.",
       "quote": { "text": "As it were a wheel in the middle of a wheel.", "by": "Ezekiel 1:16" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" },
-        { "op": "unlock", "card": "caravanserai" } ]
+      "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
@@ -695,7 +703,8 @@
       "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across the seas.",
       "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "add_era", "era": 2 } ]
+      "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" },
+        { "op": "unlock", "card": "timber_camp" }, { "op": "add_era", "era": 2 } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
@@ -777,7 +786,7 @@
       "flavor": "Iron is harder to smelt than bronze, but its ore is everywhere: soon every farmer has an iron blade.",
       "quote": { "text": "For now truly is a race of iron, and men never rest from labour and sorrow by day.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "forge", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" }, { "op": "unlock", "card": "shaft_mine" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "weights_and_measures",
