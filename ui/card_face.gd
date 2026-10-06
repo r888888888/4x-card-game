@@ -214,23 +214,6 @@ func _set_rules_tip(card: CardInstance, card_db: Dictionary) -> void:
 		rules_tip += "\nResources: " + ", ".join(PackedStringArray(rolled.map(func(k): return k.capitalize())))
 
 
-## Prints flavor at the card's foot in the Flavor look, wrapping (358: the Build modal's card); "" removes it.
-func show_flavor(flavor: String) -> void:
-	var old := get_node_or_null("Flavor")
-	if old != null:
-		remove_child(old)
-		old.queue_free()
-	if flavor == "":
-		return
-	var line := Label.new()
-	line.name = "Flavor"
-	line.text = flavor
-	line.theme_type_variation = &"Flavor"
-	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END  # along the card's foot
-	add_child(line)
-
-
 ## Turns a territory's face into a settled one's (123): its name, then live (the "▢ 6   ⌂ 2/5   ⚒ 2" line, drawn with
 ## icons) at the bottom. The type line, printed info and keywords go: the territory view shows the keywords (199).
 func show_settled(live: String) -> void:

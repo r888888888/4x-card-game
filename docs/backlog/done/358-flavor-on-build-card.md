@@ -2,7 +2,7 @@
 id: 358
 title: Print the Build modal's flavor inside its card
 type: feature
-status: review
+status: wontfix
 branch: feat/358-flavor-on-build-card
 ---
 
@@ -15,17 +15,17 @@ under it is only the preview or the refusal.
 Builds on 356 (its branch is cut from `feat/356-build-modal-polish`); merge after 356.
 
 ## Acceptance criteria
-- [x] AC1: Given the Build modal with the Kiln (`"flavor": "Mud brick, baked hard."`) selected, then its flavor shows
+- [ ] AC1: Given the Build modal with the Kiln (`"flavor": "Mud brick, baked hard."`) selected, then its flavor shows
   once, inside the card on the sheet, in the `Flavor` look, wrapping inside the card, below its rules and at the
   card's foot (the label's bottom within `Tokens.SPACE_3`, the card's margin, of the card's bottom); and nothing in
   the `Flavor` look shows outside the card.
-- [x] AC2: Given the Lore Hall (147 characters of flavor and three upkeep lines) selected, then the card stays
+- [ ] AC2: Given the Lore Hall (147 characters of flavor and three upkeep lines) selected, then the card stays
   `CardView.HAND_SIZE` (264 × 320) and its flavor lies wholly inside it.
-- [x] AC3: Given the modal open, when another row is selected (by click or Up/Down), then the card shows the newly
+- [ ] AC3: Given the modal open, when another row is selected (by click or Up/Down), then the card shows the newly
   selected entry's flavor only (354's AC2 holds).
-- [x] AC4: Given a refused row with flavor, then its flavor shows inside its card and its reason under the card (354's
+- [ ] AC4: Given a refused row with flavor, then its flavor shows inside its card and its reason under the card (354's
   AC3 holds); given a row with no flavor (a unit), then the card shows no flavor line and no empty one (354's AC5).
-- [x] AC5: Given the Kiln built and on the tableau, then its card there shows no flavor (only the Build modal's card
+- [ ] AC5: Given the Kiln built and on the tableau, then its card there shows no flavor (only the Build modal's card
   prints it).
 
 ## Out of scope
@@ -55,6 +55,10 @@ Builds on 356 (its branch is cut from `feat/356-build-modal-polish`); merge afte
 5. The building with the longest flavor and the most rules: still inside the card. Day mode too.
 
 ## Log
+- 2026-10-06: **Rolled back** at the user's review: the flavor goes back under the card, as 354 and 356 have it
+  (24 px under the card, `Tokens.SPACE_5`). The code, tests and design-doc changes were reverted to 356's; what
+  remains is `test_build_modal::test_the_flavor_has_room_under_the_card`, which pins that 24 px gap when the entry has
+  flavor (356's AC8 tested it only on a row without). The notes below are from the attempt.
 - 2026-10-06: Built from 356's branch (both change the Build modal); merge after 356. 357 was taken by another
   session's build ceremony, hence 358.
 - The fixture's longest case (147 characters of flavor, three upkeep lines and housing) fills the 320 px card with no

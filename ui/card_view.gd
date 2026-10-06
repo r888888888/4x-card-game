@@ -175,12 +175,6 @@ func set_shortfall(short: Array[String]) -> void:
 	_face.show_shortfall(short)
 
 
-## Prints flavor at the card's foot (358: only the Build modal's card does); "" removes it.
-func show_flavor(flavor: String) -> void:
-	_replays["flavor"] = show_flavor.bind(flavor)
-	_face.show_flavor(flavor)
-
-
 ## Shows a settled territory's face (123): its live line ("▢ 6   ⌂ 2/5   ⚒ 2") and tooltip tip, both from the board.
 ## Its keywords show in its territory view, not on the card (199).
 func show_settled(live: String, tip: String) -> void:

@@ -6,9 +6,8 @@ extends "res://tests/lib/tech_case.gd"
 ## row_dimmed(id), shown_card(), preview_lines(), refusal_text(), build_button, cancel_button; on TerritoryView:
 ## build_button, slot_button(i). 343: laid out as a ledger sheet (Modal.LEDGER_*), the card hand size and still,
 ## long rows wrapping in the list column; hook card_view(). 347: a row refused for want of a worker, and such a hand
-## card, carry build_error_detail / play_error_detail as their tooltip. 354: the selected entry's flavor in the Flavor
-## look, inside its card at its foot since 358; hook flavor_text(). 356: the list glides; room above headings and under
-## the card.
+## card, carry build_error_detail / play_error_detail as their tooltip. 354: the selected entry's flavor under its card,
+## in the Flavor look; hook flavor_text().
 
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
@@ -395,54 +394,20 @@ func label_index(modal: Object, text: String) -> int:
 	return -1
 
 
-func test_the_selected_buildings_flavor_shows_inside_its_card() -> void:
+func test_the_selected_buildings_flavor_shows_under_its_card() -> void:
 	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
 		var modal: Object = await open_build(main)
-		await wait_frames(5)
 		eq(modal.shown_card(), "kiln", "the Kiln is selected")
 		eq(modal.flavor_text(), KILN.flavor, "its flavor")
 		var labels := flavor_labels(modal)
-		eq(labels.map(func(l): return l.text), [KILN.flavor], "one flavor line, in the Flavor look")
-		var card: CardView = modal.card_view()
-		for label in labels:
-			check(card.is_ancestor_of(label), "inside the card (358), not under it")
-			check(label.autowrap_mode != TextServer.AUTOWRAP_OFF, "it wraps")
-			var bottom := card.get_global_rect().end.y - label.get_global_rect().end.y
-			check(bottom >= 0.0 and bottom <= Tokens.SPACE_3 + 1, "at the card's foot: %s px above its bottom" % bottom)
+		eq(labels.size(), 1, "one flavor line")
+		if labels.size() == 1:
+			eq(labels[0].text, KILN.flavor, "in the Flavor look")
+			eq(labels[0].custom_minimum_size.x, float(Modal.LEDGER_DETAIL_WIDTH), "wrapping at the card's 264")
+			check(labels[0].autowrap_mode != TextServer.AUTOWRAP_OFF, "it wraps")
+			check(label_index(modal, KILN.flavor) < label_index(modal, "If built on Homeland"),
+				"above the preview's heading")
 		check(not modal.preview_lines().has(KILN.flavor), "the preview's lines stay the preview's"))
-
-
-## The Lore Hall's flavor (the longest) and three upkeep lines fit the hand-size card (358).
-func test_the_longest_flavor_fits_inside_the_hand_size_card() -> void:
-	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
-		var modal: Object = await open_build(main)
-		(modal.list.row("lore_hall") as Button).pressed.emit()
-		await wait_frames(5)
-		var card: CardView = modal.card_view()
-		eq(card.size, CardView.HAND_SIZE, "the card stays hand size")
-		var labels := flavor_labels(modal)
-		eq(labels.map(func(l): return l.text), [LORE_HALL.flavor], "the Lore Hall's flavor")
-		for label in labels:
-			check(card.get_global_rect().encloses(label.get_global_rect()), "wholly inside the card %s: %s" % [
-				card.get_global_rect(), label.get_global_rect()])
-			for text in card.find_children("*", "Control", true, false):
-				if text != label and (text is Label or text is RichTextLabel) and (text as Control).is_visible_in_tree():
-					check((text as Control).get_global_rect().end.y <= label.get_global_rect().position.y + 1,
-						"below the card's other text (%s)" % (text as Node).name))
-
-
-## Only the Build modal's card prints flavor (358): a built Kiln's card on the tableau doesn't.
-func test_a_built_cards_flavor_stays_off_the_tableau() -> void:
-	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
-		var e := Game.engine
-		var modal: Object = await open_build(main)
-		(modal.build_button as Button).pressed.emit()
-		await wait_frames(5)
-		var kiln := uid_of(e.zone("tableau"), "kiln")
-		check(kiln != -1, "the Kiln is built")
-		check(main.views.has(kiln), "its card is on the board")
-		if main.views.has(kiln):
-			check(not (main.views[kiln] as CardView).face_text().contains(KILN.flavor), "with no flavor on it"))
 
 
 func test_the_flavor_follows_the_selection() -> void:
@@ -570,3 +535,16 @@ func test_the_card_has_room_under_it() -> void:
 		var card: CardView = modal.card_view()
 		eq(heading.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
 			"24 px between the card and the lines under it"))
+
+
+## The flavor, when the entry has one, is the first line under the card: SPACE_5 below it (356; 358 kept it there).
+func test_the_flavor_has_room_under_the_card() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		eq(modal.shown_card(), "kiln", "the Kiln selected")
+		var flavor := label_reading(modal, KILN.flavor)
+		var card: CardView = modal.card_view()
+		check(not card.is_ancestor_of(flavor), "under the card, not on it")
+		eq(flavor.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the card and its flavor"))
