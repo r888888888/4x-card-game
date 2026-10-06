@@ -2,7 +2,7 @@
 id: 318
 title: A parallel sim run names a stalled or dead worker and fails, instead of waiting silently for up to an hour
 type: bug
-status: ready
+status: red-review
 branch: fix/318-sim-stalled-worker-guard
 ---
 
@@ -64,10 +64,14 @@ branch: fix/318-sim-stalled-worker-guard
   2 and 4 processes, one game per claim, the lock.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `balance/test_parallel_sim::test_…` |
+| AC1 | `test_sim::test_bug_318_a_game_reports_each_turn_and_plays_the_same`, `test_sim_stall::test_bug_318_progress_reads_back_what_was_written`, `balance/test_parallel_sim::test_bug_318_a_worker_leaves_progress_saying_no_game_is_in_play` |
+| AC2 | `balance/test_parallel_sim::test_bug_318_a_stalled_worker_is_stopped_and_named`, `test_sim_stall::test_bug_318_a_stalled_workers_game_names_the_stall_limit`, `test_sim_stall::test_bug_318_a_worker_stalled_between_games_is_named` |
+| AC3 | `test_sim_stall::test_bug_318_a_dead_workers_game_is_named_with_its_turn` |
+| AC4 | `test_sim_stall::test_bug_318_the_stall_limit_defaults_to_10_minutes`, `…_sim_stall_sec_sets_the_stall_limit`, `…_an_invalid_sim_stall_sec_is_ignored`, `balance/test_parallel_sim::test_bug_318_a_run_within_the_stall_limit_finishes` (passes before the fix: a guard that the stall check never stops a healthy run) |
+| AC5 | `test_sim_stall::test_bug_318_the_progress_line_names_each_game_in_play` |
+| AC6 | the rest of `balance/test_parallel_sim.gd`, unchanged |
 
 ## Design notes
 - Progress: `SimStats.progress_path(dir, worker)` (`<worker>.progress.json`), written by `play_claimed` through an
