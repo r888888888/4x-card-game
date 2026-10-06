@@ -258,7 +258,8 @@ The game's current sizes (Title 26, Stat/BarStat 20–26, default 20) are close;
   lowercase is never tracked positive.
 - **Tracking**: display +6%, caps labels +10–12%, body 0, numerals 0 (tabular figures already space themselves).
 - **Line height**: 1.4 for body, 1.2 for labels, 1.0–1.1 for numerals and display. Paragraph spacing = one line.
-- **Measure**: body text 45–70 characters. Card rules text is short by design; modal text caps at 640 px wide.
+- **Measure**: body text 45–70 characters. Card rules text is short by design; a text sheet's body caps at 640 px wide
+  (§11.10; a ledger sheet keeps the measure inside its columns instead).
 - **Hierarchy by size and case, then weight, then colour.** Use at most two weights on one surface (usually 400 +
   600). Never use colour alone to make something a heading.
 - **Numerals**: every number that can change uses tabular lining figures, so the layout never shifts when 9 becomes
@@ -801,6 +802,20 @@ choreography drops the sounds still to come and fades those playing in 30 ms. Pr
 Drafting sheets. Title block (4 px bar, title left, context right), body in `type.body` at max 640 px, footer above
 a hairline: secondary actions right-aligned, primary rightmost. Esc and a click on the scrim close (ModalStack, 153).
 A modal opened over a modal is offset +8, +8 px from the one beneath, so the stack reads as stacked paper.
+
+**Modal layouts** (344). Every sheet is one of three; the title block and footer are the same in all of them.
+
+| Layout | Body | Width | Used by |
+|---|---|---|---|
+| **Text sheet** | Text, in `type.body` | Body ≤ 640 px: the measure (§7) | Abandon, Revolt, Rename, the menu, settings, events |
+| **Card sheet** | A hand-size card in the aside (left), then a text body | The aside is outside the cap; the body ≤ 640 px | Card details, the event and raid cards (`show_card`) |
+| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card with its lines under it | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
+
+A ledger sheet keeps the measure inside each column instead of across the body: the list's rows wrap at the column's
+384 px (a name and cost, a reason under it), and the detail's lines wrap at the card's 264 px. The list shows 12
+one-line rows (480 px) before it scrolls, and holds that height whatever is selected, so changing the selection
+never moves the sheet. A sheet that needs more than this (several cards compared, many builds in a row) is a screen,
+not a modal. In code: `Modal.BODY_MAX_WIDTH` and `Modal.LEDGER_*`.
 Sound: `ui.sheet.open`, a sheet laid on the desk, peaking as it settles; `ui.sheet.close`, the sheet lifted, at once.
 A stacked modal plays the same lay, 1 dB quieter (it lands on paper, not on the desk). The scrim is silent. Choosing in
 a cabinet-door overlay plays the doors (§10.6) and the choice's `ui.confirm`.
@@ -1258,7 +1273,8 @@ plays `ui.milestone.breakthrough`, not both). The chaser is silent.
 
 ### 15.11 Modal
 Anatomy: `sheet`, `radius.0`, `shadow.sheet`, 4 px title-block bar, title `type.title` left, context
-`type.label-caps` right, body ≤ 640 px, footer rule, buttons right (primary rightmost).
+`type.label-caps` right, body by layout (§11.10: a text or card sheet's body ≤ 640 px, a ledger sheet 680 px in
+two columns), footer rule, buttons right (primary rightmost).
 
 | Transition | Duration | Change | Curve | Sound |
 |---|---|---|---|---|

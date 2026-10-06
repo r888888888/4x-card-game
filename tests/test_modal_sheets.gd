@@ -4,7 +4,8 @@ extends "res://tests/lib/test_case.gd"
 ## a body at most Modal.BODY_MAX_WIDTH wide and a footer under a 1 px rule with the buttons right (primary rightmost);
 ## the game menu and the game-over sheet as Modals on main.modals; the rise on opening, the stacked offset and the drop
 ## on closing. Hooks on Modal: title, context, title_label, context_label, bar, body, footer, footer_rule,
-## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha().
+## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha(). 344: the ledger sheet's sizes
+## (Modal.LEDGER_*: 384 + 32 + 264, 12 rows of 40 px) and the card sheet's aside outside the body's cap.
 ## In detail (from docs/testing.md, 331): Modals as drafting sheets (207) in the real `main.tscn` at 1920×1080: each
 ## modal's sheet (paper, 2 px TEXT rule, soft shadow), title block (4 px bar, title, context caps), body at most
 ## 640 px, footer under a 1 px rule (primary rightmost); the menu and game over on `main.modals` (game over stays); the
@@ -321,4 +322,57 @@ func test_with_reduce_motion_a_closing_sheet_only_fades() -> void:
 		check(main.identity_modal.sheet_alpha() < 1.0, "fading")
 		await wait_sheet()
 		check(not main.identity_modal.panel.is_visible_in_tree(), "gone")
+		close_game(main))
+
+
+# --- Backlog 344: the modal layouts (text, card and ledger sheets) ---
+
+func test_the_ledger_sizes_are_modal_constants() -> void:
+	eq(Modal.LEDGER_LIST_WIDTH, Tokens.SPACE_9 * 4, "the list column: 384")
+	eq(Modal.LEDGER_GAP, Tokens.SPACE_6, "the gap: 32")
+	eq(Modal.LEDGER_DETAIL_WIDTH, int(CardView.HAND_SIZE.x), "the detail column: a hand card's width, 264")
+	eq(Modal.LEDGER_ROWS, 12, "12 one-line rows before the list scrolls")
+	eq(Modal.LEDGER_WIDTH, 680, "the ledger: 384 + 32 + 264")
+	eq(Modal.BODY_MAX_WIDTH, 640, "a text sheet's cap is unchanged")
+
+
+func test_the_ledger_list_is_twelve_one_line_rows_tall() -> void:
+	var root := Control.new()
+	root.theme = GameTheme.build()
+	(Engine.get_main_loop() as SceneTree).root.add_child(root)
+	var list := UIKit.select_list()
+	root.add_child(list)
+	var row := list.add_row("a", "Farm   2 food")
+	await wait_frames()
+	eq(Modal.LEDGER_LIST_HEIGHT, 480, "480 px")
+	eq(row.get_combined_minimum_size().y * Modal.LEDGER_ROWS, float(Modal.LEDGER_LIST_HEIGHT), "12 one-line rows")
+	root.free()
+
+
+func test_a_ledger_and_the_sheets_padding_fit_the_viewport() -> void:
+	await with_temp_settings(func():
+		var main: Node = await open_game(true)
+		var modal: Modal = main.details
+		var sheet := (modal.panel as Control).get_theme_stylebox("panel")
+		var padding := sheet.get_margin(SIDE_LEFT) + sheet.get_margin(SIDE_RIGHT)
+		var width := Modal.LEDGER_WIDTH
+		check(width + padding <= main.get_viewport().get_visible_rect().size.x,
+			"a %d px ledger in %d px of padding fits" % [width, padding])
+		close_game(main))
+
+
+func test_a_card_sheet_keeps_its_hand_size_card_left_of_a_capped_body() -> void:
+	await with_temp_settings(func():
+		var main: Node = await open_game(true)
+		var card: CardInstance = Game.engine.zone("hand").cards[0]
+		main.details.open(main.views[card.uid])
+		await wait_sheet()
+		var aside: Control = main.details.aside
+		var body: Control = main.details.body
+		var shown := aside.find_children("*", "CardView", true, false)
+		check(aside.is_visible_in_tree() and not shown.is_empty(), "the card is in the aside")
+		if not shown.is_empty():
+			eq((shown[0] as CardView).size, CardView.HAND_SIZE, "at hand size")
+		check(aside.get_global_rect().end.x <= body.get_global_rect().position.x, "left of the body")
+		check(body.size.x <= Modal.BODY_MAX_WIDTH, "the body is %d px, the aside outside the cap" % body.size.x)
 		close_game(main))
