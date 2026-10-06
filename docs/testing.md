@@ -142,7 +142,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_insight_per_gain.gd` | The `insight_per_gain` modifier (157) |
 | `tests/test_key_sounds.gd` | Key sounds (187; UI) |
 | `tests/test_keywords.gd` | Territory keywords, `requires` and keyword effects (005) |
-| `tests/test_knowledge_screen.gd` | The Knowledge screen (208; the tech tree modal before it, 059, 140; UI) |
+| `tests/test_knowledge_screen.gd` | The Knowledge screen (208; the tech tree before it, 059, 140; UI) |
 | `tests/test_launch_options.gd` | Command-line options (135) |
 | `tests/test_leaving_anarchy.gd` | Restoring order (146, 155) |
 | `tests/test_legal_actions.gd` | `legal_actions` (312) |
@@ -297,12 +297,13 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards` |
 | `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)` |
 | `explore_engine()` / `over_engine()` | A game with an explore choice open; a finished game |
-| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | Card "x" with one effect; home pop; the Capital's territory |
-| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection; `home_uid` is the config's starting territory |
+| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | Card "x" with one effect; home pop; Capital's land |
+| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection; `home_uid`: the starting territory |
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
-| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territories from `territory_deck` to the tableau / frontier |
-| `wait_frames(n)` | Lets containers lay out before a UI test measures sizes or positions (088) |
+| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves territories from the deck to the tableau / frontier |
+| `wait_frames(n)` / `settle_motion()` | Containers lay out (088); cards land |
+| `check_wheel_step(main, scroll, what)` / `with_window_size(size, body)` | UI: a notch's scroll (362) |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `put_in(engine, id, zone)` | Same, into any zone (a government placed directly) |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order |
@@ -311,7 +312,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments and a game under one (065) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (039) and their card db |
 | `with_event_engine(body, event_deck, overrides)` | UI tests: `body` with `Game.engine` on `TEST_CARDS` + `TEST_EVENTS` |
-| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI: add and free the main scene; play seed 1 to the end |
+| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI: add / free main; play seed 1 out |
 | `with_temp_settings(body, path)` | Runs `body` with the settings saved to a temp file, then restores them |
 | `shown_state(key)` | The state a toggle key shows, "ON" or "OFF" (219) |
 | `close_event(main)` | UI tests: closes the drawn-event modal if one is up |
@@ -322,8 +323,8 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound clock frozen, if asked) (334) |
-| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks and moves, hover ticks, details |
-| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | First shown button by text; game seconds; Hills' uid |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers, details |
+| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
 Helpers take and return `GameEngine` (the suite fails on an engine typed `Object`, 333). Tests never call engine

@@ -61,7 +61,7 @@ func _init(nav: Navigator, place: Control, open_tech: Callable, modals: ModalSta
 	header.add_context(_context)
 	_insight = UIKit.heading("")
 	add_child(_insight)
-	var scroll := ScrollContainer.new()
+	var scroll := SmoothScroll.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
