@@ -10,7 +10,7 @@ extends RefCounted
 ## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
 ## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
 ## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
-## A position's forecast is computed once a turn: value() looks it up by what it reads (forecast_key, 315).
+## A position's forecast is computed once: value() looks it up by what it reads (forecast_key, 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
@@ -66,7 +66,7 @@ const WEIGHTS := {
 ## The turns rollouts played (for the sim's lookahead_turns): SimStats resets it before each game.
 static var lookahead_turns := 0
 ## The forecast cache (315): value() looks each position's turn_forecast up by what the forecast reads (forecast_key),
-## so a position already forecast this turn isn't forecast again. Off: every lookup is computed. check_forecasts
+## so a position already forecast isn't forecast again. Off: every lookup is computed. check_forecasts
 ## computes a fresh forecast at every hit too and counts the ones that differ (a test of the key).
 static var forecast_cache := true
 static var check_forecasts := false
@@ -83,8 +83,9 @@ const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", 
 ## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
 ## counter for sample seeds, whether a card value is being measured (the deck's worth is then left out, or it would
 ## recurse), in a rollout: cheap mode and the government it was opened for ("" for the best by value), and the forecast
-## cache: {forecast_key: turn_forecast}, cleared when the turn moves past forecast_turn (a rollout's shared one only by
-## its parent), and the zones the key reads (315).
+## cache: {turn: {forecast_key: turn_forecast}}, dropping the turns already past when the game's turn moves on (a
+## rollout's shared one only by its parent: rollouts from later turns revisit the positions of earlier ones), and the
+## zones the key reads (315).
 class Context:
 	var strategy: String
 	var w: Dictionary
@@ -150,8 +151,8 @@ static func _weigh_revolt(engine: GameEngine, strategy: String, ctx: Context) ->
 ## Plays a sample fork of engine ROLLOUT_TURNS turns on (or to the game's end) in cheap mode with strategy and returns
 ## its value then. The fork revolts first when revolt is true and chooses government_id whenever the government choice
 ## is owed ("" for the best by value); it never revolts. engine is untouched. The seed is the same for every rollout
-## of a turn, so options are compared on the same future, and the rollouts of a turn share parent's forecast cache
-## (315): they start from the same position and forecast many of the same ones.
+## of a turn, so options are compared on the same future. Rollouts share parent's forecast cache (315): they revisit
+## many of the same positions, within a turn and from one turn's rollouts to the next.
 static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "", revolt := false,
 		parent: Context = null) -> float:
 	var f := engine.sample_fork(hash([engine.seed_value, engine.turn, "rollout"]))
@@ -345,17 +346,22 @@ static func reset_forecast_counts() -> void:
 	forecast_mismatches = 0
 
 
-## e's turn_forecast(), from ctx's cache when this turn has already forecast a position with the same forecast_key.
+## e's turn_forecast(), from ctx's cache when a position with the same forecast_key has been forecast before.
 static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 	forecast_lookups += 1
 	if not forecast_cache:
 		forecasts_computed += 1
 		return e.turn_forecast()
 	if ctx.forecast_turn != e.turn and not ctx.shared_forecasts:
-		ctx.forecasts.clear()
+		for turn in ctx.forecasts.keys():
+			if turn < e.turn:
+				ctx.forecasts.erase(turn)
 		ctx.forecast_turn = e.turn
+	if not ctx.forecasts.has(e.turn):
+		ctx.forecasts[e.turn] = {}
+	var cache: Dictionary = ctx.forecasts[e.turn]
 	var key := forecast_key(e, ctx)
-	var cached: Variant = ctx.forecasts.get(key)
+	var cached: Variant = cache.get(key)
 	if cached != null:
 		if check_forecasts:
 			forecast_checks += 1
@@ -364,7 +370,7 @@ static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 		return cached
 	forecasts_computed += 1
 	var fresh := e.turn_forecast()
-	ctx.forecasts[key] = fresh
+	cache[key] = fresh
 	return fresh
 
 
@@ -391,9 +397,8 @@ static func _forecast_zones(e: GameEngine) -> Array[String]:
 	var out: Array[String] = FORECAST_ZONES.duplicate()
 	for id in e.card_db:
 		for effect in e.card_db[id].effects:
-			var zone: Variant = effect.get("zone") if "zone" in effect else null
-			if zone is String and zone != "" and not out.has(zone):
-				out.append(zone)
+			if effect.op == "gain_per_tag" and not out.has(effect.zone):  # a create's zone is where it puts a card
+				out.append(effect.zone)
 	return out
 
 

@@ -8,12 +8,20 @@ extends "res://tests/lib/anarchy_case.gd"
 var BOT: Variant = load("res://sim/generic_bot.gd")
 
 
-## The fixture game for seed, not yet played.
-func cache_game(seed_value := 1) -> GameEngine:
+## Scribe: creates a Farm in the discard. Tally: ⟳ +1 food per farm in the discard.
+const SCRIBE := {"id": "scribe", "name": "Scribe", "type": "action",
+	"effects": [{"op": "create", "card": "farm", "zone": "discard"}]}
+const TALLY := {"id": "tally", "name": "Tally", "type": "building",
+	"effects": [{"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "zone": "discard",
+		"trigger": "upkeep"}]}
+
+
+## The fixture game for seed, not yet played, with extra cards in its card db.
+func cache_game(seed_value := 1, extra := []) -> GameEngine:
 	var o := {"turn_limit": 10, "deck": {"farm": 3, "temple": 2, "pioneer": 2, "explorer": 2, "forager": 3, "feast": 1},
 		"supply": {"farm": {"price": 1, "count": 3}, "temple": {"price": 2, "count": 3}},
 		"territory_deck": {"hills": 2, "grassland": 2, "jungle": 1}, "event_deck": {"envoys": 2, "fleeting": 2}}
-	var cards := anarchy_db(CHOICE_EVENTS)
+	var cards := anarchy_db(CHOICE_EVENTS + extra)
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var raw := anarchy_raw({}, o)
@@ -88,6 +96,31 @@ func test_positions_that_differ_only_in_the_hand_share_one_forecast() -> void:
 	BOT.value(e, ctx)
 	BOT.value(f, ctx)
 	eq([BOT.forecast_lookups, BOT.forecasts_computed], [2, 1], "[looked up, computed]")
+
+
+## [looked up, computed] for valuing e and then e with its first hand card discarded, without card values.
+func lookups_for_a_discard(e: GameEngine) -> Array:
+	if BOT == null:
+		check(false, "sim/generic_bot.gd exists")
+		return []
+	var f := e.fork()
+	f.discard_card(first_in_hand(f))
+	var ctx: Variant = BOT.Context.new("generic")
+	ctx.valuing = true  # no card values: measuring one forecasts its own forks
+	BOT.reset_forecast_counts()
+	BOT.value(e, ctx)
+	BOT.value(f, ctx)
+	return [BOT.forecast_lookups, BOT.forecasts_computed]
+
+
+func test_a_card_that_creates_into_the_discard_doesnt_put_the_discard_in_the_key() -> void:
+	eq(lookups_for_a_discard(cache_game(1, [SCRIBE])), [2, 1], "[looked up, computed] with Scribe in the card db")
+
+
+func test_an_upkeep_that_counts_the_discard_puts_it_in_the_key() -> void:
+	var e := cache_game(1, [TALLY])
+	build_on(e, home_uid(e), ["tally"])
+	eq(lookups_for_a_discard(e), [2, 2], "[looked up, computed]: the discard changes Tally's upkeep")
 
 
 func test_without_the_cache_every_lookup_is_computed() -> void:
