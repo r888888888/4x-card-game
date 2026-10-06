@@ -492,7 +492,7 @@ func label_reading(modal: Object, text: String) -> Label:
 func test_the_build_list_scrolls_smoothly() -> void:
 	await with_main(modal_engine(), func(main: Node):
 		var modal: Object = await open_build(main)
-		eq(list_column(modal).get_script(), load("res://ui/smooth_scroll.gd"), "the list sits in a SmoothScroll"))
+		check(list_column(modal) is SmoothScroll, "the list sits in a SmoothScroll"))
 
 
 func test_down_scrolls_the_selected_row_into_view() -> void:

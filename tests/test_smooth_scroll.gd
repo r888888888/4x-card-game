@@ -1,15 +1,14 @@
 extends "res://tests/lib/test_case.gd"
 ## A scroll area that glides (backlog 356, guide §7.17 "Scroll area"): SmoothScroll takes the wheel itself, so a notch
 ## eases the content Anim.SCROLL_STEP px with momentum that coasts to a stop at the content's ends; Reduce motion jumps.
-## The theme's vertical scrollbar: a thin steel grabber on a well track. Held as Object so this file parses before
-## SmoothScroll exists.
+## The theme's vertical scrollbar: a thin steel grabber on a well track.
 
 const SIZE := Vector2(200, 200)  # the scroll area; its content is 2000 px tall
 
 
 ## A SmoothScroll of SIZE over 2000 px of content in main, laid out.
-func fixture_scroll(main: Node) -> ScrollContainer:
-	var scroll: ScrollContainer = load("res://ui/smooth_scroll.gd").new()
+func fixture_scroll(main: Node) -> SmoothScroll:
+	var scroll := SmoothScroll.new()
 	scroll.position = Vector2(100, 100)
 	scroll.size = SIZE
 	scroll.z_index = 50  # above the board, so the wheel reaches it
@@ -33,11 +32,6 @@ func wheel(main: Node, scroll: ScrollContainer, down := true) -> void:
 		main.get_viewport().push_input(event, true)
 
 
-## Anim.SCROLL_STEP, read through the loaded script so this file parses before it exists.
-func step() -> int:
-	return int(load("res://ui/anim.gd").get_script_constant_map().get("SCROLL_STEP", -1))
-
-
 ## The furthest scroll_vertical can go.
 func bottom(scroll: ScrollContainer) -> int:
 	var bar := scroll.get_v_scroll_bar()
@@ -59,7 +53,7 @@ func test_a_wheel_notch_glides_the_step_and_coasts_to_rest() -> void:
 		check(seen[0] > 0, "moving after one frame: %s" % [seen])
 		check(seen[7] > seen[3] and seen[3] > seen[0], "still coasting frames after the notch: %s" % [seen])
 		await wait_frames(240)
-		check(absi(scroll.scroll_vertical - step()) <= 2, "at rest one step down: %d" % scroll.scroll_vertical)
+		check(absi(scroll.scroll_vertical - int(Anim.SCROLL_STEP)) <= 2, "at rest one step down: %d" % scroll.scroll_vertical)
 		wheel(main, scroll, false)
 		await wait_frames(240)
 		eq(scroll.scroll_vertical, 0, "a notch up brings it back")
@@ -90,9 +84,9 @@ func test_with_reduce_motion_a_notch_jumps_the_step() -> void:
 		var main := open_main()
 		var scroll := await fixture_scroll(main)
 		wheel(main, scroll)
-		eq(scroll.scroll_vertical, step(), "one step down at once")
+		eq(scroll.scroll_vertical, int(Anim.SCROLL_STEP), "one step down at once")
 		await wait_frames(30)
-		eq(scroll.scroll_vertical, step(), "and no further")
+		eq(scroll.scroll_vertical, int(Anim.SCROLL_STEP), "and no further")
 		close_main(main))
 
 
@@ -107,9 +101,7 @@ func test_the_scrollbar_is_a_thin_steel_grabber_on_a_well() -> void:
 		"scroll": Palette.FIELD}
 	for state in looks:
 		var box := bar.get_theme_stylebox(state) as StyleBoxFlat
-		check(box != null and box.draw_center, "%s: a filled box" % state)
-		if box == null:
-			continue
+		check(box.draw_center, "%s: a filled box" % state)
 		eq(box.bg_color.to_html(), (looks[state] as Color).to_html(), "%s's colour" % state)
 		eq(box.corner_radius_top_left, 0, "%s: square" % state)
 	var width := bar.get_combined_minimum_size().x
