@@ -54,14 +54,6 @@ func test_housing_loads_when_given() -> void:
 	eq(cards.bog.housing, 3, "housing")
 
 
-## Loads TEST_CARDS plus one extra card; returns {errors, warnings}.
-func card_messages(card: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	parse_test_cards([card], errors, warnings)
-	return {"errors": errors, "warnings": warnings}
-
-
 func test_housing_validation() -> void:
 	check_cases([
 		["housing 0", {"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": 0},
@@ -70,7 +62,7 @@ func test_housing_validation() -> void:
 			"cards.json: card 'bog': 'housing' must be an integer >= 1"],
 		["housing on an action", {"id": "hut", "name": "Hut", "type": "action", "housing": 2},
 			"card 'hut': 'housing' only applies to territories", "warning_only"],
-	], card_messages)
+	], card_load)
 
 
 # --- AC2: config population block ---

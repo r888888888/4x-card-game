@@ -231,25 +231,20 @@ func test_a_copy_keeps_what_is_unlocked_and_built() -> void:
 
 # --- AC5: the loader ---
 
-## The errors and warnings from parsing a config with build_menu menu (and overrides) against the fixtures.
+## The fixtures and a config with build_menu menu (and overrides) (config_load_on).
 func menu_load(menu: Variant, overrides := {}) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([OBELISK, POTTERY_KILN], errors, warnings)
-	var raw := raw_config({"farm": 1}, {"build_menu": menu}.merged(overrides))
-	var config := DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+	return config_load_on(fixture_load([OBELISK, POTTERY_KILN], [TECHS]), {"build_menu": menu}.merged(overrides))
 
 
 func test_build_menu_loads_with_defaults() -> void:
-	var r := menu_load({"farm": {}, "granary": {"locked": true, "once": true}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.build_menu, {"farm": {"locked": false, "once": false}, "granary": {"locked": true, "once": true}},
-		"normalized")
-	eq(menu_load({}).config.build_menu, {}, "an empty menu")
-	eq(DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(), "config.json", [], []).build_menu, {},
-		"no build_menu: {}")
+	check_loads([
+		["normalized", {"farm": {}, "granary": {"locked": true, "once": true}},
+			{"config.build_menu": {"farm": {"locked": false, "once": false}, "granary": {"locked": true, "once": true}}}],
+		["an empty menu", {}, {"config.build_menu": {}}],
+	], menu_load)
+	check_loads([
+		["no build_menu: {}", {}, {"config.build_menu": {}}],
+	], config_load.bind([TECHS]))
 
 
 func test_build_menu_validation() -> void:
@@ -262,7 +257,7 @@ func test_build_menu_validation() -> void:
 			"config.json: build_menu: 'farm' is also in the supply"],
 		["unknown field", [{"farm": {"price": 2}}, {}], "config.json: build_menu: 'farm': unknown field 'price'",
 			"warning_only"],
-	], func(args): return menu_load(args[0], args[1]))
+	], menu_load.callv)
 
 
 func test_an_unlock_may_name_a_build_menu_entry() -> void:

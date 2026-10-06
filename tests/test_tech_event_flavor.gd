@@ -18,12 +18,6 @@ func with_field(card: Dictionary, key: String, value: Variant) -> Dictionary:
 	return c
 
 
-## Loads TEST_CARDS plus card; returns {errors, warnings}.
-func card_messages(card: Dictionary) -> Dictionary:
-	var r := fixture_load([card])
-	return {"errors": r.errors, "warnings": r.warnings}
-
-
 ## A new game on TEST_CARDS plus FIRE and COMET, whose event deck is one Comet.
 func flavor_engine() -> GameEngine:
 	var errors: Array[String] = []
@@ -40,7 +34,7 @@ func flavor_engine() -> GameEngine:
 # --- AC1: a tech's flavor and quote ---
 
 func test_a_tech_may_have_flavor_and_a_quote() -> void:
-	var m := card_messages(FIRE)
+	var m := card_load(FIRE)
 	eq(m.errors, [] as Array[String], "errors")
 	eq(m.warnings, [] as Array[String], "warnings")
 	var d: Dictionary = flavor_engine().def_details("fire")
@@ -51,7 +45,7 @@ func test_a_tech_may_have_flavor_and_a_quote() -> void:
 # --- AC2: an event's flavor ---
 
 func test_an_event_may_have_flavor() -> void:
-	var m := card_messages(COMET)
+	var m := card_load(COMET)
 	eq(m.errors, [] as Array[String], "errors")
 	eq(m.warnings, [] as Array[String], "warnings")
 	var e := flavor_engine()
@@ -77,13 +71,13 @@ func test_tech_and_event_flavor_validation() -> void:
 			"cards.json: card 'comet': 'flavor' must be a non-empty string", "one_error"],
 		["event flavor empty", with_field(COMET, "flavor", ""),
 			"cards.json: card 'comet': 'flavor' must be a non-empty string", "one_error"],
-	], card_messages)
+	], card_load)
 
 
 # --- AC5: still not on territories (352: buildings may have flavor) ---
 
 func test_flavor_on_a_territory_is_still_ignored_with_a_warning() -> void:
-	var m := card_messages({"id": "dell", "name": "Dell", "type": "territory", "slots": 2, "flavor": "Green."})
+	var m := card_load({"id": "dell", "name": "Dell", "type": "territory", "slots": 2, "flavor": "Green."})
 	eq(m.errors, [] as Array[String], "errors")
 	has_msg(m.warnings, "card 'dell': 'flavor' only applies to civilizations (ignored)")
 
@@ -125,7 +119,7 @@ const TREK := {"id": "trek", "name": "Trek", "type": "action", "flavor": "They w
 
 
 func test_an_action_may_have_flavor() -> void:
-	var m := card_messages(TREK)
+	var m := card_load(TREK)
 	eq(m.errors, [] as Array[String], "errors")
 	eq(m.warnings, [] as Array[String], "warnings")
 	var e := make_engine({"farm": 10}, {}, 1, [TREK])
@@ -140,12 +134,12 @@ func test_action_flavor_validation() -> void:
 			"cards.json: card 'trek': 'flavor' must be a non-empty string", "one_error"],
 		["action flavor empty", with_field(TREK, "flavor", ""),
 			"cards.json: card 'trek': 'flavor' must be a non-empty string", "one_error"],
-	], card_messages)
+	], card_load)
 
 
 func test_a_quote_on_an_action_is_ignored_with_a_warning() -> void:
 	var quoted := with_field(TREK, "quote", {"text": "Onward.", "by": "A guide"})
-	var m := card_messages(quoted)
+	var m := card_load(quoted)
 	eq(m.errors, [] as Array[String], "errors")
 	has_msg(m.warnings, "card 'trek': 'quote' only applies to civilizations (ignored)")
 	var e := make_engine({"farm": 10}, {}, 1, [quoted])
@@ -167,7 +161,7 @@ const KILN := {"id": "kiln", "name": "Kiln", "type": "building", "cost": {"food"
 
 
 func test_a_building_may_have_flavor() -> void:
-	var m := card_messages(KILN)
+	var m := card_load(KILN)
 	eq(m.errors, [] as Array[String], "errors")
 	eq(m.warnings, [] as Array[String], "warnings")
 	var e := make_engine({"farm": 10}, {}, 1, [KILN])
@@ -183,12 +177,12 @@ func test_building_flavor_validation() -> void:
 			"cards.json: card 'kiln': 'flavor' must be a non-empty string", "one_error"],
 		["building flavor empty", with_field(KILN, "flavor", ""),
 			"cards.json: card 'kiln': 'flavor' must be a non-empty string", "one_error"],
-	], card_messages)
+	], card_load)
 
 
 func test_a_quote_on_a_building_is_ignored_with_a_warning() -> void:
 	var quoted := with_field(KILN, "quote", {"text": "Fire it.", "by": "A potter"})
-	var m := card_messages(quoted)
+	var m := card_load(quoted)
 	eq(m.errors, [] as Array[String], "errors")
 	has_msg(m.warnings, "card 'kiln': 'quote' only applies to civilizations (ignored)")
 	var e := make_engine({"farm": 10}, {}, 1, [quoted])

@@ -72,7 +72,7 @@ func test_eureka_validation() -> void:
 			"cards.json: card 'x': eureka: unknown card 'dragon'"],
 		["on a building", [{"eureka": FARMS}, "building"], "cards.json: card 'x': 'eureka' only applies to techs (ignored)",
 			"warning_only"],
-	], func(args): return load_x(args[0], args[1]))
+	], load_x.callv)
 
 
 # --- AC2: a card eureka counts the tableau ---

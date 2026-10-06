@@ -479,6 +479,11 @@ func fixture_load(extra := [], sets := [], resource_list: Array[String] = [], re
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 
 
+## fixture_load([card], sets): TEST_CARDS, the sets and one more card.
+func card_load(card: Dictionary, sets := []) -> Dictionary:
+	return fixture_load([card], sets)
+
+
 ## fixture_load's cards, failing the test on a load error.
 func fixture_db(extra := [], sets := [], resource_list: Array[String] = []) -> Dictionary:
 	var r := fixture_load(extra, sets, resource_list)

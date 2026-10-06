@@ -36,14 +36,6 @@ func test_building_housing_and_famine_guard_load() -> void:
 	eq(cards.homeland.housing, 7, "territory housing still defaults to slots + 2")
 
 
-## Loads TEST_CARDS plus one extra card; returns {errors, warnings}.
-func card_messages(card: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [card]}, resources(), "cards.json", errors, warnings, keywords())
-	return {"errors": errors, "warnings": warnings}
-
-
 func test_building_housing_and_famine_guard_validation() -> void:
 	check_cases([
 		["building housing 0", {"id": "hut", "name": "Hut", "type": "building", "housing": 0},
@@ -58,7 +50,7 @@ func test_building_housing_and_famine_guard_validation() -> void:
 			"card 'fast': 'famine_guard' only applies to buildings", "warning_only"],
 		["famine_guard on a territory", {"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "famine_guard": 1},
 			"card 'bog': 'famine_guard' only applies to buildings", "warning_only"],
-	], card_messages)
+	], card_load)
 
 
 # --- AC2: a building's housing adds to its territory ---

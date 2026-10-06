@@ -59,26 +59,16 @@ func food_forecast(e: GameEngine) -> int:
 
 ## The cards and the config's errors and warnings: CARDS plus extra, population with tiers (none when tiers is null).
 func tier_load(extra := [], tiers: Variant = TIERS) -> Dictionary:
-	var r := fixture_load(CARDS + extra)
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	errors.append_array(r.errors)
-	warnings.append_array(r.warnings)
-	var population := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
+	var population := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 	if tiers != null:
 		population["tiers"] = tiers
-	DataLoader.parse_config(raw_config({"farm": 1}, {"population": population}), resources(), r.cards, "config.json",
-		errors, warnings)
-	return {"cards": r.cards, "errors": errors, "warnings": warnings}
+	return config_load_on(fixture_load(CARDS + extra), {"population": population})
 
 
 func test_a_building_loads_its_tier() -> void:
-	var r := tier_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.cards["forum"].get("tier"), "town", "Forum's tier")
-	eq(r.cards["sanctum"].get("tier"), "village", "Sanctum's tier")
-	eq(r.cards["chapel"].get("tier"), "", "a Chapel needs none")
+	check_loads([
+		["the fixture buildings", [], {"cards.forum.tier": "town", "cards.sanctum.tier": "village", "cards.chapel.tier": ""}],
+	], tier_load)
 
 
 func test_tier_validation() -> void:
@@ -90,7 +80,7 @@ func test_tier_validation() -> void:
 		["tiers off", [[], null], "config.json: card 'forum': 'tier' needs population.tiers (ignored)", "warning_only"],
 		["on an action", [[{"id": "x", "name": "X", "type": "action", "tier": "town"}], TIERS],
 			"cards.json: card 'x': 'tier' only applies to buildings (ignored)", "warning_only"],
-	], func(args): return tier_load(args[0], args[1]))
+	], tier_load.callv)
 
 
 func test_a_tiers_text_names_it_after_the_upgrade_line() -> void:
