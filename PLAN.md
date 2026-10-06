@@ -601,8 +601,9 @@ A game is played as one civilization: a permanent card with a starting gift and 
   new game screen a click on a civilization selects it and opens these details, with a "Play as <name>" button that
   starts the game as it.
   A government (205), a tech and an event (215), an action (351) and a building (352) may set `flavor` too, and a
-  government or a tech a `quote` (an event, action or building may not); every real tech has both and every real
-  event, action and building a flavor line. Flavor and quotes show only in the details,
+  government or a tech a `quote` (an event, action or building may not); every real tech and government has both
+  and every real event, action and building a flavor line. The text follows the style guide's §18 voice (353): present
+  tense, ~120 characters a line (the suite caps it at 150, civilizations 200). Flavor and quotes show only in the details,
   never on a card face.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,

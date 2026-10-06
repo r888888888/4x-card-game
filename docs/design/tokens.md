@@ -2,7 +2,7 @@
 
 The short reference for UI work. The full style guide ([mcm-style-guide.md](mcm-style-guide.md), ~34k tokens) is
 the source of the values and the reasons; read it only for a task about one of its topics (motion §9, interaction
-§10, a game screen §11, accessibility §12, sound §16), and only that section. Its §17 is the spike's plan from before
+§10, a game screen §11, accessibility §12, sound §16, flavor text §18), and only that section. Its §17 is the spike's plan from before
 the restyle (177–183) and is history, not the current state.
 
 This file says what is in the code **now**. When an item changes a token, it updates this file.
