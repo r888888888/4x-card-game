@@ -2,7 +2,7 @@
 id: 337
 title: The engine writes the era's "Opens at…" line and one "needs … (you have …)" format
 type: feature
-status: red-review
+status: in-progress
 branch: feat/337-engine-texts
 ---
 

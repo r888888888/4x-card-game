@@ -25,10 +25,12 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 	if anarchy != "":
 		return anarchy
 	var cost := cost_to_play(e, card.def)
-	if not e.can_pay(cost):  # names the first resource it is short of
-		for r in cost:
-			if not e.can_pay({r: cost[r]}):
-				return "%s needs %d %s (you have %d)." % [card.def.name, cost[r], r, e.resources.get(r, 0)]
+	var short := {}  # names only the resources it is short of (337)
+	for r in cost:
+		if not e.can_pay({r: cost[r]}):
+			short[r] = cost[r]
+	if not short.is_empty():
+		return e.price_error(card.def.name, short)
 	for effect in card.def.effects:
 		if effect.trigger == "play":
 			var blocked := effect.play_block_error(e, card)

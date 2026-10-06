@@ -29,17 +29,32 @@ static func upcoming_era_unlocks(e: GameEngine) -> Dictionary:
 
 
 ## See GameEngine.tech_tree.
-## One entry per era with techs in research_deck, in era order: {era, name, reached, unlocks, techs}. unlocks is
-## the era's upcoming_era_unlocks entry ({} once reached, or when only a tech adds it); techs its tree() entries.
+## One entry per era with techs in research_deck, in era order: {era, name, reached, unlocks, opens, techs}. unlocks
+## is the era's upcoming_era_unlocks entry ({} once reached, or when only a tech adds it); opens how it opens ("" once
+## reached, 337); techs its tree() entries.
 static func eras(e: GameEngine) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var upcoming := upcoming_era_unlocks(e)
 	for tech in tree(e):
 		if out.is_empty() or out[-1].era != tech.era:
-			out.append({"era": tech.era, "name": e.era_name(tech.era), "reached": tech.era <= e.era(),
-				"unlocks": upcoming.get(tech.era, {}), "techs": []})
+			var reached: bool = tech.era <= e.era()
+			var unlocks: Dictionary = upcoming.get(tech.era, {})
+			out.append({"era": tech.era, "name": e.era_name(tech.era), "reached": reached, "unlocks": unlocks,
+				"opens": "" if reached else _opens(unlocks), "techs": []})
 		out[-1].techs.append(tech)
 	return out
+
+
+## "Opens at 8 pop or 15 wealth" for an era's unlock thresholds, or "Opens through a tech" without any (337).
+static func _opens(need: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	if need.has("pop"):
+		parts.append("%d pop" % need.pop)
+	if need.has(GameEngine.WEALTH):
+		parts.append("%d wealth" % need[GameEngine.WEALTH])
+	if parts.is_empty():
+		return "Opens through a tech"
+	return "Opens at %s" % " or ".join(parts)
 
 
 static func links(e: GameEngine, id: String) -> Dictionary:

@@ -209,7 +209,7 @@ func test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era()
 func test_tech_eras_say_how_an_era_not_reached_opens() -> void:
 	var opens := func(era_unlocks: Dictionary) -> Array:
 		return era_unlocks_engine(era_unlocks).tech_eras().map(func(x): return x.opens)
-	eq(opens.call({"2": {"pop": 8, "wealth": 15}}), ["", "Opens at 8 pop or 15 wealth"], "pop or wealth")
+	eq(opens.call({"2": {"pop": 8, "wealth": 30}}), ["", "Opens at 8 pop or 30 wealth"], "pop or wealth")
 	eq(opens.call({"2": {"pop": 8}}), ["", "Opens at 8 pop"], "pop only")
 	eq(opens.call({}), ["", "Opens through a tech"], "no unlock")
 	var e := era_unlocks_engine({"2": {"pop": 8}})

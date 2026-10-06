@@ -157,8 +157,9 @@ func upcoming_era_unlocks() -> Dictionary:
 	return Research.upcoming_era_unlocks(self)
 
 
-## The tech tree by era: one {era, name, reached, unlocks, techs} per era with techs in research_deck, in era
-## order. unlocks is the era's upcoming_era_unlocks entry ({} once reached); techs are its tech_tree entries.
+## The tech tree by era: one {era, name, reached, unlocks, opens, techs} per era with techs in research_deck, in era
+## order. unlocks is the era's upcoming_era_unlocks entry ({} once reached); opens says how an era not reached opens
+## ("Opens at 8 pop or 15 wealth", "Opens through a tech"; "" once reached, 337); techs are its tech_tree entries.
 func tech_eras() -> Array[Dictionary]:
 	return Research.eras(self)
 
