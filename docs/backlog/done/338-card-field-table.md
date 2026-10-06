@@ -2,7 +2,7 @@
 id: 338
 title: DataLoader reads per-type fields from one table; 'requires' only applies to buildings
 type: feature
-status: in-progress
+status: done
 branch: feat/338-card-field-table
 ---
 
@@ -66,3 +66,5 @@ building branch, each with its own minimum and default. New card fields are a re
 - Error order within a card can differ from before (int fields now read after effects, type checks after modifiers
   and flavor); no test depended on it.
 - The add-card-field skill is listed in development-process.md's Files table; CLAUDE.md's TYPE_FIELDS line points to it.
+- 2026-10-06: merged at the user's word before AC4's `scripts/sim.sh 20` before/after comparison finished; that
+  check follows (AC4 stays open until it does).

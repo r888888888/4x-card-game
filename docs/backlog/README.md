@@ -98,3 +98,11 @@ Project review cleanup (2026-10-06 review; build before the military items 165â€
 11. 339 ConfigLoader split (config_loader.gd is at 680 of 700; before 167 adds content config)
 
 Barbarians and military, continued: 165 veterans, 166 unit upgrades, 167 era units and raids (see the first list).
+
+Coastal cities (fishing stops being a worse Farm, and the coast adds to a territory instead of replacing it):
+1. 364 Fishing Huts cost no food and house people; each adds a Net Fishing; Salt Pans (Pottery); Harbor +1 food
+2. 365 helpful era-1 coastal events and the Lighthouse of Pharos (content only)
+3. 367 `gain_per_tag` learns `per`; Sea Trade (Sailing) and Sailing's insight per 2 ports
+4. 366 the sea slot: one extra slot on coastal territories for port buildings (after 339, which makes room in
+   `config_loader.gd`)
+5. Then a balance item for the coast (per-port payoffs stack: Navigation, the Lighthouse, Sea Trade, the sea slot)
