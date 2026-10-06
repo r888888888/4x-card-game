@@ -2,7 +2,7 @@
 id: 344
 title: Name the modal layouts in the guide (text, card and ledger sheets) with the ledger's sizes in Modal
 type: feature
-status: in-progress
+status: review
 branch: feat/344-modal-layouts
 ---
 
@@ -14,15 +14,15 @@ the ledger sheet its own sizes, as `Modal` constants, so the Build modal (343) a
 instead of to arithmetic.
 
 ## Acceptance criteria
-- [ ] AC1: Given `Modal`, then `LEDGER_LIST_WIDTH` is 384 (`Tokens.SPACE_9 * 4`), `LEDGER_GAP` is 32
+- [x] AC1: Given `Modal`, then `LEDGER_LIST_WIDTH` is 384 (`Tokens.SPACE_9 * 4`), `LEDGER_GAP` is 32
   (`Tokens.SPACE_6`), `LEDGER_DETAIL_WIDTH` is `CardView.HAND_SIZE.x` (264), `LEDGER_ROWS` is 12 and
   `LEDGER_WIDTH` is their sum, 680; `BODY_MAX_WIDTH` stays 640.
-- [ ] AC2: Given a `SelectList` (`UIKit.select_list()`) under the game theme with one one-line row, then that row's
+- [x] AC2: Given a `SelectList` (`UIKit.select_list()`) under the game theme with one one-line row, then that row's
   minimum height × `LEDGER_ROWS` equals `Modal.LEDGER_LIST_HEIGHT` (480): the list's height is 12 one-line rows, and the
   suite notices if the row height changes.
-- [ ] AC3: Given a ledger of `LEDGER_WIDTH` (680) on the 1920 × 1080 viewport, then it fits beside the sheet's padding
+- [x] AC3: Given a ledger of `LEDGER_WIDTH` (680) on the 1920 × 1080 viewport, then it fits beside the sheet's padding
   inside the viewport (680 + the sheet's horizontal padding ≤ 1920) — a guard that the sizes stay sane.
-- [ ] AC4: Given the card details modal on a hand card (the card sheet), then its card sits in `aside` at
+- [x] AC4: Given the card details modal on a hand card (the card sheet), then its card sits in `aside` at
   `CardView.HAND_SIZE`, left of the body, and the body is at most `BODY_MAX_WIDTH`: the aside is outside the cap
   (documents today's behaviour; a guard).
 
@@ -63,3 +63,7 @@ instead of to arithmetic.
   agree with `Modal`'s constants.
 
 ## Log
+- Card sheet examples: card details and the event and raid modals (`Modal.show_card`); the renewal modal builds its own
+  layout, so the guide doesn't list it.
+- The guide's §11.10 adds the layouts table; §7's measure line and §15.11's anatomy point at it; `tokens.md` has a row.
+- Next: 343 moves the Build modal onto `Modal.LEDGER_*`.

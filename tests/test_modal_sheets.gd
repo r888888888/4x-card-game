@@ -4,7 +4,8 @@ extends "res://tests/lib/test_case.gd"
 ## a body at most Modal.BODY_MAX_WIDTH wide and a footer under a 1 px rule with the buttons right (primary rightmost);
 ## the game menu and the game-over sheet as Modals on main.modals; the rise on opening, the stacked offset and the drop
 ## on closing. Hooks on Modal: title, context, title_label, context_label, bar, body, footer, footer_rule,
-## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha().
+## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha(). 344: the ledger sheet's sizes
+## (Modal.LEDGER_*: 384 + 32 + 264, 12 rows of 40 px) and the card sheet's aside outside the body's cap.
 ## In detail (from docs/testing.md, 331): Modals as drafting sheets (207) in the real `main.tscn` at 1920×1080: each
 ## modal's sheet (paper, 2 px TEXT rule, soft shadow), title block (4 px bar, title, context caps), body at most
 ## 640 px, footer under a 1 px rule (primary rightmost); the menu and game over on `main.modals` (game over stays); the
@@ -325,17 +326,14 @@ func test_with_reduce_motion_a_closing_sheet_only_fades() -> void:
 
 
 # --- Backlog 344: the modal layouts (text, card and ledger sheets) ---
-# The ledger sheet's sizes are constants on Modal (read through MODAL_PATH so this file parses before they exist).
 
 func test_the_ledger_sizes_are_modal_constants() -> void:
-	var modal: GDScript = load(MODAL_PATH)
-	var c := modal.get_script_constant_map()
-	eq(c.get("LEDGER_LIST_WIDTH"), Tokens.SPACE_9 * 4, "the list column: 384")
-	eq(c.get("LEDGER_GAP"), Tokens.SPACE_6, "the gap: 32")
-	eq(c.get("LEDGER_DETAIL_WIDTH"), int(CardView.HAND_SIZE.x), "the detail column: a hand card's width, 264")
-	eq(c.get("LEDGER_ROWS"), 12, "12 one-line rows before the list scrolls")
-	eq(c.get("LEDGER_WIDTH"), 680, "the ledger: 384 + 32 + 264")
-	eq(c.get("BODY_MAX_WIDTH"), 640, "a text sheet's cap is unchanged")
+	eq(Modal.LEDGER_LIST_WIDTH, Tokens.SPACE_9 * 4, "the list column: 384")
+	eq(Modal.LEDGER_GAP, Tokens.SPACE_6, "the gap: 32")
+	eq(Modal.LEDGER_DETAIL_WIDTH, int(CardView.HAND_SIZE.x), "the detail column: a hand card's width, 264")
+	eq(Modal.LEDGER_ROWS, 12, "12 one-line rows before the list scrolls")
+	eq(Modal.LEDGER_WIDTH, 680, "the ledger: 384 + 32 + 264")
+	eq(Modal.BODY_MAX_WIDTH, 640, "a text sheet's cap is unchanged")
 
 
 func test_the_ledger_list_is_twelve_one_line_rows_tall() -> void:
@@ -346,9 +344,8 @@ func test_the_ledger_list_is_twelve_one_line_rows_tall() -> void:
 	root.add_child(list)
 	var row := list.add_row("a", "Farm   2 food")
 	await wait_frames()
-	var c: Dictionary = (load(MODAL_PATH) as GDScript).get_script_constant_map()
-	eq(c.get("LEDGER_LIST_HEIGHT"), 480, "480 px")
-	eq(row.get_combined_minimum_size().y * 12, float(c.get("LEDGER_LIST_HEIGHT", 0)), "12 one-line rows")
+	eq(Modal.LEDGER_LIST_HEIGHT, 480, "480 px")
+	eq(row.get_combined_minimum_size().y * Modal.LEDGER_ROWS, float(Modal.LEDGER_LIST_HEIGHT), "12 one-line rows")
 	root.free()
 
 
@@ -358,7 +355,7 @@ func test_a_ledger_and_the_sheets_padding_fit_the_viewport() -> void:
 		var modal: Modal = main.details
 		var sheet := (modal.panel as Control).get_theme_stylebox("panel")
 		var padding := sheet.get_margin(SIDE_LEFT) + sheet.get_margin(SIDE_RIGHT)
-		var width: int = (load(MODAL_PATH) as GDScript).get_script_constant_map().get("LEDGER_WIDTH", 99999)
+		var width := Modal.LEDGER_WIDTH
 		check(width + padding <= main.get_viewport().get_visible_rect().size.x,
 			"a %d px ledger in %d px of padding fits" % [width, padding])
 		close_game(main))
