@@ -53,18 +53,18 @@ func test_a_territory_view_wipes_out_of_its_card_and_back_into_it() -> void:
 			var card := (main.views[home] as CardView).get_global_rect()
 			main.views[home].details_requested.emit(main.views[home])
 			var view: Control = main.territory_view
-			var nav: Object = main.territory_view.nav
+			var nav: Navigator = main.territory_view.nav
 			eq(view.scale, Vector2.ONE, "never scaled")
-			eq(nav.wipe_rect(view), card, "it wipes out of the card")
-			await wait_seconds(0.55)
-			eq(nav.wipe_rect(view), Rect2(), "then shows whole")
+			eq(Navigator.wipe_rect(view), card, "it wipes out of the card")
+			await wait_screen_transition()
+			eq(Navigator.wipe_rect(view), Rect2(), "then shows whole")
 			view.back_button.pressed.emit()
 			check(not view.is_open(), "closed at once")
 			check(main.tableau.is_visible_in_tree(), "the Realm is back at once")
 			check(not view.visible, "the view is hidden at once")
 			var shot: Control = nav.leaving_shot()
 			check(shot != null, "a snapshot wipes back into the card")
-			await wait_seconds(0.4)
+			await wait_screen_transition()
 			eq(nav.leaving_shot(), null, "then gone")))
 
 

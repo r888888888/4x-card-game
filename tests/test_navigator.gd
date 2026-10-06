@@ -297,9 +297,6 @@ func test_the_header_names_the_screen_below_and_the_path() -> void:
 
 # --- 350: a push from a rect wipes ---
 
-const WIPE_IN := 0.30  # Anim.WIPE_IN (350)
-const WIPE_OUT := 0.24  # Anim.WIPE_OUT
-const WIPE_LINGER := 0.12  # Anim.WIPE_LINGER
 const FROM := Rect2(100, 120, 200, 160)
 const CONTENT := Rect2(0, 0, 1000, 600)  # B's shown children: the empty room under them is no content
 
@@ -330,14 +327,14 @@ func test_push_from_a_rect_wipes_the_screen_out_of_it_unscaled() -> void:
 		check(outline != null and outline.visible, "an outline on the wipe's edge")
 		if outline != null:
 			eq(outline.get_global_rect(), FROM, "tracing the rect")
-		await wait_seconds(WIPE_IN / 2.0)
+		await wait_seconds(Anim.WIPE_IN / 2.0)
 		var mid: Rect2 = nav.wipe_rect(s.B)
 		check(mid.encloses(FROM) and CONTENT.encloses(mid) and mid != FROM and mid != CONTENT, "growing: %s" % mid)
 		eq(s.B.scale, Vector2.ONE, "still unscaled")
-		await wait_seconds(WIPE_IN / 2.0 + WIPE_LINGER / 2.0)
+		await wait_seconds(Anim.WIPE_IN / 2.0 + Anim.WIPE_LINGER / 2.0)
 		eq(nav.wipe_rect(s.B), CONTENT, "landed on its content, not the whole screen")
 		check(nav.wipe_outline(s.B) != null, "the outline lingers a moment")
-		await wait_seconds(WIPE_LINGER + 0.1)
+		await wait_seconds(Anim.WIPE_LINGER + 0.1)
 		eq(nav.wipe_rect(s.B), Rect2(), "then nothing is clipped")
 		eq(nav.wipe_outline(s.B), null, "and the outline is gone")
 		free_screens())
@@ -351,7 +348,7 @@ func test_back_after_a_wipe_shrinks_a_snapshot_into_the_rect() -> void:
 		var s := content_screens()
 		nav.set_root(s.A)
 		nav.push(s.B, null, "B", FROM)
-		await wait_seconds(WIPE_IN + WIPE_LINGER + 0.1)
+		await wait_seconds(Anim.WIPE_IN + Anim.WIPE_LINGER + 0.1)
 		check(nav.back(), "back")
 		check(s.A.visible and nav.top() == s.A, "the screen below shows at once")
 		check(not s.B.visible, "the screen itself is hidden at once")
@@ -362,10 +359,10 @@ func test_back_after_a_wipe_shrinks_a_snapshot_into_the_rect() -> void:
 			return
 		eq(shot.get_global_rect(), CONTENT, "over the screen's content")
 		eq(shot.mouse_filter, Control.MOUSE_FILTER_IGNORE, "taking no clicks")
-		await wait_seconds(WIPE_OUT / 2.0)
+		await wait_seconds(Anim.WIPE_OUT / 2.0)
 		var mid := shot.get_global_rect()
 		check(CONTENT.encloses(mid) and mid.encloses(FROM) and mid != CONTENT, "shrinking into the rect: %s" % mid)
-		await wait_seconds(WIPE_OUT / 2.0 + 0.1)
+		await wait_seconds(Anim.WIPE_OUT / 2.0 + 0.1)
 		eq(nav.leaving_shot(), null, "then gone")
 		check(not is_instance_valid(shot), "and freed")
 		free_screens())
