@@ -2,7 +2,7 @@
 id: 354
 title: Show the selected entry's flavor in the Build modal
 type: feature
-status: red-review
+status: in-progress
 branch: feat/354-flavor-in-build-modal
 ---
 

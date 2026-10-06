@@ -5,7 +5,7 @@ extends Modal
 ## under Buildings and Units headings, each row its name and cost after discounts, a row the engine refuses dimmed with
 ## the reason under its name. Under Upgrades (302) a row per upgrade entry and building here it builds on ("Plough", "on
 ## Farm"). On the right the selected entry's card and either "If built on <territory or building>" with build_preview's
-## lines and the cost, or the refusal. One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
+## lines and the cost, or the refusal, with the entry's flavor between the card and them (354). One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
 ## move the selection. Everything shown comes from the engine. Laid out as the guide's ledger sheet (343, 344): the list
 ## Modal.LEDGER_LIST_WIDTH × LEDGER_LIST_HEIGHT with its rows wrapping, the card at hand size, lines wrapping at its width.
 
@@ -26,7 +26,8 @@ var _card_slot: Control  # the selected entry's card
 var _card: CardView  # on _card_slot, or null
 var _row := ""  # the row id on the sheet
 var _shown := ""  # the card id on the sheet
-var _lines: VBoxContainer  # the preview's heading and lines, or the refusal
+var _lines: VBoxContainer  # the flavor, then the preview's heading and lines, or the refusal
+var _flavor := ""  # the shown entry's flavor (354), "" when it has none
 
 
 ## Builds the modal on stack's host, hidden.
@@ -158,17 +159,23 @@ func face_text() -> String:
 	return _card.face_text() if is_instance_valid(_card) else ""
 
 
-## The sheet's lines: the preview's heading, its lines and the cost; [] while a refusal shows.
+## The sheet's lines: the preview's heading, its lines and the cost (not the flavor); [] while a refusal shows.
 func preview_lines() -> Array[String]:
 	var out: Array[String] = []
 	if row_reason(_row) == "":
 		for label in _lines.get_children():
-			out.append((label as Label).text)
+			if (label as Label).theme_type_variation != &"Flavor":
+				out.append((label as Label).text)
 	return out
 
 
 func refusal_text() -> String:
 	return row_reason(_row)
+
+
+## Test hook (354): the flavor on the sheet, or "".
+func flavor_text() -> String:
+	return _flavor
 
 
 ## Up and Down move the selection, Enter builds; the close keys close (Modal).
@@ -192,6 +199,7 @@ func _show_entry(id: String) -> void:
 	var e := Game.engine
 	_row = id
 	_shown = _targets[id][0] if _targets.has(id) else ""
+	_flavor = ""
 	for child in _card_slot.get_children():
 		child.queue_free()
 	_card = null
@@ -212,6 +220,9 @@ func _show_entry(id: String) -> void:
 	build_button.text = "%s %s" % ["Recruit" if def.type == CardDef.UNIT else "Build", def.name]
 	build_button.disabled = reason != ""
 	build_button.tooltip_text = reason
+	_flavor = e.def_details(_shown).get("flavor", "")
+	if _flavor != "":
+		_add_line(_flavor, &"Flavor")
 	if reason != "":
 		_add_line(reason, &"Refusal")
 		return
@@ -234,7 +245,7 @@ func _add_line(text: String, look: StringName) -> void:
 	var label := Label.new()
 	label.text = text
 	label.theme_type_variation = look
-	if look == &"Refusal":  # a reason may be long; the preview's lines stay whole
+	if look in [&"Refusal", &"Flavor"]:  # a reason or a flavor may be long; the preview's lines stay whole
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size.x = LEDGER_DETAIL_WIDTH
 	_lines.add_child(label)
