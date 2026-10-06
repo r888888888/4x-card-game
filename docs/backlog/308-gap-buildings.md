@@ -57,3 +57,5 @@ Content tests, naming no card id:
 
 ## Log
 - 2026-10-05: specced from the realism pass of the tall-buildings design.
+- 2026-10-06: red. AC2 also failed on Monument and Forge (`once`, no tier, not wonders); the user chose to drop `once`
+  from both (ordinary buildings) rather than tier them.
