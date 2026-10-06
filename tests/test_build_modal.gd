@@ -548,3 +548,39 @@ func test_the_flavor_has_room_under_the_card() -> void:
 		check(not card.is_ancestor_of(flavor), "under the card, not on it")
 		eq(flavor.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
 			"24 px between the card and its flavor"))
+
+
+# --- 360: room under the flavor ---
+
+func test_the_preview_has_room_under_the_flavor() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		eq(modal.shown_card(), "kiln", "the Kiln selected")
+		var flavor := label_reading(modal, KILN.flavor)
+		var heading := label_reading(modal, "If built on Homeland")
+		eq(heading.get_global_rect().position.y - flavor.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the flavor and the preview"))
+
+
+func test_a_refusal_has_room_under_the_flavor() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var e := Game.engine
+		var modal: Object = await open_build(main)
+		(modal.list.row("oven") as Button).pressed.emit()
+		await wait_frames(5)
+		var flavor := label_reading(modal, OVEN.flavor)
+		var reason := label_reading(modal, e.build_error("oven", home_uid(e)))
+		eq(reason.get_global_rect().position.y - flavor.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the flavor and the reason"))
+
+
+func test_a_card_without_flavor_has_no_gap_for_one() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("warriors") as Button).pressed.emit()
+		await wait_frames(5)
+		var heading := label_reading(modal, "If built on Homeland")
+		var card: CardView = modal.card_view()
+		eq(heading.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"the preview 24 px under the card, as without flavor before"))
