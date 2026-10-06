@@ -360,7 +360,7 @@
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
-      "id": "mud_brick_houses", "name": "Mud-Brick Houses", "type": "building",
+      "id": "mud_brick_houses", "name": "Courtyard Houses", "type": "building",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 2,
       "effects": []
     },

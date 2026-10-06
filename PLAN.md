@@ -459,7 +459,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
 starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies). Since 058
 the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Library, Market, Harbor) start locked.
-264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Mud-Brick Houses (Pottery, housing 2), Caravanserai
+264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Courtyard Houses (Pottery, housing 2), Caravanserai
 (The Wheel, desert, ⟳ +1 wealth, +1 more on fresh water), Bathhouse (Priesthood, fresh water, housing 1, ⟳ −1 unrest),
 Courthouse (Code of Laws, ⟳ −1 unrest, unrest limit +1) and Aqueduct (Engineering, housing 2; Engineering gave a second
 Monument until then): every terrain has a building, every era opens a new one.

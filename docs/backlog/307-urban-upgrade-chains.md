@@ -32,7 +32,7 @@ Content tests, naming no card id (306's invariants cover tiers, eurekas and unre
     goods; Bronze Age palace economies gathered harvests in central stores. Clay Tokens' eureka counts a Granary: fine.
   - **City Walls**: upgrade of Palisade, Town, Masonry: defence +2. City walls were a mark of the city; raids prefer the
     most pop at equal defence, so tall needs them.
-  - **Multi-storey Houses**: upgrade of Mud-Brick Houses, Town, Engineering: housing 2. Tyre and Arwad built upward.
+  - **Multi-storey Houses**: upgrade of Courtyard Houses, Town, Engineering: housing 2. Tyre and Arwad built upward.
   - **Textile Works**: upgrade of Weavers' Workshop, Town, Weaving: ⟳ +1 wealth per 3 pop here. Ur III's temple and
     palace workshops employed thousands of weavers.
   - **Dockyard**: upgrade of Harbor (305), Town, Navigation*: ⟳ +1 wealth per 3 pop here.
@@ -51,7 +51,7 @@ Content tests, naming no card id (306's invariants cover tiers, eurekas and unre
 - [ ] Mint (Merchant Quarter, Metropolis, Coinage, 8 wealth, ⟳ +2 wealth, 1 VP).
 - [ ] Storehouse (Granary, Town, Clay Tokens, 4 wealth, housing 1, famine guard 1).
 - [ ] City Walls (Palisade, Town, Masonry, 5 wealth, defence 2).
-- [ ] Multi-storey Houses (Mud-Brick Houses, Town, Engineering, 5 wealth, housing 2).
+- [ ] Multi-storey Houses (Courtyard Houses, Town, Engineering, 5 wealth, housing 2).
 - [ ] Textile Works (Weavers' Workshop, Town, Weaving, 5 wealth, ⟳ +1 wealth per 3 pop here).
 - [ ] Dockyard (Harbor, Town, Navigation, 6 wealth, ⟳ +1 wealth per 3 pop here).
 - [ ] Aqueduct: Engineering, tier Town, 5 wealth, housing 3.

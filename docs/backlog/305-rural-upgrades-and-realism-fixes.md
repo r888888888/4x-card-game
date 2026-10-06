@@ -45,7 +45,7 @@ Content tests (`tests/test_content.gd`) assert invariants of the real data, nami
     Husbandry instead of The Wheel: desert caravans ran on donkeys, then camels, not wheels; the caravanserai itself is
     a much later Persian building. The Caravan action card keeps The Wheel. The Qanat tech's eureka still counts it.
   - **Granary** opens on turn 1 (an unlocked entry): granaries came before pottery (Dhra', c. 9,000 BC). Pottery keeps
-    Mud-Brick Houses.
+    Courtyard Houses.
 - Techs: each tech whose `unlock` now names an upgrade reads "X can now be built on a Y." (300). Eurekas that count
   Harbors (Navigation, Astronomy) or Ploughed Fields still work: an upgrade is a tableau card with its own id.
 - The sim bot (`GenericBot`, 314) builds upgrades through `legal_actions` and values them by what they make; no bot change (303 is wontfix).
@@ -63,7 +63,7 @@ Content tests (`tests/test_content.gd`) assert invariants of the real data, nami
 - [ ] Timber Camp: upgrade of Hunters' Camp, Bronze Working, cost 3 wealth, ⟳ +1 wealth.
 - [ ] Shaft Mine: upgrade of Mine, Iron Working, cost 5 wealth, ⟳ +1 wealth, +1 more on gold.
 - [ ] Caravan Station (was Caravanserai) unlocked by Animal Husbandry; The Wheel unlocks the Caravan card only.
-- [ ] Granary is buildable on turn 1; Pottery's text lists only Mud-Brick Houses.
+- [ ] Granary is buildable on turn 1; Pottery's text lists only Courtyard Houses.
 - [ ] In a game: a Farm on a desert flood plain with both upgrades makes 2 + 1 + 1 + 1 + 1 food from one slot.
 
 ## Log
