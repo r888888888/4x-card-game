@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The test runner itself (223): frames run without the headless sleep on a fixed time step, and the test files split
-## into shards for parallel processes (tests/lib/test_shards.gd); a test_* method that takes arguments is reported
+## into shards for parallel processes (tests/lib/test_shards.gd; 335: the slow files dealt first); a test_* method that takes arguments is reported
 ## instead of called (284, tests/lib/test_methods.gd).
 ## In detail (from docs/testing.md, 331): The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even
 ## when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes
@@ -48,6 +48,54 @@ func test_one_shard_takes_every_file() -> void:
 	var files: Array[String] = ["a", "b", "c"]
 	eq(shards.pick(files, 0, 1), files, "one shard: every file")
 
+
+
+# --- 335: slow files dealt first ---
+
+func test_slow_files_are_dealt_first_one_per_shard_then_the_rest_round_robin() -> void:
+	var shards: Object = load(SHARDS_PATH)
+	var files: Array[String] = ["c", "a", "d", "b", "e"]
+	var dealt: Array[String] = shards.slow_first(files, ["a", "b"] as Array[String])
+	eq(dealt, ["a", "b", "c", "d", "e"] as Array[String], "the slow files first, in the slow list's order")
+	eq(shards.pick(dealt, 0, 2), ["a", "c", "e"] as Array[String], "shard 0 of 2")
+	eq(shards.pick(dealt, 1, 2), ["b", "d"] as Array[String], "shard 1 of 2")
+
+
+func test_slow_files_match_by_file_name_and_a_missing_one_is_skipped() -> void:
+	var shards: Object = load(SHARDS_PATH)
+	var files: Array[String] = ["res://tests/test_c.gd", "res://tests/test_a.gd"]
+	eq(shards.slow_first(files, ["test_a.gd", "test_gone.gd"] as Array[String]),
+		["res://tests/test_a.gd", "res://tests/test_c.gd"] as Array[String], "test_a first; test_gone isn't there")
+
+
+func test_the_slow_list_names_test_files_that_exist() -> void:
+	var shards: Object = load(SHARDS_PATH)
+	var slow: Array = shards.get("SLOW") if shards.get("SLOW") != null else []
+	check(slow.size() >= 3, "at least three slow files: %s" % [slow])
+	for file in slow:
+		check(FileAccess.file_exists("res://tests/" + file), "%s exists" % file)
+
+
+func test_every_file_runs_exactly_once_for_1_to_12_shards() -> void:
+	var shards: Object = load(SHARDS_PATH)
+	var files: Array[String] = []
+	for file in DirAccess.get_files_at("res://tests"):
+		if file.begins_with("test_") and file.ends_with(".gd"):
+			files.append("res://tests/" + file)
+	var dealt: Array[String] = shards.slow_first(files, shards.SLOW)
+	for n in range(1, 13):
+		var seen: Array[String] = []
+		for i in n:
+			seen.append_array(shards.pick(dealt, i, n))
+		seen.sort()
+		var want := files.duplicate()
+		want.sort()
+		eq(seen, want, "%d shards: every file once" % n)
+
+
+func test_the_runner_deals_the_slow_files_first() -> void:
+	var runner := FileAccess.get_file_as_string("res://tests/run_tests.gd")
+	check(runner.contains("TestShards.slow_first("), "run_tests.gd orders the files with TestShards.slow_first")
 
 # --- 196: the player's settings file changing is a warning ---
 
