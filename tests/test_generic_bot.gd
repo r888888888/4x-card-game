@@ -12,7 +12,17 @@ const RIOT := {"id": "riot", "name": "Riot", "type": "action", "effects": [
 const GIFT := {"id": "gift", "name": "Gift", "type": "event", "choices": [
 	{"effects": [{"op": "gain", "resource": "food", "amount": 1}]},
 	{"effects": [{"op": "gain", "resource": "food", "amount": 3}]}]}
-const EXTRA := [LONE, RIOT, GIFT]
+## 321: Stewards (unlimited actions, unrest limit 20, administers 3); Colonist (5 food + 1 per territory, settles a
+## City); Grumble (building, ⟳ +3 unrest) and Plinth (building, no effect).
+const STEWARDS := {"id": "stewards", "name": "Stewards", "type": "government", "unrest_limit": 20, "administers": 3}
+const COLONIST := {"id": "colonist", "name": "Colonist", "type": "action", "cost": {"food": 5},
+	"cost_per_territory": {"food": 1}, "effects": [{"op": "settle", "card": "city"}]}
+const GRUMBLE := {"id": "grumble", "name": "Grumble", "type": "building",
+	"effects": [{"op": "gain", "resource": "unrest", "amount": 3, "trigger": "upkeep"}]}
+const PLINTH := {"id": "plinth", "name": "Plinth", "type": "building"}
+const EXTRA := [LONE, RIOT, GIFT, STEWARDS, COLONIST, GRUMBLE, PLINTH]
+## The territories an expansion game settles after the Homeland, then puts on the frontier, in order.
+const LANDS := ["grassland", "grassland", "grassland", "hills", "hills", "hills", "jungle", "jungle", "jungle", "jungle"]
 
 
 ## A fixture game at turn 1 of turn_limit, government ruling, with exactly hand in the hand and deck in the deck (ids;
@@ -213,3 +223,96 @@ func test_wide_settles_where_generic_builds_a_temple() -> void:
 
 func test_scripted_bot_is_gone() -> void:
 	check(not ResourceLoader.exists("res://sim/bot.gd"), "sim/bot.gd removed")
+
+
+# --- 321: the bot weighs the rising cost of expansion ---
+
+## A game at turn 1 of 11 with government ruling, the Homeland plus territories − 1 more settled, frontier more on the
+## frontier, 40 food and exactly hand in the hand (nothing in the deck).
+func expansion_game(territories: int, frontier: int, hand: Array, government := "stewards") -> GameEngine:
+	var e := bot_game(hand, [], 11, government, {"territory_deck": {"grassland": 3, "hills": 3, "jungle": 4},
+		"starting": {"resources": {"food": 40, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+			"territory": "homeland", "government": government}})
+	settle(e, LANDS.slice(0, territories - 1))
+	to_frontier(e, LANDS.slice(territories - 1, territories - 1 + frontier))
+	e.resources.food = 40
+	return e
+
+
+## GenericBot.value of e for strategy.
+func value_of(e: GameEngine, strategy: String) -> float:
+	return BOT.value(e, BOT.Context.new(strategy)) if BOT != null else 0.0
+
+
+## How much more wide values n territories than n − 1 than generic does (all else equal): the land weight it adds.
+func wide_land_step(n: int, government := "stewards") -> float:
+	var more := expansion_game(n, 0, [], government)
+	var fewer := expansion_game(n - 1, 0, [], government)
+	return (value_of(more, "wide") - value_of(fewer, "wide")) - (value_of(more, "generic") - value_of(fewer, "generic"))
+
+
+func territories_in(e: GameEngine) -> int:
+	return e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
+
+
+func test_wides_land_weight_stops_at_the_admin_cap() -> void:
+	var land: float = BOT.get_script_constant_map().WEIGHTS.wide.land if BOT != null else 0.0
+	check(absf(wide_land_step(3) - land) < 0.01, "2 → 3 territories (cap 3): + the land weight %.1f, got %.2f"
+		% [land, wide_land_step(3)])
+	check(absf(wide_land_step(4)) < 0.01, "3 → 4 territories (past the cap): + nothing, got %.2f" % wide_land_step(4))
+	check(absf(wide_land_step(4, "lone") - land) < 0.01, "3 → 4 with no cap (Lone): + the land weight, got %.2f"
+		% wide_land_step(4, "lone"))
+
+
+func test_unrest_coming_in_each_turn_costs_far_from_the_limit() -> void:
+	for strategy in ["generic", "wide", "tall"]:
+		var calm := expansion_game(1, 0, [])
+		build_on(calm, home_uid(calm), ["plinth"])
+		var restless := expansion_game(1, 0, [])
+		build_on(restless, home_uid(restless), ["grumble"])
+		eq(restless.upkeep_forecast().get(GameEngine.UNREST), 3, "precondition: Grumble adds 3 a turn")
+		check(value_of(restless, strategy) < value_of(calm, strategy),
+			"%s: +3 unrest a turn (unrest 0, limit 20) values less: %.2f vs %.2f"
+			% [strategy, value_of(restless, strategy), value_of(calm, strategy)])
+
+
+func test_calming_unrest_each_turn_is_worth_something() -> void:
+	for strategy in ["generic", "wide", "tall"]:
+		var idle := expansion_game(1, 0, [])
+		build_on(idle, home_uid(idle), ["plinth"])
+		idle.resources["unrest"] = 5
+		var calming := expansion_game(1, 0, [])
+		build_on(calming, home_uid(calming), ["calm"])
+		calming.resources["unrest"] = 5
+		check(value_of(calming, strategy) > value_of(idle, strategy),
+			"%s: −1 unrest a turn from 5 values more: %.2f vs %.2f"
+			% [strategy, value_of(calming, strategy), value_of(idle, strategy)])
+
+
+func test_the_generic_bot_settles_within_the_cap_but_not_further_past_it() -> void:
+	var within := expansion_game(2, 2, ["colonist"])  # a spare frontier territory keeps the Colonist's worth (321)
+	take_turn(within)
+	eq(territories_in(within), 3, "2 → 3 territories: within the cap, settled")
+	var past := expansion_game(4, 2, ["colonist"])
+	eq(past.admin_unrest(), 1, "precondition: 1 past the cap")
+	take_turn(past)
+	eq(territories_in(past), 4, "a 5th would make it +3 unrest a turn: not settled")
+
+
+func test_wide_expands_to_the_cap_and_not_past_it() -> void:
+	var e := expansion_game(1, 5, ["colonist", "colonist", "colonist", "colonist"])
+	if BOT != null:
+		BOT.take_turn(e, "wide")
+	var held := territories_in(e)
+	check(held >= 3 and held <= 4, "wide holds 3 or 4 territories (cap 3), not %d" % held)
+
+
+func test_the_settlers_rising_price_lowers_its_value() -> void:
+	if BOT == null:
+		check(false, "sim/generic_bot.gd exists")
+		return
+	var few := expansion_game(2, 1, [], "lone")
+	var many := expansion_game(6, 1, [], "lone")
+	var few_value: float = BOT.card_value(few, "colonist", BOT.Context.new("generic"))
+	var many_value: float = BOT.card_value(many, "colonist", BOT.Context.new("generic"))
+	check(many_value < few_value, "Colonist at 7 food (2 held) %.2f > at 11 food (6 held) %.2f" % [few_value, many_value])

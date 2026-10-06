@@ -2,7 +2,7 @@
 id: 321
 title: The sim bot weighs the rising cost of expansion
 type: feature
-status: ready
+status: red-review
 branch: feat/321-bot-weighs-expansion-costs
 ---
 
@@ -51,8 +51,18 @@ frontier territories to settle, otherwise nothing worth playing.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_generic_bot::test_…` |
+| AC1 | `test_generic_bot::test_wides_land_weight_stops_at_the_admin_cap` |
+| AC2 | `test_generic_bot::test_unrest_coming_in_each_turn_costs_far_from_the_limit`, `test_calming_unrest_each_turn_is_worth_something` |
+| AC3 | `test_generic_bot::test_the_generic_bot_settles_within_the_cap_but_not_further_past_it` |
+| AC4 | `test_generic_bot::test_wide_expands_to_the_cap_and_not_past_it` |
+| AC5 | `test_generic_bot::test_the_settlers_rising_price_lowers_its_value` |
 
 ## Log
 - 2026-10-05: specced with the user alongside 319 and 320. Assumed every strategy (not only wide) should count unrest
   income, since 319's drain otherwise looks free to the generic bot one or two past the cap.
+- Red: the fixtures keep a spare frontier territory. With only one, playing the last Colonist leaves it nothing to
+  settle, so the deck's worth (310) drops by more than the City adds and the generic bot holds the card even within
+  the cap: an existing quirk of valuing cards in hand, not this item's. AC4 uses 5 frontier territories and 4
+  Colonists (the spec's 3 could never reach 5 territories). AC1 measures wide's land step as wide's value change minus
+  generic's, so admin unrest and everything else cancel. AC5 and AC3's within-cap half pass already (the bot pays
+  `play_cost`, as the spec expected); they guard it.
