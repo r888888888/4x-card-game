@@ -111,13 +111,14 @@ func effects_for(trigger: String) -> Array[Effect]:
 
 ## Short card text for the card face. Generated from effects so it always matches the data:
 ## "⟳" marks upkeep, and a keyword bonus joins the line it adds to ("⟳ +1 food (+1 Flood Plain)").
-func rules_text(card_db: Dictionary) -> String:
+## headers false leaves out an upgrade's "Builds on" line and the tier's "Needs" line (302): what the card adds.
+func rules_text(card_db: Dictionary, headers := true) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
-	if is_upgrade():
+	if is_upgrade() and headers:
 		parts.append(upgrade_text(card_db))
-	if tier_name != "":
+	if tier_name != "" and headers:
 		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())

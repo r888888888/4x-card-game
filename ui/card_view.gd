@@ -84,6 +84,8 @@ var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
 var min_height := 0.0  # a floor under the fitted height: the supply row keeps its cards one height
+var upgrade_chip: Button  # a building's "+ Upgrade" in the territory view (302), or null
+var _ribbons: Array[Dictionary] = []  # its upgrades' ribbons: {uid, name, rules, reason, hatched} (302)
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
 var _replays := {}
@@ -124,6 +126,8 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_face.queue_free()
 	_face = CardFace.new()
 	add_child(_face)
+	_ribbons.clear()
+	upgrade_chip = null
 	if kind != "":
 		_face.build_board(card, card_db, kind, _color)
 	else:
@@ -257,6 +261,29 @@ func set_idle(idle: bool) -> void:
 	_replays["idle"] = set_idle.bind(idle)
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
 	_set_tip("Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else "")
+
+
+## Shows a building's upgrades as ribbons at its foot (302), each {uid, name, rules, reason} with reason "" while it
+## works; on_chip, when valid, adds a "+ Upgrade" chip calling it, disabled with chip_reason when that isn't "".
+func set_upgrades(ribbons: Array[Dictionary], on_chip: Callable, chip_reason: String) -> void:
+	_replays["upgrades"] = set_upgrades.bind(ribbons, on_chip, chip_reason)
+	_ribbons.clear()
+	var strips: Array[UpgradeRibbon] = []
+	for r in ribbons:
+		_ribbons.append(r.merged({"hatched": r.reason != ""}))
+		strips.append(UpgradeRibbon.new(r.name, r.rules, r.reason))
+	upgrade_chip = null
+	if on_chip.is_valid():
+		upgrade_chip = UIKit.button("+ Upgrade", on_chip)
+		upgrade_chip.theme_type_variation = &"UpgradeChip"
+		upgrade_chip.disabled = chip_reason != ""
+		upgrade_chip.tooltip_text = chip_reason if chip_reason != "" else "Build an upgrade on this building."
+	_face.set_ribbons(strips, upgrade_chip)
+
+
+## Test hook (302): the ribbons shown, {uid, name, rules, reason, hatched}, in order.
+func ribbons() -> Array[Dictionary]:
+	return _ribbons.duplicate()
 
 
 ## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.

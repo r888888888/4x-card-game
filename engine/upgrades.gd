@@ -62,3 +62,34 @@ static func on(e: GameEngine, uid: int) -> Array[int]:
 			out.append(card.uid)
 	return out
 
+
+## Upgrade uid's upgrades and theirs, depth first in build order (302): what a base's card shows as ribbons.
+static func tree(e: GameEngine, uid: int) -> Array[int]:
+	var out: Array[int] = []
+	for u in on(e, uid):
+		out.append(u)
+		out.append_array(tree(e, u))
+	return out
+
+
+## The unlocked upgrade entries building base_uid could take now, in menu order, whatever they cost (302).
+static func for_base(e: GameEngine, base_uid: int) -> Array[String]:
+	var out: Array[String] = []
+	for id in BuildMenu.entries(e):
+		if e.card_db[id].is_upgrade() and BuildMenu.targets(e, id).has(base_uid):
+			out.append(id)
+	return out
+
+
+## Each pair of an unlocked upgrade entry and a building on settled territory t it builds on, {card_id, base}: by
+## building in tableau order, then menu order, whether it could be built now or not (302).
+static func options(e: GameEngine, t: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var entries := BuildMenu.entries(e)
+	for base in e.zone("tableau").cards:
+		if base.def.type != CardDef.BUILDING or base.territory_uid != t:
+			continue
+		for id in entries:
+			if e.card_db[id].upgrade_of == base.def.id:
+				out.append({"card_id": id, "base": base.uid})
+	return out

@@ -443,3 +443,69 @@ func test_an_unlock_of_an_upgrade_names_its_base() -> void:
 	var recorded := record_messages(e)
 	check(e.buy_tech(uid_of(e.zone("research_deck"), "furrow")), "learn Furrow")
 	check_noticed(recorded, "Plough can now be built on a Farm.", GameEngine.NOTICE_INFO)
+
+
+# --- Backlog 302: what the territory view and the Build modal ask ---
+
+func test_upgrade_base_name_names_the_building_an_entry_builds_on() -> void:
+	var e := upgrade_engine()
+	eq([e.upgrade_base_name("plough"), e.upgrade_base_name("cathedral")], ["Farm", "Sanctum"], "upgrades")
+	eq([e.upgrade_base_name("farm"), e.upgrade_base_name("dragon")], ["", ""], "a building, an unknown id")
+
+
+func test_upgrade_rules_text_leaves_out_the_builds_on_line() -> void:
+	var e := upgrade_engine()
+	eq(e.upgrade_rules_text("plough"), "⟳ +1 food", "the Plough")
+	eq(e.upgrade_rules_text("ditch"), "Flood Plain: ⟳ +1 food\n+1 housing", "the Ditch")
+	eq(e.upgrade_rules_text("farm"), "", "a building that is no upgrade")
+
+
+func test_upgrade_tree_lists_a_bases_upgrades_depth_first() -> void:
+	var e := upgrade_engine()
+	var chapel := put_on(e, home_uid(e), "chapel")
+	var sanctum := upgrade(e, "sanctum", chapel)
+	var rampart := upgrade(e, "rampart", chapel)
+	var cathedral := upgrade(e, "cathedral", sanctum)
+	eq(e.upgrade_tree(chapel), [sanctum, cathedral, rampart] as Array[int], "each upgrade, then what is built on it")
+	eq(e.upgrade_tree(sanctum), [cathedral] as Array[int], "from the Sanctum")
+	eq(e.upgrade_tree(cathedral), [] as Array[int], "nothing on the Cathedral")
+
+
+func test_upgrades_for_lists_the_entries_a_base_could_take_now() -> void:
+	var e := upgrade_engine(0, "", {"build_menu": MENU.merged({"rampart": {"locked": true}}, true)})
+	var farm := put_on(e, home_uid(e), "farm")
+	var chapel := put_on(e, home_uid(e), "chapel")
+	eq(e.upgrades_for(farm), ["plough", "ditch"] as Array[String], "in menu order, whatever they cost; no Weir off the river")
+	eq(e.upgrades_for(chapel), ["sanctum"] as Array[String], "the locked Rampart left out")
+	e.resources.food = 10
+	upgrade(e, "plough", farm)
+	eq(e.upgrades_for(farm), ["ditch"] as Array[String], "not one it already carries")
+	eq(e.upgrades_for(home_uid(e)), [] as Array[String], "a territory takes none")
+
+
+func test_upgrade_options_pair_each_upgrade_entry_with_each_building_on_a_territory() -> void:
+	var e := upgrade_engine()
+	var home := home_uid(e)
+	var farm := put_on(e, home, "farm")
+	var chapel := put_on(e, home, "chapel")
+	eq(e.upgrade_options(home), [{"card_id": "plough", "base": farm}, {"card_id": "ditch", "base": farm},
+		{"card_id": "weir", "base": farm}, {"card_id": "sanctum", "base": chapel}, {"card_id": "rampart", "base": chapel}],
+		"by base in tableau order, then menu order, refused ones too")
+	var plough := upgrade(e, "plough", farm)
+	var sanctum := upgrade(e, "sanctum", chapel)
+	var options: Array = e.upgrade_options(home)
+	check(options.has({"card_id": "plough", "base": farm}), "a built upgrade is still an option on its base")
+	check(options.has({"card_id": "cathedral", "base": sanctum}), "an upgrade is a base too")
+	check(not options.any(func(o): return o.base == plough), "nothing builds on a Plough")
+	eq(e.upgrade_options(settle_at(e, "grassland", 1)), [] as Array[Dictionary], "a territory with no buildings")
+
+
+func test_an_upgrades_preview_reads_its_bases_territory() -> void:
+	var e := upgrade_engine(10, "band")
+	var river := settle_at(e, "river", 1)
+	var farm := put_on(e, river, "farm")
+	var food := food_forecast(e)
+	var housing: int = e.housing(river)
+	eq(e.build_preview("ditch", farm), {"cost": {"food": 1}, "lines": [["food", food, food + 1],
+		["housing", housing, housing + 1], ["actions_left", 2, 1]]}, "no slot or worker line")
+	eq(e.build_preview("ditch", river), {}, "refused on the territory itself")

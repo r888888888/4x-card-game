@@ -251,3 +251,18 @@ func test_a_tier_change_that_affects_no_such_card_keeps_its_notice() -> void:
 	recorded.clear()
 	e.add_pop(home_uid(e), 1, source(e))
 	eq(notices_in(recorded), ["Homeland grows into a Village."] as Array[String], "and growing")
+
+
+# --- Backlog 302: what the upgrade's face asks ---
+
+func test_card_tier_name_names_the_tier_a_card_needs() -> void:
+	var e := tier_engine(4)
+	eq([e.card_tier_name("sanctum"), e.card_tier_name("forum")], ["Village", "Town"], "cards with a tier")
+	eq([e.card_tier_name("chapel"), e.card_tier_name("dragon")], ["", ""], "none, an unknown id")
+	eq(tier_engine(4, null).card_tier_name("forum"), "", "with tiers off")
+
+
+func test_upgrade_rules_text_leaves_out_the_tier_line_too() -> void:
+	var e := tier_engine(4)
+	eq(e.upgrade_rules_text("sanctum"), "Draw up to 1 more card each turn", "the Sanctum")
+	eq(e.upgrade_rules_text("cathedral"), "", "the Cathedral adds only VP")

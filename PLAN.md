@@ -243,6 +243,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
   rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
   built on a Farm."
+- Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
+  upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
+  `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
+  another (`upgrades_for`), opening the Build modal on that row. The modal's Upgrades heading lists
+  `upgrade_options(t)` ("Plough … on Farm"), previewed with `build_preview(id, base)`. An upgrade's face reads
+  "Upgrade · Farm", its lines led by "Also", with a stamp naming its tier (`upgrade_base_name`, `card_tier_name`).
 - Buildings that need a tier (301): a building or upgrade may set `tier` (a `population.tiers` id; ignored with a
   warning when tiers are off). It is built only on a territory at that tier or larger ("Forum needs a Town (Homeland is
   a Village)."), and while its territory is smaller it falls back: it keeps its slot and worker but counts for nothing,

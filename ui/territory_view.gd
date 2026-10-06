@@ -14,6 +14,9 @@ signal navigated
 signal rename_requested(t: int)
 ## Build… (B) or a free slot's "+ Build" pressed: the board opens the Build modal on territory t (297).
 signal build_requested(t: int)
+## A building's "+ Upgrade" pressed: the board opens the Build modal on territory t with upgrade card_id on building
+## base selected (302).
+signal upgrade_requested(t: int, card_id: String, base: int)
 
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
@@ -210,13 +213,14 @@ static func is_territory(e: GameEngine, t: int) -> bool:
 
 
 ## The uids shown: the territory's city, buildings and units in tableau order ([] while closed). Its own card stays in the
-## Realm: the view is the territory (105).
+## Realm: the view is the territory (105). An upgrade has no card: it is a ribbon on its base's (302).
 func card_uids() -> Array[int]:
 	var out: Array[int] = []
 	if is_open():
-		for group in Game.engine.territory_groups():
+		var e := Game.engine
+		for group in e.territory_groups():
 			if group.territory == uid:
-				out.assign(group.cards.slice(1))
+				out.assign(group.cards.slice(1).filter(func(c): return e.upgrade_base(c) == -1))
 	return out
 
 
@@ -277,12 +281,32 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	var cards := card_uids().filter(func(c): return not units.has(c))
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)
+		_show_upgrades(e, cards[i])
 	_show_outlines(e.free_slots(uid))
 	_show_build(e)
 	for i in units.size():  # the units stationed here, in a row of their own (160)
 		place.call(tableau.find(units[i]), units_row, i)
 	_units_caption.visible = not units.is_empty()
 	units_row.visible = not units.is_empty()
+
+
+## Building b's upgrades as ribbons on its card, depth first, and its "+ Upgrade" chip while it or an upgrade on it
+## could take another (302): the chip opens the Build modal on the first such upgrade.
+func _show_upgrades(e: GameEngine, b: int) -> void:
+	var view: CardView = _board.views.get(b)
+	if view == null:
+		return
+	var ribbons: Array[Dictionary] = []
+	for u in e.upgrade_tree(b):
+		var def := e.zone("tableau").find(u).def
+		ribbons.append({"uid": u, "name": def.name, "rules": e.upgrade_rules_text(def.id), "reason": e.fallen_back_reason(u)})
+	var on_chip := Callable()
+	for base in [b] + e.upgrade_tree(b):
+		var options := e.upgrades_for(base)
+		if not options.is_empty():
+			on_chip = func(): upgrade_requested.emit(uid, options[0], base)
+			break
+	view.set_upgrades(ribbons, on_chip, e.build_menu_error())
 
 
 ## Build… and the free slots' "+ Build" (297): shown while the build menu has entries, disabled with the reason while

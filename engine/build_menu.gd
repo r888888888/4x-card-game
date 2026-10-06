@@ -50,10 +50,14 @@ static func preview(e: GameEngine, card_id: String, territory_uid: int) -> Dicti
 	if error(e, card_id, territory_uid) != "":
 		return {}
 	var cost := CardPlay.cost_to_play(e, e.card_db[card_id])
+	var where := territory_uid
+	if e.card_db[card_id].is_upgrade():  # what changes is on its base's territory (302)
+		var base := territory_uid if territory_uid != -1 else targets(e, card_id)[0]
+		where = e.zone("tableau").find(base).territory_uid
 	var f := e.fork()
-	var before := _readings(e, territory_uid)
+	var before := _readings(e, where)
 	build(f, card_id, territory_uid)
-	var after := _readings(f, territory_uid)
+	var after := _readings(f, where)
 	var lines: Array = []
 	for key in before:
 		if before[key] != after[key]:
