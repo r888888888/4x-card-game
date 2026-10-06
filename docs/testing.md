@@ -180,6 +180,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_revolt_modal.gd` | Revolt from the civilization modal (205; UI) |
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
+| `tests/test_scaffolding.gd` | No red-phase scaffolding left in tests (333; `tests/lib/scaffolding_checks.gd`) |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
 | `tests/test_select_list.gd` | The selectable list (217) |
@@ -321,7 +322,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
-writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase. Two files'
+writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase, and the suite fails on one left after it (333). Two files'
 helpers with the same name must do the same thing. Tests never call engine members that start with `_`: if setup needs one, add a public method.
 
 ### Guidelines

@@ -9,8 +9,6 @@ extends "res://tests/lib/raid_case.gd"
 func raid_turn_3(levy_on: String) -> GameEngine:
 	var e: GameEngine = raid_engine(["raiders", "omen", "omen"], {"raiders": 1, "horde": 1, "omen": 3},
 		{"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 1}})
-	if e == null:
-		return null
 	e.end_turn()
 	build_on(e, hills_of(e), ["town"])
 	recruit(e, hills_of(e) if levy_on == "hills" else home_uid(e))
@@ -25,8 +23,6 @@ func levy_of(e: GameEngine) -> int:
 
 func test_the_bot_moves_a_unit_onto_a_short_target() -> void:
 	var e := raid_turn_3("home")
-	if e == null:
-		return
 	var raid: Dictionary = e.raid_forecast()[0]
 	check(raid.defense < raid.strength and raid.defense + e.unit_strength(levy_of(e)) >= raid.strength,
 		"Hills is short, and the Levy would make up the shortfall: %s" % [raid])
@@ -36,8 +32,6 @@ func test_the_bot_moves_a_unit_onto_a_short_target() -> void:
 
 func test_the_bot_keeps_a_unit_on_a_raided_target_it_holds() -> void:
 	var e := raid_turn_3("hills")
-	if e == null:
-		return
 	var raid: Dictionary = e.raid_forecast()[0]
 	check(raid.defense >= raid.strength, "Hills holds with the Levy: %s" % [raid])
 	GenericBot.take_turn(e, "generic")

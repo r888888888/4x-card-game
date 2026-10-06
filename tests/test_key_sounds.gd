@@ -142,11 +142,10 @@ func test_a_disabled_button_gives_a_dead_tap_and_shows_its_reason_at_once() -> v
 	mouse(main, centre(locked), true)
 	mouse(main, centre(locked), false)
 	eq(heard(main), [[Sfx.REJECT_LOCKED, 0.0]], "one dead tap at once, nothing else")
-	var tip: Control = main.call("locked_tip") if main.has_method("locked_tip") else null
-	check(tip != null and tip.is_visible_in_tree(), "the reason shows at once")
-	if tip != null:
-		var labels := tip.find_children("*", "Label", true, false)
-		eq(labels.map(func(l): return l.text), ["Not while the moon is up."], "the tooltip's text")
+	var tip: Control = main.locked_tip()
+	check(tip.is_visible_in_tree(), "the reason shows at once")
+	var labels := tip.find_children("*", "Label", true, false)
+	eq(labels.map(func(l): return l.text), ["Not while the moon is up."], "the tooltip's text")
 	close_game(main)
 
 

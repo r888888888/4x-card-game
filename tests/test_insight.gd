@@ -124,6 +124,6 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_rolls_its_change_with_
 	Game.engine = real
 
 
-## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
+## main.forecast_text(key) (201).
 func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"
+	return main.forecast_text(key)

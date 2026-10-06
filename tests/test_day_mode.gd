@@ -97,9 +97,9 @@ func check_look(main: Node, mode: String) -> void:
 	eq(log_text.get_theme_color("default_color"), palette("LOG_TEXT"), "%s: the log's text" % mode)
 
 
-## The colour counter's figure is drawn in (an odometer's since 181, else the label's).
-func figure_color(counter: Control) -> Color:
-	return counter.figure().color if counter.has_method("figure") else counter.get_theme_color("font_color")
+## The colour counter's figure is drawn in (its odometer's, 181).
+func figure_color(counter: Counter) -> Color:
+	return counter.figure().color
 
 
 func test_day_mode_switches_a_game_in_progress_and_back() -> void:

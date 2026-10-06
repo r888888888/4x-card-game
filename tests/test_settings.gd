@@ -169,8 +169,7 @@ func test_settings_set_day_mode_saves_it_and_says_so() -> void:
 	eq(saved.get("day_mode"), true, "saved")
 	eq(told[0], 1, "changed emitted once")
 	Settings.store = original
-	if Settings.has_method("set_day_mode"):
-		Settings.changed.emit()  # back to the player's palette
+	Settings.changed.emit()  # back to the player's palette
 
 
 # --- Bug 195: the suite doesn't run on the player's settings ---

@@ -170,10 +170,9 @@ func test_game_over_disables_it_with_a_brick_lamp() -> void:
 	await wait_frames()
 	check(Game.engine.is_over, "precondition: game over")
 	var k := key(main)
-	check(k != null and k.disabled, "disabled")
-	if k != null and k.has_method("lamp_color"):
-		eq(k.tooltip_text, Game.engine.end_turn_error(), "the reason")
-		eq(k.lamp_color(), Palette.UNREST, "brick")
+	check(k.disabled, "disabled")
+	eq(k.tooltip_text, Game.engine.end_turn_error(), "the reason")
+	eq((k as EndTurnKey).lamp_color(), Palette.UNREST, "brick")
 	close_main(main)
 
 

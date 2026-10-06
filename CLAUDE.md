@@ -92,7 +92,8 @@ in a dedicated balance item, or when the user asks.
 - Every test must assert something; runtime errors inside a test count as failures.
 - Red-phase tip: when a test calls an engine method that doesn't exist yet, hold the engine in a
   variable typed `Object` (not `GameEngine`) so the file still parses and fails on the missing method.
-- Type engines `Object` only in the red phase; retype them as `GameEngine` once green.
+- Red-phase scaffolding (engines typed `Object`, untyped `load()`s, `has_method` and `== null` guards) is
+  removed in the refactor step (the suite checks).
 
 ## Test conventions
 - Files: `tests/test_<area>.gd`, extending `"res://tests/lib/test_case.gd"`. Helpers and

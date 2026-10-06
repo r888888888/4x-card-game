@@ -173,9 +173,7 @@ func test_the_realm_has_no_collapse_toggles_or_grow() -> void:
 			if b.is_visible_in_tree():
 				check(not (b.text.begins_with("Collapse all") or b.text.begins_with("Expand all")), "no '%s'" % b.text)
 		for b in UIKit.buttons_in(main.tableau):
-			check(not b.is_visible_in_tree(), "no button in the Realm: '%s'" % b.text)
-		for method in ["set_collapsed", "is_collapsed", "set_all_collapsed", "all_collapsed", "has_toggle", "group_summary"]:
-			check(not main.tableau.has_method(method), "TableauView has no %s" % method), \
+			check(not b.is_visible_in_tree(), "no button in the Realm: '%s'" % b.text), \
 		{"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}})
 
 

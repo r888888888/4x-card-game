@@ -35,7 +35,6 @@ func test_the_board_has_no_revolt_button() -> void:
 	await wait_frames()
 	var on_board := UIKit.buttons_in(main).filter(func(b): return b.is_visible_in_tree() and b.text.begins_with("Revolt"))
 	eq(on_board.size(), 0, "no Revolt on the board")
-	check(not main.has_method("revolt_button"), "main.revolt_button() went with it")
 	close_main(main)
 
 

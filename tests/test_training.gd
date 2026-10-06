@@ -71,7 +71,7 @@ func test_bad_training_is_a_load_error() -> void:
 # --- AC2: strength ---
 
 func test_working_training_building_adds_to_units_stationed_there() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -84,7 +84,7 @@ func test_working_training_building_adds_to_units_stationed_there() -> void:
 
 
 func test_training_buildings_on_a_territory_add_up() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	build_on(e, home_uid(e), ["drill_yard", "sparring_ring"])
@@ -94,7 +94,7 @@ func test_training_buildings_on_a_territory_add_up() -> void:
 # --- AC3: where ---
 
 func test_a_unit_moved_away_loses_its_training() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var levy := levy_of(e)
@@ -105,7 +105,7 @@ func test_a_unit_moved_away_loses_its_training() -> void:
 
 
 func test_a_unit_moved_onto_a_training_territory_gains_it() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -119,7 +119,7 @@ func test_a_unit_moved_onto_a_training_territory_gains_it() -> void:
 
 
 func test_an_idle_training_building_trains_nobody() -> void:
-	var e: Object = training_engine(1)
+	var e := training_engine(1)
 	if e == null:
 		return
 	build_on(e, home_uid(e), ["drill_yard"])
@@ -130,14 +130,14 @@ func test_an_idle_training_building_trains_nobody() -> void:
 # --- AC4: edges ---
 
 func test_unit_strength_is_printed_strength_without_training() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	eq(e.unit_strength(levy_of(e)), 2, "Levy")
 
 
 func test_unit_strength_is_0_for_an_idle_unit_or_a_non_unit() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -165,7 +165,7 @@ func test_training_text() -> void:
 # --- Manual check support: the details and the face ---
 
 func test_trained_unit_details_explain_its_strength() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var levy := levy_of(e)
@@ -178,7 +178,7 @@ func test_trained_unit_details_explain_its_strength() -> void:
 
 
 func test_strength_tag_shows_only_on_a_trained_unit() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)

@@ -91,7 +91,7 @@ func test_an_events_revolt_field_is_unknown() -> void:
 # --- AC7: the forecast (the bot's revolt rule moved to 159) ---
 
 func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
-	var e: Object = revolt_engine(2)
+	var e := revolt_engine(2)
 	eq(e.revolt_forecast(), 2, "unrest 2 of Chiefs' 5")
 	var with_altar := revolt_engine(3)
 	build_on(with_altar, home_uid(with_altar), ["altar"])
@@ -109,7 +109,7 @@ const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts up to 3 
 
 
 func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() -> void:
-	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
 	e.resources["unrest"] = 3  # of Chiefs' 5: 3 counters
 	e.resources["food"] = 6
 	e.resources["wealth"] = 3
@@ -118,21 +118,21 @@ func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() 
 
 
 func test_a_summary_leaves_out_what_the_config_lacks() -> void:
-	var e: Object = anarchy_engine({"drain_pct": null, "renewal": null})
+	var e := anarchy_engine({"drain_pct": null, "renewal": null})
 	e.resources["unrest"] = 3
 	var lines: Array = e.revolt_summary()
 	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[6]], "no drain, no renewal")
 
 
 func test_no_summary_while_revolt_is_refused() -> void:
-	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
 	check(e.revolt(), "revolt")
 	check(e.revolt_error() != "", "precondition: refused now")
 	eq(e.revolt_summary(), [], "nothing to confirm")
 
 
 func test_anarchy_id_names_the_configs_anarchy_government() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	eq(e.anarchy_id(), "anarchy", "the config's unrest.anarchy (the revolution's confirmation shows its flavor, 205)")
 	eq(make_engine({"farm": 5}).anarchy_id(), "", "none without an unrest block")
 
