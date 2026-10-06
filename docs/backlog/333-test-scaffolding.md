@@ -2,7 +2,7 @@
 id: 333
 title: Remove red-phase scaffolding from the tests, and check it stays gone
 type: chore
-status: draft
+status: red-review
 branch: feat/333-test-scaffolding
 ---
 
@@ -46,6 +46,11 @@ engines to be retyped once green; nothing checks it. Tests that only pin a remov
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_scaffolding::test_an_engine_typed_object_is_named`, `test_a_script_loaded_untyped_is_named`, `test_has_method_is_named`, `test_a_reasoned_ok_comment_and_comment_lines_are_allowed`, `test_problems_are_sorted_by_file_then_line` |
+| AC1, AC2 | `test_scaffolding::test_no_test_file_holds_red_phase_scaffolding` (the cleaned suite) |
+| AC3 | deletions; listed in the Log |
+| AC4 | the full suite stays green |
+| AC5 | doc wording (`test_docs` checks the paths) |
 
 ## Log
 - 2026-10-06: specced from the project review.
