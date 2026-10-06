@@ -216,6 +216,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_territory_names.gd` | Territory names (248) |
 | `tests/test_territory_resources.gd` | Rolled resource keywords |
 | `tests/test_territory_view.gd` | The territory view (101; UI) |
+| `tests/test_territory_view_hover.gd` | Hover look and tick on the territory view's cards and free slots (342; UI) |
 | `tests/test_test_runner.gd` | The runner itself (223) |
 | `tests/test_theme.gd` | The UI theme (106) |
 | `tests/test_tiers.gd` | Settlement tiers (281) |
