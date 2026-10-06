@@ -453,7 +453,8 @@ the specification, not an omission.
     selection out of view, the area eases it back into view (200 ms, `machined`, no overshoot). Its **scrollbar** is
     a thin steel bar: an 8 px `steel` grabber, square, on a `well` track, `ink-2` under the pointer and while
     dragged; it shows only when the content overflows. Reduce motion: a notch and a follow jump (§9.5). Sound: None
-    (moving within a screen is silent, §10.2).
+    (moving within a screen is silent, §10.2). Used by every vertical scroll area: the Build list, the Knowledge
+    screen, the renewal ledger and the Realm (362).
 
 ---
 

@@ -4,7 +4,7 @@ extends SmoothScroll
 ## what wants a decision stays at the top), then each settled territory as a card with its slots and pop on it, then
 ## the tableau cards on no territory. A territory's city and buildings show only in its territory view
 ## (101). The ghost is the outline of the slot a dragged permanent with no target will land in. The scroll box is
-## the drop zone.
+## the drop zone; it glides (SmoothScroll, 362).
 
 ## The zones whose cards lead the row, in order, each with the explanation its cards' tooltips end with.
 const LEADING_ZONES := {
