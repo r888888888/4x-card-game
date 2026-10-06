@@ -2,7 +2,7 @@
 id: 302
 title: Show upgrades as ribbons on their base, and build them from the Build modal
 type: feature
-status: in-progress
+status: review
 branch: feat/302-upgrades-on-territory-view
 ---
 
@@ -17,27 +17,27 @@ tier it needs. Follows 297 (and 299) and 301.
 ## Acceptance criteria
 Fixture: 300 and 301's cards, with Ditch's tier left unset, and a territory view open on Homeland.
 
-- [ ] AC1 (ribbons): Given a Farm on Homeland carrying a Plough and a Ditch, then the territory view's row shows one card
+- [x] AC1 (ribbons): Given a Farm on Homeland carrying a Plough and a Ditch, then the territory view's row shows one card
   for the Farm (no separate card for either upgrade), with two ribbons at its foot in `upgrades_on` order, each reading
   the upgrade's name and its rules (its card text without the "Builds on …" and "Needs …" lines). A chain is drawn on
   the first base: a Chapel → Sanctum → Cathedral shows one Chapel card with a Sanctum ribbon then a Cathedral ribbon.
   The row's other cards and its "+ Build" slot outlines are what they would be without the upgrades.
-- [ ] AC2 (fallen back): Given the Sanctum fallen back (Homeland below a Village), then its ribbon, and the Cathedral's
+- [x] AC2 (fallen back): Given the Sanctum fallen back (Homeland below a Village), then its ribbon, and the Cathedral's
   after it, are drawn hatched with the ochre idle lamp and `fallen_back_reason` under the name ("Needs a Village.");
   when Homeland grows back, the next refresh draws them plain.
-- [ ] AC3 (the chip): A building that `build_targets(id)` lists for some upgrade entry in `build_menu()` shows a dashed
+- [x] AC3 (the chip): A building that `build_targets(id)` lists for some upgrade entry in `build_menu()` shows a dashed
   "+ Upgrade" chip at its foot; one that no unlocked upgrade can take now (none unlocked, all already built on it, or
   below the tier) shows none. Clicking the chip opens the Build modal for Homeland with the first such upgrade row for
   that building selected. Disabled with `_blocked_error`'s message as tooltip while a decision is owed or the game is
   over, as 297's "+ Build" is.
-- [ ] AC4 (the Build modal): The Build modal's list gains an "Upgrades" heading between "Buildings" and "Units", with
+- [x] AC4 (the Build modal): The Build modal's list gains an "Upgrades" heading between "Buildings" and "Units", with
   one row per pair of an upgrade entry in `build_menu()` and a building on this territory it builds on (in tableau
   order, then menu order), reading the upgrade's name over "on <base name>" and its cost. A row `build_error(id, base)`
   refuses is dimmed with that reason (so a tier upgrade below its tier reads "Sanctum needs a Village (Homeland is a
   Hamlet)."). The heading is hidden when it has no rows. Selecting a row shows the upgrade's card face and "If built on
   <base name>" with `build_preview(id, base_uid)`'s lines, and the key reads "Build <name>"; pressing it or Enter calls
   `build(id, base_uid)` and the territory view shows the new ribbon.
-- [ ] AC5 (the upgrade's face): An upgrade's card face (in the Build modal, a tech's Gives row, its details) has the type
+- [x] AC5 (the upgrade's face): An upgrade's card face (in the Build modal, a tech's Gives row, its details) has the type
   line "Upgrade · <base name>" in place of "Building", each rules line led by "Also", and, for one with a tier, a
   stamp naming the tier. The names come from the engine (`upgrade_base_name(card_id)`, `tier_name` for the card's
   tier); the UI names no card.
@@ -70,9 +70,21 @@ Fixture: 300 and 301's cards, with Ditch's tier left unset, and a territory view
 | AC5 | `test_an_upgrades_face_names_its_base_and_its_tier` |
 
 ## Manual check
+The real data has no upgrades yet (305–307), so these need a fixture game or the content items. A screenshot of a
+fixture game (Farm with Plough and Ditch, Chapel → Sanctum → fallen-back Cathedral at pop 7) matched design A + X.
 - [ ] Compare with design A + X in `docs/design/mocks/building-upgrade-options.html`, in Paper and Night.
 - [ ] A Farm with two ribbons and a Shrine with a fallen-back Great Temple read clearly at the territory view's size.
 - [ ] Shrink a Town to a Village (a Famine) and watch the ribbons hatch; grow it back and they clear.
 
 ## Log
 - 2026-10-05: specced from the mocks; the user chose design A (ribbons) with X (the chip opens the Build modal).
+
+- 2026-10-06: built. Engine queries added test-first: `upgrade_base_name`, `card_tier_name`, `upgrade_rules_text`
+  (by card id, not uid: the upgrade's own face has no uid), `upgrade_tree`, `upgrades_for`, `upgrade_options`, and
+  `build_preview` on a base. A chain's chip sits on its first base's card and selects the first upgrade any link could
+  take. Upgrade entries are listed only under Upgrades, once per base (row id `"<card_id>@<base uid>"`). New
+  `UpgradeRibbon` (`ui/upgrade_ribbon.gd`); GameTheme `Ribbon`, `RibbonName`, `UpgradeChip`, `TierStamp`; the lamp
+  reuses WEALTH (the End turn key's ochre) and the hatch HAIRLINE, so no new palette role.
+- The row keeps its cards top-aligned (the names stay in a line) rather than bottom-aligned as the mock's note says;
+  a card with ribbons is just taller. Revisit at the manual check if the mock's bottom alignment reads better.
+- `ui/card_view.gd` (539) and `ui/game_theme.gd` (555) are past the 500-line warning.
