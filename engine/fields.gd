@@ -33,7 +33,7 @@ static func read_int(data: Dictionary, key: String, errors: Array[String], min_v
 		return default_value
 	var v: Variant = as_int(data[key])
 	if typeof(v) != TYPE_INT or v < min_value:
-		errors.append("'%s' must be an integer >= %d" % [key, min_value])
+		errors.append("'%s' must be an integer >= %d, not %s" % [key, min_value, JSON.stringify(data[key])])
 		return 0
 	return v
 

@@ -30,12 +30,14 @@ const TYPE_FIELDS := {
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"tolerates": [CardDef.GOVERNMENT],
+	"administers": [CardDef.GOVERNMENT],
 	"project": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
-const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Modifiers.RENEWAL, Modifiers.INSIGHT_PER_GAIN]
+const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Modifiers.RENEWAL, Modifiers.INSIGHT_PER_GAIN,
+	Modifiers.ADMINISTERS]
 const TYPE_PLURALS := {CardDef.TERRITORY: "territories", CardDef.BUILDING: "buildings", CardDef.TECH: "techs", CardDef.EVENT: "events", CardDef.CIVILIZATION: "civilizations", CardDef.GOVERNMENT: "governments", CardDef.UNIT: "units"}
 ## Card types that never sit on a territory, so their effects can't use a keyword or need a target.
 const NO_TERRITORY_TYPES: Array[String] = [CardDef.TECH, CardDef.EVENT, CardDef.GOVERNMENT]
@@ -295,6 +297,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		def.actions = Fields.read_int(c, "actions", errs, 1, 0)
 		def.unrest_limit = Fields.read_int(c, "unrest_limit", errs, 1, 0)
 		def.tolerates = Fields.read_string(c, "tolerates", errs, [], "")
+		def.administers = Fields.read_int(c, "administers", errs, 1, 0)
 	for key in TYPE_FIELDS:
 		var types: Array = TYPE_FIELDS[key]
 		if c.has(key) and not types.has(def.type):

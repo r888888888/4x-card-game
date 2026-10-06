@@ -2,7 +2,7 @@
 id: 319
 title: Governments administer up to N territories; each one past the cap adds more unrest
 type: feature
-status: red-review
+status: in-progress
 branch: feat/319-administration-cap
 ---
 

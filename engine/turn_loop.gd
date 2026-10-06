@@ -188,12 +188,15 @@ static func _settle_in(e: GameEngine) -> int:
 	return starved
 
 
-## Adds size unrest (282), then resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
+## Adds size unrest (282) and admin unrest (319), then resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government), then active events (which may end).
 static func resolve_upkeep(e: GameEngine) -> void:
 	var crowded := e.size_unrest()  # first, before any upkeep takes pop (282)
 	if crowded > 0:
 		e._log("Crowded territories: +%d unrest." % e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + crowded))
+	var overextended := e.admin_unrest()  # read with size unrest, before any upkeep (319)
+	if overextended > 0:
+		e._log("Overextended realm: +%d unrest." % e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + overextended))
 	for card in Modifiers.working_cards(e):
 		e._resolve(card, "upkeep")
 	Events.resolve_upkeep(e)

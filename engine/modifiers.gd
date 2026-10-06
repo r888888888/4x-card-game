@@ -5,13 +5,15 @@ extends RefCounted
 
 ## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn, and more cards drawn
 ## each turn (109), housing on every settled territory (110), a higher (or lower) unrest limit (144), and more (or
-## fewer) cards Anarchy's renewal trashes (147), and more (or less) insight from each insight gain (157).
+## fewer) cards Anarchy's renewal trashes (147), more (or less) insight from each insight gain (157), and more (or
+## fewer) territories the government administers (319).
 const ACTIONS := "actions"
 const HAND_SIZE := "hand_size"
 const HOUSING := "housing"
 const UNREST_LIMIT := "unrest_limit"
 const RENEWAL := "renewal"
 const INSIGHT_PER_GAIN := "insight_per_gain"
+const ADMINISTERS := "administers"
 
 
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
@@ -63,6 +65,15 @@ static func unrest_limit(e: GameEngine) -> int:
 	if not e.unrest_on() or gov.is_empty() or gov.cards[0].def.unrest_limit == 0:
 		return -1
 	return maxi(0, gov.cards[0].def.unrest_limit + total(e, UNREST_LIMIT))
+
+
+## The most settled territories the realm holds calmly (319): the ruling government's administers plus the
+## administers modifier, never below 0; -1 (no cap) with no government or one that sets none.
+static func admin_cap(e: GameEngine) -> int:
+	var gov := e.zone("government")
+	if gov.is_empty() or gov.cards[0].def.administers == 0:
+		return -1
+	return maxi(0, gov.cards[0].def.administers + total(e, ADMINISTERS))
 
 
 ## key summed over the working cards and the active events; 0 when none has it. The idle pass (working_cards) runs only

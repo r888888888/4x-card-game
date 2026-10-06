@@ -21,9 +21,8 @@ const LANDS := ["grassland", "grassland", "grassland", "hills", "hills", "jungle
 
 
 ## An anarchy game with gov ruling ("" for none), unrest on hand, the Homeland plus territories − 1 more settled (pop 0
-## each; the Homeland keeps 6), and the fixture tiers when tiers; overrides last. Typed Object until the admin queries
-## exist (red phase).
-func admin_engine(territories: int, gov := "stewards", unrest := 0, tiers := false, overrides := {}) -> Object:
+## each; the Homeland keeps 6), and the fixture tiers when tiers; overrides last.
+func admin_engine(territories: int, gov := "stewards", unrest := 0, tiers := false, overrides := {}) -> GameEngine:
 	var population: Dictionary = POP.duplicate()
 	if tiers:
 		population["tiers"] = TIERS
@@ -52,7 +51,7 @@ func admin_load(extra := []) -> Dictionary:
 # --- AC1: admin unrest at upkeep ---
 
 func test_territories_within_the_cap_add_no_unrest() -> void:
-	var e: Object = admin_engine(3)
+	var e := admin_engine(3)
 	eq(e.admin_unrest(), 0, "admin_unrest with 3 territories, cap 3")
 	e.end_turn()
 	eq(e.resources.unrest, 0, "unrest after upkeep")
@@ -60,14 +59,14 @@ func test_territories_within_the_cap_add_no_unrest() -> void:
 
 func test_each_territory_past_the_cap_adds_one_more_unrest_than_the_last() -> void:
 	for case in [[4, 1], [5, 3], [6, 6]]:
-		var e: Object = admin_engine(case[0])
+		var e := admin_engine(case[0])
 		eq(e.admin_unrest(), case[1], "admin_unrest with %d territories, cap 3" % case[0])
 		e.end_turn()
 		eq(e.resources.unrest, case[1], "unrest after upkeep with %d territories" % case[0])
 
 
 func test_frontier_territories_add_no_admin_unrest() -> void:
-	var e: Object = admin_engine(3)
+	var e := admin_engine(3)
 	to_frontier(e, ["river", "river"])
 	eq(e.admin_unrest(), 0, "admin_unrest: 3 settled, 2 on the frontier")
 
@@ -79,16 +78,16 @@ func test_the_cap_is_the_governments_administers() -> void:
 
 
 func test_a_researched_administers_modifier_raises_the_cap() -> void:
-	var e: Object = admin_engine(5)
+	var e := admin_engine(5)
 	put_in(e, "census", "researched")
 	eq([e.admin_cap(), e.admin_unrest()], [5, 0], "[admin_cap, admin_unrest] with Census, 5 territories")
-	var six: Object = admin_engine(6)
+	var six := admin_engine(6)
 	put_in(six, "census", "researched")
 	eq(six.admin_unrest(), 1, "admin_unrest with Census, 6 territories")
 
 
 func test_only_a_working_building_raises_the_cap() -> void:
-	var e: Object = admin_engine(2)
+	var e := admin_engine(2)
 	build_on(e, uid_of(e.zone("tableau"), "grassland"), ["office"])
 	eq(e.admin_cap(), 3, "an idle Office (pop 0 there) adds nothing")
 	build_on(e, home_uid(e), ["office"])
@@ -103,21 +102,21 @@ func test_without_administers_there_is_no_cap() -> void:
 # --- AC3: order and limit ---
 
 func test_admin_unrest_stops_at_the_unrest_limit() -> void:
-	var e: Object = admin_engine(5, "stewards", 18)
+	var e := admin_engine(5, "stewards", 18)
 	e.end_turn()
 	eq(e.resources.unrest, 20, "18 + 3 stops at the limit 20")
 	check(Anarchy.active(e) != null, "the turn falls into Anarchy")
 
 
 func test_admin_unrest_comes_before_calming_upkeep() -> void:
-	var e: Object = admin_engine(4)
+	var e := admin_engine(4)
 	build_on(e, home_uid(e), ["calm"])
 	e.end_turn()
 	eq(e.resources.unrest, 0, "0 + 1 admin − 1 Calm: calming applies after admin unrest is added")
 
 
 func test_admin_unrest_adds_to_size_unrest() -> void:
-	var e: Object = admin_engine(5, "overseers", 0, true)
+	var e := admin_engine(5, "overseers", 0, true)
 	e.zone("tableau").find(uid_of(e.zone("tableau"), "hills")).pop = 9
 	eq([e.size_unrest(), e.admin_unrest()], [1, 3], "[size_unrest: one Town, admin_unrest: 2 past the cap]")
 	e.end_turn()
@@ -127,14 +126,14 @@ func test_admin_unrest_adds_to_size_unrest() -> void:
 # --- AC4: when it doesn't apply ---
 
 func test_a_government_without_administers_adds_no_admin_unrest() -> void:
-	var e: Object = admin_engine(10, "chiefs")
+	var e := admin_engine(10, "chiefs")
 	eq(e.admin_unrest(), 0, "Chiefs administers any number")
 	e.end_turn()
 	eq(e.resources.unrest, 0, "unrest after upkeep")
 
 
 func test_anarchy_adds_no_admin_unrest() -> void:
-	var e: Object = admin_engine(6, "stewards", 20)
+	var e := admin_engine(6, "stewards", 20)
 	e.end_turn()
 	check(Anarchy.active(e) != null, "precondition: Anarchy rules")
 	eq(e.admin_unrest(), 0, "admin_unrest under Anarchy")
@@ -144,7 +143,7 @@ func test_anarchy_adds_no_admin_unrest() -> void:
 
 
 func test_without_unrest_there_is_no_admin_unrest() -> void:
-	var e: Object = admin_engine(6, "stewards", 0, false, {"resources": ["food", "wealth", "insight"], "unrest": null})
+	var e := admin_engine(6, "stewards", 0, false, {"resources": ["food", "wealth", "insight"], "unrest": null})
 	check(not e.unrest_on(), "precondition: unrest off")
 	eq(e.admin_unrest(), 0, "admin_unrest with unrest off")
 	e.end_turn()
@@ -154,7 +153,7 @@ func test_without_unrest_there_is_no_admin_unrest() -> void:
 # --- AC5: the forecast ---
 
 func test_the_forecast_counts_admin_unrest() -> void:
-	var e: Object = admin_engine(5)
+	var e := admin_engine(5)
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 3, "forecast unrest, 2 past the cap")
 	build_on(e, home_uid(e), ["calm"])
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 2, "forecast: +3 admin, −1 Calm")
