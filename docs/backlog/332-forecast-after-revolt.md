@@ -2,7 +2,7 @@
 id: 332
 title: The upkeep forecast counts a government a declared revolution will have removed
 type: bug
-status: draft
+status: red-review
 branch: fix/332-forecast-after-revolt
 ---
 
@@ -37,6 +37,11 @@ ruling government, so they are forecast for a government that won't rule.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_revolution::test_bug_332_forecast_leaves_out_the_upkeep_of_a_government_about_to_fall` |
+| AC2 | `test_revolution::test_bug_332_forecast_leaves_out_the_modifiers_of_a_government_about_to_fall` |
+| AC3 | `test_size_unrest::test_bug_332_the_forecast_counts_no_size_unrest_after_a_revolt` |
+| AC4 | `test_revolution::test_bug_332_forecast_after_a_revolt_changes_nothing` (passes before the fix: a guard) |
+| AC5 | the existing forecast tests, unedited |
 
 ## Root cause
 <!-- Filled in after the fix. -->
