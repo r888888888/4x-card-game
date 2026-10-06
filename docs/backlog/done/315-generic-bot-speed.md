@@ -2,7 +2,7 @@
 id: 315
 title: The generic bot caches forecasts by state, without changing a single decision
 type: feature
-status: review
+status: done
 branch: feat/315-generic-bot-speed
 ---
 
