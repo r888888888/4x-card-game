@@ -2,7 +2,7 @@
 id: 348
 title: End Turn from the territory view or the Knowledge screen ends the turn
 type: feature
-status: review
+status: done
 branch: feat/348-end-turn-from-screens
 ---
 
