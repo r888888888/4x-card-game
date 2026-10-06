@@ -2,7 +2,7 @@
 id: 300
 title: Build upgrades onto buildings: they add to their base, stack, and chain
 type: feature
-status: ready
+status: red-review
 branch: feat/300-building-upgrades
 ---
 
@@ -93,7 +93,12 @@ Fixture: `TEST_CARDS` plus these extra cards, with config `build_menu` `{"farm":
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_upgrades::test_…` |
+| AC1 | `test_upgrades::test_an_upgrade_loads_its_base`, `test_upgrade_of_validation`, `test_an_upgrade_cycle_is_reported_once_on_its_first_card`, `test_an_upgrade_is_never_in_the_deck_the_supply_or_created` |
+| AC2 | `test_an_upgrade_builds_onto_its_base_without_a_slot_or_a_worker`, `test_an_upgrade_resolves_its_play_effects`, `test_build_targets_list_every_base_that_could_take_it_in_tableau_order`, `test_an_idle_base_can_be_upgraded` |
+| AC3 | `test_an_upgrade_refuses_a_target_that_isnt_its_base`, `test_a_base_takes_each_upgrade_once`, `test_an_upgrade_with_no_target_named_needs_exactly_one_base`, `test_an_upgrade_refuses_as_any_build_does`, `test_an_upgrade_needs_what_it_requires_on_its_bases_territory`, `test_a_building_that_isnt_an_upgrade_refuses_a_building_target` |
+| AC4 | `test_a_base_carries_several_different_upgrades_in_build_order`, `test_upgrades_chain_one_build_at_a_time` |
+| AC5 | `test_upgrades_add_to_a_working_base`, `test_a_chain_adds_while_its_root_works`, `test_upgrades_on_an_idle_base_count_for_nothing_until_it_works_again`, `test_upgrades_on_a_base_past_its_slots_count_for_nothing`, `test_a_chain_on_an_idle_root_counts_for_nothing`, `test_a_fallen_back_upgrade_adds_no_defence_or_training`, `test_a_fallen_back_upgrade_saves_no_pop_from_famine` |
+| AC6 | `test_a_copy_keeps_each_upgrades_base`, `test_an_upgrades_text_says_what_it_builds_on`, `test_an_unlock_of_an_upgrade_names_its_base` |
 
 ## Log
 - 2026-10-05: specced from the tall-buildings design talk (options B + restructure; see 305–307). The user chose: an
