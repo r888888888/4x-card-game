@@ -2,7 +2,7 @@
 id: 342
 title: Hover the territory view's building cards and free slots, with the hover tick
 type: feature
-status: review
+status: done
 branch: feat/342-territory-view-hover
 ---
 
