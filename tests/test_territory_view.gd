@@ -474,23 +474,128 @@ func test_a_click_inside_the_box_leaves_the_view_open() -> void:
 		{"farm": 10}, POP)
 
 
-func test_a_click_on_the_hand_or_top_bar_or_a_modal_leaves_the_view_open() -> void:
+# --- 327: a click anywhere outside the box closes the view, and does nothing else ---
+
+## A real mouse move to global point on main's viewport, with the left button held when held.
+func mouse_move(main: Node, point: Vector2, held := true) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = point
+	event.global_position = point
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
+	main.get_viewport().push_input(event, true)
+
+
+func wait_seconds(s: float) -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
+
+
+## Clicks point with the home territory's view open and checks it closed with one NAV_BACK.
+func check_click_closes(main: Node, point: Vector2, where: String) -> void:
+	await open_home(main)
+	main.sfx.set_clock(0.0)
+	var from: int = main.sfx.played().size()
+	mouse_at(main, point)
+	await wait_frames()
+	check(not main.territory_view.is_open(), "a click on %s closes the view" % where)
+	await wait_screen_transition()
+	check(shown(main.tableau), "the Realm is back after a click on %s" % where)
+	var played: Array = main.sfx.played().slice(from).map(func(r): return r.token)
+	eq(played.filter(func(t): return t == Sfx.NAV_BACK).size(), 1, "the back sound, once, for %s: %s" % [where, played])
+
+
+func test_a_click_on_the_hand_or_sidebar_space_closes_the_view() -> void:
+	await with_territories_main(func(main: Node):
+		await check_click_closes(main, main.hand_scroll.get_global_rect().end - Vector2(8, 8), "the hand's empty space")
+		var rail: Rect2 = main.sidebar.get_global_rect()
+		await check_click_closes(main, Vector2(rail.get_center().x, main.sidebar.column.get_global_rect().position.y + 2),
+			"the sidebar's padding"))
+
+
+func test_a_click_on_a_control_outside_the_box_only_closes_the_view() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var hand_card: CardView = main.views[first_in_hand(e)]
+		await wait_seconds(1.5)  # the opening deal settles: a hand card in motion takes no clicks
+		var controls := {
+			"a hand card": hand_card,
+			"a top-bar counter": main.counter(GameEngine.FOOD),
+			"End turn": main.sidebar.end_turn,
+			"the civilization's name": main.sidebar.name_button,
+		}
+		for where in controls:
+			var control: Control = controls[where]
+			var turn := e.turn
+			var hand := e.zone("hand").cards.size()
+			var actions := e.actions_left()
+			await check_click_closes(main, control.get_global_rect().get_center(), where)
+			await wait_seconds(Anim.DETAILS_CLICK_DELAY + 0.1)
+			check(not main.details.shown(), "a click on %s opens no details" % where)
+			check(main.modals.top() == null, "a click on %s opens no modal" % where)
+			eq(e.turn, turn, "a click on %s doesn't end the turn" % where)
+			eq(e.zone("hand").cards.size(), hand, "a click on %s plays nothing" % where)
+			eq(e.actions_left(), actions, "a click on %s spends no action" % where)
+		mouse_move(main, hand_card.get_global_rect().get_center() + Vector2(0, -40), false)
+		await wait_frames()
+		check(main.drag.dragging == null, "a later mouse move doesn't pick up the clicked hand card"))
+
+
+func test_a_drag_from_the_hand_onto_the_view_still_targets_the_territory() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var home: int = await open_home(main)
+		var view: TerritoryView = main.territory_view
+		var card := first_in_hand(e)
+		var start: Vector2 = (main.views[card] as CardView).get_global_rect().get_center()
+		var point := outside_box(main)
+		var press := InputEventMouseButton.new()
+		press.button_index = MOUSE_BUTTON_LEFT
+		press.pressed = true
+		press.position = start
+		press.global_position = start
+		main.get_viewport().push_input(press, true)
+		mouse_move(main, start + Vector2(0, -20))
+		await wait_frames()
+		check(main.drag.dragging != null, "precondition: the press on the hand card started a drag")
+		mouse_move(main, point)
+		await wait_frames()
+		eq(main.drag.target_at(point), home, "a drop there targets the territory (101)")
+		var release := press.duplicate() as InputEventMouseButton
+		release.pressed = false
+		release.position = point
+		release.global_position = point
+		main.get_viewport().push_input(release, true)
+		await wait_frames()
+		check(main.drag.dragging == null, "the release dropped the card")
+		check(view.is_open(), "the view stays open after the drop"))
+
+
+func test_a_click_outside_a_modal_over_the_view_closes_only_the_modal() -> void:
 	await with_territories_main(func(main: Node):
 		await open_home(main)
 		var view: TerritoryView = main.territory_view
-		mouse_at(main, main.hand_scroll.get_global_rect().end - Vector2(8, 8))
-		await wait_frames()
-		check(view.is_open(), "a click on the hand's area")
-		mouse_at(main, (main.counter(GameEngine.FOOD) as Control).get_global_rect().get_center())
-		await wait_frames()
-		check(view.is_open(), "a click on the top bar")
-		var point := outside_box(main)
 		main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
 		await wait_frames()
-		mouse_at(main, point)
+		mouse_at(main, main.hand_scroll.get_global_rect().end - Vector2(8, 8))
 		await wait_frames()
-		check(view.is_open(), "a click outside the box while a modal is open closes only the modal")
-		check(not main.details.shown(), "the modal closed"))
+		check(not main.details.shown(), "the modal closed")
+		check(view.is_open(), "the view stays open"))
+
+
+func test_a_right_click_on_the_hand_leaves_the_view_open() -> void:
+	await with_territories_main(func(main: Node):
+		await open_home(main)
+		mouse_at(main, main.hand_scroll.get_global_rect().end - Vector2(8, 8), MOUSE_BUTTON_RIGHT)
+		await wait_frames()
+		check(main.territory_view.is_open(), "a right-click outside the box leaves it open"))
+
+
+func test_with_the_view_closed_end_turn_still_works() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var turn := e.turn
+		mouse_at(main, main.sidebar.end_turn.get_global_rect().get_center())
+		await wait_frames()
+		eq(e.turn, turn + 1, "End turn ends the turn when no view is open"))
 
 
 func test_a_drop_or_right_click_outside_the_box_leaves_the_view_open() -> void:
@@ -521,3 +626,4 @@ func test_a_second_outside_click_while_leaving_does_nothing() -> void:
 		await wait_screen_transition()
 		eq(steps[0], 1, "one step back")
 		check(shown(main.tableau), "the Realm is shown"))
+
