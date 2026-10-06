@@ -2,7 +2,7 @@
 id: 363
 title: The hand scrolls smoothly sideways, on the steel scrollbar
 type: feature
-status: review
+status: done
 branch: feat/363-hand-scrolls-smoothly
 ---
 
