@@ -9,7 +9,8 @@ branch: feat/356-build-modal-polish
 ## Goal
 The Build modal's list scrolls in jumps under the wheel, on Godot's default scrollbar, and its selected row is pulled
 out onto a hard shadow like a raised key, louder than a choice in a list needs. Make its scrolling glide (eased, with
-momentum that coasts to a stop), style its scrollbar for the desk, quiet the selected row to a background change, and
+momentum that coasts to a stop), style its scrollbar for the desk, quiet the selected row to a background change with
+an indicator lamp (chosen from [list-quiet-options.html](../design/mocks/list-quiet-options.html), option H), and
 give the sheet more air: a gap before each heading after the first (Buildings → Upgrades → Units) and padding under the
 card.
 
@@ -27,9 +28,11 @@ card.
 - [ ] AC5 (Build modal): Given the Build modal open, then its list sits in a `SmoothScroll`; and given a menu taller
   than the list column, when Down moves the selection to a row below the visible area, then after the scroll settles
   that row lies wholly inside the column.
-- [ ] AC6 (quiet selection): Given a `ListRow`, then its pressed and hover-pressed looks are a filled `RAISED` strip in
-  place (no shadow, no expand margins, the same content margins as its normal look), and the selected row's index tab
-  sits on the row's own leading edge.
+- [ ] AC6 (quiet selection, the mock's H): Given a `ListRow`, then its pressed and hover-pressed looks are a filled
+  `RAISED` strip in place (no shadow, no expand margins, the same content margins as its normal look). Given a
+  `SelectList` with rows a, b and c and b selected, then only b shows its indicator lamp (`ReadyLamp`, §7.11), lit,
+  `Tokens.SPACE_4` in from the row's left edge before its name; a and c keep the lamp's room but show none; no row
+  has an index tab. Selecting c moves the lamp to c; Up and Down and the focus ring behave as before (217).
 - [ ] AC7 (heading gap): Given the Build modal with Buildings and Units rows, then the Units heading's top is at least
   `Tokens.SPACE_5` (24 px) below the last Buildings row's bottom, and the Buildings heading still starts at the top of
   the well.
@@ -46,7 +49,9 @@ card.
   velocity per notch that decays by `Anim.SCROLL_FRICTION`), so one notch travels `Anim.SCROLL_STEP`; `scroll_to(y)`
   eases a programmatic scroll (`TRANS_QUART`/`EASE_OUT`, no overshoot). Reduce motion: both jump.
 - `GameTheme`: drop `SELECTED_SHADOW`'s use and `PULL` from `ListRow`; add the `VScrollBar` look.
-- Guide: §4.4 "Selected" row, §7.16 Selectable list, a new §7.17 Scroll area, §9.4 a Scroll row, §9.5; tokens.md;
+- `SelectList` puts a `ReadyLamp` on every row (`ReadyLamp.attach`: the icon keeps its room), lit quietly (no
+  starburst, no `ui.confirm`: that is for news), shown only on the selected row; the `IndexTab` goes.
+- Guide (updated with the choice): §4.4 "Selected" row, §7.11 lamp, §7.16 Selectable list, a new §7.17 Scroll area, §9.4 a Scroll row, §9.5; tokens.md;
   the specimen's selectable list.
 
 ## Test plan
@@ -57,7 +62,7 @@ card.
 | AC3 | `test_smooth_scroll::test_with_reduce_motion_a_notch_jumps_the_step` |
 | AC4 | `test_smooth_scroll::test_the_scrollbar_is_a_thin_steel_grabber_on_a_well` |
 | AC5 | `test_build_modal::test_the_build_list_scrolls_smoothly`, `test_build_modal::test_down_scrolls_the_selected_row_into_view` |
-| AC6 | `test_select_list::test_a_list_row_draws_no_box_until_selected` (changed), `test_select_list::test_only_the_selected_row_shows_its_index_tab` (changed) |
+| AC6 | `test_select_list::test_a_list_row_draws_no_box_until_selected`, `test_select_list::test_only_the_selected_row_shows_its_lamp_lit` (was `…_shows_its_index_tab`), and the lamp in place of the tab in `test_select_list::test_a_click_or_up_and_down_choose_a_row`, `test_select_list::test_a_list_rows_focus_is_the_ring_not_the_selection`, `test_start_screen::test_the_civilizations_are_a_select_list_with_one_lamp` (was `…_with_one_index_tab`), `test_start_screen::test_moving_the_focus_off_the_selected_row_keeps_the_selection` (all changed) |
 | AC7 | `test_build_modal::test_a_heading_after_rows_has_room_above_it` |
 | AC8 | `test_build_modal::test_the_card_has_room_under_it`; the window fit stays `test_the_modal_is_a_680_px_ledger_inside_the_window` and `test_the_longest_flavor_keeps_the_modal_inside_the_window` |
 

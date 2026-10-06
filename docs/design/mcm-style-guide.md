@@ -167,10 +167,11 @@ steel frame of the Eames storage unit, and it is what stops a palette this warm 
 | Loss, error, blocked, starving, at limit | `color.danger` | Brick | ⊘ / `−` sign, solid bar |
 | Information, neutral notice | `color.info` | Muted blue | ⓘ circle glyph |
 | Keyboard focus | `color.focus` | Teal | 2 px ring, offset 2 px |
-| Selected | `color.signal` + ink | — | hard 4 px shadow + index tab |
+| Selected | `color.signal` + ink; a list row: a lamp | — | a card: hard 4 px shadow + index tab; a list row: a `sheet` strip + lit lamp (§7.16) |
 | Primary action | `color.signal` | — | the only signal fill on screen |
 
-Focus (teal ring) and selection (shadow + orange tab) never look alike, so a keyboard player can see both at once.
+Focus (teal ring) and selection (a card's shadow and orange tab; a list row's strip and lit lamp) never look alike, so a
+keyboard player can see both at once.
 
 ### 4.5 Game colours
 
@@ -331,7 +332,7 @@ deeper as it lifts.
 |---|---|---|
 | `shadow.none` | 0 | Pressed controls; a frontier card (open land, not paper) |
 | `shadow.plinth` | 2, 2 | Resting controls (buttons stand on a plinth), flags |
-| `shadow.lift` | 4, 4 | A selected list row, a hovered tech tile or index card in a modal |
+| `shadow.lift` | 4, 4 | A selected card, a hovered tech tile or index card in a modal (a selected list row has none, §7.16) |
 | `shadow.card` (soft) | 0, 4 · blur 8 | A card at rest; alpha 0.35 Night / 0.20 Paper |
 | `shadow.card-hover` (soft) | 0, 8 · blur 16 | A hovered card; 0.45 / 0.28 |
 | `shadow.card-drag` (soft) | 0, 14 · blur 24 | A dragged card; 0.50 / 0.32 |
@@ -421,8 +422,9 @@ the specification, not an omission.
     edge, glyph, one line of text. Sound: the rail lamp's bell, `ui.notification`, in one of three patterns.
 11. **Indicator lamp** — a 10–14 px disc. OFF: `well` with 1 px `rule` ring. ON: the hue's plane colour plus a 2 px
     ring of its line colour and a single small highlight dot (the only permitted radial). Lamps always sit beside a
-    printed label. Sound: None of its own; a lamp that lights to report news carries that news's tone
-    (`ui.confirm`, `ui.notification`), and a lamp going out is always silent.
+    printed label. A lit lamp also marks the chosen row of a selectable list (§7.16); there it lights with no
+    starburst, as part of the selection. Sound: None of its own; a lamp that lights to report news carries that news's
+    tone (`ui.confirm`, `ui.notification`), a selection lamp the selection's tick, and a lamp going out is always silent.
 12. **Progress indicator** — segmented: a `well` track divided into discrete cells (one per unit when ≤ 12, else
     percentage blocks of 10%) that fill with the hue plane. Never a smooth gradient bar. Sound: None while it fills;
     completion plays `ui.confirm`, unless the completion is itself a game event with its own sound.
@@ -434,13 +436,24 @@ the specification, not an omission.
     `ui.sheet.open` / `ui.sheet.close`; the scrim is silent.
 15. **End-turn control** — §11.9 and §15.12. Sound: the desk's heaviest key and a relay behind the panel,
     `ui.endturn.press`, `ui.endturn.commit`, `ui.endturn.turn`.
-16. **Selectable list** — an **index card** list (217; the alternatives are in
-    [list-options.html](mocks/list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`. The one
-    selected row is pulled out like an index card: a `sheet` strip moved 8 px toward the trailing side onto a hard 4 px
-    `shadow`, its label `ink`, with the signal **index tab** (4 px wide, the row's height inset) on its leading edge:
-    the same selection mark a card gets (§4.4, §10.5). Hover only inks the label. Focus keeps its teal ring, so focus
-    and selection read apart. A click or Up / Down selects. A list beside a detail holds the detail at its tallest
-    item's height, so changing the selection never moves the sheet. Sound: `ui.selection` as the tab lands.
+16. **Selectable list** — a **lamp** list (217; quieted in 356, chosen from
+    [list-quiet-options.html](mocks/list-quiet-options.html), option H; the first alternatives are in
+    [list-options.html](mocks/list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`.
+    The one selected row is marked in place, with no depth: its background fills with a `sheet` strip, its label
+    inks, and a lit **indicator lamp** (§7.11, 12 px, sage) shows before its name, `space.4` in from the row's edge
+    and `space.3` before the text. The other rows carry no lamp but keep its room, so no label moves. Nothing slides,
+    nothing casts a shadow, and the signal colour is left to the sheet's primary action. Hover only inks the label.
+    Focus keeps its teal ring, so focus and selection read apart. A click or Up / Down selects. Headings group the
+    rows in `type.label-caps`; a heading after rows has `space.5` above it, and the first opens the well. A list
+    beside a detail holds the detail at its tallest item's height, so changing the selection never moves the sheet.
+    A list taller than its column scrolls (§7.17) and follows the selection. Sound: `ui.selection` as the lamp lights.
+17. **Scroll area** — content taller than its box glides rather than jumps (356). A wheel notch gives the content a
+    push that decays, so it eases about 120 px and coasts to rest in about half a second; a trackpad's stream of
+    small pushes adds up the same way. It stops dead at either end, with no bounce. When the keyboard moves a
+    selection out of view, the area eases it back into view (200 ms, `machined`, no overshoot). Its **scrollbar** is
+    a thin steel bar: an 8 px `steel` grabber, square, on a `well` track, `ink-2` under the pointer and while
+    dragged; it shows only when the content overflows. Reduce motion: a notch and a follow jump (§9.5). Sound: None
+    (moving within a screen is silent, §10.2).
 
 ---
 
@@ -533,6 +546,8 @@ travel (§16.5).
 | Resource gain | 600–900 ms total | Delta tag (+3) snaps in beside the counter (90 ms), the counter rolls, the lamp pulses once, tag holds 600 ms then wipes out (120 ms). | `snap`, `linear-step`, `lamp` | ticks during the roll; `ui.resource.gain` / `.loss` @ lamp-on. The tag is silent. |
 | Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for \|Δ\| > 8, roll the last 8 steps only. | `linear-step` | `ui.counter.tick` @ each step's landing; the jump past the first steps is silent |
 | Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` | `ui.selection` @ index tab lands, ≈ 65 ms. Deselect: None |
+| List selection | 40 ms lamp, 120 ms fill | The row's `sheet` strip fills in place and its lamp lights; nothing moves. The old row's lamp goes out over 120 ms. | `lamp`, linear | `ui.selection` @ lamp-on (0 ms). Deselect: None |
+| Scroll | ≈ 500 ms per notch | A wheel notch pushes the content, which decays (friction 8 / s) over ≈ 120 px and stops dead at an end; a keyboard follow eases 200 ms. | decay; follow `machined` | None |
 | Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` | `ui.confirm` @ lamp-on (0 ms); the rays are silent |
 | Error feedback | 240 ms | One lateral **snap**: −4, +4, 0 px (80 ms each), border turns `danger`, ⊘ appears; message stays until the cause changes or 4 s. No shaking > 4 px. | `snap` | `ui.reject`: one tap per lateral stop, ≈ 44 and ≈ 124 ms |
 | Major milestone | 1.2–2.0 s, skippable | Ceremonial sheet wipes across, display type split-flaps in by character (25 ms stagger), concentric-ring or 16-ray starburst motif draws, one `settle`. Click/Esc skips to the end state. | `machined`, `settle` | `ui.milestone.*`: sheet @ 0, flutter with the type, musical accent @ the motif's completion; a skip fades it in 30 ms |
@@ -544,6 +559,7 @@ The game has Reduce motion (`Settings.reduce_motion`). With it on:
 - Slide, wipe, roll, rotate → **instant**, plus a ≤ 120 ms opacity crossfade where a change of place would
   otherwise be unclear (navigation, modals). This matches `Anim.CALM_FADE_TIME` (0.15 s → 0.12 s).
 - Pulse → the lamp switches on and **stays** lit for 1.5 s (no blinking); the delta tag holds 1.5 s.
+- Scroll → a wheel notch moves the content its whole step at once, and a keyboard follow jumps (§7.17).
 - Press feedback remains (it is 2 px and instant feedback, not decoration), but its tween becomes a frame switch.
 - Milestones skip to their end state; the starburst is drawn static.
 - Looping animation of any kind (the drop-zone pulse) stops; a static 3 px outline replaces it.
@@ -622,6 +638,9 @@ A selected card **slides 12 px out of its row** (out of a stack, like pulling an
 gains `shadow.lift` and a 3 px `ink` border, and a signal-orange **index tab** (24×6 px) wipes in on its top edge.
 Hover (not selected) only gives `shadow.plinth` + 4 px slide. Nothing scales. (Today's hand hover scales 1.08 and
 lifts 20 px; it becomes 0 scale and 8 px.)
+
+A row of a selectable list is not a thing to pick up, so it is selected **in place**: its strip fills and its lamp
+lights (§7.16), with no slide, shadow or tab (356).
 
 **Sound.** Selection is the most frequent act in the game, so it is nearly silent: `ui.selection`, the tiny
 plastic tick of an index tab clipped onto the card, as the tab lands. Deselecting, hovering and moving the keyboard
@@ -809,12 +828,13 @@ A modal opened over a modal is offset +8, +8 px from the one beneath, so the sta
 |---|---|---|---|
 | **Text sheet** | Text, in `type.body` | Body ≤ 640 px: the measure (§7) | Abandon, Revolt, Rename, the menu, settings, events |
 | **Card sheet** | A hand-size card in the aside (left), then a text body | The aside is outside the cap; the body ≤ 640 px | Card details, the event and raid cards (`show_card`) |
-| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card with its flavor (italic, dim; 354) and its lines under it | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
+| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card, then `space.5` (24 px), then its flavor (italic, dim; 354) and its lines | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
 
 A ledger sheet keeps the measure inside each column instead of across the body: the list's rows wrap at the column's
 384 px (a name and cost, a reason under it), and the detail's flavor and lines wrap at the card's 264 px. The list shows 12
-one-line rows (480 px) before it scrolls, and holds that height whatever is selected, so changing the selection
-never moves the sheet. A sheet that needs more than this (several cards compared, many builds in a row) is a screen,
+one-line rows (480 px) before it scrolls (a scroll area, §7.17, that follows the selection), and holds that height
+whatever is selected, so changing the selection never moves the sheet. Its headings (Buildings, Upgrades, Units) each
+have `space.5` above them after the first, so the groups read apart. A sheet that needs more than this (several cards compared, many builds in a row) is a screen,
 not a modal. In code: `Modal.BODY_MAX_WIDTH` and `Modal.LEDGER_*`.
 Sound: `ui.sheet.open`, a sheet laid on the desk, peaking as it settles; `ui.sheet.close`, the sheet lifted, at once.
 A stacked modal plays the same lay, 1 dB quieter (it lands on paper, not on the desk). The scrim is silent. Choosing in
