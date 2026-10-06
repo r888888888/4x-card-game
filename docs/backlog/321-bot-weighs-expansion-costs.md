@@ -2,7 +2,7 @@
 id: 321
 title: The sim bot weighs the rising cost of expansion
 type: feature
-status: in-progress
+status: review
 branch: feat/321-bot-weighs-expansion-costs
 ---
 
@@ -19,17 +19,17 @@ Needs 319 and 320.
 Fixtures: 319's government (`administers` 3, `unrest_limit` 20), 320's Settler-like card, unrest 0, ample food,
 frontier territories to settle, otherwise nothing worth playing.
 
-- [ ] AC1: Wide's land weight stops at the cap: with `admin_cap()` 3, `GenericBot.value` for wide rises by the land
+- [x] AC1: Wide's land weight stops at the cap: with `admin_cap()` 3, `GenericBot.value` for wide rises by the land
   weight from 2 to 3 settled territories but not from 3 to 4 (all else equal). With no cap (-1) every territory counts,
   as today.
-- [ ] AC2: Unrest income costs, far from the limit: for every strategy, a position whose `turn_forecast` adds +3
+- [x] AC2: Unrest income costs, far from the limit: for every strategy, a position whose `turn_forecast` adds +3
   unrest a turn values less than the same position adding 0, with unrest 0 and the limit at 20. A position adding −1
   (a Temple calming) values more than one adding 0.
-- [ ] AC3: The generic bot stops past the cap: with 2 territories and a Settler in hand, `take_turn` settles (the 3rd
+- [x] AC3: The generic bot stops past the cap: with 2 territories and a Settler in hand, `take_turn` settles (the 3rd
   is within the cap). With 4 territories (1 past, +1 a turn), settling a 5th (+3 a turn in all) is not taken.
-- [ ] AC4: Wide expands to the cap, not past it: with 1 territory, 3 frontier territories and 3 Settlers in hand
+- [x] AC4: Wide expands to the cap, not past it: with 1 territory, 3 frontier territories and 3 Settlers in hand
   (actions to play them all), wide settles until it holds 3 or 4 territories, never 5 or more.
-- [ ] AC5: The price reaches the bot: the card value of the Settler (`card_value`) is lower with 6 territories than
+- [x] AC5: The price reaches the bot: the card value of the Settler (`card_value`) is lower with 6 territories than
   with 2, with the same food in store.
 
 ## Out of scope
@@ -66,3 +66,11 @@ frontier territories to settle, otherwise nothing worth playing.
   Colonists (the spec's 3 could never reach 5 territories). AC1 measures wide's land step as wide's value change minus
   generic's, so admin unrest and everything else cancel. AC5 and AC3's within-cap half pass already (the bot pays
   `play_cost`, as the spec expected); they guard it.
+- Built. `value()` subtracts `unrest_rate` (0.5 for every strategy, the first value tried) × the forecast's unrest
+  change × turns ahead, floored at −unrest held so calming at 0 counts nothing. Wide's land term counts
+  `min(settled, admin_cap())` (`_land`; all settled with no cap). `_settled` now uses `Territories.count_settled`. No
+  other bot test changed its choice.
+- Not run here (balance is a separate step, per CLAUDE.md): the sim check that wide lands near 12 territories, and the
+  speed of wide/greece seed 1 before and after (318, 315). Both belong to the balance item that follows 319–321; expect
+  wide to stop near the cap (11 under Kingship with every raise) and its slowest games to get much shorter.
+- Suite 2024 → 2030 tests.

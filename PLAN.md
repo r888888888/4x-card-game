@@ -642,8 +642,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
   × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
   diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
-  `would_target` nothing) + learned techs' printed cost − a squared penalty as unrest nears its limit (unrest has no
-  other cost). A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
+  `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
+  (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
   best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
 - Bot rollouts (314, porting 159): `GenericBot.rollout(engine, strategy, government_id, revolt)` plays a sample fork
   `ROLLOUT_TURNS` (12) turns on in cheap mode (no card values, no extra lookahead step) and returns its value; the real
@@ -651,7 +651,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   option whose rollout values most (ties: deck order; one option: no rollout). Every `REVOLT_EVERY` (4) turns, at the
   end of the turn and not in the last 6, it revolts when a rollout that revolts to some government in the deck values
   more than staying. Inside a rollout it never revolts and chooses the government the rollout was opened for, else
-  the best by value. Strategies: generic, wide (+20 value per settled territory) and tall (never plays a `settle` card
+  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall (never plays a `settle` card
   past 2 territories). `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
