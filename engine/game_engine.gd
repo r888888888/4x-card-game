@@ -16,8 +16,8 @@ const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_d
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
-## The kinds of decision pending() can report.
 const MAX_TERRITORY_NAME := 24  # characters in a territory's name (248)
+## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)

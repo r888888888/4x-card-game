@@ -10,7 +10,7 @@ const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "h
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
 const BUILD_FIELDS: Array[String] = ["locked", "once"]
-const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
+const DECK_MODELS: Array[String] = ["fixed"]  # the deck grows through the supply, the build menu and techs instead
 ## An upgrade (300) can't be dealt or bought: it is only built from the build menu, onto its base.
 const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 

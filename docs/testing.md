@@ -20,12 +20,15 @@ The script re-imports the project first when a `.gd` file changed, so a new `cla
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
 
-**Speed (223).** The whole suite takes ~4 s. Three settings make it fast:
+**Speed (223).** The whole suite takes ~10 s on a 12-core Mac (2157 tests, measured 2026-10-06 with other work running:
+10.5–12.8 s; ~39 s serial). Godot's start costs ~3 s per shard, and the slowest file, `test_generic_bot_cache.gd`
+(~5 s of bot games), sets the critical path. Three settings make it fast:
 - The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
-  `TEST_JOBS=1` runs serially, ~17 s). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
-  the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`, so
-  no two share `user://` and a run never touches the player's settings. Tests must not depend on which other files
-  ran before them in the same process.
+  `TEST_JOBS=1` runs serially). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
+  the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`
+  (with no `//` in its path, 330: Godot would list the project for a `user://` folder), so no two share `user://`
+  and a run never touches the player's settings. Tests must not depend on which other files ran before them in the
+  same process.
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
   frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
   frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.

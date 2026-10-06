@@ -2,7 +2,7 @@
 id: 330
 title: Bring PLAN.md and the docs back in line with the code, and clear tracked junk
 type: chore
-status: in-progress
+status: review
 branch: feat/330-docs-housekeeping
 ---
 
@@ -16,18 +16,18 @@ tracked. This item fixes all of that first, so the later review items have less 
 named paths can't drift again.
 
 ## Acceptance criteria
-- [ ] AC1: Given PLAN.md, CLAUDE.md, README.md, every `docs/*.md` and every `.claude/skills/*/SKILL.md`, when the suite
+- [x] AC1: Given PLAN.md, CLAUDE.md, README.md, every `docs/*.md` and every `.claude/skills/*/SKILL.md`, when the suite
   runs, then a test fails naming the document and the path for every repo path it names in backticks or a link
   (`engine/…`, `ui/…`, `sim/…`, `autoload/…`, `scripts/…`, `tests/…`, `data/…`, `docs/…`) that doesn't exist;
   placeholder paths with `330` or `<…>` are skipped. It passes on the fixed docs.
-- [ ] AC2: PLAN.md's "Project layout" describes each directory's role and names only its entry points and key
+- [x] AC2: PLAN.md's "Project layout" describes each directory's role and names only its entry points and key
   classes (no per-script list to keep current); every script it does name exists (AC1).
-- [ ] AC3: Given the tracked files, when the suite runs, then a test fails naming any `.gd.uid` under `engine/`, `ui/`,
+- [x] AC3: Given the tracked files, when the suite runs, then a test fails naming any `.gd.uid` under `engine/`, `ui/`,
   `sim/`, `autoload/` or `tests/` with no `.gd` beside it. `tests/test_growth.gd.uid`,
   `tests/test_tech_tree_modal.gd.uid` and `tests/test_zz_debug.gd.uid` are deleted.
-- [ ] AC4: `tests/test_zz_bench.gd` (223's profiling script: `check(true, "ran")`, four main scenes, printed timings)
+- [x] AC4: `tests/test_zz_bench.gd` (223's profiling script: `check(true, "ran")`, four main scenes, printed timings)
   and its `.uid` are deleted; the suite's test count drops by exactly 1.
-- [ ] AC5: Every other test passes unedited.
+- [x] AC5: Every other test passes unedited.
 
 ## Out of scope
 - Restructuring `docs/testing.md`'s file table (331 makes each file's header the source).
@@ -61,3 +61,12 @@ named paths can't drift again.
 
 ## Log
 - 2026-10-06: specced from the project review.
+- 2026-10-06: built on the user's go-ahead from `draft`. Links count as paths whatever folder they point into
+  (`../CLAUDE.md`), not only the AC1 prefixes, so a broken link to a top-level doc is caught too.
+- The orphan-uid test passed alone but failed in `scripts/test.sh`: `$TMPDIR` ends in `/`, so each shard's user folder
+  had `//` in its path, and Godot's `DirAccess.get_directories_at("user://…")` then lists the project root.
+  `orphan_uids` lists the globalized folder, and `scripts/test.sh` strips the trailing slash.
+- PLAN.md's layout became a list (fenced code isn't checked, a list is): folders and entry points only.
+- Timings measured with load ~6 from other sessions: 10.5–12.8 s parallel, 38.9 s serial; 2157 tests
+  (2150 before, + 8 `test_docs`, − 1 `test_zz_bench`).
+- `scan.sh` drops its orphan-uid check (now `test_docs`).
