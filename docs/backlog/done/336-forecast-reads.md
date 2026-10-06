@@ -2,7 +2,7 @@
 id: 336
 title: The engine says what a forecast reads, so the bot's forecast cache can't go stale
 type: feature
-status: review
+status: done
 branch: feat/336-forecast-reads
 ---
 
