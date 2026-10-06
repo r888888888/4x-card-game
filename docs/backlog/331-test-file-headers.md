@@ -2,7 +2,7 @@
 id: 331
 title: Each test file's header says what it covers; docs/testing.md keeps one line per file
 type: chore
-status: in-progress
+status: review
 branch: feat/331-test-headers
 ---
 
@@ -13,12 +13,12 @@ place that says what a test file covers; `docs/testing.md` keeps how to run and 
 index.
 
 ## Acceptance criteria
-- [ ] AC1: Given every `tests/test_*.gd` and `tests/balance/test_*.gd`, when the suite runs, then a test fails naming each
+- [x] AC1: Given every `tests/test_*.gd` and `tests/balance/test_*.gd`, when the suite runs, then a test fails naming each
   file whose first lines after `extends` aren't a `##` header comment (at least one line saying what it covers).
-- [ ] AC2: Given `docs/testing.md`'s file table, when the suite runs, then a test fails naming any test file with no row,
+- [x] AC2: Given `docs/testing.md`'s file table, when the suite runs, then a test fails naming any test file with no row,
   any row for a file that doesn't exist, and any row longer than 160 characters.
-- [ ] AC3: `docs/testing.md` is under 25 KB.
-- [ ] AC4: No test changes behaviour: every test passes, and the test count is unchanged.
+- [x] AC3: `docs/testing.md` is under 25 KB.
+- [x] AC4: No test changes behaviour: every test passes, and the test count is unchanged.
 
 ## Out of scope
 - Rewriting tests or moving them between files.
@@ -41,3 +41,10 @@ index.
 
 ## Log
 - 2026-10-06: specced from the project review; the user chose headers as the source of truth.
+- 2026-10-06: built on the user's go-ahead from `draft`. Every test file already had a header; 33 lacked backlog ids
+  or details their row had, and got a "## In detail (from docs/testing.md, 331): …" block with the row's text
+  (mechanical, so it reads like the old row). Rows came from each old row's lead phrase, 32 rewritten by hand.
+- Size: 69,284 → 25,417 bytes. The file index is ~15 KB; the helper table was cut to one phrase per helper (each has
+  its `##` doc in `test_case.gd`); "in the real `main.tscn`" became "UI"; fixture phrases left the rows.
+- 2157 → 2162 tests (the 5 new checks). `scan.sh` drops its "missing from docs/testing.md" section; the `spec` skill
+  never mentioned testing.md, so it needed no change; `add-decision` and `project-review` did.

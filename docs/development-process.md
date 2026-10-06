@@ -116,7 +116,7 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
 | `.claude/skills/project-review/` | Procedure: whole-project architecture and test review → backlog items; `scan.sh` for the mechanical checks |
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |
 | `docs/backlog/` | Items, templates, status flow |
-| `docs/testing.md` | How tests are written and run |
+| `docs/testing.md` | How tests are run and written, the helpers, and a one-line index of the test files (each file's `##` header says what it covers) |
 | `scripts/test.sh` | Test entry point (re-imports new classes, filters, runs the files in parallel shards) |
 | `scripts/test-hook.sh` | Stop hook |
 | `tests/lib/test_case.gd` | Assertions, fixtures, helpers |

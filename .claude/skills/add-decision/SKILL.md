@@ -47,4 +47,4 @@ Copy from the government choice (154: `Anarchy.choose_government`) or renewal (1
 ## Afterwards
 
 - PLAN.md: the decision under its feature, and the list of kinds under "Pending decisions".
-- `docs/testing.md`: rows for any new test file.
+- A new test file: a `##` header saying what it covers and a one-line row in `docs/testing.md` (331).

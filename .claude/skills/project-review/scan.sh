@@ -68,9 +68,6 @@ section "Tracked files that shouldn't be (junk, empty files; orphan .uid files: 
 	true
 } | grep . || echo "(none)"
 
-section "Test files missing from docs/testing.md"
-for f in tests/test_*.gd; do grep -qw "$(basename "$f" .gd)" docs/testing.md || echo "$f"; done
-
 section "Test files holding an engine as Object (0 outside a red phase)"
 grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
 	tests/test_*.gd tests/lib/*.gd | sed 's/^/  /'

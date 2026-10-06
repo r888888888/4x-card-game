@@ -69,24 +69,19 @@ func test_no_uid_file_in_the_project_has_lost_its_script() -> void:
 
 # --- 331 AC1: every test file opens with a header ---
 
-## Held as Object in the red phase so the file parses before the 331 checks exist.
-func checks_331() -> Object:
-	return load("res://tests/lib/doc_checks.gd")
-
-
 func test_a_test_file_without_a_header_after_extends_is_named() -> void:
 	var texts := {"a.gd": "extends X\n## What a covers.\n", "b.gd": "extends X\n\nfunc test_b() -> void:\n",
 		"c.gd": "extends X\n# a plain comment\n", "d.gd": "extends X\n##\n"}
-	eq(checks_331().headerless(texts), ["b.gd", "c.gd", "d.gd"] as Array[String], "files with no header")
+	eq(DocChecks.headerless(texts), ["b.gd", "c.gd", "d.gd"] as Array[String], "files with no header")
 
 
 func test_every_test_file_opens_with_a_header() -> void:
 	var texts := {}
-	for path in checks_331().suite_files():
+	for path in DocChecks.suite_files():
 		texts[path] = FileAccess.get_file_as_string("res://" + path)
 	check(texts.size() >= 150, "the check reads the test files (%d)" % texts.size())
 	check(texts.has("tests/balance/test_sim_reports.gd"), "the balance suite's files are read too")
-	eq(checks_331().headerless(texts), [] as Array[String], "test files with no ## header after extends")
+	eq(DocChecks.headerless(texts), [] as Array[String], "test files with no ## header after extends")
 
 
 # --- 331 AC2, AC3: docs/testing.md indexes them in short rows ---
@@ -94,14 +89,14 @@ func test_every_test_file_opens_with_a_header() -> void:
 func test_table_problems_name_missing_rows_rows_for_no_file_and_long_rows() -> void:
 	var long_row := "| `tests/test_c.gd` | %s |" % "x".repeat(150)
 	var doc := "| File | Covers |\n|---|---|\n| `tests/test_a.gd` | A |\n| `tests/test_gone.gd` | Gone |\n%s\n" % long_row
-	eq(checks_331().table_problems(doc, ["tests/test_a.gd", "tests/test_b.gd", "tests/test_c.gd"]),
+	eq(DocChecks.table_problems(doc, ["tests/test_a.gd", "tests/test_b.gd", "tests/test_c.gd"]),
 		["no row for tests/test_b.gd", "a row for a missing file: tests/test_gone.gd",
 		"row over 160 characters: tests/test_c.gd (%d)" % long_row.length()] as Array[String], "problems")
 
 
 func test_testing_md_indexes_every_test_file_in_one_short_row() -> void:
 	var doc := FileAccess.get_file_as_string("res://docs/testing.md")
-	eq(checks_331().table_problems(doc, checks_331().suite_files()), [] as Array[String], "docs/testing.md's file table")
+	eq(DocChecks.table_problems(doc, DocChecks.suite_files()), [] as Array[String], "docs/testing.md's file table")
 
 
 func test_testing_md_is_under_25_kb() -> void:
