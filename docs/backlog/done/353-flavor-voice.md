@@ -2,7 +2,7 @@
 id: 353
 title: Flavor text in a postwar American literary voice
 type: feature
-status: review
+status: done
 branch: feat/353-flavor-voice
 ---
 
