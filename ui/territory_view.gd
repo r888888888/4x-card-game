@@ -40,6 +40,7 @@ var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _f
 var _filled := 0
 var _outside_press := false  # the left button went down outside the box (200, 327)
 var _hand_press: CardView  # the hand card that press landed on, let through so a drag can start (327)
+var _end_turn_press := false  # that press landed on End turn, let through with its release (348)
 var _turn := -1  # the turn close_if_stale last saw; -1 before a game's first refresh (290)
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
@@ -169,7 +170,7 @@ func _realm_title() -> String:
 
 
 ## A left click anywhere outside the box (pressed and released there) goes back to the Realm, as Back does, and does
-## nothing else (200, 327). The press is held back from the board except on a hand card, so a drag from the hand still
+## nothing else (200, 327) unless it is on End turn, which still ends the turn (348). The press is held back from the board except on a hand card, so a drag from the hand still
 ## reaches the territory; the release is held back, and the card forgets the press. Main calls this after the drag
 ## controller and only with no modal or targeting over the board. Returns whether the event was used.
 func handle_click(event: InputEvent) -> bool:
@@ -180,13 +181,17 @@ func handle_click(event: InputEvent) -> bool:
 	if click.pressed:
 		_outside_press = outside
 		_hand_press = _hand_card_at(click.global_position) if outside else null
-		return outside and _hand_press == null
+		_end_turn_press = outside and _board.sidebar.end_turn.get_global_rect().has_point(click.global_position)
+		return outside and _hand_press == null and not _end_turn_press
 	if not (_outside_press and outside):
 		return false
 	_outside_press = false
 	if is_instance_valid(_hand_press):
 		_hand_press.forget_press()
 	_hand_press = null
+	if _end_turn_press:
+		close.call_deferred()  # after End turn takes the release: the transition would swallow it (348)
+		return false
 	close()
 	return true
 
