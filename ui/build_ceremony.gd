@@ -89,11 +89,19 @@ func tag_drop() -> float:
 	return (1.0 - clampf(_stamp, 0.0, 1.0)) * Tokens.SPACE_1
 
 
-## The ring's and rays' opacity: they fade as they finish.
+## The ceremony's opacity now: its strongest part, the ring or the rays (each fades as it finishes).
 func opacity() -> float:
-	if UIKit.calm():
-		return 1.0
-	return minf(1.0 - maxf(_ring, 0.0), 1.0 if _rays < 0.5 else 1.0 - (_rays - 0.5) * 2.0)
+	return maxf(_ring_alpha(), _rays_alpha())
+
+
+## The ring fades as it blooms out.
+func _ring_alpha() -> float:
+	return 1.0 if UIKit.calm() else 1.0 - clampf(_ring, 0.0, 1.0)
+
+
+## The rays hold while they draw out, then fade.
+func _rays_alpha() -> float:
+	return 1.0 if UIKit.calm() or _rays < 0.5 else 1.0 - (_rays - 0.5) * 2.0
 
 
 ## The tag's split-flap as it lands (guide §9.4).
@@ -121,12 +129,10 @@ func _follow() -> void:
 
 func _draw() -> void:
 	var card := Rect2(Vector2.ONE * ROOM, view.size)
-	var faded := _colour
-	faded.a = opacity()
 	if _ring >= 0.0:
-		draw_rect(card.grow(ring_out() + 1.0), faded, false, LINE_WIDTH)
+		draw_rect(card.grow(ring_out() + 1.0), Color(_colour, _ring_alpha()), false, LINE_WIDTH)
 	if _rays >= 0.0:
-		_draw_rays(card, faded)
+		_draw_rays(card, Color(_colour, _rays_alpha()))
 	if _stamp >= 0.0:
 		_draw_tag(card)
 
