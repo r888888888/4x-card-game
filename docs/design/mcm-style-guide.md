@@ -1052,7 +1052,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
 | `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
 | `ui.card.place` | An index card laid on the blotter · a soft, flat pat with a little body | 60–100 ms | low (−3) | neutral-low; ≈ 300 Hz body under paper | none | the card lands (start of its 60 ms landing snap) | high |
-| `ui.hover` | A fingertip brushing a felt-lined key edge · a soft, dry, short tick | 15–25 ms | very low (−8) | neutral; ≈ 2 kHz soft tick over a ≈ 1.5× overtone, no body | none | the pointer entering an enabled key or an actionable card (a press or drag in progress, a disabled key and a moving card are silent) | very high |
+| `ui.hover` | A fingertip brushing a felt-lined key edge · a soft, dry, short tick | 15–25 ms | very low (−8) | neutral; ≈ 2 kHz soft tick over a ≈ 1.5× overtone, no body | none | the pointer entering an enabled key or an actionable card, including a territory view's city and buildings (342) (a press or drag in progress, a disabled key and a moving card are silent) | very high |
 | `ui.counter.tick` | A drum counter's pawl advancing · a compact electromechanical tick | 30–60 ms | very low (−6; each later tick in a run −1) | neutral; ≈ 3 kHz click on a ≈ 1 kHz body; a downward roll −1 st | none | each digit lands on its next value (the last step registers instead) | very high |
 | `ui.flap` | A split-flap word turning over · one short riffle of light flaps | 120–250 ms, one per word | very low (−8) | neutral-high, dry rattle | none | the first flap falls | occasional |
 | `ui.resource.gain` | The counter's drum locking in, with the lamp's faint tone · "tk-clack" and a whisper of A5 | 80–140 ms | low (−3) | slightly elevated; the A5 tone 12 dB under the click | none | the last step lands, with the lamp pulse, in place of its tick | high |
@@ -1488,7 +1488,7 @@ Sound occurs at the perceived physical event.
 ### 16.8 Silence, density and repetition
 Silence is an intentional part of the system. Every sound earns its place; the default is none.
 
-**Silent by design**: hover on anything that isn't an enabled key or an actionable card (245: those tick, see `ui.hover`), keyboard focus moving, tooltips, links, the scrim, lamps going out,
+**Silent by design**: hover on anything that isn't an enabled key or an actionable card (245: those tick, see `ui.hover`; so do a territory view's city, buildings and enabled free slots, 342), keyboard focus moving, tooltips, links, the scrim, lamps going out,
 lamps lighting for status (AT LIMIT, IDLE, target lamps), the vellum overlay, gauge needles, the tab rail, delta
 tags, a card's drag travel, deselecting, progress cells filling, the chaser, flags leaving and restacking, the READY
 lamp after a turn, and idle time.

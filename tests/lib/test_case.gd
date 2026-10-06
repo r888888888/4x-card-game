@@ -718,6 +718,30 @@ func wait_seconds(s: float) -> void:
 	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
 
 
+## A real mouse move to point at on main's viewport, with the left button held or not.
+func move_mouse(main: Node, at: Vector2, held := false) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = at
+	event.global_position = at
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
+	main.get_viewport().push_input(event, true)
+
+
+## Moves the mouse well away from everything.
+func away(main: Node) -> void:
+	move_mouse(main, Vector2(2, 2))
+
+
+## Control c's centre, in global coordinates.
+func centre(c: Control) -> Vector2:
+	return c.get_global_rect().get_center()
+
+
+## How many hover ticks (Sfx.HOVER, 245) main's sfx has played.
+func hovers(main: Node) -> int:
+	return main.sfx.played().filter(func(r): return r.token == Sfx.HOVER).size()
+
+
 ## A real click: presses and releases mouse button at point at on main's viewport.
 func click_point(main: Node, at: Vector2, button := MOUSE_BUTTON_LEFT) -> void:
 	for pressed in [true, false]:

@@ -5,7 +5,6 @@ extends "res://tests/lib/test_case.gd"
 ## interface sounds off is still heard, and Reduce motion plays them at the press. main.sfx's clock is frozen at 0.
 
 
-
 func mouse(main: Node, at: Vector2, pressed: bool) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
@@ -13,18 +12,6 @@ func mouse(main: Node, at: Vector2, pressed: bool) -> void:
 	event.position = at
 	event.global_position = at
 	main.get_viewport().push_input(event, true)
-
-
-func move_mouse(main: Node, at: Vector2, held := false) -> void:
-	var event := InputEventMouseMotion.new()
-	event.position = at
-	event.global_position = at
-	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
-	main.get_viewport().push_input(event, true)
-
-
-func centre(c: Control) -> Vector2:
-	return c.get_global_rect().get_center()
 
 
 ## [token, at] of every sound played, at rounded to the ms.
