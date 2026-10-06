@@ -1,6 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## The card supply (backlog 032): buying copies of existing cards with wealth (supply, supply_left,
 ## buy_price, buy_error, buy) and the config `supply` block.
+## In detail (from docs/testing.md, 331): The card supply: `supply` config, `supply` / `supply_left` / `buy_price` /
+## `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057)
 
 
 # --- Helpers ---

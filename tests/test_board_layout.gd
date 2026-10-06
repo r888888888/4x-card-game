@@ -1,6 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## The board without a sidebar (backlog 115), in the real main scene on the real data at 1920×1080: the play area
 ## reaches the sidebar (202), the top bar carries Buy Cards and Knowledge; End turn sits at the sidebar's foot (203).
+## In detail (from docs/testing.md, 331): The board without a sidebar in the real `main.tscn` at 1920×1080 (115): no
+## `SidePanel` or `TurnBox`, the Realm and the hand reach the right edge, the top bar's order and fit, End turn in the
+## top bar between Log and Menu (E, the discard text, disabled with its reason; 120), keys in the tooltips, the bar
+## fitting with its longest texts
 
 const EDGE := 40.0  # px from the window's right edge that counts as reaching it
 const TOLERANCE := 1.0

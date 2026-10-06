@@ -4,6 +4,11 @@ extends "res://tests/lib/test_case.gd"
 ## its cards in order. A city or building on a territory has a view only while that territory's view (101) is open.
 ## Headless runs don't move the mouse for pushed events, so drops are checked through main.drag.target_at(point) (what
 ## a drop there targets) and main.try_play, and a lit card's click through main.on_picked.
+## In detail (from docs/testing.md, 331): Territories as plain cards in the Realm (102) on a TEST_CARDS game: one card
+## per territory then cards on no territory (`main.tableau.row`), no city or building card outside the territory view,
+## the live line (123: name, keywords, "▢ F   ⌂ P/H   ⚒ W   ⛨ D", 161; Frontier unchanged), drag targets
+## (`drag.target_at`) and targeting, no collapse or Grow in the Realm, a settled territory's card, many cards wrap
+## (078)
 
 
 ## The uids of the Realm's card views, in order.

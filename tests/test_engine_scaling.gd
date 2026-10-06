@@ -3,6 +3,9 @@ extends "res://tests/lib/tech_case.gd"
 ## modifier(), upkeep and the forecast) is one pass over the tableau, and a eureka check stops once its count is met.
 ## Scaling is a time_ratio of two timings, so it holds on any machine. Local fixture: Mill, a building with
 ## +1 hand_size and +1 food on upkeep.
+## In detail (from docs/testing.md, 331): How engine queries scale with the tableau (150): which buildings work
+## (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing
+## with it; `time_ratio` of two timings in alternating runs (test_case.gd, 236), never absolute times
 
 const MILL := {"id": "mill", "name": "Mill", "type": "building", "modifiers": {"hand_size": 1},
 	"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}

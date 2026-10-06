@@ -2,6 +2,10 @@ extends "res://tests/lib/test_case.gd"
 ## The real game data (data/*.json): territory content coverage and a scripted smoke test (backlog 006).
 ## These are the only tests besides test_real_data_loads that read the real data. They check shape and
 ## that games run, not balance numbers.
+## In detail (from docs/testing.md, 331): The real data: invariants over the whole data set, never a single card (every
+## keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs
+## and supply consistent). No many-seed bot sweeps: real games over seeds are sim runs (`scripts/sim.sh`), not tests
+## (145)
 
 
 func load_real() -> Dictionary:

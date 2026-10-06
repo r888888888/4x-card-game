@@ -6,6 +6,13 @@ extends "res://tests/lib/tech_case.gd"
 ## while closed), is_open(), open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label),
 ## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), linked(name) (278), slide_offset() (how
 ## far the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
+## In detail (from docs/testing.md, 331): The Knowledge screen (208; the tech tree modal before it, 059, 140) in the
+## real `main.tscn`: T and the Knowledge button push it on the play area's navigator (`main.knowledge`: `shown()`,
+## `header`, `context_text()`, `era_heading(i)`, `slide_offset()`, `realm_shift()`), a row per era (caps heading, a
+## future era dimmed with its unlocks), compact tiles (222: `tile(name)`, `tile_texts(name)`, `era_tiles(i)`,
+## `era_vellum(i)`, `vellum_text(i)`) whose click, Enter, right-click or I opens the details, whose Learn button
+## researches (229), a future era under vellum, back by Back / Esc / T / the link or a left click outside it that does
+## nothing else (326), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
 
 
 ## Whether main has its Knowledge screen (checked, so a test without it fails instead of crashing and leaving a

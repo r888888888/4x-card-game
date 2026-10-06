@@ -4,6 +4,10 @@ extends "res://tests/lib/anarchy_case.gd"
 ## changes nothing; only the decision's own actions go on. The table of actions is checked against GameEngine's
 ## methods, so a new action needs a row. Games from tests/lib/anarchy_case.gd (unrest, Anarchy, renewal, a supply and
 ## a research deck), with Explorers and three territories to explore.
+## In detail (from docs/testing.md, 331): Guards (171): while each decision is owed (explore, discard, renewal,
+## government) and after game over, every other action refuses with a reason and changes nothing; the table of actions
+## is checked against `GameEngine`'s methods with an error query; 172: each decision action's message order, every
+## action under `# --- Actions ---` beside its query
 
 ## Actions with an error query that no decision blocks.
 const NOT_BLOCKED := ["new_game"]

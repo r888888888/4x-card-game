@@ -5,6 +5,10 @@ extends "res://tests/lib/test_case.gd"
 ## the game menu and the game-over sheet as Modals on main.modals; the rise on opening, the stacked offset and the drop
 ## on closing. Hooks on Modal: title, context, title_label, context_label, bar, body, footer, footer_rule,
 ## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha().
+## In detail (from docs/testing.md, 331): Modals as drafting sheets (207) in the real `main.tscn` at 1920×1080: each
+## modal's sheet (RAISED, 2 px TEXT rule, 8,8 hard shadow), title block (4 px bar, title, context caps), body at most
+## 640 px, footer under a 1 px rule (primary rightmost); the menu and game over on `main.modals` (game over stays); the
+## rise, the stacked +8,+8, the drop, Reduce motion fades; hooks `sheet_offset()`, `sheet_alpha()`, `scrim_alpha()`
 
 const RISE := 24.0  # px below its place a sheet starts
 const DROP := 12.0  # px below its place a closing sheet ends

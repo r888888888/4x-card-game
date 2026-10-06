@@ -2,6 +2,11 @@ extends "res://tests/lib/tech_case.gd"
 ## The build menu (295): config build_menu {card_id: {locked, once}}; build(card_id, territory) puts a new copy of an
 ## unlocked entry on a settled territory for an action and its cost, as playing it would; build_error, build_menu,
 ## build_targets; the unlock op opening an entry; once entries; the loader. Band (2 actions) rules, so actions run out.
+## In detail (from docs/testing.md, 331): The build menu (295): config `build_menu` ({card_id: {locked, once}}) and its
+## loader checks; `build` / `build_error` (an action and the discounted cost, a fresh copy on a territory,
+## `card_played`, each refusal), `build_menu`, `build_targets`; the `unlock` op opening an entry ("… can now be
+## built."); `once` entries; copies; `build_preview` (299: cost and before → after lines, only what changes, untouched
+## game). Band rules, so actions run out
 
 ## Played when built: +2 VP.
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"food": 1},

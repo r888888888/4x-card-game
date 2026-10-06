@@ -1,6 +1,9 @@
 extends "res://tests/lib/test_case.gd"
 ## Growth cards (backlog 013): the grow op adds pop "here" (the card's territory) or in "each" settled
 ## territory, capped by housing and free of food.
+## In detail (from docs/testing.md, 331): The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap;
+## 261: `best` (idle buildings, then smallest pop) and `each` with `count` (fixture `GROW_CARDS`); 262: no automatic
+## growth, `growth_surplus` unknown, manual Grow gone
 
 
 ## Population on (no food upkeep, no pop VP, settlement tiers when tiers isn't empty), Homeland pop start, 50 food.

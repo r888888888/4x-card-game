@@ -1,6 +1,9 @@
 extends "res://tests/lib/tech_case.gd"
 ## Engine queries for rules the UI used to work out itself (backlog 049): playable_error, end_turn_error,
 ## supply_error, upcoming_era_unlocks and territory_groups.
+## In detail (from docs/testing.md, 331): Engine queries the UI relies on: `playable_error`, `end_turn_error`,
+## `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`,
+## `open_supply_piles` (094); `hand_limit`, `research_on` (175); `zone_of` (176); `play_shortfall` (180)
 
 
 ## A game on Grassland (2 slots) with plenty of food and a hand of Farms. With hills, Hills is settled too.

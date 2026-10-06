@@ -5,6 +5,8 @@ extends RefCounted
 ## The folders a backticked path must start with to count as a repo path.
 const PREFIXES: Array[String] = ["engine/", "ui/", "sim/", "autoload/", "scripts/", "tests/", "data/", "docs/"]
 ## The docs checked besides docs/*.md and each skill's SKILL.md.
+## The longest row docs/testing.md's test file table may have (331).
+const ROW_LIMIT := 160
 const ROOT_DOCS: Array[String] = ["PLAN.md", "CLAUDE.md", "README.md"]
 
 
@@ -78,3 +80,51 @@ static func _clean(path: String) -> String:
 		return ""
 	return path
 
+
+
+## Every test file the runner runs, repo-relative: tests/test_*.gd and tests/balance/test_*.gd, sorted (331).
+static func suite_files() -> Array[String]:
+	var out: Array[String] = []
+	for dir in ["tests", "tests/balance"]:
+		for file in DirAccess.get_files_at("res://" + dir):
+			if file.begins_with("test_") and file.ends_with(".gd"):
+				out.append("%s/%s" % [dir, file])
+	out.sort()
+	return out
+
+
+## The files of texts (path -> source) whose first line after `extends` isn't a ## header with words (331).
+static func headerless(texts: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for path in texts:
+		var lines: PackedStringArray = (texts[path] as String).split("\n")
+		var at := 0
+		while at < lines.size() and not lines[at].begins_with("extends"):
+			at += 1
+		var header := lines[at + 1] if at + 1 < lines.size() else ""
+		if not header.begins_with("##") or header.trim_prefix("##").strip_edges() == "":
+			out.append(path)
+	out.sort()
+	return out
+
+
+## What's wrong with doc_text's test file table (rows "| `tests/…test_x.gd` | … |") against files (331): a file with
+## no row, a row for a file not in files, and a row over ROW_LIMIT characters.
+static func table_problems(doc_text: String, files: Array) -> Array[String]:
+	var rows := {}
+	var row := RegEx.create_from_string("^\\| `(tests/(?:balance/)?test_\\w+\\.gd)` \\|")
+	for line in doc_text.split("\n"):
+		var m := row.search(line)
+		if m != null:
+			rows[m.get_string(1)] = line.length()
+	var out: Array[String] = []
+	for file in files:
+		if not rows.has(file):
+			out.append("no row for " + file)
+	for file in rows:
+		if not files.has(file):
+			out.append("a row for a missing file: " + file)
+	for file in rows:
+		if files.has(file) and rows[file] > ROW_LIMIT:
+			out.append("row over %d characters: %s (%d)" % [ROW_LIMIT, file, rows[file]])
+	return out

@@ -2,6 +2,12 @@ extends "res://tests/lib/test_case.gd"
 ## The right sidebar (backlog 202) in the real main scene at 1920×1080: the civilization's name and its government at
 ## the board's right edge, full height under the top strip, opening the civilization modal. Hooks: main.sidebar
 ## (heading, name_button, government_button).
+## In detail (from docs/testing.md, 331): The right sidebar (202) in the real `main.tscn`: the civilization's name and
+## government link (`main.sidebar`: `heading`, `name_button`, `government_button`), at the right edge under the top
+## strip with the Realm and hand to its left (1280×720, 1920×1080), opening the civilization modal (click, Enter),
+## following Anarchy, no top-bar button, in the focus order after the strip, hidden on the start screens; the mock's
+## frame (221): the top bar on a full-bleed ruled `Strip`, the open `Rail` with a hairline, the government as a
+## `CapsLink`, the Realm heading level with the rail's rule
 
 const TOLERANCE := 1.0
 

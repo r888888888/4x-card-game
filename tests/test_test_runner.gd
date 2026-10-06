@@ -2,6 +2,11 @@ extends "res://tests/lib/test_case.gd"
 ## The test runner itself (223): frames run without the headless sleep on a fixed time step, and the test files split
 ## into shards for parallel processes (tests/lib/test_shards.gd); a test_* method that takes arguments is reported
 ## instead of called (284, tests/lib/test_methods.gd).
+## In detail (from docs/testing.md, 331): The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even
+## when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes
+## all; the warning when the player's settings file changes during a run (196, `tests/lib/settings_watch.gd`); a
+## `test_*` method with arguments reported as a failure, not called (284, `tests/lib/test_methods.gd`, fixture
+## `tests/lib/fixtures/runner_fixture.gd`)
 
 const SHARDS_PATH := "res://tests/lib/test_shards.gd"
 const WATCH_PATH := "res://tests/lib/settings_watch.gd"

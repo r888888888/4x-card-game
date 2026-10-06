@@ -4,6 +4,8 @@ extends "res://tests/lib/tech_case.gd"
 ## Local fixtures (so other tests load while the field is missing): civilizations Scholars (techs −1 insight),
 ## Builders (wonders −3 wealth) and Traders (supply −1 wealth); buildings Obelisk (12 wealth, wonder) and Cairn
 ## (2 wealth + 1 food, wonder); tech Awl (1 insight). TECHS from tech_case: Loom 4, Iron 6.
+## In detail (from docs/testing.md, 331): Civilization `discounts` (108): loading and validation, card text, type and
+## tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors; `supply_play_cost` (232)
 
 const SCHOLARS := {"id": "scholars", "name": "Scholars", "type": "civilization", "discounts": [{"type": "tech", "insight": 1}]}
 const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}

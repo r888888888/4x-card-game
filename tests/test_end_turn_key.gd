@@ -2,6 +2,12 @@ extends "res://tests/lib/test_case.gd"
 ## End turn as the specimen's key (backlog 203) at the foot of the sidebar (202), in the real main scene at 1920×1080.
 ## Hook: main.sidebar.end_turn (an EndTurnKey Button): lamp_lit(), lamp_color(), label_text() (as shown, in caps),
 ## plate_text(), caption_text() ("" while hidden), busy().
+## In detail (from docs/testing.md, 331): End turn as the specimen's key (203) at the sidebar's foot in the real
+## `main.tscn` at 1920×1080: `main.sidebar.end_turn` (`lamp_lit()`, `lamp_color()`, `label_text()`, `plate_text()`,
+## `caption_text()`, `busy()`): its box, the lamp (ochre with actions left and no caption since 221, sage when ready or
+## unlimited, brick and disabled with the reason when a discard is owed or the game is over), busy "UPKEEP…" after a
+## press, the plate flapping to the new turn, the pressed travel, the rail's width × 80 in the window's corner (221);
+## `with_key_game` restores the engine whatever happens
 
 const TOLERANCE := 1.0
 

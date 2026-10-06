@@ -2,7 +2,7 @@
 id: 331
 title: Each test file's header says what it covers; docs/testing.md keeps one line per file
 type: chore
-status: red-review
+status: in-progress
 branch: feat/331-test-headers
 ---
 

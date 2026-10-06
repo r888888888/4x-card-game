@@ -1,6 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## Card details (backlog 056): def_details(card_id) and card_details(uid) give a card's full rules, its live state
 ## and an explanation of every mechanic it uses.
+## In detail (from docs/testing.md, 331): `def_details` / `card_details`: rules, live state (pop, slots, idle, tech
+## price now), terms and generated keyword terms; a tech's `gives` and its rules without the given lines (289)
 
 ## A tech with a prerequisite and the default discount (2): printed 5 wealth.
 const CHARIOT := {"id": "chariot", "name": "Chariot", "type": "tech", "cost": {"insight": 5}, "prereq": "bronze"}
