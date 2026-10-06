@@ -2,7 +2,7 @@
 id: 344
 title: Name the modal layouts in the guide (text, card and ledger sheets) with the ledger's sizes in Modal
 type: feature
-status: review
+status: done
 branch: feat/344-modal-layouts
 ---
 

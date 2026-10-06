@@ -2,7 +2,7 @@
 id: 343
 title: Make the Build modal larger: the guide's ledger sheet (a 384 × 480 list and a hand-size card)
 type: feature
-status: review
+status: done
 branch: feat/343-larger-build-modal
 ---
 
