@@ -7,7 +7,7 @@ branch: feat/198-bold-card-titles
 ---
 
 ## Goal
-A card's name stands out from its rules at a glance, as on the specimen's index cards (`docs/design/transitions.html`'s
+A card's name stands out from its rules at a glance, as on the specimen's index cards (`docs/design/mocks/transitions.html`'s
 `.mh`: Barlow Semi Condensed 600).
 
 ## Acceptance criteria

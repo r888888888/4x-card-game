@@ -7,7 +7,7 @@ branch: feat/201-resource-strip
 ---
 
 ## Goal
-The top bar reads as the mock's strip (`docs/design/transitions.html`, `.dstrip`): a turn plate, then each resource as
+The top bar reads as the mock's strip (`docs/design/mocks/transitions.html`, `.dstrip`): a turn plate, then each resource as
 a large glyph and figure, with next upkeep's change beside it as a separate, quieter value instead of in parentheses.
 
 ## Acceptance criteria
@@ -48,7 +48,7 @@ Decisions: the plate is a Label in a new `Plate` variation (tabular numerals on 
 `forecast(main, key)` helper so a missing hook fails the test without crashing the rest of the run.
 
 ## Manual check
-- [ ] Compare with `docs/design/transitions.html`'s strip in both palettes: plate, figure size, forecast spacing.
+- [ ] Compare with `docs/design/mocks/transitions.html`'s strip in both palettes: plate, figure size, forecast spacing.
 
 ## Log
 - Specced 2026-10-02 from the notes list. Decided 2026-10-02: keep the forecast inline without parentheses, padded as a

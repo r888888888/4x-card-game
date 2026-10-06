@@ -35,7 +35,7 @@ showing the pile as it stands (its price tag and copies left) with a Buy key; bu
 - Any change to the engine's buy rules, prices or `buy_error` reasons.
 
 ## Design notes
-- Design confirmed with the user: `docs/design/supply-details-options.html`, option B (the tag hangs under the card).
+- Design confirmed with the user: `docs/design/mocks/supply-details-options.html`, option B (the tag hangs under the card).
   Buy closes the modal; a refusal's reason sits on the footer's left, not only in a tooltip; Enter opens details
   like a click.
 - UI only (`ui/supply_screen.gd`, `ui/card_details_modal.gd`, `ui/main.gd`); no engine change: the modal reads

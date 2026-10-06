@@ -5,23 +5,15 @@ Spikes `spike/mcm-style-guide` and `spike/mcm-sound`. A visual, motion, interact
 adjectives. A live specimen of the tokens and the core components (with motion, synthesized sound, and Reduce motion
 and Sound switches) is in [mcm-specimen.html](mcm-specimen.html); open it in a browser.
 
-Companion pages in this folder (open them in a browser):
-- [mcm-specimen.html](mcm-specimen.html): the tokens and core components, with motion and sound, plus an audition
-  board of every sound token (§14.1) and a repetition test (§16.8).
-- [transitions.html](transitions.html): every screen transition in §10–11 on a mock game screen, with slow motion and
-  Reduce motion.
-- [card-stacks.html](card-stacks.html): six designs for a stack of cards (discard, deck, research deck, hand) and how
-  each opens when clicked.
-- [icon-options.html](icon-options.html), [lamp-key-options.html](lamp-key-options.html),
-  [switch-options.html](switch-options.html), [cost-grouping-options.html](cost-grouping-options.html): the
-  alternatives considered for the resource glyphs, the toggle and cost grouping, and which were chosen.
-- [renewal-options.html](renewal-options.html): three designs for the Renewal sheet (card spread, ledger, trash tray);
-  the ledger was chosen (255), with its sound plan.
-- [list-options.html](list-options.html): five designs for a selectable list (index card, folder tab, ledger line,
-  selector lamps, pointer); the index card was chosen (§7.16).
-- [click-options.html](click-options.html): nine versions of the key click (`ui.button.press` / `.release`): the
-  current one down to the darkest, then three two-stage clicky switches; matched for loudness, with bursts at a busy
-  turn's rate.
+Companion pages in this folder (open them in a browser); [index.html](index.html) lists them all:
+- [mcm-specimen.html](mcm-specimen.html), the master: the game's design as built, every token and component in
+  Night and Paper, with motion and sound, plus an audition board of every sound token (§14.1) and a repetition test
+  (§16.8). When the game changes how something looks, moves or sounds, the specimen changes with it.
+- [mocks/transitions.html](mocks/transitions.html): every screen transition in §10–11 on a mock game screen, with
+  slow motion and Reduce motion.
+- [mocks/](mocks/): the option pages, each comparing a few designs for one question, kept as the record of what was
+  chosen and why (the index says which option each item built).
+- [tools/sound-export.html](tools/sound-export.html): renders the sound tokens into the game's placeholder files.
 
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
 names it, and §17 maps every token onto the existing code.
@@ -429,7 +421,7 @@ the specification, not an omission.
 15. **End-turn control** — §11.9 and §15.12. Sound: the desk's heaviest key and a relay behind the panel,
     `ui.endturn.press`, `ui.endturn.commit`, `ui.endturn.turn`.
 16. **Selectable list** — an **index card** list (217; the alternatives are in
-    [list-options.html](list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`. The one
+    [list-options.html](mocks/list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`. The one
     selected row is pulled out like an index card: a `sheet` strip moved 8 px toward the trailing side onto a hard 4 px
     `shadow`, its label `ink`, with the signal **index tab** (4 px wide, the row's height inset) on its leading edge:
     the same selection mark a card gets (§4.4, §10.5). Hover only inks the label. Focus keeps its teal ring, so focus
@@ -556,7 +548,7 @@ it reads as depressing into the desk. No scale, no ripple, no colour flash. Rele
 activation (Space/Enter) plays the same press/release. A held button (End turn's hold-to-skip-confirm if added)
 shows a fill wiping left→right across its face.
 
-**Sound.** Every key sits on a clicky key switch (chosen in [click-options.html](click-options.html), option G).
+**Sound.** Every key sits on a clicky key switch (chosen in [click-options.html](mocks/click-options.html), option G).
 `ui.button.press` is two-stage, like the switch: the click jacket snaps at actuation (≈ 24 ms in), then the stem
 bottoms out on the housing as the face reaches the desk (≈ 38 ms). `ui.button.release` is the switch coming back up,
 quieter: the upstroke snap, then the top-out as the face reaches its stop (≈ 65 ms after release). The action still fires on release; whatever it starts makes its own sound with its own motion. Hover
@@ -1144,7 +1136,7 @@ Switching tabs with the arrow keys is silent; only a press on a tab clicks.
 
 ### 15.4 Toggle (lamp key)
 A latching push key, like a control-room key with a lamp window in its face (the window bar, chosen over the legend key
-in 219; see [lamp-key-options.html](lamp-key-options.html)). It is the button's press made to stay down, so the UI has
+in 219; see [lamp-key-options.html](mocks/lamp-key-options.html)). It is the button's press made to stay down, so the UI has
 one physical idea for "a thing you press" and no separate switch control. The light is the key's only mark; its state
 word sits beside it. In its row the setting's name sits left in `type.label`, and the key and its state word align
 right, the word last.
@@ -1544,7 +1536,7 @@ None. Removing a sound is always an acceptable fix.
 - **Prototype**: the specimen synthesizes every token in the browser (filtered noise bursts for clicks and ticks,
   shaped noise for runs and paper, partial sums for the bell and the vibraphone). Those fix timing, level and
   character, and serve as placeholders; final assets are recorded or designed to the same specs. The key switch was
-  chosen by ear from the options in [click-options.html](click-options.html): option G.
+  chosen by ear from the options in [click-options.html](mocks/click-options.html): option G.
 
 ---
 
@@ -1608,7 +1600,7 @@ How the guide lands in the existing UI without touching `engine/`:
 - Two event cues (accord, city) first opened within 3 dB of their peak, a sudden loud start. The rule that a Level 3
   opens with its quiet mechanism (§12 rule 12) came from measuring that.
 - The first key click was a narrow band at 1.8 kHz over a weak body, and in listening it sounded high and thin. Nine
-  versions went side by side in [click-options.html](click-options.html), loudness-matched, from a lowered click to a
+  versions went side by side in [click-options.html](mocks/click-options.html), loudness-matched, from a lowered click to a
   dark felt thock and three two-stage clicky switches. The choice was G, the clicky switch: a bright snap and a plastic
   bottom-out 14 ms apart. It isn't darker than the first click (both centre near 2.4 kHz); what changed is that it
   is a recognisable mechanism with two stages instead of one band of noise. Its snap is the guide's one bright sound,

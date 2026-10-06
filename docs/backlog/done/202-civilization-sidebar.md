@@ -7,7 +7,7 @@ branch: feat/202-civilization-sidebar
 ---
 
 ## Goal
-The board gets the mock's rail (`docs/design/transitions.html`, `.rail`) on the right: the civilization's name and its
+The board gets the mock's rail (`docs/design/mocks/transitions.html`, `.rail`) on the right: the civilization's name and its
 government, which open the civilization modal. It replaces the top bar's "Sumer · Chiefdom" button and gives End turn
 (203) a home.
 

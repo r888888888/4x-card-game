@@ -47,7 +47,7 @@ sound.
   turn.
 - **Sounds**: new tokens `Sfx.MILESTONE_REPELLED` (`ui.milestone.repelled`) and `Sfx.MILESTONE_PILLAGED`
   (`ui.milestone.pillaged`), Level 3. `EventSounds` hears `raid_resolved` alongside `milestone` and picks the highest
-  per change (AC4's order). Files rendered by `docs/design/sound-export.html`, per the guide's Ceremony family:
+  per change (AC4's order). Files rendered by `docs/design/tools/sound-export.html`, per the guide's Ceremony family:
   - repelled: a heavy latch (a gate barred), then marimba D4–A4–D5 rising, 600–900 ms.
   - pillaged: a relay drop and a low drum hit, then muted piano falling B3–F♯3 (B minor), 700–1000 ms, dignified,
     not alarming like a siren.
@@ -75,7 +75,7 @@ Run `godot --path . -- --civ sumer --seed 5` (or any seed) and play until a raid
   tech (vibraphone) sounds, and not alarming.
 - [ ] Next raid, station enough units on its target: "Repelled", and a latch then a rising marimba.
 - [ ] Both sounds sit at the level of the other milestones, not louder. If not, change the token's `level` in
-  `docs/design/sound-export.html`, serve that folder over http, and call `SoundExport.renderToken(...)` to re-render.
+  `docs/design/tools/sound-export.html`, serve that folder over http, and call `SoundExport.renderToken(...)` to re-render.
 
 ## Log
 - Spec'd 2026-10-04. Decisions from the user: two sounds (repelled / pillaged), one modal per raid, raid modal above
@@ -87,6 +87,6 @@ Run `godot --path . -- --civ sumer --seed 5` (or any seed) and play until a raid
 - Green: `main.gd` crossed its 500-line limit, so the turn-start modals moved into `TurnNews` (`ui/turn_news.gd`):
   it owns the event and raid modals, hears `event_drawn` / `raid_resolved` and opens both in the refresh. The
   outcome now carries the raid's card `id` (like `event_drawn`'s), so its line can name the raid after it's discarded.
-- Sounds rendered by `docs/design/sound-export.html` (new `renderToken(name)` to render one token); the guide's §14.1
+- Sounds rendered by `docs/design/tools/sound-export.html` (new `renderToken(name)` to render one token); the guide's §14.1
   table has both rows.
 - Refactor: the event and raid modals' card goes in with `Modal.show_card`.

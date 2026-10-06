@@ -41,7 +41,7 @@ forms a phrase instead of repeating one sound. Chosen by ear on `spike/endturn-c
   record gains `variant` (-1 when random). `end_turn_key.gd` passes `(turn - 1) % 4` using the turn it ended
   (`_end_turn` already records `turn` before `e.end_turn()`). The variant count lives in `Sfx`
   (an override of `VARIANTS` for `ENDTURN_TURN`, e.g. `_VARIANT_OVERRIDES := {ENDTURN_TURN: "abcd"}`), not in the key.
-- **Files**: rendered by `docs/design/sound-export.html`: replace its `ui.endturn.turn` token with the spike's
+- **Files**: rendered by `docs/design/tools/sound-export.html`: replace its `ui.endturn.turn` token with the spike's
   vibraphone (partials 1:4:10, motor tremolo 5.2 Hz, depth 0.35), voicing D3 D4 F♯4 A4 C♯5 E5 shifted diatonically by
   0, −2, −4, −3 degrees, decay ×1.0, room 1.2 s at 18 %, and let `paths()` give it four files whose variants are the
   four chords (not the L2 pitch variants). Copy the synthesis from `spike/endturn-chords`
@@ -78,7 +78,7 @@ forms a phrase instead of repeating one sound. Chosen by ear on `spike/endturn-c
 - AC4's out-of-range test first missed the criterion's "push_error naming the token and the variant"; added
   `expect_error` for both cases at green (stricter, not weaker).
 - The turn → chord mapping (`Sfx.turn_variant`) lives in `Sfx`: it's which sound file plays, not a game rule.
-- Files rendered by `docs/design/sound-export.html` (its `ui.endturn.turn` now walks; `walk: 4`, room 1.2 s): each
+- Files rendered by `docs/design/tools/sound-export.html` (its `ui.endturn.turn` now walks; `walk: 4`, room 1.2 s): each
   peaks at −17 dBFS, about 2.2 s. Style guide amended in §15.12, the Level 2 table, the families table, §16.7, §16.8.
 - Each chord holds an Interface voice for ≈ 2.2 s (6 voices); watch for dropped Level 1 clicks right after End turn
   (Manual check). If they drop, a follow-up could move the token to the Game bus.

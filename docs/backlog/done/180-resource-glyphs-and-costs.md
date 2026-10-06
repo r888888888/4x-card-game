@@ -42,7 +42,7 @@ first.
 - New engine query `play_shortfall(uid) -> Array[String]`; the UI never compares resources with costs itself
   (CLAUDE.md). `price_error` already knows which resources fall short; share the comparison.
 - Glyphs: white SVGs on the guide's 24 grid (stroke 2, square caps, mitred joins), tinted at run time as `Icons` does;
-  paths in [docs/design/icon-options.html](../design/icon-options.html) (sprout, cash coin, curved-page book, solid bolt
+  paths in [docs/design/mocks/icon-options.html](../design/mocks/icon-options.html) (sprout, cash coin, curved-page book, solid bolt
   drawn 20% smaller). `assets/icons/food.svg` is replaced by the sprout.
 - `TopBar` gives each counter its glyph in the label's left margin (a `TextureRect` child), as the spike did, so the
   glyph shows and hides with the label.

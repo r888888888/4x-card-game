@@ -8,7 +8,7 @@ branch: feat/187-key-sounds
 
 ## Goal
 Every key on the desk sounds like the clicky key switch the guide chose ([docs/design/mcm-style-guide.md](../design/mcm-style-guide.md)
-§10.1, §15.1, §15.4, §15.12; option G in [click-options.html](../design/click-options.html)): the jacket's snap and
+§10.1, §15.1, §15.4, §15.12; option G in [click-options.html](../design/mocks/click-options.html)): the jacket's snap and
 the bottom-out as a button sinks into its shadow, a quieter snap and top-out as it comes back, a latch for the legend
 key, and a heavier key and a relay for End turn. A press is felt as well as seen, and hover stays silent.
 

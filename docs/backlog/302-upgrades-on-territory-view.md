@@ -9,7 +9,7 @@ branch: feat/302-upgrades-on-territory-view
 ## Goal
 After 300 and 301 the engine builds upgrades onto buildings, but nothing on screen shows or builds them. After this, a
 territory's view draws each building's upgrades as **ribbons** along the foot of its card (design A of
-[building-upgrade-options.html](../design/building-upgrade-options.html)), a fallen-back ribbon hatched with the idle
+[building-upgrade-options.html](../design/mocks/building-upgrade-options.html)), a fallen-back ribbon hatched with the idle
 lamp and its reason, and a building that could take an upgrade shows a **+ Upgrade** chip that opens 297's Build modal
 on it; the modal gains an **Upgrades** heading (design X). The upgrade's own card face says what it builds on and the
 tier it needs. Follows 297 (and 299) and 301.
@@ -65,7 +65,7 @@ Fixture: 300 and 301's cards, with Ditch's tier left unset, and a territory view
 | AC1 | `test_territory_view::test_…` |
 
 ## Manual check
-- [ ] Compare with design A + X in `docs/design/building-upgrade-options.html`, in Paper and Night.
+- [ ] Compare with design A + X in `docs/design/mocks/building-upgrade-options.html`, in Paper and Night.
 - [ ] A Farm with two ribbons and a Shrine with a fallen-back Great Temple read clearly at the territory view's size.
 - [ ] Shrink a Town to a Village (a Famine) and watch the ribbons hatch; grow it back and they clear.
 

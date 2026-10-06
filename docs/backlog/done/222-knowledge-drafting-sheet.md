@@ -8,7 +8,7 @@ branch: feat/222-knowledge-drafting-sheet
 
 ## Goal
 The Knowledge screen (208) has the mock's slide and breadcrumb, but its tiles are still the old modal's tall text
-buttons with a Learn button beside them. This item gives it the look of `docs/design/transitions.html` transition 1
+buttons with a Learn button beside them. This item gives it the look of `docs/design/mocks/transitions.html` transition 1
 and style guide §11.3: each era a band with its title block at the left, compact index-card tiles whose fill says
 their state, and a vellum sheet over an era not reached yet. Learning becomes a click on the tile.
 
