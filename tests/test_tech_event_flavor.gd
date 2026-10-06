@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Flavor for techs, events and actions (backlog 215, 351): a tech may carry a `flavor` line and a `quote` {text, by}, an
-## event or action a `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
+## Flavor for techs, events, actions and buildings (backlog 215, 351, 352): a tech may carry a `flavor` line and a
+## `quote` {text, by}, an event, action or building a `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
 
 const FIRE := {"id": "fire", "name": "Fire", "type": "tech", "cost": {"insight": 1},
 	"flavor": "Fire, tamed.", "quote": {"text": "Knowledge is power.", "by": "Francis Bacon"}}
@@ -80,12 +80,12 @@ func test_tech_and_event_flavor_validation() -> void:
 	], card_messages)
 
 
-# --- AC5: still not on buildings ---
+# --- AC5: still not on territories (352: buildings may have flavor) ---
 
-func test_flavor_on_a_building_is_still_ignored_with_a_warning() -> void:
-	var m := card_messages({"id": "hut", "name": "Hut", "type": "building", "flavor": "Cosy."})
+func test_flavor_on_a_territory_is_still_ignored_with_a_warning() -> void:
+	var m := card_messages({"id": "dell", "name": "Dell", "type": "territory", "slots": 2, "flavor": "Green."})
 	eq(m.errors, [] as Array[String], "errors")
-	has_msg(m.warnings, "card 'hut': 'flavor' only applies to civilizations (ignored)")
+	has_msg(m.warnings, "card 'dell': 'flavor' only applies to civilizations (ignored)")
 
 
 # --- AC7: no flavor on a card face ---
@@ -159,3 +159,52 @@ func test_an_action_face_shows_no_flavor() -> void:
 	var face := face_of(flavored, "trek")
 	eq(face, face_of(plain, "trek"), "the face is the same as without flavor")
 	check(not face.contains("over the hill"), "no flavor: %s" % face)
+
+
+# --- 352: a building's flavor ---
+
+const KILN := {"id": "kiln", "name": "Kiln", "type": "building", "cost": {"food": 1}, "flavor": "Mud brick, baked hard."}
+
+
+func test_a_building_may_have_flavor() -> void:
+	var m := card_messages(KILN)
+	eq(m.errors, [] as Array[String], "errors")
+	eq(m.warnings, [] as Array[String], "warnings")
+	var e := make_engine({"farm": 10}, {}, 1, [KILN])
+	eq(e.def_details("kiln").get("flavor"), "Mud brick, baked hard.", "flavor in def_details")
+	build_on(e, home_uid(e), ["kiln"])
+	var uid := uid_of(e.zone("tableau"), "kiln")
+	eq(e.card_details(uid).get("flavor"), "Mud brick, baked hard.", "flavor in the built building's card_details")
+
+
+func test_building_flavor_validation() -> void:
+	check_cases([
+		["building flavor not a string", with_field(KILN, "flavor", 3),
+			"cards.json: card 'kiln': 'flavor' must be a non-empty string", "one_error"],
+		["building flavor empty", with_field(KILN, "flavor", ""),
+			"cards.json: card 'kiln': 'flavor' must be a non-empty string", "one_error"],
+	], card_messages)
+
+
+func test_a_quote_on_a_building_is_ignored_with_a_warning() -> void:
+	var quoted := with_field(KILN, "quote", {"text": "Fire it.", "by": "A potter"})
+	var m := card_messages(quoted)
+	eq(m.errors, [] as Array[String], "errors")
+	has_msg(m.warnings, "card 'kiln': 'quote' only applies to civilizations (ignored)")
+	var e := make_engine({"farm": 10}, {}, 1, [quoted])
+	eq(e.def_details("kiln").get("quote"), {}, "no quote in def_details")
+
+
+func test_a_building_face_shows_no_flavor() -> void:
+	var flavored := fixture_db([KILN])
+	var plain := fixture_db([with_field(KILN, "flavor", null)])
+	check((flavored["kiln"] as CardDef).flavor != "", "the building has flavor")
+	for in_hand in [true, false]:
+		var faces: Array[String] = []
+		for cards: Dictionary in [flavored, plain]:
+			var view := CardView.new()
+			view.setup(CardInstance.new(900, cards["kiln"]), cards, in_hand)
+			faces.append(view.face_text())
+			view.free()
+		eq(faces[0], faces[1], "the %s face is the same as without flavor" % ("hand" if in_hand else "supply"))
+		check(not faces[0].contains("baked hard"), "no flavor: %s" % faces[0])
