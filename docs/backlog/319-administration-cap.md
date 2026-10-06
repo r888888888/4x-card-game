@@ -2,7 +2,7 @@
 id: 319
 title: Governments administer up to N territories; each one past the cap adds more unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/319-administration-cap
 ---
 
@@ -62,7 +62,12 @@ Fixtures: unrest on, a government with `unrest_limit` 20 and `"administers": 3`,
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_admin_unrest::test_…` |
+| AC1 | `test_admin_unrest::test_territories_within_the_cap_add_no_unrest`, `test_each_territory_past_the_cap_adds_one_more_unrest_than_the_last`, `test_frontier_territories_add_no_admin_unrest` |
+| AC2 | `test_admin_unrest::test_the_cap_is_the_governments_administers`, `test_a_researched_administers_modifier_raises_the_cap`, `test_only_a_working_building_raises_the_cap`, `test_without_administers_there_is_no_cap` |
+| AC3 | `test_admin_unrest::test_admin_unrest_stops_at_the_unrest_limit`, `test_admin_unrest_comes_before_calming_upkeep`, `test_admin_unrest_adds_to_size_unrest` |
+| AC4 | `test_admin_unrest::test_a_government_without_administers_adds_no_admin_unrest`, `test_anarchy_adds_no_admin_unrest`, `test_without_unrest_there_is_no_admin_unrest` |
+| AC5 | `test_admin_unrest::test_the_forecast_counts_admin_unrest` |
+| AC6 | `test_admin_unrest::test_administers_loads_and_shows_in_the_government_text`, `test_administers_only_applies_to_governments`, `test_administers_must_be_at_least_1`, `test_the_administers_modifier_loads_with_its_text`; `test_content::test_every_government_sets_administers`, `test_only_unique_cards_raise_the_admin_cap` |
 
 ## Manual check
 - [ ] Shipped caps (review before merging): Chiefdom 4, Kingship 7, Theocracy 6; Code of Laws +1, Bureaucracy +2,
@@ -74,3 +79,7 @@ Fixtures: unrest on, a government with `unrest_limit` 20 and `"administers": 3`,
 - 2026-10-05: specced with the user from a brainstorm, choosing "admin cap" with growing unrest plus a rising Settler
   price (320). The triangular curve (k-th past the cap adds k) was chosen so the cap is soft at +1 and firm by +3 or +4.
   Assumed: none under Anarchy (as 282), and the cap modifier only on unique cards (techs, wonders, governments, civs).
+- Red: AC3's limit test uses unrest 18 against the fixture's limit 20 (the spec's 8 of 10, same margin). The modifier's
+  text is "Administration cap +2" / "−1" (like "Unrest limit +1"): "Administer 2 more territories" has no plural form
+  for 1 in `MODIFIER_TEXT`'s "%s" pattern. `test_only_unique_cards_raise_the_admin_cap` passes already (no real card
+  carries the modifier yet); it guards the data this item adds.
