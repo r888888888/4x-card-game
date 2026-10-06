@@ -137,7 +137,7 @@ func test_station_survives_a_state_copy() -> void:
 # --- AC3: workers ---
 
 func test_unit_uses_a_worker_on_its_home() -> void:
-	var e: Object = recruit_engine()
+	var e: GameEngine = recruit_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -190,7 +190,7 @@ func test_unit_chooses_between_territories_with_a_free_worker() -> void:
 
 
 func test_unit_refuses_invalid_targets() -> void:
-	var e: Object = two_homes_engine()
+	var e: GameEngine = two_homes_engine()
 	if e == null:
 		return
 	var grass_card: CardInstance = e.zone("tableau").find(uid_of(e.zone("tableau"), "grassland"))

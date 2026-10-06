@@ -81,7 +81,7 @@ func test_a_unit_entry_goes_on_any_territory_with_a_free_worker_and_nowhere_else
 	build_on(e, hills, ["farm"])  # Hills' one worker
 	eq(e.build_targets("levy"), [home] as Array[int], "Hills has no free worker left")
 	build_on(e, home, ["farm", "farm", "farm"])  # the home's three
-	eq(e.build_error("levy"), "No territory with a free worker.", "build_error")
+	eq(e.build_error("levy"), "No free worker.", "build_error")
 	var before := card_ids(e.zone("tableau"))
 	check(not e.build("levy"), "build refuses")
 	eq(card_ids(e.zone("tableau")), before, "nothing changes")

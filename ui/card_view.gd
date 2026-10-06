@@ -159,11 +159,12 @@ func restyle() -> void:
 
 
 ## Updates the playable look of a hand card: tooltip, cursor, dimming, and a strip at the bottom
-## saying why it can't be played.
-func set_play_error(play_error: String) -> void:
-	_replays["play_error"] = set_play_error.bind(play_error)
+## saying why it can't be played. detail (GameEngine.play_error_detail, 347) follows the reason in the tooltip.
+func set_play_error(play_error: String, detail := "") -> void:
+	_replays["play_error"] = set_play_error.bind(play_error, detail)
 	var playable := play_error == ""
-	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else play_error)
+	var why := play_error + ("\n" + detail if detail != "" else "")
+	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else why)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 

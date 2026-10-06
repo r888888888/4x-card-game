@@ -169,7 +169,7 @@ func test_a_refused_row_shows_its_reason_and_disables_the_key() -> void:
 
 func test_a_row_refused_for_want_of_a_worker_explains_in_its_tooltip() -> void:
 	await with_main(modal_engine(), func(main: Node):
-		var e: Object = Game.engine
+		var e := Game.engine
 		var home := home_uid(e)
 		build_on(e, home, ["farm", "farm", "farm"])
 		var modal: Object = await open_build(main)
@@ -181,7 +181,7 @@ func test_a_row_refused_for_want_of_a_worker_explains_in_its_tooltip() -> void:
 
 func test_a_hand_card_with_no_free_worker_explains_in_its_tooltip() -> void:
 	await with_main(modal_engine(), func(main: Node):
-		var e: Object = Game.engine
+		var e := Game.engine
 		build_on(e, home_uid(e), ["farm", "farm", "farm"])
 		var farm := put_in_hand(e, "farm")
 		e.changed.emit()

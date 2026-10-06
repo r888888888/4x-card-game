@@ -50,7 +50,7 @@ const WHY := "Each building and unit needs a worker: one pop on its territory."
 
 
 func test_no_free_worker_on_the_target_is_short_with_a_detail() -> void:
-	var e: Object = workers_engine(2, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
+	var e := workers_engine(2, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
 	place(e, 2)
 	var home := home_uid(e)
 	check(e.free_slots(home) > 0, "a free slot left")
@@ -62,7 +62,7 @@ func test_no_free_worker_on_the_target_is_short_with_a_detail() -> void:
 
 
 func test_the_detail_names_the_city_name() -> void:
-	var e: Object = workers_engine(2)
+	var e := workers_engine(2)
 	place(e, 2)
 	var home := home_uid(e)
 	check(e.rename_territory(home, "Memphis"), "renamed")
@@ -70,7 +70,7 @@ func test_the_detail_names_the_city_name() -> void:
 
 
 func test_with_no_territory_free_the_detail_says_every_pop_is_at_work() -> void:
-	var e: Object = workers_engine(1)
+	var e := workers_engine(1)
 	place(e, 1)
 	var farm := first_in_hand(e)
 	eq(e.play_error(farm), "No free worker.", "no target given")
@@ -78,7 +78,7 @@ func test_with_no_territory_free_the_detail_says_every_pop_is_at_work() -> void:
 
 
 func test_other_refusals_and_legal_plays_have_no_detail() -> void:
-	var e: Object = workers_engine(7, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
+	var e := workers_engine(7, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
 	var home := home_uid(e)
 	var farm := first_in_hand(e)
 	eq([e.play_error(farm, home), e.play_error_detail(farm, home), e.build_error_detail("farm", home)], ["", "", ""],
