@@ -2,7 +2,7 @@
 id: 308
 title: Fill the building roster's gaps: Palace, Shipyard, Terraced Fields, Reed Works, Cistern, Dye Works, Kiln
 type: feature
-status: review
+status: done
 branch: feat/308-gap-buildings
 ---
 
