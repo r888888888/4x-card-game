@@ -1,0 +1,52 @@
+---
+id: 328
+title: Sim report names settlements and counts them by tier
+type: feature
+status: ready
+branch: feat/328-sim-settlement-metrics
+---
+
+## Goal
+A balance report should say plainly how many settlements a strategy founds and how big they grow. Today the
+count is there, but labelled `cities`, which doesn't read as settlements. Nothing shows whether a strategy builds many
+hamlets or a few metropolises, and that is what tells wide and tall apart.
+
+## Acceptance criteria
+- [ ] AC1: Given any sim data, when `SimStats.metric_names` lists the metrics, then it has `settlements` where
+  `cities` was (same position, after `score`), and no `cities`.
+- [ ] AC2: Given a fixture game that starts with the Capital on its home territory and settles 2 more territories with
+  Settlers, when it ends, then its metrics have `settlements` 2. This is the same count `cities` gave, the starting
+  ones not counted. A game that settles none has `settlements` 0.
+- [ ] AC3: Given a config with population on and tiers `[hamlet 0, village 4, town 8]`, when `metric_names` lists
+  the metrics, then it adds `tier_hamlet`, `tier_village`, `tier_town`, in the config's order. With tiers off (no
+  `tiers` key) or population off, it adds no `tier_*` metric.
+- [ ] AC4: Given that config and a fixture game that ends with 3 settled territories at pop 2, 5 and 9, when it ends,
+  then its metrics have `tier_hamlet` 1, `tier_village` 1, `tier_town` 1. Every settled territory counts, the home one
+  included, so the `tier_*` values add up to the number of settled territories. A tier no territory reached is 0.
+- [ ] AC5: Given a run (`run_files`) with tiers on, when it reports, then it prints a `settlements` line and a line per
+  `tier_*` metric with mean, min and max, like every other metric. `--compare` lists them under a strategy when their
+  mean moved.
+
+## Out of scope
+- Mapping `cities` to `settlements` when comparing against a `main` that predates this item. Until it merges, a
+  `--compare` against such a `main` just leaves the line out, since it only reports metrics both sides have.
+- Tiers at any time other than game end, and a per-civ breakdown.
+
+## Design notes
+- `sim/sim_stats.gd`: `METRICS` renames `cities` → `settlements`. `metric_names` adds `tier_<id>` per
+  `config.population.tiers` entry (only when population is on and tiers are set), as it already does for
+  `<gov>_turns` and `era_<n>_*`. `game_metrics` counts settled territories per tier with `Population.tier` and
+  `Territories.count_settled`, or iterates the tableau's territories.
+- Renaming changes the sim's source hash, so cached games replay once (292). That is expected.
+- Update `.claude/skills/balance/SKILL.md`: its metric list (`cities` → `settlements`, add `tier_<id>`), and while
+  there, the strategy list (the sim now plays `generic`, `wide`, `tall`, not the five it names).
+- `tests/test_sim.gd`'s `METRICS` constant changes from `cities` to `settlements`.
+
+## Test plan
+| AC | Test |
+|---|---|
+| AC1 | `test_sim::test_…` |
+
+## Log
+- 2026-10-06: from a 20-seed run on main (generic 9.5 settlements a game, wide 11.8, tall exactly 1). The user asked
+  for settlements in every future balance report.
