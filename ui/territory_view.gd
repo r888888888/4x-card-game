@@ -289,6 +289,20 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		place.call(tableau.find(units[i]), units_row, i)
 	_units_caption.visible = not units.is_empty()
 	units_row.visible = not units.is_empty()
+	_equalize_heights()
+
+
+## Gives the view's cards and free-slot outlines the height of the tallest card, so a building's ribbons or a long
+## text don't make the rows ragged (345), like the supply row.
+func _equalize_heights() -> void:
+	var cards := _board.views_in(row) + _board.views_in(units_row)
+	var tallest := CardView.TABLEAU_SIZE.y
+	for view in cards:
+		tallest = maxf(tallest, view.get_combined_minimum_size().y)
+	for view in cards:
+		view.min_height = tallest
+	for outline in _outlines:
+		outline.custom_minimum_size.y = tallest
 
 
 ## Building b's upgrades as ribbons on its card, depth first, and its "+ Upgrade" chip while it or an upgrade on it

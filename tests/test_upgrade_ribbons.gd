@@ -114,6 +114,54 @@ func test_a_building_without_upgrades_has_no_ribbons() -> void:
 		eq(view_of(main, farm).ribbons(), [], "no ribbons"))
 
 
+# --- 345: one height ---
+
+## The heights of the view's cards (its row and units row) and free-slot outlines.
+func view_heights(main: Node) -> Array[float]:
+	var out: Array[float] = []
+	for row in [main.territory_view.row, main.territory_view.units_row]:
+		for v: CardView in main.views_in(row):
+			out.append(v.size.y)
+	for outline: Panel in main.territory_view.outlines():
+		out.append(outline.size.y)
+	return out
+
+
+func test_the_view_s_cards_and_outlines_share_the_tallest_height() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		build_it(e, "plough", farm)
+		build_it(e, "ditch", farm)
+		put_home(e, "chapel")
+		await open_home(main)
+		check(main.territory_view.free_slot_count() > 0, "a free slot to compare")
+		var tall := view_of(main, farm).size.y
+		check(tall > CardView.TABLEAU_SIZE.y, "two ribbons make the Farm taller than the nominal card")
+		for h in view_heights(main):
+			eq(h, tall, "every card and outline is the tallest's height"))
+
+
+func test_the_view_s_cards_shrink_back_when_the_tallest_goes() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		build_it(e, "plough", farm)
+		build_it(e, "ditch", farm)
+		await open_home(main)
+		var tall := view_of(main, farm).size.y
+		for c in e.zone("tableau").cards.duplicate():
+			if c.def.id in ["plough", "ditch"]:
+				e.zone("tableau").remove(c)
+		await refresh(main)
+		var tallest := CardView.TABLEAU_SIZE.y
+		for v: CardView in main.views_in(main.territory_view.row):
+			tallest = maxf(tallest, v.get_combined_minimum_size().y)
+		check(tallest < tall, "the ribbons were the tallest")
+		for h in view_heights(main):
+			eq(h, tallest, "back to the new tallest's height"))
+
+
 # --- AC2: fallen back ---
 
 func test_a_fallen_back_ribbon_is_hatched_with_its_reason_until_it_works_again() -> void:
