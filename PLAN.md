@@ -251,6 +251,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
   Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
   and the upgrade never opens in an earlier era.
+- Urban upgrades (306): Temple (Mysticism, Village) goes on a Shrine, and Great Temple (Philosophy, Metropolis; ⟳ +1 VP,
+  +1 food per 3 pop here) and House of Life (Medicine, Town) on a Temple; Writing opens the Scribal School (the old
+  Library's numbers), and Library (Alphabet, Town; ⟳ +1 insight per 3 pop here) goes on it. The Shrine took the Temple's
+  ⟳ +1 VP on a mountain. Content tests: every `tier` is one of `population.tiers` and never lower than its base's; no
+  eureka counts only what its own tech (or a later one) opens; no upgrade lowers the unrest limit; a `gain_per_pop`
+  upgrade has a tier.
 - Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
   upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
   `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
