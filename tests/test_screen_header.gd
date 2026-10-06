@@ -1,10 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## The screen header and transitions in the real main scene (backlog 104): the new game and settings screens and
 ## the territory view each carry a ScreenHeader (`header`: back_button, title_text()), and a territory's view
-## wipes out of its card (350). with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
+## slides in from the right like Knowledge (359). with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
 ## In detail (from docs/testing.md, 331): The header on the new game and settings screens and the territory view in the
-## real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view wiping out of its
-## card and back into it (350); uses `with_reduce_motion` and `wait_screen_transition`
+## real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view sliding in from the
+## right and back out (359); uses `with_reduce_motion` and `wait_screen_transition`
 
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game on seed 1.
@@ -44,29 +44,49 @@ func test_the_territory_view_has_a_header() -> void:
 		check(not main.territory_view.is_open(), "the header's back closes the view"))
 
 
-# --- AC6, 350: a territory's view wipes out of its card ---
+# --- AC6, 359: a territory's view slides in from the right, like Knowledge (208) ---
 
-func test_a_territory_view_wipes_out_of_its_card_and_back_into_it() -> void:
+func test_a_territory_view_slides_in_from_the_right_and_back_out() -> void:
 	await with_reduce_motion(false, func():
 		await with_farm_main(func(main: Node):
 			var home := home_uid(Game.engine)
-			var card := (main.views[home] as CardView).get_global_rect()
 			main.views[home].details_requested.emit(main.views[home])
 			var view: Control = main.territory_view
-			var nav: Navigator = main.territory_view.nav
+			var realm: Control = main.territory_view.nav.below(view)
+			var width := view.size.x
+			check(Navigator.offset_of(view).x >= width - 1.0, "starts off the right edge: %s" % Navigator.offset_of(view))
+			eq(Navigator.offset_of(realm).x, 0.0, "the Realm in place")
+			await wait_seconds(Navigator.SLIDE_IN + 0.1)
+			eq(Navigator.offset_of(view).x, 0.0, "in place by SLIDE_IN")
+			eq(Navigator.offset_of(realm).x, Navigator.SHIFT, "the Realm moved aside")
 			eq(view.scale, Vector2.ONE, "never scaled")
-			eq(Navigator.wipe_rect(view), card, "it wipes out of the card")
-			await wait_screen_transition()
-			eq(Navigator.wipe_rect(view), Rect2(), "then shows whole")
+			eq(view.clip_children, CanvasItem.CLIP_CHILDREN_DISABLED, "never clipped")
 			view.back_button.pressed.emit()
 			check(not view.is_open(), "closed at once")
-			check(main.tableau.is_visible_in_tree(), "the Realm is back at once")
-			check(not view.visible, "the view is hidden at once")
-			var shot: Control = nav.leaving_shot()
-			check(shot != null, "a snapshot wipes back into the card")
-			await wait_screen_transition()
-			eq(nav.leaving_shot(), null, "then gone")))
+			check(view.visible, "still drawn while it runs out")
+			await wait_seconds(Navigator.SLIDE_OUT / 2.0)
+			var mid := Navigator.offset_of(view).x
+			check(mid > 0.0 and mid < width, "running out to the right: %s" % mid)
+			await wait_seconds(Navigator.SLIDE_OUT / 2.0 + 0.1)
+			eq(Navigator.offset_of(realm).x, 0.0, "the Realm back by SLIDE_OUT")
+			check(not view.visible, "then hidden")))
 
+
+func test_with_reduce_motion_a_territory_view_only_fades() -> void:
+	await with_reduce_motion(true, func():
+		await with_farm_main(func(main: Node):
+			var home := home_uid(Game.engine)
+			main.views[home].details_requested.emit(main.views[home])
+			var view: Control = main.territory_view
+			eq(Navigator.offset_of(view).x, 0.0, "no slide")
+			check(view.modulate.a < 1.0, "a fade")
+			await wait_seconds(Navigator.SLIDE_FADE + 0.1)
+			eq(view.modulate.a, 1.0, "in by SLIDE_FADE")
+			view.back_button.pressed.emit()
+			eq(Navigator.offset_of(view).x, 0.0, "no slide out")
+			check(view.modulate.a < 1.0 or not view.visible, "a fade out")
+			await wait_seconds(Navigator.SLIDE_FADE + 0.1)
+			check(not view.visible, "then hidden")))
 
 
 # --- 118, 241: the parent title is the way back, on a divider tab ---
