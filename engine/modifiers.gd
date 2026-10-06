@@ -19,7 +19,8 @@ const ADMINISTERS := "administers"
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government). Active events come on top (see total).
 ## One pass over the tableau (150): a building or unit is idle once its territory's earlier ones use up its pop, or a
-## building once they use up its slots (281), as is_idle says, without looking each one up.
+## building once they use up its slots (281), as is_idle says, without looking each one up. An upgrade works with its
+## base (300), which comes before it in the tableau.
 static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	var tableau := e.zone("tableau").cards
@@ -35,7 +36,10 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 		for c in tableau:
 			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
 				slots[c.territory_uid] += c.def.slots
+	var kept := {}  # uid -> true for the tableau cards kept so far
 	for c in tableau:
+		if c.base_uid >= 0 and not kept.has(c.base_uid):
+			continue
 		if pop_on and c.def.uses_worker():
 			var left: int = workers.get(c.territory_uid, 0)
 			workers[c.territory_uid] = left - 1
@@ -48,6 +52,7 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 		if c.def.project and Sites.unfinished(e, c):  # takes its worker and slot, but works once completed (286)
 			continue
 		out.append(c)
+		kept[c.uid] = true
 	for z in GameEngine.ALWAYS_ON_ZONES:
 		out.append_array(e.zone(z).cards)
 	return out

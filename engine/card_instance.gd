@@ -5,6 +5,7 @@ extends RefCounted
 var uid: int
 var def: CardDef
 var territory_uid := -1  # the territory this card sits on (a unit's home, 160), or -1
+var base_uid := -1  # upgrades: the building it is built onto (300), or -1
 var station_uid := -1  # units: the territory where it stands (160), or -1
 var pop := 0  # territories: population living there
 var keywords: Array[String] = []  # territories: printed keywords, then rolled resource keywords
@@ -32,6 +33,7 @@ func copy() -> CardInstance:
 	var c := CardInstance.new(uid, def)
 	c.territory_uid = territory_uid
 	c.station_uid = station_uid
+	c.base_uid = base_uid
 	c.pop = pop
 	c.keywords = keywords.duplicate()
 	c.turns_left = turns_left

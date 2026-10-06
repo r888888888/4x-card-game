@@ -32,3 +32,9 @@ static func _article(card_name: String) -> String:
 
 func referenced_cards() -> Array[String]:
 	return [card_id]
+
+
+## An upgrade (300) only comes from the build menu, onto its base.
+func check_references(card_db: Dictionary, errors: Array[String]) -> void:
+	if card_db.has(card_id) and (card_db[card_id] as CardDef).is_upgrade():
+		errors.append(ConfigLoader.UPGRADE_ONLY_BUILT % card_id)

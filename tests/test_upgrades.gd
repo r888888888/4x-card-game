@@ -29,7 +29,7 @@ const POP := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
 
 ## A game with population on (2 pop on Homeland), build_menu MENU, River and Grassland in the territory deck and food
 ## food (insight 10). gov "" rules nothing (unlimited actions); "band" gives 2 actions. overrides last.
-func upgrade_engine(food := 10, gov := "", overrides := {}) -> Object:
+func upgrade_engine(food := 10, gov := "", overrides := {}) -> GameEngine:
 	var starting := {"resources": {"food": food, "insight": 10}, "tableau": ["capital"], "territory": "homeland"}
 	if gov != "":
 		starting["government"] = gov
@@ -42,13 +42,13 @@ func upgrade_engine(food := 10, gov := "", overrides := {}) -> Object:
 
 
 ## A new copy of building id straight on territory, unpaid: its uid.
-func put_on(e: Object, territory: int, id: String) -> int:
+func put_on(e: GameEngine, territory: int, id: String) -> int:
 	build_on(e, territory, [id])
 	return e.zone("tableau").cards.back().uid
 
 
 ## Settles territory id at pop, returning its uid.
-func settle_at(e: Object, id: String, pop: int) -> int:
+func settle_at(e: GameEngine, id: String, pop: int) -> int:
 	settle(e, [id])
 	var uid := uid_of(e.zone("tableau"), id)
 	e.zone("tableau").find(uid).pop = pop
@@ -56,17 +56,17 @@ func settle_at(e: Object, id: String, pop: int) -> int:
 
 
 ## Builds upgrade id on base, failing the test if it refuses: the new card's uid.
-func upgrade(e: Object, id: String, base: int) -> int:
+func upgrade(e: GameEngine, id: String, base: int) -> int:
 	check(e.build(id, base), "build %s on %d: %s" % [id, base, e.build_error(id, base)])
 	return e.zone("tableau").cards.back().uid
 
 
 ## What build changes: [food, actions left, tableau ids, score].
-func snapshot(e: Object) -> Array:
+func snapshot(e: GameEngine) -> Array:
 	return [e.resources.food, e.actions_left(), card_ids(e.zone("tableau")), e.score()]
 
 
-func assert_refused(e: Object, card_id: String, target: int, message: String) -> void:
+func assert_refused(e: GameEngine, card_id: String, target: int, message: String) -> void:
 	eq(e.build_error(card_id, target), message, "build_error(%s, %d)" % [card_id, target])
 	var before := snapshot(e)
 	check(not e.build(card_id, target), "build(%s, %d) refuses" % [card_id, target])
@@ -288,7 +288,7 @@ func test_upgrades_chain_one_build_at_a_time() -> void:
 # --- AC5: an upgrade adds while its base works ---
 
 ## Food from the next upkeep.
-func food_forecast(e: Object) -> int:
+func food_forecast(e: GameEngine) -> int:
 	return e.upkeep_forecast().get(GameEngine.FOOD, 0)
 
 
@@ -417,7 +417,7 @@ func test_a_copy_keeps_each_upgrades_base() -> void:
 	var e := upgrade_engine()
 	var farm := put_on(e, home_uid(e), "farm")
 	var plough := upgrade(e, "plough", farm)
-	var f: Object = e.fork()
+	var f := e.fork()
 	eq(f.upgrade_base(plough), farm, "fork keeps the base")
 	eq(f.upgrades_on(farm), [plough] as Array[int], "fork's upgrades_on")
 	var copied: CardInstance = e.state.copy().zones["tableau"].find(plough)

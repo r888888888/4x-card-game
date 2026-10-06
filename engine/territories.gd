@@ -44,11 +44,11 @@ static func free_slots(e: GameEngine, territory_uid: int) -> int:
 	return maxi(0, total_slots(e, territory_uid) - buildings_on(e, territory_uid).size())
 
 
-## The buildings on territory territory_uid, in the order they were placed.
+## The buildings in territory territory_uid's slots, in the order they were placed: not the upgrades on them (300).
 static func buildings_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid:
+		if card.def.uses_worker() and card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid:
 			out.append(card)
 	return out
 
@@ -102,7 +102,7 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	for c in tableau:
 		if c.def.type == CardDef.CITY:
 			slots[c.territory_uid] = slots.get(c.territory_uid, 0) + c.def.slots
-		elif c.def.type == CardDef.BUILDING:
+		elif c.def.type == CardDef.BUILDING and not c.def.is_upgrade():
 			slots[c.territory_uid] = slots.get(c.territory_uid, 0) - 1
 		if c.def.uses_worker():
 			workers[c.territory_uid] = workers.get(c.territory_uid, 0) + 1
