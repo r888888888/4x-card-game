@@ -118,6 +118,8 @@ res://
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
   scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all);
                          # scripts/sim.sh --compare <checkout> [max seeds] [strategy] … compares two checkouts
+  scripts/cpus.sh        # on Linux, the CPUs this process may use (affinity and cgroup quota), for sim.sh and test.sh
+  scripts/cloud-setup.sh # installs the pinned Godot in a Claude Code cloud session (docs/cloud.md)
   docs/                  # development process, testing guide, backlog
 ```
 Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on

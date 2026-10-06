@@ -4,7 +4,7 @@
 #   --balance: run only tests/balance/ (real-data sim runs; the main suite and the Stop hook leave it out), at nice 10
 #     (SIM_NICE=n overrides) so the long run on every core leaves the desktop responsive
 # Re-imports the project first when any .gd file changed, so new class_names resolve.
-# The files run in TEST_JOBS parallel shards (default: the CPU count, 223), each Godot with its own empty HOME so no
+# The files run in TEST_JOBS parallel shards (default: the CPU count, 223; on Linux the CPUs scripts/cpus.sh allows, 317), each Godot with its own empty HOME so no
 # two share user:// (nor touch the player's). The last line sums them: "N tests, M failures".
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -16,7 +16,7 @@ if [[ ! -f "$stamp" ]] || [[ -n "$(find . -name '*.gd' -newer "$stamp" -not -pat
 	mkdir -p .godot && touch "$stamp"
 fi
 
-jobs="${TEST_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)}"
+jobs="${TEST_JOBS:-$(scripts/cpus.sh || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 work="$(mktemp -d "${TMPDIR:-/tmp}/4x-tests.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 

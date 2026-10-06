@@ -2,7 +2,7 @@
 id: 317
 title: Run the test suite and the balance sim in a Claude Code cloud session
 type: feature
-status: ready
+status: review
 branch: feat/317-cloud-sim
 ---
 
@@ -17,7 +17,7 @@ documents how to set one up.
   then it exits 0 and `godot --version` afterwards prints `4.7.2.stable.official` (the version the Mac uses).
 - [ ] AC2: Given Godot 4.7.2 already installed by an earlier run, when `scripts/cloud-setup.sh` runs again, then it
   downloads nothing and exits 0 within 5 s.
-- [ ] AC3: Given the downloaded archive's checksum doesn't match the one pinned in the script, when
+- [x] AC3: Given the downloaded archive's checksum doesn't match the one pinned in the script, when
   `scripts/cloud-setup.sh` runs, then it exits non-zero, installs nothing, and its error names the file and both
   checksums.
 - [ ] AC4: Given a cloud session on `main` after `scripts/cloud-setup.sh`, when `scripts/test.sh` runs, then it exits
@@ -25,16 +25,16 @@ documents how to set one up.
 - [ ] AC5: Given a cloud session as in AC4, when `scripts/test.sh --balance` runs, then it exits 0.
 - [ ] AC6: Given a cloud session as in AC4 with a second checkout of `main` made with `git worktree add`, when
   `scripts/sim.sh --compare <that checkout> 5` runs, then it exits 0 and prints the per-cell comparison.
-- [ ] AC7: `docs/cloud.md` (linked from `CLAUDE.md`'s Commands) says how to: hook `scripts/cloud-setup.sh` into the
+- [x] AC7: `docs/cloud.md` (linked from `CLAUDE.md`'s Commands) says how to: hook `scripts/cloud-setup.sh` into the
   cloud environment's setup script, allow its download host in the environment's network settings, push `main` first
   (the cloud clones from GitHub), make the `--compare` checkout, and expect a cold cache (every game is played from
   scratch in a new container).
-- [ ] AC8: Given Linux with 64 CPUs online, 8 in the process's affinity mask (`nproc` = 8) and a cgroup v2 quota of
+- [x] AC8: Given Linux with 64 CPUs online, 8 in the process's affinity mask (`nproc` = 8) and a cgroup v2 quota of
   `400000 100000` in `cpu.max` (4 CPUs), when `scripts/sim.sh` starts, then it runs 4 workers. With `cpu.max` =
   `max 100000` it runs 8, and with no `cpu.max` file it also runs 8. `scripts/test.sh` uses the same count for its shards.
   Linux gets every allowed CPU, not every one but one, because a container has no desktop to keep responsive. On macOS
   the counts are unchanged (performance cores but one for the sim, `hw.ncpu` for the tests).
-- [ ] AC9: Given `SIM_PROCS=2` (or `TEST_JOBS=2`), when either script runs on Linux under any quota, then it uses 2.
+- [x] AC9: Given `SIM_PROCS=2` (or `TEST_JOBS=2`), when either script runs on Linux under any quota, then it uses 2.
 
 ## Out of scope
 - Creating a scheduled cloud agent (routine) that runs sims on a timer: the developer sets one up with `/schedule`
@@ -68,8 +68,20 @@ documents how to set one up.
 
 ## Test plan
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
-| AC | Test |
-|---|---|
+Shell tooling only (nothing in `engine/`, `autoload/` or the loader), so no GDScript tests, per the Design notes.
+Each AC is a scripted check, run locally where it can be and in the first cloud session otherwise.
+
+| AC | Check | Where | Result |
+|---|---|---|---|
+| AC1 | `scripts/cloud-setup.sh; godot --version` | cloud | pending (needs `main` pushed) |
+| AC2 | run `scripts/cloud-setup.sh` again, timed | cloud; locally with a stub binary reporting 4.7.2 | local: 0.4 s, no download |
+| AC3 | `GODOT_URL=file://<dir with a junk zip> GODOT_HOME=<tmp>` | local | exit 1, names file, expected and actual SHA-512, `<tmp>` not created |
+| AC4 | `scripts/test.sh`, `scripts/sim.sh 5` | cloud | pending |
+| AC5 | `scripts/test.sh --balance` | cloud | pending |
+| AC6 | `git worktree add --detach ../main-checkout main; scripts/sim.sh --compare ../main-checkout 5` | cloud | pending |
+| AC7 | `docs/cloud.md`, linked from `CLAUDE.md` Commands | review | written |
+| AC8 | stub `uname` (Linux) and `nproc` (8) on PATH, fake `CGROUP_CPU_MAX`, stub `GODOT` printing `SIM_PERF_CORES` and each shard | local | `400000 100000`: 4 workers (SIM_PERF_CORES=5), 4 shards; `max 100000`: 8/8; no file: 8/8; macOS unchanged (perf cores 8, 12 shards) |
+| AC9 | as AC8 with `SIM_PROCS=2` / `TEST_JOBS=2` | local | SIM_PROCS passes through (procs_from_env, tested), 2 shards |
 
 ## Manual check
 - [ ] From a scheduled cloud agent (not just an interactive cloud session), `scripts/sim.sh 5` finishes and its output
@@ -82,3 +94,17 @@ documents how to set one up.
 
 ## Log
 - 2026-10-05: Specced from a question about running the sim bot remotely.
+- 2026-10-05: Built `scripts/cloud-setup.sh`, `scripts/cpus.sh`, `docs/cloud.md`; `sim.sh` and `test.sh` take the
+  Linux count from `cpus.sh`. Pinned SHA-512s come from the release's SHA512-SUMS.txt; the arm64 and x86_64 downloads
+  were hashed and match.
+- 2026-10-05: Deviation from the Design notes: the cloud docs say the GitHub proxy refuses release assets of
+  repositories not attached to the session (403), which `godotengine/godot` would be. So the script tries GitHub, then
+  Godot's own release storage (`godot-releases.nbg1.your-objectstorage.com`, where `downloads.godotengine.org`
+  redirects; its x86_64 archive hashes the same). `docs/cloud.md` says to allow that host (Custom access). It also
+  checks the installed binary reports the pinned version and exits 1 otherwise.
+- 2026-10-05: The cloud docs give the VM as Ubuntu 24.04 x86_64 with about 4 vCPUs and 16 GB, so `cpus.sh` matters
+  less there than on a big shared host, but the quota check is cheap.
+- Open: AC1, AC2 (cloud), AC4–AC6 need a cloud session on a pushed `main`. The setup script's working directory isn't
+  documented, so `docs/cloud.md`'s setup script finds `scripts/cloud-setup.sh` with `find`; confirm in the first
+  session. Pitfall seen locally: running either script with a stub `GODOT` stamps `.godot/.test-import-stamp`
+  without importing; delete the stamp afterwards.
