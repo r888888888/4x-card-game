@@ -2,7 +2,7 @@
 id: 360
 title: Room between the Build modal's flavor and its preview
 type: feature
-status: review
+status: done
 branch: feat/360-room-under-flavor
 ---
 
