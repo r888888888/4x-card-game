@@ -108,3 +108,8 @@ Each AC is a scripted check, run locally where it can be and in the first cloud 
   documented, so `docs/cloud.md`'s setup script finds `scripts/cloud-setup.sh` with `find`; confirm in the first
   session. Pitfall seen locally: running either script with a stub `GODOT` stamps `.godot/.test-import-stamp`
   without importing; delete the stamp afterwards.
+- 2026-10-05: Follow-up (not caused by 317; on macOS its code is a no-op): a cold `scripts/sim.sh 1` on the Mac ran its
+  7 workers, 17 of 18 games finished within 4 minutes, but worker 3 was still on job 10 (seed 1, wide, Phoenicia) 19
+  minutes later, with the parent waiting on it. That game alone (`SIM_PROCS=1 SIM_CACHE=0 scripts/sim.sh 1 wide --civ
+  phoenicia`) takes 2 minutes. A worker that stalls (or dies) hangs the whole run, which an unattended cloud run can't
+  recover from.
