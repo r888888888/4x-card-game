@@ -14,15 +14,14 @@ says what a worker is. After this both say why: the territory's pop is all at wo
 
 ## Acceptance criteria
 - [ ] AC1: Given a building and a settled territory named Homeland with a free slot, pop 2 and 2 buildings on it (no
-  free worker), when the building is played or built on Homeland, then the error is "Homeland has no free worker: its
-  2 pop all work buildings or units, and a building or unit needs one."
-- [ ] AC2: Given pop 1 and 1 building, then the error reads "its 1 pop works a building or unit" in place of "its 2
-  pop all work buildings or units"; given pop 0, it reads "it has no pop" in its place.
+  free worker), when the building is played or built on Homeland, then the error is "No free worker: all of
+  Homeland's pop are busy."
+- [ ] AC2: Given a settled territory Grassland with pop 0, then the error is "No free worker: Grassland has no pop."
 - [ ] AC3: Given a unit and a settled territory with no free worker, when it is recruited or played on it, then the
   error is the same message (a unit takes no slot, so a full territory gives it too).
 - [ ] AC4: Given a territory renamed to a city name, then the message names the city name (`shown_name`).
-- [ ] AC5: Given no territory the card could go on for want of a worker (no target given), then the error is "No
-  territory with a free worker: every pop already works a building or unit."
+- [ ] AC5: Given no territory the card could go on for want of a worker (no target given), then the error is "No free
+  worker: every territory's pop is busy."
 - [ ] AC6: A territory with no free slot still refuses a building with "That target isn't valid." (unchanged; the
   slot message is out of scope).
 
@@ -41,7 +40,7 @@ says what a worker is. After this both say why: the territory's pop is all at wo
 | AC | Test |
 |---|---|
 | AC1 | `test_workers::test_no_free_worker_on_the_target_says_why` |
-| AC2 | `test_workers::test_no_free_worker_with_one_pop_reads_in_the_singular`; pop 0 in `test_units::test_unit_refuses_invalid_targets` |
+| AC2 | `test_units::test_unit_refuses_invalid_targets` (Grassland at pop 0) |
 | AC3 | `test_units::test_unit_refuses_invalid_targets` |
 | AC4 | `test_workers::test_no_free_worker_names_the_city_name` |
 | AC5 | `test_workers::test_building_needs_a_free_worker`; `test_units::test_unit_uses_a_worker_on_its_home` |
@@ -52,3 +51,4 @@ says what a worker is. After this both say why: the territory's pop is all at wo
   each building's row reads the new message.
 
 ## Log
+- Red review: the user asked for more succinct messages; the singular/plural variant went with the counts.

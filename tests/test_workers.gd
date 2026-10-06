@@ -35,7 +35,7 @@ func test_building_needs_a_free_worker() -> void:
 	eq(e.free_workers(home), 0, "pop 1 - 1 building")
 	var farm := first_in_hand(e)
 	eq(e.valid_targets(farm), [] as Array[int], "no valid target")
-	eq(e.play_error(farm), "No territory with a free worker: every pop already works a building or unit.", "play_error (347)")
+	eq(e.play_error(farm), "No free worker: every territory's pop is busy.", "play_error (347)")
 	var hand_size := e.zone("hand").size()
 	check(not e.play_card(farm, home), "play refused")
 	eq(e.zone("hand").size(), hand_size, "Farm still in hand")
@@ -46,7 +46,7 @@ func test_building_needs_a_free_worker() -> void:
 
 # --- 347: why no free worker ---
 
-const NO_WORKER_2 := "Homeland has no free worker: its 2 pop all work buildings or units, and a building or unit needs one."
+const NO_WORKER := "No free worker: all of Homeland's pop are busy."
 
 
 func test_no_free_worker_on_the_target_says_why() -> void:
@@ -54,15 +54,8 @@ func test_no_free_worker_on_the_target_says_why() -> void:
 	place(e, 2)
 	var home := home_uid(e)
 	check(e.free_slots(home) > 0, "a free slot left")
-	eq(e.play_error(first_in_hand(e), home), NO_WORKER_2, "played on Homeland")
-	eq(e.build_error("farm", home), NO_WORKER_2, "built on Homeland")
-
-
-func test_no_free_worker_with_one_pop_reads_in_the_singular() -> void:
-	var e := workers_engine(1)
-	place(e, 1)
-	eq(e.play_error(first_in_hand(e), home_uid(e)),
-		"Homeland has no free worker: its 1 pop works a building or unit, and a building or unit needs one.", "pop 1")
+	eq(e.play_error(first_in_hand(e), home), NO_WORKER, "played on Homeland")
+	eq(e.build_error("farm", home), NO_WORKER, "built on Homeland")
 
 
 func test_no_free_worker_names_the_city_name() -> void:
@@ -70,7 +63,7 @@ func test_no_free_worker_names_the_city_name() -> void:
 	place(e, 2)
 	var home := home_uid(e)
 	check(e.rename_territory(home, "Memphis"), "renamed")
-	eq(e.play_error(first_in_hand(e), home), NO_WORKER_2.replace("Homeland", "Memphis"), "the city name")
+	eq(e.play_error(first_in_hand(e), home), NO_WORKER.replace("Homeland", "Memphis"), "the city name")
 
 
 func test_a_full_territory_still_refuses_without_the_worker_reason() -> void:
