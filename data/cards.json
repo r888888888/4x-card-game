@@ -396,8 +396,42 @@
     },
     {
       "id": "aqueduct", "name": "Aqueduct", "type": "building",
-      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "housing": 2,
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "tier": "town", "housing": 3,
       "effects": []
+    },
+    {
+      "id": "merchant_quarter", "name": "Merchant Quarter", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "market", "tier": "town",
+      "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "mint", "name": "Mint", "type": "building",
+      "cost": { "wealth": 8 }, "vp": 1, "tags": ["trade"], "upgrade_of": "merchant_quarter", "tier": "metropolis",
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "storehouse", "name": "Storehouse", "type": "building",
+      "cost": { "wealth": 4 }, "vp": 0, "tags": [], "upgrade_of": "granary", "tier": "town", "housing": 1,
+      "famine_guard": 1, "effects": []
+    },
+    {
+      "id": "city_walls", "name": "City Walls", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": ["wall"], "upgrade_of": "palisade", "tier": "town", "defense": 2
+    },
+    {
+      "id": "multi_storey_houses", "name": "Multi-storey Houses", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mud_brick_houses", "tier": "town", "housing": 2,
+      "effects": []
+    },
+    {
+      "id": "textile_works", "name": "Textile Works", "type": "building",
+      "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "weavers_workshop", "tier": "town",
+      "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "dockyard", "name": "Dockyard", "type": "building",
+      "cost": { "wealth": 6 }, "vp": 0, "tags": ["port"], "upgrade_of": "harbor", "tier": "town",
+      "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "caravanserai", "name": "Caravan Station", "type": "building",
@@ -661,14 +695,14 @@
       "flavor": "Flax and wool spun and woven on upright looms make cloth, the greatest trade of the ancient world after bread.",
       "quote": { "text": "She seeketh wool, and flax, and worketh willingly with her hands.", "by": "Proverbs 31:13" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "weavers_workshop" } ]
+      "effects": [ { "op": "unlock", "card": "weavers_workshop" }, { "op": "unlock", "card": "textile_works" } ]
     },
     {
       "id": "clay_tokens", "name": "Clay Tokens", "type": "tech", "prereq": "pottery",
       "flavor": "Little clay cones, spheres and discs stand for sheep and measures of grain, sealed in envelopes as a receipt.",
       "quote": { "text": "God made the integers; all else is the work of man.", "by": "Leopold Kronecker" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "granary", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "unlock", "card": "storehouse" }, { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "fermentation", "name": "Fermentation", "type": "tech", "prereq": "pottery",
@@ -705,7 +739,7 @@
       "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
       "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "monument" },
+      "effects": [ { "op": "unlock", "card": "city_walls" }, { "op": "unlock", "card": "monument" },
         { "op": "unlock", "card": "walls_of_uruk" } ]
     },
     {
@@ -750,7 +784,7 @@
       "flavor": "Temple and palace lend silver and barley at interest on clay contracts, and debtors who cannot repay are sold.",
       "quote": { "text": "The rich ruleth over the poor, and the borrower is servant to the lender.", "by": "Proverbs 22:7" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 2, "off": 4 }, "tags": [],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
+      "effects": [ { "op": "unlock", "card": "merchant_quarter" }, { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -810,7 +844,7 @@
       "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and a coin's worth no longer needs a balance.",
       "quote": { "text": "The Lydians were the first men whom we know who coined and used gold and silver currency.", "by": "Herodotus, Histories 1.94 (tr. A. D. Godley)" },
       "cost": { "insight": 27 }, "vp": 1, "eureka": { "card": "market", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "trade", "trigger": "upkeep" } ]
+      "effects": [ { "op": "unlock", "card": "mint" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "trade", "trigger": "upkeep" } ]
     },
     {
       "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
@@ -838,7 +872,7 @@
       "flavor": "Steering by the stars, Phoenician ships leave the coast behind and cross open sea to Carthage and Gades.",
       "quote": { "text": "They that go down to the sea in ships, that do business in great waters.", "by": "Psalm 107:23" },
       "cost": { "insight": 32 }, "vp": 1, "eureka": { "card": "harbor", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
+      "effects": [ { "op": "unlock", "card": "dockyard" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
@@ -852,7 +886,7 @@
       "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
       "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "aqueduct" } ]
+      "effects": [ { "op": "unlock", "card": "multi_storey_houses" }, { "op": "unlock", "card": "aqueduct" } ]
     },
     {
       "id": "plains", "name": "Plains", "type": "territory",
