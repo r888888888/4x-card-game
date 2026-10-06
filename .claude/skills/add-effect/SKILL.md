@@ -61,7 +61,11 @@ together, so the op's behavior reads in one place.
      - `needs_own_territory()`: true if the op acts on its own card's territory; the loader rejects it on
        techs, events and governments, which have none (and `start` triggers check targets and choices);
      - `play_block_error(engine, card)`: why the card can't be played right now (e.g. nothing to research);
-     - `terms()`: glossary terms the op uses, listed in the card details.
+     - `terms()`: glossary terms the op uses, listed in the card details;
+     - `reads_zones()`: the zones whose cards the op counts when it resolves (336; `gain_per_tag`'s zone). An op
+       that counts a zone's cards overrides it, so the turn forecast (`forecast_zones()`) and the bot's forecast
+       cache read that zone; ops that count only the board needn't. Add a test beside
+       `test_turn_forecast.gd`'s `test_a_gain_per_tag_reads_the_zone_it_counts`.
 4. Register the op in `EffectRegistry.OPS` (`engine/effect_registry.gd`).
 5. Run `scripts/test.sh`. It re-imports automatically, so the new script is picked up.
 

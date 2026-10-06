@@ -629,9 +629,10 @@ Your people have one government at a time; its bonuses apply while it rules.
   `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
   (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
   best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
-- Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the turn,
-  resources, effect score, era, Anarchy and raid state, and each card in the tableau, the always-on zones, the active
-  events and any zone a `gain_per_tag` counts in), keyed by turn and dropping turns already past; a turn's rollouts
+- Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the
+  `KEY_STATE_FIELDS` and, for each card in the engine's `forecast_zones()`, the `KEY_CARD_FIELDS`; 336: the board, the
+  always-on zones and any zone an effect's `reads_zones()` names, and every other `GameState`/`CardInstance` field is
+  listed with why it isn't read, which the suite checks), keyed by turn and dropping turns already past; a turn's rollouts
   share it, so a position forecast once isn't forecast again (about half of all lookups) and the games played are the
   same. `forecast_cache` turns it off; `check_forecasts` compares every
   hit with a fresh forecast and counts mismatches (`forecast_lookups`, `forecasts_computed`, `forecast_checks`,
