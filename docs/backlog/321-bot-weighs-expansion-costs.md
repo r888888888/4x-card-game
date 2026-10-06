@@ -2,7 +2,7 @@
 id: 321
 title: The sim bot weighs the rising cost of expansion
 type: feature
-status: red-review
+status: in-progress
 branch: feat/321-bot-weighs-expansion-costs
 ---
 
