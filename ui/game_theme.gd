@@ -270,8 +270,8 @@ static func _divider_tab(t: Theme) -> void:
 
 ## The selectable list (217, guide §7.16): ListWell, the list's recessed well; ListRow, a row printed on it with no box,
 ## and when selected (pressed) a sheet strip in place, with no depth (356); ListRowQuiet, a ListRow with no focus ring.
-## SelectList lights the selected row's lamp. And the scroll area's VScrollBar (356, §7.17): a thin steel grabber on
-## the well, ink-2 under the pointer and while dragged.
+## SelectList lights the selected row's lamp. And the scroll areas' VScrollBar (356, §7.17) and HScrollBar (363): a thin
+## steel grabber on the well, ink-2 under the pointer and while dragged.
 static func _select_list(t: Theme) -> void:
 	t.set_type_variation("ListWell", "PanelContainer")
 	var well := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
@@ -300,18 +300,25 @@ static func _select_list(t: Theme) -> void:
 		t.set_color(state, "ListRow", Palette.TEXT)
 	t.set_type_variation("ListRowQuiet", "ListRow")  # a row the keyboard didn't focus: no ring (220)
 	t.set_stylebox("focus", "ListRowQuiet", StyleBoxEmpty.new())
+	_scroll_bar(t, "VScrollBar", [SIDE_LEFT, SIDE_RIGHT], [SIDE_TOP, SIDE_BOTTOM])
+	_scroll_bar(t, "HScrollBar", [SIDE_TOP, SIDE_BOTTOM], [SIDE_LEFT, SIDE_RIGHT])  # sideways (363): the hand's
+
+
+## A scrollbar's look on type: a FIELD track whose margins on its across sides make the bar 8 px thick, and a grabber
+## whose margins on its along sides set its shortest length.
+static func _scroll_bar(t: Theme, type: StringName, across: Array[Side], along: Array[Side]) -> void:
 	var track := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
 	track.set_border_width_all(0)
-	track.content_margin_left = Tokens.SPACE_1  # the bar's 8 px width
-	track.content_margin_right = Tokens.SPACE_1
+	for side in across:
+		track.set_content_margin(side, Tokens.SPACE_1)  # the bar's 8 px thickness
 	for state in ["scroll", "scroll_focus"]:
-		t.set_stylebox(state, "VScrollBar", track)
+		t.set_stylebox(state, type, track)
 	for state in ["grabber", "grabber_highlight", "grabber_pressed"]:
 		var grabber := track.duplicate() as StyleBoxFlat
 		grabber.bg_color = Palette.CONTROL if state == "grabber" else Palette.TEXT_DIM
-		grabber.content_margin_top = Tokens.SPACE_3  # its shortest
-		grabber.content_margin_bottom = Tokens.SPACE_3
-		t.set_stylebox(state, "VScrollBar", grabber)
+		for side in along:
+			grabber.set_content_margin(side, Tokens.SPACE_3)  # its shortest
+		t.set_stylebox(state, type, grabber)
 
 
 ## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, walnut grain under RAISED with a

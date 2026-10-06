@@ -17,7 +17,7 @@ var views: Dictionary:  # uid -> CardView, kept by BoardViews
 var fx: Control  # effects layer: flying, dragged and leaving cards, errors
 var tableau: TableauView
 var hand: HBoxContainer
-var hand_scroll: ScrollContainer
+var hand_scroll: SmoothScroll
 var actions_label: Label  # "1 / 2" right on the hand's heading line (204); hidden when actions are unlimited (127)
 var choices: ChoiceOverlays
 var supply: SupplyScreen

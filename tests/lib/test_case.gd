@@ -817,9 +817,14 @@ func press_key(main: Node, keycode: Key) -> void:
 ## One wheel notch (down, or up) at point on main's viewport (the centre of scroll when omitted), as the mouse sends
 ## it: pressed, then released (356).
 func wheel_notch(main: Node, scroll: ScrollContainer, down := true, point := Vector2.INF) -> void:
+	wheel_turn(main, scroll, MOUSE_BUTTON_WHEEL_DOWN if down else MOUSE_BUTTON_WHEEL_UP, point)
+
+
+## One notch of wheel button (MOUSE_BUTTON_WHEEL_*, the sideways ones too, 363) at point, as wheel_notch.
+func wheel_turn(main: Node, scroll: ScrollContainer, button: MouseButton, point := Vector2.INF) -> void:
 	for pressed in [true, false]:
 		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_WHEEL_DOWN if down else MOUSE_BUTTON_WHEEL_UP
+		event.button_index = button
 		event.pressed = pressed
 		event.factor = 1.0
 		event.position = scroll.get_global_rect().get_center() if point == Vector2.INF else point

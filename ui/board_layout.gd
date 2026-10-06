@@ -165,7 +165,7 @@ func _build_hand(main: MainScreen) -> void:
 	main.actions_label.tooltip_text = "Actions left this turn"
 	hand_section.add_child(hand_heading)
 	hand_section.move_child(hand_heading, 0)
-	main.hand_scroll = ScrollContainer.new()
+	main.hand_scroll = SmoothScroll.new()
 	main.hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main.hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	main.hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

@@ -175,7 +175,7 @@ func set_card(view: CardView, shown := true) -> void:
 	view.set_focused(shown)
 	_board.get_viewport().gui_release_focus()
 	if view.in_hand and is_instance_valid(view.slot):
-		_board.hand_scroll.ensure_control_visible(view.slot)
+		_board.hand_scroll.follow(view.slot)
 
 
 ## After the board changes, keeps the focus somewhere sensible: on the first choice card (the default government, 254)
