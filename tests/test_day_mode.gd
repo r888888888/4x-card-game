@@ -321,3 +321,24 @@ func test_bug_197_type_and_keyword_lines_switch_with_day_mode_mid_game() -> void
 		await wait_frames()
 		await check_secondary_lines(main, "switched back to night")
 		close_main(main))
+
+
+# --- 323: rich text on paper ---
+
+## main's RichBody texts that set no colour of their own (the log sets LOG_TEXT).
+func rich_bodies(main: Node) -> Array:
+	return main.find_children("*", "RichTextLabel", true, false).filter(func(label: RichTextLabel):
+		return label.theme_type_variation == &"RichBody" and not label.has_theme_color_override("default_color"))
+
+
+func test_bug_323_rich_body_text_follows_day_mode() -> void:
+	await with_temp_settings(func():
+		var main: Node = await mid_game()
+		check(rich_bodies(main).size() >= 4, "the event, details, revolt and abandon modals' texts are found")
+		for day in [true, false]:
+			set_day(day)
+			await wait_frames()
+			for label: RichTextLabel in rich_bodies(main):
+				eq(label.get_theme_color("default_color"), palette("TEXT"),
+					"%s: %s reads TEXT" % ["day" if day else "night", label.get_path()])
+		close_main(main))
