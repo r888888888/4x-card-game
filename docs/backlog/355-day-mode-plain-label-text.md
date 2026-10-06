@@ -2,7 +2,7 @@
 id: 355
 title: Plain labels (the new-game screen's "Seed") are white on paper in Day mode
 type: bug
-status: red-review
+status: in-progress
 branch: fix/355-day-mode-plain-label-text
 ---
 
