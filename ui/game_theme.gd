@@ -462,6 +462,8 @@ static func _controls(t: Theme) -> void:
 	t.set_stylebox("focus", "LineEdit", StyleBoxEmpty.new())  # its caret shows the focus; Godot draws this box even when
 	# FocusRing hides the focus (251)
 	t.set_color("font_color", "LineEdit", Palette.TEXT)
+	t.set_color("font_placeholder_color", "LineEdit", Palette.TEXT_DIM)
+	t.set_color("font_color", "Label", Palette.TEXT)  # a plain label; Godot's default is white, unreadable on Day's paper (355)
 	_slider(t)
 
 

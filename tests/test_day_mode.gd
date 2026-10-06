@@ -348,3 +348,77 @@ func test_bug_323_rich_body_text_follows_day_mode() -> void:
 				eq(label.get_theme_color("default_color"), palette("TEXT"),
 					"%s: %s reads TEXT" % ["day" if day else "night", label.get_path()])
 		close_main(main))
+
+
+# --- 355: plain labels on paper ---
+
+## The label beside edit in its row (the "Seed" label).
+func row_label(edit: LineEdit) -> Label:
+	return edit.get_parent().get_child(0) as Label
+
+
+## Opens main's new-game screen from the title screen.
+func open_new_game(main: Node) -> void:
+	main.start_screen.new_game_button.pressed.emit()
+	await wait_frames()
+
+
+func test_bug_355_the_new_game_seed_label_reads_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		set_day(true)
+		var main := open_main()
+		await open_new_game(main)
+		var edit: LineEdit = main.new_game_screen.seed_edit
+		eq(row_label(edit).text, "Seed", "precondition: the seed label")
+		eq(row_label(edit).get_theme_color("font_color").to_html(false), "22211f", "the Seed label reads Day TEXT")
+		eq(edit.get_theme_color("font_placeholder_color").to_html(false), "57534b", "the placeholder reads Day TEXT_DIM")
+		close_main(main)
+		set_day(false))
+
+
+func test_bug_355_the_settings_seed_label_reads_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		var main: Node = await mid_game()
+		set_day(true)
+		main.settings_modal.open(Game.engine.seed_value)
+		await wait_frames()
+		var label := row_label(main.settings_modal.seed_edit)
+		eq(label.text, "Seed", "precondition: the seed label")
+		eq(label.get_theme_color("font_color").to_html(false), "22211f", "the Seed label reads Day TEXT")
+		close_main(main)
+		set_day(false))
+
+
+func test_bug_355_the_new_game_seed_label_follows_day_mode() -> void:
+	await with_temp_settings(func():
+		var main := open_main()
+		await open_new_game(main)
+		var edit: LineEdit = main.new_game_screen.seed_edit
+		for day in [false, true, false]:
+			set_day(day)
+			await wait_frames()
+			var mode := "day" if day else "night"
+			eq(row_label(edit).get_theme_color("font_color").to_html(false), "22211f" if day else "ede6d6",
+				"%s: the Seed label" % mode)
+			eq(edit.get_theme_color("font_placeholder_color").to_html(false), "57534b" if day else "b9b1a1",
+				"%s: the placeholder" % mode)
+		close_main(main))
+
+
+func test_bug_355_no_label_draws_in_default_white_in_day_mode() -> void:
+	await with_temp_settings(func():
+		var main: Node = await mid_game()
+		set_day(true)
+		press_key(main, KEY_ESCAPE)
+		main.menu_buttons().filter(func(b): return b.text == "New game")[0].pressed.emit()
+		await wait_frames()
+		main.settings_modal.open(Game.engine.seed_value)
+		await wait_frames()
+		var labels := main.find_children("*", "Label", true, false)
+		check(row_label(main.new_game_screen.seed_edit) in labels, "the new-game screen's labels are swept")
+		check(row_label(main.settings_modal.seed_edit) in labels, "the Settings modal's labels are swept")
+		var white: Array = labels.filter(func(label: Label): return label.get_theme_color("font_color") == Color.WHITE)
+		eq(white.map(func(label: Label): return "%s (%s)" % [label.text, label.get_parent().get_class()]), [],
+			"labels drawn in Godot's default white")
+		close_main(main)
+		set_day(false))
