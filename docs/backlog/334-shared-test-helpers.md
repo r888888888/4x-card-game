@@ -2,7 +2,7 @@
 id: 334
 title: Share the UI test helpers that are copied across files, and split the two meanings of click
 type: chore
-status: draft
+status: red-review
 branch: feat/334-shared-test-helpers
 ---
 
@@ -38,6 +38,12 @@ The UI tests copy the same helpers file to file: `shown_button` is identical in 
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1, AC2 | `test_shared_helpers::test_test_case_defines_the_shared_ui_helpers`, `test_definitions_names_the_files_that_define_a_function`, `test_no_test_file_defines_a_shared_ui_helper_or_click` |
+| AC1 | `test_open_game_starts_seed_1_and_close_game_frees_main`, `test_open_game_big_is_1920_by_1080_and_close_game_restores_the_window`, `test_open_game_freezes_the_sound_clock_when_asked` |
+| AC2 | `test_click_control_presses_and_releases_at_the_controls_centre`, `test_click_point_presses_and_releases_at_a_point`, `test_open_details_sends_a_cards_details_requested` |
+| AC3 | `test_copies_names_a_lib_helper_defined_in_two_test_files`, `test_no_test_file_copies_a_shared_helper` |
+| AC4 | the full suite green; test count unchanged apart from these 11 |
+| AC5 | doc wording |
 
 ## Log
 - 2026-10-06: specced from the project review.

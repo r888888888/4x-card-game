@@ -20,9 +20,8 @@ The script re-imports the project first when a `.gd` file changed, so a new `cla
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
 
-**Speed (223).** The whole suite takes ~10 s on a 12-core Mac (2157 tests, measured 2026-10-06 with other work running:
-10.5–12.8 s; ~39 s serial). Godot's start costs ~3 s per shard, and the slowest file, `test_generic_bot_cache.gd`
-(~5 s of bot games), sets the critical path. Three settings make it fast:
+**Speed (223).** The suite takes ~10 s on a 12-core Mac (~39 s serial). Godot's start costs ~3 s per shard, and the
+slowest file, `test_generic_bot_cache.gd` (~5 s of bot games), sets the critical path. Three settings make it fast:
 - The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
   `TEST_JOBS=1` runs serially). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
   the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`
@@ -35,8 +34,8 @@ Exit code 0 means green.
   A test that checks an animation part-way through should wait frames or game seconds, never wall-clock time.
   `Sfx.clock()` is the wall clock, so a test that checks when a sound is due freezes it first (`main.sfx.set_clock`),
   then compares against that time (236).
-- The engine isn't the cost: profiling found a `make_engine` game 0.5 ms to build and a 20-turn bot game on the real
-  data 20 ms. Most of the time left is building and freeing the main scene (~18 ms per UI test).
+- The engine isn't the cost (a `make_engine` game builds in 0.5 ms); building and freeing the main scene is (~18 ms
+  per UI test).
 
 A test fails when:
 - an assertion fails (`eq`, `check`, `has_msg`);
@@ -181,6 +180,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
 | `tests/test_scaffolding.gd` | No red-phase scaffolding left in tests (333; `tests/lib/scaffolding_checks.gd`) |
+| `tests/test_shared_helpers.gd` | Shared UI test helpers; no copies of `tests/lib/` helpers (334) |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
 | `tests/test_select_list.gd` | The selectable list (217) |
