@@ -2,7 +2,7 @@
 id: 340
 title: Loader tests as tables: the last one-off rejections and the "loads / defaults to" tests
 type: chore
-status: red-review
+status: in-progress
 branch: feat/340-loader-test-tables
 ---
 

@@ -79,13 +79,11 @@ func test_without_an_unrest_block_there_is_no_revolution() -> void:
 
 # --- The revolt field is gone (Design notes) ---
 
-func test_an_events_revolt_field_is_unknown() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [{"id": "reform", "name": "Reform", "type": "event",
-		"revolt": true}]}, RESOURCES, "cards.json", errors, warnings, keywords())
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "unknown field 'revolt'")
+func test_retired_revolt_field_is_a_load_warning() -> void:
+	check_cases([
+		["an event's revolt", [{"id": "reform", "name": "Reform", "type": "event", "revolt": true}],
+			"unknown field 'revolt'", "warning_only"],
+	], fixture_load.bind([], RESOURCES))
 
 
 # --- AC7: the forecast (the bot's revolt rule moved to 159) ---

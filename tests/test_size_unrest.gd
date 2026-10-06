@@ -188,10 +188,11 @@ func test_tolerates_loads_and_shows_in_the_government_text() -> void:
 	check(not r.cards.chiefs.rules_text(r.cards).contains("Tolerates"), "Chiefs has no tolerance line")
 
 
-func test_tolerates_only_applies_to_governments() -> void:
-	var r := size_load([{"id": "x", "name": "X", "type": "building", "tolerates": "village"}])
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "'tolerates' only applies to governments (ignored)")
+func test_tolerates_on_the_wrong_type_is_a_load_warning() -> void:
+	check_cases([
+		["on a building", [{"id": "x", "name": "X", "type": "building", "tolerates": "village"}],
+			"'tolerates' only applies to governments (ignored)", "warning_only"],
+	], size_load)
 
 
 func test_tolerates_must_be_a_tier_id() -> void:

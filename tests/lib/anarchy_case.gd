@@ -63,14 +63,15 @@ func anarchy_raw(unrest := {}, overrides := {}) -> Dictionary:
 	return raw
 
 
-## The errors from parsing the raw config raw against anarchy_db.
-func raw_config_errors(raw: Dictionary) -> Array[String]:
+## The raw config raw parsed against anarchy_db: {cards, config, errors, warnings}.
+func raw_config_load(raw: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var listed: Array[String] = []
 	listed.assign(raw.resources)
-	DataLoader.parse_config(raw, listed, anarchy_db(), "config.json", errors, warnings)
-	return errors
+	var cards := anarchy_db()
+	var config := DataLoader.parse_config(raw, listed, cards, "config.json", errors, warnings)
+	return {"cards": cards, "config": config, "errors": errors, "warnings": warnings}
 
 
 ## A new anarchy game (see anarchy_raw), with extra cards in the card db.

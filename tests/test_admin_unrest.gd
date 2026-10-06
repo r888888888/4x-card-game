@@ -172,10 +172,11 @@ func test_administers_loads_and_shows_in_the_government_text() -> void:
 	check(not r.cards.chiefs.rules_text(r.cards).contains("Administers"), "Chiefs has no administers line")
 
 
-func test_administers_only_applies_to_governments() -> void:
-	var r := admin_load([{"id": "x", "name": "X", "type": "building", "administers": 3}])
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "'administers' only applies to governments (ignored)")
+func test_administers_on_the_wrong_type_is_a_load_warning() -> void:
+	check_cases([
+		["on a building", [{"id": "x", "name": "X", "type": "building", "administers": 3}],
+			"'administers' only applies to governments (ignored)", "warning_only"],
+	], admin_load)
 
 
 func test_administers_must_be_at_least_1() -> void:

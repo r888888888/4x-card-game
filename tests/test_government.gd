@@ -4,28 +4,20 @@ extends "res://tests/lib/test_case.gd"
 ## and Kingdom (cost 2 food, 1 VP, play +1 wealth, upkeep +1 food).
 
 
-## Loader errors for gov_db() plus extra cards.
-func card_errors(extra: Array) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_GOVS + extra}, resources(), "cards.json", errors, warnings, keywords())
-	return errors
-
-
 func starting_with(gov: Variant) -> Dictionary:
 	return {"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": gov}}
 
 
 # --- AC1: the government type and starting.government ---
 
-func test_government_cards_load() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := gov_db(errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.kingdom.type, "government", "Kingdom type")
-	eq(cards.kingdom.vp, 1, "Kingdom VP")
+func test_governments_and_starting_government_load() -> void:
+	check_loads([
+		["the fixture governments", [], {"cards.kingdom.type": "government", "cards.kingdom.vp": 1}],
+	], fixture_load.bind([TEST_GOVS]))
+	check_loads([
+		["no starting.government", {}, {}],
+		["starting.government council", starting_with("council"), {}],
+	], config_load.bind([TEST_GOVS]))
 
 
 func test_government_outside_its_place_is_a_load_error() -> void:
@@ -45,14 +37,12 @@ func test_starting_government_validation() -> void:
 	], func(overrides): return config_errors(overrides, [TEST_GOVS]))
 
 
-func test_starting_government_is_optional() -> void:
-	eq(config_errors({}, [TEST_GOVS]), [] as Array[String], "no starting.government")
-	eq(config_errors(starting_with("council"), [TEST_GOVS]), [] as Array[String], "starting.government council")
-
-
-func test_government_effect_needing_a_target_is_a_load_error() -> void:
-	var settle := {"id": "junta", "name": "Junta", "type": "government", "effects": [{"op": "settle", "card": "city"}]}
-	has_msg(card_errors([settle]), "cards.json: card 'junta': effects[0]: a government effect can't need a target")
+func test_bad_government_card_is_a_load_error() -> void:
+	check_cases([
+		["an effect needing a target", [{"id": "junta", "name": "Junta", "type": "government",
+			"effects": [{"op": "settle", "card": "city"}]}],
+			"cards.json: card 'junta': effects[0]: a government effect can't need a target"],
+	], fixture_load.bind([TEST_GOVS]))
 
 
 # --- AC2: setup ---

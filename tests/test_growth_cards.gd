@@ -84,22 +84,29 @@ func test_grow_does_nothing_without_population() -> void:
 
 # --- Loader: the grow op ---
 
-func grow_card_errors(effect: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action", "effects": [effect]}]},
-		resources(), "cards.json", errors, warnings)
-	return {"cards": cards, "errors": errors, "warnings": warnings}
+## TEST_CARDS plus a card 'x' of type with effect (fixture_load); a unit gets strength 1, a tech an insight cost.
+func grow_on(type: String, effect: Dictionary) -> Dictionary:
+	var x := {"id": "x", "name": "X", "type": type, "effects": [effect]}
+	if type == CardDef.UNIT:
+		x["strength"] = 1
+	if type == CardDef.TECH:
+		x["cost"] = {"insight": 2}
+	return fixture_load([x])
+
+
+## grow_on an action.
+func grow_load(effect: Dictionary) -> Dictionary:
+	return grow_on(CardDef.ACTION, effect)
 
 
 func test_grow_op_loads() -> void:
-	var r := grow_card_errors({"op": "grow", "amount": 2, "where": "each"})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["amount 2 on each", {"op": "grow", "amount": 2, "where": "each"}, {}],
+	], grow_load)
 
 
 func test_grow_where_defaults_to_here() -> void:
-	var r := grow_card_errors({"op": "grow", "amount": 1})
+	var r := grow_load({"op": "grow", "amount": 1})
 	eq(r.errors, [] as Array[String], "errors")
 	eq(r.cards.x.rules_text(r.cards), "+1 pop here", "text")
 
@@ -109,7 +116,7 @@ func test_grow_validation() -> void:
 		["bad where", {"op": "grow", "amount": 1, "where": "everywhere"}, "cards.json: card 'x': effects[0]: 'where' must be one of"],
 		["amount 0", {"op": "grow", "amount": 0}, "cards.json: card 'x': effects[0]: 'amount' must be an integer >= 1"],
 		["missing amount", {"op": "grow"}, "cards.json: card 'x': effects[0]: missing 'amount'"],
-	], grow_card_errors)
+	], grow_load)
 
 
 func test_grow_text() -> void:
@@ -118,7 +125,7 @@ func test_grow_text() -> void:
 	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
 	eq(cards.granary.rules_tooltip(cards), "Each upkeep: +1 pop here", "Granary")
 	eq(cards.festival.rules_tooltip(cards), "+1 pop in each territory", "Festival")
-	eq(grow_card_errors({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")
+	eq(grow_load({"op": "grow", "amount": 2, "where": "each"}).cards.x.rules_tooltip({}), "+2 pop in each territory", "amount 2")
 
 
 # --- 261: where "best" and count ---
@@ -282,28 +289,16 @@ func test_a_metropolis_is_never_one_short() -> void:
 	eq(pops(e), [13, 2], "Grassland (smallest) grows, not the Metropolis at 13")
 
 
-func grow_on(type: String, effect: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var x := {"id": "x", "name": "X", "type": type, "effects": [effect]}
-	if type == CardDef.UNIT:
-		x["strength"] = 1
-	if type == CardDef.TECH:
-		x["cost"] = {"insight": 2}
-	var cards := DataLoader.parse_cards({"cards": [x]}, resources(), "cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors, "warnings": warnings}
-
-
-func test_best_loads_on_any_card_type() -> void:
-	for type in [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT, CardDef.EVENT, CardDef.TECH]:
-		var r := grow_on(type, {"op": "grow", "amount": 1, "where": "best"})
-		eq(r.errors, [] as Array[String], "%s: errors" % type)
-
-
-func test_count_loads_with_each() -> void:
-	var r := grow_card_errors({"op": "grow", "amount": 1, "where": "each", "count": 3})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+func test_best_and_count_load() -> void:
+	var best := {"op": "grow", "amount": 1, "where": "best"}
+	check_loads([
+		["best on an action", [CardDef.ACTION, best], {}],
+		["best on a building", [CardDef.BUILDING, best], {}],
+		["best on a unit", [CardDef.UNIT, best], {}],
+		["best on an event", [CardDef.EVENT, best], {}],
+		["best on a tech", [CardDef.TECH, best], {}],
+		["count with each", [CardDef.ACTION, {"op": "grow", "amount": 1, "where": "each", "count": 3}], {}],
+	], grow_on.callv)
 
 
 func test_count_validation() -> void:
@@ -316,12 +311,12 @@ func test_count_validation() -> void:
 			["cards.json: card 'x': effects[0]", "'count'", "each"]],
 		["count with here", {"op": "grow", "amount": 1, "where": "here", "count": 2},
 			["cards.json: card 'x': effects[0]", "'count'", "each"]],
-	], grow_card_errors)
+	], grow_load)
 
 
 ## The grow effect's short and long text on an action, or "<not loaded>".
 func grow_texts(effect: Dictionary) -> Array:
-	var cards: Dictionary = grow_card_errors(effect).cards
+	var cards: Dictionary = grow_load(effect).cards
 	if not cards.has("x"):
 		return ["<not loaded>", "<not loaded>"]
 	return [cards.x.rules_text(cards), cards.x.rules_tooltip(cards)]
@@ -348,16 +343,11 @@ func test_pop_never_grows_by_itself() -> void:
 	eq(notices_in(recorded).filter(func(n): return n.contains("grew to")), [], "no growth notice")
 
 
-func test_growth_surplus_is_an_unknown_population_field() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var raw := raw_config({"farm": 1})
-	raw.population = {"start": 2, "growth_surplus": 2, "famine": FAMINE}
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "population: unknown field 'growth_surplus'")
-	check(not config.population.has("growth_surplus"), "the normalized block has no growth_surplus: %s" % [config.population])
+func test_retired_population_fields_are_load_warnings() -> void:
+	check_cases([
+		["growth_surplus", {"population": {"start": 2, "growth_surplus": 2, "famine": FAMINE}},
+			"population: unknown field 'growth_surplus'", "warning_only"],
+	], config_load)
 
 
 func test_manual_growth_is_gone() -> void:
