@@ -2,7 +2,7 @@
 id: 363
 title: The hand scrolls smoothly sideways, on the steel scrollbar
 type: feature
-status: ready
+status: red-review
 branch: feat/363-hand-scrolls-smoothly
 ---
 
@@ -38,7 +38,18 @@ Godot's default grey look, and moving the card focus to an off-screen card snaps
 - Guide §7.17 and tokens.md's Scroll areas row say both axes.
 
 ## Test plan
-<!-- Filled in by Claude during the red phase. -->
+All in `tests/test_smooth_scroll.gd` (no new file, so no new `docs/testing.md` row).
+
+| AC | Tests |
+|----|-------|
+| AC1 | `test_a_notch_glides_a_sideways_scroll_the_step_and_coasts_to_rest` (wheel down/up and right/left), `test_a_notch_past_the_right_end_stops_there_with_no_motion_left` |
+| AC2 | `test_with_reduce_motion_a_notch_jumps_a_sideways_scroll_the_step` |
+| AC3 | `test_the_hand_eases_the_focused_card_into_view`, `test_with_reduce_motion_the_hand_jumps_the_focused_card_into_view` |
+| AC4 | `test_the_sideways_scrollbar_is_a_thin_steel_grabber_on_a_well` (the vertical one now shares `check_bar_look`) |
+| AC5 | the existing hand and drag tests |
+
+`wheel_notch` in `tests/lib/test_case.gd` now calls a new `wheel_turn(main, scroll, button, point)` for any wheel
+button.
 
 ## Manual check
 
