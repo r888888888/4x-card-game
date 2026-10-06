@@ -78,7 +78,6 @@ fixture game (Farm with Plough and Ditch, Chapel → Sanctum → fallen-back Cat
 
 ## Log
 - 2026-10-05: specced from the mocks; the user chose design A (ribbons) with X (the chip opens the Build modal).
-
 - 2026-10-06: built. Engine queries added test-first: `upgrade_base_name`, `card_tier_name`, `upgrade_rules_text`
   (by card id, not uid: the upgrade's own face has no uid), `upgrade_tree`, `upgrades_for`, `upgrade_options`, and
   `build_preview` on a base. A chain's chip sits on its first base's card and selects the first upgrade any link could
