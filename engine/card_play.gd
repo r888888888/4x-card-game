@@ -47,6 +47,8 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 		var target := e.zone("tableau").find(target_uid)
 		if building and target != null and target.def.type == CardDef.TERRITORY and not Territories.meets_requires(card, target):
 			return Territories.requires_error(card)
+		if building and Territories.settled(e, target_uid) != null and Fallback.below_tier(e, card.def, target_uid):
+			return Fallback.tier_error(e, card.def, target_uid)
 		return "That target isn't valid."
 	if targets.is_empty():
 		if card.def.type == CardDef.UNIT:

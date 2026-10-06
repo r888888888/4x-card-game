@@ -19,19 +19,21 @@ const ADMINISTERS := "administers"
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government). Active events come on top (see total).
 ## One pass over the tableau (150): a building or unit is idle once its territory's earlier ones use up its pop, or a
-## building once they use up its slots (281), as is_idle says, without looking each one up. An upgrade works with its
-## base (300), which comes before it in the tableau.
+## building once they use up its slots (281), as is_idle says, without looking each one up. A card below its tier
+## falls back (301), and an upgrade works with its base (300), which comes before it in the tableau.
 static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	var tableau := e.zone("tableau").cards
 	var pop_on := e.population_on()
 	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
 	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
+	var tier_of := {}  # settled territory uid -> the index of its tier (301)
 	if pop_on:
 		var tiers := Population.tiers(e)
 		for c in tableau:
 			if c.def.type == CardDef.TERRITORY:
 				workers[c.uid] = c.pop
+				tier_of[c.uid] = Population.tier_at_pop(e, c.pop)
 				slots[c.uid] = c.def.slots + Population.tier_slots(tiers, c.pop)
 		for c in tableau:
 			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
@@ -49,6 +51,8 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 				slots[c.territory_uid] = room - 1
 			if left <= 0 or room <= 0:
 				continue
+		if c.def.tier != "" and tier_of.get(c.territory_uid, -1) < Fallback.need(e, c.def):
+			continue  # fallen back below its tier, keeping its worker and slot (301)
 		if c.def.project and Sites.unfinished(e, c):  # takes its worker and slot, but works once completed (286)
 			continue
 		out.append(c)

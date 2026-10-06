@@ -9,15 +9,15 @@ static func pop(e: GameEngine, territory_uid: int) -> int:
 	return territory.pop if territory != null else 0
 
 
-## A settled territory's housing plus the housing of every building on it, working or idle, and of the upgrades on
-## them that haven't fallen back (300) (0 if unsettled).
+## A settled territory's housing plus the housing of every building on it, working or idle, but not fallen back (300,
+## 301) (0 if unsettled).
 static func housing(e: GameEngine, territory_uid: int) -> int:
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return 0
 	var total := territory.def.housing + Modifiers.total(e, Modifiers.HOUSING)
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not Upgrades.fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not Fallback.fallen_back(e, card):
 			total += card.def.housing
 	return maxi(1, total)
 
@@ -39,7 +39,7 @@ static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 	var tableau := e.zone("tableau").cards
 	var built := {}  # territory uid -> the housing of the buildings on it (see housing)
 	for card in tableau:
-		if card.def.type == CardDef.BUILDING and not Upgrades.fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and not Fallback.fallen_back(e, card):
 			built[card.territory_uid] = built.get(card.territory_uid, 0) + card.def.housing
 	var extra := Modifiers.total(e, Modifiers.HOUSING)
 	for card in tableau:
@@ -74,9 +74,10 @@ static func add_pop(e: GameEngine, territory_uid: int, amount: int, source: Card
 	if added <= 0:
 		return
 	var before := tier(e, territory_uid)
+	var fallen := Fallback.fallen_on(e, territory_uid)
 	territory.pop += added
 	e._log("  %s: +%d pop on %s" % [source.def.name, added, territory.def.name])
-	_notice_tier(e, territory, before)
+	_notice_tier(e, territory, before, fallen)
 
 
 ## The config's settlement tiers (281): [{id, name, pop, slots}], lowest first; [] when tiers or population are off.
@@ -153,16 +154,29 @@ static func next_tier_pop(e: GameEngine, territory_uid: int) -> int:
 	return all[i + 1].pop if i >= 0 and i + 1 < all.size() else 0
 
 
-## A notice when territory's tier is no longer before: it grew into a higher one or shrank to a lower one.
-static func _notice_tier(e: GameEngine, territory: CardInstance, before: int) -> void:
+## A notice when territory's tier is no longer before: it grew into a higher one or shrank to a lower one. It names
+## the cards there that fell back or work again since, when fallen listed the ones fallen back before (301).
+static func _notice_tier(e: GameEngine, territory: CardInstance, before: int, fallen: Array[int]) -> void:
 	var now := tier(e, territory.uid)
 	if now == before:
 		return
 	var tier_text := with_article(tier_name(e, territory.uid))
+	var fallen_now := Fallback.fallen_on(e, territory.uid)
 	if now > before:
-		e._notice("%s grows into %s." % [territory.shown_name(), tier_text])
+		var back := fallen.filter(func(uid): return not fallen_now.has(uid))
+		var works := _cards_line(e, back, "works again", "work again")
+		e._notice("%s grows into %s.%s" % [territory.shown_name(), tier_text, works])
 	else:
-		e._notice("%s shrinks to %s." % [territory.shown_name(), tier_text], GameEngine.NOTICE_CAUTION)
+		var fell := fallen_now.filter(func(uid): return not fallen.has(uid))
+		var falls := _cards_line(e, fell, "falls back", "fall back")
+		e._notice("%s shrinks to %s.%s" % [territory.shown_name(), tier_text, falls], GameEngine.NOTICE_CAUTION)
+
+
+## " Sanctum falls back." / " Sanctum and Bell fall back." for the tableau cards uids (301); "" for none.
+static func _cards_line(e: GameEngine, uids: Array, one: String, many: String) -> String:
+	if uids.is_empty():
+		return ""
+	return " %s %s." % [Fallback.names(e, uids), one if uids.size() == 1 else many]
 
 
 ## name with "a" or "an" before it ("a Village", "an Outpost").
@@ -174,13 +188,10 @@ static func free_workers(e: GameEngine, territory_uid: int) -> int:
 	return maxi(pop(e, territory_uid) - Territories.workers_on(e, territory_uid).size(), 0)
 
 
-## Whether card uid is idle: a building or unit past its territory's pop (no worker), a building past its
-## territory's slots (281), or an upgrade on an idle base (300).
+## Whether card uid is idle: a building or unit past its territory's pop (no worker), or a building past its
+## territory's slots (281). An upgrade takes no worker, so it never is (it falls back instead, see Fallback).
 static func is_idle(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("tableau").find(uid)
-	if card != null and card.base_uid >= 0:
-		var base := Upgrades.root(e, card)
-		return base != card and is_idle(e, base.uid)
 	if card == null or not card.def.uses_worker() or not e.population_on():
 		return false
 	if Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):
@@ -223,6 +234,7 @@ static func lose_pop(e: GameEngine, amount: int, source: CardInstance) -> void:
 		if biggest == null:
 			return
 		var before := tier(e, biggest.uid)
+		var fallen := Fallback.fallen_on(e, biggest.uid)
 		biggest.pop -= 1
 		e._log("  %s: −1 pop on %s" % [source.def.name, biggest.def.name])
-		_notice_tier(e, biggest, before)
+		_notice_tier(e, biggest, before, fallen)

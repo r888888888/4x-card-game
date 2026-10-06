@@ -44,6 +44,8 @@ var famine_guard: int = 0  # buildings: pop on their territory saved from starvi
 var strength: int = 0  # units: how much it counts in defence (160)
 var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
 var upgrade_of := ""  # buildings: the id of the building it is built onto (300), or "" for none
+var tier := ""  # buildings: the id of the settlement tier its territory needs (301), or "" for none
+var tier_name := ""  # buildings: that tier's name, set by ConfigLoader (CardDef has no config)
 var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
@@ -115,6 +117,8 @@ func rules_text(card_db: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if is_upgrade():
 		parts.append(upgrade_text(card_db))
+	if tier_name != "":
+		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())
 	if actions > 0:
@@ -183,6 +187,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		return territory_text(keywords)
 	if is_upgrade():
 		parts.append(upgrade_text(card_db))
+	if tier_name != "":
+		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())
 	if actions > 0:

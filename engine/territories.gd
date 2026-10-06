@@ -108,7 +108,8 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 			workers[c.territory_uid] = workers.get(c.territory_uid, 0) + 1
 	var pop_on := e.population_on()
 	for territory in tableau:
-		if territory.def.type != CardDef.TERRITORY or not meets_requires(card, territory):
+		if territory.def.type != CardDef.TERRITORY or not meets_requires(card, territory) \
+				or Fallback.below_tier(e, card.def, territory.uid):
 			continue
 		var room: int = territory.def.slots + Population.tier_slots(tiers, territory.pop) + slots.get(territory.uid, 0)
 		if room > 0 and (not pop_on or territory.pop - workers.get(territory.uid, 0) > 0):
@@ -125,8 +126,17 @@ static func unit_targets(e: GameEngine) -> Array[int]:
 	return out
 
 
-## Why building card has no territory to go on.
+## Why building card has no territory to go on: none at its tier (301) among those it may go on, else no worker, no
+## slot or no required keyword.
 static func no_building_target_error(e: GameEngine, card: CardInstance) -> String:
+	var at_tier := false
+	var allowed := false
+	for territory in e.zone("tableau").cards:
+		if territory.def.type == CardDef.TERRITORY and meets_requires(card, territory):
+			allowed = true
+			at_tier = at_tier or not Fallback.below_tier(e, card.def, territory.uid)
+	if allowed and not at_tier:
+		return Fallback.short_tier_error(card.def)
 	var slot_found := false
 	for territory in e.zone("tableau").cards:
 		if territory.def.type == CardDef.TERRITORY and meets_requires(card, territory):

@@ -86,6 +86,6 @@ static func after_feeding(e: GameEngine, fed: bool) -> void:
 static func guards_by_territory(e: GameEngine) -> Dictionary:
 	var guards := {}
 	for card in e.zone("tableau").cards:
-		if card.def.famine_guard > 0 and not Population.is_idle(e, card.uid):
+		if card.def.famine_guard > 0 and Fallback.works(e, card):
 			guards[card.territory_uid] = guards.get(card.territory_uid, 0) + card.def.famine_guard
 	return guards

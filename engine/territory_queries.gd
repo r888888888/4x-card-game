@@ -76,8 +76,8 @@ func next_tier_pop(uid: int) -> int:
 
 
 ## Whether building uid is idle: with population on, a territory's buildings beyond its pop are idle, and those beyond
-## its slots (281), the ones placed last first. Idle buildings skip upkeep but keep their printed VP. An upgrade is idle
-## while its base is (300), and then counts for nothing.
+## its slots (281), the ones placed last first. Idle buildings skip upkeep but keep their printed VP. An upgrade takes no
+## worker, so it is never idle; it falls back instead (fallen_back_reason).
 func is_idle(uid: int) -> bool:
 	return Population.is_idle(self, uid)
 
@@ -93,10 +93,12 @@ func upgrades_on(uid: int) -> Array[int]:
 	return Upgrades.on(self, uid)
 
 
-## Why upgrade uid counts for nothing now (300): "Its Farm is idle." when the building at the root of its chain is
-## idle; "" while it counts, or for anything that isn't an upgrade.
+## Why card uid has fallen back and counts for nothing now: below its tier ("Needs a Village.", 301), or an upgrade
+## whose base is idle ("Its Farm is idle.", 300) or has fallen back ("Its Sanctum has fallen back."); "" while it
+## counts, or for a card not in the tableau.
 func fallen_back_reason(uid: int) -> String:
-	return Upgrades.fallen_back_reason(self, uid)
+	var card := zone("tableau").find(uid)
+	return Fallback.reason(self, card) if card != null else ""
 
 
 ## The name territory uid goes by (248): its city name once settled, else its card's name; "" when uid isn't a territory.

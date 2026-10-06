@@ -2,9 +2,8 @@ class_name Upgrades
 extends RefCounted
 ## Building upgrades (300): a building with upgrade_of is built from the build menu onto a building already in play
 ## (its base), on the base's territory, taking no slot and no worker. A base carries any number of different upgrades,
-## and an upgrade can itself be a base. An upgrade counts only while the building at the root of its chain works;
-## otherwise it has fallen back and counts for nothing. Static functions on the engine's state; GameEngine's public
-## methods and the build menu call them.
+## and an upgrade can itself be a base. Whether one counts is Fallback's. Static functions on the engine's state;
+## GameEngine's public methods and the build menu call them.
 
 
 ## The bases upgrade card (a new copy to build) could go on now, in tableau order: each building it upgrades that
@@ -23,7 +22,7 @@ static func target_error(e: GameEngine, card: CardInstance, target_uid: int) -> 
 	if target_uid == -1:
 		var options := targets(e, card)
 		if options.is_empty():
-			return "No %s to build %s on." % [base_name, card.def.name]
+			return _none_error(e, card, base_name)
 		if options.size() > 1:
 			return "Choose %s for %s." % [Population.with_article(base_name), card.def.name]
 		return ""
@@ -36,7 +35,17 @@ static func target_error(e: GameEngine, card: CardInstance, target_uid: int) -> 
 	var territory := Territories.territory_of(e, base)
 	if territory != null and not Territories.meets_requires(card, territory):
 		return Territories.requires_error(card)
-	return ""
+	return Fallback.tier_error(e, card.def, base.territory_uid)
+
+
+## Why upgrade card has no base to go on: none at its tier ("Sanctum needs a Village.") while a base without one stands
+## below it, else "No Chapel to build Sanctum on.".
+static func _none_error(e: GameEngine, card: CardInstance, base_name: String) -> String:
+	for base in e.zone("tableau").cards:
+		var problem := target_error(e, card, base.uid)
+		if problem != "" and problem == Fallback.tier_error(e, card.def, base.territory_uid):
+			return Fallback.short_tier_error(card.def)
+	return "No %s to build %s on." % [base_name, card.def.name]
 
 
 ## Puts upgrade card onto base_uid: on its base's territory.
@@ -53,27 +62,3 @@ static func on(e: GameEngine, uid: int) -> Array[int]:
 			out.append(card.uid)
 	return out
 
-
-## The building at the root of upgrade card's chain (card itself when it is no upgrade).
-static func root(e: GameEngine, card: CardInstance) -> CardInstance:
-	var at := card
-	while at.base_uid >= 0:
-		var base := e.zone("tableau").find(at.base_uid)
-		if base == null:
-			break
-		at = base
-	return at
-
-
-## Whether card is an upgrade that counts for nothing now: the building at the root of its chain is idle.
-static func fallen_back(e: GameEngine, card: CardInstance) -> bool:
-	return card.base_uid >= 0 and e.is_idle(card.uid)
-
-
-## Why upgrade uid counts for nothing ("Its Farm is idle."), or "" while it counts or isn't an upgrade.
-static func fallen_back_reason(e: GameEngine, uid: int) -> String:
-	var card := e.zone("tableau").find(uid)
-	if card == null or card.base_uid < 0:
-		return ""
-	var base := root(e, card)
-	return "Its %s is idle." % base.def.name if e.is_idle(base.uid) else ""
