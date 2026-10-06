@@ -159,3 +159,14 @@ func test_the_tree_shows_a_eureka_and_ticks_it_when_met() -> void:
 		check(false, "main.knowledge.tile() exists")
 	close_main(main)
 	Game.engine = real
+
+
+# --- Backlog 325: affordable at the cost now ---
+
+func test_a_eureka_makes_a_tech_affordable_at_its_cost_now() -> void:
+	var e := lore_engine(FARMS)
+	e.resources[GameEngine.INSIGHT] = 1
+	eq(entry(e, "lore").get("affordable"), false, "1 insight is short of 3")
+	build_farms(e, 2)
+	eq(entry(e, "lore").get("cost"), 1, "precondition: the eureka takes it to 1")
+	eq(entry(e, "lore").get("affordable"), true, "1 insight covers the cost now")
