@@ -404,6 +404,23 @@ func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null, on_ar
 	_motion.leave(layer, point, pop, via, on_arrival)
 
 
+## Lays the card out at size at now rather than when its containers sort at the end of the frame (361): a card just
+## added to a layer measures its wrapped text at zero width until then, which makes it far too tall to shrink to at.
+## Sorts at the width at, has every part measure itself again (the innermost first), then sorts at the size at.
+func lay_out_now(at: Vector2) -> void:
+	var containers: Array = [self] + find_children("*", "Container", true, false)
+	var controls: Array = [self] + find_children("*", "Control", true, false)
+	controls.reverse()
+	size = at
+	for container: Container in containers:
+		container.notification(Container.NOTIFICATION_SORT_CHILDREN)
+	for control: Control in controls:
+		control.update_minimum_size()
+	size = at
+	for container: Container in containers:
+		container.notification(Container.NOTIFICATION_SORT_CHILDREN)
+
+
 ## Test hook (087): the text on the card's face, lines joined by newlines.
 func face_text() -> String:
 	return _face.text() if _face != null else ""

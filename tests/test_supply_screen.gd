@@ -5,7 +5,8 @@ extends "res://tests/lib/tech_case.gd"
 ## In detail (from docs/testing.md, 331): The Supply screen's pile cards in the real `main.tscn` (232): the play cost
 ## after discounts in the title row, the buy price on a tag below the card (`price_tag`), the copies left under it
 ## (`copies_left`), the tag dimming with an unbuyable pile; a click or Enter opening the pile's details, whose Buy
-## (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259)
+## (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259),
+## flying a copy the pile card's size from the pile card to the Discard counter (361)
 
 const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
@@ -215,6 +216,46 @@ func test_buy_flies_a_copy_to_the_discard_counter() -> void:
 		var flying: Array = main.find_children("*", "CardView", true, false).filter(
 			func(v: CardView): return v.uid == -100)
 		eq(flying.size(), 1, "one copy in flight to the Discard counter"))
+
+
+## The copy in flight to the Discard counter after Buy on view's details (361), or null.
+func bought_copy(main: Node, view: CardView) -> CardView:
+	main.supply.pick(view)
+	await wait_frames()
+	main.details.buy_button().pressed.emit()
+	var flying: Array = main.find_children("*", "CardView", true, false).filter(func(v: CardView): return v.uid == -100)
+	check(flying.size() == 1, "one copy in flight")
+	return flying[0] if flying.size() == 1 else null
+
+
+func test_bug_361_the_bought_copy_keeps_the_pile_cards_size_as_it_flies() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var pile: CardView = views[1]  # Scout
+		var copy := await bought_copy(main, pile)
+		var tallest := 0.0
+		var frames := 0
+		while is_instance_valid(copy) and frames < 120:
+			tallest = maxf(tallest, copy.size.y)
+			check(absf(copy.size.x - pile.size.x) <= 1.0, "frame %d: the copy is the pile card's width" % frames)
+			await wait_frames(1)
+			frames += 1
+		check(tallest <= pile.size.y + 1.0, "the copy is never taller than the pile card (%d): %d" % [pile.size.y, tallest]))
+
+
+func test_bug_361_the_bought_copy_starts_on_the_pile_card() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var pile: CardView = views[1]  # Scout
+		await wait_screen_transition()  # the pile cards have popped in
+		main.supply.pick(pile)
+		await wait_frames()
+		var centre := pile.get_global_rect().get_center()
+		main.details.buy_button().pressed.emit()
+		var flying: Array = main.find_children("*", "CardView", true, false).filter(func(v: CardView): return v.uid == -100)
+		eq(flying.size(), 1, "one copy in flight")
+		if flying.size() != 1:
+			return
+		var at: Vector2 = (flying[0] as CardView).get_global_rect().get_center()
+		check(at.distance_to(centre) <= 1.0, "the copy starts centred on the pile card %s: %s" % [centre, at]))
 
 
 func test_an_unaffordable_piles_buy_is_disabled_with_the_reason_on_the_footer() -> void:
