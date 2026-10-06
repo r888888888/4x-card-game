@@ -70,4 +70,5 @@ on the modal's sheet, under its card, so every building reads like history where
   `LEDGER_DETAIL_WIDTH` like the refusal; `preview_lines()` skips it. Hook `flavor_text()`. The fixture Chapel and
   Sanctum (`test_upgrade_ribbons.gd`) gained flavor for AC4; no existing expectation changed.
 - Docs: guide §11.10 (the ledger sheet's detail column) and §18, the specimen's territory-view note, PLAN.md (the
-  Build modal and the Flavor paragraph), `docs/testing.md`'s row.
+  Build modal and the Flavor paragraph). `docs/testing.md` is at its 25 KB cap, so its row is unchanged; the test
+  file's `##` header names 354.
