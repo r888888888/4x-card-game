@@ -2,7 +2,7 @@
 id: 349
 title: The territory view's cards open far too tall
 type: bug
-status: review
+status: done
 branch: fix/349-territory-view-card-height
 ---
 
