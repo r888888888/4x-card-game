@@ -2,7 +2,7 @@
 id: 306
 title: Temple and Library become urban upgrades (Shrine → Temple → Great Temple, Scribal School → Library)
 type: feature
-status: review
+status: done
 branch: feat/306-temple-and-library-upgrades
 ---
 
