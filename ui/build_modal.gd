@@ -3,9 +3,10 @@ extends Modal
 ## The Build modal (backlog 297; the build-menu canvas's "Ledger"): opened on a territory from its view's Build… (B) or a
 ## "+ Build" free slot, titled "Build on <territory>". On the left a selectable list (217) of the build menu's entries,
 ## under Buildings and Units headings, each row its name and cost after discounts, a row the engine refuses dimmed with
-## the reason under its name. On the right the selected entry's card and either "If built on <territory>" with
-## build_preview's lines and the cost, or the refusal. One key builds it (Build X; Recruit X for a unit); Enter too, and
-## Up and Down move the selection. Everything shown comes from the engine.
+## the reason under its name. Under Upgrades (302) a row per upgrade entry and building here it builds on ("Plough", "on
+## Farm"). On the right the selected entry's card and either "If built on <territory or building>" with build_preview's
+## lines and the cost, or the refusal. One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
+## move the selection. Everything shown comes from the engine.
 
 const LIST_WIDTH := Tokens.SPACE_9 * 3  # the ledger's column
 const DIMMED := 0.5  # a refused row's opacity
@@ -19,8 +20,11 @@ var cancel_button: Button
 
 var _territory := -1  # the territory building goes on; -1 while closed
 var _headings: Array[String] = []
-var _reasons := {}  # card_id -> build_error's refusal ("" when allowed)
+var _reasons := {}  # row id -> build_error's refusal ("" when allowed)
+var _targets := {}  # row id -> [card_id, the target it builds on: the territory, or an upgrade's base (302)]
 var _card_slot: Control  # the selected entry's card
+var _card: CardView  # on _card_slot, or null
+var _row := ""  # the row id on the sheet
 var _shown := ""  # the card id on the sheet
 var _lines: VBoxContainer  # the preview's heading and lines, or the refusal
 
@@ -53,37 +57,68 @@ func _init(p_stack: ModalStack) -> void:
 	build_button = add_footer_button(UIKit.button("Build", _build), true)
 
 
-## Opens it on settled territory t: the build menu listed, the first row the engine allows selected (else the first).
-func open(t: int) -> void:
+## The list id of upgrade card_id's row on building base (302).
+static func upgrade_row_id(card_id: String, base: int) -> String:
+	return "%s@%d" % [card_id, base]
+
+
+## Opens it on settled territory t: the build menu listed, row select selected if given, else the first row the engine
+## allows (else the first).
+func open(t: int, select := "") -> void:
 	var e := Game.engine
 	_territory = t
 	title = "Build on %s" % e.territory_name(t)
 	list.clear()  # the rows and the headings
 	_headings.clear()
 	_reasons.clear()
-	var first := ""
+	_targets.clear()
+	var upgrades := e.build_menu().filter(func(id): return e.upgrade_base_name(id) != "")
 	for kind in [CardDef.BUILDING, CardDef.UNIT]:
-		var ids := e.build_menu().filter(func(id): return e.card_db[id].type == kind)
+		var ids := e.build_menu().filter(func(id): return e.card_db[id].type == kind and not upgrades.has(id))
+		if kind == CardDef.UNIT:
+			_add_upgrades(e, t)
 		if ids.is_empty():
 			continue
-		var heading := "Buildings" if kind == CardDef.BUILDING else "Units"
-		_headings.append(heading)
-		list.add_heading(heading)
+		_add_heading("Buildings" if kind == CardDef.BUILDING else "Units")
 		for id: String in ids:
-			_reasons[id] = e.build_error(id, t)
-			var text := "%s   %s" % [e.card_db[id].name, CardFace.cost_text(e.build_cost(id))]
-			if _reasons[id] != "":
-				text += "\n" + _reasons[id]
-			var entry := list.add_row(id, text)
-			entry.modulate.a = DIMMED if _reasons[id] != "" else 1.0
-			if first == "" and _reasons[id] == "":
-				first = id
+			_add_row(id, id, t, "%s   %s" % [e.card_db[id].name, CardFace.cost_text(e.build_cost(id))])
+	var first := select if list.row(select) != null else ""
+	for id in list.ids():
+		if first == "" and _reasons[id] == "":
+			first = id
 	if first == "" and not list.ids().is_empty():
 		first = list.ids()[0]
 	list.select(first)
 	_show_entry(first)
 	present()
 	get_viewport().gui_release_focus()  # Up, Down and Enter reach key_pressed
+
+
+## The Upgrades heading and a row per upgrade entry and building on territory t it builds on (302); none with no rows.
+func _add_upgrades(e: GameEngine, t: int) -> void:
+	var options := e.upgrade_options(t)
+	if options.is_empty():
+		return
+	_add_heading("Upgrades")
+	for option in options:
+		var id: String = option.card_id
+		var base_name := e.zone("tableau").find(option.base).def.name
+		_add_row(upgrade_row_id(id, option.base), id, option.base, "%s   %s\non %s" % [e.card_db[id].name,
+			CardFace.cost_text(e.build_cost(id)), base_name])
+
+
+func _add_heading(heading: String) -> void:
+	_headings.append(heading)
+	list.add_heading(heading)
+
+
+## Row row_id building card_id on target, reading text, dimmed with build_error's reason when it refuses.
+func _add_row(row_id: String, card_id: String, target: int, text: String) -> void:
+	var reason := Game.engine.build_error(card_id, target)
+	_reasons[row_id] = reason
+	_targets[row_id] = [card_id, target]
+	var entry := list.add_row(row_id, text + ("\n" + reason if reason != "" else ""))
+	entry.modulate.a = DIMMED if reason != "" else 1.0
 
 
 func closed() -> void:
@@ -111,17 +146,22 @@ func shown_card() -> String:
 	return _shown
 
 
+## The face text of the card on the sheet (302), or "".
+func face_text() -> String:
+	return _card.face_text() if is_instance_valid(_card) else ""
+
+
 ## The sheet's lines: the preview's heading, its lines and the cost; [] while a refusal shows.
 func preview_lines() -> Array[String]:
 	var out: Array[String] = []
-	if row_reason(_shown) == "":
+	if row_reason(_row) == "":
 		for label in _lines.get_children():
 			out.append((label as Label).text)
 	return out
 
 
 func refusal_text() -> String:
-	return row_reason(_shown)
+	return row_reason(_row)
 
 
 ## Up and Down move the selection, Enter builds; the close keys close (Modal).
@@ -140,23 +180,26 @@ func key_pressed(keycode: Key) -> void:
 			super(keycode)
 
 
-## Shows entry id on the sheet: its card, then the preview and its cost, or the refusal; the key names it.
+## Shows row id on the sheet: its card, then the preview and its cost, or the refusal; the key names it.
 func _show_entry(id: String) -> void:
 	var e := Game.engine
-	_shown = id
+	_row = id
+	_shown = _targets[id][0] if _targets.has(id) else ""
 	for child in _card_slot.get_children():
 		child.queue_free()
+	_card = null
 	for child in _lines.get_children():
 		_lines.remove_child(child)
 		child.queue_free()
-	if id == "":
+	if _shown == "":
 		build_button.disabled = true
 		return
-	var def: CardDef = e.card_db[id]
-	var card := CardView.new()
-	card.setup(CardInstance.new(-1, def), e.card_db, false)
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.attach(_card_slot)
+	var def: CardDef = e.card_db[_shown]
+	var target: int = _targets[id][1]
+	_card = CardView.new()
+	_card.setup(CardInstance.new(-1, def), e.card_db, false)
+	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card.attach(_card_slot)
 	var reason: String = _reasons.get(id, "")
 	build_button.text = "%s %s" % ["Recruit" if def.type == CardDef.UNIT else "Build", def.name]
 	build_button.disabled = reason != ""
@@ -164,8 +207,9 @@ func _show_entry(id: String) -> void:
 	if reason != "":
 		_add_line(reason, &"Refusal")
 		return
-	var preview := e.build_preview(id, _territory)
-	_add_line("If built on %s" % e.territory_name(_territory), &"Heading")
+	var preview := e.build_preview(_shown, target)
+	var where := e.territory_name(target) if target == _territory else e.zone("tableau").find(target).def.name
+	_add_line("If built on %s" % where, &"Heading")
 	for line in preview.get("lines", []):
 		_add_line(line_text(line), &"Body")
 	_add_line("Costs %s" % CardFace.cost_text(preview.get("cost", {})), &"Body")
@@ -190,9 +234,9 @@ func _add_line(text: String, look: StringName) -> void:
 
 func _build() -> void:
 	var e := Game.engine
-	if _shown == "" or _territory == -1 or e.build_error(_shown, _territory) != "":
+	if _shown == "" or _territory == -1 or e.build_error(_shown, _targets[_row][1]) != "":
 		return
 	var id := _shown
-	var t := _territory
+	var target: int = _targets[_row][1]
 	close()
-	e.build(id, t)
+	e.build(id, target)

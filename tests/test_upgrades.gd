@@ -448,20 +448,20 @@ func test_an_unlock_of_an_upgrade_names_its_base() -> void:
 # --- Backlog 302: what the territory view and the Build modal ask ---
 
 func test_upgrade_base_name_names_the_building_an_entry_builds_on() -> void:
-	var e: Object = upgrade_engine()
+	var e := upgrade_engine()
 	eq([e.upgrade_base_name("plough"), e.upgrade_base_name("cathedral")], ["Farm", "Sanctum"], "upgrades")
 	eq([e.upgrade_base_name("farm"), e.upgrade_base_name("dragon")], ["", ""], "a building, an unknown id")
 
 
 func test_upgrade_rules_text_leaves_out_the_builds_on_line() -> void:
-	var e: Object = upgrade_engine()
+	var e := upgrade_engine()
 	eq(e.upgrade_rules_text("plough"), "⟳ +1 food", "the Plough")
 	eq(e.upgrade_rules_text("ditch"), "Flood Plain: ⟳ +1 food\n+1 housing", "the Ditch")
 	eq(e.upgrade_rules_text("farm"), "", "a building that is no upgrade")
 
 
 func test_upgrade_tree_lists_a_bases_upgrades_depth_first() -> void:
-	var e: Object = upgrade_engine()
+	var e := upgrade_engine()
 	var chapel := put_on(e, home_uid(e), "chapel")
 	var sanctum := upgrade(e, "sanctum", chapel)
 	var rampart := upgrade(e, "rampart", chapel)
@@ -472,7 +472,7 @@ func test_upgrade_tree_lists_a_bases_upgrades_depth_first() -> void:
 
 
 func test_upgrades_for_lists_the_entries_a_base_could_take_now() -> void:
-	var e: Object = upgrade_engine(0, "", {"build_menu": MENU.merged({"rampart": {"locked": true}}, true)})
+	var e := upgrade_engine(0, "", {"build_menu": MENU.merged({"rampart": {"locked": true}}, true)})
 	var farm := put_on(e, home_uid(e), "farm")
 	var chapel := put_on(e, home_uid(e), "chapel")
 	eq(e.upgrades_for(farm), ["plough", "ditch"] as Array[String], "in menu order, whatever they cost; no Weir off the river")
@@ -484,7 +484,7 @@ func test_upgrades_for_lists_the_entries_a_base_could_take_now() -> void:
 
 
 func test_upgrade_options_pair_each_upgrade_entry_with_each_building_on_a_territory() -> void:
-	var e: Object = upgrade_engine()
+	var e := upgrade_engine()
 	var home := home_uid(e)
 	var farm := put_on(e, home, "farm")
 	var chapel := put_on(e, home, "chapel")
@@ -501,7 +501,7 @@ func test_upgrade_options_pair_each_upgrade_entry_with_each_building_on_a_territ
 
 
 func test_an_upgrades_preview_reads_its_bases_territory() -> void:
-	var e: Object = upgrade_engine(10, "band")
+	var e := upgrade_engine(10, "band")
 	var river := settle_at(e, "river", 1)
 	var farm := put_on(e, river, "farm")
 	var food := food_forecast(e)

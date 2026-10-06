@@ -19,6 +19,7 @@ const BADGES := {
 	CardView.BOARD_EVENT: TYPE_MARKS[CardDef.EVENT] + " Event",
 }
 const BAND := 5.0  # the type band's height, under the name (179)
+const STAMP_TILT := -0.07  # radians: an upgrade's tier stamp, set down by hand (302)
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 var board := false  # a board face (build_board, 138): one line per field, the rest in the details
@@ -50,7 +51,10 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var type_row := HBoxContainer.new()
 	type_row.name = "TypeRow"
 	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + def.type.capitalize()
+	var e := Game.engine
+	var base_name := e.upgrade_base_name(def.id) if e != null else ""  # an upgrade's face names its base (302)
+	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + (def.type.capitalize() if base_name == "" else
+		"Upgrade · " + base_name)
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
@@ -61,6 +65,9 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 
 	_set_rules_tip(card, card_db)
 	var rules_text := def.rules_text(card_db)
+	if base_name != "":  # an upgrade adds: each line led by "Also", without the base and tier lines (302)
+		var lines := Array(e.upgrade_rules_text(def.id).split("\n")).filter(func(line: String): return line != "")
+		rules_text = "\n".join(PackedStringArray(lines.map(func(line: String): return "Also " + line)))
 	if rules_text != "":  # territories have none; an empty label would still take a line
 		var rules := rich_label(rules_text, Tokens.TYPE_BODY)
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -75,6 +82,37 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
+	var tier := e.card_tier_name(def.id) if base_name != "" else ""
+	if tier != "":  # the tier an upgrade needs, as a stamp (302)
+		var stamp := Label.new()
+		stamp.name = "TierStamp"
+		stamp.text = tier
+		stamp.uppercase = true
+		stamp.theme_type_variation = &"TierStamp"
+		stamp.size_flags_horizontal = Control.SIZE_SHRINK_END
+		stamp.rotation = STAMP_TILT
+		add_child(stamp)
+
+
+## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card, then chip if any; replaces those shown.
+func set_ribbons(ribbons: Array[UpgradeRibbon], chip: Button) -> void:
+	var old := get_node_or_null("Ribbons")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	if ribbons.is_empty() and chip == null:
+		return
+	var foot := VBoxContainer.new()
+	foot.name = "Ribbons"
+	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	foot.add_theme_constant_override("separation", Tokens.SPACE_0)
+	foot.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END  # along the card's foot
+	for ribbon in ribbons:
+		foot.add_child(ribbon)
+	if chip != null:
+		chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		foot.add_child(chip)
+	add_child(foot)
 
 
 ## Builds the fixed-height face of a card in the Realm's row (138) for kind (CardView.BOARD_*), in color. A frontier

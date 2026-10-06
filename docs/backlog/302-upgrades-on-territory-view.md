@@ -2,7 +2,7 @@
 id: 302
 title: Show upgrades as ribbons on their base, and build them from the Build modal
 type: feature
-status: red-review
+status: in-progress
 branch: feat/302-upgrades-on-territory-view
 ---
 

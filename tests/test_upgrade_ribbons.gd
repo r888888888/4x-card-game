@@ -3,7 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## foot of its card (a fallen-back one hatched with its reason), a "+ Upgrade" chip on a building that could take one
 ## opens the Build modal on it, the modal lists upgrades under their own heading, and an upgrade's card face names its
 ## base and tier. Hooks on CardView: ribbons() ({uid, name, rules, reason, hatched} per ribbon), upgrade_chip; on
-## BuildModal: upgrade_row_id(card_id, base), face_text().
+## BuildModal: upgrade_row_id(card_id, base) (static), face_text().
 
 const TIERS := [
 	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
@@ -70,14 +70,14 @@ func refresh(main: Node) -> void:
 	await wait_frames()
 
 
-## Card uid's view (typed loosely: the ribbon hooks are new).
-func view_of(main: Node, uid: int) -> Object:
+## Card uid's view.
+func view_of(main: Node, uid: int) -> CardView:
 	return main.views[uid]
 
 
 ## The Build modal's list id for upgrade card_id on base.
-func row_id(main: Node, card_id: String, base: int) -> String:
-	return (main.build_modal as Object).upgrade_row_id(card_id, base)
+func row_id(_main: Node, card_id: String, base: int) -> String:
+	return BuildModal.upgrade_row_id(card_id, base)
 
 
 func ribbon_names(main: Node, base: int) -> Array:
@@ -102,7 +102,7 @@ func test_upgrades_show_as_ribbons_on_their_base_not_as_cards() -> void:
 		check(shown.has(farm) and shown.has(chapel), "the bases have cards")
 		eq(ribbon_names(main, farm), ["Plough", "Ditch"], "the Farm's ribbons, in upgrades_on order")
 		eq(view_of(main, farm).ribbons().map(func(r): return r.rules),
-			[(e as Object).upgrade_rules_text("plough"), (e as Object).upgrade_rules_text("ditch")], "each reads its rules")
+			[e.upgrade_rules_text("plough"), e.upgrade_rules_text("ditch")], "each reads its rules")
 		eq(ribbon_names(main, chapel), ["Sanctum", "Cathedral"], "a chain on its first base")
 		eq(main.territory_view.free_slot_count(), e.free_slots(home_uid(e)), "the outlines count the free slots"))
 

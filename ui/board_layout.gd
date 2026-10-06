@@ -89,6 +89,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.territory_view.rename_requested.connect(main.rename_modal.open)
 	main.build_modal = BuildModal.new(main.modals)
 	main.territory_view.build_requested.connect(main.build_modal.open)
+	main.territory_view.upgrade_requested.connect(func(t: int, card_id: String, base: int):
+		main.build_modal.open(t, BuildModal.upgrade_row_id(card_id, base)))
 	main.settings_modal = SettingsModal.new(main.modals)
 	main.settings_modal.restart_requested.connect(func(seed_value: int):
 		close_menu.call(false)

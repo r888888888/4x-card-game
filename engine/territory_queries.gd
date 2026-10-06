@@ -82,6 +82,42 @@ func is_idle(uid: int) -> bool:
 	return Population.is_idle(self, uid)
 
 
+## The name of the building upgrade entry card_id builds on ("Farm", 302), or "" for anything else.
+func upgrade_base_name(card_id: String) -> String:
+	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
+		return ""
+	return card_db[card_db[card_id].upgrade_of].name
+
+
+## The name of the settlement tier card card_id needs ("Village", 301, 302), or "" when it needs none or tiers are off.
+func card_tier_name(card_id: String) -> String:
+	return card_db[card_id].tier_name if card_db.has(card_id) else ""
+
+
+## Upgrade card_id's card text without its "Builds on" and "Needs" lines: what it adds (302); "" for anything else.
+func upgrade_rules_text(card_id: String) -> String:
+	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
+		return ""
+	return card_db[card_id].rules_text(card_db, false)
+
+
+## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
+func upgrade_tree(uid: int) -> Array[int]:
+	return Upgrades.tree(self, uid)
+
+
+## The unlocked upgrade entries building uid could take now, in menu order, whatever they cost: its "+ Upgrade" chip
+## (302).
+func upgrades_for(uid: int) -> Array[String]:
+	return Upgrades.for_base(self, uid)
+
+
+## The Build modal's upgrade rows for settled territory t (302): {card_id, base} for each unlocked upgrade entry and
+## each building on t it builds on, by building in tableau order, then menu order.
+func upgrade_options(t: int) -> Array[Dictionary]:
+	return Upgrades.options(self, t)
+
+
 ## The building upgrade uid is built onto (300), or -1 when uid isn't an upgrade in the tableau.
 func upgrade_base(uid: int) -> int:
 	var card := zone("tableau").find(uid)
