@@ -167,6 +167,30 @@ func test_a_refused_row_shows_its_reason_and_disables_the_key() -> void:
 		check(modal.build_button.disabled, "the key is disabled"))
 
 
+func test_a_row_refused_for_want_of_a_worker_explains_in_its_tooltip() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var e: Object = Game.engine
+		var home := home_uid(e)
+		build_on(e, home, ["farm", "farm", "farm"])
+		var modal: Object = await open_build(main)
+		eq(modal.row_reason("granary"), "No free worker.", "the short reason (347)")
+		var detail: String = e.build_error_detail("granary", home)
+		check(detail != "", "the engine explains it")
+		eq((modal.list.row("granary") as Button).tooltip_text, detail, "the row's tooltip is the detail"))
+
+
+func test_a_hand_card_with_no_free_worker_explains_in_its_tooltip() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var e: Object = Game.engine
+		build_on(e, home_uid(e), ["farm", "farm", "farm"])
+		var farm := put_in_hand(e, "farm")
+		e.changed.emit()
+		await wait_frames()
+		eq(e.play_error(farm), "No free worker.", "refused")
+		var tip: String = (main.views[farm] as CardView).tooltip_text
+		check(tip.contains("No free worker.") and tip.contains(e.play_error_detail(farm)), "reason and detail: %s" % tip))
+
+
 # --- AC4: "+ Build" on free slots ---
 
 func test_a_free_slot_reads_build_and_opens_the_modal() -> void:
