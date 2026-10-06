@@ -180,7 +180,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
 | `tests/test_scaffolding.gd` | No red-phase scaffolding left in tests (333; `tests/lib/scaffolding_checks.gd`) |
-| `tests/test_shared_helpers.gd` | Shared UI test helpers; no copies of `tests/lib/` helpers (334) |
+| `tests/test_shared_helpers.gd` | Shared test helpers (UI, 334; `check_loads`, 340), not copied |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
 | `tests/test_select_list.gd` | The selectable list (217) |
@@ -214,7 +214,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`) and `era_name` / config `era_names` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |
-| `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
+| `tests/test_territories.gd` | Territory cards, their config (`keywords`, `territory_deck`, `starting.territory`), setup |
 | `tests/test_territory_cards.gd` | Territories as plain cards in the Realm (102) |
 | `tests/test_territory_names.gd` | Territory names (248) |
 | `tests/test_territory_resources.gd` | Rolled resource keywords |
@@ -284,18 +284,18 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording |
 | `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test |
-| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (+ `extra_cards`, raw dicts one file needs) |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (+ `extra_cards`) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`) |
 | `tests/lib/tech_case.gd` | Base class for tech tests: `TECHS`, `tech_db`, `tech_engine` |
 | `tests/lib/raid_case.gd` | Base class for raid tests: `RAID_CARDS`, `raid_load`, `raid_engine` |
 | `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments, `anarchy_engine` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets (`[TEST_GOVS]`, …), then `extra`, parsed (loader tests) |
+| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets, then `extra`, parsed |
 | `fixture_db(extra, sets, resource_list)` | `fixture_load`'s cards, failing the test on a load error (170) |
-| `cards_of(r, errors, warnings)` | A `fixture_load` result's cards, its errors and warnings appended to the out arrays |
-| `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards` |
-| `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)` |
+| `cards_of(r, errors, warnings)` | A `fixture_load` result's cards; its messages appended to the out arrays |
+| `config_errors_for(cards, o, deck)` / `config_errors(o, sets, deck)` | A config's errors on `cards` / `fixture_db([], sets)` |
+| `card_load(card, sets)` / `config_load(o, sets)` / `config_load_on(r, o)` | One card's `fixture_load`; a config on one (340) |
 | `explore_engine()` / `over_engine()` | A game with an explore choice open; a finished game |
 | `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | Card "x" with one effect; home pop; Capital's land |
 | `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection; `home_uid`: the starting territory |
@@ -307,7 +307,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `put_in(engine, id, zone)` | Same, into any zone (a government placed directly) |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order |
-| `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]` |
+| `check_cases(cases, load)` / `check_loads(rows, load)` | Loader tables: rejected input / accepted input (340) |
 | `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations and a game as one (062) |
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments and a game under one (065) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (039) and their card db |
@@ -347,7 +347,7 @@ members that start with `_`: if setup needs one, add a public method.
   break a test. Warnings in the real data are checked once, in `test_real_data_loads_without_warnings`.
 - **Signals**: connect a lambda that appends to an array, then assert on the array
   (see `test_game_ends_at_turn_limit`).
-- **Loader errors**: assert the message names the file, card and field, since that is the
-  user-facing contract. Put the cases for one config block or card field in one table test,
-  `test_<area>_validation`, with `check_cases([[label, input, fragment, kind?], ...], load)`: adding a rule is
-  a row, and a failing row names its label. Valid input that loads and normalizes stays a named test.
+- **Loader tests** are tables, a case per row (a failing row names its label). Rejected input:
+  `check_cases([[label, input, fragment, kind?], ...], load)`; messages name file, card and field. Accepted input:
+  `check_loads([[label, input, {"cards.x.era": 2}], ...], load)`: no messages, each path equal (340). Bind `load`
+  (`fixture_load.bind([TEST_GOVS])`) rather than wrap it.

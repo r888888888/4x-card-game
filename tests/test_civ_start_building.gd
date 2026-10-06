@@ -12,9 +12,7 @@ const START_CIVS := [
 
 ## TEST_CARDS + TEST_CIVS + START_CIVS + extra, parsed.
 func start_db(extra: Array = [], errors: Array[String] = []) -> Dictionary:
-	var warnings: Array[String] = []
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + START_CIVS + extra}, resources(), "cards.json",
-		errors, warnings, keywords())
+	return cards_of(fixture_load(START_CIVS + extra, [TEST_CIVS]), errors, [])
 
 
 ## A game on start_db as civ: population on (start 2, nobody eats), seed 1.

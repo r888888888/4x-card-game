@@ -15,7 +15,8 @@ Put all of the op's tests in a new `tests/test_<op>.gd` (as 072, 081 and 082 did
 together, so the op's behavior reads in one place.
 
 1. **Loader tests** in `tests/test_<op>.gd`:
-   - a card using the op with valid fields loads with no errors or warnings (a named test);
+   - a card using the op with valid fields (and each optional field left out) loads with no errors or warnings, and
+     its defaults: one `test_<op>_loads` with a `check_loads` row per case (see `test_lose_per_keyword_loads_and_may_trigger_on_upkeep`);
    - each missing or invalid field gives an error that names the card and field
      (e.g. `card 'x': effects[0]: 'amount' must be an integer >= 1`): one `test_<op>_validation` with a
      `check_cases` row per case (see `test_grow_validation`);

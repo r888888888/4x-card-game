@@ -1,7 +1,9 @@
 extends "res://tests/lib/test_case.gd"
 ## Shared test helpers (backlog 334): the UI helpers the tests used to copy file to file live in test_case.gd
 ## (shown_button, wait_seconds, open_game/close_game, click_control, click_point, open_details), and the suite fails on a
-## test file that copies a helper tests/lib/ defines. The checks live in tests/lib/helper_checks.gd.
+## test file that copies a helper tests/lib/ defines. The checks live in tests/lib/helper_checks.gd. The loader tables'
+## check_loads (dotted paths, failures naming row and path) and config_load (340), and no one-off loader rejection
+## tests left (they are check_cases rows).
 
 const HelperChecks := preload("res://tests/lib/helper_checks.gd")
 const DocChecks := preload("res://tests/lib/doc_checks.gd")
