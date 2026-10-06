@@ -2,7 +2,7 @@
 id: 330
 title: Bring PLAN.md and the docs back in line with the code, and clear tracked junk
 type: chore
-status: review
+status: done
 branch: feat/330-docs-housekeeping
 ---
 
