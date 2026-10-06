@@ -358,26 +358,26 @@ func test_the_territory_tooltip_has_no_tier_line_without_tiers() -> void:
 # --- 346: the tier line ---
 
 func test_the_tier_line_names_the_tier_and_the_next_one() -> void:
-	var e: Object = tier_engine()
+	var e := tier_engine()
 	var g := grassland_uid(e)
 	set_pop(e, g, 5)
 	eq(e.tier_line(g), "Village: a Town at 8 pop", "a Village at pop 5")
 
 
 func test_the_tier_line_at_the_top_tier_is_its_name() -> void:
-	var e: Object = tier_engine()
+	var e := tier_engine()
 	var g := grassland_uid(e)
 	set_pop(e, g, 13)
 	eq(e.tier_line(g), "Metropolis", "the top tier")
 
 
 func test_no_tier_line_without_tiers_or_population_or_for_other_cards() -> void:
-	var off: Object = tier_engine({"farm": 10}, null)
+	var off := tier_engine({"farm": 10}, null)
 	eq(off.tier_line(grassland_uid(off)), "", "no population.tiers")
-	var no_pop: Object = make_engine({"farm": 10}, {"territory_deck": {"grassland": 2}}, 1, TIER_CARDS)
+	var no_pop: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"grassland": 2}}, 1, TIER_CARDS)
 	settle(no_pop, ["grassland"])
 	eq(no_pop.tier_line(grassland_uid(no_pop)), "", "population off")
-	var e: Object = tier_engine()
+	var e := tier_engine()
 	var capital := uid_of(e.zone("tableau"), "capital")
 	var frontier := uid_of(e.zone("territory_deck"), "grassland")
 	for uid in [capital, frontier, first_in_hand(e), 9999]:

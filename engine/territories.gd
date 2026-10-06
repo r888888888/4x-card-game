@@ -184,7 +184,7 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	if e.population_on():
 		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
 		if s.has("tier_name"):
-			lines.append(_tier_line(e, uid))
+			lines.append(e.tier_line(uid))
 		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
 	var d := Military.defense_parts(e, uid)
 	lines.append("Defence %d: units %d, walls %d, cities %d, terrain %d" % [d.total, d.units, d.buildings, d.cities,
@@ -196,15 +196,6 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	if raids != "":
 		lines.append(raids)
 	return "\n".join(lines)
-
-
-## Territory uid's tier and the next one's pop ("Village: a Town at 8 pop"), or just the name at the top tier (281).
-static func _tier_line(e: GameEngine, uid: int) -> String:
-	var i := Population.tier(e, uid)
-	var all := Population.tiers(e)
-	if i + 1 >= all.size():
-		return all[i].name
-	return "%s: %s at %d pop" % [all[i].name, Population.with_article(all[i + 1].name), all[i + 1].pop]
 
 
 static func groups(e: GameEngine) -> Array[Dictionary]:

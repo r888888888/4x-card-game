@@ -35,6 +35,7 @@ var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _units_caption: Label  # over units_row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
+var _tier: Label  # after the meter: the settlement tier and the pop the next one needs (346); hidden with none
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
 var _outside_press := false  # the left button went down outside the box (200, 327)
@@ -94,6 +95,10 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_meter.add_theme_constant_override("separation", Tokens.SPACE_1)
 	UIKit.painted(_meter, _tint_pips)
 	bar.add_child(_meter)
+	_tier = Label.new()
+	_tier.theme_type_variation = &"Caption"
+	_tier.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.add_child(_tier)
 	actions = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
 	body.add_child(actions)
@@ -234,6 +239,11 @@ func stats_text() -> String:
 	return _stats.get_meta("source", "")
 
 
+## The tier line shown beside the pop meter (346), or "" when none shows.
+func tier_text() -> String:
+	return _tier.text if _tier.visible else ""
+
+
 ## The territory a drop at global point would target: this one anywhere on the open view, else -1.
 func target_at(point: Vector2) -> int:
 	return uid if is_open() and get_global_rect().has_point(point) else -1
@@ -265,6 +275,8 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		_stats.set_meta("source", line)
 		Icons.fill(_stats, line, Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_show_meter(e)
+	_tier.text = e.tier_line(uid)
+	_tier.visible = _tier.text != ""
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
 	_name.text = e.territory_name(uid)
