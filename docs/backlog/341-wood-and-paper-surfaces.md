@@ -2,7 +2,7 @@
 id: 341
 title: Wood grain under the board and paper cards and modals (texture option G)
 type: feature
-status: in-progress
+status: review
 branch: feat/341-wood-and-paper-surfaces
 ---
 
@@ -17,27 +17,27 @@ docs both change, so the specimen keeps drawing what the game does.
 "Grain under C at N %" means `walnut.png`, tiled, with the Palette colour C laid over it at N % opacity.
 "Night paper" is `dark-gray-paper.png` under black at 30 %; "Day paper" is `white-paper.png` as it is.
 
-- [ ] AC1 (board): Given a game on the board, the board behind everything (main's background) and the Rail show grain
+- [x] AC1 (board): Given a game on the board, the board behind everything (main's background) and the Rail show grain
   under BACKGROUND at 90 % in Night and 88 % in Day. The Rail's grain lines up with the board's (both tile from the
   screen's origin), so nothing marks the Rail's edge but its 1 px hairline, which stays.
-- [ ] AC2 (top bar): Given either mode, the Strip shows grain under RAISED at 90 % (Night) or 88 % (Day) and keeps its
+- [x] AC2 (top bar): Given either mode, the Strip shows grain under RAISED at 90 % (Night) or 88 % (Day) and keeps its
   3 px TEXT rule along its foot. Its keys keep today's flat look (CONTROL fill, CONTROL_BORDER rule, hard 2,2 plinth):
   no texture on any Button.
-- [ ] AC3 (cards): Given Night, every card view (hand, Realm, supply, a modal's card) shows Night paper; given Day,
+- [x] AC3 (cards): Given Night, every card view (hand, Realm, supply, a modal's card) shows Night paper; given Day,
   Day paper. Its border colours by state are unchanged (CONTROL_BORDER at rest, TEXT hovered or dragged, WARN, FOCUS
   above the vellum, the highlight). A dimmed card shows the same paper under DIM_BG at 60 %, with DIM_BORDER. A frontier
   card is unchanged: no paper, its hatching and dashed rule on the board.
-- [ ] AC4 (modals): Given either mode, every Sheet panel (each `Modal`) and every DarkPanel (each `UIKit.overlay`)
+- [x] AC4 (modals): Given either mode, every Sheet panel (each `Modal`) and every DarkPanel (each `UIKit.overlay`)
   shows the same paper as a card in that mode, and keeps its border (a 2 px TEXT rule on a Sheet; a DarkPanel's role
   colour).
-- [ ] AC5 (soft shadows): A card's shadow is SHADOW, soft (anti-aliased, blurred) and straight down: at rest offset
+- [x] AC5 (soft shadows): A card's shadow is SHADOW, soft (anti-aliased, blurred) and straight down: at rest offset
   (0, 4), size 8, alpha 0.35 (Night) / 0.20 (Day); hovered (0, 8), size 16, alpha 0.45 / 0.28; dragged (0, 14),
   size 24, alpha 0.50 / 0.32. A Sheet's and a DarkPanel's shadow is SHADOW at (0, 16), size 32, alpha 0.55 (Night) /
   0.35 (Day). Keys, flags and the End turn key keep their hard plinths.
-- [ ] AC6 (Day mode switch): Given a game in progress with a modal open, when Day mode is switched on and then off, the
+- [x] AC6 (Day mode switch): Given a game in progress with a modal open, when Day mode is switched on and then off, the
   board, the Rail, the Strip, every card view and the open modal show that mode's grain, paper and shadow alphas
   (AC1–AC5) right away, with nothing reopened; the game state is unchanged.
-- [ ] AC7 (contrast): In both modes, on the mean colour of each surface as drawn (board, Strip, card, Sheet), TEXT and
+- [x] AC7 (contrast): In both modes, on the mean colour of each surface as drawn (board, Strip, card, Sheet), TEXT and
   TEXT_DIM read at 4.5:1 or more; on the card surface, CONTROL_BORDER, GAIN, WEALTH, INSIGHT, UNREST and POP read at
   3:1 or more (the bars `test_day_mode` already holds RAISED and BACKGROUND to).
 
@@ -108,3 +108,16 @@ source PNG's mean, and that grain still shows).
 <!-- Decisions and surprises during implementation, newest last. -->
 - Spec: paper limited to cards and modals (user's choice); soft shadows as in option G (user's choice), replacing the
   guide's hard lift and sheet shadows for cards and modals only.
+- Build: `SurfaceBox` (a script `StyleBox`) draws its `frame` (a `StyleBoxFlat`: rule and soft shadow, no fill) and then
+  the baked texture tiled inside the rule, from `origin`, the box's screen position: the Sidebar sets it on every
+  transform change, so the Rail's grain runs on from the board's. `Surfaces` bakes each mode's textures once (resized
+  to the tile, the Palette colour blended over, stored opaque RGB8 so a screen sliding under the Rail stays hidden).
+  main's Background is now a Panel; its test hook `background_color()` became `background_box()`.
+- `*.import` files are gitignored in this repo, so only the PNGs are committed (Godot regenerates the imports). The
+  spike-only textures live in `docs/design/mocks/textures/` behind a `.gdignore`.
+- Besides the superseded tests the Design notes list, four existing checks that read a card's, the Rail's or an
+  overlay's box as a `StyleBoxFlat` now read the surface's frame or texture: `test_theme` (overlay panel, modal rule),
+  `test_vellum` (a target's FOCUS outline) and `test_knowledge_screen` (bug 224: the Rail is opaque).
+- The specimen's surfaces were checked by their CSS and by the texture paths resolving; the browser pane served it
+  only as a static snapshot, which can't load relative images. Worth a look under Manual check.
+- `card_view.gd` is 542 lines and `game_theme.gd` 554, both still past the 500-line warning (as before).

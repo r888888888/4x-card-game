@@ -45,9 +45,10 @@ suite checks every path named here exists.
   `autoload/settings_store.gd`).
 - `ui/`: the display, one component per script, built in code. `ui/main.tscn` and `ui/main.gd` (`MainScreen`: the
   refresh, the actions it wires up, the test hooks); `ui/board_layout.gd` builds the board; `ui/board_views.gd` keeps
-  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd` and `ui/tokens.gd`;
+  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd`, `ui/tokens.gd` and `ui/surfaces.gd` (wood and paper, 341);
   modals extend `ui/modal.gd` on a `ui/modal_stack.gd`, screens go on `ui/navigator.gd`; sounds are `ui/sfx.gd`.
-- `assets/`: icons (white SVGs tinted in code) and sounds (placeholders, 186); `default_bus_layout.tres` holds the
+- `assets/`: icons (white SVGs tinted in code), sounds (placeholders, 186) and the walnut and paper textures
+  (`assets/background/`, 341); `default_bus_layout.tres` holds the
   audio buses (184).
 - `tests/`: `tests/run_tests.gd` (the runner), `tests/lib/test_case.gd` (assertions, fixtures, helpers), one
   `test_<area>.gd` per area and `tests/balance/` (see `docs/testing.md`).
