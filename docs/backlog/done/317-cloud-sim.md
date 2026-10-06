@@ -2,7 +2,7 @@
 id: 317
 title: Run the test suite and the balance sim in a Claude Code cloud session
 type: feature
-status: review
+status: done
 branch: feat/317-cloud-sim
 ---
 
