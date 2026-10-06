@@ -2,7 +2,7 @@
 id: 326
 title: A click outside the Knowledge screen closes it
 type: feature
-status: in-progress
+status: review
 branch: feat/326-knowledge-click-outside-closes
 ---
 
@@ -13,17 +13,17 @@ close it too, the way a click outside the log drawer closes the drawer, so the p
 without hunting for the link.
 
 ## Acceptance criteria
-- [ ] AC1: Given the Knowledge screen open over the Realm, when the player left-clicks a point outside the sheet
+- [x] AC1: Given the Knowledge screen open over the Realm, when the player left-clicks a point outside the sheet
   (on the hand section), then the screen closes (`is_open()` is false) and the Realm is the navigator's top again.
-- [ ] AC2: Given the Knowledge screen open, when the player left-clicks a hand card outside the sheet, then the
+- [x] AC2: Given the Knowledge screen open, when the player left-clicks a hand card outside the sheet, then the
   click does nothing else: no card is selected, played or opened in a details modal, and the hand is unchanged.
-- [ ] AC3: Given the Knowledge screen open, when the player left-clicks inside the sheet (on its empty background
+- [x] AC3: Given the Knowledge screen open, when the player left-clicks inside the sheet (on its empty background
   between tiles, or on its header outside the back link), then the screen stays open.
-- [ ] AC4: Given the Knowledge screen open with a tech's details modal over it, when the player clicks outside the
+- [x] AC4: Given the Knowledge screen open with a tech's details modal over it, when the player clicks outside the
   modal's panel, then only the modal closes and the Knowledge screen stays open.
-- [ ] AC5: Given the Knowledge screen open, when the player right-clicks outside the sheet, then the screen stays
+- [x] AC5: Given the Knowledge screen open, when the player right-clicks outside the sheet, then the screen stays
   open.
-- [ ] AC6: Given the Knowledge screen closed (or already leaving), when the player left-clicks the hand, then the
+- [x] AC6: Given the Knowledge screen closed (or already leaving), when the player left-clicks the hand, then the
   click works as before (nothing is consumed by the screen).
 
 ## Out of scope
@@ -49,8 +49,13 @@ without hunting for the link.
 | AC6 | `test_knowledge_screen::test_a_click_on_the_hand_works_as_before_once_the_screen_is_closed_or_leaving` |
 
 ## Manual check
-- [ ] Open the Knowledge screen (T), click a hand card: the screen slides back out and the card isn't picked up.
+- [ ] Run `godot --path . -- --seed 5`, press T, click a hand card: the screen slides back out and the card isn't picked up.
 - [ ] Click the top bar or the sidebar rail while it's open: it closes.
 - [ ] Click between tiles and on the vellum: it stays open.
 
 ## Log
+- AC3–AC6 passed at red: they guard current behaviour the handler could break (a right click, a modal over the
+  screen, a screen already leaving).
+- `KnowledgeScreen.new` now takes main's `ModalStack`: modals take clicks through their scrim's `gui_input`, which
+  runs after `_input`, so the screen skips clicks while any modal is open. It also only acts while it is the
+  navigator's top screen.
