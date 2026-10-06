@@ -2,7 +2,7 @@
 id: 318
 title: A parallel sim run names a stalled or dead worker and fails, instead of waiting silently for up to an hour
 type: bug
-status: review
+status: done
 branch: fix/318-sim-stalled-worker-guard
 ---
 
