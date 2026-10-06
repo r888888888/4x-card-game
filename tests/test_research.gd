@@ -332,9 +332,6 @@ func test_prereq_discount_is_an_unknown_field() -> void:
 
 func test_the_engine_has_no_reveal_passes_or_lost_techs() -> void:
 	var e := insight_engine(["pottery", "writing"], 20)
-	for method in ["reveal_techs", "reveal_techs_error", "decline_research", "decline_research_error",
-			"research_options", "tech_passes"]:
-		check(not e.has_method(method), "no %s()" % method)
 	for zone_name in ["research_reveal", "lost_techs"]:
 		check(not GameEngine.ZONES.has(zone_name), "no %s zone" % zone_name)
 	for constant in ["PENDING_RESEARCH", "TECH_LOST", "MAX_PASSES"]:

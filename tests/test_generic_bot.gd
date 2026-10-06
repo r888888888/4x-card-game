@@ -10,7 +10,6 @@ extends "res://tests/lib/anarchy_case.gd"
 ## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
 ## past it
 
-var BOT: Variant = load("res://sim/generic_bot.gd")
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}
 ## Riot: +3 food and +2 unrest. Gift: a choice event, +1 food or +3 food.
 const RIOT := {"id": "riot", "name": "Riot", "type": "action", "effects": [
@@ -64,9 +63,7 @@ func played(e: GameEngine, call: Callable) -> Array[String]:
 
 ## The bot's take_turn on e with the generic strategy.
 func take_turn(e: GameEngine) -> void:
-	check(BOT != null, "sim/generic_bot.gd exists")
-	if BOT != null:
-		BOT.take_turn(e, "generic")
+	GenericBot.take_turn(e, "generic")
 
 
 ## Every zone's [uid, id] lists, resources and pending: what valuing must not change.
@@ -143,13 +140,10 @@ func test_it_stays_clear_of_the_unrest_limit() -> void:
 
 
 func test_it_only_does_what_legal_actions_lists_and_valuing_changes_nothing() -> void:
-	check(BOT != null, "sim/generic_bot.gd exists")
-	if BOT == null:
-		return
 	var e := bot_game(["explorer", "forager", "temple"], ["pioneer", "shrine", "scout"], 11, "band")
 	for step in 8:
 		var before := snapshot(e)
-		var best: Array = BOT.best_action(e, "generic")
+		var best: Array = GenericBot.best_action(e, "generic")
 		eq(snapshot(e), before, "step %d: choosing changed nothing" % step)
 		if best.is_empty():
 			break
@@ -158,13 +152,10 @@ func test_it_only_does_what_legal_actions_lists_and_valuing_changes_nothing() ->
 
 
 func test_the_same_seed_plays_the_same_game() -> void:
-	check(BOT != null, "sim/generic_bot.gd exists")
-	if BOT == null:
-		return
 	var games := []
 	for i in 2:
 		var e := bot_game(["explorer", "forager", "temple"], ["pioneer", "shrine", "scout", "temple"], 5, "band")
-		check(BOT.play(e, "generic"), "the game ends")
+		check(GenericBot.play(e, "generic"), "the game ends")
 		games.append([e.score(), snapshot(e)[0]])
 	eq(games[1], games[0], "score and zones")
 
@@ -181,9 +172,7 @@ func test_sim_stats_plays_the_generic_strategy() -> void:
 # --- 314 AC1: the strategies ---
 
 func test_the_bot_plays_generic_wide_and_tall() -> void:
-	check(BOT != null, "sim/generic_bot.gd exists")
-	if BOT != null:
-		eq(BOT.get_script_constant_map().get("STRATEGIES"), ["generic", "wide", "tall"], "GenericBot.STRATEGIES")
+	eq(GenericBot.STRATEGIES, ["generic", "wide", "tall"], "GenericBot.STRATEGIES")
 
 
 func test_sim_stats_plays_every_strategy_for_all_and_refuses_others() -> void:
@@ -207,8 +196,7 @@ func land_game(hand: Array) -> GameEngine:
 func test_tall_never_settles_a_third_territory_and_generic_does() -> void:
 	var tall := land_game(["pioneer"])
 	eq(tall.play_error(first_in_hand(tall), uid_of(tall.zone("frontier"), "grassland")), "", "the Pioneer could settle")
-	if BOT != null:
-		BOT.take_turn(tall, "tall")
+	GenericBot.take_turn(tall, "tall")
 	eq(tall.zone("frontier").size(), 1, "tall: Grassland stays in the frontier")
 	var generic := land_game(["pioneer"])
 	take_turn(generic)
@@ -220,8 +208,7 @@ func test_wide_settles_where_generic_builds_a_temple() -> void:
 	eq(played(generic, func(): take_turn(generic)), ["temple"], "generic: the Temple's 10 turns of score")
 	var wide := land_game(["pioneer", "temple"])
 	var wide_turn := func():
-		if BOT != null:
-			BOT.take_turn(wide, "wide")
+		GenericBot.take_turn(wide, "wide")
 	eq(played(wide, wide_turn), ["pioneer"], "wide: a third territory")
 
 
@@ -247,7 +234,7 @@ func expansion_game(territories: int, frontier: int, hand: Array, government := 
 
 ## GenericBot.value of e for strategy.
 func value_of(e: GameEngine, strategy: String) -> float:
-	return BOT.value(e, BOT.Context.new(strategy)) if BOT != null else 0.0
+	return GenericBot.value(e, GenericBot.Context.new(strategy))
 
 
 ## How much more wide values n territories than n − 1 than generic does (all else equal): the land weight it adds.
@@ -262,7 +249,7 @@ func territories_in(e: GameEngine) -> int:
 
 
 func test_wides_land_weight_stops_at_the_admin_cap() -> void:
-	var land: float = BOT.get_script_constant_map().WEIGHTS.wide.land if BOT != null else 0.0
+	var land: float = GenericBot.WEIGHTS.wide.land
 	check(absf(wide_land_step(3) - land) < 0.01, "2 → 3 territories (cap 3): + the land weight %.1f, got %.2f"
 		% [land, wide_land_step(3)])
 	check(absf(wide_land_step(4)) < 0.01, "3 → 4 territories (past the cap): + nothing, got %.2f" % wide_land_step(4))
@@ -307,18 +294,14 @@ func test_the_generic_bot_settles_within_the_cap_but_not_further_past_it() -> vo
 
 func test_wide_expands_to_the_cap_and_not_past_it() -> void:
 	var e := expansion_game(1, 5, ["colonist", "colonist", "colonist", "colonist"])
-	if BOT != null:
-		BOT.take_turn(e, "wide")
+	GenericBot.take_turn(e, "wide")
 	var held := territories_in(e)
 	check(held >= 3 and held <= 4, "wide holds 3 or 4 territories (cap 3), not %d" % held)
 
 
 func test_the_settlers_rising_price_lowers_its_value() -> void:
-	if BOT == null:
-		check(false, "sim/generic_bot.gd exists")
-		return
 	var few := expansion_game(2, 1, [], "lone")
 	var many := expansion_game(6, 1, [], "lone")
-	var few_value: float = BOT.card_value(few, "colonist", BOT.Context.new("generic"))
-	var many_value: float = BOT.card_value(many, "colonist", BOT.Context.new("generic"))
+	var few_value: float = GenericBot.card_value(few, "colonist", GenericBot.Context.new("generic"))
+	var many_value: float = GenericBot.card_value(many, "colonist", GenericBot.Context.new("generic"))
 	check(many_value < few_value, "Colonist at 7 food (2 held) %.2f > at 11 food (6 held) %.2f" % [few_value, many_value])

@@ -62,7 +62,7 @@ func test_game_engine_extends_engine_queries_which_extends_engine_core() -> void
 func test_every_query_and_action_is_still_on_a_game_engine() -> void:
 	var e := make_engine({"farm": 10})
 	for name in QUERIES + TERRITORY_QUERIES + STAYS:
-		check(e.has_method(name), "GameEngine.%s" % name)
+		check(e.has_method(name), "GameEngine.%s" % name)  # scaffolding-ok: checks the engine's surface after a split
 
 
 # --- AC2: where each method is declared ---

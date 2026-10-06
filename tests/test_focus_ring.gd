@@ -183,10 +183,9 @@ func test_no_ui_script_but_the_helper_calls_grab_focus() -> void:
 
 # --- Bug 234: the card focus ring the code places waits for Tab too ---
 
-## Whether card view draws the card focus ring (CardView.shows_focus_ring, held as Object so this parses before it exists).
-func card_rings(view: Object) -> bool:
-	check(view != null and view.has_method("shows_focus_ring"), "CardView.shows_focus_ring() exists")
-	return view != null and view.has_method("shows_focus_ring") and view.shows_focus_ring()
+## Whether card view draws the card focus ring.
+func card_rings(view: CardView) -> bool:
+	return view.shows_focus_ring()
 
 
 ## Plays an Explorer from the hand on main's fixture game: an explore choice of the two territories opens.

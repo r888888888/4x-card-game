@@ -1,19 +1,15 @@
 extends "res://tests/lib/test_case.gd"
 ## The toggle key (182; the window bar since 219): a square push key that latches, with a lamp window in its face and
-## its state, ON or OFF, in a label beside it, in a "Reduce motion" row in the Settings modal. The key is loaded by path (held as Object) so
-## this file parses before ui/legend_key.gd exists.
+## its state, ON or OFF, in a label beside it, in a "Reduce motion" row in the Settings modal.
 
 const KEY_PATH := "res://ui/legend_key.gd"
 const SETTINGS_PATH := "user://test_reduce_motion_settings.cfg"  # with_reduce_motion's store
 const TIP := "No bouncing, shaking or tilting; cards jump to their place and fade in. Saved."
 
 
-## A new legend key added to main (so it resolves main's theme), laid out; null if the script is missing.
-func new_key(main: Node) -> Button:
-	check(FileAccess.file_exists(KEY_PATH), "%s exists" % KEY_PATH)
-	if not FileAccess.file_exists(KEY_PATH):
-		return null
-	var key: Button = load(KEY_PATH).new()
+## A new legend key added to main (so it resolves main's theme), laid out.
+func new_key(main: Node) -> LegendKey:
+	var key := LegendKey.new()
 	main.add_child(key)
 	await wait_frames()
 	return key
@@ -47,22 +43,21 @@ func saved_calm() -> bool:
 
 func test_the_key_is_a_square_toggle_whose_lamp_lights_when_latched() -> void:
 	var main := open_main()
-	var key: Object = await new_key(main)
-	if key != null:
-		check(key is Button and key.toggle_mode, "a toggle Button")
-		eq(key.text, "", "no legend on its face")
-		check(key.size.x >= 32 and key.size.y >= 32, "at least 32 × 32: %s" % key.size)
-		check(key.custom_minimum_size.x < 64, "no longer the 64 px legend key: %s" % key.custom_minimum_size)
-		key.button_pressed = true
-		await wait_frames()
-		eq(key.lamp_color(), Palette.GAIN, "latched: the lamp is lit")
-		eq(key.text, "", "latched: still no legend")
-		key.button_pressed = false
-		await wait_frames()
-		eq(key.lamp_color(), Palette.FIELD, "up: the lamp is dark")
-		key.set_pressed_no_signal(true)
-		await wait_frames()
-		eq(key.lamp_color(), Palette.GAIN, "set without a signal: lit")
+	var key: LegendKey = await new_key(main)
+	check(key is Button and key.toggle_mode, "a toggle Button")
+	eq(key.text, "", "no legend on its face")
+	check(key.size.x >= 32 and key.size.y >= 32, "at least 32 × 32: %s" % key.size)
+	check(key.custom_minimum_size.x < 64, "no longer the 64 px legend key: %s" % key.custom_minimum_size)
+	key.button_pressed = true
+	await wait_frames()
+	eq(key.lamp_color(), Palette.GAIN, "latched: the lamp is lit")
+	eq(key.text, "", "latched: still no legend")
+	key.button_pressed = false
+	await wait_frames()
+	eq(key.lamp_color(), Palette.FIELD, "up: the lamp is dark")
+	key.set_pressed_no_signal(true)
+	await wait_frames()
+	eq(key.lamp_color(), Palette.GAIN, "set without a signal: lit")
 	close_main(main)
 
 
@@ -70,19 +65,18 @@ func test_the_key_is_a_square_toggle_whose_lamp_lights_when_latched() -> void:
 
 func test_the_key_sits_on_the_themes_boxes_with_the_lamp_in_its_face() -> void:
 	var main := open_main()
-	var key: Button = await new_key(main)
-	if key != null:
-		var plain := Button.new()
-		main.add_child(plain)
-		var up := key.get_theme_stylebox("normal") as StyleBoxFlat
-		var down := key.get_theme_stylebox("pressed") as StyleBoxFlat
-		check(up != null and down != null, "flat normal and pressed boxes")
-		if up != null and down != null:
-			eq(up.shadow_size, 1, "up: on its shadow")
-			eq(up.bg_color, (plain.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, "up: the theme's fill")
-			eq(down.shadow_size, 0, "latched: sunk, no shadow")
-			eq(down.expand_margin_top, -2.0, "latched: 2 px down")
-			eq(up.content_margin_top, plain.get_theme_stylebox("normal").content_margin_top, "no room kept above for a strip")
+	var key: LegendKey = await new_key(main)
+	var plain := Button.new()
+	main.add_child(plain)
+	var up := key.get_theme_stylebox("normal") as StyleBoxFlat
+	var down := key.get_theme_stylebox("pressed") as StyleBoxFlat
+	check(up != null and down != null, "flat normal and pressed boxes")
+	if up != null and down != null:
+		eq(up.shadow_size, 1, "up: on its shadow")
+		eq(up.bg_color, (plain.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, "up: the theme's fill")
+		eq(down.shadow_size, 0, "latched: sunk, no shadow")
+		eq(down.expand_margin_top, -2.0, "latched: 2 px down")
+		eq(up.content_margin_top, plain.get_theme_stylebox("normal").content_margin_top, "no room kept above for a strip")
 	close_main(main)
 
 
@@ -90,17 +84,14 @@ func test_the_key_sits_on_the_themes_boxes_with_the_lamp_in_its_face() -> void:
 
 func test_the_keys_state_text_is_on_while_latched_and_off_while_up() -> void:
 	var main := open_main()
-	var key: Object = await new_key(main)
-	if key != null:
-		check(key.has_method("state_text"), "state_text()")
-		if key.has_method("state_text"):
-			eq(key.state_text(), "OFF", "up: OFF")
-			key.button_pressed = true
-			eq(key.state_text(), "ON", "latched: ON")
-			key.button_pressed = false
-			eq(key.state_text(), "OFF", "up again: OFF")
-			key.set_pressed_no_signal(true)
-			eq(key.state_text(), "ON", "set without a signal: ON")
+	var key: LegendKey = await new_key(main)
+	eq(key.state_text(), "OFF", "up: OFF")
+	key.button_pressed = true
+	eq(key.state_text(), "ON", "latched: ON")
+	key.button_pressed = false
+	eq(key.state_text(), "OFF", "up again: OFF")
+	key.set_pressed_no_signal(true)
+	eq(key.state_text(), "ON", "set without a signal: ON")
 	close_main(main)
 
 

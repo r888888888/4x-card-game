@@ -2,7 +2,7 @@
 id: 333
 title: Remove red-phase scaffolding from the tests, and check it stays gone
 type: chore
-status: red-review
+status: in-progress
 branch: feat/333-test-scaffolding
 ---
 

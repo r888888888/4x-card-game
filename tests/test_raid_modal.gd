@@ -5,18 +5,13 @@ extends "res://tests/lib/raid_case.gd"
 
 
 ## Runs body(main) on main showing a raid_engine game (overrides) started again on seed 1 and set up as raid_engine's,
-## Raiders then Omens on top of the event deck. hooks: body needs main's raid modal hooks.
-func with_raid_main(body: Callable, overrides := {}, hooks := true) -> void:
+## Raiders then Omens on top of the event deck.
+func with_raid_main(body: Callable, overrides := {}) -> void:
 	var e := raid_engine(["raiders"], {"raiders": 1, "horde": 1, "omen": 3}, overrides)
-	if e == null:
-		return
 	await with_main(e, func(main: Node):
 		raid_setup(Game.engine, ["raiders", "omen", "omen", "omen"])
 		Game.engine.changed.emit()
-		if not hooks or (main.has_method("raid_modal") and main.has_method("raid_modal_ok_button")):
-			await body.call(main)
-		else:
-			check(false, "main has no raid_modal() / raid_modal_ok_button() hooks"))
+		await body.call(main))
 
 
 ## Ends turns until Raiders has 1 turn left (turn 3), closing every modal on the way.
@@ -118,7 +113,7 @@ func test_a_pillaging_raid_plays_the_pillaged_sound() -> void:
 		await wait_frames()
 		main.sfx.set_clock(0.0)
 		Game.engine.end_turn()
-		eq(events_heard(main), [PILLAGED], "pillaged"), {}, false)
+		eq(events_heard(main), [PILLAGED], "pillaged"))
 
 
 func test_a_repelled_raid_plays_the_repelled_sound() -> void:
@@ -131,7 +126,7 @@ func test_a_repelled_raid_plays_the_repelled_sound() -> void:
 		await wait_frames()
 		main.sfx.set_clock(0.0)
 		Game.engine.end_turn()
-		eq(events_heard(main), [REPELLED], "repelled"), {}, false)
+		eq(events_heard(main), [REPELLED], "repelled"))
 
 
 func test_a_raid_outranks_a_city_but_not_an_era() -> void:

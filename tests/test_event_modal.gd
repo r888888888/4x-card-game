@@ -108,11 +108,7 @@ func with_modal_main(body: Callable, top_first: Array, event_deck := {"windfall"
 		var main := open_main()
 		main.start_game(1)
 		arrange(Game.engine.zone("event_deck"), top_first)
-		# Guarded so the real engine is put back even before the hooks exist (red phase).
-		if main.has_method("event_modal") and main.has_method("event_modal_ok_button"):
-			body.call(main)
-		else:
-			check(false, "main has no event_modal() / event_modal_ok_button() hooks")
+		body.call(main)
 		close_main(main), event_deck, overrides)
 
 

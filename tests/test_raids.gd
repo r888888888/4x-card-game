@@ -391,7 +391,7 @@ func test_raid_line_tag_and_shortfall_for_the_ui() -> void:
 
 ## 271 AC1: the strike's line is logged and returned by raid_outcome_text, but no longer a notice (the raid modal shows it).
 func test_the_strike_line_says_what_it_cost_or_gave_and_is_logged_not_noticed() -> void:
-	var e: Object = raid_engine()
+	var e := raid_engine()
 	if e == null:
 		return
 	var outcomes := record_raids(e)
@@ -410,7 +410,7 @@ func test_the_strike_line_says_what_it_cost_or_gave_and_is_logged_not_noticed() 
 	check(recorded.has("log: " + line), "logged: %s" % [recorded])
 	eq(notices_in(recorded).filter(func(m): return "pillaged" in m), [], "no notice")
 
-	var r: Object = raid_engine()
+	var r := raid_engine()
 	var repels := record_raids(r)
 	r.end_turn()
 	build_on(r, hills_of(r), ["town"])

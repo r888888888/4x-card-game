@@ -85,7 +85,7 @@ func test_every_token_has_its_files() -> void:
 			var stem := String(token).replace(".", "_")
 			check(path.begins_with("res://assets/sounds/%s/%s" % ["events" if Sfx.level(token) == 3 else "ui", stem]),
 				"%s named for its token" % path)
-			var stream: Variant = load(path) if ResourceLoader.exists(path) else null
+			var stream: Resource = load(path) if ResourceLoader.exists(path) else null
 			check(stream is AudioStreamWAV, "%s loads as an AudioStreamWAV" % path)
 			if stream is AudioStreamWAV:
 				eq([stream.format, stream.mix_rate, stream.stereo, stream.loop_mode],

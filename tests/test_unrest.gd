@@ -319,9 +319,9 @@ func bot_engine(gov: String, unrest: int, card_id: String) -> GameEngine:
 	return e
 
 
-## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
+## main.forecast_text(key) (201).
 func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"
+	return main.forecast_text(key)
 
 
 # --- 231 AC1/AC2: the government's details show unrest against its limit ---

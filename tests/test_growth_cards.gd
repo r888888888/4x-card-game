@@ -361,9 +361,6 @@ func test_growth_surplus_is_an_unknown_population_field() -> void:
 
 
 func test_manual_growth_is_gone() -> void:
-	var e := cards_engine(2, {"scout": 10})
-	for method in ["grow", "grow_error", "grow_cost"]:
-		check(not e.has_method(method), "GameEngine.%s is gone" % method)
 	var view_vars: Array = (load("res://ui/territory_view.gd") as Script).get_script_property_list().map(
 		func(p): return p.name)
 	check(not view_vars.has("grow_button"), "the territory view has no Grow button")

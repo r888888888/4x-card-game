@@ -3,9 +3,6 @@ extends "res://tests/lib/anarchy_case.gd"
 ## reads, so a position it has already forecast this turn costs nothing, and the games played don't change. A fixture
 ## game of 10 turns (anarchy_case: Chiefs ruling, unrest on, home pop 6) with Kings in the government deck (so revolts
 ## are weighed by rollouts), Farms and Temples in the supply, explorable land and an event deck with a choice event.
-## The bot is loaded untyped so this file parses before its new members exist.
-
-var BOT: Variant = load("res://sim/generic_bot.gd")
 
 
 ## Scribe: creates a Farm in the discard. Tally: ⟳ +1 food per farm in the discard.
@@ -38,12 +35,9 @@ func cache_game(seed_value := 1, extra := []) -> GameEngine:
 ## Plays seed's fixture game to its end with strategy, the cache on or off; returns [score, zones (ids in order), log].
 func played_game(cache_on: bool, seed_value := 1, strategy := "generic") -> Array:
 	var e := cache_game(seed_value)
-	if BOT == null:
-		check(false, "sim/generic_bot.gd exists")
-		return []
-	BOT.forecast_cache = cache_on
-	check(BOT.play(e, strategy), "the game ends")
-	BOT.forecast_cache = true
+	GenericBot.forecast_cache = cache_on
+	check(GenericBot.play(e, strategy), "the game ends")
+	GenericBot.forecast_cache = true
 	var zones := {}
 	for name in GameEngine.ZONES:
 		zones[name] = card_ids(e.zone(name))
@@ -64,53 +58,43 @@ func test_the_cache_plays_the_same_game_as_without_it() -> void:
 # --- AC2: every cached forecast is right ---
 
 func test_every_cached_forecast_equals_a_fresh_one() -> void:
-	if BOT == null:
-		check(false, "sim/generic_bot.gd exists")
-		return
-	BOT.check_forecasts = true
+	GenericBot.check_forecasts = true
 	played_game(true)
-	BOT.check_forecasts = false
-	check(BOT.forecast_checks > 0, "check mode compared cached forecasts: %d" % BOT.forecast_checks)
-	eq(BOT.forecast_mismatches, 0, "cached forecasts that differ from a fresh turn_forecast()")
+	GenericBot.check_forecasts = false
+	check(GenericBot.forecast_checks > 0, "check mode compared cached forecasts: %d" % GenericBot.forecast_checks)
+	eq(GenericBot.forecast_mismatches, 0, "cached forecasts that differ from a fresh turn_forecast()")
 
 
 # --- AC3: fewer forecasts computed than looked up ---
 
 func test_the_cache_computes_fewer_forecasts_than_it_looks_up() -> void:
 	played_game(true)
-	if BOT != null:
-		check(BOT.forecasts_computed > 0 and BOT.forecasts_computed < BOT.forecast_lookups,
-			"computed %d of %d looked up" % [BOT.forecasts_computed, BOT.forecast_lookups])
+	check(GenericBot.forecasts_computed > 0 and GenericBot.forecasts_computed < GenericBot.forecast_lookups,
+		"computed %d of %d looked up" % [GenericBot.forecasts_computed, GenericBot.forecast_lookups])
 
 
 func test_positions_that_differ_only_in_the_hand_share_one_forecast() -> void:
-	if BOT == null:
-		check(false, "sim/generic_bot.gd exists")
-		return
 	var e := cache_game()
 	var f := e.fork()
 	f.discard_card(first_in_hand(f))  # the hand isn't read by the forecast
-	var ctx: Variant = BOT.Context.new("generic")
+	var ctx := GenericBot.Context.new("generic")
 	ctx.valuing = true  # no card values: measuring one forecasts its own forks
-	BOT.reset_forecast_counts()
-	BOT.value(e, ctx)
-	BOT.value(f, ctx)
-	eq([BOT.forecast_lookups, BOT.forecasts_computed], [2, 1], "[looked up, computed]")
+	GenericBot.reset_forecast_counts()
+	GenericBot.value(e, ctx)
+	GenericBot.value(f, ctx)
+	eq([GenericBot.forecast_lookups, GenericBot.forecasts_computed], [2, 1], "[looked up, computed]")
 
 
 ## [looked up, computed] for valuing e and then e with its first hand card discarded, without card values.
 func lookups_for_a_discard(e: GameEngine) -> Array:
-	if BOT == null:
-		check(false, "sim/generic_bot.gd exists")
-		return []
 	var f := e.fork()
 	f.discard_card(first_in_hand(f))
-	var ctx: Variant = BOT.Context.new("generic")
+	var ctx := GenericBot.Context.new("generic")
 	ctx.valuing = true  # no card values: measuring one forecasts its own forks
-	BOT.reset_forecast_counts()
-	BOT.value(e, ctx)
-	BOT.value(f, ctx)
-	return [BOT.forecast_lookups, BOT.forecasts_computed]
+	GenericBot.reset_forecast_counts()
+	GenericBot.value(e, ctx)
+	GenericBot.value(f, ctx)
+	return [GenericBot.forecast_lookups, GenericBot.forecasts_computed]
 
 
 func test_a_card_that_creates_into_the_discard_doesnt_put_the_discard_in_the_key() -> void:
@@ -125,9 +109,8 @@ func test_an_upkeep_that_counts_the_discard_puts_it_in_the_key() -> void:
 
 func test_without_the_cache_every_lookup_is_computed() -> void:
 	played_game(false)
-	if BOT != null:
-		check(BOT.forecast_lookups > 0, "forecasts were looked up")
-		eq(BOT.forecasts_computed, BOT.forecast_lookups, "computed every one")
+	check(GenericBot.forecast_lookups > 0, "forecasts were looked up")
+	eq(GenericBot.forecasts_computed, GenericBot.forecast_lookups, "computed every one")
 
 
 # --- AC4: nothing carries over between games ---

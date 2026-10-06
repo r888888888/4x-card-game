@@ -119,7 +119,7 @@ func test_era_names_validation() -> void:
 # --- 278 AC1: a tech's links in the tree ---
 
 ## Techs a, b (prereq a), c and d (both prereq b), in config order; no other tech is in the research deck.
-func links_engine() -> Object:
+func links_engine() -> GameEngine:
 	var chain := [
 		{"id": "a", "name": "A", "type": "tech", "cost": {"insight": 1}},
 		{"id": "b", "name": "B", "type": "tech", "cost": {"insight": 1}, "prereq": "a"},
@@ -130,20 +130,20 @@ func links_engine() -> Object:
 
 
 func test_tech_links_name_the_prerequisite_and_the_techs_it_opens_in_tree_order() -> void:
-	var e: Object = links_engine()
+	var e := links_engine()
 	var links: Dictionary = e.tech_links("b")
 	eq(links.get("prereq"), "a", "b's prerequisite")
 	eq(links.get("unlocks"), ["c", "d"] as Array[String], "b opens c and d")
 
 
 func test_tech_links_of_a_tech_with_no_prerequisite_have_none() -> void:
-	var links: Dictionary = (links_engine() as Object).tech_links("a")
+	var links: Dictionary = links_engine().tech_links("a")
 	eq(links.get("prereq"), "", "a has no prerequisite")
 	eq(links.get("unlocks"), ["b"] as Array[String], "a opens b")
 
 
 func test_tech_links_of_an_unknown_id_are_empty() -> void:
-	var links: Dictionary = (links_engine() as Object).tech_links("nothing")
+	var links: Dictionary = links_engine().tech_links("nothing")
 	eq(links.get("prereq"), "", "no prerequisite")
 	eq(links.get("unlocks"), [] as Array[String], "opens nothing")
 

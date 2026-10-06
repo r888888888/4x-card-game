@@ -379,9 +379,8 @@ func test_with_no_civilizations_the_pane_says_so_and_start_still_works() -> void
 	var main := open_new_game_screen()
 	var screen: Object = main.new_game_screen
 	eq(screen.civilization_ids(), [] as Array[String], "no rows")
-	var list: Control = screen.get("civilization_list")  # read by name: the test must put the real engine back
-	check(list != null and not list.is_visible_in_tree(), "the list hidden")
-	var text: String = detail_text(main) if screen.has_method("detail_text") else ""
+	check(not screen.civilization_list.is_visible_in_tree(), "the list hidden")
+	var text: String = detail_text(main)
 	check(text.contains("offers no civilizations"), "the pane says so: %s" % text)
 	eq(screen.selected, "", "nothing selected")
 	screen.start_button.pressed.emit()

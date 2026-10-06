@@ -177,10 +177,6 @@ func test_a_dragged_card_keeps_its_size_and_tilts_at_most_three_degrees() -> voi
 # --- AC5: no squash ---
 
 func test_the_squash_is_gone() -> void:
-	var view := CardView.new()
-	check(not view.has_method("squash"), "CardView.squash is gone")
-	view.free()
-	check(not CardMotion.new(null).has_method("squash"), "CardMotion.squash is gone")
 	var anim: Dictionary = (load("res://ui/anim.gd") as Script).get_script_constant_map()
 	for name in ["LAND_SQUASH", "LAND_TIME"]:
 		check(not anim.has(name), "Anim.%s is gone" % name)

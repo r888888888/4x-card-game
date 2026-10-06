@@ -22,6 +22,12 @@ func test_an_engine_typed_object_is_named() -> void:
 	] as Array[String], "the engines, not the screen")
 
 
+
+func test_an_engine_helper_returning_object_is_named() -> void:
+	var text := "func names_engine(civ: String) -> Object:\nfunc figure() -> Object:"  # scaffolding-ok: fixture
+	eq(ScaffoldingChecks.problems({"tests/test_e.gd": text}),
+		["tests/test_e.gd:1: an engine typed Object"] as Array[String], "the engine helper, not the figure")
+
 func test_a_script_loaded_untyped_is_named() -> void:
 	var text := "\n".join([
 		"const Bot := preload(\"res://sim/generic_bot.gd\")",

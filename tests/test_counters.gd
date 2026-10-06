@@ -190,9 +190,9 @@ func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> voi
 	close_main(main)
 
 
-## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
+## main.forecast_text(key) (201).
 func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"
+	return main.forecast_text(key)
 
 
 # --- 242 AC1: the glyphs match the figures ---

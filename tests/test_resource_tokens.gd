@@ -173,7 +173,7 @@ func test_with_reduce_motion_a_change_shows_at_once_with_no_tag_and_no_counter_m
 		await assert_steady(main, func():
 			e.resources[GameEngine.FOOD] += 2
 			e.changed.emit(), "+2 food")
-		eq((main.counter(GameEngine.FOOD).figure() as Object).shown(), START + 2, "the figure shows 22"))
+		eq(main.counter(GameEngine.FOOD).figure().shown(), START + 2, "the figure shows 22"))
 	_calm = false
 
 
@@ -237,7 +237,7 @@ func test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once() -> void:
 		step_tweens(main, LONG)
 		e.resources[GameEngine.FOOD] = 5
 		e.changed.emit()
-		var figure: Object = main.counter(GameEngine.FOOD).figure()
+		var figure: Odometer = main.counter(GameEngine.FOOD).figure()
 		eq(figure.value, 5, "the odometer's value is 5")
 		eq(main.counter_text(GameEngine.FOOD), "5", "the reading is new at once")
 		eq(figure.shown(), 3, "while the digits still show 3")
@@ -248,12 +248,12 @@ func test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once() -> void:
 func test_every_counters_figure_is_an_odometer() -> void:
 	await with_token_main(func(main: Node):
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, TopBar.SCORE, TopBar.POP]:
-			var figure: Object = main.counter(key).figure()
+			var figure: Odometer = main.counter(key).figure()
 			check(figure != null and figure.get_script() != null and figure.get_script().resource_path == "res://ui/odometer.gd",
 				"'%s' figure is an Odometer" % key)
 		main.supply.open(Game.engine)
 		await wait_frames()
-		var supply_figure: Object = main.supply.counter(GameEngine.WEALTH).figure()
+		var supply_figure: Odometer = main.supply.counter(GameEngine.WEALTH).figure()
 		check(supply_figure != null and supply_figure.get_script().resource_path == "res://ui/odometer.gd",
 			"the Supply screen's wealth figure is an Odometer"),
 		{"scout": 10}, {"supply": {"scout": {"price": 3, "count": 2}}})
