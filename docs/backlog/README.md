@@ -79,3 +79,22 @@ Generic sim bot (from `spike/generic-bot`: one value function over every legal a
 3. 313 `GenericBot` plays as the strategy `generic`
 4. 314 it replaces ScriptedBot (generic, wide, tall; rollouts in cheap mode; raids), closing 168, 298 and 303
 5. 315 forecast cache (then a balance item re-baselines the sim)
+
+Project review cleanup (2026-10-06 review; build before the military items 165–167 below unless gameplay comes first):
+1. 330 docs and housekeeping: PLAN.md and timings brought up to date, the bench file and orphan `.uid` files gone, a
+   check that docs name only real paths (first, so later items have less to keep in sync)
+2. 331 test files' headers become the source; `docs/testing.md` keeps one line per file (docs, before items add files)
+3. 332 bug: the upkeep forecast after a declared revolution (the one player-visible finding, with its missing test)
+4. 333 red-phase scaffolding out of the tests, checked (cleans the tests before others are added beside them)
+5. 334 shared UI test helpers, `click` split (test infrastructure before items that add UI tests)
+6. 335 the suite's critical path: the cache tests share their games, slow files dealt first (compacts the tests 336
+   changes)
+7. 336 the engine says what a forecast reads; the bot's cache key uses it (a guard before 165 adds unit state)
+8. 337 the engine writes the era's "Opens at…" and one shortfall message (logic out of the UI)
+9. 340 loader tests as tables: the last one-off rejections and the "loads / defaults to" tests as `check_loads` rows
+   (compacts the loader tests before 338 and 339 refactor the loaders; uses 334's shared helpers)
+10. 338 DataLoader's per-type fields from one table, `requires` building-only, the `add-card-field` skill (before 166
+   adds `upgrades_to`)
+11. 339 ConfigLoader split (config_loader.gd is at 680 of 700; before 167 adds content config)
+
+Barbarians and military, continued: 165 veterans, 166 unit upgrades, 167 era units and raids (see the first list).
