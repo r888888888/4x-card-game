@@ -17,7 +17,8 @@ if [[ ! -f "$stamp" ]] || [[ -n "$(find . -name '*.gd' -newer "$stamp" -not -pat
 fi
 
 jobs="${TEST_JOBS:-$(scripts/cpus.sh || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
-work="$(mktemp -d "${TMPDIR:-/tmp}/4x-tests.XXXXXX")"
+tmp="${TMPDIR:-/tmp}"
+work="$(mktemp -d "${tmp%/}/4x-tests.XXXXXX")"  # no "//" in the shards' user folders (330)
 trap 'rm -rf "$work"' EXIT
 
 niceness=0
