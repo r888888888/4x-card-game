@@ -1,10 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## The screen header and transitions in the real main scene (backlog 104): the new game and settings screens and
 ## the territory view each carry a ScreenHeader (`header`: back_button, title_text()), and a territory's view
-## grows out of its card. with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
+## wipes out of its card (350). with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
 ## In detail (from docs/testing.md, 331): The header on the new game and settings screens and the territory view in the
-## real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view growing out of
-## its card and shrinking back; uses `with_reduce_motion` and `wait_screen_transition`
+## real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view wiping out of its
+## card and back into it (350); uses `with_reduce_motion` and `wait_screen_transition`
 
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game on seed 1.
@@ -44,26 +44,28 @@ func test_the_territory_view_has_a_header() -> void:
 		check(not main.territory_view.is_open(), "the header's back closes the view"))
 
 
-# --- AC6: a territory's view grows out of its card ---
+# --- AC6, 350: a territory's view wipes out of its card ---
 
-func test_a_territory_view_grows_out_of_its_card_and_shrinks_back() -> void:
+func test_a_territory_view_wipes_out_of_its_card_and_back_into_it() -> void:
 	await with_reduce_motion(false, func():
 		await with_farm_main(func(main: Node):
 			var home := home_uid(Game.engine)
 			var card := (main.views[home] as CardView).get_global_rect()
 			main.views[home].details_requested.emit(main.views[home])
 			var view: Control = main.territory_view
-			check(view.scale.x < 1.0, "starts small: %s" % view.scale)
-			var top_left: Vector2 = view.get_global_transform() * Vector2.ZERO
-			check(top_left.distance_to(card.position) < 2.0, "over the card: %s vs %s" % [top_left, card.position])
-			await wait_screen_transition()
-			eq(view.scale, Vector2.ONE, "full size")
+			var nav: Object = main.territory_view.nav
+			eq(view.scale, Vector2.ONE, "never scaled")
+			eq(nav.wipe_rect(view), card, "it wipes out of the card")
+			await wait_seconds(0.55)
+			eq(nav.wipe_rect(view), Rect2(), "then shows whole")
 			view.back_button.pressed.emit()
 			check(not view.is_open(), "closed at once")
 			check(main.tableau.is_visible_in_tree(), "the Realm is back at once")
-			check(view.visible and view.scale.x <= 1.0, "still drawn while it shrinks")
-			await wait_screen_transition()
-			check(not view.visible, "then hidden")))
+			check(not view.visible, "the view is hidden at once")
+			var shot: Control = nav.leaving_shot()
+			check(shot != null, "a snapshot wipes back into the card")
+			await wait_seconds(0.4)
+			eq(nav.leaving_shot(), null, "then gone")))
 
 
 
