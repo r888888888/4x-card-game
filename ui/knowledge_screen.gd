@@ -261,25 +261,12 @@ func _vellum(band: MarginContainer, era: Dictionary) -> PanelContainer:
 	var vellum := PanelContainer.new()
 	vellum.theme_type_variation = &"EraVellum"
 	vellum.mouse_filter = Control.MOUSE_FILTER_STOP
-	var label := UIKit.heading("%s · %s" % [era.name, _opens(era)])
+	var label := UIKit.heading("%s · %s" % [era.name, era.opens])
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	vellum.add_child(label)
 	band.add_child(vellum)
 	return vellum
-
-
-## "Opens at 8 pop or 15 wealth" (from its unlocks), or "Opens through a tech". era is a tech_eras() entry.
-static func _opens(era: Dictionary) -> String:
-	var need: Dictionary = era.unlocks
-	var parts: PackedStringArray = []
-	if need.has("pop"):
-		parts.append("%d pop" % need.pop)
-	if need.has(GameEngine.WEALTH):
-		parts.append("%d wealth" % need.wealth)
-	if parts.is_empty():
-		return "Opens through a tech"
-	return "Opens at %s" % " or ".join(parts)
 
 
 ## Marks the tiles called names as linked to the hovered tech, or clears the mark (278).

@@ -134,6 +134,7 @@ func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
 	var tree := source("res://ui/knowledge_screen.gd")
 	check(tree.contains("tech_eras()"), "knowledge_screen.gd builds from tech_eras()")
 	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "knowledge_screen.gd reads no config or tech_tree()")
+	check(not tree.contains("Opens at"), "knowledge_screen.gd shows tech_eras()' opens, writing no \"Opens at\" (337)")
 	var supply := source("res://ui/supply_screen.gd")
 	check(supply.contains("open_supply_piles()") and not supply.contains("supply_locked"),
 		"supply_screen.gd shows open_supply_piles() and filters nothing itself")
