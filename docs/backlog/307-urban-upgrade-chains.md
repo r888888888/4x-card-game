@@ -2,7 +2,7 @@
 id: 307
 title: New urban upgrades for markets, stores, walls, houses, workshops and harbours; Aqueduct needs a Town
 type: feature
-status: ready
+status: red-review
 branch: feat/307-urban-upgrade-chains
 ---
 
@@ -44,7 +44,8 @@ Content tests, naming no card id (306's invariants cover tiers, eurekas and unre
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tech_that_opens_nothing_is_a_listed_discount_tech` |
+| AC2 | `test_content::test_every_metropolis_building_is_an_upgrade_a_wonder_or_once` |
 
 ## Manual check
 - [ ] Merchant Quarter (Market, Town, Credit, 5 wealth, ⟳ +1 wealth per 3 pop here).

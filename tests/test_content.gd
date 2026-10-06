@@ -695,6 +695,38 @@ func test_every_upgrade_that_scales_with_pop_needs_a_tier() -> void:
 		check(def.tier != "", "%s scales with pop, so it needs a tier" % def.id)
 
 
+## Backlog 307: the techs meant to open nothing, only to discount others through their eurekas and prereqs. Any other
+## tech that unlocks, creates and adds nothing is a content change's leftover.
+const PURE_DISCOUNT_TECHS: Array[String] = ["mathematics", "astronomy"]
+
+
+## Backlog 307: every tech that opens no card and adds no era is a deliberate pure-discount tech.
+func test_every_tech_that_opens_nothing_is_a_listed_discount_tech() -> void:
+	var r := load_real()
+	var empty: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		if not tech.effects.any(func(e: Effect) -> bool: return e.op in ["unlock", "create", "add_era"]):
+			empty.append(tech.id)
+	empty.sort()
+	var listed := PURE_DISCOUNT_TECHS.duplicate()
+	listed.sort()
+	eq(empty, listed, "techs that open nothing")
+
+
+## Backlog 307: a Metropolis's own buildings are upgrades; a stand-alone one is a wonder or a once-per-realm entry (308).
+func test_every_metropolis_building_is_an_upgrade_a_wonder_or_once() -> void:
+	var r := load_real()
+	var tiers: Array = r.config.population.get("tiers", [])
+	var top: String = tiers[-1].id if not tiers.is_empty() else ""
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var stand_alone: Array[String] = []
+	for def in real_buildings(r):
+		if def.tier == top and not def.is_upgrade() and not def.has_tag("wonder") \
+				and not menu.get(def.id, {}).get("once", false):
+			stand_alone.append(def.id)
+	eq(stand_alone, [] as Array[String], "stand-alone %s buildings that aren't wonders or once" % top)
+
+
 ## Backlog 295: a wonder is built once a game.
 func test_every_wonder_is_a_once_entry() -> void:
 	var r := load_real()
