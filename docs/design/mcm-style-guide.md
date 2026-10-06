@@ -496,7 +496,8 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 | **Pulse** | A lamp switching on | brightness of a lamp; a 1–2 px ring | none | `ease.lamp` (fast on, slow decay) | Silent, unless the lamp reports news; then that news's tone, at lamp-on. Lamps go out silently. |
 
 Scale is **not** a primitive. Nothing scales on hover. Scale is allowed only for a lamp "on" bloom (ring 1.0→1.4,
-fading); the Navigator's old "grow out of the card" transition is now a wipe (§10.2, 350).
+fading); the Navigator's old "grow out of the card" transition became a wipe (350) and then a slide from the right
+(§10.2, 359).
 Likewise, no sound exists without a primitive under it: if nothing moves or lights, nothing is heard.
 
 ### 9.3 Easing curves
@@ -574,15 +575,13 @@ sound never explains anything the screen doesn't. A held button is silent while 
 when it commits.
 
 ### 10.2 Navigation
-Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, the Supply from the right as well,
-the log drawer from the left rail. Each sheet carries the `ScreenHeader` title bar (241): filled with the screen's colour, its left end the index tab
+Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, a territory's view and the Supply
+from the right as well, the log drawer from the left rail. Each sheet carries the `ScreenHeader` title bar (241): filled with the screen's colour, its left end the index tab
 of the sheet underneath ("◂ Realm", the board's colour, slanted right edge) that takes you back; going back
-slides it out the way it came. A screen that grows out of a card (Navigator, 104) becomes a **wipe from the card's
-rectangle**: a clip rect expands from the card's bounds to the full sheet in 300 ms, with the card's type band
-colour flashing in the title block bar for the first 120 ms — continuity without scaling. The card's outline (2 px
-`ink`, its 6 px band on top) grows with the clip, tracing its edge, and is gone 120 ms after it lands; without it the
-growing clip shows only blank sheet, because the title bar sits outside the clip until the end. Closing reverses
-both into the card.
+slides it out the way it came. A sheet runs in its own width from the play area's right edge in 320 ms
+(`machined`) while the sheet under it moves 24 px left, and runs back out in 260 ms (`release`). A territory's view
+opens this way too (359), not out of its card: a wipe from the card's rectangle (350) was tried and dropped, since
+the territory's card is small next to the sheet and the wipe read as a zoom.
 
 **Sound.** A screen is a sheet run along a straightedge, so it sounds like paper on a rail: `ui.nav.forward`, a
 soft texture that starts with the wipe and a quiet stop as the sheet lands (≈ 172 ms); `ui.nav.back`, the sheet run
@@ -758,7 +757,7 @@ rejection buzz, since the player made no error.
 ### 11.6 City / settlement management (territory view)
 The territory replaces the Realm (105). Present it as a **site plan**: a title block (territory name, its keywords as
 small caps tags), the building slots as a row of plan rooms (rectangles with 1 px walls, a room label in the corner),
-and the pop meter (§11.7). Entering: a wipe from the territory card's rect (§10.2). Workers assigned to a building
+and the pop meter (§11.7). Entering: a sheet from the right, as Knowledge (§10.2). Workers assigned to a building
 appear as filled teal figures in the room's corner; idle buildings get a hatched floor and an ochre caution lamp
 with "IDLE".
 Sound: entering is navigation (`ui.nav.forward`). Placing a worker plays `ui.selection` (a marker set on a plan) as
@@ -864,7 +863,7 @@ figure). The draw deck is the same pile face down (the card back's ring motif) a
 is hidden; a supply pile shows its top copy. Clicking a face-up pile **deals it out into a grid**, the top card
 staying put and the rest sliding to their places 30 ms apart; clicking again gathers them back. A pile too big for the
 space it deals into (past about eight cards) **unfolds into a sheet** instead: a panel wiping out of the pile's own
-rectangle with every card as a header tile (the same wipe as §10.2).
+rectangle with every card as a header tile (a clip rect growing from the pile's bounds to the sheet's).
 Sound: `ui.pile.deal`, one short riffle of card stock across the whole deal (never one sound per card), ending as the
 last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile squaring. The unfolding sheet plays
 `ui.nav.forward`. The count ticks when it changes.
@@ -1335,7 +1334,7 @@ Anatomy: the top card at full size; up to four card edges behind it, each offset
 | HOVER → DEALT | 260 ms per card, 30 ms apart | the top card stays; each card below slides from its edge offset to its grid cell (4 across, 12 px gaps), in pile order; the count hides | `machined` | `ui.pile.deal`: one riffle for the whole deal, from the first card leaving to the last landing |
 | DEALT → REST | 200 ms per card, 20 ms apart, last card first | each card slides back to its edge offset; the count returns | `release` | `ui.pile.gather`: the tap as the last card is home |
 | COUNT CHANGE | per §15.5 | the figure rolls; a card added lands on top with a 60 ms `snap` | `snap` | `ui.card.place` as the card lands; the count's tick |
-| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§10.2), cards as header tiles | `machined` | `ui.nav.forward` |
+| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§11.13), cards as header tiles | `machined` | `ui.nav.forward` |
 | Reduce motion | — | cards jump to their cells and back | | the riffle's last tap only (`ui.pile.gather`'s tap) at the change |
 
 Dealt cards are ordinary cards: hover, select and details work on them as anywhere else. The grid never overlaps the
@@ -1603,7 +1602,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Motion tokens | `ui/anim.gd` (`Anim`): durations and sharpness | Add the duration and travel tokens; set `HOVER_SCALE`/`DRAG_SCALE` 1.0, `HOVER_LIFT` 4, `MAX_TILT` 3°; replace `LAND_SQUASH` with a 60 ms snap; `PULSE_SCALE` → lamp pulse. |
 | Easing | `TRANS_BACK` in `card_motion.gd`, `ui_kit.gd`, `territory_view.gd` | `TRANS_QUART`/`EASE_OUT` (machined), `TRANS_EXPO`/`EASE_OUT` (snap). `ease.latch`/`settle` via `PropertyTweener.set_custom_interpolator` with a cubic-bezier helper in `Anim`. |
 | Counters | `TopBar` stats + `UIKit.float_token` (126) | An `OdometerLabel` control (a clip `Control` with one digit strip per column) and a `DeltaTag`; tokens stop flying. |
-| Navigation | `Navigator` wipes a screen out of its card (104, 350) | Done in 350: a clip-rect wipe (the screen's children masked by `clip_children`), closing on a snapshot; the band-colour flash in the title bar not yet. |
+| Navigation | `Navigator`: screens fade or slide in from the right (104, 208) | Done in 359: the territory view slides like Knowledge; 350's wipe out of the card was removed. |
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
 | Toasts | `ui/toasts.gd` (116) | Done in 250: flags out of the game's rail (on the right, so they slide leftward); rail lamps and the count badge not yet. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |

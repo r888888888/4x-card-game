@@ -2,7 +2,7 @@
 id: 359
 title: The territory view slides in from the right like Knowledge
 type: feature
-status: in-progress
+status: review
 branch: feat/359-territory-view-slides-in
 ---
 
@@ -12,16 +12,16 @@ opens (208): a sheet run in from the right edge while the Realm moves aside, and
 territory view is the only screen pushed from a rect, so the wipe goes with it.
 
 ## Acceptance criteria
-- [ ] AC1: Given a game on the board with Reduce motion off, when the player opens a territory's view from its card,
+- [x] AC1: Given a game on the board with Reduce motion off, when the player opens a territory's view from its card,
   then the view slides in from the right: it starts its own width off its place (`Navigator.offset_of(view).x` ≈ the
   view's width) and is in place (offset 0) by `Navigator.SLIDE_IN` (0.32 s), while the Realm moves `Navigator.SHIFT`
   (-24 px) left; the view is never scaled or clipped.
-- [ ] AC2: Given the open territory view, when Back is pressed, then the view is closed at once (`is_open()` false) and
+- [x] AC2: Given the open territory view, when Back is pressed, then the view is closed at once (`is_open()` false) and
   runs out to the right over `Navigator.SLIDE_OUT` (0.26 s) as the Realm comes back to offset 0, then is hidden.
-- [ ] AC3: Given Reduce motion on, when the view opens and closes, then it only fades (`SLIDE_FADE`), with no offset.
-- [ ] AC4: Given the territory view open, when Knowledge is opened over it and closed, then Knowledge slides over the
+- [x] AC3: Given Reduce motion on, when the view opens and closes, then it only fades (`SLIDE_FADE`), with no offset.
+- [x] AC4: Given the territory view open, when Knowledge is opened over it and closed, then Knowledge slides over the
   view and back off it as it does over the Realm (208's tests still pass).
-- [ ] AC5: The wipe is gone: `Navigator.push` takes no `from` rect, and `wipe_rect`, `wipe_outline`, `leaving_shot`,
+- [x] AC5: The wipe is gone: `Navigator.push` takes no `from` rect, and `wipe_rect`, `wipe_outline`, `leaving_shot`,
   the clip, outline and snapshot code, and `Anim.WIPE_IN` / `WIPE_OUT` / `WIPE_LINGER` are removed with their tests;
   `wait_screen_transition` waits for the longest remaining transition.
 
@@ -54,3 +54,11 @@ territory view is the only screen pushed from a rect, so the wipe goes with it.
 - [ ] Open Knowledge from inside the territory view and back: both slides look right stacked.
 
 ## Log
+- At green, two test timings changed (approved): `test_territory_view::test_clicking_a_territory_opens_its_view_in_place_of_the_realm`
+  waits for the transition before checking the Realm is hidden (it stays drawn, moved aside, while the view slides
+  in), and the Reduce motion test waits a frame before checking the fade out.
+- `wait_screen_transition` now waits for the longest of the fade and the slides (0.32 s).
+- Style guide: §9.2's note, §10.2 (territory joins Knowledge as a sheet from the right, why the wipe was dropped),
+  §11.6's Entering line, §11.13 and the TOO BIG row no longer point at §10.2's wipe, and the implementation table.
+- Navigator lost ~170 lines (the clip, outline and snapshot). `spike/territory-transition` is no longer cited by an
+  open item.
