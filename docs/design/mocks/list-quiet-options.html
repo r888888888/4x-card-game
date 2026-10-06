@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiet Selected Row</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (mcm-style-guide.md §14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-hover: 90ms; --d-quick: 120ms; --d-small: 200ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--ease-lamp-on: cubic-bezier(0, 0, 0.2, 1); --ease-lamp-off: cubic-bezier(0.4, 0, 0.6, 1);
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --focus: #1F6A68; --danger: #A8402F;
+	--wash: rgba(168, 64, 27, 0.12); --plane-building: #7A8450;
+	--p-sage: #9DB592; --l-sage: #4E6B47; --p-olive: #A3AA6A; --l-olive: #56602E; --p-bronze: #A97F63; --l-bronze: #6E4D36;
+	--p-ochre: #D9A441; --l-ochre: #7C5810;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --focus: #6CC3BC; --danger: #D9826C;
+	--wash: rgba(224, 112, 63, 0.14); --plane-building: #A3AE72;
+	--p-sage: #93B585; --l-sage: #93B585; --p-olive: #A9B26C; --l-olive: #A9B26C; --p-bronze: #BC8F72; --l-bronze: #BC8F72;
+	--p-ochre: #D9A441; --l-ochre: #D9A441;
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+header { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); flex-wrap: wrap; }
+header h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.plain { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 6px 12px; cursor: pointer; }
+.plain[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) var(--space-5) 64px; }
+.intro { color: var(--ink-2); max-width: 82ch; margin: 0 0 var(--space-5); }
+.intro b { color: var(--ink); }
+.option { display: grid; grid-template-columns: 48px minmax(0, 1fr) 600px; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--rule-fine); }
+.option:first-of-type { border-top: 4px solid var(--ink); }
+.letter { font: 500 40px/1 var(--f-display); }
+.option h2 { margin: 0 0 var(--space-1); font: 500 24px/30px var(--f-display); }
+.option p { margin: 0 0 var(--space-2); color: var(--ink-2); font-size: 16px; max-width: 50ch; }
+.option .meta { font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.option .pick { color: var(--signal); }
+@media (max-width: 1080px) { .option { grid-template-columns: 1fr; } .letter { font-size: 28px; } }
+
+/* The demo: the Build modal's ledger sheet in miniature (§11.10). */
+.demo { background: var(--sheet); border: 2px solid var(--ink); box-shadow: 0 16px 32px -12px var(--shadow); padding: var(--space-4) var(--space-5); max-width: 100%; }
+.demo .bar { height: 4px; background: var(--ink); }
+.demo h3 { margin: var(--space-2) 0 var(--space-4); font: 500 24px/28px var(--f-display); }
+.ledger { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); }
+.foot { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--rule-fine); }
+.key { font: 500 15px/1 var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: var(--radius-1); padding: 8px 14px; }
+.key.primary { background: var(--signal); color: var(--on-signal); border: 3px solid var(--ink); }
+
+/* The list: a well that scrolls with momentum, on a thin steel scrollbar (356). */
+.scroll { height: 336px; overflow-y: auto; background: var(--well); outline: none; overscroll-behavior: contain;
+	scrollbar-width: thin; scrollbar-color: var(--steel) var(--well); }
+.scroll::-webkit-scrollbar { width: 8px; }
+.scroll::-webkit-scrollbar-track { background: var(--well); }
+.scroll::-webkit-scrollbar-thumb { background: var(--steel); border-radius: 0; }
+.scroll::-webkit-scrollbar-thumb:hover, .scroll::-webkit-scrollbar-thumb:active { background: var(--ink-2); }
+.list { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); }
+.list .caps { padding: 0 var(--space-2); }
+.list .caps + .row { margin-top: 0; }
+.list .gap { height: var(--space-4); flex: none; }  /* + the two 4 px gaps: 24 px above a heading after rows */
+.row { position: relative; display: block; width: 100%; padding: var(--space-2) var(--space-4); font: 500 17px/24px var(--f-cond);
+	color: var(--ink-2); background: transparent; border: 0; text-align: left; cursor: pointer; font-variant-numeric: tabular-nums;
+	transition: background-color var(--d-quick) linear, color var(--d-hover) linear, box-shadow var(--d-quick) linear; }
+.row:hover { color: var(--ink); }
+.row:focus-visible { outline-offset: -2px; }
+.row .cost { margin-left: var(--space-3); }
+.row .why { display: block; font-size: 15px; line-height: 20px; }
+.row.off { opacity: 0.5; }
+.row.on { color: var(--ink); }
+.row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--signal);
+	transform: scaleY(0); transition: transform var(--d-quick) var(--ease-machined); }
+
+/* A · Sheet strip + index tab (the item as specced) */
+.a .row.on { background: var(--sheet); }
+.a .row.on::before { transform: scaleY(1); }
+/* B · Sheet strip alone */
+.b .row.on { background: var(--sheet); font-weight: 600; }
+/* C · Steel strip: one step brighter than the sheet, no tab */
+.c .row.on { background: var(--steel); }
+/* D · Sheet strip + ink tick: the leading mark in ink, not signal */
+.d .row::before { background: var(--ink); width: 2px; }
+.d .row.on { background: var(--sheet); }
+.d .row.on::before { transform: scaleY(1); }
+/* E · Signal wash: a faint warm tint and the tab, no strip of sheet */
+.e .row.on { background: var(--wash); }
+.e .row.on::before { transform: scaleY(1); }
+/* F · Sheet strip in a hairline */
+.f .row.on { background: var(--sheet); box-shadow: inset 0 0 0 1px var(--rule-fine); }
+:root[data-theme="night"] .f .row.on { box-shadow: inset 0 0 0 1px #4a463f; }
+
+/* The detail: the card, 24 px of air, then the lines (356). */
+.detail { display: flex; flex-direction: column; min-width: 0; }
+.card { width: 176px; height: 236px; background: var(--sheet); border: 2px solid var(--ink-3); padding: var(--space-2) var(--space-3);
+	box-shadow: 0 6px 14px -6px var(--shadow); }
+:root[data-theme="night"] .card { background: #34312d; }
+.card b { display: flex; justify-content: space-between; font: 600 17px/22px var(--f-cond); }
+.card .plane { height: 3px; background: var(--plane-building); margin: var(--space-1) 0 var(--space-2); }
+.card small { display: block; font: 500 14px/18px var(--f-cond); color: var(--ink-2); }
+.lines { margin-top: var(--space-5); font: 400 15px/22px var(--f-ui); }
+.lines .caps { display: block; margin-bottom: var(--space-1); }
+.lines .refusal { color: var(--danger); max-width: 22ch; }
+
+/* ---- With the indicator lamp (§7.11): OFF, the well in a 1 px rule ring; ON, the hue's plane colour in a 2 px ring of
+   its line colour with the one permitted highlight. On in 40 ms, cools in 120 ms. ---- */
+.row { display: flex; align-items: flex-start; gap: var(--space-3); }
+.row .txt { flex: 1; min-width: 0; }
+.lamp { display: none; --lamp: var(--p-sage); --lamp-line: var(--l-sage);
+	width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; flex: none;
+	background: var(--well); box-shadow: inset 0 0 0 1px var(--rule);
+	transition: background-color var(--d-quick) var(--ease-lamp-off), box-shadow var(--d-quick) var(--ease-lamp-off), opacity var(--d-quick) var(--ease-lamp-off); }
+.lamp.lit { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--lamp) 40%, white) 0 18%, var(--lamp) 22%);
+	box-shadow: inset 0 0 0 2px var(--lamp-line); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+/* G · A lamp on every row; the chosen one lit, on a sheet strip */
+.g .lamp.lead { display: block; }
+.g .row.on { background: var(--sheet); }
+/* H · The lamp only on the chosen row: it lights as the strip fills; the other rows carry none */
+.h .lamp.lead { display: block; opacity: 0; }
+.h .row.on { background: var(--sheet); }
+.h .row.on .lamp.lead { opacity: 1; }
+/* I · Status lamps: every row's lamp reports whether it can be built (lit) or not (dark); the strip is the selection */
+.i .lamp.lead { display: block; }
+.i .row.on { background: var(--sheet); }
+/* J · Lamp window: the index tab becomes a lamp window on every row's leading edge, lit on the chosen one */
+.j .row::before { background: var(--well); box-shadow: inset 0 0 0 1px var(--rule); top: 8px; bottom: 8px; left: 4px; width: 6px;
+	transform: none; transition: background-color var(--d-quick) var(--ease-lamp-off), box-shadow var(--d-quick) var(--ease-lamp-off); }
+.j .row { padding-left: calc(var(--space-4) + 4px); }
+.j .row.on { background: var(--sheet); }
+.j .row.on::before { background: var(--p-sage); box-shadow: inset 0 0 0 1px var(--l-sage); transition-duration: 40ms; transition-timing-function: var(--ease-lamp-on); }
+/* K · Selector panel: lamps in a column at the trailing edge, like a rotary selector's positions */
+.k .lamp.trail { display: block; }
+.k .row.on { background: var(--sheet); }
+/* L · Plane lamps: G, with the lamp lit in the entry's card colour (building olive, upgrade ochre, unit bronze) */
+.l .lamp.lead { display: block; }
+.l .row.on { background: var(--sheet); }
+.l .row[data-kind="Buildings"] .lamp { --lamp: var(--p-olive); --lamp-line: var(--l-olive); }
+.l .row[data-kind="Upgrades"] .lamp { --lamp: var(--p-ochre); --lamp-line: var(--l-ochre); }
+.l .row[data-kind="Units"] .lamp { --lamp: var(--p-bronze); --lamp-line: var(--l-bronze); }
+.part { margin: var(--space-7) 0 var(--space-3); font: 500 28px/34px var(--f-display); }
+
+.fix { margin: var(--space-6) 0 0; padding: var(--space-5) 0 0; border-top: 4px solid var(--ink); }
+.fix h2 { margin: 0 0 var(--space-2); font: 500 24px/30px var(--f-display); }
+.fix li { color: var(--ink-2); margin-bottom: var(--space-2); max-width: 92ch; }
+.fix li b { color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+	<h1>Quiet selected row</h1>
+	<span class="caps">Item 356</span>
+	<button class="plain" id="motion" aria-pressed="false">Reduce motion</button>
+	<button class="plain" id="theme">Day / Night</button>
+</header>
+<main>
+<p class="intro">Quieter ways to mark <b>the chosen row</b> of a selectable list (§7.16), replacing the index card that
+slides 8 px out onto a hard 4 px shadow. Each demo is the Build modal's ledger sheet with the rest of item 356 in place:
+<b>24 px above each heading after the first</b>, <b>24 px under the card</b>, a <b>thin steel scrollbar</b>, and
+<b>wheel scrolling that glides</b>: a notch eases about 120 px and coasts to a stop (Reduce motion: it jumps). Click a
+row, or focus a list and use Up and Down; the list follows the selection. Names and costs are illustrative. A–F change the background; G–L, further down, add the indicator lamp.</p>
+
+<section class="option a">
+	<div class="letter">A</div>
+	<div>
+		<h2>Sheet strip + index tab</h2>
+		<p>The chosen row lies flat in the well as a strip of sheet, and the 4 px signal tab stays on its leading edge.
+		Everything that made it look raised is gone: the slide, the shadow and the bold weight.</p>
+		<p>The tab keeps it in the same family as a selected card (§10.5), and it can still be read at a glance in a long list.</p>
+		<div class="meta">Motion: fill 120 ms; tab wipes 120 ms machined. Sound: ui.selection as the tab lands.</div>
+	</div>
+	<div class="demo" data-kind="a"></div>
+</section>
+
+<section class="option b">
+	<div class="letter">B</div>
+	<div>
+		<h2>Sheet strip alone</h2>
+		<p>Only the background changes: a strip of sheet, its label inked and set semibold. No signal on the sheet at
+		all, so the orange belongs to the Build key alone (§4.2).</p>
+		<p>It's the most literal reading of "a subtle background change". In Night the strip is only one value up
+		from the well, so it depends on the label's weight.</p>
+		<div class="meta">Motion: fill 120 ms. Sound: ui.selection on the fill.</div>
+	</div>
+	<div class="demo" data-kind="b"></div>
+</section>
+
+<section class="option c">
+	<div class="letter">C</div>
+	<div>
+		<h2>Steel strip</h2>
+		<p>The same idea one step brighter: the strip is steel, the colour of a key at rest, so it reads clearly in both
+		modes without a tab.</p>
+		<p>Since it's the colour of a key, the row can start to look like a button again, though flatter than
+		today's.</p>
+		<div class="meta">Motion: fill 120 ms. Sound: ui.selection on the fill.</div>
+	</div>
+	<div class="demo" data-kind="c"></div>
+</section>
+
+<section class="option d">
+	<div class="letter">D</div>
+	<div>
+		<h2>Sheet strip + ink tick</h2>
+		<p>A as a quieter mark: the leading tab is a 2 px ink rule instead of the signal orange. It still has a precise
+		edge, but in ink, like a ruled margin.</p>
+		<p>This frees the signal colour for the primary key. The selection no longer matches a selected card's tab.</p>
+		<div class="meta">Motion: fill 120 ms; tick wipes 120 ms machined. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="d"></div>
+</section>
+
+<section class="option e">
+	<div class="letter">E</div>
+	<div>
+		<h2>Signal wash</h2>
+		<p>No strip of sheet: the row takes a faint warm tint of the signal colour (12–14 %), with the tab on its edge,
+		as if the orange tab bled into the paper.</p>
+		<p>Of the six it's the warmest and links the fill to the tab, but it's a new tinted colour (a Palette role),
+		and orange next to the orange Build key can blur which one is the action.</p>
+		<div class="meta">Motion: tint 120 ms; tab wipes 120 ms. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="e"></div>
+</section>
+
+<section class="option f">
+	<div class="letter">F</div>
+	<div>
+		<h2>Sheet strip in a hairline</h2>
+		<p>B with a 1 px fine rule around the strip, like a slip of paper laid on the well. It's crisper than B in
+		Night, and there's still no signal and no depth.</p>
+		<p>The hairline is close to the look of a bordered control, and in a dense list the rule can look busy.</p>
+		<div class="meta">Motion: fill and rule 120 ms. Sound: ui.selection.</div>
+	</div>
+	<div class="demo" data-kind="f"></div>
+</section>
+
+<h2 class="part">With the indicator lamp</h2>
+<p class="intro">The guide's <b>indicator lamp</b> (§7.11): a 12 px disc, dark in the well with a fine ring, lit
+in a plane colour with a highlight. It's the guide's mark for state (a circle = an indicator, §2), so it can say
+"chosen" with no depth at all. Item 217 tried lamps on their own (its option D) and found them too small and too like
+radio buttons, so here each lamp sits on the quiet strip from A–F, or does a second job.</p>
+
+<section class="option g">
+	<div class="letter">G</div>
+	<div>
+		<h2>A lamp on every row</h2>
+		<p>Every row has a dark lamp before its name; the chosen row's lamp lights sage, on a sheet strip. You can read
+		the column of lamps like a bank of positions on a panel, with one lit.</p>
+		<p>This is clear in both modes, but a dozen dark discs make the list busier, and they still hint at radio buttons.</p>
+		<div class="meta">Motion: lamp on 40 ms, off 120 ms (ease.lamp); fill 120 ms. Sound: ui.selection at lamp-on.</div>
+	</div>
+	<div class="demo" data-kind="g"></div>
+</section>
+
+<section class="option h">
+	<div class="letter">H</div>
+	<div>
+		<h2>Lamp on the chosen row only <span class="caps pick">chosen</span></h2>
+		<p>Only the chosen row carries a lamp, lit, as the strip fills; the other rows are text alone. The lamp takes over
+		from the index tab, as a circle for "this one" instead of an orange bar.</p>
+		<p>It's the calmest of the six. Rows don't shift, because the lamp's space is reserved on every row.</p>
+		<div class="meta">Motion: lamp on 40 ms with the fill. Sound: ui.selection at lamp-on.</div>
+	</div>
+	<div class="demo" data-kind="h"></div>
+</section>
+
+<section class="option i">
+	<div class="letter">I</div>
+	<div>
+		<h2>Status lamps</h2>
+		<p>The lamps report state instead of selection: lit sage on every row the engine allows, dark on a refused one.
+		The selection is the plain sheet strip (B).</p>
+		<p>The lamp does a real job here, so you can scan for what's buildable. The dimming of refused rows says the
+		same thing, though, and the selection is as quiet as B's.</p>
+		<div class="meta">Motion: none on selection (lamps change only with the game). Sound: ui.selection on the fill.</div>
+	</div>
+	<div class="demo" data-kind="i"></div>
+</section>
+
+<section class="option j">
+	<div class="letter">J</div>
+	<div>
+		<h2>Lamp window</h2>
+		<p>The index tab becomes a lamp window, the narrow bar from the lamp key (§15.4) turned upright. Every row has one,
+		dark, on its leading edge, and the chosen row's window lights.</p>
+		<p>It sits where the tab sat and reads as a part of the panel, not a radio button. Lit, it's quieter than the
+		orange tab.</p>
+		<div class="meta">Motion: window on 40 ms, off 120 ms. Sound: ui.selection at lamp-on.</div>
+	</div>
+	<div class="demo" data-kind="j"></div>
+</section>
+
+<section class="option k">
+	<div class="letter">K</div>
+	<div>
+		<h2>Selector panel</h2>
+		<p>The lamps sit at the trailing edge in a single column, like the position lamps of a rotary selector. The
+		chosen row's lamp is lit, on the strip.</p>
+		<p>The names stay flush left and readable. The lit lamp is next to the card it opens, which links the row to the
+		detail, but it's far from where the eye starts reading.</p>
+		<div class="meta">Motion: lamp on 40 ms, off 120 ms. Sound: ui.selection at lamp-on.</div>
+	</div>
+	<div class="demo" data-kind="k"></div>
+</section>
+
+<section class="option l">
+	<div class="letter">L</div>
+	<div>
+		<h2>Plane lamps</h2>
+		<p>G, but the lamp lights in the entry's card colour: olive for a building, ochre for an upgrade, bronze for a
+		unit. It matches the band on the card beside it.</p>
+		<p>This adds meaning without adding marks. The hues are close in Night, though, and a lamp in a card colour is
+		new to the guide (lamps are lit in semantic hues today).</p>
+		<div class="meta">Motion: lamp on 40 ms, off 120 ms. Sound: ui.selection at lamp-on.</div>
+	</div>
+	<div class="demo" data-kind="l"></div>
+</section>
+
+<section class="fix">
+	<h2>The same in every option (item 356)</h2>
+	<ul>
+		<li><b>Glide.</b> A wheel notch pushes the list; the push decays (friction 8 / s), so it eases about 120 px and
+		coasts to rest. It stops dead at the ends. Up and Down ease the selected row into view (200 ms, quart out, no
+		overshoot). With Reduce motion, both jump.</li>
+		<li><b>Scrollbar.</b> 8 px, square, steel on the well; ink-2 under the pointer and while dragged.</li>
+		<li><b>Air.</b> 24 px above a heading that follows rows (Buildings → Upgrades → Units); the first heading still opens the
+		well. 24 px between the card and the lines under it.</li>
+		<li><b>Unchanged.</b> Hover only inks the label; focus keeps its teal ring; a refused row is dimmed with its reason.</li>
+	</ul>
+</section>
+</main>
+<script>
+const GROUPS = [
+	["Buildings", [
+		["Farm", "2 food", "", "+1 food each upkeep"], ["Granary", "1 food", "", "Holds 3 more food"],
+		["Well", "1 food", "Well needs a territory with Fresh Water.", ""], ["Kiln", "1 food", "", "+1 wealth each upkeep"],
+		["Oven", "2 food", "", "+1 food each upkeep"], ["Shrine", "2 wealth", "", "+1 VP"],
+		["Lore Hall", "3 wealth", "", "+1 insight each upkeep"], ["Market", "3 wealth", "", "+1 wealth each upkeep"],
+		["Walls", "2 wealth", "", "+2 defence"], ["Harbour", "3 wealth", "Harbour needs a coastal territory.", ""],
+	]],
+	["Upgrades", [["Plough", "2 food", "", "Farm makes +1 more food", "on Farm"]]],
+	["Units", [
+		["Warriors", "2 food", "", "Strength 2"], ["Archers", "2 wealth", "", "Strength 2, ranged"],
+		["Spearmen", "3 food", "No free workers on Homeland.", ""], ["Scouts", "1 food", "", "Strength 1"],
+	]],
+];
+const FRICTION = 8;  // per second (Anim.SCROLL_FRICTION)
+const STEP = 120;  // px a wheel notch travels (Anim.SCROLL_STEP)
+let calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// A scroll area that glides: each wheel event adds velocity; it decays by FRICTION and stops dead at the ends.
+function glide(el) {
+	let v = 0, pos = 0, last = 0, running = false, tween = null;
+	const max = () => el.scrollHeight - el.clientHeight;
+	function frame(t) {
+		const dt = Math.min(0.05, (t - last) / 1000); last = t;
+		pos += v * dt; v *= Math.exp(-FRICTION * dt);
+		if (pos <= 0 || pos >= max()) { pos = Math.max(0, Math.min(max(), pos)); v = 0; }
+		el.scrollTop = pos;
+		if (Math.abs(v) > 4) requestAnimationFrame(frame); else { v = 0; running = false; }
+	}
+	el.addEventListener("wheel", (ev) => {
+		ev.preventDefault();
+		tween = null;
+		const dist = ev.deltaMode === 1 ? Math.sign(ev.deltaY) * STEP : ev.deltaY * 1.2;
+		if (!running) pos = el.scrollTop;
+		if (calm) { el.scrollTop = Math.max(0, Math.min(max(), el.scrollTop + (ev.deltaMode === 1 ? dist : Math.sign(ev.deltaY) * STEP))); return; }
+		v += dist * FRICTION;
+		if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); }
+	}, { passive: false });
+	// Eases to y over 200 ms, quart out (no overshoot); jumps with Reduce motion.
+	return function scrollTo(y) {
+		y = Math.max(0, Math.min(max(), y)); v = 0;
+		if (calm) { el.scrollTop = y; return; }
+		const from = el.scrollTop, start = performance.now(), me = {}; tween = me;
+		(function step(t) {
+			if (tween !== me) return;
+			const k = Math.min(1, (t - start) / 200), e = 1 - Math.pow(1 - k, 4);
+			el.scrollTop = pos = from + (y - from) * e;
+			if (k < 1) requestAnimationFrame(step);
+		})(start);
+	};
+}
+
+for (const demo of document.querySelectorAll(".demo")) {
+	const kind = demo.dataset.kind;
+	demo.innerHTML = '<div class="bar"></div><h3>Build on Homeland</h3><div class="ledger"><div class="scroll" tabindex="0" role="listbox"><div class="list"></div></div><div class="detail"></div></div><div class="foot"><span class="key">Cancel</span><span class="key primary">Build</span></div>';
+	const scroll = demo.querySelector(".scroll"), list = demo.querySelector(".list"), detail = demo.querySelector(".detail");
+	const build = demo.querySelector(".primary");
+	const scrollTo = glide(scroll);
+	const rows = [];
+	GROUPS.forEach(([heading, entries], g) => {
+		if (g > 0) list.insertAdjacentHTML("beforeend", '<div class="gap"></div>');
+		list.insertAdjacentHTML("beforeend", `<span class="caps">${heading}</span>`);
+		for (const [name, cost, why, gives, on] of entries) {
+			const row = document.createElement("button");
+			row.className = "row" + (why ? " off" : "");
+			row.tabIndex = -1;
+			row.setAttribute("role", "option");
+			row.dataset.kind = heading;
+			const lit = kind === "i" && !why ? " lit" : "";
+			row.innerHTML = `<i class="lamp lead${lit}"></i><span class="txt">${name}<span class="cost">${cost}</span>${on ? `<span class="why">${on}</span>` : ""}${why ? `<span class="why">${why}</span>` : ""}</span><i class="lamp trail"></i>`;
+			const i = rows.length;
+			row.addEventListener("click", () => select(i));
+			rows.push({ row, name, cost, why, gives, unit: heading === "Units" });
+			list.append(row);
+		}
+	});
+	let at = 0;
+	function select(i, follow) {
+		at = i;
+		rows.forEach((r, j) => {
+			r.row.classList.toggle("on", j === i);
+			r.row.setAttribute("aria-selected", j === i);
+			if (kind !== "i") r.row.querySelectorAll(".lamp").forEach((l) => l.classList.toggle("lit", j === i));
+		});
+		const r = rows[i];
+		detail.innerHTML = `<div class="card"><b>${r.name}<span>${r.cost}</span></b><div class="plane"></div><small>${r.unit ? "Unit" : "Building"}</small><small>${r.gives}</small></div>` +
+			`<div class="lines">${r.why ? `<span class="refusal">${r.why}</span>` : `<span class="caps">If built on Homeland</span>Free slots 3 → 2<br>Free workers 2 → 1<br>Costs ${r.cost}`}</div>`;
+		build.textContent = `${r.unit ? "Recruit" : "Build"} ${r.name}`;
+		build.style.opacity = r.why ? 0.5 : 1;
+		if (follow) {
+			const top = r.row.offsetTop - list.offsetTop, bottom = top + r.row.offsetHeight + 8;
+			if (top < scroll.scrollTop) scrollTo(top - 8);
+			else if (bottom > scroll.scrollTop + scroll.clientHeight) scrollTo(bottom - scroll.clientHeight);
+		}
+	}
+	scroll.addEventListener("keydown", (ev) => {
+		const step = ev.key === "ArrowDown" ? 1 : ev.key === "ArrowUp" ? -1 : 0;
+		if (step && at + step >= 0 && at + step < rows.length) { ev.preventDefault(); select(at + step, true); }
+	});
+	select(0);
+}
+document.getElementById("theme").addEventListener("click", () => {
+	const root = document.documentElement;
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+});
+const motion = document.getElementById("motion");
+motion.setAttribute("aria-pressed", calm);
+motion.addEventListener("click", () => { calm = !calm; motion.setAttribute("aria-pressed", calm); });
+</script>
+</body>
+</html>

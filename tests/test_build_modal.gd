@@ -461,3 +461,126 @@ func test_the_longest_flavor_keeps_the_modal_inside_the_window() -> void:
 		var sheet: Rect2 = (modal.panel as Control).get_global_rect()
 		check(screen.encloses(sheet), "the sheet %s inside %s" % [sheet, screen]))
 	window.size = before
+
+
+# --- 356: the list glides, the sheet breathes ---
+
+## A game like modal_engine's whose build menu also lists HALLS halls: more rows than the list column shows.
+const HALLS := 14
+
+
+func tall_engine() -> GameEngine:
+	var halls := []
+	var menu := MENU.duplicate()
+	for i in HALLS:
+		halls.append({"id": "hall_%d" % i, "name": "Hall %d" % i, "type": "building", "cost": {"food": 1}})
+		menu["hall_%d" % i] = {}
+	var o := {"build_menu": menu, "population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 0},
+		"starting": {"resources": {"food": 5, "wealth": 10, "insight": 0}, "tableau": ["capital"],
+			"territory": "homeland", "government": "band"}}
+	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS] + halls + TEST_GOVS)
+
+
+## The visible Label on modal reading text (a list heading as written, or a line on the sheet), or null.
+func label_reading(modal: Object, text: String) -> Label:
+	for l in (modal as Node).find_children("*", "Label", true, false):
+		if (l as Label).text == text and (l as Label).is_visible_in_tree():
+			return l
+	return null
+
+
+func test_the_build_list_scrolls_smoothly() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		check(list_column(modal) is SmoothScroll, "the list sits in a SmoothScroll"))
+
+
+func test_down_scrolls_the_selected_row_into_view() -> void:
+	await with_reduce_motion(false, func():
+		await with_main(tall_engine(), func(main: Node):
+			var modal: Object = await open_build(main)
+			var last: String = modal.list.ids()[-1]
+			var column := list_column(modal)
+			check(not column.get_global_rect().encloses((modal.list.row(last) as Control).get_global_rect()),
+				"the last row starts below the column")
+			for i in modal.list.ids().size():
+				press_key(main, KEY_DOWN)
+				await wait_frames(1)
+			eq(modal.list.selected, last, "Down reached the last row")
+			await wait_frames(120)
+			var row_rect := (modal.list.row(last) as Control).get_global_rect()
+			check(column.get_global_rect().encloses(row_rect), "row %s inside the column %s" % [row_rect,
+				column.get_global_rect()])))
+
+
+func test_a_heading_after_rows_has_room_above_it() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		var buildings := label_reading(modal, "Buildings")
+		var units := label_reading(modal, "Units")
+		var granary := modal.list.row("granary") as Control
+		var gap := units.get_global_rect().position.y - granary.get_global_rect().end.y
+		check(gap >= Tokens.SPACE_5, "at least 24 px between the last building and Units: %s" % gap)
+		var top := buildings.get_global_rect().position.y - (modal.list as Control).get_global_rect().position.y
+		check(top <= Tokens.SPACE_2, "Buildings still opens the well: %s px down" % top))
+
+
+func test_the_card_has_room_under_it() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		eq(modal.shown_card(), "farm", "Farm selected")
+		var heading := label_reading(modal, "If built on Homeland")
+		var card: CardView = modal.card_view()
+		eq(heading.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the card and the lines under it"))
+
+
+## The flavor, when the entry has one, is the first line under the card: SPACE_5 below it (356; 358 kept it there).
+func test_the_flavor_has_room_under_the_card() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		eq(modal.shown_card(), "kiln", "the Kiln selected")
+		var flavor := label_reading(modal, KILN.flavor)
+		var card: CardView = modal.card_view()
+		check(not card.is_ancestor_of(flavor), "under the card, not on it")
+		eq(flavor.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the card and its flavor"))
+
+
+# --- 360: room under the flavor ---
+
+func test_the_preview_has_room_under_the_flavor() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		eq(modal.shown_card(), "kiln", "the Kiln selected")
+		var flavor := label_reading(modal, KILN.flavor)
+		var heading := label_reading(modal, "If built on Homeland")
+		eq(heading.get_global_rect().position.y - flavor.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the flavor and the preview"))
+
+
+func test_a_refusal_has_room_under_the_flavor() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var e := Game.engine
+		var modal: Object = await open_build(main)
+		(modal.list.row("oven") as Button).pressed.emit()
+		await wait_frames(5)
+		var flavor := label_reading(modal, OVEN.flavor)
+		var reason := label_reading(modal, e.build_error("oven", home_uid(e)))
+		eq(reason.get_global_rect().position.y - flavor.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"24 px between the flavor and the reason"))
+
+
+func test_a_card_without_flavor_has_no_gap_for_one() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("warriors") as Button).pressed.emit()
+		await wait_frames(5)
+		var heading := label_reading(modal, "If built on Homeland")
+		var card: CardView = modal.card_view()
+		eq(heading.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
+			"the preview 24 px under the card, as without flavor before"))

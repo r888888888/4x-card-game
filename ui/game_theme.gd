@@ -17,7 +17,6 @@ const DISPLAY_FONT := preload("res://assets/fonts/Jost-Variable.ttf")
 const PLINTH := Vector2(2, 2)  # a control's hard shadow (guide shadow.plinth)
 const PRESS := 2  # px a pressed control travels into its shadow (guide travel.press)
 const SELECTED_SHADOW := Vector2(4, 4)  # a selected row's hard shadow (217, guide §4.4 "Selected")
-const PULL := Tokens.SPACE_2  # px a selected row is pulled out of its list (217, guide §10.5)
 
 
 static func build() -> Theme:
@@ -269,9 +268,10 @@ static func _divider_tab(t: Theme) -> void:
 	t.set_stylebox("focus", "DividerTab", focus_ring())
 
 
-## The selectable list (217, guide §7): ListWell, the list's recessed well, with room on its trailing side for the
-## pulled-out row; ListRow, a row printed on it with no box, and when selected (pressed) a sheet strip pulled PULL px
-## out onto a hard shadow; ListRowQuiet, a ListRow with no focus ring. SelectList draws the selected row's index tab.
+## The selectable list (217, guide §7.16): ListWell, the list's recessed well; ListRow, a row printed on it with no box,
+## and when selected (pressed) a sheet strip in place, with no depth (356); ListRowQuiet, a ListRow with no focus ring.
+## SelectList lights the selected row's lamp. And the scroll area's VScrollBar (356, §7.17): a thin steel grabber on
+## the well, ink-2 under the pointer and while dragged.
 static func _select_list(t: Theme) -> void:
 	t.set_type_variation("ListWell", "PanelContainer")
 	var well := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
@@ -279,7 +279,7 @@ static func _select_list(t: Theme) -> void:
 	well.content_margin_left = Tokens.SPACE_2
 	well.content_margin_top = Tokens.SPACE_2
 	well.content_margin_bottom = Tokens.SPACE_2
-	well.content_margin_right = Tokens.SPACE_4  # the pull and its shadow
+	well.content_margin_right = Tokens.SPACE_2
 	t.set_stylebox("panel", "ListWell", well)
 	t.set_type_variation("ListRow", "Button")
 	var flat := UIKit.panel_style(Palette.RAISED, Palette.RAISED, 0)
@@ -292,23 +292,26 @@ static func _select_list(t: Theme) -> void:
 	printed.draw_center = false
 	t.set_stylebox("normal", "ListRow", printed)
 	t.set_stylebox("hover", "ListRow", printed)
-	var pulled := flat.duplicate() as StyleBoxFlat
-	pulled.shadow_color = Palette.SHADOW
-	pulled.shadow_offset = SELECTED_SHADOW
-	pulled.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
-	pulled.anti_aliasing = false
-	pulled.expand_margin_left = -PULL
-	pulled.expand_margin_right = PULL
-	pulled.content_margin_left += PULL
-	pulled.content_margin_right -= PULL
-	t.set_stylebox("pressed", "ListRow", pulled)
-	t.set_stylebox("hover_pressed", "ListRow", pulled)
+	t.set_stylebox("pressed", "ListRow", flat)
+	t.set_stylebox("hover_pressed", "ListRow", flat)
 	t.set_font("font", "ListRow", tabular(LABEL_FONT))
 	t.set_color("font_color", "ListRow", Palette.TEXT_DIM)
 	for state in ["font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
 		t.set_color(state, "ListRow", Palette.TEXT)
 	t.set_type_variation("ListRowQuiet", "ListRow")  # a row the keyboard didn't focus: no ring (220)
 	t.set_stylebox("focus", "ListRowQuiet", StyleBoxEmpty.new())
+	var track := UIKit.panel_style(Palette.FIELD, Palette.FIELD, 0)
+	track.set_border_width_all(0)
+	track.content_margin_left = Tokens.SPACE_1  # the bar's 8 px width
+	track.content_margin_right = Tokens.SPACE_1
+	for state in ["scroll", "scroll_focus"]:
+		t.set_stylebox(state, "VScrollBar", track)
+	for state in ["grabber", "grabber_highlight", "grabber_pressed"]:
+		var grabber := track.duplicate() as StyleBoxFlat
+		grabber.bg_color = Palette.CONTROL if state == "grabber" else Palette.TEXT_DIM
+		grabber.content_margin_top = Tokens.SPACE_3  # its shortest
+		grabber.content_margin_bottom = Tokens.SPACE_3
+		t.set_stylebox(state, "VScrollBar", grabber)
 
 
 ## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, walnut grain under RAISED with a

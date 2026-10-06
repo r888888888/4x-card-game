@@ -268,17 +268,17 @@ section { margin-bottom: var(--space-7); }
 .price-tag span { display: inline-flex; align-items: center; gap: 3px; }
 .pile .left { font: 400 14px/18px var(--f-ui); color: var(--ink-2); }
 
-/* ---- Selectable list (§7.16; 217): an index card pulled out of a well ---- */
-.slist { display: flex; flex-direction: column; width: 260px; padding: var(--space-2) 0; background: var(--well); }
+/* ---- Selectable list (§7.16; 217, quieted in 356): the selected row marked in place, a sheet strip and a lit lamp ---- */
+.slist { display: flex; flex-direction: column; gap: var(--space-1); width: 260px; padding: var(--space-2); background: var(--well); }
 .lrow {
-	position: relative; padding: var(--space-2) var(--space-4); background: none; border: 0; text-align: left; cursor: pointer;
-	font: 500 20px/24px var(--f-cond); color: var(--ink-2); transform: translateX(0);
-	transition: transform var(--d-quick) var(--ease-machined), color var(--d-hover) var(--ease-machined);
+	display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: none; border: 0;
+	text-align: left; cursor: pointer; font: 500 20px/24px var(--f-cond); color: var(--ink-2);
+	transition: background-color var(--d-quick) linear, color var(--d-hover) var(--ease-machined);
 }
 .lrow:hover { color: var(--ink); }
-.lrow[aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 4px 4px 0 var(--shadow); transform: translateX(8px); }
-.lrow .itab { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--signal); opacity: 0; }
-.lrow[aria-selected="true"] .itab { opacity: 1; }
+.lrow[aria-selected="true"] { background: var(--sheet); color: var(--ink); }
+.lrow .lamp { visibility: hidden; }  /* every row keeps the lamp's room; only the selected one shows it */
+.lrow[aria-selected="true"] .lamp { visibility: visible; }
 .ldetail { flex: 1; min-width: 260px; max-width: 520px; background: var(--sheet); border: 2px solid var(--ink); padding: var(--space-4) var(--space-5); }
 .ldetail h3 { margin: 0 0 var(--space-2); font: 500 28px/34px var(--f-display); }
 .ldetail p { margin: 0; color: var(--ink-2); font-size: 17px; }
@@ -648,7 +648,7 @@ section { margin-bottom: var(--space-7); }
 			<div class="slist" role="listbox" id="slist" tabindex="0" aria-label="Civilization"></div>
 			<div class="ldetail" id="ldetail"></div>
 		</div>
-		<p class="note">The selectable list (§7.16): rows rest flat in the well; the selected one is an index card pulled 8 px out on a plinth, with the orange index tab on its leading edge. Focus is not selection: the focus ring and the tab never mean the same thing. Up and Down move the selection.</p>
+		<p class="note">The selectable list (§7.16): rows rest flat in the well; the selected one is marked in place, with no depth: a sheet strip and a lit lamp before its name (356). The other rows keep the lamp's room, so no name moves. Focus is not selection: the focus ring and the lamp never mean the same thing. Up and Down move the selection.</p>
 	</section>
 
 	<section>
@@ -1304,13 +1304,13 @@ const CIVS = [
 	["Rome", "Settlers cost 1 less food. Roads tie the realm together."],
 ];
 const slist = document.getElementById("slist"), ldetail = document.getElementById("ldetail");
-slist.innerHTML = CIVS.map(([n], i) => `<button class="lrow" role="option" tabindex="-1" aria-selected="${i === 0}" data-i="${i}"><span class="itab"></span>${n}</button>`).join("");
+slist.innerHTML = CIVS.map(([n], i) => `<button class="lrow" role="option" tabindex="-1" aria-selected="${i === 0}" data-i="${i}"><span class="lamp on"></span>${n}</button>`).join("");
 let civ = 0;
 function pickCiv(i, sound = true) {
 	civ = (i + CIVS.length) % CIVS.length;
 	slist.querySelectorAll(".lrow").forEach((r, j) => r.setAttribute("aria-selected", j === civ));
 	ldetail.innerHTML = `<span class="caps">Civilization</span><h3>${CIVS[civ][0]}</h3><p>${CIVS[civ][1]}</p>`;
-	if (sound) Sound.play("ui.selection", { at: contactMs(120, "machined"), input: true });
+	if (sound) Sound.play("ui.selection", { input: true });  // as the lamp lights
 }
 pickCiv(0, false);
 slist.addEventListener("click", (e) => { const r = e.target.closest(".lrow"); if (r) pickCiv(+r.dataset.i); });

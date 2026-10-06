@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The selectable list (backlog 217, guide §7 "Selectable list", the index card): UIKit.select_list() builds a SelectList,
-## a well of ListRow rows of which one is selected, pulled out onto a plinth with the signal index tab on its leading
-## edge. Held as Object so this file parses before SelectList exists.
+## a well of ListRow rows of which one is selected: a filled strip in place with a lit indicator lamp before its name
+## (356: no pull, no shadow, no index tab). Held as Object so this file parses before SelectList exists.
 
 
 ## UIKit.select_list(), called through the loaded script so this file parses before it exists.
@@ -20,15 +20,12 @@ func three_rows(main: Node, picks: Array) -> Object:
 	return list
 
 
-func tab_of(row: Button) -> ColorRect:
-	return row.find_child("IndexTab", true, false) as ColorRect if row != null else null
-
-
-func shown_tabs(list: Object) -> Array[String]:
+## The rows of list whose lamp shows (356), by id.
+func shown_lamps(list: Object) -> Array[String]:
 	var out: Array[String] = []
 	for id in list.ids():
-		var tab := tab_of(list.row(id))
-		if tab != null and tab.is_visible_in_tree():
+		var lamp := ReadyLamp.of(list.row(id))
+		if lamp != null and lamp.is_visible_in_tree():
 			out.append(id)
 	return out
 
@@ -52,10 +49,11 @@ func test_a_list_row_draws_no_box_until_selected() -> void:
 		if box == null:
 			continue
 		eq(box.bg_color.to_html(), Palette.RAISED.to_html(), "ListRow %s: the sheet" % state)
-		eq(box.shadow_color.to_html(), Palette.SHADOW.to_html(), "ListRow %s: a hard shadow" % state)
-		check(box.shadow_size > 0 and box.shadow_offset.x > 0 and box.shadow_offset.y > 0, "ListRow %s: on a plinth" % state)
-		eq([box.expand_margin_left, box.expand_margin_right], [-float(Tokens.SPACE_2), float(Tokens.SPACE_2)],
-			"ListRow %s: pulled 8 px out toward the trailing side" % state)
+		eq(box.shadow_size, 0, "ListRow %s: no shadow (356)" % state)
+		eq([box.expand_margin_left, box.expand_margin_right], [0.0, 0.0], "ListRow %s: in place, not pulled (356)" % state)
+		var normal := row.get_theme_stylebox("normal")
+		eq([box.content_margin_left, box.content_margin_right], [normal.content_margin_left, normal.content_margin_right],
+			"ListRow %s: its text doesn't move (356)" % state)
 	for state in ["font_pressed_color", "font_hover_pressed_color"]:
 		eq(row.get_theme_color(state).to_html(), Palette.TEXT.to_html(), "ListRow %s is ink" % state)
 	close_main(main)
@@ -73,25 +71,29 @@ func test_the_list_is_a_well() -> void:
 	close_main(main)
 
 
-# --- AC4: the index tab ---
+# --- AC4: the selection lamp (356; the index tab until then) ---
 
-func test_only_the_selected_row_shows_its_index_tab() -> void:
+func test_only_the_selected_row_shows_its_lamp_lit() -> void:
 	var main := open_main()
 	var list: Object = await three_rows(main, [])
 	list.select("b")
 	await wait_frames()
 	eq(list.selected, "b", "b selected")
-	eq(shown_tabs(list), ["b"] as Array[String], "one tab, on b")
+	eq(shown_lamps(list), ["b"] as Array[String], "one lamp, on b")
 	eq([(list.row("a") as Button).button_pressed, (list.row("b") as Button).button_pressed], [false, true], "b pressed")
-	var tab := tab_of(list.row("b"))
-	if tab != null:
-		eq(tab.color.to_html(), Palette.ACCENT.to_html(), "signal orange")
-		eq(tab.size.x, float(Tokens.SPACE_1), "4 px wide")
-		var strip_left: float = (list.row("b") as Control).get_global_rect().position.x + Tokens.SPACE_2
-		eq(tab.get_global_rect().position.x, strip_left, "on the pulled strip's leading edge")
+	for id in list.ids():
+		eq((list.row(id) as Node).find_child("IndexTab", true, false), null, "%s: no index tab" % id)
+	var row := list.row("b") as Button
+	var lamp := ReadyLamp.of(row)
+	check(lamp != null and lamp.is_lit(), "b's lamp is lit")
+	if lamp != null:
+		eq(lamp.get_global_rect().position.x, row.get_global_rect().position.x + Tokens.SPACE_4,
+			"before the name, at the row's text margin")
+	for id in ["a", "c"]:
+		check(ReadyLamp.of(list.row(id)) != null, "%s keeps its lamp's room" % id)
 	list.select("c")
 	await wait_frames()
-	eq(shown_tabs(list), ["c"] as Array[String], "the tab moves to c")
+	eq(shown_lamps(list), ["c"] as Array[String], "the lamp moves to c")
 	close_main(main)
 
 
@@ -111,7 +113,7 @@ func test_a_click_or_up_and_down_choose_a_row() -> void:
 	eq(list.selected, "a", "Up stops at the first row")
 	eq(picks, ["c", "b", "a"], "chosen fires once per change by the player, not for select()")
 	await wait_frames()
-	eq(shown_tabs(list), ["a"] as Array[String], "the tab follows the arrows")
+	eq(shown_lamps(list), ["a"] as Array[String], "the lamp follows the arrows")
 	close_main(main)
 
 
@@ -128,7 +130,7 @@ func test_a_list_rows_focus_is_the_ring_not_the_selection() -> void:
 	eq(main.get_viewport().gui_get_focus_owner(), list.row("b"), "Tab moves the focus to b")
 	check(draws_the_ring(list.row("b")), "the focus is the teal ring, with no fill")
 	eq(list.selected, "a", "a stays selected")
-	eq(shown_tabs(list), ["a"] as Array[String], "the tab stays on a")
+	eq(shown_lamps(list), ["a"] as Array[String], "the lamp stays on a")
 	check(not (list.row("b") as Button).button_pressed, "the focused row is not pressed")
 	close_main(main)
 

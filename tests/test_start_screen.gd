@@ -281,12 +281,12 @@ func open_settled_new_game_screen() -> Node:
 	return main
 
 
-## The new game screen's IndexTab-showing rows, by civilization id.
-func rows_with_a_tab(screen: Object) -> Array[String]:
+## The new game screen's rows showing their selection lamp (356; the index tab until then), by civilization id.
+func rows_with_a_lamp(screen: Object) -> Array[String]:
 	var out: Array[String] = []
 	for id in screen.civilization_ids():
-		var tab := (screen.civilization_row(id) as Node).find_child("IndexTab", true, false) as Control
-		if tab != null and tab.is_visible_in_tree():
+		var lamp := ReadyLamp.of(screen.civilization_row(id))
+		if lamp != null and lamp.is_visible_in_tree():
 			out.append(id)
 	return out
 
@@ -328,7 +328,7 @@ func test_start_sits_under_a_footer_rule_and_stays_put() -> void:
 		close_main(main))
 
 
-func test_the_civilizations_are_a_select_list_with_one_index_tab() -> void:
+func test_the_civilizations_are_a_select_list_with_one_lamp() -> void:
 	await with_temp_settings(func():
 		var civs: Array[String] = Game.engine.civilizations()
 		Settings.store.civilization = civs[0]
@@ -340,15 +340,15 @@ func test_the_civilizations_are_a_select_list_with_one_index_tab() -> void:
 		for id in civs:
 			check((screen.civilization_row(id) as Button).theme_type_variation in [&"ListRow", &"ListRowQuiet"],
 				"%s: a ListRow" % id)
-		eq(rows_with_a_tab(screen), [civs[0]] as Array[String], "the preselected row carries the tab")
+		eq(rows_with_a_lamp(screen), [civs[0]] as Array[String], "the preselected row carries the lamp")
 		(screen.civilization_row(civs[3]) as Button).pressed.emit()
 		await wait_frames()
-		eq(rows_with_a_tab(screen), [civs[3]] as Array[String], "a click moves the tab")
+		eq(rows_with_a_lamp(screen), [civs[3]] as Array[String], "a click moves the lamp")
 		(screen.civilization_row(civs[3]) as Button).grab_focus()
 		press_key(main, KEY_DOWN)
 		await wait_frames()
 		eq(screen.selected, civs[4], "Down selects the next")
-		eq(rows_with_a_tab(screen), [civs[4]] as Array[String], "the arrows move the tab")
+		eq(rows_with_a_lamp(screen), [civs[4]] as Array[String], "the arrows move the lamp")
 		close_main(main))
 
 
@@ -365,7 +365,7 @@ func test_moving_the_focus_off_the_selected_row_keeps_the_selection() -> void:
 		eq(screen.selected, civs[0], "the selection stays")
 		check((screen.civilization_row(civs[0]) as Button).button_pressed, "the selected row stays pressed")
 		check(not (screen.civilization_row(civs[1]) as Button).button_pressed, "the focused row is not pressed")
-		eq(rows_with_a_tab(screen), [civs[0]] as Array[String], "the tab stays on the selected row")
+		eq(rows_with_a_lamp(screen), [civs[0]] as Array[String], "the lamp stays on the selected row")
 		close_main(main))
 
 

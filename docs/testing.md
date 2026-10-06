@@ -199,6 +199,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sim_strategies.gd` | `SimStats` per strategy and civilization (134) |
 | `tests/test_size_unrest.gd` | Size unrest (282) |
 | `tests/test_slots.gd` | Building slots |
+| `tests/test_smooth_scroll.gd` | `SmoothScroll` and the scrollbar (356; UI) |
 | `tests/test_sound_rows.gd` | The sound rows (185; UI) |
 | `tests/test_sound_settings.gd` | Sound settings and the audio buses (184) |
 | `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193) |
@@ -283,24 +284,24 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording |
 | `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test |
-| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` plus `extra_cards` (raw card dicts one file needs) |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (+ `extra_cards`, raw dicts one file needs) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`) |
 | `tests/lib/tech_case.gd` | Base class for tech tests: `TECHS`, `tech_db`, `tech_engine` |
 | `tests/lib/raid_case.gd` | Base class for raid tests: `RAID_CARDS`, `raid_load`, `raid_engine` |
 | `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments, `anarchy_engine` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets (`[TEST_GOVS]`, …), then `extra`, parsed for loader tests |
+| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets (`[TEST_GOVS]`, …), then `extra`, parsed (loader tests) |
 | `fixture_db(extra, sets, resource_list)` | `fixture_load`'s cards, failing the test on a load error (170) |
 | `cards_of(r, errors, warnings)` | A `fixture_load` result's cards, its errors and warnings appended to the out arrays |
 | `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards` |
 | `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)` |
 | `explore_engine()` / `over_engine()` | A game with an explore choice open; a finished game |
-| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | A card "x" with one effect; the home's pop; the Capital's territory |
-| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers; `home_uid` is the config's starting territory |
+| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | Card "x" with one effect; home pop; the Capital's territory |
+| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection; `home_uid` is the config's starting territory |
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
-| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
+| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territories from `territory_deck` to the tableau / frontier |
 | `wait_frames(n)` | Lets containers lay out before a UI test measures sizes or positions (088) |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `put_in(engine, id, zone)` | Same, into any zone (a government placed directly) |
@@ -310,19 +311,19 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments and a game under one (065) |
 | `TEST_EVENTS` / `event_db()` | Fixture events (039) and their card db |
 | `with_event_engine(body, event_deck, overrides)` | UI tests: `body` with `Game.engine` on `TEST_CARDS` + `TEST_EVENTS` |
-| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the main scene; play seed 1 to the end |
+| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI: add and free the main scene; play seed 1 to the end |
 | `with_temp_settings(body, path)` | Runs `body` with the settings saved to a temp file, then restores them |
 | `shown_state(key)` | The state a toggle key shows, "ON" or "OFF" (219) |
 | `close_event(main)` | UI tests: closes the drawn-event modal if one is up |
-| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: a seed-1 game at turn 3; every screen and modal; visible controls |
-| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI: `body(main)` on the main scene, seed 1 |
+| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: seed 1 at turn 3; every screen and modal; visible controls |
+| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI: `body(main)` on main, seed 1 |
 | `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text, equality on it, and what differs |
 | `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change everything in place |
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
-| `open_game(big, freeze_sfx)` / `close_game(main)` | UI tests: main on seed 1 (1920 × 1080, the sound clock frozen, if asked) (334) |
-| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks and moves, hover ticks, a card's details |
-| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | The first shown button by text; game seconds; Hills' uid |
+| `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound clock frozen, if asked) (334) |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks and moves, hover ticks, details |
+| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | First shown button by text; game seconds; Hills' uid |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
 Helpers take and return `GameEngine` (the suite fails on an engine typed `Object`, 333). Tests never call engine
