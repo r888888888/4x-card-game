@@ -248,3 +248,74 @@ func test_a_recruited_units_disband_says_dismiss() -> void:
 		await wait_frames()
 		var disband: Button = main.details.unit_buttons()[1]
 		eq(disband.tooltip_text, "Dismiss it; its worker is freed.", "Disband's text"))
+
+
+# --- Backlog 343: a larger modal ---
+# Hooks: card_view() (the CardView on the sheet, or null); the list's scroll area is list's parent.
+
+## The modal's Refusal label, or null.
+func refusal_label(modal: Object) -> Label:
+	for l in (modal as Node).find_children("*", "Label", true, false):
+		if (l as Label).theme_type_variation == &"Refusal" and (l as Label).is_visible_in_tree():
+			return l
+	return null
+
+
+func test_the_card_on_the_sheet_is_hand_size_for_every_row() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		for row in ["farm", "granary"]:
+			(modal.list.row(row) as Button).pressed.emit()
+			await wait_frames()
+			var card: CardView = modal.card_view()
+			eq(card.size, CardView.HAND_SIZE, "%s's card is hand size" % row)
+			eq(card.slot.custom_minimum_size, CardView.HAND_SIZE, "%s's slot is hand size" % row))
+
+
+func test_the_list_column_is_336_by_480() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		var scroll := (modal.list as Control).get_parent() as ScrollContainer
+		eq(scroll.custom_minimum_size, Vector2(Tokens.SPACE_9 * 3 + Tokens.SPACE_7, Tokens.SPACE_9 * 5), "336 × 480"))
+
+
+func test_a_refusal_wraps_at_the_cards_width() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("well") as Button).pressed.emit()
+		await wait_frames()
+		var label := refusal_label(modal)
+		check(label != null, "a refusal shows")
+		if label != null:
+			eq(label.custom_minimum_size.x, CardView.HAND_SIZE.x, "wraps at 264"))
+
+
+func test_the_larger_modal_fits_the_window_and_the_body_cap() -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var before := window.size
+	window.size = Vector2i(1920, 1080)
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(30)
+		var screen := Rect2(Vector2.ZERO, main.get_viewport().get_visible_rect().size)
+		var sheet: Rect2 = (modal.panel as Control).get_global_rect()
+		check(screen.encloses(sheet), "the sheet %s inside %s" % [sheet, screen])
+		check((modal.body as Control).size.x <= Modal.BODY_MAX_WIDTH, "the body is %d px" % (modal.body as Control).size.x)
+		check((modal.list as Control).get_parent().size.x >= Tokens.SPACE_9 * 3 + Tokens.SPACE_7, "the list kept its width"))
+	window.size = before
+
+
+func test_the_card_on_the_sheet_ignores_the_mouse() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		var card: CardView = modal.card_view()
+		eq(card.mouse_filter, Control.MOUSE_FILTER_IGNORE, "display only"))
+
+
+func test_a_long_row_wraps_inside_the_336_column() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		check(not modal.row_reason("well").is_empty(), "Well is refused, with its reason under its name")
+		var scroll := (modal.list as Control).get_parent() as Control
+		eq(scroll.size.x, float(Tokens.SPACE_9 * 3 + Tokens.SPACE_7), "the column stays 336 wide"))
