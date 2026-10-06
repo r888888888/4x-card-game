@@ -2,7 +2,7 @@
 id: 355
 title: Plain labels (the new-game screen's "Seed") are white on paper in Day mode
 type: bug
-status: in-progress
+status: review
 branch: fix/355-day-mode-plain-label-text
 ---
 
@@ -15,15 +15,15 @@ branch: fix/355-day-mode-plain-label-text
 - Actual: it is white on paper, almost unreadable. The field's "random" placeholder is pale grey too.
 
 ## Acceptance criteria
-- [ ] AC1: Given Day mode on, when the new-game screen is open, then its "Seed" label's font colour is
+- [x] AC1: Given Day mode on, when the new-game screen is open, then its "Seed" label's font colour is
   `Palette.TEXT`'s Day value (`22211f`), and the seed field's placeholder colour is `Palette.TEXT_DIM`'s Day value
   (`57534b`).
-- [ ] AC2: Given Day mode on and a game in progress, when the Settings modal is open, then its "Seed" label's font
+- [x] AC2: Given Day mode on and a game in progress, when the Settings modal is open, then its "Seed" label's font
   colour is `Palette.TEXT`'s Day value (`22211f`).
-- [ ] AC3: Given Night mode, when the new-game screen is open, then its "Seed" label reads `Palette.TEXT`'s Night
+- [x] AC3: Given Night mode, when the new-game screen is open, then its "Seed" label reads `Palette.TEXT`'s Night
   value (`ede6d6`) and the placeholder `Palette.TEXT_DIM`'s Night value (`b9b1a1`); switching Day on and off with it
   open follows each mode.
-- [ ] AC4: Given Day mode on and a game in progress with the new-game screen, then the Settings modal, open, then no
+- [x] AC4: Given Day mode on and a game in progress with the new-game screen, then the Settings modal, open, then no
   `Label` in main resolves its font colour to Godot's default white (`ffffff`), whatever its variation.
 
 ## Test plan
@@ -35,7 +35,11 @@ branch: fix/355-day-mode-plain-label-text
 | AC4 | `test_day_mode::test_bug_355_no_label_draws_in_default_white_in_day_mode` |
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`GameTheme` set `font_color` only on its `Label` variations (`_label`), never on the base `Label`, so every
+`Label.new()` with no variation (the seed rows, Settings' Day mode, motion and volume rows) drew in Godot's default
+white in both modes, and the seed field's placeholder in Godot's pale grey. Night's dark sheets hid it, and the Day
+tests (183, 197, 323) checked panels, buttons, card lines and rich text, never a plain label. `_controls` now gives
+the base `Label` `Palette.TEXT` and `LineEdit`'s placeholder `Palette.TEXT_DIM`; AC4's sweep guards every label.
 
 ## Manual check
 - Day mode: the new-game screen's and Settings' "Seed" labels and the "random" placeholder read dark on paper.
@@ -56,3 +60,5 @@ branch: fix/355-day-mode-plain-label-text
   both modes; Night's dark sheets hid it. `LineEdit` sets `font_color` but not the placeholder colour.
 - 2026-10-06: red. AC4's sweep also finds Settings' row labels white (Reduce motion, Day mode, Interface sounds,
   the volume rows and their percentages, the Game row): the same cause.
+- 2026-10-06: fixed in `ui/game_theme.gd` (two lines). Night's plain labels move from white to `TEXT` (`ede6d6`).
+  Still open: 324 (the load-error overlay's plain `RichTextLabel`).
