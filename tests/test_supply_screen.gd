@@ -5,7 +5,8 @@ extends "res://tests/lib/tech_case.gd"
 ## In detail (from docs/testing.md, 331): The Supply screen's pile cards in the real `main.tscn` (232): the play cost
 ## after discounts in the title row, the buy price on a tag below the card (`price_tag`), the copies left under it
 ## (`copies_left`), the tag dimming with an unbuyable pile; a click or Enter opening the pile's details, whose Buy
-## (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259)
+## (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259),
+## flying a copy the pile card's size from the pile card to the Discard counter (361)
 
 const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
