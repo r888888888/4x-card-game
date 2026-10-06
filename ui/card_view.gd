@@ -45,10 +45,7 @@ static var WARN_COLOR: Color:
 static var HIGHLIGHT_COLOR: Color:
 	get:
 		return Palette.GAIN
-# A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
-static var DIM_BG: Color:
-	get:
-		return Palette.DIM_BG
+# A dimmed card (unplayable, or an idle building) greys its paper (Surfaces.DIMMED_PAPER) and border, never its text.
 static var DIM_BORDER: Color:
 	get:
 		return Palette.DIM_BORDER

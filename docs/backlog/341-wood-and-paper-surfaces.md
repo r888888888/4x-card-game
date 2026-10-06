@@ -2,7 +2,7 @@
 id: 341
 title: Wood grain under the board and paper cards and modals (texture option G)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/341-wood-and-paper-surfaces
 ---
 

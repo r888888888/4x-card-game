@@ -1,7 +1,7 @@
 class_name Modal
 extends ColorRect
 ## The base of every modal (backlog 153; a drafting sheet since 207): a scrim over the whole board with a sheet centred
-## on it. The sheet (panel, the Sheet variation: RAISED in a 2 px ink rule, cut square, on a hard 8,8 shadow) holds a
+## on it. The sheet (panel, the Sheet variation: paper in a 2 px ink rule, cut square, on a soft shadow, 341) holds a
 ## title block (a 4 px ink bar, the title at left and an optional context in caps at right), an optional aside (a card),
 ## the body (at most BODY_MAX_WIDTH wide) and a footer of buttons, right-aligned under a 1 px rule, the primary in the
 ## signal colour (251). Subclasses set title and context and fill body, aside and footer (add_footer_button) instead

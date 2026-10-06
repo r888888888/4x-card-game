@@ -40,11 +40,9 @@ func fixture(id: String, in_hand := true, kind := "") -> Dictionary:
 	return {"root": root, "slot": slot, "layer": layer, "view": view}
 
 
-## view's rule and shadow: its surface's frame (341), or its box when that is flat.
+## view's rule and shadow: its surface's frame (341).
 func panel(view: CardView) -> StyleBoxFlat:
-	var box := view.get_theme_stylebox("panel")
-	var frame := Looks.frame_of(box)
-	return frame if frame != null else box as StyleBoxFlat
+	return Looks.frame_of(view.get_theme_stylebox("panel"))
 
 
 ## Checks view's surface shows the expected paper (Looks.mismatch).
