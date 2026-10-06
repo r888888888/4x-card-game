@@ -2,7 +2,7 @@
 id: 353
 title: Flavor text in a postwar American literary voice
 type: feature
-status: in-progress
+status: review
 branch: feat/353-flavor-voice
 ---
 
@@ -13,11 +13,11 @@ get the flavor and quote the civilizations have; and the style guide says how to
 match.
 
 ## Acceptance criteria
-- [ ] AC1 (content): in `data/cards.json`, every card's `flavor` other than a civilization's is at most 150
+- [x] AC1 (content): in `data/cards.json`, every card's `flavor` other than a civilization's is at most 150
   characters, and a civilization's (a paragraph on the civilization picker, 107) at most 200
   (`test_content.gd` invariant; the guide's targets are ~120 and ~170).
-- [ ] AC2 (content): every card that had a `flavor` still has one (the 107/215/351/352 invariants stay green).
-- [ ] AC3 (content): in `data/cards.json` every government (Chiefdom, Kingship, Theocracy) has a `flavor` and a
+- [x] AC2 (content): every card that had a `flavor` still has one (the 107/215/351/352 invariants stay green).
+- [x] AC3 (content): in `data/cards.json` every government (Chiefdom, Kingship, Theocracy) has a `flavor` and a
   `quote` with its source (`test_content.gd` invariant, by card type; the loader already accepts both, 205).
 
 ## Out of scope
@@ -60,3 +60,10 @@ match.
 
 ## Log
 - Red checkpoint approved with AC3 added (governments' flavor and quotes) and the second voice chosen over the first.
+- Green: took `spike/flavor-voice-b`'s text. Twelve of its lines were still main's word for word; the five disasters
+  among them stay (plain on purpose), and Land Grants, School of Philosophers, The Plough, Sailing and Qanat were
+  rewritten in the voice (Raiders, Peasant Uprising and Alphabet already fit). Kingship's spike flavor ("descended from
+  heaven") repeated its new quote, so it got a new line.
+- Docs: guide §18 (reference points, nine rules, do/don't, checklist), the guide's opening, `tokens.md`, `index.html`,
+  CLAUDE.md's UI design section, PLAN.md's Flavor paragraph.
+- Balance: none (text only).

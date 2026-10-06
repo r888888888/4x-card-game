@@ -1,7 +1,7 @@
 # Mid-Century Modern Style Guide — "The Civic Planning Desk"
 
 Spikes `spike/mcm-style-guide` and `spike/mcm-sound`. A visual, motion, interaction and sound design system for the
-4X card game, written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
+4X card game, with the voice of its flavor text (§18), written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
 adjectives. A live specimen of the tokens and the core components (with motion, synthesized sound, and Reduce motion
 and Sound switches) is in [mcm-specimen.html](mcm-specimen.html); open it in a browser.
 
@@ -1654,3 +1654,62 @@ variation. Then adopt it in four items, UI-only except the sound settings (no `e
    test (§16.8) before anything else is added.
 Paper mode and the milestone sequences (era change, victory, and their Level 3 sounds) come after, once the Night mode
 has been played.
+
+---
+
+## 18. Voice: flavor text
+
+Item 353. Every card but a territory, city or unit carries a line of **flavor**: the italic text that opens its details
+window (and the event pop-up), before the rules. Civilizations and governments carry a short paragraph and a real
+**quote** with its source; techs carry a line and a quote; buildings, actions and events carry a line. The voice is
+postwar fiction set in the ancient world: what these writers *do*, never what their worlds contain (no gin, no
+commuter trains, no names from the twentieth century).
+
+### 18.1 Reference points
+
+| Writer | What to borrow | Example |
+|---|---|---|
+| Calvino | The city or the object as a riddle; a list that turns on its last item | *Market:* "…everything is for sale, and everything has been sold before: the pots, the figs, the news." |
+| O'Hara | Who stands where; status in a detail of dress or manners | *Merchant Quarter:* "…where fortunes turn and everyone dresses slightly above their means." |
+| Cheever | The disappointment the morning after; light falling on ordinary things | *Feast:* "…for one night the whole city eats together. In the morning the grievances are still there." |
+| Highsmith | Menace said politely; the calm person you shouldn't trust | *Mercenaries' Offer:* "Hard people with foreign shields wait at the gate, courteous and patient." |
+| Bradbury | Childhood, season and wonder; a line you can almost smell | *Wild Berries:* "…the children come home in the long gold evenings with purple hands and purple mouths." |
+| Didion | Short declaratives; dread stated as fact | *Granary:* "The lean years always come; only the date is unknown." |
+
+### 18.2 Rules
+
+1. **Present tense.** A card happens now; the event pop-up shows it happening. History told as a fable ("Kingship, the
+   scribes say…") is still present tense.
+2. **Short.** About **120 characters** a line, a government's too; a civilization's paragraph (on the civilization
+   picker) about **170**. The suite fails past 150 (civilizations 200): a line read in one glance, beside the rules, not instead of them.
+3. **Vary the ending.** About one line in three ends on a **wry turn** (O'Hara, Highsmith, Cheever). The rest end on an
+   **image** (Bradbury, Calvino) or a **plain fact** (Didion). A row of punchlines tires: read a card type's lines in a
+   row before you add another joke.
+4. **Disasters stay plain.** Plague, pestilence, famine, drought, fire, wreck and the loss of learning get no joke and
+   no simile that admires them. Say what happens and stop: "The granaries echo. Families eat the seed grain, then the
+   oxen, and wait for the next harvest."
+5. **People, not men.** Write "people", "they" or a role (farmers, scribes, the smith, the young). Use a gendered word
+   only for a real person or group (Hammurabi, the Pythia, the Greek philosophers).
+6. **Keep the facts.** A line teaches one true thing about its subject (where, who, what it was made of); the voice
+   colours it and never replaces it. Civilizations and techs above all. When in doubt, cite the fact in the item's Log.
+7. **No rules.** A line never names a resource, a number of the game or what the card does: the rules text below it
+   says that, generated from the effects.
+8. **Quotes are real.** A `quote` is a real saying, accurately worded, with its source in `by` (the work, and the
+   translator when the wording is theirs). Never invent one, and never put flavor-voice text in a quote.
+9. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
+
+### 18.3 Do / Don't
+
+| Do | Don't |
+|---|---|
+| "Strings of donkeys, later camels, sway from city to city across desert and steppe, carrying tin, cloth and news." | "Caravans are great for trade and give you lots of wealth!" (rules talk, modern cheer) |
+| "From beyond the hills, drums beat through the night. No one has seen the drummers yet. No one goes to look." | "Mysterious drums echo ominously, filling everyone with a deep sense of foreboding." (tells the feeling instead of showing it) |
+| "A fever comes up the river with the boats. The healers burn herbs, the streets go quiet, and the gravediggers do not rest." | A pun or a wink on a plague, a famine or a fire. |
+| "Oxen lean into the yoke where people once broke the soil by hand…" | "…where men once broke the soil…" (rule 5) |
+
+### 18.4 Checklist for a new card
+
+- One true fact, in present tense, in about 120 characters (170 for a civilization).
+- The ending: does this card type already have its third of wry turns? Then end on an image or a fact.
+- A disaster? Plain.
+- Read it aloud next to the card's rules text: it should sound like a sentence from a story, not a label.
