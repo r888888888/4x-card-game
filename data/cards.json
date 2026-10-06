@@ -33,7 +33,7 @@
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
-      "cost": { "food": 5 }, "vp": 0, "tags": ["expand"],
+      "cost": { "food": 5 }, "cost_per_territory": { "food": 1 }, "vp": 0, "tags": ["expand"],
       "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {

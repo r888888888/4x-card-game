@@ -15,9 +15,8 @@ const LANDS := ["grassland", "grassland", "hills", "hills", "jungle"]
 
 
 ## A game with a hand of Colonists (Pioneers when pioneers), the Homeland plus territories − 1 more settled, both
-## Rivers on the frontier, food food and civilization civ ("" for none); a Colonist supply pile. Typed Object until
-## the field exists (red phase).
-func colonist_engine(territories: int, food := 20, civ := "", pioneers := false) -> Object:
+## Rivers on the frontier, food food and civilization civ ("" for none); a Colonist supply pile.
+func colonist_engine(territories: int, food := 20, civ := "", pioneers := false) -> GameEngine:
 	var starting := {"resources": {}, "tableau": ["capital"], "territory": "homeland"}
 	if civ != "":
 		starting["civilization"] = civ
@@ -42,27 +41,27 @@ func territories_in(e: GameEngine) -> int:
 # --- AC1: the price grows with the realm ---
 
 func test_the_cost_grows_by_the_step_for_each_settled_territory() -> void:
-	var one: Object = colonist_engine(1)
+	var one := colonist_engine(1)
 	eq(one.play_cost(first_in_hand(one)), {"food": 6}, "play_cost with 1 territory: 5 + 1")
-	var three: Object = colonist_engine(3)
+	var three := colonist_engine(3)
 	eq(three.play_cost(first_in_hand(three)), {"food": 8}, "play_cost with 3 territories (2 more on the frontier)")
 
 
 func test_a_card_without_cost_per_territory_costs_its_printed_cost() -> void:
-	var e: Object = colonist_engine(3, 20, "", true)
+	var e := colonist_engine(3, 20, "", true)
 	eq(e.play_cost(first_in_hand(e)), {"food": 3}, "a Pioneer's play_cost with 3 territories")
 
 
 # --- AC2: paying it ---
 
 func test_playing_it_pays_the_grown_cost() -> void:
-	var e: Object = colonist_engine(3, 8)
+	var e := colonist_engine(3, 8)
 	check(e.play_card(first_in_hand(e), frontier_uid(e)), "play: %s" % e.play_error(first_in_hand(e)))
 	eq([e.resources.food, territories_in(e)], [0, 4], "[food, territories]: paid 8 and settled a 4th")
 
 
 func test_it_cant_be_played_short_of_the_grown_cost() -> void:
-	var e: Object = colonist_engine(3, 7)
+	var e := colonist_engine(3, 7)
 	var uid := first_in_hand(e)
 	eq(e.play_error(uid), "Colonist needs 8 food (you have 7).", "play_error")
 	check(not e.play_card(uid, frontier_uid(e)), "the play is refused")
@@ -72,7 +71,7 @@ func test_it_cant_be_played_short_of_the_grown_cost() -> void:
 # --- AC3: it counts at once ---
 
 func test_a_new_territory_raises_the_next_cost_at_once() -> void:
-	var e: Object = colonist_engine(1, 13)
+	var e := colonist_engine(1, 13)
 	check(e.play_card(first_in_hand(e), frontier_uid(e)), "first play: %s" % e.play_error(first_in_hand(e)))
 	eq(e.resources.food, 7, "the first paid 6")
 	eq(e.play_cost(first_in_hand(e)), {"food": 7}, "the second's play_cost with 2 territories")
@@ -81,14 +80,14 @@ func test_a_new_territory_raises_the_next_cost_at_once() -> void:
 # --- AC4: discounts and the supply ---
 
 func test_discounts_come_off_after_the_surcharge() -> void:
-	var e: Object = colonist_engine(3, 20, "claimants")
+	var e := colonist_engine(3, 20, "claimants")
 	eq(e.play_cost(first_in_hand(e)), {"food": 6}, "5 + 3 − 2")
-	var landed: Object = colonist_engine(3, 20, "landed")
+	var landed := colonist_engine(3, 20, "landed")
 	eq(landed.play_cost(first_in_hand(landed)), {"food": 0}, "never below 0")
 
 
 func test_the_supply_pile_shows_the_grown_cost() -> void:
-	var e: Object = colonist_engine(3)
+	var e := colonist_engine(3)
 	eq(e.supply_play_cost("colonist"), {"food": 8}, "supply_play_cost with 3 territories")
 	eq(e.supply_play_cost("colonist"), e.play_cost(first_in_hand(e)), "the same as a copy in hand")
 
