@@ -44,6 +44,14 @@ func played_game(cache_on: bool, seed_value := 1, strategy := "generic") -> Arra
 	return [e.score(), zones, e.log_lines.duplicate()]
 
 
+# --- 335: each fixture game played once per run ---
+
+func test_the_shared_games_are_played_once_per_run() -> void:
+	var first: Variant = call("shared_games")
+	var second: Variant = call("shared_games")
+	check(first is Dictionary and first == second, "the same games both times")
+	eq(get("game_plays"), 6, "6 bot games: seed 1 generic and wide, cache off and on; seed 2 alone and after seed 1")
+
 # --- AC1: the same games ---
 
 func test_the_cache_plays_the_same_game_as_without_it() -> void:

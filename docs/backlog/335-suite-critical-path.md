@@ -2,7 +2,7 @@
 id: 335
 title: Shorten the suite's critical path: fewer bot games in the cache tests, slow files dealt first
 type: chore
-status: draft
+status: red-review
 branch: feat/335-suite-critical-path
 ---
 
@@ -39,6 +39,10 @@ inlines `lookups_for_a_discard`. This comes before 336, which changes the code t
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_generic_bot_cache::test_the_shared_games_are_played_once_per_run`; the file's other tests keep their names and assertions |
+| AC2 | refactor (no new test) |
+| AC3 | `test_test_runner::test_slow_files_are_dealt_first_one_per_shard_then_the_rest_round_robin`, `test_slow_files_match_by_file_name_and_a_missing_one_is_skipped`, `test_the_slow_list_names_test_files_that_exist`, `test_the_runner_deals_the_slow_files_first` |
+| AC4 | `test_test_runner::test_every_file_runs_exactly_once_for_1_to_12_shards`; the count grows only by these 6 tests |
 
 ## Manual check
 - [ ] `scripts/test.sh` wall time is lower than before (figures in the Log).
@@ -46,3 +50,6 @@ inlines `lookups_for_a_discard`. This comes before 336, which changes the code t
 ## Log
 - 2026-10-06: specced from the project review (per-file timings: generic_bot_cache 7.8 s, sim_anarchy 5.4 s,
   knowledge_screen 5.6 s, a light file 2.8 s, Godot start included).
+- 2026-10-06: before, on main at 198bea5 (12-core Mac, other sessions idle): `scripts/test.sh` 11.1 s and 11.9 s
+  (2193 tests); `TEST_JOBS=1 scripts/test.sh test_generic_bot_cache` 8.8 s. Per file, 4 at a time with Godot's start:
+  generic_bot_cache 9.4 s, knowledge_screen 7.5 s, sim_anarchy 6.9 s, ui_smoke 5.6 s, start_screen 5.6 s, the rest ≤ 5.4 s.
