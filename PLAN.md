@@ -263,6 +263,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   Merchant Quarter, Textile Works and Dockyard make ⟳ +1 wealth per 3 pop here. The Aqueduct needs a Town (housing 3).
   Content tests: only the listed pure-discount techs (Mathematics, Astronomy) open nothing; a stand-alone Metropolis
   building is a wonder or a `once` entry.
+- Gap buildings (308): Palace (Code of Laws; Metropolis, `once`; 3 VP, +1 action each turn), Shipyard (Sailing, coastal),
+  Terraced Fields (Masonry, hills or mountain: Mountains' food building), Reed Works (turn 1, marsh), Cistern
+  (Engineering, hills or desert), Dye Works (Weaving, coastal) and Kiln (Pottery). Monument and Forge are no longer
+  `once`. Content tests: every territory can hold a food building that isn't an upgrade; a `once` building that isn't a
+  wonder needs a tier.
 - Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
   upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
   `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
