@@ -2,7 +2,7 @@
 id: 352
 title: Flavor text for buildings
 type: feature
-status: review
+status: done
 branch: feat/352-building-flavor
 ---
 
