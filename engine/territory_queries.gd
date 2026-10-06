@@ -81,6 +81,18 @@ func next_tier_pop(uid: int) -> int:
 	return Population.next_tier_pop(self, uid)
 
 
+## A longer explanation of play_error's refusal for a tooltip (347), or "" when it has none (or the play is legal).
+func play_error_detail(uid: int, target_uid := -1) -> String:
+	return Population.no_worker_detail(self, target_uid) if CardPlay.error(self, uid, target_uid) == Population.NO_WORKER else ""
+
+
+## A longer explanation of build_error's refusal for a tooltip (347), or "" when it has none (or the build is legal).
+func build_error_detail(card_id: String, territory_uid := -1) -> String:
+	if BuildMenu.error(self, card_id, territory_uid) != Population.NO_WORKER:
+		return ""
+	return Population.no_worker_detail(self, territory_uid)
+
+
 ## Whether building uid is idle: with population on, a territory's buildings beyond its pop are idle, and those beyond
 ## its slots (281), the ones placed last first. Idle buildings skip upkeep but keep their printed VP. An upgrade takes no
 ## worker, so it is never idle; it falls back instead (fallen_back_reason).

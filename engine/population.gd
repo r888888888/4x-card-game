@@ -212,6 +212,22 @@ static func is_idle(e: GameEngine, uid: int) -> bool:
 		and Territories.buildings_on(e, card.territory_uid).find(card) >= Territories.total_slots(e, card.territory_uid)
 
 
+## The refusal of a building or unit for want of a free worker (347); no_worker_detail explains it.
+const NO_WORKER := "No free worker."
+
+
+## Why NO_WORKER (347): what a worker is, then that settled territory territory_uid's pop is all at work or that it
+## has none, or with -1 that every territory's pop is at work.
+static func no_worker_detail(e: GameEngine, territory_uid: int) -> String:
+	var why := "Each building and unit needs a worker: one pop on its territory."
+	var territory := Territories.settled(e, territory_uid)
+	if territory == null:
+		return why + " Every territory's pop is at work."
+	if territory.pop == 0:
+		return why + " %s has no pop yet." % territory.shown_name()
+	return why + " %s's pop is all at work." % territory.shown_name()
+
+
 ## Whether territory has a free worker for another building or unit (always, with population off).
 static func has_worker(e: GameEngine, territory: CardInstance) -> bool:
 	return not e.population_on() or free_workers(e, territory.uid) > 0

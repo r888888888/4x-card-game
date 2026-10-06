@@ -77,12 +77,15 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 	var m := _main
 	var in_hand := container == m.hand
 	var error := e.playable_error(card.uid) if in_hand else ""
+	var detail := e.play_error_detail(card.uid) if error != "" else ""  # 347
 	var leading := TableauView.leading_zone(e, card.uid) if container == m.tableau.row else ""
 	var kind := TableauView.board_kind(leading) if container == m.tableau.row else ""  # 138: a fixed-height board face
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error, kind)
+		if detail != "":
+			view.set_play_error(error, detail)
 		view.set_pickable(m.choices.is_choice_row(container), m.choices.pick_hint(container))
 		if leading != "":
 			view.set_hint(TableauView.LEADING_ZONES[leading])
@@ -118,7 +121,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		view.setup(card, e.card_db, in_hand, error, kind)
 		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
-		view.set_play_error(error)
+		view.set_play_error(error, detail)
 		view.set_shortfall(e.play_shortfall(card.uid))
 	elif leading != "":
 		view.set_hint(TableauView.LEADING_ZONES[leading])

@@ -1,11 +1,12 @@
 extends "res://tests/lib/test_case.gd"
 ## Workers gate buildings (backlog 012): a building needs a free worker (pop) on its territory, and a
-## territory with more buildings than pop leaves the newest ones idle at upkeep.
+## territory with more buildings than pop leaves the newest ones idle at upkeep. 347: the refusal is "No free worker.",
+## explained by play_error_detail / build_error_detail.
 
 
 ## Population on with Homeland pop start (vp_per_pop 0 so score is printed VP + effect VP), plenty of food.
-func workers_engine(start: int, deck := {"farm": 10}, food_upkeep := 0) -> GameEngine:
-	var e := make_engine(deck, {"population": {"start": start, "food_upkeep": food_upkeep, "vp_per_pop": 0}})
+func workers_engine(start: int, deck := {"farm": 10}, food_upkeep := 0, overrides := {}) -> GameEngine:
+	var e := make_engine(deck, {"population": {"start": start, "food_upkeep": food_upkeep, "vp_per_pop": 0}}.merged(overrides))
 	e.resources.food = 50
 	return e
 
@@ -35,7 +36,7 @@ func test_building_needs_a_free_worker() -> void:
 	eq(e.free_workers(home), 0, "pop 1 - 1 building")
 	var farm := first_in_hand(e)
 	eq(e.valid_targets(farm), [] as Array[int], "no valid target")
-	eq(e.play_error(farm), "No territory with a free worker.", "play_error")
+	eq(e.play_error(farm), "No free worker.", "play_error (347)")
 	var hand_size := e.zone("hand").size()
 	check(not e.play_card(farm, home), "play refused")
 	eq(e.zone("hand").size(), hand_size, "Farm still in hand")
@@ -43,6 +44,55 @@ func test_building_needs_a_free_worker() -> void:
 
 
 # --- AC2: a free worker allows placement ---
+
+# --- 347: why no free worker ---
+
+const WHY := "Each building and unit needs a worker: one pop on its territory."
+
+
+func test_no_free_worker_on_the_target_is_short_with_a_detail() -> void:
+	var e := workers_engine(2, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
+	place(e, 2)
+	var home := home_uid(e)
+	check(e.free_slots(home) > 0, "a free slot left")
+	var farm := first_in_hand(e)
+	eq(e.play_error(farm, home), "No free worker.", "played on Homeland")
+	eq(e.build_error("farm", home), "No free worker.", "built on Homeland")
+	eq(e.play_error_detail(farm, home), WHY + " Homeland's pop is all at work.", "the play detail")
+	eq(e.build_error_detail("farm", home), WHY + " Homeland's pop is all at work.", "the build detail")
+
+
+func test_the_detail_names_the_city_name() -> void:
+	var e := workers_engine(2)
+	place(e, 2)
+	var home := home_uid(e)
+	check(e.rename_territory(home, "Memphis"), "renamed")
+	eq(e.play_error_detail(first_in_hand(e), home), WHY + " Memphis's pop is all at work.", "the city name")
+
+
+func test_with_no_territory_free_the_detail_says_every_pop_is_at_work() -> void:
+	var e := workers_engine(1)
+	place(e, 1)
+	var farm := first_in_hand(e)
+	eq(e.play_error(farm), "No free worker.", "no target given")
+	eq(e.play_error_detail(farm), WHY + " Every territory's pop is at work.", "the detail")
+
+
+func test_other_refusals_and_legal_plays_have_no_detail() -> void:
+	var e := workers_engine(7, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
+	var home := home_uid(e)
+	var farm := first_in_hand(e)
+	eq([e.play_error(farm, home), e.play_error_detail(farm, home), e.build_error_detail("farm", home)], ["", "", ""],
+		"legal: no detail")
+	var fill: Array = []
+	fill.resize(e.free_slots(home))
+	fill.fill("farm")
+	build_on(e, home, fill)
+	eq(e.free_slots(home), 0, "no free slot")
+	check(e.free_workers(home) > 0, "workers to spare")
+	eq(e.play_error(farm, home), "That target isn't valid.", "no free slot: unchanged")
+	eq([e.play_error_detail(farm, home), e.build_error_detail("farm", home)], ["", ""], "no detail")
+
 
 func test_building_placed_with_a_free_worker() -> void:
 	var e := workers_engine(2)

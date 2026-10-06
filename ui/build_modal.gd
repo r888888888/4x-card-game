@@ -119,6 +119,7 @@ func _add_row(row_id: String, card_id: String, target: int, text: String) -> voi
 	_targets[row_id] = [card_id, target]
 	var entry := list.add_row(row_id, text + ("\n" + reason if reason != "" else ""))
 	entry.modulate.a = DIMMED if reason != "" else 1.0
+	entry.tooltip_text = Game.engine.build_error_detail(card_id, target) if reason != "" else ""  # 347
 	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # a long name or reason wraps inside the column (343)
 
 

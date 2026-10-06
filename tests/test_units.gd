@@ -10,6 +10,8 @@ const TEST_UNITS := [
 
 
 ## TEST_CARDS plus TEST_UNITS and extra, parsed: {cards, errors, warnings}.
+const WHY_WORKER := "Each building and unit needs a worker: one pop on its territory."  # 347
+
 func unit_load(extra := []) -> Dictionary:
 	return fixture_load(extra, [TEST_UNITS])
 
@@ -143,10 +145,11 @@ func test_unit_uses_a_worker_on_its_home() -> void:
 	eq(e.free_workers(home), 0, "2 pop - Farm - Levy")
 	var levy := first_in_hand(e)
 	eq(e.valid_targets(levy), [] as Array[int], "no target for another Levy")
-	eq(e.play_error(levy), "No territory with a free worker.", "another Levy")
+	eq(e.play_error(levy), "No free worker.", "another Levy")
+	eq(e.play_error_detail(levy), WHY_WORKER + " Every territory's pop is at work.", "the detail (347)")
 	var farm := put_in_hand(e, "farm")
 	e.resources.food = 10
-	eq(e.play_error(farm), "No territory with a free worker.", "a Farm")
+	eq(e.play_error(farm), "No free worker.", "a Farm")
 
 
 func test_units_need_no_worker_without_population() -> void:
@@ -194,7 +197,8 @@ func test_unit_refuses_invalid_targets() -> void:
 	grass_card.pop = 0
 	var levy := first_in_hand(e)
 	eq(e.play_error(levy, uid_of(e.zone("frontier"), "hills")), "That target isn't valid.", "a frontier territory")
-	eq(e.play_error(levy, grass_card.uid), "That target isn't valid.", "no free worker")
+	eq(e.play_error(levy, grass_card.uid), "No free worker.", "no free worker (347)")
+	eq(e.play_error_detail(levy, grass_card.uid), WHY_WORKER + " Grassland has no pop yet.", "the detail (347)")
 	eq(e.play_error(levy, uid_of(e.zone("tableau"), "capital")), "That target isn't valid.", "a city")
 
 

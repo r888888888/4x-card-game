@@ -141,7 +141,7 @@ static func no_building_target_error(e: GameEngine, card: CardInstance) -> Strin
 	for territory in e.zone("tableau").cards:
 		if territory.def.type == CardDef.TERRITORY and meets_requires(card, territory):
 			if has_room(e, territory):
-				return "No territory with a free worker."
+				return Population.NO_WORKER
 			slot_found = true
 	return "No territory with a free slot." if slot_found else requires_error(card)
 

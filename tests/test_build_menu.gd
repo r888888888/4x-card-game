@@ -120,7 +120,7 @@ func test_build_refuses_without_a_slot_or_a_worker() -> void:
 	check(e.build("farm", home_uid(e)), "the home's one worker builds a Farm")
 	e.end_turn()
 	e.resources.food = 10
-	assert_refused(e, "farm", -1, "No territory with a free worker.")
+	assert_refused(e, "farm", -1, "No free worker.")
 	eq(e.build_targets("farm"), [] as Array[int], "no targets")
 	var full := build_engine(10, MENU, {"population": {"start": 7, "food_upkeep": 0, "vp_per_pop": 0}})
 	var temples := []
