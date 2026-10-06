@@ -534,6 +534,7 @@ travel (§16.5).
 | Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for \|Δ\| > 8, roll the last 8 steps only. | `linear-step` | `ui.counter.tick` @ each step's landing; the jump past the first steps is silent |
 | Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` | `ui.selection` @ index tab lands, ≈ 65 ms. Deselect: None |
 | Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` | `ui.confirm` @ lamp-on (0 ms); the rays are silent |
+| Build ceremony (§10.8, 357) | ≈ 1.4 s, from the Build sheet's close | The card is in its slot as the sheet closes; 160 ms later a lamp ring blooms off its edge (0→12 px, fading, 450 ms), 12 rays draw out from 8 px off its edge (0→24 px in 200 ms, fade 200 ms), and 120 ms after the ring a BUILT tag snaps onto its top-right corner (4 px drop, 90 ms), holds 900 ms and wipes out to the right (140 ms). Ring and rays in the card's plane colour, the tag `signal`. | `lamp`, `snap`, `machined` / `release` | `ui.milestone.build` (`ui.milestone.recruit` for a unit) @ the ring's lamp-on; `ui.flap` as the tag lands |
 | Error feedback | 240 ms | One lateral **snap**: −4, +4, 0 px (80 ms each), border turns `danger`, ⊘ appears; message stays until the cause changes or 4 s. No shaking > 4 px. | `snap` | `ui.reject`: one tap per lateral stop, ≈ 44 and ≈ 124 ms |
 | Major milestone | 1.2–2.0 s, skippable | Ceremonial sheet wipes across, display type split-flaps in by character (25 ms stagger), concentric-ring or 16-ray starburst motif draws, one `settle`. Click/Esc skips to the end state. | `machined`, `settle` | `ui.milestone.*`: sheet @ 0, flutter with the type, musical accent @ the motif's completion; a skip fades it in 30 ms |
 
@@ -669,6 +670,18 @@ silent. A stronger routine confirmation (choosing a government, a treaty signed)
 fourth. Neither is ever layered, musical or longer than 250 ms, so a confirmation can't be mistaken for an
 achievement. Learning a tech is an event, not a confirmation: it plays `ui.milestone.breakthrough` (§11.3).
 
+**Building is an event too (357).** Building on a territory, recruiting a unit and building an upgrade end in a small
+ceremony on the new card, between a confirmation and a milestone (timing in §9.4): the lamp ring and a 12-ray
+starburst in the card's plane colour, then a stamp. The stamp is a tag in `signal` with `on-signal` capitals, "BUILT" or
+"RECRUITED", snapped onto the card's top-right corner, and it wipes out after 900 ms. An upgrade has no card of its own
+(it is a ribbon on its base), so the ring and rays play on the building it upgrades, with no stamp. Nothing moves the
+card: it is in its slot as the Build sheet closes, and the ceremony starts once the sheet has cleared it (160 ms). A card
+that reaches the board any other way (dealt, settled, created by an effect) keeps its usual arrival. With Reduce motion
+the ring and rays are drawn at full size, static, and the tag shows without its drop; all three hold 1.5 s and go
+without a wipe (§9.5). The sound is unchanged: `ui.milestone.build` (a ribbon cut: a relay, a muted-piano pickup, a
+D major chord ringing out over a low D) or, for a unit, `ui.milestone.recruit` (two low drums, a drum with a snare, a
+short horn call A3 → D4). Both sit at +9, under every other milestone.
+
 ### 10.9 Errors and refusals
 An action the engine refuses (an invalid drop, a play the `*_error` query forbids) is refused the way a mechanism
 refuses: the thing tries to go, meets a stop, and returns. Visual: border to `danger`, ⊘ and the engine's reason in
@@ -750,7 +763,8 @@ appear as filled teal figures in the room's corner; idle buildings get a hatched
 with "IDLE".
 Sound: entering is navigation (`ui.nav.forward`). Placing a worker plays `ui.selection` (a marker set on a plan) as
 the figure fills; the idle lamp is silent. Founding a city (settling a territory) is an event: `ui.milestone.city`, a
-heavier latch, like a plan being stamped, and two marimba notes.
+heavier latch, like a plan being stamped, and two marimba notes. Building on it is a smaller event, the build ceremony
+(§10.8): `ui.milestone.build`.
 
 ### 11.7 Population
 Pop is a **tally counter** of pips (the meter, 124). Pips are pop figures at the stats line's text size (242) in a
@@ -1408,7 +1422,11 @@ Sound and motion imply the same imaginary mechanism. Change one and you change t
 4. **Routine never sounds like a reward.** No Level 1 or 2 sound is musical, holds a tone longer than 250 ms, or
    rises more than a fourth. Melody, chords and intervals belong to Level 3.
 5. **A level follows meaning and frequency, not the component.** An event that turns out to be common in play moves
-   down a level (§11.3) rather than getting quieter in place.
+   down a level (§11.3) rather than getting quieter in place. The one deliberate exception is building (357): a
+   building, unit or upgrade can come several times a turn, yet it is the player's main way of growing a territory and
+   gets an event sound, `ui.milestone.build` / `.recruit`, at +9 (under every other milestone, level with the turn's
+   chord) with a longer ring-out (a 1.2 s room, as the turn's chord). While it plays, the system's routine sounds wait
+   or drop as under any Level 3.
 
 ### 16.5 Timing synchronization
 Sound occurs at the perceived physical event.
