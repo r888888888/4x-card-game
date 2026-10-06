@@ -24,7 +24,7 @@ const TYPE_FIELDS := {
 	"discard": [CardDef.EVENT],
 	"raid": [CardDef.EVENT],
 	"choices": [CardDef.EVENT],
-	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
+	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT, CardDef.ACTION],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
 	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],

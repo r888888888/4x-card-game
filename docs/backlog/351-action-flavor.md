@@ -2,7 +2,7 @@
 id: 351
 title: Flavor text for action cards
 type: feature
-status: red-review
+status: in-progress
 branch: feat/351-action-flavor
 ---
 

@@ -33,46 +33,55 @@
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
+      "flavor": "Families load their oxcarts with seed grain and walk until they find good water and land no one else has claimed.",
       "cost": { "food": 5 }, "cost_per_territory": { "food": 1 }, "vp": 0, "tags": ["expand"],
       "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "scout", "name": "Scout", "type": "action",
+      "flavor": "A runner goes ahead of the tribe, reading the land for rivers, passes and the smoke of other people's fires.",
       "cost": {}, "vp": 0, "tags": ["explore"],
       "effects": [ { "op": "explore" } ]
     },
     {
       "id": "barter", "name": "Barter", "type": "action",
+      "flavor": "Obsidian for salt, wool for copper: long before coins, a good bargain at the river ford left both sides richer.",
       "cost": { "food": 2 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2 }, { "op": "gain_actions", "amount": 1 } ]
     },
     {
       "id": "hunt", "name": "Hunt", "type": "action",
+      "flavor": "In the woods and on the open grass, hunters follow the herds as their ancestors did and bring meat home to the hearth.",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
     },
     {
       "id": "bread_and_beer", "name": "Bread and Beer", "type": "action",
+      "flavor": "Grain feeds the city twice, baked into loaves and brewed into beer, the daily ration of every worker in Sumer and Egypt.",
       "cost": { "food": 2 }, "vp": 0, "tags": [],
       "effects": [ { "op": "grow", "amount": 1, "where": "best" } ]
     },
     {
       "id": "land_grants", "name": "Land Grants", "type": "action",
+      "flavor": "The ruler parcels out fields to loyal soldiers, and new villages take root along the boundary stones.",
       "cost": { "food": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "grow", "amount": 1, "where": "each", "count": 3 } ]
     },
     {
       "id": "feast", "name": "Feast", "type": "action",
+      "flavor": "Oxen are roasted, jars are opened, and for one night the whole city eats together and forgets its grievances.",
       "cost": { "food": 3 }, "vp": 0, "tags": ["order"],
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 2 } ]
     },
     {
       "id": "storyteller", "name": "Storyteller", "type": "action",
+      "flavor": "Around the fire the old tales of floods, heroes and gods are told again, and each generation learns what the last one knew.",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "draw", "amount": 2 } ]
     },
     {
       "id": "research", "name": "Research", "type": "action",
+      "flavor": "Priests watch the stars, scribes copy tables, and slowly the temple archives fill with what has been learned.",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ]
     },
@@ -84,6 +93,7 @@
     },
     {
       "id": "caravan", "name": "Caravan", "type": "action",
+      "flavor": "Strings of donkeys, later camels, link city to city across desert and steppe, carrying tin, cloth and news.",
       "cost": { "food": 1 }, "vp": 0, "tags": ["trade"],
       "effects": [ { "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 } ]
     },
