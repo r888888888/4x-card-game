@@ -72,3 +72,18 @@ func test_under_anarchy_the_renewal_comes_first_then_the_choice() -> void:
 		await wait_frames()
 		eq(main.event_modal().get("id"), "envoys", "then the event shows")
 		eq(main.event_option_buttons().size(), 2, "with its options"), fall, {"renewal": 1})
+
+
+func test_bug_323_the_event_modals_text_reads_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		Settings.call("set_day_mode", true)
+		await with_choice(3, func(main: Node):
+			var modal: Node = main.event_modal_ok_button()
+			while not modal is Modal:
+				modal = modal.get_parent()
+			var texts := modal.find_children("*", "RichTextLabel", true, false).filter(func(label: RichTextLabel):
+				return label.theme_type_variation == &"RichBody")  # not the aside card's own rules text
+			check(not texts.is_empty(), "the modal has its flavour text")
+			for text: RichTextLabel in texts:
+				eq(text.get_theme_color("default_color").to_html(false), "22211f", "%s reads Day TEXT" % text.name))
+		Settings.call("set_day_mode", false))
