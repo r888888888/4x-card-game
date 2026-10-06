@@ -322,7 +322,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 
 Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
-writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase. Two files'
+writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase, and the suite fails on one left after it (333). Two files'
 helpers with the same name must do the same thing. Tests never call engine members that start with `_`: if setup needs one, add a public method.
 
 ### Guidelines

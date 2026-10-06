@@ -39,6 +39,7 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
      feature will add. A parse error or typo in the test itself doesn't count; fix it and re-run.
    - Existing tests still pass (unless an approved criterion changes an existing rule; name those
      tests explicitly at the checkpoint).
+     `test_scaffolding` may fail too while the new tests hold engines as `Object`: expected until the refactor step.
 4. Fill in the item's **Test plan** table (AC → test names) and set `status: red-review`.
 5. Commit the red tests on the branch: `<id>: failing tests for <title>`. This is the only commit
    allowed with a red suite, and it stays on the feature branch.
@@ -71,6 +72,8 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
 
 1. Look at the code you touched and at its neighbors: duplication, unclear names, long functions,
    and helpers that belong in `test_case.gd`. Also check that comments and doc comments are still true.
+   Remove red-phase scaffolding from the new tests (engines typed `Object`, untyped `load()`s, `has_method` and
+   `== null` guards): the suite checks (333; a line that needs one says why with `# scaffolding-ok: <reason>`).
    Check `ui/` for any logic you added (a legality check, calculation or derived value): move it into an
    engine query under TDD and have the UI call it.
 2. Refactor in small steps, running `scripts/test.sh` after each. Behavior must not change.

@@ -68,11 +68,5 @@ section "Tracked files that shouldn't be (junk, empty files; orphan .uid files: 
 	true
 } | grep . || echo "(none)"
 
-section "Test files holding an engine as Object (0 outside a red phase)"
-grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
-	tests/test_*.gd tests/lib/*.gd | sed 's/^/  /'
-grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
-	tests/test_*.gd tests/lib/*.gd | wc -l | sed 's/^ */count: /'
-
 section "Local permissions that contradict CLAUDE.md's Git rules"
 grep -nE 'git (merge|push|rebase|reset|branch -D)' .claude/settings*.json 2>/dev/null || echo "(none)"

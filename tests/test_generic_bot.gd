@@ -1,8 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The generic bot (313): it tries each of legal_actions() on a sample fork, values the result with one function and
 ## does the best, stopping when nothing beats doing nothing. Fixture games of a few turns (tests/lib/anarchy_case.gd:
-## unrest on, home pop 6), with Lone ruling (1 action, unrest limit 5), no supply and no research deck. The bot is loaded
-## untyped so this file parses before it exists.
+## unrest on, home pop 6), with Lone ruling (1 action, unrest limit 5), no supply and no research deck.
 ## In detail (from docs/testing.md, 331): The generic bot (313) on fixture games (Lone: 1 action, unrest limit 5; no
 ## supply or research): Temple over Shrine with turns left, Shrine on the last turn, nothing when nothing helps, a draw
 ## first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest
