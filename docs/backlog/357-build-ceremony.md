@@ -2,7 +2,7 @@
 id: 357
 title: Building, recruiting and upgrading end in a ceremony with an event sound
 type: feature
-status: ready
+status: red-review
 branch: feat/357-build-ceremony
 ---
 
@@ -75,7 +75,14 @@ event sound that rings out, so a build feels like an achievement. Designed and c
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_built_signal::test_building_emits_built_with_the_new_card_before_changed`, `::test_recruiting_emits_built_with_the_unit`, `::test_a_refused_build_emits_nothing`, `::test_other_arrivals_emit_no_built`, `::test_settling_a_territory_emits_no_built` |
+| AC2 | `test_built_signal::test_building_an_upgrade_emits_built_with_the_upgrade` |
+| AC3 | `test_build_ceremony::test_a_building_built_rests_in_its_slot_under_a_ceremony`, `::test_the_ceremony_goes_once_it_has_run` |
+| AC4 | `test_build_ceremony::test_a_unit_recruited_gets_the_ceremony_and_the_drum` |
+| AC5 | `test_build_ceremony::test_an_upgrade_plays_ring_and_rays_on_its_base` |
+| AC6 | `test_build_ceremony::test_a_card_played_from_the_hand_arrives_without_a_ceremony` (plus AC1's engine tests) |
+| AC7 | `test_build_ceremony::test_reduce_motion_shows_the_ceremony_whole_and_holds_it` |
+| AC8 | `test_sfx::test_the_build_sounds_are_events_in_the_guide`, `test_build_ceremony::test_a_build_that_adds_an_era_plays_only_the_era` |
 
 ## Manual check
 - [ ] Build a Farm: the card is in its slot as the sheet closes, then the ring blooms, the rays draw out and fade, and

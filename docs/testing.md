@@ -69,10 +69,12 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_board_layout.gd` | The board without a sidebar (115; UI) |
 | `tests/test_board_row.gd` | One board row (137; UI) |
 | `tests/test_build_menu.gd` | The build menu (295) |
+| `tests/test_build_ceremony.gd` | The build ceremony (357; UI) |
 | `tests/test_build_modal.gd` | Building from a territory's view (297; UI) |
 | `tests/test_building_tiers.gd` | Buildings that need a settlement tier (301) |
 | `tests/test_button_widths.gd` | Button widths (100; UI) |
 | `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209; UI) |
+| `tests/test_built_signal.gd` | The engine's `built` signal (357) |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state and terms (056, 289) |
 | `tests/test_card_faces.gd` | Index-card faces and card motion (179) |
 | `tests/test_card_landing.gd` | How a card lands (117) |
@@ -129,7 +131,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_government_deck.gd` | The government deck (154) |
 | `tests/test_grow_meter.gd` | The territory view's pop meter (124; UI) |
 | `tests/test_growth_cards.gd` | The `grow` op (013, 261, 262) |
-| `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
+| `tests/test_hand_limit.gd` | The hand: `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_hand_size.gd` | Hand size as a modifier (109) |
 | `tests/test_harmful_ops.gd` | The `lose` and `lose_pop` ops (072) |
 | `tests/test_housing_modifier.gd` | The `housing` modifier key (110) |
@@ -241,8 +243,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_workers.gd` | Workers |
 | `tests/test_would_target.gd` | `would_need_target` / `would_target` (310) |
 
-Add a new file when an area grows past ~300 lines or is a separate concern
-(e.g. `test_effects.gd`, `test_market.gd`).
+Add a new file when an area grows past ~300 lines or is a separate concern.
 
 ```gdscript
 extends "res://tests/lib/test_case.gd"
@@ -282,20 +283,20 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
 | `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording |
 | `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test |
-| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (plus `extra_cards`, raw card dicts a single file needs) |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` plus `extra_cards` (raw card dicts one file needs) |
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`) |
 | `tests/lib/tech_case.gd` | Base class for tech tests: `TECHS`, `tech_db`, `tech_engine` |
 | `tests/lib/raid_case.gd` | Base class for raid tests: `RAID_CARDS`, `raid_load`, `raid_engine` |
 | `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments, `anarchy_engine` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, then fixture sets (`[TEST_GOVS]`, `[TECHS]`, …), then `extra`, parsed for loader tests |
+| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets (`[TEST_GOVS]`, …), then `extra`, parsed for loader tests |
 | `fixture_db(extra, sets, resource_list)` | `fixture_load`'s cards, failing the test on a load error (170) |
 | `cards_of(r, errors, warnings)` | A `fixture_load` result's cards, its errors and warnings appended to the out arrays |
 | `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards` |
 | `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)` |
 | `explore_engine()` / `over_engine()` | A game with an explore choice open; a finished game |
-| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | A card "x" with one effect; the home territory's pop; the Capital's territory |
+| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | A card "x" with one effect; the home's pop; the Capital's territory |
 | `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers; `home_uid` is the config's starting territory |
 | `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
@@ -313,14 +314,14 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `with_temp_settings(body, path)` | Runs `body` with the settings saved to a temp file, then restores them |
 | `shown_state(key)` | The state a toggle key shows, "ON" or "OFF" (219) |
 | `close_event(main)` | UI tests: closes the drawn-event modal if one is up |
-| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI tests: a seed-1 game at turn 3; visit every screen and modal; visible controls |
-| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI tests: `body(main)` on the main scene started on seed 1 |
+| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: a seed-1 game at turn 3; every screen and modal; visible controls |
+| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI: `body(main)` on the main scene, seed 1 |
 | `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text, equality on it, and what differs |
-| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | An object's script variables; shared references; change everything in place |
+| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change everything in place |
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI tests: main on seed 1 (1920 × 1080, the sound clock frozen, if asked) (334) |
-| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI tests: real clicks and moves, hover ticks, a card's details |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks and moves, hover ticks, a card's details |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | The first shown button by text; game seconds; Hills' uid |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
