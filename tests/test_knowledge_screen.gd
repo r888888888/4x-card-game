@@ -778,3 +778,89 @@ func test_an_available_tile_the_insight_doesnt_cover_looks_short_until_it_does()
 		e.changed.emit()
 		await wait_screen_transition()
 		eq(tile(main, "Bronze Working").theme_type_variation, &"TechTile", "5 insight covers it"))
+
+
+# --- 326: a left click outside the screen closes it, and does nothing else ---
+
+## The first card view in main's hand, or null.
+func first_hand_card(main: Node) -> CardView:
+	var views: Array[CardView] = main.views_in(main.hand)
+	check(not views.is_empty(), "a card in hand")
+	return views[0] if not views.is_empty() else null
+
+
+## Waits past a hand card's details delay, so a click that would show its details has done so.
+func wait_details_delay() -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.DETAILS_CLICK_DELAY + 0.1).timeout
+
+
+func test_a_left_click_outside_the_screen_closes_it_and_does_nothing_else() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		var in_hand: int = main.hand_view_count()
+		check(not main.knowledge.get_global_rect().intersects(card.get_global_rect()), "the hand card is outside the sheet")
+		click(main, card)
+		check(not main.knowledge.is_open(), "a click on the hand closes the screen")
+		await wait_details_delay()
+		eq(main.details.shown(), {}, "the click opens no card's details")
+		eq(main.hand_view_count(), in_hand, "the hand is unchanged")
+		eq(card.state, CardView.State.REST, "the card is not picked up"))
+
+
+func test_a_click_inside_the_screen_leaves_it_open() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var insight: Label = null
+		for label in main.knowledge.find_children("*", "Label", true, false):
+			if label.text.begins_with("Insight"):
+				insight = label
+		check(insight != null, "the Insight line")
+		if insight == null:
+			return
+		click(main, insight)
+		check(main.knowledge.is_open(), "a click on the sheet's background leaves it open")
+		click(main, main.knowledge.era_heading(0))
+		check(main.knowledge.is_open(), "a click on an era's title leaves it open"))
+
+
+func test_a_click_outside_a_tech_details_modal_closes_only_the_modal() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		click(main, tile(main, "Pottery"))
+		eq(main.details.shown().get("name", ""), "Pottery", "Pottery's details")
+		await wait_screen_transition()
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		click(main, card)
+		eq(main.details.shown(), {}, "the click closes the details")
+		check(main.knowledge.is_open(), "the screen stays open"))
+
+
+func test_a_right_click_outside_the_screen_leaves_it_open() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var heading: Label = null
+		for label in main.find_children("*", "Label", true, false):
+			if label.text.begins_with("In Hand") and label.is_visible_in_tree():
+				heading = label
+		check(heading != null, "the In Hand heading")
+		if heading == null:
+			return
+		click(main, heading, MOUSE_BUTTON_RIGHT)
+		check(main.knowledge.is_open(), "a right click outside leaves it open"))
+
+
+func test_a_click_on_the_hand_works_as_before_once_the_screen_is_closed_or_leaving() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		press_key(main, KEY_ESCAPE)  # leaving: closed as soon as it starts to leave
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		click(main, card)
+		await wait_details_delay()
+		eq(main.details.shown().get("name", ""), Game.engine.def_details(card.card_id).get("name", "?"), "the click shows the card's details"))
