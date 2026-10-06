@@ -2,7 +2,7 @@
 id: 307
 title: New urban upgrades for markets, stores, walls, houses, workshops and harbours; Aqueduct needs a Town
 type: feature
-status: review
+status: done
 branch: feat/307-urban-upgrade-chains
 ---
 
