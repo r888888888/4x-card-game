@@ -1008,6 +1008,16 @@ func test_every_government_sets_administers() -> void:
 				"government %s sets administers" % id)
 
 
+## 320: every card that settles costs more for each territory held.
+func test_every_settling_card_costs_more_per_territory() -> void:
+	var r := load_real()
+	for id in r.cards:
+		var def: CardDef = r.cards[id]
+		if def.effects.any(func(effect): return effect.op == "settle"):
+			check(def.get("cost_per_territory") is Dictionary and not def.get("cost_per_territory").is_empty(),
+				"%s settles but sets no cost_per_territory" % id)
+
+
 ## 319: only cards a player holds one of raise the admin cap; copies of a building would stack it without end.
 func test_only_unique_cards_raise_the_admin_cap() -> void:
 	var r := load_real()

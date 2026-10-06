@@ -2,7 +2,7 @@
 id: 320
 title: Settling costs more for each territory you hold
 type: feature
-status: ready
+status: red-review
 branch: feat/320-settler-cost-per-territory
 ---
 
@@ -50,7 +50,11 @@ frontier territory to settle.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_cost_per_territory::test_…` |
+| AC1 | `test_cost_per_territory::test_the_cost_grows_by_the_step_for_each_settled_territory`, `test_a_card_without_cost_per_territory_costs_its_printed_cost` |
+| AC2 | `test_cost_per_territory::test_playing_it_pays_the_grown_cost`, `test_it_cant_be_played_short_of_the_grown_cost` |
+| AC3 | `test_cost_per_territory::test_a_new_territory_raises_the_next_cost_at_once` |
+| AC4 | `test_cost_per_territory::test_discounts_come_off_after_the_surcharge`, `test_the_supply_pile_shows_the_grown_cost` |
+| AC5 | `test_cost_per_territory::test_cost_per_territory_loads_with_its_text`, `test_cost_per_territory_validation`; `test_content::test_every_settling_card_costs_more_per_territory` |
 
 ## Manual check
 - [ ] Shipped: Settler 5 food + 1 food per territory (review before merging).
@@ -60,3 +64,6 @@ frontier territory to settle.
 ## Log
 - 2026-10-05: specced with the user with 319 as the two halves of a soft cap of about 12 settlements. Assumed linear
   (+1 food per territory) with discounts after the surcharge; the steep part of the curve is 319's unrest.
+- Red: `test_a_card_without_cost_per_territory_costs_its_printed_cost` passes already (a Pioneer costs its printed 3);
+  it guards that the surcharge touches only cards that set the field. The AC4 "never below 0" case uses a −20 food
+  discount (Landed).
