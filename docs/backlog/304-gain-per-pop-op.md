@@ -2,7 +2,7 @@
 id: 304
 title: A gain_per_pop op: gain for every N pop on the card's own territory
 type: feature
-status: ready
+status: red-review
 branch: feat/304-gain-per-pop-op
 ---
 
@@ -42,7 +42,11 @@ Fixture: an extra building Counting House `{"id": "counting_house", "name": "Cou
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_effects::test_…` |
+| AC1 | `test_gain_per_pop::test_gains_per_pop_on_its_own_territory_at_upkeep`, `test_pop_on_other_territories_does_not_count` |
+| AC2 | `test_gain_per_pop::test_gain_per_pop_loads_with_defaults`, `test_gain_per_pop_validation`, `test_gaining_unrest_per_pop_stops_at_the_unrest_limit` |
+| AC3 | `test_gain_per_pop::test_gain_per_pop_on_a_card_with_no_territory_is_a_load_error`, `test_an_action_with_no_territory_gains_nothing`, `test_gains_nothing_with_population_off` |
+| AC4 | `test_gain_per_pop::test_gain_per_pop_may_trigger_on_upkeep`, `test_an_idle_building_gains_nothing`; `test_forecast::test_upkeep_safe_ops_may_trigger_on_upkeep` (UPKEEP_SAFE row) |
+| AC5 | `test_gain_per_pop::test_gain_per_pop_card_text` |
 
 ## Log
 - 2026-10-05: specced from the tall-buildings design (idea 1, the per-pop form).
