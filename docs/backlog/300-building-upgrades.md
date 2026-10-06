@@ -2,7 +2,7 @@
 id: 300
 title: Build upgrades onto buildings: they add to their base, stack, and chain
 type: feature
-status: in-progress
+status: review
 branch: feat/300-building-upgrades
 ---
 
@@ -26,31 +26,31 @@ Fixture: `TEST_CARDS` plus these extra cards, with config `build_menu` `{"farm":
   Cathedral: `{"id": "cathedral", "name": "Cathedral", "type": "building", "cost": {"food": 1}, "upgrade_of":
   "sanctum", "vp": 2}`
 
-- [ ] AC1 (loader): A building may set `upgrade_of`, another building's id. Load errors naming file, card and field: an
+- [x] AC1 (loader): A building may set `upgrade_of`, another building's id. Load errors naming file, card and field: an
   unknown id ("upgrade_of: unknown card 'x'"); a card that isn't a building ("upgrade_of: 'scout' is an action"); a
   cycle, itself included, reported once on its first card in card order ("upgrade_of: cycle plough → plough"); an
   upgrade that is a project, or names one ("upgrade_of: a project can't take or be an upgrade"). `upgrade_of` on another
   type is ignored with a warning (`DataLoader.TYPE_FIELDS`). An upgrade can't be in `deck` or `supply`, or be the card of
   a `create` effect ("deck: 'plough' is an upgrade; build it from the build menu").
-- [ ] AC2 (build one): Given a Farm on Homeland (pop 2, the Farm working), 1 food and 2 actions left, when
+- [x] AC2 (build one): Given a Farm on Homeland (pop 2, the Farm working), 1 food and 2 actions left, when
   `build("plough", farm_uid)` is called, then it returns true; food is 0; actions left is 1; a new Plough is in the
   tableau with Homeland as its territory and `upgrade_base(plough_uid)` is the Farm's uid; Homeland's `free_slots` and
   `free_workers` are what they were before; `card_played` is emitted with the Plough's uid and the Farm's uid as target,
   and its `play` effects resolve. `upgrades_on(farm_uid)` is `[plough_uid]`. `build_targets("plough")` lists every Farm
   that could take it now (whatever it costs), in tableau order; with target −1 and exactly one such Farm, `build`
   builds there. A Farm that is idle can be upgraded.
-- [ ] AC3 (refusals): `build_error("plough", target)` is "" exactly when `build` would succeed, and `build` returns
+- [x] AC3 (refusals): `build_error("plough", target)` is "" exactly when `build` would succeed, and `build` returns
   false and changes nothing otherwise. Besides 295's refusals (blocked, locked, no actions, Anarchy, short of the cost),
   each with its message: the target isn't a Farm in the tableau, a territory included ("Plough builds on a Farm."); the
   Farm already carries a Plough ("That Farm already has a Plough."); no Farm can take it, target −1 ("No Farm to build
   Plough on."); target −1 with two or more ("Choose a Farm for Plough."); an upgrade whose `requires` its base's
   territory lacks gets the requires message building it would. A non-upgrade building given a building's uid as target
   is refused as today ("That target isn't valid.").
-- [ ] AC4 (stack and chain): A Farm can carry a Plough and a Ditch together, built in either order; `upgrades_on`
+- [x] AC4 (stack and chain): A Farm can carry a Plough and a Ditch together, built in either order; `upgrades_on`
   lists them in build order. A second Farm can carry its own Plough. Cathedral builds on a Sanctum, never on a Chapel
   ("Cathedral builds on a Sanctum."), so a Chapel → Sanctum → Cathedral chain takes two builds; `upgrades_on(chapel)`
   is `[sanctum]` and `upgrades_on(sanctum)` is `[cathedral]`.
-- [ ] AC5 (an upgrade adds while its base works): Given a Farm with a Plough and a Ditch on River (flood plain, pop 1,
+- [x] AC5 (an upgrade adds while its base works): Given a Farm with a Plough and a Ditch on River (flood plain, pop 1,
   so the Farm works), then the next upkeep gains 3 food from them (Farm 1, Plough 1, Ditch 1), River's housing is 1
   more than without the Ditch, and `score()` includes the Plough's 1 VP. Given Chapel → Sanctum → Cathedral working,
   `hand_size()` is 1 more and the Cathedral's 2 VP count. When the base stops working (River's pop drops to 0, so the
@@ -58,7 +58,7 @@ Fixture: `TEST_CARDS` plus these extra cards, with config `build_menu` `{"farm":
   no upkeep effects, modifiers, housing, defence, training or famine guard, and their printed VP leaves `score()`;
   `fallen_back_reason(uid)` says why ("Its Farm is idle."; "" while it works). When the base works again, so do they,
   at no cost. `upkeep_forecast` agrees with the upkeep that follows.
-- [ ] AC6 (state and text): `GameState.copy()` and `fork()` keep each upgrade's base (the suite's copy check covers the
+- [x] AC6 (state and text): `GameState.copy()` and `fork()` keep each upgrade's base (the suite's copy check covers the
   new `CardInstance` field). An upgrade's generated card text starts with the line "Builds on a Farm." and its details
   say the same; a base's text is unchanged. A tech's `unlock` of an upgrade entry reads "Plough can now be built on a
   Farm." (card text and the unlock notice), where 295 says "… can now be built." for a building.
@@ -103,3 +103,10 @@ Fixture: `TEST_CARDS` plus these extra cards, with config `build_menu` `{"farm":
 ## Log
 - 2026-10-05: specced from the tall-buildings design talk (options B + restructure; see 305–307). The user chose: an
   upgrade costs 1 action like any build; a fallen-back upgrade counts for nothing and returns by itself.
+- 2026-10-06: built. An upgrade is idle (`is_idle`) while the root of its chain is, so defence, training, the famine
+  guard and the UI's idle look follow without changes; `fallen_back_reason` names that idle root for every link
+  ("Its Chapel is idle." for a Cathedral). `Territories.buildings_on` (slots) skips upgrades. Extra test fixtures:
+  Rampart (play effect, defence, training, famine guard), Weir (requires), Furrow (unlock), Spears (training).
+- Follow-ups: the Build modal (297) lists an upgrade entry on a territory's view, where it is refused ("Plough builds
+  on a Farm."); 302 gives upgrades their own place. The real data has no upgrades yet (305–307), so nothing shows.
+  `data_loader.gd` is 636 lines and `config_loader.gd` 669, near the 700 limit.
