@@ -246,6 +246,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
   rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
   built on a Farm."
+- Rural upgrades (305): Ploughed Fields (The Plough) and Irrigation Canals (Irrigation) go on a Farm, Harbor (Sailing,
+  coastal) on Fishing Huts, Timber Camp (Bronze Working) on a Hunters' Camp and Shaft Mine (Iron Working) on a Mine; they
+  need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
+  Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
+  and the upgrade never opens in an earlier era.
 - Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
   upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
   `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take

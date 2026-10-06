@@ -514,6 +514,94 @@ func test_every_locked_build_menu_entry_is_unlocked_by_a_tech_and_back() -> void
 	check(not menu.is_empty(), "the real config has a build menu")
 
 
+## Backlog 305: the real buildings with upgrade_of, checked to be there so the upgrade invariants aren't empty.
+func real_upgrades(r: Dictionary) -> Array[CardDef]:
+	var out := real_buildings(r).filter(func(def: CardDef) -> bool: return def.is_upgrade())
+	check(not out.is_empty(), "the real data has building upgrades")
+	return out
+
+
+## Backlog 305: the era a build-menu entry opens in: 1 if it is open from turn 1, else the lowest era of a research-deck
+## tech that unlocks it (0 if none does).
+func entry_era(r: Dictionary, id: String) -> int:
+	if not r.config.get("build_menu", {}).get(id, {}).get("locked", false):
+		return 1
+	var era := 0
+	for tech in techs_in_research_deck(r):
+		if unlocked_by(tech).has(id):
+			era = tech.era if era == 0 else mini(era, tech.era)
+	return era
+
+
+## Backlog 305: the keyword sets a territory a game can hold may have (the starting territory, the territory deck and
+## every listed civilization's home): its printed keywords, alone and with each resource it may roll.
+func land_keyword_sets(r: Dictionary) -> Array:
+	var ids: Array = [r.config.starting.territory] + r.config.territory_deck.keys()
+	for civ in r.config.get("civilizations", []):
+		if r.cards[civ].home != "":
+			ids.append(r.cards[civ].home)
+	var out := []
+	for id in ids:
+		var land: CardDef = r.cards[id]
+		out.append(land.keywords)
+		for option in Territories.resource_table(r.config, land):
+			out.append(land.keywords + option.keywords)
+	return out
+
+
+## Whether a territory with keywords meets requires (any of them; an empty list meets anything).
+func meets(keywords: Array, requires: Array) -> bool:
+	return requires.is_empty() or requires.any(func(k): return keywords.has(k))
+
+
+## Backlog 305: an upgrade and its base are both built from the build menu, and a locked upgrade opens through a tech.
+func test_every_upgrade_and_its_base_are_build_menu_entries_opened_by_a_tech() -> void:
+	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	for def in real_upgrades(r):
+		check(menu.has(def.id), "upgrade %s is a build-menu entry" % def.id)
+		check(menu.has(def.upgrade_of), "%s's base %s is a build-menu entry" % [def.id, def.upgrade_of])
+		if menu.get(def.id, {}).get("locked", false):
+			check(entry_era(r, def.id) > 0, "locked upgrade %s is unlocked by a tech in research_deck" % def.id)
+
+
+## Backlog 305: some territory a game can hold meets both an upgrade's base's requires and its own.
+func test_every_upgrade_can_stand_on_some_territory() -> void:
+	var r := load_real()
+	var lands := land_keyword_sets(r)
+	var homeless: Array[String] = []
+	for def in real_upgrades(r):
+		var base: CardDef = r.cards[def.upgrade_of]
+		if not lands.any(func(k: Array) -> bool: return meets(k, base.requires) and meets(k, def.requires)):
+			homeless.append("%s %s on %s %s" % [def.id, def.requires, base.id, base.requires])
+	eq(homeless, [] as Array[String], "upgrades no territory can hold together with their base")
+
+
+## Backlog 305: an upgrade never opens in an earlier era than the building it goes on.
+func test_no_upgrade_opens_before_its_base() -> void:
+	var r := load_real()
+	var early: Array[String] = []
+	for def in real_upgrades(r):
+		var era := entry_era(r, def.id)
+		var base_era := entry_era(r, def.upgrade_of)
+		if era < base_era:
+			early.append("%s (era %d) on %s (era %d)" % [def.id, era, def.upgrade_of, base_era])
+	eq(early, [] as Array[String], "upgrades that open before their base")
+
+
+## Backlog 305: restructuring buildings into upgrades leaves every terrain a building of its own that isn't an upgrade:
+## one whose requires names it.
+func test_every_terrain_keeps_a_building_that_is_not_an_upgrade() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var missing: Array[String] = []
+	for terrain in r.config.terrains:
+		if not real_buildings(r).any(func(def: CardDef) -> bool:
+				return reachable.has(def.id) and not def.is_upgrade() and def.requires.has(terrain)):
+			missing.append(terrain)
+	eq(missing, [] as Array[String], "terrains whose only buildings are upgrades")
+
+
 ## Backlog 295: a wonder is built once a game.
 func test_every_wonder_is_a_once_entry() -> void:
 	var r := load_real()
