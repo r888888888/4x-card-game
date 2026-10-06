@@ -91,13 +91,11 @@ func test_upkeep_lose_pct_is_forecast_and_taken() -> void:
 # --- AC4, AC5: loader and card text ---
 
 func test_lose_pct_loads_and_may_trigger_on_upkeep() -> void:
-	var r := load_action(FIRE)
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	var upkeep := FIRE.duplicate(true)
-	upkeep["trigger"] = "upkeep"
-	eq(fixture_load([card_x("building", [upkeep])]).errors, [] as Array[String], "on upkeep")
-	eq(load_action(fire_with("pct", 100)).errors, [] as Array[String], "100% is allowed")
+	check_loads([
+		["Fire", [card_x("action", [FIRE])], {}],
+		["on upkeep", [card_x("building", [FIRE.merged({"trigger": "upkeep"})])], {}],
+		["100% is allowed", [card_x("action", [fire_with("pct", 100)])], {}],
+	], fixture_load)
 
 
 func test_lose_pct_validation() -> void:

@@ -24,16 +24,12 @@ func guard_engine(home_pop: int, card_ids: Array, food := 0, deck := {"farm": 10
 # --- AC1: loading housing and famine_guard ---
 
 func test_building_housing_and_famine_guard_load() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "cards.json", errors, warnings, keywords())
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.silo.housing, 1, "Silo housing")
-	eq(cards.silo.get("famine_guard"), 1, "Silo famine_guard")
-	eq(cards.farm.get("famine_guard"), 0, "no famine_guard by default")
-	eq(cards.farm.housing, 0, "no housing on a building by default")
-	eq(cards.homeland.housing, 7, "territory housing still defaults to slots + 2")
+	check_loads([
+		["Silo, Farm and Homeland (no famine_guard nor housing on a building by default; a territory's is slots + 2)", [], {
+			"cards.silo.housing": 1, "cards.silo.famine_guard": 1, "cards.farm.famine_guard": 0, "cards.farm.housing": 0,
+			"cards.homeland.housing": 7,
+		}],
+	], fixture_load)
 
 
 func test_building_housing_and_famine_guard_validation() -> void:

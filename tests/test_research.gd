@@ -60,12 +60,15 @@ func snapshot(e: GameEngine) -> Array:
 
 # --- Tech cards load ---
 
-func test_tech_with_an_insight_cost_loads() -> void:
-	var r := load_x("tech", {"insight": 2})
-	eq(r.errors, [] as Array[String], "loader errors")
-	if r.cards.has("x"):
-		eq(r.cards.x.type, "tech", "type")
-		eq(r.cards.x.is_permanent(), true, "techs are permanent")
+func test_techs_load() -> void:
+	check_loads([
+		["an insight cost (techs are permanent)", ["tech", {"insight": 2}],
+			{"cards.x.type": "tech", "cards.x.is_permanent()": true}],
+		["a prereq", ["tech", {"insight": 2}, [], {"prereq": "bronze"}], {"cards.x.prereq": "bronze"}],
+	], load_x.callv)
+	check_loads([
+		["a prereq chain", [tech("a"), tech("b", "a"), tech("c", "b")], {}],
+	], fixture_load.bind([TECHS]))
 
 
 func test_tech_card_validation() -> void:
@@ -81,14 +84,6 @@ func test_tech_card_validation() -> void:
 
 
 # --- Prerequisites load (backlog 026) ---
-
-func test_prereq_loads() -> void:
-	var r := load_x("tech", {"insight": 2}, [], {"prereq": "bronze"})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("x"):
-		eq(r.cards.x.prereq, "bronze", "prereq")
-
 
 func test_prereq_validation() -> void:
 	check_cases([
@@ -119,7 +114,6 @@ func test_a_prereq_cycle_is_one_load_error() -> void:
 		["its own prereq", [tech("a", "a")], "cards.json: card 'a': prereq: a tech can't be its own prerequisite",
 			"one_error"],
 	], fixture_load.bind([TECHS]))
-	eq(fixture_load([tech("a"), tech("b", "a"), tech("c", "b")], [TECHS]).errors, [] as Array[String], "a chain loads")
 
 
 func test_prereq_on_a_card_that_is_not_a_tech_is_ignored() -> void:
@@ -137,20 +131,11 @@ func test_prerequisite_card_text() -> void:
 
 # --- research_deck config ---
 
-func test_research_deck_is_normalized() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"research_deck": {"pottery": 2.0, "writing": 1}}),
-		resources(), tech_db(), "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(config.get("research_deck"), {"pottery": 2, "writing": 1}, "research_deck")
-
-
-func test_research_deck_defaults_to_empty() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(), "config.json", errors, warnings)
-	eq(config.get("research_deck"), {}, "research_deck default")
+func test_research_deck_loads() -> void:
+	check_loads([
+		["normalized", {"research_deck": {"pottery": 2.0, "writing": 1}}, {"config.research_deck": {"pottery": 2, "writing": 1}}],
+		["defaults to empty", {}, {"config.research_deck": {}}],
+	], config_load.bind([TECHS]))
 
 
 func test_research_deck_validation() -> void:

@@ -8,20 +8,15 @@ func population(start := 2, vp_per_pop := 1) -> Dictionary:
 	return {"start": start, "food_upkeep": 0, "vp_per_pop": vp_per_pop}
 
 
-func parse_test_cards(extra: Array, errors: Array[String], warnings: Array[String]) -> Dictionary:
-	var list: Array = TEST_CARDS.cards.duplicate()
-	list.append_array(extra)
-	return DataLoader.parse_cards({"cards": list}, resources(), "cards.json", errors, warnings, keywords())
-
-
-## Loads TEST_CARDS and a test config with overrides; returns {config, errors, warnings}.
+## Loads TEST_CARDS and a test config with overrides (through raw_config, so a population block gets FAMINE); returns
+## {cards, config, errors, warnings}.
 func load_config(overrides: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := parse_test_cards([], errors, warnings)
-	check(errors.is_empty(), "TEST_CARDS should load: %s" % [errors])
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+	var r := fixture_load()
+	var errors: Array[String] = r.errors.duplicate()
+	var warnings: Array[String] = r.warnings.duplicate()
+	var config := DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), r.cards, "config.json", errors,
+		warnings)
+	return {"cards": r.cards, "config": config, "errors": errors, "warnings": warnings}
 
 
 ## A game with population overrides whose frontier holds one Grassland and whose hand is Pioneers.
@@ -36,22 +31,11 @@ func pioneer_engine(overrides: Dictionary) -> GameEngine:
 
 # --- AC1: territory housing ---
 
-func test_housing_defaults_to_slots_plus_2() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := parse_test_cards([], errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(cards.grassland.housing, 4, "grassland: 2 slots + 2")
-	eq(cards.homeland.housing, 7, "homeland: 5 slots + 2")
-
-
-func test_housing_loads_when_given() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := parse_test_cards([{"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": 3}], errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.bog.housing, 3, "housing")
+func test_housing_loads_and_defaults_to_slots_plus_2() -> void:
+	check_loads([
+		["defaults: grassland 2 slots + 2, homeland 5 slots + 2", [], {"cards.grassland.housing": 4, "cards.homeland.housing": 7}],
+		["given", [{"id": "bog", "name": "Bog", "type": "territory", "slots": 1, "housing": 3}], {"cards.bog.housing": 3}],
+	], fixture_load)
 
 
 func test_housing_validation() -> void:
@@ -67,23 +51,15 @@ func test_housing_validation() -> void:
 
 # --- AC2: config population block ---
 
-func test_population_block_defaults() -> void:
-	var r := load_config({"population": {}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.population, {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "tiers": []}, "defaults (no tiers: 281)")
-
-
-func test_population_block_values_load() -> void:
-	var r := load_config({"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.population, {"start": 3, "food_upkeep": 0, "vp_per_pop": 2, "tiers": []}, "values (no tiers: 281)")
-
-
-func test_no_population_block_leaves_population_off() -> void:
-	var r := load_config({})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.population, {}, "no population block -> empty (off)")
+func test_population_block_loads() -> void:
+	check_loads([
+		["defaults (no tiers: 281)", {"population": {}},
+			{"config.population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "tiers": []}}],
+		["values (no tiers: 281)", {"population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 2}},
+			{"config.population": {"start": 3, "food_upkeep": 0, "vp_per_pop": 2, "tiers": []}}],
+		["no population block -> empty (off)", {}, {"config.population": {}}],
+		["start == starting housing is fine", {"population": {"start": 7}}, {}],
+	], load_config)
 
 
 func test_population_block_validation() -> void:
@@ -95,10 +71,6 @@ func test_population_block_validation() -> void:
 		["unknown key", {"growth": 1}, "config.json: population: unknown field 'growth'", "warning_only"],
 		["start above starting housing (homeland: 5 slots -> housing 7)", {"start": 8}, ["population.start", "housing"]],
 	], func(population): return load_config({"population": population}))
-
-
-func test_population_start_equal_to_starting_housing_loads() -> void:
-	eq(load_config({"population": {"start": 7}}).errors, [] as Array[String], "start == housing is fine")
 
 
 # --- AC3: starting pop ---

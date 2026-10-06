@@ -15,14 +15,11 @@ const POP := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 
 ## Loads fixture cards plus a card 'x' with fields and effects; returns {cards, errors, warnings}.
 func load_x(fields: Dictionary, type := "tech", effects: Array = []) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
 	var x := {"id": "x", "name": "X", "type": type, "effects": effects}
 	if type == "tech":
 		x["cost"] = {"insight": 2}
 	x.merge(fields, true)
-	var cards := tech_db([x], errors, warnings)
-	return {"cards": cards, "errors": errors, "warnings": warnings}
+	return fixture_load([x], [TECHS])
 
 
 ## A game whose research deck starts with the era-1 techs in order_top_first (top first) and whose
@@ -38,11 +35,12 @@ func era_engine(order_top_first: Array, deck := {"farm": 10}, overrides := {}) -
 
 # --- AC1: loader and card text ---
 
-func test_era_defaults_to_1_and_loads() -> void:
-	eq(load_x({}).cards.x.era, 1, "default era")
-	var r := load_x({"era": 2})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.cards.x.era, 2, "era")
+func test_era_and_add_era_load() -> void:
+	check_loads([
+		["default era", [{}], {"cards.x.era": 1}],
+		["era 2", [{"era": 2}], {"cards.x.era": 2}],
+		["add_era", [{}, "tech", [{"op": "add_era", "era": 2}]], {}],
+	], load_x.callv)
 
 
 func test_era_field_validation() -> void:
@@ -52,12 +50,6 @@ func test_era_field_validation() -> void:
 		["add_era without era", [{}, "tech", [{"op": "add_era"}]], "cards.json: card 'x': effects[0]: missing 'era'"],
 		["add_era 1", [{}, "tech", [{"op": "add_era", "era": 1}]], "cards.json: card 'x': effects[0]: 'era' must be an integer >= 2"],
 	], load_x.callv)
-
-
-func test_add_era_loads() -> void:
-	var r := load_x({}, "tech", [{"op": "add_era", "era": 2}])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
 
 
 func test_era_card_text() -> void:
@@ -144,25 +136,16 @@ func threshold_engine(unlocks: Dictionary, start_resources := {"food": 10, "weal
 	return era_engine(["pottery", "writing"], {"farm": 10}, overrides)
 
 
-func threshold_config_errors(unlocks: Variant) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db(ERA_CARDS)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"era_unlocks": unlocks}), resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+## TECHS and ERA_CARDS, and a config with era_unlocks unlocks (none when null) (config_load_on).
+func era_unlocks_load(unlocks: Variant) -> Dictionary:
+	return config_load_on(fixture_load(ERA_CARDS, [TECHS]), {} if unlocks == null else {"era_unlocks": unlocks})
 
 
-func test_era_unlocks_is_normalized() -> void:
-	var r := threshold_config_errors({"2": {"pop": 8.0, "wealth": 15}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.get("era_unlocks"), {2: {"pop": 8, "wealth": 15}}, "era_unlocks")
-
-
-func test_era_unlocks_defaults_to_empty() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(ERA_CARDS), "config.json", errors, warnings)
-	eq(config.get("era_unlocks"), {}, "default")
+func test_era_unlocks_loads() -> void:
+	check_loads([
+		["normalized", {"2": {"pop": 8.0, "wealth": 15}}, {"config.era_unlocks": {2: {"pop": 8, "wealth": 15}}}],
+		["defaults to empty", null, {"config.era_unlocks": {}}],
+	], era_unlocks_load)
 
 
 func test_era_unlocks_validation() -> void:
@@ -175,7 +158,7 @@ func test_era_unlocks_validation() -> void:
 		["pop 0", {"2": {"pop": 0}}, "config.json: era_unlocks"],
 		["wealth not an int", {"2": {"wealth": "lots"}}, "config.json: era_unlocks"],
 		["unknown field", {"2": {"pop": 8, "food": 3}}, "config.json: era_unlocks", "warning_only"],
-	], threshold_config_errors)
+	], era_unlocks_load)
 
 
 func test_era_unlocks_query_returns_the_config() -> void:

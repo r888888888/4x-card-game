@@ -48,12 +48,10 @@ func activate(e: GameEngine, id: String, turns := 1) -> void:
 # --- AC1: loading ---
 
 func test_modifiers_load_on_permanent_cards() -> void:
-	var r := fixture_load(FIXTURES, [TEST_GOVS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("palace"):
-		eq(r.cards.palace.modifiers, {"actions": 1}, "Palace's modifiers")
-		eq(r.cards.unrest.modifiers, {"actions": -1}, "a negative value")
+	check_loads([
+		["Palace's, and a negative value", FIXTURES, {"cards.palace.modifiers": {"actions": 1},
+			"cards.unrest.modifiers": {"actions": -1}}],
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_modifiers_validation() -> void:
