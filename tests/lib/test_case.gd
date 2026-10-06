@@ -158,6 +158,55 @@ func check_cases(cases: Array, load_input: Callable) -> void:
 			eq(errors, [] as Array[String], "%s: errors" % label)
 
 
+## Table-driven loads (340), check_cases for accepted input. Each row is [label, input, expected]:
+## load_input.call(input) returns {cards, config?, errors, warnings}, and expected maps a dotted path ("cards.x.era",
+## "config.supply", "cards.x.is_permanent()") to the value it must equal. A row passes when it loads with no errors and
+## no warnings and every path's value equals the expected one; a failure names the row's label.
+func check_loads(rows: Array, load_input: Callable) -> void:
+	for row in rows:
+		var label: String = row[0]
+		var r: Dictionary = load_input.call(row[1])
+		for kind in ["errors", "warnings"]:
+			check(r[kind].is_empty(), "%s: %s: %s" % [label, kind, "; ".join(r[kind])])
+		var expected: Dictionary = row[2]
+		for path: String in expected:
+			var found := value_at(r, path)
+			if found.is_empty():
+				check(false, "%s: no '%s'" % [label, path])
+			else:
+				eq(found[0], expected[path], "%s: %s" % [label, path])
+
+
+## [the value at the dotted path in root], or [] when a segment is missing. A segment ending in "()" calls that method
+## with no arguments, a number indexes an array (or is an int key), and anything else is a key or property.
+func value_at(root: Variant, path: String) -> Array:
+	var value: Variant = root
+	for segment in path.split("."):
+		if segment.ends_with("()"):
+			var call := Expression.new()  # calls methods of built-in types too, without logging an error when missing
+			if call.parse("v." + segment, ["v"]) != OK:
+				return []
+			value = call.execute([value], null, false)
+			if call.has_execute_failed():
+				return []
+		elif value is Dictionary:
+			if value.has(segment):
+				value = value[segment]
+			elif segment.is_valid_int() and value.has(segment.to_int()):
+				value = value[segment.to_int()]
+			else:
+				return []
+		elif value is Array:
+			if not segment.is_valid_int() or segment.to_int() >= value.size():
+				return []
+			value = value[segment.to_int()]
+		elif value is Object and segment in value:
+			value = value.get(segment)
+		else:
+			return []
+	return [value]
+
+
 # --- Helpers ---
 
 func has_message(messages: Array[String], fragment: String) -> bool:
@@ -430,6 +479,11 @@ func fixture_load(extra := [], sets := [], resource_list: Array[String] = [], re
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 
 
+## fixture_load([card], sets): TEST_CARDS, the sets and one more card.
+func card_load(card: Dictionary, sets := []) -> Dictionary:
+	return fixture_load([card], sets)
+
+
 ## fixture_load's cards, failing the test on a load error.
 func fixture_db(extra := [], sets := [], resource_list: Array[String] = []) -> Dictionary:
 	var r := fixture_load(extra, sets, resource_list)
@@ -446,6 +500,23 @@ func config_errors_for(cards: Dictionary, overrides: Dictionary, deck := {"farm"
 	raw.merge(overrides, true)
 	DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
 	return errors
+
+
+## fixture_load([], sets) and a config parsed with overrides (see config_errors_for) against its cards: {cards, config,
+## errors, warnings}, the messages of both. For check_loads rows of config.
+func config_load(overrides: Dictionary, sets := []) -> Dictionary:
+	return config_load_on(fixture_load([], sets), overrides)
+
+
+## cards_load (a fixture_load result) plus a config parsed with overrides against its cards: {cards, config, errors,
+## warnings}, the messages of both.
+func config_load_on(cards_load: Dictionary, overrides: Dictionary) -> Dictionary:
+	var errors: Array[String] = cards_load.errors.duplicate()
+	var warnings: Array[String] = cards_load.warnings.duplicate()
+	var raw := raw_config({"farm": 1})
+	raw.merge(overrides, true)
+	var config := DataLoader.parse_config(raw, resources(), cards_load.cards, "config.json", errors, warnings)
+	return {"cards": cards_load.cards, "config": config, "errors": errors, "warnings": warnings}
 
 
 ## The errors from parsing a config with overrides (see config_errors_for) against fixture_db([], sets).

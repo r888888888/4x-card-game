@@ -31,11 +31,9 @@ func spent_band(overrides := {}) -> GameEngine:
 # --- AC1: the government field and its text ---
 
 func test_government_actions_load() -> void:
-	var r := fixture_load([], [TEST_GOVS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(gov_db().band.actions, 2, "Band's actions")
-	eq(gov_db().council.actions, 0, "Council sets none")
+	check_loads([
+		["the fixture governments", [], {"cards.band.actions": 2, "cards.council.actions": 0}],
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_bad_government_actions_are_load_errors() -> void:
@@ -43,7 +41,7 @@ func test_bad_government_actions_are_load_errors() -> void:
 		["below 1", [{"id": "x", "name": "X", "type": "government", "actions": 0}], ["'x'", "actions"]],
 		["not an int", [{"id": "x", "name": "X", "type": "government", "actions": "two"}], ["'x'", "actions"]],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "'actions' only applies to governments", "warning_only"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS]))
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_government_actions_text() -> void:

@@ -22,13 +22,10 @@ func drained_engine(food: int, wealth: int, block := DRAIN, overrides := {}) -> 
 # --- AC1: the config field ---
 
 func test_drain_pct_loads_and_is_optional() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(anarchy_raw(DRAIN), RESOURCES, anarchy_db(), "config.json", errors, warnings)
-	eq([errors, warnings], [[] as Array[String], [] as Array[String]], "errors and warnings")
-	eq(config.unrest.get("drain_pct"), 20, "drain_pct")
-	var none := DataLoader.parse_config(anarchy_raw(), RESOURCES, anarchy_db(), "config.json", errors, warnings)
-	eq(none.unrest.get("drain_pct", 0), 0, "absent: no drain")
+	check_loads([
+		["drain_pct 20", anarchy_raw(DRAIN), {"config.unrest.drain_pct": 20}],
+		["absent (normalized without it: test_anarchy's unrest block row)", anarchy_raw(), {}],
+	], raw_config_load)
 
 
 func test_drain_pct_validation() -> void:
@@ -38,7 +35,7 @@ func test_drain_pct_validation() -> void:
 		["101", anarchy_raw({"drain_pct": 101}), message],
 		["not a number", anarchy_raw({"drain_pct": "20"}), message],
 		["a fraction", anarchy_raw({"drain_pct": 2.5}), message],
-	], raw_config_errors)
+	], raw_config_load)
 
 
 # --- AC2: a turn under Anarchy drains ---

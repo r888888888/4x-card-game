@@ -45,16 +45,10 @@ func territory_config() -> Dictionary:
 # --- AC1: territory cards load ---
 
 func test_territory_card_loads_with_slots_and_keywords() -> void:
-	var r := load_with_keywords([HILLS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	var hills: CardDef = r.cards.get("hills")
-	check(hills != null, "hills loaded")
-	if hills == null:
-		return
-	eq(hills.slots, 3, "slots")
-	eq(hills.keywords, ["mountain"] as Array[String], "keywords")
-	check(hills.is_permanent(), "territories are permanent")
+	check_loads([
+		["Hills (territories are permanent)", [HILLS], {"cards.hills.slots": 3,
+			"cards.hills.keywords": ["mountain"] as Array[String], "cards.hills.is_permanent()": true}],
+	], load_with_keywords)
 
 
 # --- AC2: bad territories ---
@@ -75,14 +69,13 @@ func test_territory_card_validation() -> void:
 
 # --- AC4: territory deck and starting territory in config ---
 
-func test_territory_deck_is_normalized() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"territory_deck": {"hills": 2.0, "grassland": 1}}),
-		resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(config.territory_deck, {"hills": 2, "grassland": 1}, "territory_deck")
+func test_territory_config_loads() -> void:
+	check_loads([
+		["territory_deck normalized", {"territory_deck": {"hills": 2.0, "grassland": 1}},
+			{"config.territory_deck": {"hills": 2, "grassland": 1}}],
+		["without territories: the defaults", no_territory_overrides(), {"config.keywords": [] as Array[String],
+			"config.territory_deck": {}, "config.starting.territory": ""}],
+	], config_load)
 
 
 func test_territory_deck_and_starting_territory_validation() -> void:
@@ -139,19 +132,6 @@ func test_starting_territory_does_not_change_score() -> void:
 
 
 # --- AC6: configs without territories ---
-
-func test_config_without_territories_loads_cleanly() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, no_territory_overrides()), resources(), cards,
-		"config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(config.get("keywords"), [] as Array[String], "keywords default")
-	eq(config.get("territory_deck"), {}, "territory_deck default")
-	eq(config.get("starting", {}).get("territory"), "", "starting.territory default")
-
 
 func test_game_without_territories_is_unchanged() -> void:
 	var e := make_engine({"farm": 10}, no_territory_overrides())

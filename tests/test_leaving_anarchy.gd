@@ -16,14 +16,11 @@ func test_order_relief_is_c_times_c_plus_1_wealth_for_the_counters_left() -> voi
 		eq(e.order_relief(), {"wealth": row[1]}, "%d counters" % row[0])
 
 
-func test_unrest_relief_is_no_longer_read() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(anarchy_raw({"relief": {"wealth": 6}}), RESOURCES, anarchy_db(),
-		"config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "config.json: unrest: unknown field 'relief'")
-	check(not config.unrest.has("relief"), "not in the normalized block")
+func test_retired_unrest_fields_are_load_warnings() -> void:
+	check_cases([
+		["relief is no longer read", anarchy_raw({"relief": {"wealth": 6}}), "config.json: unrest: unknown field 'relief'",
+			"warning_only"],
+	], raw_config_load)
 
 
 # --- AC5: restore_order_error ---

@@ -43,9 +43,9 @@ func trade_engine(cities: int, total_pop: int, population := true) -> GameEngine
 # --- AC1: loading ---
 
 func test_trade_op_loads() -> void:
-	var r := trade_card(TRADE)
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["Trade", TRADE, {}],
+	], trade_card)
 
 
 func test_trade_validation() -> void:

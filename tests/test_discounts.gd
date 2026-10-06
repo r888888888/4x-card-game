@@ -36,9 +36,9 @@ func discount_game(civ: String) -> GameEngine:
 # --- AC1: loading and text ---
 
 func test_discounts_load() -> void:
-	var r := fixture_load(FIXTURES, [TECHS, TEST_CIVS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["the fixtures", FIXTURES, {}],
+	], fixture_load.bind([TECHS, TEST_CIVS]))
 
 
 func test_discounts_validation() -> void:
@@ -52,7 +52,7 @@ func test_discounts_validation() -> void:
 		["not a list", [civ_with({"type": "tech", "wealth": 1})], ["card 'x'", "discounts"]],
 		["on a building", [{"id": "x", "name": "X", "type": "building", "discounts": [{"type": "tech", "wealth": 1}]}],
 			"'discounts' only applies to civilizations", "warning_only"],
-	], func(extra): return fixture_load(extra, [TECHS, TEST_CIVS]))
+	], fixture_load.bind([TECHS, TEST_CIVS]))
 
 
 func test_discount_text() -> void:

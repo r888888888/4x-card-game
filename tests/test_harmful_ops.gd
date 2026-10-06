@@ -72,9 +72,9 @@ func test_a_drawn_event_with_lose_takes_food() -> void:
 # --- AC2: loader ---
 
 func test_lose_and_lose_pop_load_on_a_building() -> void:
-	var r := fixture_load([card_x("building", [LOSE_FOOD, LOSE_POP])])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["lose and lose_pop", [card_x("building", [LOSE_FOOD, LOSE_POP])], {}],
+	], fixture_load)
 
 
 func test_lose_and_lose_pop_validation() -> void:
@@ -86,7 +86,7 @@ func test_lose_and_lose_pop_validation() -> void:
 		["lose amount 1.5", [card_x("action", [{"op": "lose", "resource": "food", "amount": 1.5}])], prefix + "'amount' must be an integer >= 1"],
 		["lose_pop amount 0", [card_x("action", [{"op": "lose_pop", "amount": 0}])], prefix + "'amount' must be an integer >= 1"],
 		["lose_pop missing amount", [card_x("action", [{"op": "lose_pop"}])], prefix + "missing 'amount'"],
-	], func(extra): return fixture_load(extra).errors)
+	], fixture_load)
 
 
 # --- AC3: lose_pop ---

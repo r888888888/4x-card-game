@@ -12,17 +12,15 @@ extends "res://tests/lib/raid_case.gd"
 # --- AC1: loading ---
 
 func test_raid_loads_on_an_event() -> void:
-	var r := raid_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if not r.cards.has("raiders"):
-		return
-	var raiders: CardDef = r.cards.raiders
-	eq(raiders.raid.strength, 3, "strength")
-	eq(raiders.raid.targets, ["mountain"] as Array[String], "targets")
-	eq(raiders.raid.pop, 1, "pop defaults to 1")
-	eq(r.cards.horde.raid.targets, [] as Array[String], "no targets")
-	eq(r.cards.omen.raid, {}, "a plain event has no raid")
+	check_loads([
+		["Raiders, Horde (no targets) and a plain event", [], {
+			"cards.raiders.raid.strength": 3,
+			"cards.raiders.raid.targets": ["mountain"] as Array[String],
+			"cards.raiders.raid.pop": 1,
+			"cards.horde.raid.targets": [] as Array[String],
+			"cards.omen.raid": {},
+		}],
+	], raid_load)
 
 
 func test_bad_raid_is_a_load_error() -> void:

@@ -129,9 +129,8 @@ func test_explore_defaults_to_reveal_2() -> void:
 		eq(cards.x.rules_tooltip(cards), "Explore: reveal 2 territories, keep 1", "card text")
 
 
-func test_explore_reveal_0_is_error() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
-		"effects": [{"op": "explore", "reveal": 0}]}]}, resources(), "t", errors, warnings)
-	has_msg(errors, "card 'x': effects[0]: 'reveal' must be an integer >= 1")
+func test_bad_explore_is_a_load_error() -> void:
+	check_cases([
+		["reveal 0", [card_with(CardDef.ACTION, {"op": "explore", "reveal": 0})],
+			"card 'x': effects[0]: 'reveal' must be an integer >= 1"],
+	], fixture_load)

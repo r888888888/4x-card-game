@@ -11,12 +11,15 @@ const LISTED := ["tribe", "settlers", "highlanders"]
 const HALF_GOLD := {"hills": [{"keywords": ["gold"], "weight": 1}, {"keywords": [], "weight": 1}]}
 
 
-## TEST_CARDS + TEST_CIVS + HOME_CIVS + extra, parsed with resource keyword gold.
-func home_db(extra: Array = [], errors: Array[String] = []) -> Dictionary:
-	var warnings: Array[String] = []
+## TEST_CARDS + TEST_CIVS + HOME_CIVS + extra, loaded with resource keyword gold (fixture_load).
+func home_load(extra := []) -> Dictionary:
 	var gold: Array[String] = ["gold"]
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + HOME_CIVS + extra}, resources(), "cards.json",
-		errors, warnings, keywords(), gold)
+	return fixture_load(HOME_CIVS + extra, [TEST_CIVS], [], gold)
+
+
+## home_load's cards, after appending its errors to errors.
+func home_db(extra: Array = [], errors: Array[String] = []) -> Dictionary:
+	return cards_of(home_load(extra), errors, [])
 
 
 ## Config overrides: the civilizations list, population start 2 and the overrides.
@@ -41,24 +44,17 @@ func home_engine(civ: String, seed_value := 1, overrides := {}) -> GameEngine:
 	return e
 
 
-func card_errors(extra: Array) -> Array[String]:
-	var errors: Array[String] = []
-	home_db(extra, errors)
-	return errors
-
-
-func home_config_errors(overrides: Dictionary) -> Array[String]:
-	return config_errors_for(home_db(), home_config(overrides))
+## home_load() and a config with home_config(overrides) (config_load_on).
+func home_config_load(overrides: Dictionary) -> Dictionary:
+	return config_load_on(home_load(), home_config(overrides))
 
 
 # --- AC1: the home field ---
 
 func test_home_loads_on_a_civilization() -> void:
-	var errors: Array[String] = []
-	var cards := home_db([], errors)
-	eq(errors, [] as Array[String], "no errors")
-	eq(cards.settlers.get("home"), "river", "Settlers' home")
-	eq(cards.tribe.get("home"), "", "no home by default")
+	check_loads([
+		["the fixture civilizations", [], {"cards.settlers.home": "river", "cards.tribe.home": ""}],
+	], home_load)
 
 
 func test_home_validation() -> void:
@@ -67,19 +63,17 @@ func test_home_validation() -> void:
 			["cards.json: card 'lost'", "home", "'nowhere'"]],
 		["not a territory", [{"id": "farmers", "name": "Farmers", "type": "civilization", "home": "farm"}],
 			["cards.json: card 'farmers'", "home", "'farm'"]],
-	], card_errors)
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [{"id": "hut", "name": "Hut", "type": "building", "home": "river"}]},
-		resources(), "cards.json", [] as Array[String], warnings, keywords())
-	has_msg(warnings, "card 'hut': 'home' only applies to civilizations")
+		["on a building", [{"id": "hut", "name": "Hut", "type": "building", "home": "river"}],
+			"card 'hut': 'home' only applies to civilizations", "warning_only"],
+	], home_load)
 
 
-func test_population_start_must_fit_each_listed_home() -> void:
-	var errors := home_config_errors({"population": {"start": 5, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}})
-	has_msg(errors, "config.json")
-	check(errors.any(func(m): return "population.start" in m and "settlers" in m),
-		"an error names population.start and Settlers (River houses 4): %s" % [errors])
-	check(not errors.any(func(m): return "highlanders" in m), "Hills houses 5: no error for Highlanders: %s" % [errors])
+func test_home_config_validation() -> void:
+	check_cases([
+		["population.start must fit each listed home (River houses 4; Hills 5, no error for Highlanders)",
+			{"population": {"start": 5, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}},
+			["config.json", "'population.start' (5)", "civilization 'settlers'"], "one_error"],
+	], home_config_load)
 
 
 func test_home_is_on_the_card_text() -> void:

@@ -8,15 +8,12 @@ extends "res://tests/lib/anarchy_case.gd"
 # --- AC1: the config block ---
 
 func test_the_unrest_block_loads_with_its_defaults() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
 	var raw := anarchy_raw()
 	raw.unrest = {"anarchy": "anarchy", "max_counters": 4}
-	var config := DataLoader.parse_config(raw, RESOURCES, anarchy_db(), "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(config.get("unrest"), {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 0,
-		"allowed_tag": ""}, "normalized, era_unrest 0 and allowed_tag \"\" by default")
+	check_loads([
+		["normalized, era_unrest 0 and allowed_tag \"\" by default", raw,
+			{"config.unrest": {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 0, "allowed_tag": ""}}],
+	], raw_config_load)
 
 
 func test_unrest_block_validation() -> void:
@@ -30,17 +27,9 @@ func test_unrest_block_validation() -> void:
 		["without unrest in resources", anarchy_raw({}, {"resources": ["food", "wealth", "insight"],
 			"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}}),
 			["config.json: unrest:", "resources"]],
-	], raw_config_errors)
-
-
-func test_unrest_fallback_is_no_longer_read() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(anarchy_raw({"fallback": "chiefs"}), RESOURCES, anarchy_db(), "config.json",
-		errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "config.json: unrest: unknown field 'fallback'")
-	check(not config.unrest.has("fallback"), "not in the normalized block")
+		["fallback is no longer read", with_block.call({"fallback": "chiefs"}),
+			"config.json: unrest: unknown field 'fallback'", "warning_only"],
+	], raw_config_load)
 
 
 # --- AC2: falling into Anarchy ---

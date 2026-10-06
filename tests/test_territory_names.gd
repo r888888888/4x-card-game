@@ -9,10 +9,14 @@ const NAMED_CIVS := [
 ]
 
 
-## TEST_CARDS + TEST_CIVS + NAMED_CIVS + extra, parsed.
+## TEST_CARDS + TEST_CIVS + NAMED_CIVS + extra, loaded (fixture_load).
+func names_load(extra := []) -> Dictionary:
+	return fixture_load(NAMED_CIVS + extra, [TEST_CIVS])
+
+
+## names_load's cards, after appending its errors and warnings.
 func names_db(extra: Array = [], errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + NAMED_CIVS + extra}, resources(), "cards.json",
-		errors, warnings, keywords())
+	return cards_of(names_load(extra), errors, warnings)
 
 
 ## A game as civilization civ ("" for none) with a hand of Pioneers and 3 of each of Hills, Grassland and River to settle.
@@ -143,11 +147,10 @@ func test_names_survive_a_state_copy() -> void:
 # --- AC7: loading city_names ---
 
 func test_city_names_load_on_a_civilization() -> void:
-	var errors: Array[String] = []
-	var cards := names_db([], errors)
-	eq(errors, [] as Array[String], "no errors")
-	eq(cards.founders.get("city_names"), ["Alpha", "Beta", "Gamma"] as Array[String], "Founders' names")
-	eq(cards.tribe.get("city_names"), [] as Array[String], "no names by default")
+	check_loads([
+		["Founders' names, none by default", [], {"cards.founders.city_names": ["Alpha", "Beta", "Gamma"] as Array[String],
+			"cards.tribe.city_names": [] as Array[String]}],
+	], names_load)
 
 
 func test_city_names_validation() -> void:

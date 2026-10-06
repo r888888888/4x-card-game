@@ -301,7 +301,7 @@ func test_project_validation() -> void:
 		["a cost with food", [{"id": "x", "name": "X", "type": "building", "cost": {"food": 1, "wealth": 10},
 			"project": true}], ["card 'x'", "project", "cost"]],
 		["no cost", [{"id": "x", "name": "X", "type": "building", "project": true}], ["card 'x'", "project", "cost"]],
-	], func(extra): return fixture_load(extra))
+	], fixture_load)
 
 
 # --- AC7: the bot ---

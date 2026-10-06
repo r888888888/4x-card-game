@@ -48,14 +48,10 @@ func recruit_engine() -> GameEngine:
 # --- AC1: loading ---
 
 func test_unit_loads_with_its_strength() -> void:
-	var r := unit_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	check(r.cards.has("levy"), "Levy loaded")
-	if r.cards.has("levy"):
-		eq(r.cards.levy.type, CardDef.UNIT, "type")
-		eq(r.cards.levy.strength, 2, "strength")
-		check(r.cards.levy.is_permanent(), "a unit is permanent")
+	check_loads([
+		["Levy (a unit is permanent)", [], {"cards.levy.type": CardDef.UNIT, "cards.levy.strength": 2,
+			"cards.levy.is_permanent()": true}],
+	], unit_load)
 
 
 func test_bad_unit_strength_is_a_load_error() -> void:

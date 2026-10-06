@@ -7,15 +7,6 @@ const SAGES := {"id": "sages", "name": "Sages", "type": "civilization",
 	"effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]}
 
 
-## Loads civ_db's cards plus one extra card; returns {errors, warnings}.
-func card_messages(card: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + [card]}, resources(), "cards.json", errors, warnings,
-		keywords())
-	return {"errors": errors, "warnings": warnings}
-
-
 ## SAGES with key set to value (or removed when value is null).
 func sages_with(key: String, value: Variant) -> Dictionary:
 	var card := SAGES.duplicate(true)
@@ -43,10 +34,12 @@ func sages_engine() -> GameEngine:
 
 # --- AC5: loader ---
 
-func test_civilization_flavor_and_quote_load_without_warnings() -> void:
-	var m := card_messages(SAGES)
-	eq(m.errors, [] as Array[String], "errors")
-	eq(m.warnings, [] as Array[String], "warnings")
+func test_civilization_flavor_and_quote_load_and_are_optional() -> void:
+	check_loads([
+		["flavor and quote", SAGES, {}],
+		["no quote", sages_with("quote", null), {}],
+		["no flavor", sages_with("flavor", null), {}],
+	], card_load.bind([TEST_CIVS]))
 
 
 func test_flavor_and_quote_validation() -> void:
@@ -63,14 +56,7 @@ func test_flavor_and_quote_validation() -> void:
 			"card 'dell': 'flavor' only applies to civilizations", "warning_only"],
 		["quote on an action", {"id": "run", "name": "Run", "type": "action", "quote": {"text": "Go.", "by": "Me"}},
 			"card 'run': 'quote' only applies to civilizations", "warning_only"],
-	], card_messages)
-
-
-func test_flavor_and_quote_are_optional() -> void:
-	var m := card_messages(sages_with("quote", null))
-	eq(m.errors, [] as Array[String], "no quote is fine")
-	m = card_messages(sages_with("flavor", null))
-	eq(m.errors, [] as Array[String], "no flavor is fine")
+	], card_load.bind([TEST_CIVS]))
 
 
 # --- AC6: details ---
@@ -99,7 +85,7 @@ const ELDERS := {"id": "elders", "name": "Elders", "type": "government", "action
 
 
 func test_a_government_may_have_flavor_and_a_quote() -> void:
-	var m := card_messages(ELDERS)
+	var m := card_load(ELDERS, [TEST_CIVS])
 	eq(m.errors, [] as Array[String], "errors")
 	eq(m.warnings, [] as Array[String], "no 'only applies to civilizations' warning")
 	var errors: Array[String] = []

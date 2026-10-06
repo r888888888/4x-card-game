@@ -19,18 +19,13 @@ func listed_engine(civ := "", deck := {"farm": 10}) -> GameEngine:
 
 # --- AC1: config civilizations ---
 
-func test_civilizations_list_loads() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, LISTED), resources(), civ_db(), "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(config.get("civilizations"), ["tribe", "nomads"] as Array[String], "civilizations in order")
-
-
-func test_civilizations_list_is_optional() -> void:
-	eq(config_errors({}, [TEST_CIVS]), [] as Array[String], "no list")
-	eq(config_errors(with_starting("tribe"), [TEST_CIVS]), [] as Array[String], "starting.civilization without a list")
+func test_civilizations_list_loads_and_is_optional() -> void:
+	check_loads([
+		["civilizations in order", LISTED, {"config.civilizations": ["tribe", "nomads"] as Array[String]}],
+		["no list", {}, {}],
+		["starting.civilization without a list", with_starting("tribe"), {}],
+		["starting civilization in the list", with_starting("nomads", LISTED), {}],
+	], config_load.bind([TEST_CIVS]))
 
 
 func test_civilizations_list_validation() -> void:
@@ -41,8 +36,7 @@ func test_civilizations_list_validation() -> void:
 		["not an array", {"civilizations": "tribe"}, "config.json: 'civilizations' must be", "one_error"],
 		["starting civilization not listed", with_starting("tribe", {"civilizations": ["nomads"]}),
 			"config.json: starting.civilization: 'tribe' is not in 'civilizations'", "one_error"],
-	], func(overrides): return config_errors(overrides, [TEST_CIVS]))
-	eq(config_errors(with_starting("nomads", LISTED), [TEST_CIVS]), [] as Array[String], "starting civilization in the list")
+	], config_load.bind([TEST_CIVS]))
 
 
 # --- AC2: civilizations() and new_game(seed, civ_id) ---

@@ -99,10 +99,10 @@ func test_keyword_validation() -> void:
 
 
 func test_keyword_fields_load_without_warnings() -> void:
-	var r := load_one({"id": "x", "name": "X", "type": "building", "requires": ["mountain"],
-		"effects": [{"op": "score", "amount": 1, "keyword": "mountain"}]})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["requires and an effect keyword", {"id": "x", "name": "X", "type": "building", "requires": ["mountain"],
+			"effects": [{"op": "score", "amount": 1, "keyword": "mountain"}]}, {}],
+	], load_one)
 
 
 # --- AC6: card text ---

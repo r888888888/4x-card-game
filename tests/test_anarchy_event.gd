@@ -75,7 +75,7 @@ func test_unrest_anarchy_must_be_an_event_outside_the_event_deck() -> void:
 			["config.json: unrest.anarchy 'fleeting' can't have a discard"]],
 		["anarchy in the event deck", anarchy_raw({}, {"event_deck": {"anarchy": 1}}),
 			["config.json: unrest.anarchy 'anarchy' can't be in event_deck"]],
-	], raw_config_errors)
+	], raw_config_load)
 
 
 # --- AC7: a revolution, and copies ---

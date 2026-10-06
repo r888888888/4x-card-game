@@ -24,7 +24,7 @@ func gold_resource_keywords() -> Array[String]:
 func resource_engine(tables: Dictionary, territory_deck: Dictionary, deck := {"scout": 10}, seed_value := 1, starting := "homeland") -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
-	var cards := cards_of(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()), errors, warnings)
+	var cards := cards_of(gold_load(), errors, warnings)
 	var config := DataLoader.parse_config(raw_config(deck, {
 		"resource_keywords": RESOURCE_KEYWORDS,
 		"territory_resources": tables,
@@ -37,9 +37,14 @@ func resource_engine(tables: Dictionary, territory_deck: Dictionary, deck := {"s
 	return engine
 
 
-## Loader errors for a config with resource_keywords ["gold"] plus overrides.
-func gold_config_errors(overrides: Dictionary) -> Array[String]:
-	return config_errors_for(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()).cards, {"resource_keywords": RESOURCE_KEYWORDS}.merged(overrides, true))
+## TEST_CARDS, GOLD_CARDS and extra, loaded with the resource keyword gold.
+func gold_load(extra := []) -> Dictionary:
+	return fixture_load(GOLD_CARDS + extra, [], [], gold_resource_keywords())
+
+
+## gold_load() and a config with resource_keywords ["gold"] plus overrides (config_load_on).
+func gold_config_load(overrides: Dictionary) -> Dictionary:
+	return config_load_on(gold_load(), {"resource_keywords": RESOURCE_KEYWORDS}.merged(overrides, true))
 
 
 func kw(list: Array) -> Array[String]:
@@ -176,20 +181,17 @@ func test_territory_keywords_empty_for_non_territory() -> void:
 
 # --- AC6: loader validation ---
 
-func test_valid_resource_config_loads_cleanly() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := cards_of(fixture_load(GOLD_CARDS, [], [], gold_resource_keywords()), errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {
-		"keywords": keywords(), "resource_keywords": RESOURCE_KEYWORDS, "territory_resources": HALF_GOLD,
-	}), resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings (requires and effect keyword accept resource keywords)")
-	eq(config.resource_keywords, kw(["gold"]), "resource_keywords")
-	eq(config.territory_resources.hills.size(), 2, "Hills has 2 options")
-	eq(config.territory_resources.hills[0].keywords, kw(["gold"]), "option 0 keywords")
-	eq(config.territory_resources.hills[0].weight, 1, "option 0 weight")
-	eq(config.territory_resources.hills[1].keywords, kw([]), "option 1 keywords")
+func test_resource_config_loads() -> void:
+	check_loads([
+		["half gold (requires and effect keyword accept resource keywords)",
+			{"keywords": keywords(), "territory_resources": HALF_GOLD}, {
+				"config.resource_keywords": kw(["gold"]),
+				"config.territory_resources.hills.size()": 2,
+				"config.territory_resources.hills.0.keywords": kw(["gold"]),
+				"config.territory_resources.hills.0.weight": 1,
+				"config.territory_resources.hills.1.keywords": kw([]),
+			}],
+	], gold_config_load)
 
 
 func test_resource_config_validation() -> void:
@@ -213,12 +215,11 @@ func test_resource_config_validation() -> void:
 		["option keywords not an array", tr.call({"hills": [{"keywords": "gold", "weight": 1}]}),
 			"config.json: territory_resources: 'hills'[0]: 'keywords' must be an array"],
 		["territory_resources not an object", tr.call([]), "config.json: 'territory_resources' must be an object"],
-	], gold_config_errors)
+	], gold_config_load)
 
 
-func test_territory_printing_resource_keyword_is_error() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var card := {"id": "gold_hills", "name": "Gold Hills", "type": "territory", "slots": 2, "keywords": ["mountain", "gold"]}
-	DataLoader.parse_cards({"cards": [card]}, resources(), "cards.json", errors, warnings, keywords(), gold_resource_keywords())
-	has_msg(errors, "cards.json: card 'gold_hills': keywords: 'gold' is a resource keyword")
+func test_bad_resource_card_is_a_load_error() -> void:
+	check_cases([
+		["a territory printing a resource keyword", [{"id": "gold_hills", "name": "Gold Hills", "type": "territory",
+			"slots": 2, "keywords": ["mountain", "gold"]}], "cards.json: card 'gold_hills': keywords: 'gold' is a resource keyword"],
+	], gold_load)
