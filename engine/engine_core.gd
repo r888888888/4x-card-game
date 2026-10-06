@@ -49,6 +49,9 @@ signal revolted
 signal milestone(kind: StringName)
 ## Emitted when restore_order() buys order (155), before changed; the sim counts them (158).
 signal order_restored
+## Emitted when build() puts a building, unit or upgrade into play from the build menu (357), with its uid, before
+## changed: the board gives it the build ceremony. Not for a card played from the hand or created by an effect.
+signal built(uid: int)
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config

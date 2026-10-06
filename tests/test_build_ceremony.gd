@@ -6,11 +6,8 @@ extends "res://tests/lib/tech_case.gd"
 ## Hooks: main.build_ceremonies(); on a ceremony: view, parts(), tag_text(), colour(), ring_out(), ray_length(),
 ## tag_drop(), opacity().
 
-const BUILD_DELAY := 0.16  # Anim.BUILD_DELAY
-const CEREMONY_TIME := 1.4  # Anim.BUILD_CEREMONY_TIME
-const CALM_HOLD := 1.5  # Anim.BUILD_CALM_HOLD
-const BUILD := &"ui.milestone.build"
-const RECRUIT := &"ui.milestone.recruit"
+const BUILD := Sfx.MILESTONE_BUILD
+const RECRUIT := Sfx.MILESTONE_RECRUIT
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
 const PLOUGH := {"id": "plough", "name": "Plough", "type": "building", "cost": {"food": 1}, "upgrade_of": "farm"}
@@ -75,16 +72,16 @@ func test_a_building_built_rests_in_its_slot_under_a_ceremony() -> void:
 		check(farm != -1 and main.views.has(farm), "the Farm has a view")
 		var view: CardView = main.views.get(farm)
 		eq(view.fx_scale if view != null else Vector2.ZERO, Vector2.ONE, "no pop-in: full scale at once")
-		var all: Array = main.build_ceremonies()
+		var all: Array[BuildCeremony] = main.build_ceremonies()
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
-			var c: Object = all[0]
+			var c := all[0]
 			check(c.view == view, "on the Farm")
 			check(c.get_parent() == main.fx, "on the fx layer")
 			eq(c.parts(), ["ring", "rays", "tag"], "ring, rays and tag")
 			eq(c.tag_text(), "BUILT", "the tag")
 			eq(c.colour(), Palette.BUILDING, "the building plane's colour")
-		eq(heard(main, from).filter(func(p): return p[0] == BUILD), [[BUILD, BUILD_DELAY]],
+		eq(heard(main, from).filter(func(p): return p[0] == BUILD), [[BUILD, Anim.BUILD_DELAY]],
 			"the build sound once, a beat after the press")
 		check(not tokens_heard(main, from).has(Sfx.CONFIRM), "no confirm tone"))
 
@@ -93,7 +90,7 @@ func test_the_ceremony_goes_once_it_has_run() -> void:
 	await with_home(func(main: Node):
 		await build_from_modal(main, "farm")
 		eq(main.build_ceremonies().size(), 1, "playing")
-		await wait_seconds(CEREMONY_TIME + 0.05)
+		await wait_seconds(Anim.BUILD_CEREMONY_TIME + 0.05)
 		eq(main.build_ceremonies().size(), 0, "gone after its run")
 		check(main.views.has(the("farm")), "the Farm stays"))
 
@@ -104,10 +101,10 @@ func test_a_unit_recruited_gets_the_ceremony_and_the_drum() -> void:
 	await with_home(func(main: Node):
 		var from := await build_from_modal(main, "warriors")
 		var unit := the("warriors")
-		var all: Array = main.build_ceremonies()
+		var all: Array[BuildCeremony] = main.build_ceremonies()
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
-			var c: Object = all[0]
+			var c := all[0]
 			check(c.view == main.views.get(unit), "on the Warriors")
 			eq(c.parts(), ["ring", "rays", "tag"], "ring, rays and tag")
 			eq(c.tag_text(), "RECRUITED", "the tag")
@@ -121,14 +118,14 @@ func test_a_unit_recruited_gets_the_ceremony_and_the_drum() -> void:
 func test_an_upgrade_plays_ring_and_rays_on_its_base() -> void:
 	await with_home(func(main: Node):
 		await build_from_modal(main, "farm")
-		await wait_seconds(CEREMONY_TIME + 0.05)
+		await wait_seconds(Anim.BUILD_CEREMONY_TIME + 0.05)
 		var farm := the("farm")
 		var from := await build_from_modal(main, BuildModal.upgrade_row_id("plough", farm))
 		check(the("plough") != -1, "a Plough on the Farm")
-		var all: Array = main.build_ceremonies()
+		var all: Array[BuildCeremony] = main.build_ceremonies()
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
-			var c: Object = all[0]
+			var c := all[0]
 			check(c.view == main.views.get(farm), "on the Farm it upgrades")
 			eq(c.parts(), ["ring", "rays"], "ring and rays, no tag")
 			eq(c.tag_text(), "", "no tag")
@@ -154,13 +151,13 @@ func test_reduce_motion_shows_the_ceremony_whole_and_holds_it() -> void:
 	await with_reduce_motion(true, func():
 		await with_home(func(main: Node):
 			var from := await build_from_modal(main, "farm")
-			var all: Array = main.build_ceremonies()
+			var all: Array[BuildCeremony] = main.build_ceremonies()
 			eq(all.size(), 1, "one ceremony")
 			if all.size() == 1:
-				var c: Object = all[0]
+				var c := all[0]
 				eq([c.ring_out(), c.ray_length(), c.tag_drop(), c.opacity()],
 					[float(Tokens.SPACE_3), float(Tokens.SPACE_5), 0.0, 1.0], "ring out, rays drawn, tag down, opaque")
-			await wait_seconds(CALM_HOLD - 0.1)
+			await wait_seconds(Anim.BUILD_CALM_HOLD - 0.1)
 			eq(main.build_ceremonies().size(), 1, "still held just before 1.5 s")
 			await wait_seconds(0.2)
 			eq(main.build_ceremonies().size(), 0, "gone after 1.5 s")

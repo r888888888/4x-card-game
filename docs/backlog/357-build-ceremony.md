@@ -2,7 +2,7 @@
 id: 357
 title: Building, recruiting and upgrading end in a ceremony with an event sound
 type: feature
-status: red-review
+status: in-progress
 branch: feat/357-build-ceremony
 ---
 

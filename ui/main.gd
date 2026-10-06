@@ -70,6 +70,7 @@ func _ready() -> void:
 	Game.engine.logged.connect(log_drawer.append_log)
 	Game.engine.noticed.connect(toasts.notice)
 	Game.engine.card_played.connect(_on_card_played)
+	Game.engine.built.connect(_views.note_built)  # the build ceremony (357)
 	_news.listen(Game.engine, toasts.notice)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	if LaunchOptions.starts_game(Game.launch):  # --civ / --seed on the command line (135)
@@ -414,6 +415,13 @@ func _apply_settings() -> void:
 	get_tree().call_group(CardView.GROUP, "restyle")
 	if board_shown():
 		_refresh()
+
+
+## Test hook (357): the build ceremonies playing on the fx layer.
+func build_ceremonies() -> Array[BuildCeremony]:
+	var out: Array[BuildCeremony] = []
+	out.assign(fx.get_children().filter(func(n): return n is BuildCeremony and not n.is_queued_for_deletion()))
+	return out
 
 
 ## Test hook (183, 341): the board's background, its grain under BACKGROUND.

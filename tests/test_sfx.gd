@@ -77,10 +77,10 @@ func test_levels_and_buses() -> void:
 
 func test_the_build_sounds_are_events_in_the_guide() -> void:  # 357
 	var by_level := guide_tokens()
-	for token: StringName in [&"ui.milestone.build", &"ui.milestone.recruit"]:
+	for token: StringName in [Sfx.MILESTONE_BUILD, Sfx.MILESTONE_RECRUIT]:
 		check(by_level[3].has(String(token)), "%s in the guide's Level 3 table" % token)
 		eq(Sfx.level(token), 3, "%s is Level 3" % token)
-		var files: Array = Sfx.files(token) if Sfx.level(token) == 3 else []
+		var files := Sfx.files(token)
 		check(files.size() == 1 and FileAccess.file_exists(files[0]), "%s has its file: %s" % [token, files])
 
 

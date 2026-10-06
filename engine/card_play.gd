@@ -102,8 +102,9 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 
 ## Puts card, out of any zone, into play on target (-1 for none): uses an action, pays its cost, moves it (a permanent
 ## to the tableau on target, an action to the discard), resolves its play effects and emits card_played and changed.
-## Playing a hand card and building a build-menu entry (295) both end here; verb starts the log line.
-static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb := "Played") -> void:
+## Playing a hand card and building a build-menu entry (295) both end here; verb starts the log line. built: a
+## build, which emits built(uid) first (357).
+static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb := "Played", built := false) -> void:
 	var uid := card.uid
 	e.state.actions_used += 1
 	var to_zone := _destination(card)
@@ -131,6 +132,8 @@ static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb :
 	var outcome := e._outcome
 	e._outcome = {}
 	e.play_target = -1
+	if built:
+		e.built.emit(uid)
 	e.card_played.emit(outcome)
 	e.changed.emit()
 

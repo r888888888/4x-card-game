@@ -20,10 +20,10 @@ func built_engine(food := 20) -> GameEngine:
 
 
 ## Records e's built signals as "built: <uid>" and its changed signals as "changed", in order.
-func record_built(e: Object) -> Array:
+func record_built(e: GameEngine) -> Array:
 	var out := []
-	e.connect("built", func(uid: int): out.append("built: %d" % uid))
-	(e as GameEngine).changed.connect(func(): out.append("changed"))
+	e.built.connect(func(uid: int): out.append("built: %d" % uid))
+	e.changed.connect(func(): out.append("changed"))
 	return out
 
 

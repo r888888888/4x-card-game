@@ -131,5 +131,5 @@ func test_a_repelled_raid_plays_the_repelled_sound() -> void:
 
 func test_a_raid_outranks_a_city_but_not_an_era() -> void:
 	var order: Array = EventSounds.SOUNDS.map(func(pair): return pair[1])
-	eq(order, [Sfx.MILESTONE_ERA, PILLAGED, REPELLED, Sfx.MILESTONE_CITY, Sfx.MILESTONE_BREAKTHROUGH],
-		"era > pillaged > repelled > city > tech")
+	eq(order, [Sfx.MILESTONE_ERA, PILLAGED, REPELLED, Sfx.MILESTONE_CITY, Sfx.MILESTONE_BREAKTHROUGH,
+		Sfx.MILESTONE_BUILD, Sfx.MILESTONE_RECRUIT], "era > pillaged > repelled > city > tech > build > recruit (357)")
