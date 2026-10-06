@@ -2,7 +2,7 @@
 id: 347
 title: Explain a build refused for want of a free worker
 type: feature
-status: in-progress
+status: review
 branch: feat/347-explain-no-free-worker
 ---
 
@@ -14,18 +14,18 @@ says what a worker is. After this the refusal is a short "No free worker." every
 modal's row, the hand card) gives the full explanation.
 
 ## Acceptance criteria
-- [ ] AC1: Given a building and a settled territory Homeland with a free slot, pop 2 and 2 buildings on it (no free
+- [x] AC1: Given a building and a settled territory Homeland with a free slot, pop 2 and 2 buildings on it (no free
   worker), when the building is played or built on Homeland, then the error is "No free worker." and
   `play_error_detail` / `build_error_detail` is "Each building and unit needs a worker: one pop on its territory.
   Homeland's pop is all at work."
-- [ ] AC2: Given a unit and a settled territory Grassland at pop 0, when it is played on Grassland, then the error is
+- [x] AC2: Given a unit and a settled territory Grassland at pop 0, when it is played on Grassland, then the error is
   "No free worker." and the detail ends "Grassland has no pop yet."
-- [ ] AC3: Given a territory renamed Memphis, then the detail names Memphis (`shown_name`).
-- [ ] AC4: Given no territory the card could go on for want of a worker (no target given), then the error is "No free
+- [x] AC3: Given a territory renamed Memphis, then the detail names Memphis (`shown_name`).
+- [x] AC4: Given no territory the card could go on for want of a worker (no target given), then the error is "No free
   worker." and the detail ends "Every territory's pop is at work."
-- [ ] AC5: Given a legal play or build, or any other refusal (a territory with no free slot still reads "That target
+- [x] AC5: Given a legal play or build, or any other refusal (a territory with no free slot still reads "That target
   isn't valid."), then the detail is "".
-- [ ] AC6: Given the Build modal on a territory with no free worker, then a building's row reads "No free worker." and
+- [x] AC6: Given the Build modal on a territory with no free worker, then a building's row reads "No free worker." and
   its tooltip is `build_error_detail`; given a hand card refused for want of a worker, its tooltip holds the reason and
   `play_error_detail`.
 
@@ -52,8 +52,13 @@ modal's row, the hand card) gives the full explanation.
 | AC6 | `test_build_modal::test_a_row_refused_for_want_of_a_worker_explains_in_its_tooltip`; `test_build_modal::test_a_hand_card_with_no_free_worker_explains_in_its_tooltip` |
 
 ## Manual check
-- [ ] Fill a territory's workers (build until its pop is all at work, with a slot left), open its view and Build…:
-  each building's row reads the new message.
+- [ ] Build on your home territory until its pop is all at work with a slot left, then open its view and Build…:
+  each building's row reads "No free worker." and hovering it explains why.
+- [ ] A building card in the hand refused the same way shows "⊘ No free worker." and its tooltip explains it.
 
 ## Log
+- `test_build_menu::test_build_refuses_without_a_slot_or_a_worker` and `test_recruit` also asserted the old
+  "No territory with a free worker." text; updated with AC4 (missed at the red checkpoint).
+- The detail queries live in `territory_queries.gd`: `engine_queries.gd` is at its 500-line limit and `game_engine.gd`'s
+  Actions section holds only action/error pairs.
 - Red review: the user asked for a short "No free worker." with the full explanation in a tooltip.

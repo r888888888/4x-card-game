@@ -1,6 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Workers gate buildings (backlog 012): a building needs a free worker (pop) on its territory, and a
-## territory with more buildings than pop leaves the newest ones idle at upkeep.
+## territory with more buildings than pop leaves the newest ones idle at upkeep. 347: the refusal is "No free worker.",
+## explained by play_error_detail / build_error_detail.
 
 
 ## Population on with Homeland pop start (vp_per_pop 0 so score is printed VP + effect VP), plenty of food.
