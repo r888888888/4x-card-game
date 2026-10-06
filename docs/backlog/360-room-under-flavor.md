@@ -2,7 +2,7 @@
 id: 360
 title: Room between the Build modal's flavor and its preview
 type: feature
-status: in-progress
+status: review
 branch: feat/360-room-under-flavor
 ---
 
@@ -14,12 +14,12 @@ card with its flavor and the preview (or the refusal) read as separate groups.
 Builds on 356 and 358 (its branch is cut from `feat/358-flavor-on-build-card`); merge after them.
 
 ## Acceptance criteria
-- [ ] AC1: Given the Build modal with the Kiln (with flavor) selected, then the "If built on Homeland" heading starts
+- [x] AC1: Given the Build modal with the Kiln (with flavor) selected, then the "If built on Homeland" heading starts
   `Tokens.SPACE_5` (24 px) below the flavor's bottom; the flavor stays 24 px under the card (358's test).
-- [ ] AC2: Given a refused row with flavor (the Oven), then its reason starts `Tokens.SPACE_5` below the flavor.
-- [ ] AC3: Given a row with no flavor (Warriors, Farm), then the first line still starts 24 px under the card, with no
+- [x] AC2: Given a refused row with flavor (the Oven), then its reason starts `Tokens.SPACE_5` below the flavor.
+- [x] AC3: Given a row with no flavor (Warriors, Farm), then the first line still starts 24 px under the card, with no
   gap left for a missing flavor (356's AC8, 354's AC5).
-- [ ] AC4: The Lore Hall (the longest flavor and most lines) still keeps the modal inside a 1920 × 1080 window (354).
+- [x] AC4: The Lore Hall (the longest flavor and most lines) still keeps the modal inside a 1920 × 1080 window (354).
 
 ## Out of scope
 - Spacing inside the preview (its lines stay `Tokens.SPACE_1` apart).
@@ -38,5 +38,12 @@ Builds on 356 and 358 (its branch is cut from `feat/358-flavor-on-build-card`); 
 | AC4 | `test_build_modal::test_the_longest_flavor_keeps_the_modal_inside_the_window` (354) |
 
 ## Manual check
+1. `godot --path .`, start a game, open the home territory, Build… (B).
+2. A building with flavor: about 24 px of space between the card and the flavor, and the same between the flavor and
+   "If built on …". A refused one: the same gap above its reason.
+3. A unit (no flavor): the preview starts 24 px under the card, with no extra gap.
+4. Day mode too.
 
 ## Log
+- 2026-10-06: Built from 358's branch (which holds 356); merge after them. 359 was taken by another session.
+- Tests 2277 → 2280.

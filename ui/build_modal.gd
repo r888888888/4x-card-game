@@ -1,13 +1,15 @@
 class_name BuildModal
 extends Modal
-## The Build modal (backlog 297; the build-menu canvas's "Ledger"): opened on a territory from its view's Build… (B) or a
-## "+ Build" free slot, titled "Build on <territory>". On the left a selectable list (217) of the build menu's entries,
-## under Buildings and Units headings, each row its name and cost after discounts, a row the engine refuses dimmed with
-## the reason under its name. Under Upgrades (302) a row per upgrade entry and building here it builds on ("Plough", "on
-## Farm"). On the right the selected entry's card and either "If built on <territory or building>" with build_preview's
-## lines and the cost, or the refusal, with the entry's flavor between the card and them (354). One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
-## move the selection, the list gliding to keep it in view (356). Everything shown comes from the engine. Laid out as the guide's ledger sheet (343, 344): the list
-## Modal.LEDGER_LIST_WIDTH × LEDGER_LIST_HEIGHT with its rows wrapping, the card at hand size, lines wrapping at its width.
+## The Build modal (backlog 297; the build-menu canvas's "Ledger"): opened on a territory from its view's Build… (B) or
+## a "+ Build" free slot, titled "Build on <territory>". On the left a selectable list (217) of the build menu's
+## entries, under Buildings and Units headings, each row its name and cost after discounts, a row the engine refuses
+## dimmed with the reason under its name. Under Upgrades (302) a row per upgrade entry and building here it builds on
+## ("Plough", "on Farm"). On the right the selected entry's card and either "If built on <territory or building>" with
+## build_preview's lines and the cost, or the refusal, with the entry's flavor between the card and them, SPACE_5 from
+## each (354, 360). One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down move the selection,
+## the list gliding to keep it in view (356). Everything shown comes from the engine. Laid out as the guide's ledger
+## sheet (343, 344): the list Modal.LEDGER_LIST_WIDTH × LEDGER_LIST_HEIGHT with its rows wrapping, the card at hand
+## size, lines wrapping at its width.
 
 const DIMMED := 0.5  # a refused row's opacity
 ## build_preview's line keys beside the resources, as the sheet labels them.
