@@ -35,6 +35,9 @@ host isn't on the default **Trusted** list: set the access level to **Custom**, 
 
 **Timeouts.** A cold `scripts/sim.sh 20` can outlast the default command timeout. Add environment variables such as
 `BASH_DEFAULT_TIMEOUT_MS=600000` and `BASH_MAX_TIMEOUT_MS=3600000`, or ask Claude to run the sim in the background.
+A parallel sim never waits forever on a worker: one that finishes no turn for 10 minutes (`SIM_STALL_SEC` sets it) is
+stopped and the run exits 1 naming its game and turn, and while it waits the run prints a progress line to stderr each
+minute (318), so the log shows which game is the long one.
 
 ## 3. Run
 

@@ -8,6 +8,8 @@
 # every CPU scripts/cpus.sh allows, since a container has no desktop to keep responsive, 317), each worker taking the next game from one queue; SIM_PROCS=n sets how many, SIM_PROCS=1 plays them in one process.
 # Each game's result is cached by the code and data that played it (292), shared by every checkout; SIM_CACHE=0 skips
 # the cache. One parallel run at a time across every checkout: a second one exits 1 at once, naming the running one's pid (291).
+# A parallel run prints a progress line to stderr each minute, and stops a worker that finishes no turn for 10 minutes
+# (SIM_STALL_SEC=n sets the limit), exiting 1 with the worker, game and turn it stopped at (318).
 # Runs at nice 10 (SIM_NICE=n overrides; the worker processes inherit it) so a run on every core leaves the desktop responsive.
 set -uo pipefail
 args=()

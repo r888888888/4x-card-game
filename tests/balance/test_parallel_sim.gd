@@ -147,3 +147,38 @@ func test_an_in_process_run_ignores_the_lock() -> void:
 	var out := run_with(1, "generic", {"turns": 2, "procs": 1, "lock_path": lock})
 	stats.release_lock(lock)
 	eq(out.get("code"), 0, "exit code")
+
+
+# --- 318: a stalled worker fails the run (AC1, AC2, AC4) ---
+
+func test_bug_318_a_worker_leaves_progress_saying_no_game_is_in_play() -> void:
+	var stats: Object = SimStats.new()
+	var dir := OS.get_temp_dir().path_join("test-318-%d" % OS.get_process_id())
+	var options := {"civ": "sumer", "turns": 2, "seed": -1}
+	eq(stats.play_claimed(CARDS, CONFIG, 2, "generic", options, dir, 0), 0, "worker 0 played")
+	var p: Dictionary = stats.read_progress(dir, 0)
+	remove_tree(dir)
+	eq(p.get("job"), -1, "no game in play")
+	eq(p.get("turn"), 2, "the last turn reached")
+
+
+func test_bug_318_a_stalled_worker_is_stopped_and_named() -> void:
+	var start := Time.get_ticks_msec()
+	var out := run_with(2, "generic", {"civ": "sumer", "turns": 2, "procs": 2, "stall_sec": 0})
+	var elapsed := Time.get_ticks_msec() - start
+	var lines: Array = out.get("lines", [])
+	eq(out.get("code"), 1, "exit code: %s" % [lines])
+	var shape := RegEx.create_from_string("^(worker [01] stalled (during game [12] of 2 \\(seed [12], generic, sumer\\) "
+		+ "at turn \\d+|with no game in play): no turn finished in 0 s|game [12] of 2 has no result)$")
+	check(lines.any(func(l): return " stalled " in l), "a worker named as stalled: %s" % [lines])
+	for line in lines:
+		check(shape.search(line) != null, "line names worker, game, seed, strategy, civ and turn: '%s'" % line)
+	check(elapsed < 10000, "stopped within 10 s (took %d ms)" % elapsed)
+	eq(OS.execute("pgrep", ["-f", "sim-%d-" % OS.get_process_id()]), 1, "no worker of the run still running")
+	eq(my_result_dirs(), [], "no results directory")
+
+
+func test_bug_318_a_run_within_the_stall_limit_finishes() -> void:
+	var out := run_with(2, "generic", {"civ": "sumer", "turns": 2, "procs": 2, "stall_sec": 600})
+	eq(out.get("code"), 0, "exit code: %s" % [out.get("lines")])
+	eq(out.get("procs"), 2, "ran on 2 processes")

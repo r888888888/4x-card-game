@@ -58,6 +58,18 @@ func test_a_game_with_nothing_to_weigh_reports_no_lookahead_turns() -> void:
 	eq(stats.get("lookahead_turns"), {"mean": 0.0, "min": 0, "max": 0}, "no government deck, no choice events (294)")
 
 
+# --- 318 AC1: a game reports each turn as it starts (a parallel worker's progress) ---
+
+func test_bug_318_a_game_reports_each_turn_and_plays_the_same() -> void:
+	var stats: Object = SimStats.new()
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3})
+	var names := SimStats.metric_names(d.cards, d.config)
+	var turns := []
+	var watched: Dictionary = stats.play_game(d.cards, d.config, [1, "generic", ""], names, func(t): turns.append(t))
+	var plain: Dictionary = stats.play_game(d.cards, d.config, [1, "generic", ""], names)
+	eq(turns, [1, 2, 3], "each turn once, as it starts")
+	eq(watched, plain, "the same game with or without the callback")
+
 func test_sim_stats_counts_founded_cities() -> void:
 	var d := sim_data({"settler": 10}, {"turn_limit": 2,
 		"starting": {"resources": {"food": 30}, "tableau": ["capital"], "territory": "homeland"}})

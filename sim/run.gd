@@ -3,7 +3,8 @@ extends SceneTree
 ## with GenericBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
-## one only). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's
+## one only). A parallel worker that finishes no turn for SIM_STALL_SEC seconds (default 600) is stopped and fails the run,
+## and a parallel run prints a progress line to stderr each minute (318). A parallel run fails at once while another one, from any checkout, holds the lock (291). Each game's
 ## result is cached under CACHE_DIR by the code and data that played it (292). With SIM_COMPARE set to a checkout's
 ## absolute root (293; scripts/sim.sh --compare <checkout> sets it) it compares that checkout ("main") with this one game
 ## by game instead: the seed count is the most a cell gets.
@@ -29,9 +30,10 @@ func _initialize() -> void:
 		quit(SimStats.play_claimed(cards_path, config_path, seed_count, strategy, options, child.dir, int(child.worker)))
 		return
 	var env := {}
-	for key in ["SIM_PROCS", "SIM_PERF_CORES"]:
+	for key in ["SIM_PROCS", "SIM_PERF_CORES", "SIM_STALL_SEC"]:
 		env[key] = OS.get_environment(key)
 	options["procs"] = SimStats.procs_from_env(env, OS.get_processor_count())
+	options["stall_sec"] = SimStats.stall_sec_from_env(env)
 	options["lock_path"] = OS.get_temp_dir().path_join(LOCK_NAME)
 	options["cache_dir"] = CACHE_DIR
 	options["cache"] = OS.get_environment("SIM_CACHE") != "0"
