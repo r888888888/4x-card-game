@@ -234,6 +234,14 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
+- Building upgrades (300): a building may set `upgrade_of` (another building's id; never a project, and no cycles). It
+  is a build-menu entry only (never in `deck` or `supply`, nor `create`d) and builds onto a base: `build("plough",
+  farm_uid)` puts it on the base's territory (`CardInstance.base_uid`), taking no slot and no worker; `build_targets`
+  lists the bases that could take it, and a base takes each different upgrade once. An upgrade can be a base
+  (Shrine → Temple → Great Temple). It adds its effects, modifiers, housing, defence, training, famine guard and VP
+  while the building at the root of its chain works, and counts for nothing while that one is idle (`is_idle` true,
+  `fallen_back_reason` "Its Farm is idle."). `upgrade_base(uid)`, `upgrades_on(uid)`; rules in `engine/upgrades.gd`
+  (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be built on a Farm."
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or

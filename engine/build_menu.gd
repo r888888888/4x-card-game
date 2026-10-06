@@ -81,12 +81,16 @@ static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
 static func unlock(e: GameEngine, card_id: String, source: CardInstance) -> void:
 	if e.state.locked_builds.erase(card_id):
 		var prefix := "  %s: " % source.def.name if source != null else "  "
-		e._notice("%s%s can now be %s." % [prefix, e.card_db[card_id].name, made(e.card_db[card_id])])
+		e._notice(prefix + now_text(e.card_db, card_id))
 
 
-## How def comes out of the build menu (296): a unit is "recruited", a building "built".
-static func made(def: CardDef) -> String:
-	return "recruited" if def.type == CardDef.UNIT else "built"
+## What unlocking build-menu entry card_id means: "Granary can now be built.", a unit "… recruited." (296), an upgrade
+## "Plough can now be built on a Farm." (300).
+static func now_text(card_db: Dictionary, card_id: String) -> String:
+	var def: CardDef = card_db[card_id]
+	if def.is_upgrade():
+		return "%s can now be built on %s." % [def.name, Population.with_article(card_db[def.upgrade_of].name)]
+	return "%s can now be %s." % [def.name, "recruited" if def.type == CardDef.UNIT else "built"]
 
 
 ## A stand-in copy of card_id for the checks, with no uid: building makes the real one.

@@ -9,14 +9,16 @@ static func pop(e: GameEngine, territory_uid: int) -> int:
 	return territory.pop if territory != null else 0
 
 
-## A settled territory's housing plus the housing of every building on it, working or idle (0 if unsettled).
+## A settled territory's housing plus the housing of every building on it, working or idle, and of the upgrades on
+## them that haven't fallen back (300) (0 if unsettled).
 static func housing(e: GameEngine, territory_uid: int) -> int:
 	var territory := Territories.settled(e, territory_uid)
 	if territory == null:
 		return 0
 	var total := territory.def.housing + Modifiers.total(e, Modifiers.HOUSING)
-	for building in Territories.buildings_on(e, territory_uid):
-		total += building.def.housing
+	for card in e.zone("tableau").cards:
+		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not Upgrades.fallen_back(e, card):
+			total += card.def.housing
 	return maxi(1, total)
 
 
@@ -37,7 +39,7 @@ static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 	var tableau := e.zone("tableau").cards
 	var built := {}  # territory uid -> the housing of the buildings on it (see housing)
 	for card in tableau:
-		if card.def.type == CardDef.BUILDING:
+		if card.def.type == CardDef.BUILDING and not Upgrades.fallen_back(e, card):
 			built[card.territory_uid] = built.get(card.territory_uid, 0) + card.def.housing
 	var extra := Modifiers.total(e, Modifiers.HOUSING)
 	for card in tableau:
@@ -172,10 +174,13 @@ static func free_workers(e: GameEngine, territory_uid: int) -> int:
 	return maxi(pop(e, territory_uid) - Territories.workers_on(e, territory_uid).size(), 0)
 
 
-## Whether card uid is idle: a building or unit past its territory's pop (no worker), or a building past its
-## territory's slots (281).
+## Whether card uid is idle: a building or unit past its territory's pop (no worker), a building past its
+## territory's slots (281), or an upgrade on an idle base (300).
 static func is_idle(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("tableau").find(uid)
+	if card != null and card.base_uid >= 0:
+		var base := Upgrades.root(e, card)
+		return base != card and is_idle(e, base.uid)
 	if card == null or not card.def.uses_worker() or not e.population_on():
 		return false
 	if Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):

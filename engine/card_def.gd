@@ -43,6 +43,7 @@ var housing: int = 0  # territories: most pop the territory can hold; buildings:
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var strength: int = 0  # units: how much it counts in defence (160)
 var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
+var upgrade_of := ""  # buildings: the id of the building it is built onto (300), or "" for none
 var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
@@ -73,9 +74,20 @@ func is_permanent() -> bool:
 	return type != ACTION
 
 
-## Whether a played copy uses a worker on its territory (a building, or a unit on its home, 160).
+## Whether a played copy uses a worker on its territory (a building, or a unit on its home, 160); an upgrade (300)
+## takes none.
 func uses_worker() -> bool:
-	return type == BUILDING or type == UNIT
+	return (type == BUILDING and upgrade_of == "") or type == UNIT
+
+
+## Whether it is a building's upgrade (300): built onto a building already in play.
+func is_upgrade() -> bool:
+	return upgrade_of != ""
+
+
+## An upgrade's first line (300): "Builds on a Farm."
+func upgrade_text(card_db: Dictionary) -> String:
+	return "Builds on %s." % Population.with_article(card_db[upgrade_of].name)
 
 
 ## Whether one of the card's effects adds an era of techs (such a tech can't be lost).
@@ -101,6 +113,8 @@ func rules_text(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
+	if is_upgrade():
+		parts.append(upgrade_text(card_db))
 	if type == UNIT:
 		parts.append(strength_text())
 	if actions > 0:
@@ -167,6 +181,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 	var parts: PackedStringArray = []
 	if type == TERRITORY:
 		return territory_text(keywords)
+	if is_upgrade():
+		parts.append(upgrade_text(card_db))
 	if type == UNIT:
 		parts.append(strength_text())
 	if actions > 0:

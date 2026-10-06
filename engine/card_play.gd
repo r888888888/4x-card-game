@@ -34,6 +34,8 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 			var blocked := effect.play_block_error(e, card)
 			if blocked != "":
 				return blocked
+	if card.def.is_upgrade():
+		return Upgrades.target_error(e, card, target_uid)
 	if not needs_target(card):
 		return ""
 	var targets := targets_for(e, card)
@@ -65,6 +67,8 @@ static func targets_for(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
 	if not needs_target(card):
 		return out
+	if card.def.is_upgrade():
+		return Upgrades.targets(e, card)
 	if card.def.type == CardDef.BUILDING:
 		return Territories.building_targets(e, card)
 	if card.def.type == CardDef.UNIT:
@@ -103,7 +107,9 @@ static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb :
 		if cost[r] > 0:
 			e._outcome.paid[r] = cost[r]
 	e._log("%s %s." % [verb, card.def.name])
-	if card.def.type == CardDef.BUILDING:
+	if card.def.is_upgrade():  # onto its base, on the base's territory (300)
+		Upgrades.attach(e, card, target)
+	elif card.def.type == CardDef.BUILDING:
 		card.territory_uid = target
 	if card.def.type == CardDef.UNIT:  # homed and stationed where it is recruited (160)
 		card.territory_uid = target
@@ -151,9 +157,9 @@ static func needs_target_choice(e: GameEngine, uid: int) -> bool:
 	return e.needs_target(uid) and targets_of(e, uid).size() > 1 and e.playable_error(uid) == ""
 
 
-## Buildings and units target a territory; other cards need a target if a "play" effect does.
+## Buildings and units target a territory, upgrades a building (300); other cards need a target if a "play" effect does.
 static func needs_target(card: CardInstance) -> bool:
-	return card.def.uses_worker() or target_effect(card) != null
+	return card.def.uses_worker() or card.def.is_upgrade() or target_effect(card) != null
 
 
 ## The card's first "play" effect that needs a target, or null.

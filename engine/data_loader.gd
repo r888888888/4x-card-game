@@ -33,9 +33,12 @@ const TYPE_FIELDS := {
 	"tolerates": [CardDef.GOVERNMENT],
 	"administers": [CardDef.GOVERNMENT],
 	"project": [CardDef.BUILDING],
+	"upgrade_of": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
+## A project is built over turns on a territory, so it can't go onto a building or have one go onto it (300).
+const UPGRADE_PROJECT_ERROR := "upgrade_of: a project can't take or be an upgrade"
 ## The keys a card's modifiers object may use (129); Modifiers.total sums each over the working cards.
 const MODIFIER_KEYS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.HOUSING, Modifiers.UNREST_LIMIT, Modifiers.RENEWAL, Modifiers.INSIGHT_PER_GAIN,
 	Modifiers.ADMINISTERS]
@@ -152,6 +155,9 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
 		elif home != "" and db[home].type != CardDef.TERRITORY:
 			errors.append("%s: card '%s': home: '%s' is not a territory" % [src, id, home])
+		var base_problem := _upgrade_base_problem(db[id].upgrade_of, db)
+		if base_problem != "":
+			errors.append("%s: card '%s': %s" % [src, id, base_problem])
 		for j in db[id].effects.size():
 			var start_building := _start_building_problem(db[id].effects[j], db)
 			if start_building != "":
@@ -165,7 +171,42 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			for m in ref_errors:
 				errors.append("%s: card '%s': '%s' effect: %s" % [src, id, e.op, m])
 	errors.append_array(_prereq_cycles(db, src))
+	errors.append_array(_upgrade_cycles(db, src))
 	return db
+
+
+## Why an upgrade's base can't be base (300), or "": it is unknown, not a building, or a project.
+static func _upgrade_base_problem(base: String, db: Dictionary) -> String:
+	if base == "":
+		return ""
+	if not db.has(base):
+		return "upgrade_of: unknown card '%s'" % base
+	var type: String = db[base].type
+	if type != CardDef.BUILDING:
+		return "upgrade_of: '%s' is %s %s" % [base, "an" if type == CardDef.ACTION else "a", type]
+	if db[base].project:
+		return UPGRADE_PROJECT_ERROR
+	return ""
+
+
+## One error per cycle of buildings each the upgrade of the next (300), itself included, on the cycle's first building
+## in card order: "cards.json: card 'a': upgrade_of: cycle a → b → a".
+static func _upgrade_cycles(db: Dictionary, src: String) -> Array[String]:
+	var out: Array[String] = []
+	var in_cycle := {}
+	for id in db:
+		if in_cycle.has(id):
+			continue
+		var path: Array[String] = [id]
+		var next: String = db[id].upgrade_of
+		while next != "" and db.has(next) and not path.has(next):
+			path.append(next)
+			next = db[next].upgrade_of
+		if next == id:
+			for b in path:
+				in_cycle[b] = true
+			out.append("%s: card '%s': upgrade_of: cycle %s" % [src, id, " → ".join(path + [id] as Array[String])])
+	return out
 
 
 ## One error per cycle of techs that need each other (174), on the cycle's first tech in card order:
@@ -314,6 +355,9 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 				def.project = c.project
 		if def.project and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
 			errs.append("project: its cost must be wealth only, at least 1 (like {\"wealth\": 30})")
+		def.upgrade_of = Fields.read_string(c, "upgrade_of", errs, [], "")
+		if def.project and def.upgrade_of != "":
+			errs.append(UPGRADE_PROJECT_ERROR)
 		if def.project and not def.cost_per_territory.is_empty():
 			errs.append("cost_per_territory: a project's cost is paid in over turns, so it can't grow")
 	elif def.type == CardDef.UNIT:

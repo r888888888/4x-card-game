@@ -11,6 +11,8 @@ const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.U
 const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
 const BUILD_FIELDS: Array[String] = ["locked", "once"]
 const DECK_MODELS: Array[String] = ["fixed"]  # "deckbuilding" and "era" are planned
+## An upgrade (300) can't be dealt or bought: it is only built from the build menu, onto its base.
+const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 
 
 ## Returns a normalized config: {resources, keywords, turn_limit, hand_size, hand_limit, deck_model,
@@ -515,6 +517,9 @@ static func _parse_supply(raw: Variant, cards: Dictionary, errs: Array[String]) 
 		if not SUPPLY_TYPES.has(cards[id].type):
 			errs.append("supply: '%s' is a %s" % [id, cards[id].type])
 			continue
+		if cards[id].is_upgrade():
+			errs.append("supply: " + UPGRADE_ONLY_BUILT % id)
+			continue
 		if not (entry is Dictionary):
 			errs.append("supply: '%s' must be an object like {\"price\": 2, \"count\": 1}" % id)
 			continue
@@ -648,6 +653,8 @@ static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, re
 			errs.append("%s: '%s' is not a %s" % [field, id, required])
 		elif required == "" and SEPARATE_DECK_TYPES.has(cards[id].type):
 			errs.append("%s: '%s' is a %s" % [field, id, cards[id].type])
+		elif required == "" and cards[id].is_upgrade():
+			errs.append("%s: %s" % [field, UPGRADE_ONLY_BUILT % id])
 		elif typeof(n) != TYPE_INT or n < 1:
 			errs.append("%s: count for '%s' must be an integer >= 1" % [field, id])
 		else:
