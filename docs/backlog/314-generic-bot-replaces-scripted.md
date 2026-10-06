@@ -58,7 +58,7 @@ per-mechanic bot items (298, 303, 168) are closed as superseded.
 | AC6 | docs (manual review) |
 
 ## Manual check
-- [ ] `scripts/sim.sh 10` (all strategies) for each civ: note scores, revolts and seconds per game in the Log. Balance
+- [x] `scripts/sim.sh 5` (all strategies) for each civ: note scores, revolts and seconds per game in the Log. Balance
   numbers move; a balance item re-baselines them.
 
 ## Log
@@ -95,3 +95,16 @@ per-mechanic bot items (298, 303, 168) are closed as superseded.
   shorter games (`turns`) where the length isn't what they test.
 - 2026-10-05: with the user's approval, `test_sim_stats_plays_every_strategy_for_all_and_refuses_others` checks the
   first error line (a stringified array escapes the quotes, so the old check could never match).
+- 2026-10-05: manual check, `scripts/sim.sh 5` (all strategies, every civ, 5 seeds; 90 games in 1549 s on 7 workers,
+  about 2 min of CPU a game with rollouts):
+
+  | Strategy | Mean score (min–max) | By civ (egypt, sumer, phoenicia, babylon, greece, persia) | Cities | Revolts | Anarchies |
+  |---|---|---|---|---|---|
+  | generic | 305 (126–649) | 368, 241, 317, 211, 363, 327 | 13.2 | 4.3 | 4.7 |
+  | wide | 511 (151–838) | 536, 518, 454, 531, 588, 440 | 30.3 | 2.8 | 3.0 |
+  | tall | 119 (50–273) | 76, 113, 80, 102, 203, 137 | 1.0 | 6.0 | 6.9 |
+
+  The bot now revolts (313's never did) and uses Kingship and Theocracy (15 and 39 turns a game for generic). Tall
+  (one city beyond the home) is far behind wide: the gap upgrades (300–307) are meant to close. Balance worries for
+  the balance item after 315: wide's +20 per territory may be too strong a lever; tall revolts and falls into
+  Anarchy most. A sim run is now ~25 min for 5 seeds: 315 matters.
