@@ -143,10 +143,10 @@ func test_unit_uses_a_worker_on_its_home() -> void:
 	eq(e.free_workers(home), 0, "2 pop - Farm - Levy")
 	var levy := first_in_hand(e)
 	eq(e.valid_targets(levy), [] as Array[int], "no target for another Levy")
-	eq(e.play_error(levy), "No territory with a free worker.", "another Levy")
+	eq(e.play_error(levy), "No territory with a free worker: every pop already works a building or unit.", "another Levy")
 	var farm := put_in_hand(e, "farm")
 	e.resources.food = 10
-	eq(e.play_error(farm), "No territory with a free worker.", "a Farm")
+	eq(e.play_error(farm), "No territory with a free worker: every pop already works a building or unit.", "a Farm")
 
 
 func test_units_need_no_worker_without_population() -> void:
@@ -194,7 +194,8 @@ func test_unit_refuses_invalid_targets() -> void:
 	grass_card.pop = 0
 	var levy := first_in_hand(e)
 	eq(e.play_error(levy, uid_of(e.zone("frontier"), "hills")), "That target isn't valid.", "a frontier territory")
-	eq(e.play_error(levy, grass_card.uid), "That target isn't valid.", "no free worker")
+	eq(e.play_error(levy, grass_card.uid), "Grassland has no free worker: it has no pop, and a building or unit needs one.",
+		"no free worker (347)")
 	eq(e.play_error(levy, uid_of(e.zone("tableau"), "capital")), "That target isn't valid.", "a city")
 
 

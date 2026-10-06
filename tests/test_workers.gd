@@ -4,8 +4,8 @@ extends "res://tests/lib/test_case.gd"
 
 
 ## Population on with Homeland pop start (vp_per_pop 0 so score is printed VP + effect VP), plenty of food.
-func workers_engine(start: int, deck := {"farm": 10}, food_upkeep := 0) -> GameEngine:
-	var e := make_engine(deck, {"population": {"start": start, "food_upkeep": food_upkeep, "vp_per_pop": 0}})
+func workers_engine(start: int, deck := {"farm": 10}, food_upkeep := 0, overrides := {}) -> GameEngine:
+	var e := make_engine(deck, {"population": {"start": start, "food_upkeep": food_upkeep, "vp_per_pop": 0}}.merged(overrides))
 	e.resources.food = 50
 	return e
 
@@ -35,7 +35,7 @@ func test_building_needs_a_free_worker() -> void:
 	eq(e.free_workers(home), 0, "pop 1 - 1 building")
 	var farm := first_in_hand(e)
 	eq(e.valid_targets(farm), [] as Array[int], "no valid target")
-	eq(e.play_error(farm), "No territory with a free worker.", "play_error")
+	eq(e.play_error(farm), "No territory with a free worker: every pop already works a building or unit.", "play_error (347)")
 	var hand_size := e.zone("hand").size()
 	check(not e.play_card(farm, home), "play refused")
 	eq(e.zone("hand").size(), hand_size, "Farm still in hand")
@@ -43,6 +43,47 @@ func test_building_needs_a_free_worker() -> void:
 
 
 # --- AC2: a free worker allows placement ---
+
+# --- 347: why no free worker ---
+
+const NO_WORKER_2 := "Homeland has no free worker: its 2 pop all work buildings or units, and a building or unit needs one."
+
+
+func test_no_free_worker_on_the_target_says_why() -> void:
+	var e := workers_engine(2, {"farm": 10}, 0, {"build_menu": {"farm": {}}})
+	place(e, 2)
+	var home := home_uid(e)
+	check(e.free_slots(home) > 0, "a free slot left")
+	eq(e.play_error(first_in_hand(e), home), NO_WORKER_2, "played on Homeland")
+	eq(e.build_error("farm", home), NO_WORKER_2, "built on Homeland")
+
+
+func test_no_free_worker_with_one_pop_reads_in_the_singular() -> void:
+	var e := workers_engine(1)
+	place(e, 1)
+	eq(e.play_error(first_in_hand(e), home_uid(e)),
+		"Homeland has no free worker: its 1 pop works a building or unit, and a building or unit needs one.", "pop 1")
+
+
+func test_no_free_worker_names_the_city_name() -> void:
+	var e := workers_engine(2)
+	place(e, 2)
+	var home := home_uid(e)
+	check(e.rename_territory(home, "Memphis"), "renamed")
+	eq(e.play_error(first_in_hand(e), home), NO_WORKER_2.replace("Homeland", "Memphis"), "the city name")
+
+
+func test_a_full_territory_still_refuses_without_the_worker_reason() -> void:
+	var e := workers_engine(7)
+	var home := home_uid(e)
+	var fill: Array = []
+	fill.resize(e.free_slots(home))
+	fill.fill("farm")
+	build_on(e, home, fill)
+	eq(e.free_slots(home), 0, "no free slot")
+	check(e.free_workers(home) > 0, "workers to spare")
+	eq(e.play_error(first_in_hand(e), home), "That target isn't valid.", "no free slot: unchanged")
+
 
 func test_building_placed_with_a_free_worker() -> void:
 	var e := workers_engine(2)
