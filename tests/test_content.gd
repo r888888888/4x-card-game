@@ -1589,6 +1589,13 @@ func test_the_anarchy_event_has_flavor_and_a_quote() -> void:
 		check(def.quote_text != "" and def.quote_by != "", "and a quote")
 
 
+## Backlog 352: every building, projects and upgrades included, has a flavor line.
+func test_every_building_has_flavor() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.BUILDING:
+			check(def.flavor != "", "%s has flavor" % def.id)
+
+
 ## Backlog 351: every action has a flavor line.
 func test_every_action_has_flavor() -> void:
 	for def: CardDef in load_real().cards.values():

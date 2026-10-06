@@ -16,6 +16,7 @@
     },
     {
       "id": "farm", "name": "Farm", "type": "building",
+      "flavor": "Where the river runs close, the first farmers sow wheat and barley in the soft earth and wait for the harvest.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
@@ -24,6 +25,7 @@
     },
     {
       "id": "palisade", "name": "Palisade", "type": "building",
+      "flavor": "A ring of sharpened logs and a ditch around the village: enough to turn back raiders on a moonless night.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["wall"], "defense": 2
     },
     {
@@ -99,11 +101,13 @@
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
+      "flavor": "A house for the god on a raised platform, where priests keep the offerings and the people bring their hopes.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "great_temple", "name": "Great Temple", "type": "building",
+      "flavor": "Its courts hold workshops, granaries and scribes as well as the god, and half the city's land answers to it.",
       "cost": { "wealth": 9 }, "vp": 0, "tags": ["culture"], "upgrade_of": "temple", "tier": "metropolis",
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
@@ -112,52 +116,62 @@
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
+      "flavor": "A carved stone stands in the square, telling every passer-by of the ruler's victories and the gods' favour.",
       "cost": { "wealth": 6 }, "vp": 3, "tags": ["culture"], "modifiers": { "unrest_limit": 2 },
       "effects": []
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
+      "flavor": "At Giza, gangs of workers hauled two million blocks into place so that a king might climb to the stars.",
       "cost": { "wealth": 40 }, "project": true, "vp": 10, "tags": ["wonder", "culture"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "oracle_of_delphi", "name": "Oracle of Delphi", "type": "building",
+      "flavor": "At Delphi the Pythia sat above the sacred spring and spoke for Apollo, and kings travelled far to hear her riddles.",
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "walls_of_uruk", "name": "Walls of Uruk", "type": "building",
+      "flavor": "Gilgamesh, the poem says, raised the walls of Uruk: kiln-fired brick, nine kilometres around, and a boast to every age.",
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
       "effects": []
     },
     {
       "id": "great_ziggurat", "name": "Great Ziggurat", "type": "building",
+      "flavor": "At Ur, a stepped mountain of brick lifted the moon god's shrine high above the plain and the flood.",
       "cost": { "wealth": 42 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "hanging_gardens", "name": "Hanging Gardens", "type": "building",
+      "flavor": "In Babylon, it was said, terraces of trees and flowers climbed toward the sky, watered by machines that lifted the river.",
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
       "modifiers": { "housing": 1 },
       "effects": []
     },
     {
       "id": "great_library", "name": "Great Library", "type": "building",
+      "flavor": "Alexandria's library set out to hold every book in the world, and copied the scrolls off every ship that docked.",
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "great_harbor_of_tyre", "name": "Great Harbor of Tyre", "type": "building",
+      "flavor": "Tyre's island city kept two harbours, one facing Sidon and one facing Egypt, and the trade of the whole sea came to them.",
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
       "id": "royal_road", "name": "Royal Road", "type": "building",
+      "flavor": "From Sardis to Susa ran the Persian king's road, with a fresh horse and rider waiting at every station.",
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1, "administers": 1 },
       "effects": []
     },
     {
       "id": "pasture", "name": "Pasture", "type": "building",
+      "flavor": "On the open grass, herders follow their flocks of sheep and goats, and count their wealth in heads.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
@@ -165,11 +179,13 @@
     },
     {
       "id": "harbor", "name": "Harbor", "type": "building",
+      "flavor": "Stone quays and a breakwater turn a sheltered bay into a port where merchant ships can ride out the storms.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "upgrade_of": "fishing_huts", "requires": ["coastal"],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "hunters_camp", "name": "Hunters' Camp", "type": "building",
+      "flavor": "At the forest edge, hunters dry meat and stretch hides by the fire between their days among the trees.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -178,11 +194,13 @@
     },
     {
       "id": "timber_camp", "name": "Timber Camp", "type": "building",
+      "flavor": "Axes ring through the forest, and logs float downriver to become roof beams, ships and charcoal.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "upgrade_of": "hunters_camp",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "irrigation_canals", "name": "Irrigation Canals", "type": "building",
+      "flavor": "Canals and dykes carry the river out across the fields, and the work of keeping them clear never ends.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm", "housing": 1,
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -191,11 +209,13 @@
     },
     {
       "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
+      "flavor": "Oxen pull the plough where once men broke the soil by hand, and one family can feed many more.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
+      "flavor": "Spindles whirl and looms clack as wool and flax become cloth, the first great trade of the cities.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -204,11 +224,13 @@
     },
     {
       "id": "brewery", "name": "Brewery", "type": "building",
+      "flavor": "Barley mash ferments in great jars; beer is food, wage and offering, and the brewers are never idle.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "famine_guard": 1,
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "olive_groves", "name": "Olive Groves", "type": "building",
+      "flavor": "Olive trees take a lifetime to bear, then give oil for lamps, food and trade for centuries.",
       "cost": { "wealth": 4 }, "vp": 1, "tags": ["trade"], "requires": ["hills"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -217,26 +239,31 @@
     },
     {
       "id": "house_of_life", "name": "House of Life", "type": "building",
+      "flavor": "In Egypt's House of Life, scribes copied sacred texts and physicians learned their healing spells and cures.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "temple", "tier": "town", "housing": 1,
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "qanat_channel", "name": "Qanat", "type": "building",
+      "flavor": "Diggers tunnel into the hillside to tap the hidden water, and lead it for miles underground to the desert fields.",
       "cost": { "food": 1, "wealth": 4 }, "vp": 0, "tags": ["farm"], "requires": ["desert", "hills"], "housing": 2,
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
+      "flavor": "Reed huts on the shore, nets drying in the sun, and boats out at dawn to bring back the catch.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "shrine", "name": "Shrine", "type": "building",
+      "flavor": "A small altar on a high place, where travellers leave a token and the mountain spirit is honoured.",
       "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"], "modifiers": { "unrest_limit": 1 },
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" } ]
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
+      "flavor": "Miners follow the green-streaked rock into the hillside with fire and antler picks, for copper, tin and silver.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -247,6 +274,7 @@
     },
     {
       "id": "shaft_mine", "name": "Shaft Mine", "type": "building",
+      "flavor": "Shafts and galleries reach deep under the hill, lit by oil lamps, where the richest ore still lies.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mine",
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -255,6 +283,7 @@
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
+      "flavor": "In the smith's forge, bellows roar and ore becomes bronze and iron: blades, ploughshares and the power to hold a land.",
       "cost": { "wealth": 5 }, "vp": 2, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "copper" },
@@ -263,10 +292,12 @@
     },
     {
       "id": "barracks", "name": "Barracks", "type": "building",
+      "flavor": "Here the young are drilled to march in step and hold the line, until the city has an army of its own.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "training": 1
     },
     {
       "id": "market", "name": "Market", "type": "building",
+      "flavor": "Under awnings in the square, farmers, potters and traders haggle from first light, and the city's news travels with them.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep" },
@@ -275,6 +306,7 @@
     },
     {
       "id": "granary", "name": "Granary", "type": "building",
+      "flavor": "The surplus of good years is sealed in clay bins, and a wise ruler keeps them full against the lean ones.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 1, "famine_guard": 1,
       "effects": []
     },
@@ -376,46 +408,55 @@
     },
     {
       "id": "scribal_school", "name": "Scribal School", "type": "building",
+      "flavor": "In the tablet house, boys copy signs into clay for years until they can keep the temple's accounts.",
       "cost": { "wealth": 5 }, "vp": 1, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "library", "name": "Library", "type": "building",
+      "flavor": "Shelves of clay tablets and papyrus rolls hold law, medicine and the stars, for anyone who can read them.",
       "cost": { "wealth": 6 }, "vp": 0, "tags": [], "upgrade_of": "scribal_school", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "insight", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "stone_circle", "name": "Stone Circle", "type": "building",
+      "flavor": "Great stones raised in a ring mark the sunrise at midsummer, and the seasons can be read in their shadows.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mud_brick_houses", "name": "Courtyard Houses", "type": "building",
+      "flavor": "Rooms open onto a shaded inner courtyard, cool in summer, where the family cooks, works and sleeps under the stars.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 2,
       "effects": []
     },
     {
       "id": "bathhouse", "name": "Bathhouse", "type": "building",
+      "flavor": "Warm pools, cold plunges and gossip: the bathhouse keeps the city clean and its citizens content.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "requires": ["fresh_water"], "housing": 1,
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "courthouse", "name": "Courthouse", "type": "building",
+      "flavor": "Judges hear disputes by the written law, so that the strong may not simply take from the weak.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "modifiers": { "unrest_limit": 1 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "aqueduct", "name": "Aqueduct", "type": "building",
+      "flavor": "Channels of stone carry clean water from the distant hills across valleys on great arches, into the heart of the city.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "tier": "town", "housing": 3,
       "effects": []
     },
     {
       "id": "palace", "name": "Palace", "type": "building",
+      "flavor": "The ruler's household, treasury and court gather under one roof, and from its halls the realm is governed.",
       "cost": { "wealth": 10 }, "vp": 3, "tags": [], "tier": "metropolis", "modifiers": { "actions": 1 },
       "effects": []
     },
     {
       "id": "shipyard", "name": "Shipyard", "type": "building",
+      "flavor": "Shipwrights shape cedar and pine into hulls, and every vessel launched carries the city's reach a little further.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["port"], "requires": ["coastal"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -424,6 +465,7 @@
     },
     {
       "id": "terraced_fields", "name": "Terraced Fields", "type": "building",
+      "flavor": "Stone walls step up the slope, each level holding a strip of soil where no field could lie before.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["hills", "mountain"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -432,60 +474,72 @@
     },
     {
       "id": "reed_works", "name": "Reed Works", "type": "building",
+      "flavor": "Marsh reeds are cut and bundled for boats, mats, baskets and houses, and the scribe's pen besides.",
       "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["marsh"], "housing": 1,
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "cistern", "name": "Cistern", "type": "building",
+      "flavor": "Plastered chambers cut into the rock catch every winter rain and keep it sweet through the long dry summer.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "requires": ["hills", "desert"], "housing": 2,
       "effects": []
     },
     {
       "id": "dye_works", "name": "Dye Works", "type": "building",
+      "flavor": "Thousands of sea snails make a pinch of Tyrian purple, worth more than its weight in silver, and the vats stink for miles.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"], "requires": ["coastal"],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "kiln", "name": "Kiln", "type": "building",
+      "flavor": "Potters fire clay into jars, lamps and bricks, and their kilns turn the mud of the riverbank into goods for every house.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "merchant_quarter", "name": "Merchant Quarter", "type": "building",
+      "flavor": "Warehouses, counting houses and foreign traders crowd one district, where loans are made and fortunes rise and fall.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "market", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "mint", "name": "Mint", "type": "building",
+      "flavor": "Lydia first struck coins of electrum, stamped with a lion; soon every city wanted its own, in silver and bronze.",
       "cost": { "wealth": 8 }, "vp": 1, "tags": ["trade"], "upgrade_of": "merchant_quarter", "tier": "metropolis",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "storehouse", "name": "Storehouse", "type": "building",
+      "flavor": "Rows of storerooms hold grain, oil and wine tallied by seal and tablet, a buffer against famine and siege.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "upgrade_of": "granary", "tier": "town", "housing": 1,
       "famine_guard": 1, "effects": []
     },
     {
       "id": "city_walls", "name": "City Walls", "type": "building",
+      "flavor": "Stone walls, towers and gates ring the city, and a siege must now be counted in months, not days.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["wall"], "upgrade_of": "palisade", "tier": "town", "defense": 2
     },
     {
       "id": "multi_storey_houses", "name": "Multi-storey Houses", "type": "building",
+      "flavor": "As the city fills, houses rise two and three storeys high, with shops below and families crowded above.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mud_brick_houses", "tier": "town", "housing": 2,
       "effects": []
     },
     {
       "id": "textile_works", "name": "Textile Works", "type": "building",
+      "flavor": "Hundreds of workers spin, weave and dye under one master, and bolts of cloth leave by the cartload for distant markets.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "weavers_workshop", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "dockyard", "name": "Dockyard", "type": "building",
+      "flavor": "Slipways, ropewalks and timber stores line the waterfront, and the city builds ships faster than its rivals.",
       "cost": { "wealth": 6 }, "vp": 0, "tags": ["port"], "upgrade_of": "harbor", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "caravanserai", "name": "Caravan Station", "type": "building",
+      "flavor": "A walled courtyard a day's march apart, where caravans water their camels and merchants trade news by the well.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"], "requires": ["desert"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },

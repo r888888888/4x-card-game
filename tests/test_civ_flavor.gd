@@ -59,8 +59,8 @@ func test_flavor_and_quote_validation() -> void:
 		["quote not an object", sages_with("quote", "Know thyself."), quote_error, "one_error"],
 		["quote without by", sages_with("quote", {"text": "Know thyself."}), quote_error, "one_error"],
 		["quote with an empty text", sages_with("quote", {"text": "", "by": "Delphi"}), quote_error, "one_error"],
-		["flavor on a building", {"id": "hut", "name": "Hut", "type": "building", "flavor": "Cosy."},
-			"card 'hut': 'flavor' only applies to civilizations", "warning_only"],
+		["flavor on a territory", {"id": "dell", "name": "Dell", "type": "territory", "slots": 2, "flavor": "Green."},
+			"card 'dell': 'flavor' only applies to civilizations", "warning_only"],
 		["quote on an action", {"id": "run", "name": "Run", "type": "action", "quote": {"text": "Go.", "by": "Me"}},
 			"card 'run': 'quote' only applies to civilizations", "warning_only"],
 	], card_messages)
