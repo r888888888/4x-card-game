@@ -2,7 +2,7 @@
 id: 308
 title: Fill the building roster's gaps: Palace, Shipyard, Terraced Fields, Reed Works, Cistern, Dye Works, Kiln
 type: feature
-status: ready
+status: review
 branch: feat/308-gap-buildings
 ---
 
@@ -14,9 +14,9 @@ per realm (the Palace) for the tall end. Content only. Follows 307.
 
 ## Acceptance criteria
 Content tests, naming no card id:
-- [ ] AC1: Every territory card in the territory deck (and every civilization's home) can hold a non-upgrade building
+- [x] AC1: Every territory card in the territory deck (and every civilization's home) can hold a non-upgrade building
   that makes food on upkeep (its `requires` met by the territory's keywords, or empty). Fails today: Mountains has none.
-- [ ] AC2: Every non-wonder building with `once` has a tier: a one-per-realm building is the reward of a large
+- [x] AC2: Every non-wonder building with `once` has a tier: a one-per-realm building is the reward of a large
   settlement.
 
 ## Out of scope
@@ -43,7 +43,8 @@ Content tests, naming no card id:
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_territory_can_hold_a_food_building` |
+| AC2 | `test_content::test_every_once_building_that_is_not_a_wonder_has_a_tier` |
 
 ## Manual check
 - [ ] Palace: Code of Laws, 10 wealth, tier Metropolis, once, 3 VP, +1 action.
@@ -56,3 +57,9 @@ Content tests, naming no card id:
 
 ## Log
 - 2026-10-05: specced from the realism pass of the tall-buildings design.
+- 2026-10-06: red. AC2 also failed on Monument and Forge (`once`, no tier, not wonders); the user chose to drop `once`
+  from both (ordinary buildings) rather than tier them.
+- 2026-10-06: built (data only). Tags the spec left open: Shipyard `port` (Navigation pays per port), Terraced Fields
+  `farm`, Dye Works `trade`. Monument and Forge lose `once` (balance worry: several Monuments, +2 unrest limit and 3 VP
+  each, may stack; for the balance item). Spotted in passing: "Unrest limit +2s" on the Monument, a `%.0s` formatting
+  bug in `CardDef.MODIFIER_TEXT` older than this item (flagged as a separate task).
