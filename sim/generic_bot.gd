@@ -10,6 +10,7 @@ extends RefCounted
 ## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
 ## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
 ## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
+## A position's forecast is computed once a turn: value() looks it up by what it reads (forecast_key, 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
@@ -75,14 +76,15 @@ static var forecast_lookups := 0
 static var forecasts_computed := 0
 static var forecast_checks := 0
 static var forecast_mismatches := 0
-## The zones whose cards a forecast reads beyond the ones any upkeep can (a gain_per_tag's zone adds its own).
+## The zones whose cards a forecast reads (_forecast_zones adds any zone a gain_per_tag counts cards in).
 const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
 
 
 ## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
 ## counter for sample seeds, whether a card value is being measured (the deck's worth is then left out, or it would
 ## recurse), in a rollout: cheap mode and the government it was opened for ("" for the best by value), and the forecast
-## cache: {forecast_key: turn_forecast} for forecast_turn, and the zones the key reads (315).
+## cache: {forecast_key: turn_forecast}, cleared when the turn moves past forecast_turn (a rollout's shared one only by
+## its parent), and the zones the key reads (315).
 class Context:
 	var strategy: String
 	var w: Dictionary
@@ -93,6 +95,7 @@ class Context:
 	var government := ""
 	var forecasts := {}
 	var forecast_turn := -1
+	var shared_forecasts := false  # a rollout using its parent's cache, which only the parent clears
 	var forecast_zones: Array[String] = []
 
 	func _init(p_strategy: String) -> void:
@@ -126,20 +129,20 @@ static func take_turn(engine: GameEngine, strategy := STRATEGY, ctx: Context = n
 		if best.is_empty() or not _do(engine, best):
 			break
 	if not ctx.rollout:
-		_weigh_revolt(engine, strategy)
+		_weigh_revolt(engine, strategy, ctx)
 	return steps
 
 
 ## Every REVOLT_EVERY turns, outside a rollout and before the last ROLLOUT_TURNS ÷ 2 turns, revolts when a rollout that
 ## revolts (then chooses some government in the deck) values more than one that doesn't.
-static func _weigh_revolt(engine: GameEngine, strategy: String) -> void:
+static func _weigh_revolt(engine: GameEngine, strategy: String, ctx: Context) -> void:
 	if engine.turn % REVOLT_EVERY != 0 or engine.revolt_error() != "" or engine.zone("governments").is_empty():
 		return
 	if engine.turn > engine.turn_limit() - ROLLOUT_TURNS / 2:
 		return
-	var stay := rollout(engine, strategy)
+	var stay := rollout(engine, strategy, "", false, ctx)
 	for g in engine.zone("governments").cards:
-		if rollout(engine, strategy, g.def.id, true) > stay:
+		if rollout(engine, strategy, g.def.id, true, ctx) > stay:
 			engine.revolt()
 			return
 
@@ -147,11 +150,16 @@ static func _weigh_revolt(engine: GameEngine, strategy: String) -> void:
 ## Plays a sample fork of engine ROLLOUT_TURNS turns on (or to the game's end) in cheap mode with strategy and returns
 ## its value then. The fork revolts first when revolt is true and chooses government_id whenever the government choice
 ## is owed ("" for the best by value); it never revolts. engine is untouched. The seed is the same for every rollout
-## of a turn, so options are compared on the same future.
-static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "", revolt := false) -> float:
+## of a turn, so options are compared on the same future, and the rollouts of a turn share parent's forecast cache
+## (315): they start from the same position and forecast many of the same ones.
+static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "", revolt := false,
+		parent: Context = null) -> float:
 	var f := engine.sample_fork(hash([engine.seed_value, engine.turn, "rollout"]))
 	var ctx := Context.new(strategy)
 	ctx.rollout = true
+	if parent != null:
+		ctx.forecasts = parent.forecasts
+		ctx.shared_forecasts = true
 	ctx.government = government_id
 	if revolt:
 		f.revolt()
@@ -223,7 +231,7 @@ static func _government(engine: GameEngine, strategy: String, ctx: Context) -> A
 	var best: Array = []
 	var best_v := -INF
 	for c in options:
-		var v := rollout(engine, strategy, engine.zone("governments").find(c[1]).def.id)
+		var v := rollout(engine, strategy, engine.zone("governments").find(c[1]).def.id, false, ctx)
 		if v > best_v:
 			best = c
 			best_v = v
@@ -343,7 +351,7 @@ static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 	if not forecast_cache:
 		forecasts_computed += 1
 		return e.turn_forecast()
-	if ctx.forecast_turn != e.turn:
+	if ctx.forecast_turn != e.turn and not ctx.shared_forecasts:
 		ctx.forecasts.clear()
 		ctx.forecast_turn = e.turn
 	var key := forecast_key(e, ctx)
