@@ -160,6 +160,14 @@ func test_the_forecast_counts_size_unrest() -> void:
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 3, "forecast unrest")
 
 
+
+func test_bug_332_the_forecast_counts_no_size_unrest_after_a_revolt() -> void:
+	var e := size_engine()
+	set_pop_of(e, "hills", 9)
+	eq(e.upkeep_forecast().get(GameEngine.UNREST), 1, "before the revolt: one Town")
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	eq(e.upkeep_forecast().get(GameEngine.UNREST), 0, "after the revolt: Elders falls before upkeep, nothing tolerates")
+
 func test_size_unrest_comes_before_calming_upkeep() -> void:
 	var e := ac1_engine()
 	build_on(e, home_uid(e), ["calm"])
