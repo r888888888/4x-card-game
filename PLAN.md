@@ -8,7 +8,7 @@
 | Map | None: tableau of cards (cities, buildings, wonders) |
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
-| Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
+| Deck model | A fixed main deck, grown through the supply, the build menu and techs (see The deck model) |
 | Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
@@ -22,106 +22,41 @@ through signals. This keeps rules testable and allows headless simulation
 (`sim/`, run with `scripts/sim.sh`).
 
 ## Project layout (as built)
-```
-res://
-  data/
-    cards.json           # player card definitions
-    config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
-  engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # public API: actions and their *_error queries, fork(), sample_fork() (311), the constants; calls the modules below
-    engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, targets, forecast, …)
-    territory_queries.gd # TerritoryQueries, EngineQueries' parent (281): pop, housing, slots, workers, tiers, territory status
-    engine_core.gd       # EngineCore, TerritoryQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
-    game_state.gd        # GameState: everything that changes during a game; copy() is a deep copy (051)
-    turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
-    card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
-    population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
-    research.gd          # Research: learning techs from the open tree, prerequisites, eras
-    supply.gd            # Supply: buying from the card supply
-    build_menu.gd        # BuildMenu (295): building unlocked entries straight onto a territory
-    legal_actions.gd     # LegalActions (312): every action allowed now as [action, args…], for bots (legal_actions())
-    sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
-    ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
-    territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
-    discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
-    modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
-    famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
-    anarchy.gd           # Anarchy (145–148, 154, 155): falling at the unrest limit, counters, restore order, renewal, revolt,
-                         # the government deck and choice
-    events.gd            # Events: event deck setup, drawing one at each turn start, active events' upkeep and discard
-    event_choices.gd     # EventChoices: choice events' options (269): loading them, owing, waiting and choosing
-    card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
-    glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated;
-                         # BASIC ones (Upkeep, Slots, Pop) are left out of card details (112)
-    data_loader.gd       # JSON → CardDef; load_all reads both files; collects all errors/warnings
-    config_loader.gd     # config.json → normalized config, checked against the cards (095)
-    card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, keywords, turns_left)
-    zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
-    effect.gd            # Effect base class
-    fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
-    effect_registry.gd   # op name → effect script
-    effects/             # one <op>_effect.gd per effect op
-    rng.gd               # seeded RNG (reproducible games)
-  autoload/game.gd       # "Game" singleton: loads data, owns the engine, reads the launch options
-  autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
-  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion, day mode, sound volumes and interface
-                         # sounds, 184), saved via SettingsStore; it sets the audio buses' volumes and mutes
-  autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
-  ui/                    # main.tscn/main.gd (MainScreen: actions, menu, refresh, test hooks), board_layout.gd
-                         # (176: BoardLayout builds the layout and components in code), board_views.gd (176:
-                         # BoardViews keeps the card views in line with the engine: deal, place, fly, leave)
-                         # cards: card_view.gd (CardView: panel, tooltip, border), card_face.gd (086: its content),
-                         # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
-                         # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
-                         # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, Menu; on a ruled Strip, 221; ready_lamp.gd lights Buy Cards and
-                         # Knowledge for something new to buy or learn, 288), sidebar.gd
-                         # (202: the right rail, open on the board, 221: the civilization, government and End turn),
-                         # counter.gd (181: Counter, a glyph, an odometer figure and the forecast; no tag since 218),
-                         # odometer.gd (181: Odometer, a figure whose digits roll),
-                         # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
-                         # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
-                         # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
-                         # (148) buttons below the Realm),
-                         # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116, 250: notices as flags
-                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys), card_actions.gd (playing,
-                         # clicking, discarding and picking a card view, out of main.gd: 316)
-                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
-                         # cabinet_doors.gd, 209),
-                         # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
-                         # modal.gd (153: Modal, every modal's base: scrim, close keys, click outside; 207: the drafting
-                         # sheet with its title block, body and footer, risen in and dropped off),
-                         # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
-                         # those above it), card_details_modal.gd (click, right-click or I),
-                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), raid_modal.gd (each raid that strikes, above the event; both opened by turn_news.gd, 271; a choice event's options in the event modal, 269), identity_modal.gd (119; Revolt… since 205),
-                         # revolt_modal.gd (205: the revolution's confirmation), rename_modal.gd (248: naming a territory)
-                         # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
-                         # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
-                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
-                         # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
-                         # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
-                         # code, with Heading/Title/Stat/DarkPanel/Strip/Rail variations), tokens.gd (193, 194: the guide's spacing,
-                         # corner radius and type scales, Tokens.SPACE_*, RADIUS_* and TYPE_*)
-                         # sound: sfx.gd (186: Sfx, main.sfx: every sound token, its level, bus, files and rules),
-                         # key_sounds.gd (187: every button's click and a disabled key's dead tap), event_sounds.gd (191:
-                         # the engine's milestones as Level 3 sounds); legend_key.gd, top_bar.gd (End turn), odometer.gd,
-                         # card_motion.gd, modal_stack.gd, navigator.gd and toasts.gd play their own tokens (187–190)
-  assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
-  assets/sounds/         # ui/ (Levels 1–2, variants _a…_d) and events/ (Level 3) WAVs, placeholders rendered by
-                         # docs/design/tools/sound-export.html from the specimen's synthesis (186)
-  default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
-  tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
-  sim/                   # generic_bot.gd (GenericBot and its strategies, 313, 314), sim_stats.gd (SimStats: per-seed metrics, per
-                         # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
-                         # game by game, 293), run.gd (CLI)
-  scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
-  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all);
-                         # scripts/sim.sh --compare <checkout> [max seeds] [strategy] … compares two checkouts
-  scripts/cpus.sh        # on Linux, the CPUs this process may use (affinity and cgroup quota), for sim.sh and test.sh
-  scripts/cloud-setup.sh # installs the pinned Godot in a Claude Code cloud session (docs/cloud.md)
-  docs/                  # development process, testing guide, backlog
-```
+Each script opens with a `##` comment saying what it holds, so this lists folders and entry points only (330); the
+suite checks every path named here exists.
+- `data/`: the content. `data/cards.json` (card definitions) and `data/config.json` (resources, keywords, decks,
+  supply, build menu, eras, population, unrest, starting state), validated on load.
+- `engine/`: the rules, plain GDScript with no scene nodes.
+  - `engine/game_engine.gd`: `GameEngine`, the public API: actions and their `*_error` queries, `fork()`,
+    `sample_fork()` (311) and the constants. It extends `engine/engine_queries.gd` (read queries: score, targets,
+    forecasts, …), which extends `engine/territory_queries.gd` (pop, slots, workers, tiers), which extends
+    `engine/engine_core.gd` (state accessors, signals, the helpers effects call).
+  - `engine/game_state.gd`: `GameState`, everything that changes during a game; `copy()` is a deep copy (051).
+  - Rules modules: one class of static functions per subsystem (`TurnLoop`, `CardPlay`, `Population`, `Research`,
+    `Supply`, `BuildMenu`, `Territories`, `Military`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+  - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected)
+    and `engine/config_loader.gd` (config.json, normalized and checked against the cards, 095).
+  - Cards: `engine/card_def.gd` (the immutable definition and its generated text), `engine/card_instance.gd` (a card
+    in play), `engine/zone.gd` (an ordered pile).
+  - Effects: `engine/effect.gd` (the base class), `engine/effect_registry.gd` (op name to script) and one
+    `<op>_effect.gd` per op in `engine/effects/`.
+- `autoload/`: the singletons. `autoload/game.gd` (`Game`: loads the data, owns the engine, reads
+  `autoload/launch_options.gd`'s `--civ`, `--turns`, `--seed`) and `autoload/settings.gd` (`Settings`, saved through
+  `autoload/settings_store.gd`).
+- `ui/`: the display, one component per script, built in code. `ui/main.tscn` and `ui/main.gd` (`MainScreen`: the
+  refresh, the actions it wires up, the test hooks); `ui/board_layout.gd` builds the board; `ui/board_views.gd` keeps
+  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd` and `ui/tokens.gd`;
+  modals extend `ui/modal.gd` on a `ui/modal_stack.gd`, screens go on `ui/navigator.gd`; sounds are `ui/sfx.gd`.
+- `assets/`: icons (white SVGs tinted in code) and sounds (placeholders, 186); `default_bus_layout.tres` holds the
+  audio buses (184).
+- `tests/`: `tests/run_tests.gd` (the runner), `tests/lib/test_case.gd` (assertions, fixtures, helpers), one
+  `test_<area>.gd` per area and `tests/balance/` (see `docs/testing.md`).
+- `sim/`: the balance simulator: `sim/generic_bot.gd` (`GenericBot`, 313, 314), `sim/sim_stats.gd` (`SimStats`),
+  `sim/sim_compare.gd` (two checkouts game by game, 293) and `sim/run.gd` (the CLI).
+- `scripts/`: `scripts/test.sh` (the tests), `scripts/test-hook.sh` (the Claude Code Stop hook), `scripts/sim.sh`
+  (the simulator), `scripts/cpus.sh` (usable CPUs on Linux) and `scripts/cloud-setup.sh` (Godot for a cloud session).
+- `docs/`: the development process, the testing guide, the design guide and the backlog.
+
 Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on
 `EngineCore`; unrest is added or capped only through `set_unrest`, which stops at `unrest_limit()`.
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
@@ -295,12 +230,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
-## Keeping the deck model open
-Every deck model is expressed through **zones + a `move_card` effect**:
-- Deck-building: `market` zone, `buy_card` action moves market → discard.
-- Fixed deck: no market; progression comes from the tableau only.
-- Era decks: `era_1..era_n` zones; advancing an era swaps the draw source.
-`config.json` selects the model, so all three can be playtested without code changes.
+## The deck model
+The main deck is fixed (`deck_model` is `fixed`, the only model the loader accepts). Nothing replaced the planned
+deck-building and era-deck models with zones of their own: the deck grows instead through the supply (cards bought onto
+the discard, 032), the build menu (buildings and units built straight onto a territory, 295) and techs (which unlock
+piles and entries, 140); eras add techs and events to their own decks (027, 074).
 
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
@@ -312,7 +246,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 4. Play: play cards while actions (127) and resources allow, buy cards, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After the last turn (`turn_limit`, 100 in the real data), show final score.
 
-Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
+Forecast (035, `upkeep_forecast` in `engine/engine_queries.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
@@ -332,7 +266,7 @@ message (`_blocked_error`), except the decision's own action, and a discard stil
 and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
 "nothing owed" message (`_owed_error`). A new kind follows the `add-decision` skill.
 
-## Territories (Milestone 2 — in design)
+## Territories (Milestone 2 — built)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
 (001 done: territory cards, territory deck, starting territory, tableau groups;
@@ -382,7 +316,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
 
-## Population (Milestone 3 — built, playtesting next)
+## Population (Milestone 3 — built)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
 010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": { "card": "famine",
@@ -439,7 +373,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   one per housing (124).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
-## Techs (Milestone 4 — in progress)
+## Techs (Milestone 4 — built)
 Techs never enter the main deck. Backlog: 025 (research deck; built; reveal-2 replaced by 140), 026 (passes and the
 prerequisite discount; built, removed by 140), 139 (Insight pays for techs; built), 140 (open tech tree; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
 Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built), 058 (Stone Age → Bronze

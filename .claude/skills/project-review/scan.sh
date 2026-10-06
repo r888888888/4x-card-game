@@ -61,10 +61,9 @@ grep -rnE '(==|!=) *"(action|building|city|territory|tech|event|civilization|gov
 section "UI code that may hold rules (conditions on engine state)"
 grep -nE 'if .*(e|Game\.engine)\.(resources|zone\(|pending|turn|is_over|config)' ui/*.gd | head -20
 
-section "Tracked files that shouldn't be (junk, orphan .uid files, empty files)"
+section "Tracked files that shouldn't be (junk, empty files; orphan .uid files: test_docs, 330)"
 {
 	git ls-files | grep -E '\.DS_Store$|~$|\.orig$'
-	git ls-files '*.uid' | while read -r f; do [ -e "${f%.uid}" ] || echo "$f (no ${f%.uid} beside it)"; done
 	git ls-files | while read -r f; do [ -f "$f" ] && [ ! -s "$f" ] && echo "$f (empty)"; done
 	true
 } | grep . || echo "(none)"
