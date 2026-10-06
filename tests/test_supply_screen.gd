@@ -244,9 +244,16 @@ func test_bug_361_the_bought_copy_keeps_the_pile_cards_size_as_it_flies() -> voi
 func test_bug_361_the_bought_copy_starts_on_the_pile_card() -> void:
 	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
 		var pile: CardView = views[1]  # Scout
+		await wait_screen_transition()  # the pile cards have popped in
+		main.supply.pick(pile)
+		await wait_frames()
 		var centre := pile.get_global_rect().get_center()
-		var copy := await bought_copy(main, pile)
-		var at := copy.get_global_rect().get_center()
+		main.details.buy_button().pressed.emit()
+		var flying: Array = main.find_children("*", "CardView", true, false).filter(func(v: CardView): return v.uid == -100)
+		eq(flying.size(), 1, "one copy in flight")
+		if flying.size() != 1:
+			return
+		var at: Vector2 = (flying[0] as CardView).get_global_rect().get_center()
 		check(at.distance_to(centre) <= 1.0, "the copy starts centred on the pile card %s: %s" % [centre, at]))
 
 
