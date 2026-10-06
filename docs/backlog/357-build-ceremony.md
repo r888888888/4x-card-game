@@ -2,7 +2,7 @@
 id: 357
 title: Building, recruiting and upgrading end in a ceremony with an event sound
 type: feature
-status: in-progress
+status: review
 branch: feat/357-build-ceremony
 ---
 
@@ -14,31 +14,31 @@ event sound that rings out, so a build feels like an achievement. Designed and c
 "Drum" sound for units) and written into the style guide: §9.4 (the Build ceremony row), §10.8, §11.6, §16.4 rule 5.
 
 ## Acceptance criteria
-- [ ] AC1 (engine): Given a game where Farm can be built on Homeland (as in `test_build_modal`), when `build("farm",
+- [x] AC1 (engine): Given a game where Farm can be built on Homeland (as in `test_build_modal`), when `build("farm",
   home)` succeeds, then the engine emits `built(uid)` once, with the new Farm's uid, before `changed`. When `build`
   refuses (say with too little food), `built` is not emitted. Settling a territory into a city, playing a hand card and
   an effect's `create` don't emit it.
-- [ ] AC2 (engine, upgrade): Given a Farm on Homeland and its upgrade buildable on it (as in `test_upgrade_ribbons`),
+- [x] AC2 (engine, upgrade): Given a Farm on Homeland and its upgrade buildable on it (as in `test_upgrade_ribbons`),
   when the upgrade is built on the Farm, then `built` is emitted once with the upgrade's uid, and `upgrade_base` of that
   uid is the Farm's uid.
-- [ ] AC3 (a building): Given the main scene with Homeland's view open and Reduce motion off, when the Build modal's
+- [x] AC3 (a building): Given the main scene with Homeland's view open and Reduce motion off, when the Build modal's
   Build Farm is pressed, then the Farm's view rests in its slot at full scale (no pop-in: its `fx_scale` is `Vector2.ONE`
   from the first frame); a build ceremony is on the fx layer over that card, whose parts are ring, rays and tag, with the
   tag reading "BUILT" and the ring and rays in `Palette.BUILDING`; `ui.milestone.build` is played once, `Anim.BUILD_DELAY`
   (0.16 s) after the press, and `ui.confirm` isn't played; and once `Anim.BUILD_CEREMONY_TIME` has passed the ceremony is
   gone from the fx layer.
-- [ ] AC4 (a unit): Given the same, when Recruit Warriors is pressed, then the Warriors' view gets the ceremony with ring,
+- [x] AC4 (a unit): Given the same, when Recruit Warriors is pressed, then the Warriors' view gets the ceremony with ring,
   rays and a tag reading "RECRUITED", in `Palette.UNIT`, and `ui.milestone.recruit` is played once (not
   `ui.milestone.build`).
-- [ ] AC5 (an upgrade): Given a Farm on Homeland and the view open, when its upgrade is built from the Build modal, then
+- [x] AC5 (an upgrade): Given a Farm on Homeland and the view open, when its upgrade is built from the Build modal, then
   the ceremony plays on the Farm's view with ring and rays and no tag, and `ui.milestone.build` is played once.
-- [ ] AC6 (other arrivals): Given the view open, when a card reaches it any other way (a building created by an effect, a
+- [x] AC6 (other arrivals): Given the view open, when a card reaches it any other way (a building created by an effect, a
   unit moved in from another territory), then its view arrives as it does today (pop-in or flight) with no ceremony and
   no build sound.
-- [ ] AC7 (Reduce motion): Given Reduce motion on, when Build Farm is pressed, then the ceremony shows ring, rays and tag
+- [x] AC7 (Reduce motion): Given Reduce motion on, when Build Farm is pressed, then the ceremony shows ring, rays and tag
   at once at their full extent (ring 12 px out, rays 24 px long, the tag at its rest place, all fully opaque), they hold
   for 1.5 s and are then gone; `ui.milestone.build` is still played once.
-- [ ] AC8 (the sounds): `Sfx.MILESTONE_BUILD` (`ui.milestone.build`) and `Sfx.MILESTONE_RECRUIT` (`ui.milestone.recruit`)
+- [x] AC8 (the sounds): `Sfx.MILESTONE_BUILD` (`ui.milestone.build`) and `Sfx.MILESTONE_RECRUIT` (`ui.milestone.recruit`)
   are Level 3 tokens with their files (`events/ui_milestone_build.wav`, `events/ui_milestone_recruit.wav`), listed in the
   guide's §14.1 Level 3 table (so `test_sfx`'s guide check covers them), and `EventSounds`' order ranks them below every
   other event.
@@ -85,6 +85,7 @@ event sound that rings out, so a build feels like an achievement. Designed and c
 | AC8 | `test_sfx::test_the_build_sounds_are_events_in_the_guide`, `test_build_ceremony::test_a_build_that_adds_an_era_plays_only_the_era` |
 
 ## Manual check
+Run `godot --path . -- --civ sumer --seed 5`, open Uruk (click its card), press B.
 - [ ] Build a Farm: the card is in its slot as the sheet closes, then the ring blooms, the rays draw out and fade, and
   BUILT snaps onto its corner and wipes away; the civic sound rings out over about two seconds.
 - [ ] Recruit a unit: the same in bronze, RECRUITED, with the drum and horn.
@@ -96,3 +97,11 @@ event sound that rings out, so a build feels like an achievement. Designed and c
 ## Log
 - 2026-10-06: spec'd from `spike/build-fanfare` (mock: `docs/design/mocks/build-fanfare-options.html` there). Units get
   the ceremony with the drum sound; upgrades get ring and rays on their base, both by the user's choice.
+- 2026-10-06: built. `put_into_play` takes `built` and emits `built(uid)` before `card_played` and `changed`; the board
+  notes the uids (`BoardViews.note_built`) and gives the next sync's new view (or an upgrade's base) the ceremony.
+  `EventSounds` routes the sound (so an era in the same action wins, AC8) with `Anim.BUILD_DELAY`, none under Reduce
+  motion. The WAVs are the spike's renders, renamed. `test_raid_modal::test_a_raid_outranks_a_city_but_not_an_era`
+  checks the whole ranking, so it now lists build and recruit last (missed at the red checkpoint). `docs/testing.md`
+  sat 2 bytes under its 25 KB cap: a few helper rows were tightened to fit the two new index rows.
+- Balance/feel follow-up: the build sound is Level 3 for ≈ 1.7 s, so routine system sounds (counter ticks) after a
+  build wait or drop (guide §16.4 rule 5 accepts it). Watch for it in play.
