@@ -2,7 +2,7 @@
 id: 331
 title: Each test file's header says what it covers; docs/testing.md keeps one line per file
 type: chore
-status: draft
+status: red-review
 branch: feat/331-test-headers
 ---
 
@@ -34,6 +34,10 @@ index.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_docs::test_a_test_file_without_a_header_after_extends_is_named`, `test_every_test_file_opens_with_a_header` |
+| AC2 | `test_docs::test_table_problems_name_missing_rows_rows_for_no_file_and_long_rows`, `test_testing_md_indexes_every_test_file_in_one_short_row` |
+| AC3 | `test_docs::test_testing_md_is_under_25_kb` |
+| AC4 | The full suite; the count rises only by these 5 tests |
 
 ## Log
 - 2026-10-06: specced from the project review; the user chose headers as the source of truth.
