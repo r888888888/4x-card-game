@@ -299,6 +299,11 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
   taken automatically; with 0 nothing happens.
 - **Settle** (`settle` op, on Settler): move a frontier territory to the tableau and found a City
   on it. Each territory holds one city. The Capital starts on `starting.territory`.
+- **Cost per territory** (320): any card may set `cost_per_territory` ({resource: int ≥ 1}, never unrest, not on a
+  project), added to its cost once per settled territory before the civilization's discounts (`Discounts.cost`, so
+  `play_cost`, `supply_play_cost`, `build_cost`, `play_error` and the bot all see it). Text "Costs 1 more food for each
+  territory you hold.". Real data: Settler 5 food + 1 per territory (6 for the 2nd settlement, 16 for the 12th); every
+  card that settles sets it (content test). With 319's admin unrest it makes the soft cap on going wide.
 - **Slots**: a city card may add `slots` to its territory (the Capital gives +3, 113). A building must be placed in a settled territory with a free slot. The player picks
   the territory; if only one is valid, the engine picks it.
 - **Keywords are tags; card data gives them meaning:**

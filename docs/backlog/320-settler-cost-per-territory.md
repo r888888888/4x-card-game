@@ -2,7 +2,7 @@
 id: 320
 title: Settling costs more for each territory you hold
 type: feature
-status: in-progress
+status: review
 branch: feat/320-settler-cost-per-territory
 ---
 
@@ -16,16 +16,16 @@ card and the supply pile is always the current one.
 Fixtures: a Settler-like action with cost `{food: 5}`, `"cost_per_territory": {"food": 1}` and a `settle` effect, a
 frontier territory to settle.
 
-- [ ] AC1: The price grows with the realm: with 1 settled territory, `play_cost(uid)` is `{food: 6}`; with 3 it is
+- [x] AC1: The price grows with the realm: with 1 settled territory, `play_cost(uid)` is `{food: 6}`; with 3 it is
   `{food: 8}`. Frontier territories don't count. A card without `cost_per_territory` costs its printed cost.
-- [ ] AC2: Paying it: with 3 territories and 8 food, playing it pays 8, settles the frontier territory and leaves 0
+- [x] AC2: Paying it: with 3 territories and 8 food, playing it pays 8, settles the frontier territory and leaves 0
   food. With 7 food, `play_error` is the usual price refusal naming food, and nothing changes.
-- [ ] AC3: It counts at once: with 1 territory, 2 copies in hand and 13 food, the first play costs 6, and right after
+- [x] AC3: It counts at once: with 1 territory, 2 copies in hand and 13 food, the first play costs 6, and right after
   it the second's `play_cost` is `{food: 7}`.
-- [ ] AC4: Discounts come off after the surcharge: with a civilization discount `{tag: "expand", food: 2}` and 3
+- [x] AC4: Discounts come off after the surcharge: with a civilization discount `{tag: "expand", food: 2}` and 3
   territories, the cost is `{food: 6}`. A cost never goes below 0 per resource. `supply_play_cost(id)` for its pile
   gives the same price as `play_cost` would for a copy in hand.
-- [ ] AC5: Loader and text: `cost_per_territory` is `{resource: int ≥ 1}` over config resources (an unknown resource
+- [x] AC5: Loader and text: `cost_per_territory` is `{resource: int ≥ 1}` over config resources (an unknown resource
   or a value < 1 is a load error naming the card, `cost_per_territory` and the value). Unrest in it is the usual
   "unrest can't be paid" error (`Fields.unpayable`). On a `project` card it's a load error. The card's text gains
   "Costs 1 more food for each territory you hold.". Real data (content invariant): every card with a `settle` effect
@@ -58,8 +58,9 @@ frontier territory to settle.
 
 ## Manual check
 - [ ] Shipped: Settler 5 food + 1 food per territory (review before merging).
-- [ ] A Settler in hand shows its current price, which goes up after each settlement. The supply pile shows the same
-  price. The card's text names the step.
+- [ ] `godot --path . -- --civ sumer --seed 5`: a Settler in hand shows 6 food (1 territory). Settle with it; the next
+  Settler shows 7. Buy Cards: the Settler pile shows the same price as the one in hand. Hover a Settler: "Costs 1 more
+  food for each territory you hold.".
 
 ## Log
 - 2026-10-05: specced with the user with 319 as the two halves of a soft cap of about 12 settlements. Assumed linear
@@ -67,3 +68,9 @@ frontier territory to settle.
 - Red: `test_a_card_without_cost_per_territory_costs_its_printed_cost` passes already (a Pioneer costs its printed 3);
   it guards that the surcharge touches only cards that set the field. The AC4 "never below 0" case uses a −20 food
   discount (Landed).
+- Built. `Discounts.cost` adds `cost_per_territory` × `Territories.count_settled` (319) to the printed cost before the
+  discounts, so every caller sees it with no UI change. The loader parses it in `_parse_cost_per_territory` (a common
+  card field, in `CARD_FIELDS`), and a project with it is an error. Text line on the face and the tooltip.
+- Balance worry for the balance item after 321: a Settler costs 16 food for the 12th territory, while a City makes
+  +1 food; with 319's unrest, early expansion (2–5 territories) is cheap and the curve only bites late.
+- Suite 2014 → 2024 tests.
