@@ -2,7 +2,7 @@
 id: 306
 title: Temple and Library become urban upgrades (Shrine → Temple → Great Temple, Scribal School → Library)
 type: feature
-status: ready
+status: red-review
 branch: feat/306-temple-and-library-upgrades
 ---
 
@@ -51,7 +51,10 @@ Content tests (`tests/test_content.gd`), naming no card id:
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_tier_is_real_and_no_upgrade_needs_less_than_its_base` |
+| AC2 | `test_content::test_no_eureka_counts_only_what_its_own_tech_makes_available` |
+| AC3 | `test_content::test_no_upgrade_lowers_the_unrest_limit` |
+| AC4 | `test_content::test_every_upgrade_that_scales_with_pop_needs_a_tier` |
 
 ## Manual check
 - [ ] Shrine: 3 wealth, 1 VP, unrest limit +1, ⟳ +1 VP on a mountain; open from turn 1.
