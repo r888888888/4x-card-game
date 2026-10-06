@@ -175,3 +175,32 @@ func test_city_with_slots_tooltip_mentions_them() -> void:
 		"effects": [{"op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep"}]}])
 	if db.has("hub"):
 		eq(db.hub.rules_tooltip(db), "Each upkeep: +2 food\n+4 building slots on its territory", "tooltip")
+
+
+# --- 329: modifier lines and plurals ---
+
+## Short text of a one-card building with these modifiers.
+func modifier_text(modifiers: Dictionary) -> String:
+	var db := text_db([{"id": "x", "name": "X", "type": "building", "modifiers": modifiers, "effects": []}])
+	return db.x.rules_text(db) if db.has("x") else "<not loaded>"
+
+
+func test_bug_329_unrest_limit_line_has_no_plural() -> void:
+	eq(modifier_text({Modifiers.UNREST_LIMIT: 2}), "Unrest limit +2", "+2")
+	eq(modifier_text({Modifiers.UNREST_LIMIT: -2}), "Unrest limit −2", "−2")
+
+
+func test_bug_329_housing_line_has_no_plural() -> void:
+	eq(modifier_text({Modifiers.HOUSING: 2}), "Every territory houses 2 more pop", "+2")
+	eq(modifier_text({Modifiers.HOUSING: -2}), "Every territory houses 2 less pop", "−2")
+
+
+func test_bug_329_insight_and_administration_lines_have_no_plural() -> void:
+	eq(modifier_text({Modifiers.INSIGHT_PER_GAIN: 2}), "Each insight gain +2", "insight per gain")
+	eq(modifier_text({Modifiers.ADMINISTERS: 2}), "Administration cap +2", "administers")
+
+
+func test_bug_329_countable_modifiers_keep_their_plural() -> void:
+	eq(modifier_text({Modifiers.ACTIONS: 2}), "+2 actions each turn", "2 actions")
+	eq(modifier_text({Modifiers.RENEWAL: 2}), "Renewal trashes 2 more cards", "2 cards")
+	eq(modifier_text({Modifiers.ACTIONS: 1}), "+1 action each turn", "1 action")
