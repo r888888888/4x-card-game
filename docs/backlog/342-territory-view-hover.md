@@ -2,7 +2,7 @@
 id: 342
 title: Hover the territory view's building cards and free slots, with the hover tick
 type: feature
-status: red-review
+status: in-progress
 branch: feat/342-territory-view-hover
 ---
 
@@ -51,12 +51,12 @@ show nothing on hover), and a free slot's "+ Build" ticks but doesn't change at 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_territory_view_hover::test_entering_a_building_in_the_view_lifts_it_and_ticks_once`, `test_entering_the_city_in_the_view_lifts_it_and_ticks` |
-| AC2 | `test_territory_view_hover::test_leaving_a_building_restores_it_silently_and_a_fresh_entry_ticks_again` |
-| AC3 | `test_territory_view_hover::test_a_realm_card_has_no_hover` (guard: passes today) |
-| AC4 | `test_territory_view_hover::test_entering_a_free_slot_inks_its_outline_and_ticks_once` |
-| AC5 | `test_territory_view_hover::test_a_disabled_free_slot_is_unchanged_and_silent`, `test_a_free_slot_with_an_empty_build_menu_is_unchanged_and_silent` (guards: pass today) |
-| AC6 | `test_territory_view_hover::test_entering_a_building_or_slot_with_the_mouse_held_is_silent` (guard: passes today) |
+| AC1 | `test_territory_view::test_entering_a_building_in_the_view_lifts_it_and_ticks_once`, `test_entering_the_city_in_the_view_lifts_it_and_ticks` |
+| AC2 | `test_territory_view::test_leaving_a_building_restores_it_silently_and_a_fresh_entry_ticks_again` |
+| AC3 | `test_territory_view::test_a_realm_card_has_no_hover` (guard: passes today) |
+| AC4 | `test_territory_view::test_entering_a_free_slot_inks_its_outline_and_ticks_once` |
+| AC5 | `test_territory_view::test_a_disabled_free_slot_is_unchanged_and_silent`, `test_a_free_slot_with_an_empty_build_menu_is_unchanged_and_silent` (guards: pass today) |
+| AC6 | `test_territory_view::test_entering_a_building_or_slot_with_the_mouse_held_is_silent` (guard: passes today) |
 
 ## Manual check
 - [ ] Open a territory and sweep the cursor over the city, buildings and free slots: each lifts or inks with a faint

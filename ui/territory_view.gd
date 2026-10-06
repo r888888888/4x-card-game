@@ -281,6 +281,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	var cards := card_uids().filter(func(c): return not units.has(c))
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)
+		(_board.views[cards[i]] as CardView).hoverable = true  # 342
 		_show_upgrades(e, cards[i])
 	_show_outlines(e.free_slots(uid))
 	_show_build(e)
@@ -349,11 +350,19 @@ func _show_outlines(n: int) -> void:
 		var key := UIKit.button("+ Build", func(): build_requested.emit(uid))  # 297
 		key.theme_type_variation = &"SlotButton"
 		key.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		key.mouse_entered.connect(_ink_outline.bind(outline, key, true))  # 342; the key ticks (KeySounds)
+		key.mouse_exited.connect(_ink_outline.bind(outline, key, false))
 		outline.add_child(key)
 		row.add_child(outline)
 		_outlines.append(outline)
 	for outline in _outlines:
 		row.move_child(outline, -1)
+
+
+## Inks a free slot's outline while the mouse is over its enabled "+ Build" key (342), like a hovered card's border.
+func _ink_outline(outline: Panel, key: Button, on: bool) -> void:
+	var style := outline.get_theme_stylebox("panel") as StyleBoxFlat
+	style.border_color = Palette.TEXT if on and not key.disabled else Palette.GHOST_EDGE
 
 
 ## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence 161), or

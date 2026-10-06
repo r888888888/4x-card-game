@@ -61,6 +61,7 @@ var board_kind := ""  # a card in the Realm's row: BOARD_REALM, BOARD_FRONTIER o
 var shown_name := ""  # the name on its face (CardInstance.shown_name): a renamed territory rebuilds it (248)
 var pickable := false  # an option of a pending choice or a target: a click picks it
 var lift_on_hover := false  # lift under the mouse like a hand card (supply cards, which have room)
+var hoverable := false  # the hover look and tick without being in hand or pickable (the territory view's cards, 342)
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for pop-in and shrink; the card's scale
@@ -488,7 +489,7 @@ func _on_details_timer(click: int) -> void:
 
 
 func _set_hover(on: bool) -> void:
-	_hover = on and (in_hand or pickable) and state == State.REST
+	_hover = on and (in_hand or pickable or hoverable) and state == State.REST
 	if _hover and Sfx.find(self) != null:
 		Sfx.find(self).hover()
 	if state == State.REST:
