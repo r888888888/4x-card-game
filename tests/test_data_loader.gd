@@ -112,11 +112,6 @@ func card_x(type: String, fields := {}) -> Dictionary:
 	return card
 
 
-## DataLoader.<name>, read by name so this file parses before the constant exists (red phase); {} if absent.
-func loader_const(name: String) -> Variant:
-	return (DataLoader as Script).get_script_constant_map().get(name, {})
-
-
 ## The number of lines of static func name in the script at path, from its signature to the line before the next
 ## top-level declaration or doc comment.
 func function_lines(path: String, name: String) -> int:
@@ -154,7 +149,7 @@ func test_requires_loads_on_a_building_and_is_an_error_on_a_unit() -> void:
 
 func test_every_int_field_on_every_type_has_its_minimum_and_default() -> void:
 	var pairs: Array = []
-	for field in loader_const("INT_FIELDS"):
+	for field in DataLoader.INT_FIELDS:
 		for type in DataLoader.TYPE_FIELDS[field]:
 			pairs.append([field, type])
 	eq(pairs, INT_FIELD_CASES.map(func(c: Array) -> Array: return [c[0], c[1]]), "the int fields and their types")
