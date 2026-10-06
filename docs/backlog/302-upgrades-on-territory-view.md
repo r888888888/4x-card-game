@@ -2,7 +2,7 @@
 id: 302
 title: Show upgrades as ribbons on their base, and build them from the Build modal
 type: feature
-status: ready
+status: red-review
 branch: feat/302-upgrades-on-territory-view
 ---
 
@@ -62,7 +62,12 @@ Fixture: 300 and 301's cards, with Ditch's tier left unset, and a territory view
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_territory_view::test_…` |
+| Engine | `test_upgrades::test_upgrade_base_name_names_the_building_an_entry_builds_on`, `test_upgrade_rules_text_leaves_out_the_builds_on_line`, `test_upgrade_tree_lists_a_bases_upgrades_depth_first`, `test_upgrades_for_lists_the_entries_a_base_could_take_now`, `test_upgrade_options_pair_each_upgrade_entry_with_each_building_on_a_territory`, `test_an_upgrades_preview_reads_its_bases_territory`; `test_building_tiers::test_card_tier_name_names_the_tier_a_card_needs`, `test_upgrade_rules_text_leaves_out_the_tier_line_too` |
+| AC1 | `test_upgrade_ribbons::test_upgrades_show_as_ribbons_on_their_base_not_as_cards`, `test_a_building_without_upgrades_has_no_ribbons` |
+| AC2 | `test_a_fallen_back_ribbon_is_hatched_with_its_reason_until_it_works_again` |
+| AC3 | `test_a_building_that_could_take_an_upgrade_shows_the_chip`, `test_the_chip_opens_the_build_modal_on_the_first_upgrade_it_could_take`, `test_the_chip_on_a_chain_selects_its_next_link`, `test_the_chip_is_disabled_while_a_decision_is_owed` |
+| AC4 | `test_the_build_modal_lists_upgrades_under_their_own_heading`, `test_the_upgrades_heading_is_hidden_with_no_rows`, `test_an_upgrade_row_previews_it_on_its_base_and_builds_it` |
+| AC5 | `test_an_upgrades_face_names_its_base_and_its_tier` |
 
 ## Manual check
 - [ ] Compare with design A + X in `docs/design/mocks/building-upgrade-options.html`, in Paper and Night.
