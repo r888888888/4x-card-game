@@ -2,7 +2,7 @@
 id: 343
 title: Make the Build modal larger: a wider, taller list and a hand-size card
 type: feature
-status: red-review
+status: blocked
 branch: feat/343-larger-build-modal
 ---
 
@@ -51,3 +51,7 @@ small text is hard to read. Grow it so more rows show before scrolling and the c
   modal sits well inside the window.
 
 ## Log
+- Blocked on 344 (modal layouts in the guide): the Build modal becomes the guide's ledger sheet. When 344 is done,
+  rebase on main and rewrite these red tests (never approved) against `Modal.LEDGER_*`: list 384 × 480, card at hand
+  size, no 640 cap (the sheet is 680); add the `test_modal_sheets` check that a ledger sheet follows its rule. Found
+  while writing them: a refused row's reason doesn't wrap, which stretches today's list to 365 and the body to 645.
