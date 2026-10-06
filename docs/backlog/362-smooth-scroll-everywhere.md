@@ -2,7 +2,7 @@
 id: 362
 title: The Knowledge screen, the renewal ledger and the Realm scroll smoothly
 type: feature
-status: red-review
+status: in-progress
 branch: feat/362-smooth-scroll-everywhere
 ---
 

@@ -1,5 +1,5 @@
 class_name TableauView
-extends ScrollContainer
+extends SmoothScroll
 ## The Realm (backlog 102): one wrapping row of cards. The active events and the frontier territories come first (137:
 ## what wants a decision stays at the top), then each settled territory as a card with its slots and pop on it, then
 ## the tableau cards on no territory. A territory's city and buildings show only in its territory view
