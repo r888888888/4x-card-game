@@ -9,7 +9,7 @@
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
 | Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Headless scripted bot over many seeds (`scripts/sim.sh`, 042), playing five strategies as every civilization (134: baseline, growth, wealth, wide, tall), plus `generic` (313: `GenericBot`, valuing every legal action on a sample fork; not in "all" until 314); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
+| Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
@@ -112,7 +112,7 @@ res://
                          # docs/design/sound-export.html from the specimen's synthesis (186)
   default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
-  sim/                   # bot.gd (ScriptedBot and its strategies, 134), generic_bot.gd (GenericBot, 313), sim_stats.gd (SimStats: per-seed metrics, per
+  sim/                   # generic_bot.gd (GenericBot and its strategies, 313, 314), sim_stats.gd (SimStats: per-seed metrics, per
                          # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
                          # game by game, 293), run.gd (CLI)
   scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
@@ -225,8 +225,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   pays wealth in for no action, at most `contribute_limit(uid)`: the least of its territory's pop less what went in
   this turn (`CardInstance.given_this_turn`, reset at turn start), the wealth still owed and the wealth held; 0 while
   idle. Paying the last of it completes the site ("Completed X.") and resolves its play effects. `abandon(uid)` sends
-  a site to the discard for no action, its progress lost. Rules in `engine/sites.gd` (`Sites`); `ScriptedBot` pays
-  into each site at the end of its turn down to `SITE_RESERVE` (3) wealth and never abandons. A site's details show
+  a site to the discard for no action, its progress lost. Rules in `engine/sites.gd` (`Sites`); the sim bot
+  contributes or abandons when that values more (313). A site's details show
   "Being built: 4 / 12 wealth" and offer Contribute and Abandon… (confirmed by `AbandonModal`); its card shows its
   progress.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
@@ -271,7 +271,7 @@ with the food stat in the warning color when pop would starve.
 `turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
 change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
 that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
-(`_settle_in`), so the forecast can't drift from the real turn. The sim bot doesn't use it yet (313).
+(`_settle_in`), so the forecast can't drift from the real turn. The sim bot values positions with it (313).
 `fork()` copies the game exactly, the rng and every deck's order included, so a lookahead on it knows the future.
 `sample_fork(seed)` (311) is one possible future instead: a fork with a new `SeededRng` from seed that reshuffles
 `HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
@@ -347,7 +347,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
 - Relief (084): `famine.relief` (optional cost, e.g. `{ "wealth": 5 }`; real data 5 wealth) lets the player pay to
   end an active Famine at once (`relieve_famine()` / `relieve_famine_error()`, the Relieve button below the
   Realm; `famine_relief()` gives the price). A later hungry upkeep brings a new Famine with 1 counter. The sim bot
-  relieves before ending a turn when it can pay and `upkeep_forecast().starve` is still above 0.
+  relieves when that values more (313).
 - Growth cards: the `grow` op (`{ "op": "grow", "amount": 1, "where": "here" | "each" | "best", "count": 3 }`) adds
   pop for free, capped by housing: `here` on the card's own territory (the Granary until 060, upkeep), `each` on every
   settled territory (Harvest Festival until 069, now an event), or with `count` on at most that many, smallest pop
@@ -536,7 +536,7 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   cost in `lost`). Card text: "Choose: pay 2 wealth for +1 VP; or +1 unrest."; `option_text(uid, i)`: "Pay 2 wealth:
   +1 VP". An option without effects reads "pay 4 wealth" / "Pay 4 wealth", or "nothing" / "Nothing" when free (270). The event modal shows the options as buttons in place of OK (a refused one disabled, its reason the tooltip)
   and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
-  bot answers by per-option lookahead (`ScriptedBot.pick_option`). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
+  sim bot answers with the option whose sample fork values most (313). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
   Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
   `Military`.
@@ -622,7 +622,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
   your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
   first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
-  that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The bot chooses by lookahead (159).
+  that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The sim bot chooses by rollout (314).
 - Generic bot (313, `sim/generic_bot.gd`, strategy `generic`): no rule for any mechanic. Each step it tries every
   entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
   `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
@@ -630,14 +630,15 @@ Your people have one government at a time; its bonuses apply while it rules.
   diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
   `would_target` nothing) + learned techs' printed cost − a squared penalty as unrest nears its limit (unrest has no
   other cost). A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
-  best by card value per price. 314 makes it the only bot.
-- Bot lookahead (159, `sim/bot.gd`): `ScriptedBot.lookahead(engine, strategy, government_id, revolt)` plays a fork
-  `LOOKAHEAD_TURNS` (12) turns on and returns its score; the real game is untouched. When the government choice is
-  owed the bot chooses the option whose lookahead scores most (ties: deck order; one option: no lookahead). Every
-  `REVOLT_EVERY` (4) turns, at the end of the turn and not in the last 6, it revolts when a lookahead that revolts to
-  some government in the deck outscores staying. Inside a lookahead it never revolts and chooses the government the
-  fork was opened for, else `best_government` (154's ranking: most `actions`, then highest `unrest_limit`, then deck
-  order). It values score only, not research.
+  best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
+- Bot rollouts (314, porting 159): `GenericBot.rollout(engine, strategy, government_id, revolt)` plays a sample fork
+  `ROLLOUT_TURNS` (12) turns on in cheap mode (no card values, no extra lookahead step) and returns its value; the real
+  game is untouched, and every rollout of a turn shares one seed. When the government choice is owed the bot chooses the
+  option whose rollout values most (ties: deck order; one option: no rollout). Every `REVOLT_EVERY` (4) turns, at the
+  end of the turn and not in the last 6, it revolts when a rollout that revolts to some government in the deck values
+  more than staying. Inside a rollout it never revolts and chooses the government the rollout was opened for, else
+  the best by value. Strategies: generic, wide (+20 value per settled territory) and tall (never plays a `settle` card
+  past 2 territories). `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
   turn; after `restore_order` the turn goes on.
@@ -670,7 +671,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   `removed` and the government choice is owed (154). From its second turn (`GameState.anarchy_turn`) `restore_order()`
   buys the rest off for c × (c + 1) wealth (`order_relief()`; `restore_order_error()`: "Order can't be restored on
   Anarchy's first turn.", the price short); the choice is owed at once. The Restore order button sits beside Relieve
-  famine below the Realm. The bot pays from the second turn with 2+ counters left or a starving upkeep ahead.
+  famine below the Realm. The sim bot restores order when that values more (313).
 - Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
   owes, after the draw, `pending()` `{kind: PENDING_RENEWAL, count, options}`: count = renewal + (Anarchy's turn − 1)
   + the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options: the hand's, deck's and discard's
@@ -680,15 +681,14 @@ Your people have one government at a time; its bonuses apply while it rules.
   trash.". Until paid every other action is refused ("Anarchy: trash 2 cards from your hand, deck or discard
   first."). The Renewal modal (`RenewalModal`, not dismissable) lists the options as a ledger: hover or Up/Down shows
   a row's card, a click or Enter chooses it (its lamp lights, `ui.toggle.on`; again, `ui.toggle.off`; past the count
-  `ui.reject.locked`), and "Trash N cards" unlocks at the count. The bot trashes the count's cards worth least (cost
-  + 2 × VP, +4 building, +3 calms unrest, +3 explores/settles while land remains, +3 gains insight), ties by option
-  order. Real data: renewal 1, Mysticism +1.
+  `ui.reject.locked`), and "Trash N cards" unlocks at the count. The sim bot trashes the combination whose fork values
+  most (313). Real data: renewal 1, Mysticism +1.
 - Revolution (148, 155): `revolt()` declares one at any time (`GameState.revolt_pending`); Anarchy falls at the next
   turn's start, before upkeep, so its first turn has an Anarchy upkeep. No action used. `revolt_error()`: game over or
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",
   "There is no government to overthrow.". `revolt_forecast()` is the counters it would bring. The Revolt button sits
   beside Relieve famine and Restore order whenever you may revolt; its tooltip says Anarchy starts next turn and lasts
-  about N turns. The bot weighs a revolt by lookahead (159, below). Real data: Calls for Reform (2 turns, renewal +1),
+  about N turns. The sim bot weighs a revolt by rollout (314, below). Real data: Calls for Reform (2 turns, renewal +1),
   Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (an event, +1 action), 4 counters, era
   unrest 3, drain 20%, Feast is the `order` card.
 - Anarchy's drain (156): config `unrest.drain_pct` (0–100, absent = 0). Each turn that starts under Anarchy (after any
@@ -697,8 +697,8 @@ Your people have one government at a time; its bonuses apply while it rules.
   (a revolution pending, or 2+ counters left).
   The top bar shows "Unrest: 2 (+1)" with the limit in its tooltip (228), in the warning colour at the limit; its glyph
   breathes while `anarchy_ahead()` (the next upkeep brings unrest to the limit), held still with Reduce motion. Its
-  stats use the `BarStat` variation (20 px) so the bar fits 1920 px. `ScriptedBot` skips a card that gains unrest when
-  unrest + the forecast + 1 + the gain reaches the limit, and one that calms it while that sum is below the limit − 2.
+  stats use the `BarStat` variation (20 px) so the bar fits 1920 px. The sim bot plays around the limit through
+  its value's unrest risk (313).
   Real data: Settler +1 unrest; Famine ⟳ +1 per counter; Temple ⟳ −1; Shrine and Monument raise the limit by 1 and 2;
   Harvest Festival −1; Feast (supply action, 3 food: −2 unrest, tag `order`); events Grumbling (+1), Peasant Uprising
   (+1), Envoys from the Hills (or +1), in era 2 Omen of Doom (+2), Bandit Raids (⟳ +1, 2 turns), Plague (+1) and Tax

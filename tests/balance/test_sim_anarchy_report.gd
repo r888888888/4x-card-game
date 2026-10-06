@@ -8,9 +8,9 @@ const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "restored", "gov_
 
 func test_the_metrics_come_through_a_parallel_run() -> void:
 	var o := {"civ": "sumer", "turns": 6, "seed": -1}
-	var one: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
+	var one: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "generic",
 		o.merged({"procs": 1}))
-	var two: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
+	var two: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "generic",
 		o.merged({"procs": 2}))
 	for m in NEW_METRICS + ["chiefdom_turns"]:
 		check(one.get("lines", []).any(func(l): return l.begins_with(m + " ")), "%s in the report" % m)

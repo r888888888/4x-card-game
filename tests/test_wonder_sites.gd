@@ -15,7 +15,6 @@ const SITE_FIXTURES := [COLOSSUS, BUILDERS]
 const BUILT_TEXT := "Built over turns: up to 1 wealth per pop here each turn."
 
 
-
 ## A game with population on (no food upkeep, no pop VP), Court ruling (3 actions), civilization civ ("" for none),
 ## wealth on hand and 20 food; the Homeland at pop 4. overrides replace config keys.
 func site_engine(wealth := 0, deck := {"farm": 20}, civ := "", overrides := {}) -> GameEngine:
@@ -314,26 +313,6 @@ func bot_site_game(wealth: int) -> Array:
 	var uid := place(e)
 	e.resources.wealth = wealth
 	return [e, uid]
-
-
-func test_the_bot_contributes_down_to_its_reserve_at_the_end_of_its_turn() -> void:
-	eq(ScriptedBot.SITE_RESERVE, 3, "SITE_RESERVE")
-	for case in [[10, 4, 6], [5, 2, 3], [3, 0, 3], [1, 0, 1]]:
-		var game := bot_site_game(case[0])
-		var e: GameEngine = game[0]
-		ScriptedBot.take_turn(e, "baseline")
-		eq([e.site_progress(game[1]), e.resources.wealth], [case[1], case[2]], "with %d wealth: [in, kept]" % case[0])
-
-
-func test_the_bot_plays_a_wonder_and_never_abandons_its_site() -> void:
-	var e := site_engine(0, {"shrine": 2})  # a hand of 2 Shrines and the Colossus: Court's 3 actions play all
-	var uid := put_in_hand(e, "colossus")
-	ScriptedBot.take_turn(e, "baseline")
-	check(e.zone("tableau").find(uid) != null and e.is_site(uid), "the bot placed the Colossus as a site")
-	for turn in 2:
-		e.end_turn()
-		ScriptedBot.take_turn(e, "baseline")
-	check(e.zone("tableau").find(uid) != null, "the site is still on the tableau")
 
 
 # --- AC8: abandoning ---

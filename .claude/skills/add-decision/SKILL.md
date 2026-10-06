@@ -12,7 +12,7 @@ Copy from the government choice (154: `Anarchy.choose_government`) or renewal (1
 ## Red
 
 1. **Rules tests** for the decision: when it becomes owed, `pending()`'s shape (`{kind, count?, options}`), the action
-   resolving it (and clearing it), its error query's messages, and the bot's pick (`ScriptedBot`, on fixtures).
+   resolving it (and clearing it), its error query's messages, and that `legal_actions()` lists its options (the sim bot answers through it).
 2. **Guard tables** (`tests/test_blocking.gd`, 171–172):
    - a scenario in `scenarios()` that owes it, with the actions it lets go on;
    - a row in `actions()` for its action (the AC4 table test fails until there is one);
@@ -34,7 +34,8 @@ Copy from the government choice (154: `Anarchy.choose_government`) or renewal (1
    `_owed_error(PENDING_<KIND>, "<nothing owed message>")`, then checks the argument.
 8. `engine/legal_actions.gd` (312): the decision's options as entries (`LegalActions.DECISIONS`, or `_decision` when
    the options aren't one-per-call), and a row in `tests/test_legal_actions.gd`'s coverage table: bots see the choice
-   through `legal_actions()`. Until 314 replaces it, `sim/bot.gd` also needs a branch in `take_turn` that answers it.
+   through `legal_actions()`.`GenericBot` answers it by value
+   with no change (a choice that pays off over many turns may want a rollout, as the government choice has, 314).
 
 ## UI
 

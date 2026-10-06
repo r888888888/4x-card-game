@@ -1,10 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## The sim's report on the real data (backlogs 042, 134, 135), moved out of the main suite: these play real-data
-## ScriptedBot games, so they run only with scripts/test.sh --balance. The fixture tests of the bot and SimStats stay
+## GenericBot games, so they run only with scripts/test.sh --balance. The fixture tests of the bot and SimStats stay
 ## in tests/test_sim.gd, tests/test_sim_strategies.gd and tests/test_launch_options.gd.
 
 const METRICS := ["bought", "cities", "era", "explored", "pop", "score", "techs"]
-const STRATEGIES := ["baseline", "growth", "wealth", "wide", "tall"]
+const STRATEGIES := ["generic", "wide", "tall"]
 
 
 func test_sim_run_files_prints_one_line_per_metric() -> void:
@@ -28,7 +28,7 @@ func test_sim_run_files_reports_every_strategy_and_civilization() -> void:
 
 
 func test_sim_uses_the_turn_limit_option() -> void:
-	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
+	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "generic",
 		{"civ": "", "turns": 5, "seed": -1})
 	eq(out.get("code"), 0, "exit code")
 	var explored: Array = out.get("lines", []).filter(func(l): return l.begins_with("explored "))
@@ -48,8 +48,8 @@ func test_sim_plays_a_single_strategy_as_the_civ_option() -> void:
 	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
 	var config: Dictionary = r.config.duplicate(true)
 	config.turn_limit = 4
-	var expected: Dictionary = SimStats.run(r.cards, config, [1, 2], "baseline", "sumer")
-	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "baseline",
+	var expected: Dictionary = SimStats.run(r.cards, config, [1, 2], "generic", "sumer")
+	var out: Dictionary = SimStats.run_files("res://data/cards.json", "res://data/config.json", 2, "generic",
 		{"civ": "sumer", "turns": 4, "seed": -1})
 	var score: Array = out.get("lines", []).filter(func(l): return l.begins_with("score "))
 	check(not score.is_empty() and ("mean %6.2f" % expected.score.mean) in score[0],

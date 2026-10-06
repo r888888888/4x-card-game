@@ -8,10 +8,23 @@ extends RefCounted
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
 ## its forecast change) for food, wealth and insight − weight × unrest − a squared penalty as unrest nears its limit +
 ## the deck's worth (what its cards would add if played, 0 for one with nothing to act on, 310) + the printed cost of
-## the techs learned. Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
+## the techs learned (+ a weight per settled territory for wide). Turns ahead = min(HORIZON, turns left): income counts
+## early, only points at the end.
+##
+## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
+## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
+## values, no extra lookahead step), never revolting and choosing the government it was opened for, and returns its
+## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory); tall (never settles a third).
 
-## The strategy name SimStats plays it under.
+## The strategy played when none is named.
 const STRATEGY := "generic"
+## The strategies SimStats plays (all of them for "all").
+const STRATEGIES: Array[String] = ["generic", "wide", "tall"]
+## The settled territories tall stops at.
+const TALL_TERRITORIES := 2
+## How often, in turns, a revolt is weighed, and how many turns a rollout plays.
+const REVOLT_EVERY := 4
+const ROLLOUT_TURNS := 12
 const MAX_STEPS := 2000
 const MAX_ACTIONS_PER_TURN := 40
 ## Turns of income a value counts.
@@ -37,22 +50,35 @@ const RENEWAL_COMBOS := 40
 const SKIPPED := ["end_turn", "revolt"]
 ## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest (0: unrest costs
 ## through its risk only), the deck's worth (× turns ahead × plays a turn), the unrest risk (squared) and each point of
-## learned techs' printed cost.
+## learned techs' printed cost, and per settled territory.
 const WEIGHTS := {
-	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5},
+	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
+		"land": 0.0},
+	"wide": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
+		"land": 20.0},
+	"tall": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "deck": 0.05, "risk": 3.0, "owned": 0.5,
+		"land": 0.0},
 }
 
+## The turns rollouts played (for the sim's lookahead_turns): SimStats resets it before each game.
+static var lookahead_turns := 0
 
-## What one game's choices share: the weights, measured card values ({id: [turn, value]}), a step counter for sample
-## seeds, and whether a card value is being measured (the deck's worth is then left out, or it would recurse).
+
+## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
+## counter for sample seeds, whether a card value is being measured (the deck's worth is then left out, or it would
+## recurse), and in a rollout: cheap mode and the government it was opened for ("" for the best by value).
 class Context:
+	var strategy: String
 	var w: Dictionary
 	var card_values := {}
 	var step := 0
 	var valuing := false
+	var rollout := false
+	var government := ""
 
-	func _init(strategy: String) -> void:
-		w = WEIGHTS[strategy]
+	func _init(p_strategy: String) -> void:
+		strategy = p_strategy
+		w = WEIGHTS[p_strategy]
 
 
 ## Plays engine's game to the end with strategy: each turn take_turn, then the hand discarded (it never cycles
@@ -79,7 +105,48 @@ static func take_turn(engine: GameEngine, strategy := STRATEGY, ctx: Context = n
 		var best := best_action(engine, strategy, ctx)
 		if best.is_empty() or not _do(engine, best):
 			break
+	if not ctx.rollout:
+		_weigh_revolt(engine, strategy)
 	return steps
+
+
+## Every REVOLT_EVERY turns, outside a rollout and before the last ROLLOUT_TURNS ÷ 2 turns, revolts when a rollout that
+## revolts (then chooses some government in the deck) values more than one that doesn't.
+static func _weigh_revolt(engine: GameEngine, strategy: String) -> void:
+	if engine.turn % REVOLT_EVERY != 0 or engine.revolt_error() != "" or engine.zone("governments").is_empty():
+		return
+	if engine.turn > engine.turn_limit() - ROLLOUT_TURNS / 2:
+		return
+	var stay := rollout(engine, strategy)
+	for g in engine.zone("governments").cards:
+		if rollout(engine, strategy, g.def.id, true) > stay:
+			engine.revolt()
+			return
+
+
+## Plays a sample fork of engine ROLLOUT_TURNS turns on (or to the game's end) in cheap mode with strategy and returns
+## its value then. The fork revolts first when revolt is true and chooses government_id whenever the government choice
+## is owed ("" for the best by value); it never revolts. engine is untouched. The seed is the same for every rollout
+## of a turn, so options are compared on the same future.
+static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "", revolt := false) -> float:
+	var f := engine.sample_fork(hash([engine.seed_value, engine.turn, "rollout"]))
+	var ctx := Context.new(strategy)
+	ctx.rollout = true
+	ctx.government = government_id
+	if revolt:
+		f.revolt()
+	var end := mini(f.turn + ROLLOUT_TURNS, f.turn_limit())
+	var steps := 0
+	while not f.is_over and f.turn < end and steps < MAX_STEPS:
+		steps += take_turn(f, strategy, ctx)
+		if f.is_over or f.turn >= end:
+			break
+		for card in f.zone("hand").cards.duplicate():
+			f.discard_card(card.uid)
+		f.end_turn()
+		steps += 1
+	lookahead_turns += f.turn - engine.turn
+	return value(f, ctx)
 
 
 ## The entry ([action, args…]) to do next, [] for none: the owed decision's option whose fork values most, else the
@@ -87,6 +154,8 @@ static func take_turn(engine: GameEngine, strategy := STRATEGY, ctx: Context = n
 static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context = null, look_on := true) -> Array:
 	ctx = ctx if ctx != null else Context.new(strategy)
 	var deciding: bool = engine.pending().get("kind", "") != ""
+	if engine.pending().get("kind", "") == GameEngine.PENDING_GOVERNMENT:
+		return _government(engine, strategy, ctx)
 	var seed := hash([engine.seed_value, engine.turn, ctx.step])
 	ctx.step += 1
 	var base := value(engine, ctx)
@@ -98,7 +167,7 @@ static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context =
 			continue
 		_settle(f, ctx)
 		var v := value(f, ctx)
-		if look_on and not deciding and absf(v - base) < QUIET and _refunds(engine, f, c):
+		if look_on and not ctx.rollout and not deciding and absf(v - base) < QUIET and _refunds(engine, f, c):
 			var next := best_action(f, strategy, ctx, false)
 			if not next.is_empty():
 				var g := f.fork()
@@ -111,13 +180,43 @@ static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context =
 	return best
 
 
+## The government to choose when the choice is owed: outside a rollout, the option whose rollout values most (ties to
+## deck order; the only one without a rollout); in a rollout, the one it was opened for, else the best by value.
+static func _government(engine: GameEngine, strategy: String, ctx: Context) -> Array:
+	var options: Array = _candidates(engine, ctx)
+	if options.size() <= 1:
+		return options[0] if options.size() == 1 else []
+	if ctx.rollout:
+		for c in options:
+			if engine.zone("governments").find(c[1]).def.id == ctx.government:
+				return c
+		var best: Array = []
+		var best_v := -INF
+		for c in options:
+			var f := engine.fork()
+			_do(f, c)
+			var v := value(f, ctx)
+			if v > best_v:
+				best = c
+				best_v = v
+		return best
+	var best: Array = []
+	var best_v := -INF
+	for c in options:
+		var v := rollout(engine, strategy, engine.zone("governments").find(c[1]).def.id)
+		if v > best_v:
+			best = c
+			best_v = v
+	return best
+
+
 ## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to its
 ## combinations.
 static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	var out := []
 	var buys := []
 	for entry in e.legal_actions():
-		if SKIPPED.has(entry[0]):
+		if SKIPPED.has(entry[0]) or (ctx.strategy == "tall" and _settles_too_far(e, entry)):
 			continue
 		if entry[0] == "buy":
 			buys.append(entry)
@@ -126,9 +225,24 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 				out.append(["renew", combo])
 		else:
 			out.append(entry)
-	var rank := func(entry: Array) -> float: return card_value(e, entry[1], ctx) / maxf(1.0, e.buy_price(entry[1]))
-	buys.sort_custom(func(a, b): return rank.call(a) > rank.call(b))
+	if not ctx.rollout:  # cheap mode measures no card values: the first piles
+		var rank := func(entry: Array) -> float: return card_value(e, entry[1], ctx) / maxf(1.0, e.buy_price(entry[1]))
+		buys.sort_custom(func(a, b): return rank.call(a) > rank.call(b))
 	return out + buys.slice(0, BUYS_TRIED)
+
+
+## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit; read from effects).
+static func _settles_too_far(e: GameEngine, entry: Array) -> bool:
+	if entry[0] != "play_card":
+		return false
+	var card := e.zone("hand").find(entry[1])
+	return card != null and card.def.effects.any(func(effect): return effect.op == "settle") \
+			and _settled(e) >= TALL_TERRITORIES
+
+
+## The settled territories (in the tableau).
+static func _settled(e: GameEngine) -> int:
+	return e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
 
 
 ## Whether c is a play that gave back some of what a play spends: a card (a draw) or an action.
@@ -180,12 +294,18 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		var over: int = unrest + 2 * next.get(GameEngine.UNREST, 0) + 1 - (limit - RISK_MARGIN)
 		if over > 0:
 			v -= w.risk * over * over
-	if not ctx.valuing:
-		v += w.deck * ahead * mini(e.hand_size(), maxi(e.actions_per_turn(), 1)) * _deck_worth(e, ctx)
+	if not ctx.valuing and not ctx.rollout:
+		v += w.deck * ahead * _plays_a_turn(e) * _deck_worth(e, ctx)
 	for tech in e.zone("researched").cards:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
-	return v
+	return v + w.land * _settled(e)
+
+
+## The cards a turn can play: the actions a turn, at most the hand size (the hand size for unlimited actions).
+static func _plays_a_turn(e: GameEngine) -> int:
+	var actions := e.actions_per_turn()
+	return e.hand_size() if actions < 0 else mini(e.hand_size(), actions)
 
 
 ## A stock's worth: linear and steep below 0, with diminishing returns above STOCK_SCALE.

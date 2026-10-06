@@ -1,5 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
-## The balance simulator (backlog 042): the scripted bot (sim/bot.gd) and per-seed stats (sim/sim_stats.gd).
+## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
+## (sim/sim_stats.gd).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158 added the Anarchy and
@@ -16,143 +17,25 @@ func sim_data(deck: Dictionary, overrides := {}) -> Dictionary:
 	return {"cards": cards, "config": config}
 
 
-# --- AC1: the scripted bot ---
+# --- AC1: the sim bot ---
 
 func test_bot_plays_a_game_to_the_end() -> void:
 	var e := make_engine({"shrine": 10}, {"turn_limit": 3})
-	check(ScriptedBot.play(e), "play returns true when the game ended")
+	check(GenericBot.play(e), "play returns true when the game ended")
 	check(e.is_over, "game over")
 	eq(e.score(), 17, "Capital 2 + 5 Shrines x 3 turns")
-
-
-func test_bot_resolves_an_explore_choice_with_its_first_option() -> void:
-	var e := make_engine({"explorer": 10}, {"turn_limit": 1, "territory_deck": {"hills": 1, "grassland": 1}})
-	arrange(e.zone("territory_deck"), ["hills", "grassland"])
-	ScriptedBot.play(e)
-	# Explorer 1 reveals Hills then Grassland; options list the reveal zone top first, so the first option is
-	# Grassland. The bot keeps it and puts Hills under; Explorer 2 then finds Hills.
-	eq(card_ids(e.zone("frontier")), ["grassland", "hills"] as Array[String], "first option kept first")
 
 
 func test_bug_058_bot_ends_the_turn_when_a_free_card_only_redraws_itself() -> void:
 	# Two free Scouts (draw 2) and nothing else: each play reshuffles the discard, which holds only the other Scout,
 	# and draws it back, forever.
 	var e := make_engine({"scout": 2}, {"turn_limit": 2})
-	check(ScriptedBot.play(e), "the game ends within the bot's step limit")
+	check(GenericBot.play(e), "the game ends within the bot's step limit")
 	check(e.is_over, "game over")
-
-
-## Bug 238: since 235 an explore-only card costs an action and refunds nothing, so the bot keeps it in the hand when
-## the territory deck is empty. A Pioneer deck (nothing to settle: unplayable) and an emptied hand of hand_ids.
-func dead_explore_game(hand_ids: Array, territories := {}) -> GameEngine:
-	var e := make_engine({"pioneer": 10}, {"territory_deck": territories})
-	for c in e.zone("hand").cards.duplicate():
-		e.zone("hand").remove(c)
-	for id in hand_ids:
-		put_in_hand(e, id)
-	return e
-
-
-func test_bug_238_the_bot_skips_an_explore_only_card_with_nothing_to_explore() -> void:
-	var e := dead_explore_game(["explorer", "forager"])
-	eq(e.zone("territory_deck").size(), 0, "nothing to explore")
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("hand")), ["explorer"] as Array[String], "Forager played, Explorer kept")
-
-
-func test_bug_238_with_only_an_explore_only_card_the_bot_plays_nothing() -> void:
-	var e := dead_explore_game(["explorer"])
-	var played := []
-	e.card_played.connect(func(outcome: Dictionary): played.append(outcome.uid))
-	ScriptedBot.take_turn(e, "baseline")
-	eq(played.size(), 0, "no card played")
-	eq(card_ids(e.zone("hand")), ["explorer"] as Array[String], "Explorer stays in the hand")
-
-
-func test_bug_238_the_bot_still_explores_while_a_territory_is_left() -> void:
-	var e := dead_explore_game(["explorer"], {"hills": 1})
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("frontier")), ["hills"] as Array[String], "Explorer found Hills")
-
-
-func test_bug_238_the_bot_plays_a_card_that_explores_and_does_more_with_nothing_to_explore() -> void:
-	var e := dead_explore_game(["pathfinder"])
-	ScriptedBot.take_turn(e, "baseline")
-	eq(e.zone("hand").size(), 0, "Pathfinder played for its food")
-
-
-## Backlog 140: the tree is open, so the bot learns the cheapest tech it can afford at the start of its turn.
-func test_bot_learns_the_cheapest_tech_it_can_afford() -> void:
-	var e: GameEngine = tech_engine(["writing", "pottery", "bronze"], {"farm": 10},
-		{"starting": {"resources": {"food": 2, "insight": 2}, "tableau": ["capital"], "territory": "homeland"}})
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("researched")), ["pottery"], "Pottery (2) learned; Writing (3) and Bronze (5) too dear")
-	eq(e.resources.get("insight"), 0, "2 − 2")
 
 
 ## Backlog 151: the bot picks a tech without building tech_tree(). Fixture techs for the tie-break and the timing.
 const ERA_2_SCRIBE := {"id": "scribe", "name": "Scribe", "type": "tech", "cost": {"insight": 3}, "era": 2}
-
-
-## 20 era-1 techs t1..t20 costing 5 insight each.
-func twenty_techs() -> Array:
-	var out := []
-	for i in range(1, 21):
-		out.append({"id": "t%d" % i, "name": "T%d" % i, "type": "tech", "cost": {"insight": 5}})
-	return out
-
-
-func test_bot_breaks_a_cost_tie_by_the_lower_era() -> void:
-	var e: GameEngine = tech_engine(["loom"], {"farm": 10}, {"research_deck": {"scribe": 1, "loom": 1},
-		"starting": {"resources": {"food": 2, "insight": 3}, "tableau": ["capital"], "territory": "homeland"}},
-		[ERA_2_SCRIBE])
-	e.add_era(2)
-	eq([e.tech_cost(uid_of(e.zone("research_deck"), "scribe")), e.tech_cost(uid_of(e.zone("research_deck"), "loom"))],
-		[3, 3], "Scribe 3, and Loom 4 − 1 diffusion")
-	check(ScriptedBot.learn_cheapest_tech(e), "learned one")
-	eq(card_ids(e.zone("researched")), ["loom"], "Loom: era 1 before era 2, though Scribe is listed first")
-
-
-func test_bot_breaks_a_cost_tie_in_the_same_era_by_config_order() -> void:
-	var e: GameEngine = tech_engine(["dye", "salt"], {"farm": 10},
-		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
-	check(ScriptedBot.learn_cheapest_tech(e), "learned one")
-	eq(card_ids(e.zone("researched")), ["dye"], "Dye, listed before Salt (both 4)")
-
-
-func test_bot_learns_nothing_it_cant_afford_or_lacks_the_prereq_for_and_plays_cards() -> void:
-	var e: GameEngine = tech_engine(["iron", "bronze"], {"farm": 10},
-		{"starting": {"resources": {"food": 2, "insight": 4}, "tableau": ["capital"], "territory": "homeland"}})
-	eq(ScriptedBot.learn_cheapest_tech(e), false, "Bronze (5) too dear, Iron (6) needs Bronze")
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("researched")), [], "nothing learned")
-	check(card_ids(e.zone("tableau")).has("farm"), "and went on to play Farms")
-
-
-func test_a_bot_tech_pick_costs_under_half_a_tech_tree() -> void:
-	var ids := []
-	for t in twenty_techs():
-		ids.append(t.id)
-	var e: GameEngine = tech_engine(ids, {"farm": 10},
-		{"starting": {"resources": {"food": 2, "insight": 0}, "tableau": ["capital"], "territory": "homeland"}},
-		twenty_techs())
-	eq(ScriptedBot.learn_cheapest_tech(e), false, "no insight: nothing learned")
-	var ratio := time_ratio(func(): ScriptedBot.learn_cheapest_tech(e), func(): e.tech_tree())
-	check(ratio < 0.5, "a pick costs %.2f of a tech_tree() call" % ratio)
-
-
-## Backlog 084: before ending a turn the bot relieves a Famine it can pay for when the next upkeep would still starve.
-func test_bot_relieves_a_famine_only_when_the_next_upkeep_would_starve() -> void:
-	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
-	var e: GameEngine = make_engine({"shrine": 10}, {"turn_limit": 3,
-		"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": famine}})
-	e.zone("tableau").find(home_uid(e)).pop = 4
-	e.resources.food = 0
-	e.resources.wealth = 20
-	# Turn 2 starts short (Famine, 4 -> 3) and would starve again: relieved (20 -> 15). Turn 3 starts short again
-	# (a new Famine, 3 -> 2), but it's the last turn: no next upkeep, so no relief.
-	ScriptedBot.play(e)
-	eq(e.resources.wealth, 15, "relieved once")
 
 
 # --- AC2: stats over seeds ---
@@ -170,7 +53,7 @@ func test_sim_stats_reports_mean_min_max_per_metric() -> void:
 
 
 func test_a_game_with_nothing_to_weigh_reports_no_lookahead_turns() -> void:
-	var d := sim_data({"shrine": 10}, {"turn_limit": 3 * ScriptedBot.REVOLT_EVERY})
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3 * GenericBot.REVOLT_EVERY})
 	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
 	eq(stats.get("lookahead_turns"), {"mean": 0.0, "min": 0, "max": 0}, "no government deck, no choice events (294)")
 
@@ -184,9 +67,9 @@ func test_sim_stats_counts_founded_cities() -> void:
 
 ## Backlog 066: explored is how many turns the territory deck lasted: the turn it ran out, or the last turn played.
 func test_sim_stats_reports_how_long_the_territory_deck_lasted() -> void:
-	var d := sim_data({"explorer": 10}, {"turn_limit": 5, "territory_deck": {"hills": 1, "grassland": 1}})
+	var d := sim_data({"pathfinder": 10}, {"turn_limit": 5, "territory_deck": {"hills": 1, "grassland": 1}})
 	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
-	eq(stats.get("explored", {}).get("min"), 1, "two Explorers on turn 1 empty a 2-card territory deck")
+	eq(stats.get("explored", {}).get("min"), 1, "two Pathfinders (explore, +1 food) on turn 1 empty a 2-card territory deck")
 	d = sim_data({"shrine": 10}, {"turn_limit": 5, "territory_deck": {"hills": 1, "grassland": 1}})
 	stats = SimStats.run(d.cards, d.config, [1])
 	eq(stats.get("explored", {}).get("min"), 5, "never explored: it lasted all 5 turns")

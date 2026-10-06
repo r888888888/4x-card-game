@@ -2,7 +2,7 @@
 id: 298
 title: The sim bot builds, recruits and keeps Settlers
 type: feature
-status: blocked
+status: wontfix
 branch: feat/298-bot-builds-and-buys-settlers
 ---
 
@@ -55,3 +55,5 @@ comes after this one.
 
 ## Log
 - 2026-10-05: blocked: to be superseded by 314 (the generic bot); don't build. 314 closes it as wontfix.
+- 2026-10-05: wontfix: superseded by 314. The generic bot (313, 314) does this with no rule of its own: the action is
+  in `legal_actions` (312) and its effect in what the bot values.

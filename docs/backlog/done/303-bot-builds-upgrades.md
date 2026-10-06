@@ -2,7 +2,7 @@
 id: 303
 title: The sim bot builds upgrades, the tall strategy first
 type: feature
-status: blocked
+status: wontfix
 branch: feat/303-bot-builds-upgrades
 ---
 
@@ -46,3 +46,5 @@ few turns with Homeland at pop 4 holding a Farm and a Chapel, 2 actions and plen
 ## Log
 - 2026-10-05: specced with 300–302.
 - 2026-10-05: blocked: to be superseded by 314 (the generic bot); don't build. 314 closes it as wontfix.
+- 2026-10-05: wontfix: superseded by 314. The generic bot (313, 314) does this with no rule of its own: the action is
+  in `legal_actions` (312) and its effect in what the bot values.

@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Unrest (backlog 144): a built-in resource, on when config resources lists it, that gain caps at unrest_limit()
 ## (the ruling government's unrest_limit plus the unrest_limit modifier; -1 for none). It can't be paid. The forecast
-## and the top bar show it; ScriptedBot plays around the limit. Local fixtures, loaded with TEST_CARDS and TEST_GOVS:
+## and the top bar show it. (The sim bot plays around the limit through its value: test_generic_bot.) Local fixtures, loaded with TEST_CARDS and TEST_GOVS:
 ## Chiefs (government, unrest limit 5), Riot (action, +3 unrest), Colonist (+1), Feast (−1), Brazier (building,
 ## ⟳ +1 unrest), Calmer (building, ⟳ −1 unrest, 228); the modifier cards Altar (+1 limit) and Curse (−10) are in MODIFIER_FIXTURES.
 
@@ -317,30 +317,6 @@ func bot_engine(gov: String, unrest: int, card_id: String) -> GameEngine:
 	var e := unrest_engine(gov, unrest, [], {"pioneer": 10}, {"territory_deck": {"grassland": 2}})
 	put_in_hand(e, card_id)
 	return e
-
-
-func test_the_bot_doesnt_gain_unrest_that_would_reach_the_limit() -> void:
-	for strategy in ScriptedBot.STRATEGIES:
-		var near := bot_engine("chiefs", 3, "colonist")
-		ScriptedBot.take_turn(near, strategy)
-		eq(uid_of(near.zone("hand"), "colonist") != -1, true, "%s at 3 of 5: 3 + 0 + 1 + 1 reaches 5, Colonist kept" % strategy)
-		eq(near.resources.get("unrest"), 3, "%s at 3 of 5: unrest unchanged" % strategy)
-		var calm := bot_engine("chiefs", 2, "colonist")
-		ScriptedBot.take_turn(calm, strategy)
-		eq(calm.resources.get("unrest"), 3, "%s at 2 of 5: 2 + 0 + 1 + 1 < 5, Colonist played" % strategy)
-		var unlimited := bot_engine("council", 3, "colonist")
-		ScriptedBot.take_turn(unlimited, strategy)
-		eq(unlimited.resources.get("unrest"), 4, "%s with no limit: Colonist played" % strategy)
-
-
-func test_the_bot_doesnt_calm_unrest_far_below_the_limit() -> void:
-	for strategy in ScriptedBot.STRATEGIES:
-		var low := bot_engine("chiefs", 1, "feast")
-		ScriptedBot.take_turn(low, strategy)
-		eq(uid_of(low.zone("hand"), "feast") != -1, true, "%s at 1 of 5: 1 + 0 + 1 < 3, Feast kept" % strategy)
-		var high := bot_engine("chiefs", 2, "feast")
-		ScriptedBot.take_turn(high, strategy)
-		eq(high.resources.get("unrest"), 1, "%s at 2 of 5: 2 + 0 + 1 reaches 3, Feast played" % strategy)
 
 
 ## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.

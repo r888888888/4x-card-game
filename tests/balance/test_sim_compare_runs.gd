@@ -44,11 +44,11 @@ func test_identical_sides_stop_every_cell_after_5_seeds_with_no_change() -> void
 	var out := compare(side(), side(), 20, "all", {"turns": 5})
 	eq(out.get("code"), 0, "exit code: %s" % [out.get("lines")])
 	var cells: Array = out.get("cells", [])
-	eq(cells.size(), ScriptedBot.STRATEGIES.size(), "a cell per strategy (sumer only)")
+	eq(cells.size(), GenericBot.STRATEGIES.size(), "a cell per strategy (sumer only)")
 	for cell in cells:
 		eq([cell.seeds, cell.delta, cell.half_width], [5, 0.0, 0.0], "%s: seeds, Δ, half-width" % cell.strategy)
 	var lines: Array = out.get("lines", [])
-	for s in ScriptedBot.STRATEGIES:
+	for s in GenericBot.STRATEGIES:
 		var at := lines.find("== %s" % s)
 		check(at != -1, "a block for %s" % s)
 		if at == -1:
@@ -62,7 +62,7 @@ func test_identical_sides_stop_every_cell_after_5_seeds_with_no_change() -> void
 func test_a_changed_side_is_compared_seed_by_seed() -> void:
 	var a := config_with(5)
 	var b := config_with(6)
-	var out := compare(side(a), side(b), 10, "baseline")
+	var out := compare(side(a), side(b), 10, "generic")
 	eq(out.get("code"), 0, "exit code: %s" % [out.get("lines")])
 	var cells: Array = out.get("cells", [{}])
 	var n: int = cells[0].get("seeds", 0)
@@ -73,8 +73,8 @@ func test_a_changed_side_is_compared_seed_by_seed() -> void:
 	var seeds := range(1, n + 1)
 	var main_data := DataLoader.load_all(CARDS, a)
 	var this_data := DataLoader.load_all(CARDS, b)
-	var main_mean: float = SimStats.run(main_data.cards, main_data.config, seeds, "baseline", "sumer").score.mean
-	var this_mean: float = SimStats.run(this_data.cards, this_data.config, seeds, "baseline", "sumer").score.mean
+	var main_mean: float = SimStats.run(main_data.cards, main_data.config, seeds, "generic", "sumer").score.mean
+	var this_mean: float = SimStats.run(this_data.cards, this_data.config, seeds, "generic", "sumer").score.mean
 	remove_tree(temp_dir())
 	check(absf(cells[0].get("delta", -999.0) - (this_mean - main_mean)) < 0.001,
 		"Δ %s is the mean of this − main over seeds 1-%d (%s)" % [cells[0].get("delta"), n, this_mean - main_mean])
@@ -89,7 +89,7 @@ func test_a_changed_side_is_compared_seed_by_seed() -> void:
 
 func test_a_side_that_is_not_a_checkout_fails() -> void:
 	var nowhere := temp_dir().path_join("nowhere")
-	var out := compare({"root": nowhere, "cards": CARDS, "config": CONFIG}, side(), 5, "baseline")
+	var out := compare({"root": nowhere, "cards": CARDS, "config": CONFIG}, side(), 5, "generic")
 	eq(out.get("code"), 1, "exit code")
 	eq(out.get("lines"), ["not a checkout: %s" % nowhere], "the message")
 	eq(out.get("played", 0), 0, "nothing played")
@@ -97,7 +97,7 @@ func test_a_side_that_is_not_a_checkout_fails() -> void:
 
 func test_a_side_whose_data_does_not_load_fails_with_its_errors() -> void:
 	var broken := config_with(5, true)
-	var out := compare(side(), side(broken), 5, "baseline")
+	var out := compare(side(), side(broken), 5, "generic")
 	remove_tree(temp_dir())
 	eq(out.get("code"), 1, "exit code")
 	var lines: Array = out.get("lines", [])
@@ -115,8 +115,8 @@ func test_an_unknown_strategy_fails() -> void:
 func test_a_second_comparison_reads_every_game_from_the_cache() -> void:
 	var cache := temp_dir().path_join("cache")
 	var options := {"turns": 4, "cache_dir": cache}
-	var first := compare(side(), side(config_with(5)), 10, "baseline", options)
-	var second := compare(side(), side(config_with(5)), 10, "baseline", options)
+	var first := compare(side(), side(config_with(5)), 10, "generic", options)
+	var second := compare(side(), side(config_with(5)), 10, "generic", options)
 	remove_tree(temp_dir())
 	eq(first.get("code"), 0, "exit code: %s" % [first.get("lines")])
 	check(first.get("played", 0) > 0, "the first comparison played")

@@ -201,25 +201,6 @@ func test_a_researched_renewal_tech_raises_the_count() -> void:
 
 # --- AC6: the bot ---
 
-func test_the_bot_renews_the_card_worth_least_to_keep() -> void:
-	var e := renewal_engine(["farm", "scout", "kings"])
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("trashed")), ["scout"] as Array[String], "Scout (0) before Farm (2 food + 4 building)")
-
-
-func test_the_bot_pays_a_count_of_2_in_one_go_with_the_least_worth_keeping() -> void:
-	var e := renewal_engine(["farm", "scout", "shrine", "kings"], {"renewal": 2})
-	set_library(e, [], [], ["farm", "scout", "shrine", "kings"])
-	ScriptedBot.take_turn(e, "baseline")
-	eq(sorted(card_ids(e.zone("trashed"))), ["scout", "shrine"], "Scout and Shrine (0 each), not Farm")
-
-
-func test_the_bot_breaks_renewal_ties_by_name_order() -> void:
-	var e := renewal_engine(["shrine", "scout"])
-	ScriptedBot.take_turn(e, "baseline")
-	eq(card_ids(e.zone("trashed")), ["scout"] as Array[String], "Shrine and Scout both 0: Scout, first by name (255)")
-
-
 # --- 175 AC1: no hand card can be picked up while renewal is owed ---
 
 func test_a_hand_card_cant_be_dragged_while_renewal_is_owed() -> void:

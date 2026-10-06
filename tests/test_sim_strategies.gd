@@ -1,265 +1,13 @@
 extends "res://tests/lib/test_case.gd"
-## Balance sim strategies (backlog 134): ScriptedBot plays a named strategy, and SimStats runs one per civilization.
-## The bot and stats scripts are loaded untyped so this file parses before the new API exists.
+## Balance sim strategies (backlog 134): SimStats runs a named strategy (GenericBot's since 314) per civilization. The
+## strategies themselves are tested in test_generic_bot.gd.
 
-var BOT: Variant = load("res://sim/bot.gd")
 var STATS: Variant = load("res://sim/sim_stats.gd")
-const STRATEGIES := ["baseline", "growth", "wealth", "wide", "tall"]
 
 
 ## A population block where nobody eats unless food_upkeep says so.
 func pop_block(food_upkeep := 0, start := 1) -> Dictionary:
 	return {"start": start, "food_upkeep": food_upkeep, "vp_per_pop": 1, "famine": FAMINE}
-
-
-## Growth cards (262): Bread grows where it's needed most, Grants up to 3 territories; both cost food.
-const GROWTH_CARDS := [
-	{"id": "bread", "name": "Bread", "type": "action", "cost": {"food": 2},
-	 "effects": [{"op": "grow", "amount": 1, "where": "best"}]},
-	{"id": "grants", "name": "Grants", "type": "action", "cost": {"food": 5},
-	 "effects": [{"op": "grow", "amount": 1, "where": "each", "count": 3}]},
-]
-
-
-## A game with population on, this food, and a hand of unplayable Pioneers (no frontier); extra overrides. The
-## GROWTH_CARDS are in its card set.
-func strategy_engine(food: int, overrides := {}) -> GameEngine:
-	var o := {"population": pop_block(), "territory_deck": {"grassland": 2, "hills": 2},
-		"starting": {"resources": {"food": food}, "tableau": ["capital"], "territory": "homeland"}}
-	return make_engine({"pioneer": 10}, o.merged(overrides, true), 1, GROWTH_CARDS)
-
-
-## The card ids engine plays during call, in order.
-func played_ids(engine: GameEngine, call: Callable) -> Array[String]:
-	var ids := {}
-	for z in ["hand", "deck"]:
-		for c in engine.zone(z).cards:
-			ids[c.uid] = c.def.id
-	var out: Array[String] = []
-	var record := func(outcome: Dictionary): out.append(ids.get(outcome.get("uid", -1), "?"))
-	engine.card_played.connect(record)
-	call.call()
-	engine.card_played.disconnect(record)
-	return out
-
-
-## Settles one Grassland from the territory deck at pop pop, and returns its uid.
-func settle_grassland(engine: GameEngine, pop: int) -> int:
-	settle(engine, ["grassland"])
-	var uid := -1
-	for c in engine.zone("tableau").cards:
-		if c.def.id == "grassland":
-			uid = c.uid
-	engine.zone("tableau").find(uid).pop = pop
-	return uid
-
-
-# --- AC1: named strategies, baseline is today's bot ---
-
-func test_bot_strategies_are_named() -> void:
-	eq(BOT.get_script_constant_map().get("STRATEGIES"), STRATEGIES, "ScriptedBot.STRATEGIES")
-
-
-func test_baseline_is_the_default_bot() -> void:
-	var deck := {"farm": 3, "shrine": 3, "pioneer": 2, "explorer": 2}
-	var o := {"turn_limit": 6, "population": pop_block(1, 2), "territory_deck": {"grassland": 3, "hills": 3}}
-	for s in [1, 2, 3]:
-		var a := make_engine(deck, o, s)
-		var b := make_engine(deck, o, s)
-		BOT.play(a)
-		BOT.play(b, "baseline")
-		eq(b.score(), a.score(), "seed %d: score" % s)
-		eq(b.resources, a.resources, "seed %d: resources" % s)
-		eq(card_ids(b.zone("tableau")), card_ids(a.zone("tableau")), "seed %d: tableau" % s)
-
-
-func test_unknown_strategy_plays_nothing() -> void:
-	var e := make_engine({"shrine": 10}, {"turn_limit": 3})
-	var hand := card_ids(e.zone("hand"))
-	eq(BOT.play(e, "chaos"), false, "play returns false")
-	eq(e.turn, 1, "no turn played")
-	eq(card_ids(e.zone("hand")), hand, "hand untouched")
-
-
-# --- AC3: growth ---
-
-func test_growth_plays_food_upkeep_cards_first() -> void:
-	var e := strategy_engine(2)
-	put_in_hand(e, "shrine")
-	put_in_hand(e, "farm")
-	var order := played_ids(e, func(): BOT.take_turn(e, "growth"))
-	eq(order.slice(0, 2), ["farm", "shrine"] as Array[String], "Farm (food on upkeep) before Shrine")
-
-
-# --- AC4: wealth ---
-
-func test_wealth_plays_wealth_cards_first() -> void:
-	var e := strategy_engine(0)
-	put_in_hand(e, "shrine")
-	put_in_hand(e, "stall")
-	var order := played_ids(e, func(): BOT.take_turn(e, "wealth"))
-	eq(order.slice(0, 2), ["stall", "shrine"] as Array[String], "Stall (wealth on upkeep) before Shrine")
-
-
-func test_wealth_buys_the_cheapest_wealth_card_once_a_turn() -> void:
-	var e := strategy_engine(0, {"supply": {"scout": {"price": 1, "count": 3}, "stall": {"price": 2, "count": 3},
-		"bazaar": {"price": 3, "count": 3}}})
-	e.resources.wealth = 5
-	BOT.take_turn(e, "wealth")
-	eq(e.supply_left("stall"), 2, "one Stall bought (cheapest card that makes wealth)")
-	eq(e.supply_left("bazaar"), 3, "no Bazaar")
-	eq(e.supply_left("scout"), 3, "no Scout (makes no wealth)")
-
-
-# --- 239: growth and tall buy food cards ---
-
-## A strategy_engine game with 5 wealth and supply piles: Farm (⟳ +1 food) at farm_price, Paddy (⟳ food) at 3 and
-## Scout (no food) at 1; Paddy listed before Farm when paddy_first.
-func food_supply_engine(farm_price := 2, paddy_first := false) -> GameEngine:
-	var farm := {"price": farm_price, "count": 3}
-	var paddy := {"price": 3, "count": 3}
-	var supply := {"paddy": paddy, "farm": farm} if paddy_first else {"farm": farm, "paddy": paddy}
-	supply["scout"] = {"price": 1, "count": 3}
-	var e := strategy_engine(0, {"supply": supply})
-	e.resources.wealth = 5
-	return e
-
-
-func test_growth_and_tall_buy_the_cheapest_food_card_once_a_turn() -> void:
-	for strategy in ["growth", "tall"]:
-		var e := food_supply_engine()
-		BOT.take_turn(e, strategy)
-		eq(e.supply_left("farm"), 2, "%s: one Farm bought (cheapest card that makes food on upkeep)" % strategy)
-		eq(e.supply_left("paddy"), 3, "%s: no Paddy" % strategy)
-		eq(e.supply_left("scout"), 3, "%s: no Scout (makes no food)" % strategy)
-		eq(e.resources.wealth, 3, "%s: 5 − 2" % strategy)
-
-
-func test_a_food_card_price_tie_goes_to_the_pile_listed_first() -> void:
-	var e := food_supply_engine(3, true)
-	BOT.take_turn(e, "growth")
-	eq(e.supply_left("paddy"), 2, "Paddy, listed first, bought")
-	eq(e.supply_left("farm"), 3, "no Farm")
-
-
-func test_growth_buys_no_food_card_it_cant_afford_or_that_isnt_open() -> void:
-	var poor := food_supply_engine()
-	poor.resources.wealth = 1
-	BOT.take_turn(poor, "growth")
-	eq(poor.supply_left("farm"), 3, "1 wealth buys no Farm")
-	eq(poor.supply_left("scout"), 3, "nor a Scout")
-	var no_food := strategy_engine(0, {"supply": {"scout": {"price": 1, "count": 3}}})
-	no_food.resources.wealth = 5
-	BOT.take_turn(no_food, "growth")
-	eq(no_food.supply_left("scout"), 3, "no food pile: nothing bought")
-
-
-func test_baseline_and_wide_buy_nothing_on_a_turn_with_no_anarchy_ahead() -> void:
-	for strategy in ["baseline", "wide"]:
-		var e := food_supply_engine()
-		BOT.take_turn(e, strategy)
-		eq([e.supply_left("farm"), e.supply_left("paddy"), e.supply_left("scout")], [3, 3, 3], "%s buys nothing" % strategy)
-		eq(e.resources.wealth, 5, "%s keeps its wealth" % strategy)
-
-
-# --- AC5: wide vs tall ---
-
-func test_wide_plays_explore_and_settle_cards_first() -> void:
-	var e := strategy_engine(0)
-	put_in_hand(e, "shrine")
-	put_in_hand(e, "explorer")
-	var order := played_ids(e, func(): BOT.take_turn(e, "wide"))
-	eq(order.slice(0, 2), ["explorer", "shrine"] as Array[String], "Explorer before Shrine")
-
-
-func test_tall_stops_settling_at_two_territories() -> void:
-	for strategy in ["wide", "tall"]:
-		var e := strategy_engine(10, {"population": pop_block(0, 7)})
-		settle_grassland(e, 4)
-		to_frontier(e, ["hills"])
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		eq(order.has("pioneer"), strategy == "wide", "%s settles a third territory" % strategy)
-
-
-func test_tall_plays_food_cards_first() -> void:
-	var e := strategy_engine(0)  # turn 1's upkeep: 2 food from the Capital, all spent on the Farm
-	put_in_hand(e, "shrine")
-	put_in_hand(e, "farm")
-	var order := played_ids(e, func(): BOT.take_turn(e, "tall"))
-	eq(order.slice(0, 2), ["farm", "shrine"] as Array[String], "Farm before Shrine")
-
-
-# --- 262: growth cards ---
-
-## A strategy_engine game where pop eats 1 food each: Homeland at pop home_pop with farms Farms (the Capital makes 2),
-## 10 food, and a Bread in the hand.
-func bread_engine(farms: int, home_pop := 2) -> GameEngine:
-	var e := strategy_engine(10, {"population": pop_block(1, 2)})
-	set_home_pop(e, home_pop)
-	build_on(e, home_uid(e), range(farms).map(func(_i): return "farm"))
-	put_in_hand(e, "bread")
-	e.resources.food = 10
-	return e
-
-
-func test_every_strategy_skips_a_growth_card_that_leaves_less_than_1_net_food() -> void:
-	for strategy in STRATEGIES:
-		var e := bread_engine(1)  # 3 made − 2 eaten: net +1; with 3 pop it would be 0
-		eq(e.upkeep_forecast()[GameEngine.FOOD], 1, "%s: net +1 now" % strategy)
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		check(not order.has("bread"), "%s: Bread not played (%s)" % [strategy, order])
-		eq(e.total_pop(), 2, "%s: pop unchanged" % strategy)
-
-
-func test_every_strategy_plays_a_growth_card_that_leaves_net_food_of_1() -> void:
-	for strategy in STRATEGIES:
-		var e := bread_engine(2)  # net +2; with 3 pop, +1
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		check(order.has("bread"), "%s: Bread played (%s)" % [strategy, order])
-		eq(e.total_pop(), 3, "%s: +1 pop" % strategy)
-
-
-func test_every_strategy_skips_a_growth_card_that_adds_no_pop() -> void:
-	for strategy in STRATEGIES:
-		var e := strategy_engine(10, {"population": pop_block(0, 2)})  # nobody eats
-		set_home_pop(e, 7)  # Homeland's housing: full
-		put_in_hand(e, "bread")
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		check(not order.has("bread"), "%s: Bread not played on a full realm (%s)" % [strategy, order])
-
-
-func test_growth_and_tall_play_growth_cards_first() -> void:
-	for strategy in ["growth", "tall"]:
-		var e := strategy_engine(10, {"population": pop_block(1, 2)})
-		set_home_pop(e, 2)
-		build_on(e, home_uid(e), ["farm", "farm"])
-		e.resources.food = 10
-		put_in_hand(e, "shrine")
-		put_in_hand(e, "bread")
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		eq(order.slice(0, 2), ["bread", "shrine"] as Array[String], "%s: Bread before Shrine" % strategy)
-
-
-func test_other_strategies_play_growth_cards_in_hand_order() -> void:
-	for strategy in ["baseline", "wealth", "wide"]:
-		var e := bread_engine(2)
-		var bread: CardInstance = e.zone("hand").cards.back()
-		e.zone("hand").remove(bread)
-		put_in_hand(e, "shrine")
-		e.zone("hand").add(bread)
-		var order := played_ids(e, func(): BOT.take_turn(e, strategy))
-		eq(order.slice(0, 2), ["shrine", "bread"] as Array[String], "%s: hand order" % strategy)
-
-
-func test_growth_and_tall_may_buy_growth_cards() -> void:
-	for strategy in ["growth", "tall"]:
-		var e := strategy_engine(0, {"supply": {"bread": {"price": 1, "count": 3}, "farm": {"price": 2, "count": 3},
-			"scout": {"price": 1, "count": 3}}})
-		e.resources.wealth = 5
-		BOT.take_turn(e, strategy)
-		eq(e.supply_left("bread"), 2, "%s: Bread, the cheapest preferred card, bought" % strategy)
-		eq(e.supply_left("farm"), 3, "%s: no Farm" % strategy)
-		eq(e.supply_left("scout"), 3, "%s: no Scout" % strategy)
 
 
 # --- AC6: stats per strategy and civilization ---
@@ -279,15 +27,15 @@ func civ_sim_data(deck: Dictionary, overrides := {}) -> Dictionary:
 func test_sim_stats_runs_a_strategy() -> void:
 	var d := civ_sim_data({"shrine": 10}, {"turn_limit": 2, "population": pop_block(),
 		"starting": {"resources": {"food": 30}, "tableau": ["capital"], "territory": "homeland"}})
-	var baseline: Dictionary = STATS.run(d.cards, d.config, [1], "baseline")
-	var growth: Dictionary = STATS.run(d.cards, d.config, [1], "growth")
-	for stats in [baseline, growth]:
+	var generic: Dictionary = STATS.run(d.cards, d.config, [1], "generic")
+	var wide: Dictionary = STATS.run(d.cards, d.config, [1], "wide")
+	for stats in [generic, wide]:
 		eq(stats.get("pop", {}).get("min"), 1, "pop stats, and no strategy grows pop itself (260): %s" % [stats.get("pop")])
 
 
 func test_sim_stats_plays_as_a_civilization() -> void:
 	var d := civ_sim_data({"shrine": 10}, {"turn_limit": 3})
-	var plain: Dictionary = STATS.run(d.cards, d.config, [1], "baseline", "")
-	var nomads: Dictionary = STATS.run(d.cards, d.config, [1], "baseline", "nomads")
+	var plain: Dictionary = STATS.run(d.cards, d.config, [1], "generic", "")
+	var nomads: Dictionary = STATS.run(d.cards, d.config, [1], "generic", "nomads")
 	# Nomads: vp 1 and +1 score each upkeep (3 turns).
 	eq(nomads.get("score", {}).get("min", 0) - plain.get("score", {}).get("min", 0), 4, "Nomads' score over no civ")
