@@ -45,12 +45,9 @@ func levy_of(e: GameEngine) -> int:
 # --- AC1: loading ---
 
 func test_training_loads_on_buildings() -> void:
-	var r := training_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("drill_yard"):
-		eq(r.cards.drill_yard.training, 1, "Drill Yard")
-		eq(r.cards.sparring_ring.training, 2, "Sparring Ring")
+	check_loads([
+		["Drill Yard and Sparring Ring", [], {"cards.drill_yard.training": 1, "cards.sparring_ring.training": 2}],
+	], training_load)
 
 
 func test_bad_training_is_a_load_error() -> void:

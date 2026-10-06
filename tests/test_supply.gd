@@ -17,13 +17,9 @@ func supply_engine(wealth: int, deck := {"farm": 10}, overrides := {}) -> GameEn
 	return e
 
 
-## Parses a config with the given supply block; returns the loader errors.
-func supply_errors(supply: Variant) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([], errors, warnings)
-	DataLoader.parse_config(raw_config({"farm": 1}, {"supply": supply}), resources(), cards, "config.json", errors, warnings)
-	return errors
+## TECHS and a config with the given supply block (none when null) (config_load).
+func supply_load(supply: Variant) -> Dictionary:
+	return config_load({} if supply == null else {"supply": supply}, [TECHS])
 
 
 ## Asserts buy("scout") is refused with message and changes nothing.
@@ -123,23 +119,11 @@ func test_cannot_buy_while_a_discard_is_pending() -> void:
 
 # --- AC5: loader ---
 
-func test_supply_block_is_normalized() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"supply": {"scout": {"price": 2, "count": 3}}}),
-		resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(config.supply, {"scout": {"price": 2, "count": 3, "locked": false}}, "supply")
-
-
-func test_supply_defaults_to_empty() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([], errors, warnings)
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(config.supply, {}, "supply")
+func test_supply_block_loads() -> void:
+	check_loads([
+		["normalized", {"scout": {"price": 2, "count": 3}}, {"config.supply": {"scout": {"price": 2, "count": 3, "locked": false}}}],
+		["defaults to empty", null, {"config.supply": {}}],
+	], supply_load)
 
 
 func test_supply_validation() -> void:
@@ -153,7 +137,7 @@ func test_supply_validation() -> void:
 		["count 0", {"scout": {"price": 2, "count": 0}}, "config.json: supply: 'scout': 'count' must be an integer >= 1"],
 		["no count", {"scout": {"price": 2}}, "config.json: supply: 'scout': 'count' must be an integer >= 1"],
 		["not an object", {"scout": 2}, "config.json: supply: 'scout' must be an object like {\"price\": 2, \"count\": 1}"],
-	], supply_errors)
+	], supply_load)
 
 
 # --- Backlog 057: locked piles and the unlock op ---
@@ -186,12 +170,7 @@ func load_locked(extra: Array, overrides: Dictionary) -> Dictionary:
 
 ## Loads one action card x with effect; returns {cards, errors, warnings}.
 func unlock_card(effect: Dictionary) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [
-		{"id": "x", "name": "X", "type": "action", "effects": [effect]}]}, resources(), "cards.json", errors, warnings,
-		keywords())
-	return {"cards": cards, "errors": errors, "warnings": warnings}
+	return card_load(card_with(CardDef.ACTION, effect))
 
 
 # AC1: config
@@ -209,15 +188,15 @@ func test_supply_locked_must_be_a_bool() -> void:
 			"config.json: supply: 'scout': 'locked' must be true or false"],
 		["locked a number", {"scout": {"price": 2, "count": 1, "locked": 1}},
 			"config.json: supply: 'scout': 'locked' must be true or false"],
-	], supply_errors)
+	], supply_load)
 
 
 # AC2: the unlock op
 
 func test_unlock_op_loads() -> void:
-	var r := unlock_card({"op": "unlock", "card": "guildhall"})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["unlock Guildhall", {"op": "unlock", "card": "guildhall"}, {}],
+	], unlock_card)
 
 
 func test_unlock_validation() -> void:

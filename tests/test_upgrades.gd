@@ -81,12 +81,10 @@ func upgrade_load(extra: Array) -> Dictionary:
 
 
 func test_an_upgrade_loads_its_base() -> void:
-	var r := upgrade_load([])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.cards["plough"].get("upgrade_of"), "farm", "Plough's base")
-	eq(r.cards["cathedral"].get("upgrade_of"), "sanctum", "Cathedral's base")
-	eq(r.cards["farm"].get("upgrade_of"), "", "a Farm is no upgrade")
+	check_loads([
+		["Plough, Cathedral and a Farm (no upgrade)", [], {"cards.plough.upgrade_of": "farm",
+			"cards.cathedral.upgrade_of": "sanctum", "cards.farm.upgrade_of": ""}],
+	], upgrade_load)
 
 
 func test_upgrade_of_validation() -> void:

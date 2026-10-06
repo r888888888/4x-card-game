@@ -138,9 +138,9 @@ func test_fork_copies_the_trashed_zone() -> void:
 # --- AC6: loader and text ---
 
 func test_trash_loads() -> void:
-	var r := fixture_load([PURGE])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["Purge", [PURGE], {}],
+	], fixture_load)
 
 
 func test_trash_validation() -> void:

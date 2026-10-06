@@ -257,13 +257,12 @@ func test_settling_at_pop_1_is_no_notice() -> void:
 
 # --- AC6: the loader ---
 
+## TEST_CARDS and a config whose population block has tiers (none when null): {cards, config, errors, warnings}.
 func tier_messages(tiers: Variant) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards}, resources(), "cards.json", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"population": {"start": 2, "food_upkeep": 0,
-		"vp_per_pop": 0, "tiers": tiers}}), resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+	var population := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
+	if tiers != null:
+		population["tiers"] = tiers
+	return config_load_on(fixture_load(), {"population": population.merged({"famine": FAMINE})})
 
 
 func has_error(messages: Array, parts: Array) -> bool:
@@ -271,16 +270,10 @@ func has_error(messages: Array, parts: Array) -> bool:
 
 
 func test_tiers_load_and_are_optional() -> void:
-	var r := tier_messages(TIERS)
-	eq([r.errors, r.warnings], [[], []], "the fixture tiers load cleanly")
-	eq(r.config.population.get("tiers"), TIERS, "the normalized block holds the tiers")
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards}, resources(), "cards.json", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"population": {"start": 2, "food_upkeep": 0,
-		"vp_per_pop": 0}}), resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "no tiers: no errors")
-	eq(config.population.get("tiers"), [], "no tiers: []")
+	check_loads([
+		["the fixture tiers, in the normalized block", TIERS, {"config.population.tiers": TIERS}],
+		["no tiers: []", null, {"config.population.tiers": []}],
+	], tier_messages)
 
 
 func test_tiers_must_be_a_non_empty_array_of_objects() -> void:
