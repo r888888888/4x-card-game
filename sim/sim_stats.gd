@@ -7,8 +7,11 @@ extends RefCounted
 
 const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
 	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "lookahead_turns"]
-## How long a parallel run waits for its child processes before killing them (their shards then fail the run).
-const CHILD_TIMEOUT_MSEC := 60 * 60 * 1000
+## How long a parallel run's worker may go without finishing a turn before it is stopped and the run fails (318).
+## SIM_STALL_SEC overrides it (stall_sec_from_env).
+const DEFAULT_STALL_SEC := 600
+## How often a parallel run still waiting on its workers prints a progress line (318), in seconds.
+const PROGRESS_EVERY_SEC := 60.0
 ## The file in a parallel run's directory listing its jobs (293), so a worker plays exactly the parent's list.
 const JOBS_FILE := "jobs.json"
 
@@ -29,7 +32,7 @@ static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy :=
 ## {metric: [one value per seed]} for games with strategy as civ.
 static func _values(cards: Dictionary, config: Dictionary, seeds: Array, strategy: String, civ: String) -> Dictionary:
 	var names := metric_names(cards, config)
-	return _collect(seeds.map(func(seed): return _play_one(cards, config, [seed, strategy, civ], names)), names)
+	return _collect(seeds.map(func(seed): return play_game(cards, config, [seed, strategy, civ], names)), names)
 
 
 ## {metric: [one value per game]} for names, from games' metrics.
@@ -51,8 +54,10 @@ static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]
 	return names
 
 
-## Plays job ([seed, strategy, civ]) and returns its metrics, {name: int} for names.
-static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: Array[String]) -> Dictionary:
+## Plays job ([seed, strategy, civ]) and returns its metrics, {name: int} for names. Calls on_turn (when valid) with
+## each turn as it starts (318: a parallel worker's progress); it changes nothing in the game.
+static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: Array[String],
+		on_turn := Callable()) -> Dictionary:
 	var era_techs := _techs_per_era(cards, config)
 	var engine := GameEngine.new(cards, config)
 	engine.new_game(job[0], job[2])
@@ -83,6 +88,8 @@ static func _play_one(cards: Dictionary, config: Dictionary, job: Array, names: 
 			last.government = ruling
 		if engine.turn > last.turn:
 			last.turn = engine.turn
+			if on_turn.is_valid():
+				on_turn.call(engine.turn)
 			tally.anarchy_turns += 1 if in_anarchy else 0
 			tally.famine_turns += 1 if engine.famine_counters() > 0 else 0
 			if tally.has("%s_turns" % ruling):
@@ -275,8 +282,9 @@ static func procs_from_env(env: Dictionary, cpu_count: int) -> int:
 ## Plays, as worker, every job in dir's jobs.json (293; else of the run run_files would make) that no worker has claimed
 ## in dir yet, one at a time: a
 ## job is claimed by making its claim_path, which only one worker can do. Writes the games it played to
-## worker_path(dir, worker) as JSON {job index: {metric: value}} after each one, {} when none was left. Returns 0, or 1
-## when the data doesn't load (no file). sim/run.gd calls it in a child process.
+## worker_path(dir, worker) as JSON {job index: {metric: value}} after each one, {} when none was left, and its progress
+## (write_progress, 318) when it starts, claims a game, starts each turn and finishes a game. Returns 0, or 1 when the
+## data doesn't load (no file). sim/run.gd calls it in a child process.
 static func play_claimed(cards_path: String, config_path: String, seed_count: int, strategy: String,
 		options: Dictionary, dir: String, worker: int) -> int:
 	var data := _load(cards_path, config_path, strategy, options)
@@ -289,12 +297,61 @@ static func play_claimed(cards_path: String, config_path: String, seed_count: in
 	var games := {}
 	if not _write_json(worker_path(dir, worker), games):
 		return 1
+	write_progress(dir, worker, -1, 0)
+	var turn := [0]
 	for i in jobs.size():
 		if DirAccess.make_dir_absolute(claim_path(dir, i)) != OK:  # another worker has it
 			continue
-		games[str(i)] = _play_one(data.cards, data.config, jobs[i], names)
+		var since := Time.get_unix_time_from_system()
+		write_progress(dir, worker, i, 0, since)
+		var on_turn := func(t: int):
+			turn[0] = t
+			write_progress(dir, worker, i, t, since)
+		games[str(i)] = play_game(data.cards, data.config, jobs[i], names, on_turn)
 		_write_json(worker_path(dir, worker), games)
+		write_progress(dir, worker, -1, turn[0])
 	return 0
+
+
+## Writes worker's progress in dir (318): {job (its index, -1 for none in play), turn (the last reached), at (now, in
+## Unix seconds), since (when the game in play was claimed; now when not given)}. Written whole by a rename, so a
+## reader never sees half of it.
+static func write_progress(dir: String, worker: int, job: int, turn: int, since := 0.0) -> void:
+	var now := Time.get_unix_time_from_system()
+	var path := progress_path(dir, worker)
+	if _write_json(path + ".tmp", {"job": job, "turn": turn, "at": now, "since": since if since > 0.0 else now}):
+		DirAccess.rename_absolute(path + ".tmp", path)
+
+
+## worker's progress in dir as write_progress wrote it ({job, turn, at, since}), {} when it has none.
+static func read_progress(dir: String, worker: int) -> Dictionary:
+	var path := progress_path(dir, worker)
+	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(path)) if FileAccess.file_exists(path) else null
+	if not raw is Dictionary or not raw.has_all(["job", "turn", "at", "since"]):
+		return {}
+	return {"job": int(raw.job), "turn": int(raw.turn), "at": float(raw.at), "since": float(raw.since)}
+
+
+## Where worker writes its progress in dir (318).
+static func progress_path(dir: String, worker: int) -> String:
+	return dir.path_join("%d.progress.json" % worker)
+
+
+## The stall limit in seconds (318) from env's SIM_STALL_SEC (a whole number of at least 1), else DEFAULT_STALL_SEC.
+static func stall_sec_from_env(env: Dictionary) -> int:
+	var sec: String = env.get("SIM_STALL_SEC", "")
+	return int(sec) if sec.is_valid_int() and int(sec) >= 1 else DEFAULT_STALL_SEC
+
+
+## A parallel run's progress line (318): games done of total, then each game in playing ([job ([seed, strategy, civ]),
+## turn, minutes so far]).
+static func progress_line(done: int, total: int, playing: Array) -> String:
+	var line := "sim: %d of %d games done" % [done, total]
+	var games := PackedStringArray()
+	for p in playing:
+		games.append("seed %d %s %s (turn %d, %d min)" % [p[0][0], p[0][1], p[0][2] if p[0][2] != "" else "default",
+			p[1], floori(p[2])])
+	return line + ("; playing " + ", ".join(games) if not games.is_empty() else "")
 
 
 ## The jobs a parent wrote to dir's jobs.json ([seed, strategy, civ] each).
@@ -315,9 +372,13 @@ static func worker_path(dir: String, worker: int) -> String:
 
 ## Reads the count workers' files in dir back into one list of job_count games ({metric: int} for names, in names'
 ## order; null for a game no worker wrote), then removes dir. Returns {games, errors, per_proc}: an error per game
-## with no result ("game 2 of 4 has no result"; only those in expected, when given), and how many games each worker
-## wrote.
-static func read_workers(dir: String, count: int, job_count: int, names: Array[String], expected := []) -> Dictionary:
+## with no result (only those in expected, when given), and how many games each worker wrote. A game a worker's
+## progress says it was playing names that worker, the game (with its seed, strategy and civ from dir's jobs.json) and
+## the turn it reached (318): "stalled" for a worker in stalled ({worker: the stall limit it broke, in seconds}),
+## else "stopped" (it died); any other is "game 2 of 4 has no result". A stalled worker with no game in play gets its
+## own error.
+static func read_workers(dir: String, count: int, job_count: int, names: Array[String], expected := [],
+		stalled := {}) -> Dictionary:
 	var games := []
 	games.resize(job_count)
 	var per_proc := []
@@ -333,10 +394,32 @@ static func read_workers(dir: String, count: int, job_count: int, names: Array[S
 			for m in names:  # JSON sorts keys: back in report order
 				game[m] = int(part[k][m])
 			games[int(k)] = game
+	var jobs := _jobs_in(dir) if FileAccess.file_exists(dir.path_join(JOBS_FILE)) else []
+	var in_play := {}  # job index → that worker's progress
+	for w in count:
+		var p := read_progress(dir, w)
+		if p.get("job", -1) >= 0:
+			p.worker = w
+			in_play[p.job] = p
 	var errors: Array[String] = []
 	for i in job_count:
-		if games[i] == null and (expected.is_empty() or i in expected):
+		if games[i] != null or not (expected.is_empty() or i in expected):
+			continue
+		if not in_play.has(i):
 			errors.append("game %d of %d has no result" % [i + 1, job_count])
+			continue
+		var p: Dictionary = in_play[i]
+		var game := "game %d of %d" % [i + 1, job_count]
+		if i < jobs.size():
+			game += " (seed %d, %s, %s)" % [jobs[i][0], jobs[i][1], jobs[i][2] if jobs[i][2] != "" else "default"]
+		if stalled.has(p.worker):
+			errors.append("worker %d stalled during %s at turn %d: no turn finished in %d s" % [p.worker, game, p.turn,
+				stalled[p.worker]])
+		else:
+			errors.append("worker %d stopped during %s at turn %d" % [p.worker, game, p.turn])
+	for w in stalled:
+		if not in_play.values().any(func(p): return p.worker == w):
+			errors.append("worker %d stalled with no game in play: no turn finished in %d s" % [w, stalled[w]])
 	_remove_tree(dir)
 	return {"games": games, "errors": errors, "per_proc": per_proc}
 
@@ -422,7 +505,7 @@ static func play_side(side: Dictionary, data: Dictionary, jobs: Array, names: Ar
 		return out
 	if procs == 1:
 		for i in todo:
-			games[i] = _play_one(data.cards, data.config, jobs[i], names)
+			games[i] = play_game(data.cards, data.config, jobs[i], names)
 		out.per_proc = [todo.size()]
 	else:
 		var read := _play_children(side, options, procs, jobs, names, todo)
@@ -451,8 +534,10 @@ static func release_run_lock(options: Dictionary) -> void:
 
 ## Plays the todo indices of jobs on procs child processes running side's code (sim/run.gd with --path side's root,
 ## and worker=i and dir= arguments): the parent writes jobs to the run directory's jobs.json and claims the others up
-## front, and the workers claim the rest from one queue. Returns read_workers' {games, errors, per_proc}. A child still
-## running after CHILD_TIMEOUT_MSEC is killed.
+## front, and the workers claim the rest from one queue. Returns read_workers' {games, errors, per_proc}. A worker that
+## finishes no turn for options' stall_sec (default DEFAULT_STALL_SEC, counted from its last progress, else from its
+## start) is killed and named as stalled (318); there is no limit on the run as a whole. Every PROGRESS_EVERY_SEC while
+## waiting, prints progress_line to stderr.
 static func _play_children(side: Dictionary, options: Dictionary, procs: int, jobs: Array, names: Array[String],
 		todo: Array) -> Dictionary:
 	var dir := OS.get_temp_dir().path_join("sim-%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()])
@@ -470,13 +555,48 @@ static func _play_children(side: Dictionary, options: Dictionary, procs: int, jo
 		var args := base.duplicate()
 		args.append("worker=%d" % i)
 		pids.append(OS.create_process(OS.get_executable_path(), args))
-	var deadline := Time.get_ticks_msec() + CHILD_TIMEOUT_MSEC
-	for pid in pids:
-		while OS.is_process_running(pid) and Time.get_ticks_msec() < deadline:
-			OS.delay_msec(20)
-		if OS.is_process_running(pid):
-			OS.kill(pid)
-	return read_workers(dir, procs, jobs.size(), names, todo)
+	var stalled := _watch(dir, pids, options.get("stall_sec", DEFAULT_STALL_SEC), jobs, todo.size())
+	return read_workers(dir, procs, jobs.size(), names, todo, stalled)
+
+
+## Waits for the worker processes pids (worker i is pids[i]) of the run in dir to exit, killing each that finishes no
+## turn for stall_sec seconds, and prints progress_line every PROGRESS_EVERY_SEC (318). Returns {worker: stall_sec}
+## for the workers it killed.
+static func _watch(dir: String, pids: Array, stall_sec: int, jobs: Array, total: int) -> Dictionary:
+	var started := Time.get_unix_time_from_system()
+	var last_line := started
+	var running := {}
+	for i in pids.size():
+		running[i] = pids[i]
+	var stalled := {}
+	while not running.is_empty():
+		var now := Time.get_unix_time_from_system()
+		for i in running.keys():
+			if not OS.is_process_running(running[i]):
+				running.erase(i)
+			elif now - read_progress(dir, i).get("at", started) >= stall_sec:
+				OS.kill(running[i])  # and reaps it
+				stalled[i] = stall_sec
+				running.erase(i)
+		if now - last_line >= PROGRESS_EVERY_SEC and not running.is_empty():
+			printerr(_progress_now(dir, pids.size(), jobs, total, now))
+			last_line = now
+		OS.delay_msec(20)
+	return stalled
+
+
+## progress_line for the run in dir now: the games its count workers have written of total, and the games in play.
+static func _progress_now(dir: String, count: int, jobs: Array, total: int, now: float) -> String:
+	var done := 0
+	var playing := []
+	for w in count:
+		var path := worker_path(dir, w)
+		var part: Variant = JSON.parse_string(FileAccess.get_file_as_string(path)) if FileAccess.file_exists(path) else null
+		done += part.size() if part is Dictionary else 0
+		var p := read_progress(dir, w)
+		if p.get("job", -1) >= 0:
+			playing.append([jobs[p.job], p.turn, (now - p.since) / 60.0])
+	return progress_line(done, total, playing)
 
 
 ## A hash of the code that plays a game (292): every .gd script under root's engine/, sim/ and autoload/ (paths and
