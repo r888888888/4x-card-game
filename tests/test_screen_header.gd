@@ -83,6 +83,7 @@ func test_with_reduce_motion_a_territory_view_only_fades() -> void:
 			await wait_seconds(Navigator.SLIDE_FADE + 0.1)
 			eq(view.modulate.a, 1.0, "in by SLIDE_FADE")
 			view.back_button.pressed.emit()
+			await wait_frames(1)
 			eq(Navigator.offset_of(view).x, 0.0, "no slide out")
 			check(view.modulate.a < 1.0 or not view.visible, "a fade out")
 			await wait_seconds(Navigator.SLIDE_FADE + 0.1)

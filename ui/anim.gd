@@ -35,9 +35,6 @@ const HIGHLIGHT_PULSE_TIME := 0.7
 const BREATH_TIME := 2.2  # one slow breath of a counter's glyph, out and back: Anarchy a turn away (228)
 const BREATH_ALPHA := 0.45  # the glyph's opacity at the bottom of a breath; it never fades out
 const SCREEN_TIME := 0.22  # a navigated screen fading in and out (104)
-const WIPE_IN := 0.30  # a screen wiping out of its card (350, guide §10.2)
-const WIPE_OUT := 0.24  # and back into it
-const WIPE_LINGER := 0.12  # the wipe's outline staying on after it lands
 # The build ceremony (357, guide §9.4, §10.8): it starts once the Build sheet has closed, BUILD_DELAY after the press.
 const BUILD_DELAY := 0.16
 const BUILD_RING_TIME := 0.45  # the lamp ring blooming off the card's edge and fading

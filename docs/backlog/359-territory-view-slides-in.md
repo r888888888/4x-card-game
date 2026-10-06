@@ -2,7 +2,7 @@
 id: 359
 title: The territory view slides in from the right like Knowledge
 type: feature
-status: red-review
+status: in-progress
 branch: feat/359-territory-view-slides-in
 ---
 
