@@ -2,7 +2,7 @@
 id: 304
 title: A gain_per_pop op: gain for every N pop on the card's own territory
 type: feature
-status: in-progress
+status: review
 branch: feat/304-gain-per-pop-op
 ---
 
@@ -16,17 +16,17 @@ Great Temple) use it to reward growing tall. Independent of 300–303; needed by
 Fixture: an extra building Counting House `{"id": "counting_house", "name": "Counting House", "type": "building",
 "effects": [{"op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep"}]}`, population on.
 
-- [ ] AC1: Given a working Counting House on Homeland at pop 7, when upkeep resolves, then it gains 2 wealth (1 × ⌊7 /
+- [x] AC1: Given a working Counting House on Homeland at pop 7, when upkeep resolves, then it gains 2 wealth (1 × ⌊7 /
   3⌋); at pop 2 it gains 0; at pop 9, 3. Pop on other territories doesn't count. `upkeep_forecast` reports the same.
-- [ ] AC2: `amount` defaults to 1 and `per` to 1 (so `{"op": "gain_per_pop", "resource": "food"}` gains 1 per pop);
+- [x] AC2: `amount` defaults to 1 and `per` to 1 (so `{"op": "gain_per_pop", "resource": "food"}` gains 1 per pop);
   both must be whole numbers ≥ 1, and `resource` a config resource, else a load error naming file, card and field.
   Unrest is allowed as `gain` allows it (stopped at the limit through `set_unrest`).
-- [ ] AC3: The op needs the card's own territory: on a tech, event or government (`DataLoader.NO_TERRITORY_TYPES`) or
+- [x] AC3: The op needs the card's own territory: on a tech, event or government (`DataLoader.NO_TERRITORY_TYPES`) or
   a unit it is a load error, as `grow` with `where: "here"` is (069). An action played with no territory, or with
   population off, gains 0.
-- [ ] AC4: It is upkeep-safe (`upkeep_ok()` true), so it may trigger on `upkeep`; idle, it gains nothing, as every
+- [x] AC4: It is upkeep-safe (`upkeep_ok()` true), so it may trigger on `upkeep`; idle, it gains nothing, as every
   upkeep effect of an idle building.
-- [ ] AC5: Card text: "+1 wealth per 3 pop here" (with `per` 1: "+1 food per pop here"); long text in details: "+1
+- [x] AC5: Card text: "+1 wealth per 3 pop here" (with `per` 1: "+1 food per pop here"); long text in details: "+1
   wealth for every 3 pop on this territory".
 
 ## Out of scope
@@ -48,5 +48,12 @@ Fixture: an extra building Counting House `{"id": "counting_house", "name": "Cou
 | AC4 | `test_gain_per_pop::test_gain_per_pop_may_trigger_on_upkeep`, `test_an_idle_building_gains_nothing`; `test_forecast::test_upkeep_safe_ops_may_trigger_on_upkeep` (UPKEEP_SAFE row) |
 | AC5 | `test_gain_per_pop::test_gain_per_pop_card_text` |
 
+## Manual check
+None: no shipped card uses the op yet (306 adds the content); the card text is covered by tests.
+
 ## Log
 - 2026-10-05: specced from the tall-buildings design (idea 1, the per-pop form).
+- 2026-10-06: built. `engine/effects/gain_per_pop_effect.gd` (registered in `EffectRegistry.OPS`), tests in
+  `tests/test_gain_per_pop.gd` plus an `UPKEEP_SAFE` row. Long text with `per` 1: "+1 food for every pop on this
+  territory" (the spec gave only the short form). The no-territory load error for techs, events and governments still
+  ends "use 'each'", worded for `grow`; it doesn't fit this op (follow-up if it matters).
