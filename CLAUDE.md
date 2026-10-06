@@ -51,8 +51,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   takes keys and clicks, and Esc, Close or a click outside its panel closes just that one. Don't write a modal's own
   scrim, key handling or z-order.
 - A screen you navigate to goes on an animated `Navigator` with a title, and carries a `ScreenHeader`: a breadcrumb
-  naming where you are, whose parent title is the link back (118). It enters and leaves with a transition (it grows out of
-  the card it opens, or fades; only a fade with Reduce motion), and counts as closed as soon as it starts leaving.
+  naming where you are, whose parent title is the link back (118). It enters and leaves with a transition (it wipes out of
+  the card it opens and back into it, or fades; only a fade with Reduce motion), and counts as closed as soon as it
+  starts leaving.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).

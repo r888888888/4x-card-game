@@ -61,7 +61,7 @@ func leaving_shot() -> Control:
 
 
 ## Opens screen (titled title) over the current top, giving focus (a Control on screen) the keyboard focus. from: the
-## global rect it grows out of (a card), or none to fade in; slide: it runs in from the right instead (208).
+## global rect it wipes out of (a card, 350), or none to fade in; slide: it runs in from the right instead (208).
 func push(screen: Control, focus: Control = null, title := "", from := Rect2(), slide := false) -> void:
 	_finish()
 	_return_focus.append(screen.get_viewport().gui_get_focus_owner() if screen.is_inside_tree() else null)

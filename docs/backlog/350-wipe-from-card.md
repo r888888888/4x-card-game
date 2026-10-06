@@ -2,7 +2,7 @@
 id: 350
 title: The territory view wipes out of its card instead of zooming
 type: feature
-status: in-progress
+status: review
 branch: feat/350-wipe-from-card
 ---
 
@@ -14,18 +14,18 @@ scaled. The spike `spike/territory-transition` tried a wipe, a blind, a slide an
 best.
 
 ## Acceptance criteria
-- [ ] AC1: Given an animated navigator with Reduce motion off, when a screen is pushed from rect R, then the screen is
+- [x] AC1: Given an animated navigator with Reduce motion off, when a screen is pushed from rect R, then the screen is
   never scaled (scale stays 1), and what it shows starts at R (`wipe_rect(screen)` = R at once) and grows to its content
   rect (the union of its shown children, not the empty room under them) by `Anim.WIPE_IN` (0.30 s), easing out.
-- [ ] AC2: Given the same wipe, then a 2 px outline traces the shown rect's edge while it grows, and is gone
+- [x] AC2: Given the same wipe, then a 2 px outline traces the shown rect's edge while it grows, and is gone
   `Anim.WIPE_LINGER` (0.12 s) after the wipe lands; afterwards nothing is clipped (`wipe_rect` is empty).
-- [ ] AC3: Given a screen pushed from R, when back is called, then the screen is hidden at once (not drawn, takes no
+- [x] AC3: Given a screen pushed from R, when back is called, then the screen is hidden at once (not drawn, takes no
   clicks), the screen below shows at once, and a snapshot of the screen's content as last drawn (`leaving_shot()`) shrinks
   from the content rect into R over `Anim.WIPE_OUT` (0.24 s), then is freed. Nothing the board changes as the screen
   closes (its cards leave at once) shows during the close.
-- [ ] AC4: Unchanged: with Reduce motion a push from a rect only fades; a push without a rect fades; a slide slides; a
+- [x] AC4: Unchanged: with Reduce motion a push from a rect only fades; a push without a rect fades; a slide slides; a
   new step finishes a running wipe first.
-- [ ] AC5: Given the territory view opened from its card, then it wipes out of the card (`wipe_rect` starts at the
+- [x] AC5: Given the territory view opened from its card, then it wipes out of the card (`wipe_rect` starts at the
   card's rect) and wipes back into it on Back.
 
 ## Out of scope
@@ -55,3 +55,7 @@ best.
   no stretched text; Back wipes it back into the card with its cards still on it.
 
 ## Log
+- Checked on the real data (seed 5, Egypt, slowed to 0.2×): the view is revealed from the Thebes card outward, and the
+  close shrinks a snapshot with the Capital still on it back into the card.
+- `wait_screen_transition` now waits for the longest of the fade and the wipe (its outline included).
+- The spike `spike/territory-transition` stays unmerged as the reference.
