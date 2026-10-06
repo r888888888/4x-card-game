@@ -446,6 +446,11 @@ func _gui_input(event: InputEvent) -> void:
 			drag_requested.emit(self, _press_pos)
 
 
+## Drops a press whose release went elsewhere (327: a click that closed the territory view), so no move drags it.
+func forget_press() -> void:
+	_pressed = false
+
+
 ## Asks for the details once the double-click window passes, unless another click came first.
 func _details_later() -> void:
 	_details_click += 1

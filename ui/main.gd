@@ -97,6 +97,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if drag.handle_input(event) or (not supply.is_open() and (knowledge.handle_key(event) or territory_view.handle_key(event))):
 		get_viewport().set_input_as_handled()
+	elif not supply.is_open() and modals.top() == null and drag.targeting == null and territory_view.handle_click(event):
+		get_viewport().set_input_as_handled()
 
 
 # --- Actions ---

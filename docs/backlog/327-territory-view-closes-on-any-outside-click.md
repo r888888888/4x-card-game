@@ -2,7 +2,7 @@
 id: 327
 title: A click anywhere outside the territory box closes the territory view
 type: feature
-status: red-review
+status: in-progress
 branch: feat/327-territory-view-closes-on-any-outside-click
 ---
 

@@ -34,7 +34,8 @@ var _units_caption: Label  # over units_row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
-var _outside_press := false  # the left button went down on the view outside the box (200)
+var _outside_press := false  # the left button went down outside the box (200, 327)
+var _hand_press: CardView  # the hand card that press landed on, let through so a drag can start (327)
 var _turn := -1  # the turn close_if_stale last saw; -1 before a game's first refresh (290)
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
@@ -51,7 +52,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	header = ScreenHeader.new(nav, close, &"TERRITORY")
 	add_child(header)
 	back_button = header.back_button
-	mouse_filter = Control.MOUSE_FILTER_STOP  # a click on the view outside the box closes it (200)
+	mouse_filter = Control.MOUSE_FILTER_STOP  # clicks on the view stop here; handle_click closes it (200, 327)
 	frame = PanelContainer.new()
 	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # as tall as its content: the board shows below it (200)
 	UIKit.painted(frame, func(): frame.add_theme_stylebox_override("panel", UIKit.panel_style(
@@ -159,18 +160,35 @@ func _realm_title() -> String:
 	return (_realm.get_child(0) as Label).text
 
 
-## A left click on the view outside the box (pressed and released there) goes back to the Realm, as Back does (200).
-func _gui_input(event: InputEvent) -> void:
+## A left click anywhere outside the box (pressed and released there) goes back to the Realm, as Back does, and does
+## nothing else (200, 327). The press is held back from the board except on a hand card, so a drag from the hand still
+## reaches the territory; the release is held back, and the card forgets the press. Main calls this after the drag
+## controller and only with no modal or targeting over the board. Returns whether the event was used.
+func handle_click(event: InputEvent) -> bool:
 	var click := event as InputEventMouseButton
 	if click == null or click.button_index != MOUSE_BUTTON_LEFT or not is_open():
-		return
+		return false
 	var outside := not frame.get_global_rect().has_point(click.global_position)
 	if click.pressed:
 		_outside_press = outside
-	elif _outside_press and outside:
-		_outside_press = false
-		accept_event()
-		close()
+		_hand_press = _hand_card_at(click.global_position) if outside else null
+		return outside and _hand_press == null
+	if not (_outside_press and outside):
+		return false
+	_outside_press = false
+	if is_instance_valid(_hand_press):
+		_hand_press.forget_press()
+	_hand_press = null
+	close()
+	return true
+
+
+## The hand card at global point, or null.
+func _hand_card_at(point: Vector2) -> CardView:
+	for view: CardView in _board.views.values():
+		if view.in_hand and view.is_visible_in_tree() and view.get_global_rect().has_point(point):
+			return view
+	return null
 
 
 ## Esc closes the view, B opens the Build modal (297). Returns whether the key was used.

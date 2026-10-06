@@ -492,7 +492,7 @@ func wait_seconds(s: float) -> void:
 ## Clicks point with the home territory's view open and checks it closed with one NAV_BACK.
 func check_click_closes(main: Node, point: Vector2, where: String) -> void:
 	await open_home(main)
-	main.sfx.set_clock(0.0)
+	main.sfx.set_clock(main.sfx.clock() + 60.0)  # past earlier checks' sounds, which would fill the voices
 	var from: int = main.sfx.played().size()
 	mouse_at(main, point)
 	await wait_frames()
