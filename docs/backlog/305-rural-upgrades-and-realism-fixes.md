@@ -2,7 +2,7 @@
 id: 305
 title: Rural upgrades (plough, irrigation, harbour, timber, shafts) and building realism fixes
 type: feature
-status: ready
+status: red-review
 branch: feat/305-rural-upgrades
 ---
 
@@ -54,7 +54,10 @@ Content tests (`tests/test_content.gd`) assert invariants of the real data, nami
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_upgrade_and_its_base_are_build_menu_entries_opened_by_a_tech` |
+| AC2 | `test_content::test_every_upgrade_can_stand_on_some_territory` |
+| AC3 | `test_content::test_no_upgrade_opens_before_its_base` |
+| AC4 | `test_content::test_every_terrain_keeps_a_building_that_is_not_an_upgrade` (new); existing `test_buildings_are_in_the_build_menu_not_the_deck_or_supply`, `test_every_locked_build_menu_entry_is_unlocked_by_a_tech_and_back`, `test_every_building_gives_something_lasting` (they already cover every building, upgrades included) |
 
 ## Manual check
 - [ ] Ploughed Fields: upgrade of Farm, The Plough, cost 1 food + 3 wealth, ⟳ +1 food, no `requires`.
