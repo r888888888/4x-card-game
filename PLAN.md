@@ -257,6 +257,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   ⟳ +1 VP on a mountain. Content tests: every `tier` is one of `population.tiers` and never lower than its base's; no
   eureka counts only what its own tech (or a later one) opens; no upgrade lowers the unrest limit; a `gain_per_pop`
   upgrade has a tier.
+- More urban upgrades (307), each needing a Town unless noted: Merchant Quarter (Credit) on a Market and Mint (Coinage,
+  Metropolis) on it; Storehouse (Clay Tokens) on a Granary; City Walls (Masonry) on a Palisade; Multi-storey Houses
+  (Engineering) on Courtyard Houses; Textile Works (Weaving) on a Weavers' Workshop; Dockyard (Navigation) on a Harbor.
+  Merchant Quarter, Textile Works and Dockyard make ⟳ +1 wealth per 3 pop here. The Aqueduct needs a Town (housing 3).
+  Content tests: only the listed pure-discount techs (Mathematics, Astronomy) open nothing; a stand-alone Metropolis
+  building is a wonder or a `once` entry.
 - Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
   upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
   `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
