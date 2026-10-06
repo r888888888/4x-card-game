@@ -27,7 +27,8 @@ var _card_slot: Control  # the selected entry's card
 var _card: CardView  # on _card_slot, or null
 var _row := ""  # the row id on the sheet
 var _shown := ""  # the card id on the sheet
-var _lines: VBoxContainer  # the flavor, then the preview's heading and lines, or the refusal
+var _flavor_label: Label  # the shown entry's flavor, between the card and _lines; hidden when it has none (360)
+var _lines: VBoxContainer  # the preview's heading and lines, or the refusal
 var _flavor := ""  # the shown entry's flavor (354), "" when it has none
 
 
@@ -52,6 +53,12 @@ func _init(p_stack: ModalStack) -> void:
 	_card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_slot.custom_minimum_size = CardView.HAND_SIZE
 	sheet.add_child(_card_slot)
+	_flavor_label = Label.new()  # the sheet's SPACE_5 falls on both sides of it (360)
+	_flavor_label.theme_type_variation = &"Flavor"
+	_flavor_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_flavor_label.custom_minimum_size.x = LEDGER_DETAIL_WIDTH
+	_flavor_label.visible = false
+	sheet.add_child(_flavor_label)
 	_lines = VBoxContainer.new()
 	_lines.add_theme_constant_override("separation", Tokens.SPACE_1)
 	sheet.add_child(_lines)
@@ -160,13 +167,12 @@ func face_text() -> String:
 	return _card.face_text() if is_instance_valid(_card) else ""
 
 
-## The sheet's lines: the preview's heading, its lines and the cost (not the flavor); [] while a refusal shows.
+## The sheet's lines: the preview's heading, its lines and the cost; [] while a refusal shows.
 func preview_lines() -> Array[String]:
 	var out: Array[String] = []
 	if row_reason(_row) == "":
 		for label in _lines.get_children():
-			if (label as Label).theme_type_variation != &"Flavor":
-				out.append((label as Label).text)
+			out.append((label as Label).text)
 	return out
 
 
@@ -202,6 +208,7 @@ func _show_entry(id: String) -> void:
 	_row = id
 	_shown = _targets[id][0] if _targets.has(id) else ""
 	_flavor = ""
+	_flavor_label.visible = false
 	for child in _card_slot.get_children():
 		child.queue_free()
 	_card = null
@@ -223,8 +230,8 @@ func _show_entry(id: String) -> void:
 	build_button.disabled = reason != ""
 	build_button.tooltip_text = reason
 	_flavor = e.def_details(_shown).get("flavor", "")
-	if _flavor != "":
-		_add_line(_flavor, &"Flavor")
+	_flavor_label.text = _flavor
+	_flavor_label.visible = _flavor != ""
 	if reason != "":
 		_add_line(reason, &"Refusal")
 		return
@@ -247,7 +254,7 @@ func _add_line(text: String, look: StringName) -> void:
 	var label := Label.new()
 	label.text = text
 	label.theme_type_variation = look
-	if look in [&"Refusal", &"Flavor"]:  # a reason or a flavor may be long; the preview's lines stay whole
+	if look == &"Refusal":  # a reason may be long; the preview's lines stay whole
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size.x = LEDGER_DETAIL_WIDTH
 	_lines.add_child(label)
