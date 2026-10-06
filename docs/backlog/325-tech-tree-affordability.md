@@ -55,7 +55,7 @@ one they can't, so they can see what to research without comparing each number t
 
 ## Manual check
 - [ ] `godot --path . -- --civ sumer --seed 5`, press T at the start (low insight): the dear era-1 techs' tiles are
-  muted, any you can pay for read normally; the muted ones are but not mistaken for a locked tile, in both night and day mode.
+  muted, any you can pay for read normally; muted tiles stay unlike locked ones (the grey well), in night and day mode.
 - [ ] Gain insight (end a turn), reopen: the tile turns normal.
 
 ## Log
