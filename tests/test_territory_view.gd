@@ -16,6 +16,12 @@ extends "res://tests/lib/test_case.gd"
 
 
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
+const TIERS := [
+	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
+	{"id": "village", "name": "Village", "pop": 4, "slots": 1},
+	{"id": "town", "name": "Town", "pop": 8, "slots": 2},
+	{"id": "metropolis", "name": "Metropolis", "pop": 13, "slots": 3},
+]
 
 
 ## The uids of territory uid's group (engine order: the territory, then its city and buildings).
@@ -115,6 +121,32 @@ func test_without_population_there_is_no_pop_stat() -> void:
 		var home := home_uid(Game.engine)
 		eq(view.stats_text(), "▢ %d   ⛨ %d" % [Game.engine.free_slots(home), Game.engine.defense(home)],
 			"free slots and defence (123, 161)"))
+
+
+func test_the_view_shows_the_tier_and_follows_pop() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var home := home_uid(e)
+		set_home_pop(e, 5)
+		e.changed.emit()
+		open_details(main, home)
+		await wait_frames()
+		var view: Object = main.territory_view
+		eq(view.tier_text(), "Village: a Town at 8 pop", "the tier beside the pop meter (346)")
+		set_home_pop(e, 8)
+		e.changed.emit()
+		await wait_frames()
+		eq(view.tier_text(), "Town: a Metropolis at 13 pop", "it follows pop without reopening"), \
+		{"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0, "tiers": TIERS}})
+
+
+func test_without_tiers_the_view_shows_no_tier() -> void:
+	await with_territories_main(func(main: Node):
+		open_details(main, home_uid(Game.engine))
+		await wait_frames()
+		var view: Object = main.territory_view
+		eq(view.tier_text(), "", "no tier line (346)"), \
+		{"farm": 10}, POP)
 
 
 # --- AC3: back ---
