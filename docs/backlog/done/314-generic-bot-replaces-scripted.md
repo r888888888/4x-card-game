@@ -2,7 +2,7 @@
 id: 314
 title: The generic bot replaces ScriptedBot; strategies generic, wide and tall
 type: feature
-status: review
+status: done
 branch: feat/314-generic-bot-replaces-scripted
 ---
 
