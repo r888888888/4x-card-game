@@ -1611,3 +1611,12 @@ func test_every_tech_has_flavor_and_a_quote_and_every_event_flavor() -> void:
 			check(def.flavor != "", "%s has flavor" % def.id)
 		if def.type == CardDef.TECH:
 			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+
+
+## Backlog 353: flavor reads in one glance: a line is at most 150 characters, a civilization's paragraph at most 200
+## (the style guide's §18 aims for ~120 and ~170).
+func test_flavor_lines_are_short() -> void:
+	for def: CardDef in load_real().cards.values():
+		var limit := 200 if def.type == CardDef.CIVILIZATION else 150
+		check(def.flavor.length() <= limit,
+			"%s's flavor is %d characters (at most %d)" % [def.id, def.flavor.length(), limit])
