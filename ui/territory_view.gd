@@ -5,7 +5,7 @@ extends VBoxContainer
 ## its name (its city name over its land's, 248) and info, its stats, pop meter and settlement tier (346), a row of its
 ## actions (Grow, 227; then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units
 ## (160); its card stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
-## stays empty while a game is on, 103), and grows out of the territory's card when it opens (104). A drop anywhere on
+## stays empty while a game is on, 103), and wipes out of the territory's card when it opens (104, 350). A drop anywhere on
 ## it targets its territory. The board places the view's cards through refresh; navigated asks the board to refresh
 ## after it opens or closes.
 
@@ -134,7 +134,7 @@ func is_open() -> bool:
 	return Navigator.is_shown(self)
 
 
-## Shows territory t in place of the Realm, growing out of its card.
+## Shows territory t in place of the Realm, wiping out of its card (350).
 func open(t: int) -> void:
 	uid = t
 	var card: CardView = _board.views.get(t)

@@ -496,7 +496,7 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 | **Pulse** | A lamp switching on | brightness of a lamp; a 1–2 px ring | none | `ease.lamp` (fast on, slow decay) | Silent, unless the lamp reports news; then that news's tone, at lamp-on. Lamps go out silently. |
 
 Scale is **not** a primitive. Nothing scales on hover. Scale is allowed only for a lamp "on" bloom (ring 1.0→1.4,
-fading) and for the Navigator's existing "grow out of the card" transition, which should become a wipe (§11).
+fading); the Navigator's old "grow out of the card" transition is now a wipe (§10.2, 350).
 Likewise, no sound exists without a primitive under it: if nothing moves or lights, nothing is heard.
 
 ### 9.3 Easing curves
@@ -1583,7 +1583,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Motion tokens | `ui/anim.gd` (`Anim`): durations and sharpness | Add the duration and travel tokens; set `HOVER_SCALE`/`DRAG_SCALE` 1.0, `HOVER_LIFT` 4, `MAX_TILT` 3°; replace `LAND_SQUASH` with a 60 ms snap; `PULSE_SCALE` → lamp pulse. |
 | Easing | `TRANS_BACK` in `card_motion.gd`, `ui_kit.gd`, `territory_view.gd` | `TRANS_QUART`/`EASE_OUT` (machined), `TRANS_EXPO`/`EASE_OUT` (snap). `ease.latch`/`settle` via `PropertyTweener.set_custom_interpolator` with a cubic-bezier helper in `Anim`. |
 | Counters | `TopBar` stats + `UIKit.float_token` (126) | An `OdometerLabel` control (a clip `Control` with one digit strip per column) and a `DeltaTag`; tokens stop flying. |
-| Navigation | `Navigator` grows a screen out of its card (104) | Swap the scale tween for a clip-rect wipe from the card's rect (`clip_contents` on a wrapper whose size/position tween). |
+| Navigation | `Navigator` wipes a screen out of its card (104, 350) | Done in 350: a clip-rect wipe (the screen's children masked by `clip_children`), closing on a snapshot; the band-colour flash in the title bar not yet. |
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
 | Toasts | `ui/toasts.gd` (116) | Done in 250: flags out of the game's rail (on the right, so they slide leftward); rail lamps and the count badge not yet. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |

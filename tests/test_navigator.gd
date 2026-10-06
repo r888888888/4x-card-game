@@ -4,8 +4,9 @@ extends "res://tests/lib/test_case.gd"
 ## In detail (from docs/testing.md, 331): `Navigator` (103) on plain Controls: push hides the screen below, back and
 ## Esc return to it (never past the root), focus given and given back, `set_root` / `clear`, one `changed` per step;
 ## the title, new game and settings screens on `main.nav`; 104: titles, `ScreenHeader`, and an animated navigator's
-## transitions (grow from a rect, fade, Reduce motion, back reverses with the screen below live at once, a new step
-## finishes the running one)
+## transitions (fade, Reduce motion, back reverses with the screen below live at once, a new step finishes the running
+## one); 350: a push from a rect wipes out of it unscaled (`wipe_rect`, `wipe_outline`) and back shrinks a snapshot into
+## it (`leaving_shot`)
 
 const NAVIGATOR_PATH := "res://ui/navigator.gd"
 
@@ -294,22 +295,91 @@ func test_the_header_names_the_screen_below_and_the_path() -> void:
 	free_screens()
 
 
-func test_push_from_a_rect_grows_the_screen_out_of_it() -> void:
+# --- 350: a push from a rect wipes ---
+
+const FROM := Rect2(100, 120, 200, 160)
+const CONTENT := Rect2(0, 0, 1000, 600)  # B's shown children: the empty room under them is no content
+
+
+## sized_screens with a Body child on B covering CONTENT (its button sits inside it).
+func content_screens() -> Dictionary:
+	var s := sized_screens()
+	var body := Control.new()
+	body.name = "Body"
+	body.position = CONTENT.position
+	body.size = CONTENT.size
+	s.B.add_child(body)
+	return s
+
+
+func test_push_from_a_rect_wipes_the_screen_out_of_it_unscaled() -> void:
 	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
-		var s := sized_screens()
+		var s := content_screens()
 		nav.set_root(s.A)
-		var from := Rect2(100, 120, 200, 160)
-		nav.push(s.B, null, "B", from)
+		nav.push(s.B, null, "B", FROM)
 		check(s.B.visible, "shown at once")
-		check(s.B.scale.x < 0.5 and s.B.scale.y < 0.5, "starts small: %s" % s.B.scale)
-		var top_left: Vector2 = s.B.get_global_transform() * Vector2.ZERO
-		check(top_left.distance_to(from.position) < 2.0, "over the rect: %s vs %s" % [top_left, from.position])
-		await wait_screen_transition()
-		eq(s.B.scale, Vector2.ONE, "full size")
-		eq(s.B.modulate.a, 1.0, "opaque")
+		eq(s.B.scale, Vector2.ONE, "never scaled")
+		eq(nav.wipe_rect(s.B), FROM, "what it shows starts at the rect")
+		var outline: Control = nav.wipe_outline(s.B)
+		check(outline != null and outline.visible, "an outline on the wipe's edge")
+		if outline != null:
+			eq(outline.get_global_rect(), FROM, "tracing the rect")
+		await wait_seconds(Anim.WIPE_IN / 2.0)
+		var mid: Rect2 = nav.wipe_rect(s.B)
+		check(mid.encloses(FROM) and CONTENT.encloses(mid) and mid != FROM and mid != CONTENT, "growing: %s" % mid)
+		eq(s.B.scale, Vector2.ONE, "still unscaled")
+		await wait_seconds(Anim.WIPE_IN / 2.0 + Anim.WIPE_LINGER / 2.0)
+		eq(nav.wipe_rect(s.B), CONTENT, "landed on its content, not the whole screen")
+		check(nav.wipe_outline(s.B) != null, "the outline lingers a moment")
+		await wait_seconds(Anim.WIPE_LINGER + 0.1)
+		eq(nav.wipe_rect(s.B), Rect2(), "then nothing is clipped")
+		eq(nav.wipe_outline(s.B), null, "and the outline is gone")
+		free_screens())
+
+
+func test_back_after_a_wipe_shrinks_a_snapshot_into_the_rect() -> void:
+	await with_reduce_motion(false, func():
+		var nav := animated_nav()
+		if nav == null:
+			return
+		var s := content_screens()
+		nav.set_root(s.A)
+		nav.push(s.B, null, "B", FROM)
+		await wait_seconds(Anim.WIPE_IN + Anim.WIPE_LINGER + 0.1)
+		check(nav.back(), "back")
+		check(s.A.visible and nav.top() == s.A, "the screen below shows at once")
+		check(not s.B.visible, "the screen itself is hidden at once")
+		var shot: Control = nav.leaving_shot()
+		check(shot != null, "a snapshot plays the way out")
+		if shot == null:
+			free_screens()
+			return
+		eq(shot.get_global_rect(), CONTENT, "over the screen's content")
+		eq(shot.mouse_filter, Control.MOUSE_FILTER_IGNORE, "taking no clicks")
+		await wait_seconds(Anim.WIPE_OUT / 2.0)
+		var mid := shot.get_global_rect()
+		check(CONTENT.encloses(mid) and mid.encloses(FROM) and mid != CONTENT, "shrinking into the rect: %s" % mid)
+		await wait_seconds(Anim.WIPE_OUT / 2.0 + 0.1)
+		eq(nav.leaving_shot(), null, "then gone")
+		check(not is_instance_valid(shot), "and freed")
+		free_screens())
+
+
+func test_a_new_step_finishes_a_running_wipe_first() -> void:
+	await with_reduce_motion(false, func():
+		var nav := animated_nav()
+		if nav == null:
+			return
+		var s := content_screens()
+		nav.set_root(s.A)
+		nav.push(s.B, null, "B", FROM)
+		nav.push(s.C, null, "C")
+		eq(nav.wipe_rect(s.B), Rect2(), "B's wipe was finished: nothing clipped")
+		eq(nav.wipe_outline(s.B), null, "no outline left")
+		check(not s.B.visible, "B hidden under C")
 		free_screens())
 
 
@@ -337,6 +407,7 @@ func test_with_reduce_motion_a_push_only_fades() -> void:
 		nav.set_root(s.A)
 		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
 		eq(s.B.scale, Vector2.ONE, "no growing")
+		eq(nav.wipe_rect(s.B), Rect2(), "no wipe (350)")
 		check(s.B.modulate.a < 0.5, "a fade")
 		await wait_screen_transition()
 		eq(s.B.modulate.a, 1.0, "opaque")
@@ -350,7 +421,7 @@ func test_back_reverses_the_push_and_the_screen_below_takes_input_at_once() -> v
 			return
 		var s := sized_screens()
 		nav.set_root(s.A)
-		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
+		nav.push(s.B, null, "B")  # a fade: a wipe's way out is a snapshot (350)
 		await wait_screen_transition()
 		check(nav.back(), "back")
 		check(s.A.visible, "the screen below is shown at once")

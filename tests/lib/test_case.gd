@@ -651,7 +651,8 @@ func visible_controls(root: Node) -> Array[Control]:
 
 ## Waits until a navigated screen's transition (Anim.SCREEN_TIME, 104) is over. Use with await.
 func wait_screen_transition() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.SCREEN_TIME + 0.15).timeout
+	var longest := maxf(Anim.SCREEN_TIME, maxf(Anim.WIPE_IN + Anim.WIPE_LINGER, Anim.WIPE_OUT))  # 350
+	await (Engine.get_main_loop() as SceneTree).create_timer(longest + 0.15).timeout
 
 
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
