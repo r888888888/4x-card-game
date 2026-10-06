@@ -223,8 +223,7 @@ func _show_entry(id: String) -> void:
 	build_button.disabled = reason != ""
 	build_button.tooltip_text = reason
 	_flavor = e.def_details(_shown).get("flavor", "")
-	if _flavor != "":
-		_add_line(_flavor, &"Flavor")
+	_card.show_flavor(_flavor)  # inside the card, at its foot (358)
 	if reason != "":
 		_add_line(reason, &"Refusal")
 		return

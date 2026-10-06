@@ -2,7 +2,7 @@
 id: 358
 title: Print the Build modal's flavor inside its card
 type: feature
-status: red-review
+status: in-progress
 branch: feat/358-flavor-on-build-card
 ---
 
