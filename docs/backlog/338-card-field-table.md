@@ -2,7 +2,7 @@
 id: 338
 title: DataLoader reads per-type fields from one table; 'requires' only applies to buildings
 type: feature
-status: draft
+status: red-review
 branch: feat/338-card-field-table
 ---
 
@@ -44,6 +44,15 @@ building branch, each with its own minimum and default. New card fields are a re
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_data_loader::test_requires_on_a_card_that_is_not_a_building_is_ignored_with_a_warning`, `test_requires_loads_on_a_building_and_is_an_error_on_a_unit` |
+| AC2 | `test_data_loader::test_every_int_field_on_every_type_has_its_minimum_and_default`; era's message rows in `test_tech_eras::test_era_field_validation` and `test_event_eras::test_event_era_validation` (edited, see Log) |
+| AC3 | `test_data_loader::test_parse_card_is_short_and_the_loader_under_550_lines` |
+| AC4 | The whole suite; `test_real_data_loads_without_warnings`; `scripts/sim.sh 20` before/after (Log) |
+| AC5 | Manual: the skill file and the Files table row |
 
 ## Log
 - 2026-10-06: specced from the project review; the user chose to split the loader work into two items.
+
+- 2026-10-06: the user chose the standard message for era too ("'era' must be an integer >= 1, not 0", was "era: must
+  be an integer >= 1"), so three approved rows' fragments change (test_tech_eras "era 0", test_event_eras "era 0" and
+  "era not an integer"): the one exception to AC4's "unedited".
