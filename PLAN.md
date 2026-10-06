@@ -647,8 +647,9 @@ Your people have one government at a time; its bonuses apply while it rules.
   best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
 - Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the turn,
   resources, effect score, era, Anarchy and raid state, and each card in the tableau, the always-on zones, the active
-  events and any zone a `gain_per_tag` counts in), cleared when the turn changes, so a position forecast once this turn
-  isn't forecast again; the games played are the same. `forecast_cache` turns it off; `check_forecasts` compares every
+  events and any zone a `gain_per_tag` counts in), keyed by turn and dropping turns already past; a turn's rollouts
+  share it, so a position forecast once isn't forecast again (about half of all lookups) and the games played are the
+  same. `forecast_cache` turns it off; `check_forecasts` compares every
   hit with a fresh forecast and counts mismatches (`forecast_lookups`, `forecasts_computed`, `forecast_checks`,
   `forecast_mismatches`, reset by `play()`).
 - Bot rollouts (314, porting 159): `GenericBot.rollout(engine, strategy, government_id, revolt)` plays a sample fork
