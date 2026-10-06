@@ -9,6 +9,7 @@ extends "res://tests/lib/test_case.gd"
 ## frame (221): the top bar on a full-bleed ruled `Strip`, the open `Rail` with a hairline, the government as a
 ## `CapsLink`, the Realm heading level with the rail's rule
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const TOLERANCE := 1.0
 
 var _old_window_size := Vector2i.ZERO
@@ -161,10 +162,11 @@ func test_the_top_bar_sits_on_a_full_bleed_strip_ruled_underneath() -> void:
 		var r := strip.get_global_rect()
 		eq(r.position, Vector2.ZERO, "%s: from the window's top-left corner" % size)
 		check(absf(r.size.x - viewport.x) <= TOLERANCE, "%s: the window's full width: %d of %d" % [size, r.size.x, viewport.x])
-		var box := strip.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box != null, "%s: a flat box" % size)
+		var grain := Looks.mismatch(strip.get_theme_stylebox("panel"), Looks.grain(Palette.RAISED))
+		check(grain == "", "%s: grain under RAISED (341): %s" % [size, grain])
+		var box := Looks.frame_of(strip.get_theme_stylebox("panel"))
+		check(box != null, "%s: a framed box" % size)
 		if box != null:
-			eq(box.bg_color, Palette.RAISED, "%s: RAISED" % size)
 			eq(box.border_color, Palette.TEXT, "%s: a TEXT rule" % size)
 			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [0, 0, 0, 3],
 				"%s: 3 px along the bottom only" % size)
@@ -177,11 +179,11 @@ func test_the_rail_is_open_on_the_board_with_a_hairline_to_its_left() -> void:
 		var bar: Control = main.sidebar
 		var viewport: Vector2 = main.get_viewport_rect().size
 		eq(bar.theme_type_variation, &"Rail", "%s: the Rail look" % size)
-		var box := bar.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box != null, "%s: a flat box" % size)
+		var grain := Looks.mismatch(bar.get_theme_stylebox("panel"), Looks.grain(Palette.BACKGROUND))
+		check(grain == "", "%s: the board's grain, so a sliding screen passes under it (224, 341): %s" % [size, grain])
+		var box := Looks.frame_of(bar.get_theme_stylebox("panel"))
+		check(box != null, "%s: a framed box" % size)
 		if box != null:
-			check(not box.draw_center or box.bg_color.a == 0.0 or box.bg_color == Palette.BACKGROUND,
-				"%s: no fill of its own, or the board's (224: a sliding screen passes under it)" % size)
 			eq(box.border_color, Palette.HAIRLINE, "%s: a HAIRLINE rule" % size)
 			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [1, 0, 0, 0],
 				"%s: 1 px on the left only" % size)

@@ -206,6 +206,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sunrise_art.gd` | The title screen's art (214) |
 | `tests/test_supply.gd` | The card supply (032, 057) |
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
+| `tests/test_surfaces.gd` | Walnut grain, paper and soft shadows on the board, bar, rail and modals (341; UI) |
 | `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era arriving (027) |
 | `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
