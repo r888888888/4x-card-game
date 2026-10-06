@@ -4,6 +4,14 @@ extends "res://tests/lib/test_case.gd"
 ## since 260). Hooks on main.territory_view (a Control in the play area): is_open(), uid, back_button, card_uids()
 ## (the cards shown, the territory first), stats_text() and target_at(global point) (the territory a drop there
 ## would target, or -1).
+## In detail (from docs/testing.md, 331): The territory view in the real `main.tscn` (101) on a TEST_CARDS game: a
+## click on a territory opens it in place of the Realm (a city's click still shows details), stats, Back / Esc / new
+## game / game over close it, drops and double-clicks play onto it, targeting wins over opening, ↑/↓ and Enter from the
+## hand; uses `main.territory_view` (`is_open`, `uid`, `card_uids`, `stats_text`, `target_at`, `back_button`); 105: the
+## territory as the framed box (its name and info as the title, stats above the cards, its card left in the Realm),
+## free-slot outlines after the cards, no pop-in or fly-off when opening or closing (`frame`, `title_text()`,
+## `outlines()`, `free_slot_count()`); 200, 327: a left click anywhere outside the box (the hand, top bar, sidebar, a
+## card or button there) only closes it, a drag from the hand still targets it, a modal over it takes the click first
 
 
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}

@@ -4,6 +4,9 @@ extends "res://tests/lib/anarchy_case.gd"
 ## (PENDING_GOVERNMENT, choose_government), and unrest drops to at most half its limit. The Government overlay, the
 ## identity modal's deck line, and the bot's choice. Fixtures: tests/lib/anarchy_case.gd plus Charter (an action that
 ## creates Kings in the discard); TEST_GOVS' Kingdom (cost 2 food, play +1 wealth), Band (2 actions), Court (3).
+## In detail (from docs/testing.md, 331): The government deck (154): created and fallen governments in `governments`,
+## the government choice owed when Anarchy ends (`PENDING_GOVERNMENT`, `choose_government` and its error), unrest
+## halved, the Government overlay, the identity modal's deck tabs (231), the bot's choice; uses `anarchy_case.gd`
 
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action",
 	"effects": [{"op": "create", "card": "kings", "zone": "discard"}]}

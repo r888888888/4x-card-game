@@ -1,6 +1,11 @@
 extends "res://tests/lib/test_case.gd"
 ## The shape of ui/ (backlog 052): each UI component lives in its own script, and no UI script
 ## reads engine state that an engine query covers. Checks the source files; behavior is covered by the UI smoke test.
+## In detail (from docs/testing.md, 331): The shape of `ui/`: one script per component (and `CardView`'s content and
+## motion in `CardFace` and `CardMotion`), no engine internals (`state`, the RNG, the log lines; 175: the config) read
+## in `ui/`; 175: one `ActionButton`, `main.gd` asks `hand_input_error()`; 176: `BoardViews` and `BoardLayout`,
+## `main.gd` within 500 lines, `zone_of` in the UI; 183: no `const` holds a Palette colour; 316: the card handlers in
+## `CardActions`, not `main.gd`, which has room under 450 lines
 
 const MAIN_PATH := "res://ui/main.gd"
 const CARD_ACTIONS_PATH := "res://ui/card_actions.gd"  # 316: the card handlers, out of main

@@ -3,6 +3,10 @@ extends "res://tests/lib/raid_case.gd"
 ## weakest settled territory it may hit, and strikes two event phases later (257): repelled when the target's defence is
 ## at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
 ## there lost). `raid_target`, `raid_forecast` and `raid_resolved`.
+## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
+## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),
+## repelled and pillaged, `raid_forecast`, the final turn and forks, the strike's line (`raid_outcome_text`, logged not
+## noticed, 271)
 
 
 # --- AC1: loading ---

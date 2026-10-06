@@ -2,6 +2,9 @@ extends "res://tests/lib/test_case.gd"
 ## GameEngine's split (backlog 249): the read queries live in EngineQueries, between EngineCore and GameEngine; the
 ## actions, their *_error queries and the internals stay in GameEngine. The territory queries moved down into
 ## TerritoryQueries, between EngineCore and EngineQueries (281).
+## In detail (from docs/testing.md, 331): GameEngine's split (249, 281): `EngineCore` → `TerritoryQueries` (the
+## territory queries) → `EngineQueries` (the other read queries) → `GameEngine` (fork, actions and their error queries,
+## internals); every method still on a `GameEngine`; each file under 500 lines
 
 const QUERIES_PATH := "res://engine/engine_queries.gd"
 const ENGINE_PATH := "res://engine/game_engine.gd"

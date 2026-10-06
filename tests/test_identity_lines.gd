@@ -4,6 +4,11 @@ extends "res://tests/lib/test_case.gd"
 ## Hooks: main.sidebar's name_button and government_button (202; the top-bar button until then) open the modal;
 ## main.identity_modal shows both: shown() is the
 ## names shown, top to bottom ([] while closed), body_text() the modal's text without markup, close_button, close().
+## In detail (from docs/testing.md, 331): The civilization and government in the real `main.tscn` (088, 115, 119): one
+## top-bar button naming both, the modal showing the civilization then the government (rules, then flavor; the quote
+## only in details since 231; "No bonus."), Esc / Close, above the log drawer, one or neither, a new government, no
+## empty lines; End turn on screen at 1920×1080; uses `identity_button()` and `identity_modal` (`shown()`,
+## `body_text()`, `close_button`)
 
 
 ## The real card id of the civilization or government in play, or "".

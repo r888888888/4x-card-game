@@ -2,6 +2,10 @@ extends "res://tests/lib/test_case.gd"
 ## The log drawer in the real main scene (backlog 115): closed at the start, L or the top bar's Log button opens
 ## it from the right edge over the board, L / Esc / the button / a click outside close it, lines append open or
 ## closed, a new game clears it. Hook: main.log_drawer (is_open(), text(): the log as plain text).
+## In detail (from docs/testing.md, 331): The log drawer in the real `main.tscn` (115): closed at the start, L / the
+## Log button open it sliding in from the right (fading with Reduce motion), L / Esc / the button / a click outside
+## close it, lines append while closed, a new game clears it; the deck and discard counts in it, cards dealt from the
+## Log button and its pulse (121); uses `main.log_drawer` (`is_open()`, `text()`)
 
 
 ## The first visible button under root whose text starts with prefix, or null.

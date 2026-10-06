@@ -3,6 +3,9 @@ extends "res://tests/lib/test_case.gd"
 ## modal's action button, a screen's first control) has the focus but draws no ring; Tab or Shift+Tab switches to
 ## keyboard mode, where it draws; a mouse click switches back. "Draws the ring" is Godot's shown focus state:
 ## has_focus(true), which is false while the focus is hidden.
+## In detail (from docs/testing.md, 331): The focus ring waits for Tab (230): code focus (modals, Navigator screens) is
+## hidden in pointer mode, Tab/Shift+Tab switch to keyboard mode where it rings, a click switches back; every `ui/`
+## focus goes through `FocusRing`; a card focus the code places (the explore choice) follows the mode too (234)
 
 
 ## Opens main on seed 1 with the menu open (Restart focused by the menu). Use with await.

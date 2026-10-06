@@ -1,5 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## SettingsStore: player settings saved to a ConfigFile (reduce motion).
+## In detail (from docs/testing.md, 331): `SettingsStore`: saving and loading `reduce_motion`, `day_mode` (183) and
+## `civilization`, `Settings.set_day_mode`, `civilization_in` fallback, bad or missing files
 
 const PATH := "user://test_settings.cfg"
 

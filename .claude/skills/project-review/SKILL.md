@@ -38,7 +38,7 @@ concrete fix. Check:
 - **Data model.** Card types and resources as constants (CLAUDE.md rule); per-type fields in
   `DataLoader.TYPE_FIELDS`; effect parameters validated against a whitelist (e.g. which zones `create` may
   target); dependency cycles between classes.
-- **Drift.** PLAN.md layout and API text versus the tree; `docs/testing.md` tables versus `tests/`; tracked junk;
+- **Drift.** PLAN.md layout and API text versus the tree; `docs/testing.md`'s helper table versus `tests/lib/` (`test_docs` checks the file index); tracked junk;
   local permissions that contradict CLAUDE.md.
 
 ## 2. Tests

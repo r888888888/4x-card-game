@@ -3,6 +3,12 @@ extends "res://tests/lib/anarchy_case.gd"
 ## does the best, stopping when nothing beats doing nothing. Fixture games of a few turns (tests/lib/anarchy_case.gd:
 ## unrest on, home pop 6), with Lone ruling (1 action, unrest limit 5), no supply and no research deck. The bot is loaded
 ## untyped so this file parses before it exists.
+## In detail (from docs/testing.md, 331): The generic bot (313) on fixture games (Lone: 1 action, unrest limit 5; no
+## supply or research): Temple over Shrine with turns left, Shrine on the last turn, nothing when nothing helps, a draw
+## first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest
+## limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing
+## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
+## past it
 
 var BOT: Variant = load("res://sim/generic_bot.gd")
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}

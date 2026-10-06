@@ -2,6 +2,9 @@ extends "res://tests/lib/test_case.gd"
 ## The screen header and transitions in the real main scene (backlog 104): the new game and settings screens and
 ## the territory view each carry a ScreenHeader (`header`: back_button, title_text()), and a territory's view
 ## grows out of its card. with_reduce_motion (test_case.gd) sets Reduce motion for the transition test.
+## In detail (from docs/testing.md, 331): The header on the new game and settings screens and the territory view in the
+## real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view growing out of
+## its card and shrinking back; uses `with_reduce_motion` and `wait_screen_transition`
 
 
 ## Runs body(main) on the real main scene with Game.engine swapped for a TEST_CARDS game on seed 1.

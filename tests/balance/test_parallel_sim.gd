@@ -3,6 +3,12 @@ extends "res://tests/lib/test_case.gd"
 ## and merges them into the same report; a game with no result fails the run. Since 291 the workers claim games from
 ## one queue (play_claimed), and a parallel run given a lock_path fails fast while another run holds it.
 ## Real data with short games.
+## In detail (from docs/testing.md, 331): The sim on several processes (152): `run_files`' `procs` gives the same
+## report on 1, 2 and 4 processes (all strategies, or one), never more processes than games, in-process by default; a
+## game with no result named (`play_claimed` / `read_workers`); no results directory left behind; 291: workers claim
+## games from one queue (`play_claimed`, `games_per_proc`), the lock (`lock_path`: fail fast while held, a dead run's
+## taken over, released after, ignored in-process); 318: a worker's progress file, a stalled worker stopped and named,
+## a run within the stall limit finishes
 
 const CARDS := "res://data/cards.json"
 const CONFIG := "res://data/config.json"

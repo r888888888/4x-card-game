@@ -1,6 +1,11 @@
 extends "res://tests/lib/test_case.gd"
 ## The navigation stack (backlog 103): Navigator on plain Controls, then the real main scene's start screens on it.
 ## Navigator is loaded by path (held as Object) so this file parses before ui/navigator.gd exists.
+## In detail (from docs/testing.md, 331): `Navigator` (103) on plain Controls: push hides the screen below, back and
+## Esc return to it (never past the root), focus given and given back, `set_root` / `clear`, one `changed` per step;
+## the title, new game and settings screens on `main.nav`; 104: titles, `ScreenHeader`, and an animated navigator's
+## transitions (grow from a rect, fade, Reduce motion, back reverses with the screen below live at once, a new step
+## finishes the running one)
 
 const NAVIGATOR_PATH := "res://ui/navigator.gd"
 
