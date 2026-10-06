@@ -1123,6 +1123,8 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.milestone.defeat` | The same mechanism; a falling cadence, dignified | 2000–2600 ms (+ tail) | event (+10) | as era, ending on B minor → D | as base | as era | once |
 | `ui.milestone.repelled` | A raid repelled (271): a gate barred (a heavy latch), then marimba rising D4–A4–D5 | 600–900 ms | event (+10) | marimba, as `ui.milestone.city` | as base | with the raid modal | rare (once per raid) |
 | `ui.milestone.pillaged` | A raid pillaged (271): a relay drop and a low drum, then muted piano falling B3 → F♯3–B3–D4 (B minor); dignified, never an alarm | 700–1000 ms | event (+10) | muted piano, as `ui.milestone.defeat` | as base | with the raid modal | rare (once per raid) |
+| `ui.milestone.build` | A building, or an upgrade, built (357): a relay, a muted-piano pickup A3–E4, then a D major chord ringing out over a low thump and a low D | ≈ 1.7 s | event (+9; under every other milestone) | muted piano D4–F♯4–A4–D5, a vibraphone A5, a soft triangle D3 under the chord | room 1.2 s, 22% | the ceremony's ring, 160 ms after the press | occasional (the most frequent event) |
+| `ui.milestone.recruit` | A unit recruited (357): two low drums, a drum with a snare, then a short horn call A3 → D4 | ≈ 0.8 s | event (+9) | low toms, a snare, a soft square horn | as base | as `ui.milestone.build` | occasional |
 
 ---
 

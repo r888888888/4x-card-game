@@ -38,6 +38,16 @@ const SCREEN_TIME := 0.22  # a navigated screen fading in and out (104)
 const WIPE_IN := 0.30  # a screen wiping out of its card (350, guide §10.2)
 const WIPE_OUT := 0.24  # and back into it
 const WIPE_LINGER := 0.12  # the wipe's outline staying on after it lands
+# The build ceremony (357, guide §9.4, §10.8): it starts once the Build sheet has closed, BUILD_DELAY after the press.
+const BUILD_DELAY := 0.16
+const BUILD_RING_TIME := 0.45  # the lamp ring blooming off the card's edge and fading
+const BUILD_RAYS_TIME := 0.4  # the rays drawing out (first half), then fading
+const BUILD_TAG_DELAY := 0.12  # the tag lands this long after the ring
+const BUILD_TAG_IN := 0.09
+const BUILD_TAG_HOLD := 0.9
+const BUILD_TAG_OUT := 0.14
+const BUILD_CEREMONY_TIME := BUILD_DELAY + BUILD_TAG_DELAY + BUILD_TAG_IN + BUILD_TAG_HOLD + BUILD_TAG_OUT
+const BUILD_CALM_HOLD := 1.5  # with Reduce motion it shows whole at once and holds this long (§9.5)
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
 

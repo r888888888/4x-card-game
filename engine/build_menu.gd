@@ -42,7 +42,7 @@ static func build(e: GameEngine, card_id: String, territory_uid: int) -> bool:
 	var target := territory_uid if territory_uid != -1 else targets(e, card_id)[0]
 	if e.config.build_menu[card_id].once:
 		e.state.built_once.append(card_id)
-	CardPlay.put_into_play(e, e._make_card(card_id), target, "Built")
+	CardPlay.put_into_play(e, e._make_card(card_id), target, "Built", true)
 	return true
 
 

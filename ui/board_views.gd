@@ -9,6 +9,7 @@ extends RefCounted
 var views := {}  # uid -> CardView
 var outcome := {}  # the last card_played outcome: the next sync flies the played card to where it was played
 var quiet := false  # syncing after a navigation: cards appear and go at once, with no pop or flight (105)
+var _built: Array[int] = []  # cards the engine just built (357): the next sync gives them the build ceremony
 
 var _main: MainScreen
 var _top_bar: TopBar
@@ -68,6 +69,21 @@ func sync(e: GameEngine) -> void:
 		else:
 			views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	outcome = {}
+	for uid in _built:  # an upgrade has no view of its own: its ceremony plays on its base, without a tag (357)
+		var base := e.upgrade_base(uid)
+		if base != -1 and views.has(base):
+			_ceremony(views[base], e.zone("tableau").find(base).def, "")
+	_built.clear()
+
+
+## The engine built uid (its built signal, 357): the next sync gives it the build ceremony.
+func note_built(uid: int) -> void:
+	_built.append(uid)
+
+
+## The build ceremony on view, a card of def, with a tag reading tag ("" for none).
+func _ceremony(view: CardView, def: CardDef, tag: String) -> void:
+	BuildCeremony.play(view, _main.fx, CardView.type_color(def.type), tag)
 
 
 ## Makes sure card has a view resting in (or flying to) a slot at index in container.
@@ -100,6 +116,9 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 			view.deal(slot, m.fx, _top_bar.pile_point(), delay)
 		elif quiet:
 			view.attach(slot)
+		elif _built.has(card.uid):  # in its slot at once, under the build ceremony (357)
+			view.attach(slot)
+			_ceremony(view, card.def, BuildCeremony.RECRUITED if card.def.type == CardDef.UNIT else BuildCeremony.BUILT)
 		else:
 			view.pop_in(slot)
 		return in_hand

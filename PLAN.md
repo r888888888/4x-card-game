@@ -483,6 +483,10 @@ Monument until then): every terrain has a building, every era opens a new one.
   `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
   Build… and the slots are disabled with `build_menu_error()` while nothing can be built and hidden with an empty menu.
   A recruited unit's Disband reads "Dismiss it" (`disbands_to_discard`).
+- The build ceremony (357, guide §10.8): `build` emits `built(uid)` before `changed`. The new card rests in its slot at
+  once under a `BuildCeremony` (`ui/build_ceremony.gd`, on the fx layer): a lamp ring and 12 rays in its plane colour,
+  then a BUILT / RECRUITED tag; an upgrade's ring and rays play on its base, no tag. `EventSounds` plays
+  `ui.milestone.build` (`.recruit` for a unit) with it, below every other event.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the
