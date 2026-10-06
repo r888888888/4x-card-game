@@ -51,8 +51,8 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 				slots[c.territory_uid] = room - 1
 			if left <= 0 or room <= 0:
 				continue
-		if c.def.tier != "" and tier_of.get(c.territory_uid, -1) < Fallback.need(e, c.def):  # fallen back, keeping its worker and slot (301)
-			continue
+		if c.def.tier != "" and tier_of.get(c.territory_uid, -1) < Fallback.need(e, c.def):
+			continue  # fallen back below its tier, keeping its worker and slot (301)
 		if c.def.project and Sites.unfinished(e, c):  # takes its worker and slot, but works once completed (286)
 			continue
 		out.append(c)

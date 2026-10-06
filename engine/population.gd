@@ -164,12 +164,19 @@ static func _notice_tier(e: GameEngine, territory: CardInstance, before: int, fa
 	var fallen_now := Fallback.fallen_on(e, territory.uid)
 	if now > before:
 		var back := fallen.filter(func(uid): return not fallen_now.has(uid))
-		var works := "" if back.is_empty() else " %s %s again." % [Fallback.names(e, back), "works" if back.size() == 1 else "work"]
+		var works := _cards_line(e, back, "works again", "work again")
 		e._notice("%s grows into %s.%s" % [territory.shown_name(), tier_text, works])
 	else:
 		var fell := fallen_now.filter(func(uid): return not fallen.has(uid))
-		var falls := "" if fell.is_empty() else " %s %s back." % [Fallback.names(e, fell), "falls" if fell.size() == 1 else "fall"]
+		var falls := _cards_line(e, fell, "falls back", "fall back")
 		e._notice("%s shrinks to %s.%s" % [territory.shown_name(), tier_text, falls], GameEngine.NOTICE_CAUTION)
+
+
+## " Sanctum falls back." / " Sanctum and Bell fall back." for the tableau cards uids (301); "" for none.
+static func _cards_line(e: GameEngine, uids: Array, one: String, many: String) -> String:
+	if uids.is_empty():
+		return ""
+	return " %s %s." % [Fallback.names(e, uids), one if uids.size() == 1 else many]
 
 
 ## name with "a" or "an" before it ("a Village", "an Outpost").
