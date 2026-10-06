@@ -44,3 +44,7 @@ take hours. After this, the bot computes each distinct forecast once, and plays 
 
 ## Log
 - 2026-10-05: specced from the generic-bot spike, with 309–314. Follows 314.
+- 2026-10-05: worst case found while investigating 318: seed 1 `wide` greece takes 13½ minutes alone (804 s in a
+  turn-by-turn probe, 631 s of it on the every-4th-turn revolt rollouts, 772 s after turn 50; the tableau reaches 179
+  cards). Per position valued, `legal_actions` grows from 0.5 to 17 ms and `value` from 0.6 to 3.7 ms between turns 10
+  and 90. Use it as the slow benchmark beside the 10-seed mean: forecast caching alone may not bring it down.
