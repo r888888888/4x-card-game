@@ -2,7 +2,7 @@
 id: 358
 title: Print the Build modal's flavor inside its card
 type: feature
-status: in-progress
+status: review
 branch: feat/358-flavor-on-build-card
 ---
 
@@ -15,17 +15,17 @@ under it is only the preview or the refusal.
 Builds on 356 (its branch is cut from `feat/356-build-modal-polish`); merge after 356.
 
 ## Acceptance criteria
-- [ ] AC1: Given the Build modal with the Kiln (`"flavor": "Mud brick, baked hard."`) selected, then its flavor shows
+- [x] AC1: Given the Build modal with the Kiln (`"flavor": "Mud brick, baked hard."`) selected, then its flavor shows
   once, inside the card on the sheet, in the `Flavor` look, wrapping inside the card, below its rules and at the
   card's foot (the label's bottom within `Tokens.SPACE_3`, the card's margin, of the card's bottom); and nothing in
   the `Flavor` look shows outside the card.
-- [ ] AC2: Given the Lore Hall (147 characters of flavor and three upkeep lines) selected, then the card stays
+- [x] AC2: Given the Lore Hall (147 characters of flavor and three upkeep lines) selected, then the card stays
   `CardView.HAND_SIZE` (264 × 320) and its flavor lies wholly inside it.
-- [ ] AC3: Given the modal open, when another row is selected (by click or Up/Down), then the card shows the newly
+- [x] AC3: Given the modal open, when another row is selected (by click or Up/Down), then the card shows the newly
   selected entry's flavor only (354's AC2 holds).
-- [ ] AC4: Given a refused row with flavor, then its flavor shows inside its card and its reason under the card (354's
+- [x] AC4: Given a refused row with flavor, then its flavor shows inside its card and its reason under the card (354's
   AC3 holds); given a row with no flavor (a unit), then the card shows no flavor line and no empty one (354's AC5).
-- [ ] AC5: Given the Kiln built and on the tableau, then its card there shows no flavor (only the Build modal's card
+- [x] AC5: Given the Kiln built and on the tableau, then its card there shows no flavor (only the Build modal's card
   prints it).
 
 ## Out of scope
@@ -47,5 +47,17 @@ Builds on 356 (its branch is cut from `feat/356-build-modal-polish`); merge afte
 | AC5 | `test_build_modal::test_a_built_cards_flavor_stays_off_the_tableau` (passes today: a guard) |
 
 ## Manual check
+1. `godot --path .`, start a game, open the home territory, Build… (B).
+2. A building with flavor (most of them): the flavor sits at the card's foot, italic and dim, inside its border;
+   nothing sits between the card and "If built on …" but the 24 px gap.
+3. Up/Down through the list: the card's flavor changes with the selection; a unit's card has none.
+4. A refused row: its flavor on the card, its reason under it.
+5. The building with the longest flavor and the most rules: still inside the card. Day mode too.
 
 ## Log
+- 2026-10-06: Built from 356's branch (both change the Build modal); merge after 356. 357 was taken by another
+  session's build ceremony, hence 358.
+- The fixture's longest case (147 characters of flavor, three upkeep lines and housing) fills the 320 px card with no
+  room to spare: flavor longer than §18's 150 characters, or a card with more rules, would overflow it. Worth a content
+  check if building rules grow.
+- Tests 2276 → 2278.

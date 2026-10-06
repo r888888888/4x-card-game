@@ -6,8 +6,9 @@ extends "res://tests/lib/tech_case.gd"
 ## row_dimmed(id), shown_card(), preview_lines(), refusal_text(), build_button, cancel_button; on TerritoryView:
 ## build_button, slot_button(i). 343: laid out as a ledger sheet (Modal.LEDGER_*), the card hand size and still,
 ## long rows wrapping in the list column; hook card_view(). 347: a row refused for want of a worker, and such a hand
-## card, carry build_error_detail / play_error_detail as their tooltip. 354: the selected entry's flavor under its card,
-## in the Flavor look; hook flavor_text().
+## card, carry build_error_detail / play_error_detail as their tooltip. 354: the selected entry's flavor in the Flavor
+## look, inside its card at its foot since 358; hook flavor_text(). 356: the list glides; room above headings and under
+## the card.
 
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
