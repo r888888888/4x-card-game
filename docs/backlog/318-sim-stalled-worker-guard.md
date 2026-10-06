@@ -2,7 +2,7 @@
 id: 318
 title: A parallel sim run names a stalled or dead worker and fails, instead of waiting silently for up to an hour
 type: bug
-status: in-progress
+status: review
 branch: fix/318-sim-stalled-worker-guard
 ---
 
@@ -40,27 +40,27 @@ branch: fix/318-sim-stalled-worker-guard
   unattended cloud runs (317).
 
 ## Acceptance criteria
-- [ ] AC1: Given a worker playing a game, when each turn of that game ends (and when it claims the game), then its
+- [x] AC1: Given a worker playing a game, when each turn of that game ends (and when it claims the game), then its
   progress file in the run directory holds the job index, the turn reached and the time it was written. When the game
   ends, its result is written as today and the progress file says no game is in play. A run on 1 process writes none.
-- [ ] AC2 (stalled): Given a parallel run whose stall limit is 0 seconds (options `stall_sec`), when it runs 2 games of
+- [x] AC2 (stalled): Given a parallel run whose stall limit is 0 seconds (options `stall_sec`), when it runs 2 games of
   2 turns on 2 workers, then it returns code 1 within a few seconds; its lines name, for each worker it stopped, the
   worker, the game (`game 1 of 2`), its seed, strategy and civ, the last turn reached and `stalled: no turn finished in
   0 s`; no worker process of the run is still running afterwards, and its results directory is removed.
-- [ ] AC3 (dead): Given a run directory where worker 3 claimed job 10 of 18 (seed 1, `wide`, `greece`), its progress
+- [x] AC3 (dead): Given a run directory where worker 3 claimed job 10 of 18 (seed 1, `wide`, `greece`), its progress
   file says turn 57, it wrote no result and its process isn't running, when the parent reads the workers, then the
   run's errors include `worker 3 stopped during game 11 of 18 (seed 1, wide, greece) at turn 57` instead of only
   `game 11 of 18 has no result`. A game that was never claimed still reports `has no result`.
-- [ ] AC4 (slow but alive): Given a parallel run with the default stall limit (10 minutes, `SIM_STALL_SEC` overrides it,
+- [x] AC4 (slow but alive): Given a parallel run with the default stall limit (10 minutes, `SIM_STALL_SEC` overrides it,
   a whole number of seconds of at least 1; anything else is ignored), when its games take longer in all than 60
   minutes but every worker finishes a turn more often than the limit, then nothing kills it: there is no whole-run
   deadline (`CHILD_TIMEOUT_MSEC` goes). Tested on the parsing function and on a run of 2 short games with a 600 s
   limit returning code 0; the hour-long case is a Manual check.
-- [ ] AC5 (progress): Given a parallel run still waiting on workers, when 60 s pass since its last progress line (or
+- [x] AC5 (progress): Given a parallel run still waiting on workers, when 60 s pass since its last progress line (or
   since it started), then it prints one line to stderr: games done of the total, and each running game with its seed,
   strategy, civ, turn and minutes so far, e.g. `sim: 17 of 18 games done; playing seed 1 wide greece (turn 63, 9 min)`.
   The line's text comes from a function tested on fixed progress data; the 60-second cadence is a Manual check.
-- [ ] AC6: The existing parallel tests (`tests/balance/test_parallel_sim.gd`) stay green unchanged: same reports on 1,
+- [x] AC6: The existing parallel tests (`tests/balance/test_parallel_sim.gd`) stay green unchanged: same reports on 1,
   2 and 4 processes, one game per claim, the lock.
 
 ## Test plan
@@ -92,7 +92,12 @@ branch: fix/318-sim-stalled-worker-guard
   AC5's text are pure and can use hand-written files in a temp directory.
 
 ## Root cause
-<!-- Filled in by Claude after the fix: what was wrong and why the tests didn't catch it. -->
+The parent's only guard was a 60-minute deadline for the whole run (`CHILD_TIMEOUT_MSEC`), so it couldn't tell a slow
+game from a stuck one: it waited silently on a 13-minute game, would have killed a healthy run longer than an hour, and
+when it did kill, its error had no worker, seed, strategy, civ or turn because workers wrote nothing until a game
+ended. The parallel tests only played games of a few turns, so neither the deadline nor the silence ever showed. Now
+each worker writes its progress every turn (`write_progress`), the parent stops one that finishes no turn within
+`stall_sec` (`_watch`) and names what it was playing (`read_workers`), and prints a progress line each minute.
 
 ## Manual check
 - [ ] `SIM_CACHE=0 scripts/sim.sh 1`: progress lines appear about once a minute while wide/greece runs alone, and the
@@ -103,3 +108,11 @@ branch: fix/318-sim-stalled-worker-guard
 ## Log
 - 2026-10-05: specced from a cold parallel run that looked hung (see Reproduction). Investigation in the Reproduction
   section; the slowness itself goes to 315.
+- 2026-10-05: built. New `SimStats` API: `play_game` (was `_play_one`, with an `on_turn` callback), `write_progress`,
+  `read_progress`, `progress_path`, `stall_sec_from_env`, `progress_line`; `read_workers` takes `stalled`;
+  `CHILD_TIMEOUT_MSEC` is replaced by `DEFAULT_STALL_SEC` (600) and `PROGRESS_EVERY_SEC` (60). `sim/run.gd` reads
+  `SIM_STALL_SEC`. `OS.kill` reaps the child itself: polling `is_process_running` on the pid afterwards errors.
+- Follow-ups: `sim/sim_stats.gd` is now ~720 lines; its parallel-run code (claims, progress, lock, watch) could move
+  to its own class as `SimCompare` did (the 700-line rule covers only `engine/` and `ui/`). `tests/balance/
+  test_sim_reports.gd` plays full-length real-data games in one process and takes 20+ minutes of the balance suite
+  (offered as a separate task).
