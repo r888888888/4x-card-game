@@ -16,7 +16,7 @@
     },
     {
       "id": "farm", "name": "Farm", "type": "building",
-      "flavor": "Where the river runs close, the first farmers sow wheat and barley in the soft earth and wait for the harvest.",
+      "flavor": "Where the river runs close, the first farmers sow wheat and barley, and learn what all farming teaches: how to wait.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
@@ -25,7 +25,7 @@
     },
     {
       "id": "palisade", "name": "Palisade", "type": "building",
-      "flavor": "A ring of sharpened logs and a ditch around the village: enough to turn back raiders on a moonless night.",
+      "flavor": "Sharpened logs and a ditch around the village. On moonless nights it is enough, because everyone agrees that it is.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["wall"], "defense": 2
     },
     {
@@ -35,79 +35,79 @@
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
-      "flavor": "Families load their oxcarts with seed grain and walk until they find good water and land no one else has claimed.",
+      "flavor": "Families load their oxcarts with seed grain and walk until they find good water and land no one has claimed. Then they stay.",
       "cost": { "food": 5 }, "cost_per_territory": { "food": 1 }, "vp": 0, "tags": ["expand"],
       "effects": [ { "op": "settle", "card": "city" }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "scout", "name": "Scout", "type": "action",
-      "flavor": "A runner goes ahead of the tribe, reading the land for rivers, passes and the smoke of other people's fires.",
+      "flavor": "A runner goes ahead of the tribe, reading the land for rivers, passes, and the thin smoke of other people's fires.",
       "cost": {}, "vp": 0, "tags": ["explore"],
       "effects": [ { "op": "explore" } ]
     },
     {
       "id": "barter", "name": "Barter", "type": "action",
-      "flavor": "Obsidian for salt, wool for copper: long before coins, a good bargain at the river ford left both sides richer.",
+      "flavor": "Obsidian for salt, wool for copper. At the river ford both sides walk away richer, each certain the other was a fool.",
       "cost": { "food": 2 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2 }, { "op": "gain_actions", "amount": 1 } ]
     },
     {
       "id": "hunt", "name": "Hunt", "type": "action",
-      "flavor": "In the woods and on the open grass, hunters follow the herds as their ancestors did and bring meat home to the hearth.",
+      "flavor": "The herds move through the long grass like weather, and the hunters follow, as their parents did, and bring meat home at dusk.",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
     },
     {
       "id": "bread_and_beer", "name": "Bread and Beer", "type": "action",
-      "flavor": "Grain feeds the city twice, baked into loaves and brewed into beer, the daily ration of every worker in Sumer and Egypt.",
+      "flavor": "Grain feeds the city twice, as bread and as beer: the daily ration of every worker in Sumer and Egypt.",
       "cost": { "food": 2 }, "vp": 0, "tags": [],
       "effects": [ { "op": "grow", "amount": 1, "where": "best" } ]
     },
     {
       "id": "land_grants", "name": "Land Grants", "type": "action",
-      "flavor": "The ruler parcels out fields to loyal soldiers, and new villages take root along the boundary stones.",
+      "flavor": "The ruler parcels out fields to loyal soldiers, and villages take root along the boundary stones, full of old campaigns.",
       "cost": { "food": 5 }, "vp": 0, "tags": [],
       "effects": [ { "op": "grow", "amount": 1, "where": "each", "count": 3 } ]
     },
     {
       "id": "feast", "name": "Feast", "type": "action",
-      "flavor": "Oxen are roasted, jars are opened, and for one night the whole city eats together and forgets its grievances.",
+      "flavor": "Oxen are roasted, jars are opened, and for one night the whole city eats together. In the morning the grievances are still there.",
       "cost": { "food": 3 }, "vp": 0, "tags": ["order"],
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 2 } ]
     },
     {
       "id": "storyteller", "name": "Storyteller", "type": "action",
-      "flavor": "Around the fire the old tales of floods, heroes and gods are told again, and each generation learns what the last one knew.",
+      "flavor": "By the fire the old tales are told again, the floods, the heroes, the gods, and each generation learns what the last one feared.",
       "cost": { "food": 1 }, "vp": 0, "tags": [],
       "effects": [ { "op": "draw", "amount": 2 } ]
     },
     {
       "id": "research", "name": "Research", "type": "action",
-      "flavor": "Priests watch the stars, scribes copy tables, and slowly the temple archives fill with what has been learned.",
+      "flavor": "Priests watch the stars and scribes copy tables, and slowly the temple archives fill with everything anyone has learned.",
       "cost": {}, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ]
     },
     {
       "id": "forage", "name": "Forage", "type": "event",
-      "flavor": "When the stores run thin, the young go out at dawn and come back with roots, nuts and the odd unlucky hare.",
+      "flavor": "When the stores run thin, the young go out at dawn and come back with roots, nuts, and the odd unlucky hare.",
       "tags": [],
       "effects": [ { "op": "gain", "resource": "food", "amount": 2 } ]
     },
     {
       "id": "caravan", "name": "Caravan", "type": "action",
-      "flavor": "Strings of donkeys, later camels, link city to city across desert and steppe, carrying tin, cloth and news.",
+      "flavor": "Strings of donkeys, later camels, sway from city to city across desert and steppe, carrying tin, cloth and news.",
       "cost": { "food": 1 }, "vp": 0, "tags": ["trade"],
       "effects": [ { "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 } ]
     },
     {
       "id": "temple", "name": "Temple", "type": "building",
-      "flavor": "A house for the god on a raised platform, where priests keep the offerings and the people bring their hopes.",
+      "flavor": "A house for the god on a raised platform. The priests keep the offerings, and the people climb the steps with their hopes.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "great_temple", "name": "Great Temple", "type": "building",
-      "flavor": "Its courts hold workshops, granaries and scribes as well as the god, and half the city's land answers to it.",
+      "flavor": "Its courts hold workshops, granaries, scribes and a god, and half the city's land answers to it, though seldom to the god.",
       "cost": { "wealth": 9 }, "vp": 0, "tags": ["culture"], "upgrade_of": "temple", "tier": "metropolis",
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" },
@@ -116,62 +116,62 @@
     },
     {
       "id": "monument", "name": "Monument", "type": "building",
-      "flavor": "A carved stone stands in the square, telling every passer-by of the ruler's victories and the gods' favour.",
+      "flavor": "A carved stone in the square tells every passer-by of the ruler's victories. Within a generation, no one stops to read it.",
       "cost": { "wealth": 6 }, "vp": 3, "tags": ["culture"], "modifiers": { "unrest_limit": 2 },
       "effects": []
     },
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
-      "flavor": "At Giza, gangs of workers hauled two million blocks into place so that a king might climb to the stars.",
+      "flavor": "At Giza, work gangs called Friends of Khufu haul two million blocks into place, so that one king might climb to the stars.",
       "cost": { "wealth": 40 }, "project": true, "vp": 10, "tags": ["wonder", "culture"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "oracle_of_delphi", "name": "Oracle of Delphi", "type": "building",
-      "flavor": "At Delphi the Pythia sat above the sacred spring and spoke for Apollo, and kings travelled far to hear her riddles.",
+      "flavor": "Above the sacred spring at Delphi the Pythia speaks for Apollo, and kings travel far to hear answers that fit any question.",
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "walls_of_uruk", "name": "Walls of Uruk", "type": "building",
-      "flavor": "Gilgamesh, the poem says, raised the walls of Uruk: kiln-fired brick, nine kilometres around, and a boast to every age.",
+      "flavor": "Gilgamesh, the poem says, raised Uruk's walls, nine kilometres of kiln-fired brick: a boast against death, still partly standing.",
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
       "effects": []
     },
     {
       "id": "great_ziggurat", "name": "Great Ziggurat", "type": "building",
-      "flavor": "At Ur, a stepped mountain of brick lifted the moon god's shrine high above the plain and the flood.",
+      "flavor": "At Ur a stepped mountain of brick lifts the moon god's shrine high above the plain and the flood, a little nearer the moon.",
       "cost": { "wealth": 42 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "hanging_gardens", "name": "Hanging Gardens", "type": "building",
-      "flavor": "In Babylon, it was said, terraces of trees and flowers climbed toward the sky, watered by machines that lifted the river.",
+      "flavor": "In Babylon, they say, terraces of trees climb toward the sky, watered by machines that lift the river. No one you ask has seen them.",
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
       "modifiers": { "housing": 1 },
       "effects": []
     },
     {
       "id": "great_library", "name": "Great Library", "type": "building",
-      "flavor": "Alexandria's library set out to hold every book in the world, and copied the scrolls off every ship that docked.",
+      "flavor": "Alexandria's library means to hold every book in the world. It copies the scrolls off every ship that docks, and keeps the originals.",
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "great_harbor_of_tyre", "name": "Great Harbor of Tyre", "type": "building",
-      "flavor": "Tyre's island city kept two harbours, one facing Sidon and one facing Egypt, and the trade of the whole sea came to them.",
+      "flavor": "Tyre's island keeps two harbours, one facing Sidon and one facing Egypt, and the trade of the whole sea comes to them by name.",
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
       "id": "royal_road", "name": "Royal Road", "type": "building",
-      "flavor": "From Sardis to Susa ran the Persian king's road, with a fresh horse and rider waiting at every station.",
+      "flavor": "From Sardis to Susa runs the Persian king's road, and at every station a fresh horse and rider wait for news they may not read.",
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1, "administers": 1 },
       "effects": []
     },
     {
       "id": "pasture", "name": "Pasture", "type": "building",
-      "flavor": "On the open grass, herders follow their flocks of sheep and goats, and count their wealth in heads.",
+      "flavor": "The herders follow their flocks across the open grass and count them every dusk, and the counting is a kind of prayer.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
@@ -179,13 +179,13 @@
     },
     {
       "id": "harbor", "name": "Harbor", "type": "building",
-      "flavor": "Stone quays and a breakwater turn a sheltered bay into a port where merchant ships can ride out the storms.",
+      "flavor": "Stone quays and a breakwater make a port of the bay, where ships ride out the storms and sailors learn the word for home.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "upgrade_of": "fishing_huts", "requires": ["coastal"],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "hunters_camp", "name": "Hunters' Camp", "type": "building",
-      "flavor": "At the forest edge, hunters dry meat and stretch hides by the fire between their days among the trees.",
+      "flavor": "At the forest edge the hunters dry meat and stretch hides by the fire, and do not speak of what they saw among the trees.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -194,13 +194,13 @@
     },
     {
       "id": "timber_camp", "name": "Timber Camp", "type": "building",
-      "flavor": "Axes ring through the forest, and logs float downriver to become roof beams, ships and charcoal.",
+      "flavor": "Axes ring all day in the forest, and the logs go downriver to become beams, hulls and charcoal: a city, and then its smoke.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "upgrade_of": "hunters_camp",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "irrigation_canals", "name": "Irrigation Canals", "type": "building",
-      "flavor": "Canals and dykes carry the river out across the fields, and the work of keeping them clear never ends.",
+      "flavor": "The canals carry the river across the fields; the silt fills them in; every spring the digging begins again, as it always will.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm", "housing": 1,
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -209,13 +209,13 @@
     },
     {
       "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
-      "flavor": "Oxen pull the plough where once men broke the soil by hand, and one family can feed many more.",
+      "flavor": "Oxen lean into the yoke where people once broke the soil by hand, and one family now feeds many it will never meet.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
-      "flavor": "Spindles whirl and looms clack as wool and flax become cloth, the first great trade of the cities.",
+      "flavor": "Spindles whirl and looms clack as wool and flax become cloth, the first great trade of the cities, made one thread at a time.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -224,13 +224,13 @@
     },
     {
       "id": "brewery", "name": "Brewery", "type": "building",
-      "flavor": "Barley mash ferments in great jars; beer is food, wage and offering, and the brewers are never idle.",
+      "flavor": "Barley mash foams in the great jars. Beer is food, wage and offering, and the brewers are never idle, nor ever quite sober.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "famine_guard": 1,
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "olive_groves", "name": "Olive Groves", "type": "building",
-      "flavor": "Olive trees take a lifetime to bear, then give oil for lamps, food and trade for centuries.",
+      "flavor": "Whoever plants an olive tree plants it for strangers: it takes a lifetime to bear, then gives oil for centuries.",
       "cost": { "wealth": 4 }, "vp": 1, "tags": ["trade"], "requires": ["hills"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -239,31 +239,31 @@
     },
     {
       "id": "house_of_life", "name": "House of Life", "type": "building",
-      "flavor": "In Egypt's House of Life, scribes copied sacred texts and physicians learned their healing spells and cures.",
+      "flavor": "In Egypt's House of Life, scribes copy sacred texts by lamplight, and physicians learn their spells and cures side by side.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "temple", "tier": "town", "housing": 1,
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "qanat_channel", "name": "Qanat", "type": "building",
-      "flavor": "Diggers tunnel into the hillside to tap the hidden water, and lead it for miles underground to the desert fields.",
+      "flavor": "Diggers tunnel into the hillside after water no one has seen, and lead it for miles through the dark to the desert fields.",
       "cost": { "food": 1, "wealth": 4 }, "vp": 0, "tags": ["farm"], "requires": ["desert", "hills"], "housing": 2,
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
-      "flavor": "Reed huts on the shore, nets drying in the sun, and boats out at dawn to bring back the catch.",
+      "flavor": "Reed huts on the shore, nets drying in the sun, and the boats out at dawn on water the colour of pewter.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "shrine", "name": "Shrine", "type": "building",
-      "flavor": "A small altar on a high place, where travellers leave a token and the mountain spirit is honoured.",
+      "flavor": "A small altar on a high place. Travellers leave a bead or a crust for the mountain spirit, just in case, and do not look back.",
       "cost": { "wealth": 3 }, "vp": 1, "tags": ["culture"], "modifiers": { "unrest_limit": 1 },
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "mountain" } ]
     },
     {
       "id": "mine", "name": "Mine", "type": "building",
-      "flavor": "Miners follow the green-streaked rock into the hillside with fire and antler picks, for copper, tin and silver.",
+      "flavor": "Miners follow the green-streaked rock into the hill with fire and antler picks, for copper, tin and silver, and come out blinking.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -274,7 +274,7 @@
     },
     {
       "id": "shaft_mine", "name": "Shaft Mine", "type": "building",
-      "flavor": "Shafts and galleries reach deep under the hill, lit by oil lamps, where the richest ore still lies.",
+      "flavor": "Shafts and galleries reach deep under the hill, where the lamps burn low and the richest ore is always a little deeper.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mine",
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -283,7 +283,7 @@
     },
     {
       "id": "forge", "name": "Forge", "type": "building",
-      "flavor": "In the smith's forge, bellows roar and ore becomes bronze and iron: blades, ploughshares and the power to hold a land.",
+      "flavor": "In the forge the bellows roar and ore becomes bronze, then iron: blades, ploughshares, and the power to keep a land.",
       "cost": { "wealth": 5 }, "vp": 2, "tags": [],
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep", "keyword": "copper" },
@@ -292,12 +292,12 @@
     },
     {
       "id": "barracks", "name": "Barracks", "type": "building",
-      "flavor": "Here the young are drilled to march in step and hold the line, until the city has an army of its own.",
+      "flavor": "The young are drilled to march in step and hold the line, until one morning the city finds it has an army, and wonders what for.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "training": 1
     },
     {
       "id": "market", "name": "Market", "type": "building",
-      "flavor": "Under awnings in the square, farmers, potters and traders haggle from first light, and the city's news travels with them.",
+      "flavor": "In the market square everything is for sale, and everything has been sold before: the pots, the figs, the news.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"],
       "effects": [
         { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep" },
@@ -306,18 +306,22 @@
     },
     {
       "id": "granary", "name": "Granary", "type": "building",
-      "flavor": "The surplus of good years is sealed in clay bins, and a wise ruler keeps them full against the lean ones.",
+      "flavor": "The surplus of the good years is sealed in clay bins against the lean ones. The lean years always come; only the date is unknown.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 1, "famine_guard": 1,
       "effects": []
     },
     {
       "id": "chiefdom", "name": "Chiefdom", "type": "government", "actions": 2, "unrest_limit": 8, "tolerates": "village", "administers": 4,
       "vp": 0, "tags": [],
+      "flavor": "The chief is whoever the elders can agree on, which means the one with the most cattle and the longest memory for favours.",
+      "quote": { "text": "They choose their kings by birth, their generals for merit.", "by": "Tacitus, Germania" },
       "effects": []
     },
     {
       "id": "kingship", "name": "Kingship", "type": "government", "actions": 3, "unrest_limit": 10, "tolerates": "town", "administers": 7,
       "vp": 0, "tags": [],
+      "flavor": "One ruler, one palace, one treasury, one throne, and a line of heirs, each of whom has quietly measured the throne.",
+      "quote": { "text": "When kingship was lowered from heaven, the kingship was in Eridu.", "by": "Sumerian King List" },
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
       ]
@@ -325,6 +329,8 @@
     {
       "id": "theocracy", "name": "Theocracy", "type": "government", "actions": 3, "unrest_limit": 13, "tolerates": "town", "administers": 6,
       "vp": 0, "tags": [],
+      "flavor": "In the god's city the priests keep the land, the granaries and the calendar, and every law is a prayer someone has answered.",
+      "quote": { "text": "Except the Lord build the house, they labour in vain that build it.", "by": "Psalm 127:1" },
       "modifiers": { "insight_per_gain": -1 },
       "effects": [
         { "op": "score", "amount": 1, "trigger": "upkeep" }
@@ -333,7 +339,7 @@
     {
       "id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": { "actions": 1 },
       "tags": [],
-      "flavor": "When the old order breaks, no one rules and everyone does: granaries are thrown open, debts are burned, and whoever shouts loudest in the square decides each day anew.",
+      "flavor": "When the old order breaks, no one rules and everyone does. Debts are burned, granaries thrown open, and each day the loudest voice decides.",
       "quote": { "text": "Things fall apart; the centre cannot hold; mere anarchy is loosed upon the world.", "by": "W. B. Yeats, The Second Coming" },
       "text": "1 action each turn. Only order cards can be played; nothing can be grown, bought or researched. Each turn it eats 20% of stored food and wealth. Lasts up to 4 turns, fewer the calmer the people; calming shortens it. From its second turn, buy order for 2, 6, 12 or 20 wealth with 1–4 turns left. When it ends, choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
       "effects": []
@@ -341,7 +347,7 @@
     {
       "id": "egypt", "name": "Egypt", "type": "civilization", "city_names": ["Thebes", "Memphis", "Heliopolis", "Abydos", "Hermopolis", "Elephantine", "Avaris", "Bubastis", "Sais", "Tanis", "Akhetaten", "Edfu"], "home": "desert_floodplain", "discounts": [{ "tag": "wonder", "wealth": 10 }],
       "vp": 0, "tags": [],
-      "flavor": "Along a thin green ribbon of the Nile, the yearly flood laid down black silt, and pharaohs raised monuments meant to outlast time.",
+      "flavor": "Along the thin green ribbon of the Nile the yearly flood lays down its black silt, and the pharaohs raise monuments meant to outlast time. Some of them do.",
       "quote": { "text": "Egypt is the gift of the river.", "by": "Herodotus, Histories" },
       "effects": [
         { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["fresh_water", "flood_plain"], "trigger": "upkeep" }
@@ -351,7 +357,7 @@
       "id": "sumer", "name": "Sumer", "type": "civilization", "city_names": ["Uruk", "Ur", "Eridu", "Lagash", "Kish", "Nippur", "Umma", "Larsa", "Shuruppak", "Isin", "Girsu", "Adab"], "home": "delta_marsh", "modifiers": { "housing": 1 },
       "discounts": [ { "tag": "farm", "wealth": 1 } ],
       "vp": 0, "tags": [],
-      "flavor": "Between the Tigris and the Euphrates, the Sumerians dug canals, built the first cities, and pressed wedges into clay to keep their accounts: the first writing.",
+      "flavor": "Between the Tigris and the Euphrates the Sumerians dig canals, build the first cities, and press wedges into clay to keep their accounts. Writing begins as a receipt.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
       "effects": [
         { "op": "create", "card": "farm", "zone": "tableau", "trigger": "start" },
@@ -362,7 +368,7 @@
     {
       "id": "phoenicia", "name": "Phoenicia", "type": "civilization", "city_names": ["Tyre", "Sidon", "Byblos", "Berytus", "Arwad", "Ugarit", "Carthage", "Gades", "Utica", "Motya", "Kition", "Tripolis"], "home": "cedar_coast", "discounts": [{ "supply": true, "wealth": 1 }],
       "vp": 0, "tags": [],
-      "flavor": "From Tyre and Sidon, Phoenician ships carried cedar, glass and purple dye across the Mediterranean, and their alphabet travelled with them.",
+      "flavor": "From Tyre and Sidon, Phoenician ships carry cedar, glass and purple dye across the Mediterranean, and leave their alphabet in every port they touch.",
       "quote": { "text": "A merchant of the people for many isles.", "by": "Ezekiel 27:3, of Tyre" },
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 3, "trigger": "start" },
@@ -372,7 +378,7 @@
     {
       "id": "babylon", "name": "Babylon", "type": "civilization", "city_names": ["Babylon", "Borsippa", "Sippar", "Kutha", "Dilbat", "Marad", "Kish", "Nippur", "Larsa", "Isin", "Eshnunna", "Uruk"], "home": "alluvial_plain", "discounts": [{ "type": "tech", "insight": 1 }],
       "vp": 0, "tags": [],
-      "flavor": "Hammurabi carved his laws in stone for all to see, and Babylon's astronomers kept the most careful records of the heavens in the ancient world.",
+      "flavor": "Hammurabi carves his laws in stone for all to see, and Babylon's astronomers keep the most careful records of the heavens in the ancient world, night after night.",
       "quote": { "text": "That the strong should not harm the weak.", "by": "Code of Hammurabi" },
       "effects": [
         { "op": "create", "card": "kingship", "zone": "discard", "trigger": "start" }
@@ -381,7 +387,7 @@
     {
       "id": "greece", "name": "Greece", "type": "civilization", "city_names": ["Athens", "Sparta", "Corinth", "Thebes", "Argos", "Delphi", "Miletus", "Syracuse", "Megara", "Ephesus", "Rhodes", "Chalcis"], "home": "coastal_hills", "modifiers": { "hand_size": 1 },
       "vp": 0, "tags": [],
-      "flavor": "Rival city-states argued in the agora, staged tragedies in open theatres, and asked questions philosophers still ask.",
+      "flavor": "Rival city-states argue in the agora, stage tragedies in open theatres, and ask the questions philosophers are still asking, with no better answers.",
       "quote": { "text": "The unexamined life is not worth living.", "by": "Socrates, in Plato's Apology" },
       "effects": [
         { "op": "create", "card": "storyteller", "zone": "discard", "trigger": "start" }
@@ -390,7 +396,7 @@
     {
       "id": "persia", "name": "Persia", "type": "civilization", "city_names": ["Pasargadae", "Persepolis", "Susa", "Ecbatana", "Anshan", "Sardis", "Bactra", "Rhagae", "Hecatompylos", "Maracanda", "Arbela", "Gabae"], "home": "highland_valley",
       "vp": 0, "tags": [],
-      "flavor": "Cyrus and Darius ruled the largest empire yet seen, held together by satraps, respect for local customs, and a road of relay stations from Sardis to Susa.",
+      "flavor": "Cyrus and Darius rule the largest empire yet seen, held together by satraps, respect for local custom, and a road of relay stations from Sardis to Susa.",
       "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "Herodotus, Histories" },
       "effects": [
         { "op": "create", "card": "caravan", "zone": "discard", "trigger": "start" },
@@ -399,7 +405,7 @@
     },
     {
       "id": "harvest_festival", "name": "Harvest Festival", "type": "event",
-      "flavor": "The last sheaf is cut and carried home with songs; for one night the whole village eats as if winter will never come.",
+      "flavor": "The last sheaf comes home with songs, and for one night the village eats as if winter were only a story.",
       "tags": [],
       "effects": [
         { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" },
@@ -408,55 +414,55 @@
     },
     {
       "id": "scribal_school", "name": "Scribal School", "type": "building",
-      "flavor": "In the tablet house, boys copy signs into clay for years until they can keep the temple's accounts.",
+      "flavor": "In the tablet house, children copy signs into wet clay for years, until they can keep the temple's accounts in their sleep.",
       "cost": { "wealth": 5 }, "vp": 1, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "library", "name": "Library", "type": "building",
-      "flavor": "Shelves of clay tablets and papyrus rolls hold law, medicine and the stars, for anyone who can read them.",
+      "flavor": "Tablets and rolls of law, medicine and the stars line the shelves, and somewhere among them is an answer no one has asked for.",
       "cost": { "wealth": 6 }, "vp": 0, "tags": [], "upgrade_of": "scribal_school", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "insight", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "stone_circle", "name": "Stone Circle", "type": "building",
-      "flavor": "Great stones raised in a ring mark the sunrise at midsummer, and the seasons can be read in their shadows.",
+      "flavor": "The ring of great stones is a calendar no one can carry: the seasons must come to it, and every midsummer they do.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "mud_brick_houses", "name": "Courtyard Houses", "type": "building",
-      "flavor": "Rooms open onto a shaded inner courtyard, cool in summer, where the family cooks, works and sleeps under the stars.",
+      "flavor": "Rooms open onto a shaded courtyard where the family cooks, quarrels and works, and on summer nights sleeps under the stars.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "housing": 2,
       "effects": []
     },
     {
       "id": "bathhouse", "name": "Bathhouse", "type": "building",
-      "flavor": "Warm pools, cold plunges and gossip: the bathhouse keeps the city clean and its citizens content.",
+      "flavor": "Warm pools, cold plunges and gossip: the bathhouse keeps the city clean, and settles more business than the courthouse.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "requires": ["fresh_water"], "housing": 1,
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "courthouse", "name": "Courthouse", "type": "building",
-      "flavor": "Judges hear disputes by the written law, so that the strong may not simply take from the weak.",
+      "flavor": "Judges hear disputes by the written law, so that the strong may not simply take from the weak, at least not in public.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "modifiers": { "unrest_limit": 1 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "aqueduct", "name": "Aqueduct", "type": "building",
-      "flavor": "Channels of stone carry clean water from the distant hills across valleys on great arches, into the heart of the city.",
+      "flavor": "Stone channels carry clean water from the distant hills across the valleys on great arches: a river on stilts, walking into town.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "tier": "town", "housing": 3,
       "effects": []
     },
     {
       "id": "palace", "name": "Palace", "type": "building",
-      "flavor": "The ruler's household, treasury and court gather under one roof, and from its halls the realm is governed.",
+      "flavor": "The ruler's household, treasury and court gather under one roof, and from its painted halls the realm is governed, mostly in whispers.",
       "cost": { "wealth": 10 }, "vp": 3, "tags": [], "tier": "metropolis", "modifiers": { "actions": 1 },
       "effects": []
     },
     {
       "id": "shipyard", "name": "Shipyard", "type": "building",
-      "flavor": "Shipwrights shape cedar and pine into hulls, and every vessel launched carries the city's reach a little further.",
+      "flavor": "Shipwrights shape cedar and pine into hulls that smell of resin, and every vessel launched carries the city a little further out.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["port"], "requires": ["coastal"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -465,7 +471,7 @@
     },
     {
       "id": "terraced_fields", "name": "Terraced Fields", "type": "building",
-      "flavor": "Stone walls step up the slope, each level holding a strip of soil where no field could lie before.",
+      "flavor": "Stone walls step up the slope, each holding a strip of soil where no field could lie: a staircase built for the harvest.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["hills", "mountain"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
@@ -474,72 +480,72 @@
     },
     {
       "id": "reed_works", "name": "Reed Works", "type": "building",
-      "flavor": "Marsh reeds are cut and bundled for boats, mats, baskets and houses, and the scribe's pen besides.",
+      "flavor": "Marsh reeds are cut and bundled for boats, mats, baskets and houses, and for the scribe's pen, so the swamp writes its own history.",
       "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["marsh"], "housing": 1,
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "cistern", "name": "Cistern", "type": "building",
-      "flavor": "Plastered chambers cut into the rock catch every winter rain and keep it sweet through the long dry summer.",
+      "flavor": "Plastered chambers in the rock catch every winter rain and keep it cool and sweet through the long dry summer, like a secret.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "requires": ["hills", "desert"], "housing": 2,
       "effects": []
     },
     {
       "id": "dye_works", "name": "Dye Works", "type": "building",
-      "flavor": "Thousands of sea snails make a pinch of Tyrian purple, worth more than its weight in silver, and the vats stink for miles.",
+      "flavor": "Thousands of sea snails make one pinch of Tyrian purple, worth more than its weight in silver. The vats stink for miles.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"], "requires": ["coastal"],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "kiln", "name": "Kiln", "type": "building",
-      "flavor": "Potters fire clay into jars, lamps and bricks, and their kilns turn the mud of the riverbank into goods for every house.",
+      "flavor": "Potters fire the riverbank's mud into jars, lamps and bricks, and their kilns glow all night along the water like small sunsets.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [],
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "merchant_quarter", "name": "Merchant Quarter", "type": "building",
-      "flavor": "Warehouses, counting houses and foreign traders crowd one district, where loans are made and fortunes rise and fall.",
+      "flavor": "Warehouses, counting houses and foreign traders fill one district, where fortunes turn and everyone dresses slightly above their means.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "market", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "mint", "name": "Mint", "type": "building",
-      "flavor": "Lydia first struck coins of electrum, stamped with a lion; soon every city wanted its own, in silver and bronze.",
+      "flavor": "Lydia strikes the first coins of electrum, stamped with a lion, and soon every city wants its own, as neighbours always do.",
       "cost": { "wealth": 8 }, "vp": 1, "tags": ["trade"], "upgrade_of": "merchant_quarter", "tier": "metropolis",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "storehouse", "name": "Storehouse", "type": "building",
-      "flavor": "Rows of storerooms hold grain, oil and wine tallied by seal and tablet, a buffer against famine and siege.",
+      "flavor": "Rows of storerooms hold grain, oil and wine, tallied by seal and tablet against famine and siege, and against forgetting.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "upgrade_of": "granary", "tier": "town", "housing": 1,
       "famine_guard": 1, "effects": []
     },
     {
       "id": "city_walls", "name": "City Walls", "type": "building",
-      "flavor": "Stone walls, towers and gates ring the city, and a siege must now be counted in months, not days.",
+      "flavor": "Stone walls, towers and gates ring the city. Inside, a siege is now counted in months; outside, in patience.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["wall"], "upgrade_of": "palisade", "tier": "town", "defense": 2
     },
     {
       "id": "multi_storey_houses", "name": "Multi-storey Houses", "type": "building",
-      "flavor": "As the city fills, houses rise two and three storeys high, with shops below and families crowded above.",
+      "flavor": "As the city fills, houses rise two and three storeys, shops below and families above, and every wall is thin enough to hear through.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": [], "upgrade_of": "mud_brick_houses", "tier": "town", "housing": 2,
       "effects": []
     },
     {
       "id": "textile_works", "name": "Textile Works", "type": "building",
-      "flavor": "Hundreds of workers spin, weave and dye under one master, and bolts of cloth leave by the cartload for distant markets.",
+      "flavor": "Hundreds of workers spin, weave and dye under one master, and the cloth leaves by the cartload for markets they will never see.",
       "cost": { "wealth": 5 }, "vp": 0, "tags": ["trade"], "upgrade_of": "weavers_workshop", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "dockyard", "name": "Dockyard", "type": "building",
-      "flavor": "Slipways, ropewalks and timber stores line the waterfront, and the city builds ships faster than its rivals.",
+      "flavor": "Slipways, ropewalks and timber stores line the waterfront, and ships come off them faster than any rival can launch its own.",
       "cost": { "wealth": 6 }, "vp": 0, "tags": ["port"], "upgrade_of": "harbor", "tier": "town",
       "effects": [ { "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "caravanserai", "name": "Caravan Station", "type": "building",
-      "flavor": "A walled courtyard a day's march apart, where caravans water their camels and merchants trade news by the well.",
+      "flavor": "A walled courtyard a day's march from the last, where camels drink at the well and merchants trade news by lamplight.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"], "requires": ["desert"],
       "effects": [
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
@@ -548,7 +554,7 @@
     },
     {
       "id": "envoys_from_the_hills", "name": "Envoys from the Hills", "type": "event", "tags": [], "effects": [],
-      "flavor": "Hill chieftains arrive with gifts of furs and honey, and they expect gifts in return.",
+      "flavor": "Hill chieftains arrive with furs, honey and great courtesy. Everyone understands that the gifts are a kind of bill.",
       "choices": [
         { "cost": { "wealth": 2 }, "effects": [ { "op": "score", "amount": 1 } ] },
         { "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ] }
@@ -556,7 +562,7 @@
     },
     {
       "id": "plague", "name": "Plague", "type": "event", "tags": [], "era": 2,
-      "flavor": "A fever comes up the river with the boats; the healers burn herbs, and the gravediggers never rest.",
+      "flavor": "A fever comes up the river with the boats. The healers burn herbs, the streets go quiet, and the gravediggers do not rest.",
       "effects": [ { "op": "lose_pop", "amount": 1 }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
@@ -566,37 +572,37 @@
     },
     {
       "id": "drought", "name": "Drought", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
-      "flavor": "No rain since the spring sowing; the plains crack, and the herds walk farther each day to drink.",
+      "flavor": "No rain since the spring sowing. The plains crack, and each day the herds walk farther to drink.",
       "effects": [ { "op": "lose_per_keyword", "resource": "food", "amount": 1, "keywords": ["desert", "grassland"], "trigger": "upkeep" } ]
     },
     {
       "id": "silt_flood", "name": "Silt Flood", "type": "event", "tags": [], "era": 2,
-      "flavor": "The river rises over its banks and leaves behind a gift of black mud, thick and rich.",
+      "flavor": "The river rises over its banks and, going, leaves behind a gift of black mud, thick and rich.",
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 2, "keywords": ["flood_plain"] } ]
     },
     {
       "id": "bumper_harvest", "name": "Bumper Harvest", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
-      "flavor": "The ears hang so heavy the stalks bend, and every barn in the land is full to the rafters.",
+      "flavor": "The ears hang so heavy the stalks bend, and every barn is full to the rafters. Everyone says they knew it would be a good year.",
       "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" } ]
     },
     {
       "id": "busy_harbours", "name": "Busy Harbours", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
-      "flavor": "Sails crowd every bay, and the quays ring with tongues from across the sea.",
+      "flavor": "Sails crowd every bay, and the quays ring with a dozen languages, all of them haggling.",
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
       "id": "visiting_scholar", "name": "Visiting Scholar", "type": "event", "tags": [], "era": 2,
-      "flavor": "A stranger who reads the stars and counts in strange numerals asks only for a roof and a lamp.",
+      "flavor": "A stranger who reads the stars and counts in strange numerals asks only for a roof, a lamp, and no questions.",
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ]
     },
     {
       "id": "labour_shortage", "name": "Labour Shortage", "type": "event", "tags": [], "era": 2,
-      "flavor": "The young men have gone to the mines and the boats, and the fields wait for hands that do not come.",
+      "flavor": "The young have gone to the mines and the boats, and the fields wait for hands that do not come.",
       "modifiers": { "actions": -1 }, "effects": []
     },
     {
       "id": "tax_revolt", "name": "Tax Revolt", "type": "event", "tags": [], "era": 2, "effects": [],
-      "flavor": "The tax collectors come back empty-handed and bloodied; the villages say they have paid enough.",
+      "flavor": "The tax collectors come back empty-handed and bloodied. The villages say they have paid enough, and this time they say it together.",
       "choices": [
         { "cost": { "wealth": 4 }, "effects": [] },
         { "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ] }
@@ -604,7 +610,7 @@
     },
     {
       "id": "wandering_smiths", "name": "Wandering Smiths", "type": "event", "tags": [], "era": 2, "effects": [],
-      "flavor": "Smiths from the far hills set up their forge by the gate and offer to teach their secrets, for a price.",
+      "flavor": "Smiths from the far hills set up a forge by the gate and offer their secrets, for a price, with the charm of people who never stay.",
       "choices": [
         { "cost": { "wealth": 3 }, "effects": [ { "op": "gain", "resource": "insight", "amount": 3 } ] },
         { "effects": [] }
@@ -622,7 +628,7 @@
     },
     {
       "id": "debased_coin", "name": "Debased Coin", "type": "event", "tags": [], "era": 3,
-      "flavor": "The mint cuts the silver with lead, and soon the merchants weigh every coin twice and trust none.",
+      "flavor": "The mint cuts the silver with lead. Soon the merchants weigh every coin twice and trust none of them.",
       "effects": [ { "op": "lose_pct", "resource": "wealth", "pct": 30 } ]
     },
     {
@@ -632,17 +638,17 @@
     },
     {
       "id": "golden_age", "name": "Golden Age", "type": "event", "tags": [], "era": 3, "discard": { "turns": 3 },
-      "flavor": "Peace, full granaries and clever hands: for a few bright years, everything the realm attempts succeeds.",
+      "flavor": "Peace, full granaries and clever hands: for a few bright years everything the realm attempts succeeds, and no one asks for how long.",
       "modifiers": { "actions": 1, "hand_size": 1 }, "effects": []
     },
     {
       "id": "school_of_philosophers", "name": "School of Philosophers", "type": "event", "tags": [], "era": 3,
-      "flavor": "Under the plane trees, old men argue about the nature of things, and their students write it all down.",
+      "flavor": "Under the plane trees, teachers argue about the nature of things until the shadows reach them, and their students write it all down.",
       "effects": [ { "op": "gain", "resource": "insight", "amount": 5 } ]
     },
     {
       "id": "succession_crisis", "name": "Succession Crisis", "type": "event", "tags": [], "era": 3, "effects": [],
-      "flavor": "The old ruler dies with three heirs and no will, and each one has friends with swords.",
+      "flavor": "The old ruler dies with three heirs and no will. Each heir has friends with swords, and all of them are in mourning.",
       "choices": [
         { "cost": { "wealth": 6 }, "effects": [] },
         { "effects": [ { "op": "gain", "resource": "unrest", "amount": 3 } ] },
@@ -651,7 +657,7 @@
     },
     {
       "id": "mercenaries_offer", "name": "Mercenaries' Offer", "type": "event", "tags": [], "era": 3, "effects": [],
-      "flavor": "Hard men with foreign shields wait at the gate; they will fight for anyone who pays in silver.",
+      "flavor": "Hard people with foreign shields wait at the gate, courteous and patient. They will fight for anyone who pays in silver.",
       "choices": [
         { "cost": { "wealth": 4 }, "effects": [ { "op": "create", "card": "warriors", "zone": "discard" } ] },
         { "effects": [] }
@@ -659,69 +665,69 @@
     },
     {
       "id": "solstice_rites", "name": "Solstice Rites", "type": "event", "tags": [], "effects": [],
-      "flavor": "On the longest night, fires burn on every hill and the elders watch for the sun to turn back."
+      "flavor": "On the longest night, fires burn on every hill, and the elders watch the east for the sun to turn back."
     },
     {
       "id": "traveling_bards", "name": "Traveling Bards", "type": "event", "tags": [], "effects": [],
-      "flavor": "Strangers with lyres trade songs of far-off kings for a meal and a place by the fire."
+      "flavor": "Strangers with lyres trade songs of far-off kings for a meal and a place by the fire, and the kings grow grander with every cup."
     },
     {
       "id": "comet_sighted", "name": "Comet Sighted", "type": "event", "tags": [], "effects": [],
-      "flavor": "A long-haired star hangs over the fields for weeks, and the priests argue whether it foretells a birth or a death."
+      "flavor": "A long-haired star hangs over the fields for weeks. The priests argue whether it foretells a birth or a death, and predict both."
     },
     {
       "id": "distant_drums", "name": "Distant Drums", "type": "event", "tags": [], "effects": [],
-      "flavor": "From beyond the hills, drums beat through the night. No one has seen the drummers yet."
+      "flavor": "From beyond the hills, drums beat through the night. No one has seen the drummers yet. No one goes to look."
     },
     {
       "id": "wild_berries", "name": "Wild Berries", "type": "event", "tags": [],
-      "flavor": "The hedges hang heavy with fruit this year, and the children come home with purple hands.",
+      "flavor": "The hedges hang heavy with fruit, and the children come home in the long gold evenings with purple hands and purple mouths.",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1 } ]
     },
     {
       "id": "wandering_trader", "name": "Wandering Trader", "type": "event", "tags": [],
-      "flavor": "A lone trader leads a laden donkey into the square, with salt, beads and news from the coast.",
+      "flavor": "A lone trader leads a laden donkey into the square, with salt, beads and news from the coast, and a special price just for you.",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1 } ]
     },
     {
       "id": "local_legend", "name": "Local Legend", "type": "event", "tags": [],
-      "flavor": "A shepherd who wrestled a lion becomes a hero; by the third retelling, it was two lions.",
+      "flavor": "A shepherd wrestles a lion and becomes a hero. By the third retelling, it was two lions.",
       "effects": [ { "op": "score", "amount": 1 } ]
     },
     {
       "id": "mild_spring", "name": "Mild Spring", "type": "event", "tags": [], "discard": { "turns": 2 },
-      "flavor": "The thaw comes early and gentle, and the rivers rise just enough.",
+      "flavor": "The thaw comes early and gentle, the rivers rise just enough, and people go about their days as if they had been forgiven.",
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "famine", "name": "Famine", "type": "event", "tags": [],
-      "flavor": "The granaries echo. Families eat the seed grain, then the oxen, and pray for the next harvest.",
+      "flavor": "The granaries echo. Families eat the seed grain, then the oxen, and wait for the next harvest.",
       "text": "Each hungry upkeep: +1 counter (max 3), −1 pop (largest territory) and +1 unrest per counter. Ends when your pop is fed.",
       "effects": [ { "op": "lose_pop", "amount": 1, "trigger": "upkeep" }, { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "market_day", "name": "Market Day", "type": "event", "tags": [],
-      "flavor": "The square fills with stalls, haggling and gossip, and coins change hands faster than rumours.",
+      "flavor": "The square fills with stalls, haggling and gossip, and coins change hands faster than rumours, though not by much.",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "good_omens", "name": "Good Omens", "type": "event", "tags": [],
-      "flavor": "An eagle circles the citadel three times, and the augurs declare the gods well pleased.",
+      "flavor": "An eagle circles the citadel three times, and the augurs declare the gods well pleased, and take the afternoon off.",
       "effects": [ { "op": "score", "amount": 1 } ]
     },
     {
       "id": "grumbling", "name": "Grumbling", "type": "event", "tags": [],
-      "flavor": "At the wells and in the taverns, people mutter about taxes, the harvest and the ones who rule them.",
+      "flavor": "At the wells and in the taverns, people mutter about taxes, the harvest and their rulers, in voices not quite low enough.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1 } ]
     },
     {
       "id": "omen_of_doom", "name": "Omen of Doom", "type": "event", "tags": [], "era": 2,
-      "flavor": "A calf is born with two heads and the moon turns red; the soothsayers will not meet anyone's eye.",
+      "flavor": "A calf is born with two heads and the moon rises red. The soothsayers, so talkative all spring, will not meet anyone's eye.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 2 } ]
     },
     {
       "id": "bandit_raids", "name": "Bandit Raids", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
-      "flavor": "Masked riders strike the roads at dusk, and caravans arrive late, light, or not at all.",
+      "flavor": "Masked riders work the roads at dusk, and caravans arrive late, or light, or not at all.",
       "effects": [ { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -738,13 +744,13 @@
     {
       "id": "sea_raiders", "name": "Sea Raiders", "type": "event", "tags": [],
       "raid": { "strength": 3, "targets": ["coastal"] },
-      "flavor": "Long ships are beached in the night, and the harbour stores are their prize.",
+      "flavor": "Long ships are beached in the night, and by morning the harbour stores are gone, and so are they.",
       "effects": [ { "op": "lose", "resource": "wealth", "amount": 3, "trigger": "pillage" } ]
     },
     {
       "id": "hill_tribes", "name": "Hill Tribes", "type": "event", "tags": [],
       "raid": { "strength": 3, "targets": ["hills", "mountain"] },
-      "flavor": "The clans of the high valleys come down when their own stores run thin.",
+      "flavor": "The clans of the high valleys come down when their own stores run thin, the way poor relations do.",
       "effects": [
         { "op": "lose", "resource": "food", "amount": 2, "trigger": "pillage" },
         { "op": "lose", "resource": "wealth", "amount": 1, "trigger": "pillage" }
@@ -752,7 +758,7 @@
     },
     {
       "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
-      "flavor": "Petitioners crowd the palace steps, demanding fairer laws and a say in how they are made.",
+      "flavor": "Petitioners crowd the palace steps, asking for fairer laws and a say in making them. The palace minds the second part more.",
       "modifiers": { "renewal": 1 },
       "effects": []
     },
@@ -763,69 +769,69 @@
     },
     {
       "id": "radical_thinkers", "name": "Radical Thinkers", "type": "event", "tags": [], "era": 2, "discard": { "turns": 3 },
-      "flavor": "Teachers in the agora question the gods, the laws and the king, and the young listen.",
+      "flavor": "In the agora, teachers question the gods, the laws and the king, quietly and reasonably, and the young listen as they never do at home.",
       "modifiers": { "renewal": 2 },
       "effects": []
     },
     {
       "id": "pottery", "name": "Pottery", "type": "tech",
-      "flavor": "Fired clay holds grain, water and oil through the seasons, and broken sherds still tell us who lived where.",
+      "flavor": "Fired clay holds grain, water and oil through the seasons, and when it breaks, the sherds stay behind to say who lived there.",
       "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "mud_brick_houses" }, { "op": "unlock", "card": "kiln" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
-      "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides and patient strength for the plough.",
+      "flavor": "Wild aurochs, goats and sheep become herds: milk, wool, hides, and patient strength for the plough.",
       "quote": { "text": "The master's eye fattens the horse.", "by": "Persian saying, in Xenophon's Oeconomicus" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "hunters_camp", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "pasture" }, { "op": "unlock", "card": "caravanserai" } ]
     },
     {
       "id": "irrigation", "name": "Irrigation", "type": "tech",
-      "flavor": "Canals and ditches lead river water out to thirsty fields, and the desert's edge turns green.",
+      "flavor": "Canals and ditches lead the river out to thirsty fields, and the desert's edge turns green, a few paces every year.",
       "quote": { "text": "Egypt is the gift of the river.", "by": "after Herodotus, Histories 2.5" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "farm", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "irrigation_canals" } ]
     },
     {
       "id": "the_plough", "name": "The Plough", "type": "tech", "prereq": "animal_husbandry",
-      "flavor": "Yoked oxen drag a wooden share through heavy soil, and one family can sow fields that once took a village.",
+      "flavor": "Yoked oxen drag a wooden share through heavy soil, and one family sows what once took a village. The village must find other work.",
       "quote": { "text": "He that by the plough would thrive, himself must either hold or drive.", "by": "Benjamin Franklin, Poor Richard's Almanack" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "pasture", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "ploughed_fields" } ]
     },
     {
       "id": "weaving", "name": "Weaving", "type": "tech",
-      "flavor": "Flax and wool spun and woven on upright looms make cloth, the greatest trade of the ancient world after bread.",
+      "flavor": "Flax and wool, spun and woven on upright looms, become cloth, the greatest trade of the ancient world after bread.",
       "quote": { "text": "She seeketh wool, and flax, and worketh willingly with her hands.", "by": "Proverbs 31:13" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "weavers_workshop" }, { "op": "unlock", "card": "textile_works" }, { "op": "unlock", "card": "dye_works" } ]
     },
     {
       "id": "clay_tokens", "name": "Clay Tokens", "type": "tech", "prereq": "pottery",
-      "flavor": "Little clay cones, spheres and discs stand for sheep and measures of grain, sealed in envelopes as a receipt.",
+      "flavor": "Little clay cones, spheres and discs stand for sheep and measures of grain, sealed in a clay envelope as a receipt.",
       "quote": { "text": "God made the integers; all else is the work of man.", "by": "Leopold Kronecker" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "granary", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "storehouse" }, { "op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "fermentation", "name": "Fermentation", "type": "tech", "prereq": "pottery",
-      "flavor": "Grain left wet in a jar turns to beer: it keeps for months, and Sumerian workers draw their wages in it.",
+      "flavor": "Grain left wet in a jar turns to beer, which keeps for months. Sumerian workers draw their wages in it, and seldom complain.",
       "quote": { "text": "And wine that maketh glad the heart of man.", "by": "Psalm 104:15" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "farm", "count": 3, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "brewery" } ]
     },
     {
       "id": "mining", "name": "Mining", "type": "tech",
-      "flavor": "Copper, tin and flint are dug from the hills in narrow shafts lit by oil lamps.",
+      "flavor": "Copper, tin and flint are dug from the hills through narrow shafts, lit by oil lamps that are never bright enough.",
       "quote": { "text": "Surely there is a vein for the silver, and a place for gold where they fine it.", "by": "Job 28:1" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "tag": "wall", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "mine" } ]
     },
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
-      "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise.",
+      "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise to hold what cannot be explained.",
       "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
       "effects": [ { "op": "unlock", "card": "temple" },
@@ -834,14 +840,14 @@
     },
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
-      "flavor": "First spun by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains.",
+      "flavor": "First turned by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains, and never stops.",
       "quote": { "text": "As it were a wheel in the middle of a wheel.", "by": "Ezekiel 1:16" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
     {
       "id": "masonry", "name": "Masonry", "type": "tech", "prereq": "mining",
-      "flavor": "Cut stone, fitted tight, raises walls, tombs and temples meant to stand forever.",
+      "flavor": "Cut stone, fitted so close a blade will not pass, raises walls, tombs and temples meant to stand forever. Some nearly do.",
       "quote": { "text": "I found Rome a city of bricks and left it a city of marble.", "by": "Augustus, in Suetonius' Lives of the Caesars" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "city_walls" }, { "op": "unlock", "card": "monument" },
@@ -849,7 +855,7 @@
     },
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
-      "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across the seas.",
+      "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across unknown seas.",
       "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" },
@@ -857,7 +863,7 @@
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
-      "flavor": "Marks pressed into clay to count grain grow into a way to keep laws, letters and epics.",
+      "flavor": "Marks pressed into clay to count grain grow into laws, letters and epics: a way of keeping the harvest becomes a way of keeping the dead.",
       "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "scribal_school" }, { "op": "add_era", "era": 3 },
@@ -865,28 +871,28 @@
     },
     {
       "id": "weights_and_measures", "name": "Weights and Measures", "type": "tech", "era": 2, "prereq": "clay_tokens",
-      "flavor": "Silver weighed out in shekels and grain in fixed measures let strangers trade without haggling over every sack.",
+      "flavor": "Silver weighed out in shekels and grain in fixed measures let strangers trade without haggling over every sack. Mostly.",
       "quote": { "text": "A false balance is abomination to the Lord: but a just weight is his delight.", "by": "Proverbs 11:1" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "olive_and_vine", "name": "Olive and Vine", "type": "tech", "era": 2, "prereq": "pottery",
-      "flavor": "Olive trees and vines take years to bear, then bear for lifetimes; their oil and wine sail out in amphorae.",
+      "flavor": "Olive trees and vines take years to bear, then bear for lifetimes, and their oil and wine sail out in amphorae.",
       "quote": { "text": "A land of wheat, and barley, and vines, and fig trees, and pomegranates; a land of oil olive, and honey.", "by": "Deuteronomy 8:8" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "olive_groves" } ]
     },
     {
       "id": "medicine", "name": "Medicine", "type": "tech", "era": 2, "prereq": "writing",
-      "flavor": "In Egypt's Houses of Life, priest-physicians copy papyri on wounds, fevers and remedies, and tend the sick.",
+      "flavor": "In Egypt's Houses of Life, priest-physicians copy papyri on wounds, fevers and remedies, and tend the sick by lamplight.",
       "quote": { "text": "Life is short, the art long.", "by": "Hippocrates, Aphorisms 1.1" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "bathhouse", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "house_of_life" } ]
     },
     {
       "id": "credit", "name": "Credit", "type": "tech", "era": 2, "prereq": "writing",
-      "flavor": "Temple and palace lend silver and barley at interest on clay contracts, and debtors who cannot repay are sold.",
+      "flavor": "Temple and palace lend silver and barley at interest on clay contracts. Debtors who cannot repay are sold; the contracts are kept.",
       "quote": { "text": "The rich ruleth over the poor, and the borrower is servant to the lender.", "by": "Proverbs 22:7" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 2, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "merchant_quarter" }, { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
@@ -894,7 +900,7 @@
     },
     {
       "id": "sailing", "name": "Sailing", "type": "tech", "era": 2, "prereq": "weaving",
-      "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts.",
+      "flavor": "Reed boats, then planked hulls under square sails, carry cargo, colonists and ideas along the coasts, and bring strangers home.",
       "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "harbor" },
@@ -902,7 +908,7 @@
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
-      "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods.",
+      "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods, in a tone kings dislike.",
       "quote": { "text": "Thou art a priest for ever after the order of Melchizedek.", "by": "Psalm 110:4" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "pyramids" }, { "op": "create", "card": "theocracy", "zone": "discard" },
@@ -910,7 +916,7 @@
     },
     {
       "id": "code_of_laws", "name": "Code of Laws", "type": "tech", "era": 2, "prereq": "writing",
-      "flavor": "Written laws, set in stone for all to read, replace the whim of the chief with fixed rules.",
+      "flavor": "Written laws, set in stone for all to read, replace the chief's whim with fixed rules. The chief takes it personally.",
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [], "modifiers": { "administers": 1 },
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" },
@@ -918,42 +924,42 @@
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
-      "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days.",
+      "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days, and the stars drift a quarter day a year.",
       "quote": { "text": "To every thing there is a season, and a time to every purpose under the heaven.", "by": "Ecclesiastes 3:1" },
       "cost": { "insight": 19 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "hanging_gardens" } ]
     },
     {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
-      "flavor": "Greek thinkers ask what the world is made of and how one should live, and answer with reason, not myth.",
+      "flavor": "Greek thinkers ask what the world is made of and how one should live, and answer with reason rather than myth, which is harder.",
       "quote": { "text": "Philosophy begins in wonder.", "by": "Plato, Theaetetus" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "temple", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "great_temple" } ]
     },
     {
       "id": "iron_working", "name": "Iron Working", "type": "tech", "era": 3, "prereq": "bronze_working",
-      "flavor": "Iron is harder to smelt than bronze, but its ore is everywhere: soon every farmer has an iron blade.",
+      "flavor": "Iron is harder to smelt than bronze, but its ore is everywhere: soon every farmer has an iron blade, and opinions.",
       "quote": { "text": "For now truly is a race of iron, and men never rest from labour and sorrow by day.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "forge", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" }, { "op": "unlock", "card": "shaft_mine" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "weights_and_measures",
-      "flavor": "Babylonian tables, Egyptian surveyors and Greek geometers turn counting into proof.",
+      "flavor": "Babylonian tables, Egyptian surveyors and Greek geometers turn counting into proof, true whatever anyone believes.",
       "quote": { "text": "There is no royal road to geometry.", "by": "Euclid to Ptolemy I, in Proclus" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "market", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "culture", "trigger": "upkeep" } ]
     },
     {
       "id": "coinage", "name": "Coinage", "type": "tech", "era": 3, "prereq": "weights_and_measures",
-      "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and a coin's worth no longer needs a balance.",
+      "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and a coin's worth no longer needs a balance, only faith in the lion.",
       "quote": { "text": "The Lydians were the first men whom we know who coined and used gold and silver currency.", "by": "Herodotus, Histories 1.94 (tr. A. D. Godley)" },
       "cost": { "insight": 27 }, "vp": 1, "eureka": { "card": "market", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "mint" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "trade", "trigger": "upkeep" } ]
     },
     {
       "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
-      "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride the roads between them.",
+      "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride between them with orders already out of date.",
       "quote": { "text": "Neither snow nor rain nor heat nor gloom of night stays these couriers from the swift completion of their appointed rounds.", "by": "after Herodotus, Histories 8.98" },
       "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2, "administers": 2 },
       "effects": [ { "op": "unlock", "card": "royal_road" } ]
@@ -967,28 +973,28 @@
     },
     {
       "id": "qanat", "name": "Qanat", "type": "tech", "era": 3, "prereq": "mining",
-      "flavor": "Persian diggers tunnel gently downhill from a mountain's water table, and fields grow green in the desert.",
+      "flavor": "Persian diggers tunnel gently downhill from a mountain's water table, and in the middle of the desert, impossibly, a field.",
       "quote": { "text": "For in the wilderness shall waters break out, and streams in the desert.", "by": "Isaiah 35:6" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "caravanserai", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "qanat_channel" } ]
     },
     {
       "id": "navigation", "name": "Navigation", "type": "tech", "era": 3, "prereq": "sailing",
-      "flavor": "Steering by the stars, Phoenician ships leave the coast behind and cross open sea to Carthage and Gades.",
+      "flavor": "Steering by the stars, Phoenician ships leave the coast behind and cross open sea to Carthage and Gades, where the known world ends.",
       "quote": { "text": "They that go down to the sea in ships, that do business in great waters.", "by": "Psalm 107:23" },
       "cost": { "insight": 32 }, "vp": 1, "eureka": { "card": "harbor", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "dockyard" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
-      "flavor": "Priests atop the ziggurats chart the wandering stars and learn to foretell eclipses.",
+      "flavor": "Atop the ziggurats, priests chart the wandering stars, learn to foretell eclipses, and tell the king only what he needs to know.",
       "quote": { "text": "The heavens declare the glory of God; and the firmament sheweth his handywork.", "by": "Psalm 19:1" },
       "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
       "effects": []
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
-      "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces.",
+      "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces, in straight lines that ignore the hills.",
       "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "multi_storey_houses" }, { "op": "unlock", "card": "aqueduct" }, { "op": "unlock", "card": "cistern" } ]
