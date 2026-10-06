@@ -1,6 +1,6 @@
 class_name RenewalModal
 extends Modal
-## The Renewal sheet (backlog 255; design: docs/design/renewal-options.html, the ledger): while Anarchy's renewal is
+## The Renewal sheet (backlog 255; design: docs/design/mocks/renewal-options.html, the ledger): while Anarchy's renewal is
 ## owed, every option (the engine's pending() options, hand, deck and discard by name) is a row in a ledger, and the
 ## pulled-out row (hover or Up/Down) shows its card plainly beside it. A click or Enter on a row chooses it, lighting
 ## its lamp (ui.toggle.on), and again puts it back (ui.toggle.off); a choice past the count is a dead tap

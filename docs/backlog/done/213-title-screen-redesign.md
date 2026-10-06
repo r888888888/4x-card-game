@@ -8,8 +8,8 @@ branch: feat/213-title-screen-redesign
 
 ## Goal
 The title screen looks like the game's front plate, not a menu: option B ("Ledger") of
-[title-screen-options.html](../design/title-screen-options.html), with its final art in
-[title-screen-ledger-hill.html](../design/title-screen-ledger-hill.html). The title and a column of large-format keys sit
+[title-screen-options.html](../design/mocks/title-screen-options.html), with its final art in
+[title-screen-ledger-hill.html](../design/mocks/title-screen-ledger-hill.html). The title and a column of large-format keys sit
 flush left; the right half holds the art (214). The large key is a new control drawn in the specimen's style for the few
 places that deserve a big press.
 

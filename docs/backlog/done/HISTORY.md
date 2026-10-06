@@ -120,7 +120,7 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 110. 194 text sizes from the guide's type scale (`Tokens.TYPE_*`, theme variations)
 111. 184 sound buses and volume settings
 112. 185 sound rows in Settings and the game menu
-113. 186 the sound player (`Sfx`), its tokens and placeholder sounds (`docs/design/sound-export.html`)
+113. 186 the sound player (`Sfx`), its tokens and placeholder sounds (`docs/design/tools/sound-export.html`)
 114. 187 key sounds: buttons, the legend key and End turn
 115. 188 counter and card sounds
 116. 189 sheet, screen and notice sounds

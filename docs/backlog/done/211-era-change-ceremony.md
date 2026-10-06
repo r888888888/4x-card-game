@@ -7,7 +7,7 @@ branch: feat/211-era-change-ceremony
 ---
 
 ## Goal
-Reaching a new era is the game's one centred, big moment (`docs/design/transitions.html` transition 7): a sheet wipes
+Reaching a new era is the game's one centred, big moment (`docs/design/mocks/transitions.html` transition 7): a sheet wipes
 across the screen, rings draw out from the middle, and the era's name split-flaps in.
 
 ## Acceptance criteria

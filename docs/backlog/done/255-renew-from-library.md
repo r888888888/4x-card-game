@@ -46,7 +46,7 @@ UI
 - Tableau cards and governments: never trashed by renewal.
 
 ## Design notes
-- Design: [docs/design/renewal-options.html](../design/renewal-options.html), option B (the ledger) with its sound
+- Design: [docs/design/mocks/renewal-options.html](../design/mocks/renewal-options.html), option B (the ledger) with its sound
   table.
 - Engine: `renew(uids: Array) -> bool` and `renew_error(uids: Array) -> String` replace the one-card versions (select,
   then confirm). `Anarchy.renewal_options` gathers hand + deck + discard (governments aside), sorted by `def.name` then

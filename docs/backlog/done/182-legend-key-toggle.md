@@ -53,7 +53,7 @@ an action rather than a setting. Proven in Godot in the `spike/mcm-godot` spike 
 
 ## Log
 - 2026-10-01: Specced from the mid-century style guide (the legend key was chosen over five other switch designs, see
-  [docs/design/lamp-key-options.html](../design/lamp-key-options.html)) and the `spike/mcm-godot` spike.
+  [docs/design/mocks/lamp-key-options.html](../design/mocks/lamp-key-options.html)) and the `spike/mcm-godot` spike.
 - 2026-10-02: Built. `ui/legend_key.gd` (`LegendKey`): copies the theme's boxes in `_ready` with 8 px more top margin
   for the lamp, draws the strip (sinking 2 px with the latched box), and follows `set_pressed_no_signal` in
   `_process` since that emits nothing. `UIKit.motion_toggle()` returns the key, `UIKit.setting_row(text, key)` the row

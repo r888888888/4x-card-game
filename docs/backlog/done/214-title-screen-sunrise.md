@@ -8,7 +8,7 @@ branch: feat/214-title-screen-sunrise
 
 ## Goal
 The title screen's right half (213's `Art`) shows the chosen art: a banded sun rising over one bare green hill
-([title-screen-ledger-hill.html](../design/title-screen-ledger-hill.html)). It rises into place when the screen opens, then
+([title-screen-ledger-hill.html](../design/mocks/title-screen-ledger-hill.html)). It rises into place when the screen opens, then
 rests. Hovering or focusing New game brings on the day, and Exit lets the sun sink into a sunset: the sun reddens, the sky
 warms in bands, the hill deepens.
 

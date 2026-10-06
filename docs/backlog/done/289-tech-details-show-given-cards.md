@@ -11,7 +11,7 @@ A tech's details say "Granary can now be bought in the supply." but never what a
 judge a tech by what it gives without hunting the card down in the supply. After this, a tech's details show each card
 the tech gives (creates or unlocks) as its compact card face in a **Gives** row, captioned with how you get it, and a
 click on one opens that card's full details on top. Design B of
-[tech-gives-options.html](../design/tech-gives-options.html).
+[tech-gives-options.html](../design/mocks/tech-gives-options.html).
 
 ## Acceptance criteria
 - [x] AC1: Given a tech whose effects are `create` granary (zone discard), `unlock` granary and `unlock` houses, when
@@ -74,7 +74,7 @@ click on one opens that card's full details on top. Design B of
 - [ ] Night and Day both read.
 
 ## Log
-- 2026-10-05: Designs in [tech-gives-options.html](../design/tech-gives-options.html) (A links, B inline compact
+- 2026-10-05: Designs in [tech-gives-options.html](../design/mocks/tech-gives-options.html) (A links, B inline compact
   cards, C aside stack, D text section); the user picked B.
 - 2026-10-05: Built. Engine: `CardDetails.gives(def)` (one walk, also used by `Research.tree`'s `gives`), the `gives`
   field on `def_details` / `card_details`, and `CardDef.rules_tooltip(card_db, skip_ops)` so a tech's details leave out

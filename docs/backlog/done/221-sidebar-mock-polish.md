@@ -7,7 +7,7 @@ branch: feat/221-sidebar-mock-polish
 ---
 
 ## Goal
-The board still reads differently from `docs/design/transitions.html`'s desk: the top bar floats with no strip, the
+The board still reads differently from `docs/design/mocks/transitions.html`'s desk: the top bar floats with no strip, the
 sidebar is a boxed panel, its government link is set in the big display face, the spacing doesn't line up, and the End
 turn key repeats the actions count that the hand's heading already shows ("2 / 2"). After this the board has the mock's
 ruled strip and open rail, the sidebar's type matches the mock, and End turn is a bigger key filling the rail's foot.
@@ -53,7 +53,7 @@ ruled strip and open rail, the sidebar's type matches the mock, and End turn is 
 | AC6 | `test_sidebar::test_the_realm_heading_and_the_rails_rule_line_up_space_4_under_the_strip` |
 
 ## Manual check
-- [ ] Start a game (`godot --path . -- --civ sumer --seed 5`) and compare with `docs/design/transitions.html` (night
+- [ ] Start a game (`godot --path . -- --civ sumer --seed 5`) and compare with `docs/design/mocks/transitions.html` (night
   shift): a lighter strip with a heavy rule under it; the rail open on the board with a fine rule to its left; "SUMER"
   in the display face, "CHIEFDOM ›" in small tracked caps; End turn wide and tall in the bottom-right corner.
 - [ ] With 2 actions left, End turn shows no "2 actions left"; the hand's heading still reads "2 / 2".

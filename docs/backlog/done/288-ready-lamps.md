@@ -10,7 +10,7 @@ branch: feat/288-ready-lamps
 The player notices, without opening either screen, that they can now learn a tech or buy a supply card they couldn't
 before. A lamp inside the Knowledge key and the Buy Cards key lights when something new becomes purchasable and goes
 out when the player opens that screen. Design: option A of
-[ready-lamp-options.html](../design/ready-lamp-options.html), drawn like the specimen's "Learn Pottery" lamp
+[ready-lamp-options.html](../design/mocks/ready-lamp-options.html), drawn like the specimen's "Learn Pottery" lamp
 (`mcm-specimen.html`, Feedback section).
 
 ## Acceptance criteria

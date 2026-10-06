@@ -7,7 +7,7 @@ branch: feat/204-in-hand-header
 ---
 
 ## Goal
-The hand's heading is the mock's short "IN HAND" (`docs/design/transitions.html`); the long how-to moves into a
+The hand's heading is the mock's short "IN HAND" (`docs/design/mocks/transitions.html`); the long how-to moves into a
 tooltip, and the actions count sits right-aligned on the same line as "2 / 2".
 
 ## Acceptance criteria

@@ -47,7 +47,7 @@ from the specimen's synthesis, so the rest of the sound items have something rea
   Tokens and their levels, files and leads are one table in `Sfx`; nothing else names a sound file.
 - `Sfx.clock()` is the player's time source, so tests can step it instead of waiting; `played()` is for tests and the
   repetition test, like `Toasts.texts()`.
-- Placeholders: an exporter page beside the specimen (`docs/design/sound-export.html`) renders each token with the
+- Placeholders: an exporter page beside the specimen (`docs/design/tools/sound-export.html`) renders each token with the
   specimen's synthesis through an `OfflineAudioContext`, normalised to its level (Level 1's four variants by the
   specimen's variant pitch factors), and saves 48 kHz 16-bit mono WAVs named by token (§16.10). The key click is
   option G from `click-options.html`, as adopted. Recorded sounds replace the files later under the same names.
@@ -70,6 +70,6 @@ from the specimen's synthesis, so the rest of the sound items have something rea
 ## Log
 - 2026-10-02: Specced from the style guide's sound system. Decided 2026-10-02: ship synthesized placeholders rendered
   from the specimen, replaced by recordings later under the same names.
-- 2026-10-02: Built. `ui/sfx.gd` (`Sfx`, a Node at `main.sfx`, made first in `BoardLayout`): `TOKENS` (token → level), `level`, `bus`, `files`, `stream`, `length`, `lead`, `play(token, delay, input, gain_db)` (a fourth, optional gain for 188's quieter ticks and 189's stacked sheets), `at_contact`, `played()` (records carry `db` too), `playing(bus)`, `set_clock` / `clock`. `Anim.SNAP`, `MACHINED`, `LATCH`, `RELEASE` and `Anim.contact`. The 92 placeholder WAVs come from `docs/design/sound-export.html` (the specimen's synthesis rendered offline, transient at 0, normalised to each level; Level 2–3 with a short room tail), imported uncompressed (`compress/mode=0`). Level 3 files are WAV, as the criteria say, not the guide's OGG. The test runner gained `expect_error(fragment)` for AC3's pushed error.
+- 2026-10-02: Built. `ui/sfx.gd` (`Sfx`, a Node at `main.sfx`, made first in `BoardLayout`): `TOKENS` (token → level), `level`, `bus`, `files`, `stream`, `length`, `lead`, `play(token, delay, input, gain_db)` (a fourth, optional gain for 188's quieter ticks and 189's stacked sheets), `at_contact`, `played()` (records carry `db` too), `playing(bus)`, `set_clock` / `clock`. `Anim.SNAP`, `MACHINED`, `LATCH`, `RELEASE` and `Anim.contact`. The 92 placeholder WAVs come from `docs/design/tools/sound-export.html` (the specimen's synthesis rendered offline, transient at 0, normalised to each level; Level 2–3 with a short room tail), imported uncompressed (`compress/mode=0`). Level 3 files are WAV, as the criteria say, not the guide's OGG. The test runner gained `expect_error(fragment)` for AC3's pushed error.
 - Not built (not in the criteria): the guide's 3 voices on the Game bus and one button sound per 40 ms; add them if playtests hear piling.
 - 2026-10-02: On merging, `main` imported the WAVs compressed: `*.import` files are git-ignored, so the worktree's `compress/mode=0` never travelled. Fixed with `[importer_defaults] wav` in `project.godot`.

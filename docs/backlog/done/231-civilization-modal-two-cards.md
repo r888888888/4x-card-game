@@ -9,7 +9,7 @@ branch: feat/231-civilization-modal-two-cards
 ## Goal
 The civilization modal (119, 205) is one long column of text. It says "Civilization" three times, the civ's name and
 the government's name are both the Title size, the rules are bare lines, and Revolt… is jammed under the last rule.
-Option B from [civilization-modal-options.html](../design/civilization-modal-options.html) fixes this: the
+Option B from [civilization-modal-options.html](../design/mocks/civilization-modal-options.html) fixes this: the
 civilization and the government *are* cards, so the modal lays them down as two large card faces side by side. Under
 them, the government deck is a row of small tabs. The player can see at a glance what their civ does, what their
 government allows, how close the realm is to its unrest limit, and what they could switch to.
@@ -95,7 +95,7 @@ government allows, how close the realm is to its unrest limit, and what they cou
 
 ## Log
 <!-- Decisions and surprises during implementation, newest last. -->
-- 2026-10-02: Chosen from five options in `docs/design/civilization-modal-options.html` (A ledger, B two cards,
+- 2026-10-02: Chosen from five options in `docs/design/mocks/civilization-modal-options.html` (A ledger, B two cards,
   C charter, D index tabs, E control panel). Answers: new palette roles for both bands; full flavor at the foot and
   the quote only in details; live unrest as a `state` line from the engine; deck tabs open details.
 - 2026-10-02: Built in worktree `../4x-231`. The cards are Buttons (IdentityCard) holding a margin and column whose

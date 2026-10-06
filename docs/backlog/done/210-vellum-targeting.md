@@ -8,7 +8,7 @@ branch: feat/210-vellum-targeting
 
 ## Goal
 When a card waits for a target (targeting mode, double-click on a card with several targets), a sheet of vellum wipes
-across the board and only the valid targets stay above it, outlined and lit (`docs/design/transitions.html`
+across the board and only the valid targets stay above it, outlined and lit (`docs/design/mocks/transitions.html`
 transition 6), so the choice is obvious. Cancelling wipes it off.
 
 ## Acceptance criteria

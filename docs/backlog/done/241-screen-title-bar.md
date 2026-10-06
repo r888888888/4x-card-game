@@ -12,8 +12,8 @@ small underlined word. Every navigated screen now opens under a full-width title
 bar's left end is the index tab of the sheet underneath: "◂ Realm", a tab in the board's colour with a slanted right
 edge that takes you back. The Realm has no bar, so a coloured bar always means you are somewhere else.
 
-Design: [navigation-options.html](../design/navigation-options.html) option B, with the back control from
-[back-button-options.html](../design/back-button-options.html) option 3 (the divider tab), without its Esc keycap.
+Design: [navigation-options.html](../design/mocks/navigation-options.html) option B, with the back control from
+[back-button-options.html](../design/mocks/back-button-options.html) option 3 (the divider tab), without its Esc keycap.
 
 ## Acceptance criteria
 - [x] AC1: Given a game on the board, when a territory (Homeland) is opened, then its header's bar is filled with
@@ -33,7 +33,7 @@ Design: [navigation-options.html](../design/navigation-options.html) option B, w
 - [x] AC6: Given a game on the board with no screen open, then no ScreenHeader is visible: the Realm has no bar.
 
 ## Out of scope
-- The sheet treatment of navigated screens (docs/design/sheet-options.html) and the key plan back control.
+- The sheet treatment of navigated screens (docs/design/mocks/sheet-options.html) and the key plan back control.
 - A context line for the territory bar.
 - Changing what Esc or T do (Esc and T still go back one step).
 - The Supply screen, which is not a navigated screen.

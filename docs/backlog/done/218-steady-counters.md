@@ -10,7 +10,7 @@ branch: feat/218-steady-counters
 When a resource changes, the top bar's counters jump: the "+N" / "−N" tag (181) is laid out right of the figure, so
 it pushes the limit, the forecast and every counter to its right along, then they jump back when it goes. The
 odometer roll already shows the change, so the tag goes. The counters also sit closer than the mock's strip
-(docs/design/transitions.html: 16 px in a ~1160 px mock of the 1920 px window), so they get more room.
+(docs/design/mocks/transitions.html: 16 px in a ~1160 px mock of the 1920 px window), so they get more room.
 
 ## Acceptance criteria
 - [x] AC1: Given the main scene with 20 food and 20 wealth, when food changes by +2 (or −3), wealth by −4, pop by +1,
@@ -48,7 +48,7 @@ odometer roll already shows the change, so the tag goes. The counters also sit c
 - [ ] `godot --path . -- --seed 5`: play a card that costs food (or press End turn): the figure rolls, no "+N" / "−N"
   appears, and Wealth, Insight, Score and Pop stay where they are throughout.
 - [ ] Buy Cards → buy a card: the screen's Wealth rolls down with no tag.
-- [ ] The turn plate and counters sit 24 px apart, like the mock's strip in docs/design/transitions.html; the buttons
+- [ ] The turn plate and counters sit 24 px apart, like the mock's strip in docs/design/mocks/transitions.html; the buttons
   at the right keep their tighter gaps; with Unrest and Pop on, the bar still fits 1920 px.
 
 ## Log

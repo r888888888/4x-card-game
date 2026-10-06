@@ -8,7 +8,7 @@ branch: feat/209-government-cabinet-doors
 
 ## Goal
 Choosing a government after Anarchy is a moment: two steel doors slide shut over the Realm and part to show the choice
-(`docs/design/transitions.html` transition 5), and choosing closes them over it and opens them on the Realm.
+(`docs/design/mocks/transitions.html` transition 5), and choosing closes them over it and opens them on the Realm.
 
 ## Acceptance criteria
 - [x] AC1: Given the engine's pending decision becomes the government choice (`PENDING_GOVERNMENT`), when the board

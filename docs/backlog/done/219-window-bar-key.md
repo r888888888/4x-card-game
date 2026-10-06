@@ -9,7 +9,7 @@ branch: feat/219-window-bar-key
 ## Goal
 Every toggle (Reduce motion, Day mode, Interface sounds) changes from the legend key (a 64 × 44 key with a lamp strip
 across its top and ON/OFF printed on its face, 182) to the **window bar** from
-[docs/design/lamp-key-options.html](../design/lamp-key-options.html) (variant 1): a square 32 × 32 key whose only mark is
+[docs/design/mocks/lamp-key-options.html](../design/mocks/lamp-key-options.html) (variant 1): a square 32 × 32 key whose only mark is
 a small lamp window across the middle of its face, with the state word, ON or OFF, printed beside it. The key is smaller
 and quieter in a settings column, and the light is the only thing on the face. The guide (§7.5, §15.4) is updated to match.
 

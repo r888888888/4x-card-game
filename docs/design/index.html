@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Pages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* The index of docs/design. Tokens copied from mcm-specimen.html (§14). */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2; --ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468;
+	--rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F; --signal: #A8401B; --on-signal: #FBF6EC;
+	--positive: #4E6B47; --caution: #7C5810; --p-teal: #5E9C97; --p-sage: #9DB592; --on-plane: #22211F;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733; --ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A;
+	--rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B; --signal: #E0703F; --on-signal: #1F1E1C;
+	--positive: #93B585; --caution: #D9A441; --p-teal: #5FB0A9; --p-sage: #93B585; --on-plane: #1F1E1C;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.strip { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+.strip h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.btn { min-height: 36px; padding: var(--space-1) var(--space-4); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: 2px; box-shadow: 2px 2px 0 var(--shadow); font: 500 17px/20px var(--f-cond); cursor: pointer; }
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+main { max-width: 1100px; margin: 0 auto; padding: var(--space-6) var(--space-5) 96px; }
+section { margin-bottom: var(--space-7); }
+.titleblock { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); border-top: 4px solid var(--ink); padding-top: var(--space-3); margin-bottom: var(--space-4); }
+.titleblock h2 { margin: 0; font: 500 28px/34px var(--f-display); }
+.titleblock .caps { margin-left: auto; }
+p { margin: 0 0 var(--space-3); max-width: 75ch; }
+.lead { color: var(--ink-2); }
+
+/* The master: one big sheet. */
+.master { display: block; text-decoration: none; background: var(--sheet); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); padding: var(--space-5); }
+.master:hover { box-shadow: 6px 6px 0 var(--shadow); }
+.master .band { height: 5px; background: var(--signal); margin: var(--space-2) 0 var(--space-3); }
+.master h3 { margin: 0; font: 500 40px/44px var(--f-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.master p { color: var(--ink-2); margin: 0; }
+.master ul { margin: var(--space-3) 0 0; padding-left: 20px; color: var(--ink-2); columns: 2 280px; }
+
+/* References: small sheets in a row. */
+.refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+.ref { display: flex; flex-direction: column; gap: var(--space-1); text-decoration: none; background: var(--sheet); border: 2px solid var(--rule); padding: var(--space-3) var(--space-4); }
+.ref:hover { border-color: var(--ink); box-shadow: 2px 2px 0 var(--shadow); }
+.ref b { font: 600 20px/24px var(--f-cond); }
+.ref span { color: var(--ink-2); font-size: 15px; }
+.ref code { font-size: 13px; color: var(--ink-3); }
+
+/* The ledger of mocks. */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 2px solid var(--ink); }
+td { padding: var(--space-3); border-bottom: 1px solid var(--rule-fine); vertical-align: top; font-size: 16px; }
+td:first-child { width: 28%; }
+td a { font: 600 18px/22px var(--f-cond); }
+td small { display: block; color: var(--ink-3); font-size: 13px; margin-top: 2px; }
+td .what { color: var(--ink-2); }
+.st { display: inline-block; padding: 0 var(--space-2); border-radius: 4px; font: 500 14px/20px var(--f-cond); white-space: nowrap; }
+.st.built { background: var(--p-sage); color: var(--on-plane); }
+.st.open { background: var(--p-teal); color: var(--on-plane); }
+.st.chosen { background: var(--steel); color: var(--ink); }
+.st.dropped { background: none; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--rule); }
+.group { font: 600 15px/20px var(--f-cond); letter-spacing: 0.10em; text-transform: uppercase; color: var(--ink-2); padding-top: var(--space-5); border-bottom: 1px solid var(--ink); }
+.rules { background: var(--well); padding: var(--space-4) var(--space-5); }
+.rules ol { margin: 0; padding-left: 20px; }
+.rules li { margin-bottom: var(--space-2); max-width: 80ch; }
+
+@media (max-width: 720px) {
+	main { padding: var(--space-5) 16px 64px; }
+	table, tbody, tr, td { display: block; width: 100% !important; }
+	thead { display: none; }
+	tr { border-bottom: 1px solid var(--rule-fine); padding: var(--space-2) 0; }
+	td { border: 0; padding: var(--space-1) 0; }
+}
+</style>
+</head>
+<body>
+<header class="strip">
+	<h1>Design pages</h1>
+	<button class="btn" id="theme">Paper / Night</button>
+</header>
+
+<main>
+	<section>
+		<div class="titleblock"><h2>The master</h2><span class="caps">Start here</span></div>
+		<a class="master" href="mcm-specimen.html">
+			<span class="caps">mcm-specimen.html</span>
+			<h3>Civic Planning Desk</h3>
+			<div class="band"></div>
+			<p>The live specimen of the game's design as it is built: every token and component, in Night and Paper, with motion, Reduce motion and synthesized sound. When the game changes how something looks, moves or sounds, this page changes with it.</p>
+			<ul>
+				<li>The board: strip, ready lamps, Realm, hand, rail, End turn</li>
+				<li>Colour, typography</li>
+				<li>Controls: keys, tabs, the lamp key, the selectable list, the divider tab</li>
+				<li>Resource strip: odometers and forecasts</li>
+				<li>Cards: hand, Realm, supply, identity, units</li>
+				<li>Feedback: tooltip, progress, flags, starburst, modal</li>
+				<li>Screens: Knowledge, a territory, the supply</li>
+				<li>Sound: every token, levels, repetition test</li>
+			</ul>
+		</a>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>References</h2><span class="caps">The rules behind the specimen</span></div>
+		<div class="refs">
+			<a class="ref" href="mcm-style-guide.md"><b>Style guide</b><span>The design system and its reasons: colour, type, motion, interaction, screens, accessibility, sound. Read only the section for your task.</span><code>mcm-style-guide.md</code></a>
+			<a class="ref" href="tokens.md"><b>Tokens</b><span>The guide's names mapped onto the code (Palette, Tokens, GameTheme) as they are now.</span><code>tokens.md</code></a>
+			<a class="ref" href="mocks/transitions.html"><b>Screen transitions</b><span>Every transition in §10–11 on a mock game screen, at ¼ speed and with Reduce motion. The specimen's reference for motion.</span><code>mocks/transitions.html</code></a>
+			<a class="ref" href="tools/sound-export.html"><b>Sound export</b><span>A working tool, not a mock: renders each sound token into the placeholder WAVs under <code>assets/sounds/</code>.</span><code>tools/sound-export.html</code></a>
+		</div>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Mocks</h2><span class="caps">mocks/ · options compared, then decided</span></div>
+		<p class="lead">Each page compares a few designs for one question. Once one is built, the specimen shows it; the page stays as the record of what was weighed and why. <b>Open</b> means its item isn't built yet; <b>Chosen</b> means a design was picked but nothing builds it yet.</p>
+		<table>
+			<thead><tr><th class="caps">Page</th><th class="caps">What it compares</th><th class="caps">Outcome</th></tr></thead>
+			<tbody id="mocks"></tbody>
+		</table>
+	</section>
+
+	<section>
+		<div class="titleblock"><h2>Keeping it in order</h2><span class="caps">For whoever adds the next page</span></div>
+		<div class="rules"><ol>
+			<li>A new comparison goes in <code>mocks/</code> as <code>&lt;topic&gt;-options.html</code>, copying its tokens from the specimen, and gets a row here.</li>
+			<li>When an item builds the chosen design, it updates the specimen to match the game, and its row here to <b>Built</b> with the option and item.</li>
+			<li>The specimen draws what the game does now; a mock may draw what it might do. When they disagree, the game and the specimen win.</li>
+			<li>Tools that produce files for the game (like the sound exporter) go in <code>tools/</code>.</li>
+		</ol></div>
+	</section>
+</main>
+
+<script>
+// [file, title, what it compares, status, outcome, created]
+const MOCKS = [
+	["Open", [
+		["building-upgrade-options.html", "Building upgrades", "How a building's upgrades show on the territory view and in the build modal.", "open", "A (ribbons on the card) + X (an Upgrades heading in the modal) specced for 302; items 300–308", "2026-10-05"],
+	]],
+	["Board and cards", [
+		["ready-lamp-options.html", "Ready lamps", "Five ways for Knowledge and Buy Cards to say something new can be learned or bought.", "built", "A, the indicator lamp in the key (288)", "2026-10-05"],
+		["tech-gives-options.html", "What a tech gives", "Four ways for a tech's details to show the cards it gives.", "built", "B, inline compact cards in a Gives row (289)", "2026-10-05"],
+		["supply-details-options.html", "Supply card details", "A click on a supply pile opens its details, which offer Buy.", "built", "B, the price tag hanging under the card (259)", "2026-10-04"],
+		["renewal-options.html", "Renewal", "Three designs for Anarchy's Renewal sheet: card spread, ledger, trash tray.", "built", "The ledger (255)", "2026-10-04"],
+		["civilization-modal-options.html", "Civilization modal", "Five directions for the civilization and government modal, from the sidebar.", "built", "Two cards side by side (231)", "2026-10-02"],
+		["card-stacks.html", "Card stacks", "Six ways to show a stack of cards (deck, discard, research deck, a pile) and open it.", "chosen", "1, the index pile dealt to a grid; the game has no pile view yet", "2026-10-01"],
+		["list-options.html", "Selectable list", "Five ways to mark the chosen row: index card, folder tab, ledger line, lamps, pointer.", "built", "The index card (217, §7.16)", "2026-10-02"],
+	]],
+	["Navigation", [
+		["navigation-options.html", "Off the Realm", "Six ways to make leaving the Realm for a screen obvious, and the way back.", "built", "B, the coloured title bar (241)", "2026-10-03"],
+		["back-button-options.html", "The way back", "Variations on B's bar: what its left end is made of.", "built", "3, the divider tab, without its Esc keycap (241)", "2026-10-03"],
+		["sheet-options.html", "The screen as a sheet", "Iterations on a screen as a sheet slid over the desk.", "dropped", "Not taken; the title bar was chosen instead (241)", "2026-10-03"],
+	]],
+	["Visual language", [
+		["icon-options.html", "Resource icons", "Candidates for food, wealth, insight and unrest, drawn to the icon rules (§8).", "built", "Sprout, coin, book, solid bolt (180)", "2026-10-01"],
+		["cost-grouping-options.html", "Cost grouping", "Eight ways to pair a resource glyph with its figure without a plate.", "built", "B, grouped by spacing alone (180)", "2026-10-01"],
+		["switch-options.html", "Switch options", "Five plainer alternatives to the drawn slide switch.", "dropped", "Superseded by the lamp key (182)", "2026-10-01"],
+		["lamp-key-options.html", "Latching lamp key", "Nine lamp-key toggles, then the window bar.", "built", "1, the window bar (219)", "2026-10-01"],
+	]],
+	["Title screen", [
+		["title-screen-options.html", "Title screen options", "The first directions for the title screen.", "built", "B, the ledger; A and C kept as record (213)", "2026-10-02"],
+		["title-screen-ledger-hill.html", "Ledger · sun over a hill", "The ledger's art: a banded sun over hills, with motion.", "built", "B1.1, one hill (214)", "2026-10-02"],
+	]],
+	["Sound", [
+		["click-options.html", "Click options", "Nine versions of the key click, from today's to three two-stage clicky switches.", "built", "G, the clicky switch (187)", "2026-10-02"],
+	]],
+];
+const LABEL = { built: "Built", chosen: "Chosen", open: "Open", dropped: "Not taken" };
+document.getElementById("mocks").innerHTML = MOCKS.map(([group, rows]) =>
+	`<tr><td colspan="3" class="group">${group}</td></tr>` + rows.map(([file, title, what, st, outcome, date]) =>
+		`<tr><td><a href="mocks/${file}">${title}</a><small>mocks/${file} · ${date}</small></td><td class="what">${what}</td>` +
+		`<td><span class="st ${st}">${LABEL[st]}</span> ${outcome}</td></tr>`).join("")).join("");
+
+const root = document.documentElement;
+try { if (localStorage.getItem("design-theme")) root.dataset.theme = localStorage.getItem("design-theme"); } catch (e) {}
+document.getElementById("theme").addEventListener("click", () => {
+	root.dataset.theme = root.dataset.theme === "night" ? "paper" : "night";
+	try { localStorage.setItem("design-theme", root.dataset.theme); } catch (e) {}
+});
+</script>
+</body>
+</html>

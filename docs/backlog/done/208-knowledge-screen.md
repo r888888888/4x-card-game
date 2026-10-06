@@ -7,7 +7,7 @@ branch: feat/208-knowledge-screen
 ---
 
 ## Goal
-The tech tree becomes the mock's Knowledge screen (`docs/design/transitions.html` transition 1): a navigated screen
+The tech tree becomes the mock's Knowledge screen (`docs/design/mocks/transitions.html` transition 1): a navigated screen
 with a breadcrumb ("Realm / Knowledge"), each era a row of tech tiles, sliding in from the right while the Realm
 shifts 24 px left under it. It keeps everything the modal does today (state, cost, eureka, prerequisite, Learn,
 details).

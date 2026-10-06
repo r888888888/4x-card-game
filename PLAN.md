@@ -109,7 +109,7 @@ res://
                          # card_motion.gd, modal_stack.gd, navigator.gd and toasts.gd play their own tokens (187–190)
   assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
   assets/sounds/         # ui/ (Levels 1–2, variants _a…_d) and events/ (Level 3) WAVs, placeholders rendered by
-                         # docs/design/sound-export.html from the specimen's synthesis (186)
+                         # docs/design/tools/sound-export.html from the specimen's synthesis (186)
   default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
   tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
   sim/                   # generic_bot.gd (GenericBot and its strategies, 313, 314), sim_stats.gd (SimStats: per-seed metrics, per

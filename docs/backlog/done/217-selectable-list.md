@@ -10,7 +10,7 @@ branch: feat/217-selectable-list
 Choosing a civilization feels steady and clear. Today the new game sheet resizes and recentres with each
 civilization's text, so it jumps as you move through the list. The selected row is also a pressed button with a pale
 border, which barely stands out and looks like the teal focus ring on another row. This item adds a **selectable
-list** to the style guide (option A, "Index card", from [list-options.html](../../design/list-options.html)) and uses it
+list** to the style guide (option A, "Index card", from [list-options.html](../../design/mocks/list-options.html)) and uses it
 for the civilization list.
 
 ## Acceptance criteria
@@ -71,7 +71,7 @@ New API: `UIKit.select_list() -> SelectList` (`ui/select_list.gd`, a `PanelConta
 - [ ] 1280×720 window: the fixed sheet (about 930×670 at 1920×1080) fits on screen.
 
 ## Log
-- Specced 2026-10-02. The options page `docs/design/list-options.html` holds the five candidates (A index card,
+- Specced 2026-10-02. The options page `docs/design/mocks/list-options.html` holds the five candidates (A index card,
   B folder tab, C ledger line, D selector lamps, E pointer); the user chose A.
 - 2026-10-02: Built. `SelectList` (`ui/select_list.gd`, from `UIKit.select_list()`) owns the rows, the index tab
   and the arrows that used to live in `NewGameScreen._row`. `GameTheme._select_list` adds `ListWell` and `ListRow`

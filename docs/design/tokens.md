@@ -6,6 +6,8 @@ the source of the values and the reasons; read it only for a task about one of i
 the restyle (177–183) and is history, not the current state.
 
 This file says what is in the code **now**. When an item changes a token, it updates this file.
+The live picture of the same is [mcm-specimen.html](mcm-specimen.html), the master of the design pages
+([index.html](index.html) lists them all); an item that changes how the game looks, moves or sounds updates it too.
 
 ## Where things live
 
