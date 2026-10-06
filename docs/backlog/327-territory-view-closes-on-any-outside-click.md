@@ -2,7 +2,7 @@
 id: 327
 title: A click anywhere outside the territory box closes the territory view
 type: feature
-status: in-progress
+status: review
 branch: feat/327-territory-view-closes-on-any-outside-click
 ---
 
@@ -13,19 +13,19 @@ screen (326): a left click anywhere outside the box takes you back to the Realm.
 does nothing else.
 
 ## Acceptance criteria
-- [ ] AC1: Given a settled territory's view is open, when the player left-clicks (press and release) on the hand
+- [x] AC1: Given a settled territory's view is open, when the player left-clicks (press and release) on the hand
   section's empty space, the top bar's empty space or the sidebar's empty space, then the view goes back to the Realm,
   as the breadcrumb's Back does (one `Sfx.NAV_BACK`). This replaces 200's AC3.
-- [ ] AC2: Given the same, when the player left-clicks a control outside the box (a hand card, a top-bar counter,
+- [x] AC2: Given the same, when the player left-clicks a control outside the box (a hand card, a top-bar counter,
   End Turn, a sidebar button), then the view closes and the click does nothing else: no card is selected, played or
   opened in a details modal, no modal opens, the turn doesn't end and the engine state is unchanged.
-- [ ] AC3: Given the same, when the player presses on a hand card, drags it and drops it on the view (inside or outside
+- [x] AC3: Given the same, when the player presses on a hand card, drags it and drops it on the view (inside or outside
   the box), then the drop still targets the territory (101) and the view stays open.
-- [ ] AC4: Given the same with a modal open over it, when the player clicks outside the modal's panel, then only the
+- [x] AC4: Given the same with a modal open over it, when the player clicks outside the modal's panel, then only the
   modal closes and the view stays open (unchanged from 200).
-- [ ] AC5: Given the same, a click inside the box still does what it does today and leaves the view open, and a
+- [x] AC5: Given the same, a click inside the box still does what it does today and leaves the view open, and a
   right-click anywhere outside the box leaves it open (unchanged from 200).
-- [ ] AC6: Given the view closed or already leaving, when the player left-clicks a hand card or End Turn, then the
+- [x] AC6: Given the view closed or already leaving, when the player left-clicks a hand card or End Turn, then the
   click works as before (the view takes nothing), and a second outside click while it leaves steps back only once.
 
 ## Out of scope
@@ -58,7 +58,7 @@ Replaced: 200's `test_a_click_on_the_hand_or_top_bar_or_a_modal_leaves_the_view_
 rule this item reverses; its modal half is AC4's test).
 
 ## Manual check
-- [ ] Open a territory, click the hand's empty space, the top bar and the sidebar rail: each shrinks it back into its
+- [ ] `godot --path . -- --seed 5`: open the home territory, click the hand's empty space, the top bar and the sidebar rail: each shrinks it back into its
   card.
 - [ ] Open it again and click a hand card once: the view closes and the card isn't picked up or opened.
 - [ ] Open it again and drag a hand card onto the view: it plays on the territory and the view stays open.
@@ -66,3 +66,10 @@ rule this item reverses; its modal half is AC4's test).
 ## Log
 - Specced 2026-10-05 from the user's request ("clicking outside of the view should dismiss it"). Decided with the user:
   any outside click closes the view, and that click only closes it (same as 326).
+- 2026-10-05: `TerritoryView.handle_click` replaces 200's `_gui_input`; main calls it after the drag controller, with
+  no modal, supply screen or targeting up. A press outside the box is swallowed unless it lands on a hand card (so a
+  drag can start); the release outside closes the view and is swallowed, and the hand card's press is dropped
+  (`CardView.forget_press`) so a later move doesn't drag it. Targeting is excluded so a click on the vellum still picks
+  or cancels. Test fix after approval: the AC1/AC2 helper pinned the sound clock at 0 for every check, so by the fourth
+  click the earlier sounds filled the interface voices; it now advances the clock (same assertion).
+- Not covered: with the log drawer open, its own outside-click handling may take the click first (untested order).
