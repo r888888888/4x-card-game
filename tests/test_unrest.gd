@@ -221,7 +221,7 @@ func test_the_top_bar_shows_unrest_alone_with_the_limit_in_its_tooltip_and_rolls
 	eq(main.counter_text(GameEngine.UNREST), "2", "unrest alone; the limit is in the tooltip (228)")
 	if counter != null:
 		check(counter.tooltip_text.contains("5"), "the tooltip names the limit: %s" % counter.tooltip_text)
-	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
+	eq(main.forecast_text(GameEngine.UNREST), "+1", "the forecast apart (201)")
 	if counter != null:
 		eq(counter.figure().color, Palette.TEXT,
 			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST; 181: an odometer)")
@@ -244,7 +244,7 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	var counter_: Control = main.counter(GameEngine.UNREST)
 	if counter_ != null:
 		check(counter_.tooltip_text.contains("no limit"), "the tooltip: %s" % counter_.tooltip_text)
-	eq(forecast(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
+	eq(main.forecast_text(GameEngine.UNREST), "+1", "the forecast apart (201)")
 	close_main(main)
 	Game.engine = real
 
@@ -317,11 +317,6 @@ func bot_engine(gov: String, unrest: int, card_id: String) -> GameEngine:
 	var e := unrest_engine(gov, unrest, [], {"pioneer": 10}, {"territory_deck": {"grassland": 2}})
 	put_in_hand(e, card_id)
 	return e
-
-
-## main.forecast_text(key) (201).
-func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key)
 
 
 # --- 231 AC1/AC2: the government's details show unrest against its limit ---

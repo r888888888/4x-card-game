@@ -27,14 +27,6 @@ func step_tweens(main: Node, seconds: float) -> void:
 	await wait_frames()
 
 
-## The first visible button under root whose text starts with prefix, or null.
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
-
-
 # --- AC3: a notice shows a toast ---
 
 func test_an_information_notice_shows_a_flag_for_toast_time() -> void:

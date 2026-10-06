@@ -4,32 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## its reason at once, End turn has its own key and relay, the legend key latches with its own sounds, turning
 ## interface sounds off is still heard, and Reduce motion plays them at the press. main.sfx's clock is frozen at 0.
 
-var _old_window_size := Vector2i.ZERO
-
-
-## Main at 1920×1080 with seed 1 started and its sound clock frozen at 0. Pair with close_game.
-func open_game() -> Node:
-	var window := (Engine.get_main_loop() as SceneTree).root
-	_old_window_size = window.size
-	window.size = Vector2i(1920, 1080)
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	main.sfx.set_clock(0.0)
-	return main
-
-
-func close_game(main: Node) -> void:
-	close_main(main)
-	(Engine.get_main_loop() as SceneTree).root.size = _old_window_size
-
-
-## The first visible button under root whose text starts with prefix, or null.
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
 
 
 func mouse(main: Node, at: Vector2, pressed: bool) -> void:
@@ -66,7 +40,7 @@ func tokens(main: Node) -> Array:
 
 func test_a_button_clicks_at_contact_going_down_and_coming_up() -> void:
 	await with_reduce_motion(false, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		var log_button := shown_button(main, "Log")
 		mouse(main, centre(log_button), true)
 		eq(heard(main), [[Sfx.BUTTON_PRESS, 0.024]], "the press at its contact")
@@ -78,7 +52,7 @@ func test_a_button_clicks_at_contact_going_down_and_coming_up() -> void:
 
 func test_space_and_enter_on_a_button_click_too() -> void:
 	await with_reduce_motion(false, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		shown_button(main, "Log").grab_focus()
 		press_key(main, KEY_SPACE)
 		eq(tokens(main), [Sfx.BUTTON_PRESS, Sfx.BUTTON_RELEASE], "Space")
@@ -89,7 +63,7 @@ func test_space_and_enter_on_a_button_click_too() -> void:
 
 
 func test_focus_and_tab_are_silent() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	var log_button := shown_button(main, "Log")
 	log_button.grab_focus()
 	press_key(main, KEY_TAB)
@@ -99,7 +73,7 @@ func test_focus_and_tab_are_silent() -> void:
 
 
 func test_a_modals_buttons_click_too() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
 	await wait_frames()
 	var before: int = main.sfx.played().size()  # the sheet it laid down (189)
@@ -115,7 +89,7 @@ func test_a_modals_buttons_click_too() -> void:
 # --- AC2: dragged off; disabled ---
 
 func test_a_press_dragged_off_sounds_both_and_does_nothing() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	var log_button := shown_button(main, "Log")
 	var away := centre(log_button) + Vector2(0, 400)
 	mouse(main, centre(log_button), true)
@@ -128,7 +102,7 @@ func test_a_press_dragged_off_sounds_both_and_does_nothing() -> void:
 
 
 func test_a_disabled_button_gives_a_dead_tap_and_shows_its_reason_at_once() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	main.add_child(layer)
@@ -153,7 +127,7 @@ func test_a_disabled_button_gives_a_dead_tap_and_shows_its_reason_at_once() -> v
 
 func test_end_turn_presses_heavy_and_closes_a_relay_when_the_turn_ends() -> void:
 	await with_reduce_motion(false, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		var end_turn := shown_button(main, "End turn")
 		mouse(main, centre(end_turn), true)
 		eq(heard(main), [[Sfx.ENDTURN_PRESS, 0.024]], "the big key's press")
@@ -177,7 +151,7 @@ func turn_chord(main: Node) -> Variant:
 func test_end_turn_plays_the_chord_for_the_turn_it_ends() -> void:
 	await with_reduce_motion(false, func():
 		for t: int in [1, 3, 5]:
-			var main: Node = await open_game()
+			var main: Node = await open_game(true, true)
 			Game.engine.turn = t
 			Game.engine.changed.emit()
 			await wait_frames()
@@ -192,7 +166,7 @@ func test_end_turn_plays_the_chord_for_the_turn_it_ends() -> void:
 
 func test_with_reduce_motion_the_chord_still_follows_the_turn() -> void:
 	await with_reduce_motion(true, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		Game.engine.turn = 4
 		Game.engine.changed.emit()
 		await wait_frames()
@@ -207,7 +181,7 @@ func test_with_reduce_motion_the_chord_still_follows_the_turn() -> void:
 
 func test_end_turn_that_owes_a_discard_comes_up_like_any_key() -> void:
 	await with_reduce_motion(false, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		var e := Game.engine
 		for i in e.config.hand_limit + 2 - e.zone("hand").size():
 			put_in_hand(e, e.zone("hand").cards[0].def.id)
@@ -224,7 +198,7 @@ func test_end_turn_that_owes_a_discard_comes_up_like_any_key() -> void:
 
 func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
 	await with_reduce_motion(true, func():  # the cards put in hand jump in, not fly over the top bar
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		var e := Game.engine
 		for i in e.config.hand_limit + 2 - e.zone("hand").size():
 			put_in_hand(e, e.zone("hand").cards[0].def.id)
@@ -247,7 +221,7 @@ func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
 
 func test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		await open_settings_modal(main)  # the keys are in the Settings modal since 206
 		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
 		var from: int = main.sfx.played().size()  # after the sheets laid down (207): this test hears its key
@@ -269,7 +243,7 @@ func test_the_legend_key_latches_on_and_lets_go_with_its_own_sounds() -> void:
 
 func test_turning_interface_sounds_off_is_heard_before_the_bus_mutes() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		await open_settings_modal(main)  # the keys are in the Settings modal since 206
 		await (Engine.get_main_loop() as SceneTree).create_timer(0.4).timeout
 		var from: int = main.sfx.played().size()  # after the sheets laid down (207): this test hears its key
@@ -299,7 +273,7 @@ func test_settings_can_mute_interface_sounds_after_a_grace() -> void:
 
 func test_with_reduce_motion_keys_sound_at_the_press_and_release() -> void:
 	await with_reduce_motion(true, func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true, true)
 		var log_button := shown_button(main, "Log")
 		mouse(main, centre(log_button), true)
 		mouse(main, centre(log_button), false)

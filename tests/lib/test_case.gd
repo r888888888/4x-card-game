@@ -64,6 +64,7 @@ const TEST_CARDS := {"cards": [
 const SEED_1_TURNS := 20
 ## The real engine's turn_limit while play_seed_1 has shortened it (0 otherwise); close_main puts it back.
 var _real_turn_limit := 0
+var _window_size_before := Vector2i.ZERO  # open_game(big): the window size close_game restores
 ## The famine block raw_config adds to a population block that has none (backlog 083: required with population on).
 const FAMINE := {"card": "famine", "max_counters": 3}
 
@@ -679,6 +680,70 @@ func open_main() -> Node:
 	var main: Node = load("res://ui/main.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(main)
 	return main
+
+
+## Main with seed 1 started (334). big: the window at 1920 × 1080 until close_game puts it back; freeze_sfx: the sound
+## clock frozen at 0 (236). Pair with close_game. Use with await.
+func open_game(big := false, freeze_sfx := false) -> Node:
+	if big:
+		var window := (Engine.get_main_loop() as SceneTree).root
+		_window_size_before = window.size
+		window.size = Vector2i(1920, 1080)
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	if freeze_sfx:
+		main.sfx.set_clock(0.0)
+	return main
+
+
+## Frees an open_game main, and puts the window back to its size before a big open_game.
+func close_game(main: Node) -> void:
+	close_main(main)
+	if _window_size_before != Vector2i.ZERO:
+		(Engine.get_main_loop() as SceneTree).root.size = _window_size_before
+		_window_size_before = Vector2i.ZERO
+
+
+## The first visible button under root whose text starts with prefix, or null.
+func shown_button(root: Node, prefix: String) -> Button:
+	for b in UIKit.buttons_in(root):
+		if b.is_visible_in_tree() and b.text.begins_with(prefix):
+			return b
+	return null
+
+
+## Waits s seconds of game time.
+func wait_seconds(s: float) -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
+
+
+## A real click: presses and releases mouse button at point at on main's viewport.
+func click_point(main: Node, at: Vector2, button := MOUSE_BUTTON_LEFT) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		event.position = at
+		event.global_position = at
+		main.get_viewport().push_input(event, true)
+
+
+## A real click at the centre of control (click_point).
+func click_control(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
+	click_point(main, control.get_global_rect().get_center(), button)
+
+
+## Opens uid's card details as one click on its view does, once the double-click window passes: no click, its
+## details_requested signal.
+func open_details(main: Node, uid: int) -> void:
+	var view: CardView = main.views[uid]
+	view.details_requested.emit(view)
+
+
+## The uid of Hills in e's tableau, or -1.
+func hills_of(e: GameEngine) -> int:
+	return uid_of(e.zone("tableau"), "hills")
 
 
 ## Opens the menu on main's game and presses its Settings (206): the Settings modal on top. Use with await.

@@ -32,10 +32,6 @@ func with_choice_coming(calm: bool, body: Callable) -> void:
 		Game.engine = real)
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
 ## Where the doors' inner edges are: [the left door's right edge, the right door's left edge].
 func edges(main: Node) -> Array[float]:
 	return [(main.doors.left as Control).get_global_rect().end.x, (main.doors.right as Control).get_global_rect().position.x]

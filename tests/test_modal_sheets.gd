@@ -17,22 +17,9 @@ const STACK := Vector2(8, 8)
 const MODAL_PATH := "res://ui/modal.gd"
 
 
-## Main at 1920×1080 on a seed-1 game. Free with close_main.
-func open_game() -> Node:
-	(Engine.get_main_loop() as SceneTree).root.size = Vector2i(1920, 1080)
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	return main
-
-
 ## Waits past a sheet's longest motion (the rise, Anim's 0.24 s).
 func wait_sheet() -> void:
 	await (Engine.get_main_loop() as SceneTree).create_timer(0.24 + 0.15).timeout
-
-
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
 
 
 ## The texts of the buttons in modal's footer, left to right.
@@ -104,29 +91,29 @@ func check_sheet(modal: Object, what: String, title: String, context: String, fo
 
 func test_card_details_is_a_sheet_titled_with_the_card_and_its_type() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		var card: CardInstance = Game.engine.zone("hand").cards[0]
 		main.details.open(main.views[card.uid])
 		await wait_sheet()
 		check_sheet(main.details, "card details", card.def.name, card.def.type.capitalize(),
 			["Close", "Play"] as Array[String])  # a hand card's details offer Play (225)
 		eq(accent_footer(main.details), ["Play"] as Array[String], "251: Play is the one primary")
-		close_main(main))
+		close_game(main))
 
 
 func test_the_civilization_modal_is_a_sheet() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		check_sheet(main.identity_modal, "civilization", "Civilization", "", ["Close"] as Array[String])
 		eq(accent_footer(main.identity_modal), [] as Array[String], "251: nothing to do, no primary")
-		close_main(main))
+		close_game(main))
 
 
 func test_the_event_modal_is_a_sheet_with_the_turn_as_context() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		for i in 10:
 			Game.engine.end_turn()
 			if not main.event_modal().is_empty() and main.event_option_buttons().is_empty():
@@ -138,12 +125,12 @@ func test_the_event_modal_is_a_sheet_with_the_turn_as_context() -> void:
 		var def: CardDef = Game.engine.card_db[main.event_modal().id]
 		check_sheet(modal, "event", def.name, "Turn %d" % Game.engine.turn, ["OK (Enter)"] as Array[String])
 		eq(accent_footer(modal), ["OK (Enter)"] as Array[String], "251: OK is the primary")
-		close_main(main))
+		close_game(main))
 
 
 func test_the_menu_is_a_sheet_on_the_modal_stack() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.open_menu()
 		await wait_sheet()
 		eq(main.modals.depth(), 1, "the menu is on main.modals")
@@ -152,7 +139,7 @@ func test_the_menu_is_a_sheet_on_the_modal_stack() -> void:
 		press_key(main, KEY_ESCAPE)
 		await wait_frames()
 		eq(main.modals.depth(), 0, "Esc closes it")
-		close_main(main))
+		close_game(main))
 
 
 func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
@@ -181,7 +168,7 @@ func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
 			main.get_viewport().push_input(event, true)
 		await wait_frames()
 		eq(main.modals.top(), sheet, "Esc and a click outside leave it open")
-		close_main(main))
+		close_game(main))
 
 
 # --- 251: the primary action in the signal colour ---
@@ -193,12 +180,12 @@ func test_a_primary_footer_button_wears_the_accent_look_and_the_others_stay_plai
 	var go := modal.add_footer_button(UIKit.button("Go", func(): pass), true)
 	eq(go.theme_type_variation, &"AccentButton", "the primary is an AccentButton")
 	eq(cancel.theme_type_variation, &"", "the other keeps the plain Button look")
-	close_main(main)
+	close_game(main)
 
 
 func test_settings_and_board_card_details_have_no_primary() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		await open_settings_modal(main)
 		check(main.settings_modal.is_open(), "precondition: Settings open")
 		eq(accent_footer(main.settings_modal), [] as Array[String], "Settings: no primary")
@@ -207,14 +194,14 @@ func test_settings_and_board_card_details_have_no_primary() -> void:
 		await wait_frames()
 		eq(footer_texts(main.details), ["Close"] as Array[String], "a board card's details: Close only")
 		eq(accent_footer(main.details), [] as Array[String], "a board card's details: no primary")
-		close_main(main))
+		close_game(main))
 
 
 # --- AC3: laid down ---
 
 func test_a_sheet_rises_into_place_and_its_scrim_fades_in() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		var modal: Object = main.identity_modal
 		eq(modal.sheet_offset(), Vector2(0, RISE), "starts 24 px below its place")
@@ -229,13 +216,13 @@ func test_a_sheet_rises_into_place_and_its_scrim_fades_in() -> void:
 		eq(modal.scrim_alpha(), 1.0, "the scrim in by 0.16 s")
 		check(modal.panel.get_global_rect().get_center().distance_to(main.get_viewport_rect().get_center()) <= 1.0,
 			"centred once in place")
-		close_main(main))
+		close_game(main))
 
 
 func test_with_reduce_motion_a_sheet_only_fades_in() -> void:
 	await with_temp_settings(func():
 		Settings.store.reduce_motion = true
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		var modal: Object = main.identity_modal
 		eq(modal.sheet_offset(), Vector2.ZERO, "no rise")
@@ -243,14 +230,14 @@ func test_with_reduce_motion_a_sheet_only_fades_in() -> void:
 		await wait_seconds(0.135)
 		eq(modal.sheet_alpha(), 1.0, "opaque by 0.12 s")
 		eq(modal.sheet_offset(), Vector2.ZERO, "never moved")
-		close_main(main))
+		close_game(main))
 
 
 # --- AC4: stacked ---
 
 func test_a_sheet_over_another_sits_8_8_from_it_and_rises_without_a_second_scrim_fade() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
@@ -262,14 +249,14 @@ func test_a_sheet_over_another_sits_8_8_from_it_and_rises_without_a_second_scrim
 		var shift: Vector2 = above.get_center() - main.get_viewport_rect().get_center()
 		check(shift.distance_to(STACK) <= 1.0, "+8,+8 from centre: %s" % shift)
 		check(below.get_center().distance_to(main.get_viewport_rect().get_center()) <= 1.0, "the one below stays centred")
-		close_main(main))
+		close_game(main))
 
 
 # --- AC5: lifted off ---
 
 func test_a_closing_sheet_drops_and_fades_while_the_one_below_takes_input() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
@@ -286,12 +273,12 @@ func test_a_closing_sheet_drops_and_fades_while_the_one_below_takes_input() -> v
 		eq(main.modals.depth(), 0, "Esc while it leaves closes the one below")
 		await wait_seconds(0.12)
 		check(not details.panel.is_visible_in_tree(), "gone by 0.16 s")
-		close_main(main))
+		close_game(main))
 
 
 func test_a_closed_sheet_ends_12_px_below_clear_and_comes_back_in_place() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		main.identity_modal.close()
@@ -302,12 +289,12 @@ func test_a_closed_sheet_ends_12_px_below_clear_and_comes_back_in_place() -> voi
 		await wait_sheet()
 		main.identity_modal.open()
 		eq(main.identity_modal.sheet_offset(), Vector2(0, RISE), "reopened: rises from 24 px again")
-		close_main(main))
+		close_game(main))
 
 
 func test_closing_several_sheets_at_once_lifts_them_together() -> void:
 	await with_temp_settings(func():
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		main.details.open_def(Game.engine.zone("hand").cards[0].def.id)
@@ -319,13 +306,13 @@ func test_closing_several_sheets_at_once_lifts_them_together() -> void:
 		check(main.identity_modal.sheet_offset().y > 0.0 and main.details.sheet_offset().y > 0.0, "both dropping")
 		await wait_seconds(0.12)
 		check(not main.identity_modal.panel.is_visible_in_tree() and not main.details.panel.is_visible_in_tree(), "both gone")
-		close_main(main))
+		close_game(main))
 
 
 func test_with_reduce_motion_a_closing_sheet_only_fades() -> void:
 	await with_temp_settings(func():
 		Settings.store.reduce_motion = true
-		var main: Node = await open_game()
+		var main: Node = await open_game(true)
 		main.identity_modal.open()
 		await wait_sheet()
 		main.identity_modal.close()
@@ -334,4 +321,4 @@ func test_with_reduce_motion_a_closing_sheet_only_fades() -> void:
 		check(main.identity_modal.sheet_alpha() < 1.0, "fading")
 		await wait_sheet()
 		check(not main.identity_modal.panel.is_visible_in_tree(), "gone")
-		close_main(main))
+		close_game(main))

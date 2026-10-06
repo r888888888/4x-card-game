@@ -28,14 +28,6 @@ func close_at_1080(main: Node) -> void:
 	(Engine.get_main_loop() as SceneTree).root.size = _old_window_size
 
 
-## The first button under root that is visible on screen and whose text starts with prefix, or null.
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
-
-
 ## The first label under root that is visible on screen and whose text starts with prefix, or null.
 func shown_label(root: Node, prefix: String) -> Label:
 	for node in root.find_children("*", "Label", true, false):

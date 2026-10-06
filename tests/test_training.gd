@@ -37,11 +37,6 @@ func training_engine(home_pop := 3) -> GameEngine:
 	return e
 
 
-## Hills' uid in e's tableau.
-func hills_of(e: GameEngine) -> int:
-	return uid_of(e.zone("tableau"), "hills")
-
-
 ## The first Levy's uid in e's tableau.
 func levy_of(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "levy")

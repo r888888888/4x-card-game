@@ -67,11 +67,6 @@ func raid_setup(e: GameEngine, ids_on_top: Array) -> void:
 	arrange(e.zone("event_deck"), ids_on_top)
 
 
-## Hills' uid in e's tableau.
-func hills_of(e: GameEngine) -> int:
-	return uid_of(e.zone("tableau"), "hills")
-
-
 ## The uid of the active event id, or -1.
 func active_uid(e: GameEngine, id: String) -> int:
 	return uid_of(e.zone("active_events"), id)

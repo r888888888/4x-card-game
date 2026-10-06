@@ -8,26 +8,8 @@ extends "res://tests/lib/test_case.gd"
 ## Log button and its pulse (121); uses `main.log_drawer` (`is_open()`, `text()`)
 
 
-## The first visible button under root whose text starts with prefix, or null.
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
-
-
 func drawer_rect(main: Node) -> Rect2:
 	return (main.log_drawer as Control).get_global_rect()
-
-
-func click_at(main: Node, point: Vector2) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.position = point
-		event.global_position = point
-		event.pressed = pressed
-		main.get_viewport().push_input(event)
 
 
 # --- AC5: the drawer ---
@@ -86,7 +68,7 @@ func test_the_log_button_esc_and_a_click_outside_close_it() -> void:
 		check(not main.menu_buttons()[0].is_visible_in_tree(), "Esc doesn't also open the menu")
 		press_key(main, KEY_L)
 		await wait_screen_transition()
-		click_at(main, Vector2(100, 500))  # on the board, left of the drawer
+		click_point(main, Vector2(100, 500))  # on the board, left of the drawer
 		check(not drawer.is_open(), "a click outside closes it"))
 
 

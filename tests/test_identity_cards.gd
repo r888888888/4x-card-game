@@ -17,17 +17,6 @@ func open_sumer() -> Node:
 	return main
 
 
-## Pushes a left click at the centre of control on main's viewport.
-func click(main: Node, control: Control) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = pressed
-		event.position = control.get_global_rect().get_center()
-		event.global_position = event.position
-		main.get_viewport().push_input(event, true)
-
-
 ## What card_details of the card in zone_name says, as the lines a card shows: name, type line, rules, state, flavor.
 func expected_lines(zone_name: String) -> Array[String]:
 	var e := Game.engine
@@ -97,7 +86,7 @@ func test_a_click_on_a_card_opens_its_details_on_top() -> void:
 
 func test_a_click_on_revolt_opens_the_confirmation_not_the_details() -> void:
 	var main: Node = await open_sumer()
-	click(main, main.identity_modal.revolt_button)
+	click_control(main, main.identity_modal.revolt_button)
 	await wait_frames()
 	eq(main.modals.top(), main.revolt_modal, "the revolution's confirmation")
 	eq(main.modals.depth(), 2, "and nothing else")

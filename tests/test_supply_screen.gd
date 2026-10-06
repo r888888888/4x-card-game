@@ -107,17 +107,6 @@ func test_pile_cards_share_the_height_of_the_tallest() -> void:
 
 # --- 258: a click outside the panel closes the screen ---
 
-## A left click (press and release) at viewport position at in main.
-func click_at(main: Node, at: Vector2) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.position = at
-		event.global_position = at
-		event.pressed = pressed
-		main.get_viewport().push_input(event, true)  # viewport coordinates, not the window's
-
-
 ## The far corner of main's viewport, outside any panel.
 func corner(main: Node) -> Vector2:
 	return main.get_viewport().get_visible_rect().end - Vector2(5, 5)
@@ -127,14 +116,14 @@ func test_a_click_outside_the_panel_closes_the_supply() -> void:
 	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
 		var closed := [false]
 		main.supply.closed.connect(func(): closed[0] = true)
-		click_at(main, corner(main))
+		click_point(main, corner(main))
 		check(not main.supply.is_open(), "the screen is closed")
 		check(closed[0], "closed is emitted"))
 
 
 func test_a_click_inside_the_panel_keeps_the_supply_open() -> void:
 	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
-		click_at(main, main.supply.counter(GameEngine.WEALTH).get_global_rect().get_center())
+		click_point(main, main.supply.counter(GameEngine.WEALTH).get_global_rect().get_center())
 		check(main.supply.is_open(), "a click on the panel's Wealth counter leaves it open"))
 
 
@@ -143,7 +132,7 @@ func test_a_click_outside_a_details_modal_closes_only_the_modal() -> void:
 		main.details.open(views[0])
 		await wait_frames()
 		check(not main.details.shown().is_empty(), "the details modal is open")
-		click_at(main, corner(main))
+		click_point(main, corner(main))
 		check(main.details.shown().is_empty(), "the details modal closes")
 		check(main.supply.is_open(), "the supply stays open"))
 
@@ -159,7 +148,7 @@ func discarded(id: String) -> int:
 func test_a_click_on_a_pile_opens_its_details_and_buys_nothing() -> void:
 	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
 		var before := discarded("obelisk")
-		click_at(main, views[0].get_global_rect().get_center())
+		click_point(main, views[0].get_global_rect().get_center())
 		await wait_frames()
 		eq(main.details.shown().get("name", ""), "Obelisk", "the pile's details are on show")
 		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent")

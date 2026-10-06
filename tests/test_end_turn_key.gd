@@ -11,7 +11,6 @@ extends "res://tests/lib/test_case.gd"
 
 const TOLERANCE := 1.0
 
-var _old_window_size := Vector2i.ZERO
 
 
 ## Runs body(main) on main at 1920×1080 on engine (the real data's when null), started on seed 1; then closes main and
@@ -35,10 +34,6 @@ func with_key_game(engine: GameEngine, body: Callable) -> void:
 ## The sidebar's End turn key, or null (read by name, so a test fails cleanly before it exists).
 func key(main: Node) -> Button:
 	return main.sidebar.get("end_turn")
-
-
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
 
 
 # --- AC1: the key at the sidebar's foot ---

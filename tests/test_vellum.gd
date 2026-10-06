@@ -24,21 +24,6 @@ func with_two_targets(calm: bool, body: Callable) -> void:
 			await body.call(main, temple, targets)))
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
-## A real press and release of button at point.
-func click_at(main: Node, point: Vector2, button := MOUSE_BUTTON_LEFT) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = button
-		event.pressed = pressed
-		event.position = point
-		event.global_position = point
-		main.get_viewport().push_input(event, true)
-
-
 func vellum_shown(main: Node) -> bool:
 	return (main.vellum as Control).is_visible_in_tree()
 
@@ -102,7 +87,7 @@ func test_a_click_on_a_non_target_card_reaches_only_the_vellum() -> void:
 		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_seconds(WIPE_IN + SLACK)
 		var before := e.zone("hand").cards.size()
-		click_at(main, (main.views[other] as CardView).get_global_rect().get_center())
+		click_point(main, (main.views[other] as CardView).get_global_rect().get_center())
 		await wait_seconds(Anim.DETAILS_CLICK_DELAY + 0.1)
 		eq(e.zone("hand").cards.size(), before, "nothing played")
 		check(main.drag.targeting == null, "the click on the vellum cancelled targeting")
@@ -122,9 +107,9 @@ func test_esc_right_click_or_a_click_on_the_vellum_cancel_and_wipe_it_off() -> v
 				"esc":
 					press_key(main, KEY_ESCAPE)
 				"right":
-					click_at(main, empty, MOUSE_BUTTON_RIGHT)
+					click_point(main, empty, MOUSE_BUTTON_RIGHT)
 				"vellum":
-					click_at(main, empty)
+					click_point(main, empty)
 			await wait_frames()
 			check(main.drag.targeting == null, "%s: targeting ended" % way)
 			check(e.zone("hand").find(temple) != null, "%s: the Temple is back in the hand" % way)
