@@ -22,12 +22,10 @@ Exit code 0 means green.
 
 **Speed (223).** The suite takes ~10 s on a 12-core Mac (~39 s serial). Godot's start costs ~3 s per shard, and the
 slowest file, `test_generic_bot_cache.gd` (~5 s of bot games), sets the critical path. Three settings make it fast:
-- The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
-  `TEST_JOBS=1` runs serially). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
-  the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`
-  (no `//` in its path, 330), so no two share `user://`
-  and a run never touches the player's settings. Tests must not depend on which other files ran before them in the
-  same process.
+- The test files run in parallel shards, one Godot process per CPU (`TEST_JOBS=n` to change it; 1 runs serially).
+  Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, `TEST_SHARD=i/n`); the script sums the counts. Each
+  shard has its own empty `HOME` (no `//` in its path, 330), so no two share `user://` and a run never touches the
+  player's settings. Tests must not depend on which files ran before them.
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
   frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
   frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.
@@ -266,12 +264,12 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 before the first test so the `Game` and `Settings` autoloads are in the tree and ready. Otherwise no frames run unless
 a test awaits them, so UI tests see structure (views, labels, overlays), never finished animations. The runner
 awaits every test: a UI test that measures laid-out sizes or positions calls `await wait_frames()` first (088).
-Minimum sizes before a layout pass are meaningless. After each test the runner frees anything the test left in the
+After each test the runner frees anything the test left in the
 tree (a UI test that crashed before `close_main`), so one crash doesn't fail every later UI test (087).
-Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, Day mode
-and Reduce motion off), so the player's own settings never change a result; after the run it prints a `WARN` line (not a
-failure) if the player's `user://settings.cfg` changed (195, 196: `tests/lib/settings_watch.gd`), since a game running
-beside the suite may have saved it. A test that needs a setting on uses `with_temp_settings` or `with_reduce_motion`.
+Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, its
+defaults), so the player's settings never change a result; it prints a `WARN` line if the player's
+`user://settings.cfg` changed during the run (195, 196: `tests/lib/settings_watch.gd`). A test that needs a setting on
+uses `with_temp_settings` or `with_reduce_motion`.
 
 ### Available in every test (`tests/lib/test_case.gd`)
 
@@ -321,10 +319,13 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | An object's script variables; shared references; change everything in place |
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
+| `open_game(big, freeze_sfx)` / `close_game(main)` | UI tests: main on seed 1 (1920 × 1080, the sound clock frozen, if asked) (334) |
+| `click_control(main, c)` / `click_point(main, at)` / `open_details(main, uid)` | UI tests: real clicks; a card's details, no click |
+| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | The first shown button by text; game seconds; Hills' uid |
 
-Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
-writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase, and the suite fails on one left after it (333). Two files'
-helpers with the same name must do the same thing. Tests never call engine members that start with `_`: if setup needs one, add a public method.
+A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
+Helpers take and return `GameEngine` (the suite fails on an engine typed `Object`, 333). Tests never call engine
+members that start with `_`: if setup needs one, add a public method.
 
 ### Guidelines
 

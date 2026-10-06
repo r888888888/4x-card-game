@@ -109,6 +109,7 @@ in a dedicated balance item, or when the user asks.
   the item's Manual check.
 - Before writing a helper, check `tests/lib/test_case.gd` and `tests/lib/tech_case.gd`. Tests never call
   engine members that start with `_`.
+- A helper a second test file needs moves to `tests/lib/` (the suite checks copies of shared helpers).
 - Assert on state and return values (zones, resources, score, signals), not on log text,
   unless the log text is the behavior.
 - Details: [docs/testing.md](docs/testing.md).

@@ -19,11 +19,6 @@ for f in tests/test_*.gd; do printf '%4d  %s\n' "$(grep -c '^func test_' "$f")" 
 section "Helpers defined in more than one test file (same name; check they behave the same)"
 grep -ho '^func [a-z][a-z0-9_]*' tests/test_*.gd | grep -v 'func test_' | sort | uniq -c | awk '$1 > 1' | sort -rn
 
-section "Helpers in test files that already exist in tests/lib/"
-for name in $(grep -ho '^func [a-z][a-z0-9_]*' tests/lib/*.gd | awk '{print $2}' | sort -u); do
-	grep -l "^func $name(" tests/test_*.gd 2>/dev/null | sed "s/^/$name: /"
-done
-
 section "Tests calling private engine members"
 grep -n '\._[a-z]' tests/test_*.gd tests/lib/*.gd | grep -v '^\s*#' | head -20
 
