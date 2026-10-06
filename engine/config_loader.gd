@@ -155,6 +155,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 			errs.append("event_deck: '%s' is the famine card (it comes from hunger, never from the deck)" % famine)
 	config.unrest = _parse_unrest(raw.unrest, config, cards, errs, warnings, src) if raw.has("unrest") else {}
 	_check_tolerates(config.population.get("tiers", []), cards, errs, warnings, src)
+	_check_building_tiers(config.population.get("tiers", []), cards, errs, warnings, src)
 
 	for key in raw:
 		if not CONFIG_FIELDS.has(key):
@@ -301,6 +302,23 @@ static func _check_tolerates(tiers: Array, cards: Dictionary, errs: Array[String
 			errs.append("card '%s': 'tolerates' '%s' is not a tier id in population.tiers" % [id, def.tolerates])
 		else:
 			def.tolerates_name = found[0].name
+
+
+## Each building's tier (301) names a tier in population.tiers, whose name it takes; with tiers off it is ignored.
+static func _check_building_tiers(tiers: Array, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> void:
+	for id in cards:
+		var def: CardDef = cards[id]
+		def.tier_name = ""
+		if def.tier == "":
+			continue
+		if tiers.is_empty():
+			warnings.append("%s: card '%s': 'tier' needs population.tiers (ignored)" % [src, id])
+			continue
+		var found := tiers.filter(func(t): return t.id == def.tier)
+		if found.is_empty():
+			errs.append("card '%s': tier: unknown tier '%s'" % [id, def.tier])
+		else:
+			def.tier_name = found[0].name
 
 
 ## Each listed (or starting) civilization's start buildings (133) must meet its home's keywords and fit its slots (the

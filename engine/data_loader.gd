@@ -34,6 +34,7 @@ const TYPE_FIELDS := {
 	"administers": [CardDef.GOVERNMENT],
 	"project": [CardDef.BUILDING],
 	"upgrade_of": [CardDef.BUILDING],
+	"tier": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
 }
@@ -356,6 +357,7 @@ static func _parse_card(c: Dictionary, ctx: Dictionary, errs: Array[String], war
 		if def.project and not (def.cost.size() == 1 and def.cost.get(GameEngine.WEALTH, 0) >= 1):
 			errs.append("project: its cost must be wealth only, at least 1 (like {\"wealth\": 30})")
 		def.upgrade_of = Fields.read_string(c, "upgrade_of", errs, [], "")
+		def.tier = Fields.read_string(c, "tier", errs, [], "")
 		if def.project and def.upgrade_of != "":
 			errs.append(UPGRADE_PROJECT_ERROR)
 		if def.project and not def.cost_per_territory.is_empty():
