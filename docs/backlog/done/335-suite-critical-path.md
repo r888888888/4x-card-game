@@ -2,7 +2,7 @@
 id: 335
 title: Shorten the suite's critical path: fewer bot games in the cache tests, slow files dealt first
 type: chore
-status: review
+status: done
 branch: feat/335-suite-critical-path
 ---
 
