@@ -37,10 +37,6 @@ func key(main: Node) -> Button:
 	return main.sidebar.get("end_turn")
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
 # --- AC1: the key at the sidebar's foot ---
 
 func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:

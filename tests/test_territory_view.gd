@@ -17,12 +17,6 @@ extends "res://tests/lib/test_case.gd"
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 
 
-## A single click on uid's card view (a Realm card sends details_requested once the double-click window passes).
-func click(main: Node, uid: int) -> void:
-	var view: CardView = main.views[uid]
-	view.details_requested.emit(view)
-
-
 ## The uids of territory uid's group (engine order: the territory, then its city and buildings).
 func group_cards(uid: int) -> Array[int]:
 	var out: Array[int] = []
@@ -67,7 +61,7 @@ func test_clicking_a_territory_opens_its_view_in_place_of_the_realm() -> void:
 		build_on(e, uid_of(e.zone("tableau"), "grassland"), ["farm"])
 		e.changed.emit()  # build_on and settle bypass the actions that refresh the board
 		await wait_frames()
-		click(main, home)
+		open_details(main, home)
 		await wait_frames()
 		var view: Object = main.territory_view
 		check(view.is_open(), "the view is open")
@@ -85,10 +79,10 @@ func test_clicking_a_city_or_building_still_shows_its_details() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
-		click(main, home)  # 102: a city has a card only in its territory's view
+		open_details(main, home)  # 102: a city has a card only in its territory's view
 		await wait_frames()
 		var capital := uid_of(e.zone("tableau"), "capital")
-		click(main, capital)
+		open_details(main, capital)
 		await wait_frames()
 		eq(main.territory_view.uid, home, "still the home territory's view")
 		eq(main.details.shown().get("name", ""), "Capital", "the Capital's details"))
@@ -102,7 +96,7 @@ func test_the_view_shows_slots_and_pop() -> void:
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
 		e.changed.emit()
-		click(main, home)
+		open_details(main, home)
 		await wait_frames()
 		var view: Object = main.territory_view
 		var stats: String = view.stats_text()
@@ -114,7 +108,7 @@ func test_the_view_shows_slots_and_pop() -> void:
 
 func test_without_population_there_is_no_pop_stat() -> void:
 	await with_territories_main(func(main: Node):
-		click(main, home_uid(Game.engine))
+		open_details(main, home_uid(Game.engine))
 		await wait_frames()
 		var view: Object = main.territory_view
 		var home := home_uid(Game.engine)
@@ -128,7 +122,7 @@ func test_back_and_esc_return_to_the_realm() -> void:
 	await with_territories_main(func(main: Node):
 		var home := home_uid(Game.engine)
 		for way in ["back", "esc"]:
-			click(main, home)
+			open_details(main, home)
 			await wait_frames()
 			check(main.territory_view.is_open(), "%s: open" % way)
 			if way == "back":
@@ -146,11 +140,11 @@ func test_back_and_esc_return_to_the_realm() -> void:
 func test_restart_new_game_and_game_over_close_the_view() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
-		click(main, home_uid(e))
+		open_details(main, home_uid(e))
 		main.start_game(2)
 		check(not main.territory_view.is_open(), "a new game closes it")
 		check(shown(main.tableau), "the Realm is shown")
-		click(main, home_uid(e))
+		open_details(main, home_uid(e))
 		check(main.territory_view.is_open(), "open again")
 		while not e.is_over:
 			e.end_turn()
@@ -166,7 +160,7 @@ func test_a_drop_anywhere_on_the_view_targets_its_territory() -> void:
 		settle(e, ["grassland"])
 		var grass := uid_of(e.zone("tableau"), "grassland")
 		e.changed.emit()
-		click(main, grass)
+		open_details(main, grass)
 		await wait_frames()
 		var view: Control = main.territory_view
 		var rect := view.get_global_rect()
@@ -183,7 +177,7 @@ func test_double_clicking_a_building_plays_it_onto_the_viewed_territory() -> voi
 		var grass := uid_of(e.zone("tableau"), "grassland")
 		var temple := put_in_hand(e, "temple")
 		e.changed.emit()
-		click(main, grass)
+		open_details(main, grass)
 		await wait_frames()
 		check(main.territory_view.is_open(), "Grassland's view is open")
 		check(e.needs_target_choice(temple), "Temple could go on either territory")
@@ -205,7 +199,7 @@ func test_double_clicking_a_building_the_viewed_territory_cannot_take_says_why()
 		var well := put_in_hand(e, "well")  # needs Fresh Water, which Grassland lacks
 		e.resources.food = 5
 		e.changed.emit()
-		click(main, grass)
+		open_details(main, grass)
 		await wait_frames()
 		check(main.territory_view.is_open(), "Grassland's view is open")
 		var reason := e.play_error(well, grass)
@@ -293,7 +287,7 @@ func test_keys_in_the_view_move_through_its_cards_show_details_and_esc_closes() 
 
 func open_home(main: Node) -> int:
 	var home := home_uid(Game.engine)
-	click(main, home)
+	open_details(main, home)
 	await wait_screen_transition()
 	return home
 
@@ -391,7 +385,7 @@ func test_opening_shows_the_cards_at_once_without_a_bounce() -> void:
 		build_on(e, home, ["farm"])
 		e.changed.emit()
 		await wait_frames()
-		click(main, home)
+		open_details(main, home)
 		for uid in main.territory_view.card_uids():
 			var v: CardView = main.views.get(uid)
 			check(v != null, "card %d has a view at once" % uid)
@@ -407,7 +401,7 @@ func test_closing_removes_the_cards_at_once() -> void:
 		var home := home_uid(e)
 		build_on(e, home, ["farm"])
 		e.changed.emit()
-		click(main, home)
+		open_details(main, home)
 		await wait_screen_transition()
 		var shown: Array[int] = main.territory_view.card_uids()
 		main.territory_view.back_button.pressed.emit()
@@ -425,7 +419,7 @@ func test_a_card_played_in_the_view_still_flies_in() -> void:
 		var temple := put_in_hand(e, "temple")
 		e.changed.emit()
 		await wait_frames()
-		click(main, home)
+		open_details(main, home)
 		await wait_screen_transition()
 		main.card_actions.on_double_clicked(main.views[temple])
 		eq(main.views[temple].state, CardView.State.FLYING, "the Temple flies to its slot"))
@@ -491,10 +485,6 @@ func mouse_move(main: Node, point: Vector2, held := true) -> void:
 	event.global_position = point
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
 	main.get_viewport().push_input(event, true)
-
-
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
 
 
 ## Clicks point with the home territory's view open and checks it closed with one NAV_BACK.

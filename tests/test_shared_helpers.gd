@@ -52,28 +52,28 @@ func test_no_test_file_defines_a_shared_ui_helper_or_click() -> void:
 # --- AC1: open_game and close_game ---
 
 func test_open_game_starts_seed_1_and_close_game_frees_main() -> void:
-	var main: Node = await call("open_game")
+	var main := await open_game()
 	eq(Game.engine.turn, 1, "a game on turn 1")
 	check(main.is_inside_tree(), "main in the tree")
-	call("close_game", main)
+	close_game(main)
 	check(not is_instance_valid(main), "main freed")
 
 
 func test_open_game_big_is_1920_by_1080_and_close_game_restores_the_window() -> void:
 	var window := (Engine.get_main_loop() as SceneTree).root
 	var before := window.size
-	var main: Node = await call("open_game", true)
+	var main := await open_game(true)
 	eq(window.size, Vector2i(1920, 1080), "1920 × 1080 while open")
-	call("close_game", main)
+	close_game(main)
 	eq(window.size, before, "the window's size back")
 
 
 func test_open_game_freezes_the_sound_clock_when_asked() -> void:
-	var main: Node = await call("open_game", false, true)
+	var main := await open_game(false, true)
 	eq(main.sfx.clock(), 0.0, "the clock at 0")
 	await wait_frames()
 	eq(main.sfx.clock(), 0.0, "and held there")
-	call("close_game", main)
+	close_game(main)
 
 
 # --- AC2: the two meanings of click ---
@@ -94,7 +94,7 @@ func test_click_control_presses_and_releases_at_the_controls_centre() -> void:
 	var main := open_main()
 	var probe := pressable(main)
 	await wait_frames()
-	call("click_control", main, probe[0])
+	click_control(main, probe[0])
 	eq(probe[1][0], 1, "one press")
 	close_main(main)
 
@@ -103,21 +103,21 @@ func test_click_point_presses_and_releases_at_a_point() -> void:
 	var main := open_main()
 	var probe := pressable(main)
 	await wait_frames()
-	call("click_point", main, (probe[0] as Button).get_global_rect().get_center())
+	click_point(main, (probe[0] as Button).get_global_rect().get_center())
 	eq(probe[1][0], 1, "one press")
-	call("click_point", main, Vector2(5, 5))
+	click_point(main, Vector2(5, 5))
 	eq(probe[1][0], 1, "a click elsewhere presses nothing")
 	close_main(main)
 
 
 func test_open_details_sends_a_cards_details_requested() -> void:
-	var main: Node = await call("open_game")
+	var main := await open_game()
 	var uid: int = Game.engine.zone("hand").cards[0].uid
 	var asked := []
 	(main.views[uid] as CardView).details_requested.connect(func(v: CardView): asked.append(v.uid))
-	call("open_details", main, uid)
+	open_details(main, uid)
 	eq(asked, [uid], "details_requested for uid")
-	call("close_game", main)
+	close_game(main)
 
 
 # --- AC3: no copies of a shared helper ---

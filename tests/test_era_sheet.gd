@@ -11,10 +11,6 @@ const BOTH_ERAS := {"era_unlocks": {"2": {"wealth": 50}, "3": {"wealth": 50}}}
 const ERA_2 := {"era_unlocks": {"2": {"wealth": 50}}}
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
 ## Runs body(main, e) on the event game with overrides, Reduce motion calm or not; main open and started on seed 1.
 func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 	await with_reduce_motion(calm, func():
@@ -40,16 +36,6 @@ func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 func reach_new_era(e: GameEngine) -> void:
 	e.resources[GameEngine.WEALTH] = 50
 	e.end_turn()
-
-
-func click(main: Node, at := Vector2(20, 20)) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = pressed
-		event.position = at
-		event.global_position = at
-		main.get_viewport().push_input(event, true)
 
 
 # --- AC1: the sheet ---
@@ -107,12 +93,12 @@ func test_a_click_skips_to_the_end_and_a_second_closes_it() -> void:
 	await with_era_game(false, ERA_2, func(main: Node, e: GameEngine):
 		reach_new_era(e)
 		await wait_frames()
-		click(main)
+		click_point(main, Vector2(20, 20))
 		await wait_frames()
 		check(main.era_sheet.finished(), "skipped to its end")
 		eq(main.era_sheet.era_text(), e.era_name(e.era()), "the whole name")
 		check(main.era_sheet.is_open(), "still open")
-		click(main)
+		click_point(main, Vector2(20, 20))
 		await wait_frames()
 		check(not main.era_sheet.is_open(), "closing")
 		await wait_seconds(0.16 + SLACK)

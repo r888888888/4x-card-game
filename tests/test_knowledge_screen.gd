@@ -167,17 +167,6 @@ func learned(e: GameEngine, id: String) -> bool:
 	return e.zone("researched").cards.any(func(c): return c.def.id == id)
 
 
-## Pushes a press of mouse button at the centre of control on main's viewport.
-func click(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = button
-		event.pressed = pressed
-		event.position = control.get_global_rect().get_center()
-		event.global_position = event.position
-		main.get_viewport().push_input(event, true)
-
-
 func test_a_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
 	await with_tree(func(main: Node):
 		var e := Game.engine
@@ -357,7 +346,7 @@ func test_a_click_on_a_tile_that_isnt_available_opens_its_details() -> void:
 func test_a_right_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
 	await with_tree(func(main: Node):
 		await wait_screen_transition()
-		click(main, tile(main, "Writing"), MOUSE_BUTTON_RIGHT)
+		click_control(main, tile(main, "Writing"), MOUSE_BUTTON_RIGHT)
 		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
 		check(not learned(Game.engine, "writing"), "not learned"))
 
@@ -461,7 +450,7 @@ func test_a_future_era_is_under_vellum_with_its_unlocks() -> void:
 		var optics: Button = tile(main, "Optics")
 		check(vellum.get_global_rect().encloses(optics.get_global_rect()), "it covers the era's tiles")
 		eq(main.knowledge.era_heading(1).get_parent().modulate, Color.WHITE, "the row isn't dimmed")
-		click(main, optics)
+		click_control(main, optics)
 		eq(main.details.shown(), {}, "a click on the vellum opens nothing"))
 
 
@@ -809,7 +798,7 @@ func test_a_left_click_outside_the_screen_closes_it_and_does_nothing_else() -> v
 			return
 		var in_hand: int = main.hand_view_count()
 		check(not main.knowledge.get_global_rect().intersects(card.get_global_rect()), "the hand card is outside the sheet")
-		click(main, card)
+		click_control(main, card)
 		check(not main.knowledge.is_open(), "a click on the hand closes the screen")
 		await wait_details_delay()
 		eq(main.details.shown(), {}, "the click opens no card's details")
@@ -827,22 +816,22 @@ func test_a_click_inside_the_screen_leaves_it_open() -> void:
 		check(insight != null, "the Insight line")
 		if insight == null:
 			return
-		click(main, insight)
+		click_control(main, insight)
 		check(main.knowledge.is_open(), "a click on the sheet's background leaves it open")
-		click(main, main.knowledge.era_heading(0))
+		click_control(main, main.knowledge.era_heading(0))
 		check(main.knowledge.is_open(), "a click on an era's title leaves it open"))
 
 
 func test_a_click_outside_a_tech_details_modal_closes_only_the_modal() -> void:
 	await with_tree(func(main: Node):
 		await wait_screen_transition()
-		click(main, tile(main, "Pottery"))
+		click_control(main, tile(main, "Pottery"))
 		eq(main.details.shown().get("name", ""), "Pottery", "Pottery's details")
 		await wait_screen_transition()
 		var card := first_hand_card(main)
 		if card == null:
 			return
-		click(main, card)
+		click_control(main, card)
 		eq(main.details.shown(), {}, "the click closes the details")
 		check(main.knowledge.is_open(), "the screen stays open"))
 
@@ -857,7 +846,7 @@ func test_a_right_click_outside_the_screen_leaves_it_open() -> void:
 		check(heading != null, "the In Hand heading")
 		if heading == null:
 			return
-		click(main, heading, MOUSE_BUTTON_RIGHT)
+		click_control(main, heading, MOUSE_BUTTON_RIGHT)
 		check(main.knowledge.is_open(), "a right click outside leaves it open"))
 
 
@@ -868,6 +857,6 @@ func test_a_click_on_the_hand_works_as_before_once_the_screen_is_closed_or_leavi
 		var card := first_hand_card(main)
 		if card == null:
 			return
-		click(main, card)
+		click_control(main, card)
 		await wait_details_delay()
 		eq(main.details.shown().get("name", ""), Game.engine.def_details(card.card_id).get("name", "?"), "the click shows the card's details"))

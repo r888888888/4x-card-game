@@ -6,30 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const HOVER := Sfx.HOVER
 const GAP := Sfx.HOVER_GAP
 
-var _old_window_size := Vector2i.ZERO
-
-
-func open_game() -> Node:
-	var window := (Engine.get_main_loop() as SceneTree).root
-	_old_window_size = window.size
-	window.size = Vector2i(1920, 1080)
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	main.sfx.set_clock(0.0)
-	return main
-
-
-func close_game(main: Node) -> void:
-	close_main(main)
-	(Engine.get_main_loop() as SceneTree).root.size = _old_window_size
-
-
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
 
 
 func move_mouse(main: Node, at: Vector2, held := false) -> void:
@@ -75,7 +51,7 @@ func test_the_hover_token_is_a_level_1_sound() -> void:
 
 
 func test_entering_an_enabled_button_ticks_once_and_quietly() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	move_mouse(main, centre(shown_button(main, "Log")))
 	await wait_frames()
@@ -89,7 +65,7 @@ func test_entering_an_enabled_button_ticks_once_and_quietly() -> void:
 # --- AC2: cards ---
 
 func test_entering_a_hand_card_ticks() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	await wait_frames(240)  # the deal lands
 	var card: CardView = main.views_in(main.hand)[0]
@@ -100,7 +76,7 @@ func test_entering_a_hand_card_ticks() -> void:
 
 
 func test_a_display_only_card_is_silent() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	var slot := Control.new()
 	slot.custom_minimum_size = CardView.HAND_SIZE
@@ -123,7 +99,7 @@ func test_a_display_only_card_is_silent() -> void:
 # --- AC3: disabled ---
 
 func test_a_disabled_button_is_silent_on_hover() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	var locked := late_button(main, true)
 	await wait_frames()
@@ -136,7 +112,7 @@ func test_a_disabled_button_is_silent_on_hover() -> void:
 # --- AC4: once per entry, with a gap ---
 
 func test_moving_within_and_leaving_do_not_tick_again_and_a_fresh_entry_does() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	var log_button := shown_button(main, "Log")
 	var c := centre(log_button)
@@ -156,7 +132,7 @@ func test_moving_within_and_leaving_do_not_tick_again_and_a_fresh_entry_does() -
 
 
 func test_a_re_entry_inside_the_gap_is_dropped() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	var c := centre(shown_button(main, "Log"))
 	move_mouse(main, c)
@@ -176,7 +152,7 @@ func test_a_re_entry_inside_the_gap_is_dropped() -> void:
 # --- AC5: held mouse ---
 
 func test_entering_a_button_with_the_mouse_held_is_silent() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	move_mouse(main, centre(shown_button(main, "Log")), true)
 	await wait_frames()
@@ -187,7 +163,7 @@ func test_entering_a_button_with_the_mouse_held_is_silent() -> void:
 # --- AC6: late buttons ---
 
 func test_a_button_added_later_ticks() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	var late := late_button(main)
 	await wait_frames()
@@ -200,7 +176,7 @@ func test_a_button_added_later_ticks() -> void:
 # --- AC7: gives way ---
 
 func test_hover_gives_way_to_a_level_3_event() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(true, true)
 	away(main)
 	main.sfx.play(Sfx.MILESTONE_ERA)
 	move_mouse(main, centre(shown_button(main, "Log")))

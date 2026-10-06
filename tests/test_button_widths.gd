@@ -21,14 +21,6 @@ func close_at_1080(main: Node) -> void:
 	(Engine.get_main_loop() as SceneTree).root.size = _old_window_size
 
 
-## The first button under root that is visible on screen and whose text starts with prefix, or null.
-func shown_button(root: Node, prefix: String) -> Button:
-	for b in UIKit.buttons_in(root):
-		if b.is_visible_in_tree() and b.text.begins_with(prefix):
-			return b
-	return null
-
-
 ## Checks that b is only as wide as its text and padding.
 func check_fits(b: Button, what: String) -> void:
 	check(b != null, "%s: a button" % what)

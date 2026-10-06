@@ -19,12 +19,6 @@ func realm_uids(main: Node) -> Array[int]:
 	return out
 
 
-## A single click on uid's card view (the details_requested signal a Realm card sends after one click).
-func click(main: Node, uid: int) -> void:
-	var view: CardView = main.views[uid]
-	view.details_requested.emit(view)
-
-
 ## Waits until cards have popped in and flown to their slots (so their rects are laid out).
 func settle_motion() -> void:
 	await (Engine.get_main_loop() as SceneTree).create_timer(0.8).timeout
@@ -51,7 +45,7 @@ func test_the_realm_shows_one_card_per_territory() -> void:
 			eq((main.views[uid] as CardView).slot_size(), CardView.BOARD_SIZE, "territory %d at board size (138)" % uid)
 		for id in ["capital", "farm"]:
 			check(not main.views.has(uid_of(e.zone("tableau"), id)), "no view for the %s" % id)
-		click(main, home)
+		open_details(main, home)
 		await wait_frames()
 		for id in ["capital", "farm"]:
 			check(main.views.has(uid_of(e.zone("tableau"), id)), "the %s has a view in the territory view" % id)
@@ -193,7 +187,7 @@ func test_settling_adds_a_territory_card_that_opens_with_its_city() -> void:
 		await wait_frames()
 		eq(realm_uids(main), [home, grass] as Array[int], "a new card for Grassland")
 		check(main.views[grass].face_text().contains("▢ "), "with its live line (123)")
-		click(main, grass)
+		open_details(main, grass)
 		await wait_frames()
 		var city := -1
 		for card in e.zone("tableau").cards:
@@ -330,7 +324,7 @@ func test_a_rolled_keyword_shows_in_the_view_but_not_on_the_realm_card() -> void
 		e.changed.emit()
 		await wait_frames()
 		eq(keyword_texts(main, home), [] as Array[String], "no keyword on the Realm card, rolled or printed")
-		click(main, home)
+		open_details(main, home)
 		await wait_screen_transition()
 		var title: String = main.territory_view.title_text()
 		check(title.contains("Gold"), "the view's info line names the rolled Gold: %s" % title)

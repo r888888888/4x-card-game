@@ -49,17 +49,6 @@ func panel_rect(modal: Object) -> Rect2:
 	return Rect2() if panel == null else (panel as Control).get_global_rect()
 
 
-## A left click at global position at on main's viewport.
-func click_at(main: Node, at: Vector2) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = pressed
-		event.position = at
-		event.global_position = at
-		main.get_viewport().push_input(event, true)
-
-
 func screen_center(main: Node) -> Vector2:
 	return main.get_viewport().get_visible_rect().get_center()
 
@@ -82,7 +71,7 @@ func test_esc_closes_the_details_over_the_tree_then_the_tree() -> void:
 
 func test_a_click_outside_both_panels_closes_only_the_details() -> void:
 	await with_tree_and_details(func(main: Node):
-		click_at(main, main.get_viewport().get_visible_rect().end - Vector2(5, 5))
+		click_point(main, main.get_viewport().get_visible_rect().end - Vector2(5, 5))
 		await wait_frames()
 		eq(main.details.shown(), {}, "the details close")
 		check(not main.identity_modal.shown().is_empty(), "the tree stays open")
@@ -105,7 +94,7 @@ func test_a_click_on_the_details_beside_the_civilization_modal_closes_only_the_c
 		check(below.has_area() and below.has_point(at), "the point is on the details' panel: %s" % [below])
 		check(not panel_rect(main.identity_modal).has_point(at), "and not on the civilization modal's panel")
 		var researched: int = Game.engine.zone("researched").size()
-		click_at(main, at)
+		click_point(main, at)
 		await wait_frames()
 		eq(main.identity_modal.shown(), [] as Array[String], "the civilization modal closes")
 		check(not main.details.shown().is_empty(), "the details stay open")
