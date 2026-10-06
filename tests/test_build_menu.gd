@@ -11,6 +11,8 @@ extends "res://tests/lib/tech_case.gd"
 ## Played when built: +2 VP.
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"food": 1},
 	"effects": [{"op": "score", "amount": 2}]}
+## Costs two resources, so a price it can't meet names both (337).
+const TOLL_HOUSE := {"id": "toll_house", "name": "Toll House", "type": "building", "cost": {"food": 1, "wealth": 2}}
 ## Opens the Granary entry.
 const POTTERY_KILN := {"id": "kiln", "name": "Kiln", "type": "tech", "cost": {"insight": 2},
 	"effects": [{"op": "unlock", "card": "granary"}]}
@@ -28,7 +30,7 @@ func build_engine(food := 3, menu := MENU, overrides := {}) -> GameEngine:
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
-	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o, [OBELISK, POTTERY_KILN, FARMERS] + TEST_GOVS)
+	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o, [OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE] + TEST_GOVS)
 	e.resources.food = food
 	return e
 
@@ -154,6 +156,16 @@ func test_build_refuses_when_the_game_is_over_or_a_decision_is_owed() -> void:
 	var explore := build_engine(3, MENU, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(explore.play_card(put_in_hand(explore, "explorer")), "play Explorer")
 	assert_refused(explore, "farm", home_uid(explore), "Choose a territory first.")
+
+
+# --- Backlog 337 AC3: short of two resources, play and build name both ---
+
+func test_short_of_two_resources_play_and_build_name_both() -> void:
+	var e := build_engine(0, MENU.merged({"toll_house": {}}))
+	e.resources.wealth = 0
+	var message := "Toll House needs 1 food, 2 wealth (you have 0 food, 0 wealth)."
+	eq(e.play_error(put_in_hand(e, "toll_house")), message, "play_error")
+	assert_refused(e, "toll_house", home_uid(e), message)
 
 
 # --- AC3: a tech unlocks an entry ---

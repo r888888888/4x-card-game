@@ -2,7 +2,7 @@
 id: 337
 title: The engine writes the era's "Opens at…" line and one "needs … (you have …)" format
 type: feature
-status: draft
+status: red-review
 branch: feat/337-engine-texts
 ---
 
@@ -35,9 +35,14 @@ wealth).").
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_ui_queries::test_tech_eras_say_how_an_era_not_reached_opens`; `test_tech_eras_list_each_era_with_its_status_and_techs` (now expects `opens`) |
+| AC2 | `test_ui_structure::test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles` (no "Opens at" in knowledge_screen.gd) |
+| AC3 | `test_build_menu::test_short_of_two_resources_play_and_build_name_both` |
+| AC4 | existing, unedited: `test_build_menu::test_build_refuses_with_a_reason_and_changes_nothing`, `test_cost_per_territory` (Colonist), `test_ui_queries` / `test_wealth` (Farm, Guildhall) |
 
 ## Manual check
 - [ ] The Knowledge screen's locked eras read as before.
 
 ## Log
 - 2026-10-06: specced from the project review.
+- 2026-10-06: picked up from `draft`; no open question found in the criteria. Red: 4 failing tests.

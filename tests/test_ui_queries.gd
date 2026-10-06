@@ -189,8 +189,10 @@ func tree_of_era(e: GameEngine, n: int) -> Array:
 func test_tech_eras_list_each_era_with_its_status_and_techs() -> void:
 	var e := era_unlocks_engine({"2": {"pop": 8}})
 	eq(e.tech_eras(), [
-		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "techs": tree_of_era(e, 1)},
-		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "techs": tree_of_era(e, 2)},
+		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "opens": "",
+			"techs": tree_of_era(e, 1)},
+		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "opens": "Opens at 8 pop",
+			"techs": tree_of_era(e, 2)},
 	], "era 1 reached, era 2 unlocks at 8 pop")
 	eq(tree_of_era(e, 2).map(func(t): return t.id), ["optics"], "era 2 holds Optics")
 
@@ -201,6 +203,18 @@ func test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era()
 	e = era_unlocks_engine({"2": {"pop": 8}})
 	e.add_era(2)
 	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, true, {}]], "era 2 reached")
+
+
+## Backlog 337 AC1: the engine writes how an era not reached opens.
+func test_tech_eras_say_how_an_era_not_reached_opens() -> void:
+	var opens := func(era_unlocks: Dictionary) -> Array:
+		return era_unlocks_engine(era_unlocks).tech_eras().map(func(x): return x.opens)
+	eq(opens.call({"2": {"pop": 8, "wealth": 15}}), ["", "Opens at 8 pop or 15 wealth"], "pop or wealth")
+	eq(opens.call({"2": {"pop": 8}}), ["", "Opens at 8 pop"], "pop only")
+	eq(opens.call({}), ["", "Opens through a tech"], "no unlock")
+	var e := era_unlocks_engine({"2": {"pop": 8}})
+	e.add_era(2)
+	eq(e.tech_eras().map(func(x): return x.opens), ["", ""], "era 2 reached")
 
 
 func test_tech_eras_is_empty_without_a_research_deck() -> void:
