@@ -2,7 +2,7 @@
 id: 325
 title: Show which techs I can afford on the tech tree
 type: feature
-status: in-progress
+status: review
 branch: feat/325-tech-tree-affordability
 ---
 
@@ -12,17 +12,17 @@ of them their insight covers right now. After this, an available tech they can p
 one they can't, so they can see what to research without comparing each number to their insight.
 
 ## Acceptance criteria
-- [ ] AC1: Given 3 insight and an available tech (prereq met, in the research deck) whose `tech_cost` is 3, when
+- [x] AC1: Given 3 insight and an available tech (prereq met, in the research deck) whose `tech_cost` is 3, when
   `tech_tree()` is read, then its entry has `affordable` true.
-- [ ] AC2: Given 2 insight and the same tech (cost 3), when `tech_tree()` is read, then its entry has `affordable`
+- [x] AC2: Given 2 insight and the same tech (cost 3), when `tech_tree()` is read, then its entry has `affordable`
   false; after gaining 1 insight it is true.
-- [ ] AC3: Given a tech with a met eureka (or diffusion) that lowers its cost from 4 to 3 and 3 insight, when
+- [x] AC3: Given a tech with a met eureka (or diffusion) that lowers its cost from 4 to 3 and 3 insight, when
   `tech_tree()` is read, then `affordable` is true: it compares the cost now, not the printed cost.
-- [ ] AC4: Given enough insight for every tech, when `tech_tree()` is read, then a researched tech, a locked tech
+- [x] AC4: Given enough insight for every tech, when `tech_tree()` is read, then a researched tech, a locked tech
   (prereq not researched) and a later era's tech each have `affordable` false.
-- [ ] AC5: Given an affordable available tech and a pending choice (e.g. explore), when `tech_tree()` is read, then
+- [x] AC5: Given an affordable available tech and a pending choice (e.g. explore), when `tech_tree()` is read, then
   `affordable` is still true: it is about insight only; `buy_tech_error` still refuses the purchase.
-- [ ] AC6: Given the Knowledge screen open with one affordable and one unaffordable available tech, then the
+- [x] AC6: Given the Knowledge screen open with one affordable and one unaffordable available tech, then the
   affordable tile uses the `TechTile` look and the unaffordable one the `TechTileShort` look, and the
   unaffordable tile's tooltip names the insight shortfall (from `buy_tech_error`); after gaining enough insight
   and the screen refreshing, the second tile uses `TechTile`.
@@ -54,8 +54,10 @@ one they can't, so they can see what to research without comparing each number t
 | AC6 | `test_knowledge_screen::test_an_available_tile_the_insight_doesnt_cover_looks_short_until_it_does` |
 
 ## Manual check
-- [ ] Open the Knowledge screen with insight between two available techs' costs: the cheap tile reads normally,
-  the dear one is visibly muted but not mistaken for a locked tile, in both night and day mode.
+- [ ] `godot --path . -- --civ sumer --seed 5`, press T at the start (low insight): the dear era-1 techs' tiles are
+  muted, any you can pay for read normally; the muted ones are but not mistaken for a locked tile, in both night and day mode.
 - [ ] Gain insight (end a turn), reopen: the tile turns normal.
 
 ## Log
+- `affordable` ignores pending choices and game over (AC5): it's about insight, `buy_tech_error` still refuses.
+- The look is `TechTileShort` (sheet fill, ink border, `TEXT_DISABLED` text); its `Linked` twin comes from the theme's loop.
