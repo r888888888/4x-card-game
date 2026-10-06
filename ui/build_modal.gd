@@ -6,7 +6,7 @@ extends Modal
 ## the reason under its name. Under Upgrades (302) a row per upgrade entry and building here it builds on ("Plough", "on
 ## Farm"). On the right the selected entry's card and either "If built on <territory or building>" with build_preview's
 ## lines and the cost, or the refusal, with the entry's flavor between the card and them (354). One key builds it (Build X; Recruit X for a unit); Enter too, and Up and Down
-## move the selection. Everything shown comes from the engine. Laid out as the guide's ledger sheet (343, 344): the list
+## move the selection, the list gliding to keep it in view (356). Everything shown comes from the engine. Laid out as the guide's ledger sheet (343, 344): the list
 ## Modal.LEDGER_LIST_WIDTH × LEDGER_LIST_HEIGHT with its rows wrapping, the card at hand size, lines wrapping at its width.
 
 const DIMMED := 0.5  # a refused row's opacity
@@ -15,6 +15,7 @@ const LINE_LABELS := {"free_slots": "Free slots", "free_workers": "Free workers"
 	"housing": "Housing", "actions_left": "Actions left"}
 
 var list: SelectList
+var scroll: SmoothScroll  # the list's column: it glides and follows the selection (356)
 var build_button: Button
 var cancel_button: Button
 
@@ -36,7 +37,7 @@ func _init(p_stack: ModalStack) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", LEDGER_GAP)  # a ledger sheet (343, 344)
 	body.add_child(row)
-	var scroll := ScrollContainer.new()
+	scroll = SmoothScroll.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(LEDGER_LIST_WIDTH, LEDGER_LIST_HEIGHT)
 	row.add_child(scroll)
@@ -45,7 +46,7 @@ func _init(p_stack: ModalStack) -> void:
 	list.chosen.connect(_show_entry)
 	scroll.add_child(list)
 	var sheet := VBoxContainer.new()
-	sheet.add_theme_constant_override("separation", Tokens.SPACE_3)
+	sheet.add_theme_constant_override("separation", Tokens.SPACE_5)  # room under the card (356)
 	row.add_child(sheet)
 	_card_slot = Control.new()
 	_card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -188,6 +189,7 @@ func key_pressed(keycode: Key) -> void:
 			if to >= 0 and to < ids.size():
 				list.select(ids[to])
 				_show_entry(ids[to])
+				scroll.follow(list.row(ids[to]))
 		KEY_ENTER, KEY_KP_ENTER:
 			_build()
 		_:

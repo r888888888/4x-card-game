@@ -41,6 +41,13 @@ const WIPE_LINGER := 0.12  # the wipe's outline staying on after it lands
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
 
+# A scroll area that glides (356, guide §7.17): a wheel notch pushes the content SCROLL_STEP px, its speed decaying by
+# SCROLL_FRICTION per second, so it eases and coasts to rest; a keyboard follow eases over SCROLL_FOLLOW_TIME.
+const SCROLL_STEP := 120.0
+const SCROLL_FRICTION := 8.0
+const SCROLL_REST := 0.5  # px of travel left at which the glide lands
+const SCROLL_FOLLOW_TIME := 0.2
+
 # A key's travel (§9.4, §15.1), for timing its sounds (187): down on SNAP, back up on MACHINED.
 const KEY_PRESS_TIME := 0.07
 const KEY_RELEASE_TIME := 0.12

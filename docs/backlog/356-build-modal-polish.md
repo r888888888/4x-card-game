@@ -2,7 +2,7 @@
 id: 356
 title: Smooth the Build modal's scrolling and quiet its selected row
 type: feature
-status: red-review
+status: in-progress
 branch: feat/356-build-modal-polish
 ---
 
