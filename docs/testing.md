@@ -20,10 +20,10 @@ The script re-imports the project first when a `.gd` file changed, so a new `cla
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
 
-**Speed (223).** The suite takes ~10 s on a 12-core Mac (~39 s serial). Godot's start costs ~3 s per shard, and the
-slowest file, `test_generic_bot_cache.gd` (~5 s of bot games), sets the critical path. Three settings make it fast:
+**Speed (223).** The suite takes ~11 s on a 12-core Mac (~40 s serial). Godot's start costs ~3 s per shard; the
+slowest file, `test_generic_bot_cache.gd`, plays its 6 bot games once and shares them (335). Three settings help:
 - The test files run in parallel shards, one Godot process per CPU (`TEST_JOBS=n` to change it; 1 runs serially).
-  Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, `TEST_SHARD=i/n`); the script sums the counts. Each
+  The slow files (`TestShards.SLOW`) go first, then shard i of n gets every n-th file (`TEST_SHARD=i/n`). Each
   shard has its own empty `HOME` (no `//` in its path, 330), so no two share `user://` and a run never touches the
   player's settings. Tests must not depend on which files ran before them.
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every

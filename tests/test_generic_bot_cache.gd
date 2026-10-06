@@ -3,6 +3,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## reads, so a position it has already forecast this turn costs nothing, and the games played don't change. A fixture
 ## game of 10 turns (anarchy_case: Chiefs ruling, unrest on, home pop 6) with Kings in the government deck (so revolts
 ## are weighed by rollouts), Farms and Temples in the supply, explorable land and an event deck with a choice event.
+## 335: the full games are played once per run (shared_games) and the tests read their results and counters.
 
 
 ## Scribe: creates a Farm in the discard. Tally: ⟳ +1 food per farm in the discard.
