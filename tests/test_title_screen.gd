@@ -7,7 +7,7 @@ extends "res://tests/lib/test_case.gd"
 
 const TOLERANCE := 1.0
 const CAPTIONS := {"New game": "Choose a civilization and a seed", "Settings": "Motion, day mode, sound",
-	"Exit Game": "Close the game"}
+	"Exit game": "Close the game"}
 
 var _old_window_size := Vector2i.ZERO
 

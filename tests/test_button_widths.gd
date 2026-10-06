@@ -84,7 +84,7 @@ func test_the_menu_column_shares_one_width_and_footer_buttons_fit_their_text() -
 	main.open_menu()
 	await wait_frames()
 	var column: Array = []  # untyped: menu_buttons() is Array[Button]
-	var footer: Array = main.menu_buttons().filter(func(b): return b.text in ["Close", "Exit Game"])  # in the sheet's footer (207)
+	var footer: Array = main.menu_buttons().filter(func(b): return b.text in ["Close", "Exit game"])  # in the sheet's footer (207)
 	eq(footer.size(), 2, "Close and Exit in the menu's footer")
 	for b in footer:
 		check_fits(b, "menu footer %s" % b.text)
