@@ -42,4 +42,5 @@ lines. The theme now sets `default_color` to `Palette.TEXT`; it is rebuilt on a 
   label draws in Godot's default white whatever the mode. Night's dark sheets hid it.
 - 2026-10-05: fixed in `ui/game_theme.gd` (one line). Night's rich text moves from pure white to `TEXT` (`ede6d6`).
   Other italic flavour: the identity cards' `Flavor` label variation already reads `TEXT_DIM` from the theme. Not
-  covered: `UIKit.message_overlay`'s body (data load errors) has no variation and stays white, on a dark overlay.
+  covered: `UIKit.message_overlay`'s body (the data-load-error overlay) has no variation, so it stays white on Day's
+  paper panel; follow-up: give it `RichBody`.
