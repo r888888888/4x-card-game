@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## motion. Palette colours are read by name (Script.get) so this file parses while they are still constants; the
 ## switch goes through Settings.set_day_mode on a temp settings file, and every test ends back on the player's palette.
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const PALETTE_PATH := "res://ui/palette.gd"
 const KEY_PATH := "res://ui/legend_key.gd"
 ## AC2's Day values.
@@ -77,13 +78,15 @@ func check_look(main: Node, mode: String) -> void:
 	main.add_child(button)
 	eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, palette("CONTROL"), "%s: a Button's fill" % mode)
 	button.free()
-	eq(main.background_color(), palette("BACKGROUND"), "%s: the board's background" % mode)
+	var board := Looks.mismatch(main.background_box(), Looks.grain(palette("BACKGROUND")))
+	check(board == "", "%s: the board's grain: %s" % [mode, board])
 	for uid in main.views:
 		var view: CardView = main.views[uid]
 		if view.board_kind == CardView.BOARD_FRONTIER:
 			continue
-		var box := view.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box.bg_color in [palette("RAISED"), palette("DIM_BG")], "%s: %s's panel %s" % [mode, view.card_id, box.bg_color.to_html()])
+		var box := view.get_theme_stylebox("panel")
+		var paper := Looks.mismatch(box, Looks.paper())
+		check(paper == "" or Looks.mismatch(box, Looks.dimmed_paper()) == "", "%s: %s's paper: %s" % [mode, view.card_id, paper])
 		var band := view.find_child("Band", true, false) as ColorRect
 		if band != null:
 			var type: String = Game.engine.card_db[view.card_id].type
@@ -131,7 +134,8 @@ func test_open_modals_and_screens_switch_and_stay_open() -> void:
 		set_day(true)
 		await wait_frames()
 		eq(main.modals.depth(), depth, "the civilization modal stays open")
-		eq((panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"), "its panel is paper")
+		var paper := Looks.mismatch(panel.get_theme_stylebox("panel"), Looks.paper())
+		check(paper == "", "its panel is Day paper: %s" % paper)
 		main.open_menu()
 		await wait_frames()
 		set_day(false)
@@ -150,8 +154,8 @@ func test_the_settings_modal_switches_and_stays_open() -> void:
 		set_day(true)
 		await wait_frames()
 		check(main.settings_modal.is_open(), "still open")
-		eq((main.settings_modal.panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"),
-			"its sheet reads the day paper")
+		var paper := Looks.mismatch(main.settings_modal.panel.get_theme_stylebox("panel"), Looks.paper())
+		check(paper == "", "its sheet is Day paper: %s" % paper)
 		close_main(main))
 
 
@@ -227,10 +231,12 @@ func test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper() -> void:
 		var main := open_main()
 		main.start_game(1)
 		await wait_frames()
-		eq(main.background_color().to_html(false), Palette.DAY["BACKGROUND"].to_html(false), "the board's background")
+		var board := Looks.mismatch(main.background_box(), Looks.grain(Palette.DAY["BACKGROUND"]))
+		check(board == "", "the board's Day grain: %s" % board)
 		var view: CardView = main.views[first_in_hand(Game.engine)]
-		var fill := (view.get_theme_stylebox("panel") as StyleBoxFlat).bg_color.to_html(false)
-		check(fill in [Palette.DAY["RAISED"].to_html(false), Palette.DAY["DIM_BG"].to_html(false)], "a hand card's panel is paper: %s" % fill)
+		var box := view.get_theme_stylebox("panel")
+		var paper := Looks.mismatch(box, Looks.paper())
+		check(paper == "" or Looks.mismatch(box, Looks.dimmed_paper()) == "", "a hand card is on Day paper: %s" % paper)
 		close_main(main)
 		Game.engine = real)
 

@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## Grassland) and a Temple in hand that can go on either. Hooks: main.vellum (a Control: covered_rect(), the part of
 ## the window it covers now; lifted(), the card views drawn above it).
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const WIPE_IN := 0.26
 const WIPE_OUT := 0.20
 const SLACK := 0.06
@@ -65,7 +66,7 @@ func test_targeting_wipes_vellum_in_from_the_left_with_the_targets_above_it() ->
 		for uid in targets + [temple]:
 			check(lifted.has(main.views[uid]), "card %d is above the vellum" % uid)
 		for uid in targets:
-			var box := (main.views[uid] as CardView).get_theme_stylebox("panel") as StyleBoxFlat
+			var box := Looks.frame_of((main.views[uid] as CardView).get_theme_stylebox("panel"))  # its rule (341)
 			eq(box.border_color, Palette.FOCUS, "target %d outlined in FOCUS" % uid)
 			eq(box.border_width_left, 2, "a 2 px outline on %d" % uid)
 		eq(lifted.size(), targets.size() + 1, "nothing else above it")

@@ -118,8 +118,15 @@ control room) is the dark mode the game ships by default today. Every value belo
 | `color.ink-3` | Disabled text and decoration only (never information) | `#7A7468` | `#8E877A` |
 | `color.rule-fine` | Decorative hairlines between rows | `#CFC6B5` | `#3A3733` |
 | `color.rule` | Boundaries the player must see (control borders, inputs) | `#6F685C` | `#857D70` |
-| `color.shadow` | Hard offset shadows | `#22211F` | `#0D0C0B` |
+| `color.shadow` | Hard offset shadows; soft card and sheet shadows | `#22211F` | `#0D0C0B` |
 | `color.scrim` | Behind a modal | ink at 40% | `#000` at 60% |
+
+**Surfaces (341).** The neutrals are laid over real materials, so the desk reads as made of something without
+changing its colours. `board` (the board and the rail) and `sheet` under the top strip sit over walnut grain at 90%
+(Night) / 88% (Paper): the grain only just shows, and the rail's grain runs on from the board's, so only its hairline
+marks its edge. Cards, modals and overlay panels are printed on paper: dark gray paper under black at 30% in Night,
+white paper as it is in Paper; a dimmed card lays `dim-bg` at 60% over its paper. Keys, flags, tooltips, tiles and
+list rows stay flat. Text and the support hues keep their contrast (§4.3) on each surface's mean colour.
 
 ### 4.2 Primary palette (identity)
 
@@ -315,18 +322,24 @@ fake a highlight.
 
 ### 6.5 Shadows
 
-Shadows are solid, unblurred offsets down and to the right (light from top-left, consistent everywhere).
+Controls stand on solid, unblurred offsets down and to the right (light from top-left, consistent everywhere). Paper
+(cards, modal sheets, overlay panels; 341) rests on soft shadows instead: `color.shadow`, blurred, straight down,
+deeper as it lifts.
 
 | Token | Offset | Use |
 |---|---|---|
-| `shadow.none` | 0 | Flat paper; pressed controls |
-| `shadow.plinth` | 2, 2 | Resting controls (buttons stand on a plinth) |
-| `shadow.lift` | 4, 4 | Hovered card, selected card, open drawer |
-| `shadow.sheet` | 8, 8 | Modal sheets, the drag ghost |
+| `shadow.none` | 0 | Pressed controls; a frontier card (open land, not paper) |
+| `shadow.plinth` | 2, 2 | Resting controls (buttons stand on a plinth), flags |
+| `shadow.lift` | 4, 4 | A selected list row, a hovered tech tile or index card in a modal |
+| `shadow.card` (soft) | 0, 4 · blur 8 | A card at rest; alpha 0.35 Night / 0.20 Paper |
+| `shadow.card-hover` (soft) | 0, 8 · blur 16 | A hovered card; 0.45 / 0.28 |
+| `shadow.card-drag` (soft) | 0, 14 · blur 24 | A dragged card; 0.50 / 0.32 |
+| `shadow.sheet` (soft) | 0, 16 · blur 32 | Modal sheets and overlay panels; 0.55 / 0.35 |
 
-Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in Night. In Godot:
+A hard shadow is `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in Night. In Godot:
 `StyleBoxFlat.shadow_size = 0` won't draw; use `shadow_size = 1` with `shadow_offset` = the token and a
-`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §17.)
+`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §17.) A soft shadow is the same colour at
+the token's alpha, `shadow_size` its blur, anti-aliased (`Surfaces.lift`).
 
 ### 6.6 Panel density
 
@@ -338,8 +351,8 @@ Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in
 
 Cards are **index cards**, not app tiles: square corners, `sheet` face, 2 px `ink` border (Night: `rule`), and
 a **type band**: a 6 px plane-coloured strip across the top under the name, carrying the type glyph at its right
-end. Rules text below a hairline. VP bottom-right with the starburst. No drop shadow at rest (cards lie flat);
-`shadow.lift` when lifted.
+end. Rules text below a hairline. VP bottom-right with the starburst. Printed on paper, on a soft `shadow.card` at rest,
+`shadow.card-hover` when hovered and `shadow.card-drag` when dragged (341).
 
 **Cost is always top-right**, on every card type, on the name's line: one **cost entry per resource paid**, in a
 fixed order: food, wealth, insight. Each entry is the resource's glyph (`icon.m` 20, the resource's hue line)
@@ -1192,10 +1205,10 @@ rules `type.body-s`; VP with starburst bottom-right.
 
 | Transition | Duration | Offset | Shadow | Border | Other | Sound |
 |---|---|---|---|---|---|---|
-| REST | — | 0, 0 | none | 2 ink/rule | | None |
-| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
+| REST | — | 0, 0 | card (soft, 341) | 2 ink/rule | | None |
+| → HOVER | 100 ms `machined` | 0, −4 | card-hover | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
 | → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting | `ui.card.lift` @ ≈ 33 ms, once the press becomes a drag; a click that selects plays `ui.selection` instead |
-| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | sheet (8, 8) | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
+| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | card-drag | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
 | → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms | `ui.selection` @ the tab lands, ≈ 65 ms. Deselect: None |
 | → PLAYED | 280 ms `release` | slides to target/discard | lift → none | | lands with a 60 ms `snap` (no squash) | `ui.card.place` @ landing (≈ 280 ms) |
 | DIMMED | instant | | none | 2 `rule` | band → hatch, reason plate | None |

@@ -1,15 +1,16 @@
 extends "res://tests/lib/test_case.gd"
-## Modals as the specimen's drafting sheets (backlog 207), in the real main scene: the sheet's look (a RAISED panel in
-## a 2 px TEXT rule, square, an 8,8 hard shadow), its title block (a 4 px TEXT bar, the title left, context caps right),
+## Modals as the specimen's drafting sheets (backlog 207), in the real main scene: the sheet's look (paper, 341, in
+## a 2 px TEXT rule, square, on a soft shadow), its title block (a 4 px TEXT bar, the title left, context caps right),
 ## a body at most Modal.BODY_MAX_WIDTH wide and a footer under a 1 px rule with the buttons right (primary rightmost);
 ## the game menu and the game-over sheet as Modals on main.modals; the rise on opening, the stacked offset and the drop
 ## on closing. Hooks on Modal: title, context, title_label, context_label, bar, body, footer, footer_rule,
 ## sheet_offset() (how far the sheet is from its place), sheet_alpha(), scrim_alpha().
 ## In detail (from docs/testing.md, 331): Modals as drafting sheets (207) in the real `main.tscn` at 1920×1080: each
-## modal's sheet (RAISED, 2 px TEXT rule, 8,8 hard shadow), title block (4 px bar, title, context caps), body at most
+## modal's sheet (paper, 2 px TEXT rule, soft shadow), title block (4 px bar, title, context caps), body at most
 ## 640 px, footer under a 1 px rule (primary rightmost); the menu and game over on `main.modals` (game over stays); the
 ## rise, the stacked +8,+8, the drop, Reduce motion fades; hooks `sheet_offset()`, `sheet_alpha()`, `scrim_alpha()`
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const RISE := 24.0  # px below its place a sheet starts
 const DROP := 12.0  # px below its place a closing sheet ends
 const STACK := Vector2(8, 8)
@@ -48,16 +49,18 @@ func check_sheet(modal: Object, what: String, title: String, context: String, fo
 	check(modal is Modal, "%s is a Modal" % what)
 	if not modal is Modal:
 		return
-	var box := (modal.panel as Control).get_theme_stylebox("panel") as StyleBoxFlat
-	check(box != null, "%s: a flat sheet" % what)
+	var surface := (modal.panel as Control).get_theme_stylebox("panel")
+	var paper := Looks.mismatch(surface, Looks.paper())
+	check(paper == "", "%s: on paper (341): %s" % [what, paper])
+	var box := Looks.frame_of(surface)
+	check(box != null, "%s: a framed sheet" % what)
 	if box != null:
-		eq(box.bg_color, Palette.RAISED, "%s: RAISED fill" % what)
 		eq(box.border_color, Palette.TEXT, "%s: TEXT rule" % what)
 		eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [2, 2, 2, 2],
 			"%s: 2 px rule" % what)
 		eq(box.corner_radius_top_left, Tokens.RADIUS_0, "%s: square" % what)
-		eq(box.shadow_color, Palette.SHADOW, "%s: SHADOW" % what)
-		eq(box.shadow_offset, Vector2(8, 8), "%s: a hard 8,8 shadow" % what)
+		eq(Color(box.shadow_color, 1.0), Color(Palette.SHADOW, 1.0), "%s: SHADOW" % what)
+		eq(box.shadow_offset, Vector2(0, 16), "%s: a soft shadow straight down 16 (341)" % what)
 	var bar := modal.bar as ColorRect
 	check(bar != null and bar.is_visible_in_tree(), "%s: the title block's bar" % what)
 	if bar != null:

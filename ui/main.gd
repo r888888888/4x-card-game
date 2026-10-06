@@ -376,9 +376,9 @@ func _refresh() -> void:
 func _build_layout() -> void:
 	theme = GameTheme.build()
 	_palette_day = Palette.day  # built in the palette as it is now: a Day mode saved before launch isn't a switch (195)
-	var bg := ColorRect.new()
+	var bg := Panel.new()
 	bg.name = "Background"
-	UIKit.painted(bg, func(): bg.color = Palette.BACKGROUND)
+	UIKit.painted(bg, func(): bg.add_theme_stylebox_override("panel", Surfaces.board()))  # walnut grain (341)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var layout := BoardLayout.new(self, _restart, _close_menu, _push_new_game_screen)
@@ -416,6 +416,6 @@ func _apply_settings() -> void:
 		_refresh()
 
 
-## Test hook (183): the board's background colour.
-func background_color() -> Color:
-	return (get_node("Background") as ColorRect).color
+## Test hook (183, 341): the board's background, its grain under BACKGROUND.
+func background_box() -> StyleBox:
+	return (get_node("Background") as Control).get_theme_stylebox("panel")

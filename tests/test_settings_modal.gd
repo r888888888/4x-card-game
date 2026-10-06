@@ -5,6 +5,7 @@ extends "res://tests/lib/test_case.gd"
 ## Game section, and the settings screen is gone. Hooks: main.settings_modal (motion_toggle, day_toggle, sound_toggle,
 ## sliders, figures, seed_edit, restart_button, game_section), main.menu_buttons().
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const SETTINGS_SCREEN_PATH := "res://ui/settings_screen.gd"
 
 
@@ -148,7 +149,8 @@ func test_a_setting_applies_at_once_and_esc_closes_only_the_settings_modal() -> 
 		check(Palette.day, "Day mode on at once")
 		check(Settings.store.day_mode, "and saved")
 		eq(main.modals.depth(), 2, "the menu and the modal stay open")
-		eq((modal.panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, Palette.DAY["RAISED"], "the modal in Paper")
+		var paper := Looks.mismatch(modal.panel.get_theme_stylebox("panel"), Looks.paper())
+		check(paper == "", "the modal on Day paper: %s" % paper)
 		modal.day_toggle.button_pressed = false
 		await wait_frames()
 		check(not Palette.day, "and off again")

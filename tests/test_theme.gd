@@ -4,6 +4,7 @@ extends "res://tests/lib/test_case.gd"
 ## in code (ui/game_theme.gd, GameTheme.build()), loaded by path (held as Object) so this file parses before they
 ## exist.
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const PALETTE_PATH := "res://ui/palette.gd"
 const GAME_THEME_PATH := "res://ui/game_theme.gd"
 
@@ -90,7 +91,15 @@ func test_panels_are_cut_square() -> void:
 	var main := open_main()
 	var overlay := UIKit.overlay(main)
 	var panel: PanelContainer = overlay.get_meta("panel")
-	check_box(stylebox(panel, "panel"), Palette.RAISED, Palette.EDGE, 2, 0, Vector2(24, 24), "overlay panel")
+	var surface := panel.get_theme_stylebox("panel")
+	check(Looks.texture_of(surface) != null, "overlay panel: on paper (341)")
+	var frame := Looks.frame_of(surface)
+	check(frame != null, "overlay panel: framed")
+	if frame != null:
+		eq(frame.border_color.to_html(), Palette.EDGE.to_html(), "overlay panel border")
+		eq(frame.border_width_left, 2, "overlay panel border width")
+		eq(frame.corner_radius_top_left, 0, "overlay panel corner radius")
+	eq(Vector2(surface.content_margin_left, surface.content_margin_top), Vector2(24, 24), "overlay panel content margins")
 	main.start_game(1)
 	var log := log_panel(main)
 	check(log != null, "the log's panel")
@@ -350,7 +359,7 @@ func test_overlay_panels_use_dark_panel_and_modals_the_sheet() -> void:
 			var panel: PanelContainer = (c as Modal).panel
 			eq(panel.theme_type_variation, &"Sheet", "%s uses Sheet" % c.get_script().get_global_name())
 			check(not panel.has_theme_stylebox_override("panel"), "%s: no stylebox of its own" % c.get_script().get_global_name())
-			eq(stylebox(panel, "panel").border_color.to_html(), Palette.TEXT.to_html(), "%s: an ink rule" % c.get_script().get_global_name())
+			eq(Looks.frame_of(panel.get_theme_stylebox("panel")).border_color.to_html(), Palette.TEXT.to_html(), "%s: an ink rule" % c.get_script().get_global_name())
 	close_main(main)
 
 

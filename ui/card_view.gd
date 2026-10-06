@@ -45,10 +45,7 @@ static var WARN_COLOR: Color:
 static var HIGHLIGHT_COLOR: Color:
 	get:
 		return Palette.GAIN
-# A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
-static var DIM_BG: Color:
-	get:
-		return Palette.DIM_BG
+# A dimmed card (unplayable, or an idle building) greys its paper (Surfaces.DIMMED_PAPER) and border, never its text.
 static var DIM_BORDER: Color:
 	get:
 		return Palette.DIM_BORDER
@@ -68,7 +65,8 @@ var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for pop-in and shrink; the card's scale
 
-var _style: StyleBoxFlat
+var _style: SurfaceBox  # the card's paper (341)
+var _frame: StyleBoxFlat  # its rule and soft shadow
 var _color: Color
 var _face: CardFace
 var _hint := ""  # the tooltip's hint after the card text, kept so a new card text can be set under it
@@ -110,11 +108,11 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	custom_minimum_size = _target_size
 
 	if _style == null:
-		_style = StyleBoxFlat.new()
-		_style.set_border_width_all(2)
-		_style.set_corner_radius_all(0)  # an index card, cut square (179)
-		_style.set_content_margin_all(Tokens.SPACE_3)
-		_style.anti_aliasing = false  # a hard shadow and a crisp rule
+		_frame = StyleBoxFlat.new()
+		_frame.set_border_width_all(2)
+		_frame.set_corner_radius_all(0)  # an index card, cut square (179)
+		_frame.set_content_margin_all(Tokens.SPACE_3)
+		_style = Surfaces.box(Surfaces.PAPER, _frame)
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))
 		mouse_exited.connect(_set_hover.bind(false))
@@ -510,30 +508,33 @@ func _draw_frontier() -> void:
 		k += HATCH_STEP
 	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	for i in 4:
-		draw_dashed_line(corners[i], corners[(i + 1) % 4], _style.border_color, 4.0 if _highlight else 2.0, DASH)
+		draw_dashed_line(corners[i], corners[(i + 1) % 4], _frame.border_color, 4.0 if _highlight else 2.0, DASH)
 
 
-## An index card (179): one sheet for every type in a thin rule (its type is the band under the name), standing on a
-## hard shadow only while lifted: hovered (4, 4), dragged (8, 8).
+## An index card (179): one sheet of paper for every type (341; dimmed, under DIM_BG) in a thin rule (its type is the
+## band under the name), on a soft shadow that grows as it lifts: at rest, hovered, dragged (341).
 func _update_border() -> void:
-	_style.shadow_color = Palette.SHADOW
-	_style.bg_color = DIM_BG if _dimmed else Palette.RAISED
+	_style.texture = Surfaces.texture(Surfaces.DIMMED_PAPER if _dimmed else Surfaces.PAPER)
+	_frame.draw_center = true  # under the paper; the shadow needs it (Surfaces.box)
+	_frame.bg_color = Palette.RAISED
 	if _warning:
-		_style.border_color = WARN_COLOR
+		_frame.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
-		_style.border_color = Palette.TEXT
+		_frame.border_color = Palette.TEXT
 	elif _vellum_outline:
-		_style.border_color = FOCUS_COLOR  # a target above the vellum (210)
+		_frame.border_color = FOCUS_COLOR  # a target above the vellum (210)
 	elif _highlight:
-		_style.border_color = HIGHLIGHT_COLOR
+		_frame.border_color = HIGHLIGHT_COLOR
 	else:
-		_style.border_color = DIM_BORDER if _dimmed else Palette.CONTROL_BORDER
+		_frame.border_color = DIM_BORDER if _dimmed else Palette.CONTROL_BORDER
 	var dragged := state == State.DRAGGING
-	_style.shadow_size = 1 if (_hover or dragged) else 0
-	_style.shadow_offset = Vector2(8, 8) if dragged else Vector2(4, 4)
-	_style.set_border_width_all(3 if _highlight and not _vellum_outline else 2)
-	if board_kind == BOARD_FRONTIER:  # its border is dashed, drawn in _draw_frontier
-		_style.bg_color = Palette.FRONTIER_BG
-		_style.set_border_width_all(0)
+	Surfaces.lift(_frame, Surfaces.CARD_DRAG if dragged else Surfaces.CARD_HOVER if _hover else Surfaces.CARD_REST)
+	_frame.set_border_width_all(3 if _highlight and not _vellum_outline else 2)
+	if board_kind == BOARD_FRONTIER:  # no paper or shadow: open land, its border dashed in _draw_frontier
+		_style.texture = null
+		_frame.draw_center = true
+		_frame.bg_color = Palette.FRONTIER_BG
+		_frame.shadow_size = 0
+		_frame.set_border_width_all(0)
 		queue_redraw()
 

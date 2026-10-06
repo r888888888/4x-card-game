@@ -18,6 +18,7 @@ The live picture of the same is [mcm-specimen.html](mcm-specimen.html), the mast
 | Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets (suite checks, 192). |
 | Looks (fonts, sizes, boxes) | `ui/game_theme.gd` (`GameTheme`) | A look used twice is a theme type variation, set with `theme_type_variation`. |
 | Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `select_list` (217: a `SelectList`, the guide's §7.16), `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
+| Surfaces (341) | `ui/surfaces.gd` (`Surfaces`), `ui/surface_box.gd` (`SurfaceBox`) | Walnut grain and paper under the Palette colours, baked once per mode; a `SurfaceBox` draws its `frame` (rule, soft shadow and a fill the paper covers: without it Godot leaves a pale gap between the rule and the shadow), then the texture inside the rule. Opacities and shadow looks are `Surfaces` constants. Keys stay `StyleBoxFlat`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
 | Modals, screens | `Modal` on `main.modals`, `Navigator` + `ScreenHeader` | See CLAUDE.md's UI design section. |
 
@@ -34,8 +35,9 @@ A colour must follow a Day mode switch. How depends on where it is set:
 
 | Guide token | Palette names |
 |---|---|
-| `board` | `BACKGROUND`, `FRONTIER_BG` |
-| `sheet` | `RAISED`, `TILE` |
+| `board` | `BACKGROUND` (laid at 90 % Night / 88 % Day over walnut grain: the board and the Rail, `Surfaces.BOARD`), `FRONTIER_BG` |
+| `sheet` | `RAISED` (over walnut grain at the same opacity: the Strip, `Surfaces.STRIP`), `TILE` |
+| paper (341) | cards, Sheets and DarkPanels: `Surfaces.PAPER`, dark gray paper under `PAPER_SHADE` (black at 30 %) in Night, white paper in Day; a dimmed card's under `DIM_BG` at 60 % (`Surfaces.DIMMED_PAPER`) |
 | `well` | `FIELD` (also a selectable list's `ListWell`), `PANEL`, `CONTROL_DISABLED`, `STRIP_BG` |
 | `steel` | `CONTROL` |
 | `ink` | `TEXT`, `EDGE`, `STRIP_TEXT` |
@@ -77,7 +79,8 @@ variation; set it with `theme_type_variation`.
 | `space.*` | 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 | `Tokens.SPACE_0`…`SPACE_9`; `UIKit.SECTION_GAP` 24, `CARD_GAP` 12, `HEADING_GAP` 8 name roles. The one exception is the guide's own: `Tokens.GLYPH_GAP` 3 (§6.7, a cost's glyph and figure). |
 | `radius.*` | 0 (panels, cards, tooltips), 2 (buttons, fields), 4 (badges), full (pips, lamps) | `Tokens.RADIUS_0` (panels, cards, zones, hints, pop-ups, slot outlines), `RADIUS_1` (buttons, fields), `RADIUS_2` (the card badge), `RADIUS_FULL` (pips). |
 | `border.*` | 1 hair, 2 control, 3 emphasis, 4 bar | Literals. |
-| `shadow.plinth` / `travel.press` | 2,2 / 2 | `GameTheme.PLINTH` / `GameTheme.PRESS` |
+| `shadow.plinth` / `travel.press` | 2,2 / 2 | `GameTheme.PLINTH` / `GameTheme.PRESS`: keys, flags, End turn (hard, unblurred) |
+| soft shadows (341) | `SHADOW`, straight down, blurred: card at rest 0,4 size 8; hovered 0,8 / 16; dragged 0,14 / 24; sheet 0,16 / 32 | `Surfaces.CARD_REST`, `CARD_HOVER`, `CARD_DRAG`, `SHEET` (each with its Night / Day alpha: 0.35 / 0.20, 0.45 / 0.28, 0.50 / 0.32, 0.55 / 0.35) |
 | selected (§4.4, §10.5) | 4,4 shadow, 8 px pull | `GameTheme.SELECTED_SHADOW` / `GameTheme.PULL`: `ListRow`'s pressed look |
 
 ## Motion (§9.4)

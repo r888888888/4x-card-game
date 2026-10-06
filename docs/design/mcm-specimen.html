@@ -508,6 +508,35 @@ section { margin-bottom: var(--space-7); }
 	.cards, .slots, .supply .piles { zoom: 0.62; }
 	.modal .split { grid-template-columns: 1fr; }
 }
+/* ---- Surfaces (341; mocks/texture-options.html#g): walnut grain under the board, the rail and the strip; paper under
+   cards and modals, on soft shadows. Each surface keeps its token colour, laid over the texture: grain at 90 % (Night)
+   or 88 % (Paper), paper as it is (Paper) or under black at 30 % (Night). Tiles as the game draws them at 1920 × 1080:
+   walnut 960 px, paper 700 px. Keys keep their flat steel and hard plinths. */
+:root, :root[data-theme="paper"] {
+	--walnut: url("../../assets/background/walnut.png");
+	--paper-src: url("../../assets/background/white-paper.png");
+	--grain-veil: 88%; --paper-shade: transparent;
+	--sh-rest: 0 4px 8px rgba(34, 33, 31, 0.20); --sh-hover: 0 8px 16px rgba(34, 33, 31, 0.28);
+	--sh-drag: 0 14px 24px rgba(34, 33, 31, 0.32); --sh-sheet: 0 16px 32px rgba(34, 33, 31, 0.35);
+}
+:root[data-theme="night"] {
+	--paper-src: url("../../assets/background/dark-gray-paper.png");
+	--grain-veil: 90%; --paper-shade: rgba(0, 0, 0, 0.3);
+	--sh-rest: 0 4px 8px rgba(13, 12, 11, 0.35); --sh-hover: 0 8px 16px rgba(13, 12, 11, 0.45);
+	--sh-drag: 0 14px 24px rgba(13, 12, 11, 0.50); --sh-sheet: 0 16px 32px rgba(13, 12, 11, 0.55);
+}
+/* The rail has no fill of its own here: the desk's grain runs under it, as the game lines the two up. */
+.desk { background: linear-gradient(color-mix(in srgb, var(--board) var(--grain-veil), transparent) 0 0), var(--walnut) 0 0 / 960px 960px; }
+.dstrip { background: linear-gradient(color-mix(in srgb, var(--sheet) var(--grain-veil), transparent) 0 0), var(--walnut) 0 0 / 960px 960px; }
+.card, .modal { background: linear-gradient(var(--paper-shade) 0 0), var(--paper-src) 0 0 / 700px 700px; }
+.card { box-shadow: var(--sh-rest); }
+.card:hover { box-shadow: var(--sh-hover); }
+.card[aria-pressed="true"] { box-shadow: var(--sh-drag); }
+.card.dimmed { background: linear-gradient(color-mix(in srgb, var(--dim-bg) 60%, transparent) 0 0), linear-gradient(var(--paper-shade) 0 0),
+	var(--paper-src) 0 0 / 700px 700px; }
+.card.dimmed:hover, .modal .split .card:hover { box-shadow: var(--sh-rest); }
+.card.frontier { box-shadow: none; background: var(--board) repeating-linear-gradient(-45deg, var(--hatch) 0 1px, transparent 1px 10px); }
+.modal { box-shadow: var(--sh-sheet); }
 </style>
 </head>
 <body>
@@ -562,7 +591,7 @@ section { margin-bottom: var(--space-7); }
 		<div class="row" style="margin-top:var(--space-4); gap:var(--space-3)">
 			<button class="btn" id="cycle-state">Cycle End turn's state</button>
 		</div>
-		<p class="note">The game's own 1920 × 1080 layout, scaled to fit. The strip runs across the top, its keys at the right: Buy Cards and Knowledge carry a ready lamp (lit when something new can be bought or learned; it goes out when the screen opens), and Log a bullet while it holds unread lines. The Realm's row (events first, then the frontier and the territories) and the hand share the play area; the rail at the right holds the civilization, its government as a small caps link, and End turn at its foot, with the reason under it when the turn can't end. Notices come out of the rail's edge as flags. Click a card to select it, or press End turn: its plate and the strip's flap to the next turn while the counters roll.</p>
+		<p class="note">The game's own 1920 × 1080 layout, scaled to fit, on walnut grain under the board and the strip (341). The strip runs across the top, its keys at the right: Buy Cards and Knowledge carry a ready lamp (lit when something new can be bought or learned; it goes out when the screen opens), and Log a bullet while it holds unread lines. The Realm's row (events first, then the frontier and the territories) and the hand share the play area; the rail at the right holds the civilization, its government as a small caps link, and End turn at its foot, with the reason under it when the turn can't end. Notices come out of the rail's edge as flags. Click a card to select it, or press End turn: its plate and the strip's flap to the next turn while the counters roll.</p>
 	</section>
 
 	<section>
@@ -638,7 +667,7 @@ section { margin-bottom: var(--space-7); }
 	<section>
 		<div class="titleblock"><h2>Cards</h2><span class="caps">§15.6 · hand, Realm, supply, identity</span></div>
 		<div class="cards" id="cards"></div>
-		<p class="note">Hover slides a card 4 px up with a plinth shadow and the soft hover tick; selecting pulls it 12 px out of the row with the orange index tab, which clips on with a barely-there tick. A card you can't play greys its background, border and band, never its text, says why in a strip at its foot, and snaps sideways (±4 px) when you try to play it, one low tap per stop. In the Realm's row a card shows one line per field: a settled territory its city's name, the territory under it, then its live slots, housing, free workers and defence, with a warning plate when a raid strikes next turn; an event's badge carries its state at the right (turns left, or a raid's strength against the defence in danger); a frontier is dashed over hatching, like unmapped land, and a badge names what it is. A unit is a card on the bronze plane.</p>
+		<p class="note">Every card is printed on paper (341) and rests on a soft shadow; hover slides it 4 px up as the shadow grows, with the soft hover tick; selecting pulls it 12 px out of the row with the orange index tab, which clips on with a barely-there tick. A card you can't play greys its background, border and band, never its text, says why in a strip at its foot, and snaps sideways (±4 px) when you try to play it, one low tap per stop. In the Realm's row a card shows one line per field: a settled territory its city's name, the territory under it, then its live slots, housing, free workers and defence, with a warning plate when a raid strikes next turn; an event's badge carries its state at the right (turns left, or a raid's strength against the defence in danger); a frontier is dashed over hatching, like unmapped land, and a badge names what it is. A unit is a card on the bronze plane.</p>
 	</section>
 
 	<section>

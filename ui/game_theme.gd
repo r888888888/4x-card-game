@@ -16,7 +16,6 @@ const LABEL_SEMIBOLD := preload("res://assets/fonts/BarlowSemiCondensed-SemiBold
 const DISPLAY_FONT := preload("res://assets/fonts/Jost-Variable.ttf")
 const PLINTH := Vector2(2, 2)  # a control's hard shadow (guide shadow.plinth)
 const PRESS := 2  # px a pressed control travels into its shadow (guide travel.press)
-const SHEET_SHADOW := Vector2(8, 8)  # a modal sheet's hard shadow (207, guide §15.11)
 const SELECTED_SHADOW := Vector2(4, 4)  # a selected row's hard shadow (217, guide §4.4 "Selected")
 const PULL := Tokens.SPACE_2  # px a selected row is pulled out of its list (217, guide §10.5)
 
@@ -312,9 +311,9 @@ static func _select_list(t: Theme) -> void:
 	t.set_stylebox("focus", "ListRowQuiet", StyleBoxEmpty.new())
 
 
-## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, RAISED with a 3 px ink rule under
-## it; Rail, the sidebar open on the board with a hairline on its left, filled with the board's colour so a screen sliding
-## in passes under it (224).
+## The board's frame (221, the transitions mock's desk): Strip, the top bar's band, walnut grain under RAISED with a
+## 3 px ink rule under it (341); Rail, the sidebar open on the board with a hairline on its left, on the board's grain
+## so a screen sliding in passes under it (224). The Sidebar lines its grain up with the board's (rail()).
 static func _board_frame(t: Theme) -> void:
 	var strip := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_2)
 	strip.set_border_width_all(0)
@@ -322,17 +321,22 @@ static func _board_frame(t: Theme) -> void:
 	strip.content_margin_left = Tokens.SPACE_4
 	strip.content_margin_right = Tokens.SPACE_4
 	t.set_type_variation("Strip", "PanelContainer")
-	t.set_stylebox("panel", "Strip", strip)
-	var rail := UIKit.panel_style(Palette.BACKGROUND, Palette.HAIRLINE, Tokens.SPACE_4)
-	rail.set_border_width_all(0)
-	rail.border_width_left = 1
+	t.set_stylebox("panel", "Strip", Surfaces.box(Surfaces.STRIP, strip))
 	t.set_type_variation("Rail", "PanelContainer")
-	t.set_stylebox("panel", "Rail", rail)
+	t.set_stylebox("panel", "Rail", rail())
 
 
-## An overlay's or a modal's panel; border defaults to DarkPanel's own.
-static func dark_panel(border := Palette.EDGE) -> StyleBoxFlat:
-	return UIKit.panel_style(Palette.RAISED, border, Tokens.SPACE_5)
+## The Rail's box with its grain lined up for a rail at origin on screen.
+static func rail(origin := Vector2.ZERO) -> SurfaceBox:
+	var frame := UIKit.panel_style(Palette.BACKGROUND, Palette.HAIRLINE, Tokens.SPACE_4)
+	frame.set_border_width_all(0)
+	frame.border_width_left = 1
+	return Surfaces.board(origin, frame)
+
+
+## An overlay's panel (341: a sheet of paper); border defaults to DarkPanel's own.
+static func dark_panel(border := Palette.EDGE) -> SurfaceBox:
+	return Surfaces.sheet(border)
 
 
 ## A supply pile's price tag (232): a WEALTH plane hanging below the card, PriceTagText on it.
@@ -420,14 +424,9 @@ static func _card(fill: Color) -> StyleBoxFlat:
 	return style
 
 
-## A modal's sheet (207, guide §15.11): RAISED in a 2 px ink rule, cut square, on a hard SHEET_SHADOW shadow.
-static func sheet() -> StyleBoxFlat:
-	var style := UIKit.panel_style(Palette.RAISED, Palette.TEXT, Tokens.SPACE_5)
-	style.shadow_color = Palette.SHADOW
-	style.shadow_offset = SHEET_SHADOW
-	style.shadow_size = 1  # with no anti-aliasing: a solid, unblurred offset
-	style.anti_aliasing = false
-	return style
+## A modal's sheet (207, guide §15.11): paper in a 2 px ink rule, cut square, on a soft shadow (341).
+static func sheet() -> SurfaceBox:
+	return Surfaces.sheet(Palette.TEXT)
 
 
 static func focus_ring() -> StyleBoxFlat:

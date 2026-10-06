@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texture Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Spike (spike/textures): the specimen's board and parts dressed in wood, paper and brass. Tokens copied from
+   mcm-specimen.html (§14); each option overrides a set of skin variables on its own section. */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--radius-1: 2px;
+	--d-snap: 70ms; --d-hover: 90ms; --d-quick: 120ms;
+	--ease-machined: cubic-bezier(0.2, 0, 0, 1);
+	--ease-snap: cubic-bezier(0.3, 0, 0, 1);
+	--f-display: "Jost", "Futura", "Century Gothic", sans-serif;
+	--f-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+	--f-cond: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+	--f-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+	--T-oak: url("textures/oak.png");
+	--T-walnut: url("../../../assets/background/walnut.png");
+	--T-paper: url("../../../assets/background/white-paper.png");
+	--T-slate: url("textures/dark-paper.png");
+	--T-gray: url("../../../assets/background/dark-gray-paper.png");
+	--T-brass: url("textures/brass-1.png");
+	--T-brass-hi: url("textures/brass-2.png");
+
+	/* The page itself: the specimen's flat Night. */
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid #6CC3BC; outline-offset: 2px; }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+
+/* ---- Page frame ---- */
+header.page { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--space-5); background: var(--sheet); border-bottom: 4px solid var(--ink); }
+header.page h1 { margin: 0 auto 0 0; font: 500 22px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; }
+header.page nav { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+header.page nav a { color: var(--ink-2); text-decoration: none; font: 600 15px/20px var(--f-cond); letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 2px solid transparent; }
+header.page nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) var(--space-5) 96px; }
+section.opt, section.intro, section.verdict { margin-bottom: 72px; }
+.titleblock { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); border-top: 4px solid var(--ink); padding-top: var(--space-3); margin-bottom: var(--space-4); }
+.titleblock h2 { margin: 0; font: 500 28px/34px var(--f-display); }
+.titleblock .caps { margin-left: auto; }
+p { margin: 0 0 var(--space-3); max-width: 75ch; }
+.lead { color: var(--ink-2); }
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-3); }
+.tex { display: flex; flex-direction: column; gap: var(--space-1); }
+.tex i { display: block; height: 110px; border: 2px solid var(--ink); background-size: 520px; }
+.tex b { font: 600 17px/20px var(--f-cond); }
+.tex span { color: var(--ink-2); font-size: 14px; line-height: 18px; }
+
+.where { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-3) var(--space-5); margin-top: var(--space-4); }
+.where dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 2px var(--space-3); font-size: 15px; }
+.where dt { font: 600 13px/20px var(--f-cond); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.where dd { margin: 0; }
+.where ul { margin: 0; padding-left: 18px; font-size: 15px; color: var(--ink-2); }
+.where li { margin-bottom: 2px; }
+.where li.pro::marker { content: "+  "; color: #93B585; }
+.where li.con::marker { content: "–  "; color: #E07A63; }
+.sizekey { min-height: 28px; padding: 0 var(--space-3); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: 2px; font: 600 14px/1 var(--f-cond); cursor: pointer; }
+.sizekey[aria-pressed="true"] { background: var(--ink); color: var(--board); border-color: var(--ink); }
+body.actual .fit { height: min(1084px, 78vh) !important; overflow: auto; }
+.modebar { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
+.modebar button { min-height: 32px; padding: 0 var(--space-3); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); border-radius: 2px; font: 500 15px/1 var(--f-cond); cursor: pointer; }
+.modebar button[aria-pressed="true"] { background: var(--ink); color: var(--board); border-color: var(--ink); }
+
+/* ================================================================================================
+   The board, at the game's 1920 × 1080, scaled to fit. Every colour and surface is a skin variable.
+   ================================================================================================ */
+.fit { border: 2px solid var(--ink); overflow: hidden; position: relative; }
+.desk {
+	width: 1920px; height: 1080px; display: grid; grid-template-rows: auto 1fr; transform-origin: 0 0;
+	background: var(--desk-bg); color: var(--desk-ink); font-size: 20px;
+}
+.desk .caps, .tray .caps { color: var(--desk-ink-2); font-size: 15px; line-height: 20px; }
+
+/* Strip */
+.dstrip {
+	position: relative; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4);
+	min-height: 64px; background: var(--strip-bg); color: var(--strip-ink); border-bottom: var(--strip-rule); box-shadow: var(--strip-shadow, none);
+}
+.dstrip .stats { display: flex; align-items: center; gap: var(--space-2) var(--strip-gap, 24px); }
+.dstrip .spacer { flex: 1; }
+.dstrip .keys { display: flex; gap: var(--space-3); }
+.plate {
+	display: inline-flex; align-items: center; padding: 2px var(--space-2); white-space: pre;
+	background: var(--plate-bg); color: var(--plate-ink); box-shadow: var(--plate-shadow); text-shadow: var(--plate-ts, none);
+	font: 600 17px/22px var(--f-cond); font-variant-numeric: tabular-nums lining-nums;
+}
+.counter {
+	display: inline-flex; align-items: center; color: var(--counter-ink, inherit);
+	background: var(--counter-bg, none); padding: var(--counter-pad, 0); box-shadow: var(--counter-shadow, none);
+}
+.counter .glyph { margin-right: 6px; }
+.odo { font: 600 26px/28px var(--f-cond); font-variant-numeric: tabular-nums lining-nums; }
+.counter.warn .odo { color: var(--g-unrest); }
+.fc { margin-left: var(--space-1); font: 600 17px/1 var(--f-cond); font-variant-numeric: tabular-nums; color: var(--counter-ink-2, var(--strip-ink-2)); }
+.screw {
+	position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%;
+	background: linear-gradient(35deg, transparent 42%, rgba(46, 32, 6, 0.85) 42% 58%, transparent 58%),
+		radial-gradient(circle at 35% 35%, #F3DE9C, #A8822F 60%, #5E4512);
+	box-shadow: 0 1px 0 rgba(255, 240, 200, 0.5), inset 0 0 0 1px rgba(46, 32, 6, 0.5);
+}
+.screw.l { left: 6px; } .screw.r { right: 6px; }
+
+/* Keys */
+.btn {
+	position: relative; display: inline-flex; align-items: center; gap: var(--space-2);
+	min-height: 40px; padding: var(--space-2) 20px; border-radius: var(--radius-1); cursor: pointer;
+	font: 500 17px/20px var(--f-cond); letter-spacing: 0.02em;
+	background: var(--key-bg); color: var(--key-ink); border: var(--key-border); box-shadow: var(--key-shadow); text-shadow: var(--key-ts, none);
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined), filter var(--d-hover) var(--ease-machined);
+}
+.btn:hover { filter: brightness(var(--key-hover, 1.08)); }
+.btn:active { transform: translate(2px, 2px); box-shadow: var(--key-shadow-press, none); transition-duration: var(--d-snap); transition-timing-function: var(--ease-snap); }
+.btn.primary { background: var(--signal-bg); color: var(--on-signal); border: 3px solid var(--primary-edge); font-weight: 600; text-shadow: none; }
+.btn:disabled { background: var(--disabled-bg); color: var(--disabled-ink); border: 2px dashed var(--disabled-edge); box-shadow: none; text-shadow: none; cursor: not-allowed; filter: none; transform: none; }
+.dot { color: var(--g-wealth); }
+
+.lamp {
+	--lamp: #93B585; --lamp-line: #4E6B47;
+	width: 12px; height: 12px; border-radius: 50%; flex: none;
+	background: var(--lamp-off, rgba(0, 0, 0, 0.35)); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+.lamp.on { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--lamp) 40%, white) 0 18%, var(--lamp) 22%); box-shadow: inset 0 0 0 2px var(--lamp-line), 0 0 6px color-mix(in srgb, var(--lamp) 60%, transparent); }
+
+/* Body: work area and the rail */
+.dbody { display: grid; grid-template-columns: minmax(0, 1fr) 288px; min-height: 0; }
+.work { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); min-width: 0; }
+.zone-head { display: flex; justify-content: space-between; align-items: baseline; }
+.zone-head .num { font: 600 20px/1 var(--f-cond); color: var(--desk-ink); }
+.realm { display: flex; gap: var(--space-3); padding-top: var(--space-2); }
+.hand-zone { margin-top: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.hand { display: flex; gap: var(--space-3); padding: 48px var(--space-5) var(--space-5); }
+.drail {
+	position: relative; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-5);
+	background: var(--rail-bg); color: var(--rail-ink); border-left: var(--rail-rule); box-shadow: var(--rail-shadow, none);
+}
+.drail .caps { color: var(--rail-ink-2); }
+.drail .rule3 { height: var(--rail-head-h, 3px); background: var(--rail-head); margin-bottom: var(--space-1); box-shadow: var(--rail-head-shadow, none); }
+.title-link { align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: 500 28px/34px var(--f-display); border-bottom: 2px solid transparent; }
+.title-link:hover { border-bottom-color: currentColor; }
+.caps-link { align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer; font: 600 15px/20px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--rail-ink-2); }
+.drail .foot { margin-top: auto; }
+.bezel { padding: var(--bezel-pad, 0); background: var(--bezel-bg, none); box-shadow: var(--bezel-shadow, none); border-radius: 3px; }
+.end-turn {
+	display: flex; align-items: center; gap: var(--space-3); width: 100%; height: 80px; padding: 0 var(--space-4);
+	background: var(--signal-bg); color: var(--on-signal); border: 3px solid var(--primary-edge); border-radius: var(--radius-1);
+	box-shadow: var(--end-shadow); cursor: pointer; font: 600 20px/1 var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase;
+	transition: transform var(--d-quick) var(--ease-machined), box-shadow var(--d-quick) var(--ease-machined);
+}
+.end-turn:active { transform: translate(4px, 4px); box-shadow: none; transition-duration: var(--d-snap); }
+.end-turn .label { flex: 1; text-align: left; }
+.end-turn .lamp { --lamp-line: var(--on-signal); }
+.end-turn .plate { letter-spacing: 0; }
+.drail .caption { font: 400 17px/22px var(--f-ui); color: var(--rail-ink-2); margin-top: var(--space-2); }
+
+/* Cards: index cards on the skin's paper */
+.card {
+	--g-food: var(--cg-food); --g-wealth: var(--cg-wealth); --g-insight: var(--cg-insight); --g-pop: var(--cg-pop); --g-unrest: var(--cg-unrest);
+	position: relative; width: 264px; height: 320px; padding: var(--space-3); flex: none;
+	display: flex; flex-direction: column; gap: var(--space-2);
+	background: var(--card-bg); color: var(--card-ink); border: 2px solid var(--card-rule); box-shadow: var(--card-shadow);
+	font: inherit; text-align: left; cursor: pointer; transform: translateY(0);
+	transition: transform var(--d-hover) var(--ease-machined), box-shadow var(--d-hover) var(--ease-machined), border-color var(--d-hover) var(--ease-machined);
+}
+.card:nth-child(2n) { background-position: 410px 190px; }
+.card:nth-child(3n) { background-position: 120px 640px; }
+.card:hover { transform: translateY(-4px); box-shadow: var(--card-shadow-hover); border-color: var(--card-edge); }
+.card[aria-pressed="true"] { transform: translateY(-12px); box-shadow: var(--card-shadow-lift); border: 3px solid var(--card-edge); padding: 11px; }
+.card .index-tab { position: absolute; top: -9px; left: 12px; height: 6px; width: 0; background: var(--signal); transition: width var(--d-quick) var(--ease-machined); }
+.card[aria-pressed="true"] .index-tab { width: 24px; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card .name { font: 600 20px/24px var(--f-cond); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .cost { display: inline-flex; flex: none; gap: var(--space-3); }
+.cost-item { display: inline-flex; align-items: center; gap: 3px; font: 500 20px/24px var(--f-cond); font-variant-numeric: tabular-nums; }
+.card .band { flex: none; height: 5px; background: var(--band); box-shadow: var(--band-shadow, none); }
+.card .type { display: flex; align-items: center; gap: 6px; font: 400 17px/22px var(--f-ui); color: var(--card-ink-2); }
+.mark { flex: none; width: 10px; height: 10px; fill: currentColor; }
+.card .rules { flex: 1; font: 400 20px/24px var(--f-ui); }
+.card .vp { color: var(--cg-food); }
+.card .reason { display: flex; gap: 6px; align-items: flex-start; background: var(--card-well); padding: var(--space-1) var(--space-2); font: 400 17px/21px var(--f-ui); }
+.card .reason .glyph { margin-top: 2px; }
+.card.dimmed { background: linear-gradient(var(--card-dim-veil), var(--card-dim-veil)), var(--card-bg); border-color: var(--card-dim-edge); cursor: not-allowed; }
+.card.dimmed .band { background: var(--card-dim-edge); }
+.card.dimmed:hover { transform: none; box-shadow: var(--card-shadow); border-color: var(--card-dim-edge); }
+.card.realm-card { width: 245px; height: 150px; }
+.card .sub { font: 400 17px/22px var(--f-ui); color: var(--card-ink-2); }
+.card .live { margin-top: auto; display: flex; gap: var(--space-4); font: 400 20px/24px var(--f-ui); color: var(--card-live); }
+.live span { display: inline-flex; align-items: center; gap: 4px; }
+.card .keywords { margin-top: auto; font: 400 17px/22px var(--f-ui); color: var(--card-ink-2); }
+.card .badgerow { display: flex; justify-content: space-between; align-items: center; }
+.card .badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 0 var(--space-2); border-radius: 4px; background: var(--band); color: #22211F; font: 500 14px/20px var(--f-cond); white-space: nowrap; }
+.card .badge .mark { width: 9px; height: 9px; }
+.card .status { font: 500 14px/20px var(--f-cond); color: var(--card-ink-2); }
+.card .status.danger { color: var(--cg-unrest); font-weight: 600; }
+.card.frontier {
+	--card-ink: var(--frontier-ink); --card-ink-2: var(--frontier-ink-2); --card-live: var(--frontier-ink-2);
+	background: var(--frontier-bg); border: 2px dashed var(--frontier-edge); box-shadow: none;
+}
+
+/* ---- The tray: the same parts loose on the same desk ---- */
+.tray {
+	display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start; padding: var(--space-5);
+	background: var(--desk-bg); color: var(--desk-ink); border: 2px solid var(--ink); border-top: 0;
+}
+.tray .col { display: flex; flex-direction: column; gap: var(--space-3); }
+.tray .row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.price-tag {
+	display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3);
+	background: var(--tag-bg); color: var(--tag-ink); text-shadow: var(--tag-ts, none); box-shadow: var(--tag-shadow, none);
+	font: 600 20px/24px var(--f-cond); font-variant-numeric: tabular-nums;
+}
+.price-tag span { display: inline-flex; align-items: center; gap: 3px; }
+.mpanel {
+	--g-food: var(--cg-food); --g-wealth: var(--cg-wealth); --g-insight: var(--cg-insight);
+	width: min(540px, 100%); background: var(--modal-bg); color: var(--modal-ink); border: 2px solid var(--modal-edge); box-shadow: var(--modal-shadow);
+}
+.mpanel .mtitle { display: flex; align-items: baseline; gap: var(--space-4); padding: var(--space-3) var(--space-5) 0; border-top: var(--modal-head); }
+.mpanel .mtitle h3 { margin: 0; font: 500 28px/34px var(--f-display); }
+.mpanel .mtitle .caps { margin-left: auto; color: var(--modal-ink-2); }
+.mpanel .mbody { padding: var(--space-3) var(--space-5) var(--space-4); font-size: 18px; line-height: 1.45; }
+.mpanel footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-3) var(--space-5); border-top: 1px solid var(--modal-rule); }
+
+/* ================================================================================================
+   Skins
+   ================================================================================================ */
+
+/* A · Walnut desk. Wood as the surface; a slate blotter L for the instruments; paper cards; brass plates. */
+[data-skin="a"] {
+	--desk-bg: linear-gradient(rgba(18, 9, 4, 0.22), rgba(18, 9, 4, 0.22)), var(--T-walnut) 0 0 / 960px;
+	--desk-ink: #F3EADB; --desk-ink-2: #D9C9B2;
+	--strip-bg: var(--T-slate) 0 0 / 760px; --strip-ink: #EDEAE4; --strip-ink-2: #AFBBC7;
+	--strip-rule: 3px solid #10161C; --strip-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+	--rail-bg: var(--T-slate) 300px 0 / 760px; --rail-ink: #EDEAE4; --rail-ink-2: #AFBBC7;
+	--rail-rule: 3px solid #10161C; --rail-shadow: -4px 0 10px rgba(0, 0, 0, 0.35); --rail-head: #EDEAE4;
+	--plate-bg: var(--T-brass) 0 0 / 420px; --plate-ink: #3A2A0C; --plate-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--plate-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.6), inset 0 -1px 0 rgba(60, 40, 6, 0.5), 0 1px 2px rgba(0, 0, 0, 0.5);
+	--g-food: #A9C99A; --g-wealth: #E3B94F; --g-insight: #9DBEDF; --g-pop: #7FD0C8; --g-unrest: #F08C74;
+	--key-bg: var(--T-paper) 0 0 / 600px; --key-ink: #22211F; --key-border: 2px solid #10161C; --key-shadow: 2px 2px 0 #0B0F13;
+	--disabled-bg: rgba(0, 0, 0, 0.2); --disabled-ink: #8E99A4; --disabled-edge: #6B7782;
+	--signal: #E0703F; --signal-bg: #E0703F var(--T-paper) 0 0 / 600px; --on-signal: #1F1E1C; --primary-edge: #10161C;
+	--end-shadow: 4px 4px 0 #0B0F13;
+	--card-bg: var(--T-paper) 0 0 / 700px; --card-ink: #22211F; --card-ink-2: #57534B; --card-rule: #9E9482; --card-edge: #22211F;
+	--card-well: rgba(87, 70, 40, 0.12); --card-live: #4E6B47;
+	--card-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.35);
+	--card-shadow-hover: 0 2px 0 rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.45);
+	--card-shadow-lift: 0 3px 0 rgba(0, 0, 0, 0.3), 0 18px 30px rgba(0, 0, 0, 0.5);
+	--card-dim-veil: rgba(120, 104, 80, 0.28); --card-dim-edge: #9E9482;
+	--cg-food: #4E6B47; --cg-wealth: #A07514; --cg-insight: #35597C; --cg-pop: #1F6A68; --cg-unrest: #9B3424;
+	--frontier-bg: rgba(255, 244, 225, 0.08) repeating-linear-gradient(-45deg, rgba(255, 244, 225, 0.12) 0 1px, transparent 1px 10px);
+	--frontier-edge: #D9C9B2; --frontier-ink: #F3EADB; --frontier-ink-2: #D9C9B2;
+	--tag-bg: var(--T-brass-hi) 0 0 / 420px; --tag-ink: #3A2A0C; --tag-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--tag-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.6), inset 0 -1px 0 rgba(60, 40, 6, 0.5), 0 2px 4px rgba(0, 0, 0, 0.45);
+	--modal-bg: var(--T-paper) 200px 100px / 700px; --modal-ink: #22211F; --modal-ink-2: #57534B; --modal-edge: #22211F;
+	--modal-head: 4px solid #22211F; --modal-rule: #CFC6B5; --modal-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+[data-skin="a"] .end-turn { background-blend-mode: multiply; }
+[data-skin="a"] .mpanel { --key-bg: #DCD3C2; --key-border: 2px solid #6F685C; --key-shadow: 2px 2px 0 #22211F; --primary-edge: #22211F; --signal-bg: #A8401B; --on-signal: #FBF6EC; }
+
+/* B · Oak drafting table. Day: the current Paper palette, with the board an oak table and every sheet real paper. */
+[data-skin="b"] {
+	--desk-bg: var(--T-oak) 0 0 / 960px;
+	--desk-ink: #22211F; --desk-ink-2: #4A4136;
+	--strip-bg: var(--T-paper) 0 0 / 760px; --strip-ink: #22211F; --strip-ink-2: #57534B;
+	--strip-rule: 4px solid #22211F;
+	--rail-bg: linear-gradient(rgba(248, 244, 236, 0.35), rgba(248, 244, 236, 0.35)), var(--T-paper) 0 0 / 760px; --rail-ink: #22211F; --rail-ink-2: #57534B;
+	--rail-rule: 2px solid #22211F; --rail-head: #22211F;
+	--plate-bg: var(--T-brass) 0 0 / 420px; --plate-ink: #3A2A0C; --plate-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--plate-shadow: inset 0 0 0 1px rgba(60, 40, 6, 0.55), inset 0 1px 0 rgba(255, 248, 220, 0.5);
+	--g-food: #4E6B47; --g-wealth: #A07514; --g-insight: #35597C; --g-pop: #1F6A68; --g-unrest: #9B3424;
+	--key-bg: #DCD3C2; --key-ink: #22211F; --key-border: 2px solid #6F685C; --key-shadow: 2px 2px 0 #22211F; --key-hover: 1.04;
+	--disabled-bg: #E3DACA; --disabled-ink: #7A7468; --disabled-edge: #6F685C;
+	--signal: #A8401B; --signal-bg: #A8401B; --on-signal: #FBF6EC; --primary-edge: #22211F; --end-shadow: 4px 4px 0 #22211F;
+	--card-bg: var(--T-paper) 0 0 / 700px; --card-ink: #22211F; --card-ink-2: #57534B; --card-rule: #6F685C; --card-edge: #22211F;
+	--card-well: rgba(87, 70, 40, 0.1); --card-live: #4E6B47;
+	--card-shadow: 2px 2px 0 rgba(34, 33, 31, 0.55); --card-shadow-hover: 3px 3px 0 #22211F; --card-shadow-lift: 4px 4px 0 #22211F;
+	--card-dim-veil: rgba(150, 132, 104, 0.25); --card-dim-edge: #B9AF9C;
+	--cg-food: #4E6B47; --cg-wealth: #A07514; --cg-insight: #35597C; --cg-pop: #1F6A68; --cg-unrest: #9B3424;
+	--frontier-bg: repeating-linear-gradient(-45deg, rgba(34, 33, 31, 0.14) 0 1px, transparent 1px 10px);
+	--frontier-edge: #3E362B; --frontier-ink: #22211F; --frontier-ink-2: #4A4136;
+	--tag-bg: var(--T-brass-hi) 0 0 / 420px; --tag-ink: #3A2A0C; --tag-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--tag-shadow: inset 0 0 0 1px rgba(60, 40, 6, 0.55), 2px 2px 0 rgba(34, 33, 31, 0.55);
+	--modal-bg: var(--T-paper) 200px 100px / 700px; --modal-ink: #22211F; --modal-ink-2: #57534B; --modal-edge: #22211F;
+	--modal-head: 4px solid #22211F; --modal-rule: #CFC6B5; --modal-shadow: 8px 8px 0 #22211F;
+}
+
+/* C · Walnut cabinet. Wood as the chrome (strip and rail are furniture), the slate paper as the working surface,
+   brass hardware for keys, dark windows for the figures. */
+[data-skin="c"] {
+	--desk-bg: linear-gradient(rgba(10, 14, 18, 0.12), rgba(10, 14, 18, 0.12)), var(--T-slate) 0 0 / 820px;
+	--desk-ink: #E9EDF1; --desk-ink-2: #B4C0CB;
+	--strip-bg: linear-gradient(rgba(255, 220, 180, 0.08), rgba(0, 0, 0, 0.22)), var(--T-walnut) 0 0 / 900px; --strip-ink: #F3EADB; --strip-ink-2: #D9C9B2;
+	--strip-rule: 3px solid #1A0E07; --strip-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+	--counter-bg: #15110D; --counter-pad: 2px 10px; --counter-ink: #EDE6D6; --counter-ink-2: #B9B1A1;
+	--counter-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 220, 180, 0.15); --strip-gap: 14px;
+	--rail-bg: linear-gradient(90deg, rgba(0, 0, 0, 0.25), rgba(255, 220, 180, 0.04) 30%), var(--T-walnut) 400px 0 / 900px;
+	--rail-ink: #F3EADB; --rail-ink-2: #D9C9B2; --rail-rule: 3px solid #1A0E07; --rail-shadow: -6px 0 14px rgba(0, 0, 0, 0.4);
+	--rail-head: var(--T-brass) 0 0 / 300px; --rail-head-h: 4px;
+	--plate-bg: #15110D; --plate-ink: #EDE6D6; --plate-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 220, 180, 0.15);
+	--g-food: #A9C99A; --g-wealth: #E3B94F; --g-insight: #9DBEDF; --g-pop: #7FD0C8; --g-unrest: #F08C74;
+	--key-bg: var(--T-brass) 0 0 / 420px; --key-ink: #33250A; --key-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--key-border: 1px solid #4A3610; --key-hover: 1.07;
+	--key-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.7), inset 0 -2px 0 rgba(60, 40, 6, 0.45), 0 2px 0 #1A0E07, 0 3px 6px rgba(0, 0, 0, 0.5);
+	--key-shadow-press: inset 0 1px 0 rgba(255, 248, 220, 0.4), inset 0 -1px 0 rgba(60, 40, 6, 0.4);
+	--lamp-off: rgba(50, 36, 10, 0.5);
+	--disabled-bg: rgba(0, 0, 0, 0.25); --disabled-ink: #9C8F7A; --disabled-edge: #6E5E48;
+	--signal: #E0703F; --signal-bg: #E0703F; --on-signal: #1F1E1C; --primary-edge: #1A0E07; --end-shadow: 0 3px 0 #1A0E07;
+	--bezel-pad: 6px; --bezel-bg: var(--T-brass) 0 0 / 420px;
+	--bezel-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.7), inset 0 -1px 0 rgba(60, 40, 6, 0.6), 0 3px 8px rgba(0, 0, 0, 0.55);
+	--card-bg: var(--T-paper) 0 0 / 700px; --card-ink: #22211F; --card-ink-2: #57534B; --card-rule: #9E9482; --card-edge: #22211F;
+	--card-well: rgba(87, 70, 40, 0.12); --card-live: #4E6B47;
+	--card-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.35);
+	--card-shadow-hover: 0 2px 0 rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.45);
+	--card-shadow-lift: 0 3px 0 rgba(0, 0, 0, 0.3), 0 18px 30px rgba(0, 0, 0, 0.5);
+	--card-dim-veil: rgba(120, 104, 80, 0.28); --card-dim-edge: #9E9482;
+	--cg-food: #4E6B47; --cg-wealth: #A07514; --cg-insight: #35597C; --cg-pop: #1F6A68; --cg-unrest: #9B3424;
+	--frontier-bg: rgba(255, 255, 255, 0.05) repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 10px);
+	--frontier-edge: #B4C0CB; --frontier-ink: #E9EDF1; --frontier-ink-2: #B4C0CB;
+	--tag-bg: var(--T-brass-hi) 0 0 / 420px; --tag-ink: #3A2A0C; --tag-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--tag-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.6), inset 0 -1px 0 rgba(60, 40, 6, 0.5), 0 2px 4px rgba(0, 0, 0, 0.45);
+	--modal-bg: var(--T-paper) 200px 100px / 700px; --modal-ink: #22211F; --modal-ink-2: #57534B; --modal-edge: #1A0E07;
+	--modal-head: 6px solid #5A3520; --modal-rule: #CFC6B5; --modal-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+[data-skin="c"] .mpanel .btn:not(.primary) { --key-ink: #33250A; }
+
+/* D · Brass instrument panel. Night all the way down: slate board and slate cards, a brushed brass strip with
+   screws and dark figure windows, bakelite keys, a brass bezel round End turn. */
+[data-skin="d"] {
+	--desk-bg: linear-gradient(rgba(6, 9, 12, 0.5), rgba(6, 9, 12, 0.5)), var(--T-slate) 0 0 / 820px;
+	--desk-ink: #E9EDF1; --desk-ink-2: #A7B3BE;
+	--strip-bg: var(--T-brass-hi) 0 0 / 900px; --strip-ink: #2E2006; --strip-ink-2: #4D3A12;
+	--strip-rule: 3px solid #2E2006; --strip-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.7), 0 6px 14px rgba(0, 0, 0, 0.55);
+	--counter-bg: #0F1215; --counter-pad: 2px 10px; --counter-ink: #EDE6D6; --counter-ink-2: #A7B3BE;
+	--counter-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 248, 220, 0.7), 0 -1px 0 rgba(60, 40, 6, 0.6); --strip-gap: 14px;
+	--rail-bg: linear-gradient(rgba(6, 9, 12, 0.3), rgba(6, 9, 12, 0.3)), var(--T-slate) 300px 0 / 820px;
+	--rail-ink: #E9EDF1; --rail-ink-2: #A7B3BE; --rail-rule: 6px solid #B38E3E; --rail-head: var(--T-brass-hi) 0 0 / 300px; --rail-head-h: 4px;
+	--plate-bg: var(--T-brass) 0 0 / 420px; --plate-ink: #2E2006; --plate-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--plate-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.6), inset 0 -1px 0 rgba(60, 40, 6, 0.5), 0 1px 2px rgba(0, 0, 0, 0.5);
+	--g-food: #A9C99A; --g-wealth: #E3B94F; --g-insight: #9DBEDF; --g-pop: #7FD0C8; --g-unrest: #F08C74;
+	--key-bg: linear-gradient(#34302B, #1E1B18); --key-ink: #EDE6D6; --key-border: 2px solid #2E2006; --key-hover: 1.2;
+	--key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 0 #2E2006, 0 3px 5px rgba(0, 0, 0, 0.4);
+	--key-shadow-press: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	--disabled-bg: rgba(0, 0, 0, 0.25); --disabled-ink: #8794A0; --disabled-edge: #5C6874;
+	--signal: #E0703F; --signal-bg: #E0703F; --on-signal: #1F1E1C; --primary-edge: #2E2006; --end-shadow: 0 3px 0 #2E2006;
+	--bezel-pad: 6px; --bezel-bg: var(--T-brass-hi) 0 0 / 420px;
+	--bezel-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.7), inset 0 -1px 0 rgba(60, 40, 6, 0.6), 0 3px 8px rgba(0, 0, 0, 0.6);
+	--card-bg: linear-gradient(rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.07)), var(--T-slate) 0 0 / 700px;
+	--card-ink: #EDEAE4; --card-ink-2: #B4C0CB; --card-rule: #6B7885; --card-edge: #D8C27E;
+	--card-well: rgba(0, 0, 0, 0.3); --card-live: #A9C99A;
+	--card-shadow: 0 4px 10px rgba(0, 0, 0, 0.45); --card-shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.55); --card-shadow-lift: 0 18px 30px rgba(0, 0, 0, 0.6);
+	--band-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+	--card-dim-veil: rgba(6, 9, 12, 0.62); --card-dim-edge: #3E4851;
+	--cg-food: #A9C99A; --cg-wealth: #E3B94F; --cg-insight: #9DBEDF; --cg-pop: #7FD0C8; --cg-unrest: #F08C74;
+	--frontier-bg: rgba(255, 255, 255, 0.03) repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 10px);
+	--frontier-edge: #A7B3BE; --frontier-ink: #E9EDF1; --frontier-ink-2: #A7B3BE;
+	--tag-bg: var(--T-brass-hi) 0 0 / 420px; --tag-ink: #2E2006; --tag-ts: 0 1px 0 rgba(255, 238, 196, 0.6);
+	--tag-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.6), inset 0 -1px 0 rgba(60, 40, 6, 0.5), 0 2px 4px rgba(0, 0, 0, 0.5);
+	--modal-bg: linear-gradient(rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.07)), var(--T-slate) 200px 100px / 700px;
+	--modal-ink: #EDEAE4; --modal-ink-2: #B4C0CB; --modal-edge: #B38E3E;
+	--modal-head: 5px solid #C9A54E; --modal-rule: #47525C; --modal-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* E · Grain only. The specimen's flat palette, unchanged, laid over the textures as a veil (88–92 %): the colour
+   stays the token, the texture is the tooth under it. Night: walnut board, slate sheets. Paper: oak board, paper. */
+[data-skin="e"] {
+	--v-board: rgba(31, 30, 28, 0.9); --v-sheet: rgba(42, 40, 37, 0.9);
+	--desk-bg: linear-gradient(var(--v-board), var(--v-board)), var(--T-walnut) 0 0 / 960px;
+	--desk-ink: #EDE6D6; --desk-ink-2: #B9B1A1;
+	--strip-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-slate) 0 0 / 760px; --strip-ink: #EDE6D6; --strip-ink-2: #B9B1A1;
+	--strip-rule: 3px solid #EDE6D6;
+	--rail-bg: transparent; --rail-ink: #EDE6D6; --rail-ink-2: #B9B1A1; --rail-rule: 1px solid #3A3733; --rail-head: #EDE6D6;
+	--plate-bg: #171614; --plate-ink: #EDE6D6; --plate-shadow: inset 0 0 0 1px #857D70;
+	--g-food: #93B585; --g-wealth: #D9A441; --g-insight: #86A9CC; --g-pop: #6CC3BC; --g-unrest: #E07A63;
+	--key-bg: #3A3733; --key-ink: #EDE6D6; --key-border: 2px solid #857D70; --key-shadow: 2px 2px 0 #0D0C0B; --key-hover: 1.15;
+	--disabled-bg: #171614; --disabled-ink: #8E877A; --disabled-edge: #857D70;
+	--signal: #E0703F; --signal-bg: #E0703F; --on-signal: #1F1E1C; --primary-edge: #EDE6D6; --end-shadow: 4px 4px 0 #0D0C0B;
+	--card-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-slate) 0 0 / 700px;
+	--card-ink: #EDE6D6; --card-ink-2: #B9B1A1; --card-rule: #857D70; --card-edge: #EDE6D6; --card-well: #171614; --card-live: #93B585;
+	--card-shadow: 0 0 0 #0D0C0B; --card-shadow-hover: 2px 2px 0 #0D0C0B; --card-shadow-lift: 4px 4px 0 #0D0C0B;
+	--card-dim-veil: rgba(31, 30, 28, 0.6); --card-dim-edge: #5A554D;
+	--cg-food: #93B585; --cg-wealth: #D9A441; --cg-insight: #86A9CC; --cg-pop: #6CC3BC; --cg-unrest: #E07A63;
+	--frontier-bg: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 10px);
+	--frontier-edge: #857D70; --frontier-ink: #EDE6D6; --frontier-ink-2: #B9B1A1;
+	--tag-bg: linear-gradient(rgba(217, 164, 65, 0.55), rgba(217, 164, 65, 0.55)), var(--T-brass-hi) 0 0 / 420px; --tag-ink: #1F1E1C;
+	--modal-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-slate) 200px 100px / 700px;
+	--modal-ink: #EDE6D6; --modal-ink-2: #B9B1A1; --modal-edge: #EDE6D6; --modal-head: 4px solid #EDE6D6; --modal-rule: #3A3733;
+	--modal-shadow: 8px 8px 0 #0D0C0B;
+}
+[data-skin="e"][data-mode="paper"] {
+	--v-board: rgba(239, 232, 218, 0.82); --v-sheet: rgba(248, 244, 236, 0.8);
+	--desk-bg: linear-gradient(var(--v-board), var(--v-board)), var(--T-oak) 0 0 / 960px;
+	--desk-ink: #22211F; --desk-ink-2: #57534B;
+	--strip-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-paper) 0 0 / 760px; --strip-ink: #22211F; --strip-ink-2: #57534B;
+	--strip-rule: 4px solid #22211F;
+	--rail-ink: #22211F; --rail-ink-2: #57534B; --rail-rule: 1px solid #CFC6B5; --rail-head: #22211F;
+	--plate-bg: #E3DACA; --plate-ink: #22211F; --plate-shadow: inset 0 0 0 1px #6F685C;
+	--g-food: #4E6B47; --g-wealth: #A07514; --g-insight: #35597C; --g-pop: #1F6A68; --g-unrest: #9B3424;
+	--key-bg: #DCD3C2; --key-ink: #22211F; --key-border: 2px solid #6F685C; --key-shadow: 2px 2px 0 #22211F; --key-hover: 1.04;
+	--disabled-bg: #E3DACA; --disabled-ink: #7A7468; --disabled-edge: #6F685C;
+	--signal: #A8401B; --signal-bg: #A8401B; --on-signal: #FBF6EC; --primary-edge: #22211F; --end-shadow: 4px 4px 0 #22211F;
+	--card-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-paper) 0 0 / 700px;
+	--card-ink: #22211F; --card-ink-2: #57534B; --card-rule: #6F685C; --card-edge: #22211F; --card-well: #E3DACA; --card-live: #4E6B47;
+	--card-shadow: 0 0 0 #22211F; --card-shadow-hover: 2px 2px 0 #22211F; --card-shadow-lift: 4px 4px 0 #22211F;
+	--card-dim-veil: rgba(232, 225, 211, 0.75); --card-dim-edge: #B9AF9C;
+	--cg-food: #4E6B47; --cg-wealth: #A07514; --cg-insight: #35597C; --cg-pop: #1F6A68; --cg-unrest: #9B3424;
+	--frontier-bg: repeating-linear-gradient(-45deg, rgba(34, 33, 31, 0.1) 0 1px, transparent 1px 10px);
+	--frontier-edge: #6F685C; --frontier-ink: #22211F; --frontier-ink-2: #57534B;
+	--tag-bg: linear-gradient(rgba(160, 117, 20, 0.6), rgba(160, 117, 20, 0.6)), var(--T-brass-hi) 0 0 / 420px; --tag-ink: #FBF6EC;
+	--modal-bg: linear-gradient(var(--v-sheet), var(--v-sheet)), var(--T-paper) 200px 100px / 700px;
+	--modal-ink: #22211F; --modal-ink-2: #57534B; --modal-edge: #22211F; --modal-head: 4px solid #22211F; --modal-rule: #CFC6B5;
+	--modal-shadow: 8px 8px 0 #22211F;
+}
+
+/* F · Walnut bar, gray paper cards. The strip is a walnut bar; every card and the modal is dark gray paper in Night
+   ink; the play mat is E's grain only (the Night board at 90 % over walnut). No brass: plates, keys and the price tag
+   are flat or translucent. */
+[data-skin="f"] {
+	--desk-bg: linear-gradient(rgba(31, 30, 28, 0.9), rgba(31, 30, 28, 0.9)), var(--T-walnut) 0 0 / 960px;
+	--desk-ink: #EDE6D6; --desk-ink-2: #B9B1A1;
+	--strip-bg: linear-gradient(rgba(255, 220, 180, 0.07), rgba(0, 0, 0, 0.2)), var(--T-walnut) 0 0 / 900px; --strip-ink: #F3EADB; --strip-ink-2: #D9C9B2;
+	--strip-rule: 3px solid #1A0E07; --strip-shadow: 0 5px 12px rgba(0, 0, 0, 0.45);
+	--rail-bg: transparent; --rail-ink: #EDE6D6; --rail-ink-2: #B9B1A1; --rail-rule: 1px solid #3A3733; --rail-head: #EDE6D6;
+	--plate-bg: rgba(12, 7, 4, 0.5); --plate-ink: #F3EADB; --plate-shadow: inset 0 0 0 1px rgba(243, 234, 219, 0.35);
+	--g-food: #A9C99A; --g-wealth: #E3B94F; --g-insight: #9DBEDF; --g-pop: #7FD0C8; --g-unrest: #F08C74;
+	/* Keys: translucent on the walnut (the grain shows through), flat on the mat and in the modal (below). */
+	--key-bg: rgba(12, 7, 4, 0.42); --key-ink: #F3EADB; --key-border: 2px solid rgba(243, 234, 219, 0.45); --key-hover: 1.3;
+	--key-shadow: 2px 2px 0 rgba(10, 5, 2, 0.75); --lamp-off: rgba(243, 234, 219, 0.14);
+	--disabled-bg: #171614; --disabled-ink: #8E877A; --disabled-edge: #857D70;
+	--signal: #E0703F; --signal-bg: #E0703F; --on-signal: #1F1E1C; --primary-edge: #EDE6D6; --end-shadow: 4px 4px 0 #0D0C0B;
+	--paper-shade: rgba(0, 0, 0, 0.3);
+	--card-bg: linear-gradient(var(--paper-shade), var(--paper-shade)), var(--T-gray) 0 0 / 700px;
+	--card-ink: #EDE6D6; --card-ink-2: #C4C1BA; --card-rule: #77787B; --card-edge: #EDE6D6;
+	--card-well: rgba(0, 0, 0, 0.28); --card-live: #A9C99A; --band-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+	--card-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.35);
+	--card-shadow-hover: 0 2px 0 rgba(0, 0, 0, 0.35), 0 10px 20px rgba(0, 0, 0, 0.45);
+	--card-shadow-lift: 0 3px 0 rgba(0, 0, 0, 0.35), 0 18px 30px rgba(0, 0, 0, 0.5);
+	--card-dim-veil: rgba(20, 19, 18, 0.6); --card-dim-edge: #4A4A4B;
+	--cg-food: #A9C99A; --cg-wealth: #E3B94F; --cg-insight: #9DBEDF; --cg-pop: #7FD0C8; --cg-unrest: #F08C74;
+	--frontier-bg: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 10px);
+	--frontier-edge: #857D70; --frontier-ink: #EDE6D6; --frontier-ink-2: #B9B1A1;
+	--tag-bg: #D9A441; --tag-ink: #1F1E1C;
+	--modal-bg: linear-gradient(var(--paper-shade), var(--paper-shade)), var(--T-gray) 200px 100px / 700px;
+	--modal-ink: #EDE6D6; --modal-ink-2: #C4C1BA; --modal-edge: #0D0C0B;
+	--modal-head: 4px solid #EDE6D6; --modal-rule: #5E5F61; --modal-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+[data-skin="f"] .tray, [data-skin="f"] .mpanel { --key-bg: #3A3733; --key-ink: #EDE6D6; --key-border: 2px solid #857D70; --key-shadow: 2px 2px 0 #0D0C0B; --key-hover: 1.15; }
+[data-skin="f"] .tray .plate { --plate-bg: #171614; --plate-ink: #EDE6D6; --plate-shadow: inset 0 0 0 1px #857D70; }
+
+/* F in Day: the same walnut bar and walnut grain under the mat; the cards and modal on white paper; the Paper
+   palette for everything on the mat. The bar stays dark, so its keys and plate keep their light ink. */
+[data-skin="f"][data-mode="day"] {
+	--desk-bg: linear-gradient(rgba(239, 232, 218, 0.88), rgba(239, 232, 218, 0.88)), var(--T-walnut) 0 0 / 960px;
+	--desk-ink: #22211F; --desk-ink-2: #57534B;
+	--rail-ink: #22211F; --rail-ink-2: #57534B; --rail-rule: 1px solid #CFC6B5; --rail-head: #22211F;
+	--disabled-bg: #E3DACA; --disabled-ink: #7A7468; --disabled-edge: #6F685C;
+	--signal: #A8401B; --signal-bg: #A8401B; --on-signal: #FBF6EC; --primary-edge: #22211F; --end-shadow: 4px 4px 0 #22211F;
+	--card-bg: var(--T-paper) 0 0 / 700px;
+	--card-ink: #22211F; --card-ink-2: #57534B; --card-rule: #8A8272; --card-edge: #22211F;
+	--card-well: rgba(87, 70, 40, 0.1); --card-live: #4E6B47; --band-shadow: none;
+	--card-shadow: 0 1px 0 rgba(60, 40, 20, 0.25), 0 3px 8px rgba(60, 40, 20, 0.2);
+	--card-shadow-hover: 0 2px 0 rgba(60, 40, 20, 0.25), 0 8px 16px rgba(60, 40, 20, 0.28);
+	--card-shadow-lift: 0 3px 0 rgba(60, 40, 20, 0.25), 0 16px 26px rgba(60, 40, 20, 0.32);
+	--card-dim-veil: rgba(185, 175, 156, 0.4); --card-dim-edge: #B9AF9C;
+	--cg-food: #4E6B47; --cg-wealth: #A07514; --cg-insight: #35597C; --cg-pop: #1F6A68; --cg-unrest: #9B3424;
+	--frontier-bg: repeating-linear-gradient(-45deg, rgba(34, 33, 31, 0.1) 0 1px, transparent 1px 10px);
+	--frontier-edge: #6F685C; --frontier-ink: #22211F; --frontier-ink-2: #57534B;
+	--tag-bg: #A07514; --tag-ink: #FBF6EC;
+	--modal-bg: var(--T-paper) 200px 100px / 700px;
+	--modal-ink: #22211F; --modal-ink-2: #57534B; --modal-edge: #22211F;
+	--modal-head: 4px solid #22211F; --modal-rule: #CFC6B5; --modal-shadow: 0 16px 32px rgba(60, 40, 20, 0.35);
+}
+[data-skin="f"][data-mode="day"] .tray, [data-skin="f"][data-mode="day"] .mpanel { --key-bg: #DCD3C2; --key-ink: #22211F; --key-border: 2px solid #6F685C; --key-shadow: 2px 2px 0 #22211F; --key-hover: 1.04; }
+[data-skin="f"][data-mode="day"] .tray .plate { --plate-bg: #E3DACA; --plate-ink: #22211F; --plate-shadow: inset 0 0 0 1px #6F685C; }
+
+/* G · Grain only. F's cards and mat, Night and Day, but no solid walnut and no brass: the bar is grain only too (the
+   sheet colour at 90 % over walnut, the specimen's ink rule under it), and the keys are the specimen's flat steel. */
+.grain-bar[data-skin="f"] {
+	--strip-bg: linear-gradient(rgba(42, 40, 37, 0.9), rgba(42, 40, 37, 0.9)), var(--T-walnut) 300px 0 / 960px;
+	--strip-ink: #EDE6D6; --strip-ink-2: #B9B1A1; --strip-rule: 3px solid #EDE6D6; --strip-shadow: none;
+	--plate-bg: #171614; --plate-ink: #EDE6D6; --plate-shadow: inset 0 0 0 1px #857D70;
+	--g-food: #93B585; --g-wealth: #D9A441; --g-insight: #86A9CC; --g-pop: #6CC3BC; --g-unrest: #E07A63;
+	--key-bg: #3A3733; --key-ink: #EDE6D6; --key-border: 2px solid #857D70; --key-shadow: 2px 2px 0 #0D0C0B; --key-hover: 1.15;
+	--lamp-off: rgba(0, 0, 0, 0.35);
+}
+.grain-bar[data-skin="f"][data-mode="day"] {
+	--strip-bg: linear-gradient(rgba(248, 244, 236, 0.88), rgba(248, 244, 236, 0.88)), var(--T-walnut) 300px 0 / 960px;
+	--strip-ink: #22211F; --strip-ink-2: #57534B; --strip-rule: 4px solid #22211F;
+	--plate-bg: #E3DACA; --plate-ink: #22211F; --plate-shadow: inset 0 0 0 1px #6F685C;
+	--g-food: #4E6B47; --g-wealth: #A07514; --g-insight: #35597C; --g-pop: #1F6A68; --g-unrest: #9B3424;
+	--key-bg: #DCD3C2; --key-ink: #22211F; --key-border: 2px solid #6F685C; --key-shadow: 2px 2px 0 #22211F; --key-hover: 1.04;
+	--lamp-off: rgba(34, 33, 31, 0.15);
+}
+
+/* Planes (card bands): the guide's hues; the same in every skin, since the band sits on paper or slate alike. */
+.opt { --p-teal: #5E9C97; --p-ochre: #D9A441; --p-olive: #A3AA6A; --p-blue: #8AA7C4; --p-brick: #C9705C; --p-sage: #9DB592; --p-plum: #B07D9C; --p-indigo: #8F88B8; --p-bronze: #A97F63; }
+
+@media (max-width: 720px) {
+	main { padding: var(--space-5) 16px 64px; }
+	header.page { padding: var(--space-3) 16px; }
+	.tray { padding: var(--space-4); }
+}
+</style>
+</head>
+<body>
+<header class="page">
+	<h1>Texture options</h1>
+	<nav>
+		<button class="sizekey" id="actual" aria-pressed="false">1:1</button>
+		<a href="#a">A Walnut desk</a><a href="#b">B Oak table</a><a href="#c">C Walnut cabinet</a><a href="#d">D Brass panel</a><a href="#e">E Grain only</a><a href="#f">F Walnut bar</a><a href="#g">G Grain only</a><a href="#verdict">Verdict</a>
+	</nav>
+</header>
+
+<main>
+	<section class="intro">
+		<div class="titleblock"><h2>Wood, paper and brass</h2><span class="caps">Spike · spike/textures</span></div>
+		<p class="lead">Six ways to dress the Civic Planning Desk in real materials. Each draws the specimen's board at the game's 1920 × 1080 and a tray of loose parts (keys, a plate, a price tag, a modal) on the same desk. Nothing about layout, type or behaviour changes; only surfaces, edges and shadows. Click a card to lift it; press a key. <b>1:1</b> in the bar shows the boards at the game's own pixels, to judge the grain at the size a player sees it.</p>
+		<div class="swatches" id="swatches"></div>
+	</section>
+
+	<section class="opt" id="a" data-skin="a">
+		<div class="titleblock"><h2>A · Walnut desk</h2><span class="caps">Wood as the surface · Night</span></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Board</dt><dd>Walnut, darkened 22 %</dd><dt>Strip, rail</dt><dd>Slate paper: a blotter in an L</dd><dt>Cards, modal</dt><dd>White paper, soft drop shadow</dd><dt>Keys</dt><dd>Paper tabs, hard ink shadow</dd><dt>Plates, tag</dt><dd>Brass, engraved</dd><dt>End turn</dt><dd>Signal, paper grain multiplied in</dd></dl>
+			<ul><li class="pro">The most "desk": paper cards read as objects lying on wood.</li><li class="pro">Light cards on a dark room keep the hand the brightest thing on screen.</li><li class="con">Night with Day-coloured cards: the card palette and the chrome palette differ, two sets to keep.</li><li class="con">Soft shadows depart from the guide's hard 2 px plinth.</li></ul>
+		</div>
+	</section>
+
+	<section class="opt" id="b" data-skin="b">
+		<div class="titleblock"><h2>B · Oak drafting table</h2><span class="caps">Wood as the surface · Day</span></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Board</dt><dd>Oak, as is</dd><dt>Strip, rail</dt><dd>White paper, the 4 px ink rule kept</dd><dt>Cards, modal</dt><dd>White paper, hard offset shadows</dd><dt>Keys</dt><dd>Steel, unchanged</dd><dt>Plates, tag</dt><dd>Brass</dd><dt>End turn</dt><dd>Signal, flat</dd></dl>
+			<ul><li class="pro">Closest to today's Paper mode: the hard shadows and ink rules survive intact.</li><li class="pro">Oak and paper are near in value: calm, warm, legible.</li><li class="con">Oak and paper are near in value: cards separate by their edge and shadow, not by contrast.</li><li class="con">No Night story on its own: pairs with A or E.</li></ul>
+		</div>
+	</section>
+
+	<section class="opt" id="c" data-skin="c">
+		<div class="titleblock"><h2>C · Walnut cabinet</h2><span class="caps">Wood as the chrome · Night</span></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Board</dt><dd>Slate paper: the working felt</dd><dt>Strip, rail</dt><dd>Walnut panels, a brass rule atop the rail</dd><dt>Figures</dt><dd>Dark recessed windows</dd><dt>Keys</dt><dd>Brass, engraved, bevelled</dd><dt>Cards, modal</dt><dd>White paper; the modal under a walnut rule</dd><dt>End turn</dt><dd>Signal in a brass bezel</dd></dl>
+			<ul><li class="pro">Wood frames the play area instead of filling it: the cards get a quiet, even ground.</li><li class="pro">Odometer windows make the strip read as an instrument, as §11.2 describes it.</li><li class="con">Brass keys and brass bezel are a lot of gold; ready lamps lose contrast on them.</li><li class="con">Slate brings a blue the palette doesn't have; the plane hues need checking against it.</li></ul>
+		</div>
+	</section>
+
+	<section class="opt" id="d" data-skin="d">
+		<div class="titleblock"><h2>D · Brass instrument panel</h2><span class="caps">Brass as the chrome · Night</span></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Board</dt><dd>Slate paper, darkened 50 %</dd><dt>Strip</dt><dd>Brushed brass, screws, dark windows</dd><dt>Rail</dt><dd>Slate with a 6 px brass edge</dd><dt>Cards, modal</dt><dd>Slate paper, light ink</dd><dt>Keys</dt><dd>Bakelite on brass</dd><dt>End turn</dt><dd>Signal in a brass bezel</dd></dl>
+			<ul><li class="pro">The boldest: a strong identity, and Night throughout (one palette for chrome and cards).</li><li class="pro">Dark keys on brass stay legible; the gold is one band, not everywhere.</li><li class="con">Slate cards on a slate board: the hand has the least pop of any option.</li><li class="con">Furthest from the flat MCM language; skeuomorphic screws and bevels.</li></ul>
+		</div>
+	</section>
+
+	<section class="opt" id="e" data-skin="e">
+		<div class="titleblock"><h2>E · Grain only</h2><span class="caps">Textures under the tokens · Night and Paper</span></div>
+		<div class="modebar"><button aria-pressed="true" data-mode="night">Night</button><button aria-pressed="false" data-mode="paper">Paper</button></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Board</dt><dd>Board colour at 90 % over walnut (Night) or 82 % over oak (Paper)</dd><dt>Sheets</dt><dd>Sheet colour at 80–90 % over slate or paper</dd><dt>Price tag</dt><dd>Gold at 55 % over brass</dd><dt>Else</dt><dd>The specimen, unchanged</dd></dl>
+			<ul><li class="pro">Every colour stays its token: contrast checks, Day/Night and the suite's palette rules hold as they are.</li><li class="pro">Cheapest to build: in Godot a tiled texture under a StyleBoxFlat at the token's colour with alpha.</li><li class="con">Subtle to the point of missable at a glance; the materials are felt more than seen.</li><li class="con">Brass reads only where it's allowed through (the tag).</li></ul>
+		</div>
+	</section>
+
+	<section class="opt" id="f" data-skin="f" data-mode="night">
+		<div class="titleblock"><h2>F · Walnut bar, gray paper cards</h2><span class="caps">Wood as the top bar · paper as the cards · grain under the mat</span></div>
+		<div class="modebar"><button aria-pressed="true" data-mode="night">Night</button><button aria-pressed="false" data-mode="day">Day</button></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Strip</dt><dd>Walnut bar; translucent keys and plate, the grain showing through</dd><dt>Cards, modal</dt><dd>Night: dark gray paper under black at 30 %. Day: white paper. Soft shadow in both</dd><dt>Play mat</dt><dd>Grain only over walnut: the Night board at 90 %, the Day board at 88 %</dd><dt>Rail</dt><dd>Open on the mat, a hairline at its edge</dd><dt>Keys elsewhere</dt><dd>Flat steel, as in the specimen</dd><dt>Price tag</dt><dd>Flat gold</dd><dt>End turn</dt><dd>Signal, flat</dd></dl>
+			<ul><li class="pro">Only two textures carry weight (walnut, gray paper); the mat stays quiet under the cards.</li><li class="pro">The gray paper is neutral: no blue to clash with the plane hues, and lighter than the mat, so the hand separates.</li><li class="pro">One palette per mode: Night ink on the gray paper, Day ink on the white; only the walnut bar keeps light ink in both.</li><li class="con">Translucent keys on walnut vary a little with the grain behind them.</li></ul>
+		</div>
+	</section>
+
+	<section class="opt grain-bar" id="g" data-skin="f" data-mode="night">
+		<div class="titleblock"><h2>G · Grain only</h2><span class="caps">No solid wood, no brass: grain under the bar and the mat</span></div>
+		<div class="modebar"><button aria-pressed="true" data-mode="night">Night</button><button aria-pressed="false" data-mode="day">Day</button></div>
+		<div class="slot"></div>
+		<div class="where">
+			<dl><dt>Bar</dt><dd>Grain only: the sheet colour at 90 % (Night) or 88 % (Day) over walnut, the ink rule under it</dd><dt>As F</dt><dd>Grain-only mat, gray paper (Night) or white paper (Day) cards and modal</dd><dt>Keys</dt><dd>Flat steel, as in the specimen</dd><dt>Primary, End turn</dt><dd>Signal, flat</dd><dt>Disabled</dt><dd>Flat and dashed</dd><dt>Plates, price tag</dt><dd>Flat, as in the specimen</dd></dl>
+			<ul><li class="pro">Every surface is a token colour with a faint texture under it: the materials are felt, the design stays the specimen's.</li><li class="pro">The bar's colours are the specimen's again, so Day/Night and the palette rules hold for it.</li><li class="con">The cards are the only real material left; at a glance it reads close to the flat specimen.</li></ul>
+		</div>
+	</section>
+
+	<section class="verdict" id="verdict">
+		<div class="titleblock"><h2>Verdict</h2><span class="caps">What the spike suggests</span></div>
+		<p>Wood earns its place as the board, paper as every sheet, and brass only where the guide already has a "precious" mark (plates, the price tag, maybe End turn's bezel). Brass on keys or whole bands (C, D) turns the desk into a steampunk cabinet and fights the lamps.</p>
+		<p><b>Recommended:</b> A for Night and B for Day, built the E way: each surface is a tiled texture under a token-coloured veil, so the veil's alpha is the one dial between "grain only" (E) and "real material" (A, B). Keep the hard offset shadows on keys and the modal; let cards on wood have the soft shadow only in Night.</p>
+	</section>
+</main>
+
+<script>
+const GLYPHS = {
+	food: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
+	insight: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',
+	pop: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0z"/>',
+	unrest: '<path d="M12.8 4L6.4 12.8h4.8l-.8 7.2 6.4-8.8H12z" fill="currentColor"/>',
+	score: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
+	blocked: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',
+	slot: '<rect x="4" y="4" width="16" height="16" rx="3"/>',
+	housing: '<path d="M12 2.5 1.5 11.5h3V21.5h5.5v-6h4v6h5.5V11.5h3z" fill="currentColor" stroke="none"/>',
+	worker: '<path d="M14.5 2.5 21.5 9.5 19 12 16.8 9.8 6.3 20.3a2 2 0 0 1-2.8-2.8L14 7 11.8 4.8z" fill="currentColor" stroke="none"/>',
+	shield: '<path d="M12 2 20 5v6.2c0 5-3.4 9.1-8 10.8-4.6-1.7-8-5.8-8-10.8V5z" fill="currentColor" stroke="none"/>',
+};
+const MARKS = {
+	action: '<path d="M12 2 22 12 12 22 2 12z"/>', building: '<rect x="4" y="4" width="16" height="16" rx="1.5"/>',
+	city: '<circle cx="12" cy="12" r="8.5"/>', territory: '<path d="M12 3 22 20.5H2z"/>',
+	tech: '<path d="M12 2 14.3 9.7 22 12 14.3 14.3 12 22 9.7 14.3 2 12 9.7 9.7z"/>',
+	event: '<path d="M12 2 14.1 6.8 19.1 4.9 17.2 9.9 22 12 17.2 14.1 19.1 19.1 14.1 17.2 12 22 9.9 17.2 4.9 19.1 6.8 14.1 2 12 6.8 9.9 4.9 4.9 9.9 6.8z"/>',
+};
+const TYPE = { Action: ["blue", "action"], Building: ["olive", "building"], Territory: ["sage", "territory"], Tech: ["teal", "tech"], Event: ["brick", "event"] };
+// A glyph's colour is a skin variable, so the same markup recolours on paper, slate or brass.
+const glyph = (name, size = 20, color) => {
+	const c = color || `var(--g-${name}, currentColor)`;
+	return `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="${((0.5 + size / 16) * 24 / size).toFixed(2)}" stroke-linecap="square" stroke-linejoin="miter" style="color:${c}" aria-hidden="true">${GLYPHS[name]}</svg>`;
+};
+const mark = (type) => `<svg class="mark" viewBox="0 0 24 24" aria-hidden="true">${MARKS[TYPE[type][1]]}</svg>`;
+const cost = (c) => c.cost ? `<span class="cost">${Object.entries(c.cost).map(([r, n]) => `<span class="cost-item">${glyph(r, 18)}${n}</span>`).join("")}</span>` : "";
+
+const HAND = [
+	{ name: "Barter", type: "Action", cost: { food: 2 }, rules: "+2 wealth<br>+1 action" },
+	{ name: "Settler", type: "Action", tags: "expand", cost: { food: 5 }, rules: "Settle: City<br>+1 unrest", dimmed: "No discovered territory to settle." },
+	{ name: "Granary", type: "Building", cost: { food: 1, wealth: 2 }, rules: "Needs a city with a free slot<br>⟳ +1 food", vp: 1 },
+	{ name: "Scout", type: "Action", tags: "explore", rules: "Explore 2<br>Draw 1 card<br>+1 action" },
+	{ name: "Pottery", type: "Tech", cost: { insight: 4 }, rules: "Granaries cost 1 less wealth" },
+];
+const REALM = [
+	{ kind: "event", name: "Raiders", type: "Event", status: "Ur 2 vs 1", raid: true, line: "Raid 2 (grassland/desert)" },
+	{ kind: "event", name: "Good Harvest", type: "Event", status: "2 turns left", line: "⟳ +1 food" },
+	{ kind: "frontier", name: "Highland Valley", type: "Territory", line: "Hills · Fresh Water", live: [["slot", "2"], ["housing", "4"]] },
+	{ kind: "settled", name: "Uruk", sub: "Delta Marsh", type: "Territory", live: [["slot", "2"], ["housing", "2/7"], ["worker", "0"], ["shield", "3"]] },
+	{ kind: "settled", name: "Ur", sub: "Oasis", type: "Territory", live: [["slot", "0"], ["housing", "2/4"], ["worker", "1"], ["shield", "1"]] },
+];
+
+function card(c) {
+	const band = `--band:var(--p-${TYPE[c.type][0]})`;
+	const live = (l) => `<span class="live">${l.map(([g, t]) => `<span>${glyph(g, 18, "currentColor")}${t}</span>`).join("")}</span>`;
+	if (c.kind === "settled") return `<button class="card realm-card" style="${band}" aria-pressed="false"><span class="index-tab"></span>
+		<span class="head"><span class="name">${c.name}</span></span><span class="band"></span><span class="sub">${c.sub}</span>${live(c.live)}</button>`;
+	if (c.kind === "frontier") return `<button class="card realm-card frontier" style="${band}" aria-pressed="false"><span class="index-tab"></span>
+		<span class="badge">${mark(c.type)} Frontier · unsettled</span><span class="head"><span class="name">${c.name}</span></span><span class="sub">${c.line}</span>${live(c.live)}</button>`;
+	if (c.kind === "event") return `<button class="card realm-card" style="${band}" aria-pressed="false"><span class="index-tab"></span>
+		<span class="badgerow"><span class="badge">${mark(c.type)} Event</span><span class="status ${c.raid ? "danger" : ""}">${c.status}</span></span>
+		<span class="head"><span class="name">${c.name}</span></span><span class="band"></span><span class="keywords">${c.line}</span></button>`;
+	return `<button class="card ${c.dimmed ? "dimmed" : ""}" style="${band}" aria-pressed="false"><span class="index-tab"></span>
+		<span class="head"><span class="name">${c.name}</span>${cost(c)}</span><span class="band"></span>
+		<span class="type">${mark(c.type)}${c.type}${c.tags ? " · " + c.tags : ""}</span>
+		<span class="rules">${c.rules}${c.vp ? `<br><span class="vp">${c.vp} VP</span>` : ""}</span>
+		${c.dimmed ? `<span class="reason">${glyph("blocked", 18, "currentColor")}${c.dimmed}</span>` : ""}</button>`;
+}
+
+const STATS = [["food", "12", "+3"], ["wealth", "7", "+2"], ["insight", "4", "+1"], ["pop", "6", ""], ["unrest", "3", "+1"], ["score", "14", ""]];
+const counter = ([g, n, fc]) => `<span class="counter">${glyph(g, 22)}<span class="odo">${n}</span>${fc ? `<span class="fc">${fc}</span>` : ""}</span>`;
+
+function board(skin) {
+	const screws = skin === "d" ? `<span class="screw l"></span><span class="screw r"></span>` : "";
+	return `<div class="fit"><div class="desk">
+		<div class="dstrip">${screws}
+			<div class="stats"><span class="plate">Turn  5</span>${STATS.map(counter).join("")}</div>
+			<span class="spacer"></span>
+			<div class="keys"><button class="btn"><span class="lamp on"></span>Buy Cards</button><button class="btn"><span class="lamp"></span>Knowledge</button><button class="btn">Log <span class="dot">•</span></button><button class="btn">Menu</button></div>
+		</div>
+		<div class="dbody">
+			<div class="work">
+				<span class="caps">Realm</span>
+				<div class="realm">${REALM.map(card).join("")}</div>
+				<div class="hand-zone">
+					<div class="zone-head"><span class="caps">In hand</span><span class="num">2 / 2</span></div>
+					<div class="hand">${HAND.map(card).join("")}</div>
+				</div>
+			</div>
+			<aside class="drail">
+				<div class="rule3"></div>
+				<span class="caps">Civilization</span>
+				<button class="title-link">Sumer</button>
+				<button class="caps-link">Chiefdom ›</button>
+				<div class="foot">
+					<div class="bezel"><button class="end-turn"><span class="lamp on"></span><span class="label">End turn</span><span class="plate">T 5</span></button></div>
+					<div class="caption">Ready: nothing left to do.</div>
+				</div>
+			</aside>
+		</div>
+	</div></div>
+	<div class="tray">
+		<div class="col">
+			<span class="caps">Keys</span>
+			<div class="row"><button class="btn"><span class="lamp on"></span>Buy Cards</button><button class="btn">Close</button><button class="btn" disabled>Unavailable</button></div>
+			<span class="caps">Plate · price tag</span>
+			<div class="row"><span class="plate">Turn  12</span><span class="price-tag"><span>${glyph("wealth", 20, "currentColor")}3</span></span></div>
+		</div>
+		<div class="mpanel">
+			<div class="mtitle"><h3>Envoys from the Hills</h3><span class="caps">Turn 5</span></div>
+			<div class="mbody">A hill people offers tribute for peace: ${glyph("food", 18)} 2 food each turn, while you hold no army on their border.</div>
+			<footer><button class="btn">Decline</button><button class="btn primary">Accept</button></footer>
+		</div>
+	</div>`;
+}
+
+document.querySelectorAll(".opt").forEach((sec) => { sec.querySelector(".slot").innerHTML = board(sec.dataset.skin); });
+
+// Fit each 1920 × 1080 desk to its column.
+function fit() {
+	document.querySelectorAll(".fit").forEach((f) => {
+		const s = document.body.classList.contains("actual") ? 1 : f.clientWidth / 1920;
+		f.firstElementChild.style.transform = `scale(${s})`;
+		if (s !== 1) { f.style.height = `${1080 * s}px`; f.scrollLeft = 0; f.scrollTop = 0; }
+	});
+}
+new ResizeObserver(fit).observe(document.querySelector("main"));
+fit();
+
+document.addEventListener("click", (e) => {
+	const c = e.target.closest(".card");
+	if (c && !c.classList.contains("dimmed")) {
+		const on = c.getAttribute("aria-pressed") !== "true";
+		c.closest(".desk").querySelectorAll('.card[aria-pressed="true"]').forEach((o) => o.setAttribute("aria-pressed", "false"));
+		c.setAttribute("aria-pressed", String(on));
+	}
+	if (e.target.id === "actual") {
+		const on = document.body.classList.toggle("actual");
+		e.target.setAttribute("aria-pressed", String(on));
+		fit();
+	}
+	const m = e.target.closest(".modebar button");
+	if (m) {
+		const sec = m.closest(".opt");
+		sec.dataset.mode = m.dataset.mode;
+		sec.querySelectorAll(".modebar button").forEach((b) => b.setAttribute("aria-pressed", String(b === m)));
+	}
+});
+
+const SW = [["walnut", "Walnut", "A's board; C's strip and rail; E's Night board; F's top bar and mat"], ["oak", "Oak", "B's board; E's Paper board"],
+	["paper", "White paper", "Cards, modals, B's strip"], ["slate", "Dark paper (slate)", "A's blotter; C and D's board; D's cards"], ["gray", "Dark gray paper", "F's cards and modal"],
+	["brass", "Brass 1 (satin)", "Plates, C's keys"], ["brass-hi", "Brass 2 (bright)", "Price tags, D's strip, bezels"]];
+document.getElementById("swatches").innerHTML = SW.map(([k, n, u]) => `<div class="tex"><i style="background-image:var(--T-${k})"></i><b>${n}</b><span>${u}</span></div>`).join("");
+</script>
+</body>
+</html>
