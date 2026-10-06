@@ -515,7 +515,8 @@ func _draw_frontier() -> void:
 ## band under the name), on a soft shadow that grows as it lifts: at rest, hovered, dragged (341).
 func _update_border() -> void:
 	_style.texture = Surfaces.texture(Surfaces.DIMMED_PAPER if _dimmed else Surfaces.PAPER)
-	_frame.draw_center = false
+	_frame.draw_center = true  # under the paper; the shadow needs it (Surfaces.box)
+	_frame.bg_color = Palette.RAISED
 	if _warning:
 		_frame.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:

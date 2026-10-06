@@ -67,9 +67,9 @@ static func _veiled(image: Image, color: Color, alpha: float) -> Image:
 	return image
 
 
-## A box of surface inside frame's rule. The frame draws no fill of its own.
+## A box of surface inside frame's rule. The frame keeps its fill (the paper covers it): a StyleBoxFlat with no fill
+## draws its shadow as a ring that starts a few px out, leaving a pale gap under the rule.
 static func box(surface: StringName, frame: StyleBoxFlat) -> SurfaceBox:
-	frame.draw_center = false
 	return SurfaceBox.new(frame, texture(surface))
 
 

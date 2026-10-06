@@ -121,3 +121,6 @@ source PNG's mean, and that grain still shows).
 - The specimen's surfaces were checked by their CSS and by the texture paths resolving; the browser pane served it
   only as a static snapshot, which can't load relative images. Worth a look under Manual check.
 - `card_view.gd` is 542 lines and `game_theme.gd` 554, both still past the 500-line warning (as before).
+- Play test: a pale strip showed between a card's rule and its shadow. A `StyleBoxFlat` with `draw_center = false`
+  draws its shadow as a ring that starts a few px out; frames now keep their fill (under the paper), and the shadow
+  meets the rule.

@@ -18,7 +18,7 @@ The live picture of the same is [mcm-specimen.html](mcm-specimen.html), the mast
 | Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets (suite checks, 192). |
 | Looks (fonts, sizes, boxes) | `ui/game_theme.gd` (`GameTheme`) | A look used twice is a theme type variation, set with `theme_type_variation`. |
 | Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `select_list` (217: a `SelectList`, the guide's §7.16), `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
-| Surfaces (341) | `ui/surfaces.gd` (`Surfaces`), `ui/surface_box.gd` (`SurfaceBox`) | Walnut grain and paper under the Palette colours, baked once per mode; a `SurfaceBox` draws its `frame` (rule and soft shadow), then the texture inside the rule. Opacities and shadow looks are `Surfaces` constants. Keys stay `StyleBoxFlat`. |
+| Surfaces (341) | `ui/surfaces.gd` (`Surfaces`), `ui/surface_box.gd` (`SurfaceBox`) | Walnut grain and paper under the Palette colours, baked once per mode; a `SurfaceBox` draws its `frame` (rule, soft shadow and a fill the paper covers: without it Godot leaves a pale gap between the rule and the shadow), then the texture inside the rule. Opacities and shadow looks are `Surfaces` constants. Keys stay `StyleBoxFlat`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
 | Modals, screens | `Modal` on `main.modals`, `Navigator` + `ScreenHeader` | See CLAUDE.md's UI design section. |
 
