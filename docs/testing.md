@@ -69,7 +69,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_board_layout.gd` | The board without a sidebar (115; UI) |
 | `tests/test_board_row.gd` | One board row (137; UI) |
 | `tests/test_build_menu.gd` | The build menu (295) |
-| `tests/test_build_modal.gd` | Building from a territory's view (297; UI) |
+| `tests/test_build_modal.gd` | Building from a territory's view (297; UI), the entry's flavor on the sheet (354) |
 | `tests/test_building_tiers.gd` | Buildings that need a settlement tier (301) |
 | `tests/test_button_widths.gd` | Button widths (100; UI) |
 | `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209; UI) |

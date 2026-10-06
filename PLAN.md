@@ -479,7 +479,8 @@ Monument until then): every terrain has a building, every era opens a new one.
 - UI (297): a territory's view has Build… (B) beside Rename…, and each free slot outline is a "+ Build" key; both open
   the Build modal (`ui/build_modal.gd`, "Build on <territory>"): a selectable list of the build menu under Buildings and
   Units (name and `build_cost`; a refused row dimmed with `build_error`'s reason), and a sheet with the selected
-  entry's card, "If built on <territory>" and `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
+  entry's card, its flavor (354, from `def_details`; none for a unit), then "If built on <territory>" and
+  `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
   Build… and the slots are disabled with `build_menu_error()` while nothing can be built and hidden with an empty menu.
   A recruited unit's Disband reads "Dismiss it" (`disbands_to_discard`).
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
@@ -603,8 +604,8 @@ A game is played as one civilization: a permanent card with a starting gift and 
   A government (205), a tech and an event (215), an action (351) and a building (352) may set `flavor` too, and a
   government or a tech a `quote` (an event, action or building may not); every real tech and government has both
   and every real event, action and building a flavor line. The text follows the style guide's §18 voice (353): present
-  tense, ~120 characters a line (the suite caps it at 150, civilizations 200). Flavor and quotes show only in the details,
-  never on a card face.
+  tense, ~120 characters a line (the suite caps it at 150, civilizations 200). Flavor and quotes show only in the details
+  (and a building's flavor under its card in the Build modal, 354), never on a card face.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says

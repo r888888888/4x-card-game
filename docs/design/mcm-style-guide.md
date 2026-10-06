@@ -809,10 +809,10 @@ A modal opened over a modal is offset +8, +8 px from the one beneath, so the sta
 |---|---|---|---|
 | **Text sheet** | Text, in `type.body` | Body ≤ 640 px: the measure (§7) | Abandon, Revolt, Rename, the menu, settings, events |
 | **Card sheet** | A hand-size card in the aside (left), then a text body | The aside is outside the cap; the body ≤ 640 px | Card details, the event and raid cards (`show_card`) |
-| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card with its lines under it | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
+| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card with its flavor (italic, dim; 354) and its lines under it | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
 
 A ledger sheet keeps the measure inside each column instead of across the body: the list's rows wrap at the column's
-384 px (a name and cost, a reason under it), and the detail's lines wrap at the card's 264 px. The list shows 12
+384 px (a name and cost, a reason under it), and the detail's flavor and lines wrap at the card's 264 px. The list shows 12
 one-line rows (480 px) before it scrolls, and holds that height whatever is selected, so changing the selection
 never moves the sheet. A sheet that needs more than this (several cards compared, many builds in a row) is a screen,
 not a modal. In code: `Modal.BODY_MAX_WIDTH` and `Modal.LEDGER_*`.
@@ -1660,7 +1660,7 @@ has been played.
 ## 18. Voice: flavor text
 
 Item 353. Every card but a territory, city or unit carries a line of **flavor**: the italic text that opens its details
-window (and the event pop-up), before the rules. Civilizations and governments carry a short paragraph and a real
+window (and the event pop-up), before the rules, and sits under a building's card in the Build modal (354). Civilizations and governments carry a short paragraph and a real
 **quote** with its source; techs carry a line and a quote; buildings, actions and events carry a line. The voice is
 postwar fiction set in the ancient world: what these writers *do*, never what their worlds contain (no gin, no
 commuter trains, no names from the twentieth century).
