@@ -133,3 +133,88 @@ func test_copies_names_a_lib_helper_defined_in_two_test_files() -> void:
 
 func test_no_test_file_copies_a_shared_helper() -> void:
 	eq(HelperChecks.copies(suite_texts(), lib_texts()), [] as Array[String], "lib helpers copied into test files")
+
+
+# --- 340: check_loads, config_load, and the one-off loader rejections ---
+
+const ERA_2_TECH := {"id": "x", "name": "X", "type": "tech", "cost": {"insight": 1}, "era": 2}
+const ONE_OFF_REJECTIONS := ["test_settle_non_city_is_error", "test_settle_unknown_card_is_error",
+	"test_explore_reveal_0_is_error", "test_government_effect_needing_a_target_is_a_load_error",
+	"test_territory_printing_resource_keyword_is_error", "test_unknown_resource_cost_is_still_an_error",
+	"test_administers_only_applies_to_governments", "test_tolerates_only_applies_to_governments",
+	"test_an_events_revolt_field_is_unknown", "test_growth_surplus_is_an_unknown_population_field",
+	"test_unrest_fallback_is_no_longer_read", "test_unrest_relief_is_no_longer_read",
+	"test_population_start_must_fit_each_listed_home"]
+
+
+## A fresh test case to run a helper on, so its failures are its own, not this test's.
+func probe() -> Object:
+	var t: Object = load("res://tests/lib/test_case.gd").new()
+	t.test_name = "probe"
+	return t
+
+
+## The probe's failures after check_loads runs rows on a load that returns {cards: fixture_load's, config, errors,
+## warnings}.
+func probe_failures(rows: Array, config := {}, errors: Array[String] = [], warnings: Array[String] = []) -> Array[String]:
+	var t := probe()
+	var loaded := fixture_load([ERA_2_TECH])
+	t.check_loads(rows, func(_input: Variant) -> Dictionary:
+		return {"cards": loaded.cards, "config": config, "errors": errors, "warnings": warnings})
+	return t.failures
+
+
+func test_check_loads_passes_a_clean_row_whose_paths_match() -> void:
+	var t := probe()
+	var loaded := fixture_load([ERA_2_TECH])
+	t.check_loads([["era 2", null, {"cards.x.era": 2, "cards.x.cost.insight": 1, "cards.x.is_permanent()": true}]],
+		func(_input: Variant) -> Dictionary: return loaded)
+	eq(t.failures, [] as Array[String], "failures")
+	check(t.assertions > 0, "the row's checks count as assertions")
+
+
+func test_check_loads_names_the_row_and_path_of_a_wrong_value() -> void:
+	var failures := probe_failures([["era 1", null, {"cards.x.era": 1}]])
+	eq(failures.size(), 1, "one failure: %s" % [failures])
+	check(failures.size() == 1 and "era 1" in failures[0] and "cards.x.era" in failures[0],
+		"names the label and the path: %s" % [failures])
+
+
+func test_check_loads_fails_a_row_that_loads_with_a_warning_or_an_error() -> void:
+	var warned := probe_failures([["warned", null, {"cards.x.era": 2}]], {}, [], ["'zz' is unknown (ignored)"])
+	check(warned.size() == 1 and "warned" in warned[0] and "'zz' is unknown" in warned[0],
+		"names the label and the warning: %s" % [warned])
+	var failed := probe_failures([["failed", null, {}]], {}, ["'era' must be an integer"])
+	check(failed.size() == 1 and "failed" in failed[0] and "'era' must be an integer" in failed[0],
+		"names the label and the error: %s" % [failed])
+
+
+func test_check_loads_a_missing_path_is_a_failure_naming_the_path() -> void:
+	var failures := probe_failures([["missing", null, {"cards.y.era": 1, "cards.x.nope": 1, "config.list.5": 1,
+		"cards.x.nope()": 1}]], {"list": ["a"]})
+	eq(failures.size(), 4, "one failure per missing path: %s" % [failures])
+	for path in ["cards.y.era", "cards.x.nope", "config.list.5", "cards.x.nope()"]:
+		check(failures.any(func(f: String) -> bool: return "missing" in f and path in f), "names %s: %s" % [path, failures])
+
+
+func test_check_loads_indexes_arrays_and_int_keys_and_calls_builtin_methods() -> void:
+	var failures := probe_failures([["builtins", null, {"config.list.1": "b", "config.list.size()": 2,
+		"config.unlocks.2.pop": 8, "config.unlocks.keys()": [2]}]], {"list": ["a", "b"], "unlocks": {2: {"pop": 8}}})
+	eq(failures, [] as Array[String], "failures")
+
+
+func test_config_load_returns_cards_config_errors_and_warnings() -> void:
+	var r: Dictionary = probe().config_load({"event_deck": {"windfall": 2.0}}, [TEST_EVENTS])
+	eq([r.errors, r.warnings], [[], []], "[errors, warnings]")
+	check(r.cards.has("windfall"), "the sets' cards")
+	eq(r.config.get("event_deck"), {"windfall": 2}, "the parsed config")
+	has_msg(probe().config_load({"event_deck": {"nowhere": 1}}, [TEST_EVENTS]).errors, "config.json: event_deck")
+
+
+func test_the_one_off_loader_rejections_are_table_rows() -> void:
+	var defined: Array[String] = []
+	for text: String in suite_texts().values():
+		for name: String in ONE_OFF_REJECTIONS:
+			if ("func %s(" % name) in text:
+				defined.append(name)
+	eq(defined, [] as Array[String], "one-off rejection tests still defined")

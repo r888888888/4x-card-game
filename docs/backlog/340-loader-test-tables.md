@@ -2,7 +2,7 @@
 id: 340
 title: Loader tests as tables: the last one-off rejections and the "loads / defaults to" tests
 type: chore
-status: draft
+status: red-review
 branch: feat/340-loader-test-tables
 ---
 
@@ -59,6 +59,11 @@ This compacts the loader tests before 338 and 339 refactor the loaders.
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_shared_helpers::test_check_loads_passes_a_clean_row_whose_paths_match`, `test_check_loads_indexes_arrays_and_int_keys_and_calls_builtin_methods` |
+| AC2 | `test_shared_helpers::test_check_loads_names_the_row_and_path_of_a_wrong_value`, `test_check_loads_fails_a_row_that_loads_with_a_warning_or_an_error`, `test_check_loads_a_missing_path_is_a_failure_naming_the_path` |
+| AC3 | `test_shared_helpers::test_the_one_off_loader_rejections_are_table_rows` |
+| AC4, AC6 | The folded tests' rows (listed in the Log); the suite's count |
+| AC5 | `test_shared_helpers::test_config_load_returns_cards_config_errors_and_warnings` |
 
 ## Log
 - 2026-10-06: specced from the project review; the user chose to keep tables in the feature files and to table the
