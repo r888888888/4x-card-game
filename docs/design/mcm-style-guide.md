@@ -447,14 +447,15 @@ the specification, not an omission.
     rows in `type.label-caps`; a heading after rows has `space.5` above it, and the first opens the well. A list
     beside a detail holds the detail at its tallest item's height, so changing the selection never moves the sheet.
     A list taller than its column scrolls (§7.17) and follows the selection. Sound: `ui.selection` as the lamp lights.
-17. **Scroll area** — content taller than its box glides rather than jumps (356). A wheel notch gives the content a
-    push that decays, so it eases about 120 px and coasts to rest in about half a second; a trackpad's stream of
-    small pushes adds up the same way. It stops dead at either end, with no bounce. When the keyboard moves a
-    selection out of view, the area eases it back into view (200 ms, `machined`, no overshoot). Its **scrollbar** is
-    a thin steel bar: an 8 px `steel` grabber, square, on a `well` track, `ink-2` under the pointer and while
-    dragged; it shows only when the content overflows. Reduce motion: a notch and a follow jump (§9.5). Sound: None
-    (moving within a screen is silent, §10.2). Used by every vertical scroll area: the Build list, the Knowledge
-    screen, the renewal ledger and the Realm (362).
+17. **Scroll area** — content taller (or, in the hand, wider) than its box glides rather than jumps (356, 363). A
+    wheel notch gives the content a push that decays, so it eases about 120 px and coasts to rest in about half a
+    second; a trackpad's stream of small pushes adds up the same way, and a sideways area takes the sideways wheel too.
+    It stops dead at either end, with no bounce. When the keyboard moves a selection out of view, the area eases it
+    back into view (200 ms, `machined`, no overshoot). Its **scrollbar** is a thin steel bar, upright or sideways: an
+    8 px `steel` grabber, square, on a `well` track, `ink-2` under the pointer and while dragged; it shows only when
+    the content overflows. Reduce motion: a notch and a follow jump (§9.5). Sound: None (moving within a screen is
+    silent, §10.2). Used by every scroll area: the Build list, the Knowledge screen, the renewal ledger and the Realm
+    (362), and sideways the hand (363).
 
 ---
 
