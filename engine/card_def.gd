@@ -18,17 +18,20 @@ const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CI
 const RAID_WARNING := 2  # event phases between a raid being drawn and striking (257)
 const RAID_PREFIXES := {"repel": "If repelled: ", "pillage": "If pillaged: "}
 ## Each modifier key's noun in card text, [singular, plural] (129).
-## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
-## since "pop" has no plural); [for a gain, for a loss].
+## Each modifier key's line in card text (129, 109, 110): %d is the amount, and %s the plural "s" for the keys in
+## PLURAL_MODIFIERS; [for a gain, for a loss].
 const MODIFIER_TEXT := {
 	Modifiers.ACTIONS: ["+%d action%s each turn", "−%d action%s each turn"],
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
-	Modifiers.HOUSING: ["Every territory houses %d more pop%.0s", "Every territory houses %d less pop%.0s"],
-	Modifiers.UNREST_LIMIT: ["Unrest limit +%d%.0s", "Unrest limit −%d%.0s"],
+	Modifiers.HOUSING: ["Every territory houses %d more pop", "Every territory houses %d less pop"],
+	Modifiers.UNREST_LIMIT: ["Unrest limit +%d", "Unrest limit −%d"],
 	Modifiers.RENEWAL: ["Renewal trashes %d more card%s", "Renewal trashes %d fewer card%s"],
-	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d%.0s", "Each insight gain −%d%.0s"],
-	Modifiers.ADMINISTERS: ["Administration cap +%d%.0s", "Administration cap −%d%.0s"],
+	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d", "Each insight gain −%d"],
+	Modifiers.ADMINISTERS: ["Administration cap +%d", "Administration cap −%d"],
 }
+
+## The modifier keys whose line names a countable noun, so it takes a plural "s" (329).
+const PLURAL_MODIFIERS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.RENEWAL]
 
 var id: String = ""
 var name: String = ""
@@ -347,7 +350,11 @@ func modifier_lines(long: bool) -> PackedStringArray:
 	var out: PackedStringArray = []
 	for key in modifiers:
 		var n: int = modifiers[key]
-		var line: String = MODIFIER_TEXT[key][0 if n > 0 else 1] % [absi(n), "" if absi(n) == 1 else "s"]
+		var line: String = MODIFIER_TEXT[key][0 if n > 0 else 1]
+		if key in PLURAL_MODIFIERS:
+			line = line % [absi(n), "" if absi(n) == 1 else "s"]
+		else:
+			line = line % absi(n)
 		out.append(line + (" while active" if long and type == EVENT else ""))
 	return out
 
