@@ -2,7 +2,7 @@
 id: 361
 title: A card bought from the supply flies to the Discard counter very tall
 type: bug
-status: review
+status: done
 branch: fix/361-bought-copy-flies-tall
 ---
 
