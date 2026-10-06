@@ -13,7 +13,7 @@ extends "res://tests/lib/test_case.gd"
 ## `outlines()`, `free_slot_count()`); 200, 327: a left click anywhere outside the box (the hand, top bar, sidebar, a
 ## card or button there) only closes it, a drag from the hand still targets it, a modal over it takes the click first;
 ## 342: the city, buildings and enabled free slots take a hover look and the `ui.hover` tick; 346: the tier line
-## beside the pop meter (`tier_text()`)
+## beside the pop meter (`tier_text()`); 348: a click on End turn closes the view and still ends the turn
 
 
 const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
@@ -551,7 +551,6 @@ func test_a_click_on_a_control_outside_the_box_only_closes_the_view() -> void:
 		var controls := {
 			"a hand card": hand_card,
 			"a top-bar counter": main.counter(GameEngine.FOOD),
-			"End turn": main.sidebar.end_turn,
 			"the civilization's name": main.sidebar.name_button,
 		}
 		for where in controls:
@@ -569,6 +568,25 @@ func test_a_click_on_a_control_outside_the_box_only_closes_the_view() -> void:
 		mouse_move(main, hand_card.get_global_rect().get_center() + Vector2(0, -40), false)
 		await wait_frames()
 		check(main.drag.dragging == null, "a later mouse move doesn't pick up the clicked hand card"))
+
+
+func test_a_click_on_end_turn_closes_the_view_and_ends_the_turn() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		var turn := e.turn
+		await check_click_closes(main, main.sidebar.end_turn.get_global_rect().get_center(), "End turn")
+		eq(e.turn, turn + 1, "the click also ends the turn (348)"))
+
+
+func test_e_in_the_view_ends_the_turn_and_closes_it() -> void:
+	await with_territories_main(func(main: Node):
+		var e := Game.engine
+		await open_home(main)
+		var turn := e.turn
+		press_key(main, KEY_E)
+		await wait_frames()
+		eq(e.turn, turn + 1, "E ends the turn (348)")
+		check(not main.territory_view.is_open(), "and the view closes (290)"))
 
 
 func test_a_drag_from_the_hand_onto_the_view_still_targets_the_territory() -> void:

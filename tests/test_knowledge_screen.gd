@@ -12,7 +12,7 @@ extends "res://tests/lib/tech_case.gd"
 ## future era dimmed with its unlocks), compact tiles (222: `tile(name)`, `tile_texts(name)`, `era_tiles(i)`,
 ## `era_vellum(i)`, `vellum_text(i)`) whose click, Enter, right-click or I opens the details, whose Learn button
 ## researches (229), a future era under vellum, back by Back / Esc / T / the link or a left click outside it that does
-## nothing else (326), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
+## nothing else (326; on End turn it also ends the turn, 348), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
 
 
 ## Whether main has its Knowledge screen (checked, so a test without it fails instead of crashing and leaving a
@@ -804,6 +804,26 @@ func test_a_left_click_outside_the_screen_closes_it_and_does_nothing_else() -> v
 		eq(main.details.shown(), {}, "the click opens no card's details")
 		eq(main.hand_view_count(), in_hand, "the hand is unchanged")
 		eq(card.state, CardView.State.REST, "the card is not picked up"))
+
+
+func test_a_click_on_end_turn_closes_the_screen_and_ends_the_turn() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var turn := Game.engine.turn
+		click_control(main, main.sidebar.end_turn)
+		await wait_frames()
+		check(not main.knowledge.is_open(), "the click closes the screen")
+		eq(Game.engine.turn, turn + 1, "and ends the turn (348)"))
+
+
+func test_e_on_the_screen_ends_the_turn_and_closes_it() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var turn := Game.engine.turn
+		press_key(main, KEY_E)
+		await wait_frames()
+		eq(Game.engine.turn, turn + 1, "E ends the turn (348)")
+		check(not main.knowledge.is_open(), "and the screen closes (290)"))
 
 
 func test_a_click_inside_the_screen_leaves_it_open() -> void:

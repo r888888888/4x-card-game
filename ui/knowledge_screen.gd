@@ -7,7 +7,7 @@ extends VBoxContainer
 ## for its state (✓, its cost now, "needs <prerequisite>") and filled by state, an available one the insight doesn't
 ## cover with muted text (325); an era not reached lies under a vellum printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
 ## button learns it (229). It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
-## back, and so does a left click outside it, which does nothing else (326). It is an opaque sheet (224), so nothing
+## back, and so does a left click outside it, which does nothing else (326) unless it is on End turn (348). It is an opaque sheet (224), so nothing
 ## under it shows through as it slides.
 
 ## The screen opened or closed (288): what is learnable then counts as seen.
@@ -30,6 +30,7 @@ var header: ScreenHeader
 
 var _nav: Navigator
 var _modals: ModalStack  # a modal over the screen takes the clicks outside it
+var click_through: Control  # End turn: a click on it closes the screen and still reaches it (348)
 var _place: Control  # the Realm section, whose place the screen takes
 var _open_tech: Callable  # opens a tech's details over the screen
 var _context: Label
@@ -182,13 +183,15 @@ func handle_key(event: InputEvent) -> bool:
 	return false
 
 
-## While open with no modal over it, a left click outside the screen closes it and does nothing else (326).
+## While open with no modal over it, a left click outside the screen closes it and does nothing else (326), except
+## that a click on click_through still reaches it (348).
 func _input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT and is_open() and _nav.top() == self \
 			and not _modals.is_open() and not get_global_rect().has_point(click.global_position):
 		close()
-		get_viewport().set_input_as_handled()
+		if click_through == null or not click_through.get_global_rect().has_point(click.global_position):
+			get_viewport().set_input_as_handled()
 
 
 ## Shows engine e again while open (a tech learned, insight gained).

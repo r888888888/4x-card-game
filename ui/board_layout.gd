@@ -68,6 +68,7 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
 	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech,
 		main.modals)
+	main.knowledge.click_through = main.sidebar.end_turn  # 348
 	var lamps := func():  # the keys' lamps, after a see (288)
 		top_bar.refresh(Game.engine, true)
 		main.supply.refresh(Game.engine)
