@@ -2,7 +2,7 @@
 id: 319
 title: Governments administer up to N territories; each one past the cap adds more unrest
 type: feature
-status: in-progress
+status: review
 branch: feat/319-administration-cap
 ---
 
@@ -18,22 +18,22 @@ to the cap; 321 teaches the bot both.
 Fixtures: unrest on, a government with `unrest_limit` 20 and `"administers": 3`, ample food, unrest 0, no tiers
 (so size unrest is 0).
 
-- [ ] AC1: Admin unrest at upkeep: with 3 settled territories, `admin_unrest()` is 0 and the next turn starts with
+- [x] AC1: Admin unrest at upkeep: with 3 settled territories, `admin_unrest()` is 0 and the next turn starts with
   unrest 0. With 4 it is 1, with 5 it is 3 (1 + 2), with 6 it is 6 (1 + 2 + 3), and the next turn starts with that
   much unrest. Frontier territories don't count.
-- [ ] AC2: The cap and its modifier: `admin_cap()` is the government's `administers` plus the `administers` modifier,
+- [x] AC2: The cap and its modifier: `admin_cap()` is the government's `administers` plus the `administers` modifier,
   never below 0. With a researched tech carrying `"modifiers": {"administers": 2}`, `admin_cap()` is 5, and 5
   territories add 0 and 6 add 1. An idle building with the modifier doesn't count (as every modifier works). With no
   government, or a government with no `administers`, `admin_cap()` is -1 (no cap).
-- [ ] AC3: Order and limit: admin unrest is added at the start of upkeep with size unrest (282), before any card's
+- [x] AC3: Order and limit: admin unrest is added at the start of upkeep with size unrest (282), before any card's
   upkeep, through the same limit stop. Given unrest 8, a limit of 10 and 5 territories (admin 3), the turn starts at
   10, not 11, and falls into Anarchy as usual. Given 4 territories (admin 1) and a working Temple-like building
   (⟳ −1 unrest), the next turn starts at unrest 0.
-- [ ] AC4: When it doesn't apply: a government with no `administers` adds no admin unrest with 10 territories. Under
+- [x] AC4: When it doesn't apply: a government with no `administers` adds no admin unrest with 10 territories. Under
   Anarchy (no government) none is added. With unrest off, `admin_unrest()` is 0.
-- [ ] AC5: Forecast: with 5 territories, `upkeep_forecast()[UNREST]` includes the +3 along with any size unrest and
+- [x] AC5: Forecast: with 5 territories, `upkeep_forecast()[UNREST]` includes the +3 along with any size unrest and
   card upkeep unrest; with a Temple-like building it is +2.
-- [ ] AC6: Loader and text: `administers` is a government-only field (on another type it gets the usual "only applies
+- [x] AC6: Loader and text: `administers` is a government-only field (on another type it gets the usual "only applies
   to governments" warning), an int ≥ 1 (else a load error naming the card, `administers` and the value). The
   government's text gains "Administers up to 3 territories.". `administers` is a valid modifier key, with the text
   "Administer 2 more territories" / "Administer 2 fewer territories". Real data (content invariants, no ids or
@@ -72,8 +72,10 @@ Fixtures: unrest on, a government with `unrest_limit` 20 and `"administers": 3`,
 ## Manual check
 - [ ] Shipped caps (review before merging): Chiefdom 4, Kingship 7, Theocracy 6; Code of Laws +1, Bureaucracy +2,
   Royal Road +1. That's 11 at most under Kingship, so the 12th territory costs 1 unrest a turn and the 13th 3 a turn.
-- [ ] The top bar's "Unrest: N (+M)" counts admin unrest once you pass the cap. The government modal reads
-  "Administers up to …", and Bureaucracy's text names its modifier.
+- [ ] `godot --path . -- --civ sumer --seed 5`: open the government (top bar, "Sumer · Chiefdom"); it reads
+  "Administers up to 4 territories.". Knowledge: Code of Laws reads "Administration cap +1", Bureaucracy "+2".
+- [ ] Settle a 5th territory under Chiefdom: the top bar's "Unrest: N (+M)" rises by 1 for it, and the log at the next
+  upkeep says "Overextended realm: +1 unrest.". A 6th makes it +3.
 
 ## Log
 - 2026-10-05: specced with the user from a brainstorm, choosing "admin cap" with growing unrest plus a rising Settler
@@ -83,3 +85,12 @@ Fixtures: unrest on, a government with `unrest_limit` 20 and `"administers": 3`,
   text is "Administration cap +2" / "−1" (like "Unrest limit +1"): "Administer 2 more territories" has no plural form
   for 1 in `MODIFIER_TEXT`'s "%s" pattern. `test_only_unique_cards_raise_the_admin_cap` passes already (no real card
   carries the modifier yet); it guards the data this item adds.
+- Built. `admin_cap()` / `admin_unrest()` sit on `TerritoryQueries` (`engine_queries.gd` would have passed its
+  500-line limit), backed by `Modifiers.admin_cap` and `Population.admin_unrest`; `Territories.count_settled` counts
+  the tableau's territories (320 and 321 can reuse it). `TurnLoop.resolve_upkeep` adds it right after size unrest and
+  logs "Overextended realm: +N unrest."; no notice. `Fields.read_int`'s error now names the value it got ("'administers'
+  must be an integer >= 1, not 0") for every int field, so AC6's error names the value.
+- Balance worries for the balance item after 321: Chiefdom's cap of 4 bites early (the 5th territory costs 1 unrest a
+  turn against a limit of 8); Theocracy's 6 is below Kingship's 7 to offset its higher limit. The bot doesn't weigh
+  the cap yet (321), so sim wide games will run into Anarchy more until it does.
+- Suite 1994 → 2014 tests.
