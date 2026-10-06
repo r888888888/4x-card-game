@@ -17,9 +17,10 @@ The live picture of the same is [mcm-specimen.html](mcm-specimen.html), the mast
 | Colours | `ui/palette.gd` (`Palette`) | Named for their use. Read when drawing; never copy into a `const` (suite checks). No colour literal elsewhere in `ui/` (suite checks). |
 | Day / Night | `Palette.NIGHT`, `Palette.DAY`, `Palette.use()` | A new colour needs its static var and an entry in both sets (suite checks, 192). |
 | Looks (fonts, sizes, boxes) | `ui/game_theme.gd` (`GameTheme`) | A look used twice is a theme type variation, set with `theme_type_variation`. |
-| Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `select_list` (217: a `SelectList`, the guide's §7.16), `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
+| Building blocks | `ui/ui_kit.gd` (`UIKit`) | `button`, `button_column`, `select_list` (217: a `SelectList`, the guide's §7.16; its selected row lights a `ReadyLamp`, 356), `heading`, `title`, `stat`, `section`, `overlay`, `setting_row`, `painted`. |
 | Surfaces (341) | `ui/surfaces.gd` (`Surfaces`), `ui/surface_box.gd` (`SurfaceBox`) | Walnut grain and paper under the Palette colours, baked once per mode; a `SurfaceBox` draws its `frame` (rule, soft shadow and a fill the paper covers: without it Godot leaves a pale gap between the rule and the shadow), then the texture inside the rule. Opacities and shadow looks are `Surfaces` constants. Keys stay `StyleBoxFlat`. |
 | Motion | `ui/anim.gd` (`Anim`) | Times in seconds, distances in px. Tweens ease out (`TRANS_QUART`/`EASE_OUT`); none overshoot (suite checks). Reduce motion: `UIKit.calm()`. |
+| Scroll areas (§7.17) | `ui/smooth_scroll.gd` (`SmoothScroll`), `GameTheme`'s `VScrollBar` | A wheel notch glides `Anim.SCROLL_STEP` (120 px), decaying by `SCROLL_FRICTION` (8 / s); `follow(control)` eases over `SCROLL_FOLLOW_TIME`. The scrollbar: an 8 px `CONTROL` grabber on `FIELD`, `TEXT_DIM` hovered or dragged. Used by the Build modal (356). |
 | Modals, screens | `Modal` on `main.modals`, `Navigator` + `ScreenHeader` | See CLAUDE.md's UI design section. |
 | Modal layouts (§11.10) | `Modal.BODY_MAX_WIDTH` (640), `Modal.LEDGER_*` (list 384 × 480 = 12 rows, gap 32, detail 264, width 680) | Text, card and ledger sheets (344). |
 
@@ -47,7 +48,7 @@ A colour must follow a Day mode switch. How depends on where it is set:
 | `rule` | `CONTROL_BORDER` |
 | `rule-fine` | `HAIRLINE` (a fine rule within a sheet, 217); `CONTROL_DISABLED_BORDER` (Day only; Night uses its own `4a463f`) |
 | `shadow` | `SHADOW` |
-| `signal` / `on-signal` | `ACCENT` (End turn, a selectable list's index tab, and a modal's primary button: `AccentButton`, 3 px ink border, 251) / `TEXT_ON_ACCENT` |
+| `signal` / `on-signal` | `ACCENT` (End turn, a card's index tab, and a modal's primary button: `AccentButton`, 3 px ink border, 251) / `TEXT_ON_ACCENT` |
 | `positive` | `GAIN` |
 | `danger` | `COST`, `WARN`, `UNREST` |
 | `info` | `INSIGHT` |
@@ -82,7 +83,7 @@ variation; set it with `theme_type_variation`.
 | `border.*` | 1 hair, 2 control, 3 emphasis, 4 bar | Literals. |
 | `shadow.plinth` / `travel.press` | 2,2 / 2 | `GameTheme.PLINTH` / `GameTheme.PRESS`: keys, flags, End turn (hard, unblurred) |
 | soft shadows (341) | `SHADOW`, straight down, blurred: card at rest 0,4 size 8; hovered 0,8 / 16; dragged 0,14 / 24; sheet 0,16 / 32 | `Surfaces.CARD_REST`, `CARD_HOVER`, `CARD_DRAG`, `SHEET` (each with its Night / Day alpha: 0.35 / 0.20, 0.45 / 0.28, 0.50 / 0.32, 0.55 / 0.35) |
-| selected (§4.4, §10.5) | 4,4 shadow, 8 px pull | `GameTheme.SELECTED_SHADOW` / `GameTheme.PULL`: `ListRow`'s pressed look |
+| selected (§4.4, §10.5, §7.16) | a card: 4,4 shadow; a list row: none | `GameTheme.SELECTED_SHADOW` (cards, tiles); `ListRow`'s pressed look is a flat `RAISED` strip, its lamp a `ReadyLamp` (356) |
 
 ## Motion (§9.4)
 
