@@ -135,6 +135,15 @@ static func size_unrest(e: GameEngine) -> int:
 	return sum
 
 
+## See GameEngine.admin_unrest (319).
+static func admin_unrest(e: GameEngine) -> int:
+	var cap := Modifiers.admin_cap(e)
+	if not e.unrest_on() or cap < 0:
+		return 0
+	var over := maxi(0, Territories.count_settled(e) - cap)
+	return over * (over + 1) / 2
+
+
 ## The pop territory uid's next tier needs; 0 at the top tier or when it has none.
 static func next_tier_pop(e: GameEngine, territory_uid: int) -> int:
 	var i := tier(e, territory_uid)

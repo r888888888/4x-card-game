@@ -177,7 +177,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   "keywords": ["desert"] }` is `gain_per_keyword`'s mirror ("−1 food per desert territory"). Both go through `lose`, so
   they never go below 0 and report `lost`. No shipped card uses them yet (270).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
-  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`) to non-zero ints, e.g.
+  object of `DataLoader.MODIFIER_KEYS` (`actions`, `hand_size`, `housing`, `unrest_limit`, `renewal`, `insight_per_gain`, `administers`) to non-zero ints, e.g.
   `"modifiers": {"actions": 1}`. `insight_per_gain` (157) is added to each insight gain in `EngineCore.gain`, never below
   0 ("Each insight gain −1"); a per-count op or `trade` is one gain. Real data: Theocracy −1.
   `modifier(key)` sums one over the working tableau cards (not idle), `ALWAYS_ON_ZONES` and the active events
@@ -372,6 +372,13 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),
   before any card's upkeep and so before upkeep takes pop. 0 with unrest or tiers off, no government (Anarchy) or no
   `tolerates`. The forecast counts it.
+- Admin unrest (319): a government's optional `administers` (int ≥ 1; text "Administers up to 7 territories.") plus
+  the `administers` modifier ("Administration cap +2") is `admin_cap()`, never below 0; -1 (no cap) with no
+  government (Anarchy) or one that sets none. `admin_unrest()` is n × (n + 1) ÷ 2 for n settled territories past the
+  cap (the k-th past it adds k: 1, 3, 6, 10 in all), 0 with unrest off or no cap. Each upkeep adds it right after size
+  unrest, through `set_unrest` (so the limit stops it), before any card's upkeep; the forecast counts it. Real data:
+  Chiefdom 4, Kingship 7, Theocracy 6; Code of Laws +1, Bureaucracy +2, Royal Road +1. Only unique cards (techs,
+  governments, civilizations, wonders) carry the modifier, so copies can't stack it (content test).
 - Score = printed VP + effect VP + total pop × `vp_per_pop`.
 - Growth (262): pop grows only from growth cards, never by itself (260's automatic growth from a food surplus is
   gone, and 010's bought Grow with it). Bread and Beer (action, 2 food: +1 pop where it's needed most; 1 in the

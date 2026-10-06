@@ -13,6 +13,11 @@ static func settled(e: GameEngine, territory_uid: int) -> CardInstance:
 	return territory
 
 
+## How many territories are settled (in the tableau).
+static func count_settled(e: GameEngine) -> int:
+	return e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY).size()
+
+
 static func keywords_of(e: GameEngine, uid: int) -> Array[String]:
 	for z in GameEngine.ZONES:
 		var card := e.zone(z).find(uid)

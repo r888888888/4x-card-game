@@ -1,8 +1,8 @@
 class_name TerritoryQueries
 extends EngineCore
 ## The read queries about settled territories and their people (backlog 281, split from EngineQueries): pop and
-## housing, building slots, workers and settlement tiers, idle buildings, and each territory's name, summary, status
-## and tooltip. They change nothing. EngineQueries extends this with the other read queries.
+## housing, building slots, workers and settlement tiers, idle buildings, the administration cap (319), and each
+## territory's name, summary, status and tooltip. They change nothing. EngineQueries extends this with the other read queries.
 
 
 ## Pop on settled territory territory_uid (0 for anything else).
@@ -24,6 +24,18 @@ func territory_keywords(uid: int) -> Array[String]:
 func count_territories_with(keywords: Array[String]) -> int:
 	return zone("tableau").cards.filter(func(c: CardInstance):
 		return c.def.type == CardDef.TERRITORY and keywords.any(func(k): return c.keywords.has(k))).size()
+
+
+## The most settled territories the realm holds calmly (319): the ruling government's administers plus the
+## administers modifier, never below 0; -1 (no cap) with no government or one that sets none.
+func admin_cap() -> int:
+	return Modifiers.admin_cap(self)
+
+
+## The unrest the next upkeep adds for territories past admin_cap (319): the k-th one past it adds k (1, 3, 6, 10 in
+## all). 0 with unrest off or no cap.
+func admin_unrest() -> int:
+	return Population.admin_unrest(self)
 
 
 ## Pop summed over every settled territory.

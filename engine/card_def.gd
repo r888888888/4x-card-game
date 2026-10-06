@@ -27,6 +27,7 @@ const MODIFIER_TEXT := {
 	Modifiers.UNREST_LIMIT: ["Unrest limit +%d%.0s", "Unrest limit −%d%.0s"],
 	Modifiers.RENEWAL: ["Renewal trashes %d more card%s", "Renewal trashes %d fewer card%s"],
 	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d%.0s", "Each insight gain −%d%.0s"],
+	Modifiers.ADMINISTERS: ["Administration cap +%d%.0s", "Administration cap −%d%.0s"],
 }
 
 var id: String = ""
@@ -47,6 +48,7 @@ var actions: int = 0  # governments: actions each turn while it rules (127); 0 s
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
 var tolerates: String = ""  # governments: the id of the largest settlement tier it keeps calm (282); "" for any
 var tolerates_name: String = ""  # governments: that tier's name, set by ConfigLoader (CardDef has no config)
+var administers: int = 0  # governments: the settled territories it holds calmly (319); 0 sets no cap
 var modifiers: Dictionary = {}  # standing modifiers while working or active, {key: non-zero int} (129)
 var discounts: Array[Dictionary] = []  # civilizations: [{filter, value, amounts: {resource: int}}] (108)
 var keywords: Array[String] = []  # territories: keyword ids from config
@@ -106,6 +108,8 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append(unrest_limit_text())
 	if tolerates_name != "":
 		parts.append(tolerates_text())
+	if administers > 0:
+		parts.append(administers_text())
 	if home != "":
 		parts.append("Starts on: %s" % card_db[home].name)
 	if not requires.is_empty():
@@ -168,6 +172,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		parts.append(unrest_limit_text())
 	if tolerates_name != "":
 		parts.append(tolerates_text())
+	if administers > 0:
+		parts.append(administers_text())
 	if not requires.is_empty():
 		parts.append("Requires " + keyword_names(requires))
 	for e in effects:
@@ -293,6 +299,11 @@ func unrest_limit_text() -> String:
 ## A government's tolerated tier line (282): "Tolerates up to Village."
 func tolerates_text() -> String:
 	return "Tolerates up to %s." % tolerates_name
+
+
+## A government's administration line (319): "Administers up to 3 territories."
+func administers_text() -> String:
+	return "Administers up to %d territor%s." % [administers, "y" if administers == 1 else "ies"]
 
 
 ## One line per modifier (129): "+1 action each turn"; long (the tooltip) adds " while active" on an event.
