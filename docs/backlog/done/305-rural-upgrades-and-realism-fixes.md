@@ -2,7 +2,7 @@
 id: 305
 title: Rural upgrades (plough, irrigation, harbour, timber, shafts) and building realism fixes
 type: feature
-status: review
+status: done
 branch: feat/305-rural-upgrades
 ---
 
