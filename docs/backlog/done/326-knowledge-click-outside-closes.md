@@ -2,7 +2,7 @@
 id: 326
 title: A click outside the Knowledge screen closes it
 type: feature
-status: review
+status: done
 branch: feat/326-knowledge-click-outside-closes
 ---
 
