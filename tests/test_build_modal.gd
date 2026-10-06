@@ -4,7 +4,8 @@ extends "res://tests/lib/tech_case.gd"
 ## refused rows dimmed with their reason, and a sheet with the selected entry's card, its build_preview lines and one
 ## key (Build / Recruit). Hooks on BuildModal: list (SelectList), headings(), row_text(id), row_reason(id),
 ## row_dimmed(id), shown_card(), preview_lines(), refusal_text(), build_button, cancel_button; on TerritoryView:
-## build_button, slot_button(i).
+## build_button, slot_button(i). 343: laid out as a ledger sheet (Modal.LEDGER_*), the card hand size and still,
+## long rows wrapping in the list column; hook card_view().
 
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
@@ -18,7 +19,7 @@ func modal_engine(food := 5, menu := MENU, overrides := {}) -> GameEngine:
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 0}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
-	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS] + TEST_GOVS)
+	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS, LONG_HALL] + TEST_GOVS)
 
 
 ## Sets the food on hand to food (the Capital's upkeep has already paid turn 1's) and lets the board show it.
@@ -248,3 +249,86 @@ func test_a_recruited_units_disband_says_dismiss() -> void:
 		await wait_frames()
 		var disband: Button = main.details.unit_buttons()[1]
 		eq(disband.tooltip_text, "Dismiss it; its worker is freed.", "Disband's text"))
+
+
+# --- Backlog 343: the Build modal as a ledger sheet (344: Modal.LEDGER_*) ---
+# Hooks: card_view() (the CardView on the sheet, or null); the list's scroll area is list's parent.
+
+## A building whose row is wider than the list column.
+const LONG_HALL := {"id": "long_hall", "name": "The Great Hall of the Assembled Elders of the Realm", "type": "building",
+	"cost": {"food": 2}}
+
+
+## The modal's visible Refusal label, or null.
+func refusal_label(modal: Object) -> Label:
+	for l in (modal as Node).find_children("*", "Label", true, false):
+		if (l as Label).theme_type_variation == &"Refusal" and (l as Label).is_visible_in_tree():
+			return l
+	return null
+
+
+## The list's scroll area.
+func list_column(modal: Object) -> ScrollContainer:
+	return (modal.list as Control).get_parent() as ScrollContainer
+
+
+func test_the_card_on_the_sheet_is_hand_size_for_every_row() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		for row in ["farm", "granary"]:
+			(modal.list.row(row) as Button).pressed.emit()
+			await wait_frames()
+			var card: CardView = modal.card_view()
+			eq(card.size, CardView.HAND_SIZE, "%s's card is hand size" % row)
+			eq(card.slot.custom_minimum_size, CardView.HAND_SIZE, "%s's slot is hand size" % row))
+
+
+func test_the_list_column_is_the_ledgers() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		eq(list_column(modal).custom_minimum_size, Vector2(Modal.LEDGER_LIST_WIDTH, Modal.LEDGER_LIST_HEIGHT),
+			"384 × 480"))
+
+
+func test_a_refusal_wraps_at_the_cards_width() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("well") as Button).pressed.emit()
+		await wait_frames()
+		var label := refusal_label(modal)
+		check(label != null, "a refusal shows")
+		if label != null:
+			eq(label.custom_minimum_size.x, float(Modal.LEDGER_DETAIL_WIDTH), "wraps at 264"))
+
+
+func test_the_modal_is_a_680_px_ledger_inside_the_window() -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var before := window.size
+	window.size = Vector2i(1920, 1080)
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(30)
+		var screen := Rect2(Vector2.ZERO, main.get_viewport().get_visible_rect().size)
+		var sheet: Rect2 = (modal.panel as Control).get_global_rect()
+		check(screen.encloses(sheet), "the sheet %s inside %s" % [sheet, screen])
+		eq((modal.body as Control).size.x, float(Modal.LEDGER_WIDTH), "the body is the ledger's 680 px")
+		eq(list_column(modal).size.x, float(Modal.LEDGER_LIST_WIDTH), "the list column, 384")
+		var card: CardView = modal.card_view()
+		eq(card.get_global_rect().position.x - list_column(modal).get_global_rect().end.x, float(Modal.LEDGER_GAP),
+			"32 px between the list and the card"))
+	window.size = before
+
+
+func test_a_long_row_wraps_inside_the_list_column() -> void:
+	await with_main(modal_engine(5, MENU.merged({"long_hall": {}})), func(main: Node):
+		var modal: Object = await open_build(main)
+		await wait_frames(5)
+		check(modal.list.row("long_hall") != null, "the long row is listed")
+		eq(list_column(modal).size.x, float(Modal.LEDGER_LIST_WIDTH), "the column stays 384 wide"))
+
+
+func test_the_card_on_the_sheet_ignores_the_mouse() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		var card: CardView = modal.card_view()
+		eq(card.mouse_filter, Control.MOUSE_FILTER_IGNORE, "display only"))
