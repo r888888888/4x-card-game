@@ -61,6 +61,7 @@ func test_the_knowledge_button_opens_the_screen() -> void:
 
 # --- Backlog 092: the hint names the research card from the engine ---
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: Era 1."  # the fixture has no era names
 
 
@@ -566,9 +567,8 @@ func test_bug_224_it_runs_in_from_the_play_areas_edge_under_the_sidebar() -> voi
 			eq(main.knowledge.slide_offset(), width, "it travels its own width, from the play area's right edge")
 			var sidebar := main.sidebar as Control
 			check(sidebar.z_index > (main.knowledge as Control).z_index, "the sidebar draws over the sliding sheet")
-			var panel := sidebar.get_theme_stylebox("panel") as StyleBoxFlat
-			check(panel != null and panel.draw_center and panel.bg_color.a == 1.0,
-				"the sidebar is opaque, so the sheet passes under it")))
+			var grain := Looks.texture_of(sidebar.get_theme_stylebox("panel"))  # the board's opaque grain (341)
+			check(grain != null and not grain.has_alpha(), "the sidebar is opaque, so the sheet passes under it")))
 
 
 func test_bug_224_the_sheet_is_opaque() -> void:

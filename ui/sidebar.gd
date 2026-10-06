@@ -16,6 +16,8 @@ var end_turn: EndTurnKey  # at its foot (203), its caption under it
 ## Builds the rail; on_open opens the civilization modal.
 func _init(on_open: Callable) -> void:
 	theme_type_variation = &"Rail"
+	set_notify_transform(true)  # its grain follows it on screen (341)
+	UIKit.painted(self, func(): add_theme_stylebox_override("panel", GameTheme.rail(global_position)))
 	z_index = 1  # over a screen sliding in on the play area (224), below the flying cards, drawer and modals
 	custom_minimum_size.x = WIDTH
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -67,3 +69,10 @@ func refresh(e: GameEngine) -> void:
 ## Where a card leaving for the government flies to (the government a player just played).
 func government_point() -> Vector2:
 	return government_button.get_global_rect().get_center()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED:  # moved on screen: line its grain up with the board's again (341)
+		var grain := get_theme_stylebox("panel") as SurfaceBox
+		if grain != null:
+			grain.origin = global_position

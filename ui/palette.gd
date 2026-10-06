@@ -20,6 +20,7 @@ static var CONTROL_DISABLED: Color = NIGHT["CONTROL_DISABLED"]
 static var CONTROL_BORDER: Color = NIGHT["CONTROL_BORDER"]
 static var CONTROL_DISABLED_BORDER: Color = NIGHT["CONTROL_DISABLED_BORDER"]
 static var HAIRLINE: Color = NIGHT["HAIRLINE"]  # a fine rule between parts of a sheet (guide rule-fine; 217)
+static var PAPER_SHADE: Color = NIGHT["PAPER_SHADE"]  # laid over the paper texture (341): Night's gray paper darkened
 
 # Text.
 static var TEXT: Color = NIGHT["TEXT"]
@@ -77,7 +78,7 @@ static var HILL_LOW: Color = NIGHT["HILL_LOW"]  # the hill at sunset
 # See-through layers.
 static var DIMMER: Color = NIGHT["DIMMER"]  # behind an overlay
 static var SCRIM: Color = NIGHT["SCRIM"]  # behind a modal
-static var SHADOW: Color = NIGHT["SHADOW"]  # hard offset shadows under controls and lifted cards: solid, never blurred (guide §6.5)
+static var SHADOW: Color = NIGHT["SHADOW"]  # hard offset shadows under controls; soft ones under cards and sheets (341, Surfaces)
 static var OUTLINE: Color = NIGHT["OUTLINE"]  # around effect text
 static var EDGE: Color = NIGHT["EDGE"]  # an overlay's or a modal's frame: ink
 static var FAINT_EDGE: Color = NIGHT["FAINT_EDGE"]  # the log panel's border
@@ -99,6 +100,7 @@ const NIGHT := {
 	"CONTROL_BORDER": Color("857d70"),
 	"CONTROL_DISABLED_BORDER": Color("4a463f"),
 	"HAIRLINE": Color("3a3733"),
+	"PAPER_SHADE": Color(0, 0, 0, 0.3),
 	"TEXT": Color("ede6d6"),
 	"TEXT_DIM": Color("b9b1a1"),
 	"TEXT_DISABLED": Color("8e877a"),
@@ -162,6 +164,7 @@ const DAY := {
 	"CONTROL_BORDER": Color("6f685c"),
 	"CONTROL_DISABLED_BORDER": Color("cfc6b5"),
 	"HAIRLINE": Color("cfc6b5"),
+	"PAPER_SHADE": Color(0, 0, 0, 0),
 	"TEXT": Color("22211f"),
 	"TEXT_DIM": Color("57534b"),
 	"TEXT_DISABLED": Color("7a7468"),
