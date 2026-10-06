@@ -6,7 +6,8 @@ extends "res://tests/lib/tech_case.gd"
 ## row_dimmed(id), shown_card(), preview_lines(), refusal_text(), build_button, cancel_button; on TerritoryView:
 ## build_button, slot_button(i). 343: laid out as a ledger sheet (Modal.LEDGER_*), the card hand size and still,
 ## long rows wrapping in the list column; hook card_view(). 347: a row refused for want of a worker, and such a hand
-## card, carry build_error_detail / play_error_detail as their tooltip.
+## card, carry build_error_detail / play_error_detail as their tooltip. 354: the selected entry's flavor under its card,
+## in the Flavor look; hook flavor_text().
 
 const WARRIORS := {"id": "warriors", "name": "Warriors", "type": "unit", "cost": {"food": 2}, "strength": 2,
 	"tags": ["military"]}
@@ -20,7 +21,7 @@ func modal_engine(food := 5, menu := MENU, overrides := {}) -> GameEngine:
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 0}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
-	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS, LONG_HALL] + TEST_GOVS)
+	return tech_engine(["pottery"], {"scout": 10}, o, [WARRIORS, LONG_HALL, KILN, OVEN, LORE_HALL] + TEST_GOVS)
 
 
 ## Sets the food on hand to food (the Capital's upkeep has already paid turn 1's) and lets the board show it.
@@ -357,3 +358,106 @@ func test_the_card_on_the_sheet_ignores_the_mouse() -> void:
 		var modal: Object = await open_build(main)
 		var card: CardView = modal.card_view()
 		eq(card.mouse_filter, Control.MOUSE_FILTER_IGNORE, "display only"))
+
+
+# --- 354: the selected entry's flavor on the sheet ---
+
+const KILN := {"id": "kiln", "name": "Kiln", "type": "building", "cost": {"food": 1}, "flavor": "Mud brick, baked hard."}
+const OVEN := {"id": "oven", "name": "Oven", "type": "building", "cost": {"food": 9},
+	"flavor": "Bread for the whole street, when there is grain."}
+## Near the longest flavor real data may have (147 of 150, 353) and the most preview lines: slots, three resources
+## and housing.
+const LORE_HALL := {"id": "lore_hall", "name": "Lore Hall", "type": "building", "cost": {"food": 1}, "housing": 1,
+	"flavor": "Shelves of tablets and rolls hold the law, the stars and the price of barley, " +
+		"and somewhere among them is an answer nobody has ever thought to ask.",
+	"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"},
+		{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"},
+		{"op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep"}]}
+const FLAVOR_MENU := {"kiln": {}, "oven": {}, "lore_hall": {}, "warriors": {}}
+
+
+## The sheet's labels in the Flavor look, visible.
+func flavor_labels(modal: Object) -> Array[Label]:
+	var out: Array[Label] = []
+	for l in (modal as Node).find_children("*", "Label", true, false):
+		if (l as Label).theme_type_variation == &"Flavor" and (l as Label).is_visible_in_tree():
+			out.append(l)
+	return out
+
+
+## The index among modal's labels (tree order) of the first whose text is text, or -1.
+func label_index(modal: Object, text: String) -> int:
+	var labels := (modal as Node).find_children("*", "Label", true, false)
+	for i in labels.size():
+		if (labels[i] as Label).text == text:
+			return i
+	return -1
+
+
+func test_the_selected_buildings_flavor_shows_under_its_card() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		eq(modal.shown_card(), "kiln", "the Kiln is selected")
+		eq(modal.flavor_text(), KILN.flavor, "its flavor")
+		var labels := flavor_labels(modal)
+		eq(labels.size(), 1, "one flavor line")
+		if labels.size() == 1:
+			eq(labels[0].text, KILN.flavor, "in the Flavor look")
+			eq(labels[0].custom_minimum_size.x, float(Modal.LEDGER_DETAIL_WIDTH), "wrapping at the card's 264")
+			check(labels[0].autowrap_mode != TextServer.AUTOWRAP_OFF, "it wraps")
+			check(label_index(modal, KILN.flavor) < label_index(modal, "If built on Homeland"),
+				"above the preview's heading")
+		check(not modal.preview_lines().has(KILN.flavor), "the preview's lines stay the preview's"))
+
+
+func test_the_flavor_follows_the_selection() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("lore_hall") as Button).pressed.emit()
+		await wait_frames()
+		eq(modal.flavor_text(), LORE_HALL.flavor, "a click shows the Lore Hall's")
+		press_key(main, KEY_UP)
+		await wait_frames()
+		eq(modal.list.selected, "oven", "Up selects the Oven")
+		eq(modal.flavor_text(), OVEN.flavor, "and its flavor")
+		eq(flavor_labels(modal).map(func(l): return l.text), [OVEN.flavor], "only the Oven's"))
+
+
+func test_a_refused_rows_flavor_shows_above_its_reason() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var e := Game.engine
+		var modal: Object = await open_build(main)
+		(modal.list.row("oven") as Button).pressed.emit()
+		await wait_frames()
+		var reason := e.build_error("oven", home_uid(e))
+		check(reason != "", "the Oven (9 food) is refused")
+		eq(modal.refusal_text(), reason, "its reason shows")
+		eq(modal.flavor_text(), OVEN.flavor, "and its flavor")
+		check(label_index(modal, OVEN.flavor) != -1 and label_index(modal, OVEN.flavor) < label_index(modal, reason),
+			"the flavor above the reason"))
+
+
+func test_a_card_without_flavor_shows_no_flavor_line() -> void:
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("warriors") as Button).pressed.emit()
+		await wait_frames()
+		eq(modal.shown_card(), "warriors", "the Warriors' card")
+		eq(modal.flavor_text(), "", "a unit has no flavor")
+		eq(flavor_labels(modal).size(), 0, "no flavor line, and no empty one"))
+
+
+func test_the_longest_flavor_keeps_the_modal_inside_the_window() -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var before := window.size
+	window.size = Vector2i(1920, 1080)
+	await with_main(modal_engine(5, FLAVOR_MENU), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("lore_hall") as Button).pressed.emit()
+		await wait_frames(30)
+		eq(modal.flavor_text(), LORE_HALL.flavor, "the Lore Hall's 147-character flavor")
+		check(modal.preview_lines().size() >= 6, "with its preview: %s" % [modal.preview_lines()])
+		var screen := Rect2(Vector2.ZERO, main.get_viewport().get_visible_rect().size)
+		var sheet: Rect2 = (modal.panel as Control).get_global_rect()
+		check(screen.encloses(sheet), "the sheet %s inside %s" % [sheet, screen]))
+	window.size = before

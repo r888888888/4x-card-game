@@ -3,7 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## foot of its card (a fallen-back one hatched with its reason), a "+ Upgrade" chip on a building that could take one
 ## opens the Build modal on it, the modal lists upgrades under their own heading, and an upgrade's card face names its
 ## base and tier. Hooks on CardView: ribbons() ({uid, name, rules, reason, hatched} per ribbon), upgrade_chip; on
-## BuildModal: upgrade_row_id(card_id, base) (static), face_text().
+## BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's flavor is its own.
 
 const TIERS := [
 	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
@@ -15,9 +15,10 @@ const PLOUGH := {"id": "plough", "name": "Plough", "type": "building", "cost": {
 	"upgrade_of": "farm", "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}
 const DITCH := {"id": "ditch", "name": "Ditch", "type": "building", "cost": {"food": 1}, "upgrade_of": "farm",
 	"housing": 1, "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain"}]}
-const CHAPEL := {"id": "chapel", "name": "Chapel", "type": "building", "cost": {"food": 1}}
+const CHAPEL := {"id": "chapel", "name": "Chapel", "type": "building", "cost": {"food": 1},
+	"flavor": "A bench, a lamp, a quiet hour."}
 const SANCTUM := {"id": "sanctum", "name": "Sanctum", "type": "building", "cost": {"food": 1}, "upgrade_of": "chapel",
-	"tier": "village", "modifiers": {"hand_size": 1}}
+	"tier": "village", "modifiers": {"hand_size": 1}, "flavor": "The inner room, where only the keepers go."}
 const CATHEDRAL := {"id": "cathedral", "name": "Cathedral", "type": "building", "cost": {"food": 1},
 	"upgrade_of": "sanctum", "tier": "town", "vp": 2}
 const FORUM := {"id": "forum", "name": "Forum", "type": "building", "cost": {"food": 1}, "tier": "town", "vp": 1,
@@ -309,6 +310,16 @@ func test_an_upgrade_row_previews_it_on_its_base_and_builds_it() -> void:
 		await wait_frames()
 		eq(e.upgrades_on(farm).size(), 1, "Enter built it on the Farm")
 		eq(ribbon_names(main, farm), ["Ditch"], "the view shows its ribbon"))
+
+
+func test_an_upgrade_rows_flavor_is_its_own_not_its_bases() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(4)
+		var chapel := put_home(e, "chapel")
+		var modal: Object = await open_build(main)
+		await choose(modal, row_id(main, "sanctum", chapel))
+		eq(modal.shown_card(), "sanctum", "the Sanctum's card")
+		eq(modal.flavor_text(), SANCTUM.flavor, "the Sanctum's own flavor, not the Chapel's"))
 
 
 # --- AC5: the upgrade's face ---

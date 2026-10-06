@@ -2,7 +2,7 @@
 id: 354
 title: Show the selected entry's flavor in the Build modal
 type: feature
-status: ready
+status: red-review
 branch: feat/354-flavor-in-build-modal
 ---
 
@@ -52,7 +52,12 @@ on the modal's sheet, under its card, so every building reads like history where
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_build_modal::test_…` |
+| AC1 | `test_build_modal::test_the_selected_buildings_flavor_shows_under_its_card` |
+| AC2 | `test_build_modal::test_the_flavor_follows_the_selection` |
+| AC3 | `test_build_modal::test_a_refused_rows_flavor_shows_above_its_reason` |
+| AC4 | `test_upgrade_ribbons::test_an_upgrade_rows_flavor_is_its_own_not_its_bases` |
+| AC5 | `test_build_modal::test_a_card_without_flavor_shows_no_flavor_line` |
+| AC6 | `test_build_modal::test_the_longest_flavor_keeps_the_modal_inside_the_window` |
 
 ## Manual check
 - [ ] Open Build… on a territory (seed 5, Sumer): the Farm's flavor sits under its card in italics, then "If built
