@@ -2,7 +2,7 @@
 id: 376
 title: The sim bot values its deck by what a turn can play, so it neither buys junk nor thins to nothing
 type: feature
-status: in-progress
+status: review
 branch: feat/376-bot-deck-worth-model
 ---
 
@@ -25,18 +25,18 @@ cutting the deck below a turn's plays of good cards loses plays.
 ## Acceptance criteria
 <!-- Draft until the open questions are answered. Fixtures: bot_game with a government whose actions are fewer than
 the hand of 5 (Lone, 1 action; Band, 2), so the best-of-the-hand model is told apart from a random-plays one. -->
-- [ ] AC1: A card with a negative `card_value` lowers the deck's worth no more than a dead card (0) does.
-- [ ] AC2: Adding a card worth 0 or less to the deck never raises its worth (the pile-buying). Today it does whenever
+- [x] AC1: A card with a negative `card_value` lowers the deck's worth no more than a dead card (0) does.
+- [x] AC2: Adding a card worth 0 or less to the deck never raises its worth (the pile-buying). Today it does whenever
   the average is below 0.
-- [ ] AC3: Given more cards than a hand, trashing a 0-worth card never lowers the deck's worth, and raises it when a
+- [x] AC3: Given more cards than a hand, trashing a 0-worth card never lowers the deck's worth, and raises it when a
   hand could come up short of good cards for a turn's plays (thinning still pays while it fills the plays).
-- [ ] AC4: Given a deck, hand and discard of exactly `_plays_a_turn` cards worth more than 0, trashing any one of them
+- [x] AC4: Given a deck, hand and discard of exactly `_plays_a_turn` cards worth more than 0, trashing any one of them
   lowers the deck's worth (thinning below what a turn plays loses value).
-- [ ] AC5: An empty deck is worth less than any deck holding a card worth more than 0.
-- [ ] AC6: With fewer plays than the hand, the worth counts the best plays of a drawn hand, not random ones: given
+- [x] AC5: An empty deck is worth less than any deck holding a card worth more than 0.
+- [x] AC6: With fewer plays than the hand, the worth counts the best plays of a drawn hand, not random ones: given
   values a > b > 0, a deck of one a and one b at 1 play a turn is worth what a deck of one a alone is (the b is never
   played). Exact value against a hand-computed expectation for a small deck larger than a hand.
-- [ ] AC7: SimStats reports a `deck_end` metric: the cards in the deck, hand and discard at the game's end, so a
+- [x] AC7: SimStats reports a `deck_end` metric: the cards in the deck, hand and discard at the game's end, so a
   compare shows drained decks.
 
 ## Open questions
@@ -108,3 +108,8 @@ the hand of 5 (Lone, 1 action; Band, 2), so the best-of-the-hand model is told a
   (open question).
 - 2026-10-06: The user approved rewriting 373's dilution test. Red: the rewrite plays under Stewards (a turn plays the
   whole hand), since under Lone's 1 play a Pioneer among 6 Temples never costs a play.
+- 2026-10-06: Green. `GenericBot.turn_worth(values, hand, plays)` (public, tested against every hand) and
+  `_deck_worth` returning it; `value()` adds `w.deck × ahead × _deck_worth` (the `× plays` moved inside). SimStats
+  `deck_end` after `trashed`. Docs: class and WEIGHTS doc, PLAN.md, the balance skill's metrics, testing.md's row
+  (trimmed to stay under the 25 KB cap). No bot games run. Balance worry: the deck term is larger at the same
+  `WEIGHTS.deck` (roughly 2–4× on the example deck), so the manual compare mixes the model with that weight.

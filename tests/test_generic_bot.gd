@@ -390,12 +390,6 @@ func best_plays_by_enumeration(values: Array, hand: int, plays: int) -> float:
 	return total / hands.size()
 
 
-## GenericBot.turn_worth, held untyped while it doesn't exist yet.
-func turn_worth(values: Array, hand: int, plays: int) -> float:
-	var bot: Object = GenericBot
-	return bot.turn_worth(values, hand, plays)
-
-
 ## Every k-element subset of items.
 func all_hands(items: Array, k: int) -> Array:
 	if k == 0:
@@ -460,13 +454,13 @@ func test_a_card_a_turn_never_plays_adds_nothing() -> void:
 
 
 func test_turn_worth_counts_the_best_plays_of_a_drawn_hand() -> void:
-	eq(turn_worth([3.0, 1.0], 5, 1), 3.0, "both drawn, the better played")
-	eq(turn_worth([3.0, 2.0, 1.0], 5, 2), 5.0, "all drawn, the best 2 played")
-	eq(turn_worth([3.0, -5.0], 5, 1), 3.0, "a negative card counts as 0")
-	eq(turn_worth([], 5, 2), 0.0, "no cards")
-	check(absf(turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1) - (2.5 + 1.0 / 6)) < 0.0001,
+	eq(GenericBot.turn_worth([3.0, 1.0], 5, 1), 3.0, "both drawn, the better played")
+	eq(GenericBot.turn_worth([3.0, 2.0, 1.0], 5, 2), 5.0, "all drawn, the best 2 played")
+	eq(GenericBot.turn_worth([3.0, -5.0], 5, 1), 3.0, "a negative card counts as 0")
+	eq(GenericBot.turn_worth([], 5, 2), 0.0, "no cards")
+	check(absf(GenericBot.turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1) - (2.5 + 1.0 / 6)) < 0.0001,
 		"the 3 in 5 of 6 hands; the 1 only in the hand without the 3: 2.5 + 1/6, got %.4f"
-		% turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1))
+		% GenericBot.turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1))
 
 
 func test_turn_worth_matches_every_hand_tried() -> void:
@@ -474,6 +468,6 @@ func test_turn_worth_matches_every_hand_tried() -> void:
 		[[5.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 5, 1], [[2.0, 4.0, 1.0, 3.0, 0.5, 6.0], 3, 2]]
 	for c in cases:
 		var want := best_plays_by_enumeration(c[0], c[1], c[2])
-		var got: float = turn_worth(c[0], c[1], c[2])
+		var got: float = GenericBot.turn_worth(c[0], c[1], c[2])
 		check(absf(got - want) < 0.0001, "%s, hand %d, %d plays: %.4f, every hand gives %.4f"
 			% [c[0], c[1], c[2], got, want])

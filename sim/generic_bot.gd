@@ -7,9 +7,10 @@ extends RefCounted
 ##
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
 ## its forecast change) for food, wealth and insight − weight × unrest − weight × the unrest coming in over the turns
-## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
-## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
-## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
+## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what the best plays of a drawn hand
+## would add, each card worth what playing it adds and never below 0, 0 for one with nothing to act on: 310, 376) + the
+## printed cost of the techs learned (+ a weight per settled territory up to the admin cap for wide, 321). Turns ahead =
+## min(HORIZON, turns left): income counts early, only points at the end.
 ## A position's forecast is computed once: value() looks it up by what it reads (forecast_key, 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
@@ -51,8 +52,8 @@ const RENEWAL_COMBOS := 40
 ## Actions the bot never takes itself: play ends the turn; revolts are weighed by rollouts (314).
 const SKIPPED := ["end_turn", "revolt"]
 ## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest held (0: held
-## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns ahead
-## × plays a turn), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
+## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns
+## ahead), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
 ## up to the admin cap (321).
 const WEIGHTS := {
 	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05,
