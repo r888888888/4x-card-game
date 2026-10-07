@@ -2,7 +2,7 @@
 id: 367
 title: Sea Trade, and ports bring insight
 type: feature
-status: red-review
+status: in-progress
 branch: feat/367-sea-trade-and-port-insight
 ---
 
