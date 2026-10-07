@@ -2,7 +2,7 @@
 id: 365
 title: Helpful coastal events and the Lighthouse of Pharos
 type: feature
-status: red-review
+status: in-progress
 branch: feat/365-coastal-events-and-lighthouse
 ---
 

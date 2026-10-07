@@ -169,7 +169,7 @@ func test_every_growth_card_costs_food() -> void:
 # --- Starter events (backlog 069) ---
 
 ## The ops a real event may use: they only give (see 072 for harmful ops).
-const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]  # and lose of unrest (144)
+const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "gain_per_keyword", "score", "grow"]  # and lose of unrest (144; 365)
 
 
 func test_every_real_event_is_in_the_event_deck() -> void:
@@ -207,7 +207,7 @@ func test_real_era_1_events_harm_only_by_unrest() -> void:
 				continue
 			if not EVENT_OPS.has(effect.op) and not (effect.op == "lose" and effect.get("resource") == "unrest"):
 				bad_ops.append("%s: %s" % [id, effect.op])
-	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score, grow or lose of unrest")
+	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, gain_per_keyword, score, grow or lose of unrest")
 	check(blank >= 1, "at least one blank event (got %d)" % blank)
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
