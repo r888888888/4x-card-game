@@ -59,7 +59,7 @@ func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:
 		eq(k.label_text(), "END TURN", "its label in caps")
 		eq(k.plate_text(), "001", "the turn plate")
 		check(k.lamp_lit(), "a lit lamp at its left")
-		var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
+		var strip: Control = (MainProbe.counter(main, GameEngine.FOOD) as Control).get_parent()
 		check(not UIKit.buttons_in(strip).any(func(b): return b.text.begins_with("End turn")), "no End turn in the top strip (AC6)"))
 
 
@@ -97,8 +97,8 @@ func test_a_discard_owed_lights_brick_and_disables_the_key_with_the_reason() -> 
 		for i in e.config.hand_limit + 2 - e.zone("hand").size():
 			put_in_hand(e, e.zone("hand").cards[0].def.id)
 		e.end_turn()
-		while not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await wait_frames()
 		await wait_seconds(1.3)  # past the end-of-turn busy spell
 		var error := e.end_turn_error()

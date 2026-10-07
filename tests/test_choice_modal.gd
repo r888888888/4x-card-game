@@ -1,8 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The event modal for a choice event (backlog 269) in the real main scene: the options as buttons in place of OK, not
 ## dismissable while the choice is owed; a refused option disabled with the engine's reason as its tooltip; choosing
-## closes it with a notice of what the option did; under Anarchy the renewal comes first. Hooks: main.event_modal()
-## ({…, options: option texts}), main.event_option_buttons(). Fixtures: tests/lib/anarchy_case.gd (Envoys).
+## closes it with a notice of what the option did; under Anarchy the renewal comes first. Hooks: MainProbe.event_modal(main)
+## ({…, options: option texts}), MainProbe.event_option_buttons(main). Fixtures: tests/lib/anarchy_case.gd (Envoys).
 
 
 ## Runs body(main) on a real main scene whose game drew Envoys at turn 2's start with wealth at the draw, the turn
@@ -20,11 +20,11 @@ func with_choice(wealth: int, body: Callable, setup := func(_e): pass, unrest :=
 
 func test_a_choice_event_shows_its_options_in_place_of_ok() -> void:
 	await with_choice(3, func(main: Node):
-		eq(main.event_modal().get("id"), "envoys", "Envoys shown")
-		eq(main.event_modal().get("options"), ["Pay 2 wealth: +1 VP", "+1 unrest"], "the options")
-		eq(main.event_option_buttons().map(func(b): return b.text), ["Pay 2 wealth: +1 VP", "+1 unrest"],
+		eq(MainProbe.event_modal(main).get("id"), "envoys", "Envoys shown")
+		eq(MainProbe.event_modal(main).get("options"), ["Pay 2 wealth: +1 VP", "+1 unrest"], "the options")
+		eq(MainProbe.event_option_buttons(main).map(func(b): return b.text), ["Pay 2 wealth: +1 VP", "+1 unrest"],
 			"a button each")
-		check(not main.event_modal_ok_button().visible, "no OK"))
+		check(not MainProbe.event_modal_ok_button(main).visible, "no OK"))
 
 
 func test_the_choice_modal_cant_be_dismissed() -> void:
@@ -39,12 +39,12 @@ func test_the_choice_modal_cant_be_dismissed() -> void:
 			event.global_position = Vector2(4, 4)
 			main.get_viewport().push_input(event, true)
 		await wait_frames()
-		eq(main.event_modal().get("id"), "envoys", "Esc, Enter and a click outside leave it open"))
+		eq(MainProbe.event_modal(main).get("id"), "envoys", "Esc, Enter and a click outside leave it open"))
 
 
 func test_a_refused_option_is_disabled_with_the_reason_as_its_tooltip() -> void:
 	await with_choice(1, func(main: Node):
-		var buttons: Array = main.event_option_buttons()
+		var buttons: Array = MainProbe.event_option_buttons(main)
 		check(buttons[0].disabled, "the pay option is disabled")
 		eq(buttons[0].tooltip_text, Game.engine.choose_option_error(0), "its tooltip is the reason")
 		check(not buttons[1].disabled, "the free option isn't"))
@@ -52,10 +52,10 @@ func test_a_refused_option_is_disabled_with_the_reason_as_its_tooltip() -> void:
 
 func test_choosing_closes_the_modal_and_notices_what_the_option_did() -> void:
 	await with_choice(3, func(main: Node):
-		main.event_option_buttons()[1].pressed.emit()
+		MainProbe.event_option_buttons(main)[1].pressed.emit()
 		await wait_frames()
 		eq(Game.engine.pending(), {}, "chosen")
-		eq(main.event_modal(), {}, "closed")
+		eq(MainProbe.event_modal(main), {}, "closed")
 		var texts: Array = main.toasts.texts()
 		check(texts.any(func(t: String): return t.contains("+1 unrest")), "a notice says +1 unrest: %s" % [texts]))
 
@@ -67,18 +67,18 @@ func test_under_anarchy_the_renewal_comes_first_then_the_choice() -> void:
 	await with_choice(3, func(main: Node):
 		var e := Game.engine
 		check(main.renewal_modal.is_open(), "the renewal modal is open")
-		eq(main.event_modal(), {}, "the choice waits")
+		eq(MainProbe.event_modal(main), {}, "the choice waits")
 		check(e.renew([e.pending().options[0]]), "renew")
 		await wait_frames()
-		eq(main.event_modal().get("id"), "envoys", "then the event shows")
-		eq(main.event_option_buttons().size(), 2, "with its options"), fall, {"renewal": 1})
+		eq(MainProbe.event_modal(main).get("id"), "envoys", "then the event shows")
+		eq(MainProbe.event_option_buttons(main).size(), 2, "with its options"), fall, {"renewal": 1})
 
 
 func test_bug_323_the_event_modals_text_reads_on_paper_in_day_mode() -> void:
 	await with_temp_settings(func():
 		Settings.call("set_day_mode", true)
 		await with_choice(3, func(main: Node):
-			var modal: Node = main.event_modal_ok_button()
+			var modal: Node = MainProbe.event_modal_ok_button(main)
 			while not modal is Modal:
 				modal = modal.get_parent()
 			var texts := modal.find_children("*", "RichTextLabel", true, false).filter(func(label: RichTextLabel):

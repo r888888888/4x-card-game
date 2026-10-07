@@ -3,7 +3,7 @@ extends "res://tests/lib/tech_case.gd"
 ## Build modal rests in its slot at once and gets a ceremony on the fx layer (a lamp ring, 12 rays and a BUILT or
 ## RECRUITED tag; an upgrade's ring and rays on its base, no tag) in its plane colour, with ui.milestone.build (or
 ## .recruit) a beat after the press; no ceremony for any other arrival; Reduce motion shows it whole and holds it 1.5 s.
-## Hooks: main.build_ceremonies(); on a ceremony: view, parts(), tag_text(), colour(), ring_out(), ray_length(),
+## Hooks: MainProbe.build_ceremonies(main); on a ceremony: view, parts(), tag_text(), colour(), ring_out(), ray_length(),
 ## tag_drop(), opacity().
 
 const BUILD := Sfx.MILESTONE_BUILD
@@ -72,7 +72,7 @@ func test_a_building_built_rests_in_its_slot_under_a_ceremony() -> void:
 		check(farm != -1 and main.views.has(farm), "the Farm has a view")
 		var view: CardView = main.views.get(farm)
 		eq(view.fx_scale if view != null else Vector2.ZERO, Vector2.ONE, "no pop-in: full scale at once")
-		var all: Array[BuildCeremony] = main.build_ceremonies()
+		var all: Array[BuildCeremony] = MainProbe.build_ceremonies(main)
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
 			var c := all[0]
@@ -89,9 +89,9 @@ func test_a_building_built_rests_in_its_slot_under_a_ceremony() -> void:
 func test_the_ceremony_goes_once_it_has_run() -> void:
 	await with_home(func(main: Node):
 		await build_from_modal(main, "farm")
-		eq(main.build_ceremonies().size(), 1, "playing")
+		eq(MainProbe.build_ceremonies(main).size(), 1, "playing")
 		await wait_seconds(Anim.BUILD_CEREMONY_TIME + 0.05)
-		eq(main.build_ceremonies().size(), 0, "gone after its run")
+		eq(MainProbe.build_ceremonies(main).size(), 0, "gone after its run")
 		check(main.views.has(the("farm")), "the Farm stays"))
 
 
@@ -101,7 +101,7 @@ func test_a_unit_recruited_gets_the_ceremony_and_the_drum() -> void:
 	await with_home(func(main: Node):
 		var from := await build_from_modal(main, "warriors")
 		var unit := the("warriors")
-		var all: Array[BuildCeremony] = main.build_ceremonies()
+		var all: Array[BuildCeremony] = MainProbe.build_ceremonies(main)
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
 			var c := all[0]
@@ -122,7 +122,7 @@ func test_an_upgrade_plays_ring_and_rays_on_its_base() -> void:
 		var farm := the("farm")
 		var from := await build_from_modal(main, BuildModal.upgrade_row_id("plough", farm))
 		check(the("plough") != -1, "a Plough on the Farm")
-		var all: Array[BuildCeremony] = main.build_ceremonies()
+		var all: Array[BuildCeremony] = MainProbe.build_ceremonies(main)
 		eq(all.size(), 1, "one ceremony")
 		if all.size() == 1:
 			var c := all[0]
@@ -141,7 +141,7 @@ func test_a_card_played_from_the_hand_arrives_without_a_ceremony() -> void:
 		check(Game.engine.play_card(uid_of(Game.engine.zone("hand"), "farm")), "play a Farm from the hand")
 		await wait_frames()
 		check(main.views.has(the("farm")), "the Farm is in the view")
-		eq(main.build_ceremonies().size(), 0, "no ceremony")
+		eq(MainProbe.build_ceremonies(main).size(), 0, "no ceremony")
 		check(not tokens_heard(main, from).has(BUILD), "no build sound"))
 
 
@@ -151,16 +151,16 @@ func test_reduce_motion_shows_the_ceremony_whole_and_holds_it() -> void:
 	await with_reduce_motion(true, func():
 		await with_home(func(main: Node):
 			var from := await build_from_modal(main, "farm")
-			var all: Array[BuildCeremony] = main.build_ceremonies()
+			var all: Array[BuildCeremony] = MainProbe.build_ceremonies(main)
 			eq(all.size(), 1, "one ceremony")
 			if all.size() == 1:
 				var c := all[0]
 				eq([c.ring_out(), c.ray_length(), c.tag_drop(), c.opacity()],
 					[float(Tokens.SPACE_3), float(Tokens.SPACE_5), 0.0, 1.0], "ring out, rays drawn, tag down, opaque")
 			await wait_seconds(Anim.BUILD_CALM_HOLD - 0.1)
-			eq(main.build_ceremonies().size(), 1, "still held just before 1.5 s")
+			eq(MainProbe.build_ceremonies(main).size(), 1, "still held just before 1.5 s")
 			await wait_seconds(0.2)
-			eq(main.build_ceremonies().size(), 0, "gone after 1.5 s")
+			eq(MainProbe.build_ceremonies(main).size(), 0, "gone after 1.5 s")
 			eq(tokens_heard(main, from).filter(func(t): return t == BUILD), [BUILD], "the sound still plays")))
 
 
@@ -171,4 +171,4 @@ func test_a_build_that_adds_an_era_plays_only_the_era() -> void:
 		var from := await build_from_modal(main, "academy")
 		var events := tokens_heard(main, from).filter(func(t): return Sfx.level(t) == 3)
 		eq(events, [Sfx.MILESTONE_ERA], "the era wins over the build")
-		eq(main.build_ceremonies().size(), 1, "the ceremony still plays"))
+		eq(MainProbe.build_ceremonies(main).size(), 1, "the ceremony still plays"))

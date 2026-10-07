@@ -19,7 +19,7 @@ func test_hand_views_match_the_hand_after_every_turn() -> void:
 	var checked := [0]
 	play_seed_1(main, func(m):
 		checked[0] += 1
-		var views: int = m.hand_view_count()
+		var views: int = MainProbe.hand_view_count(m)
 		var cards := Game.engine.zone("hand").size()
 		if views != cards:
 			mismatches.append("turn %d: %d views, %d cards" % [Game.engine.turn, views, cards]))
@@ -31,7 +31,7 @@ func test_hand_views_match_the_hand_after_every_turn() -> void:
 func test_game_over_overlay_shows_score_and_seed() -> void:
 	var main := open_main()
 	play_seed_1(main, func(_m): pass)
-	var text: String = main.game_over_text()
+	var text: String = MainProbe.game_over_text(main)
 	check(text.contains("Final score: %d" % Game.engine.score()), "score in '%s'" % text)
 	check(text.contains("Seed: 1"), "seed in '%s'" % text)
 	close_main(main)
@@ -80,7 +80,7 @@ func test_the_turn_counter_shows_turn_37_of_100_untruncated() -> void:
 	for i in 36:
 		Game.engine.end_turn()
 	await wait_frames()
-	var turn: Label = main.counter(TopBar.TURN)  # the turn plate since 201
+	var turn: Label = MainProbe.counter(main, TopBar.TURN)  # the turn plate since 201
 	check(turn != null, "a turn label")
 	if turn != null:
 		eq(turn.text, "T 037", "turn plate")

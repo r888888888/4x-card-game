@@ -103,7 +103,7 @@ func test_a_disabled_button_gives_a_dead_tap_and_shows_its_reason_at_once() -> v
 	mouse(main, centre(locked), true)
 	mouse(main, centre(locked), false)
 	eq(heard(main), [[Sfx.REJECT_LOCKED, 0.0]], "one dead tap at once, nothing else")
-	var tip: Control = main.locked_tip()
+	var tip: Control = MainProbe.locked_tip(main)
 	check(tip.is_visible_in_tree(), "the reason shows at once")
 	var labels := tip.find_children("*", "Label", true, false)
 	eq(labels.map(func(l): return l.text), ["Not while the moon is up."], "the tooltip's text")
@@ -190,8 +190,8 @@ func test_a_disabled_end_turn_gives_a_dead_tap() -> void:
 		for i in e.config.hand_limit + 2 - e.zone("hand").size():
 			put_in_hand(e, e.zone("hand").cards[0].def.id)
 		e.end_turn()  # a discard is owed: End turn waits, disabled
-		if not main.event_modal().is_empty():  # the turn's event, drawn before the discard
-			main.event_modal_ok_button().pressed.emit()
+		if not MainProbe.event_modal(main).is_empty():  # the turn's event, drawn before the discard
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await wait_frames()
 		main.sfx.set_clock(5.0)
 		var played_before: int = main.sfx.played().size()
