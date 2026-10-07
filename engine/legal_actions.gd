@@ -11,6 +11,7 @@ const DECISIONS := {
 	GameEngine.PENDING_EXPLORE: "choose",
 	GameEngine.PENDING_EVENT_CHOICE: "choose_option",
 	GameEngine.PENDING_GOVERNMENT: "choose_government",
+	GameEngine.PENDING_TAKE: "take",
 }
 
 

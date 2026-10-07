@@ -2,7 +2,7 @@
 id: 370
 title: Precedent takes a card from the discard back into your hand (Code of Laws)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/370-precedent-recall
 ---
 

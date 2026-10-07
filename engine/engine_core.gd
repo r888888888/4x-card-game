@@ -223,6 +223,12 @@ func explore(n: int, source: CardInstance) -> void:
 	Territories.explore(self, n, source)
 
 
+## Offers the discard pile's cards to take one into the hand (370): several owe a take (see GameEngine.take), one
+## goes to the hand at once.
+func recall(source: CardInstance) -> void:
+	Takes.recall(self, source)
+
+
 ## Moves frontier territory territory_uid to the tableau and founds a new city_id on it. With population
 ## on, the territory starts with 1 pop.
 func settle(territory_uid: int, city_id: String, source: CardInstance) -> void:

@@ -11,7 +11,7 @@ extends EngineQueries
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, and Events. The modules may call the
 ## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "offered", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
@@ -25,6 +25,7 @@ const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
 const PENDING_GOVERNMENT := "government"  # Anarchy has ended: choose a government from the government deck (154)
 const PENDING_EVENT_CHOICE := "event_choice"  # a choice event was drawn: choose one of its options (269)
+const PENDING_TAKE := "take"  # take one of the offered cards into the hand (370)
 ## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
 ## in an era not added yet.
 const TECH_RESEARCHED := "researched"
@@ -99,6 +100,17 @@ func choose_error(uid: int) -> String:
 ## territories at the bottom of the territory deck. False (and no change) if choose_error says no.
 func choose(uid: int) -> bool:
 	return Territories.choose(self, uid)
+
+
+## Why take(uid) would refuse (370): no take is owed, or uid isn't one of its options. "" if it can.
+func take_error(uid: int) -> String:
+	return Takes.take_error(self, uid)
+
+
+## Pays the owed take: offered card uid goes to the hand and the other offered cards to the discard (370). False (and
+## no change) if take_error says no.
+func take(uid: int) -> bool:
+	return Takes.take(self, uid)
 
 
 ## Why tech uid can't be learned right now, or "" if it can: the game is over or a choice is pending, it isn't in the
@@ -433,6 +445,8 @@ func _blocked_error(action: String) -> String:
 			return "Choose how to answer %s first." % EventChoices.owed_event(self).def.name
 		PENDING_EXPLORE:
 			return "Choose a territory first."
+		PENDING_TAKE:
+			return "Choose a card to take into your hand first."
 		PENDING_RENEWAL:
 			var n: int = state.pending.count
 			return "Anarchy: trash %d card%s from your hand, deck or discard first." % [n, "" if n == 1 else "s"]
