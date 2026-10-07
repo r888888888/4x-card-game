@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The government deck (backlog 154): a created government goes to the `governments` zone, once per id; a fallen
-## government goes there too; when Anarchy ends (burning out or restore_order) the player chooses one from it
+## government goes there too; when Anarchy ends (at 0 unrest, 384) the player chooses one from it
 ## (PENDING_GOVERNMENT, choose_government), and unrest drops to at most half its limit. The Government overlay, the
 ## identity modal's deck line, and the bot's choice. Fixtures: tests/lib/anarchy_case.gd plus Charter (an action that
 ## creates Kings in the discard); TEST_GOVS' Kingdom (cost 2 food, play +1 wealth), Band (2 actions), Court (3).
@@ -83,7 +83,6 @@ func test_while_the_choice_is_owed_everything_else_refuses() -> void:
 	eq(e.buy_tech_error(lore), CHOOSE_FIRST, "research")
 	eq(e.renew_error([uid_of(e.zone("discard"), "farm")]), CHOOSE_FIRST, "renew")
 	eq(e.revolt_error(), CHOOSE_FIRST, "revolt")
-	eq(e.restore_order_error(), CHOOSE_FIRST, "restore order")
 	eq(e.end_turn_error(), CHOOSE_FIRST, "end turn")
 
 

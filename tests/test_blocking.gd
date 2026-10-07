@@ -46,7 +46,6 @@ func actions() -> Array:
 		["choose_government", func(e): return e.choose_government_error(option.call(e)),
 			func(e): return e.choose_government(option.call(e))],
 		["relieve_famine", func(e): return e.relieve_famine_error(), func(e): return e.relieve_famine()],
-		["restore_order", func(e): return e.restore_order_error(), func(e): return e.restore_order()],
 		["revolt", func(e): return e.revolt_error(), func(e): return e.revolt()],
 		["rename_territory", func(e): return e.call("rename_territory_error", home_uid(e), "Delta"),
 			func(e): return e.call("rename_territory", home_uid(e), "Delta")],
@@ -84,10 +83,9 @@ func scenarios() -> Array:
 	renewal.end_turn()  # falls into Anarchy: renewal owed
 	var government := blocking_engine()
 	government.resources["unrest"] = 5
-	government.end_turn()
-	government.end_turn()  # 155: order can be restored from Anarchy's second turn
-	government.resources["wealth"] = 30
-	check(government.restore_order(), "restore order: the government choice is owed")
+	government.end_turn()  # falls into Anarchy
+	government.set_unrest(0)
+	government.end_turn()  # 384: unrest 0 at the turn's end: the government choice is owed
 	var event_choice := choice_engine()  # 269: Envoys drawn at turn 2's start
 	event_choice.end_turn()
 	var take := blocking_engine({}, {}, [RECALL_CARD])  # 370: Recall with two cards in the discard

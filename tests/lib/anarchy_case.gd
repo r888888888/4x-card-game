@@ -1,13 +1,13 @@
 extends "res://tests/lib/test_case.gd"
 ## Base class for Anarchy tests (backlogs 145, 146): fixture governments and cards, a config with the unrest block, and
 ## games that start or have fallen into Anarchy. Fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5),
-## Kings (limit 7), Anarchy (event, +1 action, ⟳ −1 pop; 253), Fleeting (event, 2 turns), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
+## Kings (limit 7), Anarchy (event, ⟳ −1 pop; 253), Fleeting (event, 2 turns), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
 ## Dawn (adds era 2), Lore (a tech) and Altar (building, unrest limit +1).
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
 const KINGS := {"id": "kings", "name": "Kings", "type": "government", "unrest_limit": 7}
-const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": {"actions": 1},
+const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "event",
 	"effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]}
 const FLEETING := {"id": "fleeting", "name": "Fleeting", "type": "event", "discard": {"turns": 2}}  # 253: no Anarchy
 const FEAST := {"id": "feast", "name": "Feast", "type": "action", "tags": ["order"],
@@ -116,8 +116,8 @@ func revolted_engine(unrest: int, buildings := [], block := {}) -> GameEngine:
 	return e
 
 
-## A game on Anarchy's second turn (155): fell into Anarchy at turn 2's start (unrest 5, 4 counters), unrest then set
-## to unrest (calming lowers the counters left) and wealth to wealth, and the turn ended.
+## A game on Anarchy's second turn (155, 384): fell into Anarchy at turn 2's start (unrest 5), unrest then set to unrest
+## and wealth to wealth, and the turn ended (−1 unrest).
 func second_turn_engine(unrest: int, wealth := 30, overrides := {}) -> GameEngine:
 	var e := anarchy_engine({}, overrides)
 	e.resources["unrest"] = 5

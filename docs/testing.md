@@ -59,9 +59,8 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_actions.gd` | Actions per turn (127) |
 | `tests/test_admin_unrest.gd` | Admin unrest (319) |
 | `tests/test_anarchy.gd` | Anarchy (145) |
-| `tests/test_anarchy_drain.gd` | Anarchy's drain (156) |
 | `tests/test_anarchy_event.gd` | Anarchy as an event (253) |
-| `tests/test_anarchy_length.gd` | Anarchy's length (155) |
+| `tests/test_anarchy_length.gd` | Anarchy's length: unrest is its clock (155, 384) |
 | `tests/test_blocking.gd` | Every action refused while a decision is owed or the game is over (171, 172) |
 | `tests/test_board_faces.gd` | Board card faces (138; UI) on a `board_engine` game |
 | `tests/test_board_labels.gd` | The board's game words (UI) |
@@ -144,7 +143,6 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_keywords.gd` | Territory keywords, `requires` and keyword effects (005) |
 | `tests/test_knowledge_screen.gd` | The Knowledge screen (208; the tech tree before it, 059, 140; UI) |
 | `tests/test_launch_options.gd` | Command-line options (135) |
-| `tests/test_leaving_anarchy.gd` | Restoring order (146, 155) |
 | `tests/test_legal_actions.gd` | `legal_actions` (312) |
 | `tests/test_legend_key.gd` | The toggle key (182; the window bar since 219; UI) |
 | `tests/test_log_drawer.gd` | The log drawer (115; UI) |

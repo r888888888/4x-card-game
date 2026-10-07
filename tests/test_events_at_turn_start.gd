@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The turn's event is drawn at the start of the turn, from turn 2 (backlog 237): last in the turn start, after upkeep,
-## feeding, the Anarchy checks, the drain, the hand draw and renewal; never in end_turn. Fixtures: TEST_EVENTS, the
+## feeding, the Anarchy checks, the hand draw and renewal; never in end_turn. Fixtures: TEST_EVENTS, the
 ## Anarchy fixtures (tests/lib/anarchy_case.gd) and the events below.
 
 ## A one-turn event with an upkeep effect: ⟳ +1 wealth.
@@ -127,12 +127,11 @@ func test_an_unrest_event_reaching_the_limit_lets_the_turn_play_before_anarchy()
 	check(e.anarchy() != -1, "still at the limit as turn 3 starts: Anarchy falls")
 
 
-# --- AC6: under Anarchy the event comes after the drain and renewal ---
+# --- AC6: under Anarchy the event comes after renewal (the drain went in 384) ---
 
-func test_an_event_drawn_under_anarchy_comes_after_the_drain_and_renewal() -> void:
-	var foods := []
+func test_an_event_drawn_under_anarchy_comes_after_renewal() -> void:
 	for top in ["windfall", "omen"]:
-		var e := anarchy_events_engine({"renewal": 1, "drain_pct": 20}, {"windfall": 1, "omen": 1},
+		var e := anarchy_events_engine({"renewal": 1}, {"windfall": 1, "omen": 1},
 			[top, "windfall" if top == "omen" else "omen"])
 		for id in ["farm", "scout", "farm"]:
 			put_in(e, id, "discard")
@@ -140,8 +139,6 @@ func test_an_event_drawn_under_anarchy_comes_after_the_drain_and_renewal() -> vo
 		e.end_turn()
 		check(e.anarchy() != -1, "%s game: Anarchy fell at turn 2's start" % top)
 		eq(card_ids(e.zone("active_events")), ["anarchy", top], "%s game: the event is active beside Anarchy (253)" % top)
-		foods.append(e.resources.food)
-	eq(foods[0] - foods[1], 2, "Windfall's 2 food aren't drained")
 
 
 func test_an_event_drawn_this_turn_adds_nothing_to_this_turns_renewal() -> void:

@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
-## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
+## the next turn's start, before upkeep, with the unrest it has (its length: 384, test_anarchy_length.gd).
 ## The summary the civilization modal's confirmation shows (205). The upkeep forecast after a revolt leaves out the
 ## falling government (332). The bot's revolts: test_bot_lookahead.gd (159).
 ## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
@@ -74,7 +74,6 @@ func test_without_an_unrest_block_there_is_no_revolution() -> void:
 	var e := anarchy_engine({}, {"unrest": null})
 	eq(e.revolt_error(), "Without unrest there is no revolution.", "revolt_error")
 	check(not e.revolt(), "revolt refuses")
-	eq(e.revolt_forecast(), 0, "nothing to forecast")
 
 
 # --- The revolt field is gone (Design notes) ---
@@ -86,44 +85,30 @@ func test_retired_revolt_field_is_a_load_warning() -> void:
 	], fixture_load.bind([], RESOURCES))
 
 
-# --- AC7: the forecast (the bot's revolt rule moved to 159) ---
-
-func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
-	var e := revolt_engine(2)
-	eq(e.revolt_forecast(), 2, "unrest 2 of Chiefs' 5")
-	var with_altar := revolt_engine(3)
-	build_on(with_altar, home_uid(with_altar), ["altar"])
-	var altar: Object = with_altar
-	eq(altar.revolt_forecast(), 2, "unrest 3 of 6")
-
-
 # --- 205: the summary the confirmation shows (the board's Revolt button went to the civilization modal) ---
 
-const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts up to 3 turns; calming shortens it.",
-	"1 action each turn; only order cards can be played.", "Nothing can be grown, bought or researched.",
-	"Each turn it eats 20% of stored food and wealth.",
+const SUMMARY := ["Anarchy falls at the start of next turn.",
+	"It lasts until unrest reaches 0, with −1 unrest at the end of each of its turns.",
+	"Only order cards can be played.", "Nothing can be grown, bought or researched.",
 	"Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
 	"When it ends, choose a government from your government deck."]
 
 
 func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() -> void:
-	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
-	e.resources["unrest"] = 3  # of Chiefs' 5: 3 counters
-	e.resources["food"] = 6
-	e.resources["wealth"] = 3
-	eq(e.revolt_forecast(), 3, "precondition: 3 turns")
-	eq(e.revolt_summary(), SUMMARY, "the lines, in order")
+	var e := anarchy_engine({"renewal": 1})
+	e.resources["unrest"] = 3
+	eq(e.revolt_summary(), SUMMARY, "the lines, in order: no actions, drain or buying order (384)")
 
 
 func test_a_summary_leaves_out_what_the_config_lacks() -> void:
-	var e := anarchy_engine({"drain_pct": null, "renewal": null})
+	var e := anarchy_engine({"renewal": null})
 	e.resources["unrest"] = 3
 	var lines: Array = e.revolt_summary()
-	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[6]], "no drain, no renewal")
+	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[5]], "no renewal")
 
 
 func test_no_summary_while_revolt_is_refused() -> void:
-	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
+	var e := anarchy_engine({"renewal": 1})
 	check(e.revolt(), "revolt")
 	check(e.revolt_error() != "", "precondition: refused now")
 	eq(e.revolt_summary(), [], "nothing to confirm")

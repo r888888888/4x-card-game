@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Balance suite: the Anarchy, government and famine metrics (backlog 158) on the real data, through a parallel run.
 
-const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed"]
+const NEW_METRICS := ["anarchies", "revolts", "anarchy_turns", "gov_changes", "famine_turns", "trashed"]
 
 
 # --- 158 AC4: a parallel run ---

@@ -66,20 +66,6 @@ func test_renewal_grows_with_anarchys_turn() -> void:
 	eq(e.pending().get("count"), 2, "1 + Anarchy's 2nd turn − 1")
 
 
-func test_renewal_counts_anarchys_turn_not_its_counters_left() -> void:
-	var e := anarchy_engine(RENEWAL)
-	for id in ["farm", "scout", "shrine", "farm", "scout", "shrine"]:
-		put_in(e, id, "discard")
-	e.resources["unrest"] = 5
-	check(e.revolt(), "revolt: %s" % e.revolt_error())
-	e.end_turn()
-	eq([e.anarchy() != -1, e.anarchy_counters(), e.pending().get("count")], [true, 4, 1], "its first turn, 4 counters: 1")
-	pay_renewal(e)
-	e.end_turn()
-	eq(e.anarchy_counters(), 3, "3 counters left")
-	eq(e.pending().get("count"), 2, "its second turn: 1 + 1")
-
-
 ## A renewal game with block as the unrest block whose hand and discard are emptied and deck cut to deck_size Farms
 ## before it falls into Anarchy at turn 2 (the draw then takes them all into the hand).
 func small_library_engine(deck_size: int, block: Dictionary) -> GameEngine:
