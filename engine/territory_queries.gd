@@ -54,6 +54,17 @@ func free_slots(territory_uid: int) -> int:
 	return Territories.free_slots(self, territory_uid)
 
 
+## Sea slots on settled territory territory_uid (366): extra slots only buildings with the config sea_slots' tag may
+## fill, on a territory with its keyword; 0 for anything else.
+func sea_slots(territory_uid: int) -> int:
+	return Territories.sea_slots(self, territory_uid)
+
+
+## Sea slots left on settled territory territory_uid (366).
+func free_sea_slots(territory_uid: int) -> int:
+	return Territories.free_sea_slots(self, territory_uid)
+
+
 ## Pop on settled territory territory_uid not yet working a building (0 if none, or not a territory).
 func free_workers(territory_uid: int) -> int:
 	return Population.free_workers(self, territory_uid)

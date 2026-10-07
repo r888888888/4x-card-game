@@ -29,7 +29,7 @@ func sea_load() -> Dictionary:
 
 ## A game with population on (no tiers unless given), Cove and Jungle (1 slot, no keyword) settled at pop 3 each, the
 ## fixture buildings in the build menu and sea_slots (none when null); null after a failed check.
-func sea_engine(sea: Variant = SEA, tiers: Variant = null) -> Object:  # scaffolding: sea_slots is new
+func sea_engine(sea: Variant = SEA, tiers: Variant = null) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := cards_of(sea_load(), errors, warnings)
@@ -52,16 +52,16 @@ func sea_engine(sea: Variant = SEA, tiers: Variant = null) -> Object:  # scaffol
 	return e
 
 
-func cove(e: Object) -> int:
+func cove(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "cove")
 
 
-func jungle(e: Object) -> int:
+func jungle(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "jungle")
 
 
 ## Builds each id on territory t in order, checking each build succeeds; returns their uids.
-func build_all(e: Object, t: int, ids: Array) -> Array[int]:
+func build_all(e: GameEngine, t: int, ids: Array) -> Array[int]:
 	var out: Array[int] = []
 	for id in ids:
 		check(e.build(id, t), "build %s: %s" % [id, e.build_error(id, t)])
@@ -70,7 +70,7 @@ func build_all(e: Object, t: int, ids: Array) -> Array[int]:
 
 
 ## [total_slots, free_slots, sea_slots, free_sea_slots] of territory t.
-func slots_of(e: Object, t: int) -> Array:
+func slots_of(e: GameEngine, t: int) -> Array:
 	return [e.total_slots(t), e.free_slots(t), e.sea_slots(t), e.free_sea_slots(t)]
 
 

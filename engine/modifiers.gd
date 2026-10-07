@@ -27,6 +27,7 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var pop_on := e.population_on()
 	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
 	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
+	var sea := {}  # settled territory uid -> sea slots not yet taken (366; see Territories.slot_use)
 	var tier_of := {}  # settled territory uid -> the index of its tier (301)
 	if pop_on:
 		var tiers := Population.tiers(e)
@@ -35,6 +36,7 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 				workers[c.uid] = c.pop
 				tier_of[c.uid] = Population.tier_at_pop(e, c.pop)
 				slots[c.uid] = c.def.slots + Population.tier_slots(tiers, c.pop)
+				sea[c.uid] = Territories.sea_slots_of(e, c)
 		for c in tableau:
 			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
 				slots[c.territory_uid] += c.def.slots
@@ -46,7 +48,9 @@ static func working_cards(e: GameEngine) -> Array[CardInstance]:
 			var left: int = workers.get(c.territory_uid, 0)
 			workers[c.territory_uid] = left - 1
 			var room: int = 1
-			if c.def.type == CardDef.BUILDING:
+			if c.def.type == CardDef.BUILDING and sea.get(c.territory_uid, 0) > 0 and Territories.takes_sea_slot(e, c.def):
+				sea[c.territory_uid] -= 1
+			elif c.def.type == CardDef.BUILDING:
 				room = slots.get(c.territory_uid, 0)
 				slots[c.territory_uid] = room - 1
 			if left <= 0 or room <= 0:

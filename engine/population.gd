@@ -208,8 +208,7 @@ static func is_idle(e: GameEngine, uid: int) -> bool:
 		return false
 	if Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):
 		return true
-	return card.def.type == CardDef.BUILDING \
-		and Territories.buildings_on(e, card.territory_uid).find(card) >= Territories.total_slots(e, card.territory_uid)
+	return card.def.type == CardDef.BUILDING and Territories.slot_use(e, card.territory_uid).unslotted.has(card)
 
 
 ## The refusal of a building or unit for want of a free worker (347); no_worker_detail explains it.
