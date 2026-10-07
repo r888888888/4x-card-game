@@ -46,7 +46,6 @@ generic sim bot, the 2026-10-06 review cleanup and the coast). The order of clos
 In progress on a branch (not on `main` yet):
 - 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
 - 384 simpler Anarchy (`feat/384-simpler-anarchy`, red-review); 385 and 386 follow from it
-- 395 text colours follow Day mode (`fix/395-text-colours-follow-day-mode`, in progress)
 - 379 resource breakdown popover (`feat/379-resource-breakdown-popover`, branch started; item still `ready`)
 
 Not yet prioritized (all `ready`; pick an order before building):
