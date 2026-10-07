@@ -2,7 +2,7 @@
 id: 368
 title: Hunters' Camp adds the one Hunt, which pays for forest only
 type: feature
-status: ready
+status: red-review
 branch: feat/368-hunt-from-hunters-camp
 ---
 
@@ -47,7 +47,9 @@ unique `create` exists since 364.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_card_a_building_creates_comes_only_from_the_building` |
+| AC2 | `test_content::test_every_action_a_building_creates_is_unique` |
+| AC3 | existing: `test_every_real_card_can_reach_a_game`, `test_every_card_a_building_creates_is_an_action`, `test_every_keyword_is_on_a_territory_and_a_card`, `test_every_gain_per_keyword_keyword_is_on_a_territory_in_play` (whole suite) |
 
 ## Manual check
 - [ ] Shipped data: Hunt is in neither the starting deck nor the supply; Hunt reads +1 food per forest territory;
@@ -61,3 +63,6 @@ unique `create` exists since 364.
 <!-- Decisions and surprises during implementation, newest last. -->
 - Balance worry (for the balance item): the starting deck is 7 cards; Babylon loses its opening grassland Hunt
   food and Phoenicia its forest Hunt food until a camp is built.
+- Red: AC1 and AC2 pass on today's data (only Fishing Huts creates, and correctly), as the Design notes expected.
+  Checked they bite: adding a non-unique `create hunt` to Hunters' Camp with Hunt still dealt fails both, naming
+  `hunters_camp creates hunt`.

@@ -1493,6 +1493,32 @@ func test_every_card_a_building_creates_is_an_action() -> void:
 	eq(wrong, [] as Array[String], "cards buildings create that aren't actions")
 
 
+## Backlog 368: a card a building brings (Hunters' Camp's Hunt) reaches a game and isn't also dealt or bought.
+func test_every_card_a_building_creates_comes_only_from_the_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var wrong: Array[String] = []
+	for def in real_buildings(r):
+		for effect in def.effects:
+			if effect.op != "create":
+				continue
+			if not reachable.has(effect.card_id) or r.config.deck.has(effect.card_id) \
+					or r.config.supply.has(effect.card_id):
+				wrong.append("%s creates %s" % [def.id, effect.card_id])
+	eq(wrong, [] as Array[String], "cards buildings create that are unreachable, dealt or bought")
+
+
+## Backlog 368: a building adds its action once, however many of the building you build.
+func test_every_action_a_building_creates_is_unique() -> void:
+	var r := load_real()
+	var wrong: Array[String] = []
+	for def in real_buildings(r):
+		for effect in def.effects:
+			if effect.op == "create" and r.cards[effect.card_id].type == CardDef.ACTION and not effect.get("unique"):
+				wrong.append("%s creates %s" % [def.id, effect.card_id])
+	eq(wrong, [] as Array[String], "actions buildings create that aren't unique")
+
+
 ## Backlog 273: a tech's gain_per_tag counts a tag at least 3 reachable buildings carry, so it grows as you build.
 func test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings() -> void:
 	var r := load_real()
