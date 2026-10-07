@@ -2,7 +2,7 @@
 id: 373
 title: The sim bot's renewal trashes its least valuable cards, not the first ones listed
 type: feature
-status: review
+status: done
 branch: feat/373-bot-deck-worth-floor
 ---
 
