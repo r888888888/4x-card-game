@@ -369,6 +369,13 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   building past its territory's slots (placed last first) is idle, as one past its pop is. Reaching or losing a tier
   is a notice ("Grassland grows into a Village."); the territory tooltip, and the territory view beside its
   pop meter (346), name the tier and the next one's pop ("Village: a Town at 8 pop").
+- Sea slots (366): optional config `sea_slots` (`{ "keyword", "tag", "slots" }`, parsed in `PopulationConfig`; real data
+  coastal / port / 1) gives every settled territory with the keyword that many extra slots that only a building with
+  the tag may fill (`sea_slots(uid)`, `free_sea_slots(uid)`; `total_slots` and `free_slots` stay the regular ones).
+  Buildings fill slots in the order placed (`Territories.slot_use`): a tagged one takes a free sea slot first, else a
+  regular one; one with neither is idle. Another building on a territory whose only free slot is a sea slot is refused
+  "Its sea slot takes only port buildings." The tooltip adds "Sea slot: 1 free of 1 (port buildings only)", the live
+  line "⚓ S" after "▢ F", the view an outline per free sea slot, and the Build preview a "Free sea slots" line.
 - Size unrest (282): a government's optional `tolerates` (a tier id from `population.tiers`; text "Tolerates up to
   Village."; ignored with a warning when tiers are off) is the largest tier it keeps calm. Each upkeep starts by adding
   `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),
