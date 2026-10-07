@@ -27,14 +27,14 @@ const MENU := {"farm": {}, "obelisk": {}, "well": {}, "granary": {"locked": true
 
 
 ## A game with Band ruling (2 actions), population on (2 pop on the home), build_menu menu, Kiln and Pottery to learn,
-## and food food (wealth and insight 10). overrides last.
-func build_engine(food := 3, menu := MENU, overrides := {}) -> GameEngine:
+## and food food (wealth and insight 10). overrides last; extra cards join the fixtures.
+func build_engine(food := 3, menu := MENU, overrides := {}, extra := []) -> GameEngine:
 	var o := {"build_menu": menu, "population": POP,
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
 	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o,
-		[OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE, NET_LOFT] + TEST_GOVS)
+		[OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE, NET_LOFT] + TEST_GOVS + extra)
 	e.resources.food = food
 	return e
 
@@ -109,6 +109,18 @@ func test_each_building_built_adds_the_card_its_play_effect_creates_to_the_deck(
 	eq(card_ids(e.zone("deck")).count("scout"), before[0] + 2, "two Scouts more in the deck")
 	eq(ids_in(e, "hand"), before[1], "hand unchanged")
 	eq(ids_in(e, "discard"), before[2], "discard unchanged")
+
+
+func test_a_building_with_a_unique_create_adds_its_card_once() -> void:
+	var loft := NET_LOFT.duplicate(true)
+	loft.id = "unique_loft"
+	loft.effects[0].unique = true
+	var e := build_engine(3, MENU.merged({"unique_loft": {}}), {}, [loft])
+	var home := home_uid(e)
+	var before := card_ids(e.zone("deck")).count("scout")
+	for i in 2:
+		check(e.build("unique_loft", home), "build Loft %d: %s" % [i + 1, e.build_error("unique_loft", home)])
+	eq(card_ids(e.zone("deck")).count("scout"), before + 1, "one Scout more, not two")
 
 
 func test_with_no_territory_named_it_builds_on_the_only_one_that_takes_it() -> void:

@@ -121,6 +121,15 @@ func test_bug_279_create_uses_an_before_a_vowel() -> void:
 	eq(create_text([fixture_card("explorer")], "explorer"), "Create an Explorer", "AC2 tableau")
 
 
+func test_a_unique_create_says_it_adds_only_when_you_have_none() -> void:
+	var unique := [{"op": "create", "card": "city", "zone": "deck", "unique": true}]
+	eq(short_text(unique, [], "action"), "Add a City to your deck if you have none", "short")
+	eq(long_text(unique, [], "action"), "Add a City to your deck, unless you already have one", "long")
+	var plain := [{"op": "create", "card": "city", "zone": "deck"}]
+	eq(short_text(plain, [], "action"), "Add a City to your deck", "short without unique")
+	eq(long_text(plain, [], "action"), "Add a City to your deck", "long without unique")
+
+
 func test_bug_279_create_keeps_a_before_a_consonant() -> void:
 	eq(create_text([], "city"), "Create a City", "tableau")
 	eq(create_text([], "city", "discard"), "Add a City to your discard", "discard")
