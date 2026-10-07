@@ -304,3 +304,89 @@ func test_the_settlers_rising_price_lowers_its_value() -> void:
 	var few_value: float = GenericBot.card_value(few, "colonist", GenericBot.Context.new("generic"))
 	var many_value: float = GenericBot.card_value(many, "colonist", GenericBot.Context.new("generic"))
 	check(many_value < few_value, "Colonist at 7 food (2 held) %.2f > at 11 food (6 held) %.2f" % [few_value, many_value])
+
+
+# --- 373: a card it wouldn't play is worth 0; renewal trashes the least valuable cards ---
+
+## Augury: an order card (playable under Anarchy) that gains 2 food.
+const AUGURY := {"id": "augury", "name": "Augury", "type": "action", "tags": ["order"],
+	"effects": [{"op": "gain", "resource": "food", "amount": 2}]}
+
+
+## GenericBot.value of a bot_game with nothing in the hand and deck in the deck.
+func deck_value(deck: Array) -> float:
+	return value_of(bot_game([], deck), "generic")
+
+
+func test_a_card_worth_less_than_nothing_counts_as_0() -> void:
+	var e := bot_game([], ["guildhall"])
+	var guildhall: float = GenericBot.card_value(e, "guildhall", GenericBot.Context.new("generic"))
+	check(guildhall < 0, "precondition: a Guildhall (2 food, 2 wealth, no effect) is worth %.2f < 0" % guildhall)
+	var with_guildhall := deck_value(["temple", "temple", "guildhall"])
+	var with_dead_pioneer := deck_value(["temple", "temple", "pioneer"])
+	check(absf(with_guildhall - with_dead_pioneer) < 0.001,
+		"2 Temples and a Guildhall %.3f = 2 Temples and a Pioneer with nothing to settle %.3f"
+		% [with_guildhall, with_dead_pioneer])
+
+
+func test_an_empty_deck_is_worth_no_more_than_cards_it_wouldnt_play() -> void:
+	var e := bot_game([], ["guildhall"])
+	put_in(e, "guildhall", "hand")
+	put_in(e, "guildhall", "discard")
+	var empty := bot_game([], [])
+	check(absf(value_of(e, "generic") - value_of(empty, "generic")) < 0.001,
+		"3 Guildhalls %.3f = no cards %.3f" % [value_of(e, "generic"), value_of(empty, "generic")])
+
+
+func test_a_card_worth_0_still_dilutes_the_draws() -> void:
+	var diluted := deck_value(["temple", "temple", "temple", "pioneer"])
+	var pure := deck_value(["temple", "temple", "temple"])
+	check(diluted < pure, "3 Temples and a dead Pioneer %.3f < 3 Temples %.3f" % [diluted, pure])
+
+
+## A game fallen into Anarchy (turn 2) with renewal 2 owed: 5 Auguries in the hand, 5 in the deck and 2 Guildhalls in
+## the discard, listed last among the options (by name, 255).
+func renewal_game() -> GameEngine:
+	var e := anarchy_engine({"renewal": 2}, {"turn_limit": 11, "supply": {}, "research_deck": {},
+		"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+			"territory": "homeland", "government": "lone"}}, EXTRA + [AUGURY])
+	for z in ["hand", "deck", "discard"]:
+		for card in e.zone(z).take_all():
+			e.zone("removed").add(card)
+	for i in 5:
+		put_in(e, "augury", "hand")
+		put_in(e, "augury", "deck")
+	for i in 2:
+		put_in(e, "guildhall", "discard")
+	e.resources["unrest"] = 5
+	e.end_turn()
+	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "precondition: renewal owed")
+	eq(e.pending().get("count"), 2, "precondition: 2 to renew")
+	eq(e.pending().get("options", []).slice(-2).map(func(uid): return e.zone(e.zone_of(uid)).find(uid).def.id),
+		["guildhall", "guildhall"], "precondition: the Guildhalls are listed last")
+	return e
+
+
+## The ids in e's trashed zone, sorted.
+func trashed_ids(e: GameEngine) -> Array:
+	var ids: Array = e.zone("trashed").cards.map(func(c): return c.def.id)
+	ids.sort()
+	return ids
+
+
+func test_renewal_trashes_the_least_valuable_cards_even_when_listed_last() -> void:
+	var e := renewal_game()
+	var ctx := GenericBot.Context.new("generic")
+	ctx.card_values = {"augury": [1, 1.0], "guildhall": [1, -1.0]}  # as measured on turn 1
+	GenericBot.take_turn(e, "generic", ctx)
+	eq(e.pending().get("kind", ""), "", "renewal answered")
+	eq(trashed_ids(e), ["guildhall", "guildhall"], "the 2 Guildhalls, no Augury")
+
+
+func test_a_rollout_still_answers_a_renewal() -> void:
+	var e := renewal_game()
+	var ctx := GenericBot.Context.new("generic")
+	ctx.rollout = true
+	GenericBot.take_turn(e, "generic", ctx)
+	eq(e.pending().get("kind", ""), "", "renewal answered")
+	eq(e.zone("trashed").size(), 2, "2 cards trashed")
