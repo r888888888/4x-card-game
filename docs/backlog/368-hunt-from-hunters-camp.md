@@ -2,7 +2,7 @@
 id: 368
 title: Hunters' Camp adds the one Hunt, which pays for forest only
 type: feature
-status: red-review
+status: in-progress
 branch: feat/368-hunt-from-hunters-camp
 ---
 
