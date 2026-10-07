@@ -70,8 +70,8 @@ var choices: Array = []  # events: the options a choice event offers (269), each
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
 var flavor: String = ""  # civilizations, governments, techs, events, actions, buildings: a line of history, shown in the details
-var quote_text: String = ""  # civilizations, governments, techs: a quote shown in the details, with quote_by
-var quote_by: String = ""  # civilizations, governments, techs: who said quote_text
+var quote_text: String = ""  # civilizations, governments, techs, events, buildings (396): a quote shown in the details, with quote_by
+var quote_by: String = ""  # civilizations, governments, techs, events, buildings: who said quote_text
 var home: String = ""  # civilizations: the territory card id the game starts on, or "" for starting.territory (111)
 var city_names: Array[String] = []  # civilizations: the names its settled territories take, in order (248)
 

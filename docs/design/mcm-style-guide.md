@@ -1806,7 +1806,7 @@ commuter trains, no names from the twentieth century).
 
 ### 18.5 Choosing a quote
 
-Civilizations, governments, techs and Anarchy carry a quote under their flavor line. The flavor says what the thing
+Civilizations, governments, techs, wonders and Anarchy carry a quote under their flavor line. The flavor says what the thing
 is; the quote should make the player look at it again.
 
 **At an angle, not on the nose.** A quote that only names or describes the card's subject (a wheel for The Wheel,
