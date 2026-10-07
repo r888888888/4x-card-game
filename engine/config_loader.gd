@@ -5,7 +5,7 @@ extends RefCounted
 ## PopulationConfig parses the population rules (339).
 
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap", "sea_slots"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
 const BUILD_FIELDS: Array[String] = ["locked", "once"]
@@ -23,6 +23,8 @@ const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
 ## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
 ## terrain_defense: {keyword: int}, the defence each keyword gives a territory (161), {} when there is none,
+## sea_slots: {keyword, tag, slots}, the extra slots a territory with the keyword has for buildings with the tag (366),
+## {} when there is none,
 ## territory_value, raid_min_size, raid_gap: raid pacing (257), each 0 when unset}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
@@ -141,6 +143,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 	PopulationConfig.check_start_buildings(config, cards, errs)
 	config.territory_resources = _parse_territory_resources(raw.get("territory_resources", {}), cards, config.resource_keywords, config.terrains, errs)
 	config.terrain_defense = _parse_terrain_defense(raw.get("terrain_defense", {}), config.keywords + config.resource_keywords, errs)
+	config.sea_slots = PopulationConfig.parse_sea_slots(raw.get("sea_slots", {}), config.keywords, errs)
 
 	config.era_unlocks = _parse_era_unlocks(raw.get("era_unlocks", {}), errs, warnings, src)
 	config.era_names = _parse_era_names(raw.get("era_names", {}), errs)

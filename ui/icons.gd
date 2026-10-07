@@ -41,6 +41,7 @@ static var GLYPHS: Dictionary:
 		return {
 			"⟳": [preload("res://assets/icons/upkeep.svg"), Palette.GAIN, 1.0],
 			"▢": [preload("res://assets/icons/slot.svg"), null, 1.0],
+			"⚓": [preload("res://assets/icons/anchor.svg"), null, 1.0],  # a free sea slot (366)
 			"⌂": [preload("res://assets/icons/housing.svg"), null, 1.0],
 			"⚒": [preload("res://assets/icons/worker.svg"), null, 1.0],  # a free worker (123)
 			"⛨": [preload("res://assets/icons/shield.svg"), null, 1.0],  # a territory's defence (161)

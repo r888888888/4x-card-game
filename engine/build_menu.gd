@@ -73,6 +73,7 @@ static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
 	for r in e.config.resources:
 		out[r] = forecast.get(r, 0)
 	out["free_slots"] = e.free_slots(territory_uid)
+	out["free_sea_slots"] = e.free_sea_slots(territory_uid)  # 366
 	out["free_workers"] = e.free_workers(territory_uid)
 	out["defense"] = e.defense(territory_uid)
 	out["housing"] = e.housing(territory_uid)

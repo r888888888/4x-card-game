@@ -52,9 +52,11 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 		if building and Territories.settled(e, target_uid) != null and Fallback.below_tier(e, card.def, target_uid):
 			return Fallback.tier_error(e, card.def, target_uid)
 		var settled := Territories.settled(e, target_uid)
-		if placed and settled != null and (not building or Territories.has_room(e, settled)) \
+		if placed and settled != null and (not building or Territories.has_room(e, settled, card)) \
 				and not Population.has_worker(e, settled):
 			return Population.NO_WORKER
+		if building and settled != null and Territories.sea_only_error(e, card, target_uid) != "":
+			return Territories.sea_only_error(e, card, target_uid)
 		return "That target isn't valid."
 	if targets.is_empty():
 		if card.def.type == CardDef.UNIT:

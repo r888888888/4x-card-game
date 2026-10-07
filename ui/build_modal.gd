@@ -13,8 +13,8 @@ extends Modal
 
 const DIMMED := 0.5  # a refused row's opacity
 ## build_preview's line keys beside the resources, as the sheet labels them.
-const LINE_LABELS := {"free_slots": "Free slots", "free_workers": "Free workers", "defense": "Defence",
-	"housing": "Housing", "actions_left": "Actions left"}
+const LINE_LABELS := {"free_slots": "Free slots", "free_sea_slots": "Free sea slots", "free_workers": "Free workers",
+	"defense": "Defence", "housing": "Housing", "actions_left": "Actions left"}
 
 var list: SelectList
 var scroll: SmoothScroll  # the list's column: it glides and follows the selection (356)

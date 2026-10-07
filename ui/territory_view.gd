@@ -299,7 +299,7 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		place.call(tableau.find(cards[i]), row, i)
 		(_board.views[cards[i]] as CardView).hoverable = true  # 342
 		_show_upgrades(e, cards[i])
-	_show_outlines(e.free_slots(uid))
+	_show_outlines(e.free_slots(uid) + e.free_sea_slots(uid))  # a free sea slot takes a port building (366)
 	_show_build(e)
 	for i in units.size():  # the units stationed here, in a row of their own (160)
 		place.call(tableau.find(units[i]), units_row, i)
@@ -401,13 +401,17 @@ func _ink_outline(outline: Panel, key: Button, on: bool) -> void:
 	style.border_color = Palette.TEXT if on and not key.disabled else Palette.GHOST_EDGE
 
 
-## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence 161), or
-## "▢ F   ⛨ D" with population off. The card in the Realm and the view's header both show it.
+## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence
+## 161), or "▢ F   ⛨ D" with population off; "⚓ S" (free sea slots, 366) follows "▢ F" on a territory with sea
+## slots. The card in the Realm and the view's header both show it.
 static func stats(e: GameEngine, t: int) -> String:
 	var s := e.territory_status(t)
+	var slots := "▢ %d" % s.free_slots
+	if s.has("sea_slots"):
+		slots += "   ⚓ %d" % s.free_sea_slots
 	if not e.population_on():
-		return "▢ %d   ⛨ %d" % [s.free_slots, e.defense(t)]
-	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [s.free_slots, s.pop, s.housing, s.free_workers, e.defense(t)]
+		return "%s   ⛨ %d" % [slots, e.defense(t)]
+	return "%s   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [slots, s.pop, s.housing, s.free_workers, e.defense(t)]
 
 
 ## The pop meter's pips in order (124); none with population off.

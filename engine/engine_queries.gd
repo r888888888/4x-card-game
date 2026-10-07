@@ -493,7 +493,7 @@ func _as_engine() -> GameEngine:
 
 ## What building card_id on territory_uid would change (299): {cost: what build would pay, lines: [[key, before, after],
 ## …]} with only the lines that change: each resource's upkeep_forecast in config order, then "free_slots",
-## "free_workers", "defense", "housing", "actions_left" (none while actions are unlimited). {} when build_error says no.
-## Builds on a fork: nothing here changes, is logged or emitted.
+## "free_sea_slots" (366), "free_workers", "defense", "housing", "actions_left" (none while actions are unlimited). {}
+## when build_error says no. Builds on a fork: nothing here changes, is logged or emitted.
 func build_preview(card_id: String, territory_uid: int) -> Dictionary:
 	return BuildMenu.preview(_as_engine(), card_id, territory_uid)

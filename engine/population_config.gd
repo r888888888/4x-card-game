@@ -1,9 +1,9 @@
 class_name PopulationConfig
 extends RefCounted
 ## Parses and validates config.json's population rules (split out of ConfigLoader, backlog 339): population with its
-## famine and relief, the settlement tiers and the cards that name them, unrest, and the civilizations' homes. Problems
-## go to ConfigLoader's errs (it prefixes the file) and warnings; ConfigLoader.parse_config calls parse and
-## check_start_buildings.
+## famine and relief, the settlement tiers and the cards that name them, the sea slots (366), unrest, and the
+## civilizations' homes. Problems go to ConfigLoader's errs (it prefixes the file) and warnings;
+## ConfigLoader.parse_config calls parse, check_start_buildings and parse_sea_slots.
 
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
@@ -260,3 +260,25 @@ static func _parse_relief(raw: Variant, resources: Array[String], errs: Array[St
 		else:
 			out[r] = n
 	return out
+
+
+## Normalizes sea_slots {keyword, tag, slots} (366): keyword a config keyword, tag a non-empty string, slots an integer
+## >= 1; {} when it is absent or invalid.
+static func parse_sea_slots(raw: Variant, keywords: Array[String], errs: Array[String]) -> Dictionary:
+	if raw is Dictionary and raw.is_empty():
+		return {}
+	if not (raw is Dictionary):
+		errs.append("'sea_slots' must be an object like {\"keyword\": \"coastal\", \"tag\": \"port\", \"slots\": 1}")
+		return {}
+	var problems: Array[String] = []
+	var keyword: Variant = raw.get("keyword")
+	if not (keyword is String) or not keywords.has(keyword):
+		problems.append("sea_slots: 'keyword' must be one of the config keywords, not %s" % JSON.stringify(keyword))
+	var tag: Variant = raw.get("tag")
+	if not (tag is String) or tag == "":
+		problems.append("sea_slots: 'tag' must be a non-empty string")
+	var slots: Variant = Fields.as_int(raw.get("slots"))
+	if typeof(slots) != TYPE_INT or slots < 1:
+		problems.append("sea_slots: 'slots' must be an integer >= 1, not %s" % JSON.stringify(raw.get("slots")))
+	errs.append_array(problems)
+	return {} if not problems.is_empty() else {"keyword": keyword, "tag": tag, "slots": slots}

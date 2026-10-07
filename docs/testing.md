@@ -198,6 +198,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sim_procs.gd` | How many processes a sim run uses (291) |
 | `tests/test_sim_stall.gd` | A parallel run's stalled or dead worker (318) |
 | `tests/test_sim_strategies.gd` | `SimStats` per strategy and civilization (134) |
+| `tests/test_sea_slots.gd` | Sea slots (366) |
 | `tests/test_size_unrest.gd` | Size unrest (282) |
 | `tests/test_slots.gd` | Building slots |
 | `tests/test_smooth_scroll.gd` | `SmoothScroll` and the scrollbar (356; UI) |
