@@ -261,7 +261,7 @@
       "flavor": "Reed huts on the shore, nets drying in the sun, and the boats out at dawn on water the colour of pewter.",
       "cost": { "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"], "housing": 1,
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
-        { "op": "create", "card": "net_fishing", "zone": "deck" } ]
+        { "op": "create", "card": "net_fishing", "zone": "deck", "unique": true } ]
     },
     {
       "id": "salt_pans", "name": "Salt Pans", "type": "building",

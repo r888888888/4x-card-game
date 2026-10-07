@@ -2,7 +2,7 @@
 id: 364
 title: Fishing Huts feed and house a coastal city, with Salt Pans and Net Fishing
 type: feature
-status: red-review
+status: in-progress
 branch: feat/364-fishing-rework
 ---
 

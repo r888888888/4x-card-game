@@ -114,13 +114,14 @@ func test_each_building_built_adds_the_card_its_play_effect_creates_to_the_deck(
 func test_a_building_with_a_unique_create_adds_its_card_once() -> void:
 	var loft := NET_LOFT.duplicate(true)
 	loft.id = "unique_loft"
+	loft.effects[0].card = "settler"  # one the player doesn't own: the deck is Scouts
 	loft.effects[0].unique = true
 	var e := build_engine(3, MENU.merged({"unique_loft": {}}), {}, [loft])
 	var home := home_uid(e)
-	var before := card_ids(e.zone("deck")).count("scout")
+	var before := card_ids(e.zone("deck")).count("settler")
 	for i in 2:
 		check(e.build("unique_loft", home), "build Loft %d: %s" % [i + 1, e.build_error("unique_loft", home)])
-	eq(card_ids(e.zone("deck")).count("scout"), before + 1, "one Scout more, not two")
+	eq(card_ids(e.zone("deck")).count("settler"), before + 1, "one Settler more, not two")
 
 
 func test_with_no_territory_named_it_builds_on_the_only_one_that_takes_it() -> void:
