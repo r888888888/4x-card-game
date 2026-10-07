@@ -2,7 +2,7 @@
 id: 165
 title: Units that repel a raid become veterans
 type: feature
-status: review
+status: done
 branch: feat/165-veteran-units
 ---
 
