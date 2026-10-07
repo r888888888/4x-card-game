@@ -352,13 +352,20 @@ func unit_move_block(uid: int) -> String:
 	return Military.move_block(self, uid)
 
 
-## Unit uid's strength (164): printed strength plus the training of working buildings on its station; 0 when idle or
-## not a unit in the tableau.
+## Unit uid's strength (164): printed strength plus the training of working buildings on its station and its veteran
+## counters (165); 0 when idle or not a unit in the tableau.
 func unit_strength(uid: int) -> int:
 	return Military.unit_strength(self, uid)
 
 
-## "Strength 3" for a unit trained by a building on its station (164), for its face; "" for anything else.
+## Unit uid's veteran counters (165): 1 per raid repelled where it stood, up to config veteran_max; 0 for anything but
+## a unit in the tableau.
+func unit_veterancy(uid: int) -> int:
+	return Military.veterancy(self, uid)
+
+
+## "Strength 3" for a unit trained by a building on its station (164) or a veteran (165), for its face; "" for anything
+## else.
 func unit_strength_tag(uid: int) -> String:
 	return Military.strength_tag(self, uid)
 
