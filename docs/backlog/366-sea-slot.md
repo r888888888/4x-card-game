@@ -2,7 +2,7 @@
 id: 366
 title: Coastal territories have a sea slot for port buildings
 type: feature
-status: ready
+status: red-review
 branch: feat/366-sea-slot
 ---
 
@@ -60,7 +60,13 @@ buildings can fill, so a coastal city builds its farms and its harbour.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…::test_…` |
+| AC1 | `test_sea_slots::test_a_territory_with_the_keyword_has_a_sea_slot` |
+| AC2 | `test_sea_slots::test_a_port_building_takes_the_sea_slot_first_then_a_regular_one` |
+| AC3 | `test_sea_slots::test_a_port_building_fits_the_sea_slot_beside_a_full_regular_slot` |
+| AC4 | `test_sea_slots::test_the_sea_slot_refuses_a_building_without_the_tag` |
+| AC5 | `test_sea_slots::test_losing_a_slot_idles_the_untagged_building_not_the_ones_in_the_sea_slot` |
+| AC6 | `test_sea_slots::test_the_status_and_tooltip_show_the_sea_slot` |
+| AC7 | `test_sea_slots::test_sea_slots_validation` |
 
 ## Manual check
 - [ ] On Cedar Coast, the territory view shows the sea slot apart from the regular slots, with its own empty-slot
