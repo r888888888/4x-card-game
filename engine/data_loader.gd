@@ -14,6 +14,7 @@ const TYPE_FIELDS := {
 	"housing": [CardDef.TERRITORY, CardDef.BUILDING],
 	"famine_guard": [CardDef.BUILDING],
 	"strength": [CardDef.UNIT],
+	"upgrades_to": [CardDef.UNIT],
 	"defense": [CardDef.BUILDING, CardDef.CITY],
 	"training": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
@@ -170,6 +171,11 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
 		elif home != "" and db[home].type != CardDef.TERRITORY:
 			errors.append("%s: card '%s': home: '%s' is not a territory" % [src, id, home])
+		var upgrade: String = db[id].upgrades_to
+		if upgrade != "" and not db.has(upgrade):
+			errors.append("%s: card '%s': upgrades_to: unknown card '%s'" % [src, id, upgrade])
+		elif upgrade != "" and db[upgrade].type != CardDef.UNIT:
+			errors.append("%s: card '%s': upgrades_to: '%s' is not a unit" % [src, id, upgrade])
 		var base_problem := _upgrade_base_problem(db[id].upgrade_of, db)
 		if base_problem != "":
 			errors.append("%s: card '%s': %s" % [src, id, base_problem])

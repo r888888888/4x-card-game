@@ -133,7 +133,7 @@ func test_upgrade_unit_errors() -> void:
 
 
 func test_a_locked_or_missing_entry_cant_be_upgraded_to() -> void:
-	for overrides in [{"build_menu": {"pikes": {"locked": true}}}, {"build_menu": {"farm": {}}}]:
+	for overrides in [{"build_menu": {"pikes": {"locked": true}}}, {"build_menu": {"calm": {}}}]:
 		var e := upgrade_engine(overrides)
 		eq(e.upgrade_unit_error(levy_of(e)), "Pikes isn't unlocked yet.", "%s" % [overrides])
 

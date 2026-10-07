@@ -401,6 +401,66 @@ static func disband(e: GameEngine, uid: int) -> bool:
 	return true
 
 
+## What upgrading unit uid costs (166): its upgrade's printed cost less its own per resource, the positive part; {} when
+## uid isn't a unit in the tableau with upgrades_to.
+static func upgrade_cost(e: GameEngine, uid: int) -> Dictionary:
+	var unit := _unit(e, uid)
+	if unit == null or unit.def.upgrades_to == "":
+		return {}
+	var price := {}
+	var new_cost: Dictionary = e.card_db[unit.def.upgrades_to].cost
+	for r in new_cost:
+		var n: int = new_cost[r] - unit.def.cost.get(r, 0)
+		if n > 0:
+			price[r] = n
+	return price
+
+
+## Why unit uid can't be upgraded now (166), or "": blocked, not a unit, no upgrades_to, its upgrade's build-menu
+## entry locked or missing, Anarchy (Anarchy.play_error on the new card, as building it), or short of upgrade_cost.
+static func upgrade_error(e: GameEngine, uid: int) -> String:
+	var blocked := e._blocked_error("upgrade_unit")
+	if blocked != "":
+		return blocked
+	var unit := _unit(e, uid)
+	if unit == null:
+		return NOT_A_UNIT
+	var to := unit.def.upgrades_to
+	if to == "":
+		return "%s can't be upgraded." % unit.def.name
+	if not BuildMenu.entries(e).has(to):
+		return "%s isn't unlocked yet." % e.card_db[to].name
+	var anarchy := Anarchy.play_error(e, CardInstance.new(-1, e.card_db[to]))
+	if anarchy != "":
+		return anarchy
+	var price := upgrade_cost(e, uid)
+	var short := {}  # names only the resources it is short of, as building does (337)
+	for r in price:
+		if not e.can_pay({r: price[r]}):
+			short[r] = price[r]
+	return e.price_error("Upgrading %s" % unit.def.name, short)
+
+
+## Replaces unit uid with a new copy of its upgrades_to unit in its tableau place, keeping its home, station and
+## veteran counters; the old one goes to removed (166). False (and no change) if upgrade_error says no.
+static func upgrade(e: GameEngine, uid: int) -> bool:
+	if upgrade_error(e, uid) != "":
+		return false
+	var old := _unit(e, uid)
+	e.pay(upgrade_cost(e, uid))
+	var tableau := e.zone("tableau")
+	var card := e._make_card(old.def.upgrades_to)
+	card.territory_uid = old.territory_uid
+	card.station_uid = old.station_uid
+	card.counters = old.counters
+	tableau.cards[tableau.cards.find(old)] = card
+	old.counters = 0
+	e.zone("removed").add(old)
+	e._log("%s upgraded to %s." % [old.def.name, card.def.name])
+	e.changed.emit()
+	return true
+
+
 ## Unit leaves the tableau (disbanded or lost to a pillage), losing its veteran counters (165): a unit recruited from the build menu is gone, to be
 ## recruited again (296); one with no build-menu entry (dealt from a deck) goes to the discard (163).
 static func _leave_play(e: GameEngine, unit: CardInstance) -> void:

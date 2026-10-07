@@ -426,6 +426,19 @@ func disband(uid: int) -> bool:
 	return Military.disband(self, uid)
 
 
+## Why unit uid can't be upgraded now (166), or "": blocked, not a unit in the tableau, no upgrades_to, its upgrade's
+## build-menu entry locked or missing, Anarchy (as building it would be), or short of upgrade_cost.
+func upgrade_unit_error(uid: int) -> String:
+	return Military.upgrade_error(self, uid)
+
+
+## Replaces unit uid with a new copy of its upgrades_to unit for upgrade_cost (166): the new one keeps its home,
+## station, veteran counters and tableau place, and the old one goes to removed. Uses no action. False (and no change)
+## if upgrade_unit_error says no.
+func upgrade_unit(uid: int) -> bool:
+	return Military.upgrade(self, uid)
+
+
 ## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,
 ## or its cost can't be paid. "" if it can.
 func choose_option_error(index: int) -> String:

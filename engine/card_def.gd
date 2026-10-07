@@ -45,6 +45,7 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var strength: int = 0  # units: how much it counts in defence (160)
+var upgrades_to := ""  # units: the id of the unit it can be upgraded to in place (166), or "" for none
 var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
 var upgrade_of := ""  # buildings: the id of the building it is built onto (300), or "" for none
 var tier := ""  # buildings: the id of the settlement tier its territory needs (301), or "" for none
@@ -125,6 +126,8 @@ func rules_text(card_db: Dictionary, headers := true) -> String:
 		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())
+	if upgrades_to != "":
+		parts.append(upgrades_to_text(card_db))
 	if actions > 0:
 		parts.append(actions_text())
 	if unrest_limit > 0:
@@ -195,6 +198,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())
+	if upgrades_to != "":
+		parts.append(upgrades_to_text(card_db))
 	if actions > 0:
 		parts.append(actions_text())
 	if unrest_limit > 0:
@@ -287,6 +292,11 @@ func eureka_text(card_db: Dictionary) -> String:
 ## A unit's strength line (160): "Strength 2".
 func strength_text() -> String:
 	return "Strength %d" % strength
+
+
+## A unit's upgrade line (166): "Upgrades to Pikes."
+func upgrades_to_text(card_db: Dictionary) -> String:
+	return "Upgrades to %s." % card_db[upgrades_to].name
 
 
 ## A raid's line on the card face (162): "Raid 3 (mountain/hills)", or "Raid 3" without targets.
