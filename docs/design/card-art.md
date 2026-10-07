@@ -2,8 +2,8 @@
 
 The art for every card in `data/cards.json`: its file, a brief for the picture and its inks. The style is the guide's
 §19 ([mcm-style-guide.md](mcm-style-guide.md#19-card-illustration)): commercial print of 1950–1965, four flat inks on
-cream paper, the ancient world drawn the way a mid-century magazine would draw it. 180 cards: civilizations 6,
-governments 3, cities 2, units 1, territories 17, wonders 9, buildings 47, actions 19, techs 31, events 45.
+cream paper, the ancient world drawn the way a mid-century magazine would draw it. 189 cards: civilizations 6,
+governments 3, cities 2, units 5, territories 17, wonders 9, buildings 47, actions 19, techs 33, events 48.
 
 **Files.** `assets/cards/<card id>.png`, 1536 × 1024 (3:2), sRGB, no alpha, no border. The game shows the middle 5:2
 band (the middle 60 % of the height) at 240 × 96 px, so the subject stays inside it. Until a file exists the card shows
@@ -51,13 +51,17 @@ base first and give it to the generator as a reference.
 | `capital.png` | Capital | A great walled city seen from outside its gate: tall towers, a temple mound rising behind, banners, smoke from a hundred hearths. Larger and grander than City. | ochre, brick, blue |
 | `city.png` | City | A small walled town of flat-roofed mud-brick houses on a low rise, one temple, smoke rising, fields at its foot. | ochre, sage, brick |
 
-## Units (1)
+## Units (5)
 
 *Silhouettes.*
 
 | File | Card | Brief | Inks |
 |---|---|---|---|
 | `warriors.png` | Warriors | Four warriors in silhouette marching side-on in step, spears and round hide shields, a low hill behind them. | bronze, brick, ochre |
+| `spearmen.png` | Spearmen | A phalanx in silhouette, shields locked and long spears levelled, bronze helmets catching the light. | bronze, brick, ochre |
+| `archers.png` | Archers | Three archers in silhouette drawing recurved bows, arrows arcing away in a dotted line. | bronze, olive, ochre |
+| `chariots.png` | Chariots | A two-horse chariot at full gallop side-on, a driver and an archer standing in the wicker car. | bronze, brick, ochre |
+| `swordsmen.png` | Swordsmen | A rank of swordsmen in silhouette behind tall shields, short iron blades drawn. | bronze, indigo, brick |
 
 ## Territories (17)
 
@@ -179,7 +183,7 @@ base first and give it to the generator as a reference.
 | `precedent.png` | Precedent | Scribes reading a stack of old clay verdicts to two judges. | blue, indigo, ochre |
 | `read_the_stars.png` | Read the Stars | An astronomer on a temple roof charting planets, star lines drawn across the sky like a diagram. | blue, indigo, ochre |
 
-## Techs (31)
+## Techs (33)
 
 *Ideas: one object on open ground, with a diagram.*
 
@@ -197,6 +201,7 @@ base first and give it to the generator as a reference.
 | `the_wheel.png` | The Wheel | A solid wooden wheel with concentric rings around it like an orbit diagram. | teal, bronze, ochre |
 | `masonry.png` | Masonry | Cut stone blocks fitted together, a mason's square and plumb line overlaid as a diagram. | teal, ochre, bronze |
 | `bronze_working.png` | Bronze Working | A crucible pouring molten bronze into an axe mould, copper and tin as two circles merging. | teal, bronze, brick |
+| `archery.png` | Archery | A composite bow on open ground, its layers of horn, wood and sinew drawn apart like a cutaway diagram. | teal, ochre, bronze |
 | `writing.png` | Writing | A clay tablet with wedge marks as pattern, a reed stylus, lines leading from it to a sheaf of grain. | teal, ochre, bronze |
 | `weights_and_measures.png` | Weights and Measures | A balance scale with silver rings on one pan and a stone weight on the other, a grid behind. | teal, ochre, bronze |
 | `olive_and_vine.png` | Olive and Vine | An olive branch and a grapevine crossing, an amphora between them. | teal, sage, plum |
@@ -206,6 +211,7 @@ base first and give it to the generator as a reference.
 | `priesthood.png` | Priesthood | A tall priest's headdress and staff before a temple facade, an altar flame. | teal, indigo, ochre |
 | `code_of_laws.png` | Code of Laws | A tall basalt stele with rows of script as pattern and a seated figure carved at its top. | teal, indigo, ochre |
 | `calendar.png` | Calendar | A ring of 12 segments around the star Sirius rising over the Nile's flood line. | teal, indigo, blue |
+| `chariot.png` | Chariot | A spoked chariot wheel beside a solid one, its spokes drawn as a radial diagram, hoofprints around. | teal, bronze, ochre |
 | `philosophy.png` | Philosophy | Two figures in conversation under a plane tree, a geometric diagram drawn in the sand. | teal, olive, ochre |
 | `iron_working.png` | Iron Working | An iron blade on an anvil, a bloomery furnace behind, ore lumps scattered. | teal, indigo, brick |
 | `mathematics.png` | Mathematics | A geometric proof: a right triangle with squares on its sides, a counting board. | teal, ochre, indigo |
@@ -217,7 +223,7 @@ base first and give it to the generator as a reference.
 | `astronomy.png` | Astronomy | A ziggurat roof with an astronomer and the orbits of wandering stars drawn as ellipses above, an eclipse. | teal, indigo, ochre |
 | `engineering.png` | Engineering | An arch in elevation with its voussoirs and keystone diagrammed, a straight road running through it. | teal, ochre, blue |
 
-## Events (45)
+## Events (48)
 
 *Spot illustrations: good ones light, disasters two inks and plain.*
 
@@ -265,6 +271,9 @@ base first and give it to the generator as a reference.
 | `raiders.png` | Raiders | Dust on the horizon: riders from the steppe in silhouette coming over the rise toward fields. | brick, ochre |
 | `sea_raiders.png` | Sea Raiders | Long ships beached in the night below a harbour, empty storehouses with open doors. | brick, blue |
 | `hill_tribes.png` | Hill Tribes | Clansmen coming down from high valleys along a path toward farmland. | brick, olive, ochre |
+| `horse_raiders.png` | Horse Raiders | Riders at full gallop across grassland, carts overturned behind them, an alarm drum on a wall. | brick, ochre, sage |
+| `pirates.png` | Pirates | A fleet of ships off a headland at dawn, a port's smoke rising behind the harbour wall. | brick, blue, ochre |
+| `barbarian_horde.png` | Barbarian Horde | A long column of wagons, herds and walking people crossing a plain from the north. | brick, indigo, ochre |
 | `calls_for_reform.png` | Calls for Reform | Petitioners crowding palace steps holding up tablets, a guard at the door. | brick, indigo, ochre |
 | `peasant_uprising.png` | Peasant Uprising | Farmers with pitchforks and torches in silhouette, a steward's house aflame behind. | brick, ochre |
 | `radical_thinkers.png` | Radical Thinkers | A teacher in an agora speaking to rapt young listeners, a temple and a palace in the background. | brick, olive, indigo |

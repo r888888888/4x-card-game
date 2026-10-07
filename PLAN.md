@@ -516,7 +516,9 @@ Monument until then): every terrain has a building, every era opens a new one.
 - Units in the build menu (296): a unit entry is recruited the same way (`build`), homed and stationed on a territory
   with a free worker (no slot, no terrain); "X can now be recruited." A recruited unit that is disbanded or lost to a
   pillage leaves play (no zone), to be recruited again; a unit with no entry (dealt from a deck) still goes to the
-  discard. Warriors is an open entry from turn 1.
+  discard. Warriors is an open entry from turn 1. Era units (167), each a locked entry its tech opens: Spearmen (Bronze
+  Working), Archers (Archery, era 1), Chariots (Chariot, era 2, after The Wheel), Swordsmen (Iron Working, era 3);
+  Warriors upgrade to Spearmen and Spearmen to Swordsmen (166).
 - `build_preview(card_id, territory_uid)` (299): `{cost, lines}`, each line `[key, before, after]` for what building
   there would change (each resource's `upkeep_forecast`, then `free_slots`, `free_workers`, `defense`, `housing`,
   `actions_left`), from a build on a fork; `{}` when `build_error` refuses. The Build modal (297) shows it.
@@ -594,7 +596,8 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
   sim bot answers with the option whose sample fork values most (313). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
-  Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
+  Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain); era 2 (167):
+  Horse Raiders (5, grassland/desert), Pirates (5, coastal); era 3: Barbarian Horde (8, anywhere). Rules in
   `Military`.
 - Code: `engine/events.gd`, `engine/event_choices.gd` (269).
 - Era 2 and 3 events (270): each era the research deck reaches has events; from era 2 each era has a harmful and a

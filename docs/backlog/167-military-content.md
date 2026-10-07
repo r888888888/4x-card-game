@@ -2,7 +2,7 @@
 id: 167
 title: Era units and era 2–3 raids
 type: feature
-status: in-progress
+status: review
 branch: feat/167-military-content
 ---
 
@@ -11,13 +11,13 @@ Fill the military out across the eras: units opened by techs and harsher raids i
 with the threat. Content only; numbers are a first guess until a balance item. Follows 166.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every unit in the real data can be had: a build-menu entry open from the start, or unlocked by
+- [x] AC1 (invariant): Every unit in the real data can be had: a build-menu entry open from the start, or unlocked by
   a research-deck tech (units are recruited from the build menu since 296, not dealt or bought).
-- [ ] AC2 (invariant): Every `upgrades_to` in the real data names a unit with a strictly higher strength whose entry
+- [x] AC2 (invariant): Every `upgrades_to` in the real data names a unit with a strictly higher strength whose entry
   opens no earlier; there are at least 2 unit upgrades, and every unit open on turn 1 has one.
-- [ ] AC3 (invariant): Every era the research deck reaches opens a unit stronger than any unit of the eras before, and
+- [x] AC3 (invariant): Every era the research deck reaches opens a unit stronger than any unit of the eras before, and
   each era that has raids has a unit open by that era.
-- [ ] AC4 (invariant): Every era the research deck reaches has a raid whose strength beats every earlier era's
+- [x] AC4 (invariant): Every era the research deck reaches has a raid whose strength beats every earlier era's
   raids, and every raid's `targets` keywords appear on some territory a game can hold.
 
 ## Out of scope
@@ -40,9 +40,13 @@ with the threat. Content only; numbers are a first guess until a balance item. F
 ## Manual check
 - [ ] Units: Spearmen (Bronze Working; 2 food 1 wealth, strength 3, ⟳ −1 food), Archers (Archery; 1 food 1 wealth,
   strength 2, ⟳ −1 wealth: a cheap garrison that doesn't eat), Chariots (Chariot; 2 food 2 wealth, strength 4,
-  ⟳ −1 food), Swordsmen (Iron Working; 2 food 3 wealth, strength 5, ⟳ −1 food −1 wealth).
+  ⟳ −1 food), Swordsmen (Iron Working; 2 food 3 wealth, strength 5, ⟳ −1 food −1 wealth). Techs: Archery (era 1, 5
+  insight, eureka 1 Warriors), Chariot (era 2, 16 insight, after The Wheel, eureka 1 Pasture).
   Upgrades: Warriors → Spearmen → Swordsmen.
-- [ ] Raids: era 2 Horse Raiders (5, grassland/desert), Pirates (5, coastal), era 3 Barbarian Horde (8, no targets).
+- [ ] Raids: era 2 Horse Raiders (5, grassland/desert; pillage −4 food +1 unrest, repel +3 wealth −1 unrest), Pirates
+  (5, coastal; pillage −5 wealth, repel +2 wealth), era 3 Barbarian Horde (8, anywhere; pillage −4 food −4 wealth +2
+  unrest, repel +4 wealth −1 unrest). Read the new flavor lines and quotes (Psalm 46:9 on Archery, Psalm 20:7 on
+  Chariot) against §18.
 - [ ] Each new tech appears in the tech tree with what it gives; each unit's details show its Upgrade once 166's
   button applies (Warriors: "Upgrade to Spearmen for 1 wealth (no action).").
 - [ ] Balance worry: raids of 5 and 8 against era garrisons; run `scripts/sim.sh --level 2 --compare <main checkout>`.
@@ -56,3 +60,10 @@ with the threat. Content only; numbers are a first guess until a balance item. F
   beats era 1's). The first spec predated the build menu (296) and era-1 raids (Raiders, Sea Raiders, Hill Tribes
   exist), so its four invariants already held; the user approved goal-shaped invariants that fail until the content
   lands (each era opens a stronger unit and a stronger raid; turn-1 units have upgrades).
+- Green: content only (no engine change). Quotes are KJV (Psalm 46:9, Psalm 20:7). Flavor facts: composite bows of
+  horn, wood and sinew cured for a year; spoked-wheel chariots spread from the steppe to Egypt; the Sea Peoples' raids
+  and Ugarit's unanswered letters (Pirates); the Cimmerian and Scythian migrations (Barbarian Horde). Nine art rows
+  added to `docs/design/card-art.md` (189 cards).
+- Balance worries (no run done): a raid of 5 in era 2 needs Chariots, or a trained or veteran Spearmen plus walls; the
+  era-3 Horde of 8 hits any territory, including ones with no terrain defence. Spearmen and Swordsmen also now sit on
+  Bronze Working and Iron Working, so the sim bot meets them with no change (168 tunes the bot).
