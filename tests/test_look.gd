@@ -3,7 +3,6 @@ extends "res://tests/lib/test_case.gd"
 ## owes a take (370) of one into the hand; the rest go to the discard. One card goes to the hand at once; none, and
 ## nothing happens. The fixture Gaze (look 3) is local, not in TEST_CARDS, so other tests load while the op is missing.
 
-const TAKE := "take"
 const GAZE := {"id": "gaze", "name": "Gaze", "type": "action", "effects": [{"op": "look", "count": 3}]}
 
 
@@ -41,7 +40,7 @@ func test_look_owes_a_take_of_the_top_three_cards() -> void:
 	var e: GameEngine = g.e
 	check(e.play_card(g.gaze), "play Gaze: %s" % e.play_error(g.gaze))
 	var p := e.pending()
-	eq(p.get("kind"), TAKE, "a take is owed")
+	eq(p.get("kind"), GameEngine.PENDING_TAKE, "a take is owed")
 	eq(p.get("options", []), g.deck.slice(0, 3), "the top 3, top first")
 	eq(top_first(e.zone("deck")), g.deck.slice(3), "they left the deck")
 	eq(uids(e.zone("hand")), [g.caravan], "the hand is otherwise unchanged")
@@ -54,7 +53,7 @@ func test_taking_one_sends_the_rest_to_the_discard() -> void:
 	var e: GameEngine = g.e
 	e.play_card(g.gaze)
 	var scout: int = g.deck[1]
-	check(e.call("take", scout), "take the Scout: %s" % e.call("take_error", scout))
+	check(e.take(scout), "take the Scout: %s" % e.take_error(scout))
 	eq(sorted(uids(e.zone("hand"))), sorted([g.caravan, scout]), "the Scout is in the hand")
 	eq(sorted(uids(e.zone("discard"))), sorted([g.deck[0], g.deck[2], g.gaze]), "the Farm, the Temple and Gaze are discarded")
 	eq(top_first(e.zone("deck")), g.deck.slice(3), "the deck holds the two below, in order")
@@ -147,7 +146,7 @@ func test_the_cards_looked_at_are_in_a_copied_zone_and_a_fork_pays_the_take_alik
 	if held != "":
 		eq(sorted(uids(f.zone(held))), sorted(uids(e.zone(held))), "the fork holds the same cards there")
 	var scout: int = g.deck[1]
-	check(f.call("take", scout), "the fork takes the Scout")
+	check(f.take(scout), "the fork takes the Scout")
 	eq(sorted(uids(f.zone("hand"))), sorted([g.caravan, scout]), "the fork's hand")
 	eq(sorted(uids(f.zone("discard"))), sorted([g.deck[0], g.deck[2], g.gaze]), "the fork's discard")
-	eq(e.pending().get("kind"), TAKE, "this game still owes its take")
+	eq(e.pending().get("kind"), GameEngine.PENDING_TAKE, "this game still owes its take")

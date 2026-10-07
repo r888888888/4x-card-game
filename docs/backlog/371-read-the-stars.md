@@ -2,7 +2,7 @@
 id: 371
 title: Read the Stars looks at the top 3 cards and takes one (Astronomy)
 type: feature
-status: in-progress
+status: review
 branch: feat/371-read-the-stars
 ---
 
@@ -15,20 +15,20 @@ adding a destination for the cards not taken.
 Depends on 370 (the `take` decision kind).
 
 ## Acceptance criteria
-- [ ] AC1: Given a TEST_CARDS card with `{op: look, count: 3}` in hand and a deck of 5 known cards, when it is
+- [x] AC1: Given a TEST_CARDS card with `{op: look, count: 3}` in hand and a deck of 5 known cards, when it is
   played, then the top 3 leave the deck, `pending()` is `{kind: take, options: [those 3 uids, top first]}`, and the
   hand is otherwise unchanged.
-- [ ] AC2: Given AC1's owed take, when the player takes one option, then it goes to the hand, the other two go to the
+- [x] AC2: Given AC1's owed take, when the player takes one option, then it goes to the hand, the other two go to the
   discard, the deck holds the 2 cards that were below them in their order, and nothing is owed.
-- [ ] AC3: Given a deck of 1 card and a discard of 4, when the look card is played, then the deck's card and, after
+- [x] AC3: Given a deck of 1 card and a discard of 4, when the look card is played, then the deck's card and, after
   the discard is reshuffled into the deck (as `draw` does), 2 more are the options; the look card itself is never an
   option.
-- [ ] AC4: Given only one card in the deck and the discard together, then it goes to the hand at once and nothing is
+- [x] AC4: Given only one card in the deck and the discard together, then it goes to the hand at once and nothing is
   owed; given none, the card plays, nothing moves and nothing is owed.
-- [ ] AC5: `count` is an integer from 2 to 5, default 3; a missing count loads as 3, and a count of 1 or 6 or a
+- [x] AC5: `count` is an integer from 2 to 5, default 3; a missing count loads as 3, and a count of 1 or 6 or a
   non-integer is an error naming the card and `count`. The loader rejects `look` on `upkeep`, `start` and events.
   Rules text: "Look at the top 3 cards of your deck: take 1 into your hand, discard the rest".
-- [ ] AC6: While the take is owed, the cards looked at are in a zone that `GameState.copy()` copies (the suite's copy
+- [x] AC6: While the take is owed, the cards looked at are in a zone that `GameState.copy()` copies (the suite's copy
   guard), and an engine copied mid-decision pays it the same way.
 
 ## Out of scope
@@ -76,3 +76,8 @@ Depends on 370 (the `take` decision kind).
 ## Log
 <!-- Decisions and surprises during implementation, newest last. -->
 - Spec: the cards not taken go to the discard (user, 2026-10-06).
+- Build: the looked-at cards wait in 370's `offered` zone (approved at the red checkpoint), not `reveal`; `take` always
+  sends the rest to the discard, so no `rest` field was needed. `EngineCore.reshuffle()` came out of `draw` so `look`
+  reshuffles the same way.
+- Build: Astronomy left `test_content`'s pure-discount tech list, now that it unlocks Read the Stars.
+- Balance worry: none measured; price 5 and 4 copies are first guesses.
