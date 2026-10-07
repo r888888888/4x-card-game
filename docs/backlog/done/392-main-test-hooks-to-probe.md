@@ -2,7 +2,7 @@
 id: 392
 title: Move main.gd's test hooks into a test-side probe
 type: chore
-status: review
+status: done
 branch: feat/392-main-probe
 ---
 
