@@ -2,7 +2,7 @@
 id: 388
 title: Veteran pips on unit cards
 type: feature
-status: in-progress
+status: review
 branch: feat/388-veteran-pips
 ---
 
@@ -12,18 +12,18 @@ filled per counter and dim up to the cap, so a glance shows which garrisons have
 they can earn. Today veterancy only shows as a "Strength N" tag and a line in the card's details.
 
 ## Acceptance criteria
-- [ ] AC1 (engine query): `unit_veteran_pips(uid)` returns `{filled, total}`: with config `veteran_max` 2, a unit in
+- [x] AC1 (engine query): `unit_veteran_pips(uid)` returns `{filled, total}`: with config `veteran_max` 2, a unit in
   the tableau with 1 counter gives `{filled: 1, total: 2}` and a fresh one `{filled: 0, total: 2}`; with
   `veteran_max` 0, or for anything but a unit in the tableau (a territory, a building, a unit in hand, an unknown
   uid), `{filled: 0, total: 0}`.
-- [ ] AC2 (pips): Given `veteran_max` 2, when the territory view opens on Hills with a Levy holding 1 counter, the
+- [x] AC2 (pips): Given `veteran_max` 2, when the territory view opens on Hills with a Levy holding 1 counter, the
   Levy's card shows a row of 2 pips, the first tinted the filled colour and the second the dim one; a Levy with 0
   counters on the same territory shows 2 dim pips.
-- [ ] AC3 (none): With `veteran_max` 0, no unit card shows a pip row; a card that isn't a unit never does.
-- [ ] AC4 (refresh): When a repelled raid gives the Levy its first counter, the open territory view's Levy shows 1
+- [x] AC3 (none): With `veteran_max` 0, no unit card shows a pip row; a card that isn't a unit never does.
+- [x] AC4 (refresh): When a repelled raid gives the Levy its first counter, the open territory view's Levy shows 1
   filled pip once the raid modal closes, without reopening the view; a Levy that is disbanded and played again shows
   2 dim pips.
-- [ ] AC5 (tally): When a counter is gained, the new pip switches on with the tally (§10.3): it lights after the raid
+- [x] AC5 (tally): When a counter is gained, the new pip switches on with the tally (§10.3): it lights after the raid
   modal closes and plays one `ui.counter.tick`; several units promoted by one raid light one at a time, 60 ms apart,
   in tableau order. With Reduce motion the pips are lit at once, still with one tick each.
 
@@ -65,3 +65,10 @@ they can earn. Today veterancy only shows as a "Strength N" tag and a line in th
   under the open raid modal, then close the modal: the pip lights without reopening the view. Ticks are counted from
   the press of OK, since the resource odometers tick in the same turn. The tally's first pip lights at once, the next
   unit's 60 ms later (`Anim.TALLY_STEP`, new).
+- 2026-10-07: green (2498 → 2505). The pip row is a `CardFace` part (`set_veteran_pips`, `light_veteran_pips`): 8 px
+  discs (`Tokens.SPACE_2`, `RADIUS_FULL`) `SPACE_1` apart, under the card's info lines; `CardView` forwards and counts
+  the lit ones for the tally. `TurnNews` keeps the promoted uids from `raid_resolved` until `RaidModal.dismissed`, then
+  emits `veterans_promoted`; `BoardViews` holds those pips back while waiting and `tally_veterans` lights them.
+  Sizes: `card_face.gd` 516, `card_view.gd` 581, `military.gd` 544 lines (each past the 500 WARN, under 700).
+  Follow-up worth noting: if the raid modal never opens (the game ends on that turn), the pips stay one short; the
+  game is over then.

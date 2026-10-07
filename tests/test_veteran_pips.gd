@@ -41,15 +41,15 @@ func open_hills(main: Node) -> void:
 	await wait_frames()
 
 
-## Each pip on card uid's view as LIT or DIM ([] with no row). Red phase: the hook is new in 388.
+## Each pip on card uid's view as LIT or DIM ([] with no row).
 func pips(main: Node, uid: int) -> Array:
 	var view: CardView = main.views.get(uid)
 	check(view != null, "card %d has a view" % uid)
 	if view == null:
 		return []
-	var tints: Array = (view as Object).call("veteran_pips")  # scaffolding: veteran_pips is new in 388
+	var tints: Array = view.veteran_pips()
 	var dim := Palette.UNIT
-	dim.a = 0.35
+	dim.a = CardView.PIP_DIM
 	return tints.map(func(c: Color): return LIT if c.is_equal_approx(Palette.UNIT) else DIM if c.is_equal_approx(dim) else c)
 
 

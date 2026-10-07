@@ -83,11 +83,9 @@ func sync(e: GameEngine) -> void:
 ## Switches on the new veteran pip of each of uids' views (388, §10.3's tally): in tableau order, one per unit,
 ## Anim.TALLY_STEP apart (all at once with Reduce motion), each with a counter tick, still TALLY_STEP apart.
 func tally_veterans(e: GameEngine, uids: Array[int]) -> void:
-	var tableau := e.zone("tableau").cards
-	var shown := uids.filter(func(u): return views.has(u) and tableau.any(func(c): return c.uid == u))
-	shown.sort_custom(func(a, b): return tableau.find(e.zone("tableau").find(a)) < tableau.find(e.zone("tableau").find(b)))
+	var shown := e.zone("tableau").cards.filter(func(c): return uids.has(c.uid) and views.has(c.uid))
 	for k in shown.size():
-		var view: CardView = views[shown[k]]
+		var view: CardView = views[shown[k].uid]
 		var delay := k * Anim.TALLY_STEP
 		if UIKit.calm() or delay == 0.0:
 			view.light_veteran_pip()
