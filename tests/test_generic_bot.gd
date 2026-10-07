@@ -8,7 +8,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing
 ## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
 ## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373); the deck's worth
-## is the best plays of a drawn hand (376)
+## is the best plays of a drawn hand (376); tall settles up to 3 territories, only when nothing else is worth doing (390)
 
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}
 ## Riot: +3 food and +2 unrest. Gift: a choice event, +1 food or +3 food.

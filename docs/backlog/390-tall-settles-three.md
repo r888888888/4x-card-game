@@ -2,7 +2,7 @@
 id: 390
 title: Let the tall bot settle up to 3 territories, at low priority
 type: feature
-status: in-progress
+status: review
 branch: feat/390-tall-settles-three
 ---
 
@@ -13,16 +13,16 @@ plus 2 founded cities), but only as a last resort: a settle play comes after eve
 
 ## Acceptance criteria
 <!-- Fixtures: test_generic_bot.gd's bot_game / land_game (Lone: 1 action, 10 turns left; Pioneer settles). -->
-- [ ] AC1 (third territory): Given a tall game with Homeland and Hills settled, Grassland in the frontier and only a
+- [x] AC1 (third territory): Given a tall game with Homeland and Hills settled, Grassland in the frontier and only a
   Pioneer in hand that can settle it, when the bot takes its turn with "tall", then Grassland is settled (3 settled
   territories).
-- [ ] AC2 (limit): Given a tall game with Homeland, Hills and Grassland settled, Jungle in the frontier and only a
+- [x] AC2 (limit): Given a tall game with Homeland, Hills and Grassland settled, Jungle in the frontier and only a
   Pioneer in hand that can settle it, when the bot takes its turn with "tall", then Jungle stays in the frontier. The
   generic strategy, given the same game, settles Jungle.
-- [ ] AC3 (low priority): Given a Lone game (1 action) with only the Homeland settled, Hills in the frontier and a
+- [x] AC3 (low priority): Given a Lone game (1 action) with only the Homeland settled, Hills in the frontier and a
   Pioneer and a Shrine in hand, when the bot takes its turn, then generic plays the Pioneer (a City beats +1 score)
   but tall plays the Shrine and Hills stays in the frontier.
-- [ ] AC4 (idle settle): Given the AC1 game under Stewards (unlimited actions) with a Pioneer and a Shrine in hand,
+- [x] AC4 (idle settle): Given the AC1 game under Stewards (unlimited actions) with a Pioneer and a Shrine in hand,
   when the bot takes its turn with "tall", then it plays the Shrine and then the Pioneer, settling Grassland.
 
 ## Out of scope
@@ -55,3 +55,7 @@ plus 2 founded cities), but only as a last resort: a settle play comes after eve
 ## Log
 - Red: AC3/AC4 use a Shrine (+1 now) rather than a Temple: generic already prefers the Temple to settling, so only
   the Shrine tells the priority rule apart. AC3 starts from the Homeland alone so tall may settle at red.
+- Green: `best_action` hands the candidates to `_best_of`; tall's settle plays (`_settles`) go in a second pass on the
+  same seed, tried only when the first finds nothing. The QUIET look-on step recurses through `best_action`, so it
+  follows the rule too. Balance worry: tall now founds cities late in a turn, after its builds; its food may rarely
+  reach a Settler's cost, so `settlements` may barely move (see Manual check).

@@ -701,8 +701,9 @@ Your people have one government at a time; its bonuses apply while it rules.
   option whose rollout values most (ties: deck order; one option: no rollout). Every `REVOLT_EVERY` (4) turns, at the
   end of the turn and not in the last 6, it revolts when a rollout that revolts to some government in the deck values
   more than staying. Inside a rollout it never revolts and chooses the government the rollout was opened for, else
-  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall (never plays a `settle` card
-  past 2 territories). `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
+  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall
+  (plays a `settle` card only when nothing else beats doing nothing, and never past 3 territories, 390).
+  `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
   turn; after `restore_order` the turn goes on.
