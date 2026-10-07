@@ -388,3 +388,41 @@ func test_ui_kit_no_longer_builds_the_theme() -> void:
 	check(not src.contains("func style_controls"), "style_controls moved to GameTheme")
 	var main_src := FileAccess.get_file_as_string("res://ui/main.gd")
 	check(main_src.contains("GameTheme.build()"), "main builds its theme with GameTheme")
+
+
+# --- 393: the theme's sections, one file each ---
+
+const SECTIONS_DIR := "res://ui/theme"
+
+
+## GameTheme.SECTIONS, or [] while it doesn't exist.
+func sections() -> Array:
+	return (GameTheme as Script).get_script_constant_map().get("SECTIONS", [])  # scaffolding: SECTIONS is new in 393
+
+
+func test_every_section_file_is_listed_and_every_listed_one_exists() -> void:
+	var listed: Array = sections().map(func(s: Script): return s.resource_path)
+	check(not listed.is_empty(), "GameTheme.SECTIONS lists the sections")
+	var files: Array = Array(DirAccess.get_files_at(SECTIONS_DIR)).filter(func(f: String): return f.ends_with(".gd")) \
+		.map(func(f: String): return SECTIONS_DIR + "/" + f)
+	eq(files.filter(func(f): return not listed.has(f)), [], "section files GameTheme.SECTIONS leaves out")
+	eq(listed.filter(func(f): return not FileAccess.file_exists(f)), [], "listed sections with no file")
+
+
+func test_each_look_has_one_section() -> void:
+	var owner := {}
+	var problems: Array[String] = []
+	check(not sections().is_empty(), "GameTheme.SECTIONS lists the sections")
+	for section: Script in sections():
+		var t := Theme.new()
+		section.call("apply", t)
+		var name := section.resource_path.get_file()
+		if t.get_type_list().is_empty():
+			problems.append("%s defines nothing" % name)
+		for type in t.get_type_list():
+			if t.get_type_variation_base(type) == &"":
+				continue
+			if owner.has(type):
+				problems.append("%s is defined by %s and %s" % [type, owner[type], name])
+			owner[type] = name
+	eq(problems, [] as Array[String], "each section's looks are its own")

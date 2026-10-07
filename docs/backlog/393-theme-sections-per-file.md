@@ -2,7 +2,7 @@
 id: 393
 title: Split GameTheme into one file per component's looks
 type: chore
-status: ready
+status: red-review
 branch: feat/393-theme-sections
 ---
 
@@ -50,10 +50,13 @@ only the base theme, the shared builders and the list of sections.
 - `tests/test_script_size.gd` already counts subfolders of `ui/`, so the new files are covered.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_theme::…` |
+| AC1 | `test_theme::test_every_section_file_is_listed_and_every_listed_one_exists` |
+| AC2 | `test_theme::test_each_look_has_one_section` |
+| AC3 | a scratch dump of every type and item of `GameTheme.build()` in Night and Day (783 lines, 150 type entries), before and after, diffed; plus the existing look tests unchanged |
+| AC4 | line counts, checked by hand |
+| AC5 | the existing callers compile and pass unchanged |
 
 ## Log
 - 2026-10-07: specced from the review of the scripts that keep hitting the size limit (after 391).
