@@ -105,8 +105,8 @@ military (units and raids, 27 forwarding methods); later items move the others o
   so the bot's hot loop makes no allocation per call; each method opens with `var e := _engine()`, which is why
   `military.gd` grew 483 → 534 lines (WARN past 500; the raid half is the boundary if it nears 700). Only the pure
   helpers (`is_raid`, `_when`) stay static. Renames per AC1 (`unit_strength` → `strength`, `unit_origin` → `origin`);
-  `defense` moved over from `TerritoryQueries`. The 27 forwards are gone: `game_engine.gd` 497 → 409,
-  `engine_queries.gd` 495 → 444, `territory_queries.gd` 216 → 202. Call sites renamed across 30 files (the other
+  `defense` moved over from `TerritoryQueries`. The 27 forwards are gone: `game_engine.gd` 497 → 420,
+  `engine_queries.gd` 495 → 446, `territory_queries.gd` 216 → 201. Call sites renamed across 30 files (the other
   modules' `Military.x(e, …)` became `e.military.x(…)`). `LegalActions.apply` and `LegalActions.error` share one
   resolver (`_call`), and `GenericBot._do` and the tests' `play_first_legal` call `apply`. `military.move` sits beside
   `move_error` in `military.gd` now (`test_blocking` checks an area's actions beside their queries in its own file).
