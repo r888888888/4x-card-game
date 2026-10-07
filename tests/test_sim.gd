@@ -3,10 +3,11 @@ extends "res://tests/lib/tech_case.gd"
 ## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375), and settlements with their
 ## count per tier (328).
 
-const METRICS := ["anarchies", "anarchy_turns", "bought", "era", "explored", "famine_turns", "gov_changes",
+const METRICS := ["anarchies", "anarchy_turns", "bought", "deck_end", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
 	"raid_wealth_lost", "raids", "raids_repelled", "restored", "revolts", "score", "settlements", "techs", "trashed"]
-	# sorted (158 added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones, 328 renamed cities)
+	# sorted (158 added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones, 328 renamed cities, 376
+	# deck_end)
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
@@ -296,3 +297,13 @@ func test_328_a_run_reports_settlements_and_each_tier() -> void:
 	for m in ["settlements"] + TIER_METRICS:
 		check(lines.any(func(l): return l.begins_with(m + " ") and l.contains("mean") and l.contains("max")),
 			"a %s line with mean, min and max: %s" % [m, lines])
+
+
+func test_376_deck_end_counts_the_cards_drawn_from() -> void:
+	var e := make_engine({"shrine": 10})
+	var held: int = e.zone("deck").size() + e.zone("hand").size() + e.zone("discard").size()
+	check(held > 0, "a dealt game holds cards")
+	e.zone("discard").add(e.zone("deck").take_top())
+	eq(SimStats.game_metrics(e, e.config).get("deck_end"), held, "deck, hand and discard")
+	e.zone("trashed").add(e.zone("hand").take_top())
+	eq(SimStats.game_metrics(e, e.config).get("deck_end"), held - 1, "a trashed card isn't counted")
