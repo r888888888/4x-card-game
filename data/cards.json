@@ -410,7 +410,7 @@
       "id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": { "actions": 1 },
       "tags": [],
       "flavor": "When the old order breaks, no one rules and everyone does. Debts are burned, granaries thrown open, and each day the loudest voice decides.",
-      "quote": { "text": "Things fall apart; the centre cannot hold; mere anarchy is loosed upon the world.", "by": "W. B. Yeats, The Second Coming" },
+      "quote": { "text": "The most radical revolutionary will become a conservative the day after the revolution.", "by": "Hannah Arendt, Crises of the Republic" },
       "text": "1 action each turn. Only order cards can be played; nothing can be grown, bought or researched. Each turn it eats 20% of stored food and wealth. Lasts up to 4 turns, fewer the calmer the people; calming shortens it. From its second turn, buy order for 2, 6, 12 or 20 wealth with 1–4 turns left. When it ends, choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
       "effects": []
     },
@@ -458,7 +458,7 @@
       "id": "greece", "name": "Greece", "type": "civilization", "city_names": ["Athens", "Sparta", "Corinth", "Thebes", "Argos", "Delphi", "Miletus", "Syracuse", "Megara", "Ephesus", "Rhodes", "Chalcis"], "home": "coastal_hills", "modifiers": { "hand_size": 1 },
       "vp": 0, "tags": [],
       "flavor": "Rival city-states argue in the agora, stage tragedies in open theatres, and ask the questions philosophers are still asking, with no better answers.",
-      "quote": { "text": "The unexamined life is not worth living.", "by": "Socrates, in Plato's Apology" },
+      "quote": { "text": "I woke with this marble head in my hands; it exhausts my elbows and I don't know where to put it down.", "by": "George Seferis, Mythistorema (tr. Keeley and Sherrard)" },
       "effects": [
         { "op": "create", "card": "storyteller", "zone": "discard", "trigger": "start" }
       ]
@@ -918,7 +918,7 @@
     {
       "id": "mysticism", "name": "Mysticism", "type": "tech",
       "flavor": "Shamans and seers read meaning in stars, dreams and entrails, and the first shrines rise to hold what cannot be explained.",
-      "quote": { "text": "There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.", "by": "William Shakespeare, Hamlet" },
+      "quote": { "text": "Who, if I cried out, would hear me among the angels' hierarchies?", "by": "Rainer Maria Rilke, Duino Elegies (tr. Stephen Mitchell)" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "shrine", "count": 1, "off": 2 }, "tags": [], "modifiers": { "renewal": 1 },
       "effects": [ { "op": "unlock", "card": "temple" },
         { "op": "unlock", "card": "stone_circle" },
@@ -950,7 +950,7 @@
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
       "flavor": "Marks pressed into clay to count grain grow into laws, letters and epics: a way of keeping the harvest becomes a way of keeping the dead.",
-      "quote": { "text": "The written word remains.", "by": "Latin proverb (littera scripta manet)" },
+      "quote": { "text": "Between my finger and my thumb the squat pen rests. I'll dig with it.", "by": "Seamus Heaney, Digging" },
       "cost": { "insight": 13 }, "vp": 0, "eureka": { "tag": "culture", "count": 2, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "scribal_school" }, { "op": "add_era", "era": 3 },
         { "op": "unlock", "card": "great_library" } ]
@@ -972,7 +972,7 @@
     {
       "id": "medicine", "name": "Medicine", "type": "tech", "era": 2, "prereq": "writing",
       "flavor": "In Egypt's Houses of Life, priest-physicians copy papyri on wounds, fevers and remedies, and tend the sick by lamplight.",
-      "quote": { "text": "Life is short, the art long.", "by": "Hippocrates, Aphorisms 1.1" },
+      "quote": { "text": "Illness is the night-side of life, a more onerous citizenship.", "by": "Susan Sontag, Illness as Metaphor" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "bathhouse", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "house_of_life" } ]
     },
@@ -1014,7 +1014,7 @@
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",
       "flavor": "Watching the Nile's flood and the rising of Sirius, the Egyptians count a year of 365 days, and the stars drift a quarter day a year.",
-      "quote": { "text": "To every thing there is a season, and a time to every purpose under the heaven.", "by": "Ecclesiastes 3:1" },
+      "quote": { "text": "What are days for? Days are where we live.", "by": "Philip Larkin, Days" },
       "cost": { "insight": 19 }, "vp": 3, "eureka": { "tag": "farm", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "hanging_gardens" } ]
     },
@@ -1049,14 +1049,14 @@
     {
       "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
       "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride between them with orders already out of date.",
-      "quote": { "text": "Laws were most numerous when the commonwealth was most corrupt.", "by": "Tacitus, Annals 3.27 (tr. Church and Brodribb)" },
+      "quote": { "text": "A cage went in search of a bird.", "by": "Franz Kafka, Zürau Aphorisms" },
       "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2, "administers": 2 },
       "effects": [ { "op": "unlock", "card": "royal_road" } ]
     },
     {
       "id": "alphabet", "name": "Alphabet", "type": "tech", "era": 3, "prereq": "writing",
       "flavor": "Phoenician traders cut hundreds of signs down to 22 letters, and reading is no longer for scribes alone.",
-      "quote": { "text": "In the beginning was the Word.", "by": "John 1:1" },
+      "quote": { "text": "The limits of my language mean the limits of my world.", "by": "Ludwig Wittgenstein, Tractatus 5.6 (tr. C. K. Ogden)" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "scribal_school", "count": 2, "off": 6 }, "tags": [], "modifiers": { "insight_per_gain": 1 },
       "effects": [ { "op": "unlock", "card": "library" } ]
     },
@@ -1078,14 +1078,14 @@
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
       "flavor": "Atop the ziggurats, priests chart the wandering stars, learn to foretell eclipses, and tell the king only what he needs to know.",
-      "quote": { "text": "I know that I am mortal by nature, and ephemeral; but when I trace at my pleasure the windings to and fro of the heavenly bodies I no longer touch earth with my feet.", "by": "Ptolemy, epigram in the Almagest" },
+      "quote": { "text": "Looking up at the stars, I know quite well that, for all they care, I can go to hell.", "by": "W. H. Auden, The More Loving One" },
       "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "read_the_stars" } ]
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",
       "flavor": "Arches, aqueducts and roads carry water and armies across whole provinces, in straight lines that ignore the hills.",
-      "quote": { "text": "Give me a place to stand, and I will move the earth.", "by": "Archimedes, in Pappus of Alexandria" },
+      "quote": { "text": "Without stones there is no arch.", "by": "Italo Calvino, Invisible Cities (tr. William Weaver)" },
       "cost": { "insight": 32 }, "vp": 0, "eureka": { "card": "monument", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "multi_storey_houses" }, { "op": "unlock", "card": "aqueduct" }, { "op": "unlock", "card": "cistern" } ]
     },

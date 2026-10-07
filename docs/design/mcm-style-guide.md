@@ -1787,7 +1787,8 @@ commuter trains, no names from the twentieth century).
    serves, a use of it as metaphor, an irony (Laozi's emptiness at the hub on The Wheel; Tacitus' "laws were most
    numerous when the commonwealth was most corrupt" on Bureaucracy). A literal one stays only when it is especially
    pithy or interesting ("Egypt is the gift of the river"; Cato's "Good ploughing. What next? Ploughing."). Prefer
-   the deeper cut to the quotation-book line: a reader should not have met it on a poster. No two cards share a quote.
+   the deeper cut to the quotation-book line: a reader should not have met it on a poster. Mix the ages: about a
+   third from modern writers and poets (Larkin, Calvino, Sontag), the rest ancient. No two cards share a quote.
 10. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
 
 ### 18.3 Do / Don't
