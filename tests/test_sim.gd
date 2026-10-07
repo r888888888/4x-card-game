@@ -1,7 +1,7 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
 ## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375), and settlements with their
-## count per tier (328).
+## count per tier (328), and the food and wealth held every 10 turns (379).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "deck_end", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
@@ -307,3 +307,90 @@ func test_376_deck_end_counts_the_cards_drawn_from() -> void:
 	eq(SimStats.game_metrics(e, e.config).get("deck_end"), held, "deck, hand and discard")
 	e.zone("trashed").add(e.zone("hand").take_top())
 	eq(SimStats.game_metrics(e, e.config).get("deck_end"), held - 1, "a trashed card isn't counted")
+
+
+# --- 379: food and wealth held every 10 turns ---
+
+## 10 Caravans (free: +2 food per city) and only the Capital (⟳ +2 food, turn 1 too), from 2 food and 3 wealth: the
+## bot plays all 5 drawn each turn, so food when turn n starts is 2 + 2n + 10(n − 1), and 10 more when it ends.
+func trend_config(turn_limit: int) -> Dictionary:
+	return raw_config({"caravan": 10}, {"turn_limit": turn_limit, "keywords": keywords(),
+		"starting": {"resources": {"food": 2, "wealth": 3}, "tableau": ["capital"], "territory": "homeland"}})
+
+
+## Writes TEST_CARDS and config to user:// files named after tag; returns [cards path, config path].
+func fixture_files(tag: String, config: Dictionary) -> Array[String]:
+	var paths: Array[String] = ["user://sim_%s_cards.json" % tag, "user://sim_%s_config.json" % tag]
+	for pair in [[paths[0], TEST_CARDS], [paths[1], config]]:
+		var f := FileAccess.open(pair[0], FileAccess.WRITE)
+		f.store_string(JSON.stringify(pair[1]))
+		f.close()
+	return paths
+
+
+func test_379_metric_names_end_with_food_then_wealth_every_10_turns() -> void:
+	var d := sim_data({"caravan": 10}, {"turn_limit": 25, "population": tier_population(), "keywords": keywords()})
+	var names := SimStats.metric_names(d.cards, d.config)
+	eq(names.slice(-4), ["food_t10", "food_t20", "wealth_t10", "wealth_t20"], "after the tier metrics")
+	eq(names[names.size() - 5], TIER_METRICS[-1], "the tiers come just before")
+	d = sim_data({"caravan": 10}, {"turn_limit": 100})
+	names = SimStats.metric_names(d.cards, d.config)
+	var food := names.filter(func(m): return m.begins_with("food_t"))
+	var wealth := names.filter(func(m): return m.begins_with("wealth_t"))
+	eq(food, range(10, 101, 10).map(func(n): return "food_t%d" % n), "food_t10 … food_t100")
+	eq(wealth, range(10, 101, 10).map(func(n): return "wealth_t%d" % n), "wealth_t10 … wealth_t100")
+	eq(names.slice(-20), food + wealth, "food's samples, then wealth's, last")
+	d = sim_data({"caravan": 10}, {"turn_limit": 9})
+	names = SimStats.metric_names(d.cards, d.config)
+	check(not names.any(func(m): return m.begins_with("food_t") or m.begins_with("wealth_t")),
+		"no sample before turn 10: %s" % [names])
+
+
+func test_379_a_game_samples_what_is_held_as_each_10th_turn_starts() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "test", errors, warnings, keywords())
+	var config := DataLoader.parse_config(trend_config(20), resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var game := SimStats.play_game(cards, config, [1, "generic", ""], SimStats.metric_names(cards, config))
+	eq(game.get("food_t10"), 112, "2 + 2×10 upkeep + 10×9 from the Caravans of turns 1-9 (122 once turn 10 ends)")
+	eq(game.get("food_t20"), 232, "2 + 2×20 + 10×19 (242 at the game's end)")
+	eq(game.get("wealth_t10"), 3, "nothing makes or spends wealth")
+	eq(game.get("wealth_t20"), 3, "nothing makes or spends wealth")
+
+
+func test_379_trend_line_lists_each_sample_mean_by_turn() -> void:
+	var means := {"score": 40.0, "food_t20": 22.5, "food_t10": 12.0, "wealth_t10": 3.0}
+	eq(SimStats.trend_line("food", means), "food by turn: 10 12.0, 20 22.5", "turns in order, 1 decimal")
+	eq(SimStats.trend_line("wealth", means), "wealth by turn: 10 3.0", "wealth's own samples")
+	eq(SimStats.trend_line("food", {"score": 40.0}), "", "no samples, no line")
+
+
+func test_379_a_run_ends_each_block_with_the_trend_lines() -> void:
+	var paths := fixture_files("379", trend_config(20))
+	var out: Dictionary = SimStats.run_files(paths[0], paths[1], 1, "generic")
+	eq(out.get("code"), 0, "the run plays: %s" % [out.get("lines")])
+	var lines: Array = out.get("lines", [])
+	eq(lines.slice(-2), ["food by turn: 10 112.0, 20 232.0", "wealth by turn: 10 3.0, 20 3.0"], "after the metrics")
+	check(not lines.any(func(l): return l.begins_with("food_t") or l.begins_with("wealth_t")),
+		"no line per sample: %s" % [lines])
+	out = SimStats.run_files(paths[0], paths[1], 1, "generic", {"turns": 10})
+	eq(out.get("lines", []).slice(-2), ["food by turn: 10 112.0", "wealth by turn: 10 3.0"], "--turns 10: one sample")
+	out = SimStats.run_files(paths[0], paths[1], 1, "generic", {"turns": 9})
+	check(not out.get("lines", []).any(func(l): return l.contains("by turn:")), "under 10 turns, no trend lines")
+
+
+func test_379_with_every_strategy_each_block_ends_with_its_trend_lines() -> void:
+	var paths := fixture_files("379_all", trend_config(10))
+	var out: Dictionary = SimStats.run_files(paths[0], paths[1], 1, "all")
+	eq(out.get("code"), 0, "the run plays: %s" % [out.get("lines")])
+	var lines: Array = out.get("lines", [])
+	for s in GenericBot.STRATEGIES:
+		var at := lines.find("== %s" % s)
+		var end := lines.size()
+		for i in range(at + 1, lines.size()):
+			if lines[i].begins_with("== "):
+				end = i
+				break
+		check(at >= 0, "a %s block: %s" % [s, lines])
+		eq(lines.slice(end - 2, end), ["food by turn: 10 112.0", "wealth by turn: 10 3.0"], "%s ends with its trends" % s)
