@@ -541,8 +541,9 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
 - Raids (162): an event may set `raid` `{strength (≥ 1), targets (config keywords, optional), pop (≥ 0, default 1)}`
   (never with `discard`), and only a raid's effects may use the triggers `repel` and `pillage` (upkeep-safe ops only).
   When drawn it is announced: its play effects resolve and its target is fixed (`raid_target(uid)`, kept in the
-  event's `territory_uid`) on the settled territory with any of `targets` (all of them when none has one) with the
-  lowest `defense`, then the most pop, then tableau order. It skips upkeep and two event phases later (257: at turn T+2's
+  event's `territory_uid`) on the settled territory with any of `targets` (any territory when `targets` is empty) with
+  the lowest `defense`, then the most pop, then tableau order. A raid that finds no such territory fizzles (372): it goes
+  straight to `event_discard`, resolving nothing and starting no `raid_gap`, but is still the turn's event. It skips upkeep and two event phases later (257: at turn T+2's
   start when drawn on turn T, before the new event is drawn; `raid_turns_left(uid)` counts 2, 1), it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
   pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
   goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, id, target, strength, defense, repelled, units_lost,

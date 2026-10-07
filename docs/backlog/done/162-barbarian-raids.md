@@ -19,7 +19,7 @@ forecast, with no choice during upkeep. Follows 161.
   `pillage` are allowed only on a raid (load error elsewhere) and only with upkeep-safe ops (`Effect.upkeep_ok`).
 - [x] AC2 (announce): When the event phase draws a raid, it becomes active, its `play` effects resolve, and its
   target is fixed (`raid_target(uid)`): among settled territories with any of `targets` (all settled territories when
-  none match or `targets` is empty), the one with the lowest `defense`, ties to the most pop, then tableau order. With
+  `targets` is empty; a raid matching none fizzles since 372), the one with the lowest `defense`, ties to the most pop, then tableau order. With
   Homeland (defense 0, 3 pop) and Hills (mountain, defense 0, 1 pop), Raiders targeting mountain picks Hills; with no
   targets it picks Homeland.
 - [x] AC3 (timing): An active raid doesn't count down at upkeep. At the next `end_turn`, before the new event is drawn,

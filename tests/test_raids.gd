@@ -1,7 +1,7 @@
 extends "res://tests/lib/raid_case.gd"
 ## Barbarian raids (backlog 162): an event with `raid` {strength, targets, pop} is announced when drawn, aimed at the
-## weakest settled territory it may hit, and strikes two event phases later (257): repelled when the target's defence is
-## at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
+## weakest settled territory it may hit (fizzling when there is none, 372), and strikes two event phases later (257):
+## repelled when the target's defence is at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
 ## there lost). `raid_target`, `raid_forecast` and `raid_resolved`.
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
 ## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),
@@ -90,15 +90,59 @@ func test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop() -> void:
 	eq(e.raid_target(active_uid(e, "horde")), home_uid(e), "Homeland: defence 0 like Hills, but 3 pop")
 
 
-func test_a_raid_whose_targets_match_nothing_picks_among_all_territories() -> void:
-	var e: GameEngine = raid_engine()
+## raid_engine's game with Hills (the only mountain) back in the territory deck, so Raiders matches nothing (372).
+func fixture_no_mountain(ids_on_top := ["raiders", "omen", "omen", "omen"]) -> GameEngine:
+	var e := raid_engine(ids_on_top)
 	if e == null:
-		return
+		return null
 	var hills: CardInstance = e.zone("tableau").find(hills_of(e))
 	e.zone("tableau").remove(hills)
 	e.zone("territory_deck").add(hills)
+	return e
+
+
+func test_bug_372_a_raid_whose_targets_match_nothing_fizzles_into_the_discard() -> void:
+	var e := fixture_no_mountain()
+	if e == null:
+		return
+	var raid := uid_of(e.zone("event_deck"), "raiders")
+	var insight: int = e.resources.insight
+	var recorded := record_messages(e)
 	e.end_turn()
-	eq(e.raid_target(active_uid(e, "raiders")), home_uid(e), "no mountain settled: Homeland")
+	eq(active_uid(e, "raiders"), -1, "not active")
+	check(e.zone("event_discard").find(raid) != null, "in the event discard")
+	eq(e.raid_target(raid), -1, "no target")
+	eq(e.raid_forecast(), [] as Array[Dictionary], "nothing forecast")
+	eq(notices_in(recorded).filter(func(m): return "Raiders" in m), [] as Array[String], "no announcement")
+	eq(e.resources.insight, insight, "its play effects don't resolve")
+
+
+func test_bug_372_a_fizzled_raid_never_strikes_or_starts_the_raid_gap() -> void:
+	var e := fixture_no_mountain()
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	var home: CardInstance = e.zone("tableau").find(home_uid(e))
+	var pop := home.pop
+	for i in 4:
+		e.end_turn()
+	eq(outcomes, [] as Array[Dictionary], "no raid_resolved")
+	eq(home.pop, pop, "Homeland keeps its pop")
+	eq(e.state.last_raid_turn, 0, "no raid gap started")
+
+
+func test_bug_372_a_fizzled_raid_is_still_the_turns_event() -> void:
+	var e := fixture_no_mountain()
+	if e == null:
+		return
+	var raid := uid_of(e.zone("event_deck"), "raiders")
+	var deck := e.zone("event_deck").size()
+	var seen: Array[Dictionary] = []
+	e.event_drawn.connect(func(o: Dictionary): seen.append(o))
+	e.end_turn()
+	eq(seen.map(func(o): return o.uid), [raid], "event_drawn once, for Raiders")
+	eq(e.zone("event_deck").size(), deck - 1, "no second event drawn")
+	eq(e.zone("active_events").size(), 0, "nothing active")
 
 
 func test_a_raid_avoids_stronger_land_and_breaks_full_ties_by_tableau_order() -> void:
