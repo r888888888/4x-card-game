@@ -2,7 +2,7 @@
 id: 388
 title: Veteran pips on unit cards
 type: feature
-status: red-review
+status: in-progress
 branch: feat/388-veteran-pips
 ---
 

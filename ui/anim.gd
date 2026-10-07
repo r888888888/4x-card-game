@@ -25,6 +25,7 @@ const DISCARD_POP_TIME := 0.12
 const DISCARD_FLY_TIME := 0.45
 const TARGET_FLY_TIME := 0.3  # a played action flying to its target before it is discarded
 const DEAL_STAGGER := 0.06  # delay between cards dealt into the hand
+const TALLY_STEP := 0.06  # between the pips a tally switches on (§10.3; veteran pips, 388)
 const ODOMETER_STEP := 0.07  # a counter's digits roll one value this often (181)
 const ODOMETER_MAX_STEPS := 8  # a longer change jumps, then rolls only its last steps
 const PULSE_SCALE := 1.18

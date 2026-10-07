@@ -7,12 +7,20 @@ var event_modal: EventModal
 var raid_modal: RaidModal
 var _drawn := {}  # the last event_drawn outcome, shown by the next show(); {} when none
 var _raid := {}  # the last raid_resolved outcome, likewise
+var _veterans: Array[int] = []  # units a raid promoted (165), their new pip held back until its modal closes (388)
+
+## The raid modal closed: light the new pips of the units it promoted (388).
+signal veterans_promoted(uids: Array[int])
 
 
 ## Builds both modals on stack, hidden.
 func _init(stack: ModalStack) -> void:
 	event_modal = EventModal.new(stack)
 	raid_modal = RaidModal.new(stack)
+	raid_modal.dismissed.connect(func():
+		var uids := _veterans
+		_veterans = []
+		veterans_promoted.emit(uids))
 
 
 ## Hears engine's events and raids, and calls notify(text) with what a chosen option did (269).
@@ -22,13 +30,21 @@ func listen(engine: GameEngine, notify: Callable) -> void:
 		var summary := engine.outcome_summary(outcome)
 		if summary != "" and notify.is_valid():  # the engine outlives a closed main scene and its toasts
 			notify.call("%s: %s" % [engine.card_db[outcome.id].name, summary]))
-	engine.raid_resolved.connect(func(outcome: Dictionary): _raid = outcome)
+	engine.raid_resolved.connect(func(outcome: Dictionary):
+		_raid = outcome
+		_veterans.append_array(outcome.get("veterans", [])))
 
 
 ## Forgets what hasn't been shown (a new game).
 func clear() -> void:
 	_drawn = {}
 	_raid = {}
+	_veterans = []
+
+
+## The units whose newest veteran counter waits for the raid modal to close, one entry per counter (388).
+func waiting_veterans() -> Array[int]:
+	return _veterans
 
 
 ## Opens what e's turn start brought, unless e is over, and forgets it. A choice event waits, still remembered, while
@@ -36,7 +52,8 @@ func clear() -> void:
 func show(e: GameEngine) -> void:
 	var drawn := _drawn
 	var raid := _raid
-	clear()
+	_drawn = {}
+	_raid = {}
 	if e.is_over:
 		return
 	if not drawn.is_empty():

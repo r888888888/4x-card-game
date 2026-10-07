@@ -75,6 +75,16 @@ func training(uid: int) -> int:
 
 ## Unit uid's veteran counters (165): 1 per raid repelled where it stood, up to config veteran_max; 0 for anything
 ## but a unit in the tableau.
+## Unit uid's veteran pips on its card (388): {filled: its counters, total: config veteran_max}; {filled 0, total 0}
+## for anything but a unit in the tableau, or with veteran_max 0.
+func veteran_pips(uid: int) -> Dictionary:
+	var total: int = _engine().config.get("veteran_max", 0)
+	var unit := _unit(uid)
+	if unit == null or total == 0:
+		return {"filled": 0, "total": 0}
+	return {"filled": unit.counters, "total": total}
+
+
 func veterancy(uid: int) -> int:
 	var unit := _unit(uid)
 	return unit.counters if unit != null else 0

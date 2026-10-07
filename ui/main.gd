@@ -293,6 +293,7 @@ func _build_layout() -> void:
 	era_sheet.closed.connect(func(): if board.visible: _refresh())
 	game_over = layout.game_over
 	news = layout.news
+	news.veterans_promoted.connect(func(uids: Array[int]): _views.tally_veterans(Game.engine, uids))
 	_views = BoardViews.new(self, top_bar)
 	territory_view.navigated.connect(func():  # the view carries its cards as it grows or shrinks (105)
 		_views.quiet = true
