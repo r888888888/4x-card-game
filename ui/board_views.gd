@@ -49,7 +49,7 @@ func sync(e: GameEngine) -> void:
 		if views.has(group.territory):
 			var t: int = group.territory
 			views[t].show_settled(TerritoryView.stats(e, t), e.territory_tooltip(t))
-			views[t].set_raid_warning(e.raid_warning(t))
+			views[t].set_raid_warning(e.military.raid_warning(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		if zone_name == "governments" and m.pending_kind() == GameEngine.PENDING_GOVERNMENT:  # the default first (254)
@@ -62,12 +62,12 @@ func sync(e: GameEngine) -> void:
 			place(card, rows[zone_name], i, 0.0)
 	for uid in viewed:  # a unit away from home says where it is from (163); a trained one, its strength (164)
 		if views.has(uid) and e.unit_station(uid) != -1:
-			views[uid].set_unit_origin(e.unit_origin(uid))
-			views[uid].set_unit_strength(e.unit_strength_tag(uid))
+			views[uid].set_unit_origin(e.military.origin(uid))
+			views[uid].set_unit_strength(e.military.strength_tag(uid))
 	for card in e.zone("active_events").cards:
-		var raid := e.raid_tag(card.uid)
+		var raid := e.military.raid_tag(card.uid)
 		if raid != "":
-			views[card.uid].set_raid_info(raid, e.raid_short(card.uid))
+			views[card.uid].set_raid_info(raid, e.military.raid_short(card.uid))
 		else:
 			views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	outcome = {}

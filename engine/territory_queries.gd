@@ -199,18 +199,3 @@ func territory_status(uid: int) -> Dictionary:
 func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
 
-
-## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
-func defense(uid: int) -> int:
-	return Military.defense_parts(self, uid).get("total", 0)
-
-
-## Settled territory uid's defence by source (161): {units, buildings, cities, terrain, total}, or {} for anything else.
-func defense_parts(uid: int) -> Dictionary:
-	return Military.defense_parts(self, uid)
-
-
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
-## 162); "" when none is.
-func raid_warning(territory_uid: int) -> String:
-	return Military.raid_warning(self, territory_uid)

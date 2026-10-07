@@ -45,7 +45,7 @@ func open(outcome: Dictionary) -> void:
 	var e := Game.engine
 	var def: CardDef = e.card_db[outcome.id]
 	var summary := e.outcome_summary(outcome)
-	var raid := e.raid_line(outcome.uid)  # a raid lasts until it strikes; it says where and against what (162)
+	var raid := e.military.raid_line(outcome.uid)  # a raid lasts until it strikes; it says where and against what (162)
 	_shown = {"uid": outcome.uid, "id": def.id, "text": def.rules_text(e.card_db), "flavor": def.flavor,
 		"lasts": raid if raid != "" else def.lasts_text(),
 		"summary": summary if summary != "" else "No immediate effect"}

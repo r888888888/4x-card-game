@@ -410,8 +410,8 @@ static func stats(e: GameEngine, t: int) -> String:
 	if s.has("sea_slots"):
 		slots += "   ⚓ %d" % s.free_sea_slots
 	if not e.population_on():
-		return "%s   ⛨ %d" % [slots, e.defense(t)]
-	return "%s   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [slots, s.pop, s.housing, s.free_workers, e.defense(t)]
+		return "%s   ⛨ %d" % [slots, e.military.defense(t)]
+	return "%s   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [slots, s.pop, s.housing, s.free_workers, e.military.defense(t)]
 
 
 ## The pop meter's pips in order (124); none with population off.

@@ -33,12 +33,12 @@ func test_the_military_area_offers_the_moved_methods() -> void:
 	check(area != null, "engine.military exists")
 	if area == null:
 		return
-	eq(AREA_METHODS.filter(func(m): return not area.has_method(m)), [], "engine.military's missing methods")
+	eq(AREA_METHODS.filter(func(m): return not area.has_method(m)), [], "engine.military's missing methods")  # scaffolding-ok: AC1 is which methods the area has
 
 
 func test_the_old_names_are_gone_and_nothing_calls_them() -> void:
 	var e := make_engine({"farm": 10})
-	eq(OLD_NAMES.filter(func(m): return e.has_method(m)), [], "old names still on GameEngine")
+	eq(OLD_NAMES.filter(func(m): return e.has_method(m)), [], "old names still on GameEngine")  # scaffolding-ok: AC2 is that they're gone
 	var callers: Array[String] = []
 	for dir in ["res://engine", "res://ui", "res://sim", "res://tests"]:
 		for path in scripts_in(dir):

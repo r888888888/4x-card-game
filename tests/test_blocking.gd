@@ -50,11 +50,11 @@ func actions() -> Array:
 		["revolt", func(e): return e.revolt_error(), func(e): return e.revolt()],
 		["rename_territory", func(e): return e.call("rename_territory_error", home_uid(e), "Delta"),
 			func(e): return e.call("rename_territory", home_uid(e), "Delta")],
-		["move_unit", func(e): return e.move_unit_error(first_in(e, "tableau"), home_uid(e)),
-			func(e): return e.move_unit(first_in(e, "tableau"), home_uid(e))],
-		["disband", func(e): return e.disband_error(first_in(e, "tableau")), func(e): return e.disband(first_in(e, "tableau"))],
-		["upgrade_unit", func(e): return e.upgrade_unit_error(first_in(e, "tableau")),
-			func(e): return e.upgrade_unit(first_in(e, "tableau"))],  # 166
+		["military.move", func(e): return e.military.move_error(first_in(e, "tableau"), home_uid(e)),
+			func(e): return e.military.move(first_in(e, "tableau"), home_uid(e))],
+		["military.disband", func(e): return e.military.disband_error(first_in(e, "tableau")), func(e): return e.military.disband(first_in(e, "tableau"))],
+		["military.upgrade", func(e): return e.military.upgrade_error(first_in(e, "tableau")),
+			func(e): return e.military.upgrade(first_in(e, "tableau"))],  # 166
 		["choose_option", func(e): return e.choose_option_error(0), func(e): return e.choose_option(0)],
 		["take", func(e): return e.take_error(option.call(e)), func(e): return e.take(option.call(e))],  # 370
 		["contribute", func(e): return e.contribute_error(first_in(e, "tableau"), 1),
@@ -146,6 +146,10 @@ func test_the_action_table_names_every_action_with_an_error_query() -> void:
 			continue
 		if methods.has(ERROR_OF.get(name, name + "_error")):
 			expected.append(name)
+	var area_methods: Array = (Military as Script).get_script_method_list().map(func(m): return m.name)
+	for name: String in area_methods:  # an area's actions, as "<area>.<action>" (394)
+		if not name.begins_with("_") and not name.ends_with("_error") and area_methods.has(name + "_error"):
+			expected.append("military." + name)
 	var listed: Array[String] = []
 	for row in actions():
 		listed.append(row[0])
@@ -207,12 +211,19 @@ func test_every_action_sits_under_actions_beside_its_error_query() -> void:
 			funcs.append(lines[i].trim_prefix("func ").get_slice("(", 0))
 	var names: Array = actions().map(func(row): return row[0]).filter(func(n): return not QUERY_ONLY.has(n))
 	names.append_array(NOT_BLOCKED)
-	for name in names:
-		var query: String = ERROR_OF.get(name, name + "_error")
-		var at := funcs.find(name)
-		check(at != -1, "%s under # --- Actions ---" % name)
-		check(at != -1 and (funcs.find(query) == at - 1 or funcs.find(query) == at + 1),
-			"%s beside %s: %s" % [query, name, funcs])
+	var area_funcs: Array[String] = []  # an area's actions sit beside their error queries in its own file (394)
+	for line in FileAccess.get_file_as_string("res://engine/military.gd").split("\n"):
+		if line.begins_with("func "):
+			area_funcs.append(line.trim_prefix("func ").get_slice("(", 0))
+	for name: String in names:
+		var in_area := name.begins_with("military.")
+		var listed: Array[String] = area_funcs if in_area else funcs
+		var action := name.trim_prefix("military.")
+		var query: String = ERROR_OF.get(action, action + "_error")
+		var at := listed.find(action)
+		check(at != -1, "%s under # --- Actions ---" % name if not in_area else "%s in military.gd" % name)
+		check(at != -1 and (listed.find(query) == at - 1 or listed.find(query) == at + 1),
+			"%s beside %s: %s" % [query, action, listed])
 
 
 # --- 175 AC1: whether hand cards can be picked up ---

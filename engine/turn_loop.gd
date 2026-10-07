@@ -146,7 +146,7 @@ static func start_turn(e: GameEngine) -> void:
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 	Anarchy.start_renewal(e)
 	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
-		Military.strike_raids(e)
+		e.military.strike_raids()
 		Events.draw(e)
 
 
@@ -160,7 +160,7 @@ static func forecast(e: GameEngine) -> Dictionary:
 	_begin(f)
 	var starve := _settle_in(f)
 	if f.turn >= 2:
-		Military.strike_raids(f)
+		f.military.strike_raids()
 	var out := {"score": f.score() - e.score(), "pop": f.total_pop() - e.total_pop(), "starve": starve}
 	for r in e.resources:
 		out[r] = f.resources.get(r, 0) - e.resources[r]

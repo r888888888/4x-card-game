@@ -34,7 +34,7 @@ func test_a_pillaging_raid_opens_its_modal() -> void:
 		if m.is_empty() or outcomes.size() != 1:
 			return
 		eq([m.get("uid"), m.get("id"), m.get("repelled")], [raid, "raiders", false], "uid, id, pillaged")
-		eq(m.get("result"), Game.engine.raid_outcome_text(outcomes[0]), "the result line")
+		eq(m.get("result"), Game.engine.military.outcome_text(outcomes[0]), "the result line")
 		check(String(m.get("result", "")).contains("pillaged"), "says pillaged: %s" % m.get("result"))
 		eq([m.get("title"), m.get("context")], ["Raiders", "Turn 4"], "title and context")
 		eq(m.get("art"), RaidModal.ART[false], "the pillaged drawing")

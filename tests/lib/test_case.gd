@@ -985,7 +985,7 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 ## revolts, abandons, disbands and discards unless a discard is owed (end_turn is listed last, so each turn plays, builds and buys first): a fast game
 ## for UI tests (314: the sim's GenericBot takes ~30× longer), not a good one.
 func play_first_legal(e: GameEngine) -> void:
-	var skip := ["revolt", "abandon", "disband", "discard_card"]
+	var skip := ["revolt", "abandon", "military.disband", "discard_card"]
 	for step in 20000:
 		if e.is_over:
 			return
@@ -997,7 +997,7 @@ func play_first_legal(e: GameEngine) -> void:
 		if action[0] == "renew":  # a choice of count among options (312): renew with the first count, as its error query
 			e.renew(action[1].slice(0, action[2]))
 		else:
-			e.callv(action[0], action.slice(1))
+			LegalActions.apply(e, action)
 
 
 ## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116), and each notice's

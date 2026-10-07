@@ -253,13 +253,13 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 		if s.has("tier_name"):
 			lines.append(e.tier_line(uid))
 		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
-	var d := Military.defense_parts(e, uid)
+	var d := e.military.defense_parts(uid)
 	lines.append("Defence %d: units %d, walls %d, cities %d, terrain %d" % [d.total, d.units, d.buildings, d.cities,
 		d.terrain])
 	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
 	if not keywords.is_empty():
 		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
-	var raids := Military.raid_warning(e, uid)
+	var raids := e.military.raid_warning(uid)
 	if raids != "":
 		lines.append(raids)
 	return "\n".join(lines)
