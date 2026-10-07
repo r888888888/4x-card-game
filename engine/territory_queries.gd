@@ -131,6 +131,12 @@ func upgrade_rules_text(card_id: String) -> String:
 	return "\n".join(card_db[card_id].face(card_db).rules)
 
 
+## Building uid's upgrade rows for its details (387): {card_id, base, built, error} per base (uid, then its upgrades)
+## and build-menu entry, locked or not, that upgrades it; [] for anything but a building in the tableau.
+func upgrade_rows(uid: int) -> Array[Dictionary]:
+	return Upgrades.rows(self, uid)
+
+
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
 func upgrade_tree(uid: int) -> Array[int]:
 	return Upgrades.tree(self, uid)

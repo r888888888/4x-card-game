@@ -37,6 +37,7 @@ var _buy: Button
 var _reason: Label  # why Buy is disabled, on the footer's left (259)
 var _pile: CardView  # the supply pile card Buy buys from; null when Buy is hidden
 var _column: VBoxContainer  # the pile's card, price tag and copies left in the aside; null unless a pile is on show
+var _upgrades: UpgradeList  # the Upgrades section (387): a building's upgrades, built or to build
 var _gives: VBoxContainer  # the Gives row (289): its heading and the cards; hidden when the card gives nothing
 var _gives_row: HBoxContainer  # per given card, a column: its card as a button, its caption under it
 var given_details: CardDetailsModal  # where a Gives card's details open, over this one; built on first use
@@ -72,6 +73,10 @@ func _init(p_stack: ModalStack) -> void:
 	_abandon = add_footer_button(UIKit.button("Abandon…", _on_abandon))
 	_contribute = add_footer_button(UIKit.button("Contribute", _on_contribute), true)
 	abandon_modal = AbandonModal.new(p_stack)
+	_upgrades = UpgradeList.new()  # under the card and body, over the Gives row (387)
+	_upgrades.upgrade_pressed.connect(_on_build_upgrade)
+	footer_rule.get_parent().add_child(_upgrades)
+	footer_rule.get_parent().move_child(_upgrades, footer_rule.get_index())
 	_gives = VBoxContainer.new()
 	_gives.add_theme_constant_override("separation", Tokens.SPACE_2)
 	_gives.visible = false
@@ -151,6 +156,15 @@ func gives_captions() -> Array[String]:
 func gives_card(i: int) -> Button:
 	var columns := _gives_columns()
 	return columns[i].get_meta("button") if i < columns.size() else null
+
+
+## Test hooks (387): the Upgrades section's rows ({name, rules, status, button}), and whether it shows.
+func upgrade_rows() -> Array[Dictionary]:
+	return _upgrades.rows() if is_open() else [] as Array[Dictionary]
+
+
+func upgrades_shown() -> bool:
+	return is_open() and _upgrades.visible
 
 
 ## Test hook: the body text on show, without markup.
@@ -269,6 +283,7 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		SupplyScreen.show_pile(_column, e, card_id)
 		aside.custom_minimum_size = _column.get_combined_minimum_size()
 		card.attach(_column.get_meta("slot"))
+	_upgrades.show_for(uid)
 	_show_gives(details.get("gives", []))
 	present()  # last among its siblings, so a screen added later (the new game screen) can't take its input (107)
 
@@ -354,6 +369,13 @@ func _on_disband() -> void:
 	close()
 	if Game.engine.military.disband_error(uid) == "":
 		Game.engine.military.disband(uid)
+
+
+## A row of the Upgrades section was pressed (387): close, then build card_id on base, as the Build modal does.
+func _on_build_upgrade(card_id: String, base: int) -> void:
+	close()
+	if Game.engine.build_error(card_id, base) == "":
+		Game.engine.build(card_id, base)
 
 
 func _on_upgrade() -> void:

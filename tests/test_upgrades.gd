@@ -517,7 +517,7 @@ func rows_of(e: GameEngine, uid: int) -> Array:
 
 
 func test_a_farms_rows_are_every_upgrade_in_menu_order_built_or_not() -> void:
-	var e := upgrade_engine()
+	var e := upgrade_engine(10, "", {"build_menu": MENU.merged({"plough": {"locked": true}}, true)})
 	var home := home_uid(e)
 	var farm := put_on(e, home, "farm")
 	var ditch := upgrade(e, "ditch", farm)
