@@ -21,6 +21,7 @@ static var CONTROL_BORDER: Color = NIGHT["CONTROL_BORDER"]
 static var CONTROL_DISABLED_BORDER: Color = NIGHT["CONTROL_DISABLED_BORDER"]
 static var HAIRLINE: Color = NIGHT["HAIRLINE"]  # a fine rule between parts of a sheet (guide rule-fine; 217)
 static var PAPER_SHADE: Color = NIGHT["PAPER_SHADE"]  # laid over the paper texture (341): Night's gray paper darkened
+static var ART_SHADE: Color = NIGHT["ART_SHADE"]  # laid over a card's art (381): Night dims the print
 
 # Text.
 static var TEXT: Color = NIGHT["TEXT"]
@@ -101,6 +102,7 @@ const NIGHT := {
 	"CONTROL_DISABLED_BORDER": Color("4a463f"),
 	"HAIRLINE": Color("3a3733"),
 	"PAPER_SHADE": Color(0, 0, 0, 0.3),
+	"ART_SHADE": Color(0, 0, 0, 0.25),
 	"TEXT": Color("ede6d6"),
 	"TEXT_DIM": Color("b9b1a1"),
 	"TEXT_DISABLED": Color("8e877a"),
@@ -165,6 +167,7 @@ const DAY := {
 	"CONTROL_DISABLED_BORDER": Color("cfc6b5"),
 	"HAIRLINE": Color("cfc6b5"),
 	"PAPER_SHADE": Color(0, 0, 0, 0),
+	"ART_SHADE": Color(0, 0, 0, 0),
 	"TEXT": Color("22211f"),
 	"TEXT_DIM": Color("57534b"),
 	"TEXT_DISABLED": Color("7a7468"),

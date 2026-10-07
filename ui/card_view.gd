@@ -30,7 +30,7 @@ static var TYPE_COLORS: Dictionary:  # card type -> its colour, as the palette r
 			CardDef.GOVERNMENT: Palette.GOVERNMENT,
 			CardDef.UNIT: Palette.UNIT,
 		}
-const HAND_SIZE := Vector2(264, 320)
+const HAND_SIZE := Vector2(264, 360)
 const TABLEAU_SIZE := Vector2(245, 175)
 const BOARD_SIZE := Vector2(245, 150)  # every card in the Realm's row (138): one line per field, the rest in details
 # Board faces (138): what a card in the Realm's row is.
@@ -354,6 +354,7 @@ func _set_dimmed(on: bool, reason: String) -> void:
 	_dimmed = on
 	_face.set_reason(reason)
 	_face.set_band_color(DIM_BORDER if on else _color)
+	_face.set_art_dimmed(on)
 	_update_border()
 
 
