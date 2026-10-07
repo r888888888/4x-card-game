@@ -2,7 +2,7 @@
 id: 373
 title: The sim bot counts a card it wouldn't play as worth 0, and renews away its worst cards
 type: feature
-status: red-review
+status: in-progress
 branch: feat/373-bot-deck-worth-floor
 ---
 
