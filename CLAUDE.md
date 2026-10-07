@@ -8,6 +8,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   `scripts/test.sh <substring of file::method>`
 - Balance suite: `scripts/test.sh --balance` runs only `tests/balance/` (real-data bot games; not in the main suite
   or the Stop hook). It is manual, like every balance run (below): the user runs it, or asks you to.
+- Balance runs (manual, below) come in levels: `scripts/sim.sh --level 1` is one game (seed 1, generic strategy, the
+  starting civ), 2 every strategy, 3 every civ too, 4 ten seeds of all of it; add `--compare <checkout>` to pair with main.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
 - In a Claude Code cloud session: [docs/cloud.md](docs/cloud.md) (`scripts/cloud-setup.sh` installs Godot).

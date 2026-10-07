@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Runs the headless balance simulator on data/*.json. Usage: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n]  (default 20, all)
+#   --level 1-4 replaces seeds and strategy (378): 1 = seed 1, generic, the baseline civ (config starting.civilization,
+#   or --civ); 2 = seed 1, every strategy, the baseline civ; 3 = seed 1, every strategy and civ; 4 = seeds 1-10, every
+#   strategy and civ. With --compare, the level's seeds are the most a cell gets.
 #   scripts/sim.sh --compare <checkout> [max seeds] [strategy] [--civ id] [--turns n]: compares that checkout ("main") with
 #   this one game by game (293): seeds in rounds of 5 per strategy x civ until the score change is within ±5% of main's,
 #   or max seeds (default 20); a line per cell (! past 10%), then the other metrics that moved. Both need sim/ from 293.

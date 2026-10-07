@@ -2,7 +2,7 @@
 id: 378
 title: Sim levels 1–4 pick seeds, strategies and civs in one flag
 type: feature
-status: in-progress
+status: review
 branch: feat/378-sim-levels
 ---
 
@@ -22,29 +22,29 @@ The baseline civ is the config's `starting.civilization` (egypt today), which th
 civilization, and which a game started with no civ already plays. `--civ <id>` replaces it at levels 1 and 2.
 
 ## Acceptance criteria
-- [ ] AC1: Given the test config (civilizations listed, `starting.civilization` set), when the sim's job list is built
+- [x] AC1: Given the test config (civilizations listed, `starting.civilization` set), when the sim's job list is built
   for level 1, then it is exactly one job: seed 1, strategy `GenericBot.STRATEGY`, civ = `starting.civilization`; and
   the run prints the single-strategy table (no per-strategy blocks).
-- [ ] AC2: Given the same config, when the job list is built for level 2, then it is one job per
+- [x] AC2: Given the same config, when the job list is built for level 2, then it is one job per
   `GenericBot.STRATEGIES` entry (3), each seed 1 and civ = `starting.civilization`, in strategy order; and the run prints
   a block per strategy whose "score by civilization" names that civ's id (not "default").
-- [ ] AC3: Given a config with N listed civilizations, when the job list is built for level 3, then it has
+- [x] AC3: Given a config with N listed civilizations, when the job list is built for level 3, then it has
   3 × N jobs, all seed 1, one per strategy × civ (report order: strategy, then civ); for level 4 it has 10 × 3 × N jobs,
   seeds 1–10 for each strategy × civ.
-- [ ] AC4: Given `--level 1 --civ sumer` (or `--level 2 --civ sumer`), then every job's civ is `sumer`. Given
+- [x] AC4: Given `--level 1 --civ sumer` (or `--level 2 --civ sumer`), then every job's civ is `sumer`. Given
   `--level 3 --civ sumer` or `--level 4 --civ sumer`, then the run exits 1 before playing, with an error saying levels 3
   and 4 play every civilization. `--turns n` works with every level as it does today.
-- [ ] AC5: Given `--level` with a value other than 1, 2, 3 or 4 (`0`, `5`, `x`, or no value), then the run exits 1
+- [x] AC5: Given `--level` with a value other than 1, 2, 3 or 4 (`0`, `5`, `x`, or no value), then the run exits 1
   before playing with an error naming the bad value and the allowed levels. Given `--level` together with a positional
   seed count or strategy (`scripts/sim.sh 20 --level 2`, `scripts/sim.sh --level 2 wide`), then it exits 1 with an
   error saying `--level` replaces them.
-- [ ] AC6: Given `--compare <checkout> --level N`, then the compare plays the same strategy × civ cells as AC1–AC4 on
+- [x] AC6: Given `--compare <checkout> --level N`, then the compare plays the same strategy × civ cells as AC1–AC4 on
   both sides, with the level's seed count as the most a cell gets: at levels 1–3 each cell plays exactly seed 1 on each
   side; at level 4 each cell plays rounds of 5 up to 10 seeds (stopping early as compare does today).
-- [ ] AC7: Given a config whose `starting.civilization` is `""`, when levels 1 or 2 are asked for without `--civ`, then
+- [x] AC7: Given a config whose `starting.civilization` is `""`, when levels 1 or 2 are asked for without `--civ`, then
   the run exits 1 before playing with an error naming `starting.civilization` (and `--civ`); with `--civ <id>` it plays.
   (A civ of `""` with every strategy would mean every civilization in `job_list`, so level 2 can't fall back to it.)
-- [ ] AC8: Given Godot runs a script (`--script`, as the sim does), when the `Game` autoload reads its launch options,
+- [x] AC8: Given Godot runs a script (`--script`, as the sim does), when the `Game` autoload reads its launch options,
   then it reads none: `--level 2 --civ sumer` gives no error and no civ. Given the game itself, `--civ sumer` still
   starts as Sumer and `--level` is still an unknown option.
 
@@ -92,3 +92,5 @@ All in `tests/test_sim_levels.gd`, on `SimLevels.run_args(args, config)` and `Si
   civilization, so level 2 had no way to play the no-civ start.
 - Green: `sim.sh --level 2` printed "ERROR: unknown option --level" from the `Game` autoload, which also parses the
   command line under `--script`. Added AC8 (`LaunchOptions.for_game`).
+- Docs: README, sim.sh header, CLAUDE.md Commands, PLAN.md, the balance skill (`/balance [level]`, default 1). Not yet
+  run on the real data: see Manual check.
