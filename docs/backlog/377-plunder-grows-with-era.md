@@ -2,7 +2,7 @@
 id: 377
 title: Raids plunder a bigger share in later eras
 type: feature
-status: in-progress
+status: review
 branch: feat/377-plunder-grows-with-era
 ---
 
@@ -16,19 +16,19 @@ loses most of them, so defence or spending matters more as the game goes on.
 Config `raid_plunder_pct` 50 and `raid_plunder_era_pct` 10 unless stated. The plunder share is
 `raid_plunder_pct + raid_plunder_era_pct × (era − 1)`, capped at 100, where era is `era()` when the raid strikes.
 
-- [ ] AC1 (share by era): `raid_plunder_pct()` returns 50 in era 1, 60 in era 2 and 70 in era 3.
-- [ ] AC2 (plunder uses it): Given a pillaging raid whose own pillage effects are `lose 2 food`, with food 17 and
+- [x] AC1 (share by era): `raid_plunder_pct()` returns 50 in era 1, 60 in era 2 and 70 in era 3.
+- [x] AC2 (plunder uses it): Given a pillaging raid whose own pillage effects are `lose 2 food`, with food 17 and
   wealth 7 when it strikes (15 food left after its effects): in era 1 it plunders 8 food (15 → 7) and 4 wealth
   (7 → 3); in era 2 it plunders 9 food (15 → 6) and 5 wealth (7 → 2); in era 3 it plunders 11 food (15 → 4) and
   5 wealth (7 → 2). Each is rounded up, and `raid_resolved`'s `lost` (and `raid_outcome_text`) includes it.
-- [ ] AC3 (era at the strike): Given a raid drawn in era 1 that strikes after the era has become 2, then it plunders
+- [x] AC3 (era at the strike): Given a raid drawn in era 1 that strikes after the era has become 2, then it plunders
   at 60%. Its strength stays the one fixed when it was drawn (374).
-- [ ] AC4 (cap): Given `raid_plunder_pct` 80 and `raid_plunder_era_pct` 30, then `raid_plunder_pct()` is 100 in
+- [x] AC4 (cap): Given `raid_plunder_pct` 80 and `raid_plunder_era_pct` 30, then `raid_plunder_pct()` is 100 in
   era 2, and a pillage there takes all the food and wealth left.
-- [ ] AC5 (off and unchanged): With `raid_plunder_era_pct` 0 (the default when unset) the share is `raid_plunder_pct`
+- [x] AC5 (off and unchanged): With `raid_plunder_era_pct` 0 (the default when unset) the share is `raid_plunder_pct`
   in every era. With `raid_plunder_pct` 0 and `raid_plunder_era_pct` 10, era 1 plunders nothing and era 2 plunders
   10%. A repelled raid plunders nothing in any era.
-- [ ] AC6 (config): the loader rejects a negative or non-integer `raid_plunder_era_pct`, naming the field.
+- [x] AC6 (config): the loader rejects a negative or non-integer `raid_plunder_era_pct`, naming the field.
 
 ## Out of scope
 - Scaling raid strength with era or realm size (raids' strength still grows only with the hoard, 374).
@@ -66,3 +66,7 @@ Config `raid_plunder_pct` 50 and `raid_plunder_era_pct` 10 unless stated. The pl
 ## Log
 - Red: tests raise the era with the public `add_era(n)` after the raid is announced. The 374 tests keep their own
   20% config, so the shipped 20 → 50 change touches no existing test.
+- Green: `Military.plunder_pct` computes the share from `era()`; `GameEngine.raid_plunder_pct()` wraps it beside
+  `raid_strength` (`engine_queries.gd` is at its 500-line soft cap). The loader knows the new key.
+- Balance worry: at 50–70% a single pillage now takes most of a late hoard, and the bot still doesn't foresee plunder
+  (no forecast includes it). Run the balance suite and the `balance` skill against main before tuning further.
