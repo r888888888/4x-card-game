@@ -35,14 +35,12 @@
     "research": 1,
     "barter": 2,
     "storyteller": 1,
-    "hunt": 1,
     "bread_and_beer": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 6 },
     "settler": { "price": 3, "count": 6 },
     "research": { "price": 3, "count": 6 },
-    "hunt": { "price": 2, "count": 6 },
     "bread_and_beer": { "price": 2, "count": 8 },
     "land_grants": { "price": 3, "count": 4 },
     "feast": { "price": 2, "count": 6 },

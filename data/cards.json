@@ -55,7 +55,7 @@
       "id": "hunt", "name": "Hunt", "type": "action",
       "flavor": "The herds move through the long grass like weather, and the hunters follow, as their parents did, and bring meat home at dusk.",
       "cost": {}, "vp": 0, "tags": [],
-      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest"] } ]
     },
     {
       "id": "net_fishing", "name": "Net Fishing", "type": "action",
@@ -208,7 +208,8 @@
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
-        { "op": "score", "amount": 1 }
+        { "op": "score", "amount": 1 },
+        { "op": "create", "card": "hunt", "zone": "deck", "unique": true }
       ]
     },
     {

@@ -105,7 +105,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
   tableau the card can't be played (Caravan).
-- `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] }`
+- `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest"] }`
   gains `amount` (default 1) per settled territory (in the tableau) with any of `keywords`, printed or rolled; each
   territory counts once. `GameEngine.count_territories_with(keywords)` is the count (Hunt).
 - `gain_per_pop` (304): `{ "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3 }` gains `amount` × ⌊pop on
@@ -411,9 +411,9 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
   territory); era 3 Royal Road (Bureaucracy, hand size +1; 273) and Lighthouse of Pharos (Navigation, coastal, port;
   ⟳ +1 wealth per port card; 365). The
-  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
-  Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1, Warriors 1 (285: a military unit from the first shuffle). Early buildings (080) are on sale from turn 1, in unlocked supply piles,
-  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
+  starting deck is the basics (132, config `deck`): Settler 1, Scout 1, Research 1, Barter 2 (2 food → 2 wealth, +1
+  action), Storyteller 1 (1 food: draw 2), Bread and Beer 1 (grow 1). Early buildings (080) are in the build menu from
+  turn 1 (295), never dealt: Farm, Hunters' Camp (forest; adds the one Hunt, +1 food per forest territory; 368), Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
   gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
   makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).
