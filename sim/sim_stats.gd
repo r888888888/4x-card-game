@@ -6,8 +6,8 @@ extends RefCounted
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
 const METRICS: Array[String] = ["score", "settlements", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
-	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "lookahead_turns", "raids", "raids_repelled",
-	"raid_strength_max", "raid_pop_lost", "raid_units_lost", "raid_food_lost", "raid_wealth_lost"]
+	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "deck_end", "lookahead_turns", "raids",
+	"raids_repelled", "raid_strength_max", "raid_pop_lost", "raid_units_lost", "raid_food_lost", "raid_wealth_lost"]
 ## How long a parallel run's worker may go without finishing a turn before it is stopped and the run fails (318).
 ## SIM_STALL_SEC overrides it (stall_sec_from_env).
 const DEFAULT_STALL_SEC := 600
@@ -24,7 +24,7 @@ const JOBS_FILE := "jobs.json"
 ## is the last turn played when it never happened. The Anarchy metrics (158): anarchies (times it began), revolts,
 ## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
 ## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
-## trashed by the end), and <id>_turns per government (see _governments): turns that started with it ruling.
+## trashed by the end), deck_end (the cards in the deck, hand and discard at the end, 376), and <id>_turns per government (see _governments): turns that started with it ruling.
 ## lookahead_turns (294) is the turns the bot's rollouts played (GenericBot.lookahead_turns). The raid metrics (375)
 ## add up the game's raid_resolved outcomes (raid_metrics).
 static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := GenericBot.STRATEGY, civ := "") -> Dictionary:
@@ -212,6 +212,7 @@ static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 		"bought": bought,
 		"era": engine.era(),
 		"trashed": engine.zone("trashed").size(),
+		"deck_end": engine.zone("deck").size() + engine.zone("hand").size() + engine.zone("discard").size(),
 	}
 	var tiers := _tiers(config)
 	for t in tiers:

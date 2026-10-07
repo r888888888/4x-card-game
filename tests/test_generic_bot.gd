@@ -7,7 +7,8 @@ extends "res://tests/lib/anarchy_case.gd"
 ## first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest
 ## limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing
 ## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
-## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373)
+## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373); the deck's worth
+## is the best plays of a drawn hand (376)
 
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}
 ## Riot: +3 food and +2 unrest. Gift: a choice event, +1 food or +3 food.
@@ -313,15 +314,17 @@ const AUGURY := {"id": "augury", "name": "Augury", "type": "action", "tags": ["o
 	"effects": [{"op": "gain", "resource": "food", "amount": 2}]}
 
 
-## GenericBot.value of a bot_game with nothing in the hand and deck in the deck.
-func deck_value(deck: Array) -> float:
-	return value_of(bot_game([], deck), "generic")
+## GenericBot.value of a bot_game with nothing in the hand, deck in the deck and government ruling.
+func deck_value(deck: Array, government := "lone") -> float:
+	return value_of(bot_game([], deck, 11, government), "generic")
 
 
+## Rewritten by 376 (the user, 2026-10-06): 3 Temples were fewer than a hand, so every card was drawn each turn. With
+## more cards than a hand and a turn that plays the whole hand (Stewards), a dead card takes a play's place.
 func test_a_card_worth_0_still_dilutes_the_draws() -> void:
-	var diluted := deck_value(["temple", "temple", "temple", "pioneer"])
-	var pure := deck_value(["temple", "temple", "temple"])
-	check(diluted < pure, "3 Temples and a dead Pioneer %.3f < 3 Temples %.3f" % [diluted, pure])
+	var diluted := deck_value(["temple", "temple", "temple", "temple", "temple", "temple", "pioneer"], "stewards")
+	var pure := deck_value(["temple", "temple", "temple", "temple", "temple", "temple"], "stewards")
+	check(diluted < pure, "6 Temples and a dead Pioneer %.3f < 6 Temples %.3f" % [diluted, pure])
 
 
 ## A game fallen into Anarchy (turn 2) with renewal 2 owed: 5 Auguries in the hand, 5 in the deck and 2 Guildhalls in
@@ -370,3 +373,101 @@ func test_a_rollout_still_answers_a_renewal() -> void:
 	GenericBot.take_turn(e, "generic", ctx)
 	eq(e.pending().get("kind", ""), "", "renewal answered")
 	eq(e.zone("trashed").size(), 2, "2 cards trashed")
+
+
+# --- 376: the deck's worth is what a turn's plays from a drawn hand are worth ---
+
+## Expected sum of the best plays of hand cards drawn from values (each floored at 0), by trying every hand.
+func best_plays_by_enumeration(values: Array, hand: int, plays: int) -> float:
+	var hands := all_hands(range(values.size()), mini(hand, values.size()))
+	var total := 0.0
+	for h in hands:
+		var drawn: Array = h.map(func(i): return maxf(0.0, values[i]))
+		drawn.sort()
+		drawn.reverse()
+		for v in drawn.slice(0, plays):
+			total += v
+	return total / hands.size()
+
+
+## Every k-element subset of items.
+func all_hands(items: Array, k: int) -> Array:
+	if k == 0:
+		return [[]]
+	if items.size() < k:
+		return []
+	var out := []
+	for rest in all_hands(items.slice(1), k - 1):
+		out.append([items[0]] + rest)
+	out.append_array(all_hands(items.slice(1), k))
+	return out
+
+
+func test_a_card_worth_less_than_nothing_counts_as_a_dead_card() -> void:
+	var temples := ["temple", "temple", "temple", "temple", "temple", "temple"]
+	var negative := deck_value(temples + ["guildhall"])
+	var dead := deck_value(temples + ["pioneer"])
+	check(absf(negative - dead) < 0.001, "6 Temples and a Guildhall %.3f = 6 Temples and a dead Pioneer %.3f"
+		% [negative, dead])
+
+
+func test_adding_a_card_worth_0_or_less_never_raises_the_decks_worth() -> void:
+	var guildhalls := ["guildhall", "guildhall", "guildhall"]
+	var with_dead := deck_value(guildhalls + ["pioneer"])
+	var without := deck_value(guildhalls)
+	check(with_dead <= without + 0.001, "3 Guildhalls and a dead Pioneer %.3f ≤ 3 Guildhalls %.3f"
+		% [with_dead, without])
+	var with_negative := deck_value(guildhalls + ["guildhall"])
+	check(with_negative <= without + 0.001, "4 Guildhalls %.3f ≤ 3 Guildhalls %.3f" % [with_negative, without])
+
+
+func test_trashing_a_dead_card_pays_when_a_hand_can_come_up_short() -> void:
+	var thin := deck_value(["temple", "pioneer", "pioneer", "pioneer", "pioneer"])
+	var thick := deck_value(["temple", "pioneer", "pioneer", "pioneer", "pioneer", "pioneer"])
+	check(thin > thick, "a Temple and 4 dead Pioneers %.3f > with 5 (the Temple can miss the hand) %.3f"
+		% [thin, thick])
+
+
+func test_trashing_a_dead_card_never_lowers_the_decks_worth() -> void:
+	var temples := ["temple", "temple", "temple", "temple", "temple", "temple"]
+	var thinned := deck_value(temples)
+	var dead := deck_value(temples + ["pioneer"])
+	check(thinned >= dead - 0.001, "6 Temples %.3f ≥ 6 Temples and a dead Pioneer %.3f" % [thinned, dead])
+
+
+func test_thinning_below_a_turns_plays_loses_value() -> void:
+	var two := deck_value(["temple", "temple"], "band")
+	var one := deck_value(["temple"], "band")
+	check(two > one, "2 plays a turn (Band): 2 Temples %.3f > 1 Temple %.3f" % [two, one])
+
+
+func test_an_empty_deck_is_worth_less_than_one_with_a_card_worth_something() -> void:
+	var empty := deck_value([])
+	var weak := deck_value(["temple", "guildhall", "guildhall", "guildhall"])
+	check(empty < weak, "no cards %.3f < a Temple and 3 Guildhalls %.3f" % [empty, weak])
+
+
+func test_a_card_a_turn_never_plays_adds_nothing() -> void:
+	var two := deck_value(["temple", "temple"])
+	var one := deck_value(["temple"])
+	check(absf(two - one) < 0.001, "1 play a turn (Lone), both drawn: 2 Temples %.3f = 1 Temple %.3f" % [two, one])
+
+
+func test_turn_worth_counts_the_best_plays_of_a_drawn_hand() -> void:
+	eq(GenericBot.turn_worth([3.0, 1.0], 5, 1), 3.0, "both drawn, the better played")
+	eq(GenericBot.turn_worth([3.0, 2.0, 1.0], 5, 2), 5.0, "all drawn, the best 2 played")
+	eq(GenericBot.turn_worth([3.0, -5.0], 5, 1), 3.0, "a negative card counts as 0")
+	eq(GenericBot.turn_worth([], 5, 2), 0.0, "no cards")
+	check(absf(GenericBot.turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1) - (2.5 + 1.0 / 6)) < 0.0001,
+		"the 3 in 5 of 6 hands; the 1 only in the hand without the 3: 2.5 + 1/6, got %.4f"
+		% GenericBot.turn_worth([3.0, 1.0, 0.0, 0.0, 0.0, 0.0], 5, 1))
+
+
+func test_turn_worth_matches_every_hand_tried() -> void:
+	var cases := [[[4.0, 3.0, 2.0, 1.0, 0.0, 0.0, -2.0], 5, 2], [[3.0, 3.0, 2.0, 2.0, 1.5, 1.0, 1.0, 0.5], 5, 3],
+		[[5.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 5, 1], [[2.0, 4.0, 1.0, 3.0, 0.5, 6.0], 3, 2]]
+	for c in cases:
+		var want := best_plays_by_enumeration(c[0], c[1], c[2])
+		var got: float = GenericBot.turn_worth(c[0], c[1], c[2])
+		check(absf(got - want) < 0.0001, "%s, hand %d, %d plays: %.4f, every hand gives %.4f"
+			% [c[0], c[1], c[2], got, want])

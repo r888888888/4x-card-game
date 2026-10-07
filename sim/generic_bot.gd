@@ -7,9 +7,10 @@ extends RefCounted
 ##
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
 ## its forecast change) for food, wealth and insight − weight × unrest − weight × the unrest coming in over the turns
-## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
-## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
-## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
+## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what the best plays of a drawn hand
+## would add, each card worth what playing it adds and never below 0, 0 for one with nothing to act on: 310, 376) + the
+## printed cost of the techs learned (+ a weight per settled territory up to the admin cap for wide, 321). Turns ahead =
+## min(HORIZON, turns left): income counts early, only points at the end.
 ## A position's forecast is computed once: value() looks it up by what it reads (forecast_key, 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
@@ -51,8 +52,8 @@ const RENEWAL_COMBOS := 40
 ## Actions the bot never takes itself: play ends the turn; revolts are weighed by rollouts (314).
 const SKIPPED := ["end_turn", "revolt"]
 ## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest held (0: held
-## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns ahead
-## × plays a turn), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
+## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns
+## ahead), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
 ## up to the admin cap (321).
 const WEIGHTS := {
 	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05,
@@ -371,7 +372,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		if over > 0:
 			v -= w.risk * over * over
 	if not ctx.valuing and not ctx.rollout:
-		v += w.deck * ahead * _plays_a_turn(e) * _deck_worth(e, ctx)
+		v += w.deck * ahead * _deck_worth(e, ctx)
 	for tech in e.zone("researched").cards:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
@@ -445,19 +446,52 @@ static func _concave(s: float) -> float:
 	return 3.0 * s if s < 0 else STOCK_SCALE * log(1.0 + s / STOCK_SCALE)
 
 
-## The average card_value of the cards drawn from (deck, hand and discard), 0 for a card with nothing to act on now.
+## What a turn's plays from the cards drawn from (deck, hand and discard) are worth (376): turn_worth of their
+## card_values, 0 for a card with nothing to act on now, with a hand of hand_size and _plays_a_turn plays.
 static func _deck_worth(e: GameEngine, ctx: Context) -> float:
-	var total := 0.0
-	var n := 0
+	var values := []
 	var live := {}  # card id → whether it has something to act on (the same for every copy)
 	for z in ["deck", "hand", "discard"]:
 		for card in e.zone(z).cards:
-			n += 1
 			if not live.has(card.def.id):
 				live[card.def.id] = not e.would_need_target(card.uid) or not e.would_target(card.uid).is_empty()
-			if live[card.def.id]:
-				total += card_value(e, card.def.id, ctx)
-	return total / n if n > 0 else 0.0
+			values.append(card_value(e, card.def.id, ctx) if live[card.def.id] else 0.0)
+	return turn_worth(values, e.hand_size(), _plays_a_turn(e))
+
+
+## The expected sum of the best plays of a hand of hand cards drawn from cards worth values, each floored at 0 (a card
+## the bot wouldn't play costs a draw, not value; 376). Sorted best first, the card with i better ones is played when
+## it is drawn and fewer than plays of those are drawn with it (hypergeometric).
+static func turn_worth(values: Array, hand: int, plays: int) -> float:
+	var sorted: Array[float] = []
+	for v in values:
+		sorted.append(maxf(0.0, v))
+	sorted.sort()
+	sorted.reverse()
+	var n := sorted.size()
+	if n == 0:
+		return 0.0
+	var h := mini(hand, n)
+	var others := _choose(n - 1, h - 1)  # the ways to draw the rest of a hand holding a given card
+	var total := 0.0
+	for i in n:
+		if sorted[i] <= 0.0:
+			break
+		var played := 0.0
+		for k in mini(plays, h):
+			played += _choose(i, k) * _choose(n - 1 - i, h - 1 - k)
+		total += sorted[i] * h / n * played / others
+	return total
+
+
+## n choose k, 0 outside 0..n.
+static func _choose(n: int, k: int) -> float:
+	if k < 0 or k > n:
+		return 0.0
+	var out := 1.0
+	for j in mini(k, n - k):
+		out = out * (n - j) / (j + 1)
+	return out
 
 
 ## What playing a copy of card id now adds to the value (the deck's worth left out), measured on a sample fork where

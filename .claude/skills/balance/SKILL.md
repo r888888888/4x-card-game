@@ -16,6 +16,7 @@ the era was added / its last tech was learned; the turn limit if never).
 Anarchy and governments (158): `anarchies`, `revolts`, `anarchy_turns` (turns that started under it), `restored`
 (order bought), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
 `<id>_turns` per government a game can have (turns that started with it ruling).
+Deck (376): `deck_end`, the cards in the deck, hand and discard at the game's end (a drained deck shows as a low one).
 Cost (294): `lookahead_turns`, the turns the bot's lookahead forks played (most of a game's CPU).
 Raids (375): `raids` (strikes), `raids_repelled`, `raid_strength_max`, and what pillages took: `raid_pop_lost`,
 `raid_units_lost`, `raid_food_lost`, `raid_wealth_lost`.
