@@ -172,3 +172,28 @@ func test_parse_card_is_short_and_the_loader_under_550_lines() -> void:
 	check(lines > 0 and lines <= 60, "_parse_card is %d lines (at most 60)" % lines)
 	var total := FileAccess.get_file_as_string(LOADER_PATH).split("\n").size()
 	check(total <= 550, "engine/data_loader.gd is %d lines (at most 550)" % total)
+
+
+# --- 339: the population rules in their own loader ---
+
+const CONFIG_LOADER_PATH := "res://engine/config_loader.gd"
+const POPULATION_CONFIG_PATH := "res://engine/population_config.gd"
+## The functions that move out of ConfigLoader, by their name there.
+const POPULATION_FUNCS: Array[String] = ["_parse_population", "_parse_tiers", "_parse_famine", "_parse_relief",
+	"_parse_unrest", "_check_homes_house_start", "_check_tolerates", "_check_building_tiers", "_check_start_buildings"]
+
+
+func test_population_rules_parse_in_population_config_not_config_loader() -> void:
+	check(FileAccess.file_exists(POPULATION_CONFIG_PATH), "%s exists" % POPULATION_CONFIG_PATH)
+	var source := FileAccess.get_file_as_string(POPULATION_CONFIG_PATH)
+	check(source.begins_with("class_name PopulationConfig\n"), "population_config.gd declares class PopulationConfig")
+	for name in POPULATION_FUNCS:
+		eq(function_lines(CONFIG_LOADER_PATH, name), -1, "config_loader.gd declares no %s" % name)
+	check(FileAccess.get_file_as_string(CONFIG_LOADER_PATH).contains("PopulationConfig."), "ConfigLoader calls PopulationConfig")
+
+
+func test_config_loader_under_450_lines_and_population_config_under_350() -> void:
+	var total := FileAccess.get_file_as_string(CONFIG_LOADER_PATH).split("\n").size()
+	check(total <= 450, "engine/config_loader.gd is %d lines (at most 450)" % total)
+	var lines := FileAccess.get_file_as_string(POPULATION_CONFIG_PATH).split("\n").size()
+	check(lines > 1 and lines <= 350, "engine/population_config.gd is %d lines (more than 1, at most 350)" % lines)
