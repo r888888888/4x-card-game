@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## legal_actions (312): every action the engine would allow now, as [action, args…], in a fixed order: an owed
-## decision's options, then play_card, build, buy, buy_tech, contribute, move_unit, discard_card, relieve_famine,
+## decision's options, then play_card, build, buy, buy_tech, contribute, move_unit, upgrade_unit (166), discard_card, relieve_famine,
 ## restore_order, revolt, abandon, disband, end_turn. A coverage table fails the suite when an action with an error
 ## query can't be listed. Games from tests/lib/anarchy_case.gd (Chiefs ruling, unrest, a research deck with Lore, Farms
 ## in the supply, 10 food, wealth and insight, home pop 6), with a unit (Levy) and a wonder (Colossus) added.
