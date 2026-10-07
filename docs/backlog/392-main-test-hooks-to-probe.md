@@ -2,7 +2,7 @@
 id: 392
 title: Move main.gd's test hooks into a test-side probe
 type: chore
-status: ready
+status: red-review
 branch: feat/392-main-probe
 ---
 
@@ -56,7 +56,14 @@ those methods live on the test side, and a check keeps new ones from coming back
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_ui_structure::…` |
+| AC1 | `test_ui_structure::test_main_has_no_test_hooks` (fails naming the 21 methods) |
+| AC2, AC3 | the renamed call sites in the existing tests (`MainProbe.x(main)`), which must keep passing |
+| AC4 | the line count, checked by hand at the end (434 before) |
+| AC5 | the whole suite: same count plus the new check |
 
 ## Log
 - 2026-10-07: specced from the review of the scripts that keep hitting the size limit (after 391).
+- 2026-10-07: red. The check finds 21 methods, not 19: `build_ceremonies` (357) and `background_box` (183, 341) are
+  `Test hook`s too, so they move with the rest (AC1 governs). Finding callers is a text search for `.name(`, which
+  can't tell main's `forecast_text` from `Counter.forecast_text()` that `top_bar.gd` calls; so a script that defines a
+  method of the same name doesn't count as a caller.

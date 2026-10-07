@@ -278,3 +278,62 @@ func test_main_has_room_under_its_limit() -> void:
 	var lines := source(MAIN_PATH).count("\n")
 	check(lines <= 450, "ui/main.gd: %d lines, want at most 450 (316)" % lines)
 
+
+
+# --- 392: main.gd holds no test hooks ---
+
+const HOOK_FREE_DIRS := ["res://ui", "res://sim", "res://engine", "res://autoload"]
+## main.gd's public methods that aren't test hooks although only the engine or Godot calls them.
+const MAIN_ENTRY_POINTS := ["quit_hook"]
+
+
+## The .gd files under dir and its subfolders.
+func scripts_under(dir: String) -> Array[String]:
+	var out: Array[String] = []
+	for file in DirAccess.get_files_at(dir):
+		if file.ends_with(".gd"):
+			out.append(dir + "/" + file)
+	for sub in DirAccess.get_directories_at(dir):
+		out.append_array(scripts_under(dir + "/" + sub))
+	return out
+
+
+## Whether a script other than tests calls main's method name: ".name(" in any script under HOOK_FREE_DIRS but main
+## and those defining a name of their own (there ".name(" is most likely theirs: TopBar's Counter.forecast_text), or in
+## main itself a bare call or a callable ("name(", "name)", "name,", "name.bind") outside its definition.
+func called_outside_tests(name: String, main_lines: PackedStringArray) -> bool:
+	var dotted := RegEx.create_from_string("\\." + name + "\\(")
+	var defines := RegEx.create_from_string("(?m)^(static )?func " + name + "\\(")
+	for dir in HOOK_FREE_DIRS:
+		for path in scripts_under(dir):
+			var text := source(path)
+			if path != MAIN_PATH and defines.search(text) == null and dotted.search(text) != null:
+				return true
+	var bare := RegEx.create_from_string("(^|[^.\\w])" + name + "(\\(|\\)|,|\\.bind)")
+	for line in main_lines:
+		if not line.begins_with("func " + name + "(") and not line.strip_edges().begins_with("#") and bare.search(line) != null:
+			return true
+	return false
+
+
+## main.gd's public methods that only tests use: a "Test hook" doc comment, or no caller outside tests/.
+func main_test_hooks() -> Array[String]:
+	var lines := source(MAIN_PATH).split("\n")
+	var found: Array[String] = []
+	var doc := ""
+	for line in lines:
+		if line.begins_with("##"):
+			doc += line
+			continue
+		var name := ""
+		if line.begins_with("func ") and not line.begins_with("func _"):
+			name = line.trim_prefix("func ").get_slice("(", 0)
+		if name != "" and not MAIN_ENTRY_POINTS.has(name):
+			if doc.contains("Test hook") or not called_outside_tests(name, lines):
+				found.append(name)
+		doc = ""
+	return found
+
+
+func test_main_has_no_test_hooks() -> void:
+	eq(main_test_hooks(), [] as Array[String], "ui/main.gd's test hooks (move them to tests/lib/main_probe.gd)")
