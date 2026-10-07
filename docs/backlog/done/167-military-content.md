@@ -2,7 +2,7 @@
 id: 167
 title: Era units and era 2–3 raids
 type: feature
-status: review
+status: done
 branch: feat/167-military-content
 ---
 
