@@ -2,7 +2,7 @@
 id: 378
 title: Sim levels 1–4 pick seeds, strategies and civs in one flag
 type: feature
-status: red-review
+status: in-progress
 branch: feat/378-sim-levels
 ---
 
@@ -44,6 +44,9 @@ civilization, and which a game started with no civ already plays. `--civ <id>` r
 - [ ] AC7: Given a config whose `starting.civilization` is `""`, when levels 1 or 2 are asked for without `--civ`, then
   the run exits 1 before playing with an error naming `starting.civilization` (and `--civ`); with `--civ <id>` it plays.
   (A civ of `""` with every strategy would mean every civilization in `job_list`, so level 2 can't fall back to it.)
+- [ ] AC8: Given Godot runs a script (`--script`, as the sim does), when the `Game` autoload reads its launch options,
+  then it reads none: `--level 2 --civ sumer` gives no error and no civ. Given the game itself, `--civ sumer` still
+  starts as Sumer and `--level` is still an unknown option.
 
 ## Out of scope
 - New metrics or report formats; levels only choose which games run.
@@ -76,6 +79,7 @@ All in `tests/test_sim_levels.gd`, on `SimLevels.run_args(args, config)` and `Si
 | AC5 | `test_a_level_other_than_1_to_4_is_refused`, `test_a_level_with_a_seed_count_or_strategy_is_refused` |
 | AC6 | `test_a_compared_level_gets_its_seed_count_as_the_most_a_cell_plays` (the paired run itself: Manual check) |
 | AC7 | `test_levels_1_and_2_need_a_baseline_civ` |
+| AC8 | `test_launch_options::test_378_the_game_reads_no_options_when_godot_runs_a_script` |
 | (unchanged) | `test_without_a_level_the_seed_count_and_strategy_are_positional` |
 
 ## Manual check
@@ -86,3 +90,5 @@ All in `tests/test_sim_levels.gd`, on `SimLevels.run_args(args, config)` and `Si
 ## Log
 - Red: AC7 changed from "plays with civ ''" to an error: `job_list` reads civ "" with every strategy as every
   civilization, so level 2 had no way to play the no-civ start.
+- Green: `sim.sh --level 2` printed "ERROR: unknown option --level" from the `Game` autoload, which also parses the
+  command line under `--script`. Added AC8 (`LaunchOptions.for_game`).

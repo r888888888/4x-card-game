@@ -71,3 +71,17 @@ func test_starts_game_with_a_civ_or_a_seed() -> void:
 	eq(LaunchOptions.starts_game({"civ": "sumer", "turns": 0, "seed": -1}), true, "civ")
 	eq(LaunchOptions.starts_game({"civ": "", "turns": 0, "seed": 4}), true, "seed")
 	eq(LaunchOptions.starts_game({"civ": "", "turns": 20, "seed": -1}), false, "turns only")
+
+
+# --- 378: a script's arguments aren't the game's ---
+
+func test_378_the_game_reads_no_options_when_godot_runs_a_script() -> void:
+	var launch: Object = LaunchOptions.new()
+	var sim := PackedStringArray(["--headless", "--path", ".", "--script", "res://sim/run.gd"])
+	var under_sim: Dictionary = launch.for_game(sim, PackedStringArray(["--level", "2", "--civ", "sumer"]), CIVS)
+	eq(under_sim.get("errors"), [], "the sim's --level is not the game's unknown option")
+	eq(under_sim.get("civ"), "", "nor does the game start as the sim's --civ")
+	var game: Dictionary = launch.for_game(PackedStringArray(["--path", "."]), PackedStringArray(["--civ", "sumer"]), CIVS)
+	eq(game.get("civ"), "sumer", "the game itself reads its options")
+	var bad: Dictionary = launch.for_game(PackedStringArray(["--path", "."]), PackedStringArray(["--level", "2"]), CIVS)
+	check(not bad.get("errors", []).is_empty(), "and still reports an unknown one")

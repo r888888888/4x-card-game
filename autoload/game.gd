@@ -21,7 +21,7 @@ func _ready() -> void:
 			push_error(e)
 		return
 	engine = GameEngine.new(result.cards, result.config)
-	launch = LaunchOptions.parse(OS.get_cmdline_user_args(), result.config.get("civilizations", []))
+	launch = LaunchOptions.for_game(OS.get_cmdline_args(), OS.get_cmdline_user_args(), result.config.get("civilizations", []))
 	for e in launch.errors:
 		push_error(e)
 	LaunchOptions.apply(engine, launch)
