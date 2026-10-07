@@ -2,7 +2,7 @@
 id: 369
 title: Five new actions pad out the starting deck
 type: feature
-status: in-progress
+status: review
 branch: feat/369-starting-deck-actions
 ---
 
@@ -14,16 +14,16 @@ Burn** and **Corvée**. Slash and Burn is the first card to use the `trash` op, 
 is in the deck. Content only: every op exists.
 
 ## Acceptance criteria
-- [ ] AC1 (invariant): Every op in `EffectRegistry` is used by at least one effect of a real card. The failure names
+- [x] AC1 (invariant): Every op in `EffectRegistry` is used by at least one effect of a real card. The failure names
   the unused op. (Fails today: nothing uses `trash`.)
-- [ ] AC2 (invariant): The real starting deck (`config.deck`) holds at least one card tagged `unrest.allowed_tag`, so a
+- [x] AC2 (invariant): The real starting deck (`config.deck`) holds at least one card tagged `unrest.allowed_tag`, so a
   player in Anarchy always owns a card they can play. The failure names the tag. (Fails today: Feast, the only order
   card, is in the supply.)
-- [ ] AC3 (invariant): Every resource a real card's `cost` names is gained by the play effect of at least one card in
+- [x] AC3 (invariant): Every resource a real card's `cost` names is gained by the play effect of at least one card in
   the real starting deck. The failure names the resource. (Guards the deck once 368 removes Hunt, today's only food
   gain in the deck.)
-- [ ] AC4 (invariant): Every real action card has a flavor line, as buildings do (352). The failure names the card.
-- [ ] AC5: The existing invariants hold with the change, in particular the flavor length cap (353),
+- [x] AC4 (invariant): Every real action card has a flavor line, as buildings do (352). The failure names the card.
+- [x] AC5: The existing invariants hold with the change, in particular the flavor length cap (353),
   `test_every_real_card_can_reach_a_game` and `test_real_deck_has_growth_cards`.
 
 ## Out of scope
@@ -75,8 +75,7 @@ is in the deck. Content only: every op exists.
 | AC5 | `test_content::test_flavor_lines_are_short`, `test_every_real_card_can_reach_a_game`, `test_real_deck_has_growth_cards`, `test_real_data_loads` (existing) |
 
 ## Manual check
-- [ ] Shipped data: the starting deck is Settler, Scout, Research, Barter 2, Storyteller, Hunt (until 368), Bread and
-  Beer, Runner, Tribute, Assembly of Elders, Slash and Burn and Corvée, one of each new card, none in the supply.
+- [ ] Shipped data: the starting deck is Settler, Scout, Research, Barter 2, Storyteller, Bread and Beer, Runner, Tribute, Assembly of Elders, Slash and Burn and Corvée, one of each new card, none in the supply.
 - [ ] Card text: Runner reads draw 1, +1 action, +1 food; Tribute +1 wealth per city; Assembly of Elders −1 unrest,
   +1 insight; Slash and Burn removes a card in hand from the game, +1 food; Corvée +3 wealth, +1 unrest.
 - [ ] "Corvée" renders with its é on the card face, the details window and the log: `godot --path . -- --seed 5`.
@@ -88,3 +87,12 @@ is in the deck. Content only: every op exists.
 <!-- Decisions and surprises during implementation, newest last. -->
 - Spec: assumed the five are dealt only (no supply piles) and Assembly of Elders carries `order`; Recall and Planning
   move to later-era items (user, 2026-10-06).
+- Build: AC4 was already covered by `test_every_action_has_flavor` (351), so only AC1–AC3 got new tests. AC3 counts
+  play-trigger gains (`gain`, `gain_per_tag`, `gain_per_keyword`) of starting-deck cards only; it failed on food,
+  since 368 had already taken Hunt out. Runner and Slash and Burn now fund it.
+- Card text checked headless: Runner "Draw 1 card / +1 action / +1 food", Tribute "+1 wealth per city", Assembly of
+  Elders "−1 unrest / +1 insight", Slash and Burn "Remove a card in hand from the game / +1 food", Corvée "+3 wealth /
+  +1 unrest".
+- Balance worries (not run, per CLAUDE.md): the deck goes 7 → 12 and three of the five cost nothing and give
+  resources, so early income rises; Corvée's +1 unrest may push toward Anarchy sooner. Whether GenericBot values
+  Slash and Burn's thinning is unmeasured: a balance item should run the sim.
