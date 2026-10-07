@@ -6,7 +6,8 @@ extends "res://tests/lib/raid_case.gd"
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
 ## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),
 ## repelled and pillaged, `raid_forecast`, the final turn and forks, the strike's line (`raid_outcome_text`, logged not
-## noticed, 271); raids that grow with the food and wealth held (`raid_strength`) and plunder them (374)
+## noticed, 271); raids that grow with the food and wealth held (`raid_strength`) and plunder them (374), a share
+## that grows with the era (`raid_plunder_pct`, 377)
 
 
 # --- AC1: loading ---
@@ -684,3 +685,130 @@ func test_374_a_fork_keeps_the_announced_strength() -> void:
 	f.end_turn()
 	f.end_turn()
 	eq(outcomes.map(func(r): return r.strength), [5], "the fork strikes at 5")
+
+# --- 377: the plunder share grows with the era ---
+
+## plunder_engine's plunder config: 50% in era 1, +10 points per era after it.
+const ERA_PLUNDER := {"raid_plunder_pct": 50, "raid_plunder_era_pct": 10}
+
+
+## A hoard_engine game (Raiders, strength 3 at 5 food) with ERA_PLUNDER merged with overrides. Still turn 1.
+func plunder_engine(overrides := {}) -> GameEngine:
+	var o := ERA_PLUNDER.duplicate()
+	o.merge(overrides, true)
+	return hoard_engine(5, 0, o)
+
+
+## Plays e on until Raiders strikes undefended Hills in era: the era is added before the strike, and e holds food and
+## wealth as it strikes. Returns the raid_resolved outcomes.
+func strike_in_era(e: GameEngine, era: int, food: int, wealth: int) -> Array[Dictionary]:
+	var outcomes := record_raids(e)
+	e.end_turn()  # Raiders announced in era 1
+	eq(e.era(), 1, "announced in era 1")
+	e.end_turn()
+	if era > 1:
+		e.add_era(era)
+	hold_after_upkeep(e, food, wealth)
+	e.end_turn()  # strikes
+	return outcomes
+
+
+func test_377_the_plunder_share_grows_by_raid_plunder_era_pct_each_era() -> void:
+	var e := plunder_engine()
+	if e == null:
+		return
+	var shares := [e.raid_plunder_pct()]
+	for era in [2, 3]:
+		e.add_era(era)
+		shares.append(e.raid_plunder_pct())
+	eq(shares, [50, 60, 70], "eras 1, 2, 3")
+
+
+func test_377_a_pillage_plunders_the_share_of_the_era_it_strikes_in() -> void:
+	# −2 food (17 → 15), then the era's share of 15 food and 7 wealth, each rounded up
+	for row in [[1, 7, 3, {"food": 10, "wealth": 4}], [2, 6, 2, {"food": 11, "wealth": 5}],
+			[3, 4, 2, {"food": 13, "wealth": 5}]]:
+		var e := plunder_engine()
+		if e == null:
+			return
+		var outcomes := strike_in_era(e, row[0], 17, 7)
+		eq([e.resources.food, e.resources.wealth], [row[1], row[2]], "era %d: food and wealth" % row[0])
+		if outcomes.size() != 1:
+			check(false, "era %d: one raid resolved: %s" % [row[0], outcomes])
+			continue
+		eq(outcomes[0].repelled, false, "era %d: pillaged" % row[0])
+		eq(outcomes[0].lost, row[3], "era %d: lost" % row[0])
+		var line: String = e.raid_outcome_text(outcomes[0])
+		for fragment in ["−%d food" % row[3].food, "−%d wealth" % row[3].wealth]:
+			check(fragment in line, "era %d: '%s' in %s" % [row[0], fragment, line])
+
+
+func test_377_a_raid_drawn_in_era_1_plunders_at_the_share_of_the_era_it_strikes_in() -> void:
+	var e := plunder_engine()
+	if e == null:
+		return
+	var outcomes := strike_in_era(e, 2, 17, 7)  # hoard 24 at the strike: 5 if it were fixed then
+	eq([e.resources.food, e.resources.wealth], [6, 2], "plundered at 60%")
+	eq(outcomes.map(func(r): return r.strength), [3], "struck at the strength announced in era 1")
+
+
+func test_377_the_plunder_share_is_capped_at_100() -> void:
+	var e := plunder_engine({"raid_plunder_pct": 80, "raid_plunder_era_pct": 30})
+	if e == null:
+		return
+	var outcomes := strike_in_era(e, 2, 17, 7)
+	eq(e.raid_plunder_pct(), 100, "80 + 30 in era 2")
+	eq([e.resources.food, e.resources.wealth], [0, 0], "everything left taken")
+	if outcomes.size() == 1:
+		eq(outcomes[0].lost, {"food": 17, "wealth": 7}, "lost")
+	else:
+		check(false, "one raid resolved: %s" % [outcomes])
+
+
+func test_377_with_raid_plunder_era_pct_0_the_share_is_raid_plunder_pct_in_every_era() -> void:
+	var e := plunder_engine({"raid_plunder_era_pct": 0})
+	if e == null:
+		return
+	var shares := [e.raid_plunder_pct()]
+	for era in [2, 3]:
+		e.add_era(era)
+		shares.append(e.raid_plunder_pct())
+	eq(shares, [50, 50, 50], "eras 1, 2, 3")
+
+
+func test_377_with_raid_plunder_pct_0_only_later_eras_plunder() -> void:
+	for row in [[1, 0, 15, 7], [2, 10, 13, 6]]:  # era 2: 10% of 15 food and 7 wealth, rounded up: 2 and 1
+		var e := plunder_engine({"raid_plunder_pct": 0})
+		if e == null:
+			return
+		strike_in_era(e, row[0], 17, 7)
+		eq(e.raid_plunder_pct(), row[1], "era %d: share" % row[0])
+		eq([e.resources.food, e.resources.wealth], [row[2], row[3]], "era %d: food and wealth" % row[0])
+
+
+func test_377_a_repelled_raid_plunders_nothing_in_a_later_era() -> void:
+	var e := plunder_engine()
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	build_on(e, hills_of(e), ["town"])
+	recruit(e, hills_of(e))
+	e.end_turn()
+	e.add_era(3)
+	hold_after_upkeep(e, 17, 7)
+	e.end_turn()
+	eq([e.resources.food, e.resources.wealth], [17, 9], "only its repel effects: +2 wealth")
+	eq(outcomes.map(func(r): return r.repelled), [true], "repelled")
+
+
+func test_377_raid_plunder_era_pct_defaults_to_0_and_rejects_bad_values() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	eq(e.config.get("raid_plunder_era_pct"), 0, "default")
+	eq(hoard_config_errors({"raid_plunder_era_pct": 10}), [] as Array[String], "valid")
+	check_cases([
+		["below 0", {"raid_plunder_era_pct": -1}, "'raid_plunder_era_pct' must be an integer >= 0", "one_error"],
+		["not an int", {"raid_plunder_era_pct": "lots"}, "raid_plunder_era_pct", "one_error"],
+	], hoard_config_errors)

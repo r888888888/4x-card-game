@@ -569,9 +569,10 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   event that turn. Shipped: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4.
   Hoards (374): a raid's strength is fixed as it is announced, its printed strength + 1 per config `raid_hoard_step`
   food and wealth held then (`raid_strength(uid)`, kept in `CardInstance.raid_strength`); the forecast, the raid lines
-  and the strike all use it. A pillage, after its pillage effects, also plunders `raid_plunder_pct`% of the food and of
-  the wealth left, each rounded up, into the outcome's `lost`. Either key 0 (the default) turns its part off. Shipped
-  10 and 20.
+  and the strike all use it. A pillage, after its pillage effects, also plunders a share of the food and of the wealth
+  left, each rounded up, into the outcome's `lost`: `raid_plunder_pct`% plus `raid_plunder_era_pct` points per era
+  after the first, at most 100, in the era it strikes (377; `raid_plunder_pct()`). Each key 0 (the default) turns its
+  part off. Shipped 10, 50 and 10 (50% / 60% / 70% in eras 1–3).
 - Choice events (269, `EventChoices`): an event (not a raid) may set `choices`, 2–3 options `{cost?: {resource: n ≥ 1},
   effects}`, at least one free; option effects have no `trigger` and follow an event's own rules (no target, no
   choice). When drawn, after its own play effects, `pending()` is `{kind: PENDING_EVENT_CHOICE, uid, options: [0, …]}`
