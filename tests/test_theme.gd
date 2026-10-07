@@ -2,7 +2,7 @@ extends "res://tests/lib/test_case.gd"
 ## The UI theme (backlog 106; 178: the Night shift look). AC1 records how things look, resolved through the real main scene's theme, and
 ## must pass unchanged before and after the cleanup. The rest check the palette (ui/palette.gd) and the theme built
 ## in code (ui/game_theme.gd, GameTheme.build()), loaded by path (held as Object) so this file parses before they
-## exist.
+## exist. 393: every section file in ui/theme/ is in GameTheme.SECTIONS, and each type variation has one section.
 
 const Looks := preload("res://tests/lib/surface_looks.gd")
 const PALETTE_PATH := "res://ui/palette.gd"
@@ -395,13 +395,8 @@ func test_ui_kit_no_longer_builds_the_theme() -> void:
 const SECTIONS_DIR := "res://ui/theme"
 
 
-## GameTheme.SECTIONS, or [] while it doesn't exist.
-func sections() -> Array:
-	return (GameTheme as Script).get_script_constant_map().get("SECTIONS", [])  # scaffolding: SECTIONS is new in 393
-
-
 func test_every_section_file_is_listed_and_every_listed_one_exists() -> void:
-	var listed: Array = sections().map(func(s: Script): return s.resource_path)
+	var listed: Array = GameTheme.SECTIONS.map(func(s: Script): return s.resource_path)
 	check(not listed.is_empty(), "GameTheme.SECTIONS lists the sections")
 	var files: Array = Array(DirAccess.get_files_at(SECTIONS_DIR)).filter(func(f: String): return f.ends_with(".gd")) \
 		.map(func(f: String): return SECTIONS_DIR + "/" + f)
@@ -412,8 +407,8 @@ func test_every_section_file_is_listed_and_every_listed_one_exists() -> void:
 func test_each_look_has_one_section() -> void:
 	var owner := {}
 	var problems: Array[String] = []
-	check(not sections().is_empty(), "GameTheme.SECTIONS lists the sections")
-	for section: Script in sections():
+	check(not GameTheme.SECTIONS.is_empty(), "GameTheme.SECTIONS lists the sections")
+	for section: Script in GameTheme.SECTIONS:
 		var t := Theme.new()
 		section.call("apply", t)
 		var name := section.resource_path.get_file()

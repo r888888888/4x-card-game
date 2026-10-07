@@ -1,11 +1,11 @@
 class_name GameTheme
 extends RefCounted
 ## The UI's theme, built in code at startup from the Palette (backlog 106; 097: no editor-generated .tres, so it can't
-## go stale). Buttons, the accent button and text fields, plus type variations for the looks the UI repeats:
-## Display, Title, Heading, Body, BodySmall, Caption, Stat and BarStat labels, RichBody text, DarkPanel (an overlay's or a modal's panel),
-## IconButton (227), a notification's Flag, FlagText and FlagClose (250), the selectable list's ListWell and ListRow (217), and a screen's title bar's BarTitle,
-## BarHeading and DividerTab (241). A control takes one with
-## theme_type_variation instead of its own overrides.
+## go stale). build() sets the base: the default font, the label type scale (Display, Title, Heading, Body, BodySmall,
+## Caption, Stat, …), RichBody text, DarkPanel and Sheet. Every other look is a section, one file each in ui/theme/
+## (393): `extends RefCounted` with `static func apply(t: Theme)`, listed in SECTIONS (the suite checks the list and
+## that each type variation has one section). A new look goes in a section file, not here. A control takes a look
+## with theme_type_variation instead of its own overrides. The shared builders and fonts stay here, public.
 
 const DEFAULT_FONT_SIZE := Tokens.TYPE_BODY  # everything without a size of its own (log, buttons, inputs)
 # The style guide's typefaces (178, §5): each is used through tabular(), so figures never shift width as they change.

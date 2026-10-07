@@ -2,7 +2,7 @@
 id: 393
 title: Split GameTheme into one file per component's looks
 type: chore
-status: red-review
+status: review
 branch: feat/393-theme-sections
 ---
 
@@ -14,17 +14,17 @@ almost all additions (+944 / −185). It's already built of per-component sectio
 only the base theme, the shared builders and the list of sections.
 
 ## Acceptance criteria
-- [ ] AC1: Given the files in `ui/theme/`, when the suite runs, then a test fails naming any section file that
+- [x] AC1: Given the files in `ui/theme/`, when the suite runs, then a test fails naming any section file that
   `GameTheme.SECTIONS` doesn't list, and any listed one that doesn't exist. So a new section file can't be silently
   left out of the theme.
-- [ ] AC2: Given each section applied on its own to an empty `Theme`, when the suite runs, then a test fails naming
+- [x] AC2: Given each section applied on its own to an empty `Theme`, when the suite runs, then a test fails naming
   any type variation that two sections both define, and any section that defines none. Each look has one owner.
-- [ ] AC3: `GameTheme.build()` returns the same theme as before the split: every type, and every stylebox, colour,
+- [x] AC3: `GameTheme.build()` returns the same theme as before the split: every type, and every stylebox, colour,
   constant, font and font size on it, compares equal to the pre-split build. (Checked once during the item by a
   scratch dump of `main`'s build against the branch's, recorded in the Log; the suite's existing look tests
   (`test_theme`, `test_surfaces`, `test_palette_roles`, …) pass unchanged.)
-- [ ] AC4: `ui/game_theme.gd` is under 250 lines, and every file in `ui/theme/` is under 200.
-- [ ] AC5: The public API callers use stays on `GameTheme` with the same signatures: `build()`, `rail()`,
+- [x] AC4: `ui/game_theme.gd` is under 250 lines, and every file in `ui/theme/` is under 200.
+- [x] AC5: The public API callers use stays on `GameTheme` with the same signatures: `build()`, `rail()`,
   `dark_panel()`, `sheet()`, `focus_ring()`, `tabular()`, `heading_font()`, `verdict_font()`, `display()`, and the font
   and size constants. No file outside `ui/game_theme.gd` and `ui/theme/` changes, apart from tests and docs.
 
@@ -60,3 +60,12 @@ only the base theme, the shared builders and the list of sections.
 
 ## Log
 - 2026-10-07: specced from the review of the scripts that keep hitting the size limit (after 391).
+- 2026-10-07: green. 14 sections in `ui/theme/` (controls 88 lines, the rest 7–54); `game_theme.gd` 578 → 150 lines,
+  keeping the label scale, RichBody, DarkPanel and Sheet in `build()` (AC4 didn't need them out). AC3: a scratch dump
+  of every type, variation base and item (styleboxes property by property, fonts with their features and spacing) of
+  `GameTheme.build()` in Night and Day, before and after: 783 lines each, identical. Decisions: the builders only
+  `controls` uses (`_box`, `_rim`, `_pressed`, `_flat`, `_slider`) moved into `controls.gd` as its own, and
+  `_scroll_bar` into `select_list.gd`, so they have one owner; `_label` and `_card`, which several sections use, are
+  public on `GameTheme` (`label`, `card`). `_link` no longer calls `_divider_tab`: `divider_tab` is its own section,
+  listed right after `link`. `focus_ring`'s doc line had drifted above `_big_buttons`' and went back. Sections are
+  const preloads (no `class_name`). `icon_button.gd` is 7 lines; left alone rather than grouped with an unrelated look.
