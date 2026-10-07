@@ -2,8 +2,8 @@ class_name PopulationConfig
 extends RefCounted
 ## Parses and validates config.json's population rules (split out of ConfigLoader, backlog 339): population with its
 ## famine and relief, the settlement tiers and the cards that name them, the sea slots (366), unrest, and the
-## civilizations' homes. Problems go to ConfigLoader's errs (it prefixes the file) and warnings; ConfigLoader.parse_config
-## calls parse, check_start_buildings and parse_sea_slots.
+## civilizations' homes. Problems go to ConfigLoader's errs (it prefixes the file) and warnings;
+## ConfigLoader.parse_config calls parse, check_start_buildings and parse_sea_slots.
 
 ## Population block fields: name -> [minimum, default].
 const POPULATION_FIELDS := {"start": [1, 2], "food_upkeep": [0, 1], "vp_per_pop": [0, 1]}
