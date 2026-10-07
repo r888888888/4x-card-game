@@ -4,7 +4,8 @@ extends "res://tests/lib/test_case.gd"
 ## TerritoryQueries, between EngineCore and EngineQueries (281).
 ## In detail (from docs/testing.md, 331): GameEngine's split (249, 281): `EngineCore` → `TerritoryQueries` (the
 ## territory queries) → `EngineQueries` (the other read queries) → `GameEngine` (fork, actions and their error queries,
-## internals); every method still on a `GameEngine`; each file under 500 lines
+## internals); every method still on a `GameEngine`; each file under 500 lines. 394: no method there forwards to a
+## module that is an area (`engine.military`)
 
 const QUERIES_PATH := "res://engine/engine_queries.gd"
 const ENGINE_PATH := "res://engine/game_engine.gd"
@@ -130,5 +131,5 @@ func test_no_engine_method_forwards_to_an_area() -> void:
 	eq(modules, ["Military"] as Array[String], "the engine's areas")
 	var found: Array[String] = []
 	for path in [ENGINE_PATH, QUERIES_PATH, TERRITORY_PATH]:
-		found.append_array(forwards_in(path, ["Military"] as Array[String] if modules.is_empty() else modules))
+		found.append_array(forwards_in(path, modules))
 	eq(found, [] as Array[String], "forwards to an area's module: call engine.<area>.x instead")

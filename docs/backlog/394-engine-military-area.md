@@ -2,7 +2,7 @@
 id: 394
 title: Engine areas, first one: military actions and queries move to engine.military
 type: chore
-status: in-progress
+status: review
 branch: feat/394-engine-military-area
 ---
 
@@ -16,7 +16,7 @@ stopping that growth. This item brings in **areas**: an object on the engine per
 military (units and raids, 27 forwarding methods); later items move the others one at a time.
 
 ## Acceptance criteria
-- [ ] AC1: Given any engine, when `engine.military` is read, then it offers these methods with the same arguments and
+- [x] AC1: Given any engine, when `engine.military` is read, then it offers these methods with the same arguments and
   results as the `GameEngine` methods they replace:
   `move_error` / `move` (was `move_unit_error` / `move_unit`), `move_targets`, `move_block` (`unit_move_block`),
   `strength` (`unit_strength`), `veterancy` (`unit_veterancy`), `strength_tag` (`unit_strength_tag`), `realm_size`,
@@ -24,18 +24,18 @@ military (units and raids, 27 forwarding methods); later items move the others o
   `upgrade_error` / `upgrade` (`upgrade_unit_error` / `upgrade_unit`), `origin` (`unit_origin`), `upgrade_line`,
   `upgrade_cost`, `raid_target`, `raid_forecast`, `outcome_text` (`raid_outcome_text`), `raid_line`, `raid_tag`,
   `raid_short`, `defense`, `defense_parts`, `raid_warning`. The existing military tests, renamed to call these, pass.
-- [ ] AC2: The 27 old names are gone from `GameEngine`, `EngineQueries` and `TerritoryQueries`
+- [x] AC2: The 27 old names are gone from `GameEngine`, `EngineQueries` and `TerritoryQueries`
   (`has_method` is false for each), and no script in `engine/`, `ui/`, `sim/` or `tests/` calls them.
-- [ ] AC3: Given a `TEST_CARDS` game with a unit that can move and one that can upgrade, when `legal_actions()` runs,
+- [x] AC3: Given a `TEST_CARDS` game with a unit that can move and one that can upgrade, when `legal_actions()` runs,
   then it lists the move, the upgrade and the disband, `LegalActions.error` returns "" for each, and the bot's
   dispatch applies each (the unit is stationed on the target; the unit is the upgraded card; the unit is gone). Given
   the unit already moved this turn, then the move is not listed.
-- [ ] AC4: Given a game, when `fork()` and `sample_fork()` copy it, then the copy's `engine.military` acts on the
+- [x] AC4: Given a game, when `fork()` and `sample_fork()` copy it, then the copy's `engine.military` acts on the
   copy, not the original: moving a unit on the fork leaves the original's unit where it was.
-- [ ] AC5: An area holds no game state: `engine.military` declares no script variables but its reference back to
+- [x] AC5: An area holds no game state: `engine.military` declares no script variables but its reference back to
   the engine, and freeing an engine frees its area (no reference cycle; checked with a `WeakRef` to the area going
   null once the engine's last reference is dropped).
-- [ ] AC6: Given `engine/game_engine.gd`, `engine_queries.gd` and `territory_queries.gd`, when the suite runs, then a
+- [x] AC6: Given `engine/game_engine.gd`, `engine_queries.gd` and `territory_queries.gd`, when the suite runs, then a
   test fails naming any public method there whose body is a single `return <Area module>.x(self, …)` forward to a
   module that has an area (today, `Military`). That's the guard: once an area exists, its forwards can't creep back.
 
@@ -99,3 +99,21 @@ military (units and raids, 27 forwarding methods); later items move the others o
   finds areas as GameEngine properties typed as a class named after them (`military: Military`), so later areas are
   covered without editing it. In the existing coverage test, the table's rows become `military.move`,
   `military.upgrade`, `military.disband`, and the expected list adds each Military method with an `_error` twin.
+- 2026-10-07: green (2489, 0 failures). `Military` is the area: a `RefCounted` built in `GameEngine._init`
+  (`military = Military.new(self)`), so `fork()` and `sample_fork()`, which build a new engine, get their own. Choice
+  for AC5: the area is stored and holds a `WeakRef` to its engine (one script variable), rather than built per access,
+  so the bot's hot loop makes no allocation per call; each method opens with `var e := _engine()`, which is why
+  `military.gd` grew 483 → 534 lines (WARN past 500; the raid half is the boundary if it nears 700). Only the pure
+  helpers (`is_raid`, `_when`) stay static. Renames per AC1 (`unit_strength` → `strength`, `unit_origin` → `origin`);
+  `defense` moved over from `TerritoryQueries`. The 27 forwards are gone: `game_engine.gd` 497 → 409,
+  `engine_queries.gd` 495 → 444, `territory_queries.gd` 216 → 202. Call sites renamed across 30 files (the other
+  modules' `Military.x(e, …)` became `e.military.x(…)`). `LegalActions.apply` and `LegalActions.error` share one
+  resolver (`_call`), and `GenericBot._do` and the tests' `play_first_legal` call `apply`. `military.move` sits beside
+  `move_error` in `military.gd` now (`test_blocking` checks an area's actions beside their queries in its own file).
+  Existing tests changed beyond the renames: `test_blocking`'s table rows and its two action-table tests learn area
+  actions (`military.<action>`), and `play_first_legal` skips `military.disband`.
+- Recommended order for the next areas (one item each): 1. sites (`contribute`, `abandon`, the site queries: small and
+  self-contained, a second example before writing the recipe up as a skill); 2. research and supply (`buy`,
+  `buy_tech`, the supply and research queries); 3. government and anarchy, after 385 and 386 settle its actions;
+  4. events (choices, take); 5. the territory queries last (the most callers, and `TerritoryQueries` would go with
+  them). Write the `add-area` skill after the second.

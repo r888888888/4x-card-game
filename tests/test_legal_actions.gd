@@ -284,11 +284,6 @@ func test_each_coverage_game_lists_its_action() -> void:
 
 # --- 394: an area's actions, listed, checked and applied by name ---
 
-## LegalActions.apply(e, entry) (red phase: it doesn't exist yet).
-func apply_entry(e: GameEngine, entry: Array) -> bool:
-	return (LegalActions as Object).call("apply", e, entry)  # scaffolding: LegalActions.apply is new in 394
-
-
 func test_the_military_areas_actions_are_listed_checked_and_applied() -> void:
 	var e := game()
 	settle(e, ["hills"])
@@ -301,19 +296,19 @@ func test_the_military_areas_actions_are_listed_checked_and_applied() -> void:
 	check(list.has(move) and list.has(disband), "the move and the disband are listed: %s" % [list])
 	eq([LegalActions.error(e, move), LegalActions.error(e, disband)], ["", ""], "their error queries say yes")
 	var moved := e.fork()
-	check(apply_entry(moved, move), "the move applies")
+	check(LegalActions.apply(moved, move), "the move applies")
 	eq(moved.unit_station(levy), hills, "the Levy is stationed on Hills")
 	check(not moved.legal_actions().any(func(entry): return entry[0] == "military.move" and entry[1] == levy),
 		"moved this turn: no move listed")
 	var disbanded := e.fork()
-	check(apply_entry(disbanded, disband), "the disband applies")
+	check(LegalActions.apply(disbanded, disband), "the disband applies")
 	eq(disbanded.zone("tableau").find(levy), null, "the Levy is gone")
 	var u := upgrade_game()
 	var levy_u := uid_of(u.zone("tableau"), "levy")
 	var upgrade := ["military.upgrade", levy_u]
 	check(u.legal_actions().has(upgrade), "the upgrade is listed")
 	eq(LegalActions.error(u, upgrade), "", "its error query says yes")
-	check(apply_entry(u, upgrade), "the upgrade applies")
+	check(LegalActions.apply(u, upgrade), "the upgrade applies")
 	eq([uid_of(u.zone("tableau"), "pikes") != -1, uid_of(u.zone("tableau"), "levy")], [true, -1], "the Levy is now Pikes")
 
 

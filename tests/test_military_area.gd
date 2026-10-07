@@ -29,10 +29,7 @@ func marching_game() -> Dictionary:
 
 func test_the_military_area_offers_the_moved_methods() -> void:
 	var e := make_engine({"farm": 10})
-	var area: Object = e.get("military")  # scaffolding: the area is new in 394
-	check(area != null, "engine.military exists")
-	if area == null:
-		return
+	var area := e.military
 	eq(AREA_METHODS.filter(func(m): return not area.has_method(m)), [], "engine.military's missing methods")  # scaffolding-ok: AC1 is which methods the area has
 
 
@@ -66,21 +63,15 @@ func test_a_forks_area_acts_on_the_fork() -> void:
 	var e: GameEngine = g.e
 	var home := home_uid(e)
 	for f: GameEngine in [e.fork(), e.sample_fork(7)]:
-		var area: Object = f.get("military")  # scaffolding: the area is new in 394
-		check(area != null and area != e.get("military"), "the fork has its own area")
-		if area == null:
-			continue
-		check(area.call("move", g.levy, g.hills), "the Levy marches on the fork: %s" % area.call("move_error", g.levy, g.hills))
+		check(f.military != e.military, "the fork has its own area")
+		check(f.military.move(g.levy, g.hills), "the Levy marches on the fork: %s" % f.military.move_error(g.levy, g.hills))
 		eq(f.unit_station(g.levy), g.hills, "on the fork, at Hills")
 		eq(e.unit_station(g.levy), home, "in the game, still home")
 
 
 func test_an_area_holds_no_state_and_goes_with_its_engine() -> void:
 	var e := make_engine({"farm": 10})
-	var area: Object = e.get("military")  # scaffolding: the area is new in 394
-	check(area != null, "engine.military exists")
-	if area == null:
-		return
+	var area: Military = e.military
 	var vars: Array = (area.get_script() as Script).get_script_property_list() \
 		.filter(func(p): return p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE)
 	eq(vars.map(func(p): return p.type), [TYPE_OBJECT], "one variable, the reference back: %s" % [vars.map(func(p): return p.name)])

@@ -60,7 +60,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_end_turn_key.gd` | End turn as the specimen's key (203) at the sidebar's foot (UI) |
 | `tests/test_end_turn_returns.gd` | Ending the turn returns to the Realm (290; UI) |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150) |
-| `tests/test_engine_structure.gd` | GameEngine's split (249, 281) |
+| `tests/test_engine_structure.gd` | GameEngine's split (249, 281); no forwards to an area (394) |
 | `tests/test_era_sheet.gd` | The era ceremony (211; UI) |
 | `tests/test_eurekas.gd` | Eurekas (141) |
 | `tests/test_event_eras.gd` | Event decks by era (074) |

@@ -9,7 +9,9 @@ extends EngineQueries
 ## EngineCore (engine/engine_core.gd, 125), and the read queries in EngineQueries (engine/engine_queries.gd, 249),
 ## which this extends, and the territory ones in TerritoryQueries (engine/territory_queries.gd, 281) under it. The rules live in modules of static functions that the methods here
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, Events, and Takes (370). The modules may call the
-## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
+## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here). An area (394) is a module the
+## engine holds as an object, which callers use directly: military (Military). Its actions and queries go on the area,
+## never as a forward here (the suite checks).
 
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "offered", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
