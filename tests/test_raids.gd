@@ -510,8 +510,7 @@ func test_374_a_raid_drawn_gains_1_strength_per_raid_hoard_step_of_food_and_weal
 		e.end_turn()
 		eq([e.resources.food, e.resources.wealth], [row[0], row[1]], "%s: held when drawn" % row[3])
 		var raid := active_uid(e, "raiders")
-		var o: Object = e
-		eq(o.raid_strength(raid), row[2], "%s: raid_strength" % row[3])
+		eq(e.raid_strength(raid), row[2], "%s: raid_strength" % row[3])
 		eq(e.raid_forecast().map(func(f): return f.strength), [row[2]], "%s: raid_forecast's strength" % row[3])
 
 
@@ -521,9 +520,8 @@ func test_374_raid_strength_is_0_for_anything_but_an_active_raid() -> void:
 		return
 	var queued := uid_of(e.zone("event_deck"), "omen")
 	e.end_turn()
-	var o: Object = e
 	for uid in [queued, home_uid(e), 9999]:
-		eq(o.raid_strength(uid), 0, "raid_strength(%d)" % uid)
+		eq(e.raid_strength(uid), 0, "raid_strength(%d)" % uid)
 
 
 func test_374_the_strength_stays_as_announced_when_the_hoard_changes() -> void:
@@ -536,8 +534,7 @@ func test_374_the_strength_stays_as_announced_when_the_hoard_changes() -> void:
 		var raid := active_uid(e, "raiders")
 		e.resources.food = held
 		e.resources.wealth = held
-		var o: Object = e
-		eq(o.raid_strength(raid), 4, "held %d: raid_strength" % held)
+		eq(e.raid_strength(raid), 4, "held %d: raid_strength" % held)
 		eq(e.raid_forecast().map(func(f): return f.strength), [4], "held %d: raid_forecast" % held)
 		e.end_turn()  # announced 2 turns ahead (257)
 		e.end_turn()
@@ -643,8 +640,7 @@ func test_374_hoard_config_0_turns_each_part_off() -> void:
 		return
 	var outcomes := record_raids(e)
 	e.end_turn()
-	var o: Object = e
-	eq(o.raid_strength(active_uid(e, "raiders")), 3, "printed strength with step 0")
+	eq(e.raid_strength(active_uid(e, "raiders")), 3, "printed strength with step 0")
 	e.end_turn()
 	hold_after_upkeep(e, 17, 7)
 	e.end_turn()
@@ -683,8 +679,7 @@ func test_374_a_fork_keeps_the_announced_strength() -> void:
 	var f: GameEngine = e.fork()
 	f.resources.food = 0
 	f.resources.wealth = 0
-	var o: Object = f
-	eq(o.raid_strength(raid), 5, "the fork's raid_strength")
+	eq(f.raid_strength(raid), 5, "the fork's raid_strength")
 	var outcomes := record_raids(f)
 	f.end_turn()
 	f.end_turn()
