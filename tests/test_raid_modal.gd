@@ -1,7 +1,7 @@
 extends "res://tests/lib/raid_case.gd"
 ## The raid modal (backlog 271): a raid that strikes opens a modal in the real main scene with its card and what
 ## happened, above the turn's event, and plays its sound. Hooks: main.raid_modal() is the open raid modal's {uid, id,
-## repelled, result, title, context}, {} while closed; main.raid_modal_ok_button() is its OK.
+## repelled, result, title, context, art}, {} while closed; main.raid_modal_ok_button() is its OK.
 
 
 ## Runs body(main) on main showing a raid_engine game (overrides) started again on seed 1 and set up as raid_engine's,
@@ -37,6 +37,7 @@ func test_a_pillaging_raid_opens_its_modal() -> void:
 		eq(m.get("result"), Game.engine.raid_outcome_text(outcomes[0]), "the result line")
 		check(String(m.get("result", "")).contains("pillaged"), "says pillaged: %s" % m.get("result"))
 		eq([m.get("title"), m.get("context")], ["Raiders", "Turn 4"], "title and context")
+		eq(m.get("art"), RaidModal.ART[false], "the pillaged drawing")
 		eq(main.get_viewport().gui_get_focus_owner(), main.raid_modal_ok_button(), "OK focused"))
 
 
@@ -50,7 +51,16 @@ func test_a_repelled_raid_opens_its_modal() -> void:
 		Game.engine.end_turn()
 		var m: Dictionary = main.raid_modal()
 		eq(m.get("repelled"), true, "repelled")
-		check(String(m.get("result", "")).contains("repelled"), "says repelled: %s" % m.get("result")))
+		check(String(m.get("result", "")).contains("repelled"), "says repelled: %s" % m.get("result"))
+		eq(m.get("art"), RaidModal.ART[true], "the repelled drawing"))
+
+
+func test_the_verdict_is_a_display_headline() -> void:
+	await with_raid_main(func(main: Node):
+		to_the_eve_of_the_strike(main)
+		Game.engine.end_turn()
+		var v: Label = main.raid_modal_verdict()
+		eq([v.theme_type_variation, v.uppercase, v.text], [&"Verdict", true, "Pillaged"], "a Verdict headline"))
 
 
 # --- AC3: above the turn's event ---

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" width="960" height="540">
+  <!-- Placeholder (389): replace with the final drawing of a pillaging raid. -->
+  <rect width="480" height="270" fill="#d9cfb8"/>
+  <path d="M0 210 Q120 185 240 205 T480 200 V270 H0 Z" fill="#a9a37f"/>
+  <path d="M160 200 V140 L240 92 L320 140 V200 Z" fill="#8a6a4a" stroke="#2b2a26" stroke-width="4"/>
+  <rect x="222" y="160" width="36" height="40" fill="#2b2a26"/>
+  <path d="M250 112 Q236 76 262 46 Q262 72 282 66 Q272 92 296 100 Q300 126 270 136 Q248 132 250 112 Z" fill="#b5523b" stroke="#2b2a26" stroke-width="3"/>
+  <path d="M266 118 Q260 98 272 84 Q276 100 286 104 Q284 124 266 118 Z" fill="#d8a13c"/>
+  <rect x="8" y="8" width="464" height="254" fill="none" stroke="#2b2a26" stroke-width="2" stroke-dasharray="8 6"/>
+</svg>
