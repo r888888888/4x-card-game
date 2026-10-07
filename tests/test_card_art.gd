@@ -169,3 +169,35 @@ func test_a_cards_motif_is_one_of_four_and_always_the_same() -> void:
 		var motif: int = script.call("motif_for", id)
 		check(motif in motifs.values(), "%s: a motif (%d)" % [id, motif])
 		eq(script.call("motif_for", id), motif, "%s: the same every call" % id)
+
+
+# --- AC7: an unplayable card's plate dims ---
+
+func test_an_unplayable_cards_placeholder_prints_in_the_dim_border() -> void:
+	var view := face("bazaar")
+	var plate := art_plate(view)
+	check(plate != null, "the hand face has a plate")
+	if plate != null:
+		var type_color := CardView.type_color(CardDef.ACTION)
+		eq(plate.call("color"), type_color, "playable: the type's colour")
+		view.set_play_error("Not enough food.")
+		eq(plate.call("color"), Palette.DIM_BORDER, "unplayable: the dim border, like its band")
+		eq(plate.call("veil"), Color(Palette.DIM_BG, 0.0), "no veil on a placeholder")
+		view.set_play_error("")
+		eq(plate.call("color"), type_color, "playable again: the type's colour")
+	view.free()
+
+
+func test_an_unplayable_cards_picture_is_veiled_in_the_dim_paper() -> void:
+	await with_fixture_art(func():
+		var view := face("farm")
+		var plate := art_plate(view)
+		check(plate != null, "the hand face has a plate")
+		if plate != null:
+			eq((plate.call("veil") as Color).a, 0.0, "playable: no veil")
+			view.set_play_error("Not enough food.")
+			eq(plate.call("veil"), Color(Palette.DIM_BG, art_script().get("DIM_VEIL")), "unplayable: veiled in DIM_BG")
+			eq(art_script().get("DIM_VEIL"), 0.6, "at 0.6")
+			view.set_play_error("")
+			eq((plate.call("veil") as Color).a, 0.0, "playable again: no veil")
+		view.free())
