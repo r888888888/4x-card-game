@@ -137,7 +137,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
   (no real card uses it since 277; tests use a fixture).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
-  any other zone is a loader error.
+  any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
+  `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
 - Conditional or compound effects nest naturally, e.g. `{ "op": "if", "cond": {...}, "then": [...] }`.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
@@ -189,8 +190,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
   Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
   and the upgrade never opens in an earlier era.
-- Fishing (364): Fishing Huts (coastal or marsh) cost 2 wealth and no food, give ⟳ +1 food and housing 1, and each one
-  built adds a Net Fishing to the deck (an action: +1 food per coastal territory). Salt Pans (Pottery, coastal; ⟳ +1
+- Fishing (364): Fishing Huts (coastal or marsh) cost 2 wealth and no food, give ⟳ +1 food and housing 1, and building one
+  adds a Net Fishing to the deck if you have none (a unique `create`; an action: +1 food per coastal territory). Salt Pans (Pottery, coastal; ⟳ +1
   food) goes on Fishing Huts beside the Harbor (now ⟳ +1 food, +2 wealth), so the coast has an era-1 upgrade as the
   Farm does. A content test holds every card a building creates to an action.
 - Urban upgrades (306): Temple (Mysticism, Village) goes on a Shrine, and Great Temple (Philosophy, Metropolis; ⟳ +1 VP,
@@ -399,7 +400,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   territory); era 3 Royal Road (Bureaucracy, hand size +1; 273). The
   starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1, Warriors 1 (285: a military unit from the first shuffle). Early buildings (080) are on sale from turn 1, in unlocked supply piles,
-  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds a Net Fishing; 364) and Shrine (anywhere, 1 VP,
+  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
   gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
   makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).

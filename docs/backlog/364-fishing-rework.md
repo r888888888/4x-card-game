@@ -2,7 +2,7 @@
 id: 364
 title: Fishing Huts feed and house a coastal city, with Salt Pans and Net Fishing
 type: feature
-status: in-progress
+status: review
 branch: feat/364-fishing-rework
 ---
 
@@ -15,26 +15,26 @@ catch. The one engine change: a `create` can be `unique`, adding its card only w
 first guess until a balance item.
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture building whose play effect is `create` of a fixture action into the `deck`, when it is
+- [x] AC1: Given a fixture building whose play effect is `create` of a fixture action into the `deck`, when it is
   built twice (on territories with room and workers), then the deck holds 2 more copies of that action than before,
   and the discard and hand are unchanged.
-- [ ] AC2 (invariant): Every card a building's effect creates in the real data is an action card. The failure names
+- [x] AC2 (invariant): Every card a building's effect creates in the real data is an action card. The failure names
   the building and the card.
-- [ ] AC3: The existing upgrade invariants hold with Salt Pans, in particular
+- [x] AC3: The existing upgrade invariants hold with Salt Pans, in particular
   `test_every_upgrade_and_its_base_are_build_menu_entries_opened_by_a_tech`,
   `test_every_upgrade_can_stand_on_some_territory` (a coastal territory takes both Fishing Huts and Salt Pans) and
   `test_no_upgrade_opens_before_its_base`.
 
-- [ ] AC4: Given a fixture action whose effect is `{ "op": "create", "card": "scout", "zone": "deck", "unique": true }`
+- [x] AC4: Given a fixture action whose effect is `{ "op": "create", "card": "scout", "zone": "deck", "unique": true }`
   and no Scout in the deck, hand, discard or tableau, when it is played twice, then exactly one Scout has been added
   (to the deck). Given a Scout already in any one of the deck, hand, discard or tableau, playing it adds none. Given
   the only Scout was trashed, playing it adds one again. Without `unique` (or `unique: false`) every play adds one, as
   today.
-- [ ] AC5: Given a fixture building with that unique `create`, when it is built twice, then the deck holds exactly one
+- [x] AC5: Given a fixture building with that unique `create`, when it is built twice, then the deck holds exactly one
   Scout more than before.
-- [ ] AC6: Given a `create` whose `unique` is not a boolean, then loading fails with an error naming the card and
+- [x] AC6: Given a `create` whose `unique` is not a boolean, then loading fails with an error naming the card and
   `unique`.
-- [ ] AC7: Given `unique: true`, then the short text is "Add a Scout to your deck if you have none" and the long text
+- [x] AC7: Given `unique: true`, then the short text is "Add a Scout to your deck if you have none" and the long text
   "Add a Scout to your deck, unless you already have one"; without `unique` both read as today.
 
 ## Out of scope
@@ -93,3 +93,8 @@ first guess until a balance item.
   evaporating seawater in shallow beds, and coastal salt-making used clay vessels (briquetage), hence Pottery.
 - Card text checked on the real data: Fishing Huts reads "Add a Net Fishing to your deck" and "+1 housing"; Pottery
   reads "Salt Pans can now be built on a Fishing Huts."
+- The user limited Net Fishing to one copy after the first review: `create` gained `unique` (the first hut adds it;
+  a trashed copy lets the next hut add another). The ownership check lives in the create effect, not in
+  `EngineQueries` (at its 500-line soft limit).
+- AC5's approved test first built a Loft creating a Scout in a game whose deck is Scouts, so the unique create rightly
+  added none; with the user's approval it creates a Settler instead (same assertion: one more, not two).
