@@ -27,7 +27,7 @@ const TYPE_FIELDS := {
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT, CardDef.ACTION, CardDef.BUILDING],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
-	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
+	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT, CardDef.BUILDING],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"tolerates": [CardDef.GOVERNMENT],

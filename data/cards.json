@@ -199,30 +199,35 @@
     {
       "id": "pyramids", "name": "Pyramids", "type": "building",
       "flavor": "At Giza, work gangs called Friends of Khufu haul two million blocks into place, so that one king might climb to the stars.",
+      "quote": { "text": "As for the Pyramids, there is nothing to wonder at in them so much as the fact that so many men could be found degraded enough to spend their lives constructing a tomb for some ambitious booby…", "by": "Henry David Thoreau, Walden" },
       "cost": { "wealth": 40 }, "project": true, "vp": 10, "tags": ["wonder", "culture"],
       "effects": [ { "op": "score", "amount": 3, "keyword": "desert" } ]
     },
     {
       "id": "oracle_of_delphi", "name": "Oracle of Delphi", "type": "building",
       "flavor": "Above the sacred spring at Delphi the Pythia speaks for Apollo, and kings travel far to hear answers that fit any question.",
+      "quote": { "text": "What can the god mean? and what is the interpretation of his riddle?", "by": "Socrates, in Plato's Apology (tr. Benjamin Jowett)" },
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "walls_of_uruk", "name": "Walls of Uruk", "type": "building",
       "flavor": "Gilgamesh, the poem says, raised Uruk's walls, nine kilometres of kiln-fired brick: a boast against death, still partly standing.",
+      "quote": { "text": "Men make the city and not walls or ships without men in them.", "by": "Nicias, in Thucydides 7.77 (tr. Richard Crawley)" },
       "cost": { "wealth": 30 }, "project": true, "vp": 5, "tags": ["wonder", "culture"], "defense": 4, "modifiers": { "unrest_limit": 1 },
       "effects": []
     },
     {
       "id": "great_ziggurat", "name": "Great Ziggurat", "type": "building",
       "flavor": "At Ur a stepped mountain of brick lifts the moon god's shrine high above the plain and the flood, a little nearer the moon.",
+      "quote": { "text": "Go to, let us build us a city and a tower, whose top may reach unto heaven; and let us make us a name…", "by": "Genesis 11:4" },
       "cost": { "wealth": 42 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "unrest_limit": 2 },
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "hanging_gardens", "name": "Hanging Gardens", "type": "building",
       "flavor": "In Babylon, they say, terraces of trees climb toward the sky, watered by machines that lift the river. No one you ask has seen them.",
+      "quote": { "text": "This he did to please his queen, because she had been brought up in Media, and was fond of a mountainous situation.", "by": "Berossus, in Josephus, Against Apion 1.19 (tr. William Whiston)" },
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "requires": ["fresh_water"],
       "modifiers": { "housing": 1 },
       "effects": []
@@ -230,24 +235,28 @@
     {
       "id": "great_library", "name": "Great Library", "type": "building",
       "flavor": "Alexandria's library means to hold every book in the world. It copies the scrolls off every ship that docks, and keeps the originals.",
+      "quote": { "text": "A big book is equal to a big evil.", "by": "Callimachus, who catalogued the Library, in Athenaeus 3.72" },
       "cost": { "wealth": 48 }, "project": true, "vp": 8, "tags": ["wonder", "culture"],
       "effects": [ { "op": "gain", "resource": "insight", "amount": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "great_harbor_of_tyre", "name": "Great Harbor of Tyre", "type": "building",
       "flavor": "Tyre's island keeps two harbours, one facing Sidon and one facing Egypt, and the trade of the whole sea comes to them by name.",
+      "quote": { "text": "Lo, all our pomp of yesterday is one with Nineveh and Tyre!", "by": "Rudyard Kipling, Recessional" },
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
       "id": "lighthouse_of_pharos", "name": "Lighthouse of Pharos", "type": "building",
       "flavor": "On Pharos island a tower of white stone keeps a fire burning all night, and ships see Alexandria long before the coast.",
+      "quote": { "text": "Sostratus the Cnidian, son of Dexiphanes, to those gods who preserve the mariner.", "by": "The architect's name, hidden under the king's plaster, in Lucian (tr. Thomas Francklin)" },
       "cost": { "wealth": 50 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
     },
     {
       "id": "royal_road", "name": "Royal Road", "type": "building",
       "flavor": "From Sardis to Susa runs the Persian king's road, and at every station a fresh horse and rider wait for news they may not read.",
+      "quote": { "text": "But you sit at your window when evening falls and dream it to yourself.", "by": "Franz Kafka, An Imperial Message (tr. Willa and Edwin Muir)" },
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1, "administers": 1 },
       "effects": []
     },

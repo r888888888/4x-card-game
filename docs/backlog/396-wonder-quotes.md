@@ -2,7 +2,7 @@
 id: 396
 title: Quotes for wonders
 type: feature
-status: red-review
+status: in-progress
 branch: feat/396-wonder-quotes
 ---
 
