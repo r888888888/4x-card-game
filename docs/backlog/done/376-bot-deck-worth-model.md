@@ -2,7 +2,7 @@
 id: 376
 title: The sim bot values its deck by what a turn can play, so it neither buys junk nor thins to nothing
 type: feature
-status: review
+status: done
 branch: feat/376-bot-deck-worth-model
 ---
 
