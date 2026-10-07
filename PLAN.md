@@ -189,6 +189,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
+- Veterans (165): when a raid is repelled, each working unit stationed on its target gains a veteran counter
+  (`CardInstance.counters`, `unit_veterancy(uid)`), +1 strength each, up to config `veteran_max` (default 0: none;
+  shipped 2); the outcome lists them as `veterans`. Moving keeps them; leaving the tableau clears them. Its details
+  show "Veteran 1 (+1 strength)" and its face the strength tag.
 - Building upgrades (300): a building may set `upgrade_of` (another building's id; never a project, and no cycles). It
   is a build-menu entry only (never in `deck` or `supply`, nor `create`d) and builds onto a base: `build("plough",
   farm_uid)` puts it on the base's territory (`CardInstance.base_uid`), taking no slot and no worker; `build_targets`
