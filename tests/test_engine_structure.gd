@@ -90,3 +90,45 @@ func test_both_files_are_under_the_soft_limit() -> void:
 	check(lines_in(QUERIES_PATH) <= 500, "engine_queries.gd: %d lines" % lines_in(QUERIES_PATH))
 	check(lines_in(ENGINE_PATH) <= 500, "game_engine.gd: %d lines" % lines_in(ENGINE_PATH))
 	check(lines_in(TERRITORY_PATH) <= 500, "territory_queries.gd: %d lines" % lines_in(TERRITORY_PATH))
+
+
+# --- 394: no forwards to a module that has an area ---
+
+const CORE_PATH := "res://engine/engine_core.gd"
+
+
+## The class names of the engine's areas: GameEngine's properties typed as a class (engine.military: Military).
+func area_modules() -> Array[String]:
+	var out: Array[String] = []
+	for p in (GameEngine as Script).get_script_property_list():
+		if p.type == TYPE_OBJECT and p.class_name != &"" and String(p.name) == String(p.class_name).to_snake_case():
+			out.append(String(p.class_name))
+	return out
+
+
+## The public methods in path whose whole body is one `return <module>.x(self…` for a module in modules.
+func forwards_in(path: String, modules: Array[String]) -> Array[String]:
+	var found: Array[String] = []
+	var lines := FileAccess.get_file_as_string(path).split("\n")
+	for i in lines.size():
+		if not lines[i].begins_with("func ") or lines[i].begins_with("func _"):
+			continue
+		var body: Array[String] = []
+		for j in range(i + 1, lines.size()):
+			if lines[j].begins_with("func ") or lines[j].begins_with("##") or lines[j].begins_with("# ---"):
+				break
+			if lines[j].strip_edges() != "" and not lines[j].strip_edges().begins_with("#"):
+				body.append(lines[j].strip_edges())
+		for module in modules:
+			if body.size() == 1 and body[0].begins_with("return %s." % module) and body[0].contains("(self"):
+				found.append("%s: %s" % [path.get_file(), lines[i].trim_prefix("func ").get_slice("(", 0)])
+	return found
+
+
+func test_no_engine_method_forwards_to_an_area() -> void:
+	var modules := area_modules()
+	eq(modules, ["Military"] as Array[String], "the engine's areas")
+	var found: Array[String] = []
+	for path in [ENGINE_PATH, QUERIES_PATH, TERRITORY_PATH]:
+		found.append_array(forwards_in(path, ["Military"] as Array[String] if modules.is_empty() else modules))
+	eq(found, [] as Array[String], "forwards to an area's module: call engine.<area>.x instead")

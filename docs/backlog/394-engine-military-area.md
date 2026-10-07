@@ -2,7 +2,7 @@
 id: 394
 title: Engine areas, first one: military actions and queries move to engine.military
 type: chore
-status: ready
+status: red-review
 branch: feat/394-engine-military-area
 ---
 
@@ -77,7 +77,12 @@ military (units and raids, 27 forwarding methods); later items move the others o
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_units::…`, `test_raids::…`, … (renamed) |
+| AC1 | `test_military_area::test_the_military_area_offers_the_moved_methods`; the existing military tests, renamed at green |
+| AC2 | `test_military_area::test_the_old_names_are_gone_and_nothing_calls_them` |
+| AC3 | `test_legal_actions::test_the_military_areas_actions_are_listed_checked_and_applied`, `test_the_bot_calls_actions_through_legal_actions`; updated: `test_units_and_sites_list_their_moves_contributions_disbands_and_abandons`, `test_166_an_upgradable_unit_lists_its_upgrade`, the coverage table and `test_every_action_with_an_error_query_has_a_coverage_row` (area actions as `military.<action>`) |
+| AC4 | `test_military_area::test_a_forks_area_acts_on_the_fork` (fork and sample_fork) |
+| AC5 | `test_military_area::test_an_area_holds_no_state_and_goes_with_its_engine` |
+| AC6 | `test_engine_structure::test_no_engine_method_forwards_to_an_area` |
 
 ## Manual check
 - [ ] `scripts/sim.sh --level 1` matches main (`--compare <main checkout>`), as the bot's moves now go through the
@@ -87,3 +92,10 @@ military (units and raids, 27 forwarding methods); later items move the others o
 - 2026-10-07: specced from the review of the scripts that keep hitting the size limit (after 391). The user chose
   areas, moved one per item, over one big rename, a freeze, or skipping it. Named `military` rather than `units`
   since it holds raids and defence too, and matches the `Military` module.
+- 2026-10-07: red. Decisions: an area action's legal entry is `["military.move", uid, t]`; `LegalActions.apply(e,
+  entry)` is the one resolver (`LegalActions.error` resolves the error query the same way), and `GenericBot._do` calls
+  it (checked by a source test: no `callv` in the bot). The existing military tests keep their old calls until green,
+  where the ~150 renames land with the removal (renaming them now would only turn them into parse errors). The guard
+  finds areas as GameEngine properties typed as a class named after them (`military: Military`), so later areas are
+  covered without editing it. In the existing coverage test, the table's rows become `military.move`,
+  `military.upgrade`, `military.disband`, and the expected list adds each Military method with an `_error` twin.
