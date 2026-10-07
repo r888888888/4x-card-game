@@ -1,6 +1,6 @@
 # Testing
 
-Dependency-free runner: no addon, just Godot headless.
+Dependency-free runner: Godot headless, no addon.
 
 ## Running
 
@@ -32,8 +32,7 @@ slowest file, `test_generic_bot_cache.gd`, plays its 6 bot games once and shares
   A test checking an animation part-way should wait frames or game seconds, never wall-clock time.
   `Sfx.clock()` is the wall clock, so a test that checks when a sound is due freezes it first (`main.sfx.set_clock`),
   then compares against that time (236).
-- The engine isn't the cost (a `make_engine` game builds in 0.5 ms); building and freeing the main scene is (~18 ms
-  per UI test).
+- The engine isn't the cost (a `make_engine` game builds in 0.5 ms); the main scene is (~18 ms per UI test).
 
 A test fails when:
 - an assertion fails (`eq`, `check`, `has_msg`);
@@ -149,6 +148,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_legal_actions.gd` | `legal_actions` (312) |
 | `tests/test_legend_key.gd` | The toggle key (182; the window bar since 219; UI) |
 | `tests/test_log_drawer.gd` | The log drawer (115; UI) |
+| `tests/test_look.gd` | The `look` op (371) |
 | `tests/test_lose_pct.gd` | The `lose_pct` op (268) |
 | `tests/test_lose_per_keyword.gd` | The `lose_per_keyword` op (268) |
 | `tests/test_menu.gd` | The menu (UI) |
@@ -170,7 +170,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_raids.gd` | Barbarian raids (162) |
 | `tests/test_ready_lamp_keys.gd` | The ready lamps on Knowledge and Buy Cards (288; UI) |
 | `tests/test_ready_lamps.gd` | Ready lamps (288) |
-| `tests/test_recall.gd` | `recall` and the take decision (370) |
+| `tests/test_recall.gd` | `recall`, the take decision (370) |
 | `tests/test_recruit.gd` | Recruiting units from the build menu (296) |
 | `tests/test_rename_modal.gd` | Names on screen and the naming modal (248) (seed 5, Egypt; UI) |
 | `tests/test_renewal.gd` | Renewal (147) |

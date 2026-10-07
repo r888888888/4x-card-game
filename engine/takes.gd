@@ -1,7 +1,7 @@
 class_name Takes
 extends RefCounted
 ## The take decision (370): cards wait in the offered zone while the player takes one of them into the hand; the rest
-## go to the discard. recall offers the discard pile.
+## go to the discard. recall offers the discard pile, look the top of the deck (371).
 
 
 ## Offers every card in the discard pile (recall): several owe a take, one goes to the hand at once.
@@ -9,6 +9,17 @@ static func recall(e: GameEngine, source: CardInstance) -> void:
 	var offered := e.zone("offered")
 	for card in e.zone("discard").take_all():
 		offered.add(card)
+	_offer(e, source)
+
+
+## Offers the top n cards of the deck (look), reshuffling the discard in when the deck runs out, as a draw does.
+static func look(e: GameEngine, n: int, source: CardInstance) -> void:
+	var deck := e.zone("deck")
+	var offered := e.zone("offered")
+	for i in n:
+		if deck.is_empty() and not e.reshuffle():
+			break
+		offered.add_bottom(deck.take_top())  # the top card stays first: options are top first
 	_offer(e, source)
 
 

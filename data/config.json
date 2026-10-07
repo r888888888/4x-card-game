@@ -51,7 +51,8 @@
     "feast": { "price": 2, "count": 6 },
     "caravan": { "price": 2, "count": 6, "locked": true },
     "sea_trade": { "price": 2, "count": 6, "locked": true },
-    "precedent": { "price": 4, "count": 4, "locked": true }
+    "precedent": { "price": 4, "count": 4, "locked": true },
+    "read_the_stars": { "price": 5, "count": 4, "locked": true }
   },
   "build_menu": {
     "warriors": {},

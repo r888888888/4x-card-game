@@ -771,7 +771,7 @@ func test_every_upgrade_that_scales_with_pop_needs_a_tier() -> void:
 
 ## Backlog 307: the techs meant to open nothing, only to discount others through their eurekas and prereqs. Any other
 ## tech that unlocks, creates and adds nothing is a content change's leftover.
-const PURE_DISCOUNT_TECHS: Array[String] = ["mathematics", "astronomy"]
+const PURE_DISCOUNT_TECHS: Array[String] = ["mathematics"]
 
 
 ## Backlog 307: every tech that opens no card and adds no era is a deliberate pure-discount tech.

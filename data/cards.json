@@ -149,6 +149,12 @@
       "effects": [ { "op": "gain_actions", "amount": 1 }, { "op": "recall" } ]
     },
     {
+      "id": "read_the_stars", "name": "Read the Stars", "type": "action",
+      "flavor": "Night after night the astronomers of Babylon chart the planets from the temple roof and write down what each sign foretells.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "look", "count": 3 } ]
+    },
+    {
       "id": "temple", "name": "Temple", "type": "building",
       "flavor": "A house for the god on a raised platform. The priests keep the offerings, and the people climb the steps with their hopes.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
@@ -1074,7 +1080,7 @@
       "flavor": "Atop the ziggurats, priests chart the wandering stars, learn to foretell eclipses, and tell the king only what he needs to know.",
       "quote": { "text": "The heavens declare the glory of God; and the firmament sheweth his handywork.", "by": "Psalm 19:1" },
       "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
-      "effects": []
+      "effects": [ { "op": "unlock", "card": "read_the_stars" } ]
     },
     {
       "id": "engineering", "name": "Engineering", "type": "tech", "era": 3, "prereq": "masonry",

@@ -13,6 +13,7 @@ const OPS := {
 	"score": preload("res://engine/effects/score_effect.gd"),
 	"explore": preload("res://engine/effects/explore_effect.gd"),
 	"recall": preload("res://engine/effects/recall_effect.gd"),
+	"look": preload("res://engine/effects/look_effect.gd"),
 	"settle": preload("res://engine/effects/settle_effect.gd"),
 	"grow": preload("res://engine/effects/grow_effect.gd"),
 	"add_era": preload("res://engine/effects/add_era_effect.gd"),

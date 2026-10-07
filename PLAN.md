@@ -142,6 +142,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   opens a choice, so it is a load error on `upkeep`, on `start` and on an event (an event effect can't open a choice).
   Text "Take a card from your discard pile into your hand". Real card: Precedent (+1 action, recall; a locked supply
   pile that Code of Laws unlocks).
+- `look` (371, play only): `{ "op": "look", "count": 3 }` (`count` 2–5, default 3) moves the top `count` cards of the
+  deck to the `offered` zone, reshuffling the discard in when the deck runs out (as `draw` does), and owes a take: one
+  into the hand, the rest to the discard. One card goes to the hand at once; none, and nothing happens. A load error on
+  `upkeep`, `start` and events (it opens a choice). Text "Look at the top 3 cards of your deck: take 1 into your hand,
+  discard the rest". Real card: Read the Stars (look 3; a locked supply pile that Astronomy unlocks).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
   `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
@@ -214,7 +219,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   Metropolis) on it; Storehouse (Clay Tokens) on a Granary; City Walls (Masonry) on a Palisade; Multi-storey Houses
   (Engineering) on Courtyard Houses; Textile Works (Weaving) on a Weavers' Workshop; Dockyard (Navigation) on a Harbor.
   Merchant Quarter, Textile Works and Dockyard make ⟳ +1 wealth per 3 pop here. The Aqueduct needs a Town (housing 3).
-  Content tests: only the listed pure-discount techs (Mathematics, Astronomy) open nothing; a stand-alone Metropolis
+  Content tests: only the listed pure-discount techs (Mathematics; Astronomy until 371) open nothing; a stand-alone Metropolis
   building is a wonder or a `once` entry.
 - Gap buildings (308): Palace (Code of Laws; Metropolis, `once`; 3 VP, +1 action each turn), Shipyard (Sailing, coastal),
   Terraced Fields (Masonry, hills or mountain: Mountains' food building), Reed Works (turn 1, marsh), Cistern
@@ -279,8 +284,8 @@ that strike (pillage or repel), not the draw, the renewal or the new event. `Tur
 `HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
-choice (154), a choice event's options (269) or a take (370: the cards an effect offers wait in the `offered` zone;
-`take(uid)` puts one in the hand and the rest in the discard). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
+choice (154), a choice event's options (269) or a take (370: the cards `recall` or `look` (371) offers wait in the `offered`
+zone; `take(uid)` puts one in the hand and the rest in the discard). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
 options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
 message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
 and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
