@@ -266,7 +266,7 @@ static func _government(engine: GameEngine, strategy: String, ctx: Context) -> A
 
 
 ## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to its
-## combinations.
+## combinations, of the least valuable cards first (373).
 static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	var out := []
 	var buys := []
@@ -276,7 +276,7 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 		if entry[0] == "buy":
 			buys.append(entry)
 		elif entry[0] == "renew":
-			for combo in _combos(entry[1], entry[2]):
+			for combo in _combos(_least_valuable_first(e, entry[1], ctx), entry[2]):
 				out.append(["renew", combo])
 		else:
 			out.append(entry)
@@ -284,6 +284,20 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 		var rank := func(entry: Array) -> float: return card_value(e, entry[1], ctx) / maxf(1.0, e.buy_price(entry[1]))
 		buys.sort_custom(func(a, b): return rank.call(a) > rank.call(b))
 	return out + buys.slice(0, BUYS_TRIED)
+
+
+## A renewal's options (uids), the least valuable card first by card_value (ties in listing order), so the combinations
+## tried are those of the cards worth least (373); listing order in a rollout, which measures no card values.
+static func _least_valuable_first(e: GameEngine, options: Array, ctx: Context) -> Array:
+	if ctx.rollout:
+		return options
+	var worth := {}
+	for i in options.size():
+		var card := e.zone(e.zone_of(options[i])).find(options[i])
+		worth[options[i]] = [card_value(e, card.def.id, ctx), i]
+	var out := options.duplicate()
+	out.sort_custom(func(a, b): return worth[a] < worth[b])  # [value, index]: ties keep listing order
+	return out
 
 
 ## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit; read from effects).
