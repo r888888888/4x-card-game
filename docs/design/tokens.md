@@ -89,4 +89,5 @@ variation; set it with `theme_type_variation`.
 
 `Anim` names its constants by what moves, not by the guide's duration tokens. Nearest equivalents: `SCREEN_TIME`
 0.22 s (guide `screen` 320 ms), `ODOMETER_STEP` 0.07 (`tick` 60),
-`CALM_FADE_TIME` 0.15 (`quick` 120), `DEAL_STAGGER` 0.06 (`stagger.tick`).
+`CALM_FADE_TIME` 0.15 (`quick` 120), `DEAL_STAGGER` 0.06 (`stagger.tick`), `TALLY_STEP` 0.06 (§10.3's tally: veteran
+pips, 388).

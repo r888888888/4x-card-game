@@ -6,6 +6,9 @@ extends Modal
 ## Above the verdict, a drawing of how it ended (389); the verdict is a Verdict headline in capitals.
 
 ## The drawing per outcome; placeholders until the final art replaces these files (389).
+## Closed (its OK, Enter or Esc): what it showed is past (388: the veterans' pips light).
+signal dismissed
+
 const ART := {true: "res://assets/art/raid_repelled.svg", false: "res://assets/art/raid_pillaged.svg"}
 const ART_SIZE := Vector2(420, 236)  # the body's width at 16:9
 
@@ -63,3 +66,4 @@ func open(outcome: Dictionary) -> void:
 
 func closed() -> void:
 	_shown = {}
+	dismissed.emit()

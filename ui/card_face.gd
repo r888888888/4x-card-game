@@ -326,6 +326,52 @@ func text() -> String:
 	return "\n".join(lines)
 
 
+## Shows a unit's veteran pips (388): total discs, the first filled lit in the unit colour, the rest dim; none at
+## total 0. Replaces any row shown.
+func set_veteran_pips(filled: int, total: int) -> void:
+	var old := get_node_or_null("VeteranPips")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	if total <= 0:
+		return
+	var row := HBoxContainer.new()
+	row.name = "VeteranPips"
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", Tokens.SPACE_1)
+	for i in total:
+		var pip := Panel.new()
+		pip.custom_minimum_size = Vector2(Tokens.SPACE_2, Tokens.SPACE_2)
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var disc := StyleBoxFlat.new()
+		disc.set_corner_radius_all(Tokens.RADIUS_FULL)
+		pip.add_theme_stylebox_override("panel", disc)
+		row.add_child(pip)
+	add_child(row)
+	light_veteran_pips(filled)
+
+
+## Lights the first filled veteran pips and dims the rest (388); nothing without a row.
+func light_veteran_pips(filled: int) -> void:
+	var row := get_node_or_null("VeteranPips")
+	if row == null:
+		return
+	var dim := Palette.UNIT
+	dim.a = CardView.PIP_DIM
+	for i in row.get_child_count():
+		(row.get_child(i).get_theme_stylebox("panel") as StyleBoxFlat).bg_color = Palette.UNIT if i < filled else dim
+
+
+## Each veteran pip's tint, in order ([] with no row).
+func veteran_pip_tints() -> Array[Color]:
+	var out: Array[Color] = []
+	var row := get_node_or_null("VeteranPips")
+	if row != null:
+		for pip in row.get_children():
+			out.append((pip.get_theme_stylebox("panel") as StyleBoxFlat).bg_color)
+	return out
+
+
 ## Replaces the gold info line called label_name at the bottom of the card with text; "" removes it.
 func replace_info(label_name: String, text: String, color: Variant = null) -> void:
 	var old := find_child(label_name, true, false)

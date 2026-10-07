@@ -1,7 +1,7 @@
 extends "res://tests/lib/raid_case.gd"
 ## Veteran units (backlog 165): each working unit stationed on a territory that repels a raid gains a veteran counter
 ## (`unit_veterancy`), +1 strength each, up to config `veteran_max`; it keeps them when it moves and loses them when it
-## leaves the tableau. `raid_resolved`'s outcome lists the units as `veterans`.
+## leaves the tableau. `raid_resolved`'s outcome lists the units as `veterans`. 388: `military.veteran_pips`.
 
 const VETERANS := {"veteran_max": 2}
 
@@ -228,3 +228,25 @@ func test_veteran_details_show_its_counters() -> void:
 	state.assign(e.card_details(levy).state)
 	has_msg(state, "Veteran 1 (+1 strength)")
 	check(not state.any(func(s): return "training" in s), "veterancy isn't training: %s" % [state])
+
+
+# --- 388: the pips a unit's card shows ---
+
+func test_a_units_pips_are_its_counters_out_of_veteran_max() -> void:
+	var e := veteran_engine()
+	var levy := garrison_hills(e)
+	eq(e.military.veteran_pips(levy), {"filled": 0, "total": 2}, "a fresh Levy")
+	e.zone("tableau").find(levy).counters = 1
+	eq(e.military.veteran_pips(levy), {"filled": 1, "total": 2}, "a Levy with 1 counter")
+
+
+func test_no_pips_without_veterans_or_for_anything_but_a_unit_in_the_tableau() -> void:
+	var off := veteran_engine({"veteran_max": 0})
+	var levy := garrison_hills(off)
+	eq(off.military.veteran_pips(levy), {"filled": 0, "total": 0}, "veteran_max 0")
+	var e := veteran_engine()
+	garrison_hills(e)
+	var town := uid_of(e.zone("tableau"), "town")
+	var in_hand := put_in_hand(e, "levy")
+	for uid in [hills_of(e), town, in_hand, 999]:
+		eq(e.military.veteran_pips(uid), {"filled": 0, "total": 0}, "no pips for %d" % uid)
