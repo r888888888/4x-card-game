@@ -2,7 +2,7 @@
 id: 375
 title: Sim report counts raids and what they cost, per civilization
 type: feature
-status: review
+status: done
 branch: feat/375-sim-raid-metrics
 ---
 
