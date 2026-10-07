@@ -1,10 +1,11 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
-## (sim/sim_stats.gd).
+## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
-	"lookahead_turns", "pop", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158 added the Anarchy and
-	# famine ones, 294 lookahead_turns)
+	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
+	"raid_wealth_lost", "raids", "raids_repelled", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158
+	# added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones)
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
@@ -137,3 +138,76 @@ func test_sim_run_files_reports_loader_errors() -> void:
 	var lines: Array[String] = []
 	lines.assign(out.get("lines", []))
 	has_msg(lines, "unknown op 'explode'")
+
+
+# --- 375: raids and what they cost ---
+
+## The raid metrics (375), in report order.
+const RAID_METRICS := ["raids", "raids_repelled", "raid_strength_max", "raid_pop_lost", "raid_units_lost",
+	"raid_food_lost", "raid_wealth_lost"]
+## Siege: a raid of strength 99 on any territory, so the bot never repels it; pillaged −1 food.
+const SIEGE := {"id": "siege", "name": "Siege", "type": "event", "raid": {"strength": 99},
+	"effects": [{"op": "lose", "resource": "food", "amount": 1, "trigger": "pillage"}]}
+
+
+## A raid_resolved outcome with these fields; the rest as a pillage that took nothing.
+func fixture_outcome(fields: Dictionary) -> Dictionary:
+	var o := {"uid": 1, "id": "siege", "target": 1, "strength": 2, "defense": 0, "repelled": false,
+		"units_lost": [] as Array[int], "pop_lost": 0, "gained": {}, "lost": {}, "vp": 0}
+	o.merge(fields, true)
+	return o
+
+
+func test_375_metric_names_add_the_raid_metrics_after_the_others() -> void:
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3})
+	var names := SimStats.metric_names(d.cards, d.config)
+	var at := names.find("lookahead_turns") + 1
+	eq(names.slice(at, at + RAID_METRICS.size()), RAID_METRICS, "after lookahead_turns, in order")
+
+
+func test_375_raid_metrics_count_strikes_and_sum_what_pillages_took() -> void:
+	var outcomes := [
+		fixture_outcome({"strength": 2, "repelled": true, "defense": 3, "lost": {"food": 9}, "gained": {"wealth": 2}}),
+		fixture_outcome({"strength": 5, "pop_lost": 1, "units_lost": [7] as Array[int], "lost": {"food": 4}}),
+		fixture_outcome({"strength": 3, "pop_lost": 2, "lost": {"food": 2, "wealth": 3, "unrest": 1}}),
+	]
+	eq(SimStats.raid_metrics(outcomes), {"raids": 3, "raids_repelled": 1, "raid_strength_max": 5, "raid_pop_lost": 3,
+		"raid_units_lost": 1, "raid_food_lost": 6, "raid_wealth_lost": 3}, "a repel adds to raids and repelled only")
+
+
+func test_375_with_no_raid_struck_the_raid_metrics_are_0() -> void:
+	var zero := {}
+	for m in RAID_METRICS:
+		zero[m] = 0
+	eq(SimStats.raid_metrics([]), zero, "raid_metrics([])")
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3})
+	var game: Dictionary = SimStats.run(d.cards, d.config, [1])
+	for m in RAID_METRICS:
+		eq(game.get(m), {"mean": 0.0, "min": 0, "max": 0}, "%s with no event deck" % m)
+
+
+func test_375_a_sim_game_counts_the_raids_that_struck() -> void:
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards + [SIEGE]}, resources(), "test", errors, warnings,
+		keywords())
+	var config := DataLoader.parse_config(raw_config({"shrine": 10}, {"turn_limit": 7, "event_deck": {"siege": 1}}),
+		resources(), cards, "test", errors, warnings)
+	check(errors.is_empty(), "test data should load: %s" % [errors])
+	var game: Dictionary = SimStats.run(cards, config, [1])
+	var got := {}
+	for m in ["raids", "raids_repelled", "raid_strength_max"]:
+		got[m] = game.get(m, {}).get("min")
+	# Drawn on turn 2, it strikes as turn 4 starts, is drawn again then and strikes on turn 6; drawn again on turn 6,
+	# the game ends before it strikes.
+	eq(got, {"raids": 2, "raids_repelled": 0, "raid_strength_max": 99}, "two strikes at 99, none repelled")
+
+
+func test_375_raids_by_civilization_line() -> void:
+	var per_civ := [
+		["sumer", {"raids": [4, 4], "raids_repelled": [1, 2], "raid_pop_lost": [2, 3]}],
+		["", {"raids": [3], "raids_repelled": [3], "raid_pop_lost": [0]}],
+	]
+	eq(SimStats.raids_by_civilization(per_civ),
+		"raids by civilization: sumer 4.0 (1.5 repelled, 2.5 pop lost), default 3.0 (3.0 repelled, 0.0 pop lost)",
+		"means to 1 decimal, in the given order; the default civ named default")

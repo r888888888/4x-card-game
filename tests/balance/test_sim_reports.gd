@@ -25,6 +25,11 @@ func test_sim_run_files_reports_every_strategy_and_civilization() -> void:
 	var r := DataLoader.load_all("res://data/cards.json", "res://data/config.json")
 	for civ in r.config.civilizations:
 		check(civ in text, "the report names %s" % civ)
+	var raid_lines: Array = out.get("lines", []).filter(func(l): return l.begins_with("raids by civilization: "))
+	eq(raid_lines.size(), STRATEGIES.size(), "a raids line per strategy (375): %s" % [raid_lines])
+	for line in raid_lines:
+		for civ in r.config.civilizations:
+			check(civ + " " in line, "%s in %s" % [civ, line])
 
 
 func test_sim_uses_the_turn_limit_option() -> void:
