@@ -2,7 +2,7 @@
 id: 366
 title: Coastal territories have a sea slot for port buildings
 type: feature
-status: review
+status: done
 branch: feat/366-sea-slot
 ---
 
