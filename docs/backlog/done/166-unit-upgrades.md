@@ -2,7 +2,7 @@
 id: 166
 title: Upgrade units in place once a tech opens the better one
 type: feature
-status: review
+status: done
 branch: feat/166-unit-upgrades
 ---
 
