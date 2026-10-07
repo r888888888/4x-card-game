@@ -5,7 +5,7 @@ extends RefCounted
 ## unplayed game from one queue until none is left (play_claimed, 291) and writes its games to a file, which the parent
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
-const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
+const METRICS: Array[String] = ["score", "settlements", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
 	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "lookahead_turns", "raids", "raids_repelled",
 	"raid_strength_max", "raid_pop_lost", "raid_units_lost", "raid_food_lost", "raid_wealth_lost"]
 ## How long a parallel run's worker may go without finishing a turn before it is stopped and the run fails (318).
@@ -45,15 +45,22 @@ static func _collect(games: Array, names: Array[String]) -> Dictionary:
 	return values
 
 
-## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, then era_<n>_open and
-## era_<n>_done for each era with techs.
+## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, era_<n>_open and
+## era_<n>_done for each era with techs, then tier_<id> for each settlement tier (328, see _tiers).
 static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]:
 	var names := METRICS.duplicate()
 	for id in _governments(cards, config):
 		names.append("%s_turns" % id)
 	for n in _techs_per_era(cards, config):
 		names.append_array(["era_%d_open" % n, "era_%d_done" % n])
+	for t in _tiers(config):
+		names.append("tier_%s" % t.id)
 	return names
+
+
+## The config's settlement tiers (281), lowest first; [] with population or tiers off.
+static func _tiers(config: Dictionary) -> Array:
+	return config.get("population", {}).get("tiers", [])
 
 
 ## Plays job ([seed, strategy, civ]) and returns its metrics, {name: int} for names. Calls on_turn (when valid) with
@@ -190,21 +197,29 @@ static func _summaries(values: Dictionary) -> Dictionary:
 	return stats
 
 
-## The metrics of one finished game.
+## The metrics of one finished game. settlements counts the cities founded, the starting ones not counted;
+## tier_<id> (328) how many settled territories, the home one included, ended in each tier.
 static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 	var bought := 0
 	var supply: Dictionary = config.get("supply", {})
 	for id in supply:
 		bought += supply[id].count - engine.supply_left(id)
-	return {
+	var out := {
 		"score": engine.score(),
-		"cities": _count_type(engine.zone("tableau").cards, "city") - _starting_cities(engine, config),
+		"settlements": _count_type(engine.zone("tableau").cards, "city") - _starting_cities(engine, config),
 		"pop": engine.total_pop(),
 		"techs": engine.zone("researched").size(),
 		"bought": bought,
 		"era": engine.era(),
 		"trashed": engine.zone("trashed").size(),
 	}
+	var tiers := _tiers(config)
+	for t in tiers:
+		out["tier_%s" % t.id] = 0
+	for c in engine.zone("tableau").cards:
+		if c.def.type == CardDef.TERRITORY and not tiers.is_empty():
+			out["tier_%s" % tiers[Population.tier(engine, c.uid)].id] += 1
+	return out
 
 
 ## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs, games_per_proc, played,
