@@ -60,6 +60,11 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]},
 ]}
 
+## An action that gives back its action and takes a card from the discard into the hand (370). Not in TEST_CARDS: pass
+## it as an extra card.
+const RECALL_CARD := {"id": "recall", "name": "Recall", "type": "action",
+	"effects": [{"op": "gain_actions", "amount": 1}, {"op": "recall"}]}
+
 ## How many turns play_seed_1 plays of the real game (066).
 const SEED_1_TURNS := 20
 ## The real engine's turn_limit while play_seed_1 has shortened it (0 otherwise); close_main puts it back.

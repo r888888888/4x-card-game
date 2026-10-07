@@ -12,8 +12,7 @@ scripts/test.sh --balance    # only tests/balance/ (filter as above)
 ```
 
 **The balance suite** (`tests/balance/`): tests that play GenericBot games on the real data (`data/*.json`): the
-sim's report, its options and the parallel run. They grow with every bot change, so the main suite and the Stop hook
-leave them out; run `scripts/test.sh --balance` when touching `sim/`. Bot rules and `SimStats` stay in the main suite,
+sim's report, its options and the parallel run. The main suite and the Stop hook leave them out; run `scripts/test.sh --balance` when touching `sim/`. Bot rules and `SimStats` stay in the main suite,
 tested on fixture games of a few turns.
 
 The script re-imports the project first when a `.gd` file changed, so a new `class_name` resolves
@@ -29,7 +28,7 @@ slowest file, `test_generic_bot_cache.gd`, plays its 6 bot games once and shares
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
   frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
   frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.
-  A test that checks an animation part-way through should wait frames or game seconds, never wall-clock time.
+  A test checking an animation part-way should wait frames or game seconds, never wall-clock time.
   `Sfx.clock()` is the wall clock, so a test that checks when a sound is due freezes it first (`main.sfx.set_clock`),
   then compares against that time (236).
 - The engine isn't the cost (a `make_engine` game builds in 0.5 ms); building and freeing the main scene is (~18 ms
@@ -170,6 +169,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_raids.gd` | Barbarian raids (162) |
 | `tests/test_ready_lamp_keys.gd` | The ready lamps on Knowledge and Buy Cards (288; UI) |
 | `tests/test_ready_lamps.gd` | Ready lamps (288) |
+| `tests/test_recall.gd` | `recall` and the take decision (370) |
 | `tests/test_recruit.gd` | Recruiting units from the build menu (296) |
 | `tests/test_rename_modal.gd` | Names on screen and the naming modal (248) (seed 5, Egypt; UI) |
 | `tests/test_renewal.gd` | Renewal (147) |
@@ -318,13 +318,13 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `with_temp_settings(body, path)` | Runs `body` with the settings saved to a temp file, then restores them |
 | `shown_state(key)` | The state a toggle key shows, "ON" or "OFF" (219) |
 | `close_event(main)` | UI tests: closes the drawn-event modal if one is up |
-| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: seed 1 at turn 3; every screen and modal; visible controls |
+| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: seed 1 turn 3; each screen and modal; visible controls |
 | `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI: `body(main)` on main, seed 1 |
 | `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text, equality on it, and what differs |
-| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change everything in place |
+| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change all in place |
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
-| `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound clock frozen, if asked) (334) |
+| `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound frozen if asked) (334) |
 | `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers, details |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |
 
