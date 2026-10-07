@@ -27,8 +27,8 @@ military (units and raids, 27 forwarding methods); later items move the others o
 - [ ] AC2: The 27 old names are gone from `GameEngine`, `EngineQueries` and `TerritoryQueries`
   (`has_method` is false for each), and no script in `engine/`, `ui/`, `sim/` or `tests/` calls them.
 - [ ] AC3: Given a `TEST_CARDS` game with a unit that can move and one that can upgrade, when `legal_actions()` runs,
-  then it lists the move, the upgrade and the disband, `LegalActions.error` returns "" for each, and GenericBot's
-  `_do` applies each (the unit is stationed on the target; the unit is the upgraded card; the unit is gone). Given
+  then it lists the move, the upgrade and the disband, `LegalActions.error` returns "" for each, and the bot's
+  dispatch applies each (the unit is stationed on the target; the unit is the upgraded card; the unit is gone). Given
   the unit already moved this turn, then the move is not listed.
 - [ ] AC4: Given a game, when `fork()` and `sample_fork()` copy it, then the copy's `engine.military` acts on the
   copy, not the original: moving a unit on the fork leaves the original's unit where it was.
@@ -57,8 +57,8 @@ military (units and raids, 27 forwarding methods); later items move the others o
   returning `Military.new(self)`, nothing stored). Building it per access is simplest but runs on every bot call;
   measure it on a fixture loop and decide, and record the choice in the Log. Either way, `fork()` must give the copy
   its own area (AC4).
-- **Action dispatch (AC3).** `LegalActions` and `GenericBot.take` call actions by name with `callv` on the engine (`LegalActions.error`, `GenericBot._do`;
-  `["move_unit", uid, t]`, error query `entry[0] + "_error"`). Entries for area actions need a target: e.g.
+- **Action dispatch (AC3).** `LegalActions.error` and `GenericBot._do` call actions by name with `callv` on the
+  engine (`["move_unit", uid, t]`, error query `entry[0] + "_error"`). Entries for area actions need a target: e.g.
   `["military.move", uid, t]` resolved by splitting on the dot, with the error query `military.move_error`. Keep one
   resolver both use. This is where a missed rename would fail silently, hence AC3's tests.
 - **Renames.** About 150 call sites (11 in `ui/`, 8 in `engine/`, about 137 in `tests/`), mechanical per the AC1
