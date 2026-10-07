@@ -213,17 +213,17 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 	_unit = uid if e.unit_station(uid) != -1 else -1
 	_move.visible = _unit != -1
 	_disband.visible = _unit != -1
-	var upgrade := e.upgrade_line(_unit) if _unit != -1 else ""
+	var upgrade := e.military.upgrade_line(_unit) if _unit != -1 else ""
 	_upgrade.visible = upgrade != ""
 	if upgrade != "":
-		var refused := e.upgrade_unit_error(_unit)
+		var refused := e.military.upgrade_error(_unit)
 		_upgrade.disabled = refused != ""
 		_upgrade.tooltip_text = refused if refused != "" else upgrade
 	if _unit != -1:
-		var block := e.unit_move_block(_unit)
+		var block := e.military.move_block(_unit)
 		_move.disabled = block != ""
 		_move.tooltip_text = block if block != "" else "March to another territory (an action)."
-		var no := e.disband_error(_unit)
+		var no := e.military.disband_error(_unit)
 		_disband.disabled = no != ""
 		var gone := "Send it to your discard" if e.disbands_to_discard(_unit) else "Dismiss it"  # 296, 297
 		_disband.tooltip_text = no if no != "" else "%s; its worker is freed." % gone
@@ -352,15 +352,15 @@ func _on_move() -> void:
 func _on_disband() -> void:
 	var uid := _unit
 	close()
-	if Game.engine.disband_error(uid) == "":
-		Game.engine.disband(uid)
+	if Game.engine.military.disband_error(uid) == "":
+		Game.engine.military.disband(uid)
 
 
 func _on_upgrade() -> void:
 	var uid := _unit
 	close()
-	if Game.engine.upgrade_unit_error(uid) == "":
-		Game.engine.upgrade_unit(uid)
+	if Game.engine.military.upgrade_error(uid) == "":
+		Game.engine.military.upgrade(uid)
 
 
 func _on_contribute() -> void:

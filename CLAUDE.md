@@ -29,6 +29,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
+- An area (394) is a rules module held on the engine as an object (`engine.military`): its actions (with their `_error`
+  twins) and queries are called on the area, and a new one goes on the area, never as a forward on `GameEngine` (the
+  suite checks). Bots list an area's action as `"military.move"` and call any entry with `LegalActions.apply`.
 - A decision the player owes is one `PENDING_*` kind in `pending()`; every action's `*_error` starts with
   `_blocked_error`. New decision kind: follow the `add-decision` skill.
 - New effect op: follow the `add-effect` skill. Only ops whose `upkeep_ok()` is true may trigger on `upkeep`: ops that

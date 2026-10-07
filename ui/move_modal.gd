@@ -22,7 +22,7 @@ func _init(p_stack: ModalStack) -> void:
 
 ## Opens it for unit uid in engine e, if it can move somewhere now.
 func open(e: GameEngine, uid: int) -> void:
-	if e.unit_move_block(uid) != "":
+	if e.military.move_block(uid) != "":
 		return
 	_uid = uid
 	var unit := e.zone("tableau").find(uid)
@@ -32,9 +32,9 @@ func open(e: GameEngine, uid: int) -> void:
 	if _column != null:
 		_column.queue_free()
 	var buttons: Array[Control] = []
-	for t in e.move_targets(uid):
+	for t in e.military.move_targets(uid):
 		var target: int = t
-		var button := UIKit.button("%s  ⛨ %d" % [e.territory_name(target), e.defense(target)], func(): _move(target))
+		var button := UIKit.button("%s  ⛨ %d" % [e.territory_name(target), e.military.defense(target)], func(): _move(target))
 		button.tooltip_text = "March to %s." % e.territory_name(target)
 		buttons.append(button)
 	_column = UIKit.button_column(body, buttons)
@@ -59,4 +59,4 @@ func closed() -> void:
 func _move(target: int) -> void:
 	var uid := _uid
 	close()
-	Game.engine.move_unit(uid, target)
+	Game.engine.military.move(uid, target)

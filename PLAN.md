@@ -33,7 +33,12 @@ suite checks every path named here exists.
     `engine/engine_core.gd` (state accessors, signals, the helpers effects call).
   - `engine/game_state.gd`: `GameState`, everything that changes during a game; `copy()` is a deep copy (051).
   - Rules modules: one class of static functions per subsystem (`TurnLoop`, `CardPlay`, `Population`, `Research`,
-    `Supply`, `BuildMenu`, `Territories`, `Military`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+    `Supply`, `BuildMenu`, `Territories`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+  - Areas (394): a rules module that is an object on the engine, which callers use directly instead of a forward on
+    `GameEngine`: `engine.military` (`engine/military.gd`, `Military`: units, raids and defence; `engine.military.move(uid,
+    t)`). An area holds no state (a weak reference back to its engine), a fork gets its own, and its actions are listed
+    for bots as `"military.move"` and called with `LegalActions.apply`. The other modules move to areas one item at a
+    time.
   - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected;
     `TYPE_FIELDS` and `INT_FIELDS` say which types take a field and an integer field's minimum and default, and
     `engine/card_type_fields.gd` reads each type's own fields, 338) and `engine/config_loader.gd` (config.json,

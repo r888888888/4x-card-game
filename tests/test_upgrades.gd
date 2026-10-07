@@ -380,13 +380,13 @@ func test_a_fallen_back_upgrade_adds_no_defence_or_training() -> void:
 	var spears := put_on(e, home, "spears")
 	e.zone("tableau").find(spears).station_uid = home
 	var chapel := put_on(e, home, "chapel")
-	var defense: int = e.defense(home)
+	var defense: int = e.military.defense(home)
 	upgrade(e, "rampart", chapel)
-	eq(e.unit_strength(spears), 3, "Spears 2 + 1 training")
-	eq(e.defense(home), defense + 2, "Rampart 1 + 1 training")
+	eq(e.military.strength(spears), 3, "Spears 2 + 1 training")
+	eq(e.military.defense(home), defense + 2, "Rampart 1 + 1 training")
 	set_home_pop(e, 1)  # one worker: the Spears work, the Chapel is idle
-	eq(e.unit_strength(spears), 2, "no training from the Rampart")
-	eq(e.defense(home), defense, "no defence from the Rampart")
+	eq(e.military.strength(spears), 2, "no training from the Rampart")
+	eq(e.military.defense(home), defense, "no defence from the Rampart")
 
 
 ## Homeland at 4 pop, a Famine of 1 counter under way and no food (as test_famine's guard test), with the buildings

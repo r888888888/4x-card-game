@@ -60,7 +60,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_end_turn_key.gd` | End turn as the specimen's key (203) at the sidebar's foot (UI) |
 | `tests/test_end_turn_returns.gd` | Ending the turn returns to the Realm (290; UI) |
 | `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150) |
-| `tests/test_engine_structure.gd` | GameEngine's split (249, 281) |
+| `tests/test_engine_structure.gd` | GameEngine's split (249, 281); no forwards to an area (394) |
 | `tests/test_era_sheet.gd` | The era ceremony (211; UI) |
 | `tests/test_eurekas.gd` | Eurekas (141) |
 | `tests/test_event_eras.gd` | Event decks by era (074) |
@@ -111,6 +111,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_lose_per_keyword.gd` | The `lose_per_keyword` op (268) |
 | `tests/test_menu.gd` | The menu (UI) |
 | `tests/test_milestones.gd` | Milestones (191) |
+| `tests/test_military_area.gd` | The engine's military area: its methods, no state, a fork's own (394) |
 | `tests/test_modal_sheets.gd` | Modals as drafting sheets (207; UI) |
 | `tests/test_modal_stack.gd` | The modal stack (153; UI) |
 | `tests/test_modifiers.gd` | Standing `modifiers` (129) |

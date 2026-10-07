@@ -9,7 +9,9 @@ extends EngineQueries
 ## EngineCore (engine/engine_core.gd, 125), and the read queries in EngineQueries (engine/engine_queries.gd, 249),
 ## which this extends, and the territory ones in TerritoryQueries (engine/territory_queries.gd, 281) under it. The rules live in modules of static functions that the methods here
 ## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, Events, and Takes (370). The modules may call the
-## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
+## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here). An area (394) is a module the
+## engine holds as an object, which callers use directly: military (Military). Its actions and queries go on the area,
+## never as a forward here (the suite checks).
 
 const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "offered", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
@@ -36,6 +38,15 @@ const TECH_FUTURE := "future"
 const HIDDEN_ZONES: Array[String] = ["deck", "event_deck", "territory_deck"]
 ## The actions still allowed while a discard is owed (see _blocked_error).
 const _DISCARD_ALLOWS: Array[String] = ["discard", "supply", "research"]
+
+## The units' and raids' actions and queries (394): `engine.military.move(uid, t)`. An area holds no state.
+var military: Military
+
+
+func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:
+	super(p_card_db, p_config)
+	military = Military.new(self)
+
 
 ## A new engine on a deep copy of this one's state (GameState.copy). Nothing is connected to its signals and
 ## it logs to its own copy of the log, so playing on it never touches this game.
@@ -328,70 +339,6 @@ func choose_government(uid: int) -> bool:
 	return Anarchy.choose_government(self, uid)
 
 
-## Why move_unit(uid, territory_uid) would refuse (163): game over or a pending decision, no action left, uid not a
-## unit in the tableau, territory_uid not a settled territory, the unit's own station, or the unit moved this turn.
-## "" if it can.
-func move_unit_error(uid: int, territory_uid: int) -> String:
-	return Military.move_error(self, uid, territory_uid)
-
-
-## Stations unit uid on settled territory territory_uid (163); its home and worker stay. Uses an action. False (and no
-## change) if move_unit_error says no.
-func move_unit(uid: int, territory_uid: int) -> bool:
-	return Military.move(self, uid, territory_uid)
-
-
-## The settled territories unit uid can move to now (163), in tableau order; [] when unit_move_block says it can't.
-func move_targets(uid: int) -> Array[int]:
-	return Military.move_targets(self, uid)
-
-
-## Why unit uid can't move anywhere now (163): move_unit_error's reasons that don't depend on the target, or nowhere
-## else to go; "" when move_targets isn't empty.
-func unit_move_block(uid: int) -> String:
-	return Military.move_block(self, uid)
-
-
-## Unit uid's strength (164): printed strength plus the training of working buildings on its station and its veteran
-## counters (165); 0 when idle or not a unit in the tableau.
-func unit_strength(uid: int) -> int:
-	return Military.unit_strength(self, uid)
-
-
-## Unit uid's veteran counters (165): 1 per raid repelled where it stood, up to config veteran_max; 0 for anything but
-## a unit in the tableau.
-func unit_veterancy(uid: int) -> int:
-	return Military.veterancy(self, uid)
-
-
-## "Strength 3" for a unit trained by a building on its station (164) or a veteran (165), for its face; "" for anything
-## else.
-func unit_strength_tag(uid: int) -> String:
-	return Military.strength_tag(self, uid)
-
-
-## The realm's size (257): config territory_value per settled territory plus the total cost of every city, building
-## and unit in the tableau. Raids wait until it reaches config raid_min_size.
-func realm_size() -> int:
-	return Military.realm_size(self)
-
-
-## Event phases until active raid uid strikes (257): 2 on the turn it is drawn, then 1; 0 for anything else.
-func raid_turns_left(uid: int) -> int:
-	return Military.raid_turns_left(self, uid)
-
-
-## Active raid uid's strength, fixed when it was announced (374), or 0 when uid isn't an active raid.
-func raid_strength(uid: int) -> int:
-	return Military.raid_strength(self, uid)
-
-
-## The share (%) of the food and wealth left that a pillage plunders now (377): config raid_plunder_pct plus
-## raid_plunder_era_pct per era after the first, at most 100.
-func raid_plunder_pct() -> int:
-	return Military.plunder_pct(self)
-
-
 ## Why contribute(uid, amount) would refuse (286), or "": game over or a pending decision, uid not an unfinished
 ## site, the site idle, or amount below 1, above the wealth held or above contribute_limit.
 func contribute_error(uid: int, amount: int) -> String:
@@ -413,30 +360,6 @@ func abandon_error(uid: int) -> String:
 ## action. False (and no change) if abandon_error says no.
 func abandon(uid: int) -> bool:
 	return Sites.abandon(self, uid)
-
-
-## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
-func disband_error(uid: int) -> String:
-	return Military.disband_error(self, uid)
-
-
-## Unit uid leaves play, freeing its worker on its home (163): to the discard, or gone if it came from the build menu
-## (296). Uses no action. False (and no change) if disband_error says no.
-func disband(uid: int) -> bool:
-	return Military.disband(self, uid)
-
-
-## Why unit uid can't be upgraded now (166), or "": blocked, not a unit in the tableau, no upgrades_to, its upgrade's
-## build-menu entry locked or missing, Anarchy (as building it would be), or short of upgrade_cost.
-func upgrade_unit_error(uid: int) -> String:
-	return Military.upgrade_error(self, uid)
-
-
-## Replaces unit uid with a new copy of its upgrades_to unit for upgrade_cost (166): the new one keeps its home,
-## station, veteran counters and tableau place, and the old one goes to removed. Uses no action. False (and no change)
-## if upgrade_unit_error says no.
-func upgrade_unit(uid: int) -> bool:
-	return Military.upgrade(self, uid)
 
 
 ## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,

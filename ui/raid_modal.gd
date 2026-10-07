@@ -51,7 +51,7 @@ func open(outcome: Dictionary) -> void:
 	var def: CardDef = e.card_db[outcome.id]
 	title = def.name
 	context = "Turn %d" % e.turn
-	_shown = {"uid": outcome.uid, "id": def.id, "repelled": outcome.repelled, "result": e.raid_outcome_text(outcome),
+	_shown = {"uid": outcome.uid, "id": def.id, "repelled": outcome.repelled, "result": e.military.outcome_text(outcome),
 		"title": title, "context": context, "art": ART[outcome.repelled]}
 	_art.texture = load(_shown.art)
 	verdict.text = "Repelled" if outcome.repelled else "Pillaged"

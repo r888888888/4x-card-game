@@ -216,9 +216,9 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 ## population off (161: D its defence).
 func live_line(e: GameEngine, uid: int) -> String:
 	if not e.population_on():
-		return "▢ %d   ⛨ %d" % [e.free_slots(uid), e.defense(uid)]
+		return "▢ %d   ⛨ %d" % [e.free_slots(uid), e.military.defense(uid)]
 	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid),
-		e.defense(uid)]
+		e.military.defense(uid)]
 
 
 func test_a_settled_territory_card_shows_its_name_and_live_line_only() -> void:
@@ -256,7 +256,7 @@ func test_without_population_the_live_line_is_free_slots_and_defence() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
-		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d   ⛨ %d" % [e.free_slots(home), e.defense(home)],
+		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d   ⛨ %d" % [e.free_slots(home), e.military.defense(home)],
 			"free slots and defence (161)"))
 
 

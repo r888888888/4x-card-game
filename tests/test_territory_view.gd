@@ -109,7 +109,7 @@ func test_the_view_shows_slots_and_pop() -> void:
 		var view: Object = main.territory_view
 		var stats: String = view.stats_text()
 		eq(stats, "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(home), e.pop(home), e.housing(home),
-			e.free_workers(home), e.defense(home)],
+			e.free_workers(home), e.military.defense(home)],
 			"the card's live line (123)"), \
 		{"farm": 10}, POP)
 
@@ -120,7 +120,7 @@ func test_without_population_there_is_no_pop_stat() -> void:
 		await wait_frames()
 		var view: Object = main.territory_view
 		var home := home_uid(Game.engine)
-		eq(view.stats_text(), "▢ %d   ⛨ %d" % [Game.engine.free_slots(home), Game.engine.defense(home)],
+		eq(view.stats_text(), "▢ %d   ⛨ %d" % [Game.engine.free_slots(home), Game.engine.military.defense(home)],
 			"free slots and defence (123, 161)"))
 
 
