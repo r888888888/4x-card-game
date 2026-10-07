@@ -140,6 +140,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
   `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
+- `gain_per_tag` gains `amount` per card with `tag` in `zone` (default `tableau`); with `per` (367, default 1) it gains
+  `amount` × ⌊tagged ÷ `per`⌋, text "+1 insight per 2 port".
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
 - Conditional or compound effects nest naturally, e.g. `{ "op": "if", "cond": {...}, "then": [...] }`.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
@@ -195,6 +197,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   adds a Net Fishing to the deck if you have none (a unique `create`; an action: +1 food per coastal territory). Salt Pans (Pottery, coastal; ⟳ +1
   food) goes on Fishing Huts beside the Harbor (now ⟳ +1 food, +2 wealth), so the coast has an era-1 upgrade as the
   Farm does. A content test holds every card a building creates to an action.
+- Sea trade (367): Sailing hands out a Sea Trade (1 food: +2 wealth per port card; no city minimum, unlike Caravan),
+  opens its supply pile (price 2, 6 copies), and gives ⟳ +1 insight per 2 port cards.
 - Urban upgrades (306): Temple (Mysticism, Village) goes on a Shrine, and Great Temple (Philosophy, Metropolis; ⟳ +1 VP,
   +1 food per 3 pop here) and House of Life (Medicine, Town) on a Temple; Writing opens the Scribal School (the old
   Library's numbers), and Library (Alphabet, Town; ⟳ +1 insight per 3 pop here) goes on it. The Shrine took the Temple's

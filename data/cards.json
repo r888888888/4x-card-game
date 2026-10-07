@@ -106,6 +106,12 @@
       "effects": [ { "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 } ]
     },
     {
+      "id": "sea_trade", "name": "Sea Trade", "type": "action",
+      "flavor": "A ship works its way along the coast from port to port, trading cedar for copper and oil for wine, and comes home riding low.",
+      "cost": { "food": 1 }, "vp": 0, "tags": ["trade"],
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "port" } ]
+    },
+    {
       "id": "temple", "name": "Temple", "type": "building",
       "flavor": "A house for the god on a raised platform. The priests keep the offerings, and the people climb the steps with their hopes.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
@@ -940,7 +946,9 @@
       "quote": { "text": "To sail is necessary; to live is not.", "by": "Pompey, in Plutarch's Life of Pompey" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "fishing_huts", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "harbor" },
-        { "op": "unlock", "card": "great_harbor_of_tyre" }, { "op": "unlock", "card": "shipyard" } ]
+        { "op": "unlock", "card": "great_harbor_of_tyre" }, { "op": "unlock", "card": "shipyard" },
+        { "op": "create", "card": "sea_trade", "zone": "discard" }, { "op": "unlock", "card": "sea_trade" },
+        { "op": "gain_per_tag", "resource": "insight", "amount": 1, "tag": "port", "per": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",

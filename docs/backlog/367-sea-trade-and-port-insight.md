@@ -2,7 +2,7 @@
 id: 367
 title: Sea Trade, and ports bring insight
 type: feature
-status: ready
+status: review
 branch: feat/367-sea-trade-and-port-insight
 ---
 
@@ -13,17 +13,17 @@ pays per port, and ports should bring in ideas as well as goods. This needs one 
 learns to count "per N cards".
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture card with ⟳ `{ "op": "gain_per_tag", "resource": "insight", "amount": 1, "tag": "t",
+- [x] AC1: Given a fixture card with ⟳ `{ "op": "gain_per_tag", "resource": "insight", "amount": 1, "tag": "t",
   "per": 2, "trigger": "upkeep" }` in the tableau and 5 other cards tagged `t` in the tableau, when upkeep resolves,
   then insight rises by 2 (5 ÷ 2 rounded down), and `upkeep_forecast` reports +2 insight beforehand; with 1 tagged
   card it gives 0.
-- [ ] AC2: Given a `gain_per_tag` with no `per`, then it gains `amount` per tagged card as today (3 tagged cards,
+- [x] AC2: Given a `gain_per_tag` with no `per`, then it gains `amount` per tagged card as today (3 tagged cards,
   amount 2: +6).
-- [ ] AC3: Given a card whose `gain_per_tag` sets `per` to 0, a negative number or a non-integer, then loading fails
+- [x] AC3: Given a card whose `gain_per_tag` sets `per` to 0, a negative number or a non-integer, then loading fails
   with an error naming the card and `per`.
-- [ ] AC4: Given `per` 2, then the short card text is "+1 insight per 2 t" and the long text "+1 insight per 2 t
+- [x] AC4: Given `per` 2, then the short card text is "+1 insight per 2 t" and the long text "+1 insight per 2 t
   cards"; given no `per` (or `per` 1), both read as today.
-- [ ] AC5: Given a fixture action with play `gain_per_tag` +2 wealth per `t` card and 3 `t` cards in the tableau,
+- [x] AC5: Given a fixture action with play `gain_per_tag` +2 wealth per `t` card and 3 `t` cards in the tableau,
   when it is played, then wealth rises by 6; with none, it can still be played and gains 0.
 
 ## Out of scope
@@ -50,7 +50,11 @@ learns to count "per N cards".
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_gain_per_tag::test_per_gains_once_for_every_per_tagged_cards` |
+| AC2 | `test_gain_per_tag::test_without_per_it_gains_per_tagged_card` |
+| AC3 | `test_gain_per_tag::test_per_validation` |
+| AC4 | `test_gain_per_tag::test_per_card_text` |
+| AC5 | `test_gain_per_tag::test_a_played_gain_per_tag_gains_per_tagged_card_and_plays_with_none` (passes already) |
 
 ## Manual check
 - [ ] Shipped numbers: Sea Trade costs 1 food (supply price 2, 6 copies) and gives +2 wealth per port; Sailing gives
@@ -63,3 +67,7 @@ learns to count "per N cards".
 <!-- Decisions and surprises during implementation, newest last. -->
 - Balance worry: Sea Trade, Navigation and the Lighthouse (365) all pay per port, and the sea slot (366) adds a port
   slot to every coastal territory, so the port count is now worth a lot; revisit together in a balance item.
+- Flavor fact: Bronze Age coastal trade ran port to port (Ugarit, Byblos, Cyprus, Crete), carrying Lebanese cedar,
+  Cypriot copper, oil and wine (the Uluburun wreck's cargo).
+- Card text checked on the real data: Sea Trade "+2 wealth per port"; Sailing "⟳ +1 insight per 2 port" (tooltip "+1
+  insight per 2 port cards"), "Add a Sea Trade to your discard", "Sea Trade can now be bought in the supply."
