@@ -35,7 +35,12 @@
     "research": 1,
     "barter": 2,
     "storyteller": 1,
-    "bread_and_beer": 1
+    "bread_and_beer": 1,
+    "runner": 1,
+    "tribute": 1,
+    "assembly_of_elders": 1,
+    "slash_and_burn": 1,
+    "corvee": 1
   },
   "supply": {
     "scout": { "price": 2, "count": 6 },

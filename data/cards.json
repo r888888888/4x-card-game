@@ -82,6 +82,37 @@
       "effects": [ { "op": "lose", "resource": "unrest", "amount": 2 } ]
     },
     {
+      "id": "runner", "name": "Runner", "type": "action",
+      "flavor": "Runners cross the plain from town to town by nightfall, carrying the message word for word in their heads.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "draw", "amount": 1 }, { "op": "gain_actions", "amount": 1 },
+        { "op": "gain", "resource": "food", "amount": 1 } ]
+    },
+    {
+      "id": "tribute", "name": "Tribute", "type": "action",
+      "flavor": "Each spring the outlying towns send jars of oil, bolts of cloth and silver rings, and a little less than they promised.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "zone": "tableau" } ]
+    },
+    {
+      "id": "assembly_of_elders", "name": "Assembly of Elders", "type": "action",
+      "flavor": "In the early cities of Sumer an assembly of elders meets at the gate, hears every grievance and decides by slow agreement.",
+      "cost": {}, "vp": 0, "tags": ["order"],
+      "effects": [ { "op": "lose", "resource": "unrest", "amount": 1 }, { "op": "gain", "resource": "insight", "amount": 1 } ]
+    },
+    {
+      "id": "slash_and_burn", "name": "Slash and Burn", "type": "action",
+      "flavor": "Fire runs through the brush and the ash feeds the soil. In three years the field is spent and the farmers move on.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "trash" }, { "op": "gain", "resource": "food", "amount": 1 } ]
+    },
+    {
+      "id": "corvee", "name": "Corvée", "type": "action",
+      "flavor": "Every household owes the ruler a season of labour: digging canals, hauling stone, raising walls they will never live behind.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 3 }, { "op": "gain", "resource": "unrest", "amount": 1 } ]
+    },
+    {
       "id": "storyteller", "name": "Storyteller", "type": "action",
       "flavor": "By the fire the old tales are told again, the floods, the heroes, the gods, and each generation learns what the last one feared.",
       "cost": { "food": 1 }, "vp": 0, "tags": [],

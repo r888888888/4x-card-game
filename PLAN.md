@@ -136,7 +136,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   Text "+1 action" (tooltip "+1 action this turn"). Real data: Scout and Barter.
 - `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
-  (no real card uses it since 277; tests use a fixture).
+  (Slash and Burn is its real card since 369: trash a card in hand, +1 food).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
   any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
   `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
@@ -412,7 +412,9 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   territory); era 3 Royal Road (Bureaucracy, hand size +1; 273) and Lighthouse of Pharos (Navigation, coastal, port;
   ⟳ +1 wealth per port card; 365). The
   starting deck is the basics (132, config `deck`): Settler 1, Scout 1, Research 1, Barter 2 (2 food → 2 wealth, +1
-  action), Storyteller 1 (1 food: draw 2), Bread and Beer 1 (grow 1). Early buildings (080) are in the build menu from
+  action), Storyteller 1 (1 food: draw 2), Bread and Beer 1 (grow 1), plus five cheap actions dealt only, one each (369): Runner (draw 1, +1 action, +1 food),
+  Tribute (+1 wealth per city), Assembly of Elders (`order`: −1 unrest, +1 insight; playable in Anarchy), Slash and
+  Burn (trash a card in hand, +1 food) and Corvée (+3 wealth, +1 unrest). Early buildings (080) are in the build menu from
   turn 1 (295), never dealt: Farm, Hunters' Camp (forest; adds the one Hunt, +1 food per forest territory; 368), Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
   gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
