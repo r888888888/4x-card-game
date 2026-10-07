@@ -88,6 +88,8 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
+	if in_hand and not face.fine.is_empty():  # the gates, at the foot of a hand-size face only, above the VP (382)
+		_add_fine_print(face.fine)
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
 	var tier := e.card_tier_name(def.id) if base_name != "" else ""
@@ -100,8 +102,6 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		stamp.size_flags_horizontal = Control.SIZE_SHRINK_END
 		stamp.rotation = STAMP_TILT
 		add_child(stamp)
-	if in_hand and not face.fine.is_empty():  # the gates, at the foot of a hand-size face only (382)
-		_add_fine_print(face.fine)
 
 
 ## A two-column grid of a card's figures (382): each label in caps, then its figure.
@@ -126,7 +126,7 @@ func _ledger(rows: Array) -> GridContainer:
 	return grid
 
 
-## The card's gates as one line of fine print under a hairline, last on the face (382).
+## The card's gates as one line of fine print under a hairline (382).
 func _add_fine_print(gates: PackedStringArray) -> void:
 	var rule := ColorRect.new()
 	rule.color = Palette.HAIRLINE

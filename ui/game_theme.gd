@@ -34,7 +34,7 @@ static func build() -> Theme:
 	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
 	_label(t, "FinePrint", Tokens.TYPE_CAPTION, Palette.TEXT_DIM, heading_font())  # a card's gates, at its foot (382)
 	_label(t, "LedgerLabel", Tokens.TYPE_LABEL_CAPS, Palette.TEXT_DIM, heading_font())  # a card's figure's name (382)
-	_label(t, "LedgerFigure", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # and the figure
+	_label(t, "LedgerFigure", Tokens.TYPE_NUMERAL_S, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # and the figure
 	_label(t, "Refusal", Tokens.TYPE_BODY_S, Palette.COST)  # why an action can't be done, beside its disabled key (259)
 	_label(t, "Stat", Tokens.TYPE_NUMERAL, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # each stat also sets its own colour: what it counts
 	_label(t, "CardTitle", Tokens.TYPE_BODY, Palette.TEXT, tabular(LABEL_SEMIBOLD))  # a card's name, bold beside its rules (198)
