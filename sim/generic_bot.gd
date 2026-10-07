@@ -8,9 +8,10 @@ extends RefCounted
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
 ## its forecast change) for food, wealth and insight − weight × unrest − weight × the unrest coming in over the turns
 ## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
-## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
-## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
-## A position's forecast is computed once: value() looks it up by what it reads (forecast_key, 315).
+## for one with nothing to act on, 310, and at least 0, 373) + the printed cost of the techs learned (+ a weight per
+## settled territory up to the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early,
+## only points at the end. A position's forecast is computed once: value() looks it up by what it reads (forecast_key,
+## 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
@@ -266,7 +267,7 @@ static func _government(engine: GameEngine, strategy: String, ctx: Context) -> A
 
 
 ## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to its
-## combinations.
+## combinations, of the least valuable cards first (373).
 static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	var out := []
 	var buys := []
@@ -296,7 +297,7 @@ static func _least_valuable_first(e: GameEngine, options: Array, ctx: Context) -
 		var card := e.zone(e.zone_of(options[i])).find(options[i])
 		worth[options[i]] = [card_value(e, card.def.id, ctx), i]
 	var out := options.duplicate()
-	out.sort_custom(func(a, b): return worth[a][0] < worth[b][0] or (worth[a][0] == worth[b][0] and worth[a][1] < worth[b][1]))
+	out.sort_custom(func(a, b): return worth[a] < worth[b])  # [value, index]: ties keep listing order
 	return out
 
 
@@ -445,7 +446,8 @@ static func _concave(s: float) -> float:
 	return 3.0 * s if s < 0 else STOCK_SCALE * log(1.0 + s / STOCK_SCALE)
 
 
-## The average card_value of the cards drawn from (deck, hand and discard), 0 for a card with nothing to act on now.
+## The average card_value of the cards drawn from (deck, hand and discard), 0 for a card with nothing to act on now and
+## at least 0 for any (373: one it wouldn't play costs a draw, not value). Every card counts in the average.
 static func _deck_worth(e: GameEngine, ctx: Context) -> float:
 	var total := 0.0
 	var n := 0
@@ -456,7 +458,7 @@ static func _deck_worth(e: GameEngine, ctx: Context) -> float:
 			if not live.has(card.def.id):
 				live[card.def.id] = not e.would_need_target(card.uid) or not e.would_target(card.uid).is_empty()
 			if live[card.def.id]:
-				total += maxf(0.0, card_value(e, card.def.id, ctx))  # one it wouldn't play costs a draw, not value (373)
+				total += maxf(0.0, card_value(e, card.def.id, ctx))
 	return total / n if n > 0 else 0.0
 
 
