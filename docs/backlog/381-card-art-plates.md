@@ -2,7 +2,7 @@
 id: 381
 title: Hand-size cards carry an art plate, with a placeholder until the picture exists
 type: feature
-status: ready
+status: red-review
 branch: feat/381-card-art-plates
 ---
 
@@ -61,7 +61,12 @@ colour with a period motif, so the layout is final now and art can be dropped in
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_card_art::test_a_hand_face_without_a_picture_has_a_placeholder_plate_after_its_band`, `test_the_placeholder_prints_no_text` |
+| AC2 | `test_card_art::test_a_card_with_a_picture_shows_it_and_one_without_keeps_the_placeholder`, `test_the_picture_is_cropped_to_its_middle_band` |
+| AC3 | `test_card_art::test_tableau_and_realm_row_faces_have_no_plate`, `test_the_hand_and_the_details_show_plates_and_the_realm_doesnt`; `test_build_modal::test_the_card_on_the_sheet_has_its_art_plate`; `test_event_modal::test_the_events_card_has_its_art_plate`; `test_raid_modal::test_the_raids_card_has_its_art_plate`; `test_renewal_modal::test_the_shown_card_has_its_art_plate`; `test_supply_screen::test_a_pile_card_has_no_art_plate` (passes already: a guard) |
+| AC4 | `test_card_art::test_a_hand_card_is_264_by_360` (+ the existing `test_card_slots::test_hand_slots_keep_their_height`) |
+| AC5 | `test_card_art::test_the_art_shade_dims_night_and_is_clear_in_day`, `test_a_rebuilt_face_shades_its_plate_in_the_new_mode` |
+| AC6 | `test_card_art::test_a_cards_motif_is_one_of_four_and_always_the_same`; `test_content::test_every_art_motif_occurs_across_the_real_cards`, `test_the_card_art_list_has_one_row_per_card` (passes already: the list is complete) |
 
 ## Manual check
 - [ ] `godot --path . -- --civ sumer --seed 5`: the hand's cards show plates in their type colours, each with its
@@ -75,3 +80,7 @@ colour with a period motif, so the layout is final now and art can be dropped in
 <!-- Decisions and surprises during implementation, newest last. -->
 - 2026-10-06: specced from `spike/card-art` (screenshots and findings in the spike's commits). The user chose a
   plain placeholder motif with no file name.
+- 2026-10-07: red. Tests imply `CardArt.art_dir` (static var, default `ART_DIR`), `cover_region(tex_size, rect_size)`
+  (static: the texture region drawn), `shade()` / `frame()` (the colours the plate draws, read at setup) and
+  `enum Motif {SUN, RINGS, SPLIT_DISC, STEPS}`. Fixture picture `tests/fixtures/card_art/farm.png`. Shared test
+  helpers `art_plate(view)` and `card_under(node)` in `test_case.gd`.

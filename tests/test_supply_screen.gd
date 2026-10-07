@@ -304,3 +304,12 @@ func test_esc_or_close_on_a_piles_details_buys_nothing() -> void:
 		check(main.supply.is_open(), "the supply stays open after Close")
 		eq(Game.engine.supply_left("obelisk"), 6, "nothing bought")
 		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent"))
+
+
+# --- 381: pile cards are tableau size, with no art ---
+
+func test_a_pile_card_has_no_art_plate() -> void:
+	await with_supply(supply_game(10), func(_main: Node, views: Array[CardView]):
+		check(not views.is_empty(), "piles shown")
+		for view in views:
+			eq(art_plate(view), null, "%s's pile card has no plate" % view.card_id))

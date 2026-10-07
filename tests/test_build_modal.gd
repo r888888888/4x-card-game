@@ -584,3 +584,11 @@ func test_a_card_without_flavor_has_no_gap_for_one() -> void:
 		var card: CardView = modal.card_view()
 		eq(heading.get_global_rect().position.y - card.get_global_rect().end.y, float(Tokens.SPACE_5),
 			"the preview 24 px under the card, as without flavor before"))
+
+
+func test_the_card_on_the_sheet_has_its_art_plate() -> void:
+	await with_main(modal_engine(), func(main: Node):
+		var modal: Object = await open_build(main)
+		(modal.list.row("farm") as Button).pressed.emit()
+		await wait_frames()
+		check(art_plate(modal.card_view()) != null, "the Build modal's card has a plate (381)"))

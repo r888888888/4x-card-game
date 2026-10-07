@@ -1833,3 +1833,30 @@ func test_every_raid_target_is_on_some_territory() -> void:
 	for raid in real_raids(r):
 		for k in raid.raid.get("targets", []):
 			check(on_land.has(k), "%s's target %s is on some territory" % [raid.id, k])
+
+
+## Backlog 381: across the real cards every placeholder motif occurs.
+func test_every_art_motif_occurs_across_the_real_cards() -> void:
+	var art: Object = load("res://ui/card_art.gd")  # scaffolding: CardArt is new in 381
+	check(art != null, "CardArt exists")
+	if art == null:
+		return
+	var seen := {}
+	for id in load_real().cards:
+		seen[art.call("motif_for", id)] = true
+	eq(seen.size(), (art.get("Motif") as Dictionary).size(), "every motif is some card's: %s" % [seen.keys()])
+
+
+## Backlog 381: docs/design/card-art.md has exactly one row naming <id>.png for every card, and none for a non-card.
+func test_the_card_art_list_has_one_row_per_card() -> void:
+	var rows := {}
+	var file_cell := RegEx.create_from_string("^\\| `([a-z0-9_]+)\\.png` \\|")
+	for line in FileAccess.get_file_as_string("res://docs/design/card-art.md").split("\n"):
+		var found := file_cell.search(line)
+		if found != null:
+			rows[found.get_string(1)] = rows.get(found.get_string(1), 0) + 1
+	var cards: Dictionary = load_real().cards
+	for id in cards:
+		eq(rows.get(id, 0), 1, "%s has one row" % id)
+	for id in rows:
+		check(cards.has(id), "%s.png is listed but isn't a card" % id)
