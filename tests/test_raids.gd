@@ -1,7 +1,7 @@
 extends "res://tests/lib/raid_case.gd"
 ## Barbarian raids (backlog 162): an event with `raid` {strength, targets, pop} is announced when drawn, aimed at the
-## weakest settled territory it may hit, and strikes two event phases later (257): repelled when the target's defence is
-## at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
+## weakest settled territory it may hit (fizzling when there is none, 372), and strikes two event phases later (257):
+## repelled when the target's defence is at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
 ## there lost). `raid_target`, `raid_forecast` and `raid_resolved`.
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
 ## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),

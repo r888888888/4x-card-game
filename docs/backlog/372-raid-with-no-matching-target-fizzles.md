@@ -2,7 +2,7 @@
 id: 372
 title: A raid whose targets match no territory still strikes one
 type: bug
-status: in-progress
+status: review
 branch: fix/372-raid-no-target-fizzles
 ---
 
@@ -16,19 +16,19 @@ branch: fix/372-raid-no-target-fizzles
   then pillaged.
 
 ## Acceptance criteria
-- [ ] AC1: Given `TEST_CARDS` Raiders (targets `mountain`) and no settled mountain territory (Hills back in the
+- [x] AC1: Given `TEST_CARDS` Raiders (targets `mountain`) and no settled mountain territory (Hills back in the
   territory deck), when Raiders is drawn as the turn's event, then it goes straight to `event_discard`: it isn't in
   `active_events`, `raid_target(uid)` is -1, `raid_forecast()` is `[]`, no caution notice is posted, and its `play` effects don't resolve (Raiders' +1
   insight isn't gained).
-- [ ] AC2: Given AC1's fizzled raid, when the turns pass that would have brought its strike, then `raid_resolved` is
+- [x] AC2: Given AC1's fizzled raid, when the turns pass that would have brought its strike, then `raid_resolved` is
   never emitted, Homeland's pop and units are unchanged, resources are unchanged by it (no pillage or repel effects
   resolve), and `last_raid_turn` stays 0 (a fizzle starts no `raid_gap`).
-- [ ] AC3: Given AC1, the fizzled raid was still the turn's event: `event_drawn` is emitted for it and no second event
+- [x] AC3: Given AC1, the fizzled raid was still the turn's event: `event_drawn` is emitted for it and no second event
   is drawn that turn.
-- [ ] AC4: A raid with empty `targets` still aims at the weakest of all settled territories
+- [x] AC4: A raid with empty `targets` still aims at the weakest of all settled territories
   (`test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop` stays green), and a raid with a matching
   territory still aims at the weakest match.
-- [ ] AC5: The fallback is gone: `test_raids::test_a_raid_whose_targets_match_nothing_picks_among_all_territories`
+- [x] AC5: The fallback is gone: `test_raids::test_a_raid_whose_targets_match_nothing_picks_among_all_territories`
   is replaced by AC1's test, and 162's AC2 text and PLAN.md describe the new rule.
 
 ## Test plan
@@ -48,11 +48,16 @@ branch: fix/372-raid-no-target-fizzles
 - Balance worry (not tuned here): targeted raids get rarer for realms lacking their terrain; note in the Log.
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`Military.announce` fell back to every settled territory when none had the raid's targets: 162's AC2 asked for it,
+so this was a rule, not a slip. Now `Military.aim` returns null for that case and `Events.draw` discards the raid
+before its play effects resolve (it never joins `active_events`). Raids with empty `targets` still aim anywhere.
 
 ## Manual check
 - Draw a targeted raid with no matching territory: the event log shows it, no announcement, no Realm-row warning,
   no raid modal.
 
 ## Log
+- 2026-10-06: Fizzled raids skip their `play` effects too ("no effect"); no real raid has any today.
+- 2026-10-06: Balance worry, not tuned: targeted raids now miss realms without their terrain, so raids get rarer
+  for some civs; the sim's raid counts may drop.
 - 2026-10-06: Reported by the user; they chose "fizzles" over a notice or waiting for a target.
