@@ -106,7 +106,7 @@ func begin_targeting(view: CardView) -> void:
 	_board.vellum.lay(above)
 	# The engine's reason the card can't be played yet, e.g. "Choose a territory to settle." or "Choose a card to trash."
 	var hint := "%s Click one (or ←/→ then Enter); Esc cancels." % Game.engine.play_error(view.uid)
-	_board.log_note("[color=#ffd966]%s[/color]" % hint)
+	_board.log_note(Palette.bbcode(hint, Palette.EMPHASIS))
 	_board.toasts.hint(hint)  # on screen until targeting ends (116)
 
 

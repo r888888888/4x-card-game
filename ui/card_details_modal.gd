@@ -407,7 +407,7 @@ static func body_bbcode(details: Dictionary) -> String:
 		parts.append("[b]Now[/b]\n" + "\n".join(PackedStringArray(details["state"])))
 	var terms: PackedStringArray = []
 	for t in details.terms:
-		terms.append("[color=#ffd966]%s[/color]: %s" % [t.term, t.text])
+		terms.append("%s: %s" % [Palette.bbcode(t.term, Palette.EMPHASIS), t.text])
 	if not terms.is_empty():
 		parts.append("[b]How it works[/b]\n" + "\n".join(terms))
 	return "\n\n".join(parts)

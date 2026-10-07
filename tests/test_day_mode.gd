@@ -422,3 +422,26 @@ func test_bug_355_no_label_draws_in_default_white_in_day_mode() -> void:
 			"labels drawn in Godot's default white")
 		close_main(main)
 		set_day(false))
+
+
+# --- 395: emphasis text follows the mode ---
+
+func test_emphasis_text_reads_on_sheets_and_the_log_in_both_modes() -> void:
+	await with_temp_settings(func():
+		for day in [false, true]:
+			set_day(day)
+			var mode := "day" if day else "night"
+			eq(palette("EMPHASIS").to_html(false), "7a5200" if day else "ffd966", "%s EMPHASIS" % mode)
+			for ground in ["RAISED", "PANEL"]:
+				var ratio := contrast(palette("EMPHASIS"), palette(ground))
+				check(ratio >= 4.5, "%s EMPHASIS on %s: %.2f:1" % [mode, ground, ratio]))
+
+
+func test_glossary_terms_are_written_in_the_modes_emphasis() -> void:
+	var details := {"rules": [], "state": [], "terms": [{"term": "Housing", "text": "The most pop a territory can hold."}]}
+	await with_temp_settings(func():
+		for day in [false, true]:
+			set_day(day)
+			var body := CardDetailsModal.body_bbcode(details)
+			var expected := "[color=#%s]Housing[/color]" % palette("EMPHASIS").to_html(false)
+			check(body.contains(expected), "%s: %s in %s" % ["day" if day else "night", expected, body]))
