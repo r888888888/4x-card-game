@@ -122,6 +122,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_gain_actions.gd` | The `gain_actions` op (128) |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081) |
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
+| `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367) |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork` |
 | `tests/test_generic_bot.gd` | The generic bot (313) on fixture games; expansion costs (321) |
 | `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315) |
@@ -153,7 +154,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_menu.gd` | The menu (UI) |
 | `tests/test_milestones.gd` | Milestones (191) |
 | `tests/test_modal_sheets.gd` | Modals as drafting sheets (207; UI) |
-| `tests/test_modal_stack.gd` | The modal stack (153; UI) on a seed-1 game with the tech tree and a tech's details over it |
+| `tests/test_modal_stack.gd` | The modal stack (153; UI) |
 | `tests/test_modifiers.gd` | Standing `modifiers` (129) |
 | `tests/test_navigator.gd` | `Navigator` (103) on plain Controls |
 | `tests/test_notice_priorities.gd` | Notice priorities (190) |
@@ -214,7 +215,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`) and `era_name` / config `era_names` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |
-| `tests/test_territories.gd` | Territory cards, their config (`keywords`, `territory_deck`, `starting.territory`), setup |
+| `tests/test_territories.gd` | Territory cards, their config and setup |
 | `tests/test_territory_cards.gd` | Territories as plain cards in the Realm (102) |
 | `tests/test_territory_names.gd` | Territory names (248) |
 | `tests/test_territory_resources.gd` | Rolled resource keywords |

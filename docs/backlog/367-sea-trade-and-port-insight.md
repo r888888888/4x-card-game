@@ -2,7 +2,7 @@
 id: 367
 title: Sea Trade, and ports bring insight
 type: feature
-status: ready
+status: red-review
 branch: feat/367-sea-trade-and-port-insight
 ---
 
@@ -50,7 +50,11 @@ learns to count "per N cards".
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_gain_per_tag::test_per_gains_once_for_every_per_tagged_cards` |
+| AC2 | `test_gain_per_tag::test_without_per_it_gains_per_tagged_card` |
+| AC3 | `test_gain_per_tag::test_per_validation` |
+| AC4 | `test_gain_per_tag::test_per_card_text` |
+| AC5 | `test_gain_per_tag::test_a_played_gain_per_tag_gains_per_tagged_card_and_plays_with_none` (passes already) |
 
 ## Manual check
 - [ ] Shipped numbers: Sea Trade costs 1 food (supply price 2, 6 copies) and gives +2 wealth per port; Sailing gives
