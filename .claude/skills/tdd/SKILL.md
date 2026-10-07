@@ -29,6 +29,8 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
    read the `##` header and tests of the file(s) you'll add to. Pick the file by area, or create `tests/test_<area>.gd`
    for a new area: open it with a `##` header saying what it covers (the source of truth) and add one short row to
    `docs/testing-index.md`, in path order (331, 391; the suite checks both).
+   A UI test that reaches a control inside one of main's components reads it through `MainProbe` (`tests/lib/main_probe.gd`);
+   add a function there, never a test hook on `main.gd` (392; the suite checks).
 2. For each acceptance criterion, write one or more tests that express it exactly, named after
    the behavior (`test_bug_<id>_<what>` for bugs). Add any cards you need to `TEST_CARDS`.
    Call the engine API **as you want it to exist**: the tests design the interface.

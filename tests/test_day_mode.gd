@@ -78,7 +78,7 @@ func check_look(main: Node, mode: String) -> void:
 	main.add_child(button)
 	eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, palette("CONTROL"), "%s: a Button's fill" % mode)
 	button.free()
-	var board := Looks.mismatch(main.background_box(), Looks.grain(palette("BACKGROUND")))
+	var board := Looks.mismatch(MainProbe.background_box(main), Looks.grain(palette("BACKGROUND")))
 	check(board == "", "%s: the board's grain: %s" % [mode, board])
 	for uid in main.views:
 		var view: CardView = main.views[uid]
@@ -92,7 +92,7 @@ func check_look(main: Node, mode: String) -> void:
 			var type: String = Game.engine.card_db[view.card_id].type
 			check(band.color in [palette(type.to_upper()), palette("DIM_BORDER")], "%s: %s's band" % [mode, view.card_id])
 	for key in [GameEngine.FOOD, GameEngine.WEALTH]:
-		var counter: Control = main.counter(key)
+		var counter: Control = MainProbe.counter(main, key)
 		var glyph := counter.find_children("*", "TextureRect", true, false)[0] as TextureRect
 		eq(glyph.self_modulate, Icons.hue(key), "%s: the %s glyph" % [mode, key])
 		eq(figure_color(counter), palette("TEXT"), "%s: the %s figure" % [mode, key])
@@ -140,8 +140,8 @@ func test_open_modals_and_screens_switch_and_stay_open() -> void:
 		await wait_frames()
 		set_day(false)
 		await wait_frames()
-		check(main.menu_buttons()[0].is_visible_in_tree(), "the menu stays open")
-		var menu_button: Button = main.menu_buttons()[0]
+		check(MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "the menu stays open")
+		var menu_button: Button = MainProbe.menu_buttons(main)[0]
 		eq((menu_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, palette("CONTROL"), "its buttons are night again")
 		close_main(main))
 
@@ -193,7 +193,7 @@ func test_the_day_key_is_in_the_focus_loop() -> void:
 		main.start_game(1)
 		main.open_menu()
 		await wait_frames()
-		for b in main.menu_buttons():
+		for b in MainProbe.menu_buttons(main):
 			if b.text == "Settings":
 				b.pressed.emit()
 		await wait_frames()
@@ -213,7 +213,7 @@ func test_bug_195_opening_main_in_day_mode_before_a_game_raises_no_error() -> vo
 		var main := open_main()
 		await wait_frames()
 		check(main.start_screen.is_open(), "the title screen is open")
-		check(not main.board_shown(), "the board isn't shown")
+		check(not MainProbe.board_shown(main), "the board isn't shown")
 		var button := Button.new()
 		main.add_child(button)
 		eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color.to_html(false), Palette.DAY["CONTROL"].to_html(false),
@@ -231,7 +231,7 @@ func test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper() -> void:
 		var main := open_main()
 		main.start_game(1)
 		await wait_frames()
-		var board := Looks.mismatch(main.background_box(), Looks.grain(Palette.DAY["BACKGROUND"]))
+		var board := Looks.mismatch(MainProbe.background_box(main), Looks.grain(Palette.DAY["BACKGROUND"]))
 		check(board == "", "the board's Day grain: %s" % board)
 		var view: CardView = main.views[first_in_hand(Game.engine)]
 		var box := view.get_theme_stylebox("panel")
@@ -410,7 +410,7 @@ func test_bug_355_no_label_draws_in_default_white_in_day_mode() -> void:
 		var main: Node = await mid_game()
 		set_day(true)
 		press_key(main, KEY_ESCAPE)
-		main.menu_buttons().filter(func(b): return b.text == "New game")[0].pressed.emit()
+		MainProbe.menu_buttons(main).filter(func(b): return b.text == "New game")[0].pressed.emit()
 		await wait_frames()
 		main.settings_modal.open(Game.engine.seed_value)
 		await wait_frames()

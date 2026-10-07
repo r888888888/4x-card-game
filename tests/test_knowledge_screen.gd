@@ -796,13 +796,13 @@ func test_a_left_click_outside_the_screen_closes_it_and_does_nothing_else() -> v
 		var card := first_hand_card(main)
 		if card == null:
 			return
-		var in_hand: int = main.hand_view_count()
+		var in_hand: int = MainProbe.hand_view_count(main)
 		check(not main.knowledge.get_global_rect().intersects(card.get_global_rect()), "the hand card is outside the sheet")
 		click_control(main, card)
 		check(not main.knowledge.is_open(), "a click on the hand closes the screen")
 		await wait_details_delay()
 		eq(main.details.shown(), {}, "the click opens no card's details")
-		eq(main.hand_view_count(), in_hand, "the hand is unchanged")
+		eq(MainProbe.hand_view_count(main), in_hand, "the hand is unchanged")
 		eq(card.state, CardView.State.REST, "the card is not picked up"))
 
 

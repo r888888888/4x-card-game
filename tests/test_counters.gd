@@ -35,7 +35,7 @@ func test_each_counter_is_a_different_control_in_the_top_bar() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		var found := {}
 		for key in bar_keys():
-			var counter = main.counter(key)
+			var counter = MainProbe.counter(main, key)
 			check(counter is Control, "a Control for '%s'" % key)
 			if counter is Control:
 				check(in_top_bar(counter), "'%s' is in the top bar" % key)
@@ -45,7 +45,7 @@ func test_each_counter_is_a_different_control_in_the_top_bar() -> void:
 
 func test_an_unknown_key_has_no_counter() -> void:
 	await with_main(make_engine({"farm": 10}), func(main: Node):
-		eq(main.counter("nonsense"), null, "no counter for an unknown key"))
+		eq(MainProbe.counter(main, "nonsense"), null, "no counter for an unknown key"))
 
 
 # --- AC2: the counter's text ---
@@ -57,22 +57,22 @@ func test_the_food_counter_text_is_the_reading_the_bar_shows() -> void:
 		e.changed.emit()
 		await wait_frames()
 		eq(e.upkeep_forecast().get(GameEngine.FOOD), 1, "precondition: +1 food at the next upkeep")
-		eq(main.counter_text(GameEngine.FOOD), "3", "food: its figure (180: no word; 201: the forecast apart)")
-		eq(main.forecast_text(GameEngine.FOOD), "+1", "and its forecast"))
+		eq(MainProbe.counter_text(main, GameEngine.FOOD), "3", "food: its figure (180: no word; 201: the forecast apart)")
+		eq(MainProbe.forecast_text(main, GameEngine.FOOD), "+1", "and its forecast"))
 
 
 func test_each_counter_text_is_that_counters_text() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
-		eq(main.counter_text(TopBar.TURN), "T 001", "the turn plate (201)")
+		eq(MainProbe.counter_text(main, TopBar.TURN), "T 001", "the turn plate (201)")
 		for key in bar_keys():
-			var counter = main.counter(key)
+			var counter = MainProbe.counter(main, key)
 			if counter is Label:
-				eq(main.counter_text(key), counter.text, "'%s' reads as shown" % key))
+				eq(MainProbe.counter_text(main, key), counter.text, "'%s' reads as shown" % key))
 
 
 func test_an_unknown_key_has_no_text() -> void:
 	await with_main(make_engine({"farm": 10}), func(main: Node):
-		eq(main.counter_text("nonsense"), "", "no text for an unknown key"))
+		eq(MainProbe.counter_text(main, "nonsense"), "", "no text for an unknown key"))
 
 
 # --- AC3: counters that are off still exist, hidden ---
@@ -81,7 +81,7 @@ func test_the_unrest_and_pop_counters_exist_but_hide_when_off() -> void:
 	await with_main(make_engine({"farm": 10}), func(main: Node):
 		check(not Game.engine.unrest_on() and not Game.engine.population_on(), "precondition: unrest and pop off")
 		for key in [GameEngine.UNREST, TopBar.POP]:
-			var counter = main.counter(key)
+			var counter = MainProbe.counter(main, key)
 			check(counter is Control, "'%s' still has a counter" % key)
 			if counter is Control:
 				check(not counter.is_visible_in_tree(), "'%s' is hidden" % key))
@@ -97,7 +97,7 @@ func test_the_supply_screen_names_its_wealth_and_discard_counters() -> void:
 		await wait_frames()
 		var wealth = main.supply.counter(GameEngine.WEALTH)
 		check(wealth is Control and wealth.is_visible_in_tree(), "the screen's wealth counter, shown")
-		check(wealth != main.counter(GameEngine.WEALTH), "not the top bar's")
+		check(wealth != MainProbe.counter(main, GameEngine.WEALTH), "not the top bar's")
 		eq(main.supply.counter_text(GameEngine.WEALTH), "Wealth: 10", "its text")
 		var discard = main.supply.counter(SupplyScreen.DISCARD)
 		check(discard is Control and discard != wealth, "the discard counter is another Control")
@@ -108,17 +108,17 @@ func test_the_supply_screen_names_its_wealth_and_discard_counters() -> void:
 
 ## The Label beside counter key reading its forecast, or null.
 func forecast_label(main: Node, key: String) -> Label:
-	var counter: Control = main.counter(key)
+	var counter: Control = MainProbe.counter(main, key)
 	for l in counter.find_children("*", "Label", true, false):
-		if (l as Label).is_visible_in_tree() and (l as Label).text == main.forecast_text(key) and l.text != "":
+		if (l as Label).is_visible_in_tree() and (l as Label).text == MainProbe.forecast_text(main, key) and l.text != "":
 			return l
 	return null
 
 
 func test_the_turn_shows_as_a_plate_with_the_limit_in_its_tooltip() -> void:
 	await with_main(make_engine({"farm": 10}, {"turn_limit": 3}), func(main: Node):
-		var plate: Label = main.counter(TopBar.TURN)
-		eq(main.counter_text(TopBar.TURN), "T 001", "three digits, zero-padded")
+		var plate: Label = MainProbe.counter(main, TopBar.TURN)
+		eq(MainProbe.counter_text(main, TopBar.TURN), "T 001", "three digits, zero-padded")
 		eq(plate.tooltip_text, "Turn 1 of 3", "the limit in its tooltip")
 		eq(plate.theme_type_variation, &"Plate", "the Plate look: mono numerals on a well")
 		var well := plate.get_theme_stylebox("normal") as StyleBoxFlat
@@ -132,34 +132,34 @@ func test_each_resource_shows_its_forecast_as_a_separate_quieter_figure() -> voi
 		e.changed.emit()
 		await wait_frames()
 		var ahead: int = e.upkeep_forecast()[GameEngine.FOOD]
-		eq(main.counter_text(GameEngine.FOOD), "6", "the figure alone")
-		eq(main.forecast_text(GameEngine.FOOD), "%+d" % ahead, "the forecast, signed, no brackets")
+		eq(MainProbe.counter_text(main, GameEngine.FOOD), "6", "the figure alone")
+		eq(MainProbe.forecast_text(main, GameEngine.FOOD), "%+d" % ahead, "the forecast, signed, no brackets")
 		var label := forecast_label(main, GameEngine.FOOD)
 		check(label != null, "a label of its own")
 		if label != null:
 			eq(label.get_theme_color("font_color"), Palette.TEXT_DIM, "TEXT_DIM")
 			eq(label.get_theme_font_size("font_size"), Tokens.TYPE_NUMERAL_S, "TYPE_NUMERAL_S")
-			var figure_end: float = (main.counter(GameEngine.FOOD).figure() as Control).get_global_rect().end.x
+			var figure_end: float = (MainProbe.counter(main, GameEngine.FOOD).figure() as Control).get_global_rect().end.x
 			var text_start: float = label.get_global_rect().position.x + label.get_theme_stylebox("normal").get_margin(SIDE_LEFT)
 			check(text_start - figure_end >= Tokens.SPACE_1 - 0.5, "SPACE_1 from the figure to the forecast's text: %d" % [
 				text_start - figure_end])
 		var ahead_all: Dictionary = e.upkeep_forecast()
 		for key in [GameEngine.WEALTH, GameEngine.INSIGHT]:
 			var want: String = ("%+d" % ahead_all[key]) if ahead_all.has(key) else ""  # no entry: no forecast label
-			eq(main.forecast_text(key), want, "%s's forecast" % key))
+			eq(MainProbe.forecast_text(main, key), want, "%s's forecast" % key))
 
 
 func test_score_and_pop_show_no_forecast() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		for key in [TopBar.SCORE, TopBar.POP]:
-			eq(main.forecast_text(key), "", "%s: none" % key)
+			eq(MainProbe.forecast_text(main, key), "", "%s: none" % key)
 			check(forecast_label(main, key) == null, "%s: no forecast label" % key))
 
 
 func test_the_figures_are_numerals() -> void:  # their glyphs' size: 242 AC1
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, TopBar.SCORE]:
-			var figure: Control = main.counter(key).figure()
+			var figure: Control = MainProbe.counter(main, key).figure()
 			eq(figure.get_theme_font_size("font_size"), Tokens.TYPE_NUMERAL, "%s's figure at TYPE_NUMERAL" % key))
 
 
@@ -167,11 +167,11 @@ func test_the_figures_are_numerals() -> void:  # their glyphs' size: 242 AC1
 
 func test_the_counters_sit_space_5_apart_and_the_buttons_space_3() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
-		var shown: Array = bar_keys().filter(func(k): return (main.counter(k) as Control).is_visible_in_tree())
+		var shown: Array = bar_keys().filter(func(k): return (MainProbe.counter(main, k) as Control).is_visible_in_tree())
 		check(shown.size() >= 5, "the turn plate and at least four counters: %s" % [shown])
 		for i in range(1, shown.size()):
-			var left: Rect2 = (main.counter(shown[i - 1]) as Control).get_global_rect()
-			var right: Rect2 = (main.counter(shown[i]) as Control).get_global_rect()
+			var left: Rect2 = (MainProbe.counter(main, shown[i - 1]) as Control).get_global_rect()
+			var right: Rect2 = (MainProbe.counter(main, shown[i]) as Control).get_global_rect()
 			eq(roundi(right.position.x - left.end.x), Tokens.SPACE_5, "%s to %s" % [shown[i - 1], shown[i]])
 		var buttons: Array = UIKit.buttons_in(top_bar(main)).filter(func(b): return b.is_visible_in_tree())
 		check(buttons.size() >= 2, "the bar's buttons")
@@ -195,7 +195,7 @@ func test_the_strip_keeps_buy_cards_knowledge_log_and_menu_at_its_right() -> voi
 func test_each_top_bar_glyph_is_the_size_of_its_figure() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, TopBar.SCORE, TopBar.POP]:
-			var glyph: TextureRect = (main.counter(key) as Counter).glyph()
+			var glyph: TextureRect = (MainProbe.counter(main, key) as Counter).glyph()
 			eq(glyph.custom_minimum_size, Vector2.ONE * Tokens.TYPE_NUMERAL, "%s's glyph" % key))
 
 
@@ -209,7 +209,7 @@ func test_each_top_bar_tooltip_names_its_resource_and_what_it_is_for() -> void:
 			TopBar.SCORE: ["Score: ", "victory points"], TopBar.POP: ["Pop: ", "territories"],
 		}
 		for key: String in says:
-			var tip: String = (main.counter(key) as Control).tooltip_text
+			var tip: String = (MainProbe.counter(main, key) as Control).tooltip_text
 			check(tip.begins_with(says[key][0]), "%s's tooltip opens with its name: '%s'" % [key, tip])
 			check(tip.contains(says[key][1]), "%s's tooltip says what it's for: '%s'" % [key, tip])
-		check((main.counter(GameEngine.FOOD) as Control).tooltip_text.contains("next upkeep"), "the forecast sentence stays"))
+		check((MainProbe.counter(main, GameEngine.FOOD) as Control).tooltip_text.contains("next upkeep"), "the forecast sentence stays"))

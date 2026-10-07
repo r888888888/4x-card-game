@@ -200,10 +200,10 @@ func test_the_event_modal_opens_on_the_stack_and_ok_closes_it() -> void:
 		main.start_game(1)
 		arrange(Game.engine.zone("event_deck"), ["windfall"])
 		Game.engine.end_turn()
-		eq(main.event_modal().get("id", ""), "windfall", "the drawn event is shown")
+		eq(MainProbe.event_modal(main).get("id", ""), "windfall", "the drawn event is shown")
 		eq(depth(main), 1, "one modal")
-		check(top(main) != null and top(main).shown() == main.event_modal(), "the event modal on top")
-		main.event_modal_ok_button().pressed.emit()
+		check(top(main) != null and top(main).shown() == MainProbe.event_modal(main), "the event modal on top")
+		MainProbe.event_modal_ok_button(main).pressed.emit()
 		eq(depth(main), 0, "OK closes it")
 		close_main(main), {"windfall": 1, "omen": 1})
 

@@ -79,7 +79,7 @@ func test_the_top_bar_holds_supply_and_knowledge_before_menu() -> void:
 		eq(b.get_parent(), bar, "'%s' is in the top bar" % b.text)
 	var indices := order.map(func(b: Button): return b.get_index())
 	eq(indices, sorted(indices), "Buy Cards, Knowledge, then Menu")
-	var score: Control = main.counter(TopBar.SCORE)
+	var score: Control = MainProbe.counter(main, TopBar.SCORE)
 	var stats: Node = score.get_parent()  # the counters' own row (218)
 	check(bar.is_ancestor_of(score) and stats.get_parent() == bar and stats.get_index() < supply.get_index(), "after the stats")
 	close_at_1080(main)
@@ -153,8 +153,8 @@ func longest_top_bar(main: Node) -> void:
 	for i in e.config.hand_limit + 3 - e.zone("hand").size():
 		put_in_hand(e, e.zone("hand").cards[0].def.id)
 	e.end_turn()
-	if not main.event_modal().is_empty():
-		main.event_modal_ok_button().pressed.emit()
+	if not MainProbe.event_modal(main).is_empty():
+		MainProbe.event_modal_ok_button(main).pressed.emit()
 	e.resources["unrest"] = 10  # two digits (144): "Unrest: 10 / N (+n)"
 	e.changed.emit()
 	await wait_frames()
@@ -165,8 +165,8 @@ func test_the_top_bar_fits_with_its_longest_texts() -> void:
 	await longest_top_bar(main)
 	var viewport: Vector2 = main.get_viewport_rect().size
 	check(Game.engine.end_turn_error() != "", "a discard is owed")
-	check(main.counter(GameEngine.INSIGHT).is_visible_in_tree(), "the Insight counter is in the bar (139)")
-	check(main.counter(GameEngine.UNREST).is_visible_in_tree(), "the Unrest counter is in the bar (144)")
+	check(MainProbe.counter(main, GameEngine.INSIGHT).is_visible_in_tree(), "the Insight counter is in the bar (139)")
+	check(MainProbe.counter(main, GameEngine.UNREST).is_visible_in_tree(), "the Unrest counter is in the bar (144)")
 	var bar: Control = shown_button(main, "Menu").get_parent()
 	for c in bar.get_children():
 		if not (c is Control and c.visible):

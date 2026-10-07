@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## The in-game menu in the real main scene (backlog 067). Test hooks: main.menu_buttons() and
-## main.game_over_buttons() list the overlays' buttons in order; main.quit_hook is called instead of quitting.
+## The in-game menu in the real main scene (backlog 067). Test hooks: MainProbe.menu_buttons(main) and
+## MainProbe.game_over_buttons(main) list the overlays' buttons in order; main.quit_hook is called instead of quitting.
 
 
 ## Opens main with seed 1 and quit_hook swapped for a counter, so Exit doesn't end the test run.
@@ -22,7 +22,7 @@ func button_texts(buttons: Array) -> Array[String]:
 
 func test_menu_ends_with_an_exit_button() -> void:
 	var main := open_main_counting_quits([0])
-	var texts := button_texts(main.menu_buttons())
+	var texts := button_texts(MainProbe.menu_buttons(main))
 	eq(texts.back() if not texts.is_empty() else "", "Exit game", "last menu button in %s" % [texts])
 	check(texts.size() >= 2 and texts[-2].begins_with("Close"), "Close comes just before Exit in %s" % [texts])
 	close_main(main)
@@ -33,7 +33,7 @@ func test_menu_ends_with_an_exit_button() -> void:
 func test_pressing_exit_calls_the_quit_hook_once() -> void:
 	var quits := [0]
 	var main := open_main_counting_quits(quits)
-	var exit: Button = main.menu_buttons().back()
+	var exit: Button = MainProbe.menu_buttons(main).back()
 	exit.pressed.emit()
 	eq(quits[0], 1, "quit hook calls")
 	close_main(main)
@@ -44,7 +44,7 @@ func test_pressing_exit_calls_the_quit_hook_once() -> void:
 func test_tab_from_close_reaches_exit_then_wraps_to_restart() -> void:
 	var main := open_main_counting_quits([0])
 	press_key(main, KEY_ESCAPE)  # nothing focused: opens the menu
-	var buttons: Array = main.menu_buttons()
+	var buttons: Array = MainProbe.menu_buttons(main)
 	var close: Button = buttons[-2]
 	close.grab_focus()
 	press_key(main, KEY_TAB)
@@ -60,7 +60,7 @@ func test_enter_on_exit_calls_the_quit_hook() -> void:
 	var quits := [0]
 	var main := open_main_counting_quits(quits)
 	press_key(main, KEY_ESCAPE)
-	var exit: Button = main.menu_buttons().back()
+	var exit: Button = MainProbe.menu_buttons(main).back()
 	exit.grab_focus()
 	press_key(main, KEY_ENTER)
 	eq(quits[0], 1, "quit hook calls")
@@ -71,7 +71,7 @@ func test_enter_on_exit_calls_the_quit_hook() -> void:
 
 func test_game_over_overlay_has_no_exit_button() -> void:
 	var main := open_main_counting_quits([0])
-	var texts := button_texts(main.game_over_buttons())
+	var texts := button_texts(MainProbe.game_over_buttons(main))
 	check(not texts.is_empty(), "game-over buttons found")
 	check(not texts.has("Exit game"), "no Exit game in %s" % [texts])
 	close_main(main)

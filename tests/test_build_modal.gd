@@ -140,7 +140,7 @@ func test_build_builds_the_selected_entry_and_closes() -> void:
 		if not farms.is_empty():
 			check(main.territory_view.card_uids().has(farms[0].uid), "the view shows it")
 		eq(e.resources.food, 3, "5 - 2 food")
-		eq(main.counter_text(GameEngine.FOOD).get_slice(" ", 0), "3", "the top bar's food"))
+		eq(MainProbe.counter_text(main, GameEngine.FOOD).get_slice(" ", 0), "3", "the top bar's food"))
 
 
 func test_enter_builds_and_a_unit_reads_recruit() -> void:

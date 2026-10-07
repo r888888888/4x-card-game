@@ -185,7 +185,7 @@ func test_back_and_esc_return_to_the_realm() -> void:
 			check(not main.territory_view.is_open(), "%s: closed" % way)
 			check(shown(main.tableau), "%s: the Realm is back" % way)
 			check(shown(main.views[home]), "%s: the territory card is back in the Realm" % way)
-			check(not main.menu_buttons()[0].is_visible_in_tree(), "%s: no menu" % way))
+			check(not MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "%s: no menu" % way))
 
 
 func test_restart_new_game_and_game_over_close_the_view() -> void:
@@ -567,7 +567,7 @@ func test_a_click_on_a_control_outside_the_box_only_closes_the_view() -> void:
 		await wait_seconds(1.5)  # the opening deal settles: a hand card in motion takes no clicks
 		var controls := {
 			"a hand card": hand_card,
-			"a top-bar counter": main.counter(GameEngine.FOOD),
+			"a top-bar counter": MainProbe.counter(main, GameEngine.FOOD),
 			"the civilization's name": main.sidebar.name_button,
 		}
 		for where in controls:

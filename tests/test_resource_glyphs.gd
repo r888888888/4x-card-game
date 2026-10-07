@@ -52,7 +52,7 @@ func hand_view(main: Node, id: String) -> CardView:
 func test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON), func(main: Node):
 		for key: String in GLYPHS:
-			var counter: Control = main.counter(key)
+			var counter: Control = MainProbe.counter(main, key)
 			var glyph := glyph_of(counter)
 			check(glyph != null, "'%s' has a glyph" % key)
 			if glyph == null:
@@ -64,7 +64,7 @@ func test_each_counter_shows_its_glyph_in_its_hue_left_of_an_ink_figure() -> voi
 			if key != GameEngine.UNREST:  # unrest is off in this game
 				check(glyph.is_visible_in_tree(), "'%s' glyph shown" % key)
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, TopBar.SCORE, TopBar.POP]:
-			eq((main.counter(key).figure().color as Color).to_html(), Palette.TEXT.to_html(),
+			eq((MainProbe.counter(main, key).figure().color as Color).to_html(), Palette.TEXT.to_html(),
 				"'%s' figure in ink" % key))
 
 
@@ -75,14 +75,14 @@ func test_the_food_figure_warns_when_pop_would_starve() -> void:
 			Game.engine.changed.emit()
 			await wait_frames()
 			check(Game.engine.upkeep_forecast().get("starve", 0) > 0, "precondition: pop would starve")
-			eq((main.counter(GameEngine.FOOD).figure().color as Color).to_html(), Palette.WARN.to_html(),
+			eq((MainProbe.counter(main, GameEngine.FOOD).figure().color as Color).to_html(), Palette.WARN.to_html(),
 				"food figure: WARN"))
 
 
 func test_a_hidden_counter_hides_its_glyph() -> void:
 	await with_main(make_engine({"farm": 10}), func(main: Node):
 		for key in [GameEngine.UNREST, TopBar.POP]:
-			var glyph := glyph_of(main.counter(key))
+			var glyph := glyph_of(MainProbe.counter(main, key))
 			check(glyph != null and not glyph.is_visible_in_tree(), "'%s' glyph hidden with its counter" % key))
 
 
@@ -94,10 +94,10 @@ func test_the_counters_read_figures_only() -> void:
 		e.resources[GameEngine.FOOD] = 3
 		e.changed.emit()
 		await wait_frames()
-		eq(main.counter_text(GameEngine.FOOD), "3", "food (its forecast apart since 201)")
-		eq(main.counter_text(TopBar.SCORE), str(e.score()), "score")
-		eq(main.counter_text(TopBar.POP), str(e.total_pop()), "pop")
-		eq(main.counter_text(TopBar.TURN), "T 001", "the turn: its plate (201)"))
+		eq(MainProbe.counter_text(main, GameEngine.FOOD), "3", "food (its forecast apart since 201)")
+		eq(MainProbe.counter_text(main, TopBar.SCORE), str(e.score()), "score")
+		eq(MainProbe.counter_text(main, TopBar.POP), str(e.total_pop()), "pop")
+		eq(MainProbe.counter_text(main, TopBar.TURN), "T 001", "the turn: its plate (201)"))
 
 
 # --- AC4: the cost at the top right of a hand card ---
@@ -168,7 +168,7 @@ func test_a_figure_the_player_is_short_of_is_red_until_they_have_it() -> void:
 
 func test_the_food_counter_uses_the_sprout() -> void:
 	await with_main(make_engine({"farm": 10}, POP_ON.merged({"territory_deck": {"grassland": 1}})), func(main: Node):
-		var glyph := glyph_of(main.counter(GameEngine.FOOD))
+		var glyph := glyph_of(MainProbe.counter(main, GameEngine.FOOD))
 		check(glyph != null, "the food counter's glyph")
 		if glyph != null:
 			eq(Icons.FOOD.resource_path, glyph.texture.resource_path, "the food glyph is the sprout (the Grow button that shared it went in 260)"))

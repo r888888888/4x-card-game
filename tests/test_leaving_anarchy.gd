@@ -81,7 +81,7 @@ func test_a_government_chosen_mid_turn_counts_its_actions_at_once() -> void:
 func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> void:
 	await with_main(anarchy_engine(), func(main: Node):
 		var e := Game.engine
-		var restore: Button = main.restore_order_button()
+		var restore: Button = MainProbe.restore_order_button(main)
 		await wait_frames()
 		check(not restore.is_visible_in_tree(), "hidden outside Anarchy")
 		e.resources["unrest"] = 5
@@ -92,7 +92,7 @@ func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> v
 		check(restore.is_visible_in_tree(), "shown in Anarchy")
 		check(restore.disabled, "disabled on its first turn")
 		eq(restore.tooltip_text, "Order can't be restored on Anarchy's first turn.", "the reason in the tooltip")
-		eq(restore.get_parent(), main.relieve_button().get_parent(), "beside Relieve famine")
+		eq(restore.get_parent(), MainProbe.relieve_button(main).get_parent(), "beside Relieve famine")
 		e.end_turn()
 		await wait_frames()
 		eq(restore.text, "Restore order (12 wealth)", "3 counters left: 12")

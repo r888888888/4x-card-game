@@ -17,7 +17,7 @@ func set_day(on: bool) -> void:
 
 ## The strip the top bar sits on.
 func strip(main: Node) -> Control:
-	var node: Node = main.counter(GameEngine.FOOD)
+	var node: Node = MainProbe.counter(main, GameEngine.FOOD)
 	while node != null and not node is TopBar:
 		node = node.get_parent()
 	return node.get_parent() as Control
@@ -58,7 +58,7 @@ func test_the_board_and_the_rail_show_grain_under_the_background() -> void:
 			set_day(day)
 			var main: Node = await mid_game()
 			var mode := "day" if day else "night"
-			check_surface(main.background_box(), Looks.grain(Palette.BACKGROUND), "%s: the board" % mode)
+			check_surface(MainProbe.background_box(main), Looks.grain(Palette.BACKGROUND), "%s: the board" % mode)
 			var rail := panel_box(main.sidebar)
 			check_surface(rail, Looks.grain(Palette.BACKGROUND), "%s: the Rail" % mode)
 			var frame := Looks.frame_of(rail)
@@ -73,7 +73,7 @@ func test_the_board_and_the_rail_show_grain_under_the_background() -> void:
 
 func test_the_rails_grain_lines_up_with_the_boards() -> void:
 	var main: Node = await mid_game()
-	var board: StyleBox = main.background_box()
+	var board: StyleBox = MainProbe.background_box(main)
 	var rail := panel_box(main.sidebar)
 	var at: Vector2 = (main.sidebar as Control).global_position
 	check(at.x > 0.0 and at.y > 0.0, "precondition: the Rail isn't at the screen's origin")
@@ -158,7 +158,7 @@ func test_an_overlay_panel_is_paper_in_its_role_colour_on_a_soft_shadow() -> voi
 ## Checks every surface on main reads the current mode: the board, the Rail, the Strip, each card view and the open
 ## identity modal.
 func check_surfaces(main: Node, mode: String) -> void:
-	check_surface(main.background_box(), Looks.grain(Palette.BACKGROUND), "%s: the board" % mode)
+	check_surface(MainProbe.background_box(main), Looks.grain(Palette.BACKGROUND), "%s: the board" % mode)
 	check_surface(panel_box(main.sidebar), Looks.grain(Palette.BACKGROUND), "%s: the Rail" % mode)
 	check_surface(panel_box(strip(main)), Looks.grain(Palette.RAISED), "%s: the Strip" % mode)
 	for uid in main.views:
@@ -208,7 +208,7 @@ func test_text_and_hues_keep_their_contrast_on_each_surface() -> void:
 				return Looks.mismatch(panel_box(v), Looks.paper()) == "")
 			check(not cards.is_empty(), "%s: a card on plain paper" % mode)
 			var surfaces := {
-				"board": main.background_box(),
+				"board": MainProbe.background_box(main),
 				"Strip": panel_box(strip(main)),
 				"card": panel_box(cards[0]) if not cards.is_empty() else null,
 				"Sheet": panel_box(main.identity_modal.panel),

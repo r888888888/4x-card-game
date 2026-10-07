@@ -2,7 +2,7 @@ extends "res://tests/lib/tech_case.gd"
 ## One board row (backlog 137): active events, then frontier territories, then the Realm's own cards share the Realm's
 ## wrapping row (main.tableau.row); there is no Frontier, Known or Events row, and known techs have no view on the
 ## board. Runs the real main scene on a board_engine game through with_main (test_case.gd). Test hooks: main.views_in(row),
-## main.section_headings(), main.relieve_button().
+## MainProbe.section_headings(main), MainProbe.relieve_button(main).
 
 
 ## The uids of the cards in the board row, in order.
@@ -16,7 +16,7 @@ func row_uids(main: Node) -> Array[int]:
 ## Each play-area heading's text ("Realm", "In Hand" since 204).
 func heading_words(main: Node) -> Array[String]:
 	var out: Array[String] = []
-	for h in main.section_headings():
+	for h in MainProbe.section_headings(main):
 		out.append(h.text)
 	return out
 
@@ -124,7 +124,7 @@ func test_relieve_shows_during_a_famine_with_no_events_heading() -> void:
 	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
 	await with_main(board_engine({"population": HUNGRY_POP.merged({"famine": famine})}), func(main: Node):
 		var e := Game.engine
-		var relieve: Button = main.relieve_button()
+		var relieve: Button = MainProbe.relieve_button(main)
 		check(not relieve.is_visible_in_tree(), "hidden with no Famine")
 		e.zone("tableau").find(home_uid(e)).pop = 4
 		e.resources.food = 0

@@ -230,7 +230,7 @@ func test_the_start_screens_are_on_the_navigator() -> void:
 	main.start_game(3)
 	eq(nav.depth(), 0, "a game on the board: nothing on the stack")
 	press_key(main, KEY_ESCAPE)
-	main.menu_buttons().filter(func(b): return b.text == "New game")[0].pressed.emit()
+	MainProbe.menu_buttons(main).filter(func(b): return b.text == "New game")[0].pressed.emit()
 	eq(nav.top(), main.new_game_screen.overlay, "menu New game: the new game screen")
 	eq(nav.depth(), 2, "over the title screen")
 	close_main(main)

@@ -39,7 +39,7 @@ func with_engine(engine: GameEngine, body: Callable) -> void:
 func test_no_civilization_or_government_rows_in_the_play_area() -> void:
 	var main := open_main()
 	main.start_game(1)
-	for h in main.section_headings():
+	for h in MainProbe.section_headings(main):
 		check(not h.text in ["Civilization", "Government"], "no %s heading" % h.text)
 	check(not main.views.has(Game.engine.civilization()), "no view for the civilization")
 	check(not main.views.has(Game.engine.government()), "no view for the government")
@@ -77,7 +77,7 @@ func test_esc_and_close_close_it_and_it_blocks_the_board_keys() -> void:
 	eq(Game.engine.turn, 1, "E doesn't end the turn while it is open")
 	press_key(main, KEY_ESCAPE)
 	eq(modal.shown(), [], "Esc closes it")
-	check(not main.menu_buttons()[0].is_visible_in_tree(), "and doesn't open the menu")
+	check(not MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "and doesn't open the menu")
 	main.sidebar.government_button.pressed.emit()
 	modal.close_button.pressed.emit()
 	eq(modal.shown(), [], "Close closes it")

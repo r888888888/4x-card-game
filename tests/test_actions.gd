@@ -201,8 +201,8 @@ func test_the_hand_is_headed_in_hand_with_the_how_to_as_its_tooltip() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	var hand: Array = main.section_headings().filter(func(h): return h.text == "In Hand")
-	eq(hand.size(), 1, "an In Hand heading: %s" % [main.section_headings()])
+	var hand: Array = MainProbe.section_headings(main).filter(func(h): return h.text == "In Hand")
+	eq(hand.size(), 1, "an In Hand heading: %s" % [MainProbe.section_headings(main)])
 	if hand.size() == 1:
 		eq(hand[0].tooltip, HOW_TO, "the how-to is its tooltip")
 	close_main(main)

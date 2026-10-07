@@ -58,7 +58,7 @@ func test_the_sidebar_runs_down_the_right_edge_with_the_realm_and_hand_to_its_le
 		var main: Node = await open_at(size)
 		var rail: Rect2 = (main.sidebar as Control).get_global_rect()
 		var viewport: Vector2 = main.get_viewport_rect().size
-		var strip: Rect2 = (main.counter(GameEngine.FOOD) as Control).get_parent().get_global_rect()
+		var strip: Rect2 = (MainProbe.counter(main, GameEngine.FOOD) as Control).get_parent().get_global_rect()
 		check(viewport.x - rail.end.x <= Tokens.SPACE_4 + TOLERANCE, "%s: at the right edge: ends at %d of %d" % [size, rail.end.x, viewport.x])
 		check(rail.position.y >= strip.end.y - TOLERANCE, "%s: under the top strip: %d, strip ends %d" % [size, rail.position.y, strip.end.y])
 		check(viewport.y - rail.end.y <= Tokens.SPACE_4 + TOLERANCE, "%s: full height: ends at %d of %d" % [size, rail.end.y, viewport.y])
@@ -90,8 +90,8 @@ func test_under_anarchy_the_sidebar_reads_anarchy() -> void:
 	var e := Game.engine
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	e.end_turn()
-	if not main.event_modal().is_empty():
-		main.event_modal_ok_button().pressed.emit()
+	if not MainProbe.event_modal(main).is_empty():
+		MainProbe.event_modal_ok_button(main).pressed.emit()
 	await wait_frames()
 	check(e.anarchy() != -1 and e.government() == -1, "precondition: Anarchy, no government (253)")
 	eq(main.sidebar.government_button.text, "ANARCHY ›", "the sidebar names Anarchy while no government rules")
@@ -112,7 +112,7 @@ func test_the_top_bar_has_no_civilization_button() -> void:
 
 ## main's top strip, the TopBar holding the counters (218: they sit in a row of their own inside it).
 func top_strip(main: Node) -> Node:
-	var node: Node = main.counter(GameEngine.FOOD)
+	var node: Node = MainProbe.counter(main, GameEngine.FOOD)
 	while node != null and not node is TopBar:
 		node = node.get_parent()
 	return node
