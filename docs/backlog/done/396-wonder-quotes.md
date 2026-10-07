@@ -2,7 +2,7 @@
 id: 396
 title: Quotes for wonders
 type: feature
-status: review
+status: done
 branch: feat/396-wonder-quotes
 ---
 
