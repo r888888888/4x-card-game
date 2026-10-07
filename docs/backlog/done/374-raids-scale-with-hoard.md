@@ -2,7 +2,7 @@
 id: 374
 title: Raids grow with the food and wealth you hoard
 type: feature
-status: review
+status: done
 branch: feat/374-raids-scale-with-hoard
 ---
 
