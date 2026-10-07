@@ -2,7 +2,7 @@
 id: 387
 title: Upgrade a building from its details modal
 type: feature
-status: review
+status: done
 branch: feat/387-upgrade-from-building-details
 ---
 
