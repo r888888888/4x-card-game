@@ -466,3 +466,226 @@ func test_the_strike_line_says_what_it_cost_or_gave_and_is_logged_not_noticed() 
 	eq(r.raid_outcome_text(repels[0]), "Raiders repelled at Hills: +2 wealth, −1 unrest.", "repelled line")
 	check(repelled.has("log: Raiders repelled at Hills: +2 wealth, −1 unrest."), "logged: %s" % [repelled])
 	eq(notices_in(repelled).filter(func(m): return "repelled" in m), [], "no notice")
+
+# --- 374: raids grow with the food and wealth held ---
+
+## hoard_engine's config: +1 strength per 10 food and wealth held, 20% plunder.
+const HOARD := {"raid_hoard_step": 10, "raid_plunder_pct": 20}
+
+
+## A raid_engine game with Raiders (printed 3) on top and HOARD merged with overrides, its food and wealth set so that
+## they are food and wealth when Raiders is drawn (after turn 2's upkeep). Still turn 1. null when the data doesn't load.
+func hoard_engine(food: int, wealth: int, overrides := {}) -> GameEngine:
+	var o := HOARD.duplicate()
+	o.merge(overrides, true)
+	var e := raid_engine(["raiders", "omen", "omen"], {"raiders": 1, "horde": 1, "omen": 3}, o)
+	if e == null:
+		return null
+	hold_after_upkeep(e, food, wealth)
+	return e
+
+
+## Sets e's food and wealth so they are food and wealth after the next upkeep (upkeep_forecast).
+func hold_after_upkeep(e: GameEngine, food: int, wealth: int) -> void:
+	var forecast: Dictionary = e.upkeep_forecast()
+	e.resources.food = food - forecast.food
+	e.resources.wealth = wealth - forecast.wealth
+	check(e.resources.food >= 0 and e.resources.wealth >= 0, "can hold %d food, %d wealth after upkeep" % [food, wealth])
+
+
+## Recruits two Levies on Homeland and marches both to Hills: defence 4 there.
+func garrison_two(e: GameEngine) -> void:
+	for i in 2:
+		recruit(e, home_uid(e))
+	for c in e.zone("tableau").cards:
+		if c.def.id == "levy":
+			check(e.move_unit(c.uid, hills_of(e)), "a Levy marches to Hills: %s" % e.move_unit_error(c.uid, hills_of(e)))
+
+
+func test_374_a_raid_drawn_gains_1_strength_per_raid_hoard_step_of_food_and_wealth_held() -> void:
+	for row in [[13, 9, 5, "hoard 22"], [5, 4, 3, "hoard 9"], [6, 4, 4, "hoard 10"], [0, 0, 3, "hoard 0"]]:
+		var e := hoard_engine(row[0], row[1])
+		if e == null:
+			return
+		e.end_turn()
+		eq([e.resources.food, e.resources.wealth], [row[0], row[1]], "%s: held when drawn" % row[3])
+		var raid := active_uid(e, "raiders")
+		var o: Object = e
+		eq(o.raid_strength(raid), row[2], "%s: raid_strength" % row[3])
+		eq(e.raid_forecast().map(func(f): return f.strength), [row[2]], "%s: raid_forecast's strength" % row[3])
+
+
+func test_374_raid_strength_is_0_for_anything_but_an_active_raid() -> void:
+	var e := hoard_engine(13, 9)
+	if e == null:
+		return
+	var queued := uid_of(e.zone("event_deck"), "omen")
+	e.end_turn()
+	var o: Object = e
+	for uid in [queued, home_uid(e), 9999]:
+		eq(o.raid_strength(uid), 0, "raid_strength(%d)" % uid)
+
+
+func test_374_the_strength_stays_as_announced_when_the_hoard_changes() -> void:
+	for held in [0, 50]:
+		var e := hoard_engine(9, 6)  # hoard 15: strength 4
+		if e == null:
+			return
+		var outcomes := record_raids(e)
+		e.end_turn()
+		var raid := active_uid(e, "raiders")
+		e.resources.food = held
+		e.resources.wealth = held
+		var o: Object = e
+		eq(o.raid_strength(raid), 4, "held %d: raid_strength" % held)
+		eq(e.raid_forecast().map(func(f): return f.strength), [4], "held %d: raid_forecast" % held)
+		e.end_turn()  # announced 2 turns ahead (257)
+		e.end_turn()
+		eq(outcomes.map(func(r): return r.strength), [4], "held %d: struck at 4" % held)
+
+
+func test_374_the_strike_compares_defence_with_the_announced_strength() -> void:
+	var short := hoard_engine(9, 6)  # strength 4
+	if short == null:
+		return
+	var pillaged := record_raids(short)
+	short.end_turn()
+	build_on(short, hills_of(short), ["town"])
+	recruit(short, hills_of(short))
+	short.end_turn()
+	short.end_turn()
+	eq(pillaged.map(func(r): return [r.strength, r.defense, r.repelled]), [[4, 3, false]], "defence 3 is pillaged")
+
+	var held := hoard_engine(9, 6)
+	if held == null:
+		return
+	var repelled := record_raids(held)
+	held.end_turn()
+	garrison_two(held)
+	held.end_turn()
+	held.end_turn()
+	eq(repelled.map(func(r): return [r.strength, r.defense, r.repelled]), [[4, 4, true]], "defence 4 repels it")
+
+
+func test_374_raid_lines_show_the_announced_strength() -> void:
+	var e := hoard_engine(13, 9)  # strength 5
+	if e == null:
+		return
+	e.end_turn()
+	var raid := active_uid(e, "raiders")
+	var hills := hills_of(e)
+	eq(e.raid_line(raid), "Raiders will strike Hills in 2 turns: 5 against your 0.", "the line")
+	eq(e.raid_tag(raid), "Hills 5 vs 0", "the board tag")
+	eq(e.raid_warning(hills), "Raiders strike in 2 turns: 5 vs 0", "the target's mark")
+	garrison_two(e)
+	check(e.raid_short(raid), "short at 4 against 5")
+	build_on(e, hills, ["town"])
+	check(not e.raid_short(raid), "not short at 5 against 5")
+
+
+func test_374_a_pillage_also_plunders_raid_plunder_pct_of_the_food_and_wealth_left() -> void:
+	var e := hoard_engine(5, 0)
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	e.end_turn()
+	hold_after_upkeep(e, 17, 7)
+	e.end_turn()  # strikes Hills (defence 0): −2 food (17 → 15), then 20% of 15 food and 7 wealth, rounded up
+	eq([e.resources.food, e.resources.wealth], [12, 5], "food 17 → 12, wealth 7 → 5")
+	if outcomes.size() != 1:
+		check(false, "one raid resolved: %s" % [outcomes])
+		return
+	eq(outcomes[0].repelled, false, "pillaged")
+	eq(outcomes[0].lost, {"food": 5, "wealth": 2}, "lost")
+	var line: String = e.raid_outcome_text(outcomes[0])
+	for fragment in ["−5 food", "−2 wealth"]:
+		check(fragment in line, "'%s' in %s" % [fragment, line])
+
+
+func test_374_a_repelled_raid_plunders_nothing() -> void:
+	var e := hoard_engine(5, 0)
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	build_on(e, hills_of(e), ["town"])
+	recruit(e, hills_of(e))
+	e.end_turn()
+	hold_after_upkeep(e, 17, 7)
+	e.end_turn()
+	eq([e.resources.food, e.resources.wealth], [17, 9], "only its repel effects: +2 wealth")
+	if outcomes.size() == 1:
+		eq([outcomes[0].repelled, outcomes[0].lost], [true, {"unrest": 1}], "repelled, lost")
+	else:
+		check(false, "one raid resolved: %s" % [outcomes])
+
+
+func test_374_a_pillage_plunders_nothing_from_empty_stores() -> void:
+	var e := hoard_engine(5, 0)
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	e.end_turn()
+	hold_after_upkeep(e, 2, 0)
+	e.end_turn()  # −2 food leaves 0, and 0 wealth: nothing to plunder
+	eq([e.resources.food, e.resources.wealth], [0, 0], "food and wealth")
+	if outcomes.size() == 1:
+		eq(outcomes[0].lost, {"food": 2}, "only its own −2 food")
+	else:
+		check(false, "one raid resolved: %s" % [outcomes])
+
+
+func test_374_hoard_config_0_turns_each_part_off() -> void:
+	var e := hoard_engine(30, 20, {"raid_hoard_step": 0, "raid_plunder_pct": 0})
+	if e == null:
+		return
+	var outcomes := record_raids(e)
+	e.end_turn()
+	var o: Object = e
+	eq(o.raid_strength(active_uid(e, "raiders")), 3, "printed strength with step 0")
+	e.end_turn()
+	hold_after_upkeep(e, 17, 7)
+	e.end_turn()
+	eq([e.resources.food, e.resources.wealth], [15, 7], "only its own −2 food with pct 0")
+	if outcomes.size() == 1:
+		eq(outcomes[0].strength, 3, "struck at 3")
+
+
+## Config errors for raid_load's cards with overrides.
+func hoard_config_errors(overrides: Dictionary) -> Array[String]:
+	var o := {"keywords": keywords()}
+	o.merge(overrides, true)
+	return config_errors_for(raid_load().cards, o)
+
+
+func test_374_hoard_config_defaults_to_0_and_rejects_bad_values() -> void:
+	var e: GameEngine = raid_engine()
+	if e == null:
+		return
+	eq([e.config.get("raid_hoard_step"), e.config.get("raid_plunder_pct")], [0, 0], "defaults")
+	eq(hoard_config_errors({"raid_hoard_step": 10, "raid_plunder_pct": 100}), [] as Array[String], "valid")
+	check_cases([
+		["raid_hoard_step below 0", {"raid_hoard_step": -1}, "'raid_hoard_step' must be an integer >= 0", "one_error"],
+		["raid_plunder_pct below 0", {"raid_plunder_pct": -1}, "raid_plunder_pct", "one_error"],
+		["raid_plunder_pct over 100", {"raid_plunder_pct": 101}, "raid_plunder_pct", "one_error"],
+		["raid_plunder_pct not an int", {"raid_plunder_pct": "lots"}, "raid_plunder_pct", "one_error"],
+	], hoard_config_errors)
+
+
+func test_374_a_fork_keeps_the_announced_strength() -> void:
+	var e := hoard_engine(13, 9)  # strength 5
+	if e == null:
+		return
+	e.end_turn()
+	var raid := active_uid(e, "raiders")
+	var f: GameEngine = e.fork()
+	f.resources.food = 0
+	f.resources.wealth = 0
+	var o: Object = f
+	eq(o.raid_strength(raid), 5, "the fork's raid_strength")
+	var outcomes := record_raids(f)
+	f.end_turn()
+	f.end_turn()
+	eq(outcomes.map(func(r): return r.strength), [5], "the fork strikes at 5")
