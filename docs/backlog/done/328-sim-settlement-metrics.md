@@ -2,7 +2,7 @@
 id: 328
 title: Sim report names settlements and counts them by tier
 type: feature
-status: review
+status: done
 branch: feat/328-sim-settlement-metrics
 ---
 
