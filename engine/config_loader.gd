@@ -5,7 +5,7 @@ extends RefCounted
 ## PopulationConfig parses the population rules (339).
 
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap", "sea_slots"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap", "raid_hoard_step", "raid_plunder_pct", "sea_slots"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
 const BUILD_FIELDS: Array[String] = ["locked", "once"]
@@ -25,7 +25,8 @@ const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 ## terrain_defense: {keyword: int}, the defence each keyword gives a territory (161), {} when there is none,
 ## sea_slots: {keyword, tag, slots}, the extra slots a territory with the keyword has for buildings with the tag (366),
 ## {} when there is none,
-## territory_value, raid_min_size, raid_gap: raid pacing (257), each 0 when unset}.
+## territory_value, raid_min_size, raid_gap: raid pacing (257), each 0 when unset,
+## raid_hoard_step, raid_plunder_pct: how raids grow with the food and wealth held (374), each 0 (off) when unset}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -41,6 +42,8 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"territory_value": Fields.read_int(raw, "territory_value", errs, 0, 0),
 		"raid_min_size": Fields.read_int(raw, "raid_min_size", errs, 0, 0),
 		"raid_gap": Fields.read_int(raw, "raid_gap", errs, 0, 0),
+		"raid_hoard_step": Fields.read_int(raw, "raid_hoard_step", errs, 0, 0),
+		"raid_plunder_pct": Fields.read_int(raw, "raid_plunder_pct", errs, 0, 0),
 		"hand_limit": 0,
 		"deck_model": Fields.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
 		"starting": {"resources": {}, "tableau": [], "territory": "", "civilization": "", "government": ""},
@@ -64,6 +67,8 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		if not config.keywords.has(k):
 			errs.append("terrains: '%s' is not in 'keywords'" % k)
 	_check_terrains(cards, config.terrains, errs)
+	if config.raid_plunder_pct > 100:
+		errs.append("'raid_plunder_pct' must be an integer from 0 to 100, not %d" % config.raid_plunder_pct)
 
 	config.hand_limit = Fields.read_int(raw, "hand_limit", errs, config.hand_size, maxi(7, config.hand_size))
 	for id in cards:  # 109: one card's hand_size modifier alone must fit under hand_limit

@@ -374,6 +374,11 @@ func raid_turns_left(uid: int) -> int:
 	return Military.raid_turns_left(self, uid)
 
 
+## Active raid uid's strength, fixed when it was announced (374), or 0 when uid isn't an active raid.
+func raid_strength(uid: int) -> int:
+	return Military.raid_strength(self, uid)
+
+
 ## Why contribute(uid, amount) would refuse (286), or "": game over or a pending decision, uid not an unfinished
 ## site, the site idle, or amount below 1, above the wealth held or above contribute_limit.
 func contribute_error(uid: int, amount: int) -> String:

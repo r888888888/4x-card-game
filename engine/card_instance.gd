@@ -15,6 +15,7 @@ var choice_waiting := false  # choice events: drawn while another decision was o
 var progress := 0  # project sites: the wealth paid in so far (286)
 var given_this_turn := 0  # project sites: the wealth paid in this turn (286)
 var city_name := ""  # settled territories: the name it goes by (248); "" for its card's name
+var raid_strength := 0  # active raids: the strength fixed when it was announced (374)
 
 
 func _init(p_uid: int, p_def: CardDef) -> void:
@@ -42,4 +43,5 @@ func copy() -> CardInstance:
 	c.progress = progress
 	c.given_this_turn = given_this_turn
 	c.choice_waiting = choice_waiting
+	c.raid_strength = raid_strength
 	return c
