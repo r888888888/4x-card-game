@@ -674,7 +674,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
   × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
   diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
-  `would_target` nothing and at least 0 for any, 373: one it wouldn't play costs a draw, not value) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
+  `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
   (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
   best by card value per price; a renewal's combinations (at most 40) are of the least valuable cards first (373). The sim's only bot since 314, which removed `ScriptedBot`.
 - Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the

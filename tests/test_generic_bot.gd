@@ -7,8 +7,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest
 ## limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing
 ## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
-## past it; the deck's worth (373): a card worth less than nothing counts as 0 but still dilutes, renewal trashes the
-## least valuable cards
+## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373)
 
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}
 ## Riot: +3 food and +2 unrest. Gift: a choice event, +1 food or +3 food.
@@ -307,7 +306,7 @@ func test_the_settlers_rising_price_lowers_its_value() -> void:
 	check(many_value < few_value, "Colonist at 7 food (2 held) %.2f > at 11 food (6 held) %.2f" % [few_value, many_value])
 
 
-# --- 373: a card it wouldn't play is worth 0; renewal trashes the least valuable cards ---
+# --- 373: renewal trashes the least valuable cards ---
 
 ## Augury: an order card (playable under Anarchy) that gains 2 food.
 const AUGURY := {"id": "augury", "name": "Augury", "type": "action", "tags": ["order"],
@@ -317,26 +316,6 @@ const AUGURY := {"id": "augury", "name": "Augury", "type": "action", "tags": ["o
 ## GenericBot.value of a bot_game with nothing in the hand and deck in the deck.
 func deck_value(deck: Array) -> float:
 	return value_of(bot_game([], deck), "generic")
-
-
-func test_a_card_worth_less_than_nothing_counts_as_0() -> void:
-	var e := bot_game([], ["guildhall"])
-	var guildhall: float = GenericBot.card_value(e, "guildhall", GenericBot.Context.new("generic"))
-	check(guildhall < 0, "precondition: a Guildhall (2 food, 2 wealth, no effect) is worth %.2f < 0" % guildhall)
-	var with_guildhall := deck_value(["temple", "temple", "guildhall"])
-	var with_dead_pioneer := deck_value(["temple", "temple", "pioneer"])
-	check(absf(with_guildhall - with_dead_pioneer) < 0.001,
-		"2 Temples and a Guildhall %.3f = 2 Temples and a Pioneer with nothing to settle %.3f"
-		% [with_guildhall, with_dead_pioneer])
-
-
-func test_an_empty_deck_is_worth_no_more_than_cards_it_wouldnt_play() -> void:
-	var e := bot_game([], ["guildhall"])
-	put_in(e, "guildhall", "hand")
-	put_in(e, "guildhall", "discard")
-	var empty := bot_game([], [])
-	check(absf(value_of(e, "generic") - value_of(empty, "generic")) < 0.001,
-		"3 Guildhalls %.3f = no cards %.3f" % [value_of(e, "generic"), value_of(empty, "generic")])
 
 
 func test_a_card_worth_0_still_dilutes_the_draws() -> void:
