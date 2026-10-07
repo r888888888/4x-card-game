@@ -1,5 +1,6 @@
 extends SceneTree
-## Balance simulator entry point (backlog 042). Use scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (135): plays seeds 1..N (default 20)
+## Balance simulator entry point (backlog 042). Use scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (135), or
+## --level 1-4 in place of seeds and strategy (378, SimLevels): plays seeds 1..N (default 20)
 ## with GenericBot on data/*.json and prints mean, min and max per metric; with no strategy (or "all"), a block per
 ## strategy with its score per civilization (134). Exits 1 on loader errors or an unknown strategy. Plays the games on
 ## SIM_PROCS processes (152; default the performance cores but one, 291: SimStats.procs_from_env; SIM_PROCS=1 for this
@@ -21,11 +22,10 @@ func _initialize() -> void:
 	var cards_path: String = child.get("cards", "res://data/cards.json")
 	var config_path: String = child.get("config", "res://data/config.json")
 	var data := DataLoader.load_all(cards_path, config_path)
-	var civs: Array = data.config.get("civilizations", []) if data.errors.is_empty() else []
-	var options := LaunchOptions.parse(args.slice(0, args.size() - child.size()), civs)
-	var positional: Array = options.positional
-	var seed_count := int(positional[0]) if not positional.is_empty() and positional[0].is_valid_int() else 20
-	var strategy: String = positional[1] if positional.size() > 1 else "all"
+	var config: Dictionary = data.config if data.errors.is_empty() else {}
+	var options := SimLevels.run_args(args.slice(0, args.size() - child.size()), config)
+	var seed_count: int = options.seeds
+	var strategy: String = options.strategy
 	if child.has("worker"):  # a child process of a parallel run (152): play from its queue (291), print nothing
 		quit(SimStats.play_claimed(cards_path, config_path, seed_count, strategy, options, child.dir, int(child.worker)))
 		return

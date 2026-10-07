@@ -1,7 +1,7 @@
 ---
 name: balance
 description: Compare game balance between main and the current checkout with the headless simulator (scripts/sim.sh), side by side per metric. Use only when the user asks for a run in the chat ("what did this do to balance", "run the sim", "/balance"). Balance runs are manual: never start one on your own, not after a feature, bug, content or sim/ change, and not as a step of a balance item.
-argument-hint: "[seeds, default 20]"
+argument-hint: "[level 1-4, default 1]"
 ---
 
 # Balance comparison
@@ -37,22 +37,26 @@ as the default civilization (seconds).
 
 ## Run it
 
-1. Max seeds: the argument, or 20.
+1. Level: the argument, or 1 (378). Level 1 is one game (seed 1, generic, the config's starting civilization); 2 every
+   strategy as that civ; 3 every strategy and civ, seed 1; 4 every strategy and civ, up to 10 seeds a cell. Level 4 is
+   180 games a side (about an hour of CPU uncached); the user asks for it by name. Only when the user gives a seed
+   count instead of a level, use `<max seeds>` in place of `--level <level>` below.
 2. Make a `main` worktree without touching the working tree, compare against it from the checkout, then remove it:
    ```bash
    git worktree add --detach "$SCRATCH/balance-main" main
    (cd "$SCRATCH/balance-main" && godot --headless --path . --import >/dev/null 2>&1)
-   scripts/sim.sh --compare "$SCRATCH/balance-main" <max seeds>   # [strategy] [--civ id] [--turns n] narrow it
+   scripts/sim.sh --compare "$SCRATCH/balance-main" --level <level>   # [--civ id] (levels 1-2) [--turns n]
    git worktree remove --force "$SCRATCH/balance-main"
    ```
    `--compare` (293) plays each seed × strategy × civ on both checkouts and pairs them. Each strategy × civ cell gets
-   seeds in rounds of 5 until its score change is known to ±5% of main's mean score, or it reaches max seeds. A branch
+   seeds in rounds of 5 until its score change is known to ±5% of main's mean score, or it reaches the level's seeds
+   (1 at levels 1-3, so one paired game a cell: read its Δ as a hint, not a finding). A branch
    that changes no rule stops every cell at 5. Games already played by the same code and data come from the cache.
    Both checkouts need 293's `sim/`: if `main` predates it, copy `sim/` and `scripts/sim.sh` from the checkout into
    the worktree before running, and say so.
    Use the session scratchpad directory for `$SCRATCH`. Always remove the worktree, also when the run fails. If it
    exits 1, show its errors (each names its side) and stop.
-   If the current branch *is* `main` with no changes, say so and show a plain `scripts/sim.sh <seeds>` table instead.
+   If the current branch *is* `main` with no changes, say so and show a plain `scripts/sim.sh --level <level>` table instead.
 3. Show the report. It already is the table: per strategy, one line per civ (`main`, `this`, `Δ ±` the 95% interval,
    the change in %, seeds played; `!` past 10%), then each other metric whose mean moved. Then two or three sentences
    on what moved and the likely cause from the diff (`git diff main -- data/`). Read a `!` whose interval includes 0
