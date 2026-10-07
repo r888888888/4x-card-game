@@ -2,7 +2,7 @@
 id: 370
 title: Precedent takes a card from the discard back into your hand (Code of Laws)
 type: feature
-status: ready
+status: red-review
 branch: feat/370-precedent-recall
 ---
 
@@ -61,7 +61,13 @@ unlocks in the supply. You choose a card in your discard pile and it goes back i
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_recall::test_…` |
+| AC1 | `test_recall::test_recall_owes_a_take_of_each_discard_card` |
+| AC2 | `test_recall::test_taking_an_option_moves_it_to_the_hand_and_leaves_the_rest_in_the_discard` |
+| AC3 | `test_recall::test_a_lone_discard_card_goes_to_the_hand_at_once` |
+| AC4 | `test_recall::test_recall_with_an_empty_discard_is_refused` |
+| AC5 | `test_recall::test_take_error_refuses_a_card_that_isnt_a_choice_or_when_no_take_is_owed`, `test_recall::test_a_take_lists_one_entry_per_option`, `test_blocking` (a `take` scenario, action row, message column, hand-input row), `test_legal_actions::coverage` (a `take` row) |
+| AC6 | `test_recall::test_recall_loads`, `test_recall::test_recall_validation`, `test_recall::test_recall_card_text` |
+| AC7 | `test_recall::test_the_take_overlay_shows_the_options_and_a_click_takes_one` |
 
 ## Manual check
 - [ ] Shipped data: Precedent is a locked supply pile (price 4, 4 copies) until Code of Laws; its text reads +1 action,
