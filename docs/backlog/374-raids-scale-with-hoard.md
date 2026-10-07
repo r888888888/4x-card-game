@@ -2,7 +2,7 @@
 id: 374
 title: Raids grow with the food and wealth you hoard
 type: feature
-status: in-progress
+status: review
 branch: feat/374-raids-scale-with-hoard
 ---
 
@@ -15,28 +15,28 @@ or to pay for the defence that a rich realm needs.
 ## Acceptance criteria
 Config `raid_hoard_step` 10, `raid_plunder_pct` 20 unless stated. "Hoard" = food held + wealth held.
 
-- [ ] AC1 (strength fixed at announcement): Given a raid printed Raid 3, food 13 and wealth 9 (hoard 22), when it is
+- [x] AC1 (strength fixed at announcement): Given a raid printed Raid 3, food 13 and wealth 9 (hoard 22), when it is
   drawn, then its strength is 5 (3 + ⌊22 / 10⌋): `raid_strength(uid)` returns 5 and `raid_forecast()` reports
   `strength` 5. With hoard 9 it is 3, with hoard 10 it is 4, and with hoard 0 it is 3. `raid_strength` is 0 for
   anything but an active raid.
-- [ ] AC2 (fixed once announced): Given that raid announced at strength 4 (hoard 15), when food and wealth then change
+- [x] AC2 (fixed once announced): Given that raid announced at strength 4 (hoard 15), when food and wealth then change
   (set to 0, or to 50) before it strikes, then `raid_strength` and `raid_forecast` still say 4, and it strikes at 4
   (`raid_resolved`'s `strength`): against defence 3 it pillages, against defence 4 it is repelled.
-- [ ] AC3 (lines show the scaled strength): Given a raid announced at strength 5 against defence 0, then `raid_line`,
+- [x] AC3 (lines show the scaled strength): Given a raid announced at strength 5 against defence 0, then `raid_line`,
   `raid_tag` and `raid_warning` show 5 (not the printed 3), and `raid_short` is true at defence 4 and false at
   defence 5.
-- [ ] AC4 (plunder on pillage): Given a pillaging raid whose own pillage effects are `lose 2 food`, with food 17 and
+- [x] AC4 (plunder on pillage): Given a pillaging raid whose own pillage effects are `lose 2 food`, with food 17 and
   wealth 7 when it strikes, when it strikes a territory with less defence than its strength, then its pillage effects
   resolve first (food 15), and then it also takes 20% of the food and the wealth left, each rounded up: −3 food (15 →
   12) and −2 wealth (7 → 5). `raid_resolved`'s `lost` is `{food: 5, wealth: 2}`, and `raid_outcome_text` lists
   −5 food and −2 wealth.
-- [ ] AC5 (no plunder when repelled, or from nothing): Given the same raid repelled (defence ≥ strength), then food
+- [x] AC5 (no plunder when repelled, or from nothing): Given the same raid repelled (defence ≥ strength), then food
   and wealth change only by its repel effects. Given a pillage with food 0 and wealth 0 when it strikes, then nothing
   is plundered and `lost` has no food or wealth entry beyond its own effects.
-- [ ] AC6 (config): `raid_hoard_step` and `raid_plunder_pct` default to 0 when unset, and 0 turns that part off (with
+- [x] AC6 (config): `raid_hoard_step` and `raid_plunder_pct` default to 0 when unset, and 0 turns that part off (with
   step 0 the strength stays the printed one; with pct 0 nothing is plundered). The loader rejects a negative value
   and a `raid_plunder_pct` over 100, naming the field.
-- [ ] AC7 (copy): `GameState.copy()` / `CardInstance.copy()` keep an announced raid's strength (the copy check in the
+- [x] AC7 (copy): `GameState.copy()` / `CardInstance.copy()` keep an announced raid's strength (the copy check in the
   suite covers the new field), so a forked engine strikes at the same strength.
 
 ## Out of scope
@@ -73,11 +73,22 @@ Config `raid_hoard_step` 10, `raid_plunder_pct` 20 unless stated. "Hoard" = food
 | AC7 | `test_raids::test_374_a_fork_keeps_the_announced_strength` (and the suite's copy check of `CardInstance`) |
 
 ## Manual check
-- [ ] Play to a raid while holding 20+ food and wealth: the raid modal and warning show the higher strength, and a
-  pillage takes the extra stores in its result line.
+- [ ] `godot --path . -- --seed 5`: play until a raid is drawn while holding 20+ food and wealth together. The
+  announcement notice, the raid's board tag ("Hills 5 vs 0") and the target's warning show the printed strength + 2.
+  Spending everything before it strikes leaves the number unchanged.
+- [ ] Let a raid pillage while holding stores: the raid modal's result line lists the extra food and wealth taken
+  (about a fifth of each) on top of its printed losses. A repelled raid takes nothing extra.
 - [ ] Balance (user-run): `scripts/test.sh --balance` and the `balance` skill; watch raid repel rate and late-game
   food/wealth.
 
 ## Log
 - Red: the fixture Raiders is printed 3, so AC1–AC3 use 3 (5 at hoard 22, 4 at hoard 15), not the 2 first written.
   Upkeep adds 2 food before the draw, so tests set food and wealth from `upkeep_forecast` (`hold_after_upkeep`).
+- Green: the cached bot forecast keys on `raid_strength` too (`GenericBot.KEY_CARD_FIELDS`), since a strike reads it.
+  `raid_strength` lives in `game_engine.gd` beside `raid_turns_left`: `engine_queries.gd` is at its 500-line cap.
+- Approved test changed at green (fixture, not assertion): AC1's "hoard 0" row became "hoard 2" (still printed 3),
+  since upkeep adds 2 food before the draw and the fixture can't hold 0 then.
+- Follow-ups: the raid card's tooltip doesn't say it grows with the hoard (only the announced number shows it). The bot
+  sees the strength but not plunder (not in any forecast). Balance worry: a late game holding 100 food and wealth
+  meets raids at +10, and plunder takes 20% a pillage. A balance item should run `scripts/sim.sh` against main (375's
+  raid metrics show repel rate and losses).

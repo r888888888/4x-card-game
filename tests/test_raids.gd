@@ -6,7 +6,7 @@ extends "res://tests/lib/raid_case.gd"
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
 ## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),
 ## repelled and pillaged, `raid_forecast`, the final turn and forks, the strike's line (`raid_outcome_text`, logged not
-## noticed, 271)
+## noticed, 271); raids that grow with the food and wealth held (`raid_strength`) and plunder them (374)
 
 
 # --- AC1: loading ---
