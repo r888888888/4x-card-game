@@ -6,7 +6,8 @@ extends "res://tests/lib/raid_case.gd"
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
 ## the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257),
 ## repelled and pillaged, `raid_forecast`, the final turn and forks, the strike's line (`raid_outcome_text`, logged not
-## noticed, 271); raids that grow with the food and wealth held (`raid_strength`) and plunder them (374)
+## noticed, 271); raids that grow with the food and wealth held (`raid_strength`) and plunder them (374), a share
+## that grows with the era (`raid_plunder_pct`, 377)
 
 
 # --- AC1: loading ---
@@ -698,11 +699,6 @@ func plunder_engine(overrides := {}) -> GameEngine:
 	return hoard_engine(5, 0, o)
 
 
-## e's raid_plunder_pct() (red phase: e held as Object until the query exists).
-func plunder_pct(e: Object) -> int:
-	return e.raid_plunder_pct()
-
-
 ## Plays e on until Raiders strikes undefended Hills in era: the era is added before the strike, and e holds food and
 ## wealth as it strikes. Returns the raid_resolved outcomes.
 func strike_in_era(e: GameEngine, era: int, food: int, wealth: int) -> Array[Dictionary]:
@@ -721,10 +717,10 @@ func test_377_the_plunder_share_grows_by_raid_plunder_era_pct_each_era() -> void
 	var e := plunder_engine()
 	if e == null:
 		return
-	var shares := [plunder_pct(e)]
+	var shares := [e.raid_plunder_pct()]
 	for era in [2, 3]:
 		e.add_era(era)
-		shares.append(plunder_pct(e))
+		shares.append(e.raid_plunder_pct())
 	eq(shares, [50, 60, 70], "eras 1, 2, 3")
 
 
@@ -761,7 +757,7 @@ func test_377_the_plunder_share_is_capped_at_100() -> void:
 	if e == null:
 		return
 	var outcomes := strike_in_era(e, 2, 17, 7)
-	eq(plunder_pct(e), 100, "80 + 30 in era 2")
+	eq(e.raid_plunder_pct(), 100, "80 + 30 in era 2")
 	eq([e.resources.food, e.resources.wealth], [0, 0], "everything left taken")
 	if outcomes.size() == 1:
 		eq(outcomes[0].lost, {"food": 17, "wealth": 7}, "lost")
@@ -773,10 +769,10 @@ func test_377_with_raid_plunder_era_pct_0_the_share_is_raid_plunder_pct_in_every
 	var e := plunder_engine({"raid_plunder_era_pct": 0})
 	if e == null:
 		return
-	var shares := [plunder_pct(e)]
+	var shares := [e.raid_plunder_pct()]
 	for era in [2, 3]:
 		e.add_era(era)
-		shares.append(plunder_pct(e))
+		shares.append(e.raid_plunder_pct())
 	eq(shares, [50, 50, 50], "eras 1, 2, 3")
 
 
@@ -786,7 +782,7 @@ func test_377_with_raid_plunder_pct_0_only_later_eras_plunder() -> void:
 		if e == null:
 			return
 		strike_in_era(e, row[0], 17, 7)
-		eq(plunder_pct(e), row[1], "era %d: share" % row[0])
+		eq(e.raid_plunder_pct(), row[1], "era %d: share" % row[0])
 		eq([e.resources.food, e.resources.wealth], [row[2], row[3]], "era %d: food and wealth" % row[0])
 
 

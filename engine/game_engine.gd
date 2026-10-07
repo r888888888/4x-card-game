@@ -379,6 +379,12 @@ func raid_strength(uid: int) -> int:
 	return Military.raid_strength(self, uid)
 
 
+## The share (%) of the food and wealth left that a pillage plunders now (377): config raid_plunder_pct plus
+## raid_plunder_era_pct per era after the first, at most 100.
+func raid_plunder_pct() -> int:
+	return Military.plunder_pct(self)
+
+
 ## Why contribute(uid, amount) would refuse (286), or "": game over or a pending decision, uid not an unfinished
 ## site, the site idle, or amount below 1, above the wealth held or above contribute_limit.
 func contribute_error(uid: int, amount: int) -> String:

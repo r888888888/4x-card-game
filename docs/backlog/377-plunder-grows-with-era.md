@@ -2,7 +2,7 @@
 id: 377
 title: Raids plunder a bigger share in later eras
 type: feature
-status: red-review
+status: in-progress
 branch: feat/377-plunder-grows-with-era
 ---
 

@@ -6,7 +6,7 @@
   ],
   "terrain_defense": { "hills": 1, "mountain": 2, "marsh": 1, "forest": 1 },
   "sea_slots": { "keyword": "coastal", "tag": "port", "slots": 1 },
-  "territory_value": 3, "raid_min_size": 12, "raid_gap": 4, "raid_hoard_step": 10, "raid_plunder_pct": 20,
+  "territory_value": 3, "raid_min_size": 12, "raid_gap": 4, "raid_hoard_step": 10, "raid_plunder_pct": 50, "raid_plunder_era_pct": 10,
   "terrains": ["grassland", "forest", "hills", "mountain", "desert", "marsh"],
   "resource_keywords": ["gold", "tin", "copper"],
   "turn_limit": 100,

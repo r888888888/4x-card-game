@@ -233,10 +233,17 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	e.raid_resolved.emit(outcome)
 
 
-## A pillaging raid also takes config raid_plunder_pct% of the food and of the wealth left after its pillage
-## effects, each rounded up (374), into the outcome's lost.
+## The share (%) a pillage plunders in the current era (377): raid_plunder_pct plus raid_plunder_era_pct per era after
+## the first, at most 100.
+static func plunder_pct(e: GameEngine) -> int:
+	var step: int = e.config.get("raid_plunder_era_pct", 0)
+	return mini(100, e.config.get("raid_plunder_pct", 0) + step * (e.era() - 1))
+
+
+## A pillaging raid also takes plunder_pct% of the food and of the wealth left after its pillage effects, each
+## rounded up (374), into the outcome's lost.
 static func _plunder(e: GameEngine, raid: CardInstance) -> void:
-	var pct: int = e.config.get("raid_plunder_pct", 0)
+	var pct := plunder_pct(e)
 	for r in [GameEngine.FOOD, GameEngine.WEALTH]:
 		var n := ceili(maxi(0, e.resources.get(r, 0)) * pct / 100.0)
 		if n > 0:
