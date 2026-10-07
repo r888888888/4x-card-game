@@ -173,7 +173,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
 | `tests/test_surfaces.gd` | Wood grain, paper and soft shadows (341; UI) |
 | `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs` (027) |
-| `tests/test_tech_event_flavor.gd` | Tech/event/action `flavor`, tech `quote` (215) |
+| `tests/test_tech_event_flavor.gd` | Tech/event/action/building `flavor`, tech and building `quote` (215, 352, 396) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, costs, `gives`, `affordable`), `era_name(s)` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |

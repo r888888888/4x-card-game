@@ -1739,6 +1739,15 @@ func test_every_government_has_flavor_and_a_quote() -> void:
 			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
 
 
+## Backlog 396: every wonder (a building tagged wonder) has a quote with its source, as the techs do.
+func test_every_wonder_has_a_quote() -> void:
+	var wonders := 0
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.BUILDING and def.tags.has("wonder"):
+			wonders += 1
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+	check(wonders > 0, "the real data has wonders")
+
 # --- Military content (backlog 167) ---
 
 ## The real units: card defs of type unit, checked to be there.
