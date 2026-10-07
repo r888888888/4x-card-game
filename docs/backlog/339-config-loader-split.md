@@ -2,7 +2,7 @@
 id: 339
 title: Split ConfigLoader: population, tiers and unrest in their own loader
 type: feature
-status: red-review
+status: review
 branch: feat/339-config-loader-split
 ---
 
@@ -13,14 +13,14 @@ rules (population, famine, settlement tiers, unrest, governments' `tolerates`, t
 group moves to its own class. No behaviour changes.
 
 ## Acceptance criteria
-- [ ] AC1: A new class `PopulationConfig` in `engine/population_config.gd` parses `population` (with famine and
+- [x] AC1: A new class `PopulationConfig` in `engine/population_config.gd` parses `population` (with famine and
   relief), settlement tiers, `unrest`, the tier checks on governments and buildings, and the civilizations' homes
   (start pop housed, start buildings fit); `ConfigLoader.parse_config` calls it, and `engine/config_loader.gd` declares
   none of `_parse_population`, `_parse_tiers`, `_parse_famine`, `_parse_relief`, `_parse_unrest`,
   `_check_homes_house_start`, `_check_tolerates`, `_check_building_tiers`, `_check_start_buildings`.
-- [ ] AC2: `engine/config_loader.gd` is at most 450 lines and the new file at most 350 (structure test).
-- [ ] AC3: `DataLoader.parse_config` stays the entry point: every caller and test calls it unchanged.
-- [ ] AC4: Behaviour is pinned: every existing test passes unedited (same errors, warnings and their order) and the
+- [x] AC2: `engine/config_loader.gd` is at most 450 lines and the new file at most 350 (structure test).
+- [x] AC3: `DataLoader.parse_config` stays the entry point: every caller and test calls it unchanged.
+- [x] AC4: Behaviour is pinned: every existing test passes unedited (same errors, warnings and their order) and the
   real data loads without errors. Manual: `scripts/sim.sh 20` output is identical before and after.
 
 ## Out of scope
@@ -43,3 +43,9 @@ group moves to its own class. No behaviour changes.
 
 ## Log
 - 2026-10-06: specced from the project review.
+- 2026-10-06: built. `engine/config_loader.gd` 681 → 433 lines, `engine/population_config.gd` 262. Public API:
+  `PopulationConfig.parse(raw, config, cards, errs, warnings, src)` (the old population/famine/unrest/tier block, same
+  order) and `PopulationConfig.check_start_buildings` (called where it was, so errors keep their order); the rest stay
+  private. `POPULATION_FIELDS` moved with them. Suite 2298 → 2300, no existing test edited. The real data's
+  `load_all` result (config with key order, errors, warnings, every card's `tolerates_name` and `tier_name`) dumped
+  as JSON before and after: byte-identical.

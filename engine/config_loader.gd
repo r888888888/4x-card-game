@@ -1,7 +1,8 @@
 class_name ConfigLoader
 extends RefCounted
 ## Parses and validates config.json against the parsed cards (split out of DataLoader, backlog 095). Collects every
-## problem with file and field; unknown fields are warnings. DataLoader.load_all calls parse_config.
+## problem with file and field; unknown fields are warnings. DataLoader.load_all calls parse_config;
+## PopulationConfig parses the population rules (339).
 
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
 const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap"]

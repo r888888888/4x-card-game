@@ -37,7 +37,8 @@ suite checks every path named here exists.
   - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected;
     `TYPE_FIELDS` and `INT_FIELDS` say which types take a field and an integer field's minimum and default, and
     `engine/card_type_fields.gd` reads each type's own fields, 338) and `engine/config_loader.gd` (config.json,
-    normalized and checked against the cards, 095).
+    normalized and checked against the cards, 095; `engine/population_config.gd` parses its population, tiers, unrest
+    and the civilizations' homes, 339).
   - Cards: `engine/card_def.gd` (the immutable definition and its generated text), `engine/card_instance.gd` (a card
     in play), `engine/zone.gd` (an ordered pile).
   - Effects: `engine/effect.gd` (the base class), `engine/effect_registry.gd` (op name to script) and one
