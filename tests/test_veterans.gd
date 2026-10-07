@@ -6,9 +6,10 @@ extends "res://tests/lib/raid_case.gd"
 const VETERANS := {"veteran_max": 2}
 
 
-## raid_engine's game (Raiders on top, aimed at Hills) with veteran_max 2 and overrides; null when it doesn't load.
+## raid_engine's game (Raiders on top, aimed at Hills; no Horde, so no other raid comes) with veteran_max 2 and
+## overrides; null when it doesn't load.
 func veteran_engine(overrides := VETERANS) -> GameEngine:
-	return raid_engine(["raiders", "omen", "omen", "omen"], {"raiders": 1, "horde": 1, "omen": 3}, overrides)
+	return raid_engine(["raiders", "omen", "omen", "omen"], {"raiders": 1, "omen": 3}, overrides)
 
 
 ## Turn 2 of veteran_engine's game: Raiders announced at Hills, a Town on Hills and a Levy recruited there (defence 3,
@@ -28,14 +29,15 @@ func await_strike(e: GameEngine) -> void:
 		e.end_turn()
 
 
-## Puts the Raiders card (from the event discard) back on top of the event deck and plays until it has been drawn and
-## has struck.
+## Puts the Raiders card (from the event discard, or the deck after a reshuffle) on top of the event deck and plays
+## until it has been drawn and has struck.
 func raid_again(e: GameEngine) -> void:
-	var raid: CardInstance = e.zone("event_discard").find_id("raiders")
-	check(raid != null, "Raiders in the event discard")
+	var from := e.zone("event_discard") if e.zone("event_discard").find_id("raiders") != null else e.zone("event_deck")
+	var raid: CardInstance = from.find_id("raiders")
+	check(raid != null, "Raiders in the event discard or deck")
 	if raid == null:
 		return
-	e.zone("event_discard").remove(raid)
+	from.remove(raid)
 	e.zone("event_deck").add(raid)
 	e.end_turn()
 	await_strike(e)

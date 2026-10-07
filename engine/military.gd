@@ -28,29 +28,46 @@ static func defense_parts(e: GameEngine, uid: int) -> Dictionary:
 	return parts
 
 
-## Unit uid's strength (164): its printed strength plus the training of the working buildings on its station; 0 when
-## it is idle or isn't a unit in the tableau.
+## Unit uid's strength (164): its printed strength plus its training and its veteran counters (165); 0 when it is
+## idle or isn't a unit in the tableau.
 static func unit_strength(e: GameEngine, uid: int) -> int:
 	var unit := _unit(e, uid)
 	if unit == null or e.is_idle(uid):
 		return 0
-	var strength := unit.def.strength
+	return unit.def.strength + training(e, uid) + unit.counters
+
+
+## The training working unit uid gets from the working buildings on its station (164); 0 when it is idle or isn't a
+## unit in the tableau.
+static func training(e: GameEngine, uid: int) -> int:
+	var unit := _unit(e, uid)
+	if unit == null or e.is_idle(uid):
+		return 0
+	var total := 0
 	for card in e.zone("tableau").cards:
 		if card.def.type == CardDef.BUILDING and card.territory_uid == unit.station_uid and Fallback.works(e, card) \
 				and not Sites.unfinished(e, card):
-			strength += card.def.training
-	return strength
+			total += card.def.training
+	return total
 
 
-## The training unit uid gets from its station (164): unit_strength less its printed strength, or 0.
-static func training(e: GameEngine, uid: int) -> int:
-	var strength := unit_strength(e, uid)
-	return strength - _unit(e, uid).def.strength if strength > 0 else 0
+## Unit uid's veteran counters (165): 1 per raid repelled where it stood, up to config veteran_max; 0 for anything
+## but a unit in the tableau.
+static func veterancy(e: GameEngine, uid: int) -> int:
+	var unit := _unit(e, uid)
+	return unit.counters if unit != null else 0
 
 
-## "Strength 3" for a trained unit (164), shown on its face; "" for anything else.
+## "Veteran 1 (+1 strength)" for a veteran unit (165), its details' line; "" for anything else.
+static func veteran_line(e: GameEngine, uid: int) -> String:
+	var n := veterancy(e, uid)
+	return "Veteran %d (+%d strength)" % [n, n] if n > 0 else ""
+
+
+## "Strength 3" for a trained or veteran unit (164, 165), shown on its face; "" for anything else.
 static func strength_tag(e: GameEngine, uid: int) -> String:
-	return "Strength %d" % unit_strength(e, uid) if training(e, uid) > 0 else ""
+	var strength := unit_strength(e, uid)
+	return "Strength %d" % strength if strength > 0 and strength != _unit(e, uid).def.strength else ""
 
 
 ## "Strength 3 (printed 2, +1 training)" for a trained unit (164), its details' line; "" for anything else.
@@ -218,6 +235,7 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	outcome.merge({"id": raid.def.id, "target": raid.territory_uid, "strength": raid.raid_strength,
 		"defense": e.defense(raid.territory_uid), "units_lost": units_lost, "pop_lost": 0})
 	outcome.repelled = target != null and outcome.defense >= outcome.strength
+	outcome.veterans = _promote(e, target.uid) if outcome.repelled else [] as Array[int]
 	e._outcome = outcome
 	e._resolve(raid, "repel" if outcome.repelled else "pillage")
 	if not outcome.repelled:
@@ -231,6 +249,18 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 		target.pop -= outcome.pop_lost
 	e._log(outcome_text(e, outcome))
 	e.raid_resolved.emit(outcome)
+
+
+## Each working unit stationed on territory_uid below config veteran_max gains a veteran counter (165); returns
+## their uids.
+static func _promote(e: GameEngine, territory_uid: int) -> Array[int]:
+	var promoted: Array[int] = []
+	for unit in e.zone("tableau").cards:
+		if unit.def.type == CardDef.UNIT and unit.station_uid == territory_uid and not e.is_idle(unit.uid) \
+				and unit.counters < e.config.get("veteran_max", 0):
+			unit.counters += 1
+			promoted.append(unit.uid)
+	return promoted
 
 
 ## The share (%) a pillage plunders in the current era (377): raid_plunder_pct plus raid_plunder_era_pct per era after
@@ -371,10 +401,11 @@ static func disband(e: GameEngine, uid: int) -> bool:
 	return true
 
 
-## Unit leaves the tableau (disbanded or lost to a pillage): a unit recruited from the build menu is gone, to be
+## Unit leaves the tableau (disbanded or lost to a pillage), losing its veteran counters (165): a unit recruited from the build menu is gone, to be
 ## recruited again (296); one with no build-menu entry (dealt from a deck) goes to the discard (163).
 static func _leave_play(e: GameEngine, unit: CardInstance) -> void:
 	var to_discard := e.disbands_to_discard(unit.uid)
+	unit.counters = 0
 	e.zone("tableau").remove(unit)
 	if to_discard:
 		e.zone("discard").add(unit)
