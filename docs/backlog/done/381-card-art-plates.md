@@ -2,7 +2,7 @@
 id: 381
 title: Hand-size cards carry an art plate, with a placeholder until the picture exists
 type: feature
-status: review
+status: done
 branch: feat/381-card-art-plates
 ---
 
