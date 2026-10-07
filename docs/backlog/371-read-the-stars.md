@@ -2,7 +2,7 @@
 id: 371
 title: Read the Stars looks at the top 3 cards and takes one (Astronomy)
 type: feature
-status: ready
+status: red-review
 branch: feat/371-read-the-stars
 ---
 
@@ -59,7 +59,12 @@ Depends on 370 (the `take` decision kind).
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_look::test_…` |
+| AC1 | `test_look::test_look_owes_a_take_of_the_top_three_cards` |
+| AC2 | `test_look::test_taking_one_sends_the_rest_to_the_discard` |
+| AC3 | `test_look::test_a_short_deck_reshuffles_the_discard_in` |
+| AC4 | `test_look::test_a_lone_card_goes_to_the_hand_at_once`, `test_look::test_with_no_cards_to_look_at_nothing_happens` |
+| AC5 | `test_look::test_look_loads`, `test_look::test_look_validation`, `test_look::test_look_card_text` |
+| AC6 | `test_look::test_the_cards_looked_at_are_in_a_copied_zone_and_a_fork_pays_the_take_alike` |
 
 ## Manual check
 - [ ] Shipped data: Read the Stars is a locked supply pile (price 5, 4 copies) until Astronomy; its text reads look at
