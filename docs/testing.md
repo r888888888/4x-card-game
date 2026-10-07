@@ -123,9 +123,9 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
 | `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367) |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork` |
-| `tests/test_generic_bot.gd` | The generic bot (313) on fixtures; expansion (321); renewal (373); deck (376) |
+| `tests/test_generic_bot.gd` | The generic bot (313, 321, 373, 376) |
 | `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315) |
-| `tests/test_generic_raids.gd` | The generic bot meets raids (314, superseding 168) through `turn_forecast` |
+| `tests/test_generic_raids.gd` | The generic bot meets raids (314) |
 | `tests/test_generic_rollouts.gd` | The generic bot's rollouts (314, porting 159) |
 | `tests/test_government.gd` | Government cards (065) |
 | `tests/test_government_deck.gd` | The government deck (154) |
@@ -243,6 +243,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI) |
 | `tests/test_upgrades.gd` | Building upgrades (300) |
+| `tests/test_upkeep_breakdown.gd` | Upkeep breakdowns and their popover (379) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
 | `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_wealth.gd` | Wealth, the second resource |

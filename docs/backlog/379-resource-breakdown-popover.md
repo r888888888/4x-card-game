@@ -2,7 +2,7 @@
 id: 379
 title: Click a resource counter to see its next-upkeep change by source
 type: feature
-status: ready
+status: red-review
 branch: feat/379-resource-breakdown-popover
 ---
 
@@ -77,7 +77,13 @@ forecast_engine); Capital makes +2 food at upkeep, Farm +1 food, Stall +1 wealth
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_upkeep_breakdown::test_breakdown_groups_copies_and_ends_with_what_pop_eats`, `test_breakdown_changes_nothing` |
+| AC2 | `test_pop_grown_at_upkeep_eats_in_the_pop_row`, `test_unrest_held_back_by_the_limit_gives_no_row`, `test_no_breakdown_on_the_last_turn_or_after_game_over`; `check_sums` in each engine test |
+| AC3 | `test_unrest_rows_for_crowding_overextension_and_an_event` |
+| AC4 | `test_insight_per_gain_has_its_own_row`, `test_a_negative_insight_per_gain_has_a_negative_row`, `test_where_the_floor_bites_the_gaining_card_absorbs_it` |
+| AC5 | `test_anarchy_drain_is_the_last_row` |
+| AC6 | `test_unrest_limit_breakdown_lists_the_government_then_its_modifiers`, `test_unrest_limit_rows_sum_to_the_floored_limit`, `test_no_unrest_limit_breakdown_without_a_limit` |
+| AC7 | `test_clicking_a_counter_opens_its_breakdown_and_clicking_again_closes_it`, `test_the_popover_closes_on_esc_and_an_outside_click`, `test_enter_on_a_focused_counter_opens_it`, `test_the_unrest_popover_adds_the_limit`, `test_on_the_last_turn_the_popover_says_there_is_no_next_upkeep` |
 
 ## Manual check
 - [ ] Mid-game with several farms, a Harvest event and a growing territory, click Food: rows read sensibly, copies
@@ -89,3 +95,10 @@ forecast_engine); Capital makes +2 food at upkeep, Farm +1 food, Stall +1 wealth
 - [ ] Sound: decide whether opening clicks like a key or is silent like a tooltip (§11.11).
 
 ## Log
+- Red: AC1's Homeland has 3 pop, not 2: Farm, Farm and Stall need 3 workers, and with 2 the Stall would be idle (no
+  wealth row). Labels are "Pop eats", "Crowded territories", "Overextended realm". The popover's test hooks are
+  `main.breakdown_key()` ("" when closed) and `main.breakdown_rows()` ([[left, right], …]: "Farm ×2" / "+2", a
+  real minus, then ["Net", "+N"]; Unrest adds the limit rows, the government unsigned, and ["Limit", "N"]; the last
+  turn shows one line, "No next upkeep: this is the last turn."). `engine_queries.gd` is at 495 of its 500 lines, so
+  the two queries need room: the plan is to move the raid queries down beside `defense` in `TerritoryQueries`
+  (166 moved `defense`, `defense_parts` and `raid_warning` there).
