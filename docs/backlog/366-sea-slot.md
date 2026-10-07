@@ -36,7 +36,7 @@ buildings can fill, so a coastal city builds its farms and its harbour.
 
 ## Out of scope
 - Sea slots from anything but a keyword (a city, a tier or a tech).
-- Changing which buildings carry the `port` tag (364 adds Salt Pans; 365 the Lighthouse).
+- Changing which buildings carry the `port` tag (365 adds the Lighthouse). Upgrades (Harbor, and 364's Salt Pans) take no slot, so the sea slot never holds them.
 - Balance tuning.
 
 ## Design notes
