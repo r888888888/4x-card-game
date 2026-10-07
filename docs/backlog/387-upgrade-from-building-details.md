@@ -2,7 +2,7 @@
 id: 387
 title: Upgrade a building from its details modal
 type: feature
-status: ready
+status: red-review
 branch: feat/387-upgrade-from-building-details
 ---
 
@@ -58,7 +58,10 @@ Plough locked unless said otherwise.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_upgrades::test_…` |
+| AC1 | `test_upgrades::test_a_farms_rows_are_every_upgrade_in_menu_order_built_or_not`, `test_a_chain_lists_its_bases_in_order_and_a_link_only_once_its_base_stands`, `test_no_rows_for_anything_but_a_building_something_upgrades` |
+| AC2 | `test_upgrade_ribbons::test_a_buildings_details_list_its_upgrades_built_or_to_build`, `test_a_fallen_back_row_reads_its_reason_and_a_refused_one_its_error`, `test_no_upgrades_section_where_there_is_nothing_to_upgrade` |
+| AC3 | `test_upgrade_ribbons::test_upgrade_builds_it_closes_the_details_and_plays_the_ceremony` |
+| AC4 | `test_upgrade_ribbons::test_while_a_decision_is_owed_each_upgrade_button_is_disabled_with_why`, `test_a_row_short_of_its_cost_reads_why_with_no_button` |
 
 ## Manual check
 - [ ] Compare with design Y in `docs/design/mocks/building-upgrade-options.html`, in Paper and Night.
@@ -68,3 +71,8 @@ Plough locked unless said otherwise.
 ## Log
 - 2026-10-06: specced; the user chose design Y (a section in the details that builds directly) over an Upgrade… button
   that opens the Build modal.
+- 2026-10-07: red. Decisions: while a decision is owed or the game is over (`build_menu_error()` non-empty), every row
+  not built keeps its Upgrade button, disabled with that reason (AC4); otherwise a row whose `error` isn't "" shows it
+  and no button (AC2). The button reads "Upgrade for <cost>" (`Fields.amounts_text`), "Upgrade" when free. Hooks on
+  CardDetailsModal: `upgrade_rows()` ({name, rules, status, button}) and `upgrades_shown()`. The hidden-section test
+  covers a hand card and two definitions (Farm, Explorer), not a supply pile, which opens a definition's details too.
