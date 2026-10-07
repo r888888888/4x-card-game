@@ -1,11 +1,12 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
-## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375).
+## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375), and settlements with their
+## count per tier (328).
 
-const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
+const METRICS := ["anarchies", "anarchy_turns", "bought", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
-	"raid_wealth_lost", "raids", "raids_repelled", "restored", "revolts", "score", "techs", "trashed"]  # sorted (158
-	# added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones)
+	"raid_wealth_lost", "raids", "raids_repelled", "restored", "revolts", "score", "settlements", "techs", "trashed"]
+	# sorted (158 added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones, 328 renamed cities)
 
 
 ## TEST_CARDS and a config with this deck and overrides, parsed; returns {cards, config}.
@@ -46,7 +47,7 @@ func test_sim_stats_reports_mean_min_max_per_metric() -> void:
 	var stats: Dictionary = SimStats.run(d.cards, d.config, [1, 2])
 	eq(sorted(stats.keys()), METRICS, "metrics")
 	eq(stats.get("score"), {"mean": 17.0, "min": 17, "max": 17}, "score: Capital 2 + 5 Shrines x 3 turns")
-	eq(stats.get("cities"), {"mean": 0.0, "min": 0, "max": 0}, "cities (the Capital doesn't count)")
+	eq(stats.get("settlements"), {"mean": 0.0, "min": 0, "max": 0}, "settlements (the Capital doesn't count)")
 	eq(stats.get("techs"), {"mean": 0.0, "min": 0, "max": 0}, "techs")
 	eq(stats.get("bought"), {"mean": 0.0, "min": 0, "max": 0}, "bought")
 	eq(stats.get("era"), {"mean": 1.0, "min": 1, "max": 1}, "era")
@@ -71,11 +72,11 @@ func test_bug_318_a_game_reports_each_turn_and_plays_the_same() -> void:
 	eq(turns, [1, 2, 3], "each turn once, as it starts")
 	eq(watched, plain, "the same game with or without the callback")
 
-func test_sim_stats_counts_founded_cities() -> void:
+func test_sim_stats_counts_founded_settlements() -> void:
 	var d := sim_data({"settler": 10}, {"turn_limit": 2,
 		"starting": {"resources": {"food": 30}, "tableau": ["capital"], "territory": "homeland"}})
 	var stats: Dictionary = SimStats.run(d.cards, d.config, [1])
-	eq(stats.get("cities", {}).get("min"), 10, "10 Settlers played with 30 food + upkeep over 2 turns")
+	eq(stats.get("settlements", {}).get("min"), 10, "10 Settlers played with 30 food + upkeep over 2 turns")
 
 
 ## Backlog 066: explored is how many turns the territory deck lasted: the turn it ran out, or the last turn played.
@@ -211,3 +212,87 @@ func test_375_raids_by_civilization_line() -> void:
 	eq(SimStats.raids_by_civilization(per_civ),
 		"raids by civilization: sumer 4.0 (1.5 repelled, 2.5 pop lost), default 3.0 (3.0 repelled, 0.0 pop lost)",
 		"means to 1 decimal, in the given order; the default civ named default")
+
+
+# --- 328: settlements, and how many reached each tier ---
+
+## Three settlement tiers (281), lowest first.
+const TIERS_328 := [
+	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
+	{"id": "village", "name": "Village", "pop": 4, "slots": 1},
+	{"id": "town", "name": "Town", "pop": 8, "slots": 2},
+]
+const TIER_METRICS := ["tier_hamlet", "tier_village", "tier_town"]
+
+
+## A population block with TIERS_328 (tiers off when with_tiers is false); no upkeep, no score per pop.
+func tier_population(with_tiers := true) -> Dictionary:
+	var population := {"start": 1, "food_upkeep": 0, "vp_per_pop": 0}
+	if with_tiers:
+		population["tiers"] = TIERS_328
+	return population
+
+
+func tier_names(names: Array[String]) -> Array[String]:
+	return names.filter(func(m): return m.begins_with("tier_"))
+
+
+func test_328_metric_names_have_settlements_where_cities_was() -> void:
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3})
+	var names := SimStats.metric_names(d.cards, d.config)
+	eq(names.slice(0, 2), ["score", "settlements"] as Array[String], "settlements right after score")
+	check(not names.has("cities"), "no cities: %s" % [names])
+
+
+func test_328_territories_settled_with_settlers_count_as_settlements() -> void:
+	var e := make_engine({"pioneer": 10}, {"territory_deck": {"hills": 2}})
+	eq(SimStats.game_metrics(e, e.config).get("settlements"), 0, "none settled: the Capital doesn't count")
+	to_frontier(e, ["hills", "hills"])
+	for hills in e.zone("frontier").cards.map(func(c): return c.uid):
+		var pioneer := put_in_hand(e, "pioneer")
+		e.resources.food = 5
+		check(e.play_card(pioneer, hills), "settle: %s" % e.play_error(pioneer, hills))
+	eq(SimStats.game_metrics(e, e.config).get("settlements"), 2, "2 Hills settled with a city each")
+
+
+func test_328_metric_names_add_a_tier_metric_per_config_tier_in_order() -> void:
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3, "population": tier_population()})
+	eq(tier_names(SimStats.metric_names(d.cards, d.config)), TIER_METRICS as Array[String], "one per tier, in order")
+
+
+func test_328_no_tier_metrics_with_tiers_or_population_off() -> void:
+	var d := sim_data({"shrine": 10}, {"turn_limit": 3, "population": tier_population(false)})
+	eq(tier_names(SimStats.metric_names(d.cards, d.config)), [] as Array[String], "no tiers key")
+	d = sim_data({"shrine": 10}, {"turn_limit": 3})
+	eq(tier_names(SimStats.metric_names(d.cards, d.config)), [] as Array[String], "population off")
+
+
+func test_328_every_settled_territory_counts_in_its_tier() -> void:
+	var e := make_engine({"shrine": 10}, {"population": tier_population(), "territory_deck": {"grassland": 2}})
+	settle(e, ["grassland", "grassland"])
+	var lands: Array = e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY)
+	eq(lands.size(), 3, "home and 2 Grasslands settled")
+	for i in lands.size():
+		lands[i].pop = [2, 5, 9][i]
+	var m := SimStats.game_metrics(e, e.config)
+	eq([m.get("tier_hamlet"), m.get("tier_village"), m.get("tier_town")], [1, 1, 1], "pop 2, 5, 9: one in each")
+	for land in lands:
+		land.pop = 1
+	m = SimStats.game_metrics(e, e.config)
+	eq([m.get("tier_hamlet"), m.get("tier_village"), m.get("tier_town")], [3, 0, 0], "all hamlets: the others 0")
+
+
+func test_328_a_run_reports_settlements_and_each_tier() -> void:
+	var cards_path := "user://sim_328_cards.json"
+	var config_path := "user://sim_328_config.json"
+	var config := raw_config({"shrine": 10}, {"turn_limit": 2, "population": tier_population(), "keywords": keywords()})
+	for pair in [[cards_path, TEST_CARDS], [config_path, config]]:
+		var f := FileAccess.open(pair[0], FileAccess.WRITE)
+		f.store_string(JSON.stringify(pair[1]))
+		f.close()
+	var out: Dictionary = SimStats.run_files(cards_path, config_path, 1)
+	eq(out.get("code"), 0, "the run plays: %s" % [out.get("lines")])
+	var lines: Array = out.get("lines", [])
+	for m in ["settlements"] + TIER_METRICS:
+		check(lines.any(func(l): return l.begins_with(m + " ") and l.contains("mean") and l.contains("max")),
+			"a %s line with mean, min and max: %s" % [m, lines])
