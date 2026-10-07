@@ -49,3 +49,5 @@ group moves to its own class. No behaviour changes.
   private. `POPULATION_FIELDS` moved with them. Suite 2298 → 2300, no existing test edited. The real data's
   `load_all` result (config with key order, errors, warnings, every card's `tolerates_name` and `tier_name`) dumped
   as JSON before and after: byte-identical.
+- 2026-10-06: merged. The `scripts/sim.sh 20` comparison was cancelled at the user's request before it ran; the
+  byte-identical `load_all` dump above stands in for it.
