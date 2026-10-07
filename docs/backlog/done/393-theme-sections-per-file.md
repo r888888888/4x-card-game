@@ -2,7 +2,7 @@
 id: 393
 title: Split GameTheme into one file per component's looks
 type: chore
-status: review
+status: done
 branch: feat/393-theme-sections
 ---
 
