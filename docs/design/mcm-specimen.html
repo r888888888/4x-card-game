@@ -222,7 +222,7 @@ section { margin-bottom: var(--space-7); }
 .cards .caps { display: block; margin-bottom: var(--space-1); }
 .card-row { display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-3); align-items: flex-start; padding-top: 16px; }
 .card {
-	position: relative; width: 264px; height: 320px; padding: var(--space-3); flex: none;
+	position: relative; width: 264px; height: 360px; padding: var(--space-3); flex: none;
 	display: flex; flex-direction: column; gap: var(--space-2);
 	background: var(--sheet); border: 2px solid var(--rule); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
 	transform: translateY(0); box-shadow: 0 0 0 var(--shadow);
@@ -241,6 +241,15 @@ section { margin-bottom: var(--space-7); }
 .cost-item { display: inline-flex; align-items: center; gap: 3px; font: 500 20px/24px var(--f-cond); font-variant-numeric: tabular-nums; }
 .cost-item.short { color: var(--danger); text-decoration: underline 2px; text-underline-offset: 3px; }
 .card .band { flex: none; height: 5px; background: var(--band); }
+/* The art plate (381): under the band on a hand-size card, 96 px of the picture's middle band; until it is drawn, a
+   placeholder in the type's colour with a motif (here the sun over a horizon). ART_SHADE over it in Night, a 1 px ink
+   frame. A dimmed card's plate prints in the dim border, like its band. */
+.card .art { flex: none; height: 96px; box-shadow: inset 0 0 0 1px var(--ink);
+	background: linear-gradient(var(--art-shade) 0 0),
+		linear-gradient(to bottom, transparent 62%, color-mix(in srgb, var(--plate) 55%, black) 62%),
+		radial-gradient(circle at 68% 62%, color-mix(in srgb, var(--plate) 55%, white) 34px, transparent 35px),
+		var(--plate); --plate: var(--band); }
+.card.dimmed .art { --plate: var(--dim-border); }
 .card .type { display: flex; align-items: center; gap: 6px; font: 400 17px/22px var(--f-ui); color: var(--ink-2); }
 .mark { flex: none; width: 10px; height: 10px; fill: currentColor; }
 .card .rules { flex: 1; font: 400 20px/24px var(--f-ui); }
@@ -515,13 +524,13 @@ section { margin-bottom: var(--space-7); }
 :root, :root[data-theme="paper"] {
 	--walnut: url("../../assets/background/walnut.png");
 	--paper-src: url("../../assets/background/white-paper.png");
-	--grain-veil: 88%; --paper-shade: transparent;
+	--grain-veil: 88%; --paper-shade: transparent; --art-shade: transparent;
 	--sh-rest: 0 4px 8px rgba(34, 33, 31, 0.20); --sh-hover: 0 8px 16px rgba(34, 33, 31, 0.28);
 	--sh-drag: 0 14px 24px rgba(34, 33, 31, 0.32); --sh-sheet: 0 16px 32px rgba(34, 33, 31, 0.35);
 }
 :root[data-theme="night"] {
 	--paper-src: url("../../assets/background/dark-gray-paper.png");
-	--grain-veil: 90%; --paper-shade: rgba(0, 0, 0, 0.3);
+	--grain-veil: 90%; --paper-shade: rgba(0, 0, 0, 0.3); --art-shade: rgba(0, 0, 0, 0.25);
 	--sh-rest: 0 4px 8px rgba(13, 12, 11, 0.35); --sh-hover: 0 8px 16px rgba(13, 12, 11, 0.45);
 	--sh-drag: 0 14px 24px rgba(13, 12, 11, 0.50); --sh-sheet: 0 16px 32px rgba(13, 12, 11, 0.55);
 }
@@ -1240,7 +1249,7 @@ function card(c) {
 	return `<button class="card ${c.dimmed ? "dimmed" : ""}" style="${band}" aria-pressed="false">
 		<span class="index-tab"></span>
 		<span class="head"><span class="name">${c.name}</span>${costPlate(c)}</span>
-		<span class="band"></span>
+		<span class="band"></span><span class="art"></span>
 		<span class="type">${mark(c.type)}${c.type}${c.tags ? " · " + c.tags : ""}</span>
 		<span class="rules">${rulesHTML(c.rules)}${c.vp ? `<br><span class="vp">${c.vp} VP</span>` : ""}</span>
 		${c.dimmed ? `<span class="reason">${glyph("blocked", "var(--ink)", 18)}${c.dimmed}</span>` : ""}</button>`;
