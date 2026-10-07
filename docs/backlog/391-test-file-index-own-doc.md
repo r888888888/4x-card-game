@@ -2,7 +2,7 @@
 id: 391
 title: Move the test file index out of docs/testing.md into docs/testing-index.md
 type: chore
-status: ready
+status: red-review
 branch: feat/391-test-file-index
 ---
 
@@ -59,7 +59,12 @@ file's `##` header staying the source of truth (331).
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_docs::…` |
+| AC1 | `test_docs::test_testing_index_lists_every_test_file_in_one_short_row` (was `test_testing_md_indexes_every_test_file_in_one_short_row`); `test_table_problems_name_missing_rows_rows_for_no_file_and_long_rows` unchanged |
+| AC2 | `test_docs::test_index_rows_names_the_file_of_each_index_row`, `test_testing_md_has_no_test_file_rows` |
+| AC3 | `test_docs::test_testing_md_is_under_15_kb_and_links_the_index`; `test_testing_md_is_under_25_kb` unchanged |
+| AC4 | No test: the absence of a size check on `docs/testing-index.md` (review) |
+| AC5 | `test_docs::test_every_test_file_opens_with_a_header` unchanged; `test_the_checked_docs_are_plan_claude_readme_the_docs_and_the_skills` now expects `docs/testing-index.md` |
+| AC6 | The full suite; the count rises by 3 (2441 → 2444) |
 
 ## Manual check
 - [ ] `wc -c docs/testing.md docs/testing-index.md`: the guide is under 15 KB; the index holds every test file's row.
