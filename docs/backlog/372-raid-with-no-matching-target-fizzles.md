@@ -2,7 +2,7 @@
 id: 372
 title: A raid whose targets match no territory still strikes one
 type: bug
-status: red-review
+status: in-progress
 branch: fix/372-raid-no-target-fizzles
 ---
 

@@ -115,15 +115,22 @@ static func raid_forecast(e: GameEngine) -> Array[Dictionary]:
 	return out
 
 
-## Fixes raid's target as it is drawn (Events.draw): among the settled territories with any of its targets (all of
-## them when none has one, or it has no targets), the lowest defence, then the most pop, then tableau order.
-static func announce(e: GameEngine, raid: CardInstance) -> void:
-	var settled := e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.TERRITORY)
-	var aimed := settled.filter(func(c): return c.keywords.any(func(k): return raid.def.raid.targets.has(k)))
+## The territory raid would strike if drawn now: among the settled territories with any of its targets (all of them
+## when it has no targets), the lowest defence, then the most pop, then tableau order; null when none qualifies (372).
+static func aim(e: GameEngine, raid: CardInstance) -> CardInstance:
+	var targets: Array = raid.def.raid.targets
 	var target: CardInstance = null
-	for land in aimed if not aimed.is_empty() else settled:
+	for land in e.zone("tableau").cards:
+		if land.def.type != CardDef.TERRITORY or not (targets.is_empty() or land.keywords.any(func(k): return targets.has(k))):
+			continue
 		if target == null or _weaker(e, land, target):
 			target = land
+	return target
+
+
+## Fixes raid's target (aim) as it is drawn (Events.draw) and announces it.
+static func announce(e: GameEngine, raid: CardInstance) -> void:
+	var target := aim(e, raid)
 	raid.territory_uid = target.uid if target != null else -1
 	raid.turns_left = CardDef.RAID_WARNING
 	if target != null:
