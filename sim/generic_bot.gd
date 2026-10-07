@@ -371,7 +371,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		if over > 0:
 			v -= w.risk * over * over
 	if not ctx.valuing and not ctx.rollout:
-		v += w.deck * ahead * _plays_a_turn(e) * _deck_worth(e, ctx)
+		v += w.deck * ahead * _deck_worth(e, ctx)
 	for tech in e.zone("researched").cards:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
@@ -445,19 +445,52 @@ static func _concave(s: float) -> float:
 	return 3.0 * s if s < 0 else STOCK_SCALE * log(1.0 + s / STOCK_SCALE)
 
 
-## The average card_value of the cards drawn from (deck, hand and discard), 0 for a card with nothing to act on now.
+## What a turn's plays from the cards drawn from (deck, hand and discard) are worth (376): turn_worth of their
+## card_values, 0 for a card with nothing to act on now, with a hand of hand_size and _plays_a_turn plays.
 static func _deck_worth(e: GameEngine, ctx: Context) -> float:
-	var total := 0.0
-	var n := 0
+	var values := []
 	var live := {}  # card id → whether it has something to act on (the same for every copy)
 	for z in ["deck", "hand", "discard"]:
 		for card in e.zone(z).cards:
-			n += 1
 			if not live.has(card.def.id):
 				live[card.def.id] = not e.would_need_target(card.uid) or not e.would_target(card.uid).is_empty()
-			if live[card.def.id]:
-				total += card_value(e, card.def.id, ctx)
-	return total / n if n > 0 else 0.0
+			values.append(card_value(e, card.def.id, ctx) if live[card.def.id] else 0.0)
+	return turn_worth(values, e.hand_size(), _plays_a_turn(e))
+
+
+## The expected sum of the best plays of a hand of hand cards drawn from cards worth values, each floored at 0 (a card
+## the bot wouldn't play costs a draw, not value; 376). Sorted best first, the card with i better ones is played when
+## it is drawn and fewer than plays of those are drawn with it (hypergeometric).
+static func turn_worth(values: Array, hand: int, plays: int) -> float:
+	var sorted: Array[float] = []
+	for v in values:
+		sorted.append(maxf(0.0, v))
+	sorted.sort()
+	sorted.reverse()
+	var n := sorted.size()
+	if n == 0:
+		return 0.0
+	var h := mini(hand, n)
+	var others := _choose(n - 1, h - 1)  # the ways to draw the rest of a hand holding a given card
+	var total := 0.0
+	for i in n:
+		if sorted[i] <= 0.0:
+			break
+		var played := 0.0
+		for k in mini(plays, h):
+			played += _choose(i, k) * _choose(n - 1 - i, h - 1 - k)
+		total += sorted[i] * h / n * played / others
+	return total
+
+
+## n choose k, 0 outside 0..n.
+static func _choose(n: int, k: int) -> float:
+	if k < 0 or k > n:
+		return 0.0
+	var out := 1.0
+	for j in mini(k, n - k):
+		out = out * (n - j) / (j + 1)
+	return out
 
 
 ## What playing a copy of card id now adds to the value (the deck's worth left out), measured on a sample fork where
