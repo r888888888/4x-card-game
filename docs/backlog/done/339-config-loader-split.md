@@ -2,7 +2,7 @@
 id: 339
 title: Split ConfigLoader: population, tiers and unrest in their own loader
 type: feature
-status: review
+status: done
 branch: feat/339-config-loader-split
 ---
 
