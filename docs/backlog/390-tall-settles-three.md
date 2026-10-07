@@ -2,7 +2,7 @@
 id: 390
 title: Let the tall bot settle up to 3 territories, at low priority
 type: feature
-status: red-review
+status: in-progress
 branch: feat/390-tall-settles-three
 ---
 
