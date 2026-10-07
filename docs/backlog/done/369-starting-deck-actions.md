@@ -2,7 +2,7 @@
 id: 369
 title: Five new actions pad out the starting deck
 type: feature
-status: review
+status: done
 branch: feat/369-starting-deck-actions
 ---
 
