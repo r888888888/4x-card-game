@@ -72,6 +72,28 @@ static func tree(e: GameEngine, uid: int) -> Array[int]:
 	return out
 
 
+## Building uid's upgrade rows for its details (387): for uid then each upgrade in its tree (tree order), each
+## build-menu entry, locked or not, that upgrades that base (menu order), as {card_id, base, built, error}: built the
+## uid of that upgrade on that base or -1, error build_error when not built, else "". [] when uid isn't a building in
+## the tableau.
+static func rows(e: GameEngine, uid: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var card := e.zone("tableau").find(uid)
+	if card == null or card.def.type != CardDef.BUILDING:
+		return out
+	var menu: Dictionary = e.config.get("build_menu", {})
+	for base in [uid] + tree(e, uid):
+		var base_id: String = e.zone("tableau").find(base).def.id
+		for id: String in menu:
+			if e.card_db[id].upgrade_of != base_id:
+				continue
+			var built := on(e, base).filter(func(u): return e.zone("tableau").find(u).def.id == id)
+			var built_uid: int = built[0] if not built.is_empty() else -1
+			out.append({"card_id": id, "base": base, "built": built_uid,
+				"error": e.build_error(id, base) if built_uid == -1 else ""})
+	return out
+
+
 ## The unlocked upgrade entries building base_uid could take now, in menu order, whatever they cost (302).
 static func for_base(e: GameEngine, base_uid: int) -> Array[String]:
 	var out: Array[String] = []
