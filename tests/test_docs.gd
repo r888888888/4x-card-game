@@ -36,7 +36,7 @@ func test_missing_paths_names_the_doc_and_the_path() -> void:
 func test_the_checked_docs_are_plan_claude_readme_the_docs_and_the_skills() -> void:
 	var docs := DocChecks.docs_to_check()
 	for doc in ["PLAN.md", "CLAUDE.md", "README.md", "docs/testing.md", "docs/testing-index.md",
-			"docs/development-process.md",			".claude/skills/tdd/SKILL.md", ".claude/skills/add-effect/SKILL.md"]:
+			"docs/development-process.md", ".claude/skills/tdd/SKILL.md", ".claude/skills/add-effect/SKILL.md"]:
 		check(docs.has(doc), "%s is checked: %s" % [doc, docs])
 
 
