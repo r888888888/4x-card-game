@@ -5,9 +5,11 @@ extends RefCounted
 ## The folders a backticked path must start with to count as a repo path.
 const PREFIXES: Array[String] = ["engine/", "ui/", "sim/", "autoload/", "scripts/", "tests/", "data/", "docs/"]
 ## The docs checked besides docs/*.md and each skill's SKILL.md.
-## The longest row docs/testing.md's test file table may have (331).
-const ROW_LIMIT := 160
 const ROOT_DOCS: Array[String] = ["PLAN.md", "CLAUDE.md", "README.md"]
+## The longest row docs/testing-index.md's test file table may have (331).
+const ROW_LIMIT := 160
+## A row of the test file table; group 1 is the file (331, 391).
+static var INDEX_ROW := RegEx.create_from_string("^\\| `(tests/(?:balance/)?test_\\w+\\.gd)` \\|")
 
 
 ## The docs whose paths are checked, repo-relative.
@@ -108,15 +110,23 @@ static func headerless(texts: Dictionary) -> Array[String]:
 	return out
 
 
-## What's wrong with doc_text's test file table (rows "| `tests/…test_x.gd` | … |") against files (331): a file with
-## no row, a row for a file not in files, and a row over ROW_LIMIT characters.
+## The test file of each row of doc_text's test file table (rows "| `tests/…test_x.gd` | … |"), in order (391).
+static func index_rows(doc_text: String) -> Array[String]:
+	var out: Array[String] = []
+	for line in doc_text.split("\n"):
+		var m := INDEX_ROW.search(line)
+		if m != null:
+			out.append(m.get_string(1))
+	return out
+
+
+## What's wrong with doc_text's test file table against files (331): a file with no row, a row for a file not in
+## files, and a row over ROW_LIMIT characters.
 static func table_problems(doc_text: String, files: Array) -> Array[String]:
 	var rows := {}
-	var row := RegEx.create_from_string("^\\| `(tests/(?:balance/)?test_\\w+\\.gd)` \\|")
 	for line in doc_text.split("\n"):
-		var m := row.search(line)
-		if m != null:
-			rows[m.get_string(1)] = line.length()
+		for file in index_rows(line):
+			rows[file] = line.length()
 	var out: Array[String] = []
 	for file in files:
 		if not rows.has(file):
