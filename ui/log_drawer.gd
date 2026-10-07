@@ -115,7 +115,7 @@ func append_log(message: String) -> void:
 	if message.begins_with("—"):
 		_log.append_text("\n[b]%s[/b]\n" % message)
 	elif message.begins_with("Game over"):
-		_log.append_text("[b][color=#e8c547]%s[/color][/b]\n" % message)
+		_log.append_text("[b]%s[/b]\n" % Palette.bbcode(message, Palette.EMPHASIS))
 	else:
 		_log.append_text(message + "\n")
 	_set_unread(not is_open())

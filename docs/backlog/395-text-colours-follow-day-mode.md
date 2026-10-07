@@ -2,7 +2,7 @@
 id: 395
 title: Glossary terms and log notes are written in fixed colours that vanish on Day's paper
 type: bug
-status: red-review
+status: in-progress
 branch: fix/395-text-colours-follow-day-mode
 ---
 

@@ -28,6 +28,7 @@ static var TEXT_DIM: Color = NIGHT["TEXT_DIM"]  # headings
 static var TEXT_DISABLED: Color = NIGHT["TEXT_DISABLED"]
 static var TEXT_ON_ACCENT: Color = NIGHT["TEXT_ON_ACCENT"]
 static var LOG_TEXT: Color = NIGHT["LOG_TEXT"]
+static var EMPHASIS: Color = NIGHT["EMPHASIS"]  # gold text that stands out: a glossary term, a hint, a log heading (395)
 
 # Meaning.
 static var ACCENT: Color = NIGHT["ACCENT"]  # the main action's button (End turn)
@@ -106,6 +107,7 @@ const NIGHT := {
 	"TEXT_DISABLED": Color("8e877a"),
 	"TEXT_ON_ACCENT": Color("1f1e1c"),
 	"LOG_TEXT": Color("ddd5c5"),
+	"EMPHASIS": Color("ffd966"),
 	"ACCENT": Color("e0703f"),
 	"GAIN": Color("93b585"),
 	"COST": Color("e07a63"),
@@ -170,6 +172,7 @@ const DAY := {
 	"TEXT_DISABLED": Color("7a7468"),
 	"TEXT_ON_ACCENT": Color("fbf6ec"),
 	"LOG_TEXT": Color("22211f"),
+	"EMPHASIS": Color("7a5200"),
 	"ACCENT": Color("a8401b"),
 	"GAIN": Color("4e6b47"),
 	"COST": Color("9b3424"),
@@ -229,3 +232,8 @@ static func use(p_day: bool) -> void:
 ## The colour called name as it reads now (a Palette role, e.g. "TEXT").
 static func color(name: StringName) -> Color:
 	return (DAY if day else NIGHT)[String(name)]
+
+
+## text in BBCode coloured c (a Palette colour, read in the current mode): rich text's colours come from here (395).
+static func bbcode(text: String, c: Color) -> String:
+	return "[color=#%s]%s[/color]" % [c.to_html(false), text]

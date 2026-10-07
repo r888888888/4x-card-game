@@ -32,7 +32,7 @@ func on_clicked(view: CardView) -> void:
 
 ## Logs the engine's refusal and shows it over view.
 func _refuse(view: CardView, error: String) -> void:
-	_board.log_note("[color=#e88]%s[/color]" % error)
+	_board.log_note(Palette.bbcode(error, Palette.COST))
 	UIKit.show_error(_board.fx, view, error, _board.size.x)
 
 
