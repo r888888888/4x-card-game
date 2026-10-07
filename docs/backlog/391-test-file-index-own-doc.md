@@ -2,7 +2,7 @@
 id: 391
 title: Move the test file index out of docs/testing.md into docs/testing-index.md
 type: chore
-status: in-progress
+status: review
 branch: feat/391-test-file-index
 ---
 
@@ -16,19 +16,19 @@ grows with the suite by design. Splitting along that boundary lets the guide kee
 file's `##` header staying the source of truth (331).
 
 ## Acceptance criteria
-- [ ] AC1: Given `docs/testing-index.md`, when the suite runs, then a test fails naming each `tests/test_*.gd` and
+- [x] AC1: Given `docs/testing-index.md`, when the suite runs, then a test fails naming each `tests/test_*.gd` and
   `tests/balance/test_*.gd` with no row there, each row for a file that doesn't exist, and each row over 160
   characters (331's AC2 checks, now on the new file; `DocChecks.table_problems` unchanged).
-- [ ] AC2: Given `docs/testing.md`, when the suite runs, then a test fails if it contains any test file index row
+- [x] AC2: Given `docs/testing.md`, when the suite runs, then a test fails if it contains any test file index row
   (`| \`tests/…test_x.gd\` | … |`), naming the rows found, so the index can't drift back into the guide.
-- [ ] AC3: `docs/testing.md` stays under 25 KB (the existing check, unchanged), and after the move it is under 15 KB,
+- [x] AC3: `docs/testing.md` stays under 25 KB (the existing check, unchanged), and after the move it is under 15 KB,
   leaving room for the guide to grow; `docs/testing.md` links to `docs/testing-index.md` where the table was.
-- [ ] AC4: `docs/testing-index.md` has no size check; adding a test file means adding one row (≤ 160 characters) to it
+- [x] AC4: `docs/testing-index.md` has no size check; adding a test file means adding one row (≤ 160 characters) to it
   and touching no other row.
-- [ ] AC5: The header check is unchanged: every test file still opens with a `##` header
+- [x] AC5: The header check is unchanged: every test file still opens with a `##` header
   (`test_every_test_file_opens_with_a_header` passes untouched), and every path `docs/testing-index.md` names exists
   (it is under `docs/`, so `DocChecks.docs_to_check()` already includes it; assert it is in the list).
-- [ ] AC6: No test changes behaviour: every test passes, and the count rises only by the new checks.
+- [x] AC6: No test changes behaviour: every test passes, and the count rises only by the new checks.
 
 ## Out of scope
 - Generating the index from the headers (see Design notes).
@@ -73,3 +73,7 @@ file's `##` header staying the source of truth (331).
 ## Log
 - 2026-10-07: specced. Chose the separate file over generating from headers (Design notes). Assumed the helper tables
   stay in `docs/testing.md` (they are guide content and change rarely) and that the index gets no size cap.
+- 2026-10-07: built. 199 rows moved, sorted by path (the old table had a few out of order, e.g. `build_menu` before
+  `build_ceremony`); row text unchanged. `docs/testing.md` 25,588 → 11,432 bytes; `docs/testing-index.md` 14,585.
+  `DocChecks.index_rows` holds the row regex (`INDEX_ROW`) and `table_problems` uses it. 2441 → 2444 tests. Updated
+  `tdd`, `add-decision`, `project-review` and `docs/development-process.md`; backlog README's 331 line is history, left.
