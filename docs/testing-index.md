@@ -200,8 +200,8 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_unit_upgrades.gd` | Unit upgrades (166) |
 | `tests/test_units.gd` | Unit cards (160) |
 | `tests/test_unrest.gd` | Unrest (144) |
-| `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI) |
-| `tests/test_upgrades.gd` | Building upgrades (300) |
+| `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI); the details' Upgrades section (387) |
+| `tests/test_upgrades.gd` | Building upgrades (300); `upgrade_rows` (387) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
 | `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_wealth.gd` | Wealth, the second resource |

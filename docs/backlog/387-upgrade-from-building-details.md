@@ -2,7 +2,7 @@
 id: 387
 title: Upgrade a building from its details modal
 type: feature
-status: in-progress
+status: review
 branch: feat/387-upgrade-from-building-details
 ---
 
@@ -17,7 +17,7 @@ its upgrades included, is in one place. The chip and the Build modal stay as the
 Fixture: `test_upgrades`' cards and menu (Farm ← Plough, Ditch, Weir; Chapel ← Sanctum, Rampart; Sanctum ← Cathedral),
 Plough locked unless said otherwise.
 
-- [ ] AC1 (engine, the rows): `upgrade_rows(uid)` on a building in the tableau returns one row per pair of a base and
+- [x] AC1 (engine, the rows): `upgrade_rows(uid)` on a building in the tableau returns one row per pair of a base and
   a build-menu entry (locked or not) that upgrades it, where the bases are uid then `upgrade_tree(uid)` in order, and
   the entries come in menu order: `{card_id, base, built, error}`. `built` is the uid of that upgrade on that base, or
   -1; `error` is `build_error(card_id, base)` when not built, "" when built. Given a Farm on Homeland (no fresh water)
@@ -25,15 +25,15 @@ Plough locked unless said otherwise.
   ""), Weir (built -1, the Weir's requires error). Given a Chapel carrying a Sanctum, the rows are Sanctum (built),
   Rampart (on the Chapel, buildable: error ""), then Cathedral (on the Sanctum, buildable). A Cathedral row only appears
   once a Sanctum stands. It returns [] for a uid that isn't a building in the tableau, or a building nothing upgrades.
-- [ ] AC2 (the section): Opening the details of a building in the realm whose `upgrade_rows` isn't empty shows an
+- [x] AC2 (the section): Opening the details of a building in the realm whose `upgrade_rows` isn't empty shows an
   "Upgrades" section, one row per row in order, each reading the upgrade's name over its rules
   (`upgrade_rules_text`). A built row reads "Built", or its `fallen_back_reason` when it has fallen back. A row that
   could be built shows an Upgrade button with `build_cost(card_id)`. A refused row shows its `error` and no button. The
   section is hidden for a building with no rows, and for a hand card, a supply pile, a tech or a definition's details.
-- [ ] AC3 (building): Pressing a row's Upgrade calls `build(card_id, base)`: the cost is paid, the upgrade is on the
+- [x] AC3 (building): Pressing a row's Upgrade calls `build(card_id, base)`: the cost is paid, the upgrade is on the
   base, and the details close (the territory view shows the new ribbon and the build ceremony plays on the base, as a
   build from the Build modal does).
-- [ ] AC4 (blocked): While a decision is owed or the game is over, each Upgrade button is disabled with
+- [x] AC4 (blocked): While a decision is owed or the game is over, each Upgrade button is disabled with
   `build_menu_error()` as its tooltip; a row whose only problem is cost (food 0) shows its "can't afford" reason with no
   button.
 
@@ -76,3 +76,9 @@ Plough locked unless said otherwise.
   and no button (AC2). The button reads "Upgrade for <cost>" (`Fields.amounts_text`), "Upgrade" when free. Hooks on
   CardDetailsModal: `upgrade_rows()` ({name, rules, status, button}) and `upgrades_shown()`. The hidden-section test
   covers a hand card and two definitions (Farm, Explorer), not a supply pile, which opens a definition's details too.
+- 2026-10-07: green (2489 → 2498). One approved test had a wrong fixture: AC1's Farm test used the default
+  `upgrade_engine()`, where Plough is unlocked, though the item's fixture says "Plough locked"; its setup now locks
+  Plough as the existing refusal test does (`{"plough": {"locked": true}}`), assertions unchanged. The section is its
+  own component, `ui/upgrade_list.gd` (`UpgradeList`), placed over the Gives row; `card_details_modal.gd` 413 → 435.
+  Row looks: name `CardTitle`, rules `BodySmall`, "Built" `Caption`, a reason `Refusal`. The specimen doesn't show a
+  building's details, so it has nothing to update.

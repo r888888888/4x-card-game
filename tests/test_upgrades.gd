@@ -1,7 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## Building upgrades (300): a building with upgrade_of is built from the build menu onto a building already in play
 ## (its base), takes no slot and no worker, and adds to its base while the base works; a base carries several
-## different upgrades and an upgrade can be a base. upgrade_base, upgrades_on, fallen_back_reason; the loader.
+## different upgrades and an upgrade can be a base. upgrade_base, upgrades_on, fallen_back_reason; the loader. 387:
+## upgrade_rows, a building's upgrades for its details.
 
 const PLOUGH := {"id": "plough", "name": "Plough", "type": "building", "cost": {"food": 1}, "vp": 1,
 	"upgrade_of": "farm", "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}
@@ -511,17 +512,12 @@ func test_an_upgrades_preview_reads_its_bases_territory() -> void:
 
 # --- 387: a building's upgrade rows, for its details ---
 
-## The rows of e.upgrade_rows(uid) (red phase: the query is new in 387).
-func rows_of(e: GameEngine, uid: int) -> Array:
-	return (e as Object).call("upgrade_rows", uid)  # scaffolding: upgrade_rows is new in 387
-
-
 func test_a_farms_rows_are_every_upgrade_in_menu_order_built_or_not() -> void:
 	var e := upgrade_engine(10, "", {"build_menu": MENU.merged({"plough": {"locked": true}}, true)})
 	var home := home_uid(e)
 	var farm := put_on(e, home, "farm")
 	var ditch := upgrade(e, "ditch", farm)
-	eq(rows_of(e, farm), [
+	eq(e.upgrade_rows(farm), [
 		{"card_id": "plough", "base": farm, "built": -1, "error": "Plough isn't unlocked yet."},
 		{"card_id": "ditch", "base": farm, "built": ditch, "error": ""},
 		{"card_id": "weir", "base": farm, "built": -1, "error": e.build_error("weir", farm)},
@@ -532,9 +528,9 @@ func test_a_farms_rows_are_every_upgrade_in_menu_order_built_or_not() -> void:
 func test_a_chain_lists_its_bases_in_order_and_a_link_only_once_its_base_stands() -> void:
 	var e := upgrade_engine()
 	var chapel := put_on(e, home_uid(e), "chapel")
-	eq(rows_of(e, chapel).map(func(r): return r.card_id), ["sanctum", "rampart"], "no Cathedral before a Sanctum")
+	eq(e.upgrade_rows(chapel).map(func(r): return r.card_id), ["sanctum", "rampart"], "no Cathedral before a Sanctum")
 	var sanctum := upgrade(e, "sanctum", chapel)
-	eq(rows_of(e, chapel), [
+	eq(e.upgrade_rows(chapel), [
 		{"card_id": "sanctum", "base": chapel, "built": sanctum, "error": ""},
 		{"card_id": "rampart", "base": chapel, "built": -1, "error": ""},
 		{"card_id": "cathedral", "base": sanctum, "built": -1, "error": ""},
@@ -546,8 +542,8 @@ func test_no_rows_for_anything_but_a_building_something_upgrades() -> void:
 	var home := home_uid(e)
 	var capital := uid_of(e.zone("tableau"), "capital")
 	var spears := put_on(e, home, "spears")
-	eq([rows_of(e, home), rows_of(e, capital), rows_of(e, spears), rows_of(e, 999)], [[], [], [], []],
+	eq([e.upgrade_rows(home), e.upgrade_rows(capital), e.upgrade_rows(spears), e.upgrade_rows(999)], [[], [], [], []],
 		"a territory, a city, a unit, no card")
 	var sanctum := upgrade(e, "sanctum", put_on(e, home, "chapel"))
 	var cathedral := upgrade(e, "cathedral", sanctum)
-	eq(rows_of(e, cathedral), [], "a Cathedral: nothing upgrades it")
+	eq(e.upgrade_rows(cathedral), [], "a Cathedral: nothing upgrades it")

@@ -247,6 +247,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   another (`upgrades_for`), opening the Build modal on that row. The modal's Upgrades heading lists
   `upgrade_options(t)` ("Plough … on Farm"), previewed with `build_preview(id, base)`. An upgrade's face reads
   "Upgrade · Farm", its lines led by "Also", with a stamp naming its tier (`upgrade_base_name`, `card_tier_name`).
+- A building's details (387) list its upgrades in an Upgrades section: `upgrade_rows(uid)` gives
+  `{card_id, base, built, error}` for each base (the building, then its upgrade tree) and each build-menu entry,
+  locked or not, that upgrades it. A row reads its name and rules, then "Built" (or its `fallen_back_reason`), its
+  error, or an Upgrade button with its cost that builds it (`build`) and closes the details; while a decision is owed
+  every row not built keeps its button, disabled with `build_menu_error()` (`ui/upgrade_list.gd`).
 - Buildings that need a tier (301): a building or upgrade may set `tier` (a `population.tiers` id; ignored with a
   warning when tiers are off). It is built only on a territory at that tier or larger ("Forum needs a Town (Homeland is
   a Village)."), and while its territory is smaller it falls back: it keeps its slot and worker but counts for nothing,
