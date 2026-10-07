@@ -201,3 +201,12 @@ func test_the_last_turn_shows_game_over_and_no_modal() -> void:
 		eq(main.event_modal(), {}, "no event modal")
 		check(main.game_over_text() != "", "the game-over overlay shows"), ["windfall"], {"windfall": 1, "omen": 1},
 		{"turn_limit": 1})
+
+
+# --- 381: the card's art plate ---
+
+func test_the_events_card_has_its_art_plate() -> void:
+	with_modal_main(func(main: Node):
+		Game.engine.end_turn()
+		var card := card_under(main.modals.top())
+		check(card != null and art_plate(card) != null, "the event's card has a plate"), ["windfall"])

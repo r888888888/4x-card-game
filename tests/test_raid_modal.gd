@@ -143,3 +143,14 @@ func test_a_raid_outranks_a_city_but_not_an_era() -> void:
 	var order: Array = EventSounds.SOUNDS.map(func(pair): return pair[1])
 	eq(order, [Sfx.MILESTONE_ERA, PILLAGED, REPELLED, Sfx.MILESTONE_CITY, Sfx.MILESTONE_BREAKTHROUGH,
 		Sfx.MILESTONE_BUILD, Sfx.MILESTONE_RECRUIT], "era > pillaged > repelled > city > tech > build > recruit (357)")
+
+
+# --- 381: the card's art plate ---
+
+func test_the_raids_card_has_its_art_plate() -> void:
+	await with_raid_main(func(main: Node):
+		to_the_eve_of_the_strike(main)
+		Game.engine.end_turn()
+		check(not main.raid_modal().is_empty(), "the raid modal is open")
+		var card := card_under(main.modals.top())
+		check(card != null and art_plate(card) != null, "the raid's card has a plate"))

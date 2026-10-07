@@ -47,6 +47,11 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	if in_hand and Game.engine != null:
 		show_shortfall(Game.engine.play_shortfall(card.uid))
 	_add_band(color)
+	if in_hand:  # a hand-size face carries the card's art plate under its band (381); smaller faces don't
+		var art := CardArt.new()
+		art.name = "Art"
+		art.setup(def.id, color)
+		add_child(art)
 
 	var type_row := HBoxContainer.new()
 	type_row.name = "TypeRow"
@@ -172,6 +177,13 @@ func set_band_color(color: Color) -> void:
 	var band := get_node_or_null("Band") as ColorRect
 	if band != null:
 		band.color = color
+
+
+## Dims the art plate with its card (381); nothing on a face without one.
+func set_art_dimmed(on: bool) -> void:
+	var art := get_node_or_null("Art") as CardArt
+	if art != null:
+		art.set_dimmed(on)
 
 
 ## A small pill in color naming what a board card is (138).

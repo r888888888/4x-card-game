@@ -39,7 +39,7 @@ A colour must follow a Day mode switch. How depends on where it is set:
 |---|---|
 | `board` | `BACKGROUND` (laid at 90 % Night / 88 % Day over walnut grain: the board and the Rail, `Surfaces.BOARD`), `FRONTIER_BG` |
 | `sheet` | `RAISED` (over walnut grain at the same opacity: the Strip, `Surfaces.STRIP`), `TILE` |
-| paper (341) | cards, Sheets and DarkPanels: `Surfaces.PAPER`, dark gray paper under `PAPER_SHADE` (black at 30 %) in Night, white paper in Day; a dimmed card's under `DIM_BG` at 60 % (`Surfaces.DIMMED_PAPER`) |
+| paper (341) | cards, Sheets and DarkPanels: `Surfaces.PAPER`, dark gray paper under `PAPER_SHADE` (black at 30 %) in Night, white paper in Day; a dimmed card's under `DIM_BG` at 60 % (`Surfaces.DIMMED_PAPER`). A hand-size card's art plate (381, `CardArt`) lies under `ART_SHADE` (black at 25 %) in Night, clear in Day, in a 1 px `EDGE` frame; a dimmed card's plate prints in `DIM_BORDER`, its picture under `DIM_BG` at 60 % |
 | `well` | `FIELD` (also a selectable list's `ListWell`), `PANEL`, `CONTROL_DISABLED`, `STRIP_BG` |
 | `steel` | `CONTROL` |
 | `ink` | `TEXT`, `EDGE`, `STRIP_TEXT` |

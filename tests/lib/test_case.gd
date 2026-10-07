@@ -857,6 +857,17 @@ func open_details(main: Node, uid: int) -> void:
 	view.details_requested.emit(view)
 
 
+## The art plate on view's face (381), or null: a hand-size face has one, named Art.
+func art_plate(view: CardView) -> CardArt:
+	return view.find_child("Art", true, false) as CardArt
+
+
+## The first CardView under node (a modal's card), or null.
+func card_under(node: Node) -> CardView:
+	var found := node.find_children("*", "CardView", true, false)
+	return found[0] as CardView if not found.is_empty() else null
+
+
 ## The uid of Hills in e's tableau, or -1.
 func hills_of(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "hills")

@@ -31,6 +31,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_built_signal.gd` | The engine's `built` signal (357) |
 | `tests/test_button_widths.gd` | Button widths (100; UI) |
 | `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209; UI) |
+| `tests/test_card_art.gd` | Art plates on hand-size faces: picture or placeholder motif, shade (381) |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state and terms (056, 289) |
 | `tests/test_card_faces.gd` | Index-card faces and card motion (179) |
 | `tests/test_card_landing.gd` | How a card lands (117) |
