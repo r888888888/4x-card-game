@@ -2,7 +2,7 @@
 id: 382
 title: Tighter card face text: one Unlocks line, a ledger of figures, and gates as fine print
 type: feature
-status: ready
+status: red-review
 branch: feat/382-card-face-ledger-fine-print
 ---
 
@@ -69,7 +69,12 @@ art. The details and the long-form text are unchanged. From `spike/card-art` (op
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_card_text::test_every_unlock_joins_one_line_at_the_first`, `test_a_single_unlock_reads_unlocks_and_its_card`; `test_supply::test_unlock_text` (updated) |
+| AC2 | `test_card_text::test_a_governments_figures_are_a_ledger`, `test_a_field_the_card_lacks_has_no_ledger_row` |
+| AC3 | `test_card_text::test_gates_are_fine_print_in_order`, `test_an_upgrades_face_has_no_builds_on_line`; updated: `test_building_tiers::test_a_tiers_text_names_it_after_the_upgrade_line`, `test_civ_home::test_home_is_on_the_card_text`, `test_upgrades::test_an_upgrades_text_says_what_it_builds_on`, `test_wonder_sites::test_project_loads_on_a_building_with_its_text` |
+| AC4 | `test_card_text::test_a_cards_own_text_is_its_rules_split_into_lines`, `test_the_long_form_keeps_every_line` (passes already: a guard) |
+| AC5 | `test_card_faces::test_a_hand_face_shows_the_ledger_then_the_rules`, `test_a_hand_faces_gates_are_one_line_of_fine_print_at_the_foot`, `test_the_fine_print_look_is_14_px_caps_in_text_dim`, `test_a_tableau_face_has_the_ledger_but_no_fine_print`, `test_a_realm_face_takes_its_line_from_the_rules`; the "Also" lines: the existing upgrade face tests |
+| AC6 | `test_event_modal::test_ending_the_turn_shows_the_drawn_event` (existing: the hook's text is `rules_text`, which becomes the face's join) |
 
 ## Manual check
 - [ ] Sailing, Code of Laws, Theocracy, Sumer, Egypt and a wonder in the hand and in their details: the face reads
@@ -80,3 +85,9 @@ art. The details and the long-form text are unchanged. From `spike/card-art` (op
 <!-- Decisions and surprises during implementation, newest last. -->
 - 2026-10-06: specced from `spike/card-art`'s mock (option F, chosen as part of I). The user chose tableau faces
   without fine print.
+- 2026-10-07: red. Decisions: `rules_text(card_db)` stays as the face in one string (the ledger spelled out as
+  today's sentences, then the rules, then the fine print) for tests and the event modal's hook, so AC6 holds through
+  it; its `headers` parameter goes (`upgrade_rules_text` reads `face().rules`). AC5's "government with a prereq"
+  isn't loadable (prereq is tech-only), so the ledger is tested on a government and the fine print on a tech.
+  Ledger looks: `LedgerLabel` (14 px caps, `TYPE_LABEL_CAPS`) and `LedgerFigure`; the face's rules label is named
+  `Rules`. Gates with several `requires` keep today's "/" join.

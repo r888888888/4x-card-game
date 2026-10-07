@@ -287,7 +287,7 @@ func test_project_loads_on_a_building_with_its_text() -> void:
 	eq([r.errors, r.warnings], [[], []], "[errors, warnings]")
 	var colossus: CardDef = r.cards.colossus
 	eq(colossus.get("project"), true, "project")
-	check(colossus.rules_text(r.cards).contains(BUILT_TEXT), "face: %s" % colossus.rules_text(r.cards))
+	eq(colossus.face(r.cards).fine, PackedStringArray(["Built over turns"]), "face: fine print (382)")
 	check(colossus.rules_tooltip(r.cards).contains(BUILT_TEXT), "tooltip: %s" % colossus.rules_tooltip(r.cards))
 	check(not r.cards.farm.rules_text(r.cards).contains("Built over turns"), "a Farm has no such line")
 

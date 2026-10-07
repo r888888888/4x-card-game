@@ -273,5 +273,5 @@ func test_a_fork_copies_the_locks_and_unlocks_on_its_own() -> void:
 
 func test_unlock_text() -> void:
 	var r := unlock_card({"op": "unlock", "card": "guildhall"})
-	eq(r.cards.x.rules_text(r.cards), "Unlock Guildhall", "short text")
+	eq(r.cards.x.face(r.cards).rules, PackedStringArray(["Unlocks Guildhall"]), "short text (382: one Unlocks line)")
 	eq(r.cards.x.rules_tooltip(r.cards), "Guildhall can now be built.", "tooltip: a building is built (295)")

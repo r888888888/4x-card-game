@@ -425,7 +425,7 @@ func test_a_copy_keeps_each_upgrades_base() -> void:
 func test_an_upgrades_text_says_what_it_builds_on() -> void:
 	var e := upgrade_engine()
 	var plough: CardDef = e.card_db["plough"]
-	eq(plough.rules_text(e.card_db).split("\n")[0], "Builds on a Farm.", "face text's first line")
+	check(not plough.rules_text(e.card_db).contains("Builds on"), "the face leaves it to the type line (382)")
 	eq(plough.rules_tooltip(e.card_db).split("\n")[0], "Builds on a Farm.", "tooltip's first line")
 	eq(e.def_details("plough").rules[0], "Builds on a Farm.", "details' first rule")
 	var plain := make_engine({"scout": 10})

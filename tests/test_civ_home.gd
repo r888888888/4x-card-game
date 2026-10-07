@@ -78,7 +78,7 @@ func test_home_config_validation() -> void:
 
 func test_home_is_on_the_card_text() -> void:
 	var cards := home_db()
-	check("Starts on: River" in cards.settlers.rules_text(cards), "rules text: '%s'" % cards.settlers.rules_text(cards))
+	eq(cards.settlers.face(cards).fine, PackedStringArray(["Starts on River"]), "the face's fine print (382)")
 	check(not "Starts on" in cards.tribe.rules_text(cards), "no home, no line")
 
 
