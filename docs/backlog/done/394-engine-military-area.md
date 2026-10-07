@@ -2,7 +2,7 @@
 id: 394
 title: Engine areas, first one: military actions and queries move to engine.military
 type: chore
-status: review
+status: done
 branch: feat/394-engine-military-area
 ---
 
