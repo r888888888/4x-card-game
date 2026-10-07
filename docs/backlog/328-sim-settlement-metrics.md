@@ -2,7 +2,7 @@
 id: 328
 title: Sim report names settlements and counts them by tier
 type: feature
-status: ready
+status: red-review
 branch: feat/328-sim-settlement-metrics
 ---
 
@@ -45,7 +45,11 @@ hamlets or a few metropolises, and that is what tells wide and tall apart.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | `test_sim::test_…` |
+| AC1 | `test_sim::test_328_metric_names_have_settlements_where_cities_was`, `test_sim_stats_reports_mean_min_max_per_metric` (renamed key) |
+| AC2 | `test_sim::test_328_territories_settled_with_settlers_count_as_settlements`, `test_sim_stats_counts_founded_settlements` (renamed) |
+| AC3 | `test_sim::test_328_metric_names_add_a_tier_metric_per_config_tier_in_order`, `test_328_no_tier_metrics_with_tiers_or_population_off` |
+| AC4 | `test_sim::test_328_every_settled_territory_counts_in_its_tier` |
+| AC5 | `test_sim::test_328_a_run_reports_settlements_and_each_tier` (`--compare` takes its metrics from `metric_names`, so it needs no test of its own) |
 
 ## Log
 - 2026-10-06: from a 20-seed run on main (generic 9.5 settlements a game, wide 11.8, tall exactly 1). The user asked
