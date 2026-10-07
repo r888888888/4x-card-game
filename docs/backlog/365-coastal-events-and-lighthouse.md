@@ -2,7 +2,7 @@
 id: 365
 title: Helpful coastal events and the Lighthouse of Pharos
 type: feature
-status: ready
+status: red-review
 branch: feat/365-coastal-events-and-lighthouse
 ---
 
@@ -47,7 +47,9 @@ Phoenicia's). Content only; numbers are a first guess until a balance item.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_feature_keyword_the_events_punish_some_event_rewards` (passes already: Busy Harbours) |
+| AC2 | `test_content::test_no_era_1_event_takes_per_keyword` (passes already) |
+| AC3 | the existing `test_content` invariants named in AC3 |
 
 ## Manual check
 - [ ] Shipped numbers: Tuna Run ⟳ +1 food per coastal territory for 2 turns; Beached Whale +2 food and Shipwreck
