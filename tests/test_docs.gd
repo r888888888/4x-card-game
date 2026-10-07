@@ -1,8 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The docs and the tracked files stay true to the tree (backlog 330): every repo path PLAN.md, CLAUDE.md, README.md,
 ## docs/*.md and the skills name exists, and no .gd.uid file is left behind by a deleted script. 331: every test file
-## opens with a ## header saying what it covers, and docs/testing.md indexes each in one short row. The checks live in
-## tests/lib/doc_checks.gd.
+## opens with a ## header saying what it covers, and docs/testing-index.md indexes each in one short row (391: there,
+## not in docs/testing.md, which stays a short guide). The checks live in tests/lib/doc_checks.gd.
 
 const DocChecks := preload("res://tests/lib/doc_checks.gd")
 const UID_DIRS: Array[String] = ["res://engine", "res://ui", "res://sim", "res://autoload", "res://tests"]
@@ -104,16 +104,14 @@ func test_testing_index_lists_every_test_file_in_one_short_row() -> void:
 # --- 391 AC2: docs/testing.md holds no index rows ---
 
 func test_index_rows_names_the_file_of_each_index_row() -> void:
-	var checks = load("res://tests/lib/doc_checks.gd")
 	var doc := "| File | Covers |\n|---|---|\n| `tests/test_a.gd` | A |\n| `tests/lib/x.gd` | Helper |\n" \
 		+ "| `tests/balance/test_b.gd` | B |\n| `keywords()` | Ids |\n"
-	eq(checks.index_rows(doc), ["tests/test_a.gd", "tests/balance/test_b.gd"] as Array[String], "index rows")
+	eq(DocChecks.index_rows(doc), ["tests/test_a.gd", "tests/balance/test_b.gd"] as Array[String], "index rows")
 
 
 func test_testing_md_has_no_test_file_rows() -> void:
-	var checks = load("res://tests/lib/doc_checks.gd")
 	var doc := FileAccess.get_file_as_string("res://docs/testing.md")
-	eq(checks.index_rows(doc), [] as Array[String], "test file rows left in docs/testing.md")
+	eq(DocChecks.index_rows(doc), [] as Array[String], "test file rows left in docs/testing.md")
 
 
 # --- 391 AC3: the guide is short and links the index ---
