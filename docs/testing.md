@@ -131,7 +131,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_government_deck.gd` | The government deck (154) |
 | `tests/test_grow_meter.gd` | The territory view's pop meter (124; UI) |
 | `tests/test_growth_cards.gd` | The `grow` op (013, 261, 262) |
-| `tests/test_hand_limit.gd` | `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
+| `tests/test_hand_limit.gd` | `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, free discards |
 | `tests/test_hand_size.gd` | Hand size as a modifier (109) |
 | `tests/test_harmful_ops.gd` | The `lose` and `lose_pop` ops (072) |
 | `tests/test_housing_modifier.gd` | The `housing` modifier key (110) |
@@ -181,7 +181,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_revolt_modal.gd` | Revolt from the civilization modal (205; UI) |
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
-| `tests/test_scaffolding.gd` | No red-phase scaffolding left in tests (333; `tests/lib/scaffolding_checks.gd`) |
+| `tests/test_scaffolding.gd` | No red-phase scaffolding left (333; `tests/lib/scaffolding_checks.gd`) |
 | `tests/test_shared_helpers.gd` | Shared test helpers (UI, 334; `check_loads`, 340), not copied |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
@@ -208,15 +208,15 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sound_settings.gd` | Sound settings and the audio buses (184) |
 | `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193) |
 | `tests/test_start_screen.gd` | The title, new game and settings screens (063, 099; UI) |
-| `tests/test_state_copy.gd` | `GameState.copy()` and `CardInstance.copy()` copy everything, share nothing (171) |
+| `tests/test_state_copy.gd` | `GameState` and `CardInstance` copies: everything, nothing shared (171) |
 | `tests/test_sunrise_art.gd` | The title screen's art (214) |
 | `tests/test_supply.gd` | The card supply (032, 057) |
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
 | `tests/test_surfaces.gd` | Wood grain, paper and soft shadows (341; UI) |
-| `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era (027) |
+| `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs` (027) |
 | `tests/test_tech_event_flavor.gd` | Tech/event/action `flavor`, tech `quote` (215) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
-| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`), `era_name` / `era_names` |
+| `tests/test_tech_tree.gd` | `tech_tree()` (states, costs, `gives`, `affordable`), `era_name(s)` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |
 | `tests/test_territories.gd` | Territory cards, their config and setup |
 | `tests/test_territory_cards.gd` | Territories as plain cards in the Realm (102) |
@@ -238,6 +238,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_ui_smoke.gd` | `main.tscn` follows a game played by `play_first_legal` (314) |
 | `tests/test_ui_structure.gd` | `ui/`: one script per component, no engine internals (052, 175, 176, 316) |
 | `tests/test_unit_moves.gd` | Moving and disbanding units (163) |
+| `tests/test_unit_upgrades.gd` | Unit upgrades (166) |
 | `tests/test_units.gd` | Unit cards (160) |
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI) |
@@ -293,7 +294,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`) |
 | `tests/lib/tech_case.gd` | Base class for tech tests: `TECHS`, `tech_db`, `tech_engine` |
 | `tests/lib/raid_case.gd` | Base class for raid tests: `RAID_CARDS`, `raid_load`, `raid_engine` |
-| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments, `anarchy_engine` |
+| `tests/lib/anarchy_case.gd` | Anarchy tests' base (145–148): fixture governments, `anarchy_engine` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
 | `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets, then `extra`, parsed |

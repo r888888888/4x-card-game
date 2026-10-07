@@ -16,6 +16,15 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	return place_error(e, card, target_uid)
 
 
+## The part of cost e can't pay now, {resource: amount} for each resource it is short of: what a price error names (337).
+static func short_of(e: GameEngine, cost: Dictionary) -> Dictionary:
+	var short := {}
+	for r in cost:
+		if not e.can_pay({r: cost[r]}):
+			short[r] = cost[r]
+	return short
+
+
 ## Why card (in the hand, or a new copy to build, 295) can't be put into play on target_uid now, or "": actions, Anarchy,
 ## its cost, its play effects' blocks and its target.
 static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> String:
@@ -24,11 +33,7 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 	var anarchy := Anarchy.play_error(e, card)
 	if anarchy != "":
 		return anarchy
-	var cost := cost_to_play(e, card.def)
-	var short := {}  # names only the resources it is short of (337)
-	for r in cost:
-		if not e.can_pay({r: cost[r]}):
-			short[r] = cost[r]
+	var short := short_of(e, cost_to_play(e, card.def))
 	if not short.is_empty():
 		return e.price_error(card.def.name, short)
 	for effect in card.def.effects:

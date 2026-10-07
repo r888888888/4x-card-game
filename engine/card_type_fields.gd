@@ -18,7 +18,7 @@ static func parse(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[Stri
 		CardDef.BUILDING:
 			_building(c, def, ctx, errs)
 		CardDef.UNIT:
-			_unit(c, ctx, errs)
+			_unit(c, def, ctx, errs)
 		CardDef.TECH:
 			_tech(c, def, errs)
 		CardDef.EVENT:
@@ -70,7 +70,8 @@ static func _building(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[
 
 
 ## A unit can move, so it has no fixed land: its requires is an error (DataLoader doesn't warn about it as well).
-static func _unit(c: Dictionary, ctx: Dictionary, errs: Array[String]) -> void:
+static func _unit(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[String]) -> void:
+	def.upgrades_to = Fields.read_string(c, "upgrades_to", errs, [], "")
 	if not _requires(c, ctx, errs).is_empty():
 		errs.append("a unit can't have 'requires' (it can move, so it has no fixed land)")
 

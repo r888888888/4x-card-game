@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## legal_actions (312): every action the engine would allow now, as [action, args…], in a fixed order: an owed
-## decision's options, then play_card, build, buy, buy_tech, contribute, move_unit, discard_card, relieve_famine,
+## decision's options, then play_card, build, buy, buy_tech, contribute, move_unit, upgrade_unit (166), discard_card, relieve_famine,
 ## restore_order, revolt, abandon, disband, end_turn. A coverage table fails the suite when an action with an error
 ## query can't be listed. Games from tests/lib/anarchy_case.gd (Chiefs ruling, unrest, a research deck with Lore, Farms
 ## in the supply, 10 food, wealth and insight, home pop 6), with a unit (Levy) and a wonder (Colossus) added.
@@ -13,6 +13,10 @@ const ERROR_OF := LegalActions.ERROR_OF
 ## Names with an error query that legal_actions never lists: starting a game, naming a territory, and supply (the
 ## Supply screen's query, not an action).
 const NEVER_LISTED := ["new_game", "rename_territory", "supply", "build_menu"]  # build_menu: Build…'s gate (297)
+## Pikes, and a Levy that upgrades to it (166).
+const PIKES := {"id": "pikes", "name": "Pikes", "type": "unit", "cost": {"food": 3}, "strength": 3}
+const UPGRADABLE_LEVY := {"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2,
+	"upgrades_to": "pikes"}
 const HILLS_DECK := {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}}
 
 
@@ -77,6 +81,20 @@ func test_units_and_sites_list_their_moves_contributions_disbands_and_abandons()
 		"the Levy's moves are its move_targets")
 	eq(of_kind(list, "disband"), [["disband", levy]], "disband the Levy")
 	eq(of_kind(list, "abandon"), [["abandon", colossus]], "abandon the site")
+
+
+func test_166_an_upgradable_unit_lists_its_upgrade() -> void:
+	var e := upgrade_game()
+	var levy := uid_of(e.zone("tableau"), "levy")
+	eq(of_kind(e.legal_actions(), "upgrade_unit"), [["upgrade_unit", levy]], "upgrade the Levy")
+
+
+## An anarchy game with UPGRADABLE_LEVY and PIKES loaded, Pikes on the build menu and a Levy recruited on the home.
+func upgrade_game() -> GameEngine:
+	var e := anarchy_engine({}, HILLS_DECK.merged({"build_menu": {"pikes": {}}}), [UPGRADABLE_LEVY, PIKES, COLOSSUS])
+	var levy := put_in_hand(e, "levy")
+	check(e.play_card(levy, home_uid(e)), "Levy recruited on the home: %s" % e.play_error(levy, home_uid(e)))
+	return e
 
 
 # --- AC2: every entry is legal ---
@@ -222,6 +240,7 @@ func coverage() -> Dictionary:
 			settle(e, ["hills"])
 			e.play_card(put_in_hand(e, "levy"), home_uid(e))
 			return e,
+		"upgrade_unit": func(): return upgrade_game(),  # 166
 		"disband": func():
 			var e := game()
 			e.play_card(put_in_hand(e, "levy"), home_uid(e))

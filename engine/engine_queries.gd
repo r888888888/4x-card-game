@@ -352,14 +352,16 @@ func unit_origin(uid: int) -> String:
 	return Military.unit_origin(self, uid)
 
 
-## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
-func defense(uid: int) -> int:
-	return Military.defense_parts(self, uid).get("total", 0)
+## "Upgrade to Pikes for 2 food, 1 wealth (no action)." for unit uid with an upgrade (166), its Upgrade button's
+## tooltip; "" for anything else.
+func upgrade_line(uid: int) -> String:
+	return Military.upgrade_line(self, uid)
 
 
-## Settled territory uid's defence by source (161): {units, buildings, cities, terrain, total}, or {} for anything else.
-func defense_parts(uid: int) -> Dictionary:
-	return Military.defense_parts(self, uid)
+## What upgrading unit uid costs (166): per resource, its upgrade's printed cost less its own, never below 0 (0s left
+## out); {} when uid isn't a unit in the tableau with upgrades_to.
+func upgrade_cost(uid: int) -> Dictionary:
+	return Military.upgrade_cost(self, uid)
 
 
 ## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
@@ -392,12 +394,6 @@ func raid_tag(uid: int) -> String:
 ## Whether active raid uid's target is short of its strength now (162); false for anything else.
 func raid_short(uid: int) -> bool:
 	return Military.raid_short(self, uid)
-
-
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
-## 162); "" when none is.
-func raid_warning(territory_uid: int) -> String:
-	return Military.raid_warning(self, territory_uid)
 
 
 ## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.

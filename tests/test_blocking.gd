@@ -53,6 +53,8 @@ func actions() -> Array:
 		["move_unit", func(e): return e.move_unit_error(first_in(e, "tableau"), home_uid(e)),
 			func(e): return e.move_unit(first_in(e, "tableau"), home_uid(e))],
 		["disband", func(e): return e.disband_error(first_in(e, "tableau")), func(e): return e.disband(first_in(e, "tableau"))],
+		["upgrade_unit", func(e): return e.upgrade_unit_error(first_in(e, "tableau")),
+			func(e): return e.upgrade_unit(first_in(e, "tableau"))],  # 166
 		["choose_option", func(e): return e.choose_option_error(0), func(e): return e.choose_option(0)],
 		["take", func(e): return e.take_error(option.call(e)), func(e): return e.take(option.call(e))],  # 370
 		["contribute", func(e): return e.contribute_error(first_in(e, "tableau"), 1),

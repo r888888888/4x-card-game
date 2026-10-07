@@ -171,6 +171,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   once a turn per unit (`GameState.moved_units`); its home and worker stay. `disband(uid)` sends it to the discard,
   freeing its worker, for no action. `move_targets`, `unit_move_block` and `unit_origin` ("from Homeland") feed the
   details modal's Move… and Disband and the unit's face.
+- Unit upgrades (166): a unit may set `upgrades_to` (another unit's id; "Upgrades to Pikes." on its card). Once that
+  unit's build-menu entry is unlocked, `upgrade_unit(uid)` replaces it for `upgrade_cost(uid)` (per resource, the
+  printed cost difference, never below 0; no discounts) and no action: the new copy keeps its home, station, veteran
+  counters and tableau place (so its worker and idleness), and the old one goes to `removed`. `upgrade_unit_error`
+  refuses as building would under Anarchy, and names only what it is short of. The details modal's Upgrade shows
+  `upgrade_line(uid)` ("Upgrade to Pikes for 2 food (no action).") or the error.
 - Defence (161): buildings and cities may set `defense` (int ≥ 1), and config `terrain_defense` maps keywords (resource
   keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the `unit_strength` of the units stationed
   there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;
