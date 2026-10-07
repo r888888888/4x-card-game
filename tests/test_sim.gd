@@ -166,22 +166,20 @@ func test_375_metric_names_add_the_raid_metrics_after_the_others() -> void:
 
 
 func test_375_raid_metrics_count_strikes_and_sum_what_pillages_took() -> void:
-	var stats: Object = SimStats.new()
 	var outcomes := [
 		fixture_outcome({"strength": 2, "repelled": true, "defense": 3, "lost": {"food": 9}, "gained": {"wealth": 2}}),
 		fixture_outcome({"strength": 5, "pop_lost": 1, "units_lost": [7] as Array[int], "lost": {"food": 4}}),
 		fixture_outcome({"strength": 3, "pop_lost": 2, "lost": {"food": 2, "wealth": 3, "unrest": 1}}),
 	]
-	eq(stats.raid_metrics(outcomes), {"raids": 3, "raids_repelled": 1, "raid_strength_max": 5, "raid_pop_lost": 3,
+	eq(SimStats.raid_metrics(outcomes), {"raids": 3, "raids_repelled": 1, "raid_strength_max": 5, "raid_pop_lost": 3,
 		"raid_units_lost": 1, "raid_food_lost": 6, "raid_wealth_lost": 3}, "a repel adds to raids and repelled only")
 
 
 func test_375_with_no_raid_struck_the_raid_metrics_are_0() -> void:
-	var stats: Object = SimStats.new()
 	var zero := {}
 	for m in RAID_METRICS:
 		zero[m] = 0
-	eq(stats.raid_metrics([]), zero, "raid_metrics([])")
+	eq(SimStats.raid_metrics([]), zero, "raid_metrics([])")
 	var d := sim_data({"shrine": 10}, {"turn_limit": 3})
 	var game: Dictionary = SimStats.run(d.cards, d.config, [1])
 	for m in RAID_METRICS:
@@ -206,11 +204,10 @@ func test_375_a_sim_game_counts_the_raids_that_struck() -> void:
 
 
 func test_375_raids_by_civilization_line() -> void:
-	var stats: Object = SimStats.new()
 	var per_civ := [
 		["sumer", {"raids": [4, 4], "raids_repelled": [1, 2], "raid_pop_lost": [2, 3]}],
 		["", {"raids": [3], "raids_repelled": [3], "raid_pop_lost": [0]}],
 	]
-	eq(stats.raids_by_civilization(per_civ),
+	eq(SimStats.raids_by_civilization(per_civ),
 		"raids by civilization: sumer 4.0 (1.5 repelled, 2.5 pop lost), default 3.0 (3.0 repelled, 0.0 pop lost)",
 		"means to 1 decimal, in the given order; the default civ named default")
