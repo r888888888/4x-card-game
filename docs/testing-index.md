@@ -194,7 +194,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_type_tokens.gd` | Text sizes (194) |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on (049, 094, 175, 180) |
 | `tests/test_ui_smoke.gd` | `main.tscn` follows a game played by `play_first_legal` (314) |
-| `tests/test_ui_structure.gd` | `ui/`: one script per component, no engine internals (052, 175, 176, 316) |
+| `tests/test_ui_structure.gd` | `ui/`: one script per component, no engine internals, no test hooks on main (052, 175, 176, 316, 392) |
 | `tests/test_unit_moves.gd` | Moving and disbanding units (163) |
 | `tests/test_unit_upgrades.gd` | Unit upgrades (166) |
 | `tests/test_units.gd` | Unit cards (160) |

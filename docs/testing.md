@@ -129,8 +129,11 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound frozen if asked) (334) |
 | `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |
+| `MainProbe` (`tests/lib/main_probe.gd`) | UI: controls and readings inside main's components, `MainProbe.event_modal(main)` (392) |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
+A UI test that needs a control inside one of main's components adds a `MainProbe` function, never a method on
+`main.gd` (the suite fails on a test hook there, 392).
 Helpers take and return `GameEngine` (the suite fails on an engine typed `Object`, 333). Tests never call engine
 members that start with `_`: if setup needs one, add a public method.
 

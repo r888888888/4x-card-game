@@ -5,7 +5,8 @@ extends "res://tests/lib/test_case.gd"
 ## motion in `CardFace` and `CardMotion`), no engine internals (`state`, the RNG, the log lines; 175: the config) read
 ## in `ui/`; 175: one `ActionButton`, `main.gd` asks `hand_input_error()`; 176: `BoardViews` and `BoardLayout`,
 ## `main.gd` within 500 lines, `zone_of` in the UI; 183: no `const` holds a Palette colour; 316: the card handlers in
-## `CardActions`, not `main.gd`, which has room under 450 lines
+## `CardActions`, not `main.gd`, which has room under 450 lines; 392: no test hooks on `main.gd` (tests read main's
+## components through tests/lib/main_probe.gd)
 
 const MAIN_PATH := "res://ui/main.gd"
 const CARD_ACTIONS_PATH := "res://ui/card_actions.gd"  # 316: the card handlers, out of main
