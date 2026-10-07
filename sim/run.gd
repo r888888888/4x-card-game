@@ -22,7 +22,8 @@ func _initialize() -> void:
 	var cards_path: String = child.get("cards", "res://data/cards.json")
 	var config_path: String = child.get("config", "res://data/config.json")
 	var data := DataLoader.load_all(cards_path, config_path)
-	var options := SimLevels.run_args(args.slice(0, args.size() - child.size()), data.config if data.errors.is_empty() else {})
+	var config: Dictionary = data.config if data.errors.is_empty() else {}
+	var options := SimLevels.run_args(args.slice(0, args.size() - child.size()), config)
 	var seed_count: int = options.seeds
 	var strategy: String = options.strategy
 	if child.has("worker"):  # a child process of a parallel run (152): play from its queue (291), print nothing

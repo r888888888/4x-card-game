@@ -24,8 +24,7 @@ func level_raw_config(baseline: String) -> Dictionary:
 
 ## SimLevels.run_args(args, config): {seeds, strategy, civ, turns, errors, …}.
 func run_args(args: Array, config := {}) -> Dictionary:
-	var levels: Object = SimLevels.new()
-	return levels.run_args(PackedStringArray(args), config if not config.is_empty() else level_config())
+	return SimLevels.run_args(PackedStringArray(args), config if not config.is_empty() else level_config())
 
 
 ## The games a run with these arguments plays: SimStats.job_list of run_args' seeds, strategy and civ.
