@@ -2,7 +2,7 @@
 id: 382
 title: Tighter card face text: one Unlocks line, a ledger of figures, and gates as fine print
 type: feature
-status: red-review
+status: in-progress
 branch: feat/382-card-face-ledger-fine-print
 ---
 

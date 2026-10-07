@@ -93,7 +93,7 @@ func test_grow_short_forms() -> void:
 
 func test_needs_line() -> void:
 	eq(short_text([], ["fresh_water"]), "Needs Fresh Water", "one keyword")
-	eq(short_text([FOOD_UPKEEP], ["forest", "jungle"]), "Needs Forest/Jungle\n⟳ +1 food", "two keywords")
+	eq(short_text([FOOD_UPKEEP], ["forest", "jungle"]), "⟳ +1 food\nNeeds Forest/Jungle", "two keywords: the gate is fine print, last (382)")
 
 
 func test_gain_score_draw_create_keep_their_text() -> void:

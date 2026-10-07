@@ -128,7 +128,7 @@ func card_tier_name(card_id: String) -> String:
 func upgrade_rules_text(card_id: String) -> String:
 	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
 		return ""
-	return card_db[card_id].rules_text(card_db, false)
+	return "\n".join(card_db[card_id].face(card_db).rules)
 
 
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
