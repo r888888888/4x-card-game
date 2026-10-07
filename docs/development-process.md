@@ -77,7 +77,7 @@ Ask in plain language:
 | Engine rules, effects, turn loop, scoring | Yes |
 | Loader validation (new fields, new error messages) | Yes |
 | New effect op | Yes (see the `add-effect` skill) |
-| Card/config balance numbers in `data/` | No new test; the suite must stay green. Balance is judged later, in a dedicated balance item (the `balance` skill), not per change |
+| Card/config balance numbers in `data/` | No new test; the suite must stay green. Balance is judged later, in a dedicated balance item (the `balance` skill), not per change; the sim runs only when the user asks |
 | UI layout / visuals | No test for the look; `test_ui_smoke` must stay green (catches script errors); logic moves to the engine (tested) + manual checklist |
 | Docs, comments, pure renames | No |
 
@@ -113,7 +113,7 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
 | `.claude/skills/add-effect/` | Recipe for a new card effect op |
 | `.claude/skills/add-decision/` | Recipe for a new kind of decision the player owes (a `pending()` kind) |
 | `.claude/skills/add-card-field/` | Recipe for a new field on cards (`TYPE_FIELDS`, `INT_FIELDS`, `CardTypeFields`) |
-| `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout |
+| `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout; manual, run only when the user asks |
 | `.claude/skills/project-review/` | Procedure: whole-project architecture and test review → backlog items; `scan.sh` for the mechanical checks |
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |
 | `docs/backlog/` | Items, templates, status flow |

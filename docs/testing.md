@@ -13,7 +13,7 @@ scripts/test.sh --balance    # only tests/balance/ (filter as above)
 
 **The balance suite** (`tests/balance/`): tests that play GenericBot games on the real data (`data/*.json`): the
 sim's report, its options and the parallel run. They grow with every bot change, so the main suite and the Stop hook
-leave them out; run `scripts/test.sh --balance` when touching `sim/`. Bot rules and `SimStats` stay in the main suite,
+leave them out; only the user runs it (or asks for a run). Bot rules and `SimStats` stay in the main suite,
 tested on fixture games of a few turns.
 
 The script re-imports the project first when a `.gd` file changed, so a new `class_name` resolves
@@ -341,8 +341,8 @@ members that start with `_`: if setup needs one, add a public method.
   that game's seed.
 - **Test through the public API** (`play_card`, `end_turn`, `play_error`, `score`, zones,
   signals). Setting state directly (`e.resources.food = 1`) is fine for setup.
-- **Balance** is not tested, and not checked per change: it's a separate step (a balance item, or when the user
-  asks), using `scripts/sim.sh` / the `balance` skill.
+- **Balance** is not tested, and not checked per change: it's a separate, manual step (only when the user asks),
+  using `scripts/sim.sh` / the `balance` skill.
 - **Helper names** must not start with `test_`: the runner calls every `test_*` method with no arguments.
 - **Real data** is only checked by `test_real_data_loads` and `tests/test_content.gd` (invariants and a
   smoke test). Don't assert exact numbers from `data/` (slots, costs, deck sizes): a balance edit must not

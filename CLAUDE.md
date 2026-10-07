@@ -7,7 +7,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Run all tests: `scripts/test.sh` (exit 0 = green; ~11 s, parallel shards, `TEST_JOBS=1` for serial). Filter:
   `scripts/test.sh <substring of file::method>`
 - Balance suite: `scripts/test.sh --balance` runs only `tests/balance/` (real-data bot games; not in the main suite
-  or the Stop hook). Run it when you change `sim/`.
+  or the Stop hook). It is manual, like every balance run (below): the user runs it, or asks you to.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
 - In a Claude Code cloud session: [docs/cloud.md](docs/cloud.md) (`scripts/cloud-setup.sh` installs Godot).
@@ -77,9 +77,12 @@ default; real work is rebuilt test-first on an item branch. Merge a spike only w
 the suite is green, and it changes nothing in `engine/`, `autoload/` or the loader. Details:
 [docs/development-process.md](docs/development-process.md#spikes).
 
-Balance is a separate, later step. A feature, bug or content item doesn't run the `balance` skill or the sim, and
-doesn't tune numbers beyond what its criteria set; note balance worries in the item's Log instead. Balancing happens
-in a dedicated balance item, or when the user asks.
+Balance is a separate, later step, and balance runs are manual: the bot games take too long to run per change. Never
+start `scripts/sim.sh`, `scripts/test.sh --balance` or the `balance` skill unless the user asks for that run in the
+chat. That holds for every item, including one that changes `sim/`, a refactor and a balance item. Where a run would
+tell something, put the command in the item's Manual check for the user, and note balance worries in its Log. A
+feature, bug or content item doesn't tune numbers beyond what its criteria set; balancing happens in a dedicated
+balance item, or when the user asks.
 
 ## TDD rules (non-negotiable)
 - No new or changed behavior in `engine/`, `autoload/`, or the loader without a test that failed first.

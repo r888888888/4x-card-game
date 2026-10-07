@@ -91,8 +91,9 @@ unless asked.
 2. Use the `spec` skill for each item. Run `ls docs/backlog docs/backlog/done` right before picking each id: other sessions add
    items in parallel. Never edit or renumber another session's item; renumber your own if you collide.
 3. Group small related fixes into one item and split large ones (at most ~6 criteria each). For refactors,
-   add an acceptance criterion that pins behavior: existing tests pass unedited, and the sim output
-   (`scripts/sim.sh 20`) is identical before and after.
+   add an acceptance criterion that pins behavior: existing tests pass unedited. If the refactor touches the
+   rules or `sim/`, add a Manual check for the user: the sim output (`scripts/sim.sh 20`) is identical before and
+   after (balance runs are manual; the item doesn't run it).
 4. **Sequence to minimize churn**, and explain each position:
    - docs and housekeeping first (so later items have less to keep in sync);
    - bugs that restore lost coverage next;

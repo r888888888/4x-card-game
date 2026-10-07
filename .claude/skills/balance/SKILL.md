@@ -1,10 +1,13 @@
 ---
 name: balance
-description: Compare game balance between main and the current checkout with the headless simulator (scripts/sim.sh), side by side per metric. Use only in a dedicated balance item or when the user asks ("what did this do to balance", "run the sim", "/balance"). Balance is a separate step: don't run it after ordinary feature, bug or content changes.
+description: Compare game balance between main and the current checkout with the headless simulator (scripts/sim.sh), side by side per metric. Use only when the user asks for a run in the chat ("what did this do to balance", "run the sim", "/balance"). Balance runs are manual: never start one on your own, not after a feature, bug, content or sim/ change, and not as a step of a balance item.
 argument-hint: "[seeds, default 20]"
 ---
 
 # Balance comparison
+
+Balance runs are manual: they take tens of minutes to hours, so run this only when the user asks for it in the chat.
+When a run would help and nobody asked, give the user the command (or note it in the item's Manual check) instead.
 
 The simulator plays one GenericBot game per seed (1..N) and reports mean, min and max of `score`, `cities`
 (founded beyond the starting ones), `pop` (at game end), `techs` (researched), `bought` (supply buys), `era`,
@@ -57,5 +60,6 @@ For an edit that only touches `data/*.json` (numbers, new cards made from existi
   (fix the data, or ask whether the invariant should change).
 - Run `scripts/test.sh` (includes `test_real_data_loads` and the 20-seed smoke sweep). Don't run this comparison
   as part of an ordinary content item: balance is a separate step. Note any balance worry in the item's Log.
-- In a balance item: run this comparison, and put the exact shipped numbers and the report in its Manual check / Log.
+- In a balance item: put the exact shipped numbers in its Manual check, with the comparison command for the user.
+  Run the comparison only when the user asks, then put its report in the Log.
 - If a rule changed (not just a number), update PLAN.md.
