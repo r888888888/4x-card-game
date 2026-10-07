@@ -99,6 +99,12 @@ static func _when(raid: CardInstance) -> String:
 	return "in %d turns" % raid.turns_left if raid.turns_left > 1 else "next turn"
 
 
+## Active raid uid's strength (374): fixed when it was announced; 0 when uid isn't an active raid.
+static func raid_strength(e: GameEngine, uid: int) -> int:
+	var event := e.zone("active_events").find(uid)
+	return event.raid_strength if is_raid(event) else 0
+
+
 ## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
 static func raid_target(e: GameEngine, uid: int) -> int:
 	var event := e.zone("active_events").find(uid)
@@ -110,7 +116,7 @@ static func raid_forecast(e: GameEngine) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for event in e.zone("active_events").cards:
 		if is_raid(event):
-			out.append({"uid": event.uid, "target": event.territory_uid, "strength": event.def.raid.strength,
+			out.append({"uid": event.uid, "target": event.territory_uid, "strength": event.raid_strength,
 				"defense": e.defense(event.territory_uid)})
 	return out
 
@@ -128,10 +134,14 @@ static func aim(e: GameEngine, raid: CardInstance) -> CardInstance:
 	return target
 
 
-## Fixes raid's target (aim) as it is drawn (Events.draw) and announces it.
+## Fixes raid's target (aim) and strength as it is drawn (Events.draw) and announces it. Its strength is its printed
+## one plus 1 for every config raid_hoard_step food and wealth held (374; none when the step is 0).
 static func announce(e: GameEngine, raid: CardInstance) -> void:
 	var target := aim(e, raid)
 	raid.territory_uid = target.uid if target != null else -1
+	var step: int = e.config.get("raid_hoard_step", 0)
+	var hoard: int = e.resources.get(GameEngine.FOOD, 0) + e.resources.get(GameEngine.WEALTH, 0)
+	raid.raid_strength = raid.def.raid.strength + (hoard / step if step > 0 else 0)
 	raid.turns_left = CardDef.RAID_WARNING
 	if target != null:
 		e._notice(raid_line(e, raid.uid), GameEngine.NOTICE_CAUTION)
@@ -150,7 +160,7 @@ static func raid_line(e: GameEngine, uid: int) -> String:
 	if a.is_empty():
 		return ""
 	return "%s will strike %s %s: %d against your %d." % [a.raid.def.name, a.target.shown_name(), _when(a.raid),
-		a.raid.def.raid.strength, e.defense(a.target.uid)]
+		a.raid.raid_strength, e.defense(a.target.uid)]
 
 
 ## "Hills 3 vs 0" for active raid uid's board face, or "".
@@ -158,13 +168,13 @@ static func raid_tag(e: GameEngine, uid: int) -> String:
 	var a := _aimed(e, uid)
 	if a.is_empty():
 		return ""
-	return "%s %d vs %d" % [a.target.shown_name(), a.raid.def.raid.strength, e.defense(a.target.uid)]
+	return "%s %d vs %d" % [a.target.shown_name(), a.raid.raid_strength, e.defense(a.target.uid)]
 
 
 ## Whether active raid uid's target has less defence than its strength now.
 static func raid_short(e: GameEngine, uid: int) -> bool:
 	var a := _aimed(e, uid)
-	return not a.is_empty() and e.defense(a.target.uid) < a.raid.def.raid.strength
+	return not a.is_empty() and e.defense(a.target.uid) < a.raid.raid_strength
 
 
 ## A line per active raid aimed at territory uid, "Raiders strike in 2 turns: 3 vs 0" (or "next turn"), or "" when
@@ -173,7 +183,7 @@ static func raid_warning(e: GameEngine, territory_uid: int) -> String:
 	var lines: PackedStringArray = []
 	for raid in e.zone("active_events").cards:
 		if is_raid(raid) and raid.territory_uid == territory_uid and Territories.settled(e, territory_uid) != null:
-			lines.append("%s strike %s: %d vs %d" % [raid.def.name, _when(raid), raid.def.raid.strength, e.defense(territory_uid)])
+			lines.append("%s strike %s: %d vs %d" % [raid.def.name, _when(raid), raid.raid_strength, e.defense(territory_uid)])
 	return "\n".join(lines)
 
 
@@ -199,17 +209,19 @@ static func strike_raids(e: GameEngine) -> void:
 
 
 ## raid strikes its target: repelled (its repel effects) when the target's defence is at least its strength, else
-## pillaged (its pillage effects, the units stationed there lost (_leave_play), pop pop lost). Logs what happened (a raid
+## pillaged (its pillage effects, then its plunder (374), the units stationed there lost (_leave_play), pop pop lost). Logs what happened (a raid
 ## modal shows it, 271, so it's no notice) and emits raid_resolved.
 static func _strike(e: GameEngine, raid: CardInstance) -> void:
 	var target := Territories.settled(e, raid.territory_uid)
 	var outcome := CardPlay.new_outcome(raid.uid)
 	var units_lost: Array[int] = []
-	outcome.merge({"id": raid.def.id, "target": raid.territory_uid, "strength": raid.def.raid.strength,
+	outcome.merge({"id": raid.def.id, "target": raid.territory_uid, "strength": raid.raid_strength,
 		"defense": e.defense(raid.territory_uid), "units_lost": units_lost, "pop_lost": 0})
 	outcome.repelled = target != null and outcome.defense >= outcome.strength
 	e._outcome = outcome
 	e._resolve(raid, "repel" if outcome.repelled else "pillage")
+	if not outcome.repelled:
+		_plunder(e, raid)
 	e._outcome = {}
 	if target != null and not outcome.repelled:
 		for unit in e.zone("tableau").cards.filter(func(c): return c.def.type == CardDef.UNIT and c.station_uid == target.uid):
@@ -219,6 +231,16 @@ static func _strike(e: GameEngine, raid: CardInstance) -> void:
 		target.pop -= outcome.pop_lost
 	e._log(outcome_text(e, outcome))
 	e.raid_resolved.emit(outcome)
+
+
+## A pillaging raid also takes config raid_plunder_pct% of the food and of the wealth left after its pillage
+## effects, each rounded up (374), into the outcome's lost.
+static func _plunder(e: GameEngine, raid: CardInstance) -> void:
+	var pct: int = e.config.get("raid_plunder_pct", 0)
+	for r in [GameEngine.FOOD, GameEngine.WEALTH]:
+		var n := ceili(maxi(0, e.resources.get(r, 0)) * pct / 100.0)
+		if n > 0:
+			e.lose(r, n, raid)
 
 
 ## A raid_resolved outcome as its result line (271): "Raiders pillaged Hills: +1 unrest, −2 food, −1 pop, 1 unit lost." or

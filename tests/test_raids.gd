@@ -503,7 +503,7 @@ func garrison_two(e: GameEngine) -> void:
 
 
 func test_374_a_raid_drawn_gains_1_strength_per_raid_hoard_step_of_food_and_wealth_held() -> void:
-	for row in [[13, 9, 5, "hoard 22"], [5, 4, 3, "hoard 9"], [6, 4, 4, "hoard 10"], [0, 0, 3, "hoard 0"]]:
+	for row in [[13, 9, 5, "hoard 22"], [5, 4, 3, "hoard 9"], [6, 4, 4, "hoard 10"], [2, 0, 3, "hoard 2"]]:
 		var e := hoard_engine(row[0], row[1])
 		if e == null:
 			return

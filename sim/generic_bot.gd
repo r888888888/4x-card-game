@@ -81,7 +81,7 @@ static var forecast_mismatches := 0
 const KEY_STATE_FIELDS: Array[String] = ["turn", "is_over", "bonus_score", "era", "eras_added", "revolt_pending",
 	"anarchy_turn", "anarchy_limit", "last_raid_turn", "resources", "zones"]
 const KEY_CARD_FIELDS: Array[String] = ["uid", "def", "territory_uid", "base_uid", "station_uid", "pop", "keywords",
-	"turns_left", "counters", "progress", "given_this_turn"]
+	"turns_left", "counters", "progress", "given_this_turn", "raid_strength"]
 ## The fields the key leaves out, each with why the forecast doesn't depend on it.
 const UNREAD_STATE_FIELDS := {
 	"seed_value": "the rng is already seeded; the forecast only shuffles decks, which changes none of its numbers",
@@ -415,7 +415,7 @@ static func forecast_key(e: GameEngine, ctx: Context) -> Array:
 		key.append(z)
 		for c in e.state.zones[z].cards:
 			key.append_array([c.uid, c.def.id, c.territory_uid, c.base_uid, c.station_uid, c.pop, c.turns_left, c.counters,
-				c.progress, c.given_this_turn, c.keywords.size()])
+				c.progress, c.given_this_turn, c.raid_strength, c.keywords.size()])
 			key.append_array(c.keywords)
 	return key
 
