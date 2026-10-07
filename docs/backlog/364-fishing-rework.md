@@ -2,7 +2,7 @@
 id: 364
 title: Fishing Huts feed and house a coastal city, with Salt Pans and Net Fishing
 type: feature
-status: ready
+status: red-review
 branch: feat/364-fishing-rework
 ---
 
@@ -67,7 +67,12 @@ a balance item.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_rules::test_…` |
+| AC1 | `test_build_menu::test_each_building_built_adds_the_card_its_play_effect_creates_to_the_deck` (passes already) |
+| AC2 | `test_gain_per_tag::test_here_counts_only_the_tagged_cards_on_its_own_territory`, `test_here_skips_an_idle_tagged_card`, `test_without_here_every_tagged_card_counts` (passes already: today's behaviour) |
+| AC3 | `test_gain_per_tag::test_here_validation`, `test_here_on_a_card_with_no_territory_is_a_load_error` |
+| AC4 | `test_gain_per_tag::test_here_card_text` |
+| AC5 | `test_content::test_every_gain_per_tag_tag_is_on_a_reachable_card` (exists since 132) |
+| AC6 | `test_content::test_every_card_a_building_creates_is_an_action` (passes already) |
 
 ## Manual check
 - [ ] Shipped numbers: Fishing Huts costs 2 wealth, ⟳ +1 food, housing 1; Net Fishing +1 food per coastal territory;

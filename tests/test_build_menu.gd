@@ -11,6 +11,9 @@ extends "res://tests/lib/tech_case.gd"
 ## Played when built: +2 VP.
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"food": 1},
 	"effects": [{"op": "score", "amount": 2}]}
+## Played when built: adds a Scout to the deck (364, Fishing Huts adding a Net Fishing).
+const NET_LOFT := {"id": "net_loft", "name": "Net Loft", "type": "building",
+	"effects": [{"op": "create", "card": "scout", "zone": "deck"}]}
 ## Costs two resources, so a price it can't meet names both (337).
 const TOLL_HOUSE := {"id": "toll_house", "name": "Toll House", "type": "building", "cost": {"food": 1, "wealth": 2}}
 ## Opens the Granary entry.
@@ -30,7 +33,8 @@ func build_engine(food := 3, menu := MENU, overrides := {}) -> GameEngine:
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
-	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o, [OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE] + TEST_GOVS)
+	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o,
+		[OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE, NET_LOFT] + TEST_GOVS)
 	e.resources.food = food
 	return e
 
@@ -94,6 +98,17 @@ func test_building_resolves_play_effects_and_pays_the_discounted_cost() -> void:
 		"tableau": ["capital"], "territory": "homeland", "government": "band", "civilization": "farmers"}})
 	check(sumer.build("farm", home_uid(sumer)), "build a Farm as Farmers")
 	eq(sumer.resources.food, 2, "Farm costs 2 - 1 food")
+
+
+func test_each_building_built_adds_the_card_its_play_effect_creates_to_the_deck() -> void:
+	var e := build_engine(3, MENU.merged({"net_loft": {}}))
+	var home := home_uid(e)
+	var before := [card_ids(e.zone("deck")).count("scout"), ids_in(e, "hand"), ids_in(e, "discard")]
+	for i in 2:
+		check(e.build("net_loft", home), "build Net Loft %d: %s" % [i + 1, e.build_error("net_loft", home)])
+	eq(card_ids(e.zone("deck")).count("scout"), before[0] + 2, "two Scouts more in the deck")
+	eq(ids_in(e, "hand"), before[1], "hand unchanged")
+	eq(ids_in(e, "discard"), before[2], "discard unchanged")
 
 
 func test_with_no_territory_named_it_builds_on_the_only_one_that_takes_it() -> void:

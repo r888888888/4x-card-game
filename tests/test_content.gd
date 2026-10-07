@@ -1449,6 +1449,19 @@ func test_every_gain_per_tag_tag_is_on_a_reachable_card() -> void:
 	eq(missing, [] as Array[String], "gain_per_tag tags no reachable card carries")
 
 
+## Backlog 364: a building's effects create only actions (Fishing Huts adding a Net Fishing to the deck).
+func test_every_card_a_building_creates_is_an_action() -> void:
+	var r := load_real()
+	var wrong: Array[String] = []
+	for id in reachable_cards(r):
+		if r.cards[id].type != CardDef.BUILDING:
+			continue
+		for effect in r.cards[id].effects:
+			if effect.op == "create" and r.cards[effect.card_id].type != CardDef.ACTION:
+				wrong.append("%s creates %s" % [id, effect.card_id])
+	eq(wrong, [] as Array[String], "cards buildings create that aren't actions")
+
+
 ## Backlog 273: a tech's gain_per_tag counts a tag at least 3 reachable buildings carry, so it grows as you build.
 func test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings() -> void:
 	var r := load_real()
