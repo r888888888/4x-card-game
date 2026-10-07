@@ -67,6 +67,7 @@
     "great_temple": { "locked": true },
     "market": { "locked": true },
     "harbor": { "locked": true },
+    "salt_pans": { "locked": true },
     "stone_circle": { "locked": true },
     "mud_brick_houses": { "locked": true },
     "caravanserai": { "locked": true },

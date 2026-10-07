@@ -16,6 +16,8 @@ const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_d
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
+## The zones of the cards the player owns, which a unique create looks in (364); not the trashed or removed.
+const OWNED_ZONES: Array[String] = ["deck", "hand", "discard", "tableau"]
 const MAX_TERRITORY_NAME := 24  # characters in a territory's name (248)
 ## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"

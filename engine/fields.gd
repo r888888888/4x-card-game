@@ -38,6 +38,16 @@ static func read_int(data: Dictionary, key: String, errors: Array[String], min_v
 	return v
 
 
+## data[key] as a bool. Missing: default_value.
+static func read_bool(data: Dictionary, key: String, errors: Array[String], default_value := false) -> bool:
+	if not data.has(key):
+		return default_value
+	if not (data[key] is bool):
+		errors.append("'%s' must be true or false, not %s" % [key, JSON.stringify(data[key])])
+		return default_value
+	return data[key]
+
+
 ## data[key] as a String, one of allowed when given. Missing: default_value, or an error if there is none.
 static func read_string(data: Dictionary, key: String, errors: Array[String], allowed: Array = [], default_value: Variant = null) -> String:
 	if not data.has(key):

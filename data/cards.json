@@ -58,6 +58,12 @@
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] } ]
     },
     {
+      "id": "net_fishing", "name": "Net Fishing", "type": "action",
+      "flavor": "At dawn two boats draw a net between them across the shallows and haul it in together, silver and thrashing.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["coastal"] } ]
+    },
+    {
       "id": "bread_and_beer", "name": "Bread and Beer", "type": "action",
       "flavor": "Grain feeds the city twice, as bread and as beer: the daily ration of every worker in Sumer and Egypt.",
       "cost": { "food": 2 }, "vp": 0, "tags": [],
@@ -181,7 +187,8 @@
       "id": "harbor", "name": "Harbor", "type": "building",
       "flavor": "Stone quays and a breakwater make a port of the bay, where ships ride out the storms and sailors learn the word for home.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "upgrade_of": "fishing_huts", "requires": ["coastal"],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "hunters_camp", "name": "Hunters' Camp", "type": "building",
@@ -252,7 +259,14 @@
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
       "flavor": "Reed huts on the shore, nets drying in the sun, and the boats out at dawn on water the colour of pewter.",
-      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"],
+      "cost": { "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"], "housing": 1,
+      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "create", "card": "net_fishing", "zone": "deck", "unique": true } ]
+    },
+    {
+      "id": "salt_pans", "name": "Salt Pans", "type": "building",
+      "flavor": "Seawater stands in shallow clay beds until the sun takes the water and leaves the salt, and the catch keeps till winter.",
+      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "upgrade_of": "fishing_huts", "requires": ["coastal"],
       "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
     },
     {
@@ -778,7 +792,8 @@
       "flavor": "Fired clay holds grain, water and oil through the seasons, and when it breaks, the sherds stay behind to say who lived there.",
       "quote": { "text": "Who is the Potter, pray, and who the Pot?", "by": "Rubáiyát of Omar Khayyám, tr. Edward FitzGerald" },
       "cost": { "insight": 5 }, "vp": 1, "eureka": { "tag": "farm", "count": 2, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "mud_brick_houses" }, { "op": "unlock", "card": "kiln" } ]
+      "effects": [ { "op": "unlock", "card": "mud_brick_houses" }, { "op": "unlock", "card": "kiln" },
+        { "op": "unlock", "card": "salt_pans" } ]
     },
     {
       "id": "animal_husbandry", "name": "Animal Husbandry", "type": "tech",
