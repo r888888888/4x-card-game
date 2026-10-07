@@ -1837,14 +1837,10 @@ func test_every_raid_target_is_on_some_territory() -> void:
 
 ## Backlog 381: across the real cards every placeholder motif occurs.
 func test_every_art_motif_occurs_across_the_real_cards() -> void:
-	var art: Object = load("res://ui/card_art.gd")  # scaffolding: CardArt is new in 381
-	check(art != null, "CardArt exists")
-	if art == null:
-		return
 	var seen := {}
 	for id in load_real().cards:
-		seen[art.call("motif_for", id)] = true
-	eq(seen.size(), (art.get("Motif") as Dictionary).size(), "every motif is some card's: %s" % [seen.keys()])
+		seen[CardArt.motif_for(id)] = true
+	eq(seen.size(), CardArt.Motif.size(), "every motif is some card's: %s" % [seen.keys()])
 
 
 ## Backlog 381: docs/design/card-art.md has exactly one row naming <id>.png for every card, and none for a non-card.

@@ -858,8 +858,8 @@ func open_details(main: Node, uid: int) -> void:
 
 
 ## The art plate on view's face (381), or null: a hand-size face has one, named Art.
-func art_plate(view: CardView) -> Control:
-	return view.find_child("Art", true, false) as Control
+func art_plate(view: CardView) -> CardArt:
+	return view.find_child("Art", true, false) as CardArt
 
 
 ## The first CardView under node (a modal's card), or null.

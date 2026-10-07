@@ -4,7 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## one of four motifs; shaded by Palette.ART_SHADE (Night only) under a 1 px EDGE frame. Tableau, Realm-row and
 ## supply-pile faces carry none. Fixture picture: tests/fixtures/card_art/farm.png (1536 × 1024).
 
-const ART_PATH := "res://ui/card_art.gd"
 const FIXTURE_DIR := "res://tests/fixtures/card_art/"
 
 var _engine: GameEngine
@@ -19,20 +18,12 @@ func face(id: String, in_hand := true, kind := "") -> CardView:
 	return view
 
 
-## The CardArt script (red phase: the class doesn't exist yet).
-func art_script() -> Object:
-	return load(ART_PATH)  # scaffolding: CardArt is new in 381
-
-
 ## Runs body with CardArt reading pictures from the fixture directory, then puts the real directory back.
 func with_fixture_art(body: Callable) -> void:
-	var script := art_script()
-	var before: Variant = script.get("art_dir") if script != null else null
-	if script != null:
-		script.set("art_dir", FIXTURE_DIR)
+	var before := CardArt.art_dir
+	CardArt.art_dir = FIXTURE_DIR
 	await body.call()
-	if script != null:
-		script.set("art_dir", before)
+	CardArt.art_dir = before
 
 
 # --- AC1: a placeholder plate after the band ---
@@ -40,27 +31,22 @@ func with_fixture_art(body: Callable) -> void:
 func test_a_hand_face_without_a_picture_has_a_placeholder_plate_after_its_band() -> void:
 	var view := face("bazaar")
 	var plate := art_plate(view)
-	check(plate != null, "the hand face has a plate named Art")
-	if plate != null:
-		var face_node := plate.get_parent()
-		eq(plate.get_index(), face_node.get_node("Band").get_index() + 1, "directly after the band")
-		eq(plate.get_script(), art_script(), "a CardArt")
-		eq(plate.size_flags_horizontal, Control.SIZE_EXPAND_FILL, "full width")
-		eq(plate.custom_minimum_size.y, 96.0, "96 px tall")
-		eq(art_script().get("HAND_HEIGHT"), 96.0, "CardArt.HAND_HEIGHT")
-		eq(plate.call("has_picture"), false, "no picture for bazaar: the placeholder")
-		eq(art_script().call("file_for", "bazaar"), "res://assets/cards/bazaar.png", "where its picture would be")
+	eq(view.find_children("*", "CardArt", true, false).size(), 1, "the hand face has one plate")
+	eq(plate.get_index(), plate.get_parent().get_node("Band").get_index() + 1, "named Art, directly after the band")
+	eq(plate.size_flags_horizontal, Control.SIZE_EXPAND_FILL, "full width")
+	eq(plate.custom_minimum_size.y, 96.0, "96 px tall")
+	eq(CardArt.HAND_HEIGHT, 96.0, "CardArt.HAND_HEIGHT")
+	eq(plate.has_picture(), false, "no picture for bazaar: the placeholder")
+	eq(CardArt.file_for("bazaar"), "res://assets/cards/bazaar.png", "where its picture would be")
 	view.free()
 
 
 func test_the_placeholder_prints_no_text() -> void:
 	var view := face("bazaar")
 	var plate := art_plate(view)
-	check(plate != null, "the hand face has a plate")
-	if plate != null:
-		eq(plate.find_children("*", "Label", true, false).size(), 0, "no label on the plate")
-		eq(plate.find_children("*", "RichTextLabel", true, false).size(), 0, "no rich label on the plate")
-		check(not view.face_text().contains(".png"), "the face's text names no file: %s" % view.face_text())
+	eq(plate.find_children("*", "Label", true, false).size(), 0, "no label on the plate")
+	eq(plate.find_children("*", "RichTextLabel", true, false).size(), 0, "no rich label on the plate")
+	check(not view.face_text().contains(".png"), "the face's text names no file: %s" % view.face_text())
 	view.free()
 
 
@@ -70,27 +56,19 @@ func test_a_card_with_a_picture_shows_it_and_one_without_keeps_the_placeholder()
 	await with_fixture_art(func():
 		var farm := face("farm")
 		var bazaar := face("bazaar")
-		var farm_plate := art_plate(farm)
-		var bazaar_plate := art_plate(bazaar)
-		check(farm_plate != null and bazaar_plate != null, "both hand faces have plates")
-		if farm_plate != null and bazaar_plate != null:
-			eq(farm_plate.call("has_picture"), true, "the Farm's fixture picture")
-			eq(bazaar_plate.call("has_picture"), false, "the Bazaar has none")
+		eq(art_plate(farm).has_picture(), true, "the Farm's fixture picture")
+		eq(art_plate(bazaar).has_picture(), false, "the Bazaar has none")
 		farm.free()
 		bazaar.free())
 
 
 func test_the_picture_is_cropped_to_its_middle_band() -> void:
-	var script := art_script()
-	check(script != null, "CardArt exists")
-	if script == null:
-		return
-	var region: Rect2 = script.call("cover_region", Vector2(1536, 1024), Vector2(240, 96))
+	var region := CardArt.cover_region(Vector2(1536, 1024), Vector2(240, 96))
 	eq(region.position.x, 0.0, "the full width")
 	eq(region.size.x, 1536.0, "the full width")
 	check(is_equal_approx(region.size.y, 614.4), "the middle 60 %%: %s" % region)
 	check(is_equal_approx(region.position.y, 204.8), "centred: %s" % region)
-	var tall: Rect2 = script.call("cover_region", Vector2(1536, 1024), Vector2(96, 96))
+	var tall := CardArt.cover_region(Vector2(1536, 1024), Vector2(96, 96))
 	check(is_equal_approx(tall.size.x, 1024.0) and is_equal_approx(tall.position.x, 256.0), "a square plate: %s" % tall)
 
 
@@ -118,7 +96,7 @@ func test_the_hand_and_the_details_show_plates_and_the_realm_doesnt() -> void:
 	open_details(main, e.zone("hand").cards[0].uid)
 	await wait_frames()
 	var shown := card_under(main.details.aside)
-	check(shown != null and art_plate(shown) != null, "the details' card has a plate")
+	check(art_plate(shown) != null, "the details' card has a plate")
 	close_game(main)
 
 
@@ -133,42 +111,32 @@ func test_a_hand_card_is_264_by_360() -> void:
 func test_the_art_shade_dims_night_and_is_clear_in_day() -> void:
 	await with_temp_settings(func():
 		Settings.set_day_mode(false)
-		eq(load("res://ui/palette.gd").get("ART_SHADE"), Color(0, 0, 0, 0.25), "Night: black at 25 %")
+		eq(Palette.ART_SHADE, Color(0, 0, 0, 0.25), "Night: black at 25 %")
 		Settings.set_day_mode(true)
-		eq(load("res://ui/palette.gd").get("ART_SHADE"), Color(0, 0, 0, 0), "Day: clear"))
+		eq(Palette.ART_SHADE, Color(0, 0, 0, 0), "Day: clear"))
 
 
 func test_a_rebuilt_face_shades_its_plate_in_the_new_mode() -> void:
 	await with_temp_settings(func():
 		Settings.set_day_mode(false)
 		var view := face("bazaar")
-		var plate := art_plate(view)
-		check(plate != null, "the hand face has a plate")
-		if plate != null:
-			eq(plate.call("shade"), Color(0, 0, 0, 0.25), "Night's shade")
-			eq(plate.call("frame"), Palette.EDGE, "framed in EDGE")
+		eq(art_plate(view).shade(), Color(0, 0, 0, 0.25), "Night's shade")
+		eq(art_plate(view).frame(), Palette.EDGE, "framed in EDGE")
 		Settings.set_day_mode(true)
 		view.restyle()
-		plate = art_plate(view)
-		if plate != null:
-			eq(plate.call("shade"), Color(0, 0, 0, 0), "Day's shade after the rebuild")
-			eq(plate.call("frame"), Palette.EDGE, "Day's EDGE")
+		eq(art_plate(view).shade(), Color(0, 0, 0, 0), "Day's shade after the rebuild")
+		eq(art_plate(view).frame(), Palette.EDGE, "Day's EDGE")
 		view.free())
 
 
 # --- AC6: the motif ---
 
 func test_a_cards_motif_is_one_of_four_and_always_the_same() -> void:
-	var script := art_script()
-	check(script != null, "CardArt exists")
-	if script == null:
-		return
-	var motifs: Dictionary = script.get("Motif")
-	eq(motifs.keys(), ["SUN", "RINGS", "SPLIT_DISC", "STEPS"], "the four motifs")
+	eq(CardArt.Motif.keys(), ["SUN", "RINGS", "SPLIT_DISC", "STEPS"], "the four motifs")
 	for id in ["farm", "bazaar", "grassland", "capital", "famine"]:
-		var motif: int = script.call("motif_for", id)
-		check(motif in motifs.values(), "%s: a motif (%d)" % [id, motif])
-		eq(script.call("motif_for", id), motif, "%s: the same every call" % id)
+		var motif := CardArt.motif_for(id)
+		check(motif in CardArt.Motif.values(), "%s: a motif (%d)" % [id, motif])
+		eq(CardArt.motif_for(id), motif, "%s: the same every call" % id)
 
 
 # --- AC7: an unplayable card's plate dims ---
@@ -176,15 +144,13 @@ func test_a_cards_motif_is_one_of_four_and_always_the_same() -> void:
 func test_an_unplayable_cards_placeholder_prints_in_the_dim_border() -> void:
 	var view := face("bazaar")
 	var plate := art_plate(view)
-	check(plate != null, "the hand face has a plate")
-	if plate != null:
-		var type_color := CardView.type_color(CardDef.ACTION)
-		eq(plate.call("color"), type_color, "playable: the type's colour")
-		view.set_play_error("Not enough food.")
-		eq(plate.call("color"), Palette.DIM_BORDER, "unplayable: the dim border, like its band")
-		eq(plate.call("veil"), Color(Palette.DIM_BG, 0.0), "no veil on a placeholder")
-		view.set_play_error("")
-		eq(plate.call("color"), type_color, "playable again: the type's colour")
+	var type_color := CardView.type_color(CardDef.ACTION)
+	eq(plate.color(), type_color, "playable: the type's colour")
+	view.set_play_error("Not enough food.")
+	eq(plate.color(), Palette.DIM_BORDER, "unplayable: the dim border, like its band")
+	eq(plate.veil(), Color(Palette.DIM_BG, 0.0), "no veil on a placeholder")
+	view.set_play_error("")
+	eq(plate.color(), type_color, "playable again: the type's colour")
 	view.free()
 
 
@@ -192,12 +158,10 @@ func test_an_unplayable_cards_picture_is_veiled_in_the_dim_paper() -> void:
 	await with_fixture_art(func():
 		var view := face("farm")
 		var plate := art_plate(view)
-		check(plate != null, "the hand face has a plate")
-		if plate != null:
-			eq((plate.call("veil") as Color).a, 0.0, "playable: no veil")
-			view.set_play_error("Not enough food.")
-			eq(plate.call("veil"), Color(Palette.DIM_BG, art_script().get("DIM_VEIL")), "unplayable: veiled in DIM_BG")
-			eq(art_script().get("DIM_VEIL"), 0.6, "at 0.6")
-			view.set_play_error("")
-			eq((plate.call("veil") as Color).a, 0.0, "playable again: no veil")
+		eq(plate.veil().a, 0.0, "playable: no veil")
+		view.set_play_error("Not enough food.")
+		eq(plate.veil(), Color(Palette.DIM_BG, CardArt.DIM_VEIL), "unplayable: veiled in DIM_BG")
+		eq(CardArt.DIM_VEIL, 0.6, "at 0.6")
+		view.set_play_error("")
+		eq(plate.veil().a, 0.0, "playable again: no veil")
 		view.free())
