@@ -1782,7 +1782,12 @@ commuter trains, no names from the twentieth century).
    says that, generated from the effects.
 8. **Quotes are real.** A `quote` is a real saying, accurately worded, with its source in `by` (the work, and the
    translator when the wording is theirs). Never invent one, and never put flavor-voice text in a quote.
-9. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
+9. **Quotes come at the card sideways.** A quote that only names or describes the card's subject (a wheel for The
+   Wheel, ships for Navigation) adds nothing the name hasn't said. Pick one that touches it at an angle: an idea it
+   serves, a use of it as metaphor, an irony ("There is no new thing under the sun" on The Wheel; "Who will guard the
+   guards themselves?" on Bureaucracy). A literal one stays only when it is especially pithy or interesting ("Egypt is
+   the gift of the river", "Philosophy begins in wonder"). No two cards share a quote.
+10. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
 
 ### 18.3 Do / Don't
 
@@ -1798,6 +1803,7 @@ commuter trains, no names from the twentieth century).
 - One true fact, in present tense, in about 120 characters (170 for a civilization).
 - The ending: does this card type already have its third of wry turns? Then end on an image or a fact.
 - A disaster? Plain.
+- A quote? Real, sourced, and at an angle to the card rather than about it (rule 9).
 - Read it aloud next to the card's rules text: it should sound like a sentence from a story, not a label.
 - Does the card need art? Add its row to [card-art.md](card-art.md) (§19).
 
