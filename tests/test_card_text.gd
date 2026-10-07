@@ -1,5 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Card text: the short form on the card (rules_text) and the full wording on hover (rules_tooltip).
+## Card text: the face (CardDef.face: a ledger of figures, the rules with one Unlocks line, gates as fine print, 382;
+## rules_text is it in one string) and the full wording on hover and in the details (rules_tooltip).
 
 const KEYWORDS: Array[String] = ["mountain", "fresh_water", "flood_plain", "desert", "forest", "jungle"]
 const CITY := {"id": "city", "name": "City", "type": "city"}

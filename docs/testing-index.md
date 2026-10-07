@@ -33,10 +33,10 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209; UI) |
 | `tests/test_card_art.gd` | Art plates on hand-size faces: picture or placeholder motif, shade (381) |
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state and terms (056, 289) |
-| `tests/test_card_faces.gd` | Index-card faces and card motion (179) |
+| `tests/test_card_faces.gd` | Index-card faces and card motion (179); the ledger and fine print (382) |
 | `tests/test_card_landing.gd` | How a card lands (117) |
 | `tests/test_card_slots.gd` | Card slots (UI) start at their card's resting height (075) |
-| `tests/test_card_text.gd` | Card text generated from effects |
+| `tests/test_card_text.gd` | Card text generated from effects: the face (ledger, rules, fine print; 382) and the long form |
 | `tests/test_changed.gd` | The `changed` signal |
 | `tests/test_choice_events.gd` | Choice events (269) |
 | `tests/test_choice_modal.gd` | The event modal for a choice event (269; UI) |
