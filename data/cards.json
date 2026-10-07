@@ -170,6 +170,12 @@
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
+      "id": "lighthouse_of_pharos", "name": "Lighthouse of Pharos", "type": "building",
+      "flavor": "On Pharos island a tower of white stone keeps a fire burning all night, and ships see Alexandria long before the coast.",
+      "cost": { "wealth": 50 }, "project": true, "vp": 8, "tags": ["wonder", "culture", "port"], "requires": ["coastal"],
+      "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
+    },
+    {
       "id": "royal_road", "name": "Royal Road", "type": "building",
       "flavor": "From Sardis to Susa runs the Persian king's road, and at every station a fresh horse and rider wait for news they may not read.",
       "cost": { "wealth": 45 }, "project": true, "vp": 8, "tags": ["wonder", "culture"], "modifiers": { "hand_size": 1, "administers": 1 },
@@ -699,6 +705,21 @@
       "effects": [ { "op": "gain", "resource": "food", "amount": 1 } ]
     },
     {
+      "id": "tuna_run", "name": "Tuna Run", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "flavor": "In early summer the tuna run along the coast in shoals so thick the water seems to boil, and every boat goes out.",
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
+    },
+    {
+      "id": "beached_whale", "name": "Beached Whale", "type": "event", "tags": [],
+      "flavor": "A whale lies stranded on the sand at dawn. By noon the whole town is there with knives and baskets, and nobody asks whose it is.",
+      "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 2, "keywords": ["coastal"] } ]
+    },
+    {
+      "id": "shipwreck_salvage", "name": "Shipwreck Salvage", "type": "event", "tags": [],
+      "flavor": "A foreign ship breaks up on the reef in the night. By morning its amphorae, timber and rope lie along the shore.",
+      "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 2, "keywords": ["coastal"] } ]
+    },
+    {
       "id": "wandering_trader", "name": "Wandering Trader", "type": "event", "tags": [],
       "flavor": "A lone trader leads a laden donkey into the square, with salt, beads and news from the coast, and a special price just for you.",
       "effects": [ { "op": "gain", "resource": "wealth", "amount": 1 } ]
@@ -998,7 +1019,8 @@
       "flavor": "Steering by the stars, Phoenician ships leave the coast behind and cross open sea to Carthage and Gades, where the known world ends.",
       "quote": { "text": "They that go down to the sea in ships, that do business in great waters.", "by": "Psalm 107:23" },
       "cost": { "insight": 32 }, "vp": 1, "eureka": { "card": "harbor", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "dockyard" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
+      "effects": [ { "op": "unlock", "card": "dockyard" }, { "op": "unlock", "card": "lighthouse_of_pharos" },
+        { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
     },
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",

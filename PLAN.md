@@ -398,7 +398,8 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   (Mysticism, ⟳ +2 insight) and Walls of Uruk (Masonry, defence 4, unrest limit +1); era 2 Pyramids (Priesthood),
   Great Ziggurat (Code of Laws, ⟳ −1 unrest, limit +2), Hanging Gardens (Calendar, fresh water, every territory houses
   1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
-  territory); era 3 Royal Road (Bureaucracy, hand size +1; 273). The
+  territory); era 3 Royal Road (Bureaucracy, hand size +1; 273) and Lighthouse of Pharos (Navigation, coastal, port;
+  ⟳ +1 wealth per port card; 365). The
   starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
   Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1, Warriors 1 (285: a military unit from the first shuffle). Early buildings (080) are on sale from turn 1, in unlocked supply piles,
   Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
@@ -566,6 +567,10 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   territory), Golden Age (3 turns, +1 action, +1 hand size), School of Philosophers (+5 insight), Succession Crisis
   (pay 6 wealth, or +3 unrest, or −1 pop and +1 unrest), Mercenaries' Offer (pay 4 wealth for a Warriors in the
   discard, or nothing).
+- Coastal events (365): era 1 Tuna Run (2 turns, ⟳ +1 food per coastal territory), Beached Whale (+2 food per coastal
+  territory) and Shipwreck Salvage (+2 wealth per coastal territory), so the coast is not only raided and wrecked.
+  `test_content`: a feature keyword (not a terrain) that events punish, by `lose_per_keyword` or a raid's targets, is
+  one some event rewards; no era-1 event takes per keyword.
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the

@@ -169,7 +169,7 @@ func test_every_growth_card_costs_food() -> void:
 # --- Starter events (backlog 069) ---
 
 ## The ops a real event may use: they only give (see 072 for harmful ops).
-const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]  # and lose of unrest (144)
+const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "gain_per_keyword", "score", "grow"]  # and lose of unrest (144; 365)
 
 
 func test_every_real_event_is_in_the_event_deck() -> void:
@@ -207,7 +207,7 @@ func test_real_era_1_events_harm_only_by_unrest() -> void:
 				continue
 			if not EVENT_OPS.has(effect.op) and not (effect.op == "lose" and effect.get("resource") == "unrest"):
 				bad_ops.append("%s: %s" % [id, effect.op])
-	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score, grow or lose of unrest")
+	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, gain_per_keyword, score, grow or lose of unrest")
 	check(blank >= 1, "at least one blank event (got %d)" % blank)
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
@@ -385,6 +385,37 @@ func test_every_per_keyword_and_per_tag_event_effect_can_fire() -> void:
 			if effect.op == "gain_per_tag" and not tags.has(effect.get("tag")):
 				dead.append("%s: tag %s" % [id, effect.get("tag")])
 	eq(dead, [] as Array[String], "event effects that count a keyword or tag nothing in play has")
+
+
+## Backlog 365: a feature keyword the events punish (a lose_per_keyword, a raid's target) is one some event rewards too;
+## the terrains are exempt, since their buildings carry keyword bonuses.
+func test_every_feature_keyword_the_events_punish_some_event_rewards() -> void:
+	var r := load_real()
+	var punished := {}
+	var rewarded := {}
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		for k in def.raid.get("targets", []):
+			punished[k] = true
+		for effect in event_effects(def):
+			if effect.op == "lose_per_keyword" or effect.op == "gain_per_keyword":
+				for k in effect.get("keywords"):
+					(punished if effect.op == "lose_per_keyword" else rewarded)[k] = true
+	var unanswered: Array[String] = []
+	for k in punished:
+		if not rewarded.has(k) and not r.config.get("terrains", []).has(k):
+			unanswered.append(k)
+	eq(unanswered, [] as Array[String], "keywords events only punish")
+
+
+## Backlog 365: era-1 events that count a keyword only give (no lose_per_keyword before era 2).
+func test_no_era_1_event_takes_per_keyword() -> void:
+	var r := load_real()
+	var takers: Array[String] = []
+	for def in events_by_era(r).get(1, []):
+		if event_effects(def).any(func(effect): return effect.op == "lose_per_keyword"):
+			takers.append(def.id)
+	eq(takers, [] as Array[String], "era-1 events that take per keyword")
 
 
 func test_events_both_give_and_take_food_wealth_and_insight() -> void:
