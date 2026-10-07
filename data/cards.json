@@ -883,14 +883,14 @@
     {
       "id": "the_plough", "name": "The Plough", "type": "tech", "prereq": "animal_husbandry",
       "flavor": "Yoked oxen drag a wooden share through heavy soil, and one family sows what once took a village. The village must find other work.",
-      "quote": { "text": "We must cultivate our garden.", "by": "Voltaire, Candide" },
+      "quote": { "text": "What is good cultivation? Good ploughing. What next? Ploughing. What third? Manuring.", "by": "Cato, De Agri Cultura 61 (tr. W. D. Hooper and H. B. Ash)" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "pasture", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "ploughed_fields" } ]
     },
     {
       "id": "weaving", "name": "Weaving", "type": "tech",
       "flavor": "Flax and wool, spun and woven on upright looms, become cloth, the greatest trade of the ancient world after bread.",
-      "quote": { "text": "Oh, what a tangled web we weave, when first we practise to deceive!", "by": "Walter Scott, Marmion" },
+      "quote": { "text": "My days are swifter than a weaver's shuttle, and are spent without hope.", "by": "Job 7:6" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "weavers_workshop" }, { "op": "unlock", "card": "textile_works" }, { "op": "unlock", "card": "dye_works" } ]
     },
@@ -911,7 +911,7 @@
     {
       "id": "mining", "name": "Mining", "type": "tech",
       "flavor": "Copper, tin and flint are dug from the hills through narrow shafts, lit by oil lamps that are never bright enough.",
-      "quote": { "text": "All that glisters is not gold.", "by": "William Shakespeare, The Merchant of Venice" },
+      "quote": { "text": "They found the guilt of iron, and gold, more guilty still.", "by": "Ovid, Metamorphoses 1 (tr. Rolfe Humphries)" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "tag": "wall", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "mine" } ]
     },
@@ -927,7 +927,7 @@
     {
       "id": "the_wheel", "name": "The Wheel", "type": "tech",
       "flavor": "First turned by potters in Mesopotamia, the wheel soon carries carts, chariots and trade across the plains, and never stops.",
-      "quote": { "text": "There is no new thing under the sun.", "by": "Ecclesiastes 1:9" },
+      "quote": { "text": "Thirty spokes converge on a hub but it's the emptiness that makes a wheel work.", "by": "Laozi, Daodejing 11 (tr. Red Pine)" },
       "cost": { "insight": 6 }, "vp": 0, "eureka": { "tag": "city", "count": 2, "off": 2 }, "tags": [],
       "effects": [ { "op": "create", "card": "caravan", "zone": "discard" }, { "op": "unlock", "card": "caravan" } ]
     },
@@ -942,7 +942,7 @@
     {
       "id": "bronze_working", "name": "Bronze Working", "type": "tech", "prereq": "mining",
       "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across unknown seas.",
-      "quote": { "text": "I have raised a monument more lasting than bronze.", "by": "Horace, Odes 3.30" },
+      "quote": { "text": "Few men can clasp the thumb in their arms, and its fingers are larger than most statues.", "by": "Pliny the Elder, of the fallen Colossus of Rhodes (tr. Bostock and Riley)" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" },
         { "op": "unlock", "card": "timber_camp" }, { "op": "add_era", "era": 2 } ]
@@ -958,14 +958,14 @@
     {
       "id": "weights_and_measures", "name": "Weights and Measures", "type": "tech", "era": 2, "prereq": "clay_tokens",
       "flavor": "Silver weighed out in shekels and grain in fixed measures let strangers trade without haggling over every sack. Mostly.",
-      "quote": { "text": "Man is the measure of all things.", "by": "Protagoras, in Plato's Theaetetus" },
+      "quote": { "text": "Thou hast ordered all things in measure and number and weight.", "by": "Wisdom of Solomon 11:20" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "market" } ]
     },
     {
       "id": "olive_and_vine", "name": "Olive and Vine", "type": "tech", "era": 2, "prereq": "pottery",
       "flavor": "Olive trees and vines take years to bear, then bear for lifetimes, and their oil and wine sail out in amphorae.",
-      "quote": { "text": "They shall sit every man under his vine and under his fig tree; and none shall make them afraid.", "by": "Micah 4:4" },
+      "quote": { "text": "Should I leave my fatness, wherewith by me they honour God and man, and go to be promoted over the trees?", "by": "The olive tree, in Jotham's fable, Judges 9:9" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "tag": "trade", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "olive_groves" } ]
     },
@@ -997,7 +997,7 @@
     {
       "id": "priesthood", "name": "Priesthood", "type": "tech", "era": 2, "prereq": "mysticism",
       "flavor": "A class of priests keeps the temples, the rites and the granaries, and speaks to kings for the gods, in a tone kings dislike.",
-      "quote": { "text": "Many are called, but few are chosen.", "by": "Matthew 22:14" },
+      "quote": { "text": "I wonder that a soothsayer doesn't laugh when he sees another soothsayer.", "by": "Cato, in Cicero's De Divinatione (tr. W. A. Falconer)" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "card": "temple", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "pyramids" }, { "op": "create", "card": "theocracy", "zone": "discard" },
         { "op": "unlock", "card": "bathhouse" } ]
@@ -1042,14 +1042,14 @@
     {
       "id": "coinage", "name": "Coinage", "type": "tech", "era": 3, "prereq": "weights_and_measures",
       "flavor": "Lydian kings stamp lumps of electrum with a lion's head, and a coin's worth no longer needs a balance, only faith in the lion.",
-      "quote": { "text": "Render therefore unto Caesar the things which are Caesar's; and unto God the things that are God's.", "by": "Matthew 22:21" },
+      "quote": { "text": "Nothing so evil as money ever grew to be current among men.", "by": "Sophocles, Antigone (tr. R. C. Jebb)" },
       "cost": { "insight": 27 }, "vp": 1, "eureka": { "card": "market", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "mint" }, { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "trade", "trigger": "upkeep" } ]
     },
     {
       "id": "bureaucracy", "name": "Bureaucracy", "type": "tech", "era": 3, "prereq": "code_of_laws",
       "flavor": "Satraps govern the provinces, scribes keep the tax rolls, and royal couriers ride between them with orders already out of date.",
-      "quote": { "text": "Who will guard the guards themselves?", "by": "Juvenal, Satires 6" },
+      "quote": { "text": "Laws were most numerous when the commonwealth was most corrupt.", "by": "Tacitus, Annals 3.27 (tr. Church and Brodribb)" },
       "cost": { "insight": 32 }, "vp": 2, "eureka": { "tag": "city", "count": 5, "off": 6 }, "tags": [], "modifiers": { "unrest_limit": 2, "administers": 2 },
       "effects": [ { "op": "unlock", "card": "royal_road" } ]
     },
@@ -1070,7 +1070,7 @@
     {
       "id": "navigation", "name": "Navigation", "type": "tech", "era": 3, "prereq": "sailing",
       "flavor": "Steering by the stars, Phoenician ships leave the coast behind and cross open sea to Carthage and Gades, where the known world ends.",
-      "quote": { "text": "When a man does not know what harbour he is making for, no wind is the right wind.", "by": "Seneca, Letters 71 (tr. R. M. Gummere)" },
+      "quote": { "text": "After ascertaining that the ship's side was four fingers' breadth in thickness, he remarked that the passengers were just so far from death.", "by": "Diogenes Laertius, of Anacharsis (tr. R. D. Hicks)" },
       "cost": { "insight": 32 }, "vp": 1, "eureka": { "card": "harbor", "count": 1, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "dockyard" }, { "op": "unlock", "card": "lighthouse_of_pharos" },
         { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "port", "trigger": "upkeep" } ]
@@ -1078,7 +1078,7 @@
     {
       "id": "astronomy", "name": "Astronomy", "type": "tech", "era": 3, "prereq": "mathematics",
       "flavor": "Atop the ziggurats, priests chart the wandering stars, learn to foretell eclipses, and tell the king only what he needs to know.",
-      "quote": { "text": "We are all in the gutter, but some of us are looking at the stars.", "by": "Oscar Wilde, Lady Windermere's Fan" },
+      "quote": { "text": "I know that I am mortal by nature, and ephemeral; but when I trace at my pleasure the windings to and fro of the heavenly bodies I no longer touch earth with my feet.", "by": "Ptolemy, epigram in the Almagest" },
       "cost": { "insight": 32 }, "vp": 4, "eureka": { "card": "harbor", "count": 2, "off": 6 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "read_the_stars" } ]
     },

@@ -1784,9 +1784,10 @@ commuter trains, no names from the twentieth century).
    translator when the wording is theirs). Never invent one, and never put flavor-voice text in a quote.
 9. **Quotes come at the card sideways.** A quote that only names or describes the card's subject (a wheel for The
    Wheel, ships for Navigation) adds nothing the name hasn't said. Pick one that touches it at an angle: an idea it
-   serves, a use of it as metaphor, an irony ("There is no new thing under the sun" on The Wheel; "Who will guard the
-   guards themselves?" on Bureaucracy). A literal one stays only when it is especially pithy or interesting ("Egypt is
-   the gift of the river", "Philosophy begins in wonder"). No two cards share a quote.
+   serves, a use of it as metaphor, an irony (Laozi's emptiness at the hub on The Wheel; Tacitus' "laws were most
+   numerous when the commonwealth was most corrupt" on Bureaucracy). A literal one stays only when it is especially
+   pithy or interesting ("Egypt is the gift of the river"; Cato's "Good ploughing. What next? Ploughing."). Prefer
+   the deeper cut to the quotation-book line: a reader should not have met it on a poster. No two cards share a quote.
 10. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
 
 ### 18.3 Do / Don't
