@@ -30,8 +30,29 @@
     },
     {
       "id": "warriors", "name": "Warriors", "type": "unit",
-      "cost": { "food": 2 }, "vp": 0, "tags": ["military"], "strength": 2,
+      "cost": { "food": 2 }, "vp": 0, "tags": ["military"], "strength": 2, "upgrades_to": "spearmen",
       "effects": [ { "op": "lose", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "spearmen", "name": "Spearmen", "type": "unit",
+      "cost": { "food": 2, "wealth": 1 }, "vp": 0, "tags": ["military"], "strength": 3, "upgrades_to": "swordsmen",
+      "effects": [ { "op": "lose", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "archers", "name": "Archers", "type": "unit",
+      "cost": { "food": 1, "wealth": 1 }, "vp": 0, "tags": ["military"], "strength": 2,
+      "effects": [ { "op": "lose", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "chariots", "name": "Chariots", "type": "unit",
+      "cost": { "food": 2, "wealth": 2 }, "vp": 0, "tags": ["military"], "strength": 4,
+      "effects": [ { "op": "lose", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+    },
+    {
+      "id": "swordsmen", "name": "Swordsmen", "type": "unit",
+      "cost": { "food": 2, "wealth": 3 }, "vp": 0, "tags": ["military"], "strength": 5,
+      "effects": [ { "op": "lose", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "lose", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
     },
     {
       "id": "settler", "name": "Settler", "type": "action",
@@ -842,6 +863,38 @@
       ]
     },
     {
+      "id": "horse_raiders", "name": "Horse Raiders", "type": "event", "tags": [], "era": 2,
+      "raid": { "strength": 5, "targets": ["grassland", "desert"] },
+      "flavor": "Riders sweep in at a gallop, take what the carts can carry, and are gone before the alarm drum stops.",
+      "effects": [
+        { "op": "lose", "resource": "food", "amount": 4, "trigger": "pillage" },
+        { "op": "gain", "resource": "unrest", "amount": 1, "trigger": "pillage" },
+        { "op": "gain", "resource": "wealth", "amount": 3, "trigger": "repel" },
+        { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "repel" }
+      ]
+    },
+    {
+      "id": "pirates", "name": "Pirates", "type": "event", "tags": [], "era": 2,
+      "raid": { "strength": 5, "targets": ["coastal"] },
+      "flavor": "Ships from the islands come in fleets now, burning port after port; the letters begging for help arrive too late.",
+      "effects": [
+        { "op": "lose", "resource": "wealth", "amount": 5, "trigger": "pillage" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "repel" }
+      ]
+    },
+    {
+      "id": "barbarian_horde", "name": "Barbarian Horde", "type": "event", "tags": [], "era": 3,
+      "raid": { "strength": 8 },
+      "flavor": "Out of the north come whole peoples, with wagons, herds and children, and they do not mean to go home.",
+      "effects": [
+        { "op": "lose", "resource": "food", "amount": 4, "trigger": "pillage" },
+        { "op": "lose", "resource": "wealth", "amount": 4, "trigger": "pillage" },
+        { "op": "gain", "resource": "unrest", "amount": 2, "trigger": "pillage" },
+        { "op": "gain", "resource": "wealth", "amount": 4, "trigger": "repel" },
+        { "op": "lose", "resource": "unrest", "amount": 1, "trigger": "repel" }
+      ]
+    },
+    {
       "id": "calls_for_reform", "name": "Calls for Reform", "type": "event", "tags": [], "discard": { "turns": 2 },
       "flavor": "Petitioners crowd the palace steps, asking for fairer laws and a say in making them. The palace minds the second part more.",
       "modifiers": { "renewal": 1 },
@@ -944,8 +997,15 @@
       "flavor": "Copper alloyed with tin makes harder blades and tools, and a hunger for tin that sends traders across unknown seas.",
       "quote": { "text": "Their armour was of bronze, and their houses of bronze, and of bronze were their implements.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 8 }, "vp": 0, "eureka": { "card": "mine", "count": 1, "off": 2 }, "tags": [],
-      "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" },
+      "effects": [ { "op": "unlock", "card": "forge" }, { "op": "unlock", "card": "barracks" }, { "op": "unlock", "card": "spearmen" },
         { "op": "unlock", "card": "timber_camp" }, { "op": "add_era", "era": 2 } ]
+    },
+    {
+      "id": "archery", "name": "Archery", "type": "tech",
+      "flavor": "Bows of horn, wood and sinew are glued in layers and left to cure for a year; strung, they outrange any spear.",
+      "quote": { "text": "He breaketh the bow, and cutteth the spear in sunder.", "by": "Psalm 46:9" },
+      "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "warriors", "count": 1, "off": 2 }, "tags": [],
+      "effects": [ { "op": "unlock", "card": "archers" } ]
     },
     {
       "id": "writing", "name": "Writing", "type": "tech", "era": 2, "prereq": "clay_tokens",
@@ -1019,6 +1079,13 @@
       "effects": [ { "op": "unlock", "card": "hanging_gardens" } ]
     },
     {
+      "id": "chariot", "name": "Chariot", "type": "tech", "era": 2, "prereq": "the_wheel",
+      "flavor": "Two spoked wheels, a wicker car and a pair of horses: from the steppe to Egypt, kings learn to go to war standing up.",
+      "quote": { "text": "Some trust in chariots, and some in horses.", "by": "Psalm 20:7" },
+      "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 4 }, "tags": [],
+      "effects": [ { "op": "unlock", "card": "chariots" } ]
+    },
+    {
       "id": "philosophy", "name": "Philosophy", "type": "tech", "era": 3, "prereq": "writing",
       "flavor": "Greek thinkers ask what the world is made of and how one should live, and answer with reason rather than myth, which is harder.",
       "quote": { "text": "Philosophy begins in wonder.", "by": "Plato, Theaetetus" },
@@ -1030,7 +1097,8 @@
       "flavor": "Iron is harder to smelt than bronze, but its ore is everywhere: soon every farmer has an iron blade, and opinions.",
       "quote": { "text": "For now truly is a race of iron, and men never rest from labour and sorrow by day.", "by": "Hesiod, Works and Days" },
       "cost": { "insight": 27 }, "vp": 2, "eureka": { "card": "forge", "count": 1, "off": 6 }, "tags": [],
-      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" }, { "op": "unlock", "card": "shaft_mine" } ]
+      "effects": [ { "op": "score", "amount": 1, "trigger": "upkeep" }, { "op": "unlock", "card": "shaft_mine" },
+        { "op": "unlock", "card": "swordsmen" } ]
     },
     {
       "id": "mathematics", "name": "Mathematics", "type": "tech", "era": 3, "prereq": "weights_and_measures",
