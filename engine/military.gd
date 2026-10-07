@@ -444,12 +444,7 @@ static func upgrade_error(e: GameEngine, uid: int) -> String:
 	var anarchy := Anarchy.play_error(e, CardInstance.new(-1, e.card_db[to]))
 	if anarchy != "":
 		return anarchy
-	var price := upgrade_cost(e, uid)
-	var short := {}  # names only the resources it is short of, as building does (337)
-	for r in price:
-		if not e.can_pay({r: price[r]}):
-			short[r] = price[r]
-	return e.price_error("Upgrading %s" % unit.def.name, short)
+	return e.price_error("Upgrading %s" % unit.def.name, CardPlay.short_of(e, upgrade_cost(e, uid)))
 
 
 ## Replaces unit uid with a new copy of its upgrades_to unit in its tableau place, keeping its home, station and
