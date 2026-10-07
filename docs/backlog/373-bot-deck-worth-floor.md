@@ -82,3 +82,13 @@ After this the bot keeps a playable deck, and the sim's numbers for the new star
 
 ## Log
 - 2026-10-06: Found by tracing GenericBot on real data after 364–372 (scratch trace and probe scripts, not kept).
+- 2026-10-06: Green, but the manual check fails. Traced the same six games (seeds 3–8, one per civ, 100 turns) on the
+  base commit (cdb28833) and on this branch, on the same data. Pile-buying turns drop (Phoenicia 5 → 1, Persia 4 → 2),
+  but every game scores lower: Phoenicia generic 230 → 113, Egypt tall 114 → 91, Sumer wide 603 → 549, Babylon generic
+  170 → 144, Greece tall 422 → 125, Persia wide 677 → 472. Decks still drain: with the deck's worth at least 0,
+  trashing any card below the average raises it, so Slash and Burn thins to nothing (Phoenicia now ends with 0 cards,
+  where base kept 22). The games split from turn 1 (Greece: base builds Fishing Huts, the branch plays Corvée), so the
+  floor shifts the whole opening, not just trashing. One seed per cell: not a balance run, but 6 of 6 lower.
+  The average-card model is the deeper problem: it rewards thinning to the few best cards whatever the hand size and
+  actions. Waiting on the user: keep only the renewal sort, or rework the deck's worth (a separate item, with a sim
+  comparison).

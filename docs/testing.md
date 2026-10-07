@@ -123,7 +123,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
 | `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367) |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork` |
-| `tests/test_generic_bot.gd` | The generic bot (313) on fixture games; expansion costs (321) |
+| `tests/test_generic_bot.gd` | The generic bot (313) on fixture games; expansion costs (321); deck worth (373) |
 | `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315) |
 | `tests/test_generic_raids.gd` | The generic bot meets raids (314, superseding 168) through `turn_forecast` |
 | `tests/test_generic_rollouts.gd` | The generic bot's rollouts (314, porting 159) |
