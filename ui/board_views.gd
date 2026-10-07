@@ -26,6 +26,7 @@ func sync(e: GameEngine) -> void:
 	var m := _main
 	var rows := {"reveal": m.choices.reveal}
 	rows["governments"] = m.choices.government_row  # the government deck, shown while one is to be chosen (154)
+	rows["offered"] = m.choices.take_row  # the cards to take one of into the hand (370)
 	var viewed := m.territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}
 	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():
@@ -55,8 +56,9 @@ func sync(e: GameEngine) -> void:
 			var options: Array = e.pending().options
 			cards = cards.duplicate()
 			cards.sort_custom(func(a: CardInstance, b: CardInstance): return options.find(a.uid) < options.find(b.uid))
+		var top_first: bool = zone_name == "reveal" or zone_name == "offered"  # top of the deck or pile first
 		for i in cards.size():
-			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
+			var card: CardInstance = cards[cards.size() - 1 - i] if top_first else cards[i]
 			place(card, rows[zone_name], i, 0.0)
 	for uid in viewed:  # a unit away from home says where it is from (163); a trained one, its strength (164)
 		if views.has(uid) and e.unit_station(uid) != -1:

@@ -410,6 +410,8 @@ static func no_territory_effect_problem(effect: Effect, type: String) -> String:
 		return "%s %s effect can't need a target" % [article, type]
 	if type == CardDef.EVENT and effect.needs_a_turn():
 		return "an event effect can't use '%s' (an event resolves after your plays)" % effect.op
+	if type == CardDef.EVENT and effect.opens_choice():
+		return "an event effect can't use '%s' (it opens a choice)" % effect.op
 	if effect.needs_own_territory():
 		return "%s %s effect can't act on its own territory (%s %s has none; use 'each')" % [article, type, article, type]
 	return ""

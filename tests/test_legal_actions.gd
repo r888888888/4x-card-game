@@ -197,6 +197,12 @@ func coverage() -> Dictionary:
 			e.resources["wealth"] = 30
 			e.restore_order()
 			return e,
+		"take": func():  # 370
+			var e := anarchy_engine({}, {}, [RECALL_CARD])
+			for i in 2:
+				put_in(e, "farm", "discard")
+			e.play_card(put_in_hand(e, "recall"))
+			return e,
 		"restore_order": func(): return second_turn_engine(5),
 		"renew": func():
 			var e := game({"renewal": 1})
