@@ -1,6 +1,6 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
-## (sim/sim_stats.gd).
+## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "cities", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",

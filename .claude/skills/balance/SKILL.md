@@ -17,11 +17,13 @@ Anarchy and governments (158): `anarchies`, `revolts`, `anarchy_turns` (turns th
 (order bought), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
 `<id>_turns` per government a game can have (turns that started with it ruling).
 Cost (294): `lookahead_turns`, the turns the bot's lookahead forks played (most of a game's CPU).
+Raids (375): `raids` (strikes), `raids_repelled`, `raid_strength_max`, and what pillages took: `raid_pop_lost`,
+`raid_units_lost`, `raid_food_lost`, `raid_wealth_lost`.
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
 Since 134 it plays five strategies (`baseline`, `growth`, `wealth`, `wide`, `tall`) as every listed civilization.
-`scripts/sim.sh <seeds>` prints a block per strategy (its mean score per civilization, then its metrics over all of
-them). That is 600 games at 20 seeds, and since the bot looks ahead (159, 240, 269) one 100-turn game costs 12–25 s of
+`scripts/sim.sh <seeds>` prints a block per strategy (its mean score per civilization, its raids per civilization
+with repels and pop lost (375), then its metrics over all of them). That is 600 games at 20 seeds, and since the bot looks ahead (159, 240, 269) one 100-turn game costs 12–25 s of
 CPU: about 3 CPU-hours, so 20–30 minutes on this machine. It runs on the performance cores but one (291; `SIM_PROCS=n`
 to change). Only one parallel run at a time, across every checkout: a second one exits 1 at once with "another sim run
 is using the CPU (pid N)". Wait for that run, don't start the two sides side by side. Each game's result is cached

@@ -2,7 +2,7 @@
 id: 375
 title: Sim report counts raids and what they cost, per civilization
 type: feature
-status: in-progress
+status: review
 branch: feat/375-sim-raid-metrics
 ---
 
@@ -13,22 +13,22 @@ the report breaks raids down by civilization too. Today the sim says nothing abo
 grow with the hoard) and any later raid tuning unmeasured.
 
 ## Acceptance criteria
-- [ ] AC1: Given any sim data, when `SimStats.metric_names` lists the metrics, then it has, in this order after the
+- [x] AC1: Given any sim data, when `SimStats.metric_names` lists the metrics, then it has, in this order after the
   existing `METRICS` entries: `raids`, `raids_repelled`, `raid_strength_max`, `raid_pop_lost`, `raid_units_lost`,
   `raid_food_lost`, `raid_wealth_lost`.
-- [ ] AC2: Given a fixture game in which 3 raids strike (from `raid_resolved`), 1 repelled and 2 pillaged, at
+- [x] AC2: Given a fixture game in which 3 raids strike (from `raid_resolved`), 1 repelled and 2 pillaged, at
   strengths 2, 3 and 5, when it ends, then its metrics have `raids` 3, `raids_repelled` 1, and `raid_strength_max` 5
   (the outcome's `strength`, so after 374 it is the scaled one).
-- [ ] AC3: Given that game, where the two pillages report `pop_lost` 1 and 2, `units_lost` 1 and 0, and `lost`
+- [x] AC3: Given that game, where the two pillages report `pop_lost` 1 and 2, `units_lost` 1 and 0, and `lost`
   `{food: 4}` and `{food: 2, wealth: 3}`, then `raid_pop_lost` 3, `raid_units_lost` 1, `raid_food_lost` 6 and
   `raid_wealth_lost` 3. A repelled raid adds nothing to these, even if its repel effects take something.
-- [ ] AC4: Given a game in which no raid strikes (none drawn, or one drawn that fizzles with no target, 372, or one
+- [x] AC4: Given a game in which no raid strikes (none drawn, or one drawn that fizzles with no target, 372, or one
   still on its way when the game ends), then all seven are 0.
-- [ ] AC5: Given a run with strategy `all` and 2+ civilizations, when it reports, then each strategy's block has a
+- [x] AC5: Given a run with strategy `all` and 2+ civilizations, when it reports, then each strategy's block has a
   line `raids by civilization: <civ> <mean raids> (<mean repelled> repelled, <mean pop lost> pop lost), …` after the
   `score by civilization` line, in the same civ order, means to 1 decimal. Example:
   `raids by civilization: sumer 4.0 (1.5 repelled, 2.5 pop lost), egypt 3.0 (3.0 repelled, 0.0 pop lost)`.
-- [ ] AC6: Given any run, then the seven metrics also print as ordinary metric lines (mean, min, max), and
+- [x] AC6: Given any run, then the seven metrics also print as ordinary metric lines (mean, min, max), and
   `--compare` lists them under a strategy when their mean moved, like every other metric.
 
 ## Out of scope
@@ -71,3 +71,6 @@ grow with the hoard) and any later raid tuning unmeasured.
 - Red: AC2/AC3 are tested on `SimStats.raid_metrics(outcomes)`, a pure tally of `raid_resolved` outcomes, since a bot
   game can't be steered into exact pillages; one fixture bot game (Siege, strength 99) checks `play_game` feeds it. The
   per-civ line is `SimStats.raids_by_civilization([[civ, values]])`, so it is tested without a real-data run.
+- Green: the per-civ line is built in `run_files`' `all` branch from the same per-civ `values` it scores. The balance
+  skill lists the raid metrics and the line. On main (before 374) `raid_strength_max` is the printed strength; with
+  374 merged it is the scaled one.
