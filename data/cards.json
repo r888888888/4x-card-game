@@ -1056,7 +1056,7 @@
     {
       "id": "alphabet", "name": "Alphabet", "type": "tech", "era": 3, "prereq": "writing",
       "flavor": "Phoenician traders cut hundreds of signs down to 22 letters, and reading is no longer for scribes alone.",
-      "quote": { "text": "The limits of my language mean the limits of my world.", "by": "Ludwig Wittgenstein, Tractatus 5.6 (tr. C. K. Ogden)" },
+      "quote": { "text": "All language is a set of symbols whose use among its speakers assumes a shared past.", "by": "Jorge Luis Borges, The Aleph (tr. Norman Thomas di Giovanni)" },
       "cost": { "insight": 27 }, "vp": 0, "eureka": { "card": "scribal_school", "count": 2, "off": 6 }, "tags": [], "modifiers": { "insight_per_gain": 1 },
       "effects": [ { "op": "unlock", "card": "library" } ]
     },
