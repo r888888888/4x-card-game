@@ -25,10 +25,10 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
 
 ## 1. Red: write failing tests
 
-1. Read `docs/testing.md` (running, conventions, helpers; skim its file index) and the `##` header and tests of the
-   file(s) you'll add to. Pick the file by area, or create `tests/test_<area>.gd` for a new area: open it with a `##`
-   header saying what it covers (the source of truth) and add one short row to `docs/testing.md`'s index (331; the
-   suite checks both).
+1. Read `docs/testing.md` (running, conventions, helpers), skim `docs/testing-index.md` (one row per test file), and
+   read the `##` header and tests of the file(s) you'll add to. Pick the file by area, or create `tests/test_<area>.gd`
+   for a new area: open it with a `##` header saying what it covers (the source of truth) and add one short row to
+   `docs/testing-index.md`, in path order (331, 391; the suite checks both).
 2. For each acceptance criterion, write one or more tests that express it exactly, named after
    the behavior (`test_bug_<id>_<what>` for bugs). Add any cards you need to `TEST_CARDS`.
    Call the engine API **as you want it to exist**: the tests design the interface.
@@ -86,8 +86,8 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
    (seed, clicks, what to look for). You can launch `godot --path .` to confirm it starts without
    errors, but the user runs the checklist.
 3. Update docs affected by the change: `PLAN.md` (layout, data format, milestones), `README.md`,
-   a test file's `##` header (and its one-line `docs/testing.md` row) when what it covers grew, and `docs/testing.md`'s
-   helper table if you added helpers.
+   a test file's `##` header (and its one-line `docs/testing-index.md` row) when what it covers grew, and
+   `docs/testing.md`'s helper table if you added helpers.
 4. Tick the acceptance criteria. Bugs: fill in **Root cause**. Add anything notable to the **Log**.
 5. Set `status: review` and commit: `<id>: docs and backlog`.
 6. Report to the user: what changed (files, new API), test count before → after, the manual
