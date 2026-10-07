@@ -131,7 +131,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_government_deck.gd` | The government deck (154) |
 | `tests/test_grow_meter.gd` | The territory view's pop meter (124; UI) |
 | `tests/test_growth_cards.gd` | The `grow` op (013, 261, 262) |
-| `tests/test_hand_limit.gd` | The hand: `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
+| `tests/test_hand_limit.gd` | `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
 | `tests/test_hand_size.gd` | Hand size as a modifier (109) |
 | `tests/test_harmful_ops.gd` | The `lose` and `lose_pop` ops (072) |
 | `tests/test_housing_modifier.gd` | The `housing` modifier key (110) |
@@ -190,7 +190,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_settings_modal.gd` | The Settings modal (206; UI) |
 | `tests/test_settle.gd` | The `settle` op (loading and play) and card targets |
 | `tests/test_sfx.gd` | The sound player (186) |
-| `tests/test_sheet_sounds.gd` | Sheet, screen and notice sounds (189; UI), `main.sfx`'s clock frozen |
+| `tests/test_sheet_sounds.gd` | Sheet, screen and notice sounds (189; UI) |
 | `tests/test_sidebar.gd` | The right sidebar (202; UI) |
 | `tests/test_sim.gd` | The simulator on fixtures |
 | `tests/test_sim_anarchy.gd` | Sim metrics for Anarchy, governments and famine (158) |
@@ -199,6 +199,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sim_procs.gd` | How many processes a sim run uses (291) |
 | `tests/test_sim_stall.gd` | A parallel run's stalled or dead worker (318) |
 | `tests/test_sim_strategies.gd` | `SimStats` per strategy and civilization (134) |
+| `tests/test_sim_levels.gd` | `sim.sh --level` (378) |
 | `tests/test_sea_slots.gd` | Sea slots (366) |
 | `tests/test_size_unrest.gd` | Size unrest (282) |
 | `tests/test_slots.gd` | Building slots |
@@ -215,7 +216,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era arriving (027) |
 | `tests/test_tech_event_flavor.gd` | Tech/event/action `flavor`, tech `quote` (215) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
-| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`) and `era_name` / config `era_names` |
+| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`), `era_name` / `era_names` |
 | `tests/test_terrains.gd` | Terrain keywords (130) |
 | `tests/test_territories.gd` | Territory cards, their config and setup |
 | `tests/test_territory_cards.gd` | Territories as plain cards in the Realm (102) |
@@ -326,7 +327,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound frozen if asked) (334) |
-| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers, details |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |
 
 A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
