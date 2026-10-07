@@ -70,10 +70,10 @@ func outcome_summary(outcome: Dictionary) -> String:
 
 
 ## The decision the player owes before the game can go on, or {} when none: {kind: PENDING_GOVERNMENT, options: the
-## government deck's uids (154)}, {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card
-## that explored}, {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)},
-## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the
-## choice event's, options: its option indices (269)}.
+## government deck's uids (154)}, {kind: PENDING_EXPLORE or PENDING_TAKE (370), options: revealed territory or offered
+## uids top first, source: uid of the card that revealed or offered them}, {kind: PENDING_RENEWAL, count: cards still to
+## trash, options: discard uids but governments (147)}, {kind: PENDING_DISCARD, count: cards still to discard, options:
+## hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the choice event's, options: its option indices (269)}.
 func pending() -> Dictionary:
 	var p := state.pending.duplicate(true)
 	match p.get("kind", ""):

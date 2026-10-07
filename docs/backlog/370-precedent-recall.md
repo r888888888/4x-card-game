@@ -2,7 +2,7 @@
 id: 370
 title: Precedent takes a card from the discard back into your hand (Code of Laws)
 type: feature
-status: ready
+status: review
 branch: feat/370-precedent-recall
 ---
 
@@ -13,23 +13,23 @@ unlocks in the supply. You choose a card in your discard pile and it goes back i
 `take` (choose one of some cards to take into your hand), which 371's Read the Stars reuses.
 
 ## Acceptance criteria
-- [ ] AC1: Given a TEST_CARDS card with `[{op: gain_actions, amount: 1}, {op: recall}]` in hand, 2 actions left and
+- [x] AC1: Given a TEST_CARDS card with `[{op: gain_actions, amount: 1}, {op: recall}]` in hand, 2 actions left and
   3 cards in the discard, when it is played, then `pending()` is `{kind: take, options: [the 3 discard uids]}` (the
   played card is never an option), the hand is otherwise unchanged and 2 actions are left (1 used, 1 gained).
-- [ ] AC2: Given AC1's owed take, when the player takes one option, then that card moves from the discard to the
+- [x] AC2: Given AC1's owed take, when the player takes one option, then that card moves from the discard to the
   hand, the other two stay in the discard, the played card is in the discard and nothing is owed.
-- [ ] AC3: Given exactly one card in the discard, when the recall card is played, then that card goes to the hand at
+- [x] AC3: Given exactly one card in the discard, when the recall card is played, then that card goes to the hand at
   once and nothing is owed.
-- [ ] AC4: Given an empty discard, then `play_error` on the recall card is "There is no card in your discard pile to
+- [x] AC4: Given an empty discard, then `play_error` on the recall card is "There is no card in your discard pile to
   take back." and `play_card` refuses it (nothing paid, no action used).
-- [ ] AC5: Given an owed take, then every other action refuses with "Choose a card to take into your hand first."
+- [x] AC5: Given an owed take, then every other action refuses with "Choose a card to take into your hand first."
   (the guard tables in `test_blocking.gd`); `take_error(uid)` refuses a uid that isn't an option ("That card isn't
   one of the choices.") and refuses when no take is owed ("There is no card to take."); `legal_actions()` lists one
   entry per option.
-- [ ] AC6: A card with `{op: recall}` loads with no fields; any field is an "unknown field" warning; the loader
+- [x] AC6: A card with `{op: recall}` loads with no fields; any field is an "unknown field" warning; the loader
   rejects it on `upkeep`, on `start` and on an event (it opens a choice). Its rules text is "Take a card from your
   discard pile into your hand".
-- [ ] AC7 (UI, real `main.tscn`): an owed take shows the choice overlay with each option as a card; clicking one takes
+- [x] AC7 (UI, real `main.tscn`): an owed take shows the choice overlay with each option as a card; clicking one takes
   it into the hand and closes the overlay.
 
 ## Out of scope
@@ -61,7 +61,13 @@ unlocks in the supply. You choose a card in your discard pile and it goes back i
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_recall::test_…` |
+| AC1 | `test_recall::test_recall_owes_a_take_of_each_discard_card` |
+| AC2 | `test_recall::test_taking_an_option_moves_it_to_the_hand_and_leaves_the_rest_in_the_discard` |
+| AC3 | `test_recall::test_a_lone_discard_card_goes_to_the_hand_at_once` |
+| AC4 | `test_recall::test_recall_with_an_empty_discard_is_refused` |
+| AC5 | `test_recall::test_take_error_refuses_a_card_that_isnt_a_choice_or_when_no_take_is_owed`, `test_recall::test_a_take_lists_one_entry_per_option`, `test_blocking` (a `take` scenario, action row, message column, hand-input row), `test_legal_actions::coverage` (a `take` row) |
+| AC6 | `test_recall::test_recall_loads`, `test_recall::test_recall_validation`, `test_recall::test_recall_card_text` |
+| AC7 | `test_recall::test_the_take_overlay_shows_the_options_and_a_click_takes_one` |
 
 ## Manual check
 - [ ] Shipped data: Precedent is a locked supply pile (price 4, 4 copies) until Code of Laws; its text reads +1 action,
@@ -73,3 +79,9 @@ unlocks in the supply. You choose a card in your discard pile and it goes back i
 ## Log
 <!-- Decisions and surprises during implementation, newest last. -->
 - Spec: back to hand plus +1 action rather than replaying from the discard (user, 2026-10-06).
+- Build: the offered cards wait in a new `offered` zone (user approved at the red checkpoint), not in place in the
+  discard: recall moves the whole discard there, `take` sends the rest back to the discard. 371's look reuses it, so
+  `take` needs no `rest` field. While a take is owed the discard counter reads 0 (its cards are in the overlay).
+- Build: the loader now rejects any op that opens a choice on an event (no shipped event used one).
+- Rules in `engine/takes.gd` (`Takes`); the Take overlay is in `ui/choice_overlays.gd` (`take_row`).
+- Balance worry: none measured; price 4 and 4 copies are first guesses.

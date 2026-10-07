@@ -143,6 +143,12 @@
       "effects": [ { "op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "port" } ]
     },
     {
+      "id": "precedent", "name": "Precedent", "type": "action",
+      "flavor": "Scribes keep the verdicts on clay. When a case comes before the judges, they read how the last one like it was settled.",
+      "cost": {}, "vp": 0, "tags": [],
+      "effects": [ { "op": "gain_actions", "amount": 1 }, { "op": "recall" } ]
+    },
+    {
       "id": "temple", "name": "Temple", "type": "building",
       "flavor": "A house for the god on a raised platform. The priests keep the offerings, and the people climb the steps with their hopes.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["culture"], "upgrade_of": "shrine", "tier": "village",
@@ -996,7 +1002,8 @@
       "quote": { "text": "Let the good of the people be the supreme law.", "by": "Cicero, De Legibus" },
       "cost": { "insight": 19 }, "vp": 0, "eureka": { "tag": "city", "count": 3, "off": 4 }, "tags": [], "modifiers": { "administers": 1 },
       "effects": [ { "op": "create", "card": "kingship", "zone": "discard" }, { "op": "unlock", "card": "courthouse" },
-        { "op": "unlock", "card": "great_ziggurat" }, { "op": "unlock", "card": "palace" } ]
+        { "op": "unlock", "card": "great_ziggurat" }, { "op": "unlock", "card": "palace" },
+        { "op": "unlock", "card": "precedent" } ]
     },
     {
       "id": "calendar", "name": "Calendar", "type": "tech", "era": 2, "prereq": "pottery",

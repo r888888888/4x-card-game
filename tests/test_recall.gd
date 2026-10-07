@@ -4,7 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## empty discard can't be recalled from. The fixture Recall (+1 action, recall) is RECALL_CARD in tests/lib, not in
 ## TEST_CARDS, so other tests load while the op is missing. Games are ruled by TEST_GOVS' Band (2 actions).
 
-const TAKE := "take"
 const NO_DISCARD := "There is no card in your discard pile to take back."
 
 
@@ -40,7 +39,7 @@ func test_recall_owes_a_take_of_each_discard_card() -> void:
 	var e: GameEngine = g.e
 	check(e.play_card(g.recall), "play Recall: %s" % e.play_error(g.recall))
 	var p := e.pending()
-	eq(p.get("kind"), TAKE, "a take is owed")
+	eq(p.get("kind"), GameEngine.PENDING_TAKE, "a take is owed")
 	eq(sorted(p.get("options", [])), sorted(g.discard), "the three discard cards are the options")
 	check(not p.get("options", []).has(g.recall), "Recall itself is not an option")
 	eq(uids(e.zone("hand")), [g.shrine], "the hand is otherwise unchanged")
@@ -54,8 +53,8 @@ func test_taking_an_option_moves_it_to_the_hand_and_leaves_the_rest_in_the_disca
 	var e: GameEngine = g.e
 	e.play_card(g.recall)
 	var scout: int = g.discard[1]
-	eq(e.call("take_error", scout), "", "take_error")
-	check(e.call("take", scout), "take the Scout")
+	eq(e.take_error(scout), "", "take_error")
+	check(e.take(scout), "take the Scout")
 	eq(sorted(uids(e.zone("hand"))), sorted([g.shrine, scout]), "the Scout is in the hand")
 	eq(sorted(uids(e.zone("discard"))), sorted([g.discard[0], g.discard[2], g.recall]),
 		"the Farm, the Temple and Recall are in the discard")
@@ -90,12 +89,12 @@ func test_recall_with_an_empty_discard_is_refused() -> void:
 func test_take_error_refuses_a_card_that_isnt_a_choice_or_when_no_take_is_owed() -> void:
 	var g := recall_game(["farm", "scout"])
 	var e: GameEngine = g.e
-	eq(e.call("take_error", g.discard[0]), "There is no card to take.", "nothing owed")
-	check(not e.call("take", g.discard[0]), "take refuses with nothing owed")
+	eq(e.take_error(g.discard[0]), "There is no card to take.", "nothing owed")
+	check(not e.take(g.discard[0]), "take refuses with nothing owed")
 	e.play_card(g.recall)
 	var before := e.state.copy()
-	eq(e.call("take_error", g.shrine), "That card isn't one of the choices.", "a hand card")
-	check(not e.call("take", g.shrine), "take refuses the Shrine")
+	eq(e.take_error(g.shrine), "That card isn't one of the choices.", "a hand card")
+	check(not e.take(g.shrine), "take refuses the Shrine")
 	eq(state_diff(e.state, before), "", "nothing changed")
 
 

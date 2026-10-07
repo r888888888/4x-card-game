@@ -129,7 +129,8 @@ func move(step: int) -> void:
 		hand_index = i
 
 
-## The choice row the card focus moves through while a choice is owed: the explore reveal, or the government deck
+## The choice row the card focus moves through while a choice is owed: the explore reveal, the offered cards (370),
+## or the government deck
 ## (254: the default first); null otherwise.
 func _choice_row() -> Container:
 	match _board.pending_kind():
@@ -137,6 +138,8 @@ func _choice_row() -> Container:
 			return _board.choices.reveal
 		GameEngine.PENDING_GOVERNMENT:
 			return _board.choices.government_row
+		GameEngine.PENDING_TAKE:
+			return _board.choices.take_row
 	return null
 
 
