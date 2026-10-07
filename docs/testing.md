@@ -55,7 +55,7 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/balance/test_sim_cache_runs.gd` | Balance suite: the sim's result cache (292) |
 | `tests/balance/test_sim_compare_runs.gd` | Balance suite: comparing two checkouts game by game (293) |
 | `tests/balance/test_sim_reports.gd` | Balance suite: the sim's report (042, 134, 135) |
-| `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing their reasons (093) |
+| `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing them (093) |
 | `tests/test_actions.gd` | Actions per turn (127) |
 | `tests/test_admin_unrest.gd` | Admin unrest (319) |
 | `tests/test_anarchy.gd` | Anarchy (145) |
@@ -208,12 +208,12 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_sound_settings.gd` | Sound settings and the audio buses (184) |
 | `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193) |
 | `tests/test_start_screen.gd` | The title, new game and settings screens (063, 099; UI) |
-| `tests/test_state_copy.gd` | `GameState.copy()` and `CardInstance.copy()` carry every variable and share nothing (171) |
+| `tests/test_state_copy.gd` | `GameState.copy()` and `CardInstance.copy()` copy everything, share nothing (171) |
 | `tests/test_sunrise_art.gd` | The title screen's art (214) |
 | `tests/test_supply.gd` | The card supply (032, 057) |
 | `tests/test_supply_screen.gd` | The Supply screen's pile cards (232; UI) |
 | `tests/test_surfaces.gd` | Wood grain, paper and soft shadows (341; UI) |
-| `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era arriving (027) |
+| `tests/test_tech_eras.gd` | Eras: `era`, the `add_era` and `research` ops, `future_techs`, the next era (027) |
 | `tests/test_tech_event_flavor.gd` | Tech/event/action `flavor`, tech `quote` (215) |
 | `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289; UI) |
 | `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`, `affordable`), `era_name` / `era_names` |
@@ -235,14 +235,15 @@ rows of at most 160 characters); "UI" marks files that run the real `main.tscn`.
 | `tests/test_turn_forecast.gd` | `turn_forecast` (309) |
 | `tests/test_type_tokens.gd` | Text sizes (194) |
 | `tests/test_ui_queries.gd` | Engine queries the UI relies on (049, 094, 175, 180) |
-| `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole game played by `play_first_legal` (314) |
-| `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component, no engine internals (052, 175, 176, 316) |
+| `tests/test_ui_smoke.gd` | `main.tscn` follows a game played by `play_first_legal` (314) |
+| `tests/test_ui_structure.gd` | `ui/`: one script per component, no engine internals (052, 175, 176, 316) |
 | `tests/test_unit_moves.gd` | Moving and disbanding units (163) |
 | `tests/test_units.gd` | Unit cards (160) |
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI) |
 | `tests/test_upgrades.gd` | Building upgrades (300) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
+| `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_wealth.gd` | Wealth, the second resource |
 | `tests/test_wonder_sites.gd` | Wonders built over turns (286) |
 | `tests/test_workers.gd` | Workers |
