@@ -2,7 +2,7 @@
 id: 388
 title: Veteran pips on unit cards
 type: feature
-status: ready
+status: red-review
 branch: feat/388-veteran-pips
 ---
 
@@ -45,6 +45,11 @@ they can earn. Today veterancy only shows as a "Strength N" tag and a line in th
 ## Test plan
 | AC | Test |
 |---|---|
+| AC1 | `test_veterans::test_a_units_pips_are_its_counters_out_of_veteran_max`, `test_no_pips_without_veterans_or_for_anything_but_a_unit_in_the_tableau` |
+| AC2 | `test_veteran_pips::test_a_units_card_shows_its_counters_filled_out_of_the_cap` |
+| AC3 | `test_veteran_pips::test_no_pips_without_veterans_or_on_a_card_that_isnt_a_unit` |
+| AC4 | `test_veteran_pips::test_a_repelled_raids_counter_lights_once_the_modal_closes_as_a_tally`, `test_a_unit_played_again_starts_dim` |
+| AC5 | `test_veteran_pips::test_a_repelled_raids_counter_lights_once_the_modal_closes_as_a_tally` (ticks at 0 and 60 ms), `test_with_reduce_motion_the_pips_light_at_once_with_a_tick_each` |
 
 ## Manual check
 - [ ] `godot --path .`: play until a raid is announced at a territory, garrison it with a unit and enough defence, and
@@ -53,3 +58,10 @@ they can earn. Today veterancy only shows as a "Strength N" tag and a line in th
 - [ ] Turn on Reduce motion and repeat: the pip appears lit with no animation.
 
 ## Log
+- 2026-10-07: red. Decisions: after 394 the query is on the military area, `e.military.veteran_pips(uid)`, not
+  `GameEngine.unit_veteran_pips` (the README's order put 388 after 394 for this). Pips are tinted `Palette.UNIT` lit
+  and the same at alpha 0.35 dim (`CardView.PIP_DIM`), the pop meter's pattern; hook `CardView.veteran_pips()` gives
+  each pip's tint. A turn's end closes the territory view (existing behaviour), so the strike tests open Hills' view
+  under the open raid modal, then close the modal: the pip lights without reopening the view. Ticks are counted from
+  the press of OK, since the resource odometers tick in the same turn. The tally's first pip lights at once, the next
+  unit's 60 ms later (`Anim.TALLY_STEP`, new).
