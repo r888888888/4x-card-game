@@ -1782,7 +1782,9 @@ commuter trains, no names from the twentieth century).
    says that, generated from the effects.
 8. **Quotes are real.** A `quote` is a real saying, accurately worded, with its source in `by` (the work, and the
    translator when the wording is theirs). Never invent one, and never put flavor-voice text in a quote.
-9. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
+9. **Quotes come at the card sideways**, from a deeper cut than the quotation books, and from every age. How to
+   choose one: §18.5.
+10. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
 
 ### 18.3 Do / Don't
 
@@ -1798,8 +1800,51 @@ commuter trains, no names from the twentieth century).
 - One true fact, in present tense, in about 120 characters (170 for a civilization).
 - The ending: does this card type already have its third of wry turns? Then end on an image or a fact.
 - A disaster? Plain.
+- A quote? Run it through §18.5's checks.
 - Read it aloud next to the card's rules text: it should sound like a sentence from a story, not a label.
 - Does the card need art? Add its row to [card-art.md](card-art.md) (§19).
+
+### 18.5 Choosing a quote
+
+Civilizations, governments, techs and Anarchy carry a quote under their flavor line. The flavor says what the thing
+is; the quote should make the player look at it again.
+
+**At an angle, not on the nose.** A quote that only names or describes the card's subject (a wheel for The Wheel,
+ships for Navigation, a list of crops for Olive and Vine) repeats the card's name. Find one that touches it sideways:
+
+- an idea the thing serves: Borges's "All language is a set of symbols whose use among its speakers assumes a shared
+  past" on Alphabet; Calvino's "Without stones there is no arch" on Engineering;
+- the thing used as a metaphor for something else: Job's "My days are swifter than a weaver's shuttle" on Weaving;
+  Proverbs' king's heart turned "as the rivers of water" on Irrigation;
+- an irony or a doubt: Kafka's "A cage went in search of a bird" on Bureaucracy; Cato wondering "that a soothsayer
+  doesn't laugh when he sees another soothsayer" on Priesthood; Auden's stars that don't care on Astronomy;
+- a scene that makes the stakes physical: the ship's side "four fingers' breadth in thickness" on Navigation; Pliny
+  unable to clasp the fallen Colossus's thumb on Bronze Working.
+
+A literal quote stays only when it is especially pithy or strange: "Egypt is the gift of the river"; Cato's "Good
+ploughing. What next? Ploughing."
+
+**A deep cut, not a poster.** If a reader has met the line on a mug, a motto, a graduation speech or a quotation
+site's front page, it's spent: "The unexamined life is not worth living", "Things fall apart", "Give me a place to
+stand", "Render unto Caesar", "All that glisters is not gold", "There is no new thing under the sun", "Man is the
+measure of all things". Look one layer down: the same author's less-quoted lines, a writer's aside about another
+(Diogenes Laertius, Plutarch, Cicero), an epigram, a farming manual, a letter.
+
+**Every age.** About a third of the quotes come from modern writers and poets (Larkin, Heaney, Seferis, Rilke,
+Calvino, Borges, Kafka, Arendt, Sontag), the rest from the ancient world and the King James Bible. A modern line is
+welcome on an ancient card: Seferis's marble head on Greece, Larkin's days on Calendar. Don't let one source
+dominate: before adding a Psalm or a Proverb, count the Bible quotes already in; keep the same author off cards that
+sit side by side.
+
+**Checked against a text.** Copy the wording from a published edition or translation, never from memory or a quotation
+site, and name the translator in `by` when the wording is theirs (Weaver, Keeley and Sherrard, Hicks). Cut with an
+ellipsis only, never by rewording. Drop a candidate when its author is disputed (the "bronze is the mirror of the
+form" line, given to both Aeschylus and Euripides) or when its translations disagree and you can't confirm one. Note
+where you checked it in the item's Log.
+
+**One card each, one or two sentences.** No two cards share a quote. A quote runs a sentence or two, about the
+length of the flavor line; a longer passage gets cut at a sentence break.
+
 
 ---
 
