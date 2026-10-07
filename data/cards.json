@@ -1003,7 +1003,7 @@
     {
       "id": "archery", "name": "Archery", "type": "tech",
       "flavor": "Bows of horn, wood and sinew are glued in layers and left to cure for a year; strung, they outrange any spear.",
-      "quote": { "text": "He breaketh the bow, and cutteth the spear in sunder.", "by": "Psalm 46:9" },
+      "quote": { "text": "The bow (biós) is called life (bíos), but its work is death.", "by": "Heraclitus, fragment 66 (tr. John Burnet)" },
       "cost": { "insight": 5 }, "vp": 0, "eureka": { "card": "warriors", "count": 1, "off": 2 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "archers" } ]
     },
@@ -1081,7 +1081,7 @@
     {
       "id": "chariot", "name": "Chariot", "type": "tech", "era": 2, "prereq": "the_wheel",
       "flavor": "Two spoked wheels, a wicker car and a pair of horses: from the steppe to Egypt, kings learn to go to war standing up.",
-      "quote": { "text": "Some trust in chariots, and some in horses.", "by": "Psalm 20:7" },
+      "quote": { "text": "…the horses rattled the empty chariots through the files of battle, longing for their noble drivers. But they on the ground lay, dearer to the vultures than to their wives.", "by": "Homer, Iliad 11 (tr. Simone Weil and Mary McCarthy)" },
       "cost": { "insight": 16 }, "vp": 0, "eureka": { "card": "pasture", "count": 1, "off": 4 }, "tags": [],
       "effects": [ { "op": "unlock", "card": "chariots" } ]
     },
