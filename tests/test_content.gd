@@ -112,6 +112,45 @@ func test_real_deck_has_growth_cards() -> void:
 	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
+## Backlog 369: no op is dead code; every op in EffectRegistry is used by some real card (a choice event's options
+## included).
+func test_every_effect_op_is_used_by_a_real_card() -> void:
+	var r := load_real()
+	var used := {}
+	for id in r.cards:
+		for effect in event_effects(r.cards[id]):
+			used[effect.op] = true
+	var unused: Array[String] = []
+	for op in EffectRegistry.OPS:
+		if not used.has(op):
+			unused.append(op)
+	eq(unused, [] as Array[String], "effect ops no real card uses")
+
+
+## Backlog 369: a player in Anarchy always owns a card they can play: the starting deck holds an allowed_tag card.
+func test_starting_deck_holds_an_anarchy_playable_card() -> void:
+	var r := load_real()
+	var tag: String = r.config.unrest.allowed_tag
+	var tagged: Array = r.config.deck.keys().filter(func(id): return r.cards[id].has_tag(tag))
+	check(not tagged.is_empty(), "the starting deck holds a card tagged '%s'" % tag)
+
+
+## Backlog 369: every resource a real card costs is gained by the play effect of some starting-deck card.
+func test_every_cost_resource_is_gained_by_a_starting_deck_play() -> void:
+	var r := load_real()
+	var gained := {}
+	for id in r.config.deck:
+		for effect in r.cards[id].effects_for("play"):
+			if GAIN_OPS.has(effect.op):
+				gained[effect.resource] = true
+	var unfunded: Array[String] = []
+	for id in r.cards:
+		for res in r.cards[id].cost:
+			if not gained.has(res) and not unfunded.has(res):
+				unfunded.append(res)
+	eq(unfunded, [] as Array[String], "cost resources no starting-deck card gains on play")
+
+
 # --- Military from turn 1 (285; recruited from the build menu since 296) ---
 
 ## Backlog 296 (replaces 285's "the starting deck holds a military unit" and 160's "every unit has a supply pile or a

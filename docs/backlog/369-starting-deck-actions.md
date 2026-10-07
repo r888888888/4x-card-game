@@ -2,7 +2,7 @@
 id: 369
 title: Five new actions pad out the starting deck
 type: feature
-status: ready
+status: red-review
 branch: feat/369-starting-deck-actions
 ---
 
@@ -68,7 +68,11 @@ is in the deck. Content only: every op exists.
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_content::test_…` |
+| AC1 | `test_content::test_every_effect_op_is_used_by_a_real_card` |
+| AC2 | `test_content::test_starting_deck_holds_an_anarchy_playable_card` |
+| AC3 | `test_content::test_every_cost_resource_is_gained_by_a_starting_deck_play` |
+| AC4 | `test_content::test_every_action_has_flavor` (exists since 351) |
+| AC5 | `test_content::test_flavor_lines_are_short`, `test_every_real_card_can_reach_a_game`, `test_real_deck_has_growth_cards`, `test_real_data_loads` (existing) |
 
 ## Manual check
 - [ ] Shipped data: the starting deck is Settler, Scout, Research, Barter 2, Storyteller, Hunt (until 368), Bread and
