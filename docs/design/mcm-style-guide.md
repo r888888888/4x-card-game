@@ -1,7 +1,7 @@
 # Mid-Century Modern Style Guide — "The Civic Planning Desk"
 
 Spikes `spike/mcm-style-guide` and `spike/mcm-sound`. A visual, motion, interaction and sound design system for the
-4X card game, with the voice of its flavor text (§18), written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
+4X card game, with the voice of its flavor text (§18) and the direction of its card art (§19), written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
 adjectives. A live specimen of the tokens and the core components (with motion, synthesized sound, and Reduce motion
 and Sound switches) is in [mcm-specimen.html](mcm-specimen.html); open it in a browser.
 
@@ -14,6 +14,7 @@ Companion pages in this folder (open them in a browser); [index.html](index.html
 - [mocks/](mocks/): the option pages, each comparing a few designs for one question, kept as the record of what was
   chosen and why (the index says which option each item built).
 - [tools/sound-export.html](tools/sound-export.html): renders the sound tokens into the game's placeholder files.
+- [card-art.md](card-art.md): every card's art file and brief (§19).
 
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
 names it, and §17 maps every token onto the existing code.
@@ -205,7 +206,8 @@ These are the shapes the game's glyphs already use (`Icons.GLYPHS`); the guide k
 
 1. A screen at rest uses neutrals + at most **two** support hues + signal (once). Resource colours inside the
    resource bar don't count against this; they're a key, not decoration.
-2. Large areas are neutral. Support hues appear as planes no larger than a card band, a bar, or a tab.
+2. Large areas are neutral. Support hues appear as planes no larger than a card band, a bar, or a tab. The one
+   exception is a card's illustration (§19), a framed print with its own short palette.
 3. No transparency for colour mixing. Translucency is reserved for one thing: the drafting **vellum overlay**
    (§11.8), `sheet` at 88%.
 4. Hover never changes hue. It changes value by one step (§7.1) or adds a rule.
@@ -353,7 +355,8 @@ the token's alpha, `shadow_size` its blur, anti-aliased (`Surfaces.lift`).
 
 Cards are **index cards**, not app tiles: square corners, `sheet` face, 2 px `ink` border (Night: `rule`), and
 a **type band**: a 6 px plane-coloured strip across the top under the name, carrying the type glyph at its right
-end. Rules text below a hairline. VP bottom-right with the starburst. Printed on paper, on a soft `shadow.card` at rest,
+end. On a hand-size face the card's **art plate** (§19) follows the band: 5:2, full width, 1 px `ink` frame.
+Rules text below a hairline. VP bottom-right with the starburst. Printed on paper, on a soft `shadow.card` at rest,
 `shadow.card-hover` when hovered and `shadow.card-drag` when dragged (341).
 
 **Cost is always top-right**, on every card type, on the name's line: one **cost entry per resource paid**, in a
@@ -369,6 +372,29 @@ box.
 
 A dimmed (unplayable) card keeps full-contrast text, swaps the band for a 45° hatch in `ink-3` and adds its reason
 strip as a `well` plate with ⊘ and `ink` text, not a red banner.
+
+**Face text is a spec sheet** (382). Under the type line, in this order: a **ledger** of the card's figures (a
+government's actions, unrest limit, tolerated tier, territories administered: label in 14 px caps `ink-2`, figure in
+tabular `type.numeral-s`, two columns, no rules between rows); the **rules**, one effect a line, with every card the
+card unlocks on one *Unlocks* line; and at the foot, above the VP, a line of **fine print** for what gates the card
+rather than what it does (*Needs*, *Eureka*, *Starts on*, *Built over turns*): 14 px caps `ink-2`, entries joined by
+" · ", a hairline above. Fine print is the smallest type on a card; 14 px is the floor (§12 rule 5), never less. The
+long form, sentence by sentence, stays in the details. A tableau-size face shows the ledger and rules, not the fine
+print.
+
+**When the rules don't fit** (383; options compared in [mocks/card-overflow-options.html](mocks/card-overflow-options.html)),
+a card keeps its size and its type size. It never grows, shrinks its rules, fades them out or slices a line.
+1. **At rest** it shows whole rules while they fit (a one-paragraph rule is cut after its last whole sentence), then
+   a foot under a dashed `rule`: *+3 more* on the left, *details* with its `I` key on the right (on a hand card; a
+   card in a modal, whose full text is beside it, shows only *+3 more*). All of it 14 px caps.
+2. **Rest the pointer** on a hand card for 120 ms without moving and the text sheet (type line to fine print) slides up
+   over the art plate, only as far as the hidden text needs, at most the whole plate, and stops (120 ms `machined`).
+   Its top edge is a 1 px `ink` rule. A pointer passing through moves nothing.
+3. **If rules are still hidden**, the foot's dashed rule fills from left to right with a 2 px `ink` bar over 1.1 s,
+   linear: a gauge, telling the player both that there is more and when it will come. It runs once and never loops.
+4. **When it is full**, the **rules popover** (§11.11) opens beside the card. No click is needed; a press at any step
+   cancels the reveal and goes on to play, drag or select as usual.
+Cards that fit only lift on hover. A long card's art yields only while the player reads it.
 
 ### 6.8 Icon sizing
 
@@ -469,7 +495,7 @@ Icons are drawn on a **24 px grid with a 2 px live-area margin** (20 px live are
 | Line caps / joins | Square caps, mitred joins. No round caps (that's the SaaS look). |
 | Corners | Sharp. Curves are true circular arcs only (compass-and-ruler geometry). |
 | Primitives | Circle, square, equilateral triangle, straight lines at 0°/45°/90°. No freehand. |
-| Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration, not an icon. |
+| Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration (§19), not an icon. |
 | Optical size | A solid glyph carries more weight than an outlined one, so it is drawn about 20% smaller on the grid (the unrest bolt spans 16 of the 24 units, not 20) to sit at the same visual height as its neighbours and the figure beside it. |
 | Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". One standing exception: the unrest bolt is always solid, so the one harmful resource never looks like the others. |
 | Active / inactive | Active: `ink` (or its hue line), filled where the icon has a fill state. Inactive: `ink-2`, outlined. Disabled: `ink-3`, outlined, never with a strike-through unless it means "blocked" (⊘). |
@@ -549,6 +575,8 @@ travel (§16.5).
 | Resource gain | 600–900 ms total | Delta tag (+3) snaps in beside the counter (90 ms), the counter rolls, the lamp pulses once, tag holds 600 ms then wipes out (120 ms). | `snap`, `linear-step`, `lamp` | ticks during the roll; `ui.resource.gain` / `.loss` @ lamp-on. The tag is silent. |
 | Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for \|Δ\| > 8, roll the last 8 steps only. | `linear-step` | `ui.counter.tick` @ each step's landing; the jump past the first steps is silent |
 | Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` | `ui.selection` @ index tab lands, ≈ 65 ms. Deselect: None |
+| Card text rise (383) | 120 ms rest, then 120 ms | A long hand card's text sheet slides up over its art plate by the hidden text's height (≤ the plate); back on leave. | `machined` / `release` | None |
+| Rules wait (383) | 1.1 s | The *+N more* foot's dashed rule fills left to right with a 2 px `ink` bar; full, the rules popover opens (90 ms opacity + 4 px slide). | linear | None |
 | List selection | 40 ms lamp, 120 ms fill | The row's `sheet` strip fills in place and its lamp lights; nothing moves. The old row's lamp goes out over 120 ms. | `lamp`, linear | `ui.selection` @ lamp-on (0 ms). Deselect: None |
 | Scroll | ≈ 500 ms per notch | A wheel notch pushes the content, which decays (friction 8 / s) over ≈ 120 px and stops dead at an end; a keyboard follow eases 200 ms. | decay; follow `machined` | None |
 | Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` | `ui.confirm` @ lamp-on (0 ms); the rays are silent |
@@ -567,6 +595,8 @@ The game has Reduce motion (`Settings.reduce_motion`). With it on:
 - Press feedback remains (it is 2 px and instant feedback, not decoration), but its tween becomes a frame switch.
 - Milestones skip to their end state; the starburst is drawn static.
 - Looping animation of any kind (the drop-zone pulse) stops; a static 3 px outline replaces it.
+- A long card's text sheet jumps up instead of sliding; the rules wait's gauge fills in three equal steps (it keeps its
+  1.1 s, as it is a timer, not decoration); the rules popover appears without its slide.
 - **Sound is unchanged** in kind and level. Where a motion becomes instant, its contact and its stop are the same
   frame, so it plays the stop sound only (the drawer's felt stop, the latch, the sheet settling) and drops any travel
   texture; an instant counter plays one tick and its registration, not a run. A player who reduces motion may lean on
@@ -862,6 +892,14 @@ moving between adjacent tooltip targets), with a 90 ms opacity + 4 px slide from
 (the upkeep forecast: one row per source, a hairline, the net).
 Sound: None, in every state. A tooltip answers a hover, and hover is silent.
 
+**The rules popover** (383) is the same printed tab, 320 px wide, beside a hand card whose rules don't fit even after
+its text sheet rises (§6.7): right of the card, or left when the right has no room, its notch toward the card. It
+opens after the 1.1 s gauge, not the 400 ms delay. Content: the card's name as the `type.label-caps` heading, the
+long-form rules, then the play error and its detail if any. It isn't a modal: the pointer may move onto it without
+closing it, and it stays until the pointer leaves both, Esc, or a press (WCAG 1.4.13: hoverable, dismissible,
+persistent). It replaces a hand card's plain tooltip: a card whose rules fit has no hover popup, since its reason
+strip is on the face and its details are a click or `I` away. It shares the counters' popover control (379).
+
 ### 11.12 Victory / progression
 Era change and game over are **ceremonial sheets**: full-screen `sheet` (lighter than the board, so the wipe reads)
 with a 4 px `ink` **straightedge** riding the wipe's leading edge, and a centred (the one allowed centring)
@@ -1000,6 +1038,11 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Dry Level 1 sounds; one small room for any reverb | Hall reverb on a button |
 | Silence while the player thinks | An ambient UI hum or a ticking clock |
 | Sounds implied by the mechanism on screen | Typewriter bells, cash registers, sci-fi bleeps, lounge music |
+| A long card cut at a whole rule, with *+3 more* at its foot | A fade-out over the last line, a line sliced in half, or a card taller than its row |
+| A gauge filling once in the foot before the rules popover opens | A card that trembles, pulses or changes colour to say a popup is coming |
+| Card art in four flat inks on cream, overprinted where shapes cross (§19) | A painted, rendered or photographic picture; gradients and glows |
+| An ancient scene drawn the way a 1958 magazine would draw it | 1950s people, cars or cocktails; boomerangs and atomic starbursts |
+| Print texture inside a shape, once | Scratches, folds, stains or fake misregistration over the whole picture |
 
 ---
 
@@ -1259,6 +1302,8 @@ rules `type.body-s`; VP with starburst bottom-right.
 |---|---|---|---|---|---|---|
 | REST | — | 0, 0 | card (soft, 341) | 2 ink/rule | | None |
 | → HOVER | 100 ms `machined` | 0, −4 | card-hover | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
+| → RISE (long card, 383) | 120 ms rest, 120 ms `machined` | 0, −4 | card-hover | 2 ink | text sheet over the art, as far as needed | None |
+| → WAITING (still hidden) | 1.1 s linear | | | | the foot's gauge fills; then the rules popover | None |
 | → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting | `ui.card.lift` @ ≈ 33 ms, once the press becomes a drag; a click that selects plays `ui.selection` instead |
 | → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | card-drag | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
 | → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms | `ui.selection` @ the tab lands, ≈ 65 ms. Deselect: None |
@@ -1754,3 +1799,136 @@ commuter trains, no names from the twentieth century).
 - The ending: does this card type already have its third of wry turns? Then end on an image or a fact.
 - A disaster? Plain.
 - Read it aloud next to the card's rules text: it should sound like a sentence from a story, not a label.
+- Does the card need art? Add its row to [card-art.md](card-art.md) (§19).
+
+---
+
+## 19. Card illustration
+
+Spike `spike/card-art`; items 381 (the plate), 382 (the face text) and 383 (overflow). Every card carries one picture, printed as a plate under its type band. The art list, with a
+file name and a brief for each card, is [card-art.md](card-art.md).
+
+### 19.1 Direction
+
+The premise, carried on: the desk's cards were printed by the studio that did the agency's annual report and its
+magazine advertising. Card art is **commercial print of 1950–1965**: the magazine ad, the editorial spot
+illustration, the corporate annual report, the airline travel poster, the picture book. It draws the ancient world
+through that lens, the way a 1958 *Fortune* spread drew a steel mill: Uruk as a few confident planes of colour,
+the figures reduced to shapes, one idea per picture.
+
+The picture is the one place on a card where colour fills an area (§4.6 rule 2). It earns that by behaving like
+print: flat inks, a short palette, crisp edges and a frame.
+
+**What it is not.** Not photographic, painterly or 3D-rendered; not a fantasy card game's dramatic oil painting. Not
+"retro" pastiche: no scratches, folds, foxing, coffee stains, heavy grain or deliberate misregistration (the guide's
+no-fake-wear rule, §1). No atomic kitsch: no boomerangs, no starbursts as wallpaper, no tiki. And no 1950s people:
+the *drawing* is mid-century, the *world* is ancient. Nobody wears a suit, smokes or drives.
+
+### 19.2 Reference points
+
+Look at these for *method*, never to copy a picture.
+
+| Source | What to borrow | For |
+|---|---|---|
+| Alice and Martin Provensen (*The Iliad and the Odyssey*, Golden Book, 1956) | The ancient world itself, drawn mid-century: frieze-like rows of flat figures, patterned dress, a loose ink line | actions, civilizations, events |
+| Charley Harper | Animals and land reduced to geometry: a bird is a triangle and a circle; minimal detail, maximum shape | territories, hunting, fishing, herds |
+| Miroslav Šašek (*This is Paris*, 1959, and the series) | Buildings and streets in a loose ink line over flat colour; a city's character in one view | buildings, cities |
+| Mary Blair (Golden Books, concept art) | Bold flat colour, stylised figures, joy; colour as mood | festivals, good events |
+| Container Corporation of America ads (*Great Ideas of Western Man*, 1950–75) | An abstract idea carried by one bold symbol on open ground | techs, governments |
+| Erik Nitsche (General Dynamics *Atoms for Peace* posters, 1955) | Knowledge as a geometric diagram: orbits, grids, rings around an object | techs |
+| Airline and rail travel posters (David Klein for TWA, the Pan Am series) | A place as one landmark in flat planes, at poster scale, with its sky | civilizations, wonders |
+| Saul Bass (film titles and posters) | Cut-paper silhouettes, ragged edges, a dramatic crop; threat without gore | disasters, raids, unrest |
+| Paul Rand, Alvin Lustig (book jackets, identities) | A few symbols collaged into an emblem; wit in the arrangement | governments, abstract actions |
+| Giovanni Pintori (Olivetti ads) | Rhythm: one form repeated into a pattern | trade, markets, crafts |
+
+### 19.3 Technique
+
+| Property | Rule |
+|---|---|
+| Planes | Flat colour shapes with crisp, cut-paper or brush-cut edges. No gradients, no airbrush, no soft shading. |
+| Overprint | Where two inks overlap they make a third, as if printed one over the other (multiply). This is the period's signature, and the only way two colours mix. |
+| Line | Optional: one charcoal line weight, loose and drawn over the colour (Šašek, Provensen), not outlining every shape. |
+| Texture | At most one print texture per picture, inside shapes only: halftone dots, dry brush, crayon resist or stipple. Never over the whole picture. |
+| Space | Flattened: a side-on frieze, an elevation, or a high oblique view. Depth by overlap and stacking, never a vanishing-point plunge. |
+| Figures | Stylised and geometric; a face is a shape, eyes a dot or nothing. Ancient dress. Never a real person's likeness: Gilgamesh or Hammurabi is a type, not a portrait. |
+| Lettering | None. The game prints the name. Writing may appear only as pattern (rows of wedges on a tablet, marks on a scroll), never legible. |
+| Harm | Disasters and violence by symbol or aftermath (an empty granary, a smoke column, an abandoned cart): no bodies, no blood, nothing a player has to look away from. The visual twin of §18.2 rule 4. |
+
+### 19.4 Palette
+
+A picture is printed in **four inks at most, plus its paper**:
+
+| Ink | Value | Use |
+|---|---|---|
+| Paper | `#F3EBDB` warm cream | The ground, and all the negative space. The file is the same in both modes; Night dims it in the game (§19.7). |
+| Key | `#22211F` charcoal (`ink`) | Line, silhouettes, the darkest shapes. |
+| Type ink | the card type's Paper plane value (below) | The dominant hue: it covers the largest coloured area (often the sky, the ground or a backdrop plane), so the picture and the type band agree. |
+| Support | one or two other plane values, used smaller | Accents: a sun, a sail, a dress. |
+
+Type inks: action muted blue `#8AA7C4`, building olive `#A3AA6A`, city ochre `#D9A441`, territory sage `#9DB592`,
+tech teal `#5E9C97`, event brick `#C9705C`, civilization plum `#B07D9C`, government indigo `#8F88B8`, unit bronze
+`#A97F63`. Support inks come from the same set.
+
+**Signal orange is never an ink** (§1 tenet 4): it stays the one loud thing on screen. Brick or ochre stands in.
+Mood is set by value, not by new hues: a good event is mostly paper and light planes; a disaster drops to two inks
+(charcoal and its type ink) with more charcoal.
+
+### 19.5 Format and composition
+
+- **The file:** `assets/cards/<card id>.png`, 1536 × 1024 px (3:2), sRGB, no alpha, no border or frame.
+- **The crop:** every view shows a centred **5:2 band**: the middle 60 % of the height (rows 205–819 of the master).
+  The top and bottom fifths are bleed (sky, ground, pattern); nothing that matters goes there. The 3:2 master leaves
+  room for larger crops later (a full-card view, a civilization poster).
+- **The thumbnail test:** the plate is 240 × 96 px on a card. Shrink the band to 120 × 48: the subject must still read.
+  One subject, one silhouette, three major shapes at most.
+- **Asymmetric:** the subject sits on a third, never centred by default (§2). Governments are the exception: an
+  emblem is a single-message moment.
+- **Negative space:** at least a third of the band is open paper or one flat plane.
+- **A series per type:** within a type, one horizon height and one scale, so a hand reads as a set of stamps or a
+  poster series. Territories share their horizon exactly, so a row of them reads as one strip of land.
+
+### 19.6 By card type
+
+| Type | The series | Composition |
+|---|---|---|
+| Civilization | Travel posters | The homeland as one landmark and its river or sea, at poster scale. Plum with two support inks: the richest pictures in the game. |
+| Government | Emblems | The institution as a symbol (a seat, a staff, a crown, a sealed jar) in the manner of a corporate identity. Centred. Indigo. |
+| City | Skylines | The city from outside its wall: roofs, a temple mound, smoke. Ochre. |
+| Territory | Landscapes | Land only: no people, no buildings. Each keyword visible: fresh water a river, lake or spring; coastal the sea at one edge; flood plain bands of dark silt. Sage. |
+| Building | Architecture | The building in its setting, elevation or three-quarter, a figure or two for scale. Olive. An upgrade redraws its base from the same viewpoint, grown, so a chain reads as one place maturing. |
+| Wonder | Monuments | The building at monumental scale from a low viewpoint, a travel-poster hero shot. The one series that may use a period motif (radiating rays, concentric rings) behind its subject. |
+| Action | People at work | Figures doing the thing, side-on, in a frieze (Provensen). Muted blue. |
+| Tech | Ideas | The idea as one object on open ground, with a diagram around it: a ring, a grid, a path, an orbit (CCA, Nitsche). Teal. |
+| Event | Spot illustrations | The moment, as an editorial spot: one scene, tightly cropped. Brick. Good events light, disasters dark and plain (§19.4). |
+| Unit | Silhouettes | A few figures in silhouette with their arms, side-on and in step. Bronze. |
+
+### 19.7 In the game
+
+- **Where:** hand-size faces (264 × 360: the hand, the details modal's card, the Build modal, the event pop-up,
+  Renewal) carry the plate under the type band, 240 × 96 px, framed by a 1 px `ink` rule. The hand card grew 40 px
+  for it (from 320), so most cards' rules and a reason strip still fit; the rest follow §6.7's overflow rules. Realm, tableau and supply-pile faces
+  carry none: at their size a picture costs a line of rules (§1 tenet 1).
+- **Missing art:** a placeholder plate in the type's plane colour with one of the period motifs (a sun on a horizon,
+  rings, a split disc, steps; picked by the card's id, so a card keeps its motif), with nothing printed on it (the file
+  each card waits for is in [card-art.md](card-art.md)). It is drawn by `CardArt` (`ui/card_art.gd`), which shows the
+  PNG instead once one is imported.
+- **Night** lays black at 25 % over the plate (`Palette.ART_SHADE`; none in Paper), as Night lays black over the card's
+  paper. Undimmed, a cream print is the brightest thing on a Night card, brighter than its text; shaded, it sits on the
+  card like a print under lamplight.
+- **Dimmed cards** keep their art as it is; the hatched band and the reason strip say why.
+- **Long cards** keep their art at rest; it yields only while the player reads, when the text sheet rises over it
+  (§6.7).
+
+### 19.8 Prompt template
+
+For an image generator: the shared style, then the card's brief from [card-art.md](card-art.md), then its inks.
+
+> Mid-century modern commercial illustration, 1950s–1960s magazine and poster print. Flat screen-printed planes of
+> colour with crisp cut-paper edges, overprinted inks where shapes overlap, a subtle halftone or dry-brush texture
+> inside some shapes, an optional loose single-weight charcoal line. In the manner of Alice and Martin Provensen,
+> Charley Harper, Miroslav Šašek and Container Corporation of America advertising. The ancient Near East and
+> Mediterranean, 3000–300 BCE. **Subject:** {brief}. Printed in four inks on warm cream paper #F3EBDB: charcoal
+> #22211F, {type ink} as the dominant colour, and {support inks}. Flattened perspective, asymmetric composition,
+> generous negative space; the subject entirely inside the middle 60 % of the height. 3:2 landscape. No text,
+> letters, numbers, border, frame, gradient, 3D rendering, photorealism, or worn, distressed or misregistered
+> effects.

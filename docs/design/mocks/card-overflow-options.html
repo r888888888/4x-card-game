@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Text Overflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=Jost:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from mcm-specimen.html (§14) and ui/palette.gd. */
+:root {
+	--space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+	--f-display: "Jost", sans-serif; --f-ui: "Barlow", sans-serif; --f-cond: "Barlow Semi Condensed", sans-serif;
+}
+:root, :root[data-theme="paper"] {
+	--board: #EFE8DA; --sheet: #F8F4EC; --well: #E3DACA; --steel: #DCD3C2;
+	--ink: #22211F; --ink-2: #57534B; --ink-3: #7A7468; --rule-fine: #CFC6B5; --rule: #6F685C; --shadow: #22211F;
+	--signal: #A8401B; --on-signal: #FBF6EC; --positive: #4E6B47; --danger: #9B3424;
+	--card-edge: #22211F; --art-shade: transparent; --soft: rgba(34, 33, 31, 0.20); --soft-up: rgba(34, 33, 31, 0.28);
+	--food: #4E6B47; --wealth: #A07514; --insight: #35597C;
+	--pl-action: #8AA7C4; --pl-building: #A3AA6A; --pl-city: #D9A441; --pl-tech: #5E9C97; --pl-event: #C9705C;
+	--pl-civ: #B07D9C; --pl-gov: #8F88B8; --hatch: #7A7468;
+}
+:root[data-theme="night"] {
+	--board: #1F1E1C; --sheet: #2A2825; --well: #171614; --steel: #3A3733;
+	--ink: #EDE6D6; --ink-2: #B9B1A1; --ink-3: #8E877A; --rule-fine: #3A3733; --rule: #857D70; --shadow: #0D0C0B;
+	--signal: #E0703F; --on-signal: #1F1E1C; --positive: #93B585; --danger: #E07A63;
+	--card-edge: #857D70; --art-shade: rgba(0, 0, 0, 0.25); --soft: rgba(13, 12, 11, 0.35); --soft-up: rgba(13, 12, 11, 0.45);
+	--food: #93B585; --wealth: #D9A441; --insight: #86A9CC;
+	--pl-action: #86A9CC; --pl-building: #A9B26C; --pl-city: #D9A441; --pl-tech: #5FB0A9; --pl-event: #E07A63;
+	--pl-civ: #C48FAF; --pl-gov: #A39BCB; --hatch: #5A554D;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--board); color: var(--ink); font: 400 17px/1.4 var(--f-ui); }
+main { max-width: 1240px; margin: 0 auto; padding: var(--space-6) 16px 96px; }
+h1 { font: 500 28px/34px var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 var(--space-2); }
+.caps { font: 600 13px/16px var(--f-cond); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+.note { color: var(--ink-2); max-width: 80ch; margin: var(--space-2) 0 var(--space-4); }
+.note b { color: var(--ink); }
+.verdict { border-left: 4px solid var(--signal); padding: var(--space-2) var(--space-4); background: var(--sheet); max-width: 86ch; margin: var(--space-4) 0 var(--space-6); }
+.verdict ol { margin: var(--space-2) 0 0; padding-left: 20px; }
+.option { margin-bottom: var(--space-7); }
+.option > h2 { font: 500 22px/28px var(--f-display); margin: 0; border-top: 4px solid var(--ink); padding-top: var(--space-3); }
+.option > h2 .rec { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; background: var(--signal); color: var(--on-signal); padding: 2px var(--space-2); margin-left: var(--space-3); vertical-align: 4px; }
+.option > h2 .ref { font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--rule); color: var(--ink-2); padding: 1px var(--space-2); margin-left: var(--space-3); vertical-align: 4px; }
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); max-width: 86ch; margin-bottom: var(--space-4); font-size: 15px; }
+.pc ul { margin: var(--space-1) 0 0; padding-left: 18px; color: var(--ink-2); }
+.toggle { float: right; }
+.label { margin: var(--space-4) 0 var(--space-2); }
+.btn { display: inline-flex; align-items: center; min-height: 40px; padding: var(--space-2) 20px; border-radius: 2px; font: 500 17px/20px var(--f-cond); background: var(--steel); color: var(--ink); border: 2px solid var(--rule); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; }
+
+/* The hand: a row of cards on the board, bottom-aligned like the game's. */
+.hand { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); padding: var(--space-5) var(--space-4); background: var(--board); border: 1px solid var(--rule-fine); }
+.slot { position: relative; width: 264px; height: 360px; flex: none; }
+.slot.mini { width: 245px; height: 175px; }
+.slot.free { height: auto; min-height: 360px; display: flex; align-items: flex-end; }
+.slot.free.mini { min-height: 175px; }
+.slot .card { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
+.slot.free .card { position: relative; height: auto; min-height: 360px; }
+.slot.free.mini .card { min-height: 175px; }
+.cap { font: 400 14px/18px var(--f-ui); color: var(--ink-2); margin-top: var(--space-1); width: 264px; }
+.col { display: flex; flex-direction: column; }
+
+/* Card (§6.7, §15.6) at the game's sizes: hand 264 × 360, tableau 245 × 175. */
+.card { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--sheet); border: 2px solid var(--card-edge); box-shadow: 0 4px 8px var(--soft); color: var(--ink); overflow: hidden; transition: height 0.14s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.1s; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex: none; }
+.card .name { font: 600 20px/24px var(--f-cond); }
+.cost { display: inline-flex; align-items: center; gap: var(--space-3); font: 500 20px/24px var(--f-cond); white-space: nowrap; }
+.cost span { display: inline-flex; align-items: center; gap: 3px; }
+.ico { width: 20px; height: 20px; flex: none; vertical-align: -4px; }
+.rules .ico { width: 18px; height: 18px; vertical-align: -3px; color: var(--positive); }
+.card .band { height: 5px; flex: none; background: var(--plane); }
+.card.dim .band { background: repeating-linear-gradient(45deg, var(--hatch) 0 2px, transparent 2px 6px); }
+.art { position: relative; height: 96px; flex: none; border: 1px solid var(--ink); overflow: hidden; transition: height 0.14s cubic-bezier(0.25, 1, 0.5, 1); }
+.art svg { display: block; width: 100%; height: 100%; }
+.art::after { content: ""; position: absolute; inset: 0; background: var(--art-shade); }
+.card .type { font: 400 17px/22px var(--f-ui); color: var(--ink-2); flex: none; }
+.rules { font: 400 20px/24px var(--f-ui); flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.rules > div { break-inside: avoid; }
+.vp { color: var(--positive); font: 500 20px/24px var(--f-cond); flex: none; }
+.reason { background: var(--well); padding: var(--space-2); font: 400 17px/21px var(--f-ui); flex: none; }
+.card.mini { gap: var(--space-1); padding: var(--space-2) var(--space-3); }
+.card.mini .name, .card.mini .cost { font-size: 20px; }
+.card.mini .type { font-size: 17px; }
+.card.mini .rules { font-size: 17px; line-height: 21px; }
+.card.mini .vp { font-size: 17px; line-height: 20px; }
+.slot.free .rules { flex: none; }
+
+/* B: smaller type. */
+.card.s17 .rules { font-size: 17px; line-height: 21px; }
+.card.s15 .rules { font-size: 15px; line-height: 19px; }
+.card.mini.s15 .rules { font-size: 15px; line-height: 18px; }
+
+/* C: the art yields. */
+.card.strip .art { height: 24px; }
+.card.noart .art { height: 0; border-width: 0; }
+
+/* D: OVER mark. */
+.over { flex: none; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--rule); padding-top: var(--space-1); font: 600 14px/18px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.over b { color: var(--ink); font-weight: 600; }
+.over kbd { font: 600 14px/16px var(--f-cond); border: 1px solid var(--rule); border-radius: 2px; padding: 0 4px; margin-left: 4px; color: var(--ink); }
+
+/* E: pull-out. The card stays anchored at its foot and extends upward. */
+.slot.pull .card.lifted, .slot.pull:hover .card { height: var(--full) !important; transform: translateY(-4px); box-shadow: 0 8px 16px var(--soft-up); z-index: 5; border-color: var(--ink); }
+.slot.pull:hover .over, .slot.pull .card.lifted .over { visibility: hidden; }
+.slot.pull:hover .rules > div, .slot.pull .card.lifted .rules > div { display: block !important; }
+
+/* F: ledger and fine print. */
+.specs { margin: 0; display: grid; grid-template-columns: auto auto; gap: 0 var(--space-3); justify-content: start; font: 400 17px/22px var(--f-ui); flex: none; }
+.specs dt { font: 600 14px/22px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.specs dd { margin: 0; font: 500 20px/22px var(--f-cond); font-variant-numeric: tabular-nums; }
+.fine { flex: none; border-top: 1px solid var(--rule-fine); padding-top: var(--space-1); font: 600 14px/18px var(--f-cond); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.fine .ico { width: 14px; height: 14px; vertical-align: -2px; }
+.unlocks { color: var(--ink); }
+.unlocks .k { font: 600 14px/18px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); margin-right: 4px; }
+
+
+/* H: hover pulls the text sheet up over the art; a wait cue; then the full rules in a printed tab. */
+.hand.h { position: relative; padding-top: var(--space-6); }
+.slot.h .card { cursor: pointer; transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.1s; }
+.slot.h .card:focus { outline: none; }
+.slot.h .card:focus-visible { outline: 3px solid var(--insight); outline-offset: 6px; }
+.slot.h.hot .card { transform: translateY(-8px); box-shadow: 0 8px 16px var(--soft-up); border-color: var(--ink); }
+.lower { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--space-2); background: var(--sheet); position: relative; z-index: 1; transition: margin-top 0.12s cubic-bezier(0.25, 1, 0.5, 1); }
+.lower.up { box-shadow: 0 -5px 0 -4px var(--ink); }  /* a 1 px rule at the sheet's top edge that takes no room */
+.calm .lower { transition: none; }
+.over { position: relative; }
+.over .right { display: inline-flex; align-items: center; gap: var(--space-2); }
+.meter { position: absolute; left: 0; top: -1px; height: 2px; width: 0; background: var(--ink); }
+.meter.run { width: 100%; transition: width 1.1s linear; }
+.calm .meter.run { transition: width 1.1s steps(3, end); }
+.lamp { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--well); border: 1px solid var(--rule); }
+.lamp.on { background: var(--ink); border-color: var(--ink); }
+.tab { position: absolute; z-index: 20; width: 320px; background: var(--ink); color: var(--sheet); padding: var(--space-3) var(--space-4); box-shadow: 2px 2px 0 var(--shadow); opacity: 0; transform: translateX(var(--from, 4px)); transition: opacity 0.09s linear, transform 0.09s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
+.tab.open { opacity: 1; transform: none; pointer-events: auto; }
+.calm .tab { transform: none; }
+.tab h4 { margin: 0 0 var(--space-1); font: 600 14px/18px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; }
+.tab div { font: 400 17px/22px var(--f-ui); }
+.tab .ico { color: var(--sheet); width: 16px; height: 16px; vertical-align: -3px; }
+.tab::before { content: ""; position: absolute; top: var(--notch, 24px); width: 0; height: 0; border: 6px solid transparent; }
+.tab.right::before { left: -12px; border-right-color: var(--ink); }
+.tab.left::before { right: -12px; border-left-color: var(--ink); }
+.tab .esc { margin-top: var(--space-2); font: 600 14px/18px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
+.slot.wide { width: 600px; }
+.slot.wide .card { width: 264px; }
+.calmbox { display: inline-flex; gap: var(--space-2); align-items: center; font: 600 13px/16px var(--f-cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); margin-left: var(--space-4); }
+.measuring * { transition: none !important; }  /* the layout is measured with transitions off */
+@media (max-width: 720px) { .pc { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+	<button class="btn toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'night' ? 'paper' : 'night'">Paper / Night</button>
+	<h1>Card text overflow</h1>
+	<span class="caps">spike/card-art · a hand-size card (264 × 360, with its art plate) and a tableau card (245 × 175)</span>
+	<p class="note">With the art plate, a hand-size card has room for about <b>six lines of rules</b> (four with a reason strip);
+		a tableau card about four. Most cards fit, but the long tail doesn't: <b>Anarchy</b> (one 380-character paragraph),
+		techs that unlock many cards (<b>Sailing</b> 9 lines, <b>Code of Laws</b> 8), governments and civilizations that list
+		their numbers (<b>Theocracy</b>, <b>Sumer</b>), and wonders on the tableau (<b>Great Harbor of Tyre</b>, <b>Royal
+		Road</b>). Every option below lays out the same cards with the engine's real face text; the last card in each row is a
+		short one for comparison. Lines are measured live, so each option fits or fails honestly. Toggle Paper / Night.</p>
+	<div class="verdict"><b>Chosen: I, with the meter cue.</b> The engine writes tighter face text (F): one <i>Unlocks</i>
+		line, figures in a ledger, and <i>Needs</i>, <i>Eureka</i> and <i>Starts on</i> as 14 px fine print. At rest a card
+		keeps its art and shows whole rules, with a <i>+N more</i> foot when some don't fit. When the pointer rests on it for
+		120 ms, the text sheet slides up over the art only as far as needed; if rules are still hidden, the foot's dashed
+		rule fills over 1.1 s and the full rules open in a printed tab beside the card, with no click. In this hand only
+		Anarchy needs the tab. No card shrinks its type or grows, so the hand stays one even row.
+		<br><br>The earlier proposal, G (fine print, then the art yields at rest, then OVER), is kept below for the record;
+		I keeps the art at rest and lets it yield only while the player reads.</div>
+
+	<section class="option">
+		<h2>A · The card grows <span class="ref">Today</span></h2>
+		<p class="note">What the game does now: a card is at least its size, and taller when its text needs it. Shown for
+			reference.</p>
+		<div class="pc"><div><b>For</b><ul><li>Everything is readable, nothing hidden.</li><li>No new code.</li></ul></div>
+			<div><b>Against</b><ul><li>The hand turns into a ragged skyline; a tall card can push past the bottom of the screen.</li><li>The tableau row loses its grid; the Gives row in a tech's details goes uneven.</li></ul></div></div>
+		<div id="a"></div>
+	</section>
+
+	<section class="option">
+		<h2>B · Smaller type</h2>
+		<p class="note">Rules step down from body (20) to body-s (17), then to 15, until they fit. Everything else stays.</p>
+		<div class="pc"><div><b>For</b><ul><li>Keeps the art and every word.</li><li>Simple: one rule, applied per card.</li></ul></div>
+			<div><b>Against</b><ul><li>Neighbouring cards print at different sizes: the hand stops reading as one series (§2, information as print).</li><li>15 px rules at arm's length fail tenet 1, and Anarchy still overflows.</li></ul></div></div>
+		<div id="b"></div>
+	</section>
+
+	<section class="option">
+		<h2>C · The art yields</h2>
+		<p class="note">When the rules don't fit, the art plate shrinks from 96 px to a 24 px strip through its middle (the
+			band of the 5:2 crop), and if that isn't enough, it goes. The rules keep full size. Art is the one part of a card
+			that is decoration, so it gives way first.</p>
+		<div class="pc"><div><b>For</b><ul><li>Frees 72–104 px, three or four lines, without touching the type.</li><li>The strip still carries the picture's colour and horizon: the card is recognisably the same.</li></ul></div>
+			<div><b>Against</b><ul><li>The cards with the most to say lose their picture, techs most of all.</li><li>Alone, Sailing and Anarchy still don't fit, even with no art.</li></ul></div></div>
+		<div id="c"></div>
+	</section>
+
+	<section class="option">
+		<h2>D · OVER: cut at a whole rule</h2>
+		<p class="note">The library index card's convention: what doesn't fit continues "over". The card shows whole rules
+			while they fit, then a dashed rule and a printed foot: <i>+3 more · details I</i>. Never a fade (§2: no gradients),
+			never a cut through a line. The details window (click, or <kbd>I</kbd>) already holds the full text.</p>
+		<div class="pc"><div><b>For</b><ul><li>Every card keeps its size and its art.</li><li>Honest: says that there's more, and how much.</li></ul></div>
+			<div><b>Against</b><ul><li>What's hidden may be the line that matters (Sailing loses its eureka, Theocracy its upkeep).</li><li>Playing a card you can't fully read is a trap; used broadly, it's a crutch for wordy text.</li></ul></div></div>
+		<div id="d"></div>
+	</section>
+
+	<section class="option">
+		<h2>E · Pull out on hover</h2>
+		<p class="note">At rest, as D. Hovered or focused, the card extends upward from its foot, like an index card drawn up
+			out of its tray, and shows all of it; it settles back when the pointer leaves (100 ms, machined, §9). Hover the
+			cards; the second row shows each one held out.</p>
+		<div class="pc"><div><b>For</b><ul><li>Full text with no click, size and art kept at rest.</li><li>The motion is a mechanism the desk already has (the hover lift).</li></ul></div>
+			<div><b>Against</b><ul><li>The extended card covers the board above it, and the hover lift gets a second, bigger meaning.</li><li>Touch and keyboard need their own trigger; dragging a card that changes height is awkward.</li></ul></div></div>
+		<div id="e"></div>
+	</section>
+
+	<section class="option">
+		<h2>F · Ledger and fine print</h2>
+		<p class="note">Change the words, not the layout. The engine writes tighter face text: repeated unlocks become one
+			<i>Unlocks</i> line; a government's or civilization's figures go in a ledger (label left, tabular figure right);
+			conditions that gate a card rather than describe it (<i>Needs</i>, <i>Eureka</i>, <i>Starts on</i>, <i>Built over
+			turns</i>) drop to a line of fine print at the foot. The details keep the long form.</p>
+		<div class="pc"><div><b>For</b><ul><li>Fixes the cause: Sailing goes from 8 rules to 3 plus a line of fine print, Theocracy from 6 to 2 plus a ledger.</li><li>Reads like a spec sheet, the period's own answer to dense information.</li></ul></div>
+			<div><b>Against</b><ul><li>Engine work (card text is generated), under TDD, and two text forms to keep in step.</li><li>With the art at full size, enough on its own only for Theocracy.</li></ul></div></div>
+		<div id="f"></div>
+	</section>
+
+	<section class="option">
+		<h2>G · The ladder: F, then C, then D</h2>
+		<p class="note">Fine print always; the art yields only on a card whose rules still don't fit; OVER only if even that
+			fails. In this hand Theocracy fits after F with its art; Sailing, Code of Laws and Sumer fit with their art as a strip; Anarchy loses
+			its art and still hides three sentences. On the tableau, the tighter text without its fine print fits both wonders.</p>
+		<div id="g"></div>
+	</section>
+
+	<section class="option">
+		<h2>H · Hover: pull up, then pop up</h2>
+		<p class="note">At rest, as D: the art, whole rules, and a <i>+N more</i> foot. When the pointer <b>rests</b> on a card
+			for 120 ms (a pointer passing through moves nothing), the text sheet slides up over the art, only as far as the
+			hidden text needs, and stops (120 ms, machined). If rules are still hidden, a <b>wait cue</b> runs for 1.1 s and
+			then the full rules open beside the card in a printed tab (§11.11), with no click. The pointer may move onto the
+			tab; leaving both, Esc, or a press closes it, and a press also cancels the wait so a drag or a double-click is
+			never blocked. Keyboard focus pulls the sheet up; <kbd>I</kbd> opens the tab. Cards with nothing hidden only lift,
+			and Godot's plain tooltip goes. The text is today's engine text: Code of Laws, Theocracy and Sumer stop at
+			the pull-up; Sailing is one rule short and opens the tab, as Anarchy does. With F's tighter text, Sailing would
+			stop at the pull-up too. H is the hover alternative to G's second step: the art stays at
+			rest and yields only while you look.</p>
+		<div class="pc"><div><b>For</b><ul><li>The hand keeps its art and its even row at rest.</li><li>Full text with no click, and in two steps the player can see coming.</li><li>Replaces the plain tooltip every card already shows, rather than adding a layer.</li></ul></div>
+			<div><b>Against</b><ul><li>The sheet moves up to 104 px on a hover, past the guide's 12 px for frequent interactions (§12 rule 4): an exception for long cards only.</li><li>Timers to tune (120 ms intent, 1.1 s wait), and a tab that covers part of the board.</li><li>No hover on touch; keyboard players rely on <kbd>I</kbd>.</li><li>One rule short (Sailing) and the tab repeats seven lines to show one; a tab of only the hidden lines ("continued") would be shorter but loses context.</li></ul></div></div>
+		<div class="label caps">The steps, frozen: Sailing at rest, pulled up, waiting (meter half full), the tab open</div>
+		<div id="h-frozen"></div>
+		<div class="label caps">Cue: a meter fills the foot's dashed rule (recommended) · hover the cards
+			<label class="calmbox"><input type="checkbox" id="calm"> Reduce motion</label></div>
+		<div id="h-meter"></div>
+		<div class="label caps">Cue: one lamp pulse in the foot as the wait starts</div>
+		<div id="h-lamp"></div>
+		<div class="label caps">Cue: none, only the wait</div>
+		<div id="h-none"></div>
+	</section>
+
+	<section class="option">
+		<h2>I · H with F's text <span class="rec">Chosen</span></h2>
+		<p class="note">H's hover (rest 120 ms, the sheet rises only as far as needed, a 1.1 s meter, then the tab) on F's
+			tighter face text: one <i>Unlocks</i> line, figures in a ledger, and <i>Needs</i>, <i>Eureka</i> and <i>Starts
+			on</i> as fine print under the rules. The tab still gives the full long form, as the details do. Fewer cards need
+			the pull-up at all (Theocracy now fits at rest), the ones that do rise less (Sumer 10 px, Code of Laws 16, Sailing
+			40, against 39, 87 and 104 in H), and only the truly long card opens the tab.</p>
+		<div class="pc"><div><b>For</b><ul><li>The tab becomes rare: in this hand only Anarchy needs it.</li><li>The sheet rises less, so more of the art stays in view while reading.</li><li>The tab shows something the card can't, the long form, rather than repeating it.</li></ul></div>
+			<div><b>Against</b><ul><li>Both costs at once: F's engine work (two text forms to keep in step) and H's timers and hover exception.</li><li>Fine print in 14 px caps, the guide's floor (§12 rule 5), is the smallest text on the card.</li></ul></div></div>
+		<div class="label caps">The steps, frozen: Anarchy at rest, pulled up, waiting, the tab open</div>
+		<div id="i-frozen"></div>
+		<div class="label caps">Live: hover the cards (meter cue)</div>
+		<div id="i-live"></div>
+	</section>
+</main>
+<script>
+const SVG = {
+	upkeep: '<path d="M20 12a8 8 0 1 1-2.34-5.66" stroke-linecap="round"/><path d="M20 3v5h-5" stroke-linecap="round"/>',
+	insight: '<path d="M3 5a12 12 0 0 1 9 2v14a12 12 0 0 0-9-2zM21 5a12 12 0 0 0-9 2v14a12 12 0 0 1 9-2z"/>',
+	wealth: '<circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6"/>',
+	food: '<path d="M12 21V11M7 21h10"/><path d="M12 13A7 7 0 0 1 4 7A7 7 0 0 1 12 13z"/><path d="M12 11A7 7 0 0 1 20 5A7 7 0 0 1 12 11z"/>',
+};
+const ico = (k, color) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" ${color ? `style="color:var(--${color})"` : ""}>${SVG[k]}</svg>`;
+const U = ico("upkeep");
+const cost = c => `<span class="cost">${Object.entries(c).map(([r, n]) => `<span>${ico(r, r)}${n}</span>`).join("")}</span>`;
+const art = seed => {
+	const m = seed % 3;
+	const motif = m === 0
+		? '<circle cx="160" cy="58" r="30" fill="var(--lt)"/><rect y="58" width="240" height="38" fill="var(--dk)"/><rect y="57" width="240" height="2" fill="var(--ink)"/>'
+		: m === 1
+		? '<rect x="64" y="66" width="112" height="16" fill="var(--dk)"/><rect x="84" y="50" width="72" height="16" fill="var(--lt)"/><rect x="100" y="34" width="40" height="16" fill="var(--dk)"/><rect y="82" width="240" height="14" fill="var(--dk)"/>'
+		: '<circle cx="120" cy="48" r="34" fill="var(--lt)"/><path d="M120 14a34 34 0 0 0 0 68z" fill="var(--dk)"/>';
+	return `<div class="art"><svg viewBox="0 0 240 96" preserveAspectRatio="xMidYMid slice" style="--dk:color-mix(in srgb, var(--plane) 55%, #000);--lt:color-mix(in srgb, var(--plane) 55%, #fff)"><rect width="240" height="96" fill="var(--plane)"/>${motif}</svg></div>`;
+};
+
+// Face text from the engine (CardDef.rules_text), and F's tighter form.
+const CARDS = {
+	sailing: { name: "Sailing", plane: "tech", type: "✦ Tech", cost: { insight: 16 }, seed: 0,
+		rules: ["Unlock Harbor", "Unlock Great Harbor of Tyre", "Unlock Shipyard", "Add a Sea Trade to your discard", "Unlock Sea Trade", `${U} +1 insight per 2 port`, "Needs Weaving", "Eureka: −4 insight with 1 Fishing Huts"],
+		f: { rules: [`${U} +1 insight per 2 port`, `<span class="unlocks"><span class="k">Unlocks</span>Harbor, Great Harbor of Tyre, Shipyard, Sea Trade</span>`, "+1 Sea Trade to your discard"],
+			fine: `Needs Weaving · Eureka −4 ${ico("insight", "insight")} with 1 Fishing Huts` } },
+	code: { name: "Code of Laws", plane: "tech", type: "✦ Tech", cost: { insight: 19 }, seed: 1,
+		rules: ["Add a Kingship to your discard", "Unlock Courthouse", "Unlock Great Ziggurat", "Unlock Palace", "Unlock Precedent", "Administration cap +1", "Needs Writing", "Eureka: −4 insight with 3 city cards"],
+		f: { rules: ["Administration cap +1", `<span class="unlocks"><span class="k">Unlocks</span>Courthouse, Great Ziggurat, Palace, Precedent</span>`, "+1 Kingship to your discard"],
+			fine: `Needs Writing · Eureka −4 ${ico("insight", "insight")} with 3 city cards` } },
+	theocracy: { name: "Theocracy", plane: "gov", type: "Government", seed: 2,
+		rules: ["3 actions each turn.", "Unrest limit 13.", "Tolerates up to Town.", "Administers up to 6 territories.", `${U} +1 VP`, "Each insight gain −1"],
+		f: { specs: [["Actions", "3"], ["Unrest limit", "13"], ["Tolerates", "Town"], ["Administers", "6"]], rules: [`${U} +1 VP`, "Each insight gain −1"] } },
+	sumer: { name: "Sumer", plane: "civ", type: "Civilization", seed: 0,
+		rules: ["Starts on: Delta Marsh", "Start: Create a Farm", "Start: Add a Research to your discard", `${U} +1 food per farm`, "Every territory houses 1 more pop", "Farms cost 1 less wealth."],
+		f: { rules: [`${U} +1 food per farm`, "Every territory houses 1 more pop", "Farms cost 1 less wealth"], fine: "Starts on Delta Marsh · with a Farm, and a Research in the discard" } },
+	anarchy: { name: "Anarchy", plane: "event", type: "❖ Event", seed: 1,
+		rules: ["1 action each turn. Only order cards can be played; nothing can be grown, bought or researched. Each turn it eats 20% of stored food and wealth. Lasts up to 4 turns, fewer the calmer the people; calming shortens it. From its second turn, buy order for 2, 6, 12 or 20 wealth with 1–4 turns left. When it ends, choose a government from your government deck. Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each)."],
+		f: { specs: [["Actions", "1"], ["Lasts", "≤ 4 turns"], ["Eats", "20 % food, wealth"]],
+			rules: ["Only order cards can be played; nothing can be grown, bought or researched.", "Calming shortens it. From turn 2, buy order: 2, 6, 12 or 20 wealth.", "Each turn: trash 1 card, +1 per turn so far (−1 unrest each).", "When it ends, choose a government."] } },
+	farm: { name: "Farm", plane: "building", type: "■ Building · farm", cost: { food: 1, wealth: 2 }, seed: 1,
+		rules: ["Needs Fresh Water", `${U} +2 food (+1 Flood Plain)`] },
+	settler: { name: "Settler", plane: "action", type: "◆ Action · expand", cost: { food: 6 }, seed: 0, dim: "⊘ No discovered territory to settle.",
+		rules: ["Settle: City", "+1 unrest", "Costs 1 more food for each territory you hold."] },
+	// Tableau faces (no art).
+	tyre: { name: "Great Harbor of Tyre", plane: "building", type: "■ Building · wonder, culture, port", vp: 8, mini: true,
+		rules: ["Needs Coastal", `${U} +1 wealth per coastal territory`, "Built over turns: up to 1 wealth per pop here each turn."],
+		f: { rules: [`${U} +1 wealth per coastal territory`], fine: "Needs Coastal · built over turns" } },
+	road: { name: "Royal Road", plane: "building", type: "■ Building · wonder, culture", vp: 8, mini: true,
+		rules: ["Draw up to 1 more card each turn", "Administration cap +1", "Built over turns: up to 1 wealth per pop here each turn."],
+		f: { rules: ["Draw up to 1 more card each turn", "Administration cap +1"], fine: "Built over turns" } },
+	granary: { name: "Granary", plane: "building", type: "■ Building", mini: true, rules: ["+1 housing here"] },
+};
+const HAND = ["sailing", "code", "theocracy", "sumer", "anarchy", "settler", "farm"];
+const TABLEAU = ["tyre", "road", "granary"];
+
+// One card. form "f" uses the tighter text where a card has one.
+function face(id, form, noFine = false) {
+	const c = CARDS[id];
+	const t = form === "f" && c.f ? c.f : c;
+	const specs = t.specs ? `<dl class="specs">${t.specs.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
+	return `<div class="card${c.mini ? " mini" : ""}${c.dim ? " dim" : ""}" style="--plane:var(--pl-${c.plane})">
+		<div class="head"><span class="name">${c.name}</span>${c.cost ? cost(c.cost) : ""}</div><div class="band"></div>
+		${c.mini ? "" : art(c.seed)}<div class="type">${c.type}</div>${specs}
+		<div class="rules">${t.rules.map(r => `<div>${r}</div>`).join("")}</div>
+		${t.fine && !noFine ? `<div class="fine">${t.fine}</div>` : ""}${c.vp ? `<div class="vp">${c.vp} VP</div>` : ""}${c.dim ? `<div class="reason">${c.dim}</div>` : ""}</div>`;
+}
+const overflows = card => { const r = card.querySelector(".rules"); return r.scrollHeight > r.clientHeight + 1; };
+
+// D: hide whole rules from the end until the rest fits above an OVER foot.
+function over(card) {
+	if (!overflows(card)) return 0;
+	const rules = card.querySelector(".rules");
+	const foot = document.createElement("div");
+	foot.className = "over";
+	rules.after(foot);
+	const lines = [...rules.children];
+	let hidden = 0;
+	for (let i = lines.length - 1; i >= (lines.length === 1 ? 1 : 0) && overflows(card); i--) { lines[i].style.display = "none"; hidden++; }
+	if (lines.length === 1 && overflows(card)) {  // one paragraph: cut at the last whole sentence that fits
+		const p = lines[0];
+		const full = p.dataset.full || p.innerHTML;
+		p.dataset.full = full;
+		const sentences = full.match(/[^.;]+[.;]/g) || [full];
+		let n = sentences.length;
+		while (n > 1 && overflows(card)) { n--; p.innerHTML = sentences.slice(0, n).join(""); }
+		foot.innerHTML = `<span><b>+${sentences.length - n}</b> more</span><span>details<kbd>I</kbd></span>`;
+		return sentences.length - n;
+	}
+	foot.innerHTML = `<span><b>+${hidden}</b> more</span><span>details<kbd>I</kbd></span>`;
+	return hidden;
+}
+// C: shrink the art to a strip, then remove it.
+function yieldArt(card) {
+	if (!overflows(card) || card.classList.contains("mini")) return "";
+	card.classList.add("strip");
+	if (!overflows(card)) return "art → strip";
+	card.classList.add("noart");
+	card.classList.remove("strip");
+	return "art removed";
+}
+// B: step the rules down.
+function smaller(card) {
+	if (!overflows(card)) return "";
+	card.classList.add("s17");
+	if (!overflows(card)) return "rules 17 px";
+	card.classList.replace("s17", "s15");
+	return overflows(card) ? "rules 15 px, still over" : "rules 15 px";
+}
+
+function row(ids, opt, cls = "") {
+	return `<div class="hand">${ids.map(id => `<div class="col"><div class="slot ${CARDS[id].mini ? "mini" : ""} ${cls}" data-id="${id}" data-opt="${opt}">${face(id, opt === "f" || opt === "g" ? "f" : "", opt === "g" && CARDS[id].mini)}</div><div class="cap"></div></div>`).join("")}</div>`;
+}
+const label = t => `<div class="label caps">${t}</div>`;
+
+function render() {
+	document.getElementById("a").innerHTML = label("Hand") + row(HAND, "a", "free") + label("Tableau") + row(TABLEAU, "a", "free");
+	document.getElementById("b").innerHTML = label("Hand") + row(HAND, "b") + label("Tableau") + row(TABLEAU, "b");
+	document.getElementById("c").innerHTML = label("Hand (tableau cards have no art to give)") + row(HAND, "c");
+	document.getElementById("d").innerHTML = label("Hand") + row(HAND, "d") + label("Tableau") + row(TABLEAU, "d");
+	document.getElementById("e").innerHTML = label("At rest (hover a card)") + row(HAND.slice(0, 5), "e", "pull") + label("Held out") + row(HAND.slice(0, 5), "e", "pull held");
+	document.getElementById("f").innerHTML = label("Hand (cards grow, as today, to show how far F gets alone)") + row(HAND, "f", "free") + label("Tableau") + row(TABLEAU, "f", "free");
+	document.getElementById("g").innerHTML = label("Hand") + row(HAND, "g") + label("Tableau") + row(TABLEAU, "g");
+	document.body.classList.add("measuring");
+	for (const slot of document.querySelectorAll(".slot")) {
+		const card = slot.querySelector(".card");
+		const cap = slot.parentElement.querySelector(".cap");
+		const opt = slot.dataset.opt;
+		let note = "";
+		if (opt === "a" || opt === "f") note = card.offsetHeight > (card.classList.contains("mini") ? 177 : 362) ? `${card.offsetHeight - (card.classList.contains("mini") ? 175 : 360)} px taller` : "fits";
+		else if (opt === "b") note = smaller(card) || "fits";
+		else if (opt === "c") { note = yieldArt(card) || "fits"; if (overflows(card)) note += ", still over"; }
+		else if (opt === "d") { const n = over(card); note = n ? `${n} hidden` : "fits"; }
+		else if (opt === "e") {
+			const n = over(card);
+			if (n) {  // the height it extends to: the card laid out with everything shown
+				const probe = card.cloneNode(true);
+				probe.style.cssText = "position:absolute;visibility:hidden;height:auto;width:264px";
+				probe.querySelectorAll(".rules > div").forEach(l => { l.style.display = ""; if (l.dataset.full) l.innerHTML = l.dataset.full; });
+				probe.querySelector(".over").remove();
+				probe.querySelector(".rules").style.flex = "none";
+				slot.appendChild(probe);
+				card.style.setProperty("--full", probe.offsetHeight + "px");
+				probe.remove();
+				if (slot.classList.contains("held")) {
+					card.classList.add("lifted");
+					card.querySelectorAll(".rules > div").forEach(l => { if (l.dataset.full) l.innerHTML = l.dataset.full; });
+					card.querySelector(".rules").style.flex = "none";
+					slot.style.marginTop = (probe.offsetHeight - 360 + 8) + "px";
+				}
+			}
+			note = n ? (slot.classList.contains("held") ? "held out" : `${n} over at rest`) : "fits";
+		}
+		else if (opt === "g") {
+			const steps = [];
+			if (CARDS[slot.dataset.id].f) steps.push(CARDS[slot.dataset.id].mini ? "tighter text, no fine print" : "fine print");
+			const y = yieldArt(card); if (y) steps.push(y);
+			const n = over(card); if (n) steps.push(`over: ${n} hidden`);
+			note = steps.length ? steps.join(" → ") : "fits as it is";
+		}
+		cap.textContent = note;
+		if (slot.classList.contains("mini")) cap.style.width = "245px";
+	}
+	requestAnimationFrame(() => document.body.classList.remove("measuring"));
+}
+
+// ---- H ----
+const H_HAND = ["sailing", "code", "theocracy", "sumer", "anarchy", "farm"];
+const INTENT = 120, SLIDE = 120, WAIT = 1100, GAP = 8;
+function faceH(id, form = "") {
+	const c = CARDS[id];
+	const t = form === "f" && c.f ? c.f : c;
+	const specs = t.specs ? `<dl class="specs">${t.specs.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
+	return `<div class="card" tabindex="0" style="--plane:var(--pl-${c.plane})">
+		<div class="head"><span class="name">${c.name}</span>${c.cost ? cost(c.cost) : ""}</div><div class="band"></div>${art(c.seed)}
+		<div class="lower"><div class="type">${c.type}</div>${specs}<div class="rules">${t.rules.map(r => `<div>${r}</div>`).join("")}</div>
+		<div class="over" hidden><span class="count"></span><span class="right"><i class="lamp" hidden></i><span>details<kbd>I</kbd></span></span><i class="meter"></i></div>
+		${t.fine ? `<div class="fine">${t.fine}</div>` : ""}${c.vp ? `<div class="vp">${c.vp} VP</div>` : ""}</div></div>`;
+}
+// Shows whole rules while they fit, then a foot counting the rest. Returns how many are hidden.
+function cut(card) {
+	const rules = card.querySelector(".rules"), foot = card.querySelector(".over");
+	const lines = [...rules.children];
+	lines.forEach(l => { l.style.display = ""; if (l.dataset.full) l.innerHTML = l.dataset.full; });
+	foot.hidden = true;
+	if (!overflows(card)) return 0;
+	foot.hidden = false;
+	let hidden = 0;
+	for (let i = lines.length - 1; i >= (lines.length === 1 ? 1 : 0) && overflows(card); i--) { lines[i].style.display = "none"; hidden++; }
+	if (lines.length === 1 && overflows(card)) {
+		const p = lines[0];
+		p.dataset.full = p.dataset.full || p.innerHTML;
+		const sentences = p.dataset.full.match(/[^.;]+[.;]/g) || [p.dataset.full];
+		let n = sentences.length;
+		while (n > 1 && overflows(card)) { n--; p.innerHTML = sentences.slice(0, n).join(""); }
+		hidden = sentences.length - n;
+	}
+	foot.querySelector(".count").innerHTML = `<b>+${hidden}</b> more`;
+	return hidden;
+}
+// How far the sheet must rise to show everything, capped at the art's height and its gap.
+function shiftFor(card) {
+	const rules = card.querySelector(".rules"), lower = card.querySelector(".lower");
+	const art = card.querySelector(".art");
+	[...rules.children].forEach(l => { l.style.display = ""; if (l.dataset.full) l.innerHTML = l.dataset.full; });
+	card.querySelector(".over").hidden = true;
+	const need = rules.scrollHeight - rules.clientHeight;
+	return Math.max(0, Math.min(need, art.offsetHeight + GAP));
+}
+function placeTab(tab, slot, hand) {
+	const s = slot.getBoundingClientRect(), h = hand.getBoundingClientRect();
+	const card = slot.querySelector(".card").getBoundingClientRect();
+	const right = card.right + 12 + 320 <= h.right - 8;
+	tab.classList.toggle("right", right);
+	tab.classList.toggle("left", !right);
+	tab.style.setProperty("--from", right ? "-4px" : "4px");
+	tab.style.left = (right ? card.right + 12 - h.left : card.left - 12 - 320 - h.left) + "px";
+	tab.style.top = (card.top - h.top) + "px";
+}
+function tabHTML(id) {
+	const c = CARDS[id];
+	return `<h4>${c.name}</h4>${c.rules.map(r => `<div>${r}</div>`).join("")}<div class="esc">Esc closes · I for details</div>`;
+}
+function setupH(hand, cue) {
+	const tab = document.createElement("div");
+	tab.className = "tab";
+	hand.appendChild(tab);
+	let owner = null, closeTimer = 0;
+	const closeTab = () => { tab.classList.remove("open"); owner = null; };
+	tab.addEventListener("mouseleave", e => { if (owner && !owner.slot.contains(e.relatedTarget)) { owner.rest(); closeTab(); } });
+	document.addEventListener("keydown", e => { if (e.key === "Escape" && owner) closeTab(); });
+	for (const slot of hand.querySelectorAll(".slot.h")) {
+		const id = slot.dataset.id, card = slot.querySelector(".card"), lower = card.querySelector(".lower");
+		const meter = card.querySelector(".meter"), lamp = card.querySelector(".lamp");
+		let timers = [];
+		const clear = () => { timers.forEach(clearTimeout); timers = []; meter.classList.remove("run"); meter.style.width = ""; lamp.classList.remove("on"); };
+		const me = { slot };
+		const open = () => {
+			tab.innerHTML = tabHTML(id);
+			placeTab(tab, slot, hand);
+			owner = me;
+			tab.classList.add("open");
+		};
+		// Lays the card out at margin (measured with no transition), then slides the sheet there from where it is.
+		const slideTo = (margin) => {
+			const from = lower.style.marginTop || "0px";
+			lower.style.transition = "none";
+			lower.style.marginTop = margin + "px";
+			lower.classList.toggle("up", margin < 0);
+			const hidden = cut(card);
+			lower.style.marginTop = from;
+			void lower.offsetHeight;
+			lower.style.transition = "";
+			lower.style.marginTop = margin + "px";
+			return hidden;
+		};
+		const pull = (wait) => {
+			const hidden = slideTo(-shiftFor(card));
+			if (!hidden || !wait) return;
+			timers.push(setTimeout(() => {
+				if (cue === "meter") { void meter.offsetWidth; meter.classList.add("run"); }
+				if (cue === "lamp") { lamp.hidden = false; lamp.classList.add("on"); timers.push(setTimeout(() => lamp.classList.remove("on"), 40)); }
+				timers.push(setTimeout(open, WAIT));
+			}, SLIDE));
+		};
+		me.rest = () => { clear(); slot.classList.remove("hot"); slideTo(0); };
+		let still = 0;
+		const arm = () => { clearTimeout(still); still = setTimeout(() => { if (!timers.length && owner !== me) pull(true); }, INTENT); };
+		card.addEventListener("mouseenter", () => { slot.classList.add("hot"); arm(); });
+		card.addEventListener("mousemove", () => { if (!lower.style.marginTop || lower.style.marginTop === "0px") arm(); });
+		card.addEventListener("mouseleave", e => {
+			clearTimeout(still);
+			if (owner === me && tab.contains(e.relatedTarget)) return;
+			if (owner === me) closeTab();
+			me.rest();
+		});
+		card.addEventListener("mousedown", () => { clearTimeout(still); if (owner === me) closeTab(); me.rest(); slot.classList.add("hot"); });
+		card.addEventListener("focus", () => { slot.classList.add("hot"); pull(false); });
+		card.addEventListener("blur", () => { if (owner === me) closeTab(); me.rest(); });
+		card.addEventListener("keydown", e => { if (e.key === "i" || e.key === "I") owner === me ? closeTab() : open(); });
+		lamp.hidden = cue !== "lamp";
+		cut(card);
+	}
+}
+const hrow = (ids, form = "") => `<div class="hand h">${ids.map(id => `<div class="col"><div class="slot h" data-id="${id}">${faceH(id, form)}</div></div>`).join("")}</div>`;
+// The four steps of one card, frozen: at rest, pulled up, waiting (meter half full), the tab open.
+function frozenRow(box, id, form = "") {
+	const steps = ["rest", "pulled", "meter", "tab"];
+	const caps = { rest: "at rest: art, whole rules, +N more", pulled: "rested 120 ms: the sheet rises over the art",
+		meter: "still hidden: the meter fills (1.1 s)", tab: "full: the rules in a printed tab beside the card" };
+	box.innerHTML = `<div class="hand h">${steps.map(st => `<div class="col"><div class="slot h ${st === "tab" ? "wide" : ""}" data-id="${id}" data-step="${st}">${faceH(id, form)}</div><div class="cap">${caps[st]}</div></div>`).join("")}</div>`;
+	for (const slot of box.querySelectorAll(".slot")) {
+		const card = slot.querySelector(".card"), lower = card.querySelector(".lower"), st = slot.dataset.step;
+		card.removeAttribute("tabindex");
+		card.style.cursor = "default";
+		if (st === "rest") { cut(card); continue; }
+		const shift = shiftFor(card);
+		lower.style.marginTop = (-shift) + "px";
+		lower.classList.add("up");
+		cut(card);
+		if (st !== "pulled") card.querySelector(".meter").style.width = st === "meter" ? "50%" : "100%";
+		if (st === "tab") {
+			const tab = document.createElement("div");
+			tab.className = "tab open right";
+			tab.style.cssText = "left:276px;top:0;transform:none";
+			tab.innerHTML = tabHTML(id);
+			slot.appendChild(tab);
+			slot.style.height = "360px";
+		}
+		slot.classList.add("hot");
+	}
+}
+function renderH() {
+	for (const cue of ["meter", "lamp", "none"]) {
+		const box = document.getElementById("h-" + cue);
+		box.innerHTML = hrow(H_HAND);
+		setupH(box.firstElementChild, cue);
+	}
+	frozenRow(document.getElementById("h-frozen"), "sailing");
+	const live = document.getElementById("i-live");
+	live.innerHTML = hrow(H_HAND, "f");
+	setupH(live.firstElementChild, "meter");
+	frozenRow(document.getElementById("i-frozen"), "anarchy", "f");
+}
+document.getElementById("calm").addEventListener("change", e => document.body.classList.toggle("calm", e.target.checked));
+const renderAll = () => { render(); document.body.classList.add("measuring"); renderH(); requestAnimationFrame(() => document.body.classList.remove("measuring")); };
+document.fonts.ready.then(renderAll);
+document.fonts.addEventListener("loadingdone", renderAll);  // a weight first used after load changes the measures
+</script>
+</body>
+</html>
