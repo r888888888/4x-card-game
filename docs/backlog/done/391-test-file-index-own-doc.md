@@ -2,7 +2,7 @@
 id: 391
 title: Move the test file index out of docs/testing.md into docs/testing-index.md
 type: chore
-status: review
+status: done
 branch: feat/391-test-file-index
 ---
 
