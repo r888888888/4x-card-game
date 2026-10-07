@@ -6,7 +6,8 @@
 #   scripts/sim.sh --compare <checkout> [max seeds] [strategy] [--civ id] [--turns n]: compares that checkout ("main") with
 #   this one game by game (293): seeds in rounds of 5 per strategy x civ until the score change is within ±5% of main's,
 #   or max seeds (default 20); a line per cell (! past 10%), then the other metrics that moved. Both need sim/ from 293.
-# Prints mean, min and max per metric over seeds 1..N (a block per strategy, scored per civilization, 134); exits 1 if the data has loader errors.
+# Prints mean, min and max per metric over seeds 1..N (a block per strategy, scored per civilization, 134), each block
+# ending with the mean food and wealth held every 10 turns (379); exits 1 if the data has loader errors.
 # Plays the games on the performance cores but one (152, 291; every core but one where the count is unknown; on Linux
 # every CPU scripts/cpus.sh allows, since a container has no desktop to keep responsive, 317), each worker taking the next game from one queue; SIM_PROCS=n sets how many, SIM_PROCS=1 plays them in one process.
 # Each game's result is cached by the code and data that played it (292), shared by every checkout; SIM_CACHE=0 skips

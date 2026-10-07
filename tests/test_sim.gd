@@ -1,7 +1,7 @@
 extends "res://tests/lib/tech_case.gd"
 ## The balance simulator (backlog 042): the sim bot (GenericBot since 314, sim/generic_bot.gd) and per-seed stats
 ## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375), and settlements with their
-## count per tier (328).
+## count per tier (328), and the food and wealth held every 10 turns (379).
 
 const METRICS := ["anarchies", "anarchy_turns", "bought", "deck_end", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
@@ -360,11 +360,10 @@ func test_379_a_game_samples_what_is_held_as_each_10th_turn_starts() -> void:
 
 
 func test_379_trend_line_lists_each_sample_mean_by_turn() -> void:
-	var stats: Object = SimStats.new()
 	var means := {"score": 40.0, "food_t20": 22.5, "food_t10": 12.0, "wealth_t10": 3.0}
-	eq(stats.trend_line("food", means), "food by turn: 10 12.0, 20 22.5", "turns in order, 1 decimal")
-	eq(stats.trend_line("wealth", means), "wealth by turn: 10 3.0", "wealth's own samples")
-	eq(stats.trend_line("food", {"score": 40.0}), "", "no samples, no line")
+	eq(SimStats.trend_line("food", means), "food by turn: 10 12.0, 20 22.5", "turns in order, 1 decimal")
+	eq(SimStats.trend_line("wealth", means), "wealth by turn: 10 3.0", "wealth's own samples")
+	eq(SimStats.trend_line("food", {"score": 40.0}), "", "no samples, no line")
 
 
 func test_379_a_run_ends_each_block_with_the_trend_lines() -> void:
