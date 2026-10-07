@@ -2,7 +2,7 @@
 id: 364
 title: Fishing Huts feed and house a coastal city, with Salt Pans and Net Fishing
 type: feature
-status: in-progress
+status: review
 branch: feat/364-fishing-rework
 ---
 
@@ -14,12 +14,12 @@ Pottery opens Salt Pans as an upgrade on a hut (the coast's era-1 upgrade, like 
 catch. Content only; numbers are a first guess until a balance item.
 
 ## Acceptance criteria
-- [ ] AC1: Given a fixture building whose play effect is `create` of a fixture action into the `deck`, when it is
+- [x] AC1: Given a fixture building whose play effect is `create` of a fixture action into the `deck`, when it is
   built twice (on territories with room and workers), then the deck holds 2 more copies of that action than before,
   and the discard and hand are unchanged.
-- [ ] AC2 (invariant): Every card a building's effect creates in the real data is an action card. The failure names
+- [x] AC2 (invariant): Every card a building's effect creates in the real data is an action card. The failure names
   the building and the card.
-- [ ] AC3: The existing upgrade invariants hold with Salt Pans, in particular
+- [x] AC3: The existing upgrade invariants hold with Salt Pans, in particular
   `test_every_upgrade_and_its_base_are_build_menu_entries_opened_by_a_tech`,
   `test_every_upgrade_can_stand_on_some_territory` (a coastal territory takes both Fishing Huts and Salt Pans) and
   `test_no_upgrade_opens_before_its_base`.
@@ -60,10 +60,16 @@ catch. Content only; numbers are a first guess until a balance item.
   Salt Pans (cost about 2 wealth) ⟳ +1 food on its hut; Harbor ⟳ +1 food, +2 wealth.
 - [ ] Card text reads right: Fishing Huts says it adds a Net Fishing to your deck; Salt Pans says it builds on a
   Fishing Huts.
-- [ ] In a game on Cedar Coast, build Fishing Huts: a Net Fishing turns up in a later hand; research Pottery and the
+- [ ] Start as Phoenicia (home Cedar Coast): `godot --path . -- --civ phoenicia --seed 5`. Build Fishing Huts: a Net Fishing turns up in a later hand; research Pottery and the
   hut offers "+ Upgrade" Salt Pans; on a marsh-only territory (Reed Marsh) it doesn't.
 
 ## Log
 <!-- Decisions and surprises during implementation, newest last. -->
 - Balance worry (for a balance item): Net Fishing copies grow with huts, and each pays per coastal territory, so a
   wide coastal empire gets huts × coastal territories in food per cycle. Salt Pans adds a flat +1 per hut it is built on.
+- The user chose Salt Pans as an upgrade on Fishing Huts after the red checkpoint, so the approved `here` tests were
+  removed with the criteria they tested; 364 is content only.
+- Flavor facts: seine fishing between two boats in the shallows is ancient (Egyptian tomb paintings); salt was won by
+  evaporating seawater in shallow beds, and coastal salt-making used clay vessels (briquetage), hence Pottery.
+- Card text checked on the real data: Fishing Huts reads "Add a Net Fishing to your deck" and "+1 housing"; Pottery
+  reads "Salt Pans can now be built on a Fishing Huts."
