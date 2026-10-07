@@ -228,9 +228,14 @@ func event_option_buttons() -> Array[Button]:
 	return _news.event_modal.option_buttons
 
 
-## Test hook (271): the raid modal on show, {uid, id, repelled, result, title, context}; {} while closed.
+## Test hook (271): the raid modal on show, {uid, id, repelled, result, title, context, art}; {} while closed.
 func raid_modal() -> Dictionary:
 	return _news.raid_modal.shown()
+
+
+## Test hook (389): the raid modal's verdict headline.
+func raid_modal_verdict() -> Label:
+	return _news.raid_modal.verdict
 
 
 ## Test hook (271): the raid modal's OK button.

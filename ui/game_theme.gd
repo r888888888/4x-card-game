@@ -28,6 +28,7 @@ static func build() -> Theme:
 	_label(t, "DisplayXL", Tokens.TYPE_DISPLAY_XL, Palette.TEXT, display())  # the era ceremony's name (211)
 	_label(t, "Title", Tokens.TYPE_TITLE, Palette.TEXT, display())
 	_label(t, "Heading", Tokens.TYPE_HEADING, Palette.TEXT_DIM, heading_font())  # UIKit.heading sets the capitals
+	_label(t, "Verdict", Tokens.TYPE_DISPLAY, Palette.TEXT, verdict_font())  # the raid modal's headline (389)
 	_label(t, "Body", Tokens.TYPE_BODY, Palette.TEXT)
 	_label(t, "BodySmall", Tokens.TYPE_BODY_S, Palette.TEXT)
 	_label(t, "Caption", Tokens.TYPE_CAPTION, Palette.TEXT_DIM)
@@ -511,6 +512,14 @@ static func tabular(base: Font) -> FontVariation:
 static func heading_font() -> FontVariation:
 	var f := tabular(LABEL_SEMIBOLD)
 	f.spacing_glyph = roundi(Tokens.TYPE_HEADING * 0.1)
+	return f
+
+
+## The verdict face (389): Barlow SemiCondensed SemiBold at display size, tracked +8% for its capitals, so a raid's
+## outcome reads apart from the sheet's Jost title.
+static func verdict_font() -> FontVariation:
+	var f := tabular(LABEL_SEMIBOLD)
+	f.spacing_glyph = roundi(Tokens.TYPE_DISPLAY * 0.08)
 	return f
 
 
