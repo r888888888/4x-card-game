@@ -2,7 +2,7 @@
 id: 371
 title: Read the Stars looks at the top 3 cards and takes one (Astronomy)
 type: feature
-status: red-review
+status: in-progress
 branch: feat/371-read-the-stars
 ---
 
