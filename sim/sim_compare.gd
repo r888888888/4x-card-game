@@ -97,8 +97,9 @@ static func cell_line(cell: Dictionary) -> String:
 	return line + " !" if absf(share) > FLAG + 1e-9 else line
 
 
-## The report: a header naming both sides, then per strategy its cells' lines and a line per other metric (in both
-## sides' metric names) whose mean over the strategy's pairs changed.
+## The report: a header naming both sides, then per strategy its cells' lines, a line per other metric (in both
+## sides' metric names) whose mean over the strategy's pairs changed, and a trend_change_line per resource (379) in
+## place of its trend samples' lines.
 static func _report(main_side: Dictionary, this_side: Dictionary, max_seeds: int, cells: Array, summaries: Array,
 		names: Dictionary) -> Array[String]:
 	var lines: Array[String] = ["main %s vs this %s: seeds in rounds of %d, up to %d" % [main_side.root, this_side.root,
@@ -113,12 +114,33 @@ static func _report(main_side: Dictionary, this_side: Dictionary, max_seeds: int
 		if i + 1 < cells.size() and cells[i + 1].strategy == strategy:
 			continue
 		var games := cells.filter(func(c): return c.strategy == strategy)
+		var means := {"main": {}, "this": {}}
 		for m in metrics:
 			var before := _mean(_values(games, "main", m))
 			var after := _mean(_values(games, "this", m))
-			if absf(after - before) > 1e-9:
+			means.main[m] = before
+			means.this[m] = after
+			if absf(after - before) > 1e-9 and not SimStats.is_trend_metric(m):
 				lines.append("%-10s main %.2f  this %.2f  Δ %+.2f" % [m, before, after, after - before])
+		for r in SimStats.TREND_RESOURCES:
+			var line := trend_change_line(r, means.main, means.this)
+			if line != "":
+				lines.append(line)
 	return lines
+
+
+## "wealth by turn  Δ 10 +0.0, 20 -2.5" (379): the change in the mean of each of resource's trend samples both
+## main_means and this_means ({metric: mean}) have, by turn; "" when none of them moved.
+static func trend_change_line(resource: String, main_means: Dictionary, this_means: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	var moved := false
+	for n in SimStats.trend_turns(resource, main_means.keys()):
+		var m := "%s_t%d" % [resource, n]
+		if this_means.has(m):
+			var delta: float = this_means[m] - main_means[m]
+			moved = moved or absf(delta) > 1e-9
+			parts.append("%d %+.1f" % [n, delta])
+	return "%s by turn  Δ %s" % [resource, ", ".join(parts)] if moved else ""
 
 
 static func _failed(lines: Array) -> Dictionary:

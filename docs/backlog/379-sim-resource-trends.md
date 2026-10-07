@@ -2,7 +2,7 @@
 id: 379
 title: Sim report shows food and wealth held every 10 turns
 type: feature
-status: red-review
+status: in-progress
 branch: feat/379-sim-resource-trends
 ---
 
