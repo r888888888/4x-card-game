@@ -43,16 +43,34 @@ Everything planned so far is done (through 367: military, settlement tiers, the 
 generic sim bot, the 2026-10-06 review cleanup and the coast). The order of closed items is in
 [done/HISTORY.md](done/HISTORY.md).
 
-In progress on a branch (not on `main` yet):
-- 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
-- 384 simpler Anarchy (`feat/384-simpler-anarchy`, red-review); 385 and 386 follow from it
-- 379 resource breakdown popover (`feat/379-resource-breakdown-popover`, branch started; item still `ready`)
+Order chosen to minimize churn: finish what has red tests, then the three refactors that every later item would
+otherwise write against the old shape and then rewrite, then the features in the order their shared pieces appear.
 
-Not yet prioritized (all `ready`; pick an order before building):
-- Top bar: 379 click a resource counter for its next-upkeep change by source, 380 click Score or Pop for what makes it up
-- Card faces: 382 one Unlocks line, a ledger of figures and gates as fine print; 383 overflowing text cuts at a whole
-  rule, hover shows the rest
-- Government: 385 Renewal is a free action during Anarchy, 386 a fifth Anarchy turn that doesn't end it loses the game
-- Military UI: 387 upgrade a building from its details modal, 388 veteran pips on unit cards
-- Refactors: 392 main.gd's test hooks move to a test-side probe, 393 GameTheme split into one file per component,
-  394 engine areas (military actions and queries move to `engine.military`)
+Finish first (red tests already written; 392 renames their calls when it lands):
+1. 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
+2. 384 simpler Anarchy (`feat/384-simpler-anarchy`, red-review)
+
+Refactors (before the features, which would add to what they move):
+3. 392 main.gd's test hooks move to a test-side probe. First: 379's red tests already add three hooks to main
+   (`breakdown_key`, `breakdown_rows`, `counter`), and every UI item below adds more.
+4. 393 GameTheme split into one file per component. Before 379 (the Popover look), 382 (Ledger, FinePrint), 383 (the
+   sheet and meter) and 388 (pips) add looks to `game_theme.gd`, already past 500 lines.
+5. 394 engine areas, military first. Before 388 adds `unit_veteran_pips` to `Military` (a forward 394 would remove),
+   and before 385 adds an entry to `legal_actions`, whose dispatch 394 changes.
+
+Anarchy (builds on 384 while its code is fresh):
+6. 385 Renewal is a free action during Anarchy
+7. 386 a fifth Anarchy turn that doesn't end it loses the game (after 385)
+
+Top bar (379 brings the `Popover` that 380 and 383 reuse):
+8. 379 click a resource counter for its next-upkeep change by source (`feat/379-resource-breakdown-popover` has its red
+   tests; move their main calls to the probe)
+9. 380 click Score or Pop for what makes it up
+
+Card faces and details:
+10. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
+11. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
+12. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
+
+Military UI:
+13. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
