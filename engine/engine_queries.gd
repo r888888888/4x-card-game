@@ -352,6 +352,12 @@ func unit_origin(uid: int) -> String:
 	return Military.unit_origin(self, uid)
 
 
+## "Upgrade to Pikes for 2 food, 1 wealth (no action)." for unit uid with an upgrade (166), its Upgrade button's
+## tooltip; "" for anything else.
+func upgrade_line(uid: int) -> String:
+	return Military.upgrade_line(self, uid)
+
+
 ## What upgrading unit uid costs (166): per resource, its upgrade's printed cost less its own, never below 0 (0s left
 ## out); {} when uid isn't a unit in the tableau with upgrades_to.
 func upgrade_cost(uid: int) -> Dictionary:

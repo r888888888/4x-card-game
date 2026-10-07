@@ -196,3 +196,46 @@ func test_an_upgraded_unit_keeps_its_place_among_the_workers() -> void:
 	var working := e.zone("tableau").cards.filter(func(c): return c.def.id == "pikes" and c.uid != idle_pikes)
 	check(working.size() == 1 and not e.is_idle(working[0].uid), "its Pikes works")
 	check(e.is_idle(idle_pikes), "the other Pikes is still idle")
+
+
+# --- Manual check support: the Upgrade button in a unit's details ---
+
+func test_upgrade_line_names_the_upgrade_and_its_price() -> void:
+	var e := upgrade_engine()
+	eq(e.upgrade_line(levy_of(e)), "Upgrade to Pikes for 2 food, 1 wealth (no action).", "the Levy")
+	var club := put_in_hand(e, "club")
+	check(e.play_card(club, home_uid(e)), "Club recruited")
+	e.resources["food"] = 10
+	var pikes := put_in_hand(e, "pikes")
+	check(e.play_card(pikes, home_uid(e)), "Pikes recruited: %s" % e.play_error(pikes, home_uid(e)))
+	eq(e.upgrade_line(club), "Upgrade to Pikes for 1 food (no action).", "the Club")
+	for uid in [pikes, home_uid(e), put_in_hand(e, "levy"), 9999]:
+		eq(e.upgrade_line(uid), "", "upgrade_line of %d" % uid)
+
+
+func test_details_upgrade_a_unit() -> void:
+	var engine := upgrade_engine()
+	await with_main(engine, func(main: Node):
+		var e := Game.engine
+		var levy := put_in_hand(e, "levy")
+		check(e.play_card(levy, home_uid(e)), "Levy recruited: %s" % e.play_error(levy, home_uid(e)))
+		e.resources["food"] = 0
+		await wait_frames()
+		main.details.open_card(e.zone("tableau").find(levy))
+		var upgrade: Button = main.details.upgrade_button()
+		check(upgrade.visible and upgrade.disabled, "Upgrade offered but disabled")
+		eq(upgrade.tooltip_text, e.upgrade_unit_error(levy), "with the reason")
+		main.details.close()
+		e.resources["food"] = 10
+		main.details.open_card(e.zone("tableau").find(levy))
+		check(not upgrade.disabled, "enabled with the food")
+		eq(upgrade.tooltip_text, e.upgrade_line(levy), "the upgrade and its price")
+		upgrade.pressed.emit()
+		await wait_frames()
+		check(e.zone("removed").find(levy) != null, "the Levy was upgraded")
+		var pikes := uid_of(e.zone("tableau"), "pikes")
+		main.details.open_card(e.zone("tableau").find(pikes))
+		check(not upgrade.visible, "no Upgrade on a Pikes")
+		main.details.open_card(e.zone("tableau").find(home_uid(e)))
+		check(not upgrade.visible, "nor on a territory")
+		main.details.close())

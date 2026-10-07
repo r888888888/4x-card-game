@@ -416,6 +416,17 @@ static func upgrade_cost(e: GameEngine, uid: int) -> Dictionary:
 	return price
 
 
+## "Upgrade to Pikes for 2 food, 1 wealth (no action)." for a unit in the tableau with upgrades_to (166), its Upgrade
+## button's tooltip; "" for anything else.
+static func upgrade_line(e: GameEngine, uid: int) -> String:
+	var unit := _unit(e, uid)
+	if unit == null or unit.def.upgrades_to == "":
+		return ""
+	var price := upgrade_cost(e, uid)
+	var paid := Fields.amounts_text(price) if not price.is_empty() else "nothing"
+	return "Upgrade to %s for %s (no action)." % [e.card_db[unit.def.upgrades_to].name, paid]
+
+
 ## Why unit uid can't be upgraded now (166), or "": blocked, not a unit, no upgrades_to, its upgrade's build-menu
 ## entry locked or missing, Anarchy (Anarchy.play_error on the new card, as building it), or short of upgrade_cost.
 static func upgrade_error(e: GameEngine, uid: int) -> String:

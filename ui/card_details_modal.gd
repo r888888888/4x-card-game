@@ -27,7 +27,8 @@ var _research: Button
 var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidden
 var _move: Button
 var _disband: Button
-var _unit := -1  # the unit in the realm Move… and Disband act on (163); -1 when they are hidden
+var _upgrade: Button  # re-equips the unit as its upgrade (166); hidden unless it has one
+var _unit := -1  # the unit in the realm Move…, Disband and Upgrade act on (163, 166); -1 when they are hidden
 var _contribute: Button
 var _abandon: Button
 var _site := -1  # the wonder site Contribute and Abandon… act on (286); -1 when they are hidden
@@ -66,6 +67,7 @@ func _init(p_stack: ModalStack) -> void:
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
 	_disband = add_footer_button(UIKit.button("Disband", _on_disband))
+	_upgrade = add_footer_button(UIKit.button("Upgrade", _on_upgrade))
 	_move = add_footer_button(UIKit.button("Move…", _on_move), true)
 	_abandon = add_footer_button(UIKit.button("Abandon…", _on_abandon))
 	_contribute = add_footer_button(UIKit.button("Contribute", _on_contribute), true)
@@ -99,6 +101,11 @@ func research_button() -> Button:
 ## Test hook (163): the Move… and Disband buttons, hidden unless a unit in the realm is on show.
 func unit_buttons() -> Array[Button]:
 	return [_move, _disband]
+
+
+## Test hook (166): the Upgrade button, hidden unless a unit in the realm with an upgrade is on show.
+func upgrade_button() -> Button:
+	return _upgrade
 
 
 ## Test hook (286): the Contribute and Abandon… buttons, hidden unless a wonder site is on show.
@@ -206,6 +213,12 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 	_unit = uid if e.unit_station(uid) != -1 else -1
 	_move.visible = _unit != -1
 	_disband.visible = _unit != -1
+	var upgrade := e.upgrade_line(_unit) if _unit != -1 else ""
+	_upgrade.visible = upgrade != ""
+	if upgrade != "":
+		var refused := e.upgrade_unit_error(_unit)
+		_upgrade.disabled = refused != ""
+		_upgrade.tooltip_text = refused if refused != "" else upgrade
 	if _unit != -1:
 		var block := e.unit_move_block(_unit)
 		_move.disabled = block != ""
@@ -341,6 +354,13 @@ func _on_disband() -> void:
 	close()
 	if Game.engine.disband_error(uid) == "":
 		Game.engine.disband(uid)
+
+
+func _on_upgrade() -> void:
+	var uid := _unit
+	close()
+	if Game.engine.upgrade_unit_error(uid) == "":
+		Game.engine.upgrade_unit(uid)
 
 
 func _on_contribute() -> void:
