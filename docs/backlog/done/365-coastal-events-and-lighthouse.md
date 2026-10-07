@@ -2,7 +2,7 @@
 id: 365
 title: Helpful coastal events and the Lighthouse of Pharos
 type: feature
-status: review
+status: done
 branch: feat/365-coastal-events-and-lighthouse
 ---
 
@@ -40,7 +40,7 @@ Phoenicia's). Content only; numbers are a first guess until a balance item.
 - New wonder **Lighthouse of Pharos** (`lighthouse_of_pharos`): building, `project: true`, tags
   `["wonder", "culture", "port"]`, `requires: ["coastal"]`, ⟳ `gain_per_tag` +1 wealth per `port` card. Build menu
   entry `{ "locked": true, "once": true }`; Navigation unlocks it.
-- Flavor and the wonder's quote follow the style guide §18 (a real quote about the Pharos, attributed).
+- Flavor follows the style guide §18 (wonders carry no quote; see the Log).
 - PLAN.md: the event list and the wonder list.
 
 ## Test plan
