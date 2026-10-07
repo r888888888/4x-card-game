@@ -69,12 +69,15 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	add_child(type_row)
 
 	_set_rules_tip(card, card_db)
-	var rules_text := def.rules_text(card_db)
-	if base_name != "":  # an upgrade adds: each line led by "Also", without the base and tier lines (302)
-		var lines := Array(e.upgrade_rules_text(def.id).split("\n")).filter(func(line: String): return line != "")
-		rules_text = "\n".join(PackedStringArray(lines.map(func(line: String): return "Also " + line)))
-	if rules_text != "":  # territories have none; an empty label would still take a line
-		var rules := rich_label(rules_text, Tokens.TYPE_BODY)
+	var face := def.face(card_db)  # the ledger, the rules and the fine print (382)
+	if not face.ledger.is_empty():
+		add_child(_ledger(face.ledger))
+	var lines := Array(face.rules)
+	if base_name != "":  # an upgrade adds: each line led by "Also" (302)
+		lines = lines.map(func(line: String): return "Also " + line)
+	if not lines.is_empty():  # territories have none; an empty label would still take a line
+		var rules := rich_label("\n".join(PackedStringArray(lines)), Tokens.TYPE_BODY)
+		rules.name = "Rules"
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		add_child(rules)
 
@@ -85,6 +88,8 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
+	if in_hand and not face.fine.is_empty():  # the gates, at the foot of a hand-size face only, above the VP (382)
+		_add_fine_print(face.fine)
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
 	var tier := e.card_tier_name(def.id) if base_name != "" else ""
@@ -97,6 +102,45 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		stamp.size_flags_horizontal = Control.SIZE_SHRINK_END
 		stamp.rotation = STAMP_TILT
 		add_child(stamp)
+
+
+## A two-column grid of a card's figures (382): each label in caps, then its figure.
+func _ledger(rows: Array) -> GridContainer:
+	var grid := GridContainer.new()
+	grid.name = "Ledger"
+	grid.columns = 2
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.add_theme_constant_override("h_separation", Tokens.SPACE_3)
+	grid.add_theme_constant_override("v_separation", Tokens.SPACE_0)
+	for row: Array in rows:
+		var name_label := Label.new()
+		name_label.text = row[0]
+		name_label.uppercase = true
+		name_label.theme_type_variation = &"LedgerLabel"
+		name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		grid.add_child(name_label)
+		var figure := Label.new()
+		figure.text = row[1]
+		figure.theme_type_variation = &"LedgerFigure"
+		grid.add_child(figure)
+	return grid
+
+
+## The card's gates as one line of fine print under a hairline (382).
+func _add_fine_print(gates: PackedStringArray) -> void:
+	var rule := ColorRect.new()
+	rule.color = Palette.HAIRLINE
+	rule.custom_minimum_size.y = 1
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rule)
+	var fine := Label.new()
+	fine.name = "FinePrint"
+	fine.text = " · ".join(gates)
+	fine.uppercase = true
+	fine.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fine.theme_type_variation = &"FinePrint"
+	fine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fine)
 
 
 ## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card, then chip if any; replaces those shown.
@@ -154,7 +198,7 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 			printed.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 			add_child(printed)
 		return
-	var rules := Array(def.rules_text(card_db).split("\n")).filter(func(line: String):
+	var rules := Array(def.face(card_db).rules).filter(func(line: String):
 		return line != "" and line != def.lasts_text())
 	if not rules.is_empty():
 		add_child(one_line(rich_label(rules[0], Tokens.TYPE_BODY_S)))

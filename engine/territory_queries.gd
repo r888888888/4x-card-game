@@ -124,11 +124,11 @@ func card_tier_name(card_id: String) -> String:
 	return card_db[card_id].tier_name if card_db.has(card_id) else ""
 
 
-## Upgrade card_id's card text without its "Builds on" and "Needs" lines: what it adds (302); "" for anything else.
+## Upgrade card_id's face rules, one a line: what it adds (302, 382); "" for anything else.
 func upgrade_rules_text(card_id: String) -> String:
 	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
 		return ""
-	return card_db[card_id].rules_text(card_db, false)
+	return "\n".join(card_db[card_id].face(card_db).rules)
 
 
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).

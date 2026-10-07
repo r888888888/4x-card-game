@@ -70,8 +70,8 @@ variation; set it with `theme_type_variation`.
 | `type.heading` | 15 | `Heading` (SemiCondensed SemiBold, tracked), `UIKit.heading()` sets capitals; text stays as written |
 | `type.body` | 20 | theme default, `Body`, `RichBody` (modal text, the log), `BarStat`, `CardTitle` (card names, semibold: 198), card rules |
 | `type.body-s` | 17 | `BodySmall`; card subtitles, keywords, the reason strip |
-| `type.label-caps` / `caption` | 14 | `Caption`, `StateWord`; the card badge, a toggle's ON/OFF word |
-| `type.numeral` / `numeral-s` | 26 / 17 | `Stat`; small card figures (VP on a frontier card) |
+| `type.label-caps` / `caption` | 14 | `Caption`, `StateWord`, `FinePrint` and `LedgerLabel` (tracked caps: a card's gates and its figures' names, 382); the card badge, a toggle's ON/OFF word |
+| `type.numeral` / `numeral-s` | 26 / 17 | `Stat`; small card figures (VP on a frontier card, `LedgerFigure`: a card's ledger, 382) |
 | `display-xl`, `numeral-xl` | 56, 44 | tokens only; nothing uses them yet |
 
 ## Spacing, radius, borders, shadows (§6)

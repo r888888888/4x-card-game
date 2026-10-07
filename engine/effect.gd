@@ -53,6 +53,11 @@ func describe(_card_db: Dictionary) -> String:
 	return op
 
 
+## The name of the card this effect unlocks, for the face's one Unlocks line (382); "" for any other effect.
+func unlocked_name(_card_db: Dictionary) -> String:
+	return ""
+
+
 ## Full rules text for the tooltip, without the trigger prefix. Defaults to describe.
 func describe_long(card_db: Dictionary) -> String:
 	return describe(card_db)

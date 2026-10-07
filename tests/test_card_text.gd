@@ -1,5 +1,6 @@
 extends "res://tests/lib/test_case.gd"
-## Card text: the short form on the card (rules_text) and the full wording on hover (rules_tooltip).
+## Card text: the face (CardDef.face: a ledger of figures, the rules with one Unlocks line, gates as fine print, 382;
+## rules_text is it in one string) and the full wording on hover and in the details (rules_tooltip).
 
 const KEYWORDS: Array[String] = ["mountain", "fresh_water", "flood_plain", "desert", "forest", "jungle"]
 const CITY := {"id": "city", "name": "City", "type": "city"}
@@ -93,7 +94,7 @@ func test_grow_short_forms() -> void:
 
 func test_needs_line() -> void:
 	eq(short_text([], ["fresh_water"]), "Needs Fresh Water", "one keyword")
-	eq(short_text([FOOD_UPKEEP], ["forest", "jungle"]), "Needs Forest/Jungle\n⟳ +1 food", "two keywords")
+	eq(short_text([FOOD_UPKEEP], ["forest", "jungle"]), "⟳ +1 food\nNeeds Forest/Jungle", "two keywords: the gate is fine print, last (382)")
 
 
 func test_gain_score_draw_create_keep_their_text() -> void:
@@ -213,3 +214,111 @@ func test_bug_329_countable_modifiers_keep_their_plural() -> void:
 	eq(modifier_text({Modifiers.ACTIONS: 2}), "+2 actions each turn", "2 actions")
 	eq(modifier_text({Modifiers.RENEWAL: 2}), "Renewal trashes 2 more cards", "2 cards")
 	eq(modifier_text({Modifiers.ACTIONS: 1}), "+1 action each turn", "1 action")
+
+
+# --- 382: the face: one Unlocks line, a ledger of figures, gates as fine print ---
+
+const HARBOR := {"id": "harbor", "name": "Harbor", "type": "building"}
+const SHIPYARD := {"id": "shipyard", "name": "Shipyard", "type": "building"}
+const SEA_TRADE := {"id": "sea_trade", "name": "Sea Trade", "type": "action"}
+const FISHING_HUTS := {"id": "fishing_huts", "name": "Fishing Huts", "type": "building"}
+const WEAVING := {"id": "weaving", "name": "Weaving", "type": "tech", "cost": {"insight": 2}}
+const DELTA_MARSH := {"id": "delta_marsh", "name": "Delta Marsh", "type": "territory", "slots": 2, "housing": 3}
+const SAILING := {"id": "sailing", "name": "Sailing", "type": "tech", "cost": {"insight": 2}, "effects": [
+	{"op": "unlock", "card": "harbor"}, {"op": "unlock", "card": "shipyard"},
+	{"op": "create", "card": "sea_trade", "zone": "discard"}, {"op": "unlock", "card": "sea_trade"},
+	{"op": "gain", "resource": "insight", "amount": 1, "trigger": "upkeep"}]}
+const ASSEMBLY := {"id": "assembly", "name": "Assembly", "type": "government", "actions": 3, "unrest_limit": 13,
+	"tolerates": "town", "administers": 6, "effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]}
+
+
+## The face cards: SAILING, ASSEMBLY, the cards they name, and extra; Assembly's tolerated tier named as ConfigLoader would.
+func face_db(extra: Array = []) -> Dictionary:
+	var db := text_db([HARBOR, SHIPYARD, SEA_TRADE, FISHING_HUTS, WEAVING, DELTA_MARSH, SAILING, ASSEMBLY] + extra)
+	if db.has("assembly"):
+		(db.assembly as CardDef).tolerates_name = "Town"
+	return db
+
+
+func test_every_unlock_joins_one_line_at_the_first() -> void:
+	var db := face_db()
+	var face: Dictionary = (db.sailing as CardDef).face(db)
+	eq(face.rules, PackedStringArray(["Unlocks Harbor, Shipyard, Sea Trade", "Add a Sea Trade to your discard",
+		"⟳ +1 insight"]), "Sailing's rules")
+	eq([face.ledger, face.fine], [[], PackedStringArray()], "no ledger, no fine print")
+
+
+func test_a_single_unlock_reads_unlocks_and_its_card() -> void:
+	var db := face_db([{"id": "pottery", "name": "Pottery", "type": "tech", "cost": {"insight": 2}, "effects": [{"op": "unlock", "card": "harbor"}]}])
+	eq((db.pottery as CardDef).face(db).rules, PackedStringArray(["Unlocks Harbor"]), "one unlock")
+
+
+func test_a_governments_figures_are_a_ledger() -> void:
+	var db := face_db()
+	var face: Dictionary = (db.assembly as CardDef).face(db)
+	eq(face.ledger, [["Actions", "3"], ["Unrest limit", "13"], ["Tolerates", "Town"], ["Administers", "6"]], "the ledger")
+	eq(face.rules, PackedStringArray(["⟳ +1 VP"]), "the rules: its upkeep")
+
+
+func test_a_field_the_card_lacks_has_no_ledger_row() -> void:
+	var db := face_db([{"id": "band", "name": "Band", "type": "government", "actions": 2},
+		{"id": "chiefs", "name": "Chiefs", "type": "government"}])
+	eq((db.band as CardDef).face(db).ledger, [["Actions", "2"]], "only Actions")
+	eq((db.chiefs as CardDef).face(db).ledger, [], "none")
+
+
+func test_gates_are_fine_print_in_order() -> void:
+	var db := face_db([
+		{"id": "mill", "name": "Mill", "type": "building", "requires": ["fresh_water"],
+			"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+		{"id": "tower", "name": "Tower", "type": "building", "tier": "metropolis"},
+		{"id": "dyeing", "name": "Dyeing", "type": "tech", "cost": {"insight": 2}, "prereq": "weaving",
+			"eureka": {"card": "fishing_huts", "count": 1, "off": 4}},
+		{"id": "nile", "name": "Nile", "type": "civilization", "home": "delta_marsh"},
+		{"id": "colossus", "name": "Colossus", "type": "building", "cost": {"wealth": 10}, "project": true}])
+	(db.tower as CardDef).tier_name = "Metropolis"
+	var cases := {
+		"mill": ["Needs Fresh Water"],
+		"tower": ["Needs a Metropolis"],
+		"dyeing": ["Needs Weaving", "Eureka: -4 insight with 1 Fishing Huts"],
+		"nile": ["Starts on Delta Marsh"],
+		"colossus": ["Built over turns"],
+	}
+	for id: String in cases:
+		var face: Dictionary = (db[id] as CardDef).face(db)
+		eq(face.fine, PackedStringArray(cases[id]), "%s's fine print" % id)
+		for line: String in cases[id]:
+			check(not face.rules.has(line), "%s: '%s' isn't a rule" % [id, line])
+	eq((db.mill as CardDef).face(db).rules, PackedStringArray(["⟳ +1 food"]), "the Mill's rule stays")
+
+
+func test_an_upgrades_face_has_no_builds_on_line() -> void:
+	var db := face_db([{"id": "farm", "name": "Farm", "type": "building"},
+		{"id": "plough", "name": "Plough", "type": "building", "upgrade_of": "farm", "tier": "town",
+			"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}])
+	(db.plough as CardDef).tier_name = "Town"
+	var face: Dictionary = (db.plough as CardDef).face(db)
+	eq(face.rules, PackedStringArray(["⟳ +1 food"]), "what it adds")
+	eq(face.fine, PackedStringArray(["Needs a Town"]), "its tier as fine print")
+
+
+func test_a_cards_own_text_is_its_rules_split_into_lines() -> void:
+	var db := face_db([{"id": "anarchy", "name": "Anarchy", "type": "government", "actions": 2,
+		"text": "No laws hold.\nRenew to end it."}])
+	var face: Dictionary = (db.anarchy as CardDef).face(db)
+	eq(face.rules, PackedStringArray(["No laws hold.", "Renew to end it."]), "its text's lines")
+	eq([face.ledger, face.fine], [[], PackedStringArray()], "no ledger, no fine print")
+
+
+func test_the_long_form_keeps_every_line() -> void:
+	var db := face_db([{"id": "dyeing", "name": "Dyeing", "type": "tech", "cost": {"insight": 2}, "prereq": "weaving"},
+		{"id": "colossus", "name": "Colossus", "type": "building", "cost": {"wealth": 10}, "project": true}])
+	var sailing := (db.sailing as CardDef).rules_tooltip(db).split("\n")
+	eq(Array(sailing).filter(func(l: String): return l.contains("can now be bought")).size(), 1, "Sea Trade's own line")
+	check(sailing.size() >= 4, "an unlock per line: %s" % [sailing])
+	var assembly := (db.assembly as CardDef).rules_tooltip(db)
+	for line in [(db.assembly as CardDef).actions_text(), (db.assembly as CardDef).unrest_limit_text(),
+			(db.assembly as CardDef).tolerates_text(), (db.assembly as CardDef).administers_text()]:
+		check(assembly.contains(line), "the Assembly's '%s'" % line)
+	check((db.dyeing as CardDef).rules_tooltip(db).contains("Needs Weaving researched first."), "the prereq sentence")
+	check((db.colossus as CardDef).rules_tooltip(db).contains(CardDef.PROJECT_TEXT), "the project sentence")
