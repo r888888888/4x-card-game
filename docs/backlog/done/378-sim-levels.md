@@ -2,7 +2,7 @@
 id: 378
 title: Sim levels 1–4 pick seeds, strategies and civs in one flag
 type: feature
-status: review
+status: done
 branch: feat/378-sim-levels
 ---
 
