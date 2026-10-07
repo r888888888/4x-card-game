@@ -1737,3 +1737,99 @@ func test_every_government_has_flavor_and_a_quote() -> void:
 		if def.type == CardDef.GOVERNMENT:
 			check(def.flavor != "", "%s has flavor" % def.id)
 			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+
+
+# --- Military content (backlog 167) ---
+
+## The real units: card defs of type unit, checked to be there.
+func real_units(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.cards:
+		if r.cards[id].type == CardDef.UNIT:
+			out.append(r.cards[id])
+	check(not out.is_empty(), "the real data has units")
+	return out
+
+
+## The real raids in the event deck, checked to be there.
+func real_raids(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.config.get("event_deck", {}):
+		if not r.cards[id].raid.is_empty():
+			out.append(r.cards[id])
+	check(not out.is_empty(), "the event deck has raids")
+	return out
+
+
+## AC2: an upgrade is a step up: every upgrades_to names a stronger unit, whose entry opens no earlier than its own.
+func test_every_unit_upgrade_is_stronger_and_opens_no_earlier() -> void:
+	var r := load_real()
+	var upgrades := 0
+	for unit in real_units(r):
+		if unit.upgrades_to == "":
+			continue
+		upgrades += 1
+		var to: CardDef = r.cards[unit.upgrades_to]
+		check(to.strength > unit.strength, "%s (%d) upgrades to a stronger %s (%d)" % [unit.id, unit.strength, to.id,
+			to.strength])
+		check(entry_era(r, to.id) >= entry_era(r, unit.id), "%s opens no earlier than %s" % [to.id, unit.id])
+	check(upgrades >= 2, "at least 2 unit upgrades (got %d)" % upgrades)
+
+
+## Every unit open on turn 1 can be upgraded, so the first garrison isn't a dead end.
+func test_every_unit_open_on_turn_1_has_an_upgrade() -> void:
+	var r := load_real()
+	for unit in real_units(r):
+		if entry_era(r, unit.id) == 1 and not r.config.build_menu[unit.id].locked:
+			check(unit.upgrades_to != "", "%s has an upgrade" % unit.id)
+
+
+## AC1 and AC3: every unit can be had (an entry open from the start or unlocked by a research-deck tech), and every
+## era the research deck reaches opens a new unit stronger than any unit of the eras before.
+func test_every_era_opens_a_stronger_unit() -> void:
+	var r := load_real()
+	var best_by_era := {}
+	for unit in real_units(r):
+		var era := entry_era(r, unit.id)
+		check(era > 0, "%s can be had" % unit.id)
+		best_by_era[era] = maxi(best_by_era.get(era, 0), unit.strength)
+	var best_before := 0
+	for era in research_eras(r):
+		check(best_by_era.has(era), "era %d opens a unit" % era)
+		check(best_by_era.get(era, 0) > best_before, "era %d's strongest unit (%d) beats the eras before (%d)" % [era,
+			best_by_era.get(era, 0), best_before])
+		best_before = maxi(best_before, best_by_era.get(era, 0))
+
+
+## Raids escalate: every era the research deck reaches has a raid, and its strongest is stronger than every earlier era's.
+func test_every_era_has_a_raid_stronger_than_the_eras_before() -> void:
+	var r := load_real()
+	var best_by_era := {}
+	for raid in real_raids(r):
+		best_by_era[raid.era] = maxi(best_by_era.get(raid.era, 0), raid.raid.strength)
+	var best_before := 0
+	for era in research_eras(r):
+		check(best_by_era.has(era), "era %d has a raid" % era)
+		check(best_by_era.get(era, 0) > best_before, "era %d's strongest raid (%d) beats the eras before (%d)" % [era,
+			best_by_era.get(era, 0), best_before])
+		best_before = maxi(best_before, best_by_era.get(era, 0))
+
+
+## AC3: each era with raids has a unit open by then (from the start, or from a tech of that era or earlier).
+func test_every_raid_era_has_a_unit_open_by_then() -> void:
+	var r := load_real()
+	for raid in real_raids(r):
+		var open := real_units(r).filter(func(u: CardDef) -> bool: return entry_era(r, u.id) in range(1, raid.era + 1))
+		check(not open.is_empty(), "%s (era %d) can be met by a unit open by then" % [raid.id, raid.era])
+
+
+## AC4: every raid's targets are on some territory a game can hold (the deck, the start, a home, rolled resources).
+func test_every_raid_target_is_on_some_territory() -> void:
+	var r := load_real()
+	var on_land := {}
+	for keywords in land_keyword_sets(r):
+		for k in keywords:
+			on_land[k] = true
+	for raid in real_raids(r):
+		for k in raid.raid.get("targets", []):
+			check(on_land.has(k), "%s's target %s is on some territory" % [raid.id, k])
