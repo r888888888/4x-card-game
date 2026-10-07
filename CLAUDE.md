@@ -48,8 +48,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   (the suite checks); a repeated text look is a `GameTheme` variation (`Body`, `Caption`, `RichBody`, …).
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
   literal, BBCode included: rich text colours with `Palette.bbcode` (the suite checks). A look the UI repeats is a
-  theme type variation in `ui/game_theme.gd` (`GameTheme`, e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with
-  `theme_type_variation`, not per-control overrides.
+  theme type variation set with `theme_type_variation`, not per-control overrides: the label type scale (`Heading`,
+  `Title`, `Stat`, …) in `ui/game_theme.gd` (`GameTheme`), every other look in its section file in `ui/theme/` (a new
+  look: a new section, listed in `GameTheme.SECTIONS`; the suite checks).
 - Focus a control from code with `FocusRing.focus(control)`, never `grab_focus()` (the suite checks): its ring stays
   hidden until the player presses Tab, and a click hides it again (230).
 - A modal extends `Modal` and opens on `main.modals` (`ModalStack`), over any modal already open; only the top one

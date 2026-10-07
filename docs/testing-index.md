@@ -182,7 +182,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_territory_resources.gd` | Rolled resource keywords |
 | `tests/test_territory_view.gd` | The territory view (101; UI) |
 | `tests/test_test_runner.gd` | The runner itself (223) |
-| `tests/test_theme.gd` | The UI theme (106) |
+| `tests/test_theme.gd` | The UI theme (106); its sections in `ui/theme/` (393) |
 | `tests/test_tiers.gd` | Settlement tiers (281) |
 | `tests/test_title_screen.gd` | The title screen as a ledger (213; UI) |
 | `tests/test_toasts.gd` | Toasts and the unread marker (116; UI) |
