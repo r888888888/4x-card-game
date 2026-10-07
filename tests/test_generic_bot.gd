@@ -183,24 +183,14 @@ func test_sim_stats_plays_every_strategy_for_all_and_refuses_others() -> void:
 		"baseline is gone: %s" % [out.get("lines")])
 
 
-# --- 314 AC2: tall stops at 2 territories, wide likes land ---
+# --- 314 AC2: wide likes land ---
 
-## A Lone game (1 action, 10 turns left) with Hills settled, Grassland in the frontier and hand in the hand.
-func land_game(hand: Array) -> GameEngine:
-	var e := bot_game(hand, [])
+## A game of government (Lone: 1 action), 10 turns left, with Hills settled, Grassland in the frontier and hand in the hand.
+func land_game(hand: Array, government := "lone") -> GameEngine:
+	var e := bot_game(hand, [], 11, government)
 	settle(e, ["hills"])
 	to_frontier(e, ["grassland"])
 	return e
-
-
-func test_tall_never_settles_a_third_territory_and_generic_does() -> void:
-	var tall := land_game(["pioneer"])
-	eq(tall.play_error(first_in_hand(tall), uid_of(tall.zone("frontier"), "grassland")), "", "the Pioneer could settle")
-	GenericBot.take_turn(tall, "tall")
-	eq(tall.zone("frontier").size(), 1, "tall: Grassland stays in the frontier")
-	var generic := land_game(["pioneer"])
-	take_turn(generic)
-	eq(generic.zone("frontier").size(), 0, "generic: Grassland settled")
 
 
 func test_wide_settles_where_generic_builds_a_temple() -> void:
@@ -210,6 +200,61 @@ func test_wide_settles_where_generic_builds_a_temple() -> void:
 	var wide_turn := func():
 		GenericBot.take_turn(wide, "wide")
 	eq(played(wide, wide_turn), ["pioneer"], "wide: a third territory")
+
+
+# --- 390: tall settles up to 3 territories, after everything else ---
+
+## The land_game with Grassland settled too and Jungle in the frontier: 3 territories settled.
+func third_land_game(hand: Array) -> GameEngine:
+	var e := bot_game(hand, [])
+	settle(e, ["hills", "grassland"])
+	to_frontier(e, ["jungle"])
+	return e
+
+
+## The ids played by strategy's take_turn on e.
+func played_by(e: GameEngine, strategy: String) -> Array[String]:
+	return played(e, func(): GenericBot.take_turn(e, strategy))
+
+
+func test_tall_settles_a_third_territory() -> void:
+	var e := land_game(["pioneer"])
+	eq(e.play_error(first_in_hand(e), uid_of(e.zone("frontier"), "grassland")), "", "the Pioneer could settle")
+	eq(played_by(e, "tall"), ["pioneer"], "tall: the Pioneer played")
+	eq(e.zone("frontier").size(), 0, "Grassland settled")
+	eq(Territories.count_settled(e), 3, "3 territories settled")
+
+
+func test_tall_never_settles_a_fourth_territory_and_generic_does() -> void:
+	var tall := third_land_game(["pioneer"])
+	eq(tall.play_error(first_in_hand(tall), uid_of(tall.zone("frontier"), "jungle")), "", "the Pioneer could settle")
+	GenericBot.take_turn(tall, "tall")
+	eq(tall.zone("frontier").size(), 1, "tall: Jungle stays in the frontier")
+	var generic := third_land_game(["pioneer"])
+	take_turn(generic)
+	eq(generic.zone("frontier").size(), 0, "generic: Jungle settled")
+
+
+## A Lone game (1 action, 10 turns left) with only the Homeland settled, Hills in the frontier and hand in the hand.
+func first_land_game(hand: Array) -> GameEngine:
+	var e := bot_game(hand, [])
+	to_frontier(e, ["hills"])
+	return e
+
+
+func test_tall_plays_anything_worthwhile_before_settling() -> void:
+	var generic := first_land_game(["pioneer", "shrine"])
+	eq(played_by(generic, "generic"), ["pioneer"], "generic: the City is worth more than the Shrine's +1")
+	var tall := first_land_game(["pioneer", "shrine"])
+	eq(played_by(tall, "tall"), ["shrine"], "tall, 1 action: the Shrine, and no settling")
+	eq(tall.zone("frontier").size(), 1, "Hills stays in the frontier")
+
+
+func test_tall_settles_once_nothing_else_is_worth_doing() -> void:
+	var e := land_game(["pioneer", "shrine"], "stewards")
+	eq(e.actions_left(), -1, "Stewards: unlimited actions")
+	eq(played_by(e, "tall"), ["shrine", "pioneer"], "tall: the Shrine first, then the Pioneer")
+	eq(e.zone("frontier").size(), 0, "Grassland settled")
 
 
 # --- 314 AC5: ScriptedBot is gone ---
