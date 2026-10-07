@@ -271,6 +271,24 @@ func literal_colours() -> Array[String]:
 	return found
 
 
+## The ui/ scripts other than the palette that write a BBCode colour as a literal: [color=#…] or [color=<name>] (395).
+func bbcode_literal_colours() -> Array[String]:
+	var found: Array[String] = []
+	var literal := RegEx.create_from_string("\\[color=(#|[a-z])")
+	for file in DirAccess.get_files_at("res://ui"):
+		if not file.ends_with(".gd") or "res://ui/" + file == PALETTE_PATH:
+			continue
+		var lines := FileAccess.get_file_as_string("res://ui/" + file).split("\n")
+		for i in lines.size():
+			if literal.search(lines[i]) != null:
+				found.append("ui/%s:%d" % [file, i + 1])
+	return found
+
+
+func test_no_bbcode_colour_literals_outside_the_palette() -> void:
+	eq(bbcode_literal_colours(), [] as Array[String], "BBCode colour literals outside ui/palette.gd")
+
+
 func test_no_colour_literals_outside_the_palette() -> void:
 	var found := literal_colours()
 	eq(found, [] as Array[String], "colour literals outside ui/palette.gd")
