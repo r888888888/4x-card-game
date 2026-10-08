@@ -9,6 +9,11 @@ const LIFT_ROOM := 40.0
 const HAND_SIDE_ROOM := 24.0
 const DRAG_START_DISTANCE := 6.0  # px the mouse must move while pressed before a drag starts
 const DETAILS_CLICK_DELAY := 0.5  # a single click opens the card details after this, unless a second click came
+# A hand card's overflowing rules (383): the pointer rests OVERFLOW_INTENT before the sheet rises over the art, which
+# takes OVERFLOW_SLIDE; if rules are still hidden the foot's meter fills over OVERFLOW_WAIT, then the rules open beside it.
+const OVERFLOW_INTENT := 0.12
+const OVERFLOW_SLIDE := 0.12
+const OVERFLOW_WAIT := 1.1
 
 const REST_SHARPNESS := 18.0  # hover lift, and sliding into place after the hand relayouts
 const FOLLOW_SHARPNESS := 22.0  # dragged card chasing the cursor

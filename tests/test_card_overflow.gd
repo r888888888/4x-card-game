@@ -492,7 +492,7 @@ func test_reduce_motion_jumps_the_sheet_steps_the_meter_and_places_the_popover()
 		f.view.peek.advance(INTENT + 0.001)
 		check(absf(f.view.peek.rise() - CAP) < 0.5, "the sheet jumps up: %s" % f.view.peek.rise())
 		var fills := []
-		for t in [0.3, 0.1, 0.3, 0.41]:  # at 0.3, 0.4, 0.7 and 1.11 of WAIT's 1.1 s
+		for t in [0.3, 0.1, 0.4, 0.31]:  # at 0.3, 0.4, 0.8 and 1.11 s of WAIT's 1.1 s: 27, 36, 73 and 101 %
 			f.view.peek.advance(t)
 			fills.append(snappedf(f.view.peek.meter(), 0.01))
 		eq(fills, [0.0, 0.33, 0.67, 1.0], "the meter fills in three equal steps")

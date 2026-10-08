@@ -6,7 +6,8 @@ extends PanelContainer
 ## double_clicked and discard_requested (right-click); pickable cards (a pending choice) emit picked. A single click
 ## with no second click or drag (or a right-click on a pickable card) emits details_requested. main.gd decides what
 ## those mean. Its content is a CardFace and its movement a CardMotion (backlog 086); it keeps the panel, tooltip,
-## border, focus ring and input.
+## border, focus ring and input. A card in the hand row (peek_on) shows its overflowing rules with a CardPeek (383); a
+## hand-size face sets no tooltip.
 
 signal drag_requested(view: CardView, grab_offset: Vector2)
 signal double_clicked(view: CardView)
@@ -91,6 +92,12 @@ var _ribbons: Array[Dictionary] = []  # its upgrades' ribbons: {uid, name, rules
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
 var _replays := {}
+var peek: CardPeek  # a hand-row card's overflowing rules: the sheet's rise, the meter and the rules popover (383)
+var error_text := ""  # why a hand card can't be played, then its detail (347): the rules popover's last lines
+
+
+func _init() -> void:
+	peek = CardPeek.new(self)
 
 
 ## Builds (or rebuilds) the card's content. play_error: "" if playable, otherwise the reason
@@ -134,6 +141,10 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_face.build_board(card, card_db, kind, _color)
 	else:
 		_face.build(card, card_db, in_hand, _color)
+	peek.face = _face
+	peek.reset()
+	if _face.sheet != null:
+		_face.sheet.show_keys(peek.layer != null)
 
 	if in_hand:
 		set_play_error(play_error)
@@ -142,6 +153,14 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_set_tip("")
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 	_update_border()
+
+
+## Makes this a card in the hand row (383): resting the pointer on it raises its rules, and its rules popover opens on
+## layer; its foot says "details I".
+func peek_on(layer: Control) -> void:
+	peek.layer = layer
+	if _face != null and _face.sheet != null:
+		_face.sheet.show_keys(true)
 
 
 ## The colour of card type's band (a type with none of its own: grey).
@@ -166,6 +185,7 @@ func set_play_error(play_error: String, detail := "") -> void:
 	_replays["play_error"] = set_play_error.bind(play_error, detail)
 	var playable := play_error == ""
 	var why := play_error + ("\n" + detail if detail != "" else "")
+	error_text = why
 	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else why)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
@@ -322,6 +342,7 @@ func set_pickable(on: bool, tooltip := "") -> void:
 ## Shows or hides the keyboard focus ring. A focused hand card also lifts like a hovered one.
 func set_focused(on: bool) -> void:
 	_focused = on
+	peek.focus(on)
 	if state == State.REST:
 		z_index = rest_z()
 	queue_redraw()
@@ -362,7 +383,9 @@ func set_highlight(on: bool) -> void:
 func _set_tip(hint: String) -> void:
 	_hint = hint
 	var rules_tip := _face.rules_tip
-	if rules_tip == "" or hint == "":
+	if in_hand:  # its rules show on the face, then in the rules popover (383)
+		tooltip_text = ""
+	elif rules_tip == "" or hint == "":
 		tooltip_text = rules_tip + hint
 	else:
 		tooltip_text = rules_tip + "\n\n" + hint
@@ -455,6 +478,8 @@ func slot_size() -> Vector2:
 
 func _process(delta: float) -> void:
 	_motion.process(delta)
+	if not peek.manual_clock:
+		peek.advance(delta)
 
 
 func _draw() -> void:
@@ -475,6 +500,7 @@ func _draw() -> void:
 # --- Input and hover ---
 
 func _gui_input(event: InputEvent) -> void:
+	peek.input(event)
 	var button: int = event.button_index if event is InputEventMouseButton else -1
 	if pickable and state == State.REST and button in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] and event.pressed:
 		accept_event()
@@ -529,6 +555,7 @@ func _on_details_timer(click: int) -> void:
 
 
 func _set_hover(on: bool) -> void:
+	peek.hover(on)
 	_hover = on and (in_hand or pickable or hoverable) and state == State.REST
 	if _hover and Sfx.find(self) != null:
 		Sfx.find(self).hover()

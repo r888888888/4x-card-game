@@ -118,6 +118,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error, kind)
+		view.peek_on(m.fx)
 		if detail != "":
 			view.set_play_error(error, detail)
 		view.set_pickable(m.choices.is_choice_row(container), m.choices.pick_hint(container))
