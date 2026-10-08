@@ -31,7 +31,8 @@ var _upgrade: Button  # re-equips the unit as its upgrade (166); hidden unless i
 var _unit := -1  # the unit in the realm Move…, Disband and Upgrade act on (163, 166); -1 when they are hidden
 var _contribute: Button
 var _abandon: Button
-var _site := -1  # the wonder site Contribute and Abandon… act on (286); -1 when they are hidden
+var _site := -1  # the wonder site Contribute acts on (286); -1 when it is hidden
+var _abandoning := -1  # the site or building Abandon… acts on (286, 412); -1 when it is hidden
 var abandon_modal: AbandonModal  # Abandon…'s confirmation, on this modal's stack (286)
 var _buy: Button
 var _reason: Label  # why Buy is disabled, on the footer's left (259)
@@ -75,6 +76,7 @@ func _init(p_stack: ModalStack) -> void:
 	abandon_modal = AbandonModal.new(p_stack)
 	_upgrades = UpgradeList.new()  # under the card and body, over the Gives row (387)
 	_upgrades.upgrade_pressed.connect(_on_build_upgrade)
+	_upgrades.abandon_pressed.connect(_abandon_card)
 	footer_rule.get_parent().add_child(_upgrades)
 	footer_rule.get_parent().move_child(_upgrades, footer_rule.get_index())
 	_gives = VBoxContainer.new()
@@ -113,7 +115,8 @@ func upgrade_button() -> Button:
 	return _upgrade
 
 
-## Test hook (286): the Contribute and Abandon… buttons, hidden unless a wonder site is on show.
+## Test hook (286): the Contribute and Abandon… buttons; Contribute hidden unless a wonder site is on show, Abandon…
+## unless a site or building in the realm is (412).
 func site_buttons() -> Array[Button]:
 	return [_contribute, _abandon]
 
@@ -243,16 +246,18 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		_disband.tooltip_text = no if no != "" else "%s; its worker is freed." % gone
 	_site = uid if uid != -1 and e.is_site(uid) else -1
 	_contribute.visible = _site != -1
-	_abandon.visible = _site != -1
 	if _site != -1:
 		var most := e.contribute_limit(_site)
 		var no := e.contribute_error(_site, maxi(1, most))
 		_contribute.text = "Contribute %d wealth" % most if no == "" else "Contribute"
 		_contribute.disabled = no != ""
 		_contribute.tooltip_text = no if no != "" else "Pay wealth into it now (no action)."
-		var stop := e.abandon_error(_site)
+	_abandoning = uid if uid != -1 and e.abandon_line(uid) != "" else -1
+	_abandon.visible = _abandoning != -1
+	if _abandoning != -1:
+		var stop := e.abandon_error(_abandoning)
 		_abandon.disabled = stop != ""
-		_abandon.tooltip_text = stop if stop != "" else "Stop building: it goes to your discard and what went in is lost."
+		_abandon.tooltip_text = stop if stop != "" else e.abandon_line(_abandoning)
 	_play.visible = hand_view != null
 	if hand_view != null:
 		var error := e.playable_error(hand_view.uid)
@@ -348,6 +353,7 @@ func closed() -> void:
 	_tech = -1
 	_unit = -1
 	_site = -1
+	_abandoning = -1
 	_pile = null
 
 
@@ -395,7 +401,11 @@ func _on_contribute() -> void:
 
 
 func _on_abandon() -> void:
-	var uid := _site
+	_abandon_card(_abandoning)
+
+
+## Closes, then asks to confirm abandoning uid: the card on show, or an upgrade built on it (412).
+func _abandon_card(uid: int) -> void:
 	close()
 	abandon_modal.open(Game.engine, uid)
 

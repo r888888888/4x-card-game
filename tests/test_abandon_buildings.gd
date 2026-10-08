@@ -210,3 +210,57 @@ func test_legal_actions_list_abandoning_each_building_that_can_go() -> void:
 	var want := [["abandon", farm], ["abandon", plough], ["abandon", site]]
 	eq(e.legal_actions().filter(func(a): return a[0] == "abandon"), want, "Farm, Plough and the site; not the Obelisk or Insula")
 	eq(e.fork().legal_actions().filter(func(a): return a[0] == "abandon"), want, "a fork lists the same")
+
+
+# --- The confirmation's text (UI support) ---
+
+func test_abandon_line_says_where_the_card_goes_and_what_goes_with_it() -> void:
+	var e := abandon_engine(4, "")
+	var home := home_uid(e)
+	var hut := built(e, "hut", home)
+	var farm := built(e, "farm", home)
+	var plough := built(e, "plough", farm)
+	built(e, "deep_plough", plough)
+	var temple := put_in_hand(e, "temple")
+	e.play_card(temple, home)
+	eq(e.abandon_line(hut), "Hut leaves play. Nothing is refunded.", "a build-menu building")
+	eq(e.abandon_line(farm), "Farm leaves play, with its Plough and Deep Plough. Nothing is refunded.", "with upgrades")
+	eq(e.abandon_line(temple), "Temple goes to your discard. Nothing is refunded.", "a dealt building")
+	var site := built(e, "colossus", home)
+	eq(e.abandon_line(site), "Colossus goes to your discard. Nothing has been paid in yet.", "a site")
+	e.zone("tableau").find(site).progress = 3
+	eq(e.abandon_line(site), "Colossus goes to your discard. The 3 wealth paid in is lost.", "a site with wealth in")
+	eq(e.abandon_line(home), "", "not something abandon takes")
+
+
+# --- Manual check support: the details' Abandon… (UI) ---
+
+func test_details_abandon_a_building_or_an_upgrade_after_confirming() -> void:
+	await with_main(abandon_engine(4, ""), func(main: Node):
+		var e := Game.engine
+		set_home_pop(e, 4)  # start_game began a new game
+		var farm := built(e, "farm", home_uid(e))
+		var plough := built(e, "plough", farm)
+		await wait_frames()
+		main.details.open_card(e.zone("tableau").find(farm))
+		var row: Dictionary = main.details.upgrade_rows().filter(func(r): return r.name == "Plough")[0]
+		check(row.abandon != null and not row.abandon.disabled, "the built Plough's row offers Abandon…")
+		row.abandon.pressed.emit()
+		await wait_frames()
+		check(main.details.abandon_modal.is_open(), "it asks first")
+		eq(main.details.abandon_modal.body_text(), e.abandon_line(plough), "with what abandoning does")
+		main.details.abandon_modal.confirm_button.pressed.emit()
+		await wait_frames()
+		eq([zone_of(e, farm), zone_of(e, plough)], ["tableau", ""], "only the Plough went")
+		main.details.open_card(e.zone("tableau").find(farm))
+		var abandon: Button = main.details.site_buttons()[1]
+		check(abandon.visible and not abandon.disabled, "the Farm's details offer Abandon…")
+		check(not main.details.site_buttons()[0].visible, "but no Contribute")
+		abandon.pressed.emit()
+		await wait_frames()
+		main.details.abandon_modal.confirm_button.pressed.emit()
+		await wait_frames()
+		eq(zone_of(e, farm), "", "the Farm went")
+		main.details.open_card(e.zone("tableau").find(home_uid(e)))
+		check(not main.details.site_buttons()[1].visible, "no Abandon… on a territory")
+		main.details.close())

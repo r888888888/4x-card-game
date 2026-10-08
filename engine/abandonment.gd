@@ -38,6 +38,21 @@ static func abandon(e: GameEngine, uid: int) -> bool:
 	return true
 
 
+## See GameEngine.abandon_line.
+static func line(e: GameEngine, uid: int) -> String:
+	var card := e.zone("tableau").find(uid)
+	if card == null or card.def.type != CardDef.BUILDING:
+		return ""
+	if Sites.unfinished(e, card):
+		return "%s goes to your discard. %s" % [card.def.name,
+			"The %d wealth paid in is lost." % card.progress if card.progress > 0 else "Nothing has been paid in yet."]
+	var gone := "%s goes to your discard" % card.def.name if e.disbands_to_discard(uid) else "%s leaves play" % card.def.name
+	var tree := Upgrades.tree(e, uid)
+	if not tree.is_empty():
+		gone += ", with its %s" % Fallback.names(e, tree)
+	return gone + ". Nothing is refunded."
+
+
 ## Why card's territory can't do without it: its pop would be over its housing once card and its upgrades are gone; "".
 ## Only a tree with housing or a housing modifier can lower it, so only that is tried out on a fork.
 static func _housing_error(e: GameEngine, card: CardInstance) -> String:

@@ -352,6 +352,12 @@ func abandon(uid: int) -> bool:
 	return Abandonment.abandon(self, uid)
 
 
+## What abandoning site or building uid does, for its confirmation (412): where it goes, the upgrades that go with it
+## and what is lost ("Farm leaves play, with its Plough. Nothing is refunded."); "" for any other card.
+func abandon_line(uid: int) -> String:
+	return Abandonment.line(self, uid)
+
+
 ## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,
 ## or its cost can't be paid. "" if it can.
 func choose_option_error(index: int) -> String:
