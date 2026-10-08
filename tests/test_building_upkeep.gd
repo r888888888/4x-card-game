@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Building upkeep (405): each working base building pays its upkeep in wealth after pop eats, the config's
 ## building_upkeep unless the card sets its own upkeep; upgrades, projects, idle and fallen-back buildings pay none. The
-## unpaid remainder is added to unrest (capped by the limit). Covers the forecast, the loader and the card text.
+## unpaid remainder is added to unrest (capped by the limit). Covers the forecast, the loader, the card text and the details (417).
 ## Fixtures: Hut and Shed (nothing), Mint Hut (⟳ +2 wealth), Big Hall (upkeep 2), Free Shed (upkeep 0), Hut Loft (an
 ## upgrade on Hut), Colossus (a 10-wealth project) and Steward (a government, unrest limit 8).
 
