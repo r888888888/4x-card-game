@@ -2,7 +2,7 @@
 id: 397
 title: card_art.py tracks each card's art state and only generates and fixes
 type: feature
-status: ready
+status: red-review
 branch: feat/397-card-art-script-pipeline
 ---
 
@@ -72,7 +72,16 @@ All run against a temporary art folder and a fake image API (no network, no key 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_card_art::…` |
+| AC1 | `StatusTest.test_status_lists_what_each_card_needs` |
+| AC2 | `GenerateTest.test_generate_draws_only_new_and_changed_prompts_and_keeps_the_old_picture` |
+| AC3 | `GenerateTest.test_generate_force_redraws_and_keeps_the_old_picture` |
+| AC4 | `FixTest.test_fix_edits_the_picture_and_sends_it_back_to_review` |
+| AC5 | `FixTest.test_fix_skips_a_finding_written_for_an_older_picture` |
+| AC6 | `LockTest.test_a_second_run_stops_while_the_lock_is_held`, `LockTest.test_the_lock_is_released_when_a_run_ends`, `LockTest.test_the_lock_is_released_when_a_run_crashes` |
+| AC7 | `KeyTest.test_status_needs_no_key_but_generate_and_fix_do`, `KeyTest.test_generate_with_nothing_to_draw_needs_no_key` |
+| AC8 | `GptStepsGoneTest.test_revise_and_critique_are_not_commands`, `GptStepsGoneTest.test_the_script_makes_no_text_model_call` |
+
+All in `scripts/tests/test_card_art.py`; `scripts/test.sh` runs them after the Godot shards (`-k <filter>`).
 
 ## Manual check
 - [ ] With the key set, `python3 scripts/card_art.py status` on the real art lists only the unapproved cards from the
