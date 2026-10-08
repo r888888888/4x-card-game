@@ -50,8 +50,14 @@ For each new or changed card, write its row (new rows in the list's order):
   - for the style guide's §19 (read §19.1–19.6): one scene, the subject inside the middle 60 % of the height, the
     type's treatment (§19.6);
   - for the generator's **weak spots**, which it gets wrong often enough to cost a redraw:
-    - an exact count above four of the same figure (columns, soldiers, sheaves): ask for "a row of" or "several", or
-      for four or fewer;
+    - counts: an exact count above four of the same figure (columns, soldiers, sheaves) fails, so ask for "a row of"
+      or "several", or for four or fewer. Even four fails when the counted things overlap: four levelled spears
+      came out as five heads twice, "exactly four" or not. Make each counted thing separate and tied to its owner
+      (spears raised and parallel, one head above each man), or leave the count loose;
+    - pose direction: which way a figure faces or works (rowers facing the stern, a man turned away) is ignored, and
+      saying it more plainly doesn't help: rowers came out facing the bow after the prompt spelled it out. Write a
+      scene where the direction doesn't matter, or leave the figures out (Tuna Run became a waterline shoal with an
+      empty skiff);
     - light and shadow: one light source, or no cast shadows; never a sun on one side and shadows falling toward it;
     - moon phases: name the shape ("a thin crescent, horns pointing up-right"), and no sun in the same sky unless the
       brief needs it;
@@ -112,7 +118,8 @@ A picture either passes (approve its hash) or gets findings, one per problem, ea
 - `edit`: a local fix the image editor can make. `fix` names where ("the spear held by the second soldier from the
   left"), describes the result ("a single bronze head"), and ends "Change nothing else." `done: false`.
 - `prompt`: the editor can't fix it, so the prompt is rewritten and the card redrawn. Rewrite the prompt row now
-  (step 1's rules, with the weak spot that caused it) and set `done: true`. Use this for what the editor fails at:
+  (step 1's rules, with the weak spot that caused it) and set `done: true`. For a count or a pose direction, rethink the
+  composition rather than reword it: rewording didn't fix either. Use this for what the editor fails at:
   flipping or mirroring anything, changing a count, turning figures round, rebuilding a structure, and any error
   across most of the picture.
 - `accept`: a real flaw not worth a redraw; `fix` holds the reason. `done: true`. A picture whose findings are all
