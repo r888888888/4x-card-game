@@ -476,6 +476,11 @@ func slot_size() -> Vector2:
 	return _motion.slot_size()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_EXIT_TREE:  # played, discarded or freed: no rules popover left behind (383)
+		peek.reset()
+
+
 func _process(delta: float) -> void:
 	_motion.process(delta)
 	if not peek.manual_clock:

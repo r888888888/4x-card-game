@@ -1,10 +1,10 @@
 class_name CardSheet
 extends Container
 ## A hand-size face below its art plate (383): the text sheet holding the type line, ledger, rules (RulesCut), the foot
-## (Over), fine print and VP. The card keeps its size: rules that don't fit are hidden whole and the
-## foot counts them ("+N more"; on a hand-row card also "details I"), with a meter along its dashed rule. The sheet can
-## rise over the plate just above it (rise, at most cap()) without taking room from anything, on paper with a 1 px ink rule drawn
-## at its top; its cut is made for where it is going (target), so a sliding sheet never shows a part of a rule.
+## (Over), fine print and VP. The card keeps its size: rules that don't fit are hidden whole and the foot counts them
+## ("+N more"; on a hand-row card also "details I"), with a meter along its dashed rule. The sheet can rise over the
+## plate just above it (rise, at most cap()) without taking room from anything, on paper with a 1 px ink rule drawn at
+## its top; its cut is made for where it is going (target), so a sliding sheet never shows a part of a rule.
 
 const METER := 2.0  # px: the meter's bar over the foot's dashed rule
 const DASH := 4.0

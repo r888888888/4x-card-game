@@ -62,24 +62,23 @@ func fixture(id: String, in_row := true, at := Vector2(100, 200), in_hand := tru
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(layer)
-	var view: Variant = CardView.new()
+	var view := CardView.new()
 	view.setup(CardInstance.new(900, e.card_db[id]), e.card_db, in_hand)
 	view.attach(slot)
-	if "peek" in view:  # red phase: peek doesn't exist yet
-		view.peek.manual_clock = true
-		if in_row:
-			view.peek_on(layer)
+	view.peek.manual_clock = true
+	if in_row:
+		view.peek_on(layer)
 	await wait_frames()
 	return {"root": root, "slot": slot, "layer": layer, "view": view}
 
 
 ## The face's rules box (one label per rule), or null.
-func rules_box(view: Variant) -> Control:
+func rules_box(view: CardView) -> Control:
 	return view.find_child("Rules", true, false) as Control
 
 
 ## The rule labels shown, in order.
-func shown_rules(view: Variant) -> Array:
+func shown_rules(view: CardView) -> Array:
 	var box := rules_box(view)
 	return [] if box == null else box.get_children().filter(func(c): return c is Control and c.visible)
 
@@ -90,7 +89,7 @@ func rule_text(label: Control) -> String:
 
 
 ## The texts of the foot's visible labels in order ([] with no foot shown).
-func over_texts(view: Variant) -> Array:
+func over_texts(view: CardView) -> Array:
 	var foot := view.find_child("Over", true, false) as Control
 	if foot == null or not foot.is_visible_in_tree():
 		return []
@@ -102,7 +101,7 @@ func over_texts(view: Variant) -> Array:
 
 
 ## N in the foot's "+N more", or 0 with no foot.
-func hidden_count(view: Variant) -> int:
+func hidden_count(view: CardView) -> int:
 	var texts := over_texts(view)
 	if texts.is_empty():
 		return 0
@@ -111,29 +110,29 @@ func hidden_count(view: Variant) -> int:
 
 
 ## Checks every rule shown lies wholly inside the rules box, and the box inside the card.
-func check_whole_rules(view: Variant, what: String) -> void:
+func check_whole_rules(view: CardView, what: String) -> void:
 	var box := rules_box(view)
 	check(box != null, "%s: a Rules box" % what)
 	if box == null:
 		return
 	var area := box.get_global_rect().grow(0.5)
-	check((view.get_global_rect() as Rect2).grow(0.5).encloses(box.get_global_rect()), "%s: the rules box is inside the card" % what)
+	check(view.get_global_rect().grow(0.5).encloses(box.get_global_rect()), "%s: the rules box is inside the card" % what)
 	for label: Control in shown_rules(view):
 		check(area.encloses(label.get_global_rect()), "%s: '%s' is wholly inside the rules area (%s in %s)" % [what,
 			rule_text(label), label.get_global_rect(), box.get_global_rect()])
 
 
 ## The open popover's text (heading and lines), or "" when none is open.
-func popover_text(view: Variant) -> String:
-	var pop: Variant = view.peek.popover
+func popover_text(view: CardView) -> String:
+	var pop := view.peek.popover
 	return pop.text() if pop != null and is_instance_valid(pop) else ""
 
 
-func push(view: Variant, event: InputEvent) -> void:
-	(view as Control).get_viewport().push_input(event, true)
+func push(view: CardView, event: InputEvent) -> void:
+	view.get_viewport().push_input(event, true)
 
 
-func motion(view: Variant, at: Vector2, held := false) -> void:
+func motion(view: CardView, at: Vector2, held := false) -> void:
 	var event := InputEventMouseMotion.new()
 	event.position = at
 	event.global_position = at
@@ -141,7 +140,7 @@ func motion(view: Variant, at: Vector2, held := false) -> void:
 	push(view, event)
 
 
-func press(view: Variant, at: Vector2, pressed := true) -> void:
+func press(view: CardView, at: Vector2, pressed := true) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.pressed = pressed
@@ -151,14 +150,14 @@ func press(view: Variant, at: Vector2, pressed := true) -> void:
 
 
 ## Rests the pointer on view and runs its clock through the intent and the slide: the sheet is up.
-func raise(view: Variant) -> void:
+func raise(view: CardView) -> void:
 	view.mouse_entered.emit()
 	view.peek.advance(INTENT)
 	view.peek.advance(SLIDE)
 
 
 ## raise, then the meter's whole wait: the popover is open.
-func open_popover(view: Variant) -> void:
+func open_popover(view: CardView) -> void:
 	raise(view)
 	view.peek.advance(WAIT + 0.01)
 
@@ -213,7 +212,8 @@ func test_a_paragraph_whose_first_sentence_cannot_fit_is_hidden_whole() -> void:
 
 func test_a_rule_that_does_not_fit_after_others_is_hidden_whole() -> void:
 	var f := await fixture("tail")
-	eq(shown_rules(f.view).map(rule_text), Array(TAIL.text.split("\n")).slice(0, 4), "the four short rules, not a part of the paragraph")
+	eq(shown_rules(f.view).map(rule_text), Array(TAIL.text.split("\n")).slice(0, 4),
+		"the four short rules, not a part of the paragraph")
 	eq(hidden_count(f.view), 1, "+1 more")
 	check_whole_rules(f.view, "tail")
 	(f.root as Node).free()
@@ -244,11 +244,11 @@ func test_in_the_real_hand_the_foot_says_details_and_the_details_card_does_not()
 		var uid := put_in_hand(e, "long")
 		e.changed.emit()
 		await settle_motion()
-		var view: Variant = main.views[uid]
+		var view: CardView = main.views[uid]
 		eq(over_texts(view).slice(1), ["details", "I"], "the hand card's foot")
 		open_details(main, uid)
 		await wait_frames()
-		var shown: Variant = card_under(main.details.aside)
+		var shown := card_under(main.details.aside)
 		check(shown != null, "the details show the card")
 		if shown != null:
 			eq(over_texts(shown).size(), 1, "the details card: only +N more: %s" % [over_texts(shown)])

@@ -1,12 +1,12 @@
 class_name CardPeek
 extends RefCounted
-## A hand-row card's overflowing rules (383, guide §6.7, §11.11). The pointer resting on it Anim.OVERFLOW_INTENT raises
-## its text sheet over the art as far as the hidden rules need (CardSheet.need, easing over OVERFLOW_SLIDE); if rules
-## are still hidden the foot's meter fills over OVERFLOW_WAIT, then a rules Popover opens beside the card on layer. A
-## move before the intent starts the wait again; leaving the card and the popover lowers it; a press on the card cancels
-## whatever step it is at (the press goes on). Keyboard focus raises the sheet at once, with no meter. With Reduce motion
-## the sheet jumps and the meter fills in three steps. Its clock is advance(): the card calls it each frame unless
-## manual_clock (tests drive it).
+## A hand-row card's overflowing rules (383, guide §6.7, §11.11). The pointer resting on it Anim.OVERFLOW_INTENT
+## raises its text sheet over the art as far as the hidden rules need (CardSheet.need, easing over OVERFLOW_SLIDE); if
+## rules are still hidden the foot's meter fills over OVERFLOW_WAIT, then a rules Popover opens beside the card on
+## layer. A move before the intent starts the wait again; leaving the card and the popover lowers it; a press on the
+## card cancels whatever step it is at (the press goes on). Keyboard focus raises the sheet at once, with no meter.
+## With Reduce motion the sheet jumps and the meter fills in three steps. Its clock is advance(): the card calls it each
+## frame unless manual_clock (tests drive it).
 
 enum Step { REST, WAITING, SLIDING, FILLING, OPEN, UP }
 
