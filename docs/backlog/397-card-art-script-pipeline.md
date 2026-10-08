@@ -44,8 +44,9 @@ All run against a temporary art folder and a fake image API (no network, no key 
 
 ## Design notes
 - **Files.** `assets/card-art-prompts.jsonl` stays the one prompt list: one row per card, the final prompt Claude
-  revised from the brief in `docs/design/card-art.md` (plus a `notes` field for what the revision changed and why).
-  `assets/card-art-revised.jsonl` is retired: its prompts are folded into the prompt list once, and the file deleted.
+  revised from the brief in `docs/design/card-art.md`, with `culture`, `date` and a `notes` field for what the revision
+  changed and why. (Done before this item: `assets/card-art-revised.jsonl` was folded into the prompt list and deleted,
+  and the `revise` step removed; AC8 still covers `critique`.)
   `assets/card-art-critique.jsonl` becomes `assets/card-art-review.jsonl`, one row per card:
   `{"id", "prompt_hash", "image_hash", "approved_hash", "edit_rounds", "findings": [{"problem", "action":
   "edit"|"prompt"|"accept", "fix", "for_hash", "done"}]}`. The script writes the hashes and `edit_rounds`; Claude writes
@@ -78,3 +79,4 @@ All run against a temporary art folder and a fake image API (no network, no key 
   migration, and `generate` with nothing to draw makes no request.
 
 ## Log
+- 2026-10-07: before work started, the revised prompts were folded into `card-art-prompts.jsonl`, `card-art-revised.jsonl` deleted and `revise` removed from the script (it couldn't parse already-revised prompts).

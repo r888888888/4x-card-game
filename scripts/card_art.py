@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-"""Generate card art with the OpenAI API, in two steps you run separately.
+"""Generate card art with the OpenAI API, in steps you run separately.
 
-  revise    An OpenAI text model reviews each card's subject for historical accuracy and writes
-            the result to assets/card-art-revised.jsonl, for you to read before spending on images.
-  generate  Sends each revised prompt to an OpenAI image model and saves assets/cards/<id>.png.
-            An upgrade (a row with "reference") is drawn from its base's picture, so a base comes first.
+  generate  Sends each card's prompt in assets/card-art-prompts.jsonl to an OpenAI image model and saves
+            assets/cards/<id>.png. The prompts there are already revised for history and style.
   critique  Shows each generated picture to the text model, which lists visual errors (anatomy, objects,
             history, text, style). If it finds any, the image model edits the picture to fix them; the
             old picture moves to assets/card-art-history/. Results go to assets/card-art-critique.jsonl.
             One pass per card, so it never loops.
+  apply     Applies the fixes already written in assets/card-art-critique.jsonl (by hand or by an earlier
+            critique) without asking the text model again. Skips entries marked fixed (--force redoes them).
 
-Only the "Subject:" part of a prompt is revised; the style, inks and composition are put back
-around it unchanged, with the generic period swapped for the card's culture_hint and date_hint.
-
-Both steps skip cards already done (--force redoes them) and take --only id,id,... to pick cards.
+Every step skips cards already done (--force redoes them) and takes --only id,id,... to pick cards.
 Needs OPENAI_API_KEY. Standard library only.
 
-  python3 scripts/card_art.py revise --only egypt,farm,irrigation_canals
   python3 scripts/card_art.py generate --only egypt,farm,irrigation_canals
   python3 scripts/card_art.py critique --only egypt,farm,irrigation_canals
+  python3 scripts/card_art.py apply --only persia
 """
 
 import argparse
 import base64
 import json
 import os
-import re
 import sys
 import time
 import urllib.error
@@ -35,7 +31,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = ROOT / "assets" / "card-art-prompts.jsonl"
-REVISED = ROOT / "assets" / "card-art-revised.jsonl"
 ART_DIR = ROOT / "assets" / "cards"
 CRITIQUES = ROOT / "assets" / "card-art-critique.jsonl"
 HISTORY_DIR = ROOT / "assets" / "card-art-history"
@@ -43,60 +38,9 @@ API = "https://api.openai.com/v1"
 
 # Model names change; check OpenAI's model list and override with flags or these variables.
 TEXT_MODEL = os.environ.get("CARD_ART_TEXT_MODEL", "gpt-5")
-IMAGE_MODEL = os.environ.get("CARD_ART_IMAGE_MODEL", "gpt-image-2.5-flare")
+IMAGE_MODEL = os.environ.get("CARD_ART_IMAGE_MODEL", "gpt-image-2.5-sunburst")
+# Fixes are few and must change only what's wrong, so critique and apply also run at more effort.
 SIZE = "1536x1024"
-
-PERIOD = "The ancient Near East and Mediterranean, 3000–300 BCE. "
-PROMPT_PARTS = re.compile(
-	r"^(?P<style>.*?)" + re.escape(PERIOD) + r"Subject: (?P<subject>.*?)"
-	r"(?P<reference> Redraw the attached .*?\.)? (?P<inks>Printed in .*)$", re.S)
-
-CONSULTANT = """You are the historical consultant for a strategy game's illustration system.
-
-Review the supplied image-generation prompt for historical plausibility.
-
-The visual art direction, composition language, palette, print technique,
-aspect ratio, and negative-space requirements are intentional and should
-normally remain unchanged.
-
-Concentrate on:
-- material culture
-- weapons and armor
-- architecture
-- transport
-- clothing
-- agriculture
-- religious imagery
-- settlement scale
-- chronology
-- geography
-- culturally incompatible combinations
-
-Prefer historically characteristic details over merely possible ones.
-
-Do not make the prompt substantially more complex.
-Do not add extra figures or objects merely to demonstrate historical knowledge.
-Preserve the prompt's visual simplicity.
-
-Make exactly ONE revision pass.
-
-If the prompt is already plausible, make only minor improvements.
-If the period/culture is ambiguous, choose the most natural historical
-interpretation suggested by the subject and say what interpretation you chose.
-
-The final revised prompt should remain ready to send directly to an
-image-generation model.
-
-How to answer for this system:
-- The setting given is the default interpretation. Keep it unless the subject plainly belongs
-  elsewhere; if you change it, give the new one in "culture" and "date".
-- Revise ONLY the subject description. The style, inks and composition text around it are fixed
-  and will be put back unchanged, so don't repeat them.
-- Keep the subject about as long as it is now, as one or two plain sentences.
-- Never add writing, inscriptions, signs or legible script: the picture must contain no text.
-- Reply with JSON only: {"subject": "...", "culture": "...", "date": "...",
-  "interpretation": "the interpretation you chose, one sentence",
-  "changes": "what you changed and why, or 'none'"}"""
 
 CRITIC = """You are the art reviewer for a strategy game's card illustrations. You are shown one
 generated illustration and the prompt it was made from.
@@ -132,16 +76,11 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
 	path.write_text("".join(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n" for r in rows))
 
 
-def split_prompt(card: dict) -> dict:
-	found = PROMPT_PARTS.match(card["prompt"])
-	if found is None:
-		sys.exit(f"{PROMPTS.name}: {card['id']}'s prompt doesn't match the template (no period or Subject:)")
-	return found.groupdict()
-
-
-def assemble(parts: dict, subject: str, culture: str, date: str) -> str:
-	return (f"{parts['style']}{culture}, {date}. Subject: {subject.strip().rstrip('.')}."
-		f"{parts['reference'] or ''} {parts['inks']}")
+def save_critique(entry: dict, order: list[str]) -> None:
+	"""Writes one card's entry into the critique file as it is now, so runs side by side don't undo each other."""
+	critiques = {r["id"]: r for r in read_jsonl(CRITIQUES)}
+	critiques[entry["id"]] = entry
+	write_jsonl(CRITIQUES, sorted(critiques.values(), key=lambda r: order.index(r["id"])))
 
 
 def request(path: str, body: bytes, content_type: str) -> dict:
@@ -179,40 +118,9 @@ def post_multipart(path: str, fields: dict, files: dict) -> dict:
 	return request(path, body, f"multipart/form-data; boundary={boundary}")
 
 
-def revise_card(card: dict, model: str) -> dict:
-	parts = split_prompt(card)
-	ask = (f"Card: {card['id']}\nSetting: {card['culture_hint']}, {card['date_hint']}\n"
-		f"Subject to review: {parts['subject']}\n\nFull prompt, for context only:\n{card['prompt']}")
-	reply = post_json("chat/completions", {
-		"model": model,
-		"response_format": {"type": "json_object"},
-		"messages": [{"role": "system", "content": CONSULTANT}, {"role": "user", "content": ask}],
-	})
-	answer = json.loads(reply["choices"][0]["message"]["content"])
-	culture = answer.get("culture") or card["culture_hint"]
-	date = answer.get("date") or card["date_hint"]
-	return {
-		"id": card["id"],
-		"prompt": assemble(parts, answer["subject"], culture, date),
-		"culture": culture,
-		"date": date,
-		"interpretation": answer.get("interpretation", ""),
-		"changes": answer.get("changes", ""),
-		"original_subject": parts["subject"],
-		**({"reference": card["reference"]} if "reference" in card else {}),
-	}
-
-
 def generate_card(row: dict, model: str, quality: str) -> bytes:
-	if "reference" in row:
-		base = ART_DIR / f"{row['reference']}.png"
-		if not base.exists():
-			raise RuntimeError(f"needs {base.name} first (it's this upgrade's reference)")
-		reply = post_multipart("images/edits",
-			{"model": model, "prompt": row["prompt"], "size": SIZE, "quality": quality}, {"image": base})
-	else:
-		reply = post_json("images/generations",
-			{"model": model, "prompt": row["prompt"], "size": SIZE, "quality": quality, "n": 1})
+	reply = post_json("images/generations",
+		{"model": model, "prompt": row["prompt"], "size": SIZE, "quality": quality, "n": 1})
 	return base64.b64decode(reply["data"][0]["b64_json"])
 
 
@@ -257,28 +165,7 @@ def chosen(cards: list[dict], only: str | None) -> list[dict]:
 	return [c for c in cards if c["id"] in wanted]
 
 
-def cmd_revise(args) -> int:
-	revised = {r["id"]: r for r in read_jsonl(REVISED)}
-	failures = 0
-	for card in chosen(read_jsonl(PROMPTS), args.only):
-		if card["id"] in revised and not args.force:
-			print(f"skip {card['id']}: already in {REVISED.name}")
-			continue
-		try:
-			row = revise_card(card, args.text_model)
-		except (RuntimeError, KeyError, json.JSONDecodeError) as err:
-			print(f"FAIL {card['id']}: {err}")
-			failures += 1
-			continue
-		revised[row["id"]] = row
-		order = [c["id"] for c in read_jsonl(PROMPTS)]
-		write_jsonl(REVISED, sorted(revised.values(), key=lambda r: order.index(r["id"])))
-		print(f"revised {row['id']}: {row['changes']}")
-	return 1 if failures else 0
-
-
 def cmd_generate(args) -> int:
-	revised = {r["id"]: r for r in read_jsonl(REVISED)}
 	ART_DIR.mkdir(parents=True, exist_ok=True)
 	failures = 0
 	for card in chosen(read_jsonl(PROMPTS), args.only):
@@ -286,14 +173,8 @@ def cmd_generate(args) -> int:
 		if target.exists() and not args.force:
 			print(f"skip {card['id']}: {target.name} exists")
 			continue
-		row = revised.get(card["id"])
-		if row is None:
-			if not args.unrevised:
-				print(f"skip {card['id']}: not revised yet (run revise, or pass --unrevised)")
-				continue
-			row = card
 		try:
-			target.write_bytes(generate_card(row, args.image_model, args.quality))
+			target.write_bytes(generate_card(card, args.image_model, args.quality))
 		except RuntimeError as err:
 			print(f"FAIL {card['id']}: {err}")
 			failures += 1
@@ -303,7 +184,6 @@ def cmd_generate(args) -> int:
 
 
 def cmd_critique(args) -> int:
-	revised = {r["id"]: r for r in read_jsonl(REVISED)}
 	critiques = {r["id"]: r for r in read_jsonl(CRITIQUES)}
 	order = [c["id"] for c in read_jsonl(PROMPTS)]
 	failures = 0
@@ -315,12 +195,11 @@ def cmd_critique(args) -> int:
 		if card["id"] in critiques and not args.force:
 			print(f"skip {card['id']}: already in {CRITIQUES.name}")
 			continue
-		row = revised.get(card["id"], card)
 		try:
-			review = critique_card(row, image, args.text_model)
+			review = critique_card(card, image, args.text_model)
 			entry = {"id": card["id"], **review, "fixed": False}
 			if review["verdict"] == "fix" and review["fix"]:
-				fixed = fix_card(row, image, review["fix"], args.image_model, args.quality)
+				fixed = fix_card(card, image, review["fix"], args.image_model, args.quality)
 				old = keep_old(image)
 				image.write_bytes(fixed)
 				entry.update(fixed=True, previous=f"{HISTORY_DIR.name}/{old.name}")
@@ -329,29 +208,63 @@ def cmd_critique(args) -> int:
 			failures += 1
 			continue
 		critiques[card["id"]] = entry
-		write_jsonl(CRITIQUES, sorted(critiques.values(), key=lambda r: order.index(r["id"])))
+		save_critique(entry, order)
 		problems = "; ".join(entry["problems"]) or "no problems"
 		print(f"{'fixed' if entry['fixed'] else 'ok'} {card['id']}: {problems}")
+	return 1 if failures else 0
+
+
+def cmd_apply(args) -> int:
+	order = [c["id"] for c in read_jsonl(PROMPTS)]
+	failures = 0
+	for card in chosen(read_jsonl(PROMPTS), args.only):
+		entry = {r["id"]: r for r in read_jsonl(CRITIQUES)}.get(card["id"])  # as it is now, not when the run began
+		image = ART_DIR / f"{card['id']}.png"
+		if entry is None or entry.get("verdict") != "fix" or not entry.get("fix"):
+			print(f"skip {card['id']}: no fix in {CRITIQUES.name}")
+			continue
+		if entry.get("fixed") and not args.force:
+			print(f"skip {card['id']}: already fixed")
+			continue
+		if not image.exists():
+			print(f"skip {card['id']}: no {image.name} yet (run generate)")
+			continue
+		try:
+			fixed = fix_card(card, image, entry["fix"], args.image_model, args.quality)
+		except RuntimeError as err:
+			print(f"FAIL {card['id']}: {err}")
+			failures += 1
+			continue
+		old = keep_old(image)
+		image.write_bytes(fixed)
+		entry.update(fixed=True, previous=f"{HISTORY_DIR.name}/{old.name}")
+		entry.pop("fixed_by", None)
+		entry.pop("fix_notes", None)
+		save_critique(entry, order)
+		print(f"fixed {card['id']}: {'; '.join(entry['problems'])}")
 	return 1 if failures else 0
 
 
 def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	steps = parser.add_subparsers(dest="step", required=True)
-	revise = steps.add_parser("revise", help="review subjects for historical accuracy")
-	revise.add_argument("--text-model", default=TEXT_MODEL)
-	generate = steps.add_parser("generate", help="generate images from revised prompts")
-	generate.add_argument("--unrevised", action="store_true", help="use the original prompt when a card has no revision")
+	generate = steps.add_parser("generate", help="generate pictures from the prompt list")
 	critique = steps.add_parser("critique", help="review generated pictures and fix visual errors")
 	critique.add_argument("--text-model", default=TEXT_MODEL)
-	for step in (generate, critique):
-		step.add_argument("--image-model", default=IMAGE_MODEL)
-		step.add_argument("--quality", default="high", choices=["low", "medium", "high", "xhigh", "max", "auto"])
-	for step in (revise, generate, critique):
+	qualities = ["low", "medium", "high", "xhigh", "max", "auto"]
+	generate.add_argument("--image-model", default=IMAGE_MODEL)
+	generate.add_argument("--quality", default="high", choices=qualities)
+	critique.add_argument("--image-model", default=IMAGE_MODEL)
+	critique.add_argument("--quality", default="xhigh", choices=qualities)
+	apply = steps.add_parser("apply", help="apply the fixes already in the critique file")
+	apply.add_argument("--image-model", default=IMAGE_MODEL)
+	apply.add_argument("--quality", default="xhigh", choices=qualities)
+	for step in (generate, critique, apply):
 		step.add_argument("--only", help="comma-separated card ids")
 		step.add_argument("--force", action="store_true", help="redo cards already done")
 	args = parser.parse_args()
-	return {"revise": cmd_revise, "generate": cmd_generate, "critique": cmd_critique}[args.step](args)
+	steps_run = {"generate": cmd_generate, "critique": cmd_critique, "apply": cmd_apply}
+	return steps_run[args.step](args)
 
 
 if __name__ == "__main__":
