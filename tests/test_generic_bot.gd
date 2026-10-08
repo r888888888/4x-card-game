@@ -354,7 +354,7 @@ func test_the_settlers_rising_price_lowers_its_value() -> void:
 
 # --- 373: renewal trashes the least valuable cards ---
 
-## Augury: an order card (playable under Anarchy) that gains 2 food.
+## Augury: an action tagged order (playable under Anarchy) that gains 2 food.
 const AUGURY := {"id": "augury", "name": "Augury", "type": "action", "tags": ["order"],
 	"effects": [{"op": "gain", "resource": "food", "amount": 2}]}
 

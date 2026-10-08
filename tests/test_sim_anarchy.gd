@@ -2,7 +2,7 @@ extends "res://tests/lib/anarchy_case.gd"
 ## Sim metrics for Anarchy, governments and famine (backlog 158): per game, anarchies, revolts, gov_changes,
 ## famine_turns, trashed, and <id>_turns per government a game can have (384 dropped restored, with buying order, and
 ## anarchy_turns, always anarchy_turns × anarchies). Counted from the engine's changed signal and its revolted signal. Fixture games from tests/lib/anarchy_case.gd plus
-## Charter (an order card that creates Glory into the government deck and gains 1 food, so the generic bot plays it,
+## Charter (an action tagged order that creates Glory into the government deck and gains 1 food, so the generic bot plays it,
 ## 314) and Glory (government, ⟳ +3 VP, limit 5), which the bot's rollouts prefer to Chiefs. The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
 
 const GLORY := {"id": "glory", "name": "Glory", "type": "government", "unrest_limit": 5,

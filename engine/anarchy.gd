@@ -6,9 +6,9 @@ extends RefCounted
 ## the government deck (154) and none rules until Anarchy ends. While it lasts only action cards can be played, and
 ## nothing is grown, bought or researched (384). It gets unrest.anarchy_turns counters, whatever the unrest, and one
 ## comes off at the end of each Anarchy turn (384). At 0 a government is chosen from the government deck and unrest
-## drops to 0 (154, 384). Each new era adds unrest.era_unrest. Renewal (147): each turn that starts under Anarchy, after the draw, you must trash
-## unrest.renewal + (its turn − 1) + the renewal modifier cards from the discard (governments aside), each calming 1
-## unrest. Static functions on the engine's state.
+## drops to 0 (154, 384). Each new era adds unrest.era_unrest. Renewal (147): each turn that starts under Anarchy, after
+## the draw, you must trash unrest.renewal + (its turn − 1) + the renewal modifier cards from the discard (governments
+## aside), each calming 1 unrest. Static functions on the engine's state.
 
 const PLAY_ERROR := "Anarchy: only action cards can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
