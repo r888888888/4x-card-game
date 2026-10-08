@@ -339,15 +339,17 @@ func contribute(uid: int, amount: int) -> bool:
 	return Sites.contribute(self, uid, amount)
 
 
-## Why abandon(uid) would refuse (286), or "": game over or a pending decision, or uid not an unfinished site.
+## Why abandon(uid) would refuse (286, 412), or "": game over or a pending decision, uid not a site or building in
+## play, a wonder or once entry, or a building whose housing its territory's pop needs.
 func abandon_error(uid: int) -> String:
-	return Sites.abandon_error(self, uid)
+	return Abandonment.error(self, uid)
 
 
-## Site uid goes from the tableau to the discard, its progress lost and its slot and worker freed (286). Uses no
-## action. False (and no change) if abandon_error says no.
+## Takes site or building uid out of play for no action and no refund, freeing its slot and worker (286, 412): a site
+## goes to the discard, its progress lost; a building goes with its upgrades, to the discard if dealt from a deck, else
+## gone. False (and no change) if abandon_error says no.
 func abandon(uid: int) -> bool:
-	return Sites.abandon(self, uid)
+	return Abandonment.abandon(self, uid)
 
 
 ## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,

@@ -3,8 +3,8 @@ extends RefCounted
 ## Wonders built over turns (backlog 286): a building with `project` is played for just the action as an unfinished
 ## site on its territory. It takes a slot and a worker but has no effect, modifier or VP until its wealth cost (after
 ## discounts) is paid in with contribute, at most 1 wealth per pop on its territory each turn; then its play effects
-## resolve and it works like any building. abandon sends a site to the discard, its progress lost. Static functions on
-## the engine's state; GameEngine's public methods call them.
+## resolve and it works like any building. An abandoned site (Abandonment) goes to the discard, its progress lost.
+## Static functions on the engine's state; GameEngine's public methods call them.
 
 const NOT_A_SITE := "That isn't a wonder being built."
 
@@ -83,27 +83,13 @@ static func contribute(e: GameEngine, uid: int, amount: int) -> bool:
 	return true
 
 
-## See GameEngine.abandon_error.
-static func abandon_error(e: GameEngine, uid: int) -> String:
-	var blocked := e._blocked_error("abandon")
-	if blocked != "":
-		return blocked
-	return NOT_A_SITE if site(e, uid) == null else ""
-
-
-## See GameEngine.abandon.
-static func abandon(e: GameEngine, uid: int) -> bool:
-	if abandon_error(e, uid) != "":
-		return false
-	var card := site(e, uid)
+## Site card leaves the tableau for the discard, its progress lost (abandoned: Abandonment).
+static func discard(e: GameEngine, card: CardInstance) -> void:
 	e.zone("tableau").remove(card)
 	card.progress = 0
 	card.given_this_turn = 0
 	card.territory_uid = -1
 	e.zone("discard").add(card)
-	e._log("Abandoned %s." % card.def.name)
-	e.changed.emit()
-	return true
 
 
 ## A new turn: nothing has gone into any site yet.
