@@ -14,7 +14,7 @@ const POPOVER_WIDTH := 320.0
 
 ## Fixture cards, all with hand-written text (one rule a line): Long (16 one-line rules), Short (2), Medium (8: cut at
 ## rest, whole once risen), Essay (one paragraph of 14 sentences), Giant (one paragraph whose first sentence alone is
-## taller than the rules area, then a short one), Tail (4 one-line rules, then a long paragraph).
+## taller than the rules area, then a short one), Tail (3 one-line rules, then a long paragraph).
 const LONG := {"id": "long", "name": "Long", "type": "action", "text": "Rule 1: +1 food.\nRule 2: +1 food.\n" +
 	"Rule 3: +1 food.\nRule 4: +1 food.\nRule 5: +1 food.\nRule 6: +1 food.\nRule 7: +1 food.\nRule 8: +1 food.\n" +
 	"Rule 9: +1 food.\nRule 10: +1 food.\nRule 11: +1 food.\nRule 12: +1 food.\nRule 13: +1 food.\n" +
@@ -31,9 +31,9 @@ const GIANT := {"id": "giant", "name": "Giant", "type": "action", "text": "This 
 	"after word after word after word after word after word after word after word after word after word after word " +
 	"until it ends. Two."}
 const TAIL := {"id": "tail", "name": "Tail", "type": "action", "text": "Rule 1: +1 food.\nRule 2: +1 food.\n" +
-	"Rule 3: +1 food.\nRule 4: +1 food.\nThen a long paragraph that wraps over many lines of the card, one more " +
+	"Rule 3: +1 food.\nThen a long paragraph that wraps over many lines of the card, one more " +
 	"clause after another. It has a second sentence that also runs on for a while. And a third one, to be sure " +
-	"it is far taller than the room that is left under the four short rules above it."}
+	"it is far taller than the room that is left under the three short rules above it."}
 const FIXTURES := [LONG, SHORT, MEDIUM, ESSAY, GIANT, TAIL]
 
 var _engine: GameEngine
@@ -212,8 +212,8 @@ func test_a_paragraph_whose_first_sentence_cannot_fit_is_hidden_whole() -> void:
 
 func test_a_rule_that_does_not_fit_after_others_is_hidden_whole() -> void:
 	var f := await fixture("tail")
-	eq(shown_rules(f.view).map(rule_text), Array(TAIL.text.split("\n")).slice(0, 4),
-		"the four short rules, not a part of the paragraph")
+	eq(shown_rules(f.view).map(rule_text), Array(TAIL.text.split("\n")).slice(0, 3),
+		"the three short rules, not a part of the paragraph")
 	eq(hidden_count(f.view), 1, "+1 more")
 	check_whole_rules(f.view, "tail")
 	(f.root as Node).free()

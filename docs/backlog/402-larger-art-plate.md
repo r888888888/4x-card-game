@@ -2,7 +2,7 @@
 id: 402
 title: A larger art plate that keeps most of the picture
 type: feature
-status: red-review
+status: in-progress
 branch: feat/402-larger-art-plate
 ---
 
