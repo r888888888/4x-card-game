@@ -2,7 +2,7 @@
 id: 417
 title: A building's details leave out its wealth upkeep
 type: bug
-status: review
+status: done
 branch: fix/417-upkeep-in-details
 ---
 
