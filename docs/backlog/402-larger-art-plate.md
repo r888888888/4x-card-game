@@ -1,9 +1,9 @@
 ---
-id: 401
+id: 402
 title: A larger art plate that keeps most of the picture
 type: feature
 status: ready
-branch: feat/401-larger-art-plate
+branch: feat/402-larger-art-plate
 ---
 
 ## Goal
