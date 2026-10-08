@@ -59,7 +59,7 @@ Built on 397's `status`, `generate` and `fix`. A skill is instructions, so each 
 | AC1–AC6 | Read `SKILL.md`; dry run (Manual check) |
 
 ## Manual check
-- [ ] Dry run: change one brief in `docs/design/card-art.md` (for example solstice_rites' moon to a full moon) and run
+- [x] Dry run: change one brief in `docs/design/card-art.md` (for example solstice_rites' moon to a full moon) and run
   `/card-art`. Claude rewrites that prompt, asks before drawing 1 picture, reviews it, and either approves it or fixes
   and re-reviews it; the run ends with a report and one commit.
 
@@ -73,3 +73,8 @@ Built on 397's `status`, `generate` and `fix`. A skill is instructions, so each 
   Limits count from the start of a run (`edit_rounds` and `prompt` findings noted then), since the script never resets
   `edit_rounds`. Follow-up: `card-art.md` says an upgrade is drawn with its base picture as a reference, but
   `card_art.py generate` sends no reference image; the skill only asks the prompt to keep the base's viewpoint.
+- 2026-10-07: dry run done as a real run instead of a changed brief: `/card-art` reviewed the 43 unapproved pictures
+  (zoomed crops, results written per card), asked before each spend, fixed 4 and redrew 2, re-reviewed them, reported
+  and committed (`4a62a7c8`), then redrew spearmen and tuna_run from rethought prompts (`cc325d5d`). Prompt writing
+  for a changed brief wasn't exercised from the brief side: tuna_run's prompt was rewritten first and its brief
+  updated to match. Lessons went into the skill's weak spots (counts, pose direction; `15ed0b1c`).
