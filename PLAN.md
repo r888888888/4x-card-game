@@ -11,7 +11,7 @@
 | Deck model | A fixed main deck, grown through the supply, the build menu and techs (see The deck model) |
 | Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), at levels 1-4 from one game to 10 seeds × every strategy × civ (`--level`, 378), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments). Working base buildings pay wealth upkeep after pop eats; what can't be paid is added to unrest (405) |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments). Working base buildings pay wealth upkeep after pop eats; what can't be paid is added to unrest (405). In the real data every base building pays 1 (config `building_upkeep`; the Palace 2), and upgrades and wonders pay none (406) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074), revolutionary events (148), choice events (269) and era 2 and 3 events that escalate (270); barbarians are specced (160–168) |
 
@@ -226,15 +226,22 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
   rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
   built on a Farm."
-- Rural upgrades (305): Ploughed Fields (The Plough) and Irrigation Canals (Irrigation) go on a Farm, Harbor (Sailing,
+- Rural upgrades (305): Ploughed Fields (The Plough) goes on a Farm, Harbor (Sailing,
   coastal) on Fishing Huts, Timber Camp (Bronze Working) on a Hunters' Camp and Shaft Mine (Iron Working) on a Mine; they
   need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
   Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
-  and the upgrade never opens in an earlier era.
-- Fishing (364): Fishing Huts (coastal or marsh) cost 2 wealth and no food, give ⟳ +1 food and housing 1, and building one
-  adds a Net Fishing to the deck if you have none (a unique `create`; an action: +1 food per coastal territory). Salt Pans (Pottery, coastal; ⟳ +1
-  food) goes on Fishing Huts beside the Harbor (now ⟳ +1 food, +2 wealth), so the coast has an era-1 upgrade as the
-  Farm does. A content test holds every card a building creates to an action.
+  and the upgrade never opens in an earlier era. Irrigation Canals (Irrigation) was the Farm's second upgrade until 406.
+- Fishing (364): Fishing Huts (coastal or marsh) cost no food, give housing 1, and building one adds a Net Fishing to
+  the deck if you have none (a unique `create`; an action: +1 food per coastal territory). The Harbor (⟳ +1 food,
+  +2 wealth) is their upgrade. A content test holds every card a building creates to an action.
+- Food and upkeep rebalance (406): every base building pays ⟳ 1 wealth upkeep (405; the Palace 2), so wealth buildings
+  make 1 more (Kiln, Brewery, Reed Works ⟳ +2; Weavers' Workshop, Olive Groves, Caravan Station, Shipyard, Mine ⟳ +2
+  plus their keyword bonus; Dye Works ⟳ +3; Market ⟳ +1 and +1 per city). Food rises with a ⟳ +4 Farm: Fishing Huts
+  ⟳ +3 (cost 3 wealth), Pasture +3, Hunters' Camp, Terraced Fields and Qanat +2, Ploughed Fields +2. Irrigation Canals
+  (Irrigation; fresh water; 1 food + 3 wealth; ⟳ +3 food, +1 on desert; housing 1) and Salt Pans (Pottery; coastal;
+  3 wealth; ⟳ +2 food, +1 wealth) are buildings of their own, no longer upgrades, so a territory can specialise in food.
+  Content tests: every base building pays upkeep and shows it, every wealth building makes its upkeep from flat gains,
+  and every base building can stand on some territory.
 - Sea trade (367): Sailing hands out a Sea Trade (1 food: +2 wealth per port card; no city minimum, unlike Caravan),
   opens its supply pile (price 2, 6 copies), and gives ⟳ +1 insight per 2 port cards.
 - Urban upgrades (306): Temple (Mysticism, Village) goes on a Shrine, and Great Temple (Philosophy, Metropolis; ⟳ +1 VP,
@@ -470,7 +477,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   action), Storyteller 1 (1 food: draw 2), Bread and Beer 1 (grow 1), plus five cheap actions dealt only, one each (369): Runner (draw 1, +1 action, +1 food),
   Tribute (+1 wealth per city), Assembly of Elders (`order`: −1 unrest, +1 insight; playable in Anarchy), Slash and
   Burn (trash a card in hand, +1 food) and Corvée (+3 wealth, +1 unrest). Early buildings (080) are in the build menu from
-  turn 1 (295), never dealt: Farm, Hunters' Camp (forest; adds the one Hunt, +1 food per forest territory; 368), Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
+  turn 1 (295), never dealt: Farm, Hunters' Camp (forest; adds the one Hunt, +1 food per forest territory; 368), Fishing Huts (coastal or marsh, ⟳ +3 food since 406, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
   gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
   makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).

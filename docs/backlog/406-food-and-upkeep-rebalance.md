@@ -2,7 +2,7 @@
 id: 406
 title: Early food and building upkeep rebalance - Farm 4, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, every building ⟳ 1 wealth
 type: feature
-status: ready
+status: review
 branch: feat/406-food-and-upkeep-rebalance
 ---
 
@@ -19,15 +19,15 @@ upkeep, so where you put it is a real choice.
 Needs 405.
 
 ## Acceptance criteria
-- [ ] AC1 (everyone pays): In the real data, the config's `building_upkeep` is ≥ 1. Every building that is neither an
+- [x] AC1 (everyone pays): In the real data, the config's `building_upkeep` is ≥ 1. Every building that is neither an
   upgrade nor a project has an effective upkeep ≥ 1, and every upgrade and project has 0.
-- [ ] AC2 (wealth buildings pay their way): Every base building with a ⟳ wealth effect makes at least its upkeep in
+- [x] AC2 (wealth buildings pay their way): Every base building with a ⟳ wealth effect makes at least its upkeep in
   wealth from effects with no keyword (a keyword bonus or a per-city/per-pop amount doesn't count toward it).
-- [ ] AC3 (the text matches): Every base building's generated text carries its upkeep line, and PLAN.md's Resources
+- [x] AC3 (the text matches): Every base building's generated text carries its upkeep line, and PLAN.md's Resources
   row and building lines carry the new numbers (305's and 364's lines say Irrigation Canals and Salt Pans stand alone).
   Card text is generated, so no `text` field changes. The card-art briefs in `docs/design/card-art.md` stop calling
   them upgrades.
-- [ ] AC4 (stand-alone buildings still fit): With the two moved out of `upgrade_of`, these hold in the real data (add
+- [x] AC4 (stand-alone buildings still fit): With the two moved out of `upgrade_of`, these hold in the real data (add
   the check where no content test covers it yet): every base building's `requires` is met by some territory, and every
   territory can hold a food building that isn't an upgrade (308).
 
@@ -104,9 +104,14 @@ Fishing Huts' only upgrade and stays as it is.
 - The +1 unrest per wealth short could push wide strategies into Anarchy; watch Anarchy counts per strategy.
 
 ## Test plan
+All in `tests/test_content.gd` (real data).
+
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_every_base_building_pays_upkeep_and_upgrades_and_projects_pay_none` |
+| AC2 | `test_every_wealth_building_pays_its_own_upkeep` |
+| AC3 | `test_every_base_building_shows_its_upkeep` (the PLAN.md and card-art.md lines are docs, under Manual check) |
+| AC4 | `test_every_base_building_can_stand_on_some_territory`, and the existing `test_every_territory_can_hold_a_food_building` (308) |
 
 ## Manual check
 - [ ] `data/config.json` has `"building_upkeep": 1`; Palace has `"upkeep": 2`.
@@ -121,3 +126,13 @@ Fishing Huts' only upgrade and stays as it is.
   count, turn of era 2, final VP per civ (Sumer and Egypt above all) and Barter plays.
 
 ## Log
+- 2026-10-08: red tests written. AC2's and AC4's tests pass before the data changes: AC2 holds vacuously while every
+  upkeep is 0 (Market, with only a per-city gain, fails it as soon as AC1's upkeep is on, so it guards the +1), and AC4
+  guards the move of Irrigation Canals and Salt Pans out of `upgrade_of`. Per-card numbers stay under Manual check.
+- 2026-10-08: green. Data only, plus one line in the loader: `building_upkeep` joins `ConfigLoader.CONFIG_FIELDS`
+  (405 read the key but left it off the known-field list; `test_real_data_loads_without_warnings` caught it once the
+  real config set it). No UI test that plays the real data moved. PLAN.md's Resources row, 364's Fishing line and a
+  new 406 line carry the numbers; the card-art briefs for Irrigation Canals and Salt Pans no longer say "Upgrade of"
+  (their prompts never said so; `assets/card-art-prompts.jsonl` keeps the old brief beside each prompt, so the
+  `card-art` skill will list the two as changed briefs: the prompt can stay, and no picture needs redrawing). Sumer still plays on these
+  numbers until 407 lands; no sim run yet (manual, under Manual check).
