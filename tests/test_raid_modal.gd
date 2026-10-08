@@ -153,4 +153,5 @@ func test_the_raids_card_has_its_art_plate() -> void:
 		Game.engine.end_turn()
 		check(not MainProbe.raid_modal(main).is_empty(), "the raid modal is open")
 		var card := card_under(main.modals.top())
-		check(card != null and art_plate(card) != null, "the raid's card has a plate"))
+		check(card != null and art_plate(card) != null, "the raid's card has a plate")
+		eq(art_plate(card).custom_minimum_size.y, 135.0, "135 px tall (402)"))

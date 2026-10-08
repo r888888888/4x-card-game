@@ -2,7 +2,7 @@
 id: 402
 title: A larger art plate that keeps most of the picture
 type: feature
-status: ready
+status: red-review
 branch: feat/402-larger-art-plate
 ---
 
@@ -47,7 +47,10 @@ fits. (The user's choices, 2026-10-08: 16:9 over 2:1 and the full 3:2; the text 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_card_art::test_…` |
+| AC1 | `test_card_art::test_a_hand_face_without_a_picture_has_a_placeholder_plate_after_its_band`, `test_card_art::test_a_hand_card_is_264_by_360` (unchanged) |
+| AC2 | `test_card_art::test_the_hand_plate_shows_the_pictures_middle_864_rows` |
+| AC3 | `test_card_overflow` (`CAP` 104 → 143): `test_resting_on_a_long_card_raises_its_sheet_to_the_cap`, `test_keyboard_focus_raises_the_sheet_at_once_with_no_meter`, `test_reduce_motion_jumps_the_sheet_steps_the_meter_and_places_the_popover`, `test_a_medium_card_rises_only_as_far_as_its_hidden_rules_need` |
+| AC4 | `test_card_art::test_tableau_and_realm_row_faces_have_no_plate` (unchanged), `test_card_art::test_the_hand_and_the_details_show_plates_and_the_realm_doesnt`, `test_build_modal::test_the_card_on_the_sheet_has_its_art_plate`, `test_event_modal::test_the_events_card_has_its_art_plate`, `test_raid_modal::test_the_raids_card_has_its_art_plate`, `test_renewal_modal::test_the_shown_card_has_its_art_plate` |
 
 ## Manual check
 - [ ] `godot --path . -- --civ sumer --seed 5`: hand cards show most of each picture (no subject cut at the head or

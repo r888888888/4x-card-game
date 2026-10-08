@@ -592,4 +592,5 @@ func test_the_card_on_the_sheet_has_its_art_plate() -> void:
 		var modal: Object = await open_build(main)
 		(modal.list.row("farm") as Button).pressed.emit()
 		await wait_frames()
-		check(art_plate(modal.card_view()) != null, "the Build modal's card has a plate (381)"))
+		check(art_plate(modal.card_view()) != null, "the Build modal's card has a plate (381)")
+		eq(art_plate(modal.card_view()).custom_minimum_size.y, 135.0, "135 px tall (402)"))

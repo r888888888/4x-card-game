@@ -34,8 +34,8 @@ func test_a_hand_face_without_a_picture_has_a_placeholder_plate_after_its_band()
 	eq(view.find_children("*", "CardArt", true, false).size(), 1, "the hand face has one plate")
 	eq(plate.get_index(), plate.get_parent().get_node("Band").get_index() + 1, "named Art, directly after the band")
 	eq(plate.size_flags_horizontal, Control.SIZE_EXPAND_FILL, "full width")
-	eq(plate.custom_minimum_size.y, 96.0, "96 px tall")
-	eq(CardArt.HAND_HEIGHT, 96.0, "CardArt.HAND_HEIGHT")
+	eq(plate.custom_minimum_size.y, 135.0, "135 px tall (402)")
+	eq(CardArt.HAND_HEIGHT, 135.0, "CardArt.HAND_HEIGHT")
 	eq(plate.has_picture(), false, "no picture for bazaar: the placeholder")
 	eq(CardArt.file_for("bazaar"), "res://assets/cards/bazaar.png", "where its picture would be")
 	view.free()
@@ -72,6 +72,14 @@ func test_the_picture_is_cropped_to_its_middle_band() -> void:
 	check(is_equal_approx(tall.size.x, 1024.0) and is_equal_approx(tall.position.x, 256.0), "a square plate: %s" % tall)
 
 
+func test_the_hand_plate_shows_the_pictures_middle_864_rows() -> void:
+	var region := CardArt.cover_region(Vector2(1536, 1024), Vector2(240, CardArt.HAND_HEIGHT))
+	eq(region.position.x, 0.0, "the full width")
+	eq(region.size.x, 1536.0, "the full width")
+	check(is_equal_approx(region.size.y, 864.0), "84 %% of the height: %s" % region)
+	check(is_equal_approx(region.position.y, 80.0), "rows 80 to 944, centred: %s" % region)
+
+
 # --- AC3: hand-size faces only ---
 
 func test_tableau_and_realm_row_faces_have_no_plate() -> void:
@@ -97,6 +105,7 @@ func test_the_hand_and_the_details_show_plates_and_the_realm_doesnt() -> void:
 	await wait_frames()
 	var shown := card_under(main.details.aside)
 	check(art_plate(shown) != null, "the details' card has a plate")
+	eq(art_plate(shown).custom_minimum_size.y, 135.0, "the details' plate is 135 px tall (402)")
 	close_game(main)
 
 

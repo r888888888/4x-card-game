@@ -9,7 +9,7 @@ extends "res://tests/lib/test_case.gd"
 const INTENT := 0.12  # Anim.OVERFLOW_INTENT
 const SLIDE := 0.12  # Anim.OVERFLOW_SLIDE
 const WAIT := 1.1  # Anim.OVERFLOW_WAIT
-const CAP := 104.0  # the art plate (96) and its gap (8)
+const CAP := 143.0  # the art plate (135) and its gap (8)
 const POPOVER_WIDTH := 320.0
 
 ## Fixture cards, all with hand-written text (one rule a line): Long (16 one-line rules), Short (2), Medium (8: cut at
