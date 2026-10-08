@@ -78,8 +78,7 @@ func outcome_summary(outcome: Dictionary) -> String:
 
 ## The decision the player owes before the game can go on, or {} when none: {kind: PENDING_GOVERNMENT, options: the
 ## government deck's uids (154)}, {kind: PENDING_EXPLORE or PENDING_TAKE (370), options: revealed territory or offered
-## uids top first, source: uid of the card that revealed or offered them}, {kind: PENDING_RENEWAL, count: cards still to
-## trash, options: discard uids but governments (147)}, {kind: PENDING_DISCARD, count: cards still to discard, options:
+## uids top first, source: uid of the card that revealed or offered them}, {kind: PENDING_DISCARD, count: cards still to discard, options:
 ## hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the choice event's, options: its option indices (269)}.
 func pending() -> Dictionary:
 	var p := state.pending.duplicate(true)
@@ -87,8 +86,6 @@ func pending() -> Dictionary:
 		GameEngine.PENDING_GOVERNMENT:
 			p.erase("ends_turn")
 			p.options = Anarchy.government_options(self)
-		GameEngine.PENDING_RENEWAL:
-			p.options = Anarchy.renewal_options(self)
 		GameEngine.PENDING_DISCARD:
 			p.options = zone("hand").cards.map(func(c): return c.uid)
 	return p
@@ -256,6 +253,17 @@ func anarchy_id() -> String:
 func anarchy() -> int:
 	var card := Anarchy.active(self)
 	return card.uid if card != null else -1
+
+
+## The cards Anarchy's renewal may still trash this turn (385): unrest.renewal + the renewal modifier − those renewed
+## this turn, never below 0; 0 outside Anarchy or without unrest.renewal.
+func renewals_left() -> int:
+	return Anarchy.renewals_left(self)
+
+
+## The cards renewal may trash (255): the hand's, deck's and discard's but governments, by name then uid.
+func renewal_options() -> Array[int]:
+	return Anarchy.renewal_options(self)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.

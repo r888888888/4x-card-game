@@ -38,8 +38,7 @@ static func relieve_button(main: MainScreen) -> Button:
 
 ## The Renew button beside Relieve, visible or not (385).
 static func renew_button(main: MainScreen) -> Button:
-	var renew: Variant = main.get("renew")  # red phase (385): main has no renew yet
-	return renew.button if renew != null else null
+	return main.renew.button
 
 
 ## The drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed (079).

@@ -3,11 +3,11 @@ extends RefCounted
 ## Every action the engine would allow now (312), for bots: GameEngine.legal_actions calls of(). Each entry is
 ## [action, args…]: the method to call and its arguments, kept only when the action's error query (ERROR_OF, else
 ## <action>_error) returns "" for them. An area's action is named "<area>.<action>" ("military.move", 394), called on
-## that area. A renewal is one entry, [renew, options, count]: any count of the options. apply() calls an entry.
+## that area. A renewal is one entry, [renew, options, count]: 1 to count of the options (385). apply() calls an entry.
 
 ## Actions whose error query isn't named <action>_error.
 const ERROR_OF := {"play_card": "play_error", "discard_card": "discard_error"}
-## Each owed decision's action, taking one of pending()'s options (a renewal is listed whole, see of()).
+## Each owed decision's action, taking one of pending()'s options.
 const DECISIONS := {
 	GameEngine.PENDING_EXPLORE: "choose",
 	GameEngine.PENDING_EVENT_CHOICE: "choose_option",
@@ -49,6 +49,7 @@ static func of(e: GameEngine) -> Array:
 			raw.append(["military.upgrade", card.uid])
 	for card in hand:
 		raw.append(["discard_card", card.uid])
+	raw.append(["renew", e.renewal_options(), e.renewals_left()])
 	raw.append_array([["relieve_famine"], ["revolt"]])
 	for card in tableau:
 		if e.is_site(card.uid):
@@ -64,17 +65,15 @@ static func of(e: GameEngine) -> Array:
 static func _decision(e: GameEngine) -> Array:
 	var p := e.pending()
 	var kind: String = p.get("kind", "")
-	if kind == GameEngine.PENDING_RENEWAL:
-		return [["renew", p.options, p.count]]
 	if not DECISIONS.has(kind):
 		return []
 	return p.options.map(func(option): return [DECISIONS[kind], option])
 
 
-## What entry's error query says on e: "" when it is legal. A renewal entry is checked with its first count options.
+## What entry's error query says on e: "" when it is legal. A renewal entry is checked with its first option.
 static func error(e: GameEngine, entry: Array) -> String:
 	if entry[0] == "renew":
-		return e.renew_error(entry[1].slice(0, entry[2]))
+		return e.renew_error(entry[1].slice(0, 1))
 	return _call(e, ERROR_OF.get(entry[0], entry[0] + "_error"), entry.slice(1))
 
 

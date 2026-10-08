@@ -441,7 +441,7 @@
       "tags": [],
       "flavor": "When the old order breaks, no one rules and everyone does. Debts are burned, granaries thrown open, and each day the loudest voice decides.",
       "quote": { "text": "The most radical revolutionary will become a conservative the day after the revolution.", "by": "Hannah Arendt, Crises of the Republic" },
-      "text": "Lasts 3 turns. You can play action cards; nothing is grown, bought or researched.\nEach turn, trash 1 card, +1 per turn so far.\nWhen it ends, choose a government; unrest drops to 0.",
+      "text": "Lasts 3 turns. You can play action cards; nothing is grown, bought or researched.\nEach turn, you may trash 1 card.\nWhen it ends, choose a government; unrest drops to 0.",
       "effects": []
     },
     {

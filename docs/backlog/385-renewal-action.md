@@ -2,7 +2,7 @@
 id: 385
 title: Renewal is a free action during Anarchy
 type: feature
-status: red-review
+status: in-progress
 branch: feat/385-renewal-action
 ---
 

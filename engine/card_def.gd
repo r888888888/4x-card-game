@@ -25,7 +25,7 @@ const MODIFIER_TEXT := {
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
 	Modifiers.HOUSING: ["Every territory houses %d more pop", "Every territory houses %d less pop"],
 	Modifiers.UNREST_LIMIT: ["Unrest limit +%d", "Unrest limit −%d"],
-	Modifiers.RENEWAL: ["Renewal trashes %d more card%s", "Renewal trashes %d fewer card%s"],
+	Modifiers.RENEWAL: ["Renew up to %d more card%s each Anarchy turn", "Renew up to %d fewer card%s each Anarchy turn"],
 	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d", "Each insight gain −%d"],
 	Modifiers.ADMINISTERS: ["Administration cap +%d", "Administration cap −%d"],
 }

@@ -2,7 +2,7 @@ class_name ActionButton
 extends RefCounted
 ## A button below the Realm for one engine action (175; before it, one script each: 084, 146, 148): shown while
 ## shown(e) is true, labelled text(e), and disabled with error(e) as its tooltip, else showing tooltip. Pressing it
-## calls action(e). relieve_famine builds the board's one (Revolt moved to the civilization modal, 205; buying order went in 384).
+## calls action(e). relieve_famine and renew build the board's two (Revolt moved to the civilization modal, 205; buying order went in 384).
 
 var button: Button
 var _text: Callable  # (e: GameEngine) -> String
@@ -29,6 +29,16 @@ static func relieve_famine(parent: Control) -> ActionButton:
 		func(e: GameEngine): return e.relieve_famine_error(),
 		func(e: GameEngine): e.relieve_famine(),
 		"Pay to end the famine now. A later hungry upkeep brings a new one.")
+
+
+## Renew (385): while Anarchy's renewal has cards left this turn, naming how many; open(e) opens the Renewal sheet.
+static func renew(parent: Control, open: Callable) -> ActionButton:
+	return ActionButton.new(parent,
+		func(e: GameEngine): return "Renew (%d left)" % e.renewals_left(),
+		func(e: GameEngine): return e.renewals_left() > 0,
+		func(e: GameEngine): return e.renew_error(e.renewal_options().slice(0, 1)),
+		open,
+		"Trash cards from your hand, deck or discard for good.")
 
 
 func refresh(e: GameEngine) -> void:

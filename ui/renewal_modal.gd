@@ -1,11 +1,12 @@
 class_name RenewalModal
 extends Modal
-## The Renewal sheet (backlog 255; design: docs/design/mocks/renewal-options.html, the ledger): while Anarchy's renewal is
-## owed, every option (the engine's pending() options, hand, deck and discard by name) is a row in a ledger, and the
-## pulled-out row (hover or Up/Down) shows its card plainly beside it. A click or Enter on a row chooses it, lighting
-## its lamp (ui.toggle.on), and again puts it back (ui.toggle.off); a choice past the count is a dead tap
-## (ui.reject.locked). "Trash N cards" stays locked, with renew_error as its reason, until the count is chosen, then
-## pays the renewal in one renew call. It can't be dismissed: the renewal is owed. Main opens and closes it (refresh).
+## The Renewal sheet (backlogs 255, 385; design: docs/design/mocks/renewal-options.html, the ledger): opened by the Renew
+## button during Anarchy, every option (the engine's renewal_options(), hand, deck and discard by name) is a row in a
+## ledger, and the pulled-out row (hover or Up/Down) shows its card plainly beside it. A click or Enter on a row chooses
+## it, lighting its lamp (ui.toggle.on), and again puts it back (ui.toggle.off); a choice past renewals_left() is a dead
+## tap (ui.reject.locked). "Trash N cards" (N the cards chosen) stays locked, with renew_error as its reason, until a
+## card is chosen, then trashes them in one renew call and closes. Esc or Close shuts it without trashing; refresh
+## closes it when no renewals are left.
 
 var trash_button: Button
 
@@ -24,7 +25,6 @@ var _count := 0
 ## Builds the sheet on stack's host, hidden.
 func _init(p_stack: ModalStack) -> void:
 	super(p_stack)
-	dismissable = false
 	title = "Renewal"
 	_lede = Label.new()
 	_lede.theme_type_variation = &"Body"
@@ -52,21 +52,27 @@ func _init(p_stack: ModalStack) -> void:
 	trash_button = add_footer_button(UIKit.button("", _trash), true)
 
 
-## Opens it while engine e owes a renewal (rebuilding the rows when the options change) and closes it when not.
-func refresh(e: GameEngine) -> void:
-	var pending: Dictionary = e.pending() if e != null else {}
-	if pending.get("kind", "") != GameEngine.PENDING_RENEWAL:
-		if is_open():
-			close()
-		return
+## Opens it on engine e's renewal options, focusing the first row.
+func open(e: GameEngine) -> void:
+	_build(e, e.renewal_options(), e.renewals_left())
 	context = "Turn %d" % e.turn
-	if pending.options != _options or pending.count != _count:
-		_build(e, pending.options, pending.count)
 	_sync()
+	present()
+	if not _options.is_empty():
+		FocusRing.focus(_rows[_options[0]])
+
+
+## While open: closes it when engine e has no renewals left, else rebuilds the rows when the options or the count
+## changed.
+func refresh(e: GameEngine) -> void:
 	if not is_open():
-		present()
-		if not _options.is_empty():
-			FocusRing.focus(_rows[_options[0]])
+		return
+	if e == null or e.renewals_left() == 0:
+		close()
+		return
+	if e.renewal_options() != _options or e.renewals_left() != _count:
+		_build(e, e.renewal_options(), e.renewals_left())
+	_sync()
 
 
 ## Test hooks: the rows in order, their uids, and the chosen uids in the order chosen.
@@ -101,9 +107,8 @@ func _build(e: GameEngine, options: Array, count: int) -> void:
 		child.queue_free()
 	_rows.clear()
 	_lamps.clear()
-	_lede.text = "The old ways are torn down. Choose %d card%s from your hand, deck or discard to trash for good; each calms 1 %s." % [
-		count, "" if count == 1 else "s", GameEngine.UNREST]
-	trash_button.text = "Trash %d card%s" % [count, "" if count == 1 else "s"]
+	_lede.text = "The old ways are torn down. You may trash up to %d card%s from your hand, deck or discard, for good." % [
+		count, "" if count == 1 else "s"]
 	for uid in _options:
 		_ledger.add_child(_row(e, uid))
 	if not _options.is_empty():
@@ -173,6 +178,8 @@ func _sync() -> void:
 		(_rows[uid] as Button).set_pressed_no_signal(uid == _shown)
 		_paint_lamp(uid)
 	_tally.text = "Chosen %d / %d" % [_chosen.size(), _count]
+	var n := _chosen.size()
+	trash_button.text = "Trash %d card%s" % [n, "" if n == 1 else "s"]
 	var reason := Game.engine.renew_error(_chosen) if Game.engine != null else ""
 	trash_button.disabled = reason != ""
 	trash_button.tooltip_text = reason
@@ -186,4 +193,5 @@ func _paint_lamp(uid: int) -> void:
 
 
 func _trash() -> void:
-	Game.engine.renew(_chosen.duplicate())
+	if Game.engine.renew(_chosen.duplicate()) and is_open():
+		close()

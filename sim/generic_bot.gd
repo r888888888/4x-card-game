@@ -47,8 +47,9 @@ const REVALUE_TURNS := 4
 const STOCK_SCALE := 8.0
 ## How far below the unrest limit projected unrest starts to cost.
 const RISK_MARGIN := 2
-## The most renewal combinations tried.
-const RENEWAL_COMBOS := 40
+## The most single-card renewals tried each step (385: renewal is optional, so the bot renews a card at a time while it
+## pays).
+const RENEWALS_TRIED := 40
 ## Actions the bot never takes itself: play ends the turn; revolts are weighed by rollouts (314).
 const SKIPPED := ["end_turn", "revolt"]
 ## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest held (0: held
@@ -80,7 +81,7 @@ static var forecast_mismatches := 0
 ## The GameState and CardInstance fields forecast_key reads (336); the suite fails on a field in neither these nor the
 ## UNREAD lists, so a new field upkeep reads can't leave the cache serving stale forecasts.
 const KEY_STATE_FIELDS: Array[String] = ["turn", "is_over", "bonus_score", "era", "eras_added", "revolt_pending",
-	"anarchy_turn", "last_raid_turn", "resources", "zones"]
+	"last_raid_turn", "resources", "zones"]
 const KEY_CARD_FIELDS: Array[String] = ["uid", "def", "territory_uid", "base_uid", "station_uid", "pop", "keywords",
 	"turns_left", "counters", "progress", "given_this_turn", "raid_strength"]
 ## The fields the key leaves out, each with why the forecast doesn't depend on it.
@@ -91,6 +92,7 @@ const UNREAD_STATE_FIELDS := {
 	"pending": "forecasts are taken between decisions, and starting a turn opens none before the draw",
 	"actions_used": "reset as the turn begins",
 	"actions_gained": "reset as the turn begins",
+	"renewed": "reset as the turn begins (385)",
 	"moved_units": "reset as the turn begins",
 	"supply": "only buying reads it",
 	"locked_supply": "only buying and unlocking read it",
@@ -102,7 +104,6 @@ const UNREAD_STATE_FIELDS := {
 	"seen_supply": "only the new-pile marks read it",
 }
 const UNREAD_CARD_FIELDS := {
-	"choice_waiting": "only an event's draw reads it, and the forecast draws none",
 	"city_name": "a name: no rule reads it",
 }
 
@@ -280,8 +281,8 @@ static func _government(engine: GameEngine, strategy: String, ctx: Context) -> A
 	return best
 
 
-## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to its
-## combinations, of the least valuable cards first (373).
+## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to one card
+## each, the least valuable first (373, 385).
 static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	var out := []
 	var buys := []
@@ -291,8 +292,8 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 		if entry[0] == "buy":
 			buys.append(entry)
 		elif entry[0] == "renew":
-			for combo in _combos(_least_valuable_first(e, entry[1], ctx), entry[2]):
-				out.append(["renew", combo])
+			for uid in _least_valuable_first(e, entry[1], ctx).slice(0, RENEWALS_TRIED):
+				out.append(["renew", [uid]])
 		else:
 			out.append(entry)
 	if not ctx.rollout:  # cheap mode measures no card values: the first piles
@@ -301,8 +302,8 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	return out + buys.slice(0, BUYS_TRIED)
 
 
-## A renewal's options (uids), the least valuable card first by card_value (ties in listing order), so the combinations
-## tried are those of the cards worth least (373); listing order in a rollout, which measures no card values.
+## A renewal's options (uids), the least valuable card first by card_value (ties in listing order), so the cards tried
+## are those worth least (373); listing order in a rollout, which measures no card values.
 static func _least_valuable_first(e: GameEngine, options: Array, ctx: Context) -> Array:
 	if ctx.rollout:
 		return options
@@ -439,7 +440,7 @@ static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 static func forecast_key(e: GameEngine, ctx: Context) -> Array:
 	if ctx.forecast_zones.is_empty():
 		ctx.forecast_zones = e.forecast_zones()
-	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending, e.state.anarchy_turn,
+	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending,
 		e.state.last_raid_turn, e.state.eras_added.size()]
 	key.append_array(e.state.eras_added)  # the arrays' contents, flattened: a key mustn't hold a live array
 	for r in e.state.resources:
@@ -544,22 +545,3 @@ static func card_value(e: GameEngine, id: String, ctx: Context) -> float:
 	var v := best - base if best > -INF else fallback
 	ctx.card_values[id] = [e.turn, v]
 	return v
-
-
-## The combinations of k of items, in order, at most RENEWAL_COMBOS.
-static func _combos(items: Array, k: int) -> Array:
-	var out := []
-	_combos_into(items, k, 0, [], out)
-	return out
-
-
-static func _combos_into(items: Array, k: int, start: int, picked: Array, out: Array) -> void:
-	if out.size() >= RENEWAL_COMBOS:
-		return
-	if picked.size() == k:
-		out.append(picked.duplicate())
-		return
-	for i in range(start, items.size()):
-		picked.append(items[i])
-		_combos_into(items, k, i + 1, picked, out)
-		picked.pop_back()
