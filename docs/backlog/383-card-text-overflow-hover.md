@@ -2,7 +2,7 @@
 id: 383
 title: Overflowing card text cuts at a whole rule; hover pulls it over the art, then a meter opens the full rules
 type: feature
-status: in-progress
+status: review
 branch: feat/383-card-text-overflow-hover
 ---
 
@@ -17,27 +17,27 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 ## Acceptance criteria
 <!-- UI tests: a fixture card with 10 one-line rules ("long") and one with 2 ("short"), hand-size faces at
 264 × 360. Timers are driven by the test (as other timed UI tests do), never by waiting. -->
-- [ ] AC1: Given a hand-size face for "long", when it is laid out, then the card stays 360 px tall, every rules line
+- [x] AC1: Given a hand-size face for "long", when it is laid out, then the card stays 360 px tall, every rules line
   shown is wholly inside the rules area (none partly visible), and a foot named `Over` reads "+N more" where N is the
   number of hidden lines; "short" has no foot. A rule that is one paragraph is cut after its last whole sentence that
   fits (N counts the hidden sentences); a rule that can't fit even its first line is hidden whole.
-- [ ] AC2: On a hand card the foot also reads "details I"; on the card in the details, Build, event, raid or Renewal
+- [x] AC2: On a hand card the foot also reads "details I"; on the card in the details, Build, event, raid or Renewal
   modal it reads only "+N more", and those cards never react to hover (their full text is beside them).
-- [ ] AC3: Given "long" in the hand, when the pointer rests on it for `Anim.OVERFLOW_INTENT` (0.12 s) without moving,
+- [x] AC3: Given "long" in the hand, when the pointer rests on it for `Anim.OVERFLOW_INTENT` (0.12 s) without moving,
   then its text sheet (type line, ledger, rules, foot, fine print) rises over the art plate by exactly the height
   the hidden content needs, capped at the plate plus its gap (104 px), easing over `Anim.OVERFLOW_SLIDE` (0.12 s),
   and the rules and foot are cut again for the larger area. A pointer that leaves or moves before 0.12 s changes
   nothing; leaving after restores the rest layout. "short" never moves beyond its hover lift.
-- [ ] AC4: Given rules still hidden after the sheet rises, when the pointer stays, then the foot's meter fills from 0
+- [x] AC4: Given rules still hidden after the sheet rises, when the pointer stays, then the foot's meter fills from 0
   to its full width over `Anim.OVERFLOW_WAIT` (1.1 s), and when full a rules popover opens beside the card (right of
   it, or left when the right edge has no room for it) holding the card's name and its long-form rules
   (`rules_tooltip`), then its play error and detail if any. If everything fits after the rise, no meter runs and no
   popover opens.
-- [ ] AC5: The popover is not a modal: the pointer may move from the card onto it without closing it; leaving both,
+- [x] AC5: The popover is not a modal: the pointer may move from the card onto it without closing it; leaving both,
   Esc, or a press anywhere closes it. A press on the card at any step (waiting, rising, filling, open) cancels the
   step and the press goes on to select, drag or double-click as today. Hand cards no longer set `tooltip_text`;
   tableau, Realm and supply-pile cards keep their tooltips.
-- [ ] AC6: Focusing a hand card with the keyboard raises its sheet at once (no meter; `I` opens the details as today).
+- [x] AC6: Focusing a hand card with the keyboard raises its sheet at once (no meter; `I` opens the details as today).
   With Reduce motion the sheet moves without easing, the meter fills in three equal steps, and the popover appears
   without its slide.
 
@@ -101,3 +101,14 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
   `Popover.text()`. Long has 16 rules, not the comment's 10: 10 one-line rules would all fit once risen (about 6 at
   rest + 4 risen + the foot's line), so no meter would run. Two tests that read a hand card's tooltip move to its reason
   strip (`reason_text`, new in test_case.gd: the strip's label keeps no `source` meta, so `face_text` can't read it).
+- 2026-10-07: green. New in `ui/`: `RulesCut` (the rules box: whole rules, or a paragraph's whole sentences, in the
+  room given), `CardSheet` (the text sheet after the plate; it rises by drawing up over it, so the plate stays right
+  after the band as 381 tests; owns the foot, its meter and the cut for where the sheet is going), `CardPeek` (the
+  hover steps on a test-drivable clock), `Popover` (for 379 too) and theme sections `card_foot` and `popover`.
+  `CardFace.text()` now skips anything under a hidden node (hidden rules, a foot not needed). A card leaving the tree
+  closes its popover.
+- 2026-10-07: the approved Reduce-motion test sampled the meter at 0.7 s and expected 2/3, but 0.7 s is 64 % of 1.1 s:
+  no equal three-step meter shows 2/3 there. The user approved moving the samples to 0.3, 0.4, 0.8 and 1.11 s.
+- 2026-10-08: follow-ups. The specimen (`docs/design/mcm-specimen.html`) doesn't yet show a card that rises and fills;
+  the guide's §6.7 and §11.11 already describe it. Next item: a 16:9 art plate (240 × 135) on the same 264 × 360 card
+  (the user's call, 2026-10-08); `CardSheet.cap()` follows the plate's height, so the rise grows with it.

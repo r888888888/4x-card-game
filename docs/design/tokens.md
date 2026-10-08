@@ -90,4 +90,6 @@ variation; set it with `theme_type_variation`.
 `Anim` names its constants by what moves, not by the guide's duration tokens. Nearest equivalents: `SCREEN_TIME`
 0.22 s (guide `screen` 320 ms), `ODOMETER_STEP` 0.07 (`tick` 60),
 `CALM_FADE_TIME` 0.15 (`quick` 120), `DEAL_STAGGER` 0.06 (`stagger.tick`), `TALLY_STEP` 0.06 (§10.3's tally: veteran
-pips, 388).
+pips, 388), `OVERFLOW_SLIDE` 0.12 (`quick` 120). A hand card's overflow (383, §6.7): `OVERFLOW_INTENT` 0.12 s of
+rest before its sheet rises, `OVERFLOW_SLIDE` to rise, `OVERFLOW_WAIT` 1.1 s for the foot's meter before the rules
+popover opens.
