@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## Building upkeep (405): each working base building pays its upkeep in wealth after pop eats, the config's
 ## building_upkeep unless the card sets its own upkeep; upgrades, projects, idle and fallen-back buildings pay none. The
-## unpaid remainder is added to unrest (capped by the limit). Covers the forecast, the loader and the card text.
+## unpaid remainder is added to unrest (capped by the limit). Covers the forecast, the loader, the card text and the details (417).
 ## Fixtures: Hut and Shed (nothing), Mint Hut (⟳ +2 wealth), Big Hall (upkeep 2), Free Shed (upkeep 0), Hut Loft (an
 ## upgrade on Hut), Colossus (a 10-wealth project) and Steward (a government, unrest limit 8).
 
@@ -18,6 +18,7 @@ const COLOSSUS := {"id": "colossus", "name": "Colossus", "type": "building", "co
 const STEWARD := {"id": "steward", "name": "Steward", "type": "government", "unrest_limit": 8}
 const FIXTURES := [HUT, SHED, MINT_HUT, BIG_HALL, FREE_SHED, HUT_LOFT, COLOSSUS, STEWARD]
 const UPKEEP_LINE := "⟳ Upkeep %d wealth"
+const DETAILS_LINE := "Each upkeep: pay %d wealth"
 
 
 ## A game on TEST_CARDS + FIXTURES with unrest on, Steward ruling, population on (3 pop on Homeland, no food upkeep),
@@ -196,3 +197,18 @@ func test_buildings_that_pay_nothing_have_no_upkeep_line() -> void:
 	var e := upkeep_engine()
 	for id in ["free_shed", "hut_loft", "colossus"]:
 		check(not e.card_db[id].rules_text(e.card_db).contains("Upkeep"), "%s: no upkeep line" % id)
+
+
+# --- 417: the details ---
+
+func test_bug_417_a_paying_buildings_details_list_its_upkeep() -> void:
+	var e := upkeep_engine()
+	check(e.def_details("hut").rules.has(DETAILS_LINE % 1), "Hut: the default")
+	check(e.def_details("big_hall").rules.has(DETAILS_LINE % 2), "Big Hall: its own")
+
+
+func test_bug_417_buildings_that_pay_nothing_have_no_upkeep_line_in_their_details() -> void:
+	var e := upkeep_engine()
+	for id in ["free_shed", "hut_loft", "colossus"]:
+		var rules: Array[String] = e.def_details(id).rules
+		check(not rules.any(func(l: String) -> bool: return l.begins_with("Each upkeep: pay")), "%s: no upkeep line" % id)
