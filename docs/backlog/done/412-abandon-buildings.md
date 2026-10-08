@@ -2,7 +2,7 @@
 id: 412
 title: Abandon a finished building to free its slot and worker
 type: feature
-status: review
+status: done
 branch: feat/412-abandon-buildings
 ---
 
