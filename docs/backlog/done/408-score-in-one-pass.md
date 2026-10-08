@@ -2,7 +2,7 @@
 id: 408
 title: Work out the fallen-back cards in one pass, so score() stops dominating bot time
 type: feature
-status: review
+status: done
 branch: feat/408-score-in-one-pass
 ---
 
