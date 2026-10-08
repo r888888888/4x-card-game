@@ -1,9 +1,9 @@
 class_name EventChoices
 extends RefCounted
 ## Choice events (backlog 269): an event with `choices` offers 2 or 3 options, each {cost, effects}, one of them free.
-## When it is drawn, after its own play effects, the choice is owed (GameEngine.PENDING_EVENT_CHOICE); drawn while
-## another decision is owed, it waits (CardInstance.choice_waiting) and is owed once that one is paid. Choosing pays
-## the option's cost and resolves its effects once. Static functions on the engine's state.
+## When it is drawn, after its own play effects, the choice is owed (GameEngine.PENDING_EVENT_CHOICE): an event is drawn
+## last in a turn's start, when nothing else is owed (385 removed the wait behind renewal). Choosing pays the option's
+## cost and resolves its effects once. Static functions on the engine's state.
 
 const MIN_OPTIONS := 2
 const MAX_OPTIONS := 3

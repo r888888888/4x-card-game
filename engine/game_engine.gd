@@ -390,7 +390,7 @@ func _blocked_error(action: String) -> String:
 	return ""
 
 
-## The first reason a decision's own action (choose, renew, choose_government) refuses (172): the game being over,
+## The first reason a decision's own action (choose, choose_government, choose_option, take) refuses (172): the game being over,
 ## then another decision owed (its _blocked_error message), then nothing_owed when kind isn't owed; "" while kind is.
 func _owed_error(kind: String, nothing_owed: String) -> String:
 	if is_over:

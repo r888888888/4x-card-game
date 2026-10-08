@@ -183,7 +183,7 @@ func test_the_choice_follows_a_government_chosen_at_the_turns_end() -> void:
 	eq(e.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "then the choice")
 
 
-func test_a_copy_keeps_an_owed_or_waiting_choice() -> void:
+func test_a_copy_keeps_an_owed_choice() -> void:
 	var owed := drawn()
 	eq(owed.fork().pending(), owed.pending(), "an owed choice")
 	var anarchy := renewal_first()
