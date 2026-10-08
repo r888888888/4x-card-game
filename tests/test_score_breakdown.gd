@@ -45,7 +45,7 @@ func sum(rows: Array) -> int:
 # --- AC1: cards, effects, pop ---
 
 func test_score_breakdown_lists_cards_then_effects_then_pop() -> void:
-	var e: Object = score_engine(["temple", "temple"])
+	var e := score_engine(["temple", "temple"])
 	e.bonus_score = 3
 	eq(e.score_breakdown(), [row("Capital", 1, 2), row("Temple", 2, 2), row("Nomads", 1, 1), row("Effects", 1, 3),
 		row("Pop", 2, 2)], "rows")
@@ -53,9 +53,9 @@ func test_score_breakdown_lists_cards_then_effects_then_pop() -> void:
 
 
 func test_no_effects_or_pop_row_without_them() -> void:
-	var e: Object = score_engine([], {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 0}})
+	var e := score_engine([], {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 0}})
 	eq(e.score_breakdown(), [row("Capital", 1, 2), row("Nomads", 1, 1)], "no bonus score, no pop VP: no rows")
-	var off: Object = make_engine({"scout": 10}, {"starting": {"resources": {"food": 2}, "tableau": ["capital", "temple"],
+	var off := make_engine({"scout": 10}, {"starting": {"resources": {"food": 2}, "tableau": ["capital", "temple"],
 		"territory": "homeland"}})
 	off.bonus_score = 0
 	eq(off.score_breakdown(), [row("Capital", 1, 2), row("Temple", 1, 1)], "population off: no pop row")
@@ -66,7 +66,7 @@ func test_no_effects_or_pop_row_without_them() -> void:
 
 func test_fallen_back_cards_and_unfinished_sites_have_no_row() -> void:
 	var population := {"start": 2, "food_upkeep": 1, "vp_per_pop": 1, "tiers": TIERS}
-	var e: Object = score_engine(["forum", "colossus"], {"population": population})
+	var e := score_engine(["forum", "colossus"], {"population": population})
 	set_home_pop(e, 4)  # a Village: the Forum, which needs a Town, has fallen back
 	eq(e.score(), 7, "precondition: Capital 2, Nomads 1 and 4 pop; neither the Forum nor the Colossus counts")
 	var labels := []
@@ -80,7 +80,7 @@ func test_fallen_back_cards_and_unfinished_sites_have_no_row() -> void:
 # --- AC3: pop by territory ---
 
 func test_pop_breakdown_lists_each_territory_in_tableau_order() -> void:
-	var e: Object = score_engine()
+	var e := score_engine()
 	settle(e, ["grassland"])
 	var home := home_uid(e)
 	var grass := uid_of(e.zone("tableau"), "grassland")
@@ -93,14 +93,19 @@ func test_pop_breakdown_lists_each_territory_in_tableau_order() -> void:
 
 
 func test_no_pop_breakdown_with_population_off() -> void:
-	var off: Object = make_engine({"scout": 10})
+	var off := make_engine({"scout": 10})
 	eq(off.pop_breakdown(), [], "population off")
 
 
 # --- AC4: the popover ---
 
 func test_clicking_score_opens_its_breakdown() -> void:
-	await with_main(score_engine(["temple"]), func(main: Node):
+	await with_main(score_engine(), func(main: Node):  # with_main restarts the game: set up inside
+		var e := Game.engine
+		e.bonus_score = 0
+		build_on(e, home_uid(e), ["temple"])
+		e.changed.emit()
+		await wait_frames()
 		click_control(main, MainProbe.counter(main, TopBar.SCORE))
 		await wait_frames()
 		eq(MainProbe.breakdown_key(main), TopBar.SCORE, "Score's popover open")

@@ -11,17 +11,24 @@ func turn_limit() -> int:
 
 
 ## Printed VP on the tableau and in ALWAYS_ON_ZONES, VP from effects, and vp_per_pop for each pop (when population
-## is on). A card that has fallen back scores nothing (300, 301).
+## is on). A card that has fallen back scores nothing (300, 301). The sum of score_breakdown's rows (380).
 func score() -> int:
-	var total := bonus_score
-	for z in ["tableau"] + GameEngine.ALWAYS_ON_ZONES:
-		for card in zone(z).cards:
-			if Sites.unfinished(_as_engine(), card) or Fallback.fallen_back(_as_engine(), card):
-				continue  # a site scores once completed (286), a card while it hasn't fallen back (300, 301)
-			total += card.def.vp
-	if population_on():
-		total += total_pop() * config.population.vp_per_pop
+	var total := 0
+	for row in score_breakdown():
+		total += row.amount
 	return total
+
+
+## What makes up score() (380): [{label, count, amount}], each card's VP (copies one row) on the tableau then in
+## ALWAYS_ON_ZONES, the VP effects added ("Effects"), then the VP from pop ("Pop", count the pop); 0 has no row.
+func score_breakdown() -> Array[Dictionary]:
+	return ScoreBreakdown.score_rows(_as_engine())
+
+
+## Each settled territory's pop (380): [{label: its name, count: 1, amount: its pop}] in tableau order, summing to
+## total_pop(); [] with population off.
+func pop_breakdown() -> Array[Dictionary]:
+	return ScoreBreakdown.pop_rows(_as_engine())
 
 
 ## The uid of the civilization you play as, or -1 if the game has none.
