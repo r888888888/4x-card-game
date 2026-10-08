@@ -5,12 +5,15 @@ extends HBoxContainer
 ## (115) Buy Cards, Knowledge, Log and Menu (the civilization, the government and End turn are in the Sidebar: 202, 203). Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure in place (181, 218). The turn plate
 ## and the counters sit Tokens.SPACE_5 apart in a row of their own, the mock's strip (218); the buttons SPACE_3.
+## Clicking a resource counter, or Enter on it, opens its breakdown popover: next upkeep's change by source (379).
 
 const GLYPH := Tokens.TYPE_NUMERAL  # a counter's glyph (180): the size of its figure (242)
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
 const SCORE := "score"
 const POP := "pop"
 const TURN := "turn"
+## The counters whose click opens a breakdown popover (379).
+const BREAKDOWNS: Array[String] = [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST]
 
 var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
 var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in its tooltip (120)
@@ -19,6 +22,8 @@ var _counters := {}  # key -> Counter: food, wealth, insight, unrest (hidden whi
 var _knowledge: Button  # opens the tech tree (059), where techs are learned (140)
 var _knowledge_lamp: ReadyLamp  # lit while a tech can be learned that wasn't seen (288)
 var _supply_lamp: ReadyLamp  # on Buy Cards: lit while a pile can be bought from that wasn't seen (288)
+var popover := Popover.new()  # the open counter's breakdown (379); main adds it above the board
+var _popover_key := ""  # the counter whose breakdown is open, or ""
 var _fresh := true  # a new game's first refresh shows its values at once, without rolling (126)
 
 
@@ -37,6 +42,9 @@ func _init(on_menu: Callable, on_knowledge: Callable, on_log: Callable) -> void:
 		var counter := Counter.new(key, "", &"Stat")  # figures at TYPE_NUMERAL (201)
 		stats.add_child(counter)
 		_counters[key] = counter
+		if key in BREAKDOWNS:
+			counter.focus_mode = Control.FOCUS_ALL  # Enter opens its breakdown (379)
+			counter.gui_input.connect(_on_counter_input.bind(key))
 	_counters[SCORE].tooltip_text = "Score: victory points."
 	_counters[POP].tooltip_text = "Pop: your people. They live and work in your territories."
 	var spacer := Control.new()
@@ -70,6 +78,42 @@ func counter_text(key: String) -> String:
 ## (126, 288).
 func reset_counters() -> void:
 	_fresh = true
+	close_breakdown()
+
+
+## The resource whose breakdown popover is open, or "" (379).
+func breakdown_key() -> String:
+	return _popover_key if popover.is_open() else ""
+
+
+## Test hook (379): the open popover's lines as [left, right], or [] while closed.
+func breakdown_rows() -> Array:
+	return popover.lines() if popover.is_open() else []
+
+
+## Opens key's breakdown under its counter, or closes it if it is the one open (379).
+func toggle_breakdown(key: String) -> void:
+	if breakdown_key() == key:
+		close_breakdown()
+		return
+	_popover_key = key
+	popover.open(_counters[key], _breakdown(Game.engine, key))
+
+
+## Closes the breakdown popover (379).
+func close_breakdown() -> void:
+	_popover_key = ""
+	popover.close()
+
+
+## Whether the screen point at falls on the popover or on a counter that opens one (379): a click there isn't outside.
+func breakdown_holds(at: Vector2) -> bool:
+	if popover.is_open() and popover.get_global_rect().has_point(at):
+		return true
+	for key in BREAKDOWNS:
+		if _counters[key].is_visible_in_tree() and _counters[key].get_global_rect().has_point(at):
+			return true
+	return false
 
 
 ## Shows engine e's stats: each counter's figure rolls to its new value (181). The changed counters roll one after
@@ -102,6 +146,8 @@ func refresh(e: GameEngine, quiet := false) -> void:
 	if _supply_lamp != null:
 		_supply_lamp.set_lit(e.supply_lamp(), _fresh)
 	_fresh = false
+	if breakdown_key() != "":
+		popover.set_sections(_breakdown(e, _popover_key))
 	_counters[GameEngine.FOOD].set_color(CardView.WARN_COLOR if starve > 0 else Palette.TEXT)
 	_counters[GameEngine.FOOD].tooltip_text = "Food: feeds your pop at each upkeep and pays for Grow. " + (
 		"Next upkeep: famine, %d pop will die." % starve if starve > 0 else "Beside it: the change at the next upkeep, after pop eats.")
@@ -152,3 +198,52 @@ func add_supply_button(button: Button) -> void:
 ## Next upkeep's change counter key shows beside its figure ("+1"), or "" (none, or no such counter) (201).
 func forecast_text(key: String) -> String:
 	return (_counters[key] as Counter).forecast_text() if _counters.has(key) else ""
+
+
+## The popover's sections for resource key (379): next upkeep's rows and their net; Unrest adds its limit's rows and
+## total. On the last turn, one line saying there is no next upkeep.
+func _breakdown(e: GameEngine, key: String) -> Array:
+	var forecast := e.upkeep_forecast()
+	if forecast.is_empty():
+		return [{"heading": "Next upkeep", "rows": [["No next upkeep: this is the last turn.", ""]], "total": []}]
+	var rows := []
+	for row: Dictionary in e.upkeep_breakdown(key):
+		rows.append([_row_label(row), _signed(row.amount)])
+	var sections := [{"heading": "Next upkeep", "rows": rows, "total": ["Net", _signed(forecast[key])]}]
+	if key == GameEngine.UNREST and e.unrest_limit() >= 0:
+		var limit := []
+		for row: Dictionary in e.unrest_limit_breakdown():
+			limit.append([_row_label(row), str(row.amount) if limit.is_empty() else _signed(row.amount)])
+		sections.append({"heading": "Limit", "rows": limit, "total": ["Limit", str(e.unrest_limit())]})
+	return sections
+
+
+## While a breakdown is open, Esc closes it (and opens no menu) and a click anywhere but on it or a counter closes it
+## (379).
+func _input(event: InputEvent) -> void:
+	if breakdown_key() == "":
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		close_breakdown()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.pressed and not breakdown_holds(event.global_position):
+		close_breakdown()
+
+
+func _on_counter_input(event: InputEvent, key: String) -> void:
+	var click: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	var enter: bool = event is InputEventKey and event.pressed and not event.echo \
+		and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER)
+	if click or enter:
+		toggle_breakdown(key)
+		accept_event()
+
+
+## "Farm ×2", or the label alone for one copy.
+static func _row_label(row: Dictionary) -> String:
+	return row.label + (" ×%d" % row.count if row.count > 1 else "")
+
+
+## n with its sign, a real minus for a loss ("+2", "−1", "+0").
+static func _signed(n: int) -> String:
+	return ("%+d" % n).replace("-", "−")
