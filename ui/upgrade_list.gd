@@ -35,7 +35,8 @@ func show_for(uid: int) -> void:
 		_add_row(e, row, blocked)
 
 
-## Test hook: each row as {name, rules, status, button}, button null for a row without one.
+## Test hook: each row as {name, rules, status, button, status_label}, button null for a row without one and
+## status_label null for one with.
 func rows() -> Array[Dictionary]:
 	return _rows
 
@@ -52,11 +53,12 @@ func _add_row(e: GameEngine, row: Dictionary, blocked: String) -> void:
 	text.add_child(_label(def.name, &"CardTitle"))
 	var rules := e.upgrade_rules_text(row.card_id)
 	text.add_child(_label(rules, &"BodySmall"))
-	var shown := {"name": def.name, "rules": rules, "status": "", "button": null}
+	var shown := {"name": def.name, "rules": rules, "status": "", "button": null, "status_label": null}
 	if row.built != -1:
 		var why := e.fallen_back_reason(row.built)
 		shown.status = why if why != "" else "Built"
-		line.add_child(_label(shown.status, &"Refusal" if why != "" else &"Caption"))
+		shown.status_label = _label(shown.status, &"Refusal" if why != "" else &"Caption")
+		line.add_child(shown.status_label)
 	elif blocked != "" or row.error == "":
 		var cost := e.build_cost(row.card_id)
 		var button := UIKit.button("Upgrade for %s" % Fields.amounts_text(cost) if not cost.is_empty() else "Upgrade",
@@ -68,7 +70,8 @@ func _add_row(e: GameEngine, row: Dictionary, blocked: String) -> void:
 		shown.button = button
 	else:
 		shown.status = row.error
-		line.add_child(_label(row.error, &"Refusal"))
+		shown.status_label = _label(row.error, &"Refusal")
+		line.add_child(shown.status_label)
 	_rows.append(shown)
 
 
