@@ -150,4 +150,5 @@ func test_with_reduce_motion_a_wheel_notch_jumps_the_ledger_a_step() -> void:
 func test_the_shown_card_has_its_art_plate() -> void:
 	await with_renewal({"renewal": 1}, ["scout", "kings"], func(_main: Node, modal: RenewalModal):
 		var card := card_under(modal)
-		check(card != null and art_plate(card) != null, "the shown card has a plate"))
+		check(card != null and art_plate(card) != null, "the shown card has a plate")
+		eq(art_plate(card).custom_minimum_size.y, 135.0, "135 px tall (402)"))

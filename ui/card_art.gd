@@ -7,7 +7,7 @@ extends Control
 ## card's plate follows its band: the placeholder prints in DIM_BORDER, a picture goes under a veil of DIM_BG.
 
 const ART_DIR := "res://assets/cards/"
-const HAND_HEIGHT := 96.0  # px on a hand-size card (264 × 360): a 5:2 band through the art's middle
+const HAND_HEIGHT := 135.0  # px on a hand-size card (264 × 360): a 16:9 view of 84 % of the art's height (402)
 const RULE := 1.0  # the frame's rule
 const DIM_VEIL := 0.6  # the DIM_BG veil's alpha over a dimmed card's picture
 enum Motif {SUN, RINGS, SPLIT_DISC, STEPS}
@@ -57,7 +57,7 @@ static func motif_for(id: String) -> int:
 
 
 ## The region of a texture of tex_size drawn into a plate of rect_size: scaled to cover it, centred, the overflow
-## cropped (a 3:2 picture in a 5:2 plate shows its middle 60 %).
+## cropped (a 3:2 picture in the 16:9 hand plate shows its middle 84 %).
 static func cover_region(tex_size: Vector2, rect_size: Vector2) -> Rect2:
 	var shown := rect_size / maxf(rect_size.x / tex_size.x, rect_size.y / tex_size.y)
 	return Rect2((tex_size - shown) / 2.0, shown)

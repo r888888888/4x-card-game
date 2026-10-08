@@ -209,4 +209,5 @@ func test_the_events_card_has_its_art_plate() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
 		var card := card_under(main.modals.top())
-		check(card != null and art_plate(card) != null, "the event's card has a plate"), ["windfall"])
+		check(card != null and art_plate(card) != null, "the event's card has a plate")
+		eq(art_plate(card).custom_minimum_size.y, 135.0, "135 px tall (402)"), ["windfall"])

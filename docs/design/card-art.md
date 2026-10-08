@@ -5,8 +5,9 @@ The art for every card in `data/cards.json`: its file, a brief for the picture a
 cream paper, the ancient world drawn the way a mid-century magazine would draw it. 189 cards: civilizations 6,
 governments 3, cities 2, units 5, territories 17, wonders 9, buildings 47, actions 19, techs 33, events 48.
 
-**Files.** `assets/cards/<card id>.png`, 1536 × 1024 (3:2), sRGB, no alpha, no border. The game shows the middle 5:2
-band (the middle 60 % of the height) at 240 × 96 px, so the subject stays inside it. Until a file exists the card shows
+**Files.** `assets/cards/<card id>.png`, 1536 × 1024 (3:2), sRGB, no alpha, no border. The game shows a centred 16:9
+view (the middle 84 % of the height, rows 80–944) at 240 × 135 px (402); keep the subject inside the middle 60 % so
+every crop holds it. Until a file exists the card shows
 a placeholder plate naming the file.
 
 **Inks.** Every picture is charcoal `#22211F` on cream paper `#F3EBDB`, plus the inks in its row: the first is the card
