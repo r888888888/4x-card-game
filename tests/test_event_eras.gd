@@ -114,7 +114,7 @@ func event_tooltip(event_deck: Dictionary) -> String:
 	Game.engine = event_era_engine({}, event_deck)
 	var main := open_main()
 	main.start_game(1)
-	var tooltip: String = main.event_panel().tooltip
+	var tooltip: String = MainProbe.event_panel(main).tooltip
 	close_main(main)
 	Game.engine = real
 	return tooltip

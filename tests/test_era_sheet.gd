@@ -25,8 +25,8 @@ func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 		var main := open_main()
 		main.start_game(1)
 		await wait_frames()
-		while not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await body.call(main, Game.engine)
 		close_main(main)
 		Game.engine = real)
@@ -117,8 +117,8 @@ func test_a_key_skips_and_closes_and_nothing_else_takes_keys() -> void:
 		check(main.knowledge.shown().is_empty(), "T opens nothing under it")
 		check(not main.era_sheet.is_open(), "the second key closes it")
 		await wait_seconds(0.16 + SLACK)
-		while not main.event_modal().is_empty():  # the turn's event, which waited for the sheet (AC6)
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():  # the turn's event, which waited for the sheet (AC6)
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		press_key(main, KEY_E)
 		eq(e.turn, turn + 1, "then E ends the turn again"))
 
@@ -158,7 +158,7 @@ func test_an_event_drawn_the_same_turn_opens_after_the_sheet_closes() -> void:
 		await wait_frames()
 		check(not drawn.is_empty(), "precondition: an event drawn this turn")
 		check(main.era_sheet.is_open(), "the sheet first")
-		check(main.event_modal().is_empty(), "the event waits")
+		check(MainProbe.event_modal(main).is_empty(), "the event waits")
 		press_key(main, KEY_ENTER)
 		await wait_seconds(0.16 + SLACK)
-		check(not main.event_modal().is_empty(), "then the event opens"))
+		check(not MainProbe.event_modal(main).is_empty(), "then the event opens"))

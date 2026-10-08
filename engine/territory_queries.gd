@@ -2,7 +2,8 @@ class_name TerritoryQueries
 extends EngineCore
 ## The read queries about settled territories and their people (backlog 281, split from EngineQueries): pop and
 ## housing, building slots, workers and settlement tiers, idle buildings, the administration cap (319), and each
-## territory's name, summary, status and tooltip. They change nothing. EngineQueries extends this with the other read queries.
+## territory's name, summary, status and tooltip, and its defence and raid warning (moved here in 166). They change
+## nothing. EngineQueries extends this with the other read queries.
 
 
 ## Pop on settled territory territory_uid (0 for anything else).
@@ -123,11 +124,17 @@ func card_tier_name(card_id: String) -> String:
 	return card_db[card_id].tier_name if card_db.has(card_id) else ""
 
 
-## Upgrade card_id's card text without its "Builds on" and "Needs" lines: what it adds (302); "" for anything else.
+## Upgrade card_id's face rules, one a line: what it adds (302, 382); "" for anything else.
 func upgrade_rules_text(card_id: String) -> String:
 	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
 		return ""
-	return card_db[card_id].rules_text(card_db, false)
+	return "\n".join(card_db[card_id].face(card_db).rules)
+
+
+## Building uid's upgrade rows for its details (387): {card_id, base, built, error} per base (uid, then its upgrades)
+## and build-menu entry, locked or not, that upgrades it; [] for anything but a building in the tableau.
+func upgrade_rows(uid: int) -> Array[Dictionary]:
+	return Upgrades.rows(self, uid)
 
 
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
@@ -197,3 +204,4 @@ func territory_status(uid: int) -> Dictionary:
 ## Settled territory uid's tooltip (123): its slots, pop and free workers spelled out, then its keywords; "" if not one.
 func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
+

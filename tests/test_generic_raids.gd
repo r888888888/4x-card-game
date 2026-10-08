@@ -13,7 +13,7 @@ func raid_turn_3(levy_on: String) -> GameEngine:
 	build_on(e, hills_of(e), ["town"])
 	recruit(e, hills_of(e) if levy_on == "hills" else home_uid(e))
 	e.end_turn()
-	check(e.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
+	check(e.military.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
 	return e
 
 
@@ -23,8 +23,8 @@ func levy_of(e: GameEngine) -> int:
 
 func test_the_bot_moves_a_unit_onto_a_short_target() -> void:
 	var e := raid_turn_3("home")
-	var raid: Dictionary = e.raid_forecast()[0]
-	check(raid.defense < raid.strength and raid.defense + e.unit_strength(levy_of(e)) >= raid.strength,
+	var raid: Dictionary = e.military.raid_forecast()[0]
+	check(raid.defense < raid.strength and raid.defense + e.military.strength(levy_of(e)) >= raid.strength,
 		"Hills is short, and the Levy would make up the shortfall: %s" % [raid])
 	GenericBot.take_turn(e, "generic")
 	eq(e.unit_station(levy_of(e)), hills_of(e), "the Levy moved onto Hills")
@@ -32,7 +32,7 @@ func test_the_bot_moves_a_unit_onto_a_short_target() -> void:
 
 func test_the_bot_keeps_a_unit_on_a_raided_target_it_holds() -> void:
 	var e := raid_turn_3("hills")
-	var raid: Dictionary = e.raid_forecast()[0]
+	var raid: Dictionary = e.military.raid_forecast()[0]
 	check(raid.defense >= raid.strength, "Hills holds with the Levy: %s" % [raid])
 	GenericBot.take_turn(e, "generic")
 	eq(e.unit_station(levy_of(e)), hills_of(e), "the Levy stays on Hills")

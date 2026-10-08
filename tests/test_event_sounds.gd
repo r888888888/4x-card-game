@@ -74,7 +74,7 @@ func test_the_game_over_sheet_plays_the_victory_once() -> void:
 		Game.engine.changed.emit()
 		await wait_frames()
 		eq(events_heard(main), [Sfx.MILESTONE_VICTORY], "a refresh while shown: nothing more")
-		main.game_over_buttons()[0].pressed.emit()  # Replay
+		MainProbe.game_over_buttons(main)[0].pressed.emit()  # Replay
 		await wait_frames()
 		eq(events_heard(main), [Sfx.MILESTONE_VICTORY], "restarting: nothing more"))
 

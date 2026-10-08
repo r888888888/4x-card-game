@@ -1,7 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## legal_actions (312): every action the engine would allow now, as [action, args…], in a fixed order: an owed
-## decision's options, then play_card, build, buy, buy_tech, contribute, move_unit, discard_card, relieve_famine,
-## revolt, abandon, disband, end_turn. A coverage table fails the suite when an action with an error
+## decision's options, then play_card, build, buy, buy_tech, contribute, military.move, military.upgrade (166),
+## discard_card, relieve_famine, revolt, abandon, military.disband, end_turn. An area's action is named
+## "<area>.<action>" (394), and LegalActions.apply calls any entry. A coverage table fails the suite when an action with an error
 ## query can't be listed. Games from tests/lib/anarchy_case.gd (Chiefs ruling, unrest, a research deck with Lore, Farms
 ## in the supply, 10 food, wealth and insight, home pop 6), with a unit (Levy) and a wonder (Colossus) added.
 
@@ -13,6 +14,10 @@ const ERROR_OF := LegalActions.ERROR_OF
 ## Names with an error query that legal_actions never lists: starting a game, naming a territory, and supply (the
 ## Supply screen's query, not an action).
 const NEVER_LISTED := ["new_game", "rename_territory", "supply", "build_menu"]  # build_menu: Build…'s gate (297)
+## Pikes, and a Levy that upgrades to it (166).
+const PIKES := {"id": "pikes", "name": "Pikes", "type": "unit", "cost": {"food": 3}, "strength": 3}
+const UPGRADABLE_LEVY := {"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2,
+	"upgrades_to": "pikes"}
 const HILLS_DECK := {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}}
 
 
@@ -28,9 +33,7 @@ func of_kind(list: Array, name: String) -> Array:
 
 ## The error query's answer for entry on e: "" when the entry is legal.
 func entry_error(e: GameEngine, entry: Array) -> String:
-	if entry[0] == "renew":
-		return e.renew_error(entry[1].slice(0, entry[2]))
-	return e.callv(ERROR_OF.get(entry[0], entry[0] + "_error"), entry.slice(1))
+	return LegalActions.error(e, entry)
 
 
 # --- AC1: what is listed with nothing owed ---
@@ -73,10 +76,23 @@ func test_units_and_sites_list_their_moves_contributions_disbands_and_abandons()
 	check(limit > 0, "the site can take wealth: %d" % limit)
 	var list := e.legal_actions()
 	eq(of_kind(list, "contribute"), [["contribute", colossus, limit]], "one contribution, at the limit")
-	eq(of_kind(list, "move_unit"), [["move_unit", levy, hills]] if e.move_targets(levy) == [hills] else [],
-		"the Levy's moves are its move_targets")
-	eq(of_kind(list, "disband"), [["disband", levy]], "disband the Levy")
+	eq(of_kind(list, "military.move"), [["military.move", levy, hills]], "the Levy's move to Hills (394: on the area)")
+	eq(of_kind(list, "military.disband"), [["military.disband", levy]], "disband the Levy")
 	eq(of_kind(list, "abandon"), [["abandon", colossus]], "abandon the site")
+
+
+func test_166_an_upgradable_unit_lists_its_upgrade() -> void:
+	var e := upgrade_game()
+	var levy := uid_of(e.zone("tableau"), "levy")
+	eq(of_kind(e.legal_actions(), "military.upgrade"), [["military.upgrade", levy]], "upgrade the Levy")
+
+
+## An anarchy game with UPGRADABLE_LEVY and PIKES loaded, Pikes on the build menu and a Levy recruited on the home.
+func upgrade_game() -> GameEngine:
+	var e := anarchy_engine({}, HILLS_DECK.merged({"build_menu": {"pikes": {}}}), [UPGRADABLE_LEVY, PIKES, COLOSSUS])
+	var levy := put_in_hand(e, "levy")
+	check(e.play_card(levy, home_uid(e)), "Levy recruited on the home: %s" % e.play_error(levy, home_uid(e)))
+	return e
 
 
 # --- AC2: every entry is legal ---
@@ -215,12 +231,13 @@ func coverage() -> Dictionary:
 			e.end_turn()
 			e.resources["wealth"] = 10
 			return e,
-		"move_unit": func():
+		"military.move": func():
 			var e := game()
 			settle(e, ["hills"])
 			e.play_card(put_in_hand(e, "levy"), home_uid(e))
 			return e,
-		"disband": func():
+		"military.upgrade": func(): return upgrade_game(),  # 166
+		"military.disband": func():
 			var e := game()
 			e.play_card(put_in_hand(e, "levy"), home_uid(e))
 			return e,
@@ -245,6 +262,10 @@ func test_every_action_with_an_error_query_has_a_coverage_row() -> void:
 			continue
 		if methods.has(ERROR_OF.get(name, name + "_error")):
 			expected.append(name)
+	var area_methods: Array = (Military as Script).get_script_method_list().map(func(m): return m.name)
+	for name: String in area_methods:  # an area's actions are listed as "<area>.<action>" (394)
+		if not name.begins_with("_") and not name.ends_with("_error") and area_methods.has(name + "_error"):
+			expected.append("military." + name)
 	expected.sort()
 	var rows: Array = coverage().keys()
 	rows.sort()
@@ -257,3 +278,39 @@ func test_each_coverage_game_lists_its_action() -> void:
 		var e: GameEngine = rows[name].call()
 		var kinds: Array = e.legal_actions().map(func(entry): return entry[0])
 		check(kinds.has(name), "%s listed: %s" % [name, kinds])
+
+
+# --- 394: an area's actions, listed, checked and applied by name ---
+
+func test_the_military_areas_actions_are_listed_checked_and_applied() -> void:
+	var e := game()
+	settle(e, ["hills"])
+	var hills := uid_of(e.zone("tableau"), "hills")
+	var levy := put_in_hand(e, "levy")
+	check(e.play_card(levy, home_uid(e)), "Levy recruited on the home: %s" % e.play_error(levy, home_uid(e)))
+	var list := e.legal_actions()
+	var move := ["military.move", levy, hills]
+	var disband := ["military.disband", levy]
+	check(list.has(move) and list.has(disband), "the move and the disband are listed: %s" % [list])
+	eq([LegalActions.error(e, move), LegalActions.error(e, disband)], ["", ""], "their error queries say yes")
+	var moved := e.fork()
+	check(LegalActions.apply(moved, move), "the move applies")
+	eq(moved.unit_station(levy), hills, "the Levy is stationed on Hills")
+	check(not moved.legal_actions().any(func(entry): return entry[0] == "military.move" and entry[1] == levy),
+		"moved this turn: no move listed")
+	var disbanded := e.fork()
+	check(LegalActions.apply(disbanded, disband), "the disband applies")
+	eq(disbanded.zone("tableau").find(levy), null, "the Levy is gone")
+	var u := upgrade_game()
+	var levy_u := uid_of(u.zone("tableau"), "levy")
+	var upgrade := ["military.upgrade", levy_u]
+	check(u.legal_actions().has(upgrade), "the upgrade is listed")
+	eq(LegalActions.error(u, upgrade), "", "its error query says yes")
+	check(LegalActions.apply(u, upgrade), "the upgrade applies")
+	eq([uid_of(u.zone("tableau"), "pikes") != -1, uid_of(u.zone("tableau"), "levy")], [true, -1], "the Levy is now Pikes")
+
+
+func test_the_bot_calls_actions_through_legal_actions() -> void:
+	var source := FileAccess.get_file_as_string("res://sim/generic_bot.gd")
+	check(not source.contains("callv("), "GenericBot dispatches through LegalActions.apply, not its own callv")
+	check(source.contains("LegalActions.apply("), "GenericBot calls LegalActions.apply")

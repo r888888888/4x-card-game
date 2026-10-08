@@ -3,7 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## Exit in its footer); Settings opens a SettingsModal over it with the Reduce motion, Day mode and sound rows and a
 ## Game section (the seed field and Restart with seed); the title screen's Settings opens the same modal without the
 ## Game section, and the settings screen is gone. Hooks: main.settings_modal (motion_toggle, day_toggle, sound_toggle,
-## sliders, figures, seed_edit, restart_button, game_section), main.menu_buttons().
+## sliders, figures, seed_edit, restart_button, game_section), MainProbe.menu_buttons(main).
 
 const Looks := preload("res://tests/lib/surface_looks.gd")
 const SETTINGS_SCREEN_PATH := "res://ui/settings_screen.gd"
@@ -31,7 +31,7 @@ func open_menu_on(seed_value: int) -> Node:
 func test_the_menu_holds_only_game_actions() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
-		var texts: Array = main.menu_buttons().map(func(b): return b.text)
+		var texts: Array = MainProbe.menu_buttons(main).map(func(b): return b.text)
 		eq(texts, ["Restart", "New game", "Settings", "Close", "Exit game"], "the menu's buttons, in order")
 		var menu: Control = main.modals.top()
 		eq(menu.find_children("*", "LineEdit", true, false).size(), 0, "no seed field")
@@ -46,7 +46,7 @@ func test_settings_in_the_menu_opens_the_settings_modal_over_it() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
 		var menu: Object = main.modals.top()
-		button_named(main.menu_buttons(), "Settings").pressed.emit()
+		button_named(MainProbe.menu_buttons(main), "Settings").pressed.emit()
 		await wait_frames()
 		var modal: Object = main.settings_modal
 		check(modal is Modal, "a Modal")
@@ -70,7 +70,7 @@ func test_restart_with_seed_starts_that_seed_as_the_same_civilization() -> void:
 		main.start_game(5, "sumer")
 		await wait_frames()
 		main.open_menu()
-		button_named(main.menu_buttons(), "Settings").pressed.emit()
+		button_named(MainProbe.menu_buttons(main), "Settings").pressed.emit()
 		var modal: Object = main.settings_modal
 		modal.seed_edit.text = "42"
 		modal.seed_edit.text_changed.emit("42")
@@ -86,7 +86,7 @@ func test_restart_with_seed_starts_that_seed_as_the_same_civilization() -> void:
 func test_enter_in_the_seed_field_restarts_and_a_bad_seed_cannot() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
-		button_named(main.menu_buttons(), "Settings").pressed.emit()
+		button_named(MainProbe.menu_buttons(main), "Settings").pressed.emit()
 		var modal: Object = main.settings_modal
 		for bad in ["abc", ""]:
 			modal.seed_edit.text = bad
@@ -109,7 +109,7 @@ func test_the_menus_restart_replays_this_games_seed() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
 		Game.engine.end_turn()
-		button_named(main.menu_buttons(), "Restart").pressed.emit()
+		button_named(MainProbe.menu_buttons(main), "Restart").pressed.emit()
 		eq(Game.engine.seed_value, 5, "the current seed")
 		eq(Game.engine.turn, 1, "from the start")
 		eq(main.modals.depth(), 0, "the menu closed")
@@ -142,7 +142,7 @@ func test_the_title_screens_settings_opens_the_modal_without_the_game_section() 
 func test_a_setting_applies_at_once_and_esc_closes_only_the_settings_modal() -> void:
 	await with_temp_settings(func():
 		var main: Node = await open_menu_on(5)
-		button_named(main.menu_buttons(), "Settings").pressed.emit()
+		button_named(MainProbe.menu_buttons(main), "Settings").pressed.emit()
 		var modal: Object = main.settings_modal
 		modal.day_toggle.button_pressed = true
 		await wait_frames()

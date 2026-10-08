@@ -45,7 +45,7 @@ func step_tweens(main: Node, seconds: float, sample := Callable()) -> void:
 func tags_on(main: Node) -> Array:
 	var out := []
 	for key in COUNTERS:
-		var tag := counter_tag(main.counter(key))
+		var tag := counter_tag(MainProbe.counter(main, key))
 		if tag != null:
 			out.append([key, tag.text])
 	return out
@@ -69,7 +69,7 @@ func values(e: GameEngine) -> Dictionary:
 func lefts(main: Node) -> Dictionary:
 	var out := {}
 	for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, TopBar.SCORE, TopBar.POP]:
-		out[key] = (main.counter(key) as Control).get_global_rect().position.x
+		out[key] = (MainProbe.counter(main, key) as Control).get_global_rect().position.x
 	return out
 
 
@@ -136,7 +136,7 @@ func test_a_food_change_rolls_with_no_tag_and_no_counter_moves() -> void:
 		await assert_steady(main, func():
 			e.resources[GameEngine.FOOD] -= 3
 			e.changed.emit(), "−3 food")
-		eq(main.counter_text(GameEngine.FOOD), str(START - 1), "food reads 19"))
+		eq(MainProbe.counter_text(main, GameEngine.FOOD), str(START - 1), "food reads 19"))
 
 
 func test_wealth_score_and_pop_changes_roll_with_no_tag_and_no_counter_moves() -> void:
@@ -173,7 +173,7 @@ func test_with_reduce_motion_a_change_shows_at_once_with_no_tag_and_no_counter_m
 		await assert_steady(main, func():
 			e.resources[GameEngine.FOOD] += 2
 			e.changed.emit(), "+2 food")
-		eq(main.counter(GameEngine.FOOD).figure().shown(), START + 2, "the figure shows 22"))
+		eq(MainProbe.counter(main, GameEngine.FOOD).figure().shown(), START + 2, "the figure shows 22"))
 	_calm = false
 
 
@@ -237,9 +237,9 @@ func test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once() -> void:
 		step_tweens(main, LONG)
 		e.resources[GameEngine.FOOD] = 5
 		e.changed.emit()
-		var figure: Odometer = main.counter(GameEngine.FOOD).figure()
+		var figure: Odometer = MainProbe.counter(main, GameEngine.FOOD).figure()
 		eq(figure.value, 5, "the odometer's value is 5")
-		eq(main.counter_text(GameEngine.FOOD), "5", "the reading is new at once")
+		eq(MainProbe.counter_text(main, GameEngine.FOOD), "5", "the reading is new at once")
 		eq(figure.shown(), 3, "while the digits still show 3")
 		step_tweens(main, 0.5)
 		eq(figure.shown(), 5, "and roll to 5"))
@@ -248,7 +248,7 @@ func test_a_refresh_rolls_the_figure_and_the_reading_changes_at_once() -> void:
 func test_every_counters_figure_is_an_odometer() -> void:
 	await with_token_main(func(main: Node):
 		for key in [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, TopBar.SCORE, TopBar.POP]:
-			var figure: Odometer = main.counter(key).figure()
+			var figure: Odometer = MainProbe.counter(main, key).figure()
 			check(figure != null and figure.get_script() != null and figure.get_script().resource_path == "res://ui/odometer.gd",
 				"'%s' figure is an Odometer" % key)
 		main.supply.open(Game.engine)
@@ -262,7 +262,7 @@ func test_every_counters_figure_is_an_odometer() -> void:
 func test_a_figure_sits_against_its_glyph_and_grows_rightward() -> void:
 	_calm = true
 	await with_token_main(func(main: Node):
-		var counter: Control = main.counter(GameEngine.FOOD)
+		var counter: Control = MainProbe.counter(main, GameEngine.FOOD)
 		Game.engine.resources[GameEngine.FOOD] = 9
 		Game.engine.changed.emit()
 		await wait_frames()

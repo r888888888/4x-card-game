@@ -18,7 +18,7 @@ func raid_turn_3(before_strike := func(_e): pass) -> GameEngine:
 	e.end_turn()
 	before_strike.call(e)
 	e.end_turn()
-	check(e.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
+	check(e.military.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
 	return e
 
 
@@ -55,7 +55,7 @@ func test_a_raid_short_of_defence_counts_its_pillage() -> void:
 	var e := raid_turn_3()
 	if e == null:
 		return
-	var raid: Dictionary = e.raid_forecast()[0]
+	var raid: Dictionary = e.military.raid_forecast()[0]
 	check(raid.defense < raid.strength, "Hills is short: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
 	var f := e.turn_forecast()
@@ -71,7 +71,7 @@ func test_a_raid_meeting_enough_defence_counts_its_repel() -> void:
 		recruit(g, hills_of(g)))
 	if e == null:
 		return
-	var raid: Dictionary = e.raid_forecast()[0]
+	var raid: Dictionary = e.military.raid_forecast()[0]
 	check(raid.defense >= raid.strength, "Hills holds: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
 	var f := e.turn_forecast()

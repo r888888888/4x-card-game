@@ -1,6 +1,8 @@
 extends "res://tests/lib/test_case.gd"
-## Flavor for techs, events, actions and buildings (backlog 215, 351, 352): a tech may carry a `flavor` line and a
-## `quote` {text, by}, an event, action or building a `flavor` line, as civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows them; card faces never do.
+## Flavor for techs, events, actions and buildings (backlog 215, 351, 352, 396): a tech or building may carry a `flavor`
+## line and a `quote` {text, by} (a building's since 396, for the wonders), an event or action a `flavor` line, as
+## civilizations do (107); since 253 an event may carry a quote too (test_anarchy_event.gd). The details window shows
+## them; card faces never do.
 
 const FIRE := {"id": "fire", "name": "Fire", "type": "tech", "cost": {"insight": 1},
 	"flavor": "Fire, tamed.", "quote": {"text": "Knowledge is power.", "by": "Francis Bacon"}}
@@ -180,15 +182,6 @@ func test_building_flavor_validation() -> void:
 	], card_load)
 
 
-func test_a_quote_on_a_building_is_ignored_with_a_warning() -> void:
-	var quoted := with_field(KILN, "quote", {"text": "Fire it.", "by": "A potter"})
-	var m := card_load(quoted)
-	eq(m.errors, [] as Array[String], "errors")
-	has_msg(m.warnings, "card 'kiln': 'quote' only applies to civilizations (ignored)")
-	var e := make_engine({"farm": 10}, {}, 1, [quoted])
-	eq(e.def_details("kiln").get("quote"), {}, "no quote in def_details")
-
-
 func test_a_building_face_shows_no_flavor() -> void:
 	var flavored := fixture_db([KILN])
 	var plain := fixture_db([with_field(KILN, "flavor", null)])
@@ -202,3 +195,68 @@ func test_a_building_face_shows_no_flavor() -> void:
 			view.free()
 		eq(faces[0], faces[1], "the %s face is the same as without flavor" % ("hand" if in_hand else "supply"))
 		check(not faces[0].contains("baked hard"), "no flavor: %s" % faces[0])
+
+
+# --- 396: a building's quote (for the wonders) ---
+
+const SPHINX := {"id": "sphinx", "name": "Sphinx", "type": "building", "cost": {"food": 1}, "flavor": "A lion with a face.",
+	"quote": {"text": "Look on my works.", "by": "Shelley"}}
+
+
+func test_a_building_may_have_a_quote() -> void:
+	var m := card_load(SPHINX)
+	eq(m.errors, [] as Array[String], "errors")
+	eq(m.warnings, [] as Array[String], "warnings")
+	if m.cards.has("sphinx"):
+		var def: CardDef = m.cards.sphinx
+		eq([def.quote_text, def.quote_by], ["Look on my works.", "Shelley"], "the quote is read")
+	var e := make_engine({"farm": 10}, {}, 1, [SPHINX])
+	var quote := {"text": "Look on my works.", "by": "Shelley"}
+	eq(e.def_details("sphinx").get("quote"), quote, "quote in def_details")
+	build_on(e, home_uid(e), ["sphinx"])
+	var uid := uid_of(e.zone("tableau"), "sphinx")
+	eq(e.card_details(uid).get("quote"), quote, "quote in the built building's card_details")
+
+
+func test_building_quote_validation() -> void:
+	var quote_error := "cards.json: card 'sphinx': 'quote' must be {\"text\": …, \"by\": …} with non-empty strings"
+	check_cases([
+		["building quote not an object", with_field(SPHINX, "quote", "Look on my works."), quote_error, "one_error"],
+		["building quote without by", with_field(SPHINX, "quote", {"text": "Look on my works."}), quote_error, "one_error"],
+		["building quote with an empty text", with_field(SPHINX, "quote", {"text": "", "by": "Shelley"}), quote_error,
+			"one_error"],
+	], card_load)
+
+
+func test_a_building_without_a_quote_has_none() -> void:
+	var e := make_engine({"farm": 10}, {}, 1, [KILN])
+	eq(e.def_details("kiln").get("quote"), {}, "no quote in def_details")
+
+
+func test_a_quote_on_a_territory_city_or_unit_is_still_ignored_with_a_warning() -> void:
+	for card: Dictionary in [
+		{"id": "dell", "name": "Dell", "type": "territory", "slots": 2},
+		{"id": "hamlet", "name": "Hamlet", "type": "city", "vp": 1, "tags": ["city"]},
+		{"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2},
+	]:
+		var quoted := with_field(card, "quote", {"text": "Onward.", "by": "A guide"})
+		var m := card_load(quoted)
+		eq(m.errors, [] as Array[String], "%s: errors" % card.type)
+		has_msg(m.warnings, "card '%s': 'quote' only applies to civilizations (ignored)" % card.id)
+		if m.cards.has(card.id):
+			eq((m.cards[card.id] as CardDef).quote_text, "", "%s: no quote read" % card.type)
+
+
+func test_a_building_face_shows_no_quote() -> void:
+	var quoted := fixture_db([SPHINX])
+	var plain := fixture_db([with_field(SPHINX, "quote", null)])
+	check((quoted["sphinx"] as CardDef).quote_text != "", "the building has a quote")
+	for in_hand in [true, false]:
+		var faces: Array[String] = []
+		for cards: Dictionary in [quoted, plain]:
+			var view := CardView.new()
+			view.setup(CardInstance.new(900, cards["sphinx"]), cards, in_hand)
+			faces.append(view.face_text())
+			view.free()
+		eq(faces[0], faces[1], "the %s face is the same as without a quote" % ("hand" if in_hand else "supply"))
+		check(not faces[0].contains("my works") and not faces[0].contains("Shelley"), "no quote: %s" % faces[0])

@@ -278,3 +278,86 @@ func test_the_rest_of_a_card_face_keeps_its_font() -> void:
 					others.append(String(c.name))
 		eq(others, [] as Array[String], "%s: only the name is a CardTitle" % case[0])
 		f.root.free()
+
+
+# --- 382: the ledger, the rules and the fine print ---
+
+const LEDGER_CARDS := [
+	{"id": "assembly", "name": "Assembly", "type": "government", "actions": 3, "unrest_limit": 13,
+		"effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "weaving", "name": "Weaving", "type": "tech", "cost": {"insight": 2}},
+	{"id": "dyeing", "name": "Dyeing", "type": "tech", "cost": {"insight": 3}, "prereq": "weaving",
+		"eureka": {"card": "farm", "count": 2, "off": 1}, "effects": [{"op": "unlock", "card": "farm"}]},
+	{"id": "mill", "name": "Mill", "type": "building", "requires": ["fresh_water"],
+		"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+]
+
+
+## A CardView of card id from LEDGER_CARDS (or TEST_CARDS) set up as in_hand / kind, out of the tree; free it.
+func ledger_view(id: String, in_hand := true, kind := "") -> CardView:
+	var e := make_engine({"farm": 10}, {}, 1, LEDGER_CARDS)
+	var view := CardView.new()
+	view.setup(CardInstance.new(900, e.card_db[id]), e.card_db, in_hand, "", kind)
+	return view
+
+
+## The texts of node's Label children, in order.
+func label_texts_of(node: Node) -> Array:
+	return node.get_children().filter(func(c): return c is Label).map(func(l: Label): return l.text)
+
+
+func test_a_hand_face_shows_the_ledger_then_the_rules() -> void:
+	var view := ledger_view("assembly")
+	var ledger := view.find_child("Ledger", true, false) as GridContainer
+	check(ledger != null, "a Ledger grid")
+	if ledger != null:
+		eq(ledger.columns, 2, "label and figure")
+		eq(label_texts_of(ledger), ["Actions", "3", "Unrest limit", "13"], "its rows")
+		var first := ledger.get_child(0) as Label
+		var figure := ledger.get_child(1) as Label
+		eq([first.theme_type_variation, first.uppercase], [&"LedgerLabel", true], "labels in the caps look")
+		eq(figure.theme_type_variation, &"LedgerFigure", "figures in their look")
+		var rules := view.find_child("Rules", true, false)
+		check(rules != null and ledger.get_index() < rules.get_index(), "the ledger before the rules")
+	check(view.face_text().contains("⟳ +1 VP"), "the rules: %s" % view.face_text())
+	check(not view.face_text().contains("actions each turn"), "no sentence for the figure: %s" % view.face_text())
+	eq(view.find_child("FinePrint", true, false), null, "no gates, no fine print")
+	view.free()
+
+
+func test_a_hand_faces_gates_are_one_line_of_fine_print_at_the_foot() -> void:
+	var view := ledger_view("dyeing")
+	var fine := view.find_child("FinePrint", true, false) as Label
+	check(fine != null, "a FinePrint label")
+	if fine != null:
+		eq(fine.text, "Needs Weaving · Eureka: -1 insight with 2 Farms", "the gates joined")
+		eq([fine.theme_type_variation, fine.uppercase], [&"FinePrint", true], "the fine print's caps look")
+		var face := fine.get_parent()
+		eq(fine.get_index(), face.get_child_count() - 1, "at the foot")
+		var rules := view.find_child("Rules", true, false) as Control
+		check(rules != null and not rules.get_meta("source", "").contains("Needs Weaving"), "not among the rules")
+	view.free()
+
+
+func test_the_fine_print_look_is_14_px_caps_in_text_dim() -> void:
+	var theme := GameTheme.build()
+	eq(theme.get_font_size("font_size", &"FinePrint"), Tokens.TYPE_CAPTION, "14 px")
+	eq(theme.get_color("font_color", &"FinePrint"), Palette.TEXT_DIM, "TEXT_DIM")
+	eq(theme.get_font_size("font_size", &"LedgerLabel"), Tokens.TYPE_LABEL_CAPS, "ledger labels 14 px")
+
+
+func test_a_tableau_face_has_the_ledger_but_no_fine_print() -> void:
+	var gov := ledger_view("assembly", false)
+	check(gov.find_child("Ledger", true, false) != null, "the ledger")
+	gov.free()
+	var tech := ledger_view("dyeing", false)
+	eq(tech.find_child("FinePrint", true, false), null, "no fine print")
+	check(not tech.face_text().contains("Needs Weaving"), "nor its gates: %s" % tech.face_text())
+	tech.free()
+
+
+func test_a_realm_face_takes_its_line_from_the_rules() -> void:
+	var view := ledger_view("mill", false, CardView.BOARD_REALM)
+	check(view.face_text().contains("⟳ +1 food"), "the Mill's rule: %s" % view.face_text())
+	check(not view.face_text().contains("Needs"), "not its gate: %s" % view.face_text())
+	view.free()

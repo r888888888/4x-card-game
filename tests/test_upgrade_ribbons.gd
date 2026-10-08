@@ -3,7 +3,8 @@ extends "res://tests/lib/test_case.gd"
 ## foot of its card (a fallen-back one hatched with its reason), a "+ Upgrade" chip on a building that could take one
 ## opens the Build modal on it, the modal lists upgrades under their own heading, and an upgrade's card face names its
 ## base and tier. Hooks on CardView: ribbons() ({uid, name, rules, reason, hatched} per ribbon), upgrade_chip; on
-## BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's flavor is its own.
+## BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's flavor is its own. 387: a
+## building's details list its upgrades and build them; hooks on CardDetailsModal: upgrade_rows(), upgrades_shown().
 
 const TIERS := [
 	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
@@ -352,3 +353,104 @@ func test_an_upgrades_face_names_its_base_and_its_tier() -> void:
 		var modal: Object = await open_build(main)
 		await choose(modal, row_id(main, "sanctum", chapel))
 		check(String(modal.face_text()).contains("Upgrade · Chapel"), "the Build modal's sheet shows the upgrade face"))
+
+
+# --- 387: a building's details list its upgrades and build them ---
+
+## Opens the live details of tableau card uid, as a click on it does.
+func open_card_details(main: Node, uid: int) -> void:
+	main.details.open_card(Game.engine.zone("tableau").find(uid))
+	await wait_frames()
+
+
+func test_a_buildings_details_list_its_upgrades_built_or_to_build() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		build_it(e, "plough", farm)
+		await open_card_details(main, farm)
+		check(main.details.upgrades_shown(), "an Upgrades section")
+		var rows: Array = main.details.upgrade_rows()
+		eq(rows.map(func(r): return [r.name, r.rules]),
+			[["Plough", e.upgrade_rules_text("plough")], ["Ditch", e.upgrade_rules_text("ditch")]], "a row each, in order")
+		if rows.size() == 2:
+			eq([rows[0].status, rows[0].button], ["Built", null], "the Plough: built, no button")
+			var button: Button = rows[1].button
+			check(button != null and button.visible and not button.disabled, "the Ditch: an Upgrade button")
+			if button != null:
+				check(button.text.begins_with("Upgrade") and button.text.contains(Fields.amounts_text(e.build_cost("ditch"))),
+					"with its cost: %s" % button.text))
+
+
+func test_a_fallen_back_row_reads_its_reason_and_a_refused_one_its_error() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var chapel := put_home(e, "chapel")
+		var sanctum := build_it(e, "sanctum", chapel)
+		set_home_pop(e, 3)
+		await open_card_details(main, chapel)
+		var rows: Array = main.details.upgrade_rows()
+		eq(rows.map(func(r): return r.name), ["Sanctum", "Cathedral"], "the Sanctum, then the Cathedral on it")
+		if rows.size() == 2:
+			eq(rows[0].status, e.fallen_back_reason(sanctum), "the Sanctum: why it has fallen back")
+			eq([rows[1].status, rows[1].button], [e.build_error("cathedral", sanctum), null], "the Cathedral: refused, no button")
+			check(rows[1].status != "", "a reason: %s" % rows[1].status))
+
+
+func test_no_upgrades_section_where_there_is_nothing_to_upgrade() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var forum := put_home(e, "forum")
+		await open_card_details(main, forum)
+		check(not main.details.upgrades_shown(), "a Forum: nothing upgrades it")
+		var farm := put_in_hand(e, "farm")
+		await refresh(main)
+		main.details.open(main.views[farm])
+		await wait_frames()
+		check(not main.details.upgrades_shown(), "a hand card")
+		main.details.open_def("farm")
+		await wait_frames()
+		check(not main.details.upgrades_shown(), "a definition's details")
+		main.details.open_def("explorer")
+		await wait_frames()
+		check(not main.details.upgrades_shown(), "an action's definition"))
+
+
+func test_upgrade_builds_it_closes_the_details_and_plays_the_ceremony() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		await open_home(main)
+		await open_card_details(main, farm)
+		var food: int = e.resources.food
+		var ditch: Dictionary = main.details.upgrade_rows().filter(func(r): return r.name == "Ditch").front()
+		(ditch.button as Button).pressed.emit()
+		await wait_frames()
+		eq(e.resources.food, food - e.build_cost("ditch").get("food", 0), "the cost paid")
+		eq(e.upgrades_on(farm).map(func(u): return e.zone("tableau").find(u).def.id), ["ditch"], "a Ditch on the Farm")
+		eq(main.details.shown(), {}, "the details closed")
+		eq(MainProbe.build_ceremonies(main).map(func(c): return c.view), [view_of(main, farm)], "the ceremony on the Farm"))
+
+
+func test_while_a_decision_is_owed_each_upgrade_button_is_disabled_with_why() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer: a territory choice is owed")
+		await open_card_details(main, farm)
+		var buttons: Array = main.details.upgrade_rows().map(func(r): return r.button).filter(func(b): return b != null)
+		eq(buttons.size(), 2, "the Plough and the Ditch keep their buttons")
+		for b: Button in buttons:
+			eq([b.disabled, b.tooltip_text], [true, e.build_menu_error()], "disabled, with why"))
+
+
+func test_a_row_short_of_its_cost_reads_why_with_no_button() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		e.resources.food = 0
+		await open_card_details(main, farm)
+		var rows: Array = main.details.upgrade_rows()
+		eq(rows.map(func(r): return [r.status, r.button]),
+			[[e.build_error("plough", farm), null], [e.build_error("ditch", farm), null]], "can't afford: why, no button")
+		check(e.build_error("ditch", farm).contains("food"), "the reason is the food: %s" % e.build_error("ditch", farm)))

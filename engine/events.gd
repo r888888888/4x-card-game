@@ -58,14 +58,14 @@ static func draw(e: GameEngine) -> void:
 	e._log("Event: %s." % event.def.name)
 	e._outcome = CardPlay.new_outcome(event.uid)
 	e._outcome.id = event.def.id
-	if Military.is_raid(event) and Military.aim(e, event) == null:
+	if Military.is_raid(event) and e.military.aim(event) == null:
 		e.zone("event_discard").add(event)
 		_emit_drawn(e, event)
 		return
 	e.zone("active_events").add(event)
 	e._resolve(event, "play")
 	if Military.is_raid(event):
-		Military.announce(e, event)
+		e.military.announce(event)
 	_emit_drawn(e, event)
 
 
@@ -94,7 +94,7 @@ static func _reshuffle(e: GameEngine, deck: Zone) -> bool:
 static func _take_allowed(e: GameEngine, deck: Zone) -> CardInstance:
 	for i in deck.size():
 		var top := deck.take_top()
-		if not Military.is_raid(top) or Military.raids_allowed(e):
+		if not Military.is_raid(top) or e.military.raids_allowed():
 			return top
 		deck.add_bottom(top)
 	return null

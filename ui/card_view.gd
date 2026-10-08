@@ -30,7 +30,7 @@ static var TYPE_COLORS: Dictionary:  # card type -> its colour, as the palette r
 			CardDef.GOVERNMENT: Palette.GOVERNMENT,
 			CardDef.UNIT: Palette.UNIT,
 		}
-const HAND_SIZE := Vector2(264, 320)
+const HAND_SIZE := Vector2(264, 360)
 const TABLEAU_SIZE := Vector2(245, 175)
 const BOARD_SIZE := Vector2(245, 150)  # every card in the Realm's row (138): one line per field, the rest in details
 # Board faces (138): what a card in the Realm's row is.
@@ -52,6 +52,7 @@ static var DIM_BORDER: Color:
 static var FOCUS_COLOR: Color:  # keyboard focus ring; distinct from gold (target) and red (warning)
 	get:
 		return Palette.FOCUS
+const PIP_DIM := 0.35  # a dim veteran pip's alpha on the unit colour, as the pop meter's (388)
 const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
@@ -74,6 +75,7 @@ var _face: CardFace
 var _hint := ""  # the tooltip's hint after the card text, kept so a new card text can be set under it
 var _motion := CardMotion.new(self)
 var _warning := false
+var _veteran_lit := 0  # the veteran pips lit now (388): set_veteran_pips, then one more per tallied pip
 var _highlight := false
 var _above_vellum := false  # lifted above the targeting vellum (210)
 var _vellum_outline := false  # and ringed in FOCUS: a target
@@ -221,6 +223,24 @@ func set_unit_strength(tag: String) -> void:
 	_face.replace_info("StrengthInfo", tag)
 
 
+## Shows a unit's veteran pips (388): filled lit of total; total 0 shows none.
+func set_veteran_pips(filled: int, total: int) -> void:
+	_replays["veteran_pips"] = set_veteran_pips.bind(filled, total)
+	_veteran_lit = filled
+	_face.set_veteran_pips(filled, total)
+
+
+## Switches on the next veteran pip (388's tally).
+func light_veteran_pip() -> void:
+	_veteran_lit += 1
+	_face.light_veteran_pips(_veteran_lit)
+
+
+## Test hook (388): each veteran pip's tint, in order; [] with none.
+func veteran_pips() -> Array[Color]:
+	return _face.veteran_pip_tints()
+
+
 ## Shows a wonder site's progress ("4 / 12 wealth", 286) on its info line; "" clears it.
 func set_site_info(tag: String) -> void:
 	_replays["site_info"] = set_site_info.bind(tag)
@@ -354,6 +374,7 @@ func _set_dimmed(on: bool, reason: String) -> void:
 	_dimmed = on
 	_face.set_reason(reason)
 	_face.set_band_color(DIM_BORDER if on else _color)
+	_face.set_art_dimmed(on)
 	_update_border()
 
 

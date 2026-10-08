@@ -1,8 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The docs and the tracked files stay true to the tree (backlog 330): every repo path PLAN.md, CLAUDE.md, README.md,
 ## docs/*.md and the skills name exists, and no .gd.uid file is left behind by a deleted script. 331: every test file
-## opens with a ## header saying what it covers, and docs/testing.md indexes each in one short row. The checks live in
-## tests/lib/doc_checks.gd.
+## opens with a ## header saying what it covers, and docs/testing-index.md indexes each in one short row (391: there,
+## not in docs/testing.md, which stays a short guide). The checks live in tests/lib/doc_checks.gd.
 
 const DocChecks := preload("res://tests/lib/doc_checks.gd")
 const UID_DIRS: Array[String] = ["res://engine", "res://ui", "res://sim", "res://autoload", "res://tests"]
@@ -35,8 +35,8 @@ func test_missing_paths_names_the_doc_and_the_path() -> void:
 
 func test_the_checked_docs_are_plan_claude_readme_the_docs_and_the_skills() -> void:
 	var docs := DocChecks.docs_to_check()
-	for doc in ["PLAN.md", "CLAUDE.md", "README.md", "docs/testing.md", "docs/development-process.md",
-			".claude/skills/tdd/SKILL.md", ".claude/skills/add-effect/SKILL.md"]:
+	for doc in ["PLAN.md", "CLAUDE.md", "README.md", "docs/testing.md", "docs/testing-index.md",
+			"docs/development-process.md", ".claude/skills/tdd/SKILL.md", ".claude/skills/add-effect/SKILL.md"]:
 		check(docs.has(doc), "%s is checked: %s" % [doc, docs])
 
 
@@ -94,9 +94,33 @@ func test_table_problems_name_missing_rows_rows_for_no_file_and_long_rows() -> v
 		"row over 160 characters: tests/test_c.gd (%d)" % long_row.length()] as Array[String], "problems")
 
 
-func test_testing_md_indexes_every_test_file_in_one_short_row() -> void:
+# --- 391 AC1: docs/testing-index.md holds the index ---
+
+func test_testing_index_lists_every_test_file_in_one_short_row() -> void:
+	var doc := FileAccess.get_file_as_string("res://docs/testing-index.md")
+	eq(DocChecks.table_problems(doc, DocChecks.suite_files()), [] as Array[String], "docs/testing-index.md's file table")
+
+
+# --- 391 AC2: docs/testing.md holds no index rows ---
+
+func test_index_rows_names_the_file_of_each_index_row() -> void:
+	var doc := "| File | Covers |\n|---|---|\n| `tests/test_a.gd` | A |\n| `tests/lib/x.gd` | Helper |\n" \
+		+ "| `tests/balance/test_b.gd` | B |\n| `keywords()` | Ids |\n"
+	eq(DocChecks.index_rows(doc), ["tests/test_a.gd", "tests/balance/test_b.gd"] as Array[String], "index rows")
+
+
+func test_testing_md_has_no_test_file_rows() -> void:
 	var doc := FileAccess.get_file_as_string("res://docs/testing.md")
-	eq(DocChecks.table_problems(doc, DocChecks.suite_files()), [] as Array[String], "docs/testing.md's file table")
+	eq(DocChecks.index_rows(doc), [] as Array[String], "test file rows left in docs/testing.md")
+
+
+# --- 391 AC3: the guide is short and links the index ---
+
+func test_testing_md_is_under_15_kb_and_links_the_index() -> void:
+	var size := FileAccess.get_file_as_bytes("res://docs/testing.md").size()
+	check(size < 15 * 1024, "docs/testing.md is %d bytes" % size)
+	var doc := FileAccess.get_file_as_string("res://docs/testing.md")
+	check(DocChecks.paths_in(doc, "docs/testing.md").has("docs/testing-index.md"), "docs/testing.md links the index")
 
 
 func test_testing_md_is_under_25_kb() -> void:

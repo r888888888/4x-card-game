@@ -14,6 +14,7 @@ const TYPE_FIELDS := {
 	"housing": [CardDef.TERRITORY, CardDef.BUILDING],
 	"famine_guard": [CardDef.BUILDING],
 	"strength": [CardDef.UNIT],
+	"upgrades_to": [CardDef.UNIT],
 	"defense": [CardDef.BUILDING, CardDef.CITY],
 	"training": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
@@ -26,7 +27,7 @@ const TYPE_FIELDS := {
 	"flavor": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT, CardDef.ACTION, CardDef.BUILDING],
 	"home": [CardDef.CIVILIZATION],
 	"city_names": [CardDef.CIVILIZATION],
-	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT],
+	"quote": [CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.TECH, CardDef.EVENT, CardDef.BUILDING],
 	"actions": [CardDef.GOVERNMENT],
 	"unrest_limit": [CardDef.GOVERNMENT],
 	"tolerates": [CardDef.GOVERNMENT],
@@ -170,6 +171,11 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 			errors.append("%s: card '%s': home: unknown card '%s'" % [src, id, home])
 		elif home != "" and db[home].type != CardDef.TERRITORY:
 			errors.append("%s: card '%s': home: '%s' is not a territory" % [src, id, home])
+		var upgrade: String = db[id].upgrades_to
+		if upgrade != "" and not db.has(upgrade):
+			errors.append("%s: card '%s': upgrades_to: unknown card '%s'" % [src, id, upgrade])
+		elif upgrade != "" and db[upgrade].type != CardDef.UNIT:
+			errors.append("%s: card '%s': upgrades_to: '%s' is not a unit" % [src, id, upgrade])
 		var base_problem := _upgrade_base_problem(db[id].upgrade_of, db)
 		if base_problem != "":
 			errors.append("%s: card '%s': %s" % [src, id, base_problem])
@@ -445,7 +451,8 @@ static func _parse_modifiers(raw: Variant, errs: Array[String]) -> Dictionary:
 
 
 ## Reads a card's optional flavor line and quote {text, by} into def, each only on the types TYPE_FIELDS gives it
-## (civilizations and governments, 205; techs and events, 215; an event's quote, 253: Anarchy's; an action's flavor, 351; a building's, 352).
+## (civilizations and governments, 205; techs and events, 215; an event's quote, 253: Anarchy's; an action's flavor, 351;
+## a building's, 352, and its quote, 396: the wonders').
 static func _parse_flavor(c: Dictionary, def: CardDef, errs: Array[String]) -> void:
 	if c.has("flavor") and TYPE_FIELDS.flavor.has(def.type):
 		if c.flavor is String and c.flavor != "":

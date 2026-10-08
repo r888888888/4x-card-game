@@ -33,6 +33,10 @@ func describe_long(card_db: Dictionary) -> String:
 	return "%s can now be bought in the supply." % _card_name(card_db)
 
 
+func unlocked_name(card_db: Dictionary) -> String:
+	return _card_name(card_db)
+
+
 func _card_name(card_db: Dictionary) -> String:
 	return card_db[card_id].name if card_db.has(card_id) else card_id
 

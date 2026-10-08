@@ -75,7 +75,7 @@ static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
 	out["free_slots"] = e.free_slots(territory_uid)
 	out["free_sea_slots"] = e.free_sea_slots(territory_uid)  # 366
 	out["free_workers"] = e.free_workers(territory_uid)
-	out["defense"] = e.defense(territory_uid)
+	out["defense"] = e.military.defense(territory_uid)
 	out["housing"] = e.housing(territory_uid)
 	if e.actions_per_turn() >= 0:
 		out["actions_left"] = e.actions_left()

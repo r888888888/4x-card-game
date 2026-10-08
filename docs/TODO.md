@@ -32,20 +32,34 @@ x Each government card can support N territories for free, where N is the unrest
 * On the tech tree, provide some visual indication of which techs I can afford and which I can't.
 * On the tech tree, clicking outside teh tree should dismiss it.
 * On the territory detail view, clicking outside of the view should dismiss it.
-- Add a hover effect to the building cards (including the empty build slots) in the territory detail view. Play a small subtle sound (consult the sound design guide).
-- Purchasing a building should have a little more visual fanfare. Brainstorm some design ideas.
-- Find an alternative screen transition for opening the territory detail view. Currently the zoom in looks janky.
-- Make the Build modal larger.
+* Add a hover effect to the building cards (including the empty build slots) in the territory detail view. Play a small subtle sound (consult the sound design guide).
+* Make the Build modal larger.
+* Make the card heights in the territory detail view consistent.
+* Show the settlement tier in the territory detail view.
+* When I can't build something because I don't have free pops, explain what is haappening.
+* Ending a turn while in the territory detail view or tech tree should dismiss the screen, but also end the turn.
+* Find an alternative screen transition for opening the territory detail view. Currently the zoom in looks janky.
+* Add flavor text to the action cards. No quotes needed.
+* Add flavor text to the building improvements. No quotes needed.
+* There are still some screens and modals with white body text in day mode (the seed label when picking a civ in a new game)
+* Improve the UX of the scrollbar in the build modal. Add some momentum and smooth scrolling. Increase the gap between bulidings and units. Add some padding between the card and the other sections of the modal. Remove the drop shadow and button bevel effect of selected items; a subtle background color change is sufficient. Update teh design guide as necessary.
+* Buttons labeled "Exit" that exit the game should be relabled "Exit Game"
+* Purchasing a building should have a little more visual fanfare. Brainstorm some design ideas.
+* When I buy a tech card, it appears briefly to be very tall.
+* Coastal cities don't have many beneficial cards (fishing huts not as good as farms, no coastal techs). Brainstorm ideas to improve their design.
+* The hunt action should only be added after the player builds a Hunters Camp building.
+* Think of some action cards to help pad out the starting deck.
+* Update the balance bot to enable building upgrades (high priority for tall strategies, lower priority for wide strategies.)
+x THe deck should only have 1 scout card, with an extra one added upon researching Animal Husbandry.
+* I want to spike on adding images to cards. Just use a placeholder for now. Update the design guide. Generate a list of all the cards, propose a filename, and a description of what kind of art to generate. Overall theme should match the MCM aesthetic, with a focus on MCM print and ad design.
+- If a raid is pending on an undefended territory, alert the player that they should build defenses or mobilize units.
+* Enable the balance bot to permit tall strategies to build cities (at a low priority), up to 3 cities.
 - Build a bot strategy that introduces more randomness into its decision making, to try and search for new maxima.
-- Add flavor text to the building improvements.
-- Add flavor text to the action cards.
-- When I can't build something because I don't have free pops, explain what is haappening.
-- Make the card heights in the territory detail view consistent.
-- Show the settlement tier in the territory detail view.
-- Update the balance bot to enable building upgrades (high priority for tall strategies, lower priority for wide strategies.)
-- Enable the balance bot to permit tall strategies to build cities (at a low priority), up to 3 cities.
 - Review the current list of territories and identify any missing 
 - Review the current slate of civilizations and brainstorm ways of making them feel more unique. Leverage existing mechanics to alter in-game limits and thresholds, or consider inventing new mechanisms to make their play feel more thematic.
 - Add some civilization-specific random events.
-- If a raid is pending on an undefended territory, alert the player that they should build defenses or mobilize units.
-- Ending a turn while in the territory detail view or tech tree should dismiss the screen, but also end the turn.
+- Add some other civilizations. Look for inspiration in Asia, the Americas, etc.
+* Make quotes less literal about the card they are describing, unless the quote is especially interesting or pithy.
+* I should be able to upgrade a building from the building detail modal.
+* Add a drawing to the raid repelled modal. Use a placeholder for now, I will replace with a custom image later. Use a different typography for the title.
+* Add quotes to wonders.

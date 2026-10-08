@@ -4,6 +4,9 @@ extends RefCounted
 ## The runner creates a fresh instance for each test_* method, so tests never
 ## share state. Each test must make at least one assertion.
 
+## What UI tests read off the main screen (392): MainProbe.event_modal(main), not a method on main.
+const MainProbe := preload("res://tests/lib/main_probe.gd")
+
 ## Small card set used by rules tests. Add cards here when a test needs one;
 ## never make rules tests depend on data/cards.json (balance changes would break them).
 const TEST_CARDS := {"cards": [
@@ -649,10 +652,10 @@ func mid_game() -> Node:
 ## Closes the drawn-event modal if one is up, whichever event the seed drew: a choice event's first open option,
 ## else OK.
 func close_event(main: Node) -> void:
-	if main.event_modal().is_empty():
+	if MainProbe.event_modal(main).is_empty():
 		return
-	var open_options: Array[Button] = main.event_option_buttons().filter(func(b: Button): return not b.disabled)
-	(open_options[0] if not open_options.is_empty() else main.event_modal_ok_button()).pressed.emit()
+	var open_options: Array[Button] = MainProbe.event_option_buttons(main).filter(func(b: Button): return not b.disabled)
+	(open_options[0] if not open_options.is_empty() else MainProbe.event_modal_ok_button(main)).pressed.emit()
 
 
 ## Calls visit(main, name) on each screen to check: the board mid-game, then each modal and screen open over it, the
@@ -699,7 +702,7 @@ func each_screen(visit: Callable) -> void:
 		var shown := false
 		for i in 10:
 			Game.engine.end_turn()
-			if not main.event_modal().is_empty():
+			if not MainProbe.event_modal(main).is_empty():
 				shown = true
 				break
 		check(shown, "precondition: an event is drawn within 10 turns of seed 1")
@@ -857,6 +860,17 @@ func open_details(main: Node, uid: int) -> void:
 	view.details_requested.emit(view)
 
 
+## The art plate on view's face (381), or null: a hand-size face has one, named Art.
+func art_plate(view: CardView) -> CardArt:
+	return view.find_child("Art", true, false) as CardArt
+
+
+## The first CardView under node (a modal's card), or null.
+func card_under(node: Node) -> CardView:
+	var found := node.find_children("*", "CardView", true, false)
+	return found[0] as CardView if not found.is_empty() else null
+
+
 ## The uid of Hills in e's tableau, or -1.
 func hills_of(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "hills")
@@ -865,7 +879,7 @@ func hills_of(e: GameEngine) -> int:
 ## Opens the menu on main's game and presses its Settings (206): the Settings modal on top. Use with await.
 func open_settings_modal(main: Node) -> void:
 	main.open_menu()
-	for b in main.menu_buttons():
+	for b in MainProbe.menu_buttons(main):
 		if b.text == "Settings":
 			b.pressed.emit()
 	await wait_frames()
@@ -971,7 +985,7 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 ## revolts, abandons, disbands and discards unless a discard is owed (end_turn is listed last, so each turn plays, builds and buys first): a fast game
 ## for UI tests (314: the sim's GenericBot takes ~30× longer), not a good one.
 func play_first_legal(e: GameEngine) -> void:
-	var skip := ["revolt", "abandon", "disband", "discard_card"]
+	var skip := ["revolt", "abandon", "military.disband", "discard_card"]
 	for step in 20000:
 		if e.is_over:
 			return
@@ -983,7 +997,7 @@ func play_first_legal(e: GameEngine) -> void:
 		if action[0] == "renew":  # a choice of count among options (312): renew with the first count, as its error query
 			e.renew(action[1].slice(0, action[2]))
 		else:
-			e.callv(action[0], action.slice(1))
+			LegalActions.apply(e, action)
 
 
 ## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116), and each notice's

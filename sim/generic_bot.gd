@@ -16,15 +16,15 @@ extends RefCounted
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
 ## values, no extra lookahead step), never revolting and choosing the government it was opened for, and returns its
-## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory up to the admin cap); tall (never
-## settles a third).
+## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory up to the admin cap); tall (settles
+## only when nothing else is worth doing, and never past TALL_TERRITORIES, 390).
 
 ## The strategy played when none is named.
 const STRATEGY := "generic"
 ## The strategies SimStats plays (all of them for "all").
 const STRATEGIES: Array[String] = ["generic", "wide", "tall"]
 ## The settled territories tall stops at.
-const TALL_TERRITORIES := 2
+const TALL_TERRITORIES := 3
 ## How often, in turns, a revolt is weighed, and how many turns a rollout plays.
 const REVOLT_EVERY := 4
 const ROLLOUT_TURNS := 12
@@ -206,7 +206,8 @@ static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "
 
 
 ## The entry ([action, args…]) to do next, [] for none: the owed decision's option whose fork values most, else the
-## candidate whose fork beats doing nothing by most. Changes nothing in engine.
+## candidate whose fork beats doing nothing by most. Tall tries its settle plays only when no other candidate beats
+## doing nothing (390). Changes nothing in engine.
 static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context = null, look_on := true) -> Array:
 	ctx = ctx if ctx != null else Context.new(strategy)
 	var deciding: bool = engine.pending().get("kind", "") != ""
@@ -214,17 +215,30 @@ static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context =
 		return _government(engine, strategy, ctx)
 	var seed := hash([engine.seed_value, engine.turn, ctx.step])
 	ctx.step += 1
+	var candidates := _candidates(engine, ctx)
+	var held := []
+	if ctx.strategy == "tall" and not deciding:
+		held = candidates.filter(func(c): return _settles(engine, c))
+		candidates = candidates.filter(func(c): return not _settles(engine, c))
+	var best := _best_of(engine, candidates, seed, deciding, ctx, look_on)
+	return best if not best.is_empty() or held.is_empty() else _best_of(engine, held, seed, deciding, ctx, look_on)
+
+
+## Of candidates, the one whose fork (sample seed) values most: any when deciding, else only one beating doing nothing
+## by EPS; [] for none. A quiet play that refunded is worth the best it leads to one step later (look_on).
+static func _best_of(engine: GameEngine, candidates: Array, seed: int, deciding: bool, ctx: Context,
+		look_on: bool) -> Array:
 	var base := value(engine, ctx)
 	var best: Array = []
 	var best_v := -INF if deciding else base + EPS
-	for c in _candidates(engine, ctx):
+	for c in candidates:
 		var f := engine.sample_fork(seed)
 		if not _do(f, c):
 			continue
 		_settle(f, ctx)
 		var v := value(f, ctx)
 		if look_on and not ctx.rollout and not deciding and absf(v - base) < QUIET and _refunds(engine, f, c):
-			var next := best_action(f, strategy, ctx, false)
+			var next := best_action(f, ctx.strategy, ctx, false)
 			if not next.is_empty():
 				var g := f.fork()
 				_do(g, next)
@@ -301,13 +315,17 @@ static func _least_valuable_first(e: GameEngine, options: Array, ctx: Context) -
 	return out
 
 
-## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit; read from effects).
+## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit).
 static func _settles_too_far(e: GameEngine, entry: Array) -> bool:
+	return _settles(e, entry) and _settled(e) >= TALL_TERRITORIES
+
+
+## Whether entry plays a card from hand that settles (read from its effects).
+static func _settles(e: GameEngine, entry: Array) -> bool:
 	if entry[0] != "play_card":
 		return false
 	var card := e.zone("hand").find(entry[1])
-	return card != null and card.def.effects.any(func(effect): return effect.op == "settle") \
-			and _settled(e) >= TALL_TERRITORIES
+	return card != null and card.def.effects.any(func(effect): return effect.op == "settle")
 
 
 ## The settled territories (in the tableau).
@@ -331,7 +349,7 @@ static func _refunds(before: GameEngine, after: GameEngine, c: Array) -> bool:
 
 ## Calls entry's action on e; false when it refused.
 static func _do(e: GameEngine, entry: Array) -> bool:
-	return e.callv(entry[0], entry.slice(1)) != false
+	return LegalActions.apply(e, entry)
 
 
 ## Answers e's owed decisions, up to 3 deep, each with the option whose fork values most: for valuing a fork whose
