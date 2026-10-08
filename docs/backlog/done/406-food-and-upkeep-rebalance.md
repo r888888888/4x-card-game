@@ -2,7 +2,7 @@
 id: 406
 title: Early food and building upkeep rebalance - Farm 4, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, every building ⟳ 1 wealth
 type: feature
-status: review
+status: done
 branch: feat/406-food-and-upkeep-rebalance
 ---
 
