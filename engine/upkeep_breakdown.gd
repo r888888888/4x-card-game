@@ -19,16 +19,15 @@ static func ledger(e: GameEngine) -> Dictionary:
 	var books := {}  # resource -> {key: {label, uids, amount}}, in the order the keys first change
 	for r in e.resources:
 		books[r] = {}
-	var last := {"resources": f.resources.duplicate(), "gains": f._insight_gains, "mods": _per_gain_cards(f)}
+	var last := {"resources": f.resources.duplicate(), "gains": f._insight_gains}
 	TurnLoop.resolve_upkeep(f, func(label: String, card: CardInstance) -> void:
 		for r in e.resources:
 			var delta: int = f.resources.get(r, 0) - last.resources.get(r, 0)
-			if r == GameEngine.INSIGHT:
-				delta -= _credit_per_gain(books[r], last.mods, f._insight_gains - last.gains)
+			if r == GameEngine.INSIGHT and f._insight_gains > last.gains:
+				delta -= _credit_per_gain(f, books[r], f._insight_gains - last.gains)
 			_add(books[r], label, card, delta)
 		last.resources = f.resources.duplicate()
-		last.gains = f._insight_gains
-		last.mods = _per_gain_cards(f))
+		last.gains = f._insight_gains)
 	if e.population_on():
 		_add(books[GameEngine.FOOD], POP_EATS, null, -f.total_pop() * e.config.population.food_upkeep)
 	var pop_before := f.total_pop()
@@ -64,22 +63,13 @@ static func limit_rows(e: GameEngine) -> Array[Dictionary]:
 	return _rows(book)
 
 
-## The working cards and active events with an insight_per_gain modifier: what Modifiers.total adds to each insight
-## gain.
-static func _per_gain_cards(e: GameEngine) -> Array[CardInstance]:
-	var out: Array[CardInstance] = []
-	for card in Modifiers.working_cards(e) + e.zone("active_events").cards:
-		if card.def.modifiers.get(Modifiers.INSIGHT_PER_GAIN, 0) != 0:
-			out.append(card)
-	return out
-
-
-## Credits each of mods its insight_per_gain modifier per gain in book (AC4) and returns the total credited; the
-## gaining card's row takes the rest of the step's change, where the 0 floor bit too.
-static func _credit_per_gain(book: Dictionary, mods: Array[CardInstance], gains: int) -> int:
+## Credits each working card and active event with an insight_per_gain modifier that modifier per gain in book (AC4),
+## as the step that made the gains ends, and returns the total credited; the gaining card's row takes the rest of the
+## step's change, where the 0 floor bit too.
+static func _credit_per_gain(f: GameEngine, book: Dictionary, gains: int) -> int:
 	var credited := 0
-	for card in mods:
-		var amount: int = card.def.modifiers[Modifiers.INSIGHT_PER_GAIN] * gains
+	for card in Modifiers.working_cards(f) + f.zone("active_events").cards:
+		var amount: int = card.def.modifiers.get(Modifiers.INSIGHT_PER_GAIN, 0) * gains
 		_add(book, card.def.name, card, amount)
 		credited += amount
 	return credited
