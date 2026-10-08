@@ -40,19 +40,18 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
 Everything planned so far is done (through 412: Anarchy and the honeymoon, the test probe, the theme sections, engine
-areas, the top-bar breakdowns, sim speed, card faces, veteran pips and abandoning buildings). The order of closed
-items is in [done/HISTORY.md](done/HISTORY.md).
+areas, the top-bar breakdowns, sim speed, card faces, veteran pips, abandoning buildings and building upkeep). The
+order of closed items is in [done/HISTORY.md](done/HISTORY.md).
 
-Food and building upkeep (prioritised 2026-10-08, ahead of the claimants; 412 already lets a player drop a building
-whose upkeep isn't worth paying):
-1. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine)
-2. 406 Farm 4 food, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, the design pass on every building
-   (content, after 405)
-3. 407 Sumer as the breadbasket (content; ships with 406)
+Food and building upkeep (prioritised 2026-10-08, ahead of the claimants; 405's building upkeep is in, at 0 until
+406 sets it, and 412 lets a player drop a building whose upkeep isn't worth paying):
+1. 406 Farm 4 food, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, the design pass on every building
+   (content)
+2. 407 Sumer as the breadbasket (content; ships with 406)
 
 Rival claimants (a `spike/rival-claimants` may come first):
-4. 400 the `strength` modifier
-5. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
-6. 413 the court's passive, once per rank, rising every 10 turns
-7. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
-8. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
+3. 400 the `strength` modifier
+4. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
+5. 413 the court's passive, once per rank, rising every 10 turns
+6. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
+7. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)

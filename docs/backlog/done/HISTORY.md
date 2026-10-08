@@ -258,3 +258,6 @@ Card faces and details:
 
 Military UI:
 15. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
+
+Food and building upkeep (after the plan through 412 above):
+1. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine; the shipped numbers are 406's)

@@ -2,7 +2,7 @@
 id: 405
 title: Buildings cost wealth upkeep - a shortfall adds unrest
 type: feature
-status: review
+status: done
 branch: feat/405-building-upkeep
 ---
 
