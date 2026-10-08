@@ -2,7 +2,7 @@
 id: 324
 title: The data-load-error overlay's lines are white on paper in Day mode
 type: bug
-status: in-progress
+status: review
 branch: fix/324-day-mode-load-error-text
 ---
 
@@ -17,9 +17,9 @@ branch: fix/324-day-mode-load-error-text
   as a plain `RichTextLabel` with no theme variation, so it draws in Godot's default white (found while fixing 323).
 
 ## Acceptance criteria
-- [ ] AC1: Given Day mode on and `Game.load_errors` holding one error, when main opens, then the overlay shows that
+- [x] AC1: Given Day mode on and `Game.load_errors` holding one error, when main opens, then the overlay shows that
   error, and its text reads `Palette.TEXT`'s Day value (`22211f`).
-- [ ] AC2: Given Night mode and the same error, when main opens, then the overlay's error text reads `Palette.TEXT`'s
+- [x] AC2: Given Night mode and the same error, when main opens, then the overlay's error text reads `Palette.TEXT`'s
   Night value (`ede6d6`).
 
 ## Test plan
@@ -29,7 +29,8 @@ branch: fix/324-day-mode-load-error-text
 | AC2 | `test_day_mode::test_bug_324_load_errors_read_text_in_night_mode` |
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+`UIKit.message_overlay` built its body as a bare `RichTextLabel` with no theme variation, so it fell back to Godot's
+default white `default_color`. It now uses the `RichBody` variation, which reads `Palette.TEXT` in both modes (323).
 
 ## Manual check
 - With a broken `data/cards.json`, the overlay's error lines read dark on paper in Day mode and light on the dark
@@ -39,3 +40,5 @@ branch: fix/324-day-mode-load-error-text
 - 2026-10-05: specced from 323's follow-up. Likely fix: give the body the `RichBody` variation, which reads
   `Palette.TEXT` since 323 (it also sets the body text size). Tests open main with `Game.load_errors` set and put it
   back after.
+- 2026-10-07: merged main into the branch (488 commits behind; kept 355's and 395's tests beside 324's). Fixed with
+  one line: the body takes `RichBody`. Suite 2524 tests, 0 failures.
