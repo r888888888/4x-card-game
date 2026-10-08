@@ -1,7 +1,7 @@
 class_name UpkeepBreakdown
 extends RefCounted
 ## Where next upkeep's change of each resource comes from (379): rows {label, count, amount}, one per source, in upkeep
-## resolution order (crowding, overextension, working cards, events), then what pop eats, then Anarchy's drain. Each
+## resolution order (crowding, overextension, working cards, events), then what pop eats. Each
 ## row is what its step actually changed, so clamps (the unrest limit, the 0 floors) fall on the step they hit and the
 ## rows sum to upkeep_forecast, which is built from them. Copies of one card are one row (count: the copies). Plays on
 ## a fork: nothing here changes, is logged or emitted.
@@ -33,14 +33,6 @@ static func ledger(e: GameEngine) -> Dictionary:
 	var pop_before := f.total_pop()
 	if e.population_on():
 		Population.feed(f)
-	if Anarchy.rules_next_turn(e):
-		var stores := {}
-		for r in [GameEngine.FOOD, GameEngine.WEALTH]:
-			stores[r] = e.resources.get(r, 0) + (books[r] as Ledger).sum()
-		var lost := Anarchy.drain_of(e, stores)
-		var anarchy: String = e.card_db[e.anarchy_id()].name
-		for r in lost:
-			books[r].add(anarchy, null, -lost[r], "drain")
 	var rows := {}
 	for r in books:
 		rows[r] = (books[r] as Ledger).rows()

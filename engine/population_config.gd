@@ -187,15 +187,14 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 	return {}
 
 
-## Normalizes the unrest block (145) {anarchy, max_counters, era_unrest (default 0), allowed_tag (default
-## ""), renewal (147, only when given; 0 when absent), drain_pct (156, only when given: 0 to 100)}: only with unrest in
-## resources; anarchy is an event (253) with no discard, never in event_deck. Returns {} when invalid.
+## Normalizes the unrest block (145) {anarchy, anarchy_turns (384), era_unrest (default 0), renewal (147, only when
+## given; 0 when absent)}: only with unrest in resources; anarchy is an event (253) with no discard, never in event_deck. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
 		errs.append("unrest: needs '%s' in resources" % GameEngine.UNREST)
 		return {}
 	if not (raw is Dictionary):
-		errs.append("unrest: must be an object like {\"anarchy\": \"anarchy\", \"max_counters\": 4}")
+		errs.append("unrest: must be an object like {\"anarchy\": \"anarchy\", \"anarchy_turns\": 3}")
 		return {}
 	var u_errs: Array[String] = []
 	var out := {}
@@ -207,36 +206,25 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 	elif cards[id].type != CardDef.EVENT:
 		u_errs.append("unrest.anarchy '%s' is not an event" % id)
 	elif cards[id].has_discard:
-		u_errs.append("unrest.anarchy '%s' can't have a discard (Anarchy ends when its counters run out)" % id)
+		u_errs.append("unrest.anarchy '%s' can't have a discard (Anarchy ends when its turns run out)" % id)
 	elif config.event_deck.has(id):
 		u_errs.append("unrest.anarchy '%s' can't be in event_deck (unrest brings it)" % id)
 	else:
 		out.anarchy = id
-	for key in [["max_counters", 1, null], ["era_unrest", 0, 0]]:
+	for key in [["anarchy_turns", 1, null], ["era_unrest", 0, 0]]:
 		var n: Variant = Fields.as_int(raw.get(key[0], key[2]))
 		if typeof(n) != TYPE_INT or n < key[1]:
 			u_errs.append("unrest.%s: must be an integer >= %d" % [key[0], key[1]])
 		else:
 			out[key[0]] = n
-	var tag: Variant = raw.get("allowed_tag", "")
-	if tag is String:
-		out.allowed_tag = tag
-	else:
-		u_errs.append("unrest.allowed_tag: must be a string (a tag)")
 	if raw.has("renewal"):
 		var renewal: Variant = Fields.as_int(raw.renewal)
 		if typeof(renewal) != TYPE_INT or renewal < 0:
 			u_errs.append("unrest.renewal: must be an integer >= 0")
 		else:
 			out.renewal = renewal
-	if raw.has("drain_pct"):
-		var pct: Variant = Fields.as_int(raw.drain_pct)
-		if typeof(pct) != TYPE_INT or pct < 0 or pct > 100:
-			u_errs.append("unrest.drain_pct: must be an integer from 0 to 100")
-		else:
-			out.drain_pct = pct
 	for key in raw:
-		if not ["anarchy", "max_counters", "era_unrest", "allowed_tag", "renewal", "drain_pct"].has(key):
+		if not ["anarchy", "anarchy_turns", "era_unrest", "renewal"].has(key):
 			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
 	errs.append_array(u_errs)
 	return out if u_errs.is_empty() else {}

@@ -2,18 +2,16 @@ class_name Ledger
 extends RefCounted
 ## A breakdown being built (379, 380): amounts added under sources, read back as rows {label, count, amount} in the
 ## order the sources first changed. A card's copies share one row (keyed by its id; count: the copies); any other source
-## is keyed by its label unless given a key of its own. Lives only while a query builds it.
+## is keyed by its label. Lives only while a query builds it.
 
 var _book := {}  # key -> {label, uids: {uid: true}, amount}
 
 
-## Adds amount to label's row (card's id's when card isn't null; key's when given), counting card among its copies;
-## 0 adds nothing.
-func add(label: String, card: CardInstance, amount: int, key := "") -> void:
+## Adds amount to label's row (card's id's when card isn't null), counting card among its copies; 0 adds nothing.
+func add(label: String, card: CardInstance, amount: int) -> void:
 	if amount == 0:
 		return
-	if key == "":
-		key = _key(label, card)
+	var key := _key(label, card)
 	if not _book.has(key):
 		_book[key] = {"label": label, "uids": {}, "amount": 0}
 	_book[key].amount += amount

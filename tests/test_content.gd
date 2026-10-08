@@ -127,12 +127,11 @@ func test_every_effect_op_is_used_by_a_real_card() -> void:
 	eq(unused, [] as Array[String], "effect ops no real card uses")
 
 
-## Backlog 369: a player in Anarchy always owns a card they can play: the starting deck holds an allowed_tag card.
+## Backlog 369: a player in Anarchy always owns a card they can play: the starting deck holds an action card (384).
 func test_starting_deck_holds_an_anarchy_playable_card() -> void:
 	var r := load_real()
-	var tag: String = r.config.unrest.allowed_tag
-	var tagged: Array = r.config.deck.keys().filter(func(id): return r.cards[id].has_tag(tag))
-	check(not tagged.is_empty(), "the starting deck holds a card tagged '%s'" % tag)
+	var actions: Array = r.config.deck.keys().filter(func(id): return r.cards[id].type == CardDef.ACTION)
+	check(not actions.is_empty(), "the starting deck holds an action card")
 
 
 ## Backlog 369: every resource a real card costs is gained by the play effect of some starting-deck card.

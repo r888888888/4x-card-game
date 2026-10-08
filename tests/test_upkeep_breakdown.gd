@@ -164,21 +164,6 @@ func test_where_the_floor_bites_the_gaining_card_absorbs_it() -> void:
 	check_sums(e, "Duller")
 
 
-# --- AC5: Anarchy's drain ---
-
-func test_anarchy_drain_is_the_last_row() -> void:
-	var e := unrest_engine([], {"drain_pct": 20})
-	e.resources["unrest"] = 2
-	check(e.revolt(), "a revolution declared: %s" % e.revolt_error())
-	var rows: Array = e.upkeep_breakdown("food")
-	check(not rows.is_empty(), "food rows")
-	if rows.is_empty():
-		return
-	eq(rows[-1].label, "Anarchy", "the last row is Anarchy")
-	check(rows[-1].amount < 0, "its drain takes food: %s" % [rows])
-	check_sums(e, "the drain")
-
-
 # --- AC6: the unrest limit ---
 
 func test_unrest_limit_breakdown_lists_the_government_then_its_modifiers() -> void:

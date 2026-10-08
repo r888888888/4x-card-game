@@ -2,7 +2,7 @@ class_name ActionButton
 extends RefCounted
 ## A button below the Realm for one engine action (175; before it, one script each: 084, 146, 148): shown while
 ## shown(e) is true, labelled text(e), and disabled with error(e) as its tooltip, else showing tooltip. Pressing it
-## calls action(e). relieve_famine and restore_order build the board's two (Revolt moved to the civilization modal, 205).
+## calls action(e). relieve_famine builds the board's one (Revolt moved to the civilization modal, 205; buying order went in 384).
 
 var button: Button
 var _text: Callable  # (e: GameEngine) -> String
@@ -29,16 +29,6 @@ static func relieve_famine(parent: Control) -> ActionButton:
 		func(e: GameEngine): return e.relieve_famine_error(),
 		func(e: GameEngine): e.relieve_famine(),
 		"Pay to end the famine now. A later hungry upkeep brings a new one.")
-
-
-## Restore order (146): while Anarchy rules and order can be bought, disabled with the reason it can't pay.
-static func restore_order(parent: Control) -> ActionButton:
-	return ActionButton.new(parent,
-		func(e: GameEngine): return "Restore order (%s)" % CardFace.cost_text(e.order_relief()),
-		func(e: GameEngine): return e.anarchy() != -1 and not e.order_relief().is_empty(),
-		func(e: GameEngine): return e.restore_order_error(),
-		func(e: GameEngine): e.restore_order(),
-		"Pay to end the Anarchy now, then choose a government.")
 
 
 func refresh(e: GameEngine) -> void:

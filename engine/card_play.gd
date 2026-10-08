@@ -11,8 +11,8 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	var card := e.zone("hand").find(uid)
 	if card == null:
 		return "That card is not in your hand."
-	if card.def.type == CardDef.GOVERNMENT:  # chosen from the government deck (154, 155)
-		return "A government is chosen, not played."
+	if card.def.type == CardDef.GOVERNMENT:  # chosen from the government deck (154, 155); under Anarchy, its rule (384)
+		return Anarchy.play_error(e, card) if Anarchy.active(e) != null else "A government is chosen, not played."
 	return place_error(e, card, target_uid)
 
 
@@ -151,13 +151,10 @@ static func cost_to_play(e: GameEngine, def: CardDef) -> Dictionary:
 	return {} if def.project else Discounts.cost(e, def)
 
 
-## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; under
-## Anarchy with no government, the modifier alone (Anarchy's +1 included, 253); -1 (unlimited) when no government rules
-## or it sets none.
+## Actions each turn: the ruling government's `actions` (127) plus the "actions" modifier (129), never below 1; -1
+## (unlimited) when no government rules (Anarchy included, 384) or it sets none.
 static func actions_per_turn(e: GameEngine) -> int:
 	var gov := e.zone("government")
-	if gov.is_empty() and Anarchy.active(e) != null:
-		return maxi(1, Modifiers.total(e, Modifiers.ACTIONS))  # Anarchy's +1 action and the rest (253)
 	if gov.is_empty() or gov.cards[0].def.actions == 0:
 		return -1
 	return maxi(1, gov.cards[0].def.actions + Modifiers.total(e, Modifiers.ACTIONS))

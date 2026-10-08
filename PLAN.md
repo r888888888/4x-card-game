@@ -120,7 +120,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
 - Loss ops that scale (268): `{ "op": "lose_pct", "resource": "food", "pct": 25 }` takes `pct`% (1–100) of the stored
-  resource, rounded up like Anarchy's drain ("−25% food"); `{ "op": "lose_per_keyword", "resource": "food", "amount": 1,
+  resource, rounded up ("−25% food"); `{ "op": "lose_per_keyword", "resource": "food", "amount": 1,
   "keywords": ["desert"] }` is `gain_per_keyword`'s mirror ("−1 food per desert territory"). Both go through `lose`, so
   they never go below 0 and report `lost`. No shipped card uses them yet (270).
 - Standing modifiers (129): buildings, cities, techs, civilizations, governments and events may set `modifiers`, an
@@ -298,15 +298,15 @@ It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameSt
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
 with the food stat in the warning color when pop would starve.
 Breakdown (379, `engine/upkeep_breakdown.gd`): `upkeep_breakdown(resource)` lists where that change comes from, rows
-`{label, count, amount}` in upkeep order (crowding, overextension, working cards, events), then what pop eats, then
-Anarchy's drain; each row is what its step actually changed (`TurnLoop.resolve_upkeep` reports each step), so
+`{label, count, amount}` in upkeep order (crowding, overextension, working cards, events), then what pop eats; each
+row is what its step actually changed (`TurnLoop.resolve_upkeep` reports each step), so
 `upkeep_forecast` is the rows' sums. `unrest_limit_breakdown()` lists the limit's government and modifiers. Clicking a
 top bar resource counter (or Enter on it) opens them in a `ui/popover.gd` under it. Score and Pop open
 `score_breakdown()` and `pop_breakdown()` the same way (380, `engine/score_breakdown.gd`): each card's VP, the VP from
 effects and from pop, summing to `score()`; each territory's pop. Both kinds build their rows on a `Ledger`
 (`engine/ledger.gd`).
 `turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
-change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
+change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and the raids
 that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
 (`_settle_in`), so the forecast can't drift from the real turn. The sim bot values positions with it (313).
 `fork()` copies the game exactly, the rng and every deck's order included, so a lookahead on it knows the future.
@@ -571,7 +571,7 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   later ones wait in `future_events`. When an era is added (the `add_era` op, the empty research deck, or an
   `era_unlocks` threshold), its events are shuffled into `event_deck`, once; the era-1 events, the active events
   and the event discard stay as they are. The event pile line's tooltip says how many events wait.
-- The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check and drain, the
+- The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check, the
   hand draw and renewal; none on turn 1 or after the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty or holds only raids that can't be drawn yet (266; nothing
   when both are empty), makes it active with
@@ -700,13 +700,12 @@ Your people have one government at a time; its bonuses apply while it rules.
   rules (then nothing is created; 154). Its effects can't need a target, use
   `keyword` or act on their own territory (like a tech's). Config `starting.government` (optional, a government id)
   puts it in the `government` zone at `new_game`. `government()` is its uid, or -1.
-- Government deck (154): when Anarchy ends (burning out or `restore_order`), no government rules and `pending()` is
+- Government deck (154): when Anarchy ends (its turns run out), no government rules and `pending()` is
   `{kind: PENDING_GOVERNMENT, options: the deck's uids}`, `default_government()` first (254: the config's
   starting government when it's in the deck, else the deck's first; -1 with no choice owed); every other action
   refuses ("Choose a government first.").
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
-  your government deck."): it leaves the deck and rules, unrest drops to at most half its limit (modifier added
-  first), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
+  your government deck."): it leaves the deck and rules, unrest drops to 0 (384), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
   that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The sim bot chooses by rollout (314).
 - Generic bot (313, `sim/generic_bot.gd`, strategy `generic`): no rule for any mechanic. Each step it tries every
   entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
@@ -733,9 +732,9 @@ Your people have one government at a time; its bonuses apply while it rules.
   the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall
   (plays a `settle` card only when nothing else beats doing nothing, and never past 3 territories, 390).
   `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
-- A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
-  runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
-  turn; after `restore_order` the turn goes on.
+- A government is never played from hand (155): `play_error` is "A government is chosen, not played." (under Anarchy,
+  Anarchy's "only action cards" message, 384). When Anarchy runs out at the end of a turn, `pending()` carries the
+  choice before the next turn starts and choosing finishes the turn.
 - The ruling government is in `ALWAYS_ON_ZONES`: it resolves upkeep (and the forecast), and scores its printed VP.
 - Actions (127): a government's optional `actions` (int ≥ 1; text "2 actions each turn.") is how many cards can be
   played from hand each turn while it rules. `actions_per_turn()` and `actions_left()` (-1 for both when no government
@@ -748,24 +747,20 @@ Your people have one government at a time; its bonuses apply while it rules.
   `at_unrest_limit()` says unrest has reached it. `gain` stops unrest at the limit and reports what it added. Unrest can't
   be paid: in a cost, a civilization discount, `population.famine.relief` or a `trade` it is a load error ("unrest can't
   be paid (it is only gained and lost)", `Fields.unpayable`).
-- Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, max_counters, era_unrest (0), allowed_tag
-  ("")}`, only with unrest listed (`fallback` dropped in 154, `relief` in 155: unknown fields); `anarchy` is a
+- Anarchy (145, `engine/anarchy.gd`): config `unrest` `{anarchy, anarchy_turns (int ≥ 1), era_unrest (0), renewal?}`,
+  only with unrest listed (`fallback` dropped in 154, `relief` in 155, `max_counters`, `allowed_tag` and `drain_pct` in
+  384: unknown fields); `anarchy` is an
   event (253) with no `discard`, never in `event_deck` (it may carry a `quote`, as any event may). A turn that starts
   (after upkeep, feeding and era unlocks, before the draw) with unrest at the limit falls: the government goes to the
   government deck (154), the anarchy event joins `active_events` (`anarchy()` its uid) and no government rules
-  (`government()` -1, so `unrest_limit()` is -1). While it lasts only `allowed_tag` cards play ("Anarchy: only an order
-  card can be played."), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."),
-  `actions_per_turn()` is the actions modifier alone (the event's `modifiers: {actions: 1}` included, never below 1),
-  and its upkeep resolves with the other events' without counting it down. `event_counters(uid)` shows its counters
+  (`government()` -1, so `unrest_limit()` is -1). While it lasts only action cards play ("Anarchy: only action cards
+  can be played.", 384), grow, buy and `buy_tech` refuse ("Anarchy: nothing can be grown, bought or researched."),
+  `actions_per_turn()` is -1 (no government, so no limit; 384), it eats no stores, and its upkeep resolves with the other events' without counting it down. `event_counters(uid)` shows its counters
   left on the board, and the sidebar names it in the government's place. Each added era adds `era_unrest` (capped).
-- Anarchy's length (155): it falls with ⌈max_counters × unrest ÷ L⌉ counters, 1 to max_counters, L the fallen
-  government's `unrest_limit()` (`GameState.anarchy_limit`). `anarchy_counters()` is the counters left: calming lowers
-  them for good (`EngineCore._unrest_lowered` → `Anarchy.calm`), never below 1 while it rules. One comes off at the end
-  of each Anarchy turn (after the hand-limit discard, in `TurnLoop.finish_turn`); at 0 the anarchy event goes to
-  `removed` and the government choice is owed (154). From its second turn (`GameState.anarchy_turn`) `restore_order()`
-  buys the rest off for c × (c + 1) wealth (`order_relief()`; `restore_order_error()`: "Order can't be restored on
-  Anarchy's first turn.", the price short); the choice is owed at once. The Restore order button sits beside Relieve
-  famine below the Realm. The sim bot restores order when that values more (313).
+- Anarchy's length (155, 384): it falls with `anarchy_turns` counters, whatever the unrest; unrest neither shortens
+  nor lengthens it. One comes off at the end of each Anarchy turn (after the hand-limit discard, in
+  `TurnLoop.finish_turn`); at 0 the anarchy event goes to `removed` and the government choice is owed (154). There is
+  no buying out (`restore_order` went in 384). `GameState.anarchy_turn` counts its turns, for renewal.
 - Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
   owes, after the draw, `pending()` `{kind: PENDING_RENEWAL, count, options}`: count = renewal + (Anarchy's turn − 1)
   + the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options: the hand's, deck's and discard's
@@ -780,15 +775,11 @@ Your people have one government at a time; its bonuses apply while it rules.
 - Revolution (148, 155): `revolt()` declares one at any time (`GameState.revolt_pending`); Anarchy falls at the next
   turn's start, before upkeep, so its first turn has an Anarchy upkeep. No action used. `revolt_error()`: game over or
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",
-  "There is no government to overthrow.". `revolt_forecast()` is the counters it would bring. The Revolt button sits
-  beside Relieve famine and Restore order whenever you may revolt; its tooltip says Anarchy starts next turn and lasts
-  about N turns. The sim bot weighs a revolt by rollout (314, below). Real data: Calls for Reform (2 turns, renewal +1),
-  Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (an event, +1 action), 4 counters, era
-  unrest 3, drain 20%, Feast is the `order` card.
-- Anarchy's drain (156): config `unrest.drain_pct` (0–100, absent = 0). Each turn that starts under Anarchy (after any
-  fall, before the draw) loses that share of stored food and wealth, rounded up (`Anarchy.drain`, logged as the Anarchy
-  card's loss). `upkeep_forecast()` includes it on the stores after upkeep and feeding when Anarchy will rule next turn
-  (a revolution pending, or 2+ counters left).
+  "There is no government to overthrow.". `revolt_summary()` lists what it would bring (205, 384): when it falls,
+  "It lasts 3 turns.", what may be played, renewal and "When it ends, choose a government; unrest drops to 0." The
+  civilization modal's Revolt asks with it. The sim bot weighs a revolt by rollout (314, below). Real data: Calls for Reform (2 turns, renewal +1),
+  Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (an event), 3 turns, era
+  unrest 3.
   The top bar shows "Unrest: 2 (+1)" with the limit in its tooltip (228), in the warning colour at the limit; its glyph
   breathes while `anarchy_ahead()` (the next upkeep brings unrest to the limit), held still with Reduce motion. Its
   stats use the `BarStat` variation (20 px) so the bar fits 1920 px. The sim bot plays around the limit through

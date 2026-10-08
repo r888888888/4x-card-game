@@ -13,8 +13,7 @@ The simulator plays one GenericBot game per seed (1..N) and reports mean, min an
 (cities founded beyond the starting ones; `cities` before 328), `pop` (at game end), `techs` (researched), `bought` (supply buys), `era`,
 `explored` (turns the territory deck lasted) and, per era with techs (143), `era_<n>_open` / `era_<n>_done` (the turn
 the era was added / its last tech was learned; the turn limit if never).
-Anarchy and governments (158): `anarchies`, `revolts`, `anarchy_turns` (turns that started under it), `restored`
-(order bought), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
+Anarchy and governments (158): `anarchies`, `revolts` (each Anarchy lasts `unrest.anarchy_turns`, 384), `gov_changes` (ruling government changed, Anarchy not counted), `famine_turns`, `trashed`, and
 `<id>_turns` per government a game can have (turns that started with it ruling).
 Deck (376): `deck_end`, the cards in the deck, hand and discard at the game's end (a drained deck shows as a low one).
 Cost (294): `lookahead_turns`, the turns the bot's lookahead forks played (most of a game's CPU).

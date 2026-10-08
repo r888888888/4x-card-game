@@ -19,7 +19,7 @@ const DECISIONS := {
 ## The legal actions in e, in order: the owed decision's options, then play_card (each hand card on each target, -1
 ## when it needs none), build (each entry on each of its build_targets), buy (each open pile), buy_tech (each tech in the
 ## research deck), contribute (each site, at its contribute_limit), military.move (each unit to each move target),
-## military.upgrade (each unit, 166), discard_card (each hand card), relieve_famine, restore_order, revolt, abandon (each
+## military.upgrade (each unit, 166), discard_card (each hand card), relieve_famine, revolt, abandon (each
 ## site), military.disband (each unit) and end_turn. [] after game over.
 static func of(e: GameEngine) -> Array:
 	if e.is_over:
@@ -49,7 +49,7 @@ static func of(e: GameEngine) -> Array:
 			raw.append(["military.upgrade", card.uid])
 	for card in hand:
 		raw.append(["discard_card", card.uid])
-	raw.append_array([["relieve_famine"], ["restore_order"], ["revolt"]])
+	raw.append_array([["relieve_famine"], ["revolt"]])
 	for card in tableau:
 		if e.is_site(card.uid):
 			raw.append(["abandon", card.uid])

@@ -80,7 +80,7 @@ static var forecast_mismatches := 0
 ## The GameState and CardInstance fields forecast_key reads (336); the suite fails on a field in neither these nor the
 ## UNREAD lists, so a new field upkeep reads can't leave the cache serving stale forecasts.
 const KEY_STATE_FIELDS: Array[String] = ["turn", "is_over", "bonus_score", "era", "eras_added", "revolt_pending",
-	"anarchy_turn", "anarchy_limit", "last_raid_turn", "resources", "zones"]
+	"anarchy_turn", "last_raid_turn", "resources", "zones"]
 const KEY_CARD_FIELDS: Array[String] = ["uid", "def", "territory_uid", "base_uid", "station_uid", "pop", "keywords",
 	"turns_left", "counters", "progress", "given_this_turn", "raid_strength"]
 ## The fields the key leaves out, each with why the forecast doesn't depend on it.
@@ -440,7 +440,7 @@ static func forecast_key(e: GameEngine, ctx: Context) -> Array:
 	if ctx.forecast_zones.is_empty():
 		ctx.forecast_zones = e.forecast_zones()
 	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending, e.state.anarchy_turn,
-		e.state.anarchy_limit, e.state.last_raid_turn, e.state.eras_added.size()]
+		e.state.last_raid_turn, e.state.eras_added.size()]
 	key.append_array(e.state.eras_added)  # the arrays' contents, flattened: a key mustn't hold a live array
 	for r in e.state.resources:
 		key.append_array([r, e.resources[r]])
