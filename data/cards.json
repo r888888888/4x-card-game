@@ -458,13 +458,12 @@
       ]
     },
     {
-      "id": "sumer", "name": "Sumer", "type": "civilization", "city_names": ["Uruk", "Ur", "Eridu", "Lagash", "Kish", "Nippur", "Umma", "Larsa", "Shuruppak", "Isin", "Girsu", "Adab"], "home": "delta_marsh", "modifiers": { "housing": 1 },
+      "id": "sumer", "name": "Sumer", "type": "civilization", "city_names": ["Uruk", "Ur", "Eridu", "Lagash", "Kish", "Nippur", "Umma", "Larsa", "Shuruppak", "Isin", "Girsu", "Adab"], "home": "delta_marsh",
       "discounts": [ { "tag": "farm", "wealth": 1 } ],
       "vp": 0, "tags": [],
       "flavor": "Between the Tigris and the Euphrates the Sumerians dig canals, build the first cities, and press wedges into clay to keep their accounts. Writing begins as a receipt.",
       "quote": { "text": "Go up on the wall of Uruk and walk around.", "by": "Epic of Gilgamesh" },
       "effects": [
-        { "op": "create", "card": "farm", "zone": "tableau", "trigger": "start" },
         { "op": "create", "card": "research", "zone": "discard", "trigger": "start" },
         { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" }
       ]

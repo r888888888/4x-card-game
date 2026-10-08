@@ -404,7 +404,7 @@ func test_every_later_era_has_an_event_that_scales_with_the_realm() -> void:
 func test_every_per_keyword_and_per_tag_event_effect_can_fire() -> void:
 	var r := load_real()
 	var keywords := keywords_in_play(r)
-	var tagged: Array = r.config.deck.keys() + r.config.supply.keys()
+	var tagged: Array = r.config.deck.keys() + r.config.supply.keys() + r.config.build_menu.keys()  # buildings: 295
 	for id in r.cards:
 		for effect in r.cards[id].effects:
 			if effect.op == "create":
