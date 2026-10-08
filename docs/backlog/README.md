@@ -39,58 +39,23 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 ## Planned order
 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
-Everything planned so far is done (through 367: military, settlement tiers, the build menu, building upgrades, the
-generic sim bot, the 2026-10-06 review cleanup and the coast). The order of closed items is in
+Everything planned so far is done (through 412: Anarchy and the honeymoon, the test probe, the theme sections, engine
+areas, the top-bar breakdowns, sim speed, card faces and veteran pips). The order of closed items is in
 [done/HISTORY.md](done/HISTORY.md).
 
-Order chosen to minimize churn: finish what has red tests, then the three refactors that every later item would
-otherwise write against the old shape and then rewrite, then the features in the order their shared pieces appear.
+Waiting on your final look (merged, status `review`):
+1. 412 abandon a finished building to free its slot and worker
 
-Finish first (red tests already written; 392 renames their calls when it lands):
-1. 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
-2. 384 Interregnum: Anarchy lasts a fixed 3 turns (`feat/384-simpler-anarchy`; redesigned 2026-10-07, so its red
-   tests are rewritten before the next red-review)
+Food and building upkeep (prioritised 2026-10-08, ahead of the claimants; 412 lets a player drop a building whose
+upkeep isn't worth paying):
+2. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine)
+3. 406 Farm 4 food, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, the design pass on every building
+   (content, after 405)
+4. 407 Sumer as the breadbasket (content; ships with 406)
 
-Refactors (before the features, which would add to what they move):
-3. 392 main.gd's test hooks move to a test-side probe. First: 379's red tests already add three hooks to main
-   (`breakdown_key`, `breakdown_rows`, `counter`), and every UI item below adds more.
-4. 393 GameTheme split into one file per component. Before 379 (the Popover look), 382 (Ledger, FinePrint), 383 (the
-   sheet and meter) and 388 (pips) add looks to `game_theme.gd`, already past 500 lines.
-5. 394 engine areas, military first. Before 388 adds `unit_veteran_pips` to `Military` (a forward 394 would remove),
-   before 400 changes `Military.strength`, and before 385 and 401 add entries to `legal_actions`, whose dispatch 394
-   changes.
-
-Anarchy (builds on 384 while its code is fresh):
-6. 385 Renewal is a free action during Anarchy (flat count, no unrest)
-7. 399 a new government's honeymoon: 3 turns where unrest can't rise and no revolution
-
-Top bar (379 brings the `Popover` that 380 and 383 reuse):
-8. 379 click a resource counter for its next-upkeep change by source (`feat/379-resource-breakdown-popover` has its red
-   tests; move their main calls to the probe)
-9. 380 click Score or Pop for what makes it up
-
-Sim speed (from the 2026-10-08 profile; before the food rebalance, whose balance runs it speeds up):
-10. 408 the fallen-back cards in one pass, so `score()` stops dominating bot time (measured −13.5% from one line,
-    30–40% expected in all)
-11. 409 forecasts fork only the zones they can change (wontfix 2026-10-08: measured ~3–4% of sim time; see its Log)
-
-Food and building upkeep (prioritised 2026-10-08, ahead of the claimants):
-12. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine)
-13. 406 Farm 4 food, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, the design pass on every building
-    (content, after 405)
-14. 407 Sumer as the breadbasket (content; ships with 406)
-
-Rival claimants (after 379, so the court's passive joins its breakdown; a `spike/rival-claimants` may come first):
-15. 400 the `strength` modifier (after 394)
-16. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
-17. 413 the court's passive, once per rank, rising every 10 turns
-18. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
-19. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
-
-Card faces and details:
-20. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
-21. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
-22. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
-
-Military UI:
-23. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
+Rival claimants (a `spike/rival-claimants` may come first):
+5. 400 the `strength` modifier
+6. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
+7. 413 the court's passive, once per rank, rising every 10 turns
+8. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
+9. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)

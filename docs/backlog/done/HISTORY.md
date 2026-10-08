@@ -217,3 +217,44 @@ Coastal cities (fishing stops being a worse Farm, and the coast adds to a territ
 4. 366 the sea slot: one extra slot on coastal territories for port buildings (after 339, which makes room in
    `config_loader.gd`)
 5. Then a balance item for the coast (per-port payoffs stack: Navigation, the Lighthouse, Sea Trade, the sea slot)
+
+## Planned order through 412 (closed by 2026-10-08)
+
+Order chosen to minimize churn: finish what has red tests, then the three refactors that every later item would
+otherwise write against the old shape and then rewrite, then the features in the order their shared pieces appear.
+
+Finish first (red tests already written; 392 renames their calls when it lands):
+1. 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
+2. 384 Interregnum: Anarchy lasts a fixed 3 turns (`feat/384-simpler-anarchy`; redesigned 2026-10-07, so its red
+   tests are rewritten before the next red-review)
+
+Refactors (before the features, which would add to what they move):
+3. 392 main.gd's test hooks move to a test-side probe. First: 379's red tests already add three hooks to main
+   (`breakdown_key`, `breakdown_rows`, `counter`), and every UI item below adds more.
+4. 393 GameTheme split into one file per component. Before 379 (the Popover look), 382 (Ledger, FinePrint), 383 (the
+   sheet and meter) and 388 (pips) add looks to `game_theme.gd`, already past 500 lines.
+5. 394 engine areas, military first. Before 388 adds `unit_veteran_pips` to `Military` (a forward 394 would remove),
+   before 400 changes `Military.strength`, and before 385 and 401 add entries to `legal_actions`, whose dispatch 394
+   changes.
+
+Anarchy (builds on 384 while its code is fresh):
+6. 385 Renewal is a free action during Anarchy (flat count, no unrest)
+7. 399 a new government's honeymoon: 3 turns where unrest can't rise and no revolution
+
+Top bar (379 brings the `Popover` that 380 and 383 reuse):
+8. 379 click a resource counter for its next-upkeep change by source (`feat/379-resource-breakdown-popover` has its red
+   tests; move their main calls to the probe)
+9. 380 click Score or Pop for what makes it up
+
+Sim speed (from the 2026-10-08 profile; before the food rebalance, whose balance runs it speeds up):
+10. 408 the fallen-back cards in one pass, so `score()` stops dominating bot time (measured −13.5% from one line,
+    30–40% expected in all)
+11. 409 forecasts fork only the zones they can change (wontfix 2026-10-08: measured ~3–4% of sim time; see its Log)
+
+Card faces and details:
+12. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
+13. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
+14. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
+
+Military UI:
+15. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
