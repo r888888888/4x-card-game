@@ -146,7 +146,6 @@ static func start_turn(e: GameEngine) -> void:
 	_begin(e)
 	_settle_in(e)
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
-	Anarchy.start_renewal(e)
 	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
 		e.military.strike_raids()
 		Events.draw(e)
@@ -154,7 +153,7 @@ static func start_turn(e: GameEngine) -> void:
 
 ## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
 ## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and the raids
-## that strike; not the draw, the renewal or the new event. {} on the last turn or after game over.
+## that strike; not the draw or the new event. {} on the last turn or after game over.
 static func forecast(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
 		return {}
@@ -186,6 +185,7 @@ static func _begin(e: GameEngine) -> void:
 	e.turn += 1
 	e.state.actions_used = 0
 	e.state.actions_gained = 0
+	e.state.renewed = 0
 	e.state.moved_units.clear()
 	Sites.start_turn(e)
 	e._log("— Turn %d —" % e.turn)

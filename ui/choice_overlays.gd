@@ -56,7 +56,7 @@ func _init(parent: Control) -> void:
 	parent.add_child(doors)
 
 
-## Shows the overlay for the decision engine e waits for (an explore choice, a take or a government; renewal is a modal, 255); e null hides
+## Shows the overlay for the decision engine e waits for (an explore choice, a take or a government); e null hides
 ## them all.
 func refresh(e: GameEngine) -> void:
 	var pending: Dictionary = e.pending() if e != null else {}

@@ -32,7 +32,7 @@ var start_screen: StartScreen  # the title screen, shown on launch with the boar
 var new_game_screen: NewGameScreen  # the civilization and seed, from the title screen and the menu's New game (099)
 var revolt_modal: RevoltModal  # the revolution's confirmation, over the civilization modal (205)
 var move_modal: MoveModal  # where a unit marches, from its details' Move… (163)
-var renewal_modal: RenewalModal  # Anarchy's renewal, open while it is owed (255)
+var renewal_modal: RenewalModal  # Anarchy's renewal, opened by the Renew button (255, 385)
 var rename_modal: RenameModal  # names a territory, from the territory view's Rename… (248)
 var build_modal: BuildModal  # builds and recruits on a territory, from its view's Build… or a free slot (297)
 var settings_modal: SettingsModal  # the settings, from the menu and the title screen (206)
@@ -50,6 +50,7 @@ var board: Control  # the top bar and the play area
 var top_bar: TopBar  # the turn plate, the resource counters and the bar's keys (177, 201)
 var menu: GameMenu  # the game menu, from the Menu key or Esc (067)
 var relief: ActionButton  # below the Realm while a Famine can be relieved
+var renew: ActionButton  # beside it while Anarchy's renewal has cards left (385)
 var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var game_over: GameOverOverlay  # the end of the game's sheet (045)
 var news: TurnNews  # the turn start's event and raid, shown by the next _refresh (079, 271)
@@ -258,6 +259,7 @@ func _refresh() -> void:
 	renewal_modal.refresh(e)
 	log_drawer.refresh(e)
 	relief.refresh(e)
+	renew.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	knowledge.refresh(e)
@@ -286,6 +288,7 @@ func _build_layout() -> void:
 	add_child(top_bar.popover)  # above the board, under the modals' later layers (379)
 	play_area = layout.play_area
 	relief = layout.relief
+	renew = layout.renew
 	menu = layout.menu
 	menu.closed_giving_back.connect(_on_menu_closed)
 	era_sheet.closed.connect(func(): if board.visible: _refresh())

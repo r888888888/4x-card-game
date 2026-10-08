@@ -24,7 +24,6 @@ const MAX_TERRITORY_NAME := 24  # characters in a territory's name (248)
 ## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
-const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
 const PENDING_GOVERNMENT := "government"  # Anarchy has ended: choose a government from the government deck (154)
 const PENDING_EVENT_CHOICE := "event_choice"  # a choice event was drawn: choose one of its options (269)
 const PENDING_TAKE := "take"  # take one of the offered cards into the hand (370)
@@ -298,14 +297,15 @@ func revolt_summary() -> Array[String]:
 	return Anarchy.revolt_summary(self)
 
 
-## Why renew(uids) would refuse (147, 255): renewal isn't pending, a uid isn't an option (a hand, deck or discard
-## card other than a government), a uid comes twice, or there aren't exactly the count owed. "" if it can.
+## Why renew(uids) would refuse (147, 255, 385): game over or a decision owed, no Anarchy, nothing chosen, no renewals
+## left, a uid that isn't an option (a hand, deck or discard card other than a government), a uid twice, or more than
+## renewals_left(). "" if it can.
 func renew_error(uids: Array) -> String:
 	return Anarchy.renew_error(self, uids)
 
 
-## Trashes cards uids for Anarchy's renewal, paying all of it at once: each leaves the game and unrest drops by 1
-## (147, 255). False (and no change) if renew_error says no.
+## Trashes cards uids for Anarchy's renewal (147, 255, 385): each leaves the game; no action used, unrest unchanged.
+## False (and no change) if renew_error says no.
 func renew(uids: Array) -> bool:
 	return Anarchy.renew(self, uids)
 
@@ -385,15 +385,12 @@ func _blocked_error(action: String) -> String:
 			return "Choose a territory first."
 		PENDING_TAKE:
 			return "Choose a card to take into your hand first."
-		PENDING_RENEWAL:
-			var n: int = state.pending.count
-			return "Anarchy: trash %d card%s from your hand, deck or discard first." % [n, "" if n == 1 else "s"]
 		PENDING_DISCARD:
 			return "" if _DISCARD_ALLOWS.has(action) else "Discard down to %d cards first." % config.hand_limit
 	return ""
 
 
-## The first reason a decision's own action (choose, renew, choose_government) refuses (172): the game being over,
+## The first reason a decision's own action (choose, choose_government, choose_option, take) refuses (172): the game being over,
 ## then another decision owed (its _blocked_error message), then nothing_owed when kind isn't owed; "" while kind is.
 func _owed_error(kind: String, nothing_owed: String) -> String:
 	if is_over:

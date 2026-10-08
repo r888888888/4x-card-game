@@ -1,13 +1,13 @@
 ---
 name: add-decision
-description: Recipe for adding a new kind of decision the player owes (a pending() kind, like explore, discard, renewal or the government choice) test-first. Covers the PENDING_* constant, state.pending, the blocking message, the action and its error query, the choice overlay, main.gd's refresh and pick, card focus keys, the sim bot, and the guard tables. Use when a backlog item makes the game wait for the player's choice before anything else can happen.
+description: Recipe for adding a new kind of decision the player owes (a pending() kind, like explore, discard, an event choice or the government choice) test-first. Covers the PENDING_* constant, state.pending, the blocking message, the action and its error query, the choice overlay, main.gd's refresh and pick, card focus keys, the sim bot, and the guard tables. Use when a backlog item makes the game wait for the player's choice before anything else can happen.
 ---
 
 # Add a decision kind
 
 Use this inside the `tdd` skill's phases. A decision the player owes is one `PENDING_*` kind in `GameState.pending`
 (172): while it is owed every other action refuses with one message, and only the decision's own action goes on.
-Copy from the government choice (154: `Anarchy.choose_government`) or renewal (147: `Anarchy.renew`).
+Copy from the government choice (154: `Anarchy.choose_government`) or a take (370: `take`).
 
 ## Red
 
@@ -24,7 +24,7 @@ Copy from the government choice (154: `Anarchy.choose_government`) or renewal (1
 ## Green
 
 4. `engine/game_engine.gd`: a `PENDING_<KIND>` constant, documented in `pending()`'s comment. If the options can
-   change while it is owed, `pending()` computes them (as for discard, renewal and government); otherwise store them.
+   change while it is owed, `pending()` computes them (as for discard and government); otherwise store them.
 5. Set `state.pending = {"kind": PENDING_<KIND>, …}` where it becomes owed and `state.pending = {}` when it is paid.
    Only one decision is owed at a time: never set it over another kind. Store uids, never `CardInstance`s, so
    `GameState.copy()` needs no change (171's guard checks it).

@@ -12,10 +12,10 @@ var bonus_score := 0  # VP from effects, on top of VP printed on tableau cards
 var is_over := false
 var log_lines: Array[String] = []
 ## The decision the player owes (172), {} when none: {kind: GameEngine.PENDING_EXPLORE, options: territory uids top
-## first, source: the exploring card's uid}, {kind: PENDING_DISCARD or PENDING_RENEWAL, count: cards still owed},
+## first, source: the exploring card's uid}, {kind: PENDING_DISCARD, count: cards still owed},
 ## {kind: PENDING_GOVERNMENT, ends_turn: true when choosing finishes the turn (155)} or {kind: PENDING_EVENT_CHOICE,
 ## uid: the choice event's uid, options: its option indices (269)} or {kind: PENDING_TAKE, options: offered uids top
-## first, source: the offering card's uid (370)}. GameEngine.pending() adds the options a discard, renewal or government choice has now.
+## first, source: the offering card's uid (370)}. GameEngine.pending() adds the options a discard or government choice has now.
 var pending: Dictionary = {}
 var era := 1  # the highest era of techs added to the research deck
 var eras_added: Array[int] = []  # eras add_era has already shuffled in
@@ -27,7 +27,7 @@ var locked_builds: Dictionary = {}  # card_id -> true for build-menu entries not
 var built_once: Array[String] = []  # the once build-menu entries built this game (295)
 var next_uid := 1
 var revolt_pending := false  # a revolution was declared: Anarchy falls at the next turn's start (155)
-var anarchy_turn := 0  # the ruling Anarchy's turn, 1 the turn it fell; 0 without Anarchy (155)
+var renewed := 0  # cards Anarchy's renewal trashed this turn (385)
 var moved_units: Array[int] = []  # uids of the units moved this turn (163)
 var last_raid_turn := 0  # the turn a raid last struck, 0 before any has (257)
 var names_given := 0  # default city names handed out (248): the next settled territory takes the next
@@ -61,7 +61,7 @@ func copy() -> GameState:
 	s.built_once = built_once.duplicate()
 	s.next_uid = next_uid
 	s.revolt_pending = revolt_pending
-	s.anarchy_turn = anarchy_turn
+	s.renewed = renewed
 	s.moved_units = moved_units.duplicate()
 	s.names_given = names_given
 	s.last_raid_turn = last_raid_turn

@@ -6,9 +6,9 @@ extends RefCounted
 ## the government deck (154) and none rules until Anarchy ends. While it lasts only action cards can be played, and
 ## nothing is grown, bought or researched (384). It gets unrest.anarchy_turns counters, whatever the unrest, and one
 ## comes off at the end of each Anarchy turn (384). At 0 a government is chosen from the government deck and unrest
-## drops to 0 (154, 384). Each new era adds unrest.era_unrest. Renewal (147): each turn that starts under Anarchy, after
-## the draw, you must trash unrest.renewal + (its turn − 1) + the renewal modifier cards from the discard (governments
-## aside), each calming 1 unrest. Static functions on the engine's state.
+## drops to 0 (154, 384). Each new era adds unrest.era_unrest. Renewal (147, 385): each Anarchy turn you may trash up to
+## unrest.renewal + the renewal modifier cards from the hand, deck or discard (governments aside), an action that owes
+## nothing and uses no action. Static functions on the engine's state.
 
 const PLAY_ERROR := "Anarchy: only action cards can be played."
 const BUILD_ERROR := "Anarchy: nothing can be grown, bought or researched."
@@ -26,12 +26,9 @@ static func is_anarchy(e: GameEngine, event: CardInstance) -> bool:
 	return event != null and event == active(e)
 
 
-## The start of a turn, before upkeep (155): a turn under Anarchy counts as its next; otherwise a revolution declared
-## last turn falls now.
+## The start of a turn, before upkeep (155): a revolution declared last turn falls now.
 static func before_upkeep(e: GameEngine) -> void:
-	if active(e) != null:
-		e.state.anarchy_turn += 1
-	elif e.state.revolt_pending:
+	if active(e) == null and e.state.revolt_pending:
 		_fall(e)
 
 
@@ -56,16 +53,12 @@ static func end_of_turn(e: GameEngine) -> bool:
 	return true
 
 
-## After the draw: how many cards renewal asks for this turn, capped at the options (0 outside Anarchy, and with no
-## unrest.renewal in the config: renewal off).
-static func start_renewal(e: GameEngine) -> void:
-	var anarchy := active(e)
-	if anarchy == null or not e.config.unrest.has("renewal"):
-		return
-	var n: int = e.config.unrest.renewal + e.state.anarchy_turn - 1 + e.modifier(Modifiers.RENEWAL)
-	n = clampi(n, 0, renewal_options(e).size())
-	if n > 0:
-		e.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": n}
+## The cards renewal may still trash this turn (385): unrest.renewal + the renewal modifier − those renewed this turn,
+## never below 0; 0 outside Anarchy or with no unrest.renewal in the config (renewal off).
+static func renewals_left(e: GameEngine) -> int:
+	if active(e) == null or not e.config.unrest.has("renewal"):
+		return 0
+	return maxi(0, e.config.unrest.renewal + e.modifier(Modifiers.RENEWAL) - e.state.renewed)
 
 
 ## The cards renewal may trash (255): the hand, deck and discard but governments, by name then uid (so the draw
@@ -81,34 +74,39 @@ static func renewal_options(e: GameEngine) -> Array[int]:
 	return out
 
 
-## Why renew(uids) would refuse, or "" (255): blocked, a uid that isn't an option, a uid twice, or not the count.
+## Why renew(uids) would refuse, or "" (255, 385): blocked, no Anarchy, nothing chosen, no renewals left, a uid that
+## isn't an option, a uid twice, or more than are left.
 static func renew_error(e: GameEngine, uids: Array) -> String:
-	var owed := e._owed_error(GameEngine.PENDING_RENEWAL, "Nothing to renew.")
-	if owed != "":
-		return owed
+	var blocked := e._blocked_error("renew")
+	if blocked != "":
+		return blocked
+	if active(e) == null:
+		return "Renewal is only possible during Anarchy."
+	if uids.is_empty():
+		return "Choose a card to trash."
+	var left := renewals_left(e)
+	if left == 0:
+		return "No renewals left this turn."
 	var options := renewal_options(e)
 	if uids.any(func(u): return not options.has(u)):
 		return RENEW_ERROR
 	if uids.any(func(u): return uids.count(u) > 1):
 		return "Each card can be trashed once."
-	var n: int = e.state.pending.count
-	return "" if uids.size() == n else "Choose %d card%s to trash." % [n, "" if n == 1 else "s"]
+	return "" if uids.size() <= left else "Trash at most %d card%s this turn." % [left, "" if left == 1 else "s"]
 
 
-## Trashes the cards uids from wherever they are, each calming 1 unrest, and pays the renewal (255). False (and no
-## change) if renew_error says no.
+## Trashes the cards uids from wherever they are (255, 385): no action used, unrest unchanged. False (and no change) if
+## renew_error says no.
 static func renew(e: GameEngine, uids: Array) -> bool:
 	if renew_error(e, uids) != "":
 		return false
-	e.state.pending = {}
 	for uid in uids:
 		var zone := e.zone(e.zone_of(uid))
 		var card := zone.find(uid)
 		zone.remove(card)
 		e.zone("trashed").add(card)
 		e._log("Renewal: trashed %s." % card.def.name)
-		e.lose(GameEngine.UNREST, 1, card)
-	EventChoices.next(e)  # a choice event drawn this turn start waited for the renewal (269)
+	e.state.renewed += uids.size()
 	e.changed.emit()
 	return true
 
@@ -149,7 +147,7 @@ static func revolt_summary(e: GameEngine) -> Array[String]:
 	out.append("You can play action cards; nothing can be grown, bought or researched.")
 	if unrest.has("renewal"):
 		var r: int = unrest.renewal
-		out.append("Each turn: trash %d card%s, +1 per turn so far, from your hand, deck or discard (−1 unrest each)." % [r, "" if r == 1 else "s"])
+		out.append("Each turn: you may trash %d card%s from your hand, deck or discard." % [r, "" if r == 1 else "s"])
 	out.append("When it ends, choose a government; unrest drops to 0.")
 	return out
 
@@ -192,7 +190,6 @@ static func _fall(e: GameEngine) -> void:
 	var anarchy := e._make_card(e.config.unrest.anarchy)
 	e.zone("active_events").add(anarchy)
 	anarchy.counters = e.config.unrest.anarchy_turns
-	e.state.anarchy_turn = 1
 	e._notice("Anarchy!%s It lasts %d turn%s." % [" %s falls into your government deck." % fallen if fallen != ""
 		else "", anarchy.counters, "" if anarchy.counters == 1 else "s"], GameEngine.NOTICE_URGENT)
 
@@ -201,7 +198,6 @@ static func _fall(e: GameEngine) -> void:
 static func _end(e: GameEngine, anarchy: CardInstance) -> void:
 	e.zone("active_events").remove(anarchy)
 	e.zone("removed").add(anarchy)
-	e.state.anarchy_turn = 0
 	e.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}
 
 

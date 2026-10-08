@@ -81,7 +81,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
 | `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367) |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork` |
-| `tests/test_generic_bot.gd` | The generic bot (313) on fixtures; expansion (321); renewal (373); deck (376) |
+| `tests/test_generic_bot.gd` | The generic bot (313) on fixtures; expansion (321); renewal (373, 385); deck (376) |
 | `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315) |
 | `tests/test_generic_raids.gd` | The generic bot meets raids (314, superseding 168) through `turn_forecast` |
 | `tests/test_generic_rollouts.gd` | The generic bot's rollouts (314, porting 159) |
@@ -131,8 +131,8 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_recall.gd` | `recall`, the take decision (370) |
 | `tests/test_recruit.gd` | Recruiting units from the build menu (296) |
 | `tests/test_rename_modal.gd` | Names on screen and the naming modal (248) (seed 5, Egypt; UI) |
-| `tests/test_renewal.gd` | Renewal (147) |
-| `tests/test_renewal_modal.gd` | The Renewal modal (255) |
+| `tests/test_renewal.gd` | Renewal, a free action during Anarchy (147, 385) |
+| `tests/test_renewal_modal.gd` | The Renew button and the Renewal modal (255, 385) |
 | `tests/test_research.gd` | Techs: the research deck, learning, prerequisites (025, 139, 140) |
 | `tests/test_resource_glyphs.gd` | Resource glyphs (180; UI) |
 | `tests/test_resource_tokens.gd` | Counter changes (114, 126, 181, 218; UI) |

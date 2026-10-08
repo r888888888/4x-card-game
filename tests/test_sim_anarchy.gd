@@ -3,12 +3,15 @@ extends "res://tests/lib/anarchy_case.gd"
 ## famine_turns, trashed, and <id>_turns per government a game can have (384 dropped restored, with buying order, and
 ## anarchy_turns, always anarchy_turns × anarchies). Counted from the engine's changed signal and its revolted signal. Fixture games from tests/lib/anarchy_case.gd plus
 ## Charter (an action tagged order that creates Glory into the government deck and gains 1 food, so the generic bot plays it,
-## 314) and Glory (government, ⟳ +3 VP, limit 5), which the bot's rollouts prefer to Chiefs. The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
+## 314), Glory (government, ⟳ +3 VP, limit 5), which the bot's rollouts prefer to Chiefs, and Husk (worthless, renewed).
+## The real-data parallel run is in tests/balance/test_sim_anarchy_report.gd.
 
 const GLORY := {"id": "glory", "name": "Glory", "type": "government", "unrest_limit": 5,
 	"effects": [{"op": "score", "amount": 3, "trigger": "upkeep"}]}
 const CHARTER := {"id": "charter", "name": "Charter", "type": "action", "tags": ["order"],
 	"effects": [{"op": "create", "card": "glory", "zone": "discard"}, {"op": "gain", "resource": "food", "amount": 1}]}
+## Husk: an action of no worth, which the bot renews (385: renewal is optional).
+const HUSK := {"id": "husk", "name": "Husk", "type": "action"}
 const NEW_METRICS := ["anarchies", "revolts", "gov_changes", "famine_turns", "trashed"]
 
 
@@ -24,7 +27,7 @@ func sim_game(block := {}, starting := {}, overrides := {}) -> Dictionary:
 
 ## SimStats.run on seeds of sim_game's game: {metric: {mean, min, max}}.
 func sim_stats(block: Dictionary, starting: Dictionary, overrides: Dictionary, seeds: Array) -> Dictionary:
-	var cards := anarchy_db([GLORY, CHARTER])
+	var cards := anarchy_db([GLORY, CHARTER, HUSK])
 	var resources := {"food": 10, "wealth": 10, "insight": 10}
 	resources.merge(starting, true)
 	var o := {"deck": {"charter": 10}, "turn_limit": 5, "starting": {"resources": resources, "tableau": ["capital"],
@@ -86,7 +89,7 @@ func test_lookahead_turns_counts_each_game_on_its_own() -> void:
 
 
 func test_trashed_and_famine_turns() -> void:
-	var renewal := sim_game({"renewal": 1}, {"unrest": 5})
+	var renewal := sim_game({"renewal": 1}, {"unrest": 5}, {"deck": {"charter": 9, "husk": 1}})
 	check(renewal.get("trashed", 0) >= 1, "renewal trashed cards: %s" % renewal.get("trashed"))
 	eq(sim_game().get("trashed"), 0, "nothing trashed")
 	var hungry := sim_game({}, {"food": 0}, {"population": {"start": 6, "food_upkeep": 3, "vp_per_pop": 0,

@@ -285,7 +285,7 @@ piles and entries, 140); eras add techs and events to their own decks (027, 074)
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
    (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
-2. Draw up to hand size (unplayed cards stay in hand); under Anarchy, renewal is owed.
+2. Draw up to hand size (unplayed cards stay in hand).
 3. Event (237: from turn 2): draw one event from the event deck and resolve its `play` effects (see Events). It is
    drawn last so it is active all turn: you see it in the Realm and play around it, and an event that lasts N turns
    is active for N play phases.
@@ -307,16 +307,16 @@ effects and from pop, summing to `score()`; each territory's pop. Both kinds bui
 (`engine/ledger.gd`).
 `turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
 change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and the raids
-that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps
+that strike (pillage or repel), not the draw or the new event. `TurnLoop.start_turn` runs the same steps
 (`_settle_in`), so the forecast can't drift from the real turn. The sim bot values positions with it (313).
 `fork()` copies the game exactly, the rng and every deck's order included, so a lookahead on it knows the future.
 `sample_fork(seed)` (311) is one possible future instead: a fork with a new `SeededRng` from seed that reshuffles
 `HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
 
-Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
+Pending decisions (050, `pending()`): an explore choice, a hand-limit discard (renewal was one until 385), the government
 choice (154), a choice event's options (269) or a take (370: the cards `recall` or `look` (371) offers wait in the `offered`
 zone; `take(uid)` puts one in the hand and the rest in the discard). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
-options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
+options a discard or government choice has now. While one is owed, every action is refused with the same
 message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
 and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
 "nothing owed" message (`_owed_error`). A new kind follows the `add-decision` skill.
@@ -571,8 +571,8 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   later ones wait in `future_events`. When an era is added (the `add_era` op, the empty research deck, or an
   `era_unlocks` threshold), its events are shuffled into `event_deck`, once; the era-1 events, the active events
   and the event discard stay as they are. The event pile line's tooltip says how many events wait.
-- The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check, the
-  hand draw and renewal; none on turn 1 or after the final turn): draws the top event,
+- The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check and the
+  hand draw; none on turn 1 or after the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty or holds only raids that can't be drawn yet (266; nothing
   when both are empty), makes it active with
   `turns_left` = its `discard.turns`, and resolves its `play` effects. Then `event_drawn(outcome)` reports it (079:
@@ -608,12 +608,12 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
 - Choice events (269, `EventChoices`): an event (not a raid) may set `choices`, 2–3 options `{cost?: {resource: n ≥ 1},
   effects}`, at least one free; option effects have no `trigger` and follow an event's own rules (no target, no
   choice). When drawn, after its own play effects, `pending()` is `{kind: PENDING_EVENT_CHOICE, uid, options: [0, …]}`
-  and every other action says "Choose how to answer <event> first."; drawn while another decision is owed (a renewal),
-  it waits (`CardInstance.choice_waiting`) and is owed once that is paid. `choose_option(i)` / `choose_option_error(i)`
+  and every other action says "Choose how to answer <event> first." (drawn last in a turn's start, nothing else is owed
+  then; the wait behind a renewal went in 385). `choose_option(i)` / `choose_option_error(i)`
   pay the cost and resolve the effects once, emitting `option_chosen` (`{uid, id, index, gained, lost, vp, …}`, the
   cost in `lost`). Card text: "Choose: pay 2 wealth for +1 VP; or +1 unrest."; `option_text(uid, i)`: "Pay 2 wealth:
   +1 VP". An option without effects reads "pay 4 wealth" / "Pay 4 wealth", or "nothing" / "Nothing" when free (270). The event modal shows the options as buttons in place of OK (a refused one disabled, its reason the tooltip)
-  and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
+  and can't be dismissed; choosing shows a notice. The
   sim bot answers with the option whose sample fork values most (313). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
   Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain); era 2 (167):
@@ -714,7 +714,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   diminishing returns + the deck's worth (the expected best plays of a drawn hand, 376; each card's value measured by
   playing a copy on a fork, never below 0; 0 for a card that `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
   (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
-  best by card value per price; a renewal's combinations (at most 40) are of the least valuable cards first (373). The sim's only bot since 314, which removed `ScriptedBot`.
+  best by card value per price; a renewal is tried a card at a time, the least valuable first (at most 40; 373, 385). The sim's only bot since 314, which removed `ScriptedBot`.
 - Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the
   `KEY_STATE_FIELDS` and, for each card in the engine's `forecast_zones()`, the `KEY_CARD_FIELDS`; 336: the board, the
   always-on zones and any zone an effect's `reads_zones()` names, and every other `GameState`/`CardInstance` field is
@@ -760,18 +760,19 @@ Your people have one government at a time; its bonuses apply while it rules.
 - Anarchy's length (155, 384): it falls with `anarchy_turns` counters, whatever the unrest; unrest neither shortens
   nor lengthens it. One comes off at the end of each Anarchy turn (after the hand-limit discard, in
   `TurnLoop.finish_turn`); at 0 the anarchy event goes to `removed` and the government choice is owed (154). There is
-  no buying out (`restore_order` went in 384). `GameState.anarchy_turn` counts its turns, for renewal.
-- Renewal (147): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each turn that starts under Anarchy
-  owes, after the draw, `pending()` `{kind: PENDING_RENEWAL, count, options}`: count = renewal + (Anarchy's turn − 1)
-  + the `renewal` modifier ("Renewal trashes 1 more card"), capped at the options: the hand's, deck's and discard's
-  cards but governments, by name then uid (255). `renew(uids)` / `renew_error(uids)` pay it at once, exactly count
-  distinct options, each trashed from wherever it is (−1 unrest each; the deck keeps its order); refusals: "Trash a
-  card from your hand, deck or discard (not a government).", "Each card can be trashed once.", "Choose 2 cards to
-  trash.". Until paid every other action is refused ("Anarchy: trash 2 cards from your hand, deck or discard
-  first."). The Renewal modal (`RenewalModal`, not dismissable) lists the options as a ledger: hover or Up/Down shows
-  a row's card, a click or Enter chooses it (its lamp lights, `ui.toggle.on`; again, `ui.toggle.off`; past the count
-  `ui.reject.locked`), and "Trash N cards" unlocks at the count. The sim bot trashes the combination whose fork values
-  most (313). Real data: renewal 1, Mysticism +1.
+  no buying out (`restore_order` went in 384).
+- Renewal (147, 385): with config `unrest.renewal` (int ≥ 0; absent = renewal off), each Anarchy turn you may trash up
+  to `renewals_left()` cards: renewal + the `renewal` modifier ("Renew up to 1 more card each Anarchy turn") − those
+  renewed this turn (`GameState.renewed`, reset as a turn begins); unused ones don't carry over. The options
+  (`renewal_options()`) are the hand's, deck's and discard's cards but governments, by name then uid (255).
+  `renew(uids)` / `renew_error(uids)` is an action, not a decision: no action used, unrest unchanged, each card trashed
+  from wherever it is (the deck keeps its order); refusals: game over or a decision owed, "Renewal is only possible
+  during Anarchy.", "Choose a card to trash.", "No renewals left this turn.", "Trash a card from your hand, deck or
+  discard (not a government).", "Each card can be trashed once.", "Trash at most 2 cards this turn.". The Renew button
+  ("Renew (1 left)") beside Relieve famine opens the Renewal modal (`RenewalModal`), a ledger of the options: hover or
+  Up/Down shows a row's card, a click or Enter chooses it (its lamp lights, `ui.toggle.on`; again, `ui.toggle.off`;
+  past the count `ui.reject.locked`), "Trash N cards" trashes the N chosen, and Esc closes it without trashing. The
+  sim bot renews a card at a time while its fork values more (313, 385). Real data: renewal 1, Mysticism +1.
 - Revolution (148, 155): `revolt()` declares one at any time (`GameState.revolt_pending`); Anarchy falls at the next
   turn's start, before upkeep, so its first turn has an Anarchy upkeep. No action used. `revolt_error()`: game over or
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",

@@ -1,6 +1,6 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The turn's event is drawn at the start of the turn, from turn 2 (backlog 237): last in the turn start, after upkeep,
-## feeding, the Anarchy checks, the hand draw and renewal; never in end_turn. Fixtures: TEST_EVENTS, the
+## feeding, the Anarchy checks and the hand draw; never in end_turn. Fixtures: TEST_EVENTS, the
 ## Anarchy fixtures (tests/lib/anarchy_case.gd) and the events below.
 
 ## A one-turn event with an upkeep effect: ⟳ +1 wealth.
@@ -127,9 +127,9 @@ func test_an_unrest_event_reaching_the_limit_lets_the_turn_play_before_anarchy()
 	check(e.anarchy() != -1, "still at the limit as turn 3 starts: Anarchy falls")
 
 
-# --- AC6: under Anarchy the event comes after renewal (the drain went in 384) ---
+# --- AC6: under Anarchy the event is drawn too (the drain went in 384, renewal's wait in 385) ---
 
-func test_an_event_drawn_under_anarchy_comes_after_renewal() -> void:
+func test_an_event_drawn_under_anarchy_joins_it() -> void:
 	for top in ["windfall", "omen"]:
 		var e := anarchy_events_engine({"renewal": 1}, {"windfall": 1, "omen": 1},
 			[top, "windfall" if top == "omen" else "omen"])
@@ -141,15 +141,16 @@ func test_an_event_drawn_under_anarchy_comes_after_renewal() -> void:
 		eq(card_ids(e.zone("active_events")), ["anarchy", top], "%s game: the event is active beside Anarchy (253)" % top)
 
 
-func test_an_event_drawn_this_turn_adds_nothing_to_this_turns_renewal() -> void:
+## 385 AC3: an event drawn this turn with a renewal modifier raises this turn's renewals.
+func test_an_event_drawn_this_turn_raises_this_turns_renewals() -> void:
 	var e := anarchy_events_engine({"renewal": 1}, {"reform": 1, "omen": 1}, ["reform", "omen"])
 	for id in ["farm", "scout", "farm"]:
 		put_in(e, id, "discard")
 	e.resources["unrest"] = 5
 	e.end_turn()
 	eq(card_ids(e.zone("active_events")), ["anarchy", "reform"], "Reform active beside Anarchy (253)")
-	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
-	eq(e.pending().get("count"), 1, "1 + its first turn − 1, without Reform's +1")
+	eq(e.pending(), {}, "nothing owed")
+	eq(e.renewals_left(), 2, "1 + Reform's 1")
 
 
 # --- AC7: the final turn draws nothing ---

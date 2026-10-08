@@ -154,7 +154,7 @@ func test_choose_option_error_gives_the_reason_and_choose_option_changes_nothing
 
 # --- AC5: other decisions first ---
 
-## A choice_engine game whose turn 2 fell into Anarchy owing renewal (1 card, a Farm in the discard), Envoys drawn.
+## A choice_engine game whose turn 2 fell into Anarchy with renewal 1 (a Farm in the discard), Envoys drawn.
 func renewal_first() -> GameEngine:
 	var e := choice_engine(["envoys"], {"envoys": 1, "fleeting": 1}, {"renewal": 1})
 	put_in(e, "farm", "discard")
@@ -163,12 +163,12 @@ func renewal_first() -> GameEngine:
 	return e
 
 
-func test_a_renewal_owed_at_turn_start_comes_before_the_choice() -> void:
+## 385 AC5: renewal is an action, so a choice drawn under Anarchy is owed at once.
+func test_under_anarchy_a_choice_drawn_at_turn_start_is_owed_at_once() -> void:
 	var e := renewal_first()
 	var uid := uid_of(e.zone("active_events"), "envoys")
-	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "the renewal first")
-	check(e.renew([e.pending().options[0]]), "renew")
-	eq(e.pending(), {"kind": GameEngine.PENDING_EVENT_CHOICE, "uid": uid, "options": [0, 1]}, "then the choice")
+	check(e.anarchy() != -1, "precondition: Anarchy rules")
+	eq(e.pending(), {"kind": GameEngine.PENDING_EVENT_CHOICE, "uid": uid, "options": [0, 1]}, "the choice, at once")
 
 
 func test_the_choice_follows_a_government_chosen_at_the_turns_end() -> void:
@@ -183,14 +183,11 @@ func test_the_choice_follows_a_government_chosen_at_the_turns_end() -> void:
 	eq(e.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "then the choice")
 
 
-func test_a_copy_keeps_an_owed_or_waiting_choice() -> void:
+func test_a_copy_keeps_an_owed_choice() -> void:
 	var owed := drawn()
 	eq(owed.fork().pending(), owed.pending(), "an owed choice")
-	var waiting := renewal_first()
-	var f: GameEngine = waiting.fork()
-	check(f.renew([f.pending().options[0]]), "renew on the copy")
-	eq(f.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "the copy's waiting choice is owed next")
-	eq(waiting.pending().get("kind"), GameEngine.PENDING_RENEWAL, "the game itself still owes the renewal")
+	var anarchy := renewal_first()
+	eq(anarchy.fork().pending(), anarchy.pending(), "a choice owed under Anarchy")
 
 
 # --- AC6: text ---

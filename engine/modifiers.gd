@@ -4,9 +4,9 @@ extends RefCounted
 ## engine's state; GameEngine.modifier calls total.
 
 ## The modifier keys (DataLoader.MODIFIER_KEYS lists the valid ones): extra actions each turn, and more cards drawn
-## each turn (109), housing on every settled territory (110), a higher (or lower) unrest limit (144), and more (or
-## fewer) cards Anarchy's renewal trashes (147), more (or less) insight from each insight gain (157), and more (or
-## fewer) territories the government administers (319).
+## each turn (109), housing on every settled territory (110), a higher (or lower) unrest limit (144), more (or fewer)
+## cards Anarchy's renewal may trash each turn (147, 385), more (or less) insight from each insight gain (157), and more
+## (or fewer) territories the government administers (319).
 const ACTIONS := "actions"
 const HAND_SIZE := "hand_size"
 const HOUSING := "housing"

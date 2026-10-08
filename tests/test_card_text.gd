@@ -212,7 +212,7 @@ func test_bug_329_insight_and_administration_lines_have_no_plural() -> void:
 
 func test_bug_329_countable_modifiers_keep_their_plural() -> void:
 	eq(modifier_text({Modifiers.ACTIONS: 2}), "+2 actions each turn", "2 actions")
-	eq(modifier_text({Modifiers.RENEWAL: 2}), "Renewal trashes 2 more cards", "2 cards")
+	eq(modifier_text({Modifiers.RENEWAL: 2}), "Renew up to 2 more cards each Anarchy turn", "2 cards (385)")
 	eq(modifier_text({Modifiers.ACTIONS: 1}), "+1 action each turn", "1 action")
 
 

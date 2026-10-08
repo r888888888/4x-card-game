@@ -7,7 +7,8 @@ extends "res://tests/lib/anarchy_case.gd"
 ## first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest
 ## limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing
 ## `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops
-## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373); the deck's worth
+## past it; a card worth 0 still dilutes the deck, and renewal trashes the least valuable cards (373) and, optional
+## since 385, a worthless one; the deck's worth
 ## is the best plays of a drawn hand (376); tall settles up to 3 territories, only when nothing else is worth doing (390)
 
 const LONE := {"id": "lone", "name": "Lone", "type": "government", "actions": 1, "unrest_limit": 5}
@@ -372,8 +373,12 @@ func test_a_card_worth_0_still_dilutes_the_draws() -> void:
 	check(diluted < pure, "6 Temples and a dead Pioneer %.3f < 6 Temples %.3f" % [diluted, pure])
 
 
-## A game fallen into Anarchy (turn 2) with renewal 2 owed: 5 Auguries in the hand, 5 in the deck and 2 Guildhalls in
-## the discard, listed last among the options (by name, 255).
+## Husk: a card of no worth (no effects, no VP).
+const HUSK := {"id": "husk", "name": "Husk", "type": "action"}
+
+
+## A game fallen into Anarchy (turn 2) with renewal 2 (385: up to 2 cards this turn): 5 Auguries in the hand, 5 in the
+## deck and 2 Guildhalls in the discard, listed last among the options (by name, 255).
 func renewal_game() -> GameEngine:
 	var e := anarchy_engine({"renewal": 2}, {"turn_limit": 11, "supply": {}, "research_deck": {},
 		"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
@@ -388,9 +393,8 @@ func renewal_game() -> GameEngine:
 		put_in(e, "guildhall", "discard")
 	e.resources["unrest"] = 5
 	e.end_turn()
-	eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "precondition: renewal owed")
-	eq(e.pending().get("count"), 2, "precondition: 2 to renew")
-	eq(e.pending().get("options", []).slice(-2).map(func(uid): return e.zone(e.zone_of(uid)).find(uid).def.id),
+	eq(e.renewals_left(), 2, "precondition: 2 to renew")
+	eq(e.renewal_options().slice(-2).map(func(uid): return e.zone(e.zone_of(uid)).find(uid).def.id),
 		["guildhall", "guildhall"], "precondition: the Guildhalls are listed last")
 	return e
 
@@ -407,17 +411,26 @@ func test_renewal_trashes_the_least_valuable_cards_even_when_listed_last() -> vo
 	var ctx := GenericBot.Context.new("generic")
 	ctx.card_values = {"augury": [1, 1.0], "guildhall": [1, -1.0]}  # as measured on turn 1
 	GenericBot.take_turn(e, "generic", ctx)
-	eq(e.pending().get("kind", ""), "", "renewal answered")
 	eq(trashed_ids(e), ["guildhall", "guildhall"], "the 2 Guildhalls, no Augury")
 
 
-func test_a_rollout_still_answers_a_renewal() -> void:
-	var e := renewal_game()
-	var ctx := GenericBot.Context.new("generic")
-	ctx.rollout = true
-	GenericBot.take_turn(e, "generic", ctx)
-	eq(e.pending().get("kind", ""), "", "renewal answered")
-	eq(e.zone("trashed").size(), 2, "2 cards trashed")
+## 385 AC7: renewal is optional, and the bot takes it for a card of no worth.
+func test_the_bot_renews_a_worthless_card() -> void:
+	var e := anarchy_engine({"renewal": 1}, {"turn_limit": 11, "supply": {}, "research_deck": {},
+		"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+			"territory": "homeland", "government": "lone"}}, EXTRA + [AUGURY, HUSK])
+	e.resources["unrest"] = 5
+	e.end_turn()
+	check(e.anarchy() != -1, "precondition: Anarchy rules")
+	for z in ["hand", "deck", "discard"]:
+		for card in e.zone(z).take_all():
+			e.zone("removed").add(card)
+	put_in(e, "husk", "hand")
+	for i in 5:
+		put_in(e, "augury", "deck")
+	eq(e.renewals_left(), 1, "precondition: 1 to renew")
+	GenericBot.take_turn(e, "generic", GenericBot.Context.new("generic"))
+	eq(trashed_ids(e), ["husk"], "the Husk renewed")
 
 
 # --- 376: the deck's worth is what a turn's plays from a drawn hand are worth ---

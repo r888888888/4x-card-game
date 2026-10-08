@@ -1,9 +1,9 @@
 class_name EventChoices
 extends RefCounted
 ## Choice events (backlog 269): an event with `choices` offers 2 or 3 options, each {cost, effects}, one of them free.
-## When it is drawn, after its own play effects, the choice is owed (GameEngine.PENDING_EVENT_CHOICE); drawn while
-## another decision is owed, it waits (CardInstance.choice_waiting) and is owed once that one is paid. Choosing pays
-## the option's cost and resolves its effects once. Static functions on the engine's state.
+## When it is drawn, after its own play effects, the choice is owed (GameEngine.PENDING_EVENT_CHOICE): an event is drawn
+## last in a turn's start, when nothing else is owed (385 removed the wait behind renewal). Choosing pays the option's
+## cost and resolves its effects once. Static functions on the engine's state.
 
 const MIN_OPTIONS := 2
 const MAX_OPTIONS := 3
@@ -78,28 +78,14 @@ static func _effect_problem(raw: Dictionary, effect: Effect) -> String:
 	return DataLoader.no_territory_effect_problem(effect, CardDef.EVENT)
 
 
-## Event was just drawn (Events.draw): a choice event's choice is owed now, or waits behind the decision owed.
+## Event was just drawn (Events.draw, last in a turn's start, when nothing else is owed): a choice event's choice is
+## owed now (269).
 static func drawn(e: GameEngine, event: CardInstance) -> void:
-	if event.def.choices.is_empty():
-		return
-	if e.state.pending.is_empty():
+	if not event.def.choices.is_empty():
 		_owe(e, event)
-	else:
-		event.choice_waiting = true
-
-
-## A decision was just paid: the first active event whose choice waits is owed now (269).
-static func next(e: GameEngine) -> void:
-	if not e.state.pending.is_empty():
-		return
-	for event in e.zone("active_events").cards:
-		if event.choice_waiting:
-			_owe(e, event)
-			return
 
 
 static func _owe(e: GameEngine, event: CardInstance) -> void:
-	event.choice_waiting = false
 	e.state.pending = {"kind": GameEngine.PENDING_EVENT_CHOICE, "uid": event.uid, "options": range(event.def.choices.size())}
 
 

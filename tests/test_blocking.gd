@@ -1,11 +1,11 @@
 extends "res://tests/lib/anarchy_case.gd"
-## The pending-decision block (backlog 171): while a decision is owed (explore, hand-limit discard, renewal, the
-## government choice, a take (370)) or the game is over, every player action refuses, with a reason from its *_error query, and
+## The pending-decision block (backlog 171): while a decision is owed (explore, hand-limit discard, the government
+## choice, an event choice (269), a take (370)) or the game is over, every player action refuses, with a reason from its *_error query, and
 ## changes nothing; only the decision's own actions go on. The table of actions is checked against GameEngine's
 ## methods, so a new action needs a row. Games from tests/lib/anarchy_case.gd (unrest, Anarchy, renewal, a supply and
 ## a research deck), with Explorers and three territories to explore.
-## In detail (from docs/testing.md, 331): Guards (171): while each decision is owed (explore, discard, renewal,
-## government) and after game over, every other action refuses with a reason and changes nothing; the table of actions
+## In detail (from docs/testing.md, 331): Guards (171): while each decision is owed (explore, discard, government;
+## renewal is an action since 385) and after game over, every other action refuses with a reason and changes nothing; the table of actions
 ## is checked against `GameEngine`'s methods with an error query; 172: each decision action's message order, every
 ## action under `# --- Actions ---` beside its query
 
@@ -42,7 +42,7 @@ func actions() -> Array:
 		["discard_card", func(e): return e.discard_error(first_in(e, "hand")),
 			func(e): return e.discard_card(first_in(e, "hand"))],
 		["choose", func(e): return e.choose_error(option.call(e)), func(e): return e.choose(option.call(e))],
-		["renew", func(e): return e.renew_error([option.call(e)]), func(e): return e.renew([option.call(e)])],
+		["renew", func(e): return e.renew_error([first_in(e, "discard")]), func(e): return e.renew([first_in(e, "discard")])],
 		["choose_government", func(e): return e.choose_government_error(option.call(e)),
 			func(e): return e.choose_government(option.call(e))],
 		["relieve_famine", func(e): return e.relieve_famine_error(), func(e): return e.relieve_famine()],
@@ -79,10 +79,6 @@ func scenarios() -> Array:
 	for i in 2:
 		put_in_hand(discard, "farm")
 	discard.end_turn()
-	var renewal := blocking_engine({"renewal": 1})
-	put_in(renewal, "farm", "discard")
-	renewal.resources["unrest"] = 5
-	renewal.end_turn()  # falls into Anarchy: renewal owed
 	var government := blocking_engine()
 	government.resources["unrest"] = 5
 	government.end_turn()  # falls into Anarchy
@@ -97,7 +93,6 @@ func scenarios() -> Array:
 	over.end_turn()
 	eq(explore.pending().get("kind"), GameEngine.PENDING_EXPLORE, "explore owed")
 	eq(discard.pending().get("kind"), GameEngine.PENDING_DISCARD, "discard owed")
-	eq(renewal.pending().get("kind"), GameEngine.PENDING_RENEWAL, "renewal owed")
 	eq(government.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "government choice owed")
 	eq(event_choice.pending().get("kind"), GameEngine.PENDING_EVENT_CHOICE, "event choice owed")
 	eq(take.pending().get("kind"), GameEngine.PENDING_TAKE, "take owed")
@@ -105,7 +100,6 @@ func scenarios() -> Array:
 	return [
 		["explore", explore, ["choose"]],
 		["discard", discard, ["discard_card", "buy", "buy_tech", "supply"]],
-		["renewal", renewal, ["renew"]],
 		["government", government, ["choose_government"]],
 		["event choice", event_choice, ["choose_option"]],
 		["take", take, ["take"]],
@@ -160,7 +154,6 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 	const OVER := "The game is over."
 	const EXPLORE := "Choose a territory first."
 	const DISCARD := "Discard down to 5 cards first."
-	const RENEWAL := "Anarchy: trash 1 card from your hand, deck or discard first."
 	const GOVERNMENT := "Choose a government first."
 	const EVENT_CHOICE := "Choose how to answer Envoys first."
 	const TAKE := "Choose a card to take into your hand first."
@@ -170,24 +163,22 @@ func test_each_decision_action_names_game_over_then_the_owed_decision_then_nothi
 	# Each row: the action's error query for uid -1, then its message in each state, in the order of states' keys.
 	var rows := [
 		["choose", func(e): return e.choose_error(-1),
-			["There is no territory to choose.", "That territory isn't an option.", DISCARD, RENEWAL, GOVERNMENT,
+			["There is no territory to choose.", "That territory isn't an option.", DISCARD, GOVERNMENT,
 			EVENT_CHOICE, TAKE, OVER]],
-		["renew", func(e): return e.renew_error([-1]),
-			["Nothing to renew.", EXPLORE, DISCARD, Anarchy.RENEW_ERROR, GOVERNMENT, EVENT_CHOICE, TAKE, OVER]],
 		["choose_government", func(e): return e.choose_government_error(-1),
-			["No government to choose.", EXPLORE, DISCARD, RENEWAL,
+			["No government to choose.", EXPLORE, DISCARD,
 			"That government isn't in your government deck.", EVENT_CHOICE, TAKE, OVER]],
 		["discard_card", func(e): return e.discard_error(-1),
-			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", RENEWAL, GOVERNMENT,
+			["That card is not in your hand.", EXPLORE, "That card is not in your hand.", GOVERNMENT,
 			EVENT_CHOICE, TAKE, OVER]],
 		["choose_option", func(e): return e.choose_option_error(-1),
-			["No event choice is waiting.", EXPLORE, DISCARD, RENEWAL, GOVERNMENT, "No such option.", TAKE, OVER]],
+			["No event choice is waiting.", EXPLORE, DISCARD, GOVERNMENT, "No such option.", TAKE, OVER]],
 		["take", func(e): return e.take_error(-1),  # 370
-			["There is no card to take.", EXPLORE, DISCARD, RENEWAL, GOVERNMENT, EVENT_CHOICE,
+			["There is no card to take.", EXPLORE, DISCARD, GOVERNMENT, EVENT_CHOICE,
 			"That card isn't one of the choices.", OVER]],
 	]
-	eq(states.keys(), ["nothing owed", "explore", "discard", "renewal", "government", "event choice", "take",
-		"game over"], "states")
+	eq(states.keys(), ["nothing owed", "explore", "discard", "government", "event choice", "take", "game over"],
+		"states")
 	for row in rows:
 		var labels: Array = states.keys()
 		for i in labels.size():
@@ -229,7 +220,6 @@ func test_hand_input_error_names_what_blocks_picking_up_a_hand_card() -> void:
 	var expected := {
 		"explore": "Choose a territory first.",
 		"discard": "",
-		"renewal": "Anarchy: trash 1 card from your hand, deck or discard first.",
 		"government": "Choose a government first.",
 		"event choice": "Choose how to answer Envoys first.",
 		"take": "Choose a card to take into your hand first.",
