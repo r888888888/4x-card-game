@@ -36,6 +36,12 @@ static func relieve_button(main: MainScreen) -> Button:
 	return main.relief.button
 
 
+## The Renew button beside Relieve, visible or not (385).
+static func renew_button(main: MainScreen) -> Button:
+	var renew: Variant = main.get("renew")  # red phase (385): main has no renew yet
+	return renew.button if renew != null else null
+
+
 ## The drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed (079).
 static func event_modal(main: MainScreen) -> Dictionary:
 	return main.news.event_modal.shown()

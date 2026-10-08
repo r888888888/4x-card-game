@@ -2,7 +2,7 @@
 id: 385
 title: Renewal is a free action during Anarchy
 type: feature
-status: ready
+status: red-review
 branch: feat/385-renewal-action
 ---
 
@@ -66,7 +66,14 @@ Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.renewal: 1`.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_renewal::test_renewal_is_an_action_that_owes_nothing`; `test_pending::test_the_state_holds_one_pending_decision` (no `PENDING_RENEWAL`) |
+| AC2 | `test_renewal::test_the_count_is_flat_and_unused_renewals_dont_carry_over` |
+| AC3 | `test_renewal`: `test_a_renewal_modifier_raises_the_count_each_anarchy_turn`, `test_without_renewal_in_the_config_there_is_none`, `test_the_renewal_modifier_loads_with_its_text`; `test_events_at_turn_start::test_an_event_drawn_this_turn_raises_this_turns_renewals`; `test_card_text::test_bug_329_countable_modifiers_keep_their_plural` |
+| AC4 | `test_renewal`: `test_renew_error_names_each_reason_and_a_refusal_changes_nothing`, `test_renew_is_refused_outside_anarchy`, `test_renew_is_refused_while_a_decision_is_owed_or_the_game_is_over`; `test_blocking` (renewal is no longer a decision scenario) |
+| AC5 | `test_choice_events::test_under_anarchy_a_choice_drawn_at_turn_start_is_owed_at_once`, `test_choice_modal::test_under_anarchy_the_choice_shows_at_once`, `test_pending` (above) |
+| AC6 | `test_renewal::test_renewal_is_one_legal_entry_while_renewals_are_left`, `test_legal_actions::test_a_renewal_is_one_entry_choose_up_to_renewals_left_of_the_options` |
+| AC7 | `test_generic_bot`: `test_the_bot_renews_a_worthless_card`, `test_renewal_trashes_the_least_valuable_cards_even_when_listed_last` |
+| Design (summary, UI, state) | `test_revolution::test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers`; `test_renewal_modal` (the Renew button, a closable sheet, 1 to N cards); `test_renewal::test_a_copy_keeps_the_renewals_used`; `test_engine_structure` (`renewals_left`, `renewal_options` queries) |
 
 ## Manual check
 - [ ] During Anarchy the Renew button shows with the count left; the Renewal sheet opens, can be closed, and trashes
@@ -79,3 +86,9 @@ Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.renewal: 1`.
 ## Log
 - 2026-10-07: reshaped with 384's redesign (the user): renewal no longer calms unrest ("just an opportunity to trash
   cards") and the count is flat per turn (no +1 per turn so far).
+- 2026-10-08: red tests. Messages chosen: "Renewal is only possible during Anarchy.", "Choose a card to trash.", "No
+  renewals left this turn.", "Trash at most N cards this turn." (the wrong-card and twice messages stay). The modifier
+  text: "Renew up to N more cards each Anarchy turn". The Renew button reads "Renew (N left)"; the sheet's key "Trash N
+  cards" counts the cards chosen. A renewal modifier on an event drawn this turn now counts this turn (it is live).
+  Removed as unreachable: the cap at the options, the ramp, the "renewal blocks everything" and drag tests, the
+  rollout-answers-renewal bot test, and renewal's column in test_blocking's decision tables.

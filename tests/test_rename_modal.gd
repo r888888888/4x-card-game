@@ -73,7 +73,7 @@ func test_rename_sits_in_the_action_row_in_its_key_look() -> void:
 func test_a_refused_rename_stays_in_the_row_disabled_with_its_reason() -> void:
 	var main: Node = await open_home()
 	var view: Object = main.territory_view
-	Game.engine.state.pending = {"kind": GameEngine.PENDING_RENEWAL, "count": 1}  # a decision blocks renaming
+	Game.engine.state.pending = {"kind": GameEngine.PENDING_GOVERNMENT}  # a decision blocks renaming
 	Game.engine.changed.emit()
 	await wait_frames()
 	var rename: Button = view.rename_button

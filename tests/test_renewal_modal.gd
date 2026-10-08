@@ -1,11 +1,12 @@
 extends "res://tests/lib/anarchy_case.gd"
-## The Renewal modal (backlog 255): while renewal is owed a sheet lists every option as a row in options order; rows
-## are chosen and put back, the count caps them, and "Trash N cards" pays the renewal in one renew call. It can't be
-## dismissed. Sounds: toggle on/off, reject.locked past the count. Fixtures: tests/lib/anarchy_case.gd.
+## The Renewal modal (backlogs 255, 385): during Anarchy a Renew button beside Relieve famine shows the renewals left and
+## opens a sheet listing every renewal option as a row in options order; rows are chosen and put back, renewals_left()
+## caps them, and "Trash N cards" trashes 1 to that many in one renew call. Esc or Close shuts it without trashing.
+## Sounds: toggle on/off, reject.locked past the count. Fixtures: tests/lib/anarchy_case.gd.
 
 
-## Runs body(main, modal) on a real main scene whose game fell into Anarchy owing renewal block's count, the discard
-## holding discard_ids. Use with await.
+## Runs body(main, modal) on a real main scene whose game fell into Anarchy with block's renewal, the discard holding
+## discard_ids, and the Renew button pressed. Use with await.
 func with_renewal(block: Dictionary, discard_ids: Array, body: Callable) -> void:
 	await with_main(anarchy_engine(block), func(main: Node):
 		var e := Game.engine
@@ -14,6 +15,8 @@ func with_renewal(block: Dictionary, discard_ids: Array, body: Callable) -> void
 		e.resources["unrest"] = 5
 		e.end_turn()
 		await wait_frames()
+		MainProbe.renew_button(main).pressed.emit()
+		await wait_frames()
 		await body.call(main, main.renewal_modal))
 
 
@@ -21,38 +24,53 @@ func tokens(main: Node) -> Array:
 	return main.sfx.played().map(func(r): return r.token)
 
 
+# --- 385: the Renew button ---
+
+func test_the_renew_button_shows_the_renewals_left_during_anarchy() -> void:
+	await with_main(anarchy_engine({"renewal": 1}), func(main: Node):
+		var e := Game.engine
+		var renew := MainProbe.renew_button(main)
+		await wait_frames()
+		check(not renew.is_visible_in_tree(), "hidden outside Anarchy")
+		put_in(e, "scout", "discard")
+		e.resources["unrest"] = 5
+		e.end_turn()
+		await wait_frames()
+		check(renew.is_visible_in_tree(), "shown in Anarchy")
+		eq(renew.text, "Renew (1 left)", "the count left")
+		eq(renew.get_parent(), MainProbe.relieve_button(main).get_parent(), "beside Relieve famine")
+		check(not main.renewal_modal.is_open(), "nothing opens by itself")
+		check(e.renew([e.renewal_options()[0]]), "renew")
+		await wait_frames()
+		check(not renew.is_visible_in_tree(), "hidden with none left"))
+
+
 # --- AC7: the sheet ---
 
 func test_the_renewal_modal_lists_every_option_in_order() -> void:
 	await with_renewal({"renewal": 1}, ["scout", "kings"], func(main: Node, modal: RenewalModal):
 		var e := Game.engine
-		check(modal != null and modal.is_open(), "the Renewal modal is open")
-		if modal == null:
-			return
+		check(modal.is_open(), "the Renew button opens the Renewal modal")
 		eq(main.modals.top(), modal, "on the modal stack")
 		eq(modal.title, "Renewal", "titled")
-		eq(modal.row_uids(), e.pending().get("options"), "a row per option, in their order")
+		eq(modal.row_uids(), e.renewal_options(), "a row per option, in their order")
 		var names: Array = modal.rows().map(func(r): return r.text.strip_edges())
-		eq(names, e.pending().get("options").map(func(u): return e.card_details(u).name), "each row its card's name")
-		check(main.views_in(main.hand).size() == e.zone("hand").size(), "the hand stays in place")
-		check(main.choices.get("renewal_row") == null, "the old overlay is gone"))
+		eq(names, e.renewal_options().map(func(u): return e.card_details(u).name), "each row its card's name")
+		check(main.views_in(main.hand).size() == e.zone("hand").size(), "the hand stays in place"))
 
 
-func test_the_renewal_modal_cant_be_dismissed() -> void:
+func test_the_renewal_modal_closes_without_trashing() -> void:
 	await with_renewal({"renewal": 1}, ["scout"], func(main: Node, modal: RenewalModal):
+		var e := Game.engine
+		modal.rows()[0].pressed.emit()
 		press_key(main, KEY_ESCAPE)
-		for pressed in [true, false]:
-			var event := InputEventMouseButton.new()
-			event.button_index = MOUSE_BUTTON_LEFT
-			event.pressed = pressed
-			event.position = Vector2(4, 4)
-			event.global_position = Vector2(4, 4)
-			main.get_viewport().push_input(event, true)
 		await wait_frames()
-		check(modal.is_open(), "Esc and a click outside leave it open"))
+		check(not modal.is_open(), "Esc closes it")
+		eq(e.zone("trashed").size(), 0, "nothing trashed")
+		eq(e.renewals_left(), 1, "the renewal is still there"))
 
 
-func test_rows_are_chosen_and_put_back_up_to_the_count() -> void:
+func test_rows_are_chosen_and_put_back_up_to_the_renewals_left() -> void:
 	await with_renewal({"renewal": 2}, ["scout", "shrine", "farm"], func(main: Node, modal: RenewalModal):
 		var rows: Array = modal.rows()
 		var ids: Array = modal.row_uids()
@@ -65,21 +83,19 @@ func test_rows_are_chosen_and_put_back_up_to_the_count() -> void:
 		eq(modal.chosen(), [ids[1]], "a second click puts it back"))
 
 
-func test_trash_is_refused_until_the_count_then_pays_and_closes() -> void:
+func test_trash_takes_1_to_the_renewals_left_then_closes() -> void:
 	await with_renewal({"renewal": 2}, ["scout", "shrine"], func(main: Node, modal: RenewalModal):
 		var e := Game.engine
-		var rows: Array = modal.rows()
 		var ids: Array = modal.row_uids()
-		eq(modal.trash_button.text, "Trash 2 cards", "the key names the count")
-		rows[0].pressed.emit()
-		modal.trash_button.pressed.emit()
-		eq(e.pending().get("kind"), GameEngine.PENDING_RENEWAL, "1 of 2: refused, still owed")
-		check(modal.is_open(), "still open")
-		rows[1].pressed.emit()
+		check(modal.trash_button.disabled, "none chosen: locked")
+		modal.rows()[0].pressed.emit()
+		check(not modal.trash_button.disabled, "1 chosen: unlocked")
+		eq(modal.trash_button.text, "Trash 1 card", "the key names the cards chosen")
 		modal.trash_button.pressed.emit()
 		await wait_frames()
-		eq(e.pending(), {}, "paid")
-		eq(sorted(e.zone("trashed").cards.map(func(c): return c.uid)), sorted([ids[0], ids[1]]), "the chosen two trashed")
+		eq(card_ids(e.zone("trashed")).size(), 1, "one trashed")
+		check(e.zone("trashed").find(ids[0]) != null, "the chosen one")
+		eq(e.renewals_left(), 1, "1 left")
 		check(not modal.is_open(), "the sheet closes"))
 
 

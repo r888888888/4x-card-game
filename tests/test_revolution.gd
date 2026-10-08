@@ -89,7 +89,7 @@ func test_retired_revolt_field_is_a_load_warning() -> void:
 
 const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts 3 turns.",
 	"You can play action cards; nothing can be grown, bought or researched.",
-	"Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
+	"Each turn: you may trash 1 card from your hand, deck or discard.",
 	"When it ends, choose a government; unrest drops to 0."]
 
 

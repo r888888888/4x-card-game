@@ -126,8 +126,8 @@ func test_with_neither_the_sidebar_names_nothing() -> void:
 
 # --- 119 AC4: a new government ---
 
-## Plays engine from a revolution at unrest 0 (a 1-turn Anarchy, 155) to the government choice, paying renewal, the
-## hand-limit discard and any explore with their first options.
+## Plays engine from a revolution at unrest 0 to the government choice, answering the hand-limit discard, any explore
+## and any event choice with their first options.
 func to_government_choice(e: GameEngine) -> void:
 	e.resources["unrest"] = 0
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
@@ -138,8 +138,6 @@ func to_government_choice(e: GameEngine) -> void:
 		match p.get("kind", ""):
 			GameEngine.PENDING_GOVERNMENT:
 				return
-			GameEngine.PENDING_RENEWAL:
-				e.renew(p.options.slice(0, p.count))
 			GameEngine.PENDING_DISCARD:
 				e.discard_card(first)
 			GameEngine.PENDING_EXPLORE:

@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The event modal for a choice event (backlog 269) in the real main scene: the options as buttons in place of OK, not
 ## dismissable while the choice is owed; a refused option disabled with the engine's reason as its tooltip; choosing
-## closes it with a notice of what the option did; under Anarchy the renewal comes first. Hooks: MainProbe.event_modal(main)
+## closes it with a notice of what the option did; under Anarchy it shows at once (385). Hooks: MainProbe.event_modal(main)
 ## ({…, options: option texts}), MainProbe.event_option_buttons(main). Fixtures: tests/lib/anarchy_case.gd (Envoys).
 
 
@@ -60,17 +60,13 @@ func test_choosing_closes_the_modal_and_notices_what_the_option_did() -> void:
 		check(texts.any(func(t: String): return t.contains("+1 unrest")), "a notice says +1 unrest: %s" % [texts]))
 
 
-func test_under_anarchy_the_renewal_comes_first_then_the_choice() -> void:
+func test_under_anarchy_the_choice_shows_at_once() -> void:
 	var fall := func(e: GameEngine):
 		put_in(e, "farm", "discard")
 		e.resources["unrest"] = 5
 	await with_choice(3, func(main: Node):
-		var e := Game.engine
-		check(main.renewal_modal.is_open(), "the renewal modal is open")
-		eq(MainProbe.event_modal(main), {}, "the choice waits")
-		check(e.renew([e.pending().options[0]]), "renew")
-		await wait_frames()
-		eq(MainProbe.event_modal(main).get("id"), "envoys", "then the event shows")
+		check(not main.renewal_modal.is_open(), "no renewal modal opens by itself (385)")
+		eq(MainProbe.event_modal(main).get("id"), "envoys", "the event shows")
 		eq(MainProbe.event_option_buttons(main).size(), 2, "with its options"), fall, {"renewal": 1})
 
 

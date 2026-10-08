@@ -1,7 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## The pending-decision model (backlog 050): pending() describes what the player owes (an explore choice or a
 ## hand-limit discard; 140 dropped open research), and one blocking rule applies to every action.
-## In detail (from docs/testing.md, 331): `pending()` for each decision kind (explore, discard, renewal, government)
+## In detail (from docs/testing.md, 331): `pending()` for each decision kind (explore, discard, government; renewal is an
+## action since 385)
 ## and the one blocking rule every action follows; 172: one `GameState.pending`, `pending()` a copy
 
 const POP_ON := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}}
@@ -104,6 +105,7 @@ func test_the_state_holds_one_pending_decision() -> void:
 	for old in ["pending_choice", "discard_left", "renewal_left", "choosing_government"]:
 		check(not names.has(old), "GameState.%s is gone" % old)
 	eq(GameState.new().pending, {}, "nothing owed on a new state")
+	check(not (GameEngine as Script).get_script_constant_map().has("PENDING_RENEWAL"), "no renewal decision (385)")
 	var e := pending_engine()
 	var explorer := put_in_hand(e, "explorer")
 	check(e.play_card(explorer), "play Explorer")
