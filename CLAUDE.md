@@ -12,6 +12,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   starting civ), 2 every strategy, 3 every civ too, 4 ten seeds of all of it; add `--compare <checkout>` to pair with main.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
+- Card art: the `card-art` skill takes `docs/design/card-art.md` to reviewed pictures with `scripts/card_art.py`
+  (`status` is free; `generate` and `fix` cost API calls, so the skill asks first).
 - In a Claude Code cloud session: [docs/cloud.md](docs/cloud.md) (`scripts/cloud-setup.sh` installs Godot).
 
 ## Architecture rules
