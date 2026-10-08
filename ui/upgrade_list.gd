@@ -57,7 +57,7 @@ func _add_row(e: GameEngine, row: Dictionary, blocked: String) -> void:
 	if row.built != -1:
 		var why := e.fallen_back_reason(row.built)
 		shown.status = why if why != "" else "Built"
-		shown.status_label = _label(shown.status, &"Refusal" if why != "" else &"Caption")
+		shown.status_label = _status(shown.status, &"Refusal" if why != "" else &"Caption")
 		line.add_child(shown.status_label)
 	elif blocked != "" or row.error == "":
 		var cost := e.build_cost(row.card_id)
@@ -70,9 +70,18 @@ func _add_row(e: GameEngine, row: Dictionary, blocked: String) -> void:
 		shown.button = button
 	else:
 		shown.status = row.error
-		shown.status_label = _label(row.error, &"Refusal")
+		shown.status_label = _status(row.error, &"Refusal")
 		line.add_child(shown.status_label)
 	_rows.append(shown)
+
+
+## A row's status: it shares the row with the name and rules (a third of it), so it wraps at words, not letters (411).
+func _status(text: String, variation: StringName) -> Label:
+	var label := _label(text, variation)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_stretch_ratio = 0.5
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	return label
 
 
 func _label(text: String, variation: StringName) -> Label:
