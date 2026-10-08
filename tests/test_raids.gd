@@ -1,6 +1,6 @@
 extends "res://tests/lib/raid_case.gd"
 ## Barbarian raids (backlog 162): an event with `raid` {strength, targets, pop} is announced when drawn, aimed at the
-## weakest settled territory it may hit (fizzling when there is none, 372), and strikes two event phases later (257):
+## weakest settled territory it may hit (discarded unseen when there is none, 372, 416), and strikes two event phases later (257):
 ## repelled when the target's defence is at least its strength (its `repel` effects), else pillaged (its `pillage` effects, pop and the units stationed
 ## there lost). `raid_target`, `raid_forecast` and `raid_resolved`.
 ## In detail (from docs/testing.md, 331): Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers,
@@ -91,17 +91,6 @@ func test_a_raid_with_no_targets_picks_the_weakest_then_the_most_pop() -> void:
 	eq(e.military.raid_target(active_uid(e, "horde")), home_uid(e), "Homeland: defence 0 like Hills, but 3 pop")
 
 
-## raid_engine's game with Hills (the only mountain) back in the territory deck, so Raiders matches nothing (372).
-func fixture_no_mountain(ids_on_top := ["raiders", "omen", "omen", "omen"]) -> GameEngine:
-	var e := raid_engine(ids_on_top)
-	if e == null:
-		return null
-	var hills: CardInstance = e.zone("tableau").find(hills_of(e))
-	e.zone("tableau").remove(hills)
-	e.zone("territory_deck").add(hills)
-	return e
-
-
 func test_bug_372_a_raid_whose_targets_match_nothing_fizzles_into_the_discard() -> void:
 	var e := fixture_no_mountain()
 	if e == null:
@@ -132,18 +121,21 @@ func test_bug_372_a_fizzled_raid_never_strikes_or_starts_the_raid_gap() -> void:
 	eq(e.state.last_raid_turn, 0, "no raid gap started")
 
 
-func test_bug_372_a_fizzled_raid_is_still_the_turns_event() -> void:
+## 416 replaced 372's rule that a raid with no target was still the turn's event.
+func test_a_raid_whose_targets_match_nothing_is_discarded_unseen_and_the_next_event_drawn() -> void:
 	var e := fixture_no_mountain()
 	if e == null:
 		return
 	var raid := uid_of(e.zone("event_deck"), "raiders")
-	var deck := e.zone("event_deck").size()
+	var omen := e.zone("event_deck").cards[-2].uid
 	var seen: Array[Dictionary] = []
 	e.event_drawn.connect(func(o: Dictionary): seen.append(o))
 	e.end_turn()
-	eq(seen.map(func(o): return o.uid), [raid], "event_drawn once, for Raiders")
-	eq(e.zone("event_deck").size(), deck - 1, "no second event drawn")
-	eq(e.zone("active_events").size(), 0, "nothing active")
+	eq(seen.map(func(o): return o.uid), [omen], "event_drawn once, for the Omen under Raiders")
+	eq(active_uid(e, "omen"), omen, "the Omen is the turn's event")
+	check(e.zone("event_discard").find(raid) != null, "Raiders in the event discard")
+	eq(e.military.raid_target(raid), -1, "no target")
+	eq(e.state.last_raid_turn, 0, "no raid gap started")
 
 
 func test_a_raid_avoids_stronger_land_and_breaks_full_ties_by_tableau_order() -> void:

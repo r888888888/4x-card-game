@@ -4,7 +4,8 @@ extends "res://tests/lib/test_case.gd"
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 ## Levy: a unit of strength 2; Town: a city with defense 1. Raiders: strength 3 aimed at mountains, +1 insight when
 ## drawn; repelled +2 wealth −1 unrest, pillaged −2 food +1 unrest. Horde: strength 1, any territory, pop 1 by default.
-## Stockade (1 food 2 wealth), Fort (a city, 2 wealth) and Spearmen (a unit, 2 food) for realm sizes (257).
+## Stockade (1 food 2 wealth), Fort (a city, 2 wealth) and Spearmen (a unit, 2 food) for realm sizes (257). Rockfall: an
+## event that requires a mountain or a flood plain, +2 insight when drawn (416).
 const RAID_CARDS := [
 	{"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2},
 	{"id": "town", "name": "Town", "type": "city", "vp": 1, "tags": ["city"], "defense": 1},
@@ -18,6 +19,8 @@ const RAID_CARDS := [
 	{"id": "stockade", "name": "Stockade", "type": "building", "cost": {"food": 1, "wealth": 2}},
 	{"id": "fort", "name": "Fort", "type": "city", "tags": ["city"], "cost": {"wealth": 2}},
 	{"id": "spearmen", "name": "Spearmen", "type": "unit", "cost": {"food": 2}, "strength": 1},
+	{"id": "rockfall", "name": "Rockfall", "type": "event", "requires": ["mountain", "flood_plain"],
+	 "effects": [{"op": "gain", "resource": "insight", "amount": 2}]},
 ]
 
 
@@ -54,6 +57,19 @@ func raid_engine(ids_on_top := ["raiders"], event_deck := {"raiders": 1, "horde"
 	var e := GameEngine.new(r.cards, config)
 	e.new_game(1)
 	raid_setup(e, ids_on_top)
+	return e
+
+
+## raid_engine's game with Hills (the only mountain) back in the territory deck, so Raiders and Rockfall match nothing
+## (372, 416).
+func fixture_no_mountain(ids_on_top := ["raiders", "omen", "omen", "omen"], event_deck := {"raiders": 1, "horde": 1, "omen": 3},
+		overrides := {}) -> GameEngine:
+	var e := raid_engine(ids_on_top, event_deck, overrides)
+	if e == null:
+		return null
+	var hills: CardInstance = e.zone("tableau").find(hills_of(e))
+	e.zone("tableau").remove(hills)
+	e.zone("territory_deck").add(hills)
 	return e
 
 
