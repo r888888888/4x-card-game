@@ -1,0 +1,70 @@
+---
+id: 405
+title: Buildings cost wealth upkeep - a shortfall adds unrest
+type: feature
+status: ready
+branch: feat/405-building-upkeep
+---
+
+## Goal
+Buildings have a running cost, so a bigger tableau drains wealth each turn and a stronger food economy (406) has
+something to pay for. Each working base building pays its upkeep in wealth after all upkeep production, the way pop
+eats food. A wealth shortfall brings unrest, just as a food shortfall brings Famine.
+
+## Acceptance criteria
+Fixtures: `TEST_CARDS` buildings with no upkeep effects (Hut, Shed), one with ⟳ +2 wealth (Mint Hut), one with
+`upkeep: 2` (Big Hall), one with `upkeep: 0` (Free Shed), an upgrade on Hut and a 10-wealth project. The config has
+`building_upkeep: 1`, unless a criterion says otherwise.
+
+- [ ] AC1 (default upkeep): Given Hut and Shed working and 5 wealth, when upkeep runs, then wealth is 3 and unrest is
+  unchanged.
+- [ ] AC2 (per-card upkeep): Given Hut, Big Hall and Free Shed working and 5 wealth, when upkeep runs, then wealth is 2
+  (1 + 2 + 0).
+- [ ] AC3 (who doesn't pay): Given Hut working with an upgrade built on it, a second Hut idle (its territory short of a
+  worker), an unfinished project site, a completed project and the Capital, all with 5 wealth, when upkeep runs, then
+  wealth is 4: only the working Hut pays. Without `building_upkeep` in the config (rules off) nothing pays, and every
+  existing test's numbers stay the same.
+- [ ] AC4 (production first): Given Mint Hut working and 0 wealth, when upkeep runs, then wealth is 1 (+2, then −1)
+  and unrest is unchanged.
+- [ ] AC5 (shortfall): Given Hut, Shed and Big Hall working (upkeep 4), 1 wealth and unrest 0 with limit 8, when upkeep
+  runs, then wealth is 0 and unrest is 3. With unrest 7, unrest stops at the limit, 8.
+- [ ] AC6 (forecast): In AC1's and AC5's setups, `upkeep_forecast()` reports wealth −2 (AC1), and wealth −1 with unrest
+  +3 (AC5), before upkeep. The game state is unchanged, and the forecast matches what upkeep then does.
+- [ ] AC7 (loader): A building's `upkeep` must be an int ≥ 0. A negative or non-int value, `upkeep` on a non-building, or
+  `upkeep` on an upgrade or a project is a load error naming the file, card and field. The config's `building_upkeep`
+  must be an int ≥ 0 (error names `config.json` and the field). Absent, it is 0.
+- [ ] AC8 (card text): Hut's rules text ends with an upkeep line, "⟳ Upkeep 1 wealth". Big Hall's reads "⟳ Upkeep 2
+  wealth". Free Shed, an upgrade and a project have no upkeep line.
+
+## Out of scope
+- The shipped numbers: farm and fishing food, upkeep on the real data, and the design pass on every building (406).
+- Selling or disbanding a building to save upkeep.
+- Upkeep in any resource but wealth.
+
+## Design notes
+- Data: config `building_upkeep` (int ≥ 0, wealth, default 0). Building field `upkeep` (int ≥ 0) overrides it per
+  card. It goes in `DataLoader.TYPE_FIELDS` and `INT_FIELDS` (follow the `add-card-field` skill). The loader resolves
+  each base building's effective upkeep into `CardDef.upkeep` (config default unless the card sets its own), so card
+  text and queries read one number. Upgrades and projects are always 0.
+- Engine: a new upkeep step after pop eats food (PLAN's turn loop step 1). The working base buildings' upkeep is summed
+  and paid from wealth through `lose` (never below 0). The unpaid remainder is added to unrest through `set_unrest`, so
+  the limit caps it, and a capped shortfall can then set off the Anarchy check. Idle buildings and fallen-back ones pay
+  nothing, decided at the same point as idleness (before pop eats). A query, `building_upkeep_due()`, gives the total
+  owed for the UI and the forecast. Log: "Buildings' upkeep: −3 wealth." and, when short, "Upkeep short 2 wealth:
+  +2 unrest."
+- The forecast runs upkeep on a fork, so it picks up the new step. GenericBot weighs forecast wealth and the unrest
+  coming in (321), so it sees the drain and the shortfall risk with no bot change.
+- Order relative to Famine: food feeding stays first. The wealth step comes after it, before era unlocks.
+- PLAN.md: the Resources row, turn loop step 1 and the Population section get the new step.
+
+## Test plan
+| AC | Test |
+|---|---|
+| AC1 | |
+
+## Manual check
+- [ ] The top bar's wealth forecast includes the buildings' upkeep. Build a second building and the "(+n)" drops by 1.
+- [ ] A building's card face and details show "⟳ Upkeep 1 wealth"; an upgrade's ribbon shows none.
+- [ ] Run broke with buildings: the turn's log shows the shortfall and the unrest forecast shows it a turn ahead.
+
+## Log

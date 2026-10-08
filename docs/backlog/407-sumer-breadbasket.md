@@ -1,0 +1,59 @@
+---
+id: 407
+title: Sumer as the breadbasket - drop the starting Farm and +1 housing
+type: feature
+status: ready
+branch: feat/407-sumer-breadbasket
+---
+
+## Goal
+Sumer has five perks where every other civilization has two, and 406 makes its starting Farm worth 5 food a turn from
+turn 1 on its flood-plain home. Sumer becomes the breadbasket civilization instead: it starts level with the others
+and is best at stacking farm territories, which fits 406's specialisation. It keeps:
+- ⟳ +1 food per farm-tagged building
+- farm buildings cost 1 wealth less
+- Start: a Research in the discard
+
+It loses the starting Farm and "every territory houses 1 more pop" (the Hanging Gardens' effect, free).
+
+Ships with 406 (same branch or merged right after it), so Sumer never plays on 406's numbers with its old perks.
+
+## Acceptance criteria
+- [ ] AC1 (start gifts still check): The config loader's starting-tableau checks (133) still hold for every listed
+  civilization, and the real data loads with no warnings. No civilization now starts with a building in its tableau,
+  and the checks stay for future data (their `TEST_CARDS` tests are unchanged).
+- [ ] AC2 (real-data UI tests): The real-data tests that start a seed-5 Sumer game (`test_revolt_modal`, `test_day_mode`,
+  `test_identity_cards`) pass unchanged. If one depends on the starting Farm, stop and say which, rather than rewrite it.
+
+## Out of scope
+- Other civilizations. Egypt's ⟳ +1 food per fresh-water territory also rises in value relative to 406's food, but it
+  doesn't stack per building. Leave it to the balance run.
+- Sumer's flavor text and quote. They speak of cities and writing, not the Farm. Check them under Manual check.
+
+## Design notes
+Data only, in `data/cards.json` (`sumer`):
+- Remove the `create` farm `start` effect and `"modifiers": {"housing": 1}`.
+- Keep the `create` research `start` effect, the `gain_per_tag` farm `upkeep` effect and the farm discount.
+
+With 406's numbers, turn 1 makes Capital +2 food, +1 wealth against 2 pop: food +0 net, wealth +1, the same as Babylon.
+Delta Marsh (1 slot) can take a Farm for 1 food + 1 wealth, making ⟳ 4 + 1 (flood plain) + 1 (Sumer) = 6 food. A
+Farm on River Meadow makes 5 and Irrigation Canals 4 (1 food + 2 wealth). Each farm-tagged building gives Sumer 1 more
+food than anyone else, about +25% on a 4-food Farm, where it was +50% on a 2-food one.
+
+PLAN.md: the civilizations line (107) and 133's note that Sumer starts with a Farm.
+
+## Test plan
+| AC | Test |
+|---|---|
+| AC1 | |
+
+## Manual check
+- [ ] `sumer` in `data/cards.json` has no Farm `create` and no `modifiers`. Its card face reads Start: Research, ⟳ +1
+  food per farm and the farm discount, and nothing about housing.
+- [ ] New game as Sumer: the home has no Farm and an empty slot, the forecast reads food +0 and wealth +1, and the
+  Build menu prices a Farm at 1 food + 1 wealth.
+- [ ] Sumer's flavor and quote still fit with no starting Farm.
+- [ ] Balance (the user runs it, with 406): `scripts/sim.sh --level 3 --compare <main checkout>`. Sumer's final VP
+  against the other five, and how many farm-tagged buildings it builds.
+
+## Log
