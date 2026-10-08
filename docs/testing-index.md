@@ -16,9 +16,8 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_actions.gd` | Actions per turn (127) |
 | `tests/test_admin_unrest.gd` | Admin unrest (319) |
 | `tests/test_anarchy.gd` | Anarchy (145) |
-| `tests/test_anarchy_drain.gd` | Anarchy's drain (156) |
 | `tests/test_anarchy_event.gd` | Anarchy as an event (253) |
-| `tests/test_anarchy_length.gd` | Anarchy's length (155) |
+| `tests/test_anarchy_length.gd` | Anarchy's length: a fixed `anarchy_turns` (155, 384) |
 | `tests/test_blocking.gd` | Every action refused while a decision is owed or the game is over (171, 172) |
 | `tests/test_board_faces.gd` | Board card faces (138; UI) on a `board_engine` game |
 | `tests/test_board_labels.gd` | The board's game words (UI) |
@@ -103,7 +102,6 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_keywords.gd` | Territory keywords, `requires` and keyword effects (005) |
 | `tests/test_knowledge_screen.gd` | The Knowledge screen (208; the tech tree before it, 059, 140; UI) |
 | `tests/test_launch_options.gd` | Command-line options (135) |
-| `tests/test_leaving_anarchy.gd` | Restoring order (146, 155) |
 | `tests/test_legal_actions.gd` | `legal_actions` (312) |
 | `tests/test_legend_key.gd` | The toggle key (182; the window bar since 219; UI) |
 | `tests/test_log_drawer.gd` | The log drawer (115; UI) |
@@ -142,6 +140,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
 | `tests/test_scaffolding.gd` | No red-phase scaffolding left (333; `tests/lib/scaffolding_checks.gd`) |
+| `tests/test_score_breakdown.gd` | Score and pop breakdowns by source, and their popover (380; UI) |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
 | `tests/test_sea_slots.gd` | Sea slots (366) |
@@ -203,6 +202,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI); the details' Upgrades section (387) |
 | `tests/test_upgrades.gd` | Building upgrades (300); `upgrade_rows` (387) |
+| `tests/test_upkeep_breakdown.gd` | Upkeep and unrest-limit breakdowns by source, and the counters' popover (379; UI) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
 | `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_veteran_pips.gd` | Veteran pips on unit cards, lit as a tally after a raid (388; UI) |

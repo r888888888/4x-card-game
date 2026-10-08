@@ -47,8 +47,6 @@ signal revolted
 ## Emitted for one of the game's rare, important moments (191), before changed: MILESTONE_TECH when a tech is learned,
 ## MILESTONE_CITY when a territory is settled into a city, MILESTONE_ERA for each era added. Never during new_game.
 signal milestone(kind: StringName)
-## Emitted when restore_order() buys order (155), before changed; the sim counts them (158).
-signal order_restored
 ## Emitted when build() puts a building, unit or upgrade into play from the build menu (357), with its uid, before
 ## changed: the board gives it the build ceremony. Not for a card played from the hand or created by an effect.
 signal built(uid: int)
@@ -58,6 +56,7 @@ var config: Dictionary  # normalized by DataLoader.parse_config
 var state := GameState.new()
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
+var _insight_gains := 0  # insight gains made on this engine; UpkeepBreakdown credits insight_per_gain per gain (379)
 var _setting_up := false  # new_game is setting the game up: no milestones; false outside new_game
 
 var seed_value: int:
@@ -139,8 +138,6 @@ func set_unrest(n: int) -> int:
 		n = maxi(limit, mini(n, have))
 	n = maxi(n, 0)
 	resources[UNREST] = n
-	if n < have:
-		_unrest_lowered()
 	return n - have
 
 
@@ -151,6 +148,7 @@ func set_unrest(n: int) -> int:
 func gain(resource: String, amount: int, source: CardInstance) -> void:
 	if resource == INSIGHT:
 		amount = maxi(0, amount + Modifiers.total(self, Modifiers.INSIGHT_PER_GAIN))
+		_insight_gains += 1
 	if resource == UNREST:
 		amount = set_unrest(resources.get(UNREST, 0) + amount)
 	else:
@@ -164,8 +162,6 @@ func gain(resource: String, amount: int, source: CardInstance) -> void:
 func lose(resource: String, amount: int, source: CardInstance) -> void:
 	var lost: int = mini(amount, resources.get(resource, 0))
 	resources[resource] = resources.get(resource, 0) - lost
-	if resource == UNREST and lost > 0:
-		_unrest_lowered()
 	if not _outcome.is_empty() and lost > 0:
 		_outcome.lost[resource] = _outcome.lost.get(resource, 0) + lost
 	_log("  %s: −%d %s" % [source.def.name, lost, resource])
@@ -327,8 +323,3 @@ func _milestone(kind: StringName) -> void:
 func _notice(message: String, priority := NOTICE_INFO) -> void:
 	_log(message)
 	noticed.emit(message, priority)
-
-
-## Called whenever unrest drops (set_unrest, lose); GameEngine lets a ruling Anarchy shorten (155).
-func _unrest_lowered() -> void:
-	pass

@@ -8,6 +8,8 @@ extends RefCounted
 ## The zones whose cards every turn forecast reads: the board and the always-on zones (336; forecast_zones adds the
 ## zones effects count).
 const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
+const CROWDED := "Crowded territories"  # size unrest's source (282, 379)
+const OVEREXTENDED := "Overextended realm"  # admin unrest's source (319, 379)
 
 
 ## Sets up a game with seed p_seed played as civilization civ_id ("" for none) and starts turn 1.
@@ -151,7 +153,7 @@ static func start_turn(e: GameEngine) -> void:
 
 
 ## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
-## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and drain and the raids
+## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and the raids
 ## that strike; not the draw, the renewal or the new event. {} on the last turn or after game over.
 static func forecast(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
@@ -190,7 +192,7 @@ static func _begin(e: GameEngine) -> void:
 
 
 ## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, era unlocks and
-## Anarchy's fall and drain. Returns the pop feeding starved.
+## Anarchy's fall. Returns the pop feeding starved.
 static func _settle_in(e: GameEngine) -> int:
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
@@ -201,19 +203,27 @@ static func _settle_in(e: GameEngine) -> int:
 		starved = pop - e.total_pop()
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
-	Anarchy.drain(e)
 	return starved
 
 
-## Adds size unrest (282) and admin unrest (319), then resolves "upkeep" on every working card: tableau cards that aren't idle, the cards in ALWAYS_ON_ZONES
-## (researched techs, the civilization, the government), then active events (which may end).
-static func resolve_upkeep(e: GameEngine) -> void:
+## Adds size unrest (282) and admin unrest (319), then resolves "upkeep" on every working card: tableau cards that
+## aren't idle, the cards in ALWAYS_ON_ZONES (researched techs, the civilization, the government), then active events
+## (which may end). step, when valid, is called after each of those steps with its label and card (null for the
+## unrest steps), so UpkeepBreakdown can tell what each changed (379).
+static func resolve_upkeep(e: GameEngine, step := Callable()) -> void:
 	var crowded := e.size_unrest()  # first, before any upkeep takes pop (282)
 	if crowded > 0:
-		e._log("Crowded territories: +%d unrest." % e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + crowded))
+		e._log("%s: +%d unrest." % [CROWDED, e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + crowded)])
+	if step.is_valid():
+		step.call(CROWDED, null)
 	var overextended := e.admin_unrest()  # read with size unrest, before any upkeep (319)
 	if overextended > 0:
-		e._log("Overextended realm: +%d unrest." % e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + overextended))
+		e._log("%s: +%d unrest." % [OVEREXTENDED,
+			e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + overextended)])
+	if step.is_valid():
+		step.call(OVEREXTENDED, null)
 	for card in Modifiers.working_cards(e):
 		e._resolve(card, "upkeep")
-	Events.resolve_upkeep(e)
+		if step.is_valid():
+			step.call(card.def.name, card)
+	Events.resolve_upkeep(e, step)

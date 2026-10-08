@@ -1,13 +1,13 @@
 extends "res://tests/lib/test_case.gd"
-## Base class for Anarchy tests (backlogs 145, 146): fixture governments and cards, a config with the unrest block, and
+## Base class for Anarchy tests (backlogs 145, 146, 384): fixture governments and cards, a config with the unrest block, and
 ## games that start or have fallen into Anarchy. Fixtures, with TEST_CARDS and TEST_GOVS: Chiefs (government, limit 5),
-## Kings (limit 7), Anarchy (event, +1 action, ⟳ −1 pop; 253), Fleeting (event, 2 turns), Feast (order, −2 unrest), Calm (building, ⟳ −1 unrest),
+## Kings (limit 7), Anarchy (event, ⟳ −1 pop; 253), Fleeting (event, 2 turns), Feast (an action tagged order, −2 unrest), Calm (building, ⟳ −1 unrest),
 ## Dawn (adds era 2), Lore (a tech) and Altar (building, unrest limit +1).
 
 const RESOURCES: Array[String] = ["food", "wealth", "insight", "unrest"]
 const CHIEFS := {"id": "chiefs", "name": "Chiefs", "type": "government", "unrest_limit": 5}
 const KINGS := {"id": "kings", "name": "Kings", "type": "government", "unrest_limit": 7}
-const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "event", "modifiers": {"actions": 1},
+const ANARCHY := {"id": "anarchy", "name": "Anarchy", "type": "event",
 	"effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]}
 const FLEETING := {"id": "fleeting", "name": "Fleeting", "type": "event", "discard": {"turns": 2}}  # 253: no Anarchy
 const FEAST := {"id": "feast", "name": "Feast", "type": "action", "tags": ["order"],
@@ -32,9 +32,9 @@ const DEAR := {"id": "dear", "name": "Dear", "type": "event",
 	"choices": [{"cost": {"wealth": 50}, "effects": [{"op": "score", "amount": 5}]},
 		{"effects": [{"op": "gain", "resource": "unrest", "amount": 1}]}]}
 const CHOICE_EVENTS := [ENVOYS, BOONS, TWINS, DEAR]
-const UNREST_BLOCK := {"anarchy": "anarchy", "max_counters": 4, "era_unrest": 3, "allowed_tag": "order"}
+const UNREST_BLOCK := {"anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 3}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
-const ONLY_ORDER := "Anarchy: only an order card can be played."
+const ONLY_ACTIONS := "Anarchy: only action cards can be played."
 const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."
 
 
@@ -116,16 +116,13 @@ func revolted_engine(unrest: int, buildings := [], block := {}) -> GameEngine:
 	return e
 
 
-## A game on Anarchy's second turn (155): fell into Anarchy at turn 2's start (unrest 5, 4 counters), unrest then set
-## to unrest (calming lowers the counters left) and wealth to wealth, and the turn ended.
-func second_turn_engine(unrest: int, wealth := 30, overrides := {}) -> GameEngine:
-	var e := anarchy_engine({}, overrides)
-	e.resources["unrest"] = 5
-	e.end_turn()
-	e.set_unrest(unrest)
-	e.resources["wealth"] = wealth
-	e.end_turn()
-	return e
+## Ends turns until the ruling Anarchy ends and the government choice is owed (at most 10 turns).
+func outlast_anarchy(e: GameEngine) -> void:
+	for i in 10:
+		if e.anarchy() == -1:
+			break
+		e.end_turn()
+	check(e.pending().get("kind") == GameEngine.PENDING_GOVERNMENT, "Anarchy ended: the government choice is owed")
 
 
 ## The ruling government's card id ("" for none).

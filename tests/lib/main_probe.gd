@@ -36,11 +36,6 @@ static func relieve_button(main: MainScreen) -> Button:
 	return main.relief.button
 
 
-## The Restore order button beside Relieve, visible or not (146). Revolt is in the civilization modal (205).
-static func restore_order_button(main: MainScreen) -> Button:
-	return main.restore.button
-
-
 ## The drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed (079).
 static func event_modal(main: MainScreen) -> Dictionary:
 	return main.news.event_modal.shown()
@@ -98,6 +93,16 @@ static func game_over_buttons(main: MainScreen) -> Array[Button]:
 ## The top bar's counter for key (TopBar.counter, 177).
 static func counter(main: MainScreen, key: String) -> Control:
 	return main.top_bar.counter(key)
+
+
+## The resource whose breakdown popover is open, or "" (TopBar.breakdown_key, 379).
+static func breakdown_key(main: MainScreen) -> String:
+	return main.top_bar.breakdown_key()
+
+
+## The open breakdown popover's lines as [left, right], or [] while closed (TopBar.breakdown_rows, 379).
+static func breakdown_rows(main: MainScreen) -> Array:
+	return main.top_bar.breakdown_rows()
 
 
 ## The top bar's forecast for key, apart from its figure (TopBar.forecast_text, 201).

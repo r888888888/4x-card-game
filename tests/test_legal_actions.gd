@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## legal_actions (312): every action the engine would allow now, as [action, args…], in a fixed order: an owed
 ## decision's options, then play_card, build, buy, buy_tech, contribute, military.move, military.upgrade (166),
-## discard_card, relieve_famine, restore_order, revolt, abandon, military.disband, end_turn. An area's action is named
+## discard_card, relieve_famine, revolt, abandon, military.disband, end_turn. An area's action is named
 ## "<area>.<action>" (394), and LegalActions.apply calls any entry. A coverage table fails the suite when an action with an error
 ## query can't be listed. Games from tests/lib/anarchy_case.gd (Chiefs ruling, unrest, a research deck with Lore, Farms
 ## in the supply, 10 food, wealth and insight, home pop 6), with a unit (Levy) and a wonder (Colossus) added.
@@ -134,9 +134,7 @@ func test_the_government_choice_lists_each_government() -> void:
 	var e := game()
 	e.resources["unrest"] = 5
 	e.end_turn()
-	e.end_turn()
-	e.resources["wealth"] = 30
-	check(e.restore_order(), "restore order: the government choice is owed")
+	outlast_anarchy(e)
 	var options: Array = e.pending().options
 	check(not options.is_empty(), "governments to choose from")
 	eq(e.legal_actions(), options.map(func(o): return ["choose_government", o]), "one entry per government")
@@ -209,9 +207,7 @@ func coverage() -> Dictionary:
 			var e := game()
 			e.resources["unrest"] = 5
 			e.end_turn()
-			e.end_turn()
-			e.resources["wealth"] = 30
-			e.restore_order()
+			outlast_anarchy(e)
 			return e,
 		"take": func():  # 370
 			var e := anarchy_engine({}, {}, [RECALL_CARD])
@@ -219,7 +215,6 @@ func coverage() -> Dictionary:
 				put_in(e, "farm", "discard")
 			e.play_card(put_in_hand(e, "recall"))
 			return e,
-		"restore_order": func(): return second_turn_engine(5),
 		"renew": func():
 			var e := game({"renewal": 1})
 			put_in(e, "farm", "discard")

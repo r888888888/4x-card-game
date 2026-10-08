@@ -1,7 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## The government deck (backlog 154): a created government goes to the `governments` zone, once per id; a fallen
-## government goes there too; when Anarchy ends (burning out or restore_order) the player chooses one from it
-## (PENDING_GOVERNMENT, choose_government), and unrest drops to at most half its limit. The Government overlay, the
+## government goes there too; when Anarchy ends (at 0 unrest, 384) the player chooses one from it
+## (PENDING_GOVERNMENT, choose_government), and unrest drops to 0 (384). The Government overlay, the
 ## identity modal's deck line, and the bot's choice. Fixtures: tests/lib/anarchy_case.gd plus Charter (an action that
 ## creates Kings in the discard); TEST_GOVS' Kingdom (cost 2 food, play +1 wealth), Band (2 actions), Court (3).
 ## In detail (from docs/testing.md, 331): The government deck (154): created and fallen governments in `governments`,
@@ -26,8 +26,7 @@ func choosing_engine(govs: Array[String] = ["kings"]) -> GameEngine:
 	e.end_turn()  # falls into Anarchy at turn 2's start
 	for id in govs:
 		e.create_card(id, "discard", null)
-	for i in 4:
-		e.end_turn()  # 4 counters: burns out
+	outlast_anarchy(e)
 	return e
 
 
@@ -83,13 +82,12 @@ func test_while_the_choice_is_owed_everything_else_refuses() -> void:
 	eq(e.buy_tech_error(lore), CHOOSE_FIRST, "research")
 	eq(e.renew_error([uid_of(e.zone("discard"), "farm")]), CHOOSE_FIRST, "renew")
 	eq(e.revolt_error(), CHOOSE_FIRST, "revolt")
-	eq(e.restore_order_error(), CHOOSE_FIRST, "restore order")
 	eq(e.end_turn_error(), CHOOSE_FIRST, "end turn")
 
 
 # --- AC4: choosing ---
 
-func test_choosing_a_government_rules_it_and_calms_unrest() -> void:
+func test_choosing_a_government_rules_it_and_sets_unrest_to_0() -> void:
 	var e := choosing_engine()
 	var kings := uid_of(e.zone("governments"), "kings")
 	e.resources["unrest"] = 6
@@ -97,15 +95,7 @@ func test_choosing_a_government_rules_it_and_calms_unrest() -> void:
 	eq(ruling(e), "kings", "Kings rules")
 	eq(card_ids(e.zone("governments")), ["chiefs"] as Array[String], "Chiefs stays in the deck")
 	eq(e.pending(), {}, "nothing owed")
-	eq(e.resources.get("unrest"), 3, "at most half of 7")
-
-
-func test_the_unrest_limit_modifier_counts_before_halving_a_chosen_government() -> void:
-	var e := choosing_engine()
-	build_on(e, home_uid(e), ["altar"])
-	e.resources["unrest"] = 6
-	e.choose_government(uid_of(e.zone("governments"), "kings"))
-	eq(e.resources.get("unrest"), 4, "at most (7 + 1) / 2")
+	eq(e.resources.get("unrest"), 0, "unrest 0 (384)")
 
 
 func test_a_chosen_government_resolves_its_play_effects_without_paying() -> void:
@@ -116,7 +106,7 @@ func test_a_chosen_government_resolves_its_play_effects_without_paying() -> void
 	check(e.choose_government(uid_of(e.zone("governments"), "kingdom")), "choose Kingdom")
 	eq(e.resources.wealth, wealth + 1, "Kingdom's play +1 wealth")
 	eq(e.resources.food, food + 3, "its 2 food cost isn't paid; the next turn's upkeep: Capital +2, Kingdom +1 (155)")
-	eq(e.resources.get("unrest"), 6, "no limit: unrest unchanged")
+	eq(e.resources.get("unrest"), 0, "unrest 0, limit or none (384)")
 
 
 # --- AC5: errors ---

@@ -2,7 +2,7 @@ class_name CardPeek
 extends RefCounted
 ## A hand-row card's overflowing rules (383, guide §6.7, §11.11). The pointer resting on it Anim.OVERFLOW_INTENT
 ## raises its text sheet over the art as far as the hidden rules need (CardSheet.need, easing over OVERFLOW_SLIDE); if
-## rules are still hidden the foot's meter fills over OVERFLOW_WAIT, then a rules Popover opens beside the card on
+## rules are still hidden the foot's meter fills over OVERFLOW_WAIT, then a RulesPopover opens beside the card on
 ## layer. A move before the intent starts the wait again; leaving the card and the popover lowers it; a press on the
 ## card cancels whatever step it is at (the press goes on). Keyboard focus raises the sheet at once, with no meter.
 ## With Reduce motion the sheet jumps and the meter fills in three steps. Its clock is advance(): the card calls it each
@@ -15,7 +15,7 @@ const CALM_STEPS := 3.0  # the meter's steps with Reduce motion
 
 var layer: Control  # where the popover opens; null: not a hand-row card, so it never peeks
 var manual_clock := false
-var popover: Popover  # the rules popover while open
+var popover: RulesPopover  # the rules popover while open
 var face: CardFace  # the card's face now (CardView.setup sets it)
 
 var _view: CardView
@@ -179,7 +179,7 @@ func _open() -> void:
 	var lines := face.rules_tip.split("\n")
 	if _view.error_text != "":
 		lines.append_array(_view.error_text.split("\n"))
-	popover = Popover.new(_view.shown_name, lines)
+	popover = RulesPopover.new(_view.shown_name, lines)
 	popover.closed.connect(_on_popover_closed)
 	popover.mouse_entered.connect(func(): _on_popover = true)
 	popover.mouse_exited.connect(func(): _on_popover = false)

@@ -112,3 +112,7 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 - 2026-10-08: follow-ups. The specimen (`docs/design/mcm-specimen.html`) doesn't yet show a card that rises and fills;
   the guide's §6.7 and §11.11 already describe it. Next item, 402: a 16:9 art plate (240 × 135) on the same 264 × 360 card
   (the user's call, 2026-10-08); `CardSheet.cap()` follows the plate's height, so the rise grows with it.
+- 2026-10-08: merged main (379, 380 landed first with their own `Popover`, a ledger anchored under a counter). 383's
+  tab beside a card is now `RulesPopover` (`ui/rules_popover.gd`), using 379's theme looks (`Popover`,
+  `PopoverHeading`, and `PopoverText` for its lines; 383's `PopoverBody` is gone). The heading now uses 379's heading
+  font.

@@ -11,17 +11,24 @@ func turn_limit() -> int:
 
 
 ## Printed VP on the tableau and in ALWAYS_ON_ZONES, VP from effects, and vp_per_pop for each pop (when population
-## is on). A card that has fallen back scores nothing (300, 301).
+## is on). A card that has fallen back scores nothing (300, 301). The sum of score_breakdown's rows (380).
 func score() -> int:
-	var total := bonus_score
-	for z in ["tableau"] + GameEngine.ALWAYS_ON_ZONES:
-		for card in zone(z).cards:
-			if Sites.unfinished(_as_engine(), card) or Fallback.fallen_back(_as_engine(), card):
-				continue  # a site scores once completed (286), a card while it hasn't fallen back (300, 301)
-			total += card.def.vp
-	if population_on():
-		total += total_pop() * config.population.vp_per_pop
+	var total := 0
+	for row in score_breakdown():
+		total += row.amount
 	return total
+
+
+## What makes up score() (380): [{label, count, amount}], each card's VP (copies one row) on the tableau then in
+## ALWAYS_ON_ZONES, the VP effects added ("Effects"), then the VP from pop ("Pop", count the pop); 0 has no row.
+func score_breakdown() -> Array[Dictionary]:
+	return ScoreBreakdown.score_rows(_as_engine())
+
+
+## Each settled territory's pop (380): [{label: its name, count: 1, amount: its pop}] in tableau order, summing to
+## total_pop(); [] with population off.
+func pop_breakdown() -> Array[Dictionary]:
+	return ScoreBreakdown.pop_rows(_as_engine())
 
 
 ## The uid of the civilization you play as, or -1 if the game has none.
@@ -36,11 +43,11 @@ func government() -> int:
 	return gov.cards[0].uid if not gov.is_empty() else -1
 
 
-## Counters on active event uid: the Famine's (083) or Anarchy's left (253); 0 for any other event or uid. The event panel shows them in
-## place of turns left.
+## Counters on active event uid: the Famine's (083) or Anarchy's turns left (253, 384); 0 for any other event or uid. The
+## event panel shows them in place of turns left.
 func event_counters(uid: int) -> int:
 	var anarchy := Anarchy.active(self)
-	return Anarchy.counters_left(self) if anarchy != null and anarchy.uid == uid else Famine.counters_on(self, uid)
+	return anarchy.counters if anarchy != null and anarchy.uid == uid else Famine.counters_on(self, uid)
 
 
 ## The active Famine's counters (083), or 0 with no Famine.
@@ -99,37 +106,36 @@ func era() -> int:
 
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
-## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
-## includes the drain on the stores after upkeep and feeding (156); a declared revolution's government has fallen
-## first (332). {} on the last turn or after game over.
+## "starve": the pop that food shortfall would starve, after famine guards. A declared revolution's government has
+## fallen first (332). {} on the last turn or after game over. Each figure is the sum of upkeep_breakdown's rows (379).
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
-	if is_over or turn >= turn_limit():
+	var ledger := UpkeepBreakdown.ledger(_as_engine())
+	if ledger.is_empty():
 		return {}
-	var f := _as_engine().fork()
-	Anarchy.before_upkeep(f)  # a declared revolution falls first, as at the turn's start (332)
-	TurnLoop.resolve_upkeep(f)
 	var forecast := {}
 	for r in resources:
-		forecast[r] = f.resources[r] - resources[r]
-	var need: int = f.total_pop() * config.population.food_upkeep if population_on() else 0
-	forecast[FOOD] = forecast.get(FOOD, 0) - need
-	var pop_before := f.total_pop()
-	if population_on():
-		Population.feed(f)
-	forecast.starve = pop_before - f.total_pop()
-	if Anarchy.rules_next_turn(self):
-		var stores := {}
-		for r in [FOOD, WEALTH]:
-			stores[r] = resources.get(r, 0) + forecast.get(r, 0)
-		var lost := Anarchy.drain_of(self, stores)
-		for r in lost:
-			forecast[r] -= lost[r]
+		forecast[r] = 0
+		for row in ledger.rows[r]:
+			forecast[r] += row.amount
+	forecast.starve = ledger.starve
 	return forecast
 
 
+## Where next upkeep's change of resource comes from (379): [{label, count, amount}], one row per source in upkeep
+## order (crowding, overextension, working cards, events), then what pop eats; copies of a card
+## are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource]. [] on the
+## last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
+func upkeep_breakdown(resource: String) -> Array[Dictionary]:
+	var ledger := UpkeepBreakdown.ledger(_as_engine())
+	var out: Array[Dictionary] = []
+	if not ledger.is_empty():
+		out.assign(ledger.rows.get(resource, []))
+	return out
+
+
 ## What starting the next turn would change (309): {score, pop, starve, resource: change} after upkeep, feeding, era
-## unlocks, Anarchy's fall and drain and the raids that strike; not the cards drawn or the new event. Unlike
+## unlocks, Anarchy's fall and the raids that strike; not the cards drawn or the new event. Unlike
 ## upkeep_forecast it counts score and raids, and food can't go below what is held. {} on the last turn or after game
 ## over. Plays on a fork: nothing here changes, is logged or emitted.
 func turn_forecast() -> Dictionary:
@@ -228,6 +234,12 @@ func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
 
 
+## Where unrest_limit() comes from (379): the government's unrest_limit, then each card's unrest_limit modifier, as
+## [{label, count, amount}] summing to unrest_limit() (the government's row absorbs its floor at 0); [] with no limit.
+func unrest_limit_breakdown() -> Array[Dictionary]:
+	return UpkeepBreakdown.limit_rows(_as_engine())
+
+
 ## The unrest the next upkeep adds for big territories (282): +1 per tier each settled territory is above the ruling
 ## government's tolerated tier. 0 with unrest or tiers off, no government, or one that tolerates any size.
 func size_unrest() -> int:
@@ -244,23 +256,6 @@ func anarchy_id() -> String:
 func anarchy() -> int:
 	var card := Anarchy.active(self)
 	return card.uid if card != null else -1
-
-
-## What restore_order pays (155): c × (c + 1) wealth for c counters left ({resource: amount}), {} without Anarchy.
-func order_relief() -> Dictionary:
-	return Anarchy.relief(self)
-
-
-## The counters left on the ruling Anarchy (155): one comes off at the end of each of its turns, and calming lowers
-## them for good; never below 1 while it rules, 0 without Anarchy.
-func anarchy_counters() -> int:
-	return Anarchy.counters_left(self)
-
-
-## The counters a revolution declared now would bring (155): ⌈max_counters × unrest ÷ unrest_limit()⌉, between 1 and
-## max_counters; 0 when revolt_error says no.
-func revolt_forecast() -> int:
-	return Anarchy.revolt_forecast(self)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.

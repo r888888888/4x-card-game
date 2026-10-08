@@ -21,7 +21,7 @@ const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 ## supply: {card_id: {price, count, locked}}, {} when there is none,
 ## build_menu: {card_id: {locked, once}}, in the order the menu lists them, {} when there is none (295),
 ## civilizations: the civilization ids a game may start as, in order ([] when there is no list),
-## unrest: {anarchy, max_counters, era_unrest, allowed_tag}, {} when there is none (145),
+## unrest: {anarchy, anarchy_turns, era_unrest, renewal?}, {} when there is none (145, 384),
 ## terrain_defense: {keyword: int}, the defence each keyword gives a territory (161), {} when there is none,
 ## sea_slots: {keyword, tag, slots}, the extra slots a territory with the keyword has for buildings with the tag (366),
 ## {} when there is none,

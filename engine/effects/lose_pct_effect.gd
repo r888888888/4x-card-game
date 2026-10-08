@@ -1,6 +1,6 @@
 extends Effect
 ## { "op": "lose_pct", "resource": "food", "pct": 25 }
-## Takes pct% of the stored resource, rounded up (as Anarchy's drain does), never below 0 (268). pct is 1 to 100.
+## Takes pct% of the stored resource, rounded up, never below 0 (268). pct is 1 to 100.
 
 var resource: String
 var pct: int

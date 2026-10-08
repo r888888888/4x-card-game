@@ -310,18 +310,6 @@ func renew(uids: Array) -> bool:
 	return Anarchy.renew(self, uids)
 
 
-## Why restore_order would refuse: game over or a pending decision, no Anarchy, its first turn, or not enough wealth.
-## "" if it can.
-func restore_order_error() -> String:
-	return Anarchy.restore_error(self)
-
-
-## Pays order_relief() and Anarchy ends: a government is to be chosen at once (146, 154, 155). False (and no change) if
-## restore_order_error says no.
-func restore_order() -> bool:
-	return Anarchy.restore(self)
-
-
 ## The government choice's default (254): the uid of the config's starting government when it's in the government
 ## deck, else the deck's first; -1 when no government choice is owed. pending() lists it first.
 func default_government() -> int:
@@ -380,10 +368,6 @@ func option_text(uid: int, index: int) -> String:
 
 
 # --- Internals (the modules call these too) ---
-
-## Unrest dropped: a ruling Anarchy keeps its lowered counters (155).
-func _unrest_lowered() -> void:
-	Anarchy.calm(self)
 
 
 ## Why action ("play", "buy", "end_turn", "supply", "discard", "research") is blocked by the game being over

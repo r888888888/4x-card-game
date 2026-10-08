@@ -1,5 +1,5 @@
 extends "res://tests/lib/test_case.gd"
-## The lose_pct op (backlog 268): takes pct% of the stored resource, rounded up (as Anarchy's drain does), never below
+## The lose_pct op (backlog 268): takes pct% of the stored resource, rounded up, never below
 ## 0. May trigger on upkeep. Fixtures are local, not in TEST_CARDS, so other tests load while the op is missing.
 
 const FIRE := {"op": "lose_pct", "resource": "food", "pct": 25}
