@@ -2,7 +2,7 @@
 id: 380
 title: Click Score or Pop to see what makes it up
 type: feature
-status: ready
+status: red-review
 branch: feat/380-score-pop-breakdown-popover
 ---
 
@@ -45,10 +45,16 @@ Temple (building, 1 VP), Nomads (civilization, 1 VP). Rows are 379's {label, cou
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_score_breakdown::test_score_breakdown_lists_cards_then_effects_then_pop`, `test_no_effects_or_pop_row_without_them` |
+| AC2 | `test_fallen_back_cards_and_unfinished_sites_have_no_row` |
+| AC3 | `test_pop_breakdown_lists_each_territory_in_tableau_order`, `test_no_pop_breakdown_with_population_off` |
+| AC4 | `test_clicking_score_opens_its_breakdown`, `test_enter_on_focused_pop_opens_it` |
 
 ## Manual check
 - [ ] Mid-game, click Score: the rows read sensibly and total the figure; click Pop with a renamed territory: its new
   name shows.
 
 ## Log
+- Red: labels "Effects" (bonus score) and "Pop" (count = pop). Popover lines: Score rows unsigned ("Capital" / "2",
+  a real minus for negative VP) then ["Total", score]; Pop rows [territory name, pop] then ["Total", total pop]. Both
+  under a heading ("Score", "Pop"). Nomads comes from TEST_CIVS via `starting.civilization`.
