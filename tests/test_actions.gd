@@ -181,7 +181,7 @@ func test_top_bar_counts_actions_and_spent_hands_dim() -> void:
 	e.play_card(uids[1])
 	await wait_frames()
 	var view: CardView = main.views.get(uids[2])
-	check(view != null and NO_ACTIONS in view.tooltip_text, "the last Shrine says why it can't be played")
+	check(view != null and NO_ACTIONS in reason_text(view), "the last Shrine says why on its strip (383: no tooltip)")
 	close_main(main)
 	Game.engine = gov_engine("council")
 	main = open_main()

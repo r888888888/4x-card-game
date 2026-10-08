@@ -130,6 +130,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change all in place |
 | `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
 | `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
+| `reason_text(view)` | UI: the text of a card's reason strip (why it can't be played; 383) |
 | `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound frozen if asked) (334) |
 | `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers |
 | `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |

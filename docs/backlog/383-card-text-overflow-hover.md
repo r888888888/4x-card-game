@@ -2,7 +2,7 @@
 id: 383
 title: Overflowing card text cuts at a whole rule; hover pulls it over the art, then a meter opens the full rules
 type: feature
-status: ready
+status: red-review
 branch: feat/383-card-text-overflow-hover
 ---
 
@@ -76,7 +76,12 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_card_overflow::test_a_long_card_keeps_its_size_and_shows_only_whole_rules`, `test_a_short_card_has_no_foot`, `test_a_one_paragraph_rule_is_cut_after_its_last_whole_sentence`, `test_a_paragraph_whose_first_sentence_cannot_fit_is_hidden_whole`, `test_a_rule_that_does_not_fit_after_others_is_hidden_whole` |
+| AC2 | `test_card_overflow::test_a_hand_row_card_foot_adds_details_i`, `test_a_hand_size_face_off_the_hand_row_reads_only_more_and_never_peeks`, `test_in_the_real_hand_the_foot_says_details_and_the_details_card_does_not` |
+| AC3 | `test_card_overflow::test_the_overflow_timings_are_anim_constants`, `test_resting_on_a_long_card_raises_its_sheet_to_the_cap`, `test_a_medium_card_rises_only_as_far_as_its_hidden_rules_need`, `test_leaving_or_moving_before_the_intent_changes_nothing`, `test_leaving_after_the_rise_restores_the_rest_layout`, `test_a_short_card_never_rises` |
+| AC4 | `test_card_overflow::test_still_hidden_rules_fill_the_meter_then_open_the_popover`, `test_the_popover_adds_the_play_error_and_its_detail`, `test_the_popover_opens_right_of_the_card_or_left_without_room`, `test_no_meter_or_popover_when_everything_fits_once_risen` |
+| AC5 | `test_card_overflow::test_the_pointer_may_cross_onto_the_popover_and_leaving_both_closes_it`, `test_esc_or_a_press_anywhere_closes_the_popover`, `test_a_press_on_the_card_cancels_any_step_and_still_drags`, `test_hand_cards_set_no_tooltip_and_other_cards_keep_theirs`; changed: `test_actions::test_top_bar_counts_actions_and_spent_hands_dim`, `test_build_modal::test_a_hand_card_with_no_free_worker_says_why_on_its_strip` (was `…_explains_in_its_tooltip`) |
+| AC6 | `test_card_overflow::test_keyboard_focus_raises_the_sheet_at_once_with_no_meter`, `test_reduce_motion_jumps_the_sheet_steps_the_meter_and_places_the_popover` |
 
 ## Manual check
 - [ ] Hand with Sailing, Code of Laws, Theocracy, Anarchy and a Farm (`godot --path . -- --civ sumer --seed 5`, then
@@ -90,3 +95,9 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 <!-- Decisions and surprises during implementation, newest last. -->
 - 2026-10-06: specced from `spike/card-art`. The user chose option I with the meter cue (1.1 s), the popover only
   when rules stay hidden, and the hover only on hand cards.
+- 2026-10-07: red tests. The interface they set: `CardView.peek` (a `CardPeek`: `advance(delta)`, `rise()`, `meter()`,
+  `popover`, `manual_clock` so tests drive time) and `CardView.peek_on(layer)` (a hand-row card; BoardViews calls it
+  with main's fx layer, so modal faces never peek); the face's `Rules` box (one label per rule) and `Over` foot;
+  `Popover.text()`. Long has 16 rules, not the comment's 10: 10 one-line rules would all fit once risen (about 6 at
+  rest + 4 risen + the foot's line), so no meter would run. Two tests that read a hand card's tooltip move to its reason
+  strip (`reason_text`, new in test_case.gd: the strip's label keeps no `source` meta, so `face_text` can't read it).
