@@ -118,9 +118,9 @@ func upkeep_forecast() -> Dictionary:
 
 
 ## Where next upkeep's change of resource comes from (379): [{label, count, amount}], one row per source in upkeep
-## order (crowding, overextension, working cards, events), then what pop eats; copies of a card
-## are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource]. [] on the
-## last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
+## order (crowding, overextension, working cards, events), then what pop eats, then the buildings' upkeep (405); copies
+## of a card are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource].
+## [] on the last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
 func upkeep_breakdown(resource: String) -> Array[Dictionary]:
 	var ledger := UpkeepBreakdown.ledger(_as_engine())
 	var out: Array[Dictionary] = []

@@ -1,8 +1,8 @@
 class_name TurnLoop
 extends RefCounted
-## The turn loop: setting up a new game, starting a turn (upkeep, feeding pop, era unlocks, drawing), ending it
-## with the hand-limit discard, and game over. Static functions on the engine's state; GameEngine's public
-## methods call them.
+## The turn loop: setting up a new game, starting a turn (upkeep, feeding pop, the buildings' upkeep, era unlocks,
+## drawing), ending it with the hand-limit discard, and game over. Static functions on the engine's state; GameEngine's
+## public methods call them.
 
 
 ## The zones whose cards every turn forecast reads: the board and the always-on zones (336; forecast_zones adds the
@@ -154,8 +154,8 @@ static func start_turn(e: GameEngine) -> void:
 
 
 ## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
-## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and the raids
-## that strike; not the draw or the new event. {} on the last turn or after game over.
+## pop feeding starves), resource: change} after upkeep, feeding, the buildings' upkeep, era unlocks, Anarchy's fall
+## and the raids that strike; not the draw or the new event. {} on the last turn or after game over.
 static func forecast(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
 		return {}
@@ -193,8 +193,8 @@ static func _begin(e: GameEngine) -> void:
 	e._log("— Turn %d —" % e.turn)
 
 
-## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, the buildings' upkeep, era unlocks and
-## Anarchy's fall. Returns the pop feeding starved.
+## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, the buildings' upkeep
+## (405), era unlocks and Anarchy's fall. Returns the pop feeding starved.
 static func _settle_in(e: GameEngine) -> int:
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
