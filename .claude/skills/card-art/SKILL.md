@@ -51,8 +51,8 @@ For each new or changed card, write its row (new rows in the list's order):
     type's treatment (§19.6);
   - for the generator's **weak spots**, which it gets wrong often enough to cost a redraw:
     - counts: an exact count above four of the same figure (columns, soldiers, sheaves) fails, so ask for "a row of"
-      or "several", or for four or fewer. Even four fails when the counted things overlap: four levelled spears
-      came out as five heads twice, "exactly four" or not. Make each counted thing separate and tied to its owner
+      or "several", or for four or fewer. Even four fails when the counted things overlap: levelled spears were
+      miscounted twice (seven men with five spears, then "exactly four" men with five heads). Make each counted thing separate and tied to its owner
       (spears raised and parallel, one head above each man), or leave the count loose;
     - pose direction: which way a figure faces or works (rowers facing the stern, a man turned away) is ignored, and
       saying it more plainly doesn't help: rowers came out facing the bow after the prompt spelled it out. Write a
