@@ -5,7 +5,7 @@ extends RefCounted
 ## PopulationConfig parses the population rules (339).
 
 const SEPARATE_DECK_TYPES: Array[String] = [CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION, CardDef.GOVERNMENT]  # never in the main deck
-const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap", "raid_hoard_step", "raid_plunder_pct", "raid_plunder_era_pct", "veteran_max", "sea_slots"]
+const CONFIG_FIELDS: Array[String] = ["resources", "turn_limit", "hand_size", "hand_limit", "deck_model", "starting", "deck", "keywords", "territory_deck", "research_deck", "era_unlocks", "population", "supply", "build_menu", "resource_keywords", "territory_resources", "event_deck", "civilizations", "era_names", "terrains", "unrest", "terrain_defense", "territory_value", "raid_min_size", "raid_gap", "raid_hoard_step", "raid_plunder_pct", "raid_plunder_era_pct", "veteran_max", "sea_slots", "building_upkeep"]
 const SUPPLY_TYPES: Array[String] = [CardDef.ACTION, CardDef.BUILDING, CardDef.UNIT]  # the only card types the supply sells
 const BUILD_TYPES: Array[String] = [CardDef.BUILDING, CardDef.UNIT]  # the card types the build menu may hold (295)
 const BUILD_FIELDS: Array[String] = ["locked", "once"]

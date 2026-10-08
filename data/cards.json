@@ -19,7 +19,7 @@
       "flavor": "Where the river runs close, the first farmers sow wheat and barley, and learn what all farming teaches: how to wait.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 4, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "flood_plain" }
       ]
     },
@@ -265,7 +265,7 @@
       "flavor": "The herders follow their flocks across the open grass and count them every dusk, and the counting is a kind of prayer.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "requires": ["grassland"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" }
+        { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" }
       ]
     },
     {
@@ -280,7 +280,7 @@
       "flavor": "At the forest edge the hunters dry meat and stretch hides by the fire, and do not speak of what they saw among the trees.",
       "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": [], "requires": ["forest"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "score", "amount": 1 },
         { "op": "create", "card": "hunt", "zone": "deck", "unique": true }
       ]
@@ -294,9 +294,9 @@
     {
       "id": "irrigation_canals", "name": "Irrigation Canals", "type": "building",
       "flavor": "The canals carry the river across the fields; the silt fills them in; every spring the digging begins again, as it always will.",
-      "cost": { "food": 1, "wealth": 2 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm", "housing": 1,
+      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"], "housing": 1,
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "desert" }
       ]
     },
@@ -304,14 +304,14 @@
       "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
       "flavor": "Oxen lean into the yoke where people once broke the soil by hand, and one family now feeds many it will never meet.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm",
-      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
       "flavor": "Spindles whirl and looms clack as wool and flax become cloth, the first great trade of the cities, made one thread at a time.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "grassland" }
       ]
     },
@@ -319,14 +319,14 @@
       "id": "brewery", "name": "Brewery", "type": "building",
       "flavor": "Barley mash foams in the great jars. Beer is food, wage and offering, and the brewers are never idle, nor ever quite sober.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": [], "famine_guard": 1,
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "olive_groves", "name": "Olive Groves", "type": "building",
       "flavor": "Whoever plants an olive tree plants it for strangers: it takes a lifetime to bear, then gives oil for centuries.",
       "cost": { "wealth": 4 }, "vp": 1, "tags": ["trade"], "requires": ["hills"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "coastal" }
       ]
     },
@@ -340,20 +340,23 @@
       "id": "qanat_channel", "name": "Qanat", "type": "building",
       "flavor": "Diggers tunnel into the hillside after water no one has seen, and lead it for miles through the dark to the desert fields.",
       "cost": { "food": 1, "wealth": 4 }, "vp": 0, "tags": ["farm"], "requires": ["desert", "hills"], "housing": 2,
-      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
       "flavor": "Reed huts on the shore, nets drying in the sun, and the boats out at dawn on water the colour of pewter.",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"], "housing": 1,
-      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"], "housing": 1,
+      "effects": [ { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" },
         { "op": "create", "card": "net_fishing", "zone": "deck", "unique": true } ]
     },
     {
       "id": "salt_pans", "name": "Salt Pans", "type": "building",
       "flavor": "Seawater stands in shallow clay beds until the sun takes the water and leaves the salt, and the catch keeps till winter.",
-      "cost": { "wealth": 2 }, "vp": 0, "tags": [], "upgrade_of": "fishing_huts", "requires": ["coastal"],
-      "effects": [ { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" } ]
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["coastal"],
+      "effects": [
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+      ]
     },
     {
       "id": "shrine", "name": "Shrine", "type": "building",
@@ -366,7 +369,7 @@
       "flavor": "Miners follow the green-streaked rock into the hill with fire and antler picks, for copper, tin and silver, and come out blinking.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["hills", "mountain"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "tin" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "copper" }
@@ -400,6 +403,7 @@
       "flavor": "In the market square everything is for sale, and everything has been sold before: the pots, the figs, the news.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"],
       "effects": [
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
         { "op": "gain_per_tag", "resource": "wealth", "amount": 1, "tag": "city", "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "gold" }
       ]
@@ -557,7 +561,7 @@
     {
       "id": "palace", "name": "Palace", "type": "building",
       "flavor": "The ruler's household, treasury and court gather under one roof, and from its painted halls the realm is governed, mostly in whispers.",
-      "cost": { "wealth": 10 }, "vp": 3, "tags": [], "tier": "metropolis", "modifiers": { "actions": 1 },
+      "cost": { "wealth": 10 }, "vp": 3, "tags": [], "tier": "metropolis", "modifiers": { "actions": 1 }, "upkeep": 2,
       "effects": []
     },
     {
@@ -565,7 +569,7 @@
       "flavor": "Shipwrights shape cedar and pine into hulls that smell of resin, and every vessel launched carries the city a little further out.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["port"], "requires": ["coastal"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "forest" }
       ]
     },
@@ -574,7 +578,7 @@
       "flavor": "Stone walls step up the slope, each holding a strip of soil where no field could lie: a staircase built for the harvest.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["hills", "mountain"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "fresh_water" }
       ]
     },
@@ -582,7 +586,7 @@
       "id": "reed_works", "name": "Reed Works", "type": "building",
       "flavor": "Marsh reeds are cut and bundled for boats, mats, baskets and houses, and for the scribe's pen, so the swamp writes its own history.",
       "cost": { "wealth": 2 }, "vp": 0, "tags": [], "requires": ["marsh"], "housing": 1,
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "cistern", "name": "Cistern", "type": "building",
@@ -594,13 +598,13 @@
       "id": "dye_works", "name": "Dye Works", "type": "building",
       "flavor": "Thousands of sea snails make one pinch of Tyrian purple, worth more than its weight in silver. The vats stink for miles.",
       "cost": { "wealth": 4 }, "vp": 0, "tags": ["trade"], "requires": ["coastal"],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 3, "trigger": "upkeep" } ]
     },
     {
       "id": "kiln", "name": "Kiln", "type": "building",
       "flavor": "Potters fire the riverbank's mud into jars, lamps and bricks, and their kilns glow all night along the water like small sunsets.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [],
-      "effects": [ { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" } ]
+      "effects": [ { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" } ]
     },
     {
       "id": "merchant_quarter", "name": "Merchant Quarter", "type": "building",
@@ -648,7 +652,7 @@
       "flavor": "A walled courtyard a day's march from the last, where camels drink at the well and merchants trade news by lamplight.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": ["trade"], "requires": ["desert"],
       "effects": [
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 2, "trigger": "upkeep" },
         { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep", "keyword": "fresh_water" }
       ]
     },
