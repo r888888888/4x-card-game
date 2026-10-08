@@ -2,7 +2,7 @@
 id: 399
 title: A new government's honeymoon - 3 turns where unrest can't rise
 type: feature
-status: in-progress
+status: review
 branch: feat/399-honeymoon
 ---
 
@@ -19,19 +19,19 @@ Builds on 384.
 Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.honeymoon_turns: 3` and Anarchy's 3 turns ending at the end of
 turn 4 (fallen at turn 2's start), Kings chosen.
 
-- [ ] AC1 (unrest can't rise): On turns 5, 6 and 7, `honeymoon_left()` is 3, 2 and 1; gaining unrest (an effect
+- [x] AC1 (unrest can't rise): On turns 5, 6 and 7, `honeymoon_left()` is 3, 2 and 1; gaining unrest (an effect
   `gain unrest 2`, a played card adding unrest, an upkeep effect adding unrest) leaves unrest at 0, and a new era adds
   no unrest. On turn 8 `honeymoon_left()` is 0 and the same gains raise unrest as usual.
-- [ ] AC2 (lowering still works): Given a honeymoon turn with unrest set to 2 directly, Feast brings it to 0 (it never
+- [x] AC2 (lowering still works): Given a honeymoon turn with unrest set to 2 directly, Feast brings it to 0 (it never
   goes below 0).
-- [ ] AC3 (no revolution): During the honeymoon `revolt_error()` is "The people back the new government (N turns)."
+- [x] AC3 (no revolution): During the honeymoon `revolt_error()` is "The people back the new government (N turns)."
   with N = `honeymoon_left()`, `revolt()` changes nothing, and `legal_actions()` has no `revolt`; on turn 8 a
   revolution can be declared.
-- [ ] AC4 (no fall): Given a honeymoon turn and a government whose limit (with modifiers) is 0, Anarchy doesn't fall at
+- [x] AC4 (no fall): Given a honeymoon turn and a government whose limit (with modifiers) is 0, Anarchy doesn't fall at
   the next turn's start while the honeymoon lasts.
-- [ ] AC5 (the forecasts know it): During the honeymoon, `upkeep_forecast()` and `turn_forecast()` show no unrest
+- [x] AC5 (the forecasts know it): During the honeymoon, `upkeep_forecast()` and `turn_forecast()` show no unrest
   gained and `anarchy_ahead()` is false; on its last turn (turn 7) they count the next upkeep's unrest as usual.
-- [ ] AC6 (only after Anarchy, and off without config): A new game has no honeymoon (`honeymoon_left()` is 0 on turn
+- [x] AC6 (only after Anarchy, and off without config): A new game has no honeymoon (`honeymoon_left()` is 0 on turn
   1). With no `honeymoon_turns` in the unrest block there is none after Anarchy either. The loader: `honeymoon_turns`,
   when given, must be an integer ≥ 1 (else an error naming it). `copy()` copies the honeymoon (the suite's copy check).
 
@@ -63,6 +63,8 @@ turn 4 (fallen at turn 2's start), Kings chosen.
 | UI (Design notes) | `test_honeymoon::test_the_sidebar_shows_the_honeymoon_turns_left` |
 
 ## Manual check
+Steps: `godot --path . -- --seed 5`; revolt from the civilization modal, end turns until the Government overlay opens
+and choose a government.
 - [ ] After choosing a government the honeymoon shows with its turns left and disappears on turn 8.
 - [ ] Playing a Settler during the honeymoon leaves the unrest meter at 0.
 - [ ] Balance worry (for the user to run): free Settlers for 3 turns after every Anarchy may make revolting pay.
@@ -73,3 +75,8 @@ turn 4 (fallen at turn 2's start), Kings chosen.
   `UNREST_BLOCK` stays without it, so other Anarchy tests keep their unrest). Resolved: N in the revolt message is
   "3 turns" / "1 turn"; AC4 also checks Anarchy falls at turn 8's start, once the honeymoon is over; the sidebar line
   reads "Honeymoon: 3 turns" under the government.
+- 2026-10-08: green. `UpkeepBreakdown.ledger` now steps its fork to the next turn's number before the upkeep (the turn
+  the upkeep belongs to), so a honeymoon's last turn forecasts its end; nothing else in the suite read the fork's turn.
+  The sidebar test's setup moved inside `with_main` (it starts a new game); its assertions are unchanged.
+- Follow-up: a new era during the honeymoon still posts "A new era stirs the people: +0 unrest." (`Anarchy.stir`
+  notices whatever was added); it could stay silent when nothing was added.
