@@ -2,7 +2,7 @@
 id: 407
 title: Sumer as the breadbasket - drop the starting Farm and +1 housing
 type: feature
-status: review
+status: done
 branch: feat/407-sumer-breadbasket
 ---
 
