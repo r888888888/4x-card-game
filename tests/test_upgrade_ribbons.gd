@@ -199,7 +199,7 @@ func test_a_building_that_could_take_an_upgrade_shows_no_chip() -> void:
 		var chapel := put_home(e, "chapel")
 		build_it(e, "sanctum", chapel)
 		await open_home(main)
-		check(not e.upgrades_for(farm).is_empty(), "the Farm could take a Plough or a Ditch")
+		check(e.build_error("ditch", farm) == "", "the Farm could take a Ditch")
 		check(not button_texts(main, farm).has("+ Upgrade"), "no chip on the Farm: %s" % [button_texts(main, farm)])
 		check(not button_texts(main, chapel).has("+ Upgrade"), "no chip on the Chapel, which could take a Cathedral")
 		eq(ribbon_names(main, chapel), ["Sanctum"], "the Chapel still shows the Sanctum's ribbon"))

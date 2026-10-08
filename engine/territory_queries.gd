@@ -137,15 +137,14 @@ func upgrade_rows(uid: int) -> Array[Dictionary]:
 	return Upgrades.rows(self, uid)
 
 
+## Whether building uid's chain has an upgrade not yet built, whatever stops it now (410): its card's upgrade badge.
+func has_unbuilt_upgrades(uid: int) -> bool:
+	return upgrade_rows(uid).any(func(r): return r.built == -1)
+
+
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
 func upgrade_tree(uid: int) -> Array[int]:
 	return Upgrades.tree(self, uid)
-
-
-## The unlocked upgrade entries building uid could take now, in menu order, whatever they cost: its "+ Upgrade" chip
-## (302).
-func upgrades_for(uid: int) -> Array[String]:
-	return Upgrades.for_base(self, uid)
 
 
 ## The Build modal's upgrade rows for settled territory t (302): {card_id, base} for each unlocked upgrade entry and

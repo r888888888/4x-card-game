@@ -2,7 +2,7 @@
 id: 410
 title: Upgrade a building from its details, not a chip on its card
 type: feature
-status: red-review
+status: in-progress
 branch: feat/410-upgrade-only-from-building-details
 ---
 
