@@ -22,6 +22,10 @@ Raids (375): `raids` (strikes), `raids_repelled`, `raid_strength_max`, and what 
 Tiers (328): `tier_<id>` per settlement tier in the config (only with tiers on), how many settled territories, the home
 one included, ended the game in that tier; they add up to the settled territories. They tell wide (many hamlets) from
 tall (a few big ones).
+Trends (379): `food_t<n>` and `wealth_t<n>`, the food and wealth held as turn n starts, every 10 turns
+(`SimStats.TREND_EVERY`) up to the turn limit. They print as one `food by turn: 10 12.0, 20 22.5, …` line and one for
+wealth (means) at the end of each block, and in `--compare` as `food by turn  Δ 10 +0.4, 20 -1.2, …` when a sample
+moved. They show when the bot starts hoarding, which raids grow with (374).
 The bot is fixed and simple, so read the numbers as *relative*: compare against `main`, not against a target.
 
 It plays three strategies (`generic`, `wide`, `tall`; GenericBot.STRATEGIES, 314) as every listed civilization.
@@ -57,7 +61,8 @@ as the default civilization (seconds).
    exits 1, show its errors (each names its side) and stop.
    If the current branch *is* `main` with no changes, say so and show a plain `scripts/sim.sh --level <level>` table instead.
 3. Show the report. It already is the table: per strategy, one line per civ (`main`, `this`, `Δ ±` the 95% interval,
-   the change in %, seeds played; `!` past 10%), then each other metric whose mean moved. Then two or three sentences
+   the change in %, seeds played; `!` past 10%), then each other metric whose mean moved, then the food and wealth
+   trend changes (379). Then two or three sentences
    on what moved and the likely cause from the diff (`git diff main -- data/`). Read a `!` whose interval includes 0
    as noise worth more seeds, not a finding.
 

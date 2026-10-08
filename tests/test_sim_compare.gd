@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## Comparing two checkouts game by game (backlog 293): when a strategy x civ cell needs no more seeds (cell_done), and
-## the report's lines. The runs on the real data are in tests/balance/test_sim_compare_runs.gd.
+## the report's lines, among them the food and wealth trend changes (379). The runs on the real data are in tests/balance/test_sim_compare_runs.gd.
 
 
 # --- AC1: cell_done ---
@@ -45,3 +45,15 @@ func test_a_cell_that_moved_more_than_10_percent_is_flagged() -> void:
 	cell.delta = -20.0
 	cell.this_mean = 180.0
 	eq(stats.cell_line(cell), "default  main 200.0  this 180.0  Δ -20.0 ±2.0 (-10.0%)  seeds 5", "10% exactly: not")
+
+
+# --- 379: food and wealth trends, compared ---
+
+func test_379_trend_change_line_shows_each_sample_moved() -> void:
+	var main := {"score": 40.0, "wealth_t10": 3.0, "wealth_t20": 10.0, "food_t10": 5.0}
+	var this := {"score": 41.0, "wealth_t10": 3.0, "wealth_t20": 7.5, "food_t10": 5.0}
+	eq(SimCompare.trend_change_line("wealth", main, this), "wealth by turn  Δ 10 +0.0, 20 -2.5", "every sample, signed")
+	eq(SimCompare.trend_change_line("food", main, this), "", "no food sample moved")
+	eq(SimCompare.trend_change_line("food", {"score": 1.0}, {"score": 2.0}), "", "no samples")
+	main.erase("wealth_t20")
+	eq(SimCompare.trend_change_line("wealth", main, this), "", "only samples both sides have")

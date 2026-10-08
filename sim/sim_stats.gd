@@ -15,6 +15,9 @@ const DEFAULT_STALL_SEC := 600
 const PROGRESS_EVERY_SEC := 60.0
 ## The file in a parallel run's directory listing its jobs (293), so a worker plays exactly the parent's list.
 const JOBS_FILE := "jobs.json"
+## A game samples TREND_RESOURCES held every TREND_EVERY turns (379): <resource>_t<n> as turn n starts.
+const TREND_EVERY := 10
+const TREND_RESOURCES: Array[String] = [GameEngine.FOOD, GameEngine.WEALTH]
 
 
 ## Plays one game per seed with strategy (a GenericBot.STRATEGIES name, 134, 314) as civ ("" for the default) and returns
@@ -46,7 +49,9 @@ static func _collect(games: Array, names: Array[String]) -> Dictionary:
 
 
 ## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, era_<n>_open and
-## era_<n>_done for each era with techs, then tier_<id> for each settlement tier (328, see _tiers).
+## era_<n>_done for each era with techs, then tier_<id> for each settlement tier (328, see _tiers), then the trend
+## samples (379): <resource>_t<n> for each of TREND_RESOURCES, then each n of TREND_EVERY, 2 × TREND_EVERY, … up to
+## the turn limit.
 static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]:
 	var names := METRICS.duplicate()
 	for id in _governments(cards, config):
@@ -55,7 +60,35 @@ static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]
 		names.append_array(["era_%d_open" % n, "era_%d_done" % n])
 	for t in _tiers(config):
 		names.append("tier_%s" % t.id)
+	for r in TREND_RESOURCES:
+		for n in range(TREND_EVERY, config.get("turn_limit", 0) + 1, TREND_EVERY):
+			names.append("%s_t%d" % [r, n])
 	return names
+
+
+## The turns of resource's trend samples (379) among names (metric names, or the keys of {metric: mean}), in order.
+static func trend_turns(resource: String, names: Array) -> Array[int]:
+	var turns: Array[int] = []
+	for m in names:
+		var n: String = m.trim_prefix(resource + "_t")
+		if m.begins_with(resource + "_t") and n.is_valid_int():
+			turns.append(int(n))
+	turns.sort()
+	return turns
+
+
+## Whether metric m is a trend sample (379), reported by trend_line instead of a line of its own.
+static func is_trend_metric(m: String) -> bool:
+	return TREND_RESOURCES.any(func(r): return not trend_turns(r, [m]).is_empty())
+
+
+## "food by turn: 10 12.0, 20 22.5" (379): the mean of each of resource's trend samples in means ({metric: mean}),
+## by turn; "" when it has none.
+static func trend_line(resource: String, means: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	for n in trend_turns(resource, means.keys()):
+		parts.append("%d %.1f" % [n, means["%s_t%d" % [resource, n]]])
+	return "%s by turn: %s" % [resource, ", ".join(parts)] if not parts.is_empty() else ""
 
 
 ## The config's settlement tiers (281), lowest first; [] with population or tiers off.
@@ -102,6 +135,9 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 			tally.famine_turns += 1 if engine.famine_counters() > 0 else 0
 			if tally.has("%s_turns" % ruling):
 				tally["%s_turns" % ruling] += 1
+			if engine.turn % TREND_EVERY == 0:  # what is held as the turn starts (379)
+				for r in TREND_RESOURCES:
+					tally["%s_t%d" % [r, engine.turn]] = engine.resources.get(r, 0)
 	var on_revolted := func(): tally.revolts += 1
 	var raids: Array[Dictionary] = []
 	var on_raid := func(outcome: Dictionary): raids.append(outcome)
@@ -746,10 +782,19 @@ static func _remove_tree(dir: String) -> void:
 	DirAccess.remove_absolute(dir)
 
 
+## A line per metric in stats ({metric: {mean, min, max}}), then a trend_line per resource in place of the trend
+## samples' own lines (379).
 static func _metric_lines(stats: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
+	var means := {}
 	for m in stats:  # METRICS, then the era metrics by era
-		lines.append("%-10s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
+		means[m] = stats[m].mean
+		if not is_trend_metric(m):
+			lines.append("%-10s mean %6.2f  min %3d  max %3d" % [m, stats[m].mean, stats[m].min, stats[m].max])
+	for r in TREND_RESOURCES:
+		var line := trend_line(r, means)
+		if line != "":
+			lines.append(line)
 	return lines
 
 
