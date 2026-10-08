@@ -2,11 +2,13 @@ class_name UpgradeList
 extends VBoxContainer
 ## A building's Upgrades section in its details (387, design Y of building-upgrade-options.html): a row per upgrade its
 ## chain could take (GameEngine.upgrade_rows), built or not, each its name over its rules, then its status: "Built", why
-## it has fallen back, why it can't be built, or an Upgrade button with its cost. While the game is blocked (a decision
+## it has fallen back, why it can't be built, or an Upgrade button with its cost. A built row also offers Abandon… (412). While the game is blocked (a decision
 ## owed, or over) each row not built keeps its button, disabled with why. Hidden when the card has no rows.
 
 ## A row's Upgrade was pressed: build card_id on base.
 signal upgrade_pressed(card_id: String, base: int)
+## A built row's Abandon… was pressed (412): abandon upgrade uid.
+signal abandon_pressed(uid: int)
 
 var _list: VBoxContainer
 var _rows: Array[Dictionary] = []  # what each row shows: {name, rules, status, button}
@@ -35,8 +37,8 @@ func show_for(uid: int) -> void:
 		_add_row(e, row, blocked)
 
 
-## Test hook: each row as {name, rules, status, button, status_label}, button null for a row without one and
-## status_label null for one with.
+## Test hook: each row as {name, rules, status, button, status_label, abandon}, button null for a row without one,
+## status_label null for one with, and abandon (the Abandon… button) null for a row not built.
 func rows() -> Array[Dictionary]:
 	return _rows
 
@@ -53,12 +55,19 @@ func _add_row(e: GameEngine, row: Dictionary, blocked: String) -> void:
 	text.add_child(_label(def.name, &"CardTitle"))
 	var rules := e.upgrade_rules_text(row.card_id)
 	text.add_child(_label(rules, &"BodySmall"))
-	var shown := {"name": def.name, "rules": rules, "status": "", "button": null, "status_label": null}
+	var shown := {"name": def.name, "rules": rules, "status": "", "button": null, "status_label": null, "abandon": null}
 	if row.built != -1:
 		var why := e.fallen_back_reason(row.built)
 		shown.status = why if why != "" else "Built"
 		shown.status_label = _status(shown.status, &"Refusal" if why != "" else &"Caption")
 		line.add_child(shown.status_label)
+		var stop := e.abandon_error(row.built)
+		var abandon := UIKit.button("Abandon…", func(): abandon_pressed.emit(row.built))
+		abandon.disabled = stop != ""
+		abandon.tooltip_text = stop if stop != "" else e.abandon_line(row.built)
+		abandon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(abandon)
+		shown.abandon = abandon
 	elif blocked != "" or row.error == "":
 		var cost := e.build_cost(row.card_id)
 		var button := UIKit.button("Upgrade for %s" % Fields.amounts_text(cost) if not cost.is_empty() else "Upgrade",

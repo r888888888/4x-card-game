@@ -2,7 +2,7 @@ extends "res://tests/lib/test_case.gd"
 ## Wonders built over turns (backlog 286): a building with `project: true` is played for just the action as an
 ## unfinished site that takes a slot and a worker and does nothing; wealth goes in with contribute, at most 1 per pop on
 ## its territory each turn, until its (discounted) wealth cost is paid and it completes. abandon sends a site to the
-## discard. Fixtures: Colossus (project, 12 wealth, 5 VP, +1 hand size, ⟳ +2 insight, play: +3 food), the civilization
+## discard (a finished building: test_abandon_buildings.gd, 412). Fixtures: Colossus (project, 12 wealth, 5 VP, +1 hand size, ⟳ +2 insight, play: +3 food), the civilization
 ## Builders (wonders −3 wealth), TEST_GOVS (Court: 3 actions).
 
 const COLOSSUS := {"id": "colossus", "name": "Colossus", "type": "building", "cost": {"wealth": 12}, "vp": 5,
@@ -347,13 +347,11 @@ func test_a_site_played_again_after_abandoning_starts_over() -> void:
 	eq([e.site_progress(uid), e.contribute_limit(uid)], [0, 4], "[progress, limit]: a new site, nothing in this turn")
 
 
-func test_abandoning_is_refused_for_a_card_that_isnt_an_unfinished_site() -> void:
+func test_abandoning_is_refused_for_a_completed_wonder_or_a_card_in_hand() -> void:
 	var e := site_engine(10)
-	build_on(e, home_uid(e), ["farm"])
-	var farm: int = e.zone("tableau").cards[-1].uid
 	var done := site_at(e, 12)
 	var held := put_in_hand(e, "colossus")
-	for case in [[farm, "a Farm", "tableau"], [done, "a completed Colossus", "tableau"], [held, "a Colossus in hand", "hand"]]:
+	for case in [[done, "a completed Colossus", "tableau"], [held, "a Colossus in hand", "hand"]]:
 		check(e.abandon_error(case[0]) != "", "%s: abandon_error" % case[1])
 		check(not e.abandon(case[0]), "%s: abandon refuses" % case[1])
 		eq(zone_of(e, case[0]), case[2], "%s: not moved" % case[1])

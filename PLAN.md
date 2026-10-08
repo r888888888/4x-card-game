@@ -193,10 +193,18 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   pays wealth in for no action, at most `contribute_limit(uid)`: the least of its territory's pop less what went in
   this turn (`CardInstance.given_this_turn`, reset at turn start), the wealth still owed and the wealth held; 0 while
   idle. Paying the last of it completes the site ("Completed X.") and resolves its play effects. `abandon(uid)` sends
-  a site to the discard for no action, its progress lost. Rules in `engine/sites.gd` (`Sites`); the sim bot
+  a site to the discard for no action, its progress lost (Abandoning, 412, below). Rules in `engine/sites.gd` (`Sites`); the sim bot
   contributes or abandons when that values more (313). A site's details show
   "Being built: 4 / 12 wealth" and offer Contribute and Abandon… (confirmed by `AbandonModal`); its card shows its
   progress.
+- Abandoning (412): `abandon(uid)` also takes a finished building or upgrade out of play, for no action and no refund,
+  with every upgrade built on it: a build-menu building is gone (it can be built again), one dealt from a deck goes to
+  the discard (as a disbanded unit, 296). Refused for a wonder (a completed project) or a `once` entry ("Obelisk can't
+  be abandoned."), and while its territory's pop needs its housing ("Homeland's 9 pop need Insula's housing.");
+  anything else is "That isn't a building in play.". `abandon_line(uid)` says what it does ("Farm leaves play, with its
+  Plough. Nothing is refunded."). Rules in `engine/abandonment.gd` (`Abandonment`); `legal_actions` lists every
+  building it allows. The details offer Abandon… for a site or building and on each built row of its Upgrades
+  section, confirmed by `AbandonModal`.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.

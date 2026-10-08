@@ -1,13 +1,14 @@
 class_name AbandonModal
 extends Modal
-## Abandoning a wonder site (backlog 286), confirmed from its details' Abandon…: titled with the site, it says the
-## wealth paid in will be lost and the card goes to the discard. "Keep building" closes it; "Abandon" abandons.
+## Abandoning a wonder site (backlog 286) or a building (412), confirmed from its details' Abandon…: titled with the
+## card, it says what abandoning does (GameEngine.abandon_line). "Keep building" (a site) or "Keep it" closes it;
+## "Abandon" abandons.
 
 var keep_button: Button
 var confirm_button: Button
 
 var _text: RichTextLabel
-var _site := -1
+var _site := -1  # the site or building abandoning
 
 
 ## Builds the sheet on stack's host, hidden.
@@ -23,17 +24,15 @@ func _init(p_stack: ModalStack) -> void:
 	confirm_button = add_footer_button(UIKit.button("Abandon", _abandon), true)
 
 
-## Opens it for engine e's site uid, if it can be abandoned.
+## Opens it for engine e's site or building uid, if it can be abandoned.
 func open(e: GameEngine, uid: int) -> void:
 	if e.abandon_error(uid) != "":
 		return
 	_site = uid
-	var name: String = e.zone("tableau").find(uid).def.name
-	title = "Abandon %s?" % name
+	title = "Abandon %s?" % e.zone("tableau").find(uid).def.name
 	context = "Turn %d" % e.turn
-	var paid := e.site_progress(uid)
-	_text.text = "%s goes to your discard. %s" % [name,
-		"The %d wealth paid in is lost." % paid if paid > 0 else "Nothing has been paid in yet."]
+	_text.text = e.abandon_line(uid)
+	keep_button.text = "Keep building" if e.is_site(uid) else "Keep it"
 	present()
 	FocusRing.focus(keep_button)
 
