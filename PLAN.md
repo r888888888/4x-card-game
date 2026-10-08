@@ -705,7 +705,7 @@ Your people have one government at a time; its bonuses apply while it rules.
   starting government when it's in the deck, else the deck's first; -1 with no choice owed); every other action
   refuses ("Choose a government first.").
   `choose_government(uid)` / `choose_government_error(uid)` ("No government to choose.", "That government isn't in
-  your government deck."): it leaves the deck and rules, unrest drops to 0 (384), its `play` effects resolve and its cost isn't paid; no action used. The Government overlay shows the deck in
+  your government deck."): it leaves the deck and rules, unrest drops to 0 (384), its `play` effects resolve and its cost isn't paid; no action used. With config `unrest.honeymoon_turns` (optional, ≥ 1; real data 3) the next that many turns are its honeymoon (399, `GameState.honeymoon_until`, `honeymoon_left()`): `set_unrest` refuses any rise (every source), no revolution ("The people back the new government (3 turns)."), Anarchy doesn't fall, and the forecasts count it (the upkeep forecast runs on the next turn's number); the sidebar shows "Honeymoon: 3 turns" under the government. The Government overlay shows the deck in
   that order with the card focus on the default (Left/Right move it, Enter chooses), a click chooses; the civilization modal shows the deck as a row of tabs under its two cards (231). The sim bot chooses by rollout (314).
 - Generic bot (313, `sim/generic_bot.gd`, strategy `generic`): no rule for any mechanic. Each step it tries every
   entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
@@ -776,7 +776,7 @@ Your people have one government at a time; its bonuses apply while it rules.
 - Revolution (148, 155): `revolt()` declares one at any time (`GameState.revolt_pending`); Anarchy falls at the next
   turn's start, before upkeep, so its first turn has an Anarchy upkeep. No action used. `revolt_error()`: game over or
   pending, "Without unrest there is no revolution.", "Anarchy already rules.", "A revolution is already under way.",
-  "There is no government to overthrow.". `revolt_summary()` lists what it would bring (205, 384): when it falls,
+  "There is no government to overthrow.", the honeymoon's message (399). `revolt_summary()` lists what it would bring (205, 384): when it falls,
   "It lasts 3 turns.", what may be played, renewal and "When it ends, choose a government; unrest drops to 0." The
   civilization modal's Revolt asks with it. The sim bot weighs a revolt by rollout (314, below). Real data: Calls for Reform (2 turns, renewal +1),
   Peasant Uprising (+1 unrest), Radical Thinkers (era 2, 3 turns, renewal +2). Anarchy (an event), 3 turns, era

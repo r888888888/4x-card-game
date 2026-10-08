@@ -36,6 +36,11 @@ static func relieve_button(main: MainScreen) -> Button:
 	return main.relief.button
 
 
+## The sidebar's honeymoon line under the government, visible or not (399).
+static func honeymoon_line(main: MainScreen) -> Label:
+	return main.sidebar.honeymoon
+
+
 ## The Renew button beside Relieve, visible or not (385).
 static func renew_button(main: MainScreen) -> Button:
 	return main.renew.button

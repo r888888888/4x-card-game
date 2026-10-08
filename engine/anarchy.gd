@@ -34,7 +34,8 @@ static func before_upkeep(e: GameEngine) -> void:
 
 ## The start of a turn, after upkeep, feeding and era unlocks, before the draw: unrest at the limit falls into Anarchy.
 static func start_of_turn(e: GameEngine) -> void:
-	if active(e) == null and not e.config.get("unrest", {}).is_empty() and e.at_unrest_limit():
+	if active(e) == null and not e.config.get("unrest", {}).is_empty() and e.at_unrest_limit() \
+			and e.honeymoon_left() == 0:
 		_fall(e)
 
 
@@ -130,6 +131,9 @@ static func revolt_error(e: GameEngine) -> String:
 		return "A revolution is already under way."
 	if e.government() == -1:
 		return "There is no government to overthrow."
+	var n := e.honeymoon_left()
+	if n > 0:
+		return "The people back the new government (%d turn%s)." % [n, "" if n == 1 else "s"]
 	return ""
 
 
@@ -237,6 +241,8 @@ static func choose_government(e: GameEngine, uid: int) -> bool:
 	var ends_turn: bool = e.state.pending.get("ends_turn", false)
 	e.state.pending = {}
 	e.set_unrest(0)
+	if e.config.unrest.has("honeymoon_turns"):  # the next honeymoon_turns turns are protected (399)
+		e.state.honeymoon_until = e.turn + e.config.unrest.honeymoon_turns
 	e._resolve(card, "play")
 	e._notice("%s rules." % card.def.name)
 	if ends_turn:

@@ -130,9 +130,12 @@ func price_error(what: String, cost: Dictionary) -> String:
 
 
 ## Sets unrest to n, never below 0, and returns the change (173): the one way unrest is added or capped. Raising it
-## stops at unrest_limit(), and never lifts it when it is already past the limit (a lowered limit); lowering it is free.
+## stops at unrest_limit(), and never lifts it when it is already past the limit (a lowered limit) or during a
+## honeymoon (399); lowering it is free.
 func set_unrest(n: int) -> int:
 	var have: int = resources.get(UNREST, 0)
+	if state.honeymoon_until >= turn:
+		n = mini(n, have)
 	var limit := Modifiers.unrest_limit(self)
 	if limit >= 0 and n > limit:
 		n = maxi(limit, mini(n, have))

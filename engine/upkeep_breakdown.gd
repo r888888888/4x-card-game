@@ -15,6 +15,7 @@ static func ledger(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
 		return {}
 	var f := e.fork()
+	f.turn += 1  # the upkeep is the next turn's: a honeymoon's last turn forecasts unprotected (399)
 	Anarchy.before_upkeep(f)  # a declared revolution falls first, as at the turn's start (332)
 	var books := {}  # resource -> Ledger
 	for r in e.resources:
