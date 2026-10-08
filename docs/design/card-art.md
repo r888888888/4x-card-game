@@ -124,7 +124,7 @@ each card's state in `assets/card-art-review.jsonl`.
 | `harbor.png` | Harbor | Upgrade of Fishing Huts. Stone quays and a curved breakwater sheltering a bay, two ships moored, waves outside the wall. | olive, blue, ochre |
 | `hunters_camp.png` | Hunters' Camp | A hide tent and drying racks of meat at a forest edge, a small fire, dark trees behind. | olive, bronze, brick |
 | `timber_camp.png` | Timber Camp | Upgrade of Hunters' Camp. The hunters' camp grown into a logging site: stacked logs, axemen at work, logs floating down a river. | olive, bronze, blue |
-| `irrigation_canals.png` | Irrigation Canals | Upgrade of Farm. A grid of straight canals carrying blue water across green fields, a figure with a shovel clearing silt. | olive, blue, sage |
+| `irrigation_canals.png` | Irrigation Canals | A grid of straight canals carrying blue water across green fields, a figure with a shovel clearing silt. | olive, blue, sage |
 | `ploughed_fields.png` | Ploughed Fields | Upgrade of Farm. Yoked oxen pulling a wooden plough, furrows in long parallel curves running away to the horizon. | olive, bronze, ochre |
 | `weavers_workshop.png` | Weavers' Workshop | Two upright looms with cloth in striped patterns, spindles turning, a weaver at each. | olive, brick, ochre |
 | `brewery.png` | Brewery | Great clay jars in a row with foam at their mouths, a brewer stirring with a long paddle. | olive, ochre, bronze |
@@ -132,7 +132,7 @@ each card's state in `assets/card-art-review.jsonl`.
 | `house_of_life.png` | House of Life | Upgrade of Temple. A lamplit hall where scribes copy papyri at low desks, jars of remedies on shelves. | olive, ochre, teal |
 | `qanat_channel.png` | Qanat | A cutaway of a hillside showing a tunnel running gently downhill, shafts rising to the surface, green fields where it emerges. | olive, blue, ochre |
 | `fishing_huts.png` | Fishing Huts | Reed huts on a shore, nets drying on poles, two small boats out on pewter-grey water. | olive, blue, bronze |
-| `salt_pans.png` | Salt Pans | Upgrade of Fishing Huts. Shallow rectangular clay beds of seawater in a grid by the shore, white salt crusting, a worker raking. | olive, blue, ochre |
+| `salt_pans.png` | Salt Pans | Shallow rectangular clay beds of seawater in a grid by the shore, white salt crusting, a worker raking. | olive, blue, ochre |
 | `shrine.png` | Shrine | A small stone altar on a high rocky place, a bead and a crust left on it, a mountain beyond. | olive, teal, ochre |
 | `mine.png` | Mine | A dark opening in a hillside streaked with green ore, a miner coming out with a basket, a fire at the mouth. | olive, bronze, teal |
 | `shaft_mine.png` | Shaft Mine | Upgrade of Mine. The mine grown deep: a cutaway of shafts and galleries under the hill, ladders, tiny lamps. | olive, bronze, teal |
