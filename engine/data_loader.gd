@@ -38,7 +38,7 @@ const TYPE_FIELDS := {
 	"tier": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
-	"requires": [CardDef.BUILDING],
+	"requires": [CardDef.BUILDING, CardDef.EVENT],
 }
 ## An INT_FIELDS default: the field must be given.
 const REQUIRED := "required"

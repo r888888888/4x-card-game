@@ -129,9 +129,9 @@ func function_lines(path: String, name: String) -> int:
 	return -1 if start == -1 else lines.size() - start
 
 
+## Events take requires too (416: tests/test_event_preconditions.gd).
 func test_requires_on_a_card_that_is_not_a_building_is_ignored_with_a_warning() -> void:
-	for type in [CardDef.ACTION, CardDef.CITY, CardDef.TERRITORY, CardDef.TECH, CardDef.EVENT, CardDef.CIVILIZATION,
-			CardDef.GOVERNMENT]:
+	for type in [CardDef.ACTION, CardDef.CITY, CardDef.TERRITORY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT]:
 		var r := card_load(card_x(type, {"requires": ["mountain"]}))
 		eq(r.errors, [] as Array[String], "%s: errors" % type)
 		check(has_message(r.warnings, "card 'x': 'requires' only applies to buildings (ignored)"),

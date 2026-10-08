@@ -43,8 +43,9 @@ static func turns_left(e: GameEngine, uid: int) -> int:
 
 ## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event, makes it active for its
 ## discard_turns, and resolves its play effects. A raid drawn while raids aren't allowed goes to the deck's bottom and
-## the next event is drawn instead (257); one that finds no target fizzles into the discard, resolving nothing (372). When the deck is empty, or holds only such raids (266), the event discard is
-## shuffled in first. Does nothing when both piles are empty or only such raids are left in either.
+## the next event is drawn instead (257); an event whose precondition isn't met goes to the discard unseen and the next
+## is drawn (416). When the deck is empty, or holds only such cards (266), the event discard is shuffled in first. Does
+## nothing when both piles are empty or hold no event that can be drawn.
 static func draw(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")
 	if deck.is_empty():
@@ -58,10 +59,6 @@ static func draw(e: GameEngine) -> void:
 	e._log("Event: %s." % event.def.name)
 	e._outcome = CardPlay.new_outcome(event.uid)
 	e._outcome.id = event.def.id
-	if Military.is_raid(event) and e.military.aim(event) == null:
-		e.zone("event_discard").add(event)
-		_emit_drawn(e, event)
-		return
 	e.zone("active_events").add(event)
 	e._resolve(event, "play")
 	if Military.is_raid(event):
@@ -89,15 +86,27 @@ static func _reshuffle(e: GameEngine, deck: Zone) -> bool:
 	return true
 
 
-## The top card of deck, after moving each raid on top to the bottom while raids aren't allowed (257); null when every
-## card is such a raid.
+## The top card of deck, after moving each raid on top to the bottom while raids aren't allowed (257) and each event
+## whose precondition isn't met to the event discard (416); null when no card in deck can be drawn.
 static func _take_allowed(e: GameEngine, deck: Zone) -> CardInstance:
 	for i in deck.size():
 		var top := deck.take_top()
-		if not Military.is_raid(top) or e.military.raids_allowed():
+		if Military.is_raid(top) and not e.military.raids_allowed():
+			deck.add_bottom(top)
+		elif not _precondition_met(e, top):
+			e.zone("event_discard").add(top)
+		else:
 			return top
-		deck.add_bottom(top)
 	return null
+
+
+## Whether event can be the turn's event (416): a raid needs a target (Military.aim), any other event a settled
+## territory with one of the keywords it requires (or it requires none).
+static func _precondition_met(e: GameEngine, event: CardInstance) -> bool:
+	if Military.is_raid(event):
+		return e.military.aim(event) != null
+	return event.def.requires.is_empty() or e.zone("tableau").cards.any(
+		func(land: CardInstance) -> bool: return land.def.type == CardDef.TERRITORY and Territories.meets_requires(event, land))
 
 
 ## Resolves each active event's upkeep effects, then counts down its turns and discards it at 0. The Famine is
