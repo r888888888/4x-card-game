@@ -17,7 +17,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_admin_unrest.gd` | Admin unrest (319) |
 | `tests/test_anarchy.gd` | Anarchy (145) |
 | `tests/test_anarchy_event.gd` | Anarchy as an event (253) |
-| `tests/test_anarchy_length.gd` | Anarchy's length: unrest is its clock (155, 384) |
+| `tests/test_anarchy_length.gd` | Anarchy's length: a fixed `anarchy_turns` (155, 384) |
 | `tests/test_blocking.gd` | Every action refused while a decision is owed or the game is over (171, 172) |
 | `tests/test_board_faces.gd` | Board card faces (138; UI) on a `board_engine` game |
 | `tests/test_board_labels.gd` | The board's game words (UI) |

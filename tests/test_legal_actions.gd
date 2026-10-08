@@ -134,9 +134,7 @@ func test_the_government_choice_lists_each_government() -> void:
 	var e := game()
 	e.resources["unrest"] = 5
 	e.end_turn()
-	e.set_unrest(0)
-	e.end_turn()  # 384: unrest 0 at the turn's end: the government choice is owed
-	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "precondition: the government choice is owed")
+	outlast_anarchy(e)
 	var options: Array = e.pending().options
 	check(not options.is_empty(), "governments to choose from")
 	eq(e.legal_actions(), options.map(func(o): return ["choose_government", o]), "one entry per government")
@@ -209,8 +207,7 @@ func coverage() -> Dictionary:
 			var e := game()
 			e.resources["unrest"] = 5
 			e.end_turn()
-			e.set_unrest(0)
-			e.end_turn()  # 384: Anarchy ends at 0 unrest
+			outlast_anarchy(e)
 			return e,
 		"take": func():  # 370
 			var e := anarchy_engine({}, {}, [RECALL_CARD])

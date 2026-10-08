@@ -1,6 +1,7 @@
 extends "res://tests/lib/anarchy_case.gd"
-## Anarchy as an event (backlog 253): it falls into the active events (with no counters since 384), the government slot
-## stands empty while it lasts, and upkeep neither counts it down nor discards it. Fixtures: tests/lib/anarchy_case.gd
+## Anarchy as an event (backlog 253): it falls into the active events with its counters on show (anarchy_turns, 384),
+## the government slot stands empty while it lasts, and upkeep neither counts it down nor discards it (its turn's end
+## does). Fixtures: tests/lib/anarchy_case.gd
 ## (Chiefs, limit 5; Anarchy, an event).
 
 
@@ -13,7 +14,7 @@ func test_anarchy_falls_into_the_active_events_and_the_government_slot_empties()
 	eq(e.anarchy(), uid_of(events, "anarchy"), "anarchy() is the event's uid")
 	eq(e.government(), -1, "no government rules")
 	check(uid_of(e.zone("governments"), "chiefs") != -1, "Chiefs waits in the government deck")
-	eq(e.event_counters(e.anarchy()), 0, "no counters on show (384)")
+	eq(e.event_counters(e.anarchy()), 3, "anarchy_turns' 3 counters on show (384)")
 
 
 # --- AC3: upkeep doesn't count it down or discard it ---
@@ -21,9 +22,9 @@ func test_anarchy_falls_into_the_active_events_and_the_government_slot_empties()
 func test_upkeep_neither_counts_anarchy_down_nor_discards_it() -> void:
 	var e := fallen_engine()
 	var uid := e.anarchy()
-	for i in 4:
+	for i in 2:
 		e.end_turn()
-	check(e.zone("active_events").find(uid) != null, "still active after 4 more upkeeps (1 unrest left, 384)")
+	check(e.zone("active_events").find(uid) != null, "still active after 2 more upkeeps (1 counter left, 384)")
 	e.end_turn()
 	eq(e.zone("active_events").find(uid), null, "burned out: no longer active")
 	check(e.zone("removed").find(uid) != null, "removed")
@@ -55,13 +56,13 @@ func test_a_revolution_brings_the_anarchy_event() -> void:
 	eq(e.government(), -1, "no government rules")
 
 
-func test_a_copy_keeps_the_active_anarchy() -> void:
+func test_a_copy_keeps_the_active_anarchy_and_its_counters() -> void:
 	var e := fallen_engine()
-	e.set_unrest(3)
 	var f := e.fork()
 	eq(f.anarchy(), e.anarchy(), "the same uid")
+	eq(f.event_counters(f.anarchy()), 3, "its counters")
 	f.end_turn()
-	eq([f.resources.unrest, e.resources.unrest], [2, 3], "the fork's Anarchy turn ends alone (384)")
+	eq([f.event_counters(f.anarchy()), e.event_counters(e.anarchy())], [2, 3], "the fork counts down alone")
 
 
 func test_an_event_may_carry_a_quote() -> void:

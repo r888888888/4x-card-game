@@ -3,7 +3,7 @@ extends "res://tests/lib/tech_case.gd"
 ## (sim/sim_stats.gd), including the raid metrics and the per-civilization raids line (375), and settlements with their
 ## count per tier (328).
 
-const METRICS := ["anarchies", "anarchy_turns", "bought", "deck_end", "era", "explored", "famine_turns", "gov_changes",
+const METRICS := ["anarchies", "bought", "deck_end", "era", "explored", "famine_turns", "gov_changes",
 	"lookahead_turns", "pop", "raid_food_lost", "raid_pop_lost", "raid_strength_max", "raid_units_lost",
 	"raid_wealth_lost", "raids", "raids_repelled", "revolts", "score", "settlements", "techs", "trashed"]
 	# sorted (158 added the Anarchy and famine ones, 294 lookahead_turns, 375 the raid ones, 328 renamed cities, 376

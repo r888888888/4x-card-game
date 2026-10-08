@@ -87,24 +87,25 @@ func test_retired_revolt_field_is_a_load_warning() -> void:
 
 # --- 205: the summary the confirmation shows (the board's Revolt button went to the civilization modal) ---
 
-const SUMMARY := ["Anarchy falls at the start of next turn.",
-	"It lasts until unrest reaches 0, with −1 unrest at the end of each of its turns.",
-	"Only order cards can be played.", "Nothing can be grown, bought or researched.",
+const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts 3 turns.",
+	"You can play action cards; nothing can be grown, bought or researched.",
 	"Each turn: trash 1 card, +1 per turn so far, from your hand, deck or discard (−1 unrest each).",
-	"When it ends, choose a government from your government deck."]
+	"When it ends, choose a government; unrest drops to 0."]
 
 
 func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() -> void:
 	var e := anarchy_engine({"renewal": 1})
 	e.resources["unrest"] = 3
-	eq(e.revolt_summary(), SUMMARY, "the lines, in order: no actions, drain or buying order (384)")
+	eq(e.revolt_summary(), SUMMARY, "the lines, in order: no calming, actions, drain or buying order (384)")
+	var short := anarchy_engine({"renewal": 1, "anarchy_turns": 1})
+	eq(short.revolt_summary()[1], "It lasts 1 turn.", "anarchy_turns 1")
 
 
 func test_a_summary_leaves_out_what_the_config_lacks() -> void:
 	var e := anarchy_engine({"renewal": null})
 	e.resources["unrest"] = 3
 	var lines: Array = e.revolt_summary()
-	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[5]], "no renewal")
+	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[4]], "no renewal")
 
 
 func test_no_summary_while_revolt_is_refused() -> void:
@@ -132,7 +133,7 @@ const ACADEMY := {"id": "academy", "name": "Academy", "type": "building",
 	"effects": [{"op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep"}]}
 
 
-## An anarchy game ruled by gov (one of the 332 fixtures), no drain.
+## An anarchy game ruled by gov (one of the 332 fixtures).
 func ruled_by(gov: String) -> GameEngine:
 	var starting := {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 		"territory": "homeland", "government": gov}

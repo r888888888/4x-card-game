@@ -2,7 +2,7 @@
 id: 384
 title: Interregnum - Anarchy lasts a fixed 3 turns
 type: feature
-status: in-progress
+status: red-review
 branch: feat/384-simpler-anarchy
 ---
 
@@ -80,7 +80,14 @@ block with `anarchy_turns: 3` and no `renewal` unless a criterion says so.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_anarchy_length`: `test_anarchy_lasts_3_turns_counting_down_its_counters`, `test_a_revolution_with_1_unrest_also_lasts_3_turns`, `test_its_length_is_the_configs_anarchy_turns`, `test_the_next_upkeep_runs_under_the_chosen_government`, `test_anarchys_end_comes_after_the_hand_limit_discard`; `test_anarchy_event`: `test_anarchy_falls_into_the_active_events_and_the_government_slot_empties`, `test_upkeep_neither_counts_anarchy_down_nor_discards_it`, `test_a_copy_keeps_the_active_anarchy_and_its_counters`; `test_events_at_turn_start::test_anarchy_burning_out_draws_the_next_event_once_the_government_is_chosen` |
+| AC2 | `test_anarchy_length`: `test_calming_doesnt_shorten_anarchy`, `test_more_unrest_doesnt_lengthen_anarchy_and_choosing_sets_it_to_0`; `test_government_deck::test_choosing_a_government_rules_it_and_sets_unrest_to_0` |
+| AC3 | `test_anarchy`: `test_under_anarchy_action_cards_play`, `test_under_anarchy_other_cards_cant_be_played`, `test_under_anarchy_nothing_is_built_from_the_build_menu` (and the unchanged `test_under_anarchy_nothing_is_grown_bought_or_researched`); `test_content::test_starting_deck_holds_an_anarchy_playable_card` |
+| AC4 | `test_anarchy`: `test_there_is_no_buying_out_of_anarchy`, `test_the_board_has_no_restore_order_button`; the action tables in `test_blocking` and `test_legal_actions` (no `restore_order` row); `test_engine_structure` (no `order_relief`, `anarchy_counters`, `revolt_forecast` queries); `test_sim::test_sim_stats_reports_mean_min_max_per_metric`, `test_sim_anarchy::test_the_new_metrics_and_one_per_government_in_order` (no `restored`, no `anarchy_turns`) |
+| AC5 | `test_anarchy`: `test_anarchy_eats_no_stores_even_with_a_retired_drain_pct`, `test_a_pending_revolution_forecasts_no_drain` |
+| AC6 | `test_anarchy::test_anarchy_sets_no_action_limit` |
+| AC7 | `test_revolution`: `test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers`, `test_a_summary_leaves_out_what_the_config_lacks` |
+| AC8 | `test_anarchy`: `test_the_unrest_block_loads_with_its_defaults`, `test_unrest_block_validation`; `test_size_unrest::test_tolerates_loads_and_shows_in_the_government_text`; `test_real_data_loads` (green phase changes `data/config.json`) |
 
 ## Manual check
 - [ ] Anarchy's card reads well and fits its face; its event panel counts 3, 2, 1.
@@ -95,3 +102,6 @@ block with `anarchy_turns: 3` and no `renewal` unless a criterion says so.
   are playable instead of order cards only; unrest drops to 0 when the government is chosen. The red tests committed
   on this branch (789d6999) were written for "unrest is its clock" and must be rewritten against these criteria before
   the next red checkpoint; AC4–AC6 and the loader part of AC8 carry over.
+- 2026-10-08: red tests rewritten for the 3-turn design. A government in hand under Anarchy now gets the Anarchy
+  message (AC3), not "A government is chosen, not played." `anarchy_case.gd`'s `UNREST_BLOCK` keeps `max_counters`
+  and `allowed_tag` during red only, so today's loader still loads; green removes them.

@@ -1,18 +1,21 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Anarchy (backlog 145): a turn that starts with unrest at the limit falls into Anarchy, the config's unrest.anarchy
-## government. While it rules only allowed_tag cards play, nothing is grown, bought or researched, and when it ends a
-## government is chosen from the government deck (154; its length: 155, 384, test_anarchy_length.gd). It eats no stores
-## and sets no action limit (384). Each new era adds era_unrest. Fixtures: tests/lib/anarchy_case.gd.
+## government. While it rules only action cards play (384), nothing is grown, bought or researched, and when it ends a
+## government is chosen from the government deck (154; its length: 384, test_anarchy_length.gd). It eats no stores,
+## sets no action limit and can't be bought out (384). Each new era adds era_unrest. Fixtures: tests/lib/anarchy_case.gd,
+## and Levy (a unit).
+
+const LEVY := {"id": "levy", "name": "Levy", "type": "unit", "cost": {"food": 1}, "strength": 2}
 
 
 # --- AC1: the config block ---
 
 func test_the_unrest_block_loads_with_its_defaults() -> void:
 	var raw := anarchy_raw()
-	raw.unrest = {"anarchy": "anarchy"}
+	raw.unrest = {"anarchy": "anarchy", "anarchy_turns": 3}
 	check_loads([
-		["normalized, era_unrest 0 and allowed_tag \"\" by default (384: no max_counters)", raw,
-			{"config.unrest": {"anarchy": "anarchy", "era_unrest": 0, "allowed_tag": ""}}],
+		["normalized, era_unrest 0 by default (384: anarchy_turns, no max_counters or allowed_tag)", raw,
+			{"config.unrest": {"anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 0}}],
 	], raw_config_load)
 
 
@@ -22,7 +25,10 @@ func test_unrest_block_validation() -> void:
 		["anarchy not an event", with_block.call({"anarchy": "farm"}), ["config.json: unrest.anarchy", "farm", "event"]],
 		["anarchy unknown", with_block.call({"anarchy": "nobody"}), ["config.json: unrest.anarchy:", "nobody"]],
 		["era_unrest -1", with_block.call({"era_unrest": -1}), ["config.json: unrest.era_unrest:", ">= 0"]],
-		["allowed_tag not a string", with_block.call({"allowed_tag": 3}), ["config.json: unrest.allowed_tag:", "string"]],
+		["anarchy_turns missing (384)", with_block.call({"anarchy_turns": null}), ["config.json: unrest.anarchy_turns"]],
+		["anarchy_turns 0 (384)", with_block.call({"anarchy_turns": 0}), ["config.json: unrest.anarchy_turns", ">= 1"]],
+		["anarchy_turns a fraction (384)", with_block.call({"anarchy_turns": 2.5}), ["config.json: unrest.anarchy_turns"]],
+		["anarchy_turns a string (384)", with_block.call({"anarchy_turns": "3"}), ["config.json: unrest.anarchy_turns"]],
 		["without unrest in resources", anarchy_raw({}, {"resources": ["food", "wealth", "insight"],
 			"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland", "government": "chiefs"}}),
 			["config.json: unrest:", "resources"]],
@@ -34,6 +40,8 @@ func test_unrest_block_validation() -> void:
 			"config.json: unrest: unknown field 'max_counters'", "warning_only"],
 		["drain_pct is no longer read (384)", with_block.call({"drain_pct": 20}),
 			"config.json: unrest: unknown field 'drain_pct'", "warning_only"],
+		["allowed_tag is no longer read (384)", with_block.call({"allowed_tag": "order"}),
+			"config.json: unrest: unknown field 'allowed_tag'", "warning_only"],
 	], raw_config_load)
 
 
@@ -87,23 +95,30 @@ func test_unrest_has_no_limit_under_anarchy() -> void:
 
 # --- AC3: what Anarchy locks ---
 
-func test_under_anarchy_only_order_cards_play() -> void:
+## 384 AC3: any action card plays under Anarchy, tagged order or not.
+func test_under_anarchy_action_cards_play() -> void:
 	var e := fallen_engine()
-	var shrine := put_in_hand(e, "shrine")
-	eq(e.play_error(shrine), ONLY_ORDER, "Shrine")
-	check(not e.play_card(shrine), "play_card refuses")
+	var forager := put_in_hand(e, "forager")
+	eq(e.play_error(forager), "", "Forager, an untagged action")
+	check(e.play_card(forager), "Forager plays")
 	var feast := put_in_hand(e, "feast")
-	check(e.play_card(feast), "Feast (order) plays: %s" % e.play_error(feast))
+	eq(e.play_error(feast), "", "Feast, an order action")
+	check(e.play_card(feast), "Feast plays")
 	eq(e.resources.get("unrest"), 3, "5 − 2")
 
 
-func test_under_anarchy_a_government_in_hand_cant_be_played() -> void:
-	var e := fallen_engine()
-	e.resources["unrest"] = 0
-	var kings := put_in_hand(e, "kings")
-	eq(e.play_error(kings), "A government is chosen, not played.", "155 AC9")
-	check(not e.play_card(kings), "play_card refuses")
-	check(e.anarchy() != -1, "Anarchy still rules")
+## 384 AC3: a unit, a building or a government in hand can't be played under Anarchy, and the refusal changes nothing.
+func test_under_anarchy_other_cards_cant_be_played() -> void:
+	var e := anarchy_engine({}, {}, [LEVY])
+	e.resources["unrest"] = 5
+	e.end_turn()
+	check(e.anarchy() != -1, "precondition: Anarchy rules")
+	for id in ["levy", "farm", "kings"]:
+		var uid := put_in_hand(e, id)
+		eq(e.play_error(uid), ONLY_ACTIONS, id)
+		var before := e.state.copy()
+		check(not e.play_card(uid), "%s: play_card refuses" % id)
+		eq(state_diff(e.state, before), "", "%s: a refusal changes nothing" % id)
 
 
 func test_under_anarchy_nothing_is_grown_bought_or_researched() -> void:
@@ -122,8 +137,7 @@ func test_under_anarchy_the_ready_lamps_stay_dark_until_a_government_rules() -> 
 	eq(e.ready_techs(), [] as Array[String], "no tech under Anarchy")
 	eq(e.ready_supply(), [] as Array[String], "no pile under Anarchy")
 	check(not e.tech_lamp() and not e.supply_lamp(), "both lamps dark")
-	e.set_unrest(1)  # Anarchy ends at the end of the turn (384)
-	e.end_turn()
+	outlast_anarchy(e)
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "Chiefs chosen")
 	e.resources["insight"] = 10
 	e.resources["wealth"] = 10
@@ -137,7 +151,7 @@ func test_under_anarchy_nothing_is_built_from_the_build_menu() -> void:
 	e.resources["unrest"] = 5
 	e.end_turn()
 	check(e.anarchy() != -1, "precondition: Anarchy rules")
-	eq(e.build_error("well", home_uid(e)), ONLY_ORDER, "build_error")
+	eq(e.build_error("well", home_uid(e)), ONLY_ACTIONS, "build_error")
 	check(not e.build("well", home_uid(e)), "build refuses")
 
 
@@ -157,7 +171,7 @@ func test_under_anarchy_discarding_and_ending_the_turn_work() -> void:
 	eq(e.end_turn_error(), "", "end_turn_error")
 
 
-# --- AC4: Anarchy's upkeep and its end (counters: 155) ---
+# --- AC4: Anarchy's upkeep and its end (its length: 384) ---
 
 func test_each_turn_of_anarchy_takes_a_pop() -> void:
 	var e := fallen_engine()
@@ -173,15 +187,11 @@ func test_when_anarchy_burns_out_the_government_choice_is_owed() -> void:
 	var e := fallen_engine()
 	var recorded := record_messages(e)
 	var anarchy_uid: int = e.anarchy()
-	e.set_unrest(1)
-	e.end_turn()
-	eq(e.anarchy(), -1, "unrest 0 at the turn's end: no anarchy (384)")
+	outlast_anarchy(e)
 	check(e.zone("removed").find(anarchy_uid) != null, "the Anarchy card is removed")
 	eq(e.pending().get("kind"), GameEngine.PENDING_GOVERNMENT, "a government is to be chosen (154)")
-	eq(e.turn, 2, "owed at the end of turn 2 (155)")
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
-	eq([e.turn, ruling(e)], [3, "chiefs"], "Chiefs restores order and turn 3 starts")
-	eq(e.resources.get("unrest"), 0, "order returns with no unrest")
+	eq(ruling(e), "chiefs", "Chiefs restores order")
 	check_noticed(recorded, "order returns", GameEngine.NOTICE_INFO)
 	check_noticed(recorded, "Chiefs rules.", GameEngine.NOTICE_INFO)
 
@@ -189,11 +199,26 @@ func test_when_anarchy_burns_out_the_government_choice_is_owed() -> void:
 # --- 384 AC4: no buying out ---
 
 func test_there_is_no_buying_out_of_anarchy() -> void:
-	var e := second_turn_engine(5, 30)  # its second turn, 4 unrest
+	var e := fallen_engine()
+	e.end_turn()  # its second turn
+	e.set_unrest(4)
+	e.resources["wealth"] = 30
 	var actions: Array = e.legal_actions().map(func(entry): return entry[0])
 	check(not actions.has("restore_order"), "no action ends Anarchy: %s" % [actions])
 	e.end_turn()
-	eq([e.anarchy() != -1, e.resources.unrest, e.resources.wealth], [true, 3, 30], "Anarchy goes on, nothing paid")
+	eq([e.anarchy() != -1, e.resources.wealth], [true, 30], "Anarchy goes on, nothing paid")
+	var methods: Array = e.get_method_list().map(func(m): return m.name)
+	for gone in ["restore_order", "restore_order_error", "order_relief"]:
+		check(not methods.has(gone), "the engine has no %s" % gone)
+
+
+## 384 AC4: the board has no Restore order button.
+func test_the_board_has_no_restore_order_button() -> void:
+	await with_main(fallen_engine(), func(main: Node):
+		await wait_frames()
+		var restore := main.find_children("*", "Button", true, false).filter(
+			func(b: Button): return b.text.begins_with("Restore order"))
+		eq(restore.size(), 0, "no Restore order button"))
 
 
 # --- 384 AC5: no drain ---

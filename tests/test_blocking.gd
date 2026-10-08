@@ -86,8 +86,7 @@ func scenarios() -> Array:
 	var government := blocking_engine()
 	government.resources["unrest"] = 5
 	government.end_turn()  # falls into Anarchy
-	government.set_unrest(0)
-	government.end_turn()  # 384: unrest 0 at the turn's end: the government choice is owed
+	outlast_anarchy(government)  # 384: its 3 turns over, the government choice is owed
 	var event_choice := choice_engine()  # 269: Envoys drawn at turn 2's start
 	event_choice.end_turn()
 	var take := blocking_engine({}, {}, [RECALL_CARD])  # 370: Recall with two cards in the discard

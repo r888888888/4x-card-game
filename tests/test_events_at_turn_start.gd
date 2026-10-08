@@ -166,13 +166,12 @@ func test_the_final_turn_draws_no_event() -> void:
 # --- AC8: Anarchy burning out ---
 
 func test_anarchy_burning_out_draws_the_next_event_once_the_government_is_chosen() -> void:
-	var e := anarchy_events_engine({}, {"omen": 3}, [])
+	var e := anarchy_events_engine({"anarchy_turns": 1}, {"omen": 3}, [])
 	e.resources["unrest"] = 5
 	e.end_turn()
 	check(e.anarchy() != -1, "Anarchy fell at turn 2's start")
 	var deck_size: int = e.zone("event_deck").size()
-	e.set_unrest(1)  # calmed to 1 counter: it burns out at the end of this turn
-	e.end_turn()
+	e.end_turn()  # its 1 turn ends
 	eq(e.pending().get("kind", ""), GameEngine.PENDING_GOVERNMENT, "the government choice is owed")
 	eq(e.zone("event_deck").size(), deck_size, "no event drawn while the choice is owed")
 	check(e.choose_government(uid_of(e.zone("governments"), "chiefs")), "choose Chiefs")
