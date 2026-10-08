@@ -151,13 +151,13 @@ func _add_fine_print(gates: PackedStringArray, into: Container) -> void:
 	into.add_child(fine)
 
 
-## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card, then chip if any; replaces those shown.
-func set_ribbons(ribbons: Array[UpgradeRibbon], chip: Button) -> void:
+## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card; replaces those shown.
+func set_ribbons(ribbons: Array[UpgradeRibbon]) -> void:
 	var old := get_node_or_null("Ribbons")
 	if old != null:
 		remove_child(old)
 		old.queue_free()
-	if ribbons.is_empty() and chip == null:
+	if ribbons.is_empty():
 		return
 	var foot := VBoxContainer.new()
 	foot.name = "Ribbons"
@@ -166,9 +166,6 @@ func set_ribbons(ribbons: Array[UpgradeRibbon], chip: Button) -> void:
 	foot.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END  # along the card's foot
 	for ribbon in ribbons:
 		foot.add_child(ribbon)
-	if chip != null:
-		chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		foot.add_child(chip)
 	add_child(foot)
 
 

@@ -94,15 +94,6 @@ static func rows(e: GameEngine, uid: int) -> Array[Dictionary]:
 	return out
 
 
-## The unlocked upgrade entries building base_uid could take now, in menu order, whatever they cost (302).
-static func for_base(e: GameEngine, base_uid: int) -> Array[String]:
-	var out: Array[String] = []
-	for id in BuildMenu.entries(e):
-		if e.card_db[id].is_upgrade() and BuildMenu.targets(e, id).has(base_uid):
-			out.append(id)
-	return out
-
-
 ## Each pair of an unlocked upgrade entry and a building on settled territory t it builds on, {card_id, base}: by
 ## building in tableau order, then menu order, whether it could be built now or not (302).
 static func options(e: GameEngine, t: int) -> Array[Dictionary]:

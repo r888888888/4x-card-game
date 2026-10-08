@@ -73,8 +73,8 @@ static func upgrade_row_id(card_id: String, base: int) -> String:
 	return "%s@%d" % [card_id, base]
 
 
-## Opens it on settled territory t: the build menu listed, row select selected if given, else the first row the engine
-## allows (else the first).
+## Opens it on settled territory t: the build menu listed, row select selected if given (only tests pass one since the
+## chip went, 410), else the first row the engine allows (else the first).
 func open(t: int, select := "") -> void:
 	var e := Game.engine
 	_territory = t

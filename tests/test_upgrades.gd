@@ -2,7 +2,7 @@ extends "res://tests/lib/test_case.gd"
 ## Building upgrades (300): a building with upgrade_of is built from the build menu onto a building already in play
 ## (its base), takes no slot and no worker, and adds to its base while the base works; a base carries several
 ## different upgrades and an upgrade can be a base. upgrade_base, upgrades_on, fallen_back_reason; the loader. 387:
-## upgrade_rows, a building's upgrades for its details.
+## upgrade_rows, a building's upgrades for its details. 410: has_unbuilt_upgrades, for its badge.
 
 const PLOUGH := {"id": "plough", "name": "Plough", "type": "building", "cost": {"food": 1}, "vp": 1,
 	"upgrade_of": "farm", "effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]}
@@ -470,18 +470,6 @@ func test_upgrade_tree_lists_a_bases_upgrades_depth_first() -> void:
 	eq(e.upgrade_tree(cathedral), [] as Array[int], "nothing on the Cathedral")
 
 
-func test_upgrades_for_lists_the_entries_a_base_could_take_now() -> void:
-	var e := upgrade_engine(0, "", {"build_menu": MENU.merged({"rampart": {"locked": true}}, true)})
-	var farm := put_on(e, home_uid(e), "farm")
-	var chapel := put_on(e, home_uid(e), "chapel")
-	eq(e.upgrades_for(farm), ["plough", "ditch"] as Array[String], "in menu order, whatever they cost; no Weir off the river")
-	eq(e.upgrades_for(chapel), ["sanctum"] as Array[String], "the locked Rampart left out")
-	e.resources.food = 10
-	upgrade(e, "plough", farm)
-	eq(e.upgrades_for(farm), ["ditch"] as Array[String], "not one it already carries")
-	eq(e.upgrades_for(home_uid(e)), [] as Array[String], "a territory takes none")
-
-
 func test_upgrade_options_pair_each_upgrade_entry_with_each_building_on_a_territory() -> void:
 	var e := upgrade_engine()
 	var home := home_uid(e)
@@ -547,3 +535,34 @@ func test_no_rows_for_anything_but_a_building_something_upgrades() -> void:
 	var sanctum := upgrade(e, "sanctum", put_on(e, home, "chapel"))
 	var cathedral := upgrade(e, "cathedral", sanctum)
 	eq(e.upgrade_rows(cathedral), [], "a Cathedral: nothing upgrades it")
+
+
+# --- 410: whether a building has an upgrade not yet built, for its badge ---
+
+func test_a_farm_has_unbuilt_upgrades_whatever_stops_them_now() -> void:
+	var e := upgrade_engine(10, "", {"build_menu": MENU.merged({"plough": {"locked": true}}, true)})
+	var farm := put_on(e, home_uid(e), "farm")
+	upgrade(e, "ditch", farm)
+	e.resources.food = 0
+	check(e.has_unbuilt_upgrades(farm), "Plough locked and the Weir short of fresh water, with no food")
+	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer: a territory choice is owed")
+	check(e.has_unbuilt_upgrades(farm), "while a decision is owed")
+
+
+func test_a_chain_has_unbuilt_upgrades_until_its_last_link_stands() -> void:
+	var e := upgrade_engine()
+	var chapel := put_on(e, home_uid(e), "chapel")
+	var sanctum := upgrade(e, "sanctum", chapel)
+	upgrade(e, "rampart", chapel)
+	check(e.has_unbuilt_upgrades(chapel), "the Cathedral, on the Sanctum")
+	upgrade(e, "cathedral", sanctum)
+	check(not e.has_unbuilt_upgrades(chapel), "the whole chain built")
+
+
+func test_no_unbuilt_upgrades_for_anything_but_a_building() -> void:
+	var e := upgrade_engine()
+	var home := home_uid(e)
+	var capital := uid_of(e.zone("tableau"), "capital")
+	var spears := put_on(e, home, "spears")
+	eq([e.has_unbuilt_upgrades(home), e.has_unbuilt_upgrades(capital), e.has_unbuilt_upgrades(spears),
+		e.has_unbuilt_upgrades(999)], [false, false, false, false], "a territory, a city, a unit, no card")

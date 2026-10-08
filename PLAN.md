@@ -245,8 +245,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   wonder needs a tier.
 - Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
   upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
-  `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
-  another (`upgrades_for`), opening the Build modal on that row. The modal's Upgrades heading lists
+  `fallen_back_reason` while it has fallen back, and a ▲ badge in its corner while its chain has an upgrade not yet
+  built (`has_unbuilt_upgrades`, 410; its details build it, 387). The Build modal's Upgrades heading lists
   `upgrade_options(t)` ("Plough … on Farm"), previewed with `build_preview(id, base)`. An upgrade's face reads
   "Upgrade · Farm", its lines led by "Also", with a stamp naming its tier (`upgrade_base_name`, `card_tier_name`).
 - A building's details (387) list its upgrades in an Upgrades section: `upgrade_rows(uid)` gives

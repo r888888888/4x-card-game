@@ -1,10 +1,12 @@
 extends "res://tests/lib/test_case.gd"
 ## Upgrades on screen (302) in the real main scene: the territory view draws a building's upgrades as ribbons at the
-## foot of its card (a fallen-back one hatched with its reason), a "+ Upgrade" chip on a building that could take one
-## opens the Build modal on it, the modal lists upgrades under their own heading, and an upgrade's card face names its
-## base and tier. Hooks on CardView: ribbons() ({uid, name, rules, reason, hatched} per ribbon), upgrade_chip; on
-## BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's flavor is its own. 387: a
-## building's details list its upgrades and build them; hooks on CardDetailsModal: upgrade_rows(), upgrades_shown().
+## foot of its card (a fallen-back one hatched with its reason), the Build modal lists upgrades under their own
+## heading, and an upgrade's card face names its base and tier. Hooks on CardView: ribbons() ({uid, name, rules, reason,
+## hatched} per ribbon); on BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's
+## flavor is its own. 387: a building's details list its upgrades and build them; hooks on CardDetailsModal:
+## upgrade_rows(), upgrades_shown().
+## 410: a building's card has no "+ Upgrade" chip but a badge while it has an upgrade not yet built (hook on CardView:
+## upgrade_badge(), null when none); a click on it opens those details.
 
 const TIERS := [
 	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
@@ -183,71 +185,82 @@ func test_a_fallen_back_ribbon_is_hatched_with_its_reason_until_it_works_again()
 		eq(view.ribbons().map(func(r): return [r.hatched, r.reason]), [[false, ""], [false, ""]], "plain again"))
 
 
-# --- AC3: the chip ---
+# --- 410: no chip; a building's upgrades are built from its details ---
 
-func test_a_building_that_could_take_an_upgrade_shows_the_chip() -> void:
+## The texts of the buttons on card uid's view.
+func button_texts(main: Node, uid: int) -> Array:
+	return view_of(main, uid).find_children("*", "Button", true, false).map(func(b: Button): return b.text)
+
+
+func test_a_building_that_could_take_an_upgrade_shows_no_chip() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		var chapel := put_home(e, "chapel")
+		build_it(e, "sanctum", chapel)
+		await open_home(main)
+		check(e.build_error("ditch", farm) == "", "the Farm could take a Ditch")
+		check(not button_texts(main, farm).has("+ Upgrade"), "no chip on the Farm: %s" % [button_texts(main, farm)])
+		check(not button_texts(main, chapel).has("+ Upgrade"), "no chip on the Chapel, which could take a Cathedral")
+		eq(ribbon_names(main, chapel), ["Sanctum"], "the Chapel still shows the Sanctum's ribbon"))
+
+
+## Whether card uid's view shows its upgrade badge.
+func badge_shown(main: Node, uid: int) -> bool:
+	var badge: Control = view_of(main, uid).upgrade_badge()
+	return badge != null and badge.is_visible_in_tree()
+
+
+func test_a_building_with_an_upgrade_not_yet_built_carries_the_badge() -> void:
 	await with_main(ribbon_engine(), func(main: Node):
 		var e := home_at(3)
 		var farm := put_home(e, "farm")
 		var chapel := put_home(e, "chapel")
 		await open_home(main)
-		check(chip_shown(main, farm), "the Farm can take a Plough or a Ditch")
-		if view_of(main, farm).upgrade_chip != null:
-			eq(view_of(main, farm).upgrade_chip.text, "+ Upgrade", "the chip's text")
-		check(not chip_shown(main, chapel), "a Sanctum needs a Village: no chip on the Chapel")
+		check(badge_shown(main, farm), "the Farm could take a Plough or a Ditch")
+		var badge: Control = view_of(main, farm).upgrade_badge()
+		if badge != null:
+			eq(badge.text, "▲", "the badge's mark")
+			check(badge.tooltip_text != "", "with a tooltip")
+		check(badge_shown(main, chapel), "the Chapel's Sanctum needs a Village, but it is an upgrade to come")
 		build_it(e, "plough", farm)
 		build_it(e, "ditch", farm)
 		await refresh(main)
-		check(not chip_shown(main, farm), "the Farm carries both")
-		set_home_pop(e, 4)
+		check(not badge_shown(main, farm), "the Farm carries both")
+		set_home_pop(e, 8)
+		build_it(e, "cathedral", build_it(e, "sanctum", chapel))
 		await refresh(main)
-		check(chip_shown(main, chapel), "at a Village the Chapel takes a Sanctum"))
+		check(not badge_shown(main, chapel), "the Chapel carries its whole chain"))
 
 
-## Whether card uid's view shows its "+ Upgrade" chip.
-func chip_shown(main: Node, uid: int) -> bool:
-	var chip: Button = view_of(main, uid).upgrade_chip
-	return chip != null and chip.is_visible_in_tree()
+func test_the_badge_shows_whatever_stops_the_upgrade_now() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		await open_home(main)
+		e.resources.food = 0
+		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer: a territory choice is owed")
+		await refresh(main)
+		check(badge_shown(main, farm), "no food and a decision owed: the badge still shows")
+		check(not button_texts(main, farm).has("+ Upgrade"), "and no chip"))
 
 
-func test_the_chip_opens_the_build_modal_on_the_first_upgrade_it_could_take() -> void:
+func test_a_click_on_a_building_opens_its_details_which_build_its_upgrade() -> void:
 	await with_main(ribbon_engine(), func(main: Node):
 		var e := home_at(8)
 		var farm := put_home(e, "farm")
 		build_it(e, "plough", farm)
 		await open_home(main)
-		(view_of(main, farm).upgrade_chip as Button).pressed.emit()
+		view_of(main, farm).details_requested.emit(view_of(main, farm))
 		await wait_frames()
-		var modal: Object = main.build_modal
-		check(modal.is_open(), "the Build modal opens")
-		eq(modal.title, "Build on Homeland", "on the territory")
-		eq(modal.list.selected, row_id(main, "ditch", farm), "the Ditch on this Farm selected")
-		eq(modal.shown_card(), "ditch", "and shown"))
-
-
-func test_the_chip_on_a_chain_selects_its_next_link() -> void:
-	await with_main(ribbon_engine(), func(main: Node):
-		var e := home_at(8)
-		var chapel := put_home(e, "chapel")
-		var sanctum := build_it(e, "sanctum", chapel)
-		await open_home(main)
-		(view_of(main, chapel).upgrade_chip as Button).pressed.emit()
-		await wait_frames()
-		eq(main.build_modal.list.selected, row_id(main, "cathedral", sanctum),
-			"the Cathedral on the Sanctum, from the Chapel's card"))
-
-
-func test_the_chip_is_disabled_while_a_decision_is_owed() -> void:
-	await with_main(ribbon_engine(), func(main: Node):
-		var e := home_at(8)
-		var farm := put_home(e, "farm")
-		await open_home(main)
-		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer: a territory choice is owed")
-		await wait_frames()
-		var chip: Button = view_of(main, farm).upgrade_chip
-		check(chip != null and chip.disabled, "the chip is disabled")
-		if chip != null:
-			eq(chip.tooltip_text, e.build_menu_error(), "with the reason"))
+		check(main.details.upgrades_shown(), "the Farm's details show its Upgrades")
+		var ditch: Array = main.details.upgrade_rows().filter(func(r): return r.name == "Ditch")
+		check(ditch.size() == 1 and ditch[0].button != null and not (ditch[0].button as Button).disabled,
+			"the Ditch row has an Upgrade button")
+		if ditch.size() == 1 and ditch[0].button != null:
+			(ditch[0].button as Button).pressed.emit()
+			await wait_frames()
+			eq(ribbon_names(main, farm), ["Plough", "Ditch"], "the Ditch built on the Farm, its ribbon shown"))
 
 
 # --- AC4: the Build modal ---

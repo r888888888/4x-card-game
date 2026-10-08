@@ -87,7 +87,7 @@ var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
 var min_height := 0.0  # a floor under the fitted height: the supply row keeps its cards one height
-var upgrade_chip: Button  # a building's "+ Upgrade" in the territory view (302), or null
+var _upgrade_badge: Label  # a building's ▲ in the territory view while it has an upgrade not yet built (410), or null
 var _ribbons: Array[Dictionary] = []  # its upgrades' ribbons: {uid, name, rules, reason, hatched} (302)
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
@@ -136,7 +136,7 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	_face = CardFace.new()
 	add_child(_face)
 	_ribbons.clear()
-	upgrade_chip = null
+	_upgrade_badge = null
 	if kind != "":
 		_face.build_board(card, card_db, kind, _color)
 	else:
@@ -305,21 +305,33 @@ func set_idle(idle: bool) -> void:
 
 
 ## Shows a building's upgrades as ribbons at its foot (302), each {uid, name, rules, reason} with reason "" while it
-## works; on_chip, when valid, adds a "+ Upgrade" chip calling it, disabled with chip_reason when that isn't "".
-func set_upgrades(ribbons: Array[Dictionary], on_chip: Callable, chip_reason: String) -> void:
-	_replays["upgrades"] = set_upgrades.bind(ribbons, on_chip, chip_reason)
+## works; badge puts a ▲ in its corner, saying its details list an upgrade not yet built (410).
+func set_upgrades(ribbons: Array[Dictionary], badge: bool) -> void:
+	_replays["upgrades"] = set_upgrades.bind(ribbons, badge)
 	_ribbons.clear()
 	var strips: Array[UpgradeRibbon] = []
 	for r in ribbons:
 		_ribbons.append(r.merged({"hatched": r.reason != ""}))
 		strips.append(UpgradeRibbon.new(r.name, r.rules, r.reason))
-	upgrade_chip = null
-	if on_chip.is_valid():
-		upgrade_chip = UIKit.button("+ Upgrade", on_chip)
-		upgrade_chip.theme_type_variation = &"UpgradeChip"
-		upgrade_chip.disabled = chip_reason != ""
-		upgrade_chip.tooltip_text = chip_reason if chip_reason != "" else "Build an upgrade on this building."
-	_face.set_ribbons(strips, upgrade_chip)
+	_face.set_ribbons(strips)
+	if _upgrade_badge != null:
+		remove_child(_upgrade_badge)
+		_upgrade_badge.queue_free()
+		_upgrade_badge = null
+	if badge:
+		_upgrade_badge = Label.new()
+		_upgrade_badge.text = "▲"
+		_upgrade_badge.theme_type_variation = &"UpgradeBadge"
+		_upgrade_badge.tooltip_text = "An upgrade to build: click the card for its details."
+		_upgrade_badge.mouse_filter = Control.MOUSE_FILTER_PASS  # its tooltip, and the click goes on to the card
+		_upgrade_badge.size_flags_horizontal = Control.SIZE_SHRINK_END  # the card's top right corner
+		_upgrade_badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		add_child(_upgrade_badge)
+
+
+## Test hook (410): the upgrade badge, or null when none.
+func upgrade_badge() -> Label:
+	return _upgrade_badge
 
 
 ## Test hook (302): the ribbons shown, {uid, name, rules, reason, hatched}, in order.

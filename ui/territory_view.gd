@@ -14,9 +14,6 @@ signal navigated
 signal rename_requested(t: int)
 ## Build… (B) or a free slot's "+ Build" pressed: the board opens the Build modal on territory t (297).
 signal build_requested(t: int)
-## A building's "+ Upgrade" pressed: the board opens the Build modal on territory t with upgrade card_id on building
-## base selected (302).
-signal upgrade_requested(t: int, card_id: String, base: int)
 
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
@@ -327,8 +324,8 @@ func _equalize_heights() -> void:
 		outline.custom_minimum_size.y = tallest
 
 
-## Building b's upgrades as ribbons on its card, depth first, and its "+ Upgrade" chip while it or an upgrade on it
-## could take another (302): the chip opens the Build modal on the first such upgrade.
+## Building b's upgrades as ribbons on its card, depth first (302), and its badge while its chain has an upgrade not
+## yet built (410): its details build them.
 func _show_upgrades(e: GameEngine, b: int) -> void:
 	var view: CardView = _board.views.get(b)
 	if view == null:
@@ -337,13 +334,7 @@ func _show_upgrades(e: GameEngine, b: int) -> void:
 	for u in e.upgrade_tree(b):
 		var def := e.zone("tableau").find(u).def
 		ribbons.append({"uid": u, "name": def.name, "rules": e.upgrade_rules_text(def.id), "reason": e.fallen_back_reason(u)})
-	var on_chip := Callable()
-	for base in [b] + e.upgrade_tree(b):
-		var options := e.upgrades_for(base)
-		if not options.is_empty():
-			on_chip = func(): upgrade_requested.emit(uid, options[0], base)
-			break
-	view.set_upgrades(ribbons, on_chip, e.build_menu_error())
+	view.set_upgrades(ribbons, e.has_unbuilt_upgrades(b))
 
 
 ## Build… and the free slots' "+ Build" (297): shown while the build menu has entries, disabled with the reason while
