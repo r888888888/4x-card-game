@@ -2,7 +2,7 @@
 id: 416
 title: Events whose preconditions aren't met are discarded unseen
 type: feature
-status: review
+status: done
 branch: feat/416-event-preconditions
 ---
 
