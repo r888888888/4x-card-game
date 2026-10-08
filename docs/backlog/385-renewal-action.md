@@ -2,7 +2,7 @@
 id: 385
 title: Renewal is a free action during Anarchy
 type: feature
-status: in-progress
+status: review
 branch: feat/385-renewal-action
 ---
 
@@ -19,24 +19,24 @@ Builds on 384.
 ## Acceptance criteria
 Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.renewal: 1`.
 
-- [ ] AC1 (an action, not a decision): Given Anarchy on its first turn with 3 unrest, when the turn starts no decision
+- [x] AC1 (an action, not a decision): Given Anarchy on its first turn with 3 unrest, when the turn starts no decision
   is owed (`pending()` is `{}`) and `renewals_left()` is 1. When `renew([uid of a hand card])` is called, it returns
   true, the card is in `trashed`, unrest is still 3, `renewals_left()` is 0 and `actions_left()` is unchanged.
-- [ ] AC2 (a flat count per turn): Given Anarchy on its second turn, `renewals_left()` is 1 (no ramp); one `renew` of a
+- [x] AC2 (a flat count per turn): Given Anarchy on its second turn, `renewals_left()` is 1 (no ramp); one `renew` of a
   discard card succeeds and a second is refused and changes nothing. On its third turn `renewals_left()` is 1 again:
   unused renewals don't carry over, and a turn can end with renewals unused.
-- [ ] AC3 (the modifier raises the cap): Given a card in play with `"modifiers": {"renewal": 1}`, `renewals_left()` is 2
+- [x] AC3 (the modifier raises the cap): Given a card in play with `"modifiers": {"renewal": 1}`, `renewals_left()` is 2
   on each Anarchy turn, and one `renew` of two cards succeeds. With no `renewal` in the unrest block, `renewals_left()`
   is 0 and `renew` is refused.
-- [ ] AC4 (rejections): `renew_error(uids)` is non-empty and `renew` changes nothing when: Anarchy doesn't rule; `uids`
+- [x] AC4 (rejections): `renew_error(uids)` is non-empty and `renew` changes nothing when: Anarchy doesn't rule; `uids`
   is empty; a uid is a government, a tableau card or unknown; a uid appears twice; `uids` holds more cards than
   `renewals_left()`; the game is over or another decision is owed (`_blocked_error`).
-- [ ] AC5 (no more waiting): Given Anarchy ruling and a choice event drawn at a turn's start, its choice is owed at once
+- [x] AC5 (no more waiting): Given Anarchy ruling and a choice event drawn at a turn's start, its choice is owed at once
   (renewal no longer goes first). `PENDING_RENEWAL` is no longer a decision kind.
-- [ ] AC6 (legal actions): While `renewals_left()` > 0 and there are options, `legal_actions()` has one entry
+- [x] AC6 (legal actions): While `renewals_left()` > 0 and there are options, `legal_actions()` has one entry
   `["renew", renewal_options(), renewals_left()]` whose first card passes `renew_error`; with no renewals left, or
   without Anarchy, it has none.
-- [ ] AC7 (the bot uses it): Given a fixture game under Anarchy with `renewal: 1` and a card of no worth to the bot (no
+- [x] AC7 (the bot uses it): Given a fixture game under Anarchy with `renewal: 1` and a card of no worth to the bot (no
   effects, no VP) in hand, when `GenericBot` plays the turn, it renews that card.
 
 ## Out of scope
@@ -76,6 +76,7 @@ Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.renewal: 1`.
 | Design (summary, UI, state) | `test_revolution::test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers`; `test_renewal_modal` (the Renew button, a closable sheet, 1 to N cards); `test_renewal::test_a_copy_keeps_the_renewals_used`; `test_engine_structure` (`renewals_left`, `renewal_options` queries) |
 
 ## Manual check
+Steps: `godot --path . -- --seed 5`; open the civilization modal, Revolt, confirm and end the turn.
 - [ ] During Anarchy the Renew button shows with the count left; the Renewal sheet opens, can be closed, and trashes
   1 to N cards; the button hides when none are left.
 - [ ] The cards with the renewal modifier read correctly.
@@ -92,3 +93,9 @@ Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.renewal: 1`.
   cards" counts the cards chosen. A renewal modifier on an event drawn this turn now counts this turn (it is live).
   Removed as unreachable: the cap at the options, the ramp, the "renewal blocks everything" and drag tests, the
   rollout-answers-renewal bot test, and renewal's column in test_blocking's decision tables.
+- 2026-10-08: green. Beyond the criteria, removed as unreachable once renewal stopped being a decision: the wait a
+  choice event had behind it (`EventChoices.next`, `CardInstance.choice_waiting`; nothing else is owed when an event
+  is drawn) and `GameState.anarchy_turn` (only the ramp read it). The bot now tries a renewal one card at a time, the
+  least valuable first (at most 40), instead of combinations of exactly the count; it repeats while each renewal beats
+  doing nothing. `test_sim_anarchy::test_trashed_and_famine_turns` gained a worthless Husk in its renewal game: its deck
+  of Charters held nothing the bot would choose to trash.
