@@ -19,6 +19,11 @@ type's, the dominant colour; the rest are support, used smaller. Never signal or
 **Upgrades** say so in their brief: they redraw their base's picture from the same viewpoint, grown, so generate the
 base first and give it to the generator as a reference.
 
+**Making the pictures.** After changing a brief here, run the `card-art` skill
+([SKILL.md](../../.claude/skills/card-art/SKILL.md)): Claude writes the prompt into `assets/card-art-prompts.jsonl`,
+draws it with `scripts/card_art.py` once you approve the spend, reviews it, fixes or redraws what fails, and records
+each card's state in `assets/card-art-review.jsonl`.
+
 ## Civilizations (6)
 
 *Travel posters.*
