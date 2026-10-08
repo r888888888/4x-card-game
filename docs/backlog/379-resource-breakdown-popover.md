@@ -2,7 +2,7 @@
 id: 379
 title: Click a resource counter to see its next-upkeep change by source
 type: feature
-status: in-progress
+status: review
 branch: feat/379-resource-breakdown-popover
 ---
 
@@ -17,31 +17,31 @@ the government's base and each modifier. Score and pop get the same popover in 3
 <!-- Setup unless stated: TEST_CARDS, population {start 2, food_upkeep 1, vp_per_pop 0} (test_forecast's
 forecast_engine); Capital makes +2 food at upkeep, Farm +1 food, Stall +1 wealth, Granary +1 pop here. A row is
 {label, count, amount}; label is the engine's text for the source. -->
-- [ ] AC1: Given Capital and Farm, Farm and Stall on Homeland with 2 pop, when `upkeep_breakdown("food")` is called,
+- [x] AC1: Given Capital and Farm, Farm and Stall on Homeland with 2 pop, when `upkeep_breakdown("food")` is called,
   then it returns, in order, `[{Capital, 1, +2}, {Farm, 2, +2}, {pop eats, 1, −2}]`, and `upkeep_breakdown("wealth")`
   returns `[{Stall, 1, +1}]`. Rows come in upkeep resolution order (crowding, overextension, working cards, events),
   then pop eating, then Anarchy's drain; copies of one card are one row whose count is the copies and amount their
   total; a source that changes the resource by 0 has no row. Nothing changes, is logged or emitted.
-- [ ] AC2: For every resource, the rows' amounts sum to `upkeep_forecast()[resource]`, including when a clamp bites:
+- [x] AC2: For every resource, the rows' amounts sum to `upkeep_forecast()[resource]`, including when a clamp bites:
   Granary on Homeland with 2 pop gives food `[{Capital, 1, +2}, {pop eats, 1, −3}]` (it eats after growth); with
   unrest at its limit, a card's +1 unrest at upkeep that the limit holds back gives no row. On the last turn or after
   game over, every breakdown is `[]`.
-- [ ] AC3: Given unrest on, a territory one tier past the government's tolerated tier (size unrest 1), two territories
+- [x] AC3: Given unrest on, a territory one tier past the government's tolerated tier (size unrest 1), two territories
   past its admin cap (admin unrest 1 + 2 = 3) and an active event that adds 1 unrest at upkeep, when
   `upkeep_breakdown("unrest")`, then it is `[{crowded territories, 1, +1}, {overextended realm, 1, +3}, {<event
   name>, 1, +1}]`.
-- [ ] AC4: Given a working card with `modifiers: {insight_per_gain: 1}` and two working cards that each gain 2 insight
+- [x] AC4: Given a working card with `modifiers: {insight_per_gain: 1}` and two working cards that each gain 2 insight
   at upkeep, when `upkeep_breakdown("insight")`, then the gaining cards' row has their printed +4 and the modifier
   card has its own row of +2 (1 per gain); the sum is the forecast's +6. With a −1 modifier and a single gain of 1 at
   upkeep, the rows are +1 and −1 (net 0, the floor not biting); where the 0 floor bites, the gaining card's row
   absorbs the difference so AC2 holds.
-- [ ] AC5: Given Anarchy will rule next turn with a drain, when `upkeep_breakdown("food")`, then its last row is
+- [x] AC5: Given Anarchy will rule next turn with a drain, when `upkeep_breakdown("food")`, then its last row is
   Anarchy's name with the drain as a negative amount, equal to what `upkeep_forecast()` subtracts for it.
-- [ ] AC6: Given unrest on and a government with unrest_limit 4 plus two working cards with `unrest_limit` modifiers
+- [x] AC6: Given unrest on and a government with unrest_limit 4 plus two working cards with `unrest_limit` modifiers
   +1 and +2, when `unrest_limit_breakdown()` is called, then it returns `[{<government>, 1, 4}, {<card A>, 1, +1},
   {<card B>, 1, +2}]`, summing to `unrest_limit()` (7). With modifiers that would take it below 0, the rows still
   sum to `unrest_limit()` (the government's row absorbs the floor). It is `[]` when `unrest_limit()` is −1.
-- [ ] AC7 (UI): Given a game in progress, when the player clicks the Food counter (or focuses it and presses Enter),
+- [x] AC7 (UI): Given a game in progress, when the player clicks the Food counter (or focuses it and presses Enter),
   then a popover opens under it showing one line per `upkeep_breakdown("food")` row (label, "×count" when count > 1,
   signed amount) and the net; the Unrest popover adds the limit rows from `unrest_limit_breakdown()` and their
   total. Clicking the same counter again, clicking anywhere outside, or Esc closes it (Esc does not also open the
@@ -102,3 +102,18 @@ forecast_engine); Capital makes +2 food at upkeep, Farm +1 food, Stall +1 wealth
   turn shows one line, "No next upkeep: this is the last turn."). `engine_queries.gd` is at 495 of its 500 lines, so
   the two queries need room: the plan is to move the raid queries down beside `defense` in `TerritoryQueries`
   (166 moved `defense`, `defense_parts` and `raid_warning` there).
+- Main merged in before green (392, 391): the tests read the popover through `MainProbe.breakdown_key` and
+  `breakdown_rows` (forwarding to `TopBar`), and the file's row is in `docs/testing-index.md`. `engine_queries.gd`
+  had room after 394, so the raid queries stayed put.
+- Green: `UpkeepBreakdown.ledger` runs upkeep on a fork, with `TurnLoop.resolve_upkeep` and `Events.resolve_upkeep`
+  calling an optional step callback after each step; each step's actual change is its row, so clamps fall where they
+  bite. `upkeep_forecast` is now the rows' sums plus starve, so the two can't drift. insight_per_gain: `EngineCore.gain`
+  counts insight gains (`_insight_gains`, a transient count like `_outcome`); on a step that gained, each card with
+  the modifier is credited modifier × gains and the gaining card's row keeps the rest (where the 0 floor bit).
+- UI: `Popover` (`ui/popover.gd`, section `ui/theme/popover.gd`: the tooltip's ink tab) is `top_level` and owned by
+  `TopBar`, which main adds above the board. The Resource counters are focusable; `TopBar._input` closes the popover
+  on Esc (handled, so no menu) and on a click off the popover and the counters. It refreshes in place on `changed`.
+  Headings "Next upkeep" and "Limit"; net row "Net", limit total "Limit"; the government's limit row is unsigned.
+- Balance: `upkeep_forecast` now does a little more per step (a resources copy and a few dictionary writes; the
+  modifier cards are read only on a step that gained insight). No rules changed. A sim run would show any speed cost:
+  `scripts/sim.sh --level 1 --compare <main checkout>`.
