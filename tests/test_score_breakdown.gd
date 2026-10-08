@@ -20,7 +20,8 @@ func row(label: String, count: int, amount: int) -> Dictionary:
 
 
 ## A TEST_CARDS game with population {start 2, food_upkeep 1, vp_per_pop 1}, Nomads as the civilization, Homeland at
-## pop 2 with Capital, plus card_ids built on Homeland; overrides last.
+## pop 2 with Capital and no bonus score (Nomads scores 1 at turn 1's upkeep), plus card_ids built on Homeland;
+## overrides last.
 func score_engine(card_ids: Array = [], overrides := {}) -> GameEngine:
 	var o := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1},
 		"starting": {"resources": {"food": 2}, "tableau": ["capital"], "territory": "homeland",
@@ -29,6 +30,7 @@ func score_engine(card_ids: Array = [], overrides := {}) -> GameEngine:
 	o.merge(overrides, true)
 	var e := make_engine({"scout": 10}, o, 1, TEST_CIVS + [FORUM, COLOSSUS])
 	set_home_pop(e, 2)
+	e.bonus_score = 0
 	build_on(e, home_uid(e), card_ids)
 	return e
 
