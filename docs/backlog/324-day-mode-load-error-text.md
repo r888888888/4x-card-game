@@ -2,7 +2,7 @@
 id: 324
 title: The data-load-error overlay's lines are white on paper in Day mode
 type: bug
-status: red-review
+status: in-progress
 branch: fix/324-day-mode-load-error-text
 ---
 
