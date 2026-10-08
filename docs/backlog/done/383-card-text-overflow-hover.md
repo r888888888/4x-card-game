@@ -2,7 +2,7 @@
 id: 383
 title: Overflowing card text cuts at a whole rule; hover pulls it over the art, then a meter opens the full rules
 type: feature
-status: review
+status: done
 branch: feat/383-card-text-overflow-hover
 ---
 
