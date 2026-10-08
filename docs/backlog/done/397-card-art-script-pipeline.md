@@ -84,7 +84,7 @@ All run against a temporary art folder and a fake image API (no network, no key 
 All in `scripts/tests/test_card_art.py`; `scripts/test.sh` runs them after the Godot shards (`-k <filter>`).
 
 ## Manual check
-- [ ] With the key set, `python3 scripts/card_art.py status` on the real art lists only the unapproved cards from the
+- [x] With the key set, `python3 scripts/card_art.py status` on the real art lists only the unapproved cards from the
   migration, and `generate` with nothing to draw makes no request.
 
 ## Log
