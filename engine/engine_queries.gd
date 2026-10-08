@@ -101,31 +101,31 @@ func era() -> int:
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
 ## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
 ## includes the drain on the stores after upkeep and feeding (156); a declared revolution's government has fallen
-## first (332). {} on the last turn or after game over.
+## first (332). {} on the last turn or after game over. Each figure is the sum of upkeep_breakdown's rows (379).
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
-	if is_over or turn >= turn_limit():
+	var ledger := UpkeepBreakdown.ledger(_as_engine())
+	if ledger.is_empty():
 		return {}
-	var f := _as_engine().fork()
-	Anarchy.before_upkeep(f)  # a declared revolution falls first, as at the turn's start (332)
-	TurnLoop.resolve_upkeep(f)
 	var forecast := {}
 	for r in resources:
-		forecast[r] = f.resources[r] - resources[r]
-	var need: int = f.total_pop() * config.population.food_upkeep if population_on() else 0
-	forecast[FOOD] = forecast.get(FOOD, 0) - need
-	var pop_before := f.total_pop()
-	if population_on():
-		Population.feed(f)
-	forecast.starve = pop_before - f.total_pop()
-	if Anarchy.rules_next_turn(self):
-		var stores := {}
-		for r in [FOOD, WEALTH]:
-			stores[r] = resources.get(r, 0) + forecast.get(r, 0)
-		var lost := Anarchy.drain_of(self, stores)
-		for r in lost:
-			forecast[r] -= lost[r]
+		forecast[r] = 0
+		for row in ledger.rows[r]:
+			forecast[r] += row.amount
+	forecast.starve = ledger.starve
 	return forecast
+
+
+## Where next upkeep's change of resource comes from (379): [{label, count, amount}], one row per source in upkeep
+## order (crowding, overextension, working cards, events), then what pop eats, then Anarchy's drain; copies of a card
+## are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource]. [] on the
+## last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
+func upkeep_breakdown(resource: String) -> Array[Dictionary]:
+	var ledger := UpkeepBreakdown.ledger(_as_engine())
+	var out: Array[Dictionary] = []
+	if not ledger.is_empty():
+		out.assign(ledger.rows.get(resource, []))
+	return out
 
 
 ## What starting the next turn would change (309): {score, pop, starve, resource: change} after upkeep, feeding, era
@@ -226,6 +226,12 @@ func actions_per_turn() -> int:
 ## -1 (no limit) while unrest is off or no government sets one.
 func unrest_limit() -> int:
 	return Modifiers.unrest_limit(self)
+
+
+## Where unrest_limit() comes from (379): the government's unrest_limit, then each card's unrest_limit modifier, as
+## [{label, count, amount}] summing to unrest_limit() (the government's row absorbs its floor at 0); [] with no limit.
+func unrest_limit_breakdown() -> Array[Dictionary]:
+	return UpkeepBreakdown.limit_rows(_as_engine())
 
 
 ## The unrest the next upkeep adds for big territories (282): +1 per tier each settled territory is above the ruling

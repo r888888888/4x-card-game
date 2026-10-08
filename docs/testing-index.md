@@ -202,6 +202,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI); the details' Upgrades section (387) |
 | `tests/test_upgrades.gd` | Building upgrades (300); `upgrade_rows` (387) |
+| `tests/test_upkeep_breakdown.gd` | Upkeep and unrest-limit breakdowns by source, and the counters' popover (379; UI) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
 | `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_veteran_pips.gd` | Veteran pips on unit cards, lit as a tally after a raid (388; UI) |
