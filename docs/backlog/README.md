@@ -69,17 +69,23 @@ Top bar (379 brings the `Popover` that 380 and 383 reuse):
    tests; move their main calls to the probe)
 9. 380 click Score or Pop for what makes it up
 
+Food and building upkeep (prioritised 2026-10-08, ahead of the claimants):
+10. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine)
+11. 406 Farm 4 food, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, the design pass on every building
+    (content, after 405)
+12. 407 Sumer as the breadbasket (content; ships with 406)
+
 Rival claimants (after 379, so the court's passive joins its breakdown; a `spike/rival-claimants` may come first):
-10. 400 the `strength` modifier (after 394)
-11. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
-12. 402 the court's passive, once per rank, rising every 10 turns
-13. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
-14. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
+13. 400 the `strength` modifier (after 394)
+14. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
+15. 402 the court's passive, once per rank, rising every 10 turns
+16. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
+17. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
 
 Card faces and details:
-15. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
-16. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
-17. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
+18. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
+19. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
+20. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
 
 Military UI:
-18. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
+21. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)
