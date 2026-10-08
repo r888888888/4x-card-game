@@ -62,12 +62,12 @@ Cathedral). UI fixture: `test_upgrade_ribbons`' engine (Farm ← Plough, Ditch; 
 | AC5 | `test_upgrade_ribbons::test_a_click_on_a_building_opens_its_details_which_build_its_upgrade` (passes already: 387) |
 
 ## Manual check
-- [ ] Open a territory with a Farm (or any building with an upgrade): its card has ribbons and a ▲ badge in its corner
+- [x] Open a territory with a Farm (or any building with an upgrade): its card has ribbons and a ▲ badge in its corner
   (hover: its tooltip) but no "+ Upgrade"; click it,
   and the details' Upgrades section builds the next upgrade, with the ceremony on the territory view.
 
-- [ ] A building with a long name: the ▲ sits over the end of its name line (the name is clipped there); check it reads.
-- [ ] Paper and Night: the badge (Caption, territory colour) is legible on the card.
+- [x] A building with a long name: the ▲ sits over the end of its name line (the name is clipped there); check it reads.
+- [x] Paper and Night: the badge (Caption, territory colour) is legible on the card.
 
 ## Log
 - 2026-10-08: specced. Assumption (not asked): the Build modal keeps its Upgrades heading; only the chip goes.
@@ -86,3 +86,4 @@ Cathedral). UI fixture: `test_upgrade_ribbons`' engine (Farm ← Plough, Ditch; 
   `CardView` panel, shrunk to its top right corner, `UpgradeBadge` (Caption, semibold, `Palette.TERRITORY`), with mouse
   filter Pass so it shows its tooltip and the click still opens the details. A render of the view showed it in the
   corner on the Farm and the Chapel and none on the Capital.
+- 2026-10-08: the user checked the badge in the running game: looks good.
