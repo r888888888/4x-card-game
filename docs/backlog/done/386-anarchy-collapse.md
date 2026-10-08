@@ -2,7 +2,7 @@
 id: 386
 title: A fifth Anarchy turn that doesn't end it loses the game
 type: feature
-status: ready
+status: wontfix
 branch: feat/386-anarchy-collapse
 ---
 
@@ -57,3 +57,5 @@ Fixtures are `tests/lib/anarchy_case.gd`'s, with `unrest.max_turns: 5`.
 - [ ] Balance worry (for the user to run): how often bots collapse. `scripts/sim.sh --level 2` (final scores of 0).
 
 ## Log
+- 2026-10-07: wontfix (the user's redesign): [384](../384-simpler-anarchy.md) fixes Anarchy at 3 turns, so it can't
+  reach a 5th turn. A way to lose may come back as its own item.
