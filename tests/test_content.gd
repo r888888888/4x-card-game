@@ -5,7 +5,7 @@ extends "res://tests/lib/test_case.gd"
 ## In detail (from docs/testing.md, 331): The real data: invariants over the whole data set, never a single card (every
 ## keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs
 ## and supply consistent). No many-seed bot sweeps: real games over seeds are sim runs (`scripts/sim.sh`), not tests
-## (145)
+## (145). Building upkeep on the real data (406).
 
 
 func load_real() -> Dictionary:
@@ -1864,3 +1864,58 @@ func test_the_card_art_list_has_one_row_per_card() -> void:
 		eq(rows.get(id, 0), 1, "%s has one row" % id)
 	for id in rows:
 		check(cards.has(id), "%s.png is listed but isn't a card" % id)
+
+
+# --- Backlog 406: every base building pays upkeep ---
+
+## The real buildings that are neither upgrades nor projects: the ones that pay upkeep (405).
+func real_base_buildings(r: Dictionary) -> Array[CardDef]:
+	return real_buildings(r).filter(func(def: CardDef) -> bool: return not def.is_upgrade() and not def.project)
+
+
+## AC1: the config sets a default upkeep, every base building pays some, and upgrades and projects pay none.
+func test_every_base_building_pays_upkeep_and_upgrades_and_projects_pay_none() -> void:
+	var r := load_real()
+	check(r.config.get("building_upkeep", 0) >= 1, "config building_upkeep is at least 1")
+	var free := real_base_buildings(r).filter(func(def: CardDef) -> bool: return def.upkeep < 1).map(
+		func(def: CardDef) -> String: return def.id)
+	eq(free, [], "base buildings with no upkeep")
+	var paying := real_buildings(r).filter(func(def: CardDef) -> bool:
+		return (def.is_upgrade() or def.project) and def.upkeep != 0).map(func(def: CardDef) -> String: return def.id)
+	eq(paying, [], "upgrades and projects that pay upkeep")
+
+
+## AC2: a base building that makes wealth each upkeep makes at least its upkeep from flat gains with no keyword.
+func test_every_wealth_building_pays_its_own_upkeep() -> void:
+	var r := load_real()
+	var short: Array[String] = []
+	for def in real_base_buildings(r):
+		var makes := def.effects.any(func(e: Effect) -> bool:
+			return e.trigger == "upkeep" and e.get("resource") == GameEngine.WEALTH and GAIN_OPS.has(e.op))
+		var flat := 0
+		for e: Effect in def.effects:
+			if e.trigger == "upkeep" and e.op == "gain" and e.get("resource") == GameEngine.WEALTH and e.keyword == "":
+				flat += e.amount
+		if makes and flat < def.upkeep:
+			short.append("%s makes %d, pays %d" % [def.id, flat, def.upkeep])
+	eq(short, [] as Array[String], "wealth buildings that don't pay their own upkeep")
+
+
+## AC3: every base building's card text ends its rules with its upkeep line.
+func test_every_base_building_shows_its_upkeep() -> void:
+	var r := load_real()
+	for def in real_base_buildings(r):
+		check(def.face(r.cards).rules.has(def.upkeep_text()) and def.upkeep >= 1,
+			"%s shows %s" % [def.id, def.upkeep_text()])
+
+
+## AC4: every base building's requires is met by some territory a game can hold (308's food check is
+## test_every_territory_can_hold_a_food_building).
+func test_every_base_building_can_stand_on_some_territory() -> void:
+	var r := load_real()
+	var lands := land_keyword_sets(r)
+	var homeless: Array[String] = []
+	for def in real_buildings(r).filter(func(def: CardDef) -> bool: return not def.is_upgrade()):
+		if not lands.any(func(k: Array) -> bool: return meets(k, def.requires)):
+			homeless.append("%s %s" % [def.id, def.requires])
+	eq(homeless, [] as Array[String], "buildings no territory can hold")

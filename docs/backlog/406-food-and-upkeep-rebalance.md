@@ -2,7 +2,7 @@
 id: 406
 title: Early food and building upkeep rebalance - Farm 4, Fishing Huts 3, Irrigation Canals and Salt Pans stand alone, every building ⟳ 1 wealth
 type: feature
-status: ready
+status: red-review
 branch: feat/406-food-and-upkeep-rebalance
 ---
 
@@ -104,9 +104,14 @@ Fishing Huts' only upgrade and stays as it is.
 - The +1 unrest per wealth short could push wide strategies into Anarchy; watch Anarchy counts per strategy.
 
 ## Test plan
+All in `tests/test_content.gd` (real data).
+
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_every_base_building_pays_upkeep_and_upgrades_and_projects_pay_none` |
+| AC2 | `test_every_wealth_building_pays_its_own_upkeep` |
+| AC3 | `test_every_base_building_shows_its_upkeep` (the PLAN.md and card-art.md lines are docs, under Manual check) |
+| AC4 | `test_every_base_building_can_stand_on_some_territory`, and the existing `test_every_territory_can_hold_a_food_building` (308) |
 
 ## Manual check
 - [ ] `data/config.json` has `"building_upkeep": 1`; Palace has `"upkeep": 2`.
@@ -121,3 +126,6 @@ Fishing Huts' only upgrade and stays as it is.
   count, turn of era 2, final VP per civ (Sumer and Egypt above all) and Barter plays.
 
 ## Log
+- 2026-10-08: red tests written. AC2's and AC4's tests pass before the data changes: AC2 holds vacuously while every
+  upkeep is 0 (Market, with only a per-city gain, fails it as soon as AC1's upkeep is on, so it guards the +1), and AC4
+  guards the move of Irrigation Canals and Salt Pans out of `upgrade_of`. Per-card numbers stay under Manual check.
