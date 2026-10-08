@@ -2,7 +2,7 @@
 id: 412
 title: Abandon a finished building to free its slot and worker
 type: feature
-status: in-progress
+status: review
 branch: feat/412-abandon-buildings
 ---
 
@@ -17,26 +17,26 @@ Fixtures: `TEST_CARDS` buildings, built from a test `build_menu` unless a criter
 Hut with an upgrade on it and an upgrade on that (a two-deep tree), a building with `housing` 2, a `once` entry, a
 completed project and an unfinished one. Population is on where a criterion names pop.
 
-- [ ] AC1 (main path): Given a working Hut on Homeland with 2 actions left and 3 wealth, when `abandon(hut)` is called,
+- [x] AC1 (main path): Given a working Hut on Homeland with 2 actions left and 3 wealth, when `abandon(hut)` is called,
   then it returns true, the Hut is in no zone (not tableau, discard, hand or deck), Homeland's free slots and free
   workers are each 1 higher, actions and resources are unchanged, the log reads "Abandoned Hut.", and `changed` fires
   once. The Hut's entry can be built again on Homeland.
-- [ ] AC2 (dealt building): Given a Hut played from the hand (its id not in `build_menu`), when it is abandoned, then it
+- [x] AC2 (dealt building): Given a Hut played from the hand (its id not in `build_menu`), when it is abandoned, then it
   goes to the discard, as a disbanded unit dealt from a deck does.
-- [ ] AC3 (its upgrades go with it): Given a Hut with an upgrade on it and a second upgrade on that, when the Hut is
+- [x] AC3 (its upgrades go with it): Given a Hut with an upgrade on it and a second upgrade on that, when the Hut is
   abandoned, then all three leave the tableau and the base's modifiers, housing, defence and VP from all three no
   longer count (score and the territory's figures equal those of a game with no Hut built). When only the first upgrade
   is abandoned, then it and the upgrade on it leave, and the Hut stays, working.
-- [ ] AC4 (idle buildings wake): Given a territory with 2 pop and three buildings, the last placed idle, when the first
+- [x] AC4 (idle buildings wake): Given a territory with 2 pop and three buildings, the last placed idle, when the first
   is abandoned, then the idle one works (`is_idle` false) and counts in `upkeep_forecast()`.
-- [ ] AC5 (refusals): `abandon_error` names the reason and `abandon` returns false with no change when: the card is a
+- [x] AC5 (refusals): `abandon_error` names the reason and `abandon` returns false with no change when: the card is a
   wonder or a `once` entry ("Pyramids can't be abandoned."), its housing is still needed (a territory with 5 pop whose
   housing is 5 only with the building's 2: "Homeland's 5 pop need Insula's housing."), the card isn't a building or
   site in the tableau (a unit, a city, a hand card, an unknown uid), the game is over or a decision is owed. An idle or
   fallen-back building can be abandoned.
-- [ ] AC6 (sites unchanged): Abandoning an unfinished project site behaves as 286 says (to the discard, progress
+- [x] AC6 (sites unchanged): Abandoning an unfinished project site behaves as 286 says (to the discard, progress
   lost); the 286 tests pass unchanged.
-- [ ] AC7 (bot sees it): `LegalActions` lists `["abandon", uid]` for every building and upgrade `abandon_error` allows,
+- [x] AC7 (bot sees it): `LegalActions` lists `["abandon", uid]` for every building and upgrade `abandon_error` allows,
   as well as sites; none for a wonder, a `once` entry or a building whose housing is needed. `copy()` keeps the
   result the same (no new state).
 
@@ -74,11 +74,17 @@ All in `tests/test_abandon_buildings.gd` unless named.
 | AC5 | `test_a_wonder_or_a_once_entry_cant_be_abandoned`, `test_a_building_whose_housing_the_pop_needs_cant_be_abandoned`, `test_only_a_building_in_play_can_be_abandoned`, `test_an_idle_or_fallen_back_building_can_be_abandoned`, `test_abandoning_a_building_is_refused_while_a_decision_is_owed_or_the_game_is_over` |
 | AC6 | the existing `test_wonder_sites.gd` AC8 tests; `test_abandoning_is_refused_for_a_completed_wonder_or_a_card_in_hand` loses its Farm case |
 | AC7 | `test_legal_actions_list_abandoning_each_building_that_can_go` |
+| UI support | `test_abandon_line_says_where_the_card_goes_and_what_goes_with_it`, `test_details_abandon_a_building_or_an_upgrade_after_confirming` |
 
 ## Manual check
-- [ ] Open a Farm's details: "Abandon…" asks to confirm, naming any upgrades that go with it; confirming clears the
-  slot and the card leaves the territory view.
-- [ ] A wonder's details show no Abandon…, or a disabled one with its reason.
+- [ ] `godot --path . -- --seed 5`: build a Farm, then an upgrade on it (Ploughed Fields once The Plough is learned, or
+  any upgrade you can reach). Open the Farm's details: Abandon… is in the footer, its tooltip "Farm leaves play, with
+  its Ploughed Fields. Nothing is refunded." Press it: the sheet asks "Abandon Farm?" with Keep it / Abandon; Abandon
+  clears the slot, the card and its ribbon leave the territory view, the log reads "Abandoned Farm.".
+- [ ] A built upgrade's row in the details' Upgrades section has its own Abandon…; confirming removes only it (and
+  any upgrade on it).
+- [ ] A finished wonder's or Palace's details show Abandon… disabled, its tooltip "<name> can't be abandoned."
+- [ ] A wonder site still reads as before: "Keep building", and the wealth paid in.
 - [ ] Balance worry (for the user to run, not part of this item): `scripts/sim.sh --level 2 --compare <main checkout>`
   to see whether the bot now abandons buildings, and how long the runs take.
 
@@ -90,3 +96,10 @@ All in `tests/test_abandon_buildings.gd` unless named.
   as not abandonable. That case is the rule this item changes, so it is dropped and the test renamed
   (`test_abandoning_is_refused_for_a_completed_wonder_or_a_card_in_hand`). A refusal for "not a building in play"
   reads "That isn't a building in play." (it replaces 286's "That isn't a wonder being built.").
+- 2026-10-08 (green): the rules are in a new `engine/abandonment.gd`; `Sites` keeps only `discard` for a site. The
+  housing check forks the game only when the card or an upgrade on it sets housing or a housing modifier. Added
+  `abandon_line(uid)` (tested first) so the confirmation and tooltips don't build the sentence in `ui/`.
+- Balance and speed worry, not run: GenericBot now tries abandoning every building each step (one more fork each),
+  which may slow sims (315) and lets it abandon whatever values higher. Abandoning a building that does nothing never
+  beats doing nothing, so only real gains are taken. If runs slow down, cut the candidates (idle or fallen-back
+  buildings only) in a follow-up.

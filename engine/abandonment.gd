@@ -68,10 +68,9 @@ static func _housing_error(e: GameEngine, card: CardInstance) -> String:
 
 ## Whether card or an upgrade on it sets housing or a housing modifier.
 static func _touches_housing(e: GameEngine, card: CardInstance) -> bool:
-	if card.def.housing != 0 or card.def.modifiers.get(Modifiers.HOUSING, 0) != 0:
-		return true
-	for uid in Upgrades.on(e, card.uid):
-		if _touches_housing(e, e.zone("tableau").find(uid)):
+	for uid in [card.uid] + Upgrades.tree(e, card.uid):
+		var def: CardDef = e.zone("tableau").find(uid).def
+		if def.housing != 0 or def.modifiers.get(Modifiers.HOUSING, 0) != 0:
 			return true
 	return false
 
