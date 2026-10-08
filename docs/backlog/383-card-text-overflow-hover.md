@@ -110,5 +110,5 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 - 2026-10-07: the approved Reduce-motion test sampled the meter at 0.7 s and expected 2/3, but 0.7 s is 64 % of 1.1 s:
   no equal three-step meter shows 2/3 there. The user approved moving the samples to 0.3, 0.4, 0.8 and 1.11 s.
 - 2026-10-08: follow-ups. The specimen (`docs/design/mcm-specimen.html`) doesn't yet show a card that rises and fills;
-  the guide's §6.7 and §11.11 already describe it. Next item: a 16:9 art plate (240 × 135) on the same 264 × 360 card
+  the guide's §6.7 and §11.11 already describe it. Next item, 402: a 16:9 art plate (240 × 135) on the same 264 × 360 card
   (the user's call, 2026-10-08); `CardSheet.cap()` follows the plate's height, so the rise grows with it.
