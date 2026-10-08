@@ -2,7 +2,7 @@
 id: 398
 title: A card-art skill takes the art list to reviewed pictures
 type: feature
-status: review
+status: done
 branch: feat/398-card-art-skill
 ---
 
