@@ -2,7 +2,7 @@
 id: 417
 title: A building's details leave out its wealth upkeep
 type: bug
-status: in-progress
+status: review
 branch: fix/417-upkeep-in-details
 ---
 
@@ -15,9 +15,9 @@ branch: fix/417-upkeep-in-details
   uses for `def_details(id).rules`, has no upkeep line.
 
 ## Acceptance criteria
-- [ ] AC1: Given 405's fixtures with `building_upkeep` 1, when reading `def_details("hut").rules`, then it contains the
+- [x] AC1: Given 405's fixtures with `building_upkeep` 1, when reading `def_details("hut").rules`, then it contains the
   line "Each upkeep: pay 1 wealth"; for Big Hall (its own upkeep 2) "Each upkeep: pay 2 wealth".
-- [ ] AC2: Given the same game, when reading `def_details(id).rules` for Free Shed (upkeep 0), Hut Loft (an upgrade)
+- [x] AC2: Given the same game, when reading `def_details(id).rules` for Free Shed (upkeep 0), Hut Loft (an upgrade)
   and Colossus (a project), then no line mentions upkeep pay ("pay … wealth" under "Each upkeep").
 
 ## Test plan
@@ -31,7 +31,8 @@ branch: fix/417-upkeep-in-details
   "⟳ Upkeep 1 wealth". New helper `CardDef.upkeep_long_text()` beside `upkeep_text()`.
 
 ## Root cause
-<!-- Filled in by Claude after the fix. -->
+405 added the upkeep line to the face (`_face_rules`) but not to `rules_tooltip`, which the details modal builds its
+rules from; 405's AC8 tests read only `rules_text` (the face), so nothing checked the details.
 
 ## Manual check
 With `"building_upkeep": 1` added to `data/config.json` locally (don't commit it), `godot --path . -- --seed 5`:
@@ -41,3 +42,5 @@ With `"building_upkeep": 1` added to `data/config.json` locally (don't commit it
 - 2026-10-08: specced from 405's Manual check.
 - 2026-10-08: red tests written. Wording picked: "Each upkeep: pay N wealth". AC2's test already passes (nothing
   adds the line yet); it guards the fix.
+- 2026-10-08: green. `CardDef.upkeep_long_text()`; `rules_tooltip` adds it after training when `upkeep > 0`.
+  Tests 2636 → 2638.
