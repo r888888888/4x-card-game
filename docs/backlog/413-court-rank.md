@@ -1,9 +1,9 @@
 ---
-id: 402
+id: 413
 title: The court - a claimant's passive, once per rank, rising every 10 turns
 type: feature
 status: ready
-branch: feat/402-court-rank
+branch: feat/413-court-rank
 ---
 
 ## Goal

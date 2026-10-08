@@ -18,17 +18,17 @@ Claimants should scale with the game, and rivalry should feel like the incumbent
 So each Anarchy weighs rank against era: stay loyal and move up to the new era's claimant keeping rank, or start over
 with a challenger.
 
-Builds on 401 and 402.
+Builds on 401 and 413.
 
 ## Acceptance criteria
-Fixtures: 401's and 402's, plus Alpha II (faction `a`, era 2) and Beta II (faction `b`, era 2) in the court pool.
+Fixtures: 401's and 413's, plus Alpha II (faction `a`, era 2) and Beta II (faction `b`, era 2) in the court pool.
 
 - [ ] AC1 (successors): In era 1 a fall deals only era-1 claimants (Alpha, never Alpha II). After era 2 is added, a fall
   deals Alpha II for faction `a` and Beta II for `b`, never Alpha or Beta; factions `c` and `d`, with no era-2
   claimant, still deal Gamma and Delta. At most one claimant per faction is dealt.
 - [ ] AC2 (the incumbent contests): Given Alpha in the court, when Anarchy falls in era 1 the court empties and Alpha
   is dealt with 2 claimants of other factions; over seeds 1 to 10 Alpha is dealt every time. While Anarchy rules the
-  court is empty, so Alpha's passive (402) doesn't apply. Before any court exists, all 3 are drawn at random.
+  court is empty, so Alpha's passive (413) doesn't apply. Before any court exists, all 3 are drawn at random.
 - [ ] AC3 (a loyal win keeps rank, and moves up an era): Given Alpha in the court since turn 5 at rank 2 on turn 20, era
   2 added, and Anarchy falling: Alpha II is dealt for faction `a` (Alpha returns to the pool and isn't dealt again in
   era 2). Backing Alpha II most puts it in the court with `court_rank()` 2 on the next turn (its time counted from

@@ -12,7 +12,7 @@ contest for power. When Anarchy falls, 3 **claimants** (a new card type) are dea
 one: its **boon** (its play effects) resolves at once and it gains 1 **support**. When Anarchy ends, the claimant with
 the most support **takes the court**, a one-card slot that a later Anarchy can overturn. Backing the same one is a sure
 win; spreading gets you different boons. This item is the engine for dealing, backing and the winner; what a court
-card does while it holds the court comes in [402](402-court-rank.md), era successors and the incumbent in
+card does while it holds the court comes in [413](413-court-rank.md), era successors and the incumbent in
 [403](403-claimant-eras.md), the real claimants in [404](404-claimant-content.md).
 
 Builds on 384.
@@ -47,15 +47,15 @@ start and lasting 3 turns.
   `copy()` keeps the dealt claimants, their support and the court (the suite's copy check).
 
 ## Out of scope
-- What a court card does (its passive, its rank): 402. Era successors, the incumbent's guaranteed place and keeping rank:
+- What a court card does (its passive, its rank): 413. Era successors, the incumbent's guaranteed place and keeping rank:
   403. The real claimants and their numbers: 404.
 - A revolution's head start (backing one before the fall); a later item if wanted.
 
 ## Design notes
 - New card type `CardDef.CLAIMANT := "claimant"`; new field `faction` (`DataLoader.TYPE_FIELDS`, follow the
   `add-card-field` skill) and `era` extended to claimants. A claimant's play effects are its boon; its upkeep effects and
-  modifiers are its court passive (402), so they must not count anywhere until then.
-- Config `unrest.court`: `{"claimants": [ids], "dealt": 3}` (402 adds `rank_turns`, `max_rank`).
+  modifiers are its court passive (413), so they must not count anywhere until then.
+- Config `unrest.court`: `{"claimants": [ids], "dealt": 3}` (413 adds `rank_turns`, `max_rank`).
 - New zones `claimants` (dealt, face-up) and `court` (one card). The pool isn't a zone: it is the configured claimants
   not dealt and not in the court, so nothing goes stale between Anarchies. Dealing uses the engine's seeded rng, one per
   faction (403 refines which of a faction's claimants).

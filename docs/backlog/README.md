@@ -83,7 +83,7 @@ Food and building upkeep (prioritised 2026-10-08, ahead of the claimants):
 Rival claimants (after 379, so the court's passive joins its breakdown; a `spike/rival-claimants` may come first):
 15. 400 the `strength` modifier (after 394)
 16. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
-17. 402 the court's passive, once per rank, rising every 10 turns
+17. 413 the court's passive, once per rank, rising every 10 turns
 18. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
 19. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
 

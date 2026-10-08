@@ -12,7 +12,7 @@ A faction's boon grows with the realm it fits (per city, per port, per learning 
 rank, so the claimant you back says how you mean to play. Also give the insight buildings a shared `learning` tag so
 research play has something to count.
 
-Builds on 400 (the `strength` modifier), 401, 402 and 403.
+Builds on 400 (the `strength` modifier), 401, 413 and 403.
 
 ## Acceptance criteria
 Content invariants on the real data (`tests/test_content.gd`); per-card numbers are under Manual check.
@@ -40,7 +40,7 @@ Content invariants on the real data (`tests/test_content.gd`); per-card numbers 
   A sixth (a Temple faction: unrest and VP) is a candidate if play shows the same three dealt too often.
 - `learning` goes on Scribal School, Library, House of Life, Stone Circle, the Great Library and the Oracle of Delphi
   (every building with an upkeep insight gain, so AC4 holds).
-- The first numbers (for review; the per-rank passive applies once per rank, 402):
+- The first numbers (for review; the per-rank passive applies once per rank, 413):
 
 | Faction | Era | Claimant | Boon when backed | In court, per rank |
 |---|---|---|---|---|
