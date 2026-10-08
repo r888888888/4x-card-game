@@ -2,7 +2,7 @@
 id: 414
 title: Irrigation Canals and Salt Pans boost the farms and huts on their own territory
 type: feature
-status: review
+status: done
 branch: feat/414-farms-here
 ---
 
