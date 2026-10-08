@@ -68,6 +68,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_event_eras.gd` | Event decks by era (074) |
 | `tests/test_event_modal.gd` | `event_drawn`, `outcome_summary`, and the drawn-event modal (079; UI) |
 | `tests/test_event_panel.gd` | The active events (in the Realm's row since 137; UI) |
+| `tests/test_event_preconditions.gd` | Event preconditions: `requires` on events, unmet events discarded unseen (416) |
 | `tests/test_event_sounds.gd` | Event sounds (191; UI) |
 | `tests/test_events.gd` | The event deck (039, 237) |
 | `tests/test_events_at_turn_start.gd` | When the turn's event is drawn (237) |

@@ -676,12 +676,12 @@
       "effects": [ { "op": "lose_pct", "resource": "food", "pct": 25 } ]
     },
     {
-      "id": "drought", "name": "Drought", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
+      "id": "drought", "name": "Drought", "type": "event", "tags": [], "requires": ["desert", "grassland"], "era": 2, "discard": { "turns": 2 },
       "flavor": "No rain since the spring sowing. The plains crack, and each day the herds walk farther to drink.",
       "effects": [ { "op": "lose_per_keyword", "resource": "food", "amount": 1, "keywords": ["desert", "grassland"], "trigger": "upkeep" } ]
     },
     {
-      "id": "silt_flood", "name": "Silt Flood", "type": "event", "tags": [], "era": 2,
+      "id": "silt_flood", "name": "Silt Flood", "type": "event", "tags": [], "requires": ["flood_plain"], "era": 2,
       "flavor": "The river rises over its banks and, going, leaves behind a gift of black mud, thick and rich.",
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 2, "keywords": ["flood_plain"] } ]
     },
@@ -691,7 +691,7 @@
       "effects": [ { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "trigger": "upkeep" } ]
     },
     {
-      "id": "busy_harbours", "name": "Busy Harbours", "type": "event", "tags": [], "era": 2, "discard": { "turns": 2 },
+      "id": "busy_harbours", "name": "Busy Harbours", "type": "event", "tags": [], "requires": ["coastal"], "era": 2, "discard": { "turns": 2 },
       "flavor": "Sails crowd every bay, and the quays ring with a dozen languages, all of them haggling.",
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
@@ -737,7 +737,7 @@
       "effects": [ { "op": "lose_pct", "resource": "wealth", "pct": 30 } ]
     },
     {
-      "id": "storm_at_sea", "name": "Storm at Sea", "type": "event", "tags": [], "era": 3,
+      "id": "storm_at_sea", "name": "Storm at Sea", "type": "event", "tags": [], "requires": ["coastal"], "era": 3,
       "flavor": "Three days of gales, and the harbours fill with wreckage instead of cargo.",
       "effects": [ { "op": "lose_per_keyword", "resource": "wealth", "amount": 2, "keywords": ["coastal"] } ]
     },
@@ -790,17 +790,17 @@
       "effects": [ { "op": "gain", "resource": "food", "amount": 1 } ]
     },
     {
-      "id": "tuna_run", "name": "Tuna Run", "type": "event", "tags": [], "discard": { "turns": 2 },
+      "id": "tuna_run", "name": "Tuna Run", "type": "event", "tags": [], "requires": ["coastal"], "discard": { "turns": 2 },
       "flavor": "In early summer the tuna run along the coast in shoals so thick the water seems to boil, and every boat goes out.",
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["coastal"], "trigger": "upkeep" } ]
     },
     {
-      "id": "beached_whale", "name": "Beached Whale", "type": "event", "tags": [],
+      "id": "beached_whale", "name": "Beached Whale", "type": "event", "tags": [], "requires": ["coastal"],
       "flavor": "A whale lies stranded on the sand at dawn. By noon the whole town is there with knives and baskets, and nobody asks whose it is.",
       "effects": [ { "op": "gain_per_keyword", "resource": "food", "amount": 2, "keywords": ["coastal"] } ]
     },
     {
-      "id": "shipwreck_salvage", "name": "Shipwreck Salvage", "type": "event", "tags": [],
+      "id": "shipwreck_salvage", "name": "Shipwreck Salvage", "type": "event", "tags": [], "requires": ["coastal"],
       "flavor": "A foreign ship breaks up on the reef in the night. By morning its amphorae, timber and rope lie along the shore.",
       "effects": [ { "op": "gain_per_keyword", "resource": "wealth", "amount": 2, "keywords": ["coastal"] } ]
     },

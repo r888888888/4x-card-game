@@ -95,6 +95,9 @@ static func _event(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[Str
 		errs.append("vp: an event can't score VP")
 	def.discard_turns = _discard(c.get("discard", {}), errs)
 	def.has_discard = c.has("discard")
+	def.requires = _requires(c, ctx, errs)
+	if is_raid(c) and c.has("requires"):
+		errs.append("requires: a raid can't have 'requires' (its raid targets say where it can strike)")
 	if c.has("raid"):
 		def.raid = _raid(c.raid, ctx.keywords, errs)
 		if def.has_discard:
@@ -113,7 +116,7 @@ static func _civilization(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Ar
 		def.discounts = _discounts(c.discounts, ctx.resources, errs)
 
 
-## A building's (or unit's) requires: known keyword ids.
+## A building's, event's (416) or unit's requires: known keyword ids.
 static func _requires(c: Dictionary, ctx: Dictionary, errs: Array[String]) -> Array[String]:
 	var out: Array[String] = []
 	var requires: Variant = c.get("requires", [])

@@ -250,6 +250,22 @@ func test_real_era_1_events_harm_only_by_unrest() -> void:
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
 
+## Backlog 416: an event whose effects all count territory keywords would do nothing without them, so it requires at
+## least one of them and is never the turn's event in a realm that has none.
+func test_real_events_that_only_count_keywords_require_them() -> void:
+	var r := load_real()
+	var missing: Array[String] = []
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		if def.effects.is_empty() or not def.effects.all(func(f): return f.op in ["gain_per_keyword", "lose_per_keyword"]):
+			continue
+		for effect in def.effects:
+			for k in effect.get("keywords"):
+				if not def.requires.has(k):
+					missing.append("%s: %s" % [id, k])
+	eq(missing, [] as Array[String], "keyword events missing a requires")
+
+
 # --- Era-1 unrest cap (backlog 267) ---
 
 ## The most unrest the event def can add (267): its play gains, plus its upkeep gains times its turns, plus for a raid
