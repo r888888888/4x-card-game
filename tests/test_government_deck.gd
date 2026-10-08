@@ -106,7 +106,7 @@ func test_a_chosen_government_resolves_its_play_effects_without_paying() -> void
 	check(e.choose_government(uid_of(e.zone("governments"), "kingdom")), "choose Kingdom")
 	eq(e.resources.wealth, wealth + 1, "Kingdom's play +1 wealth")
 	eq(e.resources.food, food + 3, "its 2 food cost isn't paid; the next turn's upkeep: Capital +2, Kingdom +1 (155)")
-	eq(e.resources.get("unrest"), 6, "no limit: unrest unchanged")
+	eq(e.resources.get("unrest"), 0, "unrest 0, limit or none (384)")
 
 
 # --- AC5: errors ---

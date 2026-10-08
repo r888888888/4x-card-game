@@ -2,7 +2,7 @@
 id: 384
 title: Interregnum - Anarchy lasts a fixed 3 turns
 type: feature
-status: red-review
+status: in-progress
 branch: feat/384-simpler-anarchy
 ---
 

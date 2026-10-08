@@ -23,8 +23,8 @@ func with_choice_coming(calm: bool, body: Callable) -> void:
 		e.resources["unrest"] = 5
 		e.end_turn()  # Anarchy
 		e.create_card("kings", "discard", null)
-		for i in 3:
-			e.end_turn()
+		for i in 2:
+			e.end_turn()  # 1 of Anarchy's 3 turns left (384)
 		await wait_frames()
 		check(e.pending().get("kind", "") != GameEngine.PENDING_GOVERNMENT, "precondition: no choice yet")
 		await body.call(main, e)

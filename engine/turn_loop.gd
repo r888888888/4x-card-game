@@ -151,7 +151,7 @@ static func start_turn(e: GameEngine) -> void:
 
 
 ## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
-## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and drain and the raids
+## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and the raids
 ## that strike; not the draw, the renewal or the new event. {} on the last turn or after game over.
 static func forecast(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
@@ -190,7 +190,7 @@ static func _begin(e: GameEngine) -> void:
 
 
 ## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, era unlocks and
-## Anarchy's fall and drain. Returns the pop feeding starved.
+## Anarchy's fall. Returns the pop feeding starved.
 static func _settle_in(e: GameEngine) -> int:
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
@@ -201,7 +201,6 @@ static func _settle_in(e: GameEngine) -> int:
 		starved = pop - e.total_pop()
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
-	Anarchy.drain(e)
 	return starved
 
 

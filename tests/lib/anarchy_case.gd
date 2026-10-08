@@ -32,8 +32,7 @@ const DEAR := {"id": "dear", "name": "Dear", "type": "event",
 	"choices": [{"cost": {"wealth": 50}, "effects": [{"op": "score", "amount": 5}]},
 		{"effects": [{"op": "gain", "resource": "unrest", "amount": 1}]}]}
 const CHOICE_EVENTS := [ENVOYS, BOONS, TWINS, DEAR]
-const UNREST_BLOCK := {"anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 3, "max_counters": 4,
-	"allowed_tag": "order"}  # red phase (384): max_counters and allowed_tag go in green, so today's loader still loads
+const UNREST_BLOCK := {"anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 3}
 const POP := {"start": 6, "food_upkeep": 0, "vp_per_pop": 0, "famine": FAMINE}
 const ONLY_ACTIONS := "Anarchy: only action cards can be played."
 const NOTHING_BUILT := "Anarchy: nothing can be grown, bought or researched."

@@ -6,7 +6,7 @@ extends RefCounted
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
 const METRICS: Array[String] = ["score", "settlements", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
-	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "deck_end", "lookahead_turns", "raids",
+	"gov_changes", "famine_turns", "trashed", "deck_end", "lookahead_turns", "raids",
 	"raids_repelled", "raid_strength_max", "raid_pop_lost", "raid_units_lost", "raid_food_lost", "raid_wealth_lost"]
 ## How long a parallel run's worker may go without finishing a turn before it is stopped and the run fails (318).
 ## SIM_STALL_SEC overrides it (stall_sec_from_env).
@@ -22,7 +22,7 @@ const JOBS_FILE := "jobs.json"
 ## the turn it ran out, or the last turn played if it never did. For each era with techs in the research deck (143),
 ## era_<n>_open is the turn it was added (1 for era 1) and era_<n>_done the turn its last tech was researched; either
 ## is the last turn played when it never happened. The Anarchy metrics (158): anarchies (times it began), revolts,
-## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
+## gov_changes (times the ruling
 ## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
 ## trashed by the end), deck_end (the cards in the deck, hand and discard at the end, 376), and <id>_turns per government (see _governments): turns that started with it ruling.
 ## lookahead_turns (294) is the turns the bot's rollouts played (GenericBot.lookahead_turns). The raid metrics (375)
@@ -80,7 +80,7 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 			var learned := engine.zone("researched").cards.filter(func(c): return c.def.era == n).size()
 			if not seen.has("era_%d_done" % n) and learned >= era_techs[n]:
 				seen["era_%d_done" % n] = engine.turn
-	var tally := {"anarchies": 0, "revolts": 0, "anarchy_turns": 0, "restored": 0, "gov_changes": 0, "famine_turns": 0}
+	var tally := {"anarchies": 0, "revolts": 0, "gov_changes": 0, "famine_turns": 0}
 	for id in _governments(cards, config):
 		tally["%s_turns" % id] = 0
 	var last := {"turn": 0, "anarchy": false, "government": config.starting.get("government", "")}
@@ -99,18 +99,15 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 			last.turn = engine.turn
 			if on_turn.is_valid():
 				on_turn.call(engine.turn)
-			tally.anarchy_turns += 1 if in_anarchy else 0
 			tally.famine_turns += 1 if engine.famine_counters() > 0 else 0
 			if tally.has("%s_turns" % ruling):
 				tally["%s_turns" % ruling] += 1
 	var on_revolted := func(): tally.revolts += 1
 	var raids: Array[Dictionary] = []
 	var on_raid := func(outcome: Dictionary): raids.append(outcome)
-	var on_restored := func(): tally.restored += 1
 	engine.changed.connect(on_changed)
 	engine.changed.connect(on_state)
 	engine.revolted.connect(on_revolted)
-	engine.order_restored.connect(on_restored)
 	engine.raid_resolved.connect(on_raid)
 	on_changed.call()  # an empty territory deck from the start, era 1 open
 	on_state.call()  # turn 1 as it started
@@ -119,7 +116,6 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 	engine.changed.disconnect(on_changed)  # the callables hold engine: break the cycle so it is freed
 	engine.changed.disconnect(on_state)
 	engine.revolted.disconnect(on_revolted)
-	engine.order_restored.disconnect(on_restored)
 	engine.raid_resolved.disconnect(on_raid)
 	var game := game_metrics(engine, config)
 	game.merge(tally)

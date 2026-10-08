@@ -36,11 +36,11 @@ func government() -> int:
 	return gov.cards[0].uid if not gov.is_empty() else -1
 
 
-## Counters on active event uid: the Famine's (083) or Anarchy's left (253); 0 for any other event or uid. The event panel shows them in
-## place of turns left.
+## Counters on active event uid: the Famine's (083) or Anarchy's turns left (253, 384); 0 for any other event or uid. The
+## event panel shows them in place of turns left.
 func event_counters(uid: int) -> int:
 	var anarchy := Anarchy.active(self)
-	return Anarchy.counters_left(self) if anarchy != null and anarchy.uid == uid else Famine.counters_on(self, uid)
+	return anarchy.counters if anarchy != null and anarchy.uid == uid else Famine.counters_on(self, uid)
 
 
 ## The active Famine's counters (083), or 0 with no Famine.
@@ -99,9 +99,8 @@ func era() -> int:
 
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
-## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
-## includes the drain on the stores after upkeep and feeding (156); a declared revolution's government has fallen
-## first (332). {} on the last turn or after game over.
+## "starve": the pop that food shortfall would starve, after famine guards. A declared revolution's government has
+## fallen first (332). {} on the last turn or after game over.
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
@@ -118,18 +117,11 @@ func upkeep_forecast() -> Dictionary:
 	if population_on():
 		Population.feed(f)
 	forecast.starve = pop_before - f.total_pop()
-	if Anarchy.rules_next_turn(self):
-		var stores := {}
-		for r in [FOOD, WEALTH]:
-			stores[r] = resources.get(r, 0) + forecast.get(r, 0)
-		var lost := Anarchy.drain_of(self, stores)
-		for r in lost:
-			forecast[r] -= lost[r]
 	return forecast
 
 
 ## What starting the next turn would change (309): {score, pop, starve, resource: change} after upkeep, feeding, era
-## unlocks, Anarchy's fall and drain and the raids that strike; not the cards drawn or the new event. Unlike
+## unlocks, Anarchy's fall and the raids that strike; not the cards drawn or the new event. Unlike
 ## upkeep_forecast it counts score and raids, and food can't go below what is held. {} on the last turn or after game
 ## over. Plays on a fork: nothing here changes, is logged or emitted.
 func turn_forecast() -> Dictionary:
@@ -244,23 +236,6 @@ func anarchy_id() -> String:
 func anarchy() -> int:
 	var card := Anarchy.active(self)
 	return card.uid if card != null else -1
-
-
-## What restore_order pays (155): c × (c + 1) wealth for c counters left ({resource: amount}), {} without Anarchy.
-func order_relief() -> Dictionary:
-	return Anarchy.relief(self)
-
-
-## The counters left on the ruling Anarchy (155): one comes off at the end of each of its turns, and calming lowers
-## them for good; never below 1 while it rules, 0 without Anarchy.
-func anarchy_counters() -> int:
-	return Anarchy.counters_left(self)
-
-
-## The counters a revolution declared now would bring (155): ⌈max_counters × unrest ÷ unrest_limit()⌉, between 1 and
-## max_counters; 0 when revolt_error says no.
-func revolt_forecast() -> int:
-	return Anarchy.revolt_forecast(self)
 
 
 ## Whether unrest has reached a limit (144); false with no limit.

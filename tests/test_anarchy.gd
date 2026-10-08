@@ -223,8 +223,14 @@ func test_the_board_has_no_restore_order_button() -> void:
 
 # --- 384 AC5: no drain ---
 
+## A game where nothing changes food or wealth at upkeep: no Capital (⟳ +2 food) on the tableau, no food upkeep.
+func still_stores_engine() -> GameEngine:
+	return anarchy_engine({"drain_pct": 20}, {"starting": {"resources": {"food": 10, "wealth": 10, "insight": 10},
+		"tableau": [], "territory": "homeland", "government": "chiefs"}})
+
+
 func test_anarchy_eats_no_stores_even_with_a_retired_drain_pct() -> void:
-	var e := anarchy_engine({"drain_pct": 20})
+	var e := still_stores_engine()
 	e.resources["unrest"] = 5
 	e.end_turn()
 	check(e.anarchy() != -1, "precondition: Anarchy rules")
@@ -236,7 +242,7 @@ func test_anarchy_eats_no_stores_even_with_a_retired_drain_pct() -> void:
 
 
 func test_a_pending_revolution_forecasts_no_drain() -> void:
-	var e := anarchy_engine({"drain_pct": 20})
+	var e := still_stores_engine()
 	e.resources["unrest"] = 2
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	eq([e.upkeep_forecast().get("food", 0), e.upkeep_forecast().get("wealth", 0)], [0, 0], "upkeep_forecast: no loss")

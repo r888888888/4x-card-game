@@ -9,6 +9,7 @@ extends "res://tests/lib/anarchy_case.gd"
 
 func test_anarchy_lasts_3_turns_counting_down_its_counters() -> void:
 	var e := fallen_engine()
+	e.create_card("kings", "discard", null)  # into the government deck (154)
 	var anarchy := e.anarchy()
 	for row in [[2, 3], [3, 2], [4, 1]]:
 		eq([e.turn, e.anarchy() != -1, e.event_counters(anarchy)], [row[0], true, row[1]], "turn %d" % row[0])

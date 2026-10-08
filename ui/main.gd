@@ -50,7 +50,6 @@ var board: Control  # the top bar and the play area
 var top_bar: TopBar  # the turn plate, the resource counters and the bar's keys (177, 201)
 var menu: GameMenu  # the game menu, from the Menu key or Esc (067)
 var relief: ActionButton  # below the Realm while a Famine can be relieved
-var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
 var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
 var game_over: GameOverOverlay  # the end of the game's sheet (045)
 var news: TurnNews  # the turn start's event and raid, shown by the next _refresh (079, 271)
@@ -259,7 +258,6 @@ func _refresh() -> void:
 	renewal_modal.refresh(e)
 	log_drawer.refresh(e)
 	relief.refresh(e)
-	restore.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	knowledge.refresh(e)
@@ -287,7 +285,6 @@ func _build_layout() -> void:
 	top_bar = layout.top_bar
 	play_area = layout.play_area
 	relief = layout.relief
-	restore = layout.restore
 	menu = layout.menu
 	menu.closed_giving_back.connect(_on_menu_closed)
 	era_sheet.closed.connect(func(): if board.visible: _refresh())
