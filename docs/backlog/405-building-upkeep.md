@@ -2,7 +2,7 @@
 id: 405
 title: Buildings cost wealth upkeep - a shortfall adds unrest
 type: feature
-status: ready
+status: red-review
 branch: feat/405-building-upkeep
 ---
 
@@ -58,9 +58,18 @@ Fixtures: `TEST_CARDS` buildings with no upkeep effects (Hut, Shed), one with ‚ü
 - PLAN.md: the Resources row, turn loop step 1 and the Population section get the new step.
 
 ## Test plan
+All in `tests/test_building_upkeep.gd` unless named.
+
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_each_working_building_pays_the_default_upkeep_in_wealth` |
+| AC2 | `test_a_cards_own_upkeep_replaces_the_default` |
+| AC3 | `test_upgrades_projects_idle_buildings_and_the_capital_pay_nothing`, `test_without_building_upkeep_in_the_config_nothing_pays` |
+| AC4 | `test_upkeep_production_pays_before_the_buildings_upkeep` |
+| AC5 | `test_an_upkeep_shortfall_adds_the_unpaid_wealth_as_unrest`, `test_shortfall_unrest_stops_at_the_limit` |
+| AC6 | `test_the_forecast_includes_the_buildings_upkeep`, `test_the_forecast_includes_a_shortfalls_unrest` |
+| AC7 | `test_the_config_resolves_each_base_buildings_upkeep`, `test_bad_upkeep_fields_are_load_errors`, `test_a_bad_building_upkeep_in_the_config_is_a_load_error`, `test_data_loader::test_every_int_field_on_every_type_has_its_minimum_and_default` (an `upkeep` row) |
+| AC8 | `test_a_paying_buildings_text_ends_with_its_upkeep_line`, `test_buildings_that_pay_nothing_have_no_upkeep_line` |
 
 ## Manual check
 - [ ] The top bar's wealth forecast includes the buildings' upkeep. Build a second building and the "(+n)" drops by 1.
@@ -68,3 +77,7 @@ Fixtures: `TEST_CARDS` buildings with no upkeep effects (Hut, Shed), one with ‚ü
 - [ ] Run broke with buildings: the turn's log shows the shortfall and the unrest forecast shows it a turn ahead.
 
 ## Log
+- 2026-10-08: red tests written. Resolved at red: a card's own `upkeep` pays even with no `building_upkeep` in the
+  config (AC3's "rules off" is the config default); `upkeep` on a non-building is the usual loader warning ("only
+  applies to buildings (ignored)"), not an error; a building's `upkeep` reads -1 (the config's) until `parse_config`
+  resolves it.

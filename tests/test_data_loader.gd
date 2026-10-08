@@ -89,14 +89,15 @@ const BASE_FIELDS := {
 	CardDef.CIVILIZATION: {}, CardDef.GOVERNMENT: {},
 }
 ## Each integer per-type field on each type it applies to: [field, type, minimum, default], the default "missing" when
-## the field is required and "slots + 2" for a territory's housing (BASE_FIELDS' territory has 1 slot: 3).
+## the field is required and "slots + 2" for a territory's housing (BASE_FIELDS' territory has 1 slot: 3). A building's
+## upkeep is -1 (the config's building_upkeep) until parse_config resolves it (405).
 const INT_FIELD_CASES := [
 	["slots", CardDef.TERRITORY, 0, "missing"], ["slots", CardDef.CITY, 0, 0],
 	["housing", CardDef.TERRITORY, 1, 3], ["housing", CardDef.BUILDING, 1, 0],
 	["famine_guard", CardDef.BUILDING, 1, 0],
 	["strength", CardDef.UNIT, 1, "missing"],
 	["defense", CardDef.BUILDING, 1, 0], ["defense", CardDef.CITY, 1, 0],
-	["training", CardDef.BUILDING, 1, 0],
+	["training", CardDef.BUILDING, 1, 0], ["upkeep", CardDef.BUILDING, 0, -1],
 	["era", CardDef.TECH, 1, 1], ["era", CardDef.EVENT, 1, 1],
 	["actions", CardDef.GOVERNMENT, 1, 0], ["unrest_limit", CardDef.GOVERNMENT, 1, 0],
 	["administers", CardDef.GOVERNMENT, 1, 0],
