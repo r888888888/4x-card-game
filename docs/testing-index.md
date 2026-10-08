@@ -82,7 +82,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_gain_actions.gd` | The `gain_actions` op (128) |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081) |
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
-| `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367) |
+| `tests/test_gain_per_tag.gd` | The `gain_per_tag` op's `per`, and played (367); its `"where": "here"` count (414) |
 | `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork` |
 | `tests/test_generic_bot.gd` | The generic bot (313) on fixtures; expansion (321); renewal (373, 385); deck (376) |
 | `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315) |

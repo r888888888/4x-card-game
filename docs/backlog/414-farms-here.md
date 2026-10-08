@@ -2,7 +2,7 @@
 id: 414
 title: Irrigation Canals and Salt Pans boost the farms and huts on their own territory
 type: feature
-status: in-progress
+status: review
 branch: feat/414-farms-here
 ---
 
@@ -18,20 +18,20 @@ Fixtures: `TEST_CARDS` Farm (tag `farm`, ⟳ +1 food), Canal (a building tagged 
 `{"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "where": "here", "trigger": "upkeep"}`, no
 other effect) and Fat Plough (an upgrade of Farm tagged `farm`). Population on, no food upkeep.
 
-- [ ] AC1 (counts its own territory): Given Homeland with 3 pop holding a Farm, a Farm and a Canal, all working, and
+- [x] AC1 (counts its own territory): Given Homeland with 3 pop holding a Farm, a Farm and a Canal, all working, and
   Grassland holding a working Farm, when upkeep runs, then the Canal makes 2 food (the two other farms on Homeland: not
   itself, not Grassland's Farm), and food rises by 2 + 3 (the three Farms) + the Capital's.
-- [ ] AC2 (only working base buildings count): Given Homeland with 2 pop holding a Canal, a Farm and a second Farm
+- [x] AC2 (only working base buildings count): Given Homeland with 2 pop holding a Canal, a Farm and a second Farm
   that is idle (no worker), and a Fat Plough on the working Farm, when upkeep runs, then the Canal makes 1 food: an
   idle building and an upgrade don't count. With the Canal itself idle, it makes nothing.
-- [ ] AC3 (the forecast): In AC1's setup, `upkeep_breakdown("food")` has a Canal row of +2 before upkeep, and
+- [x] AC3 (the forecast): In AC1's setup, `upkeep_breakdown("food")` has a Canal row of +2 before upkeep, and
   `upkeep_forecast()` matches what upkeep then does.
-- [ ] AC4 (the loader): `where` on `gain_per_tag` is optional and, when given, must be `"here"`; any other value is a
+- [x] AC4 (the loader): `where` on `gain_per_tag` is optional and, when given, must be `"here"`; any other value is a
   load error naming the card and the field. `"where": "here"` with a `zone` other than the tableau, or on a card that
   isn't a building, is a load error.
-- [ ] AC5 (card text): The Canal's effect reads "+1 food per other farm here" on its face and "+1 food per other farm
+- [x] AC5 (card text): The Canal's effect reads "+1 food per other farm here" on its face and "+1 food per other farm
   card on its territory" in its details. A `gain_per_tag` without `where` reads as today.
-- [ ] AC6 (real data): Every `gain_per_tag` with `"where": "here"` counts a tag that some other base building carries,
+- [x] AC6 (real data): Every `gain_per_tag` with `"where": "here"` counts a tag that some other base building carries,
   and some territory a game can hold meets both buildings' `requires`.
 
 ## Out of scope
@@ -81,3 +81,8 @@ In `tests/test_gain_per_tag.gd` unless named.
   its upkeep). `upgrade_on` moved from `test_building_upkeep.gd` to `tests/lib/test_case.gd`, since these tests use it
   too. A here count on a tech is refused by the existing own-territory check (`needs_own_territory`); one on an action
   (or a city or civilization) gets a new error.
+- 2026-10-08: green. `GainPerTagEffect` reads `where`; a here count uses `needs_own_territory` (so techs, events,
+  governments and units refuse it) and a new `Effect.type_problem(type)` hook, which `DataLoader._effect_problem`
+  asks last, for "only works on a building". One existing content test changed, approved in chat:
+  `test_every_gain_per_tag_tag_is_on_2_reachable_cards` exempts here counts (`fishing` is on Fishing Huts alone; a
+  here count counts copies on one territory, which AC6's test checks).

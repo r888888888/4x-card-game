@@ -156,7 +156,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
   `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
 - `gain_per_tag` gains `amount` per card with `tag` in `zone` (default `tableau`); with `per` (367, default 1) it gains
-  `amount` × ⌊tagged ÷ `per`⌋, text "+1 insight per 2 port".
+  `amount` × ⌊tagged ÷ `per`⌋, text "+1 insight per 2 port". With `"where": "here"` (414; buildings only, no `zone`) it
+  counts the other working base buildings with the tag on its own territory: "+1 food per other farm here".
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
 - Conditional or compound effects nest naturally, e.g. `{ "op": "if", "cond": {...}, "then": [...] }`.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
@@ -238,8 +239,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   make 1 more (Kiln, Brewery, Reed Works ⟳ +2; Weavers' Workshop, Olive Groves, Caravan Station, Shipyard, Mine ⟳ +2
   plus their keyword bonus; Dye Works ⟳ +3; Market ⟳ +1 and +1 per city). Food rises with a ⟳ +4 Farm: Fishing Huts
   ⟳ +3 (cost 3 wealth), Pasture +3, Hunters' Camp, Terraced Fields and Qanat +2, Ploughed Fields +2. Irrigation Canals
-  (Irrigation; fresh water; 1 food + 3 wealth; ⟳ +3 food, +1 on desert; housing 1) and Salt Pans (Pottery; coastal;
-  3 wealth; ⟳ +2 food, +1 wealth) are buildings of their own, no longer upgrades, so a territory can specialise in food.
+  (Irrigation; fresh water; 1 food + 3 wealth; housing 1) and Salt Pans (Pottery; coastal; 3 wealth) are buildings of
+  their own, no longer upgrades, so a territory can specialise in food. Since 414 each feeds the others on its
+  territory: Irrigation Canals ⟳ +2 food (+1 on desert), +1 per other farm here; Salt Pans ⟳ +1 food, +1 wealth, +1
+  food per Fishing Huts here (Fishing Huts carry a `fishing` tag for it).
   Content tests: every base building pays upkeep and shows it, every wealth building makes its upkeep from flat gains,
   and every base building can stand on some territory.
 - Sea trade (367): Sailing hands out a Sea Trade (1 food: +2 wealth per port card; no city minimum, unlike Caravan),
